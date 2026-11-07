@@ -5,7 +5,7 @@ import { Registerable, registerComponentHelper } from "./utils";
 type AntdRateProps = Omit<React.ComponentProps<typeof Rate>, "tooltips"> & {
   tooltips?: { label: string }[];
   multiCharacter?: boolean;
-  symbols?: React.ReactElement;
+  symbols?: React.ReactElement<{ children?: React.ReactNode }>;
 };
 
 export function AntdRate(props: AntdRateProps) {

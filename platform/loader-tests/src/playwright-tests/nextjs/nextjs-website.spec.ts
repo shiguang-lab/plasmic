@@ -1,4 +1,4 @@
-import { LOADER_NEXTJS_VERSIONS_EXHAUSTIVE } from "../../env";
+import { LOADER_NEXTJS_VERSIONS } from "../../env";
 import { test } from "../../fixtures";
 import {
   NextJsContext,
@@ -12,7 +12,7 @@ import {
 } from "../helpers/website";
 import { makeEnvName } from "../setup-utils";
 
-for (const versions of LOADER_NEXTJS_VERSIONS_EXHAUSTIVE) {
+for (const versions of LOADER_NEXTJS_VERSIONS) {
   test.describe(`NextJS Website ${makeEnvName({
     type: "nextjs",
     ...versions,

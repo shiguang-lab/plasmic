@@ -1,0 +1,106 @@
+{
+  "checkpoint": "u21b",
+  "status": "rejected-pending-lifecycle-and-regression-fixes",
+  "scope": "Frozen integration of canonical selection, UIEnvironment/ViewAs/History/Undo owner, ContextFactory, native registry/hostless loading and completed Docs/Page/FrameInfo work. Does not contain later in-flight variant/Fiber/font/easy-leaf batches.",
+  "artifact": {
+    "path": "/tmp/plasmic-react19-20261105/renderer-react19-zustand-compiler-u21b",
+    "sourceHash": "6ec39aa43157755c73dfe8ba0be0dbfb723144bbd9e955a07ee256df17b4ed14",
+    "rendererHash": "52328873c84110f73bee29ff58b1b112f7416c13bab376ed67cbe3e18cb315ab",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 104836656,
+    "studioArtifactHash": "9abd6b09b9cefe939f6c9d76acc0f8a6b6506a5d701d16054c7f50e95f228dc5",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "sourceUnchangedThroughoutChecks": true,
+  "checks": {
+    "typecheck": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u21b-isolated-typecheck-2.log"
+    },
+    "reactCompiler": {
+      "passedTests": 13,
+      "log": "/tmp/plasmic-react19-20261105/u21b-isolated-compiler.log"
+    },
+    "buildAssetsArchive": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u21b-build-pipeline.log"
+    },
+    "fullStudio": {
+      "passedFiles": 578,
+      "failedFiles": 10,
+      "totalFiles": 588,
+      "passedTests": 4707,
+      "failedTests": 32,
+      "skippedTests": 4,
+      "totalTests": 4743,
+      "unhandledErrors": 13,
+      "log": "/tmp/plasmic-react19-20261105/u21b-full-studio.log",
+      "triage": "Missing native state test fixtures and async lifecycle errors require focused correction; not a passing suite."
+    }
+  },
+  "nativeGp": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/gp/list-open-u21b-gp-native.json",
+    "sha256": "60732f7943e764567f4563579ff8276f3bea5f58b855c62e9ce27b92fb7db5a4",
+    "rendererErrors": 1,
+    "previewErrors": 0,
+    "failure": "Page metadata attempted to read a disposed ModelSnapshots owner during functional replay teardown/reopen. Real lifecycle regression under investigation; no per-field fallback/suppression accepted.",
+    "functionalCases": 5,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "draftDialog": {
+      "enabled": true,
+      "opened": true,
+      "remoteActionClosed": true
+    },
+    "docs": {
+      "codegen": {
+        "dependencyModelsValidated": 50,
+        "editReachedSelectedStore": true,
+        "mode": "codegen",
+        "monacoMounted": true,
+        "persistedModelUnchanged": true,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      },
+      "loader": {
+        "dependencyModelsValidated": 50,
+        "editReachedSelectedStore": true,
+        "mode": "loader",
+        "monacoMounted": true,
+        "persistedModelUnchanged": true,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      },
+      "serializedModelUnchanged": true,
+      "harnessSha256": "164d4d701ff8843d105cf270c0d555fa764f13c2aa3f6a24e451aa2c7a95670d"
+    }
+  },
+  "performanceComparisons": "Paused; no speedup claim."
+}

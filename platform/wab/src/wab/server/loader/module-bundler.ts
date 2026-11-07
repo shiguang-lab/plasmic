@@ -96,7 +96,7 @@ export interface LoaderBundleOutput {
 }
 
 type BundleOpts = {
-  platform: "react" | "nextjs" | "gatsby" | "tanstack";
+  platform: "react" | "nextjs" | "tanstack";
   mode: "production" | "development";
   loaderVersion: number;
   browserOnly: boolean;
@@ -325,32 +325,6 @@ async function bundleModulesEsbuild(
               },
             }
           : undefined,
-        {
-          // Some of the pro-components like Table pulls in pro-form, which
-          // pulls in a lot of other antd components that we don't need yet.
-          // So we replace pro-form with stubs for now.
-          name: "remove-antd-pro-form",
-          setup(build) {
-            build.onResolve(
-              {
-                filter: /^@ant-design\/pro-form$/,
-              },
-              (args) => {
-                const newPath = path.join(
-                  dir,
-                  "node_modules",
-                  "ant-design-pro-form-stub",
-                  "dist",
-                  args.kind === "require-call" ? "index.js" : "index.esm.js",
-                );
-                return {
-                  path: newPath,
-                  external: false,
-                };
-              },
-            );
-          },
-        },
       ]),
     });
 
@@ -633,8 +607,7 @@ function deriveExternals(opts: BundleOpts) {
   }
   if (opts.platform === "nextjs") {
     external.push("next", "next/head", "next/link", "next/router");
-  } else if (opts.platform === "gatsby") {
-    external.push("gatsby");
+
   }
   return external;
 }
@@ -825,9 +798,8 @@ const fixAntdPathPlugin: EsbuildPlugin = {
   setup(build) {
     build.onLoad(
       {
-        // Only apply this for imports of antd from @plasmicpkgs/antd5 and
-        // @plasmicpkgs/plasmic-rich-components
-        filter: /.*\/@plasmicpkgs\/(antd5|plasmic-rich-components)\/.*\.js/,
+        // Only apply this to imports from @plasmicpkgs/antd5.
+        filter: /.*\/@plasmicpkgs\/antd5\/.*\.js/,
       },
       async (args) => {
         let contents = await fs.readFile(args.path, "utf8");

@@ -133,8 +133,8 @@ export const FullCodeEditor = React.forwardRef(
           // Add extra libs for the correct language.
           const langDefaults =
             language === "javascript"
-              ? monaco.languages.typescript.javascriptDefaults
-              : monaco.languages.typescript.typescriptDefaults;
+              ? monaco.typescript.javascriptDefaults
+              : monaco.typescript.typescriptDefaults;
 
           // Not sure why dataLanguage is typescript if schema,
           // but it was introduced in this CR:

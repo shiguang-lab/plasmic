@@ -3,7 +3,7 @@ import registerComponent, {
   CodeComponentMeta,
 } from "@plasmicapp/host/registerComponent";
 import { usePlasmicQueryData } from "@plasmicapp/query";
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 
 export interface GenericFetcherProps {
   children?: ReactNode;

@@ -1,5 +1,5 @@
 import { Button, ConfigProvider, Input, InputNumber, Space } from "antd";
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { AntdCheckbox } from "../../antd6/src/registerCheckbox";
 import { AntdDatePicker } from "../../antd6/src/registerDatePicker";
 import { AntdSelect } from "../../antd6/src/registerSelect";

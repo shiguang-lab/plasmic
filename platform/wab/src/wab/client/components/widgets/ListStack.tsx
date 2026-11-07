@@ -18,10 +18,11 @@ import {
 import { arrayRemove } from "@/wab/shared/collections";
 import { ensure } from "@/wab/shared/common";
 import L from "lodash";
-import { observable, runInAction } from "mobx";
-import { observer } from "mobx-react";
 import * as React from "react";
 import ResizeObserver from "resize-observer-polyfill";
+import { useStore } from "zustand";
+import { shallow } from "zustand/shallow";
+import { createStore, StoreApi } from "zustand/vanilla";
 
 const ListStackContext = React.createContext<ListStackContextValue | undefined>(
   undefined,
@@ -49,18 +50,16 @@ interface ListStackContextValue {
     opts: { space: number; minSpace?: number },
   ) => void;
 
-  /**
-   * Returns space that has been allocated to this ListSpace. Should
-   * be called in render()
-   */
-  getAllocatedSpace: (id: string) => number;
+  allocations: Pick<
+    StoreApi<Readonly<Record<string, number>>>,
+    "getState" | "getInitialState" | "subscribe"
+  >;
 }
 
 interface ListStackState {
   requests: Record<string, number>;
   minRequests: Record<string, number | undefined>;
   containers: HTMLElement[];
-  allocations: Record<string, number>;
 }
 
 function useListStackContext() {
@@ -145,8 +144,10 @@ export function ListStack(props: {
     requests: {},
     minRequests: {},
     containers: [],
-    allocations: observable.object<Record<string, number>>({}),
   });
+  const allocations = useConstant(() =>
+    createStore<Readonly<Record<string, number>>>(() => ({})),
+  );
   const sizeObserver = useConstant(
     () =>
       new ResizeObserver((entries) => {
@@ -168,79 +169,67 @@ export function ListStack(props: {
       return () => sizeObserver.unobserve(rootElt);
     }
     return undefined;
-  }, [rootRef.current, sizeObserver]);
+  }, [sizeObserver]);
 
-  const reallocateSpace = React.useCallback(
-    () =>
-      runInAction(() => {
-        if (!rootRef.current) {
-          return;
+  const reallocateSpace = React.useCallback(() => {
+    if (!rootRef.current) {
+      return;
+    }
+    const { requests, containers, minRequests } = stateRef.current;
+    const next: Record<string, number> = {};
+
+    const rootElt = rootRef.current;
+    const chromeHeight = getHeightExcept(rootElt, containers);
+    const rootHeight = rootElt.offsetHeight;
+    const totalAvailable = rootHeight - chromeHeight;
+    const totalRequested = L.sum(L.values(requests));
+    let stillAvailable = totalAvailable;
+
+    const setAllocation = (key: string, space: number) => {
+      next[key] = space;
+    };
+
+    if (totalRequested <= totalAvailable) {
+      // The happy path!  Everyone gets what they requested
+      for (const key of L.keys(requests)) {
+        setAllocation(key, requests[key]);
+      }
+    } else {
+      const numRequests = L.values(requests).filter((v) => v > 0).length;
+      if (numRequests === 0) {
+        return;
+      }
+      const fairSpace = Math.floor(stillAvailable / numRequests);
+
+      const toAllocate = L.keys(requests);
+      // First, give space away to requests that are smaller than fairSpace
+      for (const key of L.keys(requests)) {
+        const request = requests[key];
+        if (request <= fairSpace) {
+          setAllocation(key, request);
+          stillAvailable -= request;
+          arrayRemove(toAllocate, key);
         }
-        const { requests, containers, allocations, minRequests } =
-          stateRef.current;
+      }
 
-        const rootElt = rootRef.current;
-        const chromeHeight = getHeightExcept(rootElt, containers);
-        const rootHeight = rootElt.offsetHeight;
-        const totalAvailable = rootHeight - chromeHeight;
-        const totalRequested = L.sum(L.values(requests));
-        let stillAvailable = totalAvailable;
-
-        const setAllocation = (key: string, space: number) => {
-          if (allocations[key] !== space) {
-            allocations[key] = space;
-          }
-        };
-
-        if (totalRequested <= totalAvailable) {
-          // The happy path!  Everyone gets what they requested
-          for (const key of L.keys(requests)) {
-            setAllocation(key, requests[key]);
-          }
-        } else {
-          const numRequests = L.values(requests).filter((v) => v > 0).length;
-          if (numRequests === 0) {
-            return;
-          }
-          const fairSpace = Math.floor(stillAvailable / numRequests);
-
-          const toAllocate = L.keys(requests);
-          // First, give space away to requests that are smaller than fairSpace
-          for (const key of L.keys(requests)) {
-            const request = requests[key];
-            if (request <= fairSpace) {
-              setAllocation(key, request);
-              stillAvailable -= request;
-              arrayRemove(toAllocate, key);
-            }
-          }
-
-          // Reserve the minRequests
-          for (const key of toAllocate) {
-            if (minRequests[key] !== undefined) {
-              stillAvailable -= minRequests[key] as number;
-            }
-          }
-
-          const newFairSpace = Math.floor(stillAvailable / toAllocate.length);
-          for (const key of toAllocate) {
-            const newAllocation = (minRequests[key] ?? 0) + newFairSpace;
-            setAllocation(key, newAllocation);
-          }
+      // Reserve the minRequests
+      for (const key of toAllocate) {
+        if (minRequests[key] !== undefined) {
+          stillAvailable -= minRequests[key] as number;
         }
-        console.log("Allocated space", {
-          root: rootRef.current,
-          chromeHeight,
-          rootHeight,
-          totalAvailable,
-          totalRequested,
-          allocations: { ...allocations },
-          requests: { ...requests },
-          containers,
-        });
-      }),
-    [stateRef],
-  );
+      }
+
+      const newFairSpace = Math.floor(stillAvailable / toAllocate.length);
+      for (const key of toAllocate) {
+        const newAllocation = (minRequests[key] ?? 0) + newFairSpace;
+        setAllocation(key, newAllocation);
+      }
+    }
+    allocations.setState(
+      (previous) => (shallow(previous, next) ? previous : next),
+      true,
+    );
+  }, [allocations]);
 
   // Descendant ListSpaces will be registering / unregistering / requesting
   // space as they are updated.  We don't want to have to run the reallocation
@@ -253,16 +242,17 @@ export function ListStack(props: {
 
   const requestSpace = React.useCallback(
     (id: string, opts: { space: number; minSpace?: number }) => {
+      if (
+        stateRef.current.requests[id] === opts.space &&
+        stateRef.current.minRequests[id] === opts.minSpace
+      ) {
+        return;
+      }
       stateRef.current.requests[id] = opts.space;
       stateRef.current.minRequests[id] = opts.minSpace;
       delayedReallocateSpace();
-      return stateRef.current.allocations[id] ?? 0;
     },
     [stateRef, reallocateSpace, delayedReallocateSpace],
-  );
-  const getAllocatedSpace = React.useCallback(
-    (id: string) => stateRef.current.allocations[id] ?? 0,
-    [stateRef],
   );
   const registerContainer = React.useCallback(
     (id: string, container: HTMLElement) => {
@@ -276,7 +266,6 @@ export function ListStack(props: {
     (id: string, container: HTMLElement) => {
       arrayRemove(stateRef.current.containers, container);
       delete stateRef.current.requests[id];
-      delete stateRef.current.allocations[id];
       delete stateRef.current.minRequests[id];
       sizeObserver.unobserve(container);
       delayedReallocateSpace();
@@ -289,9 +278,9 @@ export function ListStack(props: {
       requestSpace,
       registerContainer,
       unregisterContainer,
-      getAllocatedSpace,
+      allocations,
     }),
-    [requestSpace, registerContainer, unregisterContainer, getAllocatedSpace],
+    [requestSpace, registerContainer, unregisterContainer, allocations],
   );
 
   return (
@@ -312,7 +301,7 @@ let __nextSpaceId = 0;
  * Descendant element that will get space allocated to it by the ancestor
  * ListStack.  Its children is a render prop that takes in the space allocated.
  */
-export const ListSpace = observer(function ListSpace(props: {
+export function ListSpace(props: {
   children: (opts: { height: number }) => React.ReactNode;
   space: number;
   minSpace?: number;
@@ -333,7 +322,7 @@ export const ListSpace = observer(function ListSpace(props: {
       return () => context.unregisterContainer(id, elt);
     }
     return undefined;
-  }, [ref, context, isDisplayed]);
+  }, [id, ref, context, isDisplayed]);
 
   React.useEffect(() => {
     if (isDisplayed) {
@@ -342,7 +331,7 @@ export const ListSpace = observer(function ListSpace(props: {
         minSpace: requestedMinSpace,
       });
     }
-  }, [id, isDisplayed, requestedSpace, requestedMinSpace]);
+  }, [id, context, isDisplayed, requestedSpace, requestedMinSpace]);
 
   // We keep track of the last space allocated to this container in lastSpaceRef.
   // That way, if this container becomes undisplayed (ancestor has display:none),
@@ -350,7 +339,7 @@ export const ListSpace = observer(function ListSpace(props: {
   // before the ListStack reallocates space again, thus avoiding a flash going
   // from 0 space to some space.
   const lastSpaceRef = React.useRef(0);
-  let allocatedSpace = context.getAllocatedSpace(id);
+  let allocatedSpace = useStore(context.allocations, (state) => state[id] ?? 0);
   if (allocatedSpace === 0 && requestedSpace > 0) {
     allocatedSpace = lastSpaceRef.current;
   }
@@ -366,4 +355,4 @@ export const ListSpace = observer(function ListSpace(props: {
       {props.children({ height: allocatedSpace })}
     </div>
   );
-});
+}

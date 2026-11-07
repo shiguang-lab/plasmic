@@ -1,19 +1,19 @@
 import CommentPost from "@/wab/client/components/comments/CommentPost";
 import { TplCommentThread } from "@/wab/client/components/comments/utils";
-import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { useI18n } from "@/wab/client/i18n";
 import { CheckCircleOutlined } from "@ant-design/icons";
 import { Flex, Tooltip } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
 
-export default observer(function RootComment({
+export default function RootComment({
   commentThread,
   showLocation = false,
 }: {
   commentThread: TplCommentThread;
   showLocation?: boolean;
 }) {
+  "use memo";
   const studioCtx = useStudioCtx();
   const { t } = useI18n();
   const [comment] = commentThread.comments;
@@ -24,7 +24,7 @@ export default observer(function RootComment({
       : commentThread.label;
   const label =
     showLocation && commentThread.subjectInfo
-      ? `${commentThread.subjectInfo.ownerComponent.name} · ${subjectLabel}`
+      ? `${commentThread.subjectInfo.ownerComponentName} · ${subjectLabel}`
       : subjectLabel;
 
   return (
@@ -54,4 +54,4 @@ export default observer(function RootComment({
       }}
     />
   );
-});
+}

@@ -36,7 +36,6 @@ import {
 } from "@/wab/shared/model/classes";
 import { smartHumanize } from "@/wab/shared/strs";
 import { omit } from "lodash";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 /**
@@ -88,7 +87,7 @@ interface ServerQueryParamRowProps {
   controlExtras: ControlExtras;
 }
 
-export const ServerQueryParamRow = observer(function ServerQueryParamRow(
+export function ServerQueryParamRow(
   props: ServerQueryParamRowProps,
 ) {
   const {
@@ -120,7 +119,7 @@ export const ServerQueryParamRow = observer(function ServerQueryParamRow(
       />
     </PropValueEditorContext.Provider>
   );
-});
+}
 
 /**
  * Get custom function parameter row items.

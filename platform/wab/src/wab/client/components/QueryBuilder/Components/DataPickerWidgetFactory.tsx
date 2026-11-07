@@ -1,5 +1,4 @@
 import ContextMenuIndicator from "@/wab/client/components/ContextMenuIndicator/ContextMenuIndicator";
-import "@/wab/client/components/QueryBuilder/QueryBuilder.scss";
 import DataPicker, {
   DataPickerTypesSchema,
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
@@ -20,13 +19,16 @@ import {
   CustomCode,
   ObjectPath,
   TemplatedString,
+  isKnownCustomCode,
+  isKnownObjectPath,
+  isKnownTemplatedString,
 } from "@/wab/shared/model/classes";
-import { WidgetProps } from "@react-awesome-query-builder/antd";
 import { Menu, Popover } from "antd";
 import * as React from "react";
 
 export interface DataPickerWidgetFactoryProps {
-  widgetProps: WidgetProps;
+  value: unknown;
+  disabled?: boolean;
   setValue: (expr: CustomCode | ObjectPath | null | undefined) => void;
   data: Record<string, any> | undefined;
   schema?: DataPickerTypesSchema;
@@ -38,8 +40,19 @@ export function mkUndefinedObjectPath() {
   return new ObjectPath({ path: ["undefined"], fallback: undefined });
 }
 
+function isDynamicQueryValue(
+  value: any,
+): value is ObjectPath | CustomCode | TemplatedString {
+  return (
+    isKnownObjectPath(value) ||
+    isKnownCustomCode(value) ||
+    isKnownTemplatedString(value)
+  );
+}
+
 export function DataPickerWidgetFactory({
-  widgetProps,
+  value,
+  disabled,
   setValue,
   data,
   schema,
@@ -49,16 +62,29 @@ export function DataPickerWidgetFactory({
   const [defaultOpenDataPicker, setDefaultOpenDataPicker] =
     React.useState(false);
   const switchToDynamicValue = React.useCallback(() => {
+    if (disabled) {
+      return;
+    }
     setDefaultOpenDataPicker(true);
     setValue(mkUndefinedObjectPath());
-  }, [setDefaultOpenDataPicker]);
+  }, [setDefaultOpenDataPicker, disabled, setValue]);
 
-  const { value } = widgetProps;
+  const isDynamicValue = isDynamicQueryValue(value);
 
-  const isDynamicValue =
-    value instanceof ObjectPath ||
-    value instanceof CustomCode ||
-    value instanceof TemplatedString;
+  if (disabled) {
+    return isDynamicValue ? (
+      <DynamicValueWidget
+        value={value}
+        setValue={setValue}
+        data={data}
+        schema={schema}
+        exprCtx={exprCtx}
+        disabled
+      />
+    ) : (
+      renderOriginalWidget()
+    );
+  }
 
   let contextMenu: React.ReactNode;
   let widget: React.ReactNode;
@@ -115,6 +141,7 @@ export function DataPickerWidgetFactory({
 }
 
 type DynamicValueWidgetProps = {
+  disabled?: boolean;
   value: ObjectPath | CustomCode | TemplatedString;
   data: Record<string, any> | undefined;
   schema?: DataPickerTypesSchema;
@@ -132,6 +159,7 @@ export function DynamicValueWidget({
   setValue,
   defaultOpenDataPicker,
   deleteIcon = true,
+  disabled = false,
   expectedValues,
   exprCtx,
 }: DynamicValueWidgetProps) {
@@ -153,7 +181,9 @@ export function DynamicValueWidget({
           onChange={(val) => {
             const newVal =
               val != null ? createExprForDataPickerValue(val) : val;
-            setValue(newVal);
+            if (!disabled) {
+              setValue(newVal);
+            }
             setPopoverVisible(false);
           }}
           onCancel={() => setPopoverVisible(false)}
@@ -162,9 +192,13 @@ export function DynamicValueWidget({
           expectedValues={expectedValues}
         />
       }
-      trigger="click"
-      open={popoverVisible}
-      onOpenChange={(_visible) => setPopoverVisible(_visible)}
+      trigger={disabled ? [] : "click"}
+      open={!disabled && popoverVisible}
+      onOpenChange={(_visible) => {
+        if (!disabled) {
+          setPopoverVisible(_visible);
+        }
+      }}
       destroyOnHidden={true}
       overlayClassName="data-picker-popover-overlay"
     >
@@ -181,7 +215,7 @@ export function DynamicValueWidget({
           {previewValue ?? studioUiT("unset")}
         </span>
 
-        {deleteIcon && (
+        {deleteIcon && !disabled && (
           <div className="inline-block">
             <IconLinkButton
               className={cx(["dropdown-pill__deleter", "ml-sm"])}

@@ -4,31 +4,30 @@ import Select from "@/wab/client/components/widgets/Select";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicVariantProp } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicVariantProp";
-import { isStandaloneVariantGroup } from "@/wab/shared/Variants";
-import { toVarName } from "@/wab/shared/codegen/util";
-import { serializeVariantGroupMembersType } from "@/wab/shared/codegen/variants";
-import { ensureArray } from "@/wab/shared/common";
-import { Variant, VariantGroup } from "@/wab/shared/model/classes";
+import { ensure, ensureArray } from "@/wab/shared/common";
+import { DocsVariantGroup } from "@/wab/client/components/docs/docs-model-projections";
+import { useDocsFocusedComponentRef } from "@/wab/client/components/docs/DocsModelResources";
 import { Tooltip } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
 
 interface VariantPropProps {
   docsCtx: DocsPortalCtx;
-  group: VariantGroup;
+  group: DocsVariantGroup;
 }
 
-const VariantProp = observer(function VariantProp(props: VariantPropProps) {
+function VariantProp(props: VariantPropProps) {
   const { t: uiT } = useI18n();
   const { docsCtx, group } = props;
-  const param = group.param;
-  const component = docsCtx.getFocusedComponent();
-  const name = toVarName(param.variable.name);
-  const value = ensureArray(
-    docsCtx.getComponentToggle(component, param),
-  ) as Variant[];
-  const tsType = typeString(group);
-  const isToggle = isStandaloneVariantGroup(group);
+  const componentRef = ensure(useDocsFocusedComponentRef(docsCtx), "Missing focused component");
+  const snapshots = docsCtx.models.snapshots;
+  const component = snapshots.resolve(componentRef);
+  const param = snapshots.resolve(group.param);
+  const name = group.name;
+  const selected = useStore(docsCtx.getComponentStore(component), (state) => state.toggles.get(param));
+  const value = group.options.filter((option) => ensureArray(selected).includes(snapshots.resolve(option.ref)));
+  const tsType = group.type;
+  const isToggle = group.isToggle;
   return (
     <PlasmicVariantProp
       label={name}
@@ -47,7 +46,7 @@ const VariantProp = observer(function VariantProp(props: VariantPropProps) {
                   docsCtx.setComponentToggle(
                     component,
                     param,
-                    group.variants[0],
+                    snapshots.resolve(ensure(group.options[0], "Toggle variant missing").ref),
                   );
                 } else {
                   docsCtx.setComponentToggle(component, param, undefined);
@@ -58,20 +57,20 @@ const VariantProp = observer(function VariantProp(props: VariantPropProps) {
           : undefined
       }
     >
-      {isStandaloneVariantGroup(group) ? null : group.multi ? (
+      {group.isToggle ? null : group.multi ? (
         <XMultiSelect
           className="flex-fill dropdown-container--bordered"
-          options={group.variants.filter((v) => !value.includes(v))}
+          options={group.options.filter((option) => !value.includes(option))}
           itemKey={(option) => (option ? option.uuid : "")}
           selectedItems={value}
           onSelect={(item) => {
-            docsCtx.setComponentToggle(component, param, [...value, item]);
+            docsCtx.setComponentToggle(component, param, [...value, item].map((option) => snapshots.resolve(option.ref)));
           }}
           onUnselect={(item) => {
             docsCtx.setComponentToggle(
               component,
               param,
-              value.filter((v) => v !== item),
+              value.filter((option) => option !== item).map((option) => snapshots.resolve(option.ref)),
             );
           }}
           filterOptions={(options, input) => {
@@ -96,8 +95,8 @@ const VariantProp = observer(function VariantProp(props: VariantPropProps) {
             if (key === "") {
               docsCtx.setComponentToggle(component, param, undefined);
             } else {
-              const selected = group.variants.find((v) => v.uuid === key);
-              docsCtx.setComponentToggle(component, param, selected);
+              const selectedOption = group.options.find((option) => option.uuid === key);
+              docsCtx.setComponentToggle(component, param, selectedOption && snapshots.resolve(selectedOption.ref));
             }
           }}
           placeholder={uiT("(Unset)")}
@@ -109,13 +108,13 @@ const VariantProp = observer(function VariantProp(props: VariantPropProps) {
                 <UiText message={"(Unset)"} />
               </em>
             </Select.Option>,
-            ...group.variants.map((variant) => (
+            ...group.options.map((variant) => (
               <Select.Option
                 key={variant.uuid}
                 value={variant.uuid}
-                textValue={toVarName(variant.name)}
+                textValue={variant.varName}
               >
-                {toVarName(variant.name)}
+                {variant.varName}
               </Select.Option>
             )),
           ]}
@@ -123,17 +122,6 @@ const VariantProp = observer(function VariantProp(props: VariantPropProps) {
       )}
     </PlasmicVariantProp>
   );
-});
-
-export function typeString(group: VariantGroup) {
-  const membersType = serializeVariantGroupMembersType(group);
-  if (isStandaloneVariantGroup(group)) {
-    return `boolean | ${membersType}`;
-  } else if (group.multi) {
-    return `Array<${membersType}> | Record<${membersType}, boolean>`;
-  } else {
-    return membersType;
-  }
 }
 
 export default VariantProp;

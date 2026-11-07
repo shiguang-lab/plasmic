@@ -1,5 +1,5 @@
 {
-  "version": "0.1.88",
+  "version": "0.2.0",
   "description": "Isomorphic, component-level data fetching for React, built on SWR, with server-side prefetching.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -36,7 +36,7 @@
     "analyze": "size-limit --why"
   },
   "peerDependencies": {
-    "react": ">=16.8.0"
+    "react": "^19.3.1"
   },
   "name": "@plasmicapp/query",
   "author": "Chung Wu",
@@ -49,10 +49,10 @@
   "devDependencies": {
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "dependencies": {
-    "swr": "^1.3.0"
+    "swr": "2.5.1"
   }
 }

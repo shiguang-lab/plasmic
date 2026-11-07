@@ -1,7 +1,8 @@
+import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
 import { Tooltip, Input, Checkbox, Table } from 'antd';
 import React from 'react';
-import { a as asArray, r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { a as asArray, r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -42,51 +43,62 @@ function TablePaginationControl({
     }
     updateValue(result);
   };
-  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" } }, /* @__PURE__ */ React.createElement(
-    Checkbox,
-    {
-      styles: checkboxStyles,
-      checked: value !== false,
-      onChange: (e) => updateValue(e.target.checked ? { ...options } : false)
-    },
-    "Show pagination"
-  ), value !== false && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Page size", " ", /* @__PURE__ */ React.createElement(
-    Input,
-    {
-      type: "number",
-      style: inputStyle,
-      "aria-label": "Page size",
-      min: 1,
-      step: 1,
-      value: options.pageSize ?? options.defaultPageSize ?? "",
-      placeholder: "10",
-      onChange: (e) => {
-        if (!e.target.validity.valid) {
-          return;
-        }
-        update(
-          options.pageSize !== void 0 ? "pageSize" : "defaultPageSize",
-          e.target.value === "" ? null : Number(e.target.value)
-        );
+  return /* @__PURE__ */ jsxs("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" }, children: [
+    /* @__PURE__ */ jsx(
+      Checkbox,
+      {
+        styles: checkboxStyles,
+        checked: value !== false,
+        onChange: (e) => updateValue(e.target.checked ? { ...options } : false),
+        children: "Show pagination"
       }
-    }
-  )), /* @__PURE__ */ React.createElement(
-    Checkbox,
-    {
-      styles: checkboxStyles,
-      checked: options.showSizeChanger ?? (options.total ?? componentProps?.data?.data?.length ?? 0) > 50,
-      onChange: (e) => update("showSizeChanger", e.target.checked)
-    },
-    "Show size changer"
-  ), /* @__PURE__ */ React.createElement(
-    Checkbox,
-    {
-      styles: checkboxStyles,
-      checked: options.showQuickJumper ?? false,
-      onChange: (e) => update("showQuickJumper", e.target.checked)
-    },
-    "Show quick jumper"
-  )));
+    ),
+    value !== false && /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsxs("label", { style: rowStyle, children: [
+        "Page size",
+        " ",
+        /* @__PURE__ */ jsx(
+          Input,
+          {
+            type: "number",
+            style: inputStyle,
+            "aria-label": "Page size",
+            min: 1,
+            step: 1,
+            value: options.pageSize ?? options.defaultPageSize ?? "",
+            placeholder: "10",
+            onChange: (e) => {
+              if (!e.target.validity.valid) {
+                return;
+              }
+              update(
+                options.pageSize !== void 0 ? "pageSize" : "defaultPageSize",
+                e.target.value === "" ? null : Number(e.target.value)
+              );
+            }
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsx(
+        Checkbox,
+        {
+          styles: checkboxStyles,
+          checked: options.showSizeChanger ?? (options.total ?? componentProps?.data?.data?.length ?? 0) > 50,
+          onChange: (e) => update("showSizeChanger", e.target.checked),
+          children: "Show size changer"
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Checkbox,
+        {
+          styles: checkboxStyles,
+          checked: options.showQuickJumper ?? false,
+          onChange: (e) => update("showQuickJumper", e.target.checked),
+          children: "Show quick jumper"
+        }
+      )
+    ] })
+  ] });
 }
 function TableScrollControl({
   value,
@@ -102,37 +114,46 @@ function TableScrollControl({
     }
     updateValue(result);
   };
-  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" } }, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, /* @__PURE__ */ React.createElement(Tooltip, { title: "Horizontal scroll width in pixels, a percentage, or max-content. Leave empty to fit the container without horizontal scrolling." }, /* @__PURE__ */ React.createElement("span", null, "x")), /* @__PURE__ */ React.createElement(
-    Input,
-    {
-      type: "text",
-      style: inputStyle,
-      "aria-label": "scroll.x",
-      value: options.x ?? "",
-      onChange: (e) => {
-        const text = e.target.value.trim();
-        update(
-          "x",
-          text && Number.isFinite(Number(text)) ? Number(text) : text
-        );
-      }
-    }
-  )), /* @__PURE__ */ React.createElement("label", { style: rowStyle }, /* @__PURE__ */ React.createElement(Tooltip, { title: "Table body height in pixels. Leave empty to grow with content." }, /* @__PURE__ */ React.createElement("span", null, "y")), /* @__PURE__ */ React.createElement(
-    Input,
-    {
-      type: "number",
-      style: inputStyle,
-      "aria-label": "scroll.y",
-      min: 1,
-      value: options.y ?? "",
-      onChange: (e) => {
-        if (!e.target.validity.valid) {
-          return;
+  return /* @__PURE__ */ jsxs("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" }, children: [
+    /* @__PURE__ */ jsxs("label", { style: rowStyle, children: [
+      /* @__PURE__ */ jsx(Tooltip, { title: "Horizontal scroll width in pixels, a percentage, or max-content. Leave empty to fit the container without horizontal scrolling.", children: /* @__PURE__ */ jsx("span", { children: "x" }) }),
+      /* @__PURE__ */ jsx(
+        Input,
+        {
+          type: "text",
+          style: inputStyle,
+          "aria-label": "scroll.x",
+          value: options.x ?? "",
+          onChange: (e) => {
+            const text = e.target.value.trim();
+            update(
+              "x",
+              text && Number.isFinite(Number(text)) ? Number(text) : text
+            );
+          }
         }
-        update("y", e.target.value === "" ? null : Number(e.target.value));
-      }
-    }
-  )));
+      )
+    ] }),
+    /* @__PURE__ */ jsxs("label", { style: rowStyle, children: [
+      /* @__PURE__ */ jsx(Tooltip, { title: "Table body height in pixels. Leave empty to grow with content.", children: /* @__PURE__ */ jsx("span", { children: "y" }) }),
+      /* @__PURE__ */ jsx(
+        Input,
+        {
+          type: "number",
+          style: inputStyle,
+          "aria-label": "scroll.y",
+          min: 1,
+          value: options.y ?? "",
+          onChange: (e) => {
+            if (!e.target.validity.valid) {
+              return;
+            }
+            update("y", e.target.value === "" ? null : Number(e.target.value));
+          }
+        }
+      )
+    ] })
+  ] });
 }
 
 function AntdColumn(props) {
@@ -159,7 +180,7 @@ function AntdColumn(props) {
 }
 const AntdColumnGroup = Object.assign(
   function AntdColumnGroup2(props) {
-    return /* @__PURE__ */ React.createElement(AntdColumn, { ...props });
+    return /* @__PURE__ */ jsx(AntdColumn, { ...props });
   },
   { __ANT_TABLE_COLUMN_GROUP: true }
 );
@@ -260,15 +281,15 @@ function TableWithColumns({
   ) && typeof children.props.children === "function") {
     const renderChildren = children.props.children;
     return React.cloneElement(children, {
-      children: (...args) => /* @__PURE__ */ React.createElement(
+      children: (...args) => /* @__PURE__ */ jsx(
         TableWithColumns,
         {
           ...props,
           components,
           contentEditing,
-          fullContentView
-        },
-        renderChildren(...args)
+          fullContentView,
+          children: renderChildren(...args)
+        }
       )
     });
   }
@@ -299,7 +320,7 @@ function TableWithColumns({
     return contentEditing ? expandColumns(visible) : visible;
   };
   if (columns !== void 0) {
-    return /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ jsx(
       Table,
       {
         ...props,
@@ -311,29 +332,32 @@ function TableWithColumns({
     );
   }
   const body = typeof components?.body === "object" ? components.body : void 0;
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, canvas && !canvas.interactive && /* @__PURE__ */ React.createElement("style", { "data-plasmic-editor-style": true }, "[data-plasmic-table-column-selected] { outline: 1px solid #1677ff; background: #e6f4ff !important; }"), /* @__PURE__ */ React.createElement(
-    Table,
-    {
-      ...props,
-      pagination,
-      "data-plasmic-canvas-part-scope": canvas && !canvas.interactive ? "true" : void 0,
-      columns: (() => {
-        const resolved = getColumns(
-          children,
-          body?.cell ?? "td",
-          components?.header?.cell ?? "th",
-          !!canvas && !canvas.interactive
-        );
-        return prepareColumns(resolved);
-      })(),
-      ...editingProps,
-      components: {
-        ...components,
-        header: { ...components?.header, cell: TableHeaderCell },
-        body: typeof components?.body === "function" ? components.body : { ...body, cell: TableBodyCell }
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    canvas && !canvas.interactive && /* @__PURE__ */ jsx("style", { "data-plasmic-editor-style": true, children: "[data-plasmic-table-column-selected] { outline: 1px solid #1677ff; background: #e6f4ff !important; }" }),
+    /* @__PURE__ */ jsx(
+      Table,
+      {
+        ...props,
+        pagination,
+        "data-plasmic-canvas-part-scope": canvas && !canvas.interactive ? "true" : void 0,
+        columns: (() => {
+          const resolved = getColumns(
+            children,
+            body?.cell ?? "td",
+            components?.header?.cell ?? "th",
+            !!canvas && !canvas.interactive
+          );
+          return prepareColumns(resolved);
+        })(),
+        ...editingProps,
+        components: {
+          ...components,
+          header: { ...components?.header, cell: TableHeaderCell },
+          body: typeof components?.body === "function" ? components.body : { ...body, cell: TableBodyCell }
+        }
       }
-    }
-  ));
+    )
+  ] });
 }
 const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
   const {
@@ -461,7 +485,7 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
       isControlled
     ]
   );
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     TableWithColumns,
     {
       loading: data?.isLoading,

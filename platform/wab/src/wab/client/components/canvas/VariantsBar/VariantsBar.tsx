@@ -1,3 +1,12 @@
+import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { useFrameHeights } from "@/wab/client/studio-ctx/frame-heights";
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useFocusedViewSelection, useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
+import { useStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
+import { useCanvasGeometry, useCanvasTransforming } from "@/wab/client/studio-ctx/viewport-state";
 import { getVisibleFrameRect } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import {
   getSpotlightDomInfo,
@@ -16,11 +25,6 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useSignalListener } from "@/wab/commons/components/use-signal-listener";
 import {
-  isDedicatedArena,
-  isMixedArena,
-  isPageArena,
-} from "@/wab/shared/Arenas";
-import {
   getAllVariantsForTpl,
   getDisplayVariants,
   isPrivateStyleVariant,
@@ -35,13 +39,13 @@ import { isTplTag } from "@/wab/shared/core/tpls";
 import { Box } from "@/wab/shared/geom";
 import { Variant, isKnownArenaFrame } from "@/wab/shared/model/classes";
 import { Dropdown } from "antd";
-import defer from "lodash/defer";
 import last from "lodash/lodash";
 import { observer } from "mobx-react";
 import React, {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -51,8 +55,13 @@ const CANVAS_PADDING = 15;
 const GUTTER = 7;
 
 function useFocusedVariants(viewCtx: ViewCtx) {
+  useViewSelection(viewCtx, (state) => state.tpls);
   const { studioCtx } = usePlasmicCtx();
+  const arenaKind = useStudioArena(studioCtx, (state) => state.kind);
+  useStudioArena(studioCtx, (state) => state.current);
+  useStudioArena(studioCtx, (state) => state.focusedMode);
 
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const variantsController = makeVariantsController(studioCtx, viewCtx);
   const canChangeVariants = variantsController?.canChangeActiveVariants();
   const activeVariants = variantsController?.getActiveNonBaseVariants() ?? [];
@@ -67,7 +76,7 @@ function useFocusedVariants(viewCtx: ViewCtx) {
     ? getDisplayVariants({
         site: studioCtx.site,
         frame,
-        isPageArena: isPageArena(studioCtx.currentArena),
+        isPageArena: arenaKind === "page",
         focusedTag: focusedTpl && isTplTag(focusedTpl) ? focusedTpl : undefined,
         includeAllPrivateStyleVariantsForFocusedTag: true,
       }).map((info) => info.variant)
@@ -120,7 +129,26 @@ function useFloatingBarForFocusedFrame({
   viewCtx: ViewCtx;
   contained?: boolean;
 }) {
+  useViewSelection(viewCtx, (state) => state.targets);
   const { studioCtx } = usePlasmicCtx();
+  const arenaKind = useStudioArena(studioCtx, (state) => state.kind);
+  const stackOfParents = useStudioOverlayState(studioCtx, (state) => state.stackOfParents);
+  const geometry = useCanvasGeometry(studioCtx);
+  const contentScope = useContentEditorScope(studioCtx);
+  const ownFrame = viewCtx.arenaFrame();
+  const controlled = studioCtx.hoverBoxControlledObj;
+  const heightFrames = isKnownArenaFrame(controlled) && controlled !== ownFrame ? [ownFrame, controlled] : [ownFrame];
+  const heights = useFrameHeights(studioCtx, contained ? [] : heightFrames);
+  const position = useMemo<{ task?: number; closed: boolean }>(() => ({ closed: false }), [viewCtx]);
+  useEffect(() => {
+    if (contained) { return; }
+    position.closed = false;
+    const cancel = () => { position.closed = true; if (position.task !== undefined) { window.cancelAnimationFrame(position.task); position.task = undefined; } };
+    viewCtx.disposeSignal.addEventListener("abort", cancel, { once: true });
+    if (viewCtx.disposeSignal.aborted) { cancel(); }
+    return () => { viewCtx.disposeSignal.removeEventListener("abort", cancel); cancel(); };
+  }, [viewCtx, position, contained]);
+
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [showPanel, setShowPanel] = useState(true);
 
@@ -140,7 +168,11 @@ function useFloatingBarForFocusedFrame({
   }, [viewCtx]);
 
   const updatePosition = useCallback(() => {
-    window.requestAnimationFrame(() => {
+    if (position.closed || viewCtx.disposeSignal.aborted) { return; }
+    if (position.task !== undefined) { window.cancelAnimationFrame(position.task); }
+    const task = window.requestAnimationFrame(() => {
+      if (position.task !== task || position.closed || viewCtx.disposeSignal.aborted) { return; }
+      position.task = undefined;
       if (!panelRef.current) {
         return;
       }
@@ -160,12 +192,12 @@ function useFloatingBarForFocusedFrame({
       const focusedElementRect = getFocusedElementRect(studioCtx);
       const hoverTagHeight =
         isKnownArenaFrame(controlledObj) &&
-        isDedicatedArena(studioCtx.currentArena)
+        (arenaKind === "component" || arenaKind === "page")
           ? 0
           : HOVER_TAG_HEIGHT; // TODO: dynamically measure
 
       const componentTopMargin =
-        (isMixedArena(studioCtx.currentArena)
+        (arenaKind === "mixed"
           ? HOVER_TAG_HEIGHT
           : focusedElementRect && focusedElementRect.height
             ? Math.max(
@@ -207,11 +239,15 @@ function useFloatingBarForFocusedFrame({
 
       setShowPanel(clipperBox.intersects(componentBox, true));
     });
+    position.task = task;
   }, [
+    position,
     viewCtx?.focusedSelectable(),
     getFocusedComponentRect,
     studioCtx,
     activeVariants.length,
+    arenaKind,
+    contentScope,
   ]);
 
   useEffect(() => {
@@ -234,13 +270,16 @@ function useFloatingBarForFocusedFrame({
   useEffect(updatePosition, [
     focusedComponentRect?.left,
     focusedComponentRect?.top,
-    studioCtx.zoom,
+    focusedComponentRect?.width,
+    focusedComponentRect?.height,
+    heights,
+    geometry,
   ]);
 
-  useLayoutEffect(updatePosition, [updatePosition]);
+  useLayoutEffect(updatePosition, [updatePosition, heights, contentScope]);
 
   return {
-    showPanel: showPanel && !studioCtx.showStackOfParents,
+    showPanel: showPanel && !stackOfParents,
     panelRef,
   };
 }
@@ -251,8 +290,12 @@ export const VariantsBar = observer(function VariantsBar_({
   contained?: boolean;
 }) {
   const { studioCtx, viewCtx } = usePlasmicCtx();
+  const arenaKind = useStudioArena(studioCtx, (state) => state.kind);
+  useViewSelection(viewCtx, useShallow((state) => [state.context, state.tpls]));
+  const liveMode = useStudioLiveMode(studioCtx);
+  const transforming = useCanvasTransforming(studioCtx);
 
-  if (studioCtx.isLiveMode) {
+  if (liveMode) {
     return null;
   }
 
@@ -263,7 +306,7 @@ export const VariantsBar = observer(function VariantsBar_({
   const valComponent = last(viewCtx.valComponentStack());
   const component = valComponent?.tpl?.component;
 
-  if (studioCtx.isTransforming() && !contained) {
+  if (transforming && !contained) {
     return null;
   }
 
@@ -283,7 +326,7 @@ export const VariantsBar = observer(function VariantsBar_({
       !(
         isScreenVariant(v) &&
         spotlightInfo.shouldRender &&
-        isDedicatedArena(studioCtx.currentArena)
+        (arenaKind === "component" || arenaKind === "page")
       ),
   );
 
@@ -301,6 +344,7 @@ const VariantsBarInner = observer(function VariantsBarInner_({
   contained?: boolean;
   viewCtx: ViewCtx;
 }) {
+  useViewSelection(viewCtx, (state) => state.context);
   const {
     variantsController,
     canChangeVariants,
@@ -310,6 +354,9 @@ const VariantsBarInner = observer(function VariantsBarInner_({
   } = useFocusedVariants(viewCtx);
 
   const { studioCtx } = usePlasmicCtx();
+  const arenaKind = useStudioArena(studioCtx, (state) => state.kind);
+  useFocusedViewSelection(studioCtx, (state) => state.targets);
+  useStudioSelection(studioCtx, (state) => state.view);
   const { showPanel, panelRef } = useFloatingBarForFocusedFrame({
     activeVariants,
     viewCtx,
@@ -421,7 +468,7 @@ const VariantsBarInner = observer(function VariantsBarInner_({
                   onTargetVariant={handleTargetVariant}
                   searchInputRef={searchInputRef}
                   hideScreen={
-                    isDedicatedArena(studioCtx.currentArena) &&
+                    (arenaKind === "component" || arenaKind === "page") &&
                     !!spotlightInfo.shouldRender
                   }
                   onDismiss={() => studioCtx.setShowVariantsDrawer(false)}

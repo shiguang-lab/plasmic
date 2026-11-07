@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { act, cleanup, render, screen } from "@testing-library/react";
-import React from "react";
+
 import { renderToString } from "react-dom/server.node";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { DataCtxReader, PageParamsProvider } from "./data";

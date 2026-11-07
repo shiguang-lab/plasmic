@@ -455,3 +455,16 @@ test("a custom host navigation waits for the fallback before injecting only into
   expect(scriptExec).toHaveBeenCalledTimes(2);
   expect(fetchMock).toHaveBeenCalledTimes(2);
 });
+
+test("loads an exact captured dependency request without looking up a newer release", async () => {
+  flags.hostLessComponents = [{ codeName: "managed", hasCodeArtifacts: true }];
+  const fetchMock = vi.fn(async () => ({ ok: true, text: async () => "registration" }));
+  vi.stubGlobal("fetch", fetchMock);
+  const win = targetWindow();
+  win.__CanvasPkgs = { Antd6: {} };
+  const requests = Object.freeze([Object.freeze({ name: "managed", identity: "managed@package:1", release: Object.freeze({ pkgId: "package", version: "1" }) })]);
+  const sources = await bundles.loadHostLessPackages(win, api, requests, "-v2");
+  expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/v1/hostless-libraries/managed/canvas?version=1&pkgId=package");
+  expect(sources[0][0]).toBe("managed@package:1");
+  expect(scriptExec).not.toHaveBeenCalled();
+});

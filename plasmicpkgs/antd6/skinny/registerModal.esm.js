@@ -1,10 +1,11 @@
+import { jsxs, Fragment, jsx } from 'react/jsx-runtime';
 import { Modal } from 'antd';
 import cls from 'classnames';
 import React, { useMemo } from 'react';
 import { omit } from 'lodash';
 import { getButtonProps } from './registerButton.esm.js';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-k3p9M5S2.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import './names-DQIzgrvq.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
@@ -65,34 +66,37 @@ function AntdModal(props) {
     }
     return width;
   }, [width]);
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-    Modal,
-    {
-      ...rest,
-      okButtonProps: isEditing ? { ...okButtonProps, "data-plasmic-modal-part": "ok" } : okButtonProps,
-      cancelButtonProps: isEditing ? { ...cancelButtonProps, "data-plasmic-modal-part": "cancel" } : cancelButtonProps,
-      mask: closeOnOutsideClick === void 0 || mask === false ? mask : {
-        ...typeof mask === "object" ? mask : {},
-        closable: closeOnOutsideClick
-      },
-      onOk: isEditing ? void 0 : onOk,
-      width: widthProp,
-      onCancel: isEditing ? void 0 : memoOnCancel,
-      afterOpenChange: isEditing ? void 0 : canvasProps.afterOpenChange,
-      afterClose: isEditing ? void 0 : canvasProps.afterClose,
-      open,
-      destroyOnHidden,
-      forceRender: isEditing ? false : props.forceRender,
-      focusable: isEditing ? { trap: false, focusTriggerAfterClose: false } : props.focusable,
-      footer: hideFooter ? null : footer,
-      wrapClassName,
-      className: cls(
-        props.className,
-        defaultStylesClassName,
-        modalScopeClassName
-      )
-    }
-  ), trigger ? /* @__PURE__ */ React.createElement("div", { onClick: isEditing ? void 0 : () => onOpenChange?.(true) }, trigger) : null);
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsx(
+      Modal,
+      {
+        ...rest,
+        okButtonProps: isEditing ? { ...okButtonProps, "data-plasmic-modal-part": "ok" } : okButtonProps,
+        cancelButtonProps: isEditing ? { ...cancelButtonProps, "data-plasmic-modal-part": "cancel" } : cancelButtonProps,
+        mask: closeOnOutsideClick === void 0 || mask === false ? mask : {
+          ...typeof mask === "object" ? mask : {},
+          closable: closeOnOutsideClick
+        },
+        onOk: isEditing ? void 0 : onOk,
+        width: widthProp,
+        onCancel: isEditing ? void 0 : memoOnCancel,
+        afterOpenChange: isEditing ? void 0 : canvasProps.afterOpenChange,
+        afterClose: isEditing ? void 0 : canvasProps.afterClose,
+        open,
+        destroyOnHidden,
+        forceRender: isEditing ? false : props.forceRender,
+        focusable: isEditing ? { trap: false, focusTriggerAfterClose: false } : props.focusable,
+        footer: hideFooter ? null : footer,
+        wrapClassName,
+        className: cls(
+          props.className,
+          defaultStylesClassName,
+          modalScopeClassName
+        )
+      }
+    ),
+    trigger ? /* @__PURE__ */ jsx("div", { onClick: isEditing ? void 0 : () => onOpenChange?.(true), children: trigger }) : null
+  ] });
 }
 function registerModal(loader) {
   registerComponentHelper(loader, AntdModal, {

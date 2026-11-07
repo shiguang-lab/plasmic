@@ -15,6 +15,7 @@ import { AntdTooltip, registerTooltip } from "../src/registerTooltip";
 import { AntdPopover, registerPopover } from "../src/registerPopover";
 import { AntdDropdown, registerDropdown } from "../src/registerDropdown";
 import { AntdPopconfirm, registerAdditional } from "../src/registerAdditional";
+import { AntdPagination } from "../src/registerPagination";
 import type { Registerable } from "../src/utils";
 
 const Canvas = createSessionCanvas([registerTabs, registerModal, registerDrawer, registerCollapse, registerMenu, registerDatePicker, registerTable, registerTooltip]);
@@ -88,6 +89,19 @@ function TableOverlays({ kind, click, interactive, standalone }: { kind: Overlay
   return standalone ? content : <PlasmicCanvasContext.Provider value={{ componentName: "table-test", globalVariants: {}, interactive }}>{content}</PlasmicCanvasContext.Provider>;
 }
 
+function SeoPagination() {
+  const [page, setPage] = React.useState(1);
+  return <>
+    <AntdPagination current={page} pageSize={10} total={30}
+      paginatedUrl={(number, size) => `/records?page=${number}&size=${size}`}
+      onChange={(number, size) => {
+        calls.push(`page:${number}:${size}`);
+        setPage(number);
+      }} />
+    <output aria-label="Current page">{page}</output>
+  </>;
+}
+
 function App() {
   const [mode, setMode] = React.useState({ interactive: false, standalone: false });
   React.useEffect(() => {
@@ -100,6 +114,9 @@ function App() {
   const widget = new URLSearchParams(location.search).get("widget");
   let content: React.ReactElement;
   switch (widget) {
+    case "pagination":
+      content = <SeoPagination />;
+      break;
     case "table-tooltip":
     case "table-popover":
     case "table-popconfirm":

@@ -139,7 +139,9 @@ export const SheetContent = React.forwardRef<
 });
 SheetContent.displayName = "PlasmicRadixSheetContent";
 
-export const sheetVariants = cva(
+export const sheetVariants: (
+  props?: { side?: Side | null } & Parameters<ReturnType<typeof cva>>[0]
+) => string = cva(
   prefixClasses(
     "fixed z-50 outline-none relative data-[state=open]:animate-in data-[state=closed]:animate-out"
   ),
@@ -159,7 +161,7 @@ export const sheetVariants = cva(
 );
 
 export const Dialog = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Root> & AnimatedProps,
+  React.ComponentRef<typeof DialogPrimitive.Overlay>,
   DialogPrimitive.DialogProps &
     DialogPrimitive.DialogOverlayProps & {
       overlayClassName?: string;

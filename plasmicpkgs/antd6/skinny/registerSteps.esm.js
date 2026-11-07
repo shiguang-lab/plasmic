@@ -1,12 +1,13 @@
+import { jsx } from 'react/jsx-runtime';
 import { Steps } from 'antd';
-import React from 'react';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import 'react';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 function AntdSteps(props) {
-  return /* @__PURE__ */ React.createElement(Steps, { ...props });
+  return /* @__PURE__ */ jsx(Steps, { ...props });
 }
 function registerSteps(loader) {
   const statusOptions = ["wait", "process", "finish", "error"];

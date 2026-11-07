@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from "chart.js";
 import deepmerge from "deepmerge";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { Bar } from "react-chartjs-2";
 import {
   BaseChartProps,

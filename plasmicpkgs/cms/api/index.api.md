@@ -4,7 +4,6 @@
 
 ```ts
 
-import { ApiCmsRow } from './schema';
 import type { RulesLogic } from 'json-logic-js';
 
 // @public (undocumented)
@@ -222,13 +221,13 @@ export interface _DatabaseConfig {
 export const _DEFAULT_HOST = "https://data.plasmic.app";
 
 // @public (undocumented)
-export function fetchContent({ host, cmsId, cmsPublicToken, tableId, select, whereLogic, orderBy, orderDirection, limit, offset, useDraft, locale, }: FetchContentOpts): Promise<ApiCmsRow[]>;
+export function fetchContent(input: FetchContentOpts): Promise<_ApiCmsRow[]>;
 
 // @public (undocumented)
-export function fetchCount({ host, cmsId, cmsPublicToken, tableId, useDraft, whereLogic, }: FetchCountOpts): Promise<number>;
+export function fetchCount(input: FetchCountOpts): Promise<number>;
 
 // @public (undocumented)
-export function fetchTables({ host, cmsId, cmsPublicToken, }: BaseCMSOpts): Promise<_ApiCmsTable[]>;
+export function fetchTables(input: BaseCMSOpts): Promise<_ApiCmsTable[]>;
 
 // @public (undocumented)
 export class _HttpError extends Error {

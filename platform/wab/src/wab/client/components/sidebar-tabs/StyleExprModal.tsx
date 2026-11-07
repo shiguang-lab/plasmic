@@ -1,3 +1,5 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
 import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/EffectsSection";
 import { LayoutSection } from "@/wab/client/components/sidebar-tabs/LayoutSection";
 import { OverflowSection } from "@/wab/client/components/sidebar-tabs/OverflowSection";
@@ -56,6 +58,7 @@ export const StyleExprButton = observer(function StyleExprButton(props: {
   title?: string;
 }) {
   const { viewCtx, tpl, attr, spec, title } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const vtm = viewCtx.variantTplMgr();
   const [show, setShow] = React.useState(false);
   const component = tpl.component;
@@ -217,6 +220,7 @@ const StyleExprForm = observer(function StyleExprForm(props: {
     new RuleSetHelpers(selectorRuleSet.rs, "div"),
     studioCtx,
     /*unremovableProps=*/ [],
+    { kind: "ruleSet", rs: selectorRuleSet.rs, forTag: "div" },
   );
   const styleComponent = mkStyleComponent({ expsProvider });
 

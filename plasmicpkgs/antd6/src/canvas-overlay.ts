@@ -6,7 +6,7 @@ import React, { ReactElement, useEffect, useRef } from "react";
 
 /** Child selection uses the same SDK contract as editing-only overlays. */
 export function getSelectedCanvasItemKey(items: ReactElement[]) {
-  const index = items.findIndex((item) => item.props.__plasmic_selection_prop__?.isSelected);
+  const index = items.findIndex((item) => React.isValidElement<{ __plasmic_selection_prop__?: { isSelected?: boolean } }>(item) && item.props.__plasmic_selection_prop__?.isSelected);
   return index < 0 ? undefined : items[index].key ?? String(index);
 }
 
@@ -22,7 +22,7 @@ export function renderCanvasSlot(children: React.ReactNode, render: (children: R
 export function getCanvasItems(children: React.ReactNode, isItem: (item: ReactElement) => boolean): ReactElement[] {
   const items: ReactElement[] = [];
   React.Children.forEach(children, (child) => {
-    if (!React.isValidElement(child)) {return;}
+    if (!React.isValidElement<{ children?: React.ReactNode }>(child)) {return;}
     if (isItem(child)) {items.push(child);}
     else {items.push(...getCanvasItems(child.props.children, isItem));}
   });

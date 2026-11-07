@@ -20,11 +20,15 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { observable } from "mobx";
+import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { deepMerged } from "@/wab/commons/collections";
+import type { GetProjectResponse } from "@/wab/shared/ApiSchema";
+import { mock } from "vitest-mock-extended";
 import React from "react";
+import { ok } from "neverthrow";
 
 const downloads = vi.hoisted(() => vi.fn());
-vi.mock("@/wab/client/dom-utils", () => ({ downloadImageAsset: downloads }));
+vi.mock("@/wab/client/dom-utils", async (original) => ({ ...(await original<typeof import("@/wab/client/dom-utils")>()), downloadImageAsset: downloads }));
 
 vi.mock("@/wab/client/components/sidebar/FindReferencesModal", () => ({
   FindReferencesModal: ({ onClose }: { onClose: () => void }) => {
@@ -38,9 +42,10 @@ vi.mock("@/wab/client/components/sidebar/FindReferencesModal", () => ({
     );
   },
 }));
-afterEach(cleanup);
+const studios: StudioCtx[] = [];
+afterEach(async () => { cleanup(); for (const studio of studios.splice(0)) { await studio.awaitEval(); studio.dispose(); } vi.restoreAllMocks(); });
 
-function fixture() {
+async function fixture() {
   const site = createSite();
   const mgr = new TplMgr({ site });
   const asset = mgr.addImageAsset({
@@ -50,41 +55,33 @@ function fixture() {
     width: 640,
     height: 480,
   });
-  const state = observable({
-    editable: true,
-    permission: "writable" as UiAccess,
-  });
-  const rename = vi.fn((value, name) => mgr.renameImageAsset(value, name));
-  const remove = vi.fn().mockResolvedValue(undefined);
-  const ops: Pick<SiteOps, "renameImageAsset" | "tryDeleteImageAssets"> = {
-    renameImageAsset: rename,
-    tryDeleteImageAssets: remove,
-  };
-  const sc: Pick<
-    StudioCtx,
-    "site" | "canSave" | "getLeftTabPermission" | "siteOps" | "changeUnsafe"
-  > = {
-    site,
-    canSave: () => state.editable,
-    getLeftTabPermission: () => state.permission,
-    siteOps: () => ops as SiteOps,
-    changeUnsafe: async (fn) => fn(),
-  };
+  const {studioCtx: sc, api} = fakeStudioCtx({site, devFlagOverrides:{ccStubs:true}});
+  studios.push(sc);
+  await waitFor(() => expect(sc.initialRouteReady).toBe(true));
+  const rename = vi.spyOn(SiteOps.prototype, "renameImageAsset");
+  const remove = vi.spyOn(SiteOps.prototype, "tryDeleteImageAssets").mockResolvedValue(ok({deletedResources:[],messages:[]}));
+  async function setPermission(permission: UiAccess) {
+    api.getSiteInfo.mockResolvedValueOnce(Object.assign(mock<GetProjectResponse>(), {
+      project: { ...sc.siteInfo, uiConfig: deepMerged(sc.getCurrentUiConfig(), { leftTabs: { images: permission, imagesSection: permission, iconsSection: permission } }) },
+      perms: [], owner: undefined, latestRevisionSynced: 0, hasAppAuth: false, appAuthProvider: undefined, isMainBranchProtected: false,
+    }));
+    await act(async () => { await sc.refreshSiteInfo(); });
+  }
   const parentClick = vi.fn();
   const parentKey = vi.fn();
   render(
     <div onClick={parentClick} onKeyDown={parentKey}>
-      <ResourceAssetActions studioCtx={sc as StudioCtx} asset={asset} />
+      <ResourceAssetActions studioCtx={sc} asset={asset} />
     </div>,
   );
-  return { site, asset, state, rename, remove, parentClick, parentKey };
+  return { site, asset, sc, setPermission, rename, remove, parentClick, parentKey };
 }
 async function openMenu() {
   fireEvent.click(screen.getByRole("button", { name: "Asset actions" }));
   await screen.findByRole("menu");
 }
 it("provides the existing sidebar modal context for references and closes without inserting the asset", async () => {
-  const f = fixture();
+  const f = await fixture();
   await openMenu();
   fireEvent.click(
     screen.getByRole("menuitem", { name: "Find all references" }),
@@ -95,7 +92,7 @@ it("provides the existing sidebar modal context for references and closes withou
   expect(f.parentClick).not.toHaveBeenCalled();
 });
 it("previews real image dimensions and downloads without inserting from the parent card", async () => {
-  const f = fixture();
+  const f = await fixture();
   await openMenu();
   fireEvent.click(screen.getByRole("menuitem", { name: "Preview" }));
   const dialog = await screen.findByRole("dialog");
@@ -113,7 +110,7 @@ it("previews real image dimensions and downloads without inserting from the pare
   expect(f.parentClick).not.toHaveBeenCalled();
 });
 it("renames through the existing model, preserves failed input and retries", async () => {
-  const f = fixture();
+  const f = await fixture();
   f.rename.mockImplementationOnce(() => {
     throw new Error("offline");
   });
@@ -139,14 +136,12 @@ it("renames through the existing model, preserves failed input and retries", asy
   expect(f.parentClick).not.toHaveBeenCalled();
 });
 it("hides mutations for read-only and dependency assets, and rechecks revoked permission", async () => {
-  const f = fixture();
+  const f = await fixture();
   await openMenu();
   fireEvent.click(screen.getByRole("menuitem", { name: "Rename" }));
   const input = await screen.findByRole("textbox", { name: "Asset name" });
   fireEvent.change(input, { target: { value: "Blocked" } });
-  act(() => {
-    f.state.permission = "readable";
-  });
+  await f.setPermission("readable");
   expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
   fireEvent.keyDown(input, { key: "Enter", code: "Enter", charCode: 13 });
   expect(f.rename).not.toHaveBeenCalled();
@@ -158,18 +153,15 @@ it("hides mutations for read-only and dependency assets, and rechecks revoked pe
   await waitFor(() =>
     expect(screen.getByRole("menuitem", { name: "Preview" })).toBeVisible(),
   );
+  await f.setPermission("writable");
+  await act(async () => { await f.sc.changeUnsafe(() => { f.site.imageAssets = []; }); f.sc.editMode = false; });
   act(() => {
-    f.state.permission = "writable";
-    f.site.imageAssets = [];
-    f.state.editable = false;
-  });
-  act(() => {
-    f.state.editable = true;
+    f.sc.editMode = true;
   });
   expect(screen.queryByRole("menuitem", { name: "Delete" })).toBeNull();
 });
 it("delegates deletion to the existing usage-aware confirmation operation and releases the busy state on failure", async () => {
-  const f = fixture();
+  const f = await fixture();
   f.remove.mockRejectedValueOnce(new Error("offline"));
   await openMenu();
   fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));

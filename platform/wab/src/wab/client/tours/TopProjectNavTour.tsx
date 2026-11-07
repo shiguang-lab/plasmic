@@ -4,10 +4,9 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { Tour } from "@/wab/client/tours/Tour";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const TopProjectNavTour = observer(function TopProjectNavTour() {
+export function TopProjectNavTour() {
   const studioCtx = useStudioCtx();
   const seenStateKey = tourSeenTopProjectNavKey;
   const targetSelector = "#proj-nav-button";
@@ -43,4 +42,4 @@ export const TopProjectNavTour = observer(function TopProjectNavTour() {
       }}
     />
   );
-});
+}

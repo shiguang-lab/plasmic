@@ -2,6 +2,12 @@ import { useI18n } from "@/wab/client/i18n";
 import SparklesIcon from "@/wab/client/plasmic/plasmic_kit_data_binding/icons/PlasmicIcon__Sparkles3";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import {
+  selectLeftPaneWidth,
+  selectLeftTabKey,
+  selectPanelsHidden,
+} from "@/wab/client/studio-ctx/left-panel-state";
+import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
+import {
   ArrowRightOutlined,
   LayoutOutlined,
   PlusOutlined,
@@ -10,6 +16,7 @@ import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { createStyles } from "antd-style";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
 
 const useStyles = createStyles(({ token }) => ({
   root: {
@@ -154,7 +161,19 @@ export const EmptyCanvasPrompt = observer(function EmptyCanvasPrompt({
 }) {
   const { t } = useI18n();
   const { styles, cx } = useStyles();
-  const canCreate = studioCtx.canSave();
+  const canCreate = useStudioSaveState(studioCtx, (state) => state.canSave);
+  const leftTabKey = useStore(
+    studioCtx.leftPanelState.store,
+    selectLeftTabKey,
+  );
+  const panelsHidden = useStore(
+    studioCtx.leftPanelState.store,
+    selectPanelsHidden,
+  );
+  const leftPaneWidth = useStore(
+    studioCtx.leftPanelState.store,
+    selectLeftPaneWidth,
+  );
   const cards = [
     {
       key: "template",
@@ -196,14 +215,14 @@ export const EmptyCanvasPrompt = observer(function EmptyCanvasPrompt({
   return (
     <div
       className={cx(styles.root, {
-        [styles.leftPanelOpen]: !!studioCtx.leftTabKey,
-        [styles.panelsHidden]: studioCtx.panelsHidden,
+        [styles.leftPanelOpen]: !!leftTabKey,
+        [styles.panelsHidden]: panelsHidden,
       })}
       style={{
-        left: studioCtx.panelsHidden
+        left: panelsHidden
           ? 8
-          : studioCtx.leftTabKey
-            ? studioCtx.leftPaneWidth + 72
+          : leftTabKey
+            ? leftPaneWidth + 72
             : 72,
       }}
       onMouseDown={(event) => event.stopPropagation()}

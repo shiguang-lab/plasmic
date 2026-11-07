@@ -29,7 +29,7 @@ interface CounterProps {
   "data-testid"?: string;
   title?: React.ReactNode;
 }
-const Counter: StoryFn<CounterProps> = (props) => {
+const Counter = (props: CounterProps) => {
   const {
     stateType = "private" as const,
     showCount = true,
@@ -131,7 +131,7 @@ const ParentCounter: StoryFn<{
   );
 };
 
-export const PrivateCounter = Counter.bind({});
+export const PrivateCounter: StoryFn<CounterProps> = Counter.bind({});
 PrivateCounter.args = {
   stateType: "private",
   showCount: true,

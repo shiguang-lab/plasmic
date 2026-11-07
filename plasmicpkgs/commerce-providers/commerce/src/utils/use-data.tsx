@@ -3,9 +3,7 @@
   Changes: Replaced useSWR for useMutablePlasmicQueryData and add provider to useData
 */
 import { useMutablePlasmicQueryData } from "@plasmicapp/query";
-import { SWRResponse } from "swr";
 import { Provider } from "../commerce";
-import defineProperty from "./define-property";
 import { CommerceError } from "./errors";
 import type {
   Fetcher,
@@ -17,9 +15,7 @@ import type {
   SwrOptions,
 } from "./types";
 
-export type ResponseState<Result> = SWRResponse<Result, CommerceError> & {
-  isLoading: boolean;
-};
+export type ResponseState<Result> = ReturnType<typeof useMutablePlasmicQueryData<Result, CommerceError>>;
 
 export type UseData = <H extends SWRHookSchemaBase>(
   options: {
@@ -71,16 +67,7 @@ const useData: UseData = (options, input, fetcherFn, swrOptions, provider) => {
     swrOptions
   );
 
-  if (!("isLoading" in response)) {
-    defineProperty(response, "isLoading", {
-      get() {
-        return response.data === undefined;
-      },
-      enumerable: true,
-    });
-  }
-
-  return response as typeof response & { isLoading: boolean };
+  return response;
 };
 
 export default useData;

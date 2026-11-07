@@ -21,13 +21,15 @@ import {
   useLocation,
 } from "@/wab/client/route/HistoryProvider";
 import { usesProductTheme } from "@/wab/client/ui-theme";
-import { isLiteralObject, swallow, tuple } from "@/wab/shared/common";
+import { ensure, isLiteralObject, swallow, tuple } from "@/wab/shared/common";
 import { DEVFLAGS, applyDevFlagOverrides } from "@/wab/shared/devflags";
 import * as Sentry from "@sentry/browser";
 import { createBrowserHistory } from "history";
 import * as React from "react";
 import { OverlayProvider } from "react-aria";
-import * as ReactDOM from "react-dom";
+import { createRoot, type Root as ReactRoot } from "react-dom/client";
+
+let applicationRoot: ReactRoot | undefined;
 
 const localStoragePrefixesThatAreSafeToRemove = ["__mpq_"];
 
@@ -113,20 +115,26 @@ export function main() {
 
   (window as any).commithash = ENV.COMMITHASH;
 
-  const appContainerElement = document.querySelector(".app-container");
+  const appContainerElement = ensure(document.querySelector(".app-container"));
 
   monkeyPatchConsoleLog();
 
-  if (isTopFrame()) {
-    ReactDOM.render(<Shell />, appContainerElement);
-  } else {
-    ReactDOM.render(
+  applicationRoot ??= createRoot(appContainerElement, {
+    onUncaughtError: (error) => {
+      if (DEVFLAGS.uncatchErrors) {
+        window.reportError(error);
+      } else {
+        handleError(normalizeError(error));
+      }
+    },
+  });
+  applicationRoot.render(
+    isTopFrame() ? <Shell /> : (
       <HostFrameCtxProvider>
         <Shell />
-      </HostFrameCtxProvider>,
-      appContainerElement,
-    );
-  }
+      </HostFrameCtxProvider>
+    ),
+  );
 
   reportAndFixOversizedLocalStorage();
 }
@@ -148,15 +156,17 @@ export function Shell() {
     <HistoryProvider history={history}>
       <ShellThemeProvider>
         <OverlayProvider style={{ width: "100%", height: "100%" }}>
-          <PresentationEntry>
-            {hostFrameCtx ? (
+          {hostFrameCtx ? (
+            <PresentationEntry>
               <Root />
-            ) : (
-              <StudioStartupBoundary>
+            </PresentationEntry>
+          ) : (
+            <StudioStartupBoundary>
+              <PresentationEntry>
                 <Root />
-              </StudioStartupBoundary>
-            )}
-          </PresentationEntry>
+              </PresentationEntry>
+            </StudioStartupBoundary>
+          )}
         </OverlayProvider>
       </ShellThemeProvider>
     </HistoryProvider>

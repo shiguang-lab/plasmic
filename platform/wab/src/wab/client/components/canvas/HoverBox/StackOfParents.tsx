@@ -1,3 +1,7 @@
+import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import styles from "@/wab/client/components/canvas/HoverBox/StackOfParents.module.scss";
 import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import { FRAME_ICON, SLOT_ICON } from "@/wab/client/icons";
@@ -22,8 +26,12 @@ const AUTO_HIDE_TIMEOUT = 2000;
 
 function useParentsOfFocusedSelectable() {
   const studioCtx = useStudioCtx();
+  const contentScope = useContentEditorScope(studioCtx);
+  useStudioSelection(studioCtx, (state) => state.view);
   const viewCtx = studioCtx.focusedViewCtx();
+  useViewSelection(viewCtx, (state) => state.targets);
   const focusedSelectable = viewCtx?.focusedSelectable();
+  const renderCount = useCanvasRenderCount(viewCtx);
   const valUserRoot = viewCtx?.valState().maybeValUserRoot();
   const isValRendered = !!valUserRoot;
 
@@ -83,7 +91,7 @@ function useParentsOfFocusedSelectable() {
               };
             })
             .reverse(),
-    [viewCtx, focusedSelectable, isValRendered, viewCtx?.contentEditor.target],
+    [viewCtx, focusedSelectable, isValRendered, contentScope, renderCount],
   );
 
   return parentsChain;
@@ -94,10 +102,13 @@ export const StackOfParents = observer(StackOfParents_);
 function StackOfParents_({
   hoverTagRef,
 }: {
-  hoverTagRef: RefObject<HTMLDivElement>;
+  hoverTagRef: RefObject<HTMLDivElement | null>;
 }) {
   const studioCtx = useStudioCtx();
+  const stackOfParents = useStudioOverlayState(studioCtx, (state) => state.stackOfParents);
+  useStudioSelection(studioCtx, (state) => state.view);
   const viewCtx = studioCtx.focusedViewCtx();
+  useViewSelection(viewCtx, (state) => state.targets);
   const focusedSelectable = viewCtx?.focusedSelectable();
   const parentsChain = useParentsOfFocusedSelectable();
 
@@ -105,7 +116,7 @@ function StackOfParents_({
     () => () => {
       studioCtx.showStackOfParents = false;
     },
-    [focusedSelectable],
+    [focusedSelectable, studioCtx],
   );
 
   const onClickItem = (val?: Selectable) => (e: React.MouseEvent) => {
@@ -138,29 +149,27 @@ function StackOfParents_({
   };
 
   useEffect(() => {
-    if (studioCtx.showStackOfParents) {
+    if (stackOfParents) {
       scheduleAutoHide();
     } else {
       // To make sure there's no pending auto-hide execution
       cancelAutoHide();
     }
-  }, [studioCtx.showStackOfParents]);
+    return cancelAutoHide;
+  }, [stackOfParents, studioCtx]);
 
   useEffect(() => {
-    if (hoverTagRef.current) {
-      hoverTagRef.current.addEventListener("mouseenter", cancelAutoHide);
-      hoverTagRef.current.addEventListener("mouseleave", scheduleAutoHide);
-    }
-
+    const tag = hoverTagRef.current;
+    if (!tag) { return; }
+    tag.addEventListener("mouseenter", cancelAutoHide);
+    tag.addEventListener("mouseleave", scheduleAutoHide);
     return () => {
-      if (hoverTagRef.current) {
-        hoverTagRef.current.removeEventListener("mouseenter", cancelAutoHide);
-        hoverTagRef.current.removeEventListener("mouseleave", scheduleAutoHide);
-      }
+      tag.removeEventListener("mouseenter", cancelAutoHide);
+      tag.removeEventListener("mouseleave", scheduleAutoHide);
     };
-  }, [hoverTagRef.current]);
+  }, [hoverTagRef.current, studioCtx]);
 
-  return !parentsChain.length ? null : !studioCtx.showStackOfParents ? (
+  return !parentsChain.length ? null : !stackOfParents ? (
     <div className={styles.visualHint} data-canvas-node-tree />
   ) : (
     <div

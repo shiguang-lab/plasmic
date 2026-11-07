@@ -11,14 +11,16 @@ import {
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { useStyleCells, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
 import { spawn } from "@/wab/shared/common";
 import { NUMBER_UNITS } from "@/wab/shared/css/types";
 import { parseGridChildCssProps } from "@/wab/shared/grid-utils";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
 
-export const GridChildSection = observer(function GridChildSection(props: {
+const gridChildStyleProps = ["grid-row-start", "grid-row-end", "grid-column-start", "grid-column-end"] as const;
+
+export function GridChildSection(props: {
   expsProvider: ExpsProvider;
 }) {
   const { t: uiT } = useI18n();
@@ -26,6 +28,9 @@ export const GridChildSection = observer(function GridChildSection(props: {
 
   const childTpl =
     expsProvider instanceof TplExpsProvider ? expsProvider.tpl : undefined;
+  const keys = childTpl ? gridChildStyleProps : [];
+  const [rowStart, rowEnd, columnStart, columnEnd] = useStyleCells(expsProvider, keys);
+  const definedIndicators = useStyleIndicators(expsProvider, keys);
 
   if (!childTpl) {
     return null;
@@ -33,14 +38,12 @@ export const GridChildSection = observer(function GridChildSection(props: {
 
   const studioCtx = expsProvider.studioCtx;
 
-  const gridChildSpec = parseGridChildCssProps(expsProvider.mergedExp());
-
-  const definedIndicators = [
-    expsProvider.definedIndicator("grid-row-start"),
-    expsProvider.definedIndicator("grid-row-end"),
-    expsProvider.definedIndicator("grid-column-start"),
-    expsProvider.definedIndicator("grid-column-end"),
-  ];
+  const gridChildSpec = parseGridChildCssProps({
+    rowStart: rowStart?.has ? rowStart.value : undefined,
+    rowEnd: rowEnd?.has ? rowEnd.value : undefined,
+    columnStart: columnStart?.has ? columnStart.value : undefined,
+    columnEnd: columnEnd?.has ? columnEnd.value : undefined,
+  });
 
   const handleChange = (prop: "row" | "column", dir: "start" | "end") => {
     return (val) => {
@@ -68,7 +71,7 @@ export const GridChildSection = observer(function GridChildSection(props: {
       title={uiT("Grid Child")}
       isHeaderActive={true}
       definedIndicator={
-        <DefinedIndicator label={uiT("GridChild")} type={definedIndicators} />
+        <DefinedIndicator label={uiT("GridChild")} type={[...definedIndicators]} />
       }
     >
       <FullRow>
@@ -149,4 +152,4 @@ export const GridChildSection = observer(function GridChildSection(props: {
       </FullRow>
     </SidebarSection>
   );
-});
+}

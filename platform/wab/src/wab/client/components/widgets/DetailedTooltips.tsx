@@ -573,7 +573,7 @@ export function ModeTooltip() {
       <p>
         <UiText
           message={
-            "You can choose to use either the Loader or Codegen paths. The Loader path is only available for Next.js and Gatsby-based builds, and can greatly simplify deployments for most use cases. For all other React stacks, for users who want advanced customizability, and to be able to check Plasmic-generated code into your repository, choose the Codegen path."
+            "You can choose to use either the Loader or Codegen paths. The Loader path is only available for Next.js-based builds, and can greatly simplify deployments for most use cases. For all other React stacks, for users who want advanced customizability, and to be able to check Plasmic-generated code into your repository, choose the Codegen path."
           }
         />
       </p>

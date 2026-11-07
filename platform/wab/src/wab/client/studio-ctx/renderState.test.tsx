@@ -88,7 +88,11 @@ it.each(["style", "script", "link", "meta", "title", "base", "template"])(
       const roots = Array.from(container.querySelectorAll("div"));
       expect(state.val2dom(val, canvas)).toEqual(roots);
       expect(state.sel2dom(val, canvas)).toEqual(roots);
-      expect(container.querySelector(tag)).not.toBeNull();
+      const resource = (
+        tag === "meta" || tag === "title" ? document.head : container
+      ).querySelector(tag);
+      expect(resource).not.toBeNull();
+      expect(state.val2dom(val, canvas)).not.toContain(resource);
     } finally {
       state.dispose();
     }
@@ -112,7 +116,9 @@ it("filters resource nodes when resolving a forwarded className in descendants",
 });
 
 it("only measures ancestor dimensions when overflow can clip the mapped DOM", () => {
-  const { container, state, val, canvas } = fixture(<div className="content">Content</div>);
+  const { container, state, val, canvas } = fixture(
+    <div className="content">Content</div>,
+  );
   const height = vi.spyOn(Element.prototype, "clientHeight", "get");
   const width = vi.spyOn(Element.prototype, "clientWidth", "get");
   try {

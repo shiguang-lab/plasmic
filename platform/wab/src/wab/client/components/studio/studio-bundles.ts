@@ -54,7 +54,7 @@ interface LibraryRelease {
   version: string;
 }
 
-function isManagedLibrary(pkg: string) {
+export function isManagedLibrary(pkg: string) {
   return (DEVFLAGS.hostLessComponents ?? []).some((entry) => entry.codeName === pkg && entry.hasCodeArtifacts);
 }
 
@@ -146,7 +146,7 @@ export function getLiveFrameClientJs() {
 }
 
 function needsCanvasRuntime(pkg: string) {
-  return ["antd6", "overseas", "react-ui"].includes(pkg) ||
+  return ["antd", "antd5", "antd6", "overseas", "react-ui"].includes(pkg) ||
     (DEVFLAGS.hostLessComponents ?? []).some((entry) => entry.codeName === pkg && entry.hasCodeArtifacts);
 }
 
@@ -211,16 +211,40 @@ export async function getSortedHostLessPkgs(
   site?: Site,
 ) {
   const doc = win.document;
-  const sortedPkgs = sortAs(pkgs, fstPartyHostLessComponents, (t) => t);
+  const requests = await Promise.all(pkgs.map(async (name) => {
+    const dependency = site ? getDependencyRelease(name, site) : undefined;
+    const identity = site ? getHostLessPkgIdentity(name, site) : undefined;
+    const release = dependency ?? (isManagedLibrary(name) ? await api.getHostlessLibraryRelease(name) : undefined);
+    return Object.freeze({ name, identity: identity ?? (release ? `${name}@${release.pkgId}:${release.version}` : name), release });
+  }));
+  assert(win.document === doc, "Component library target navigated while loading");
+  return loadHostLessPackages(win, api, requests, version);
+}
+
+export interface HostLessPackageRequest {
+  readonly name: string;
+  readonly identity: string;
+  readonly release?: Readonly<LibraryRelease>;
+  readonly authoring?: boolean;
+}
+
+/** Loads a captured package request without consulting the mutable Studio model. */
+export async function loadHostLessPackages(
+  win: Window,
+  api: LibraryApi,
+  requests: readonly HostLessPackageRequest[],
+  version: string,
+) {
+  const doc = win.document;
+  const sorted = sortAs([...requests], fstPartyHostLessComponents, (request) => request.name);
   const [modules] = await Promise.all([
     Promise.all(
-    sortedPkgs.map(async (pkg) => {
-      const dependency = site ? getDependencyRelease(pkg, site) : undefined;
-      const release = dependency ?? (isManagedLibrary(pkg) ? await api.getHostlessLibraryRelease(pkg) : undefined);
-      return [site ? getHostLessPkgIdentity(pkg, site) : release ? `${pkg}@${release.pkgId}:${release.version}` : pkg, await fetchHostLessPkg(api, pkg, version, release)];
+    sorted.map(async (request) => {
+      const release = request.release ?? (isManagedLibrary(request.name) ? await api.getHostlessLibraryRelease(request.name) : undefined);
+      return [request.identity, await fetchHostLessPkg(api, request.name, version, release)];
     }),
     ),
-    sortedPkgs.some(needsCanvasRuntime)
+    sorted.some((request) => needsCanvasRuntime(request.name))
       ? ensureCanvasRuntime(win)
       : undefined,
   ]);

@@ -1,7 +1,8 @@
+import { jsx } from 'react/jsx-runtime';
 import { Radio } from 'antd';
 import React from 'react';
 import { r as radioGroupComponentName, e as radioComponentName, f as radioButtonComponentName } from './names-DQIzgrvq.esm.js';
-import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -18,7 +19,7 @@ function AntdRadioGroup(props) {
       return void 0;
     }
   }, [onChange]);
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     RadioGroup,
     {
       ...rest,

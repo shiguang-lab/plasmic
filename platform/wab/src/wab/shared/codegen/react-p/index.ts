@@ -1093,17 +1093,6 @@ ${
     : serializeRootServerQueryTree(ctx)
 }
 
-${
-  isPage && ctx.exportOpts.platform === "gatsby"
-    ? `export function Head() {
-      return (
-        <>
-          ${renderPageHead(ctx, component)}
-        </>
-      );
-    }`
-    : ""
-}
 
 ${
   // We wrap Next.js useRouter() in a try...catch to avoid "next router
@@ -1298,7 +1287,6 @@ export function nodeJsName(component: Component, node: TplNode) {
 
 function renderFullViewportStyle(ctx: SerializerBaseContext): string {
   if (
-    ctx.exportOpts.platform === "gatsby" ||
     isPlatformNextJs(ctx) ||
     ctx.exportOpts.platform === "tanstack"
   ) {
@@ -1890,7 +1878,7 @@ function serializeTplTag(ctx: SerializerBaseContext, node: TplTag) {
 
 export function makeComponentAliases(
   referencedComps: Component[],
-  platform: "react" | "nextjs" | "gatsby" | "tanstack",
+  platform: "react" | "nextjs" | "tanstack",
 ) {
   const aliases = new Map<Component, string>();
   const usedNames = new Set<string>(getPlatformImportComponents(platform));
@@ -2827,16 +2815,6 @@ function serializePageAwareSkeletonWrapperTs(
         </PageParamsProvider__>
       </PlasmicQueryDataProvider>`;
     }
-  } else if (opts.platform === "gatsby") {
-    plasmicModuleImports.push("Head");
-    componentPropsSig = `{ location, path, params }: PageProps`;
-    content = `<PageParamsProvider__
-      route={path}
-      params={params}
-      query={Object.fromEntries(new URLSearchParams(location.search))}
-    >
-      ${content}
-    </PageParamsProvider__>`;
   } else if (opts.platform === "tanstack") {
     const headOptionsImport = `${nodeComponentNameImport}__HeadOptions`;
     plasmicModuleImports.push(headOptionsImport);
@@ -2906,10 +2884,7 @@ function serializePageAwareSkeletonWrapperTs(
       isNextJs
         ? `// Next.js Custom App component
            // (https://nextjs.org/docs/advanced-features/custom-app).`
-        : opts.platform === "gatsby"
-          ? `// Gatsby "wrapRootElement" function
-           // (https://www.gatsbyjs.com/docs/reference/config-files/gatsby-ssr#wrapRootElement).`
-          : opts.platform === "tanstack"
+        : opts.platform === "tanstack"
             ? `// TanStack Router __root Route
            // (https://tanstack.com/router/latest/docs/framework/react/guide/tanstack-start#the-root-of-your-application).`
             : `// a component that wraps all page components of your application.`
@@ -2954,10 +2929,7 @@ function serializePageAwareSkeletonWrapperTs(
         ? ctx.useRSC
           ? getAppRouterSkeletonImports(ctx)
           : getPageRouterSkeletonImports(ctx, isDynamicRoute)
-        : isPageComponent(component) && opts.platform === "gatsby"
-          ? `import type { PageProps } from "gatsby";
-        export { Head };`
-          : isPageComponent(component) && opts.platform === "tanstack"
+        : isPageComponent(component) && opts.platform === "tanstack"
             ? getTanStackSkeletonImports(ctx)
             : ""
     }

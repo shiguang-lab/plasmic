@@ -52,11 +52,7 @@ export const SidePanelShell = React.forwardRef<
   React.useLayoutEffect(() => {
     shellRef.current?.toggleAttribute("inert", !open);
   }, [open]);
-  const lastContent = React.useRef<React.ReactNode>();
   const [present, setPresent] = React.useState(open);
-  if (open) {
-    lastContent.current = children;
-  }
   React.useEffect(() => {
     if (open) {
       setPresent(true);
@@ -82,7 +78,7 @@ export const SidePanelShell = React.forwardRef<
         data-test-id={`${side}-panel-shell`}
         aria-hidden={!open}
       >
-        {open ? children : present ? lastContent.current : null}
+        {open || present ? children : null}
       </div>
     </div>
   );

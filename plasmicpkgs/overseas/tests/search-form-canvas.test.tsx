@@ -7,7 +7,7 @@ import {
   screen,
 } from "@testing-library/react";
 import { Input } from "antd";
-import React from "react";
+
 import { afterEach, beforeAll, expect, test, vi } from "vitest";
 import { SearchForm, SearchFormItem } from "../src/SearchForm";
 import { searchFormMeta } from "../src/registerSearchForm";

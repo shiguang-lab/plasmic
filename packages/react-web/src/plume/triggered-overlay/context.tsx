@@ -4,7 +4,7 @@ import * as React from "react";
 import type { OverlayTriggerState } from "@react-stately/overlays";
 
 export interface TriggeredOverlayContextValue {
-  triggerRef: React.RefObject<HTMLElement>;
+  triggerRef: React.RefObject<HTMLElement | null>;
   state: OverlayTriggerState;
   autoFocus?: boolean | FocusStrategy;
 

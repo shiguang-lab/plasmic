@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { PlasmicCanvasHost } from "@plasmicapp/host";
 import { Button, ConfigProvider, Typography } from "antd";

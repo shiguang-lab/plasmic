@@ -1,3 +1,5 @@
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
 import { PanelSection } from "@/wab/client/components/sidebar/PanelSection";
 import { ListBox, ListBoxItem } from "@/wab/client/components/widgets";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
@@ -15,6 +17,7 @@ import React, { useState } from "react";
 export function AnnotationControls() {
   const { t: uiT } = useI18n();
   const vc = useViewCtx();
+  useViewSelection(vc, useShallow((state) => [state.targets, state.tpls]));
   const [expanded, setExpanded] = useState<string | undefined>(undefined);
 
   const tpl = ensure(vc.focusedTpl(true));

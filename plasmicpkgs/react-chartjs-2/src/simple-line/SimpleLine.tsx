@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from "chart.js";
 import deepmerge from "deepmerge";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Line } from "react-chartjs-2";
 import {
   BaseChartProps,

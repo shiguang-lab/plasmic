@@ -1,3 +1,6 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
 import ContextMenuIndicator from "@/wab/client/components/ContextMenuIndicator/ContextMenuIndicator";
 import { ComponentPropModal } from "@/wab/client/components/modals/ComponentPropModal";
 import { DataPickerEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/DataPickerEditor";
@@ -77,6 +80,7 @@ export interface VariantsPickerPanelProps {
 
 export function _VariantsPickerPanel({ tpl }: VariantsPickerPanelProps) {
   const viewCtx = useViewCtx();
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const component = tpl.component;
   let variantGroups = component.variantGroups;
 
@@ -126,6 +130,8 @@ export const VariantPicker = observer(function VariantPicker(props: {
   tpl: TplComponent;
 }) {
   const { viewCtx, group, tpl } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl);
 
   const studioCtx = useStudioCtx();
 
@@ -491,7 +497,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
               setVisible={setIsDataPickerVisible}
               isDisabled={isDisabled}
               disabledTooltip={disabledTooltip}
-              data={viewCtx.getInspectorCanvasEnvForTpl(tpl)}
+              data={canvasEnv}
               schema={viewCtx.customFunctionsSchema()}
               key={tpl.uid}
               expectedValues={getExpectedValuesForVariantGroup(group)}

@@ -6,7 +6,7 @@ import React, { RefObject, useMemo } from "react";
  */
 export const useRefMap = <Key, RefType>() =>
   useMemo(() => {
-    const refMap = new Map<Key, RefObject<RefType>>();
+    const refMap = new Map<Key, RefObject<RefType | null>>();
 
     return (key: Key) => {
       if (!refMap.has(key)) {

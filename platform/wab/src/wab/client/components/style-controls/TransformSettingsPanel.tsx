@@ -11,7 +11,6 @@ import { getSliderConfig } from "@/wab/shared/core/transform-utils";
 import { parseCssNumericNew } from "@/wab/shared/css";
 import { LENGTH_PERCENTAGE_UNITS, LENGTH_UNITS } from "@/wab/shared/css/types";
 import { Menu, Slider } from "antd";
-import { observer } from "mobx-react";
 import React, { useEffect } from "react";
 
 interface TransformSettingsPanelProps {
@@ -38,7 +37,7 @@ interface TransformSettingsPanelProps {
   updateChildPerspective: (newChildPerspective: string | undefined) => void;
 }
 
-export const TransformSettingsPanel = observer(function TransformSettingsPanel(
+export function TransformSettingsPanel(
   props: TransformSettingsPanelProps,
 ) {
   const { t: uiT } = useI18n();
@@ -363,4 +362,4 @@ export const TransformSettingsPanel = observer(function TransformSettingsPanel(
       </SidebarSection>
     </>
   );
-});
+}

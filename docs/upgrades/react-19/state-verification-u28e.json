@@ -1,0 +1,123 @@
+{
+  "status": "native-and-focused-checks-passed",
+  "scope": "Frozen E:59files+8exactcorepatches; excludes in-progress full Arena lifecycle and later text request",
+  "source": {
+    "revision": "32df7af09a1df7d119143b546f14a81b6d876c83",
+    "dirty": true,
+    "sourceHash": "334f90777d02ff454d2d25e20dc2e91a42ae84cceec6be985e24901f9fd1af1e"
+  },
+  "artifact": {
+    "sourceHash": "334f90777d02ff454d2d25e20dc2e91a42ae84cceec6be985e24901f9fd1af1e",
+    "rendererHash": "2f5be95a5bcbf32a16aafe698345e3507b3ec43bd6b6cabda1e7eb3475525006",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 104871435,
+    "studioArtifactHash": "dcc3e79f7c849a2e56ce38be322259d86d92f12465d3a452ae6bdbb6b51326b7",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "checks": {
+    "typecheck": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u28e-isolated-typecheck-2.log"
+    },
+    "productionBuild": {
+      "exitCode": 0
+    },
+    "assets": {
+      "exitCode": 0
+    },
+    "archive": {
+      "exitCode": 0
+    },
+    "focusedIntegration": {
+      "filesPassed": 7,
+      "testsPassed": 35,
+      "logs": [
+        "/tmp/plasmic-react19-20261105/u28e-isolated-integration-tests.log",
+        "/tmp/plasmic-react19-20261105/u28e-isolated-metadata-supplement.log"
+      ],
+      "unhandledErrors": 0
+    },
+    "ownerLocalChecks": "Precise results/dependency identities retained in overlay handoff manifests; reused when unchanged"
+  },
+  "nativeGP": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/gp/list-open-u28e-gp-native.json",
+    "reportSha256": "6e6fa09647e44c1f307cb2bebb4970ba875024bac18ae2e1bc62d292ee2b52aa",
+    "functionalCases": 5,
+    "functionalPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "error": false,
+    "draftDialog": {
+      "enabled": true,
+      "opened": true,
+      "remoteActionClosed": true
+    },
+    "docs": {
+      "codegen": {
+        "dependencyModelsValidated": 50,
+        "typeScriptWorkerDiagnostics": 0,
+        "previewUpdated": true,
+        "restored": true
+      },
+      "loader": {
+        "dependencyModelsValidated": 50,
+        "typeScriptWorkerDiagnostics": 0,
+        "previewUpdated": true,
+        "restored": true
+      }
+    }
+  },
+  "nativeComplex": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/complex/list-open-u28e-complex.json",
+    "reportSha256": "005e41df19a774002bedf48c4ea1a199ff2a2a6b486815bdbf6ed8c19ab51297",
+    "functionalCases": 6,
+    "functionalPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "error": false
+  },
+  "fullStudioSuite": {
+    "rerun": false,
+    "latestFull": "u27d:631files4867passed+4skip,1schedulerteardownerror; not a green full-suite result",
+    "fixtureCorrection": "ShareDialogContent now destroys static Antd message notices and drains scheduled React work before JSDOM disposal; targeted10tests/zero-unhandled passed, including combined integration run",
+    "remaining": "Final full-suite zero-unhandled gate required on a later complete candidate"
+  },
+  "fullMigration": false
+}

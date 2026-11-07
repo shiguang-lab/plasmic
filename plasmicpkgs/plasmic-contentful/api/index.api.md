@@ -12,19 +12,19 @@ import registerComponent from '@plasmicapp/host/registerComponent';
 import registerGlobalContext from '@plasmicapp/host/registerGlobalContext';
 
 // @public (undocumented)
-export function ContentfulCredentialsProvider({ accessToken, space, environment, children, }: React_2.PropsWithChildren<ContentfulCredentialsProviderProps>): React_2.JSX.Element;
+export function ContentfulCredentialsProvider(input: React_2.PropsWithChildren<ContentfulCredentialsProviderProps>): React_2.JSX.Element;
 
 // @public (undocumented)
 export const ContentfulCredentialsProviderMeta: GlobalContextMeta<ContentfulCredentialsProviderProps>;
 
 // @public (undocumented)
-export function ContentfulFetcher({ filterField, filterValue, searchParameter, noAutoRepeat, contentType, children, className, order, reverseOrder, limit, include, noLayout, setControlContextData, }: ContentfulFetcherProps): React_2.JSX.Element;
+export function ContentfulFetcher(input: ContentfulFetcherProps): React_2.JSX.Element;
 
 // @public (undocumented)
 export const ContentfulFetcherMeta: CodeComponentMeta<ContentfulFetcherProps>;
 
 // @public (undocumented)
-export function ContentfulField({ className, objectPath, setControlContextData, }: ContentfulFieldProps): React_2.JSX.Element;
+export function ContentfulField(input: ContentfulFieldProps): React_2.JSX.Element;
 
 // @public (undocumented)
 export const ContentfulFieldMeta: CodeComponentMeta<ContentfulFieldProps>;

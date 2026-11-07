@@ -1,3 +1,5 @@
+import { subscribeStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { subscribeFocusedViewSelection, subscribeStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { isElementWithComments } from "@/wab/client/components/comments/utils";
 import { Matcher } from "@/wab/client/components/view-common";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -8,6 +10,7 @@ import { isTplSlotVisible } from "@/wab/shared/cached-selectors";
 import { isPlainObjectPropType } from "@/wab/shared/code-components/code-components";
 import {
   eagerCoalesce,
+  arrayEq,
   ensure,
   filterMapTruthy,
   maybe,
@@ -65,11 +68,9 @@ import {
 import * as Immutable from "immutable";
 import debounce from "lodash/debounce";
 import {
-  autorun,
   computed,
   IObservableValue,
   observable,
-  reaction,
   runInAction,
 } from "mobx";
 import { computedFn } from "mobx-utils";
@@ -108,7 +109,7 @@ export class OutlineCtx {
     { arena: AnyArena; frame: ArenaFrame } | undefined
   >(undefined, { deep: false });
 
-  viewCtx = computedFn(() => {
+  viewCtx = () => {
     const arena = this.studioCtx.currentArena;
     const frames = getArenaFrames(arena);
     if (this.artboardFrame) {
@@ -131,25 +132,19 @@ export class OutlineCtx {
     return initial && frames.includes(initial.arenaFrame())
       ? initial
       : undefined;
-  });
-
-  rootTreeNode = computedFn(() => {
-    const vc = this.viewCtx();
-    if (!vc) {
-      return null;
-    }
-    return makeFrameRootNode(vc, this);
-  });
-
-  rootNodeKey = computedFn(() => {
-    const vc = this.viewCtx();
-    if (!vc) {
-      return null;
-    }
-    return makeNodeKey(vc.component.tplTree);
-  });
-
-  focusedNodeKeyPath = computedFn(() => {
+  };
+  private rootTreeForView = computedFn((view: ViewCtx, _context: ReturnType<ViewCtx["selectionStore"]["getState"]>["context"], _frames: ReturnType<ViewCtx["variantStore"]["getState"]>["frames"], _global: ReturnType<ViewCtx["variantStore"]["getState"]>["global"], _showDefaultSlots: boolean) => makeFrameRootNode(view, this));
+  rootTreeNode = () => {
+    const view = this.viewCtx();
+    if (!view) { return null; }
+    const variants = view.variantStore.getState();
+    return this.rootTreeForView(view, view.selectionStore.getState().context, variants.frames, variants.global, variants.showDefaultSlots);
+  };
+  rootNodeKey = () => {
+    const view = this.viewCtx();
+    return view ? makeNodeKey(view.component.tplTree) : null;
+  };
+  focusedNodeKeyPath = () => {
     const vc = this.studioCtx.focusedViewCtx();
     if (!vc || vc !== this.viewCtx()) {
       return [];
@@ -161,9 +156,9 @@ export class OutlineCtx {
       : vc.focusedTpl();
 
     return getNodeKeyPath(vc, focusedTplOrSlotSelection);
-  });
+  };
 
-  hoveredNodeKeyPath = computedFn(() => {
+  hoveredNodeKeyPath = () => {
     const vc = this.viewCtx();
     if (!vc) {
       return [];
@@ -183,7 +178,7 @@ export class OutlineCtx {
     }
 
     return getNodeKeyPath(vc, tplOrSlotSelection);
-  });
+  };
 
   private disposals: (() => void)[] = [];
 
@@ -198,70 +193,59 @@ export class OutlineCtx {
     this.fillVisibleSet();
 
     this.disposals.push(
-      reaction(
-        () => getArenaFrames(this.studioCtx.currentArena).slice(),
-        (frames) => {
-          for (const [frame, outline] of this.frameOutlines) {
-            if (!frames.includes(frame)) {
-              outline.dispose();
-              this.frameOutlines.delete(frame);
-              this.expandedFrames.delete(frame);
-            }
+      studioCtx.commentsCtx.store.subscribe((state, previous) => {
+        if (
+          state.commentedSubjectIds !== previous.commentedSubjectIds &&
+          this.hasQuery()
+        ) {
+          this.updateVisible();
+        }
+      }),
+      subscribeStudioArena(studioCtx, (state) => state.frames, (frames) => {
+        for (const [frame, outline] of this.frameOutlines) {
+          if (!frames.some((ref) => studioCtx.modelSnapshots.resolve(ref) === frame)) {
+            outline.dispose(); this.frameOutlines.delete(frame); this.expandedFrames.delete(frame);
           }
-        },
-      ),
-      reaction(
-        () => {
-          const arena = this.studioCtx.currentArena;
-          const viewCtx = this.studioCtx.focusedViewCtx();
-          return arena && viewCtx
-            ? { arena, frame: viewCtx.arenaFrame() }
-            : undefined;
-        },
-        (artboard) => {
-          if (
-            artboard &&
-            getArenaFrames(artboard.arena).includes(artboard.frame)
-          ) {
-            this.lastViewedArtboard.set(artboard);
-          }
-        },
-        { fireImmediately: true, name: "OutlineCtx.rememberViewedArtboard" },
-      ),
-      autorun(
-        () => {
-          const focusedNodeKeyPath = this.focusedNodeKeyPath();
-          if (focusedNodeKeyPath.length > 0) {
-            const frame = this.studioCtx.focusedViewCtx()?.arenaFrame();
-            if (frame) {
-              this.expandedFrames.set(frame, true);
-            }
-            for (const key of focusedNodeKeyPath) {
-              this.expanded.set(key, true);
-            }
-          }
-        },
-        {
-          name: "OutlineCtx.expandAncestorsOfFocused",
-        },
-      ),
-      // We track the focused element to clear the search whenever we change
-      // the focus to a non-visible element
-      reaction(
-        () => this.focusedNodeKeyPath()[0],
-        (focusedKey) => {
-          if (this.hasQuery() && focusedKey && !this.isVisible(focusedKey)) {
-            this.clearQuery();
-          }
-        },
-        {
-          name: "OutlineCtx.clearQueryIfFocusedNotVisible",
-        },
-      ),
+        }
+      }),
+      subscribeStudioSelection(studioCtx, (state) => state.view, () => this.syncSelection()),
+      subscribeFocusedViewSelection(studioCtx, (state) => state.targets[0] ?? state.tpls[0] ?? null, () => this.syncSelection()),
+      subscribeFocusedViewSelection(studioCtx, (state) => state.context, () => this.syncSelection()),
+      subscribeStudioArena(studioCtx, (state) => state.current, () => this.syncSelection()),
+      studioCtx.subscribeModelChanges(() => this.syncSelection()),
     );
+    this.lastFocusedKey = this.focusedNodeKeyPath()[0];
+    this.syncSelection();
+  }
+
+  private lastFocusedKey: OutlineNodeKey | undefined;
+  private lastFocusedPath: readonly OutlineNodeKey[] = [];
+  private syncSelection() {
+    runInAction(() => {
+      const arena = this.studioCtx.currentArena;
+      const view = this.studioCtx.focusedViewCtx();
+      if (arena && view && getArenaFrames(arena).includes(view.arenaFrame())) {
+        const previous = this.lastViewedArtboard.get();
+        if (previous?.arena !== arena || previous.frame !== view.arenaFrame()) {
+          this.lastViewedArtboard.set({ arena, frame: view.arenaFrame() });
+        }
+      }
+      const path = this.focusedNodeKeyPath();
+      if (!arrayEq(path, this.lastFocusedPath) && path.length) {
+        const frame = view?.arenaFrame();
+        if (frame) { this.expandedFrames.set(frame, true); }
+        for (const key of path) { this.expanded.set(key, true); }
+      }
+      this.lastFocusedPath = path;
+      const focusedKey = path[0];
+      const focusChanged = focusedKey !== this.lastFocusedKey;
+      this.lastFocusedKey = focusedKey;
+      if (focusChanged && this.hasQuery() && focusedKey && !this.isVisible(focusedKey)) { this.clearQuery(); }
+    });
   }
 
   dispose() {
+    this.updateVisible.cancel();
     this.disposals.forEach((d) => d());
     this.frameOutlines.forEach((outline) => outline.dispose());
     this.frameOutlines.clear();
@@ -368,6 +352,10 @@ export class OutlineCtx {
 
   hasQuery() {
     return this.query.trim() !== "";
+  }
+
+  refreshVariantSearch() {
+    if (this.hasQuery()) { runInAction(() => this.fillVisibleSet()); }
   }
 
   private fillVisibleSet() {
@@ -836,7 +824,7 @@ const getTreeNodeChildren = computedFn(
                   "SlotSelection is expected to have a tpl",
                 ),
               ).getSlotArg(ss.slotParam.variable.name),
-              (arg) => isKnownRenderExpr(arg.expr) ? arg.expr.tpl : [],
+              (arg) => (isKnownRenderExpr(arg.expr) ? arg.expr.tpl : []),
             ),
             [],
           ),

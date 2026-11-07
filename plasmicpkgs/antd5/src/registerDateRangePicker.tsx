@@ -11,7 +11,7 @@ import weekday from "dayjs/plugin/weekday";
 dayjs.extend(weekday);
 dayjs.extend(localeData);
 
-const { RangePicker } = DatePicker;
+const RangePicker: typeof DatePicker.RangePicker = DatePicker.RangePicker;
 
 function getDayjsRange(dateRange: any): [Dayjs | null, Dayjs | null] {
   return Array.isArray(dateRange)

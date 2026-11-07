@@ -179,7 +179,6 @@ const $$ = {};
 
 
 
-
 function useNextRouter() {
       try {
         return useRouter();
@@ -665,7 +664,8 @@ export const pageCanonical: any = (() => { try { return ({
       
       
       :where(.root_reset_3UYiEMfU3twU4iYSx86cub) {
-      font-family: var(--mixin-Km94s0mCg1tc_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-Km94s0mCg1tc_font-family);
 font-size: var(--mixin-Km94s0mCg1tc_font-size);
 font-weight: var(--mixin-Km94s0mCg1tc_font-weight);
 font-style: var(--mixin-Km94s0mCg1tc_font-style);
@@ -812,6 +812,7 @@ column-gap: var(--mixin-QRKsNlwSCB5i_column-gap);
   
 --- plasmic__default_style.css ---
 
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.plasmic_default__all) {   display: block;
   white-space: inherit;
   grid-row: auto;
@@ -1444,7 +1445,6 @@ const $$ = {};
 
 
 
-
     function PlasmicP1__RenderFunc(
       props: {
         variants: PlasmicP1__VariantsArgs,
@@ -1781,7 +1781,8 @@ export const myCode: any = (() => { try { return ("test" + " code"); } catch (e)
       
       
       :where(.root_reset_1234567890) {
-      font-family: var(--mixin-f7_jdPLOIIXg_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-f7_jdPLOIIXg_font-family);
 font-size: var(--mixin-f7_jdPLOIIXg_font-size);
 font-weight: var(--mixin-f7_jdPLOIIXg_font-weight);
 font-style: var(--mixin-f7_jdPLOIIXg_font-style);
@@ -1940,6 +1941,7 @@ column-gap: var(--mixin-QtrLNVmrq2kw_column-gap);
   
 --- plasmic__default_style.css ---
 
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.plasmic_default__all) {   display: block;
   white-space: inherit;
   grid-row: auto;

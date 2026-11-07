@@ -1,4 +1,4 @@
-import React from "react";
+
 import type { FieldErrorProps } from "react-aria-components";
 import { FieldError } from "react-aria-components";
 import {

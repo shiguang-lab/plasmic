@@ -136,7 +136,7 @@ export function useAutoOpen({
 export function registerComponentHelper<T extends React.ComponentType<any>>(
   loader: Registerable | undefined,
   component: T,
-  meta: CodeComponentMeta<React.ComponentProps<T>>,
+  meta: NoInfer<CodeComponentMeta<React.ComponentProps<T>>>,
   overrides?: CodeComponentMetaOverrides<T>
 ) {
   if (overrides) {

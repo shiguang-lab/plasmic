@@ -1,3 +1,5 @@
+import { pluginBabel } from "@rsbuild/plugin-babel";
+import { reactCompilerInclude, reactCompilerOptions } from "./tools/react-compiler.mjs";
 import { animateBrandLoading } from "./src/wab/client/components/widgets/brand-loading-animation";
 import { defineConfig, mergeRsbuildConfig } from "@rsbuild/core";
 import {
@@ -8,6 +10,7 @@ import {
   RspackPluginInstance,
 } from "@rspack/core";
 import { readFileSync } from "fs";
+import path from "path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import MonacoWebpackPlugin from "monaco-editor-webpack-plugin";
 import { homepage } from "./package.json";
@@ -152,6 +155,18 @@ class AppendSourceMapWithHash implements RspackPluginInstance {
 }
 
 const appConfig = defineConfig({
+  plugins: [pluginBabel({
+    include: reactCompilerInclude,
+    babelLoaderOptions: {
+      babelrc: false,
+      configFile: false,
+      plugins: [["babel-plugin-react-compiler", reactCompilerOptions({
+        logEvent: (filename, event) => {
+          if (event.kind === "CompileSuccess") console.info("React Compiler", filename, event.fnName, { memoSlots: event.memoSlots, memoBlocks: event.memoBlocks });
+        },
+      })]],
+    },
+  })],
   dev: {
     // Compile routes before CI starts.
     ...(process.env.CI
@@ -273,7 +288,17 @@ const appConfig = defineConfig({
           inject: false,
           minify: false,
         })),
-        new MonacoWebpackPlugin(),
+        new MonacoWebpackPlugin({
+          monacoEditorPath: path.resolve(path.dirname(require.resolve("monaco-editor")), "../.."),
+          customLanguages: [{
+            label: "graphql",
+            entry: path.relative(path.resolve(path.dirname(require.resolve("monaco-editor")), "../../esm"), require.resolve("monaco-graphql/esm/monaco.contribution.js")).replace(/\.js$/, ""),
+            worker: {
+              id: "monaco-graphql",
+              entry: path.relative(path.resolve(path.dirname(require.resolve("monaco-editor")), "../../esm"), require.resolve("monaco-graphql/esm/graphql.worker.js")).replace(/\.js$/, ""),
+            },
+          }],
+        }),
         new HtmlWebpackPlugin(
           Object.assign(
             {},

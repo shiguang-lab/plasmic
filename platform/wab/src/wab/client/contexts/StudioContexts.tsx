@@ -1,3 +1,4 @@
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
@@ -29,6 +30,7 @@ export const providesStudioCtx = withProvider(StudioCtxContext.Provider);
 export const useStudioCtx = () => ensure(useContext(StudioCtxContext), "");
 export const usePlasmicCtx = () => {
   const studioCtx = useStudioCtx();
+  useStudioSelection(studioCtx, (state) => state.view);
   const viewCtx = studioCtx.focusedViewCtx();
   return { studioCtx, viewCtx };
 };

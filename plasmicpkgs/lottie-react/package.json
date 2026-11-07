@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/lottie-react",
-  "version": "0.0.254",
+  "version": "0.1.0",
   "description": "Plasmic registration calls for lottie-react animations.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -45,8 +45,8 @@
     "lottie-react": "^2.4.0"
   },
   "peerDependencies": {
-    "@plasmicapp/host": ">=1.0.0",
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "@plasmicapp/host": "^3.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }

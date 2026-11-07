@@ -1,3 +1,6 @@
+import { subscribeStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { subscribeViewRegistry } from "@/wab/client/studio-ctx/arena-state";
+import type { LocalAiContext } from "@/wab/shared/copilot/local-edit";
 import {
   MentionableResources,
   findMissingMentions,
@@ -5,10 +8,14 @@ import {
   mkMentionableResources,
 } from "@/wab/client/components/copilot/resource-mention-utils";
 import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
-import { isAnyModalOpen } from "@/wab/client/components/widgets/open-modals";
+import { subscribeModalOpen } from "@/wab/client/components/widgets/open-modals";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import {
+  selectIsCopilotChatOpen,
+  selectPanelsHidden,
+} from "@/wab/client/studio-ctx/left-panel-state";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
-import { getLocalAiContext } from "@/wab/client/copilot/local-ai-context";
+import { getLocalAiContext, subscribeLocalAiContextInputs } from "@/wab/client/copilot/local-ai-context";
 import { fileDragMonitor } from "@/wab/client/file-drag/file-drag-monitor";
 import { trackFrameInteractions } from "@/wab/client/frame-ctx/frame-interactions";
 import {
@@ -61,8 +68,18 @@ function notifyMentionedResourceGone() {
 
 function trackArtboardFileDrags(studioCtx: StudioCtx): () => void {
   const untrackByViewCtx = new Map<ViewCtx, () => void>();
-  const dispose = autorun(() => {
-    const viewCtxs = new Set(studioCtx.viewCtxs);
+  let closed = false;
+  // Each registered iframe owns a real DOM listener pair; a roster change
+  // detaches the old window before attaching the replacement.
+  const sync = () => {
+    if (closed) {
+      return;
+    }
+    const viewCtxs = new Set(
+      studioCtx.arenaState.viewRegistry.store
+        .getState()
+        .map((entry) => entry.view),
+    );
     for (const [vc, untrack] of untrackByViewCtx) {
       if (!viewCtxs.has(vc)) {
         untrack();
@@ -77,11 +94,43 @@ function trackArtboardFileDrags(studioCtx: StudioCtx): () => void {
         );
       }
     }
-  });
-  return () => {
-    dispose();
-    untrackByViewCtx.forEach((untrack) => untrack());
   };
+  const stopRegistry = subscribeViewRegistry(
+    studioCtx,
+    (entries) => entries,
+    sync,
+  );
+  const stop = () => {
+    if (closed) {
+      return;
+    }
+    closed = true;
+    stopRegistry();
+    untrackByViewCtx.forEach((untrack) => untrack());
+    untrackByViewCtx.clear();
+  };
+  // Do not wait for the next roster notification: public iframes already live
+  // when this observer mounts must receive their file-drag listeners now.
+  sync();
+  return stop;
+}
+
+/** Native ownership changes rebind the actual model reaction. Old View
+ * listeners and model dependencies are released before reading the new View. */
+export function observeLocalAiContext(
+  studio: StudioCtx,
+  enabled: () => boolean,
+  publish: (context: LocalAiContext | undefined) => void,
+): () => void {
+  let stopModel: (() => void) | undefined;
+  const observe = () => {
+    stopModel?.();
+    stopModel = autorun(() => publish(enabled() ? getLocalAiContext(studio) : undefined));
+  };
+  const stopInputs = subscribeLocalAiContextInputs(studio, observe);
+  const stopPolicy = subscribeStudioRenderPolicy(studio, (state) => state.devMode, observe);
+  observe();
+  return () => { stopInputs(); stopPolicy(); stopModel?.(); };
 }
 
 export const TopFrameObserver = observer(function _TopFrameObserver({
@@ -237,7 +286,7 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
         return await studioCtx.desktopDraft?.flush() ?? false;
       },
       async showDesktopDrafts() {
-        if (studioCtx.desktopDraft?.drafts.length) {studioCtx.desktopDraft.dialogOpen = true;}
+        if (studioCtx.desktopDraft?.store.getState().drafts.length) {studioCtx.desktopDraft.setDialogOpen(true);}
       },
       async blockChanges(): Promise<void> {
         studioCtx.blockChanges = true;
@@ -371,8 +420,8 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
   );
 
   React.useEffect(() => {
-    const dispose = autorun(() => {
-      spawn(topFrameApi.setStudioModalOpen(isAnyModalOpen()));
+    const dispose = subscribeModalOpen(open => {
+      spawn(topFrameApi.setStudioModalOpen(open));
     });
     return () => {
       dispose();
@@ -382,24 +431,27 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
 
   React.useEffect(() => {
     const disposes = filterFalsy([
-      autorun(() => {
-        spawn(
-          topFrameApi.setAiPanelOpen(
-            studioCtx.isCopilotChatOpen && !studioCtx.panelsHidden,
-          ),
-        );
-      }),
-      autorun(() => {
-        if (
-          preview ||
-          !studioCtx.showDevControls ||
-          !studioCtx.canEditProject()
-        ) {
-          spawn(topFrameApi.setLocalAiContext(undefined));
-          return;
-        }
-        spawn(topFrameApi.setLocalAiContext(getLocalAiContext(studioCtx)));
-      }),
+      (() => {
+        let previous: boolean | undefined;
+        const publish = () => {
+          const state = studioCtx.leftPanelState.store.getState();
+          const next =
+            selectIsCopilotChatOpen(state) && !selectPanelsHidden(state);
+          if (next === previous) {
+            return;
+          }
+          previous = next;
+          spawn(topFrameApi.setAiPanelOpen(next));
+        };
+        const stopStore = studioCtx.leftPanelState.store.subscribe(publish);
+        publish();
+        return stopStore;
+      })(),
+      observeLocalAiContext(
+        studioCtx,
+        () => !preview && studioCtx.showDevControls && studioCtx.canEditProject(),
+        (context) => spawn(topFrameApi.setLocalAiContext(context)),
+      ),
       autorun(() => {
         spawn(
           topFrameApi.setPrimitiveValues({
@@ -415,18 +467,17 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
           }),
         );
       }),
-      autorun(() => {
-        spawn(
-          topFrameApi.setLatestPublishedVersionData(
-            studioCtx.releases.length > 0 && studioCtx.releases[0].revisionId
-              ? {
-                  revisionId: studioCtx.releases[0].revisionId,
-                  version: studioCtx.releases[0].version,
-                }
-              : undefined,
-          ),
-        );
-      }),
+      (() => {
+        const syncLatest = () => {
+          const latest = studioCtx.versionHistory.store.getState().releases[0];
+          spawn(topFrameApi.setLatestPublishedVersionData(latest?.revisionId ? { revisionId: latest.revisionId, version: latest.version } : undefined));
+        };
+        syncLatest();
+        return studioCtx.versionHistory.store.subscribe((next, previous) => {
+          const latest = next.releases[0], before = previous.releases[0];
+          if (latest?.revisionId !== before?.revisionId || latest?.version !== before?.version) { syncLatest(); }
+        });
+      })(),
       studioCtx.showBranching() &&
         autorun(() => {
           const branchInfo = studioCtx.dbCtx().branchInfo;

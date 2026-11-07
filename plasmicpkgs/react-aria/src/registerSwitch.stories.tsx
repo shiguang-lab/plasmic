@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
-import React, { useState } from "react";
+import { useState } from "react";
 import { BaseSwitch } from "./registerSwitch";
 
 const meta: Meta<typeof BaseSwitch> = {

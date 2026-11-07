@@ -1,0 +1,105 @@
+{
+  "status": "rejected",
+  "scope": "frozen native-state milestone C; not a full migration acceptance",
+  "source": {
+    "revision": "32df7af09a1df7d119143b546f14a81b6d876c83",
+    "dirty": true,
+    "sourceHash": "c8c7cf968fb92ebf5aaf74a249dffae263ce16bb900c9c72a01bc949924c6b61"
+  },
+  "artifact": {
+    "sourceHash": "c8c7cf968fb92ebf5aaf74a249dffae263ce16bb900c9c72a01bc949924c6b61",
+    "rendererHash": "6807a5f5cb0ce8c6b9b01c51839230f467eb907174b42d2abd18310c575a5af1",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 104867637,
+    "studioArtifactHash": "d7a67d4f52f6492e1c1e6aa60ecb7f1fed61c82e4d8f9187ff061c87e45cdc08",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "checks": {
+    "typecheck": {
+      "log": "/tmp/plasmic-react19-20261105/u26c-isolated-typecheck-3.log",
+      "exitCode": 0
+    },
+    "compiler": {
+      "log": "/tmp/plasmic-react19-20261105/u26c-isolated-compiler.log",
+      "filesPassed": 1,
+      "testsPassed": 13
+    },
+    "targetedRegression": {
+      "logs": [
+        "/tmp/plasmic-react19-20261105/u26c-isolated-crosschain-tests-1.log",
+        "/tmp/plasmic-react19-20261105/u26c-isolated-crosschain-supplement.log"
+      ],
+      "filesPassed": 19,
+      "testsPassed": 156,
+      "note": "These runs preceded the fixture type-only corrections; their final precise after files and subsequent owner-local checks are recorded in overlay manifest provenance."
+    },
+    "productionBuild": {
+      "exitCode": 0
+    },
+    "prepareAssets": {
+      "exitCode": 0
+    },
+    "archive": {
+      "exitCode": 0
+    }
+  },
+  "nativeGP": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/gp/list-open-u26c-gp-native.json",
+    "reportSha256": "bb32caaece3a17b66781d71816272ffd80bc68759c8024d26f54e2aef27580a3",
+    "accepted": false,
+    "functionalCases": 5,
+    "functionalCasesPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "draftDialog": {
+      "enabled": true,
+      "opened": true,
+      "remoteActionClosed": true
+    },
+    "docs": {
+      "codegen": {
+        "dependencyModelsValidated": 50,
+        "typeScriptWorkerDiagnostics": 0,
+        "previewUpdated": true,
+        "restored": true
+      },
+      "loader": {
+        "dependencyModelsValidated": 50,
+        "typeScriptWorkerDiagnostics": 0,
+        "previewUpdated": true,
+        "restored": true
+      }
+    },
+    "rendererErrors": 1,
+    "previewErrors": 0,
+    "failureClass": "disposed model owner, usePageMeta/PageMetaPanel",
+    "diagnosis": "SidePanelShell retains the prior ReactNode during its close transition; the previous lifecycle fixture mocked that ownership boundary. Fix and real-container regression are in progress."
+  },
+  "fullStudioSuite": "not repeated on this rejected production milestone",
+  "complexNative": "not run after GP rejection"
+}

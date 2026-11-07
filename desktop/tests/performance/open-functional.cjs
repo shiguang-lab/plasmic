@@ -66,7 +66,7 @@ exports.run = async ({frame,win,ready,preview}) => {
       for(let i=0;i<500;i++){doc=document.querySelector('[data-test-id="live-frame"]')?.contentDocument;if(doc?.querySelector('.ant-table-tbody')?.innerText.length>30)break;await new Promise(r=>setTimeout(r,20))}
       assert(doc?.querySelector('.ant-table-tbody')?.innerText.length>30,'Real Preview table did not render');
       const initial=doc.querySelector('.ant-table-tbody').innerText;
-      const next=doc.querySelector('.ant-pagination-item-2');assert(next,'Preview second page missing');next.click();
+      const next=doc.querySelector('.ant-pagination-item-2 a, .ant-pagination-item-2 button');assert(next,'Preview second page missing');next.click();
       for(let i=0;i<200&&doc.querySelector('.ant-table-tbody').innerText===initial;i++)await new Promise(r=>setTimeout(r,20));
       assert(doc.querySelector('.ant-pagination-item-active')?.getAttribute('title')==='2'&&doc.querySelector('.ant-table-tbody').innerText!==initial,'Preview pagination did not update data');
       await s.previewCtx.stopLiveMode();await sync();cases.push({case:'preview-business-pagination-return',passed:true});

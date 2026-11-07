@@ -1,0 +1,137 @@
+{
+  "stage": "U20 native Inspector, Canvas runtime and Preview",
+  "artifact": {
+    "sourceHash": "7d51499c00b470410ae4e574a1f2e9a4d4f2c000def88e6f51b88cccdb8461ef",
+    "rendererHash": "bd317e62befa81ffa3cdacbfdee57b1032b75f05697be663b189e45a1e4dbdec",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 832,
+    "bytes": 104755005,
+    "studioArtifactHash": "f0296d63e1d83492e26e81eda8db06f0fe7d6bf6b91b95d5fc0ac59fecdbbb6b",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "validation": {
+    "nonincrementalWabTypecheck": "passed",
+    "compilerTests": 11,
+    "rootUiTests": 18,
+    "tourTests": 8,
+    "productionBuild": "passed",
+    "desktopAssets": "passed",
+    "archiveIdentityCheck": "passed",
+    "fullStudio": {
+      "filesPassed": 561,
+      "filesFailed": 5,
+      "testsPassed": 4626,
+      "testsFailed": 21,
+      "testsSkipped": 4,
+      "sourceUnchanged": false,
+      "note": "Initial full run retains failures from obsolete mock fixtures. Source changed during this run for final Form import/async-act checks and independent QueryBuilder work; not claimed as a clean frozen-source full-suite pass."
+    },
+    "correctedFailedFiles": {
+      "progressiveCanvas": 12,
+      "viewCtxAndTypography": 16,
+      "canvasComponentParts": 2,
+      "branchSwitcher": 11
+    },
+    "remainingFullSuiteGate": "Rerun unified full Studio after next integration batch; 5 failed files pass focused reruns."
+  },
+  "nativeReplay": {
+    "gp": {
+      "rendererErrors": 0,
+      "previewErrors": 0,
+      "functionalCaseCount": 5,
+      "reopen": true,
+      "viewportAcceptance": {
+        "equalScrollRetainsSnapshot": true,
+        "inputPreserved": true,
+        "modelUnchanged": true,
+        "nativeStores": true,
+        "restored": true,
+        "zoomInputUpdatedStore": true,
+        "zoomLabelUpdated": true
+      },
+      "draftDialog": {
+        "enabled": true,
+        "opened": true,
+        "remoteActionClosed": true
+      },
+      "nativeChecks": [],
+      "docsPortal": {
+        "codegen": {
+          "dependencyModelsValidated": 50,
+          "editReachedSelectedStore": true,
+          "monacoMounted": true,
+          "persistedModelUnchanged": true,
+          "previewUpdated": true,
+          "restored": true,
+          "typeScriptWorkerDiagnostics": 0
+        },
+        "loader": {
+          "dependencyModelsValidated": 50,
+          "editReachedSelectedStore": true,
+          "monacoMounted": true,
+          "persistedModelUnchanged": true,
+          "previewUpdated": true,
+          "restored": true,
+          "typeScriptWorkerDiagnostics": 0
+        }
+      }
+    },
+    "complex": {
+      "rendererErrors": 0,
+      "previewErrors": 0,
+      "functionalCaseCount": 8,
+      "reopen": true,
+      "viewportAcceptance": {
+        "equalScrollRetainsSnapshot": true,
+        "inputPreserved": true,
+        "modelUnchanged": true,
+        "nativeStores": true,
+        "restored": true,
+        "zoomInputUpdatedStore": true,
+        "zoomLabelUpdated": true
+      }
+    },
+    "restore": {
+      "rendererErrors": 0,
+      "previewErrors": 0,
+      "functionalCaseCount": 5,
+      "reopen": true,
+      "nativeChecks": [
+        {
+          "iteration": 1,
+          "recovered": true,
+          "conflict": false,
+          "viewportDelta": 0
+        }
+      ]
+    },
+    "conflict": {
+      "rendererErrors": 0,
+      "previewErrors": 0,
+      "functionalCaseCount": 5,
+      "reopen": true,
+      "nativeChecks": [
+        {
+          "iteration": 1,
+          "recovered": false,
+          "conflict": true,
+          "viewportDelta": 0
+        }
+      ]
+    }
+  }
+}

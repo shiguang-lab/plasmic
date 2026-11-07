@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="react" />
-
 import { AssetModule } from '@plasmicapp/loader-core';
 import type { CodeComponentMeta as CodeComponentMeta_2 } from '@plasmicapp/host/registerComponent';
 import { CodeModule } from '@plasmicapp/loader-fetcher';
@@ -162,7 +160,7 @@ export interface InitOptions {
     // (undocumented)
     onClientSideFetch?: "warn" | "error";
     // (undocumented)
-    platform?: "react" | "nextjs" | "gatsby";
+    platform?: "react" | "nextjs";
     // (undocumented)
     platformOptions?: {
         nextjs?: {
@@ -312,7 +310,7 @@ export function PlasmicRootProvider(props: {
 // @public (undocumented)
 export type PlasmicTranslator = (str: string, opts?: {
     components?: {
-        [key: string]: React_2.ReactElement | React_2.ReactFragment;
+        [key: string]: React_2.ReactElement | Iterable<React_2.ReactNode>;
     };
 }) => React_2.ReactNode;
 

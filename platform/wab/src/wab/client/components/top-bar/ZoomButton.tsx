@@ -1,3 +1,4 @@
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { MenuItemContent } from "@/wab/client/components/menu-builder";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
 import {
@@ -12,11 +13,10 @@ import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { spawn } from "@/wab/shared/common";
 import { Button, InputNumber, Menu } from "antd";
 import { createStyles } from "antd-style";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
 import * as React from "react";
 import { FiChevronDown } from "react-icons/fi";
 
-const ZoomSpinner = observer(ZoomSpinner_);
 const useStyles = createStyles(({ token }) => ({
   trigger: {
     "&.ant-btn": {
@@ -168,8 +168,9 @@ const useStyles = createStyles(({ token }) => ({
     },
   },
 }));
-function ZoomSpinner_() {
+function ZoomSpinner() {
   const studioCtx = useStudioCtx();
+  const viewportZoom = useCanvasZoom(studioCtx);
   const { t } = useI18n();
   const { styles } = useStyles();
   const ref = React.useRef<React.ElementRef<typeof InputNumber>>(null);
@@ -183,7 +184,7 @@ function ZoomSpinner_() {
     <ClickStopper>
       <InputNumber
         ref={ref}
-        value={+(studioCtx.zoom * 100).toFixed(0)}
+        value={+(viewportZoom * 100).toFixed(0)}
         className={styles.input}
         aria-label={t("Zoom")}
         formatter={(v) => `${v}%`}
@@ -200,9 +201,11 @@ function ZoomSpinner_() {
   );
 }
 
-export const ZoomButton = observer(function ZoomButton() {
+export function ZoomButton() {
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
+  const currentArenaEmpty = useStore(studioCtx.uiEnvironment.store, (state) => state.currentArenaEmpty);
+  const viewportZoom = useCanvasZoom(studioCtx);
   const [open, setOpen] = React.useState(false);
   const { styles } = useStyles();
   const { styles: popupStyles } = useEditorPopupStyles();
@@ -223,7 +226,7 @@ export const ZoomButton = observer(function ZoomButton() {
         </MenuItemContent>
       </Menu.Item>
       <Menu.Item
-        disabled={studioCtx.currentArenaEmpty}
+        disabled={currentArenaEmpty}
         onClick={() => {
           studioCtx.returnToCanvasOverview();
           studioCtx.tryZoomToFitArena();
@@ -259,13 +262,13 @@ export const ZoomButton = observer(function ZoomButton() {
         aria-label={uiT("Zoom")}
         aria-expanded={open}
         aria-haspopup="menu"
-        disabled={studioCtx.currentArenaEmpty}
+        disabled={currentArenaEmpty}
       >
-        {Math.round(studioCtx.zoom * 100)}%
+        {Math.round(viewportZoom * 100)}%
         <FiChevronDown aria-hidden="true" />
       </Button>
     </IFrameAwareDropdownMenu>
   );
-});
+}
 
 export default ZoomButton;

@@ -1,52 +1,15 @@
 import Button from "@/wab/client/components/widgets/Button";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { explorerPlugin } from "@graphiql/plugin-explorer";
-import { Fetcher } from "@graphiql/toolkit";
+import { QUERY_BUILDER_PLUGIN } from "@graphiql/plugin-query-builder";
+import "@graphiql/plugin-query-builder/style.css";
+import { configureMonacoWorkers } from "@/wab/client/monaco-worker-url";
+import { createGraphqlTransport } from "@/wab/client/data/graphql-transport";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import GraphiQL from "graphiql";
-import "graphiql/graphiql.css";
+import { GraphiQL } from "graphiql";
+import "graphiql/style.css";
 import React, { useMemo, useState } from "react";
 
-/**
- * This fetcher is only used for GraphiQL and may differ from the fetcher
- * implementation used during rendering.
- */
-const createFetcher = ({
-  url: urlStr,
-  headers,
-  method = "POST",
-}: {
-  url: string;
-  headers?: Record<string, string>;
-  method?: string;
-}): Fetcher => {
-  return async (rawPayload, opts) => {
-    const urlObj = new URL(urlStr);
-    // Really, just need to stringify variables
-    const payload = rawPayload;
-
-    // GraphQL supports GET methods, with ?query={...}:
-    // https://graphql.org/learn/serving-over-http/
-    if (method === "GET") {
-      // Combine with any existing search
-      const queryParams = new URLSearchParams(urlObj.search);
-      for (const key in payload) {
-        queryParams.set(key, payload[key]);
-      }
-      urlObj.search = queryParams.toString();
-    }
-
-    return fetch(urlObj.toString(), {
-      method,
-      body: method === "POST" ? JSON.stringify(payload) : undefined,
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        ...(headers ?? {}),
-      },
-    }).then((response) => response.json());
-  };
-};
+configureMonacoWorkers();
 
 interface GraphiqlWithExplorerProps {
   defaultQuery?: string;
@@ -54,7 +17,7 @@ interface GraphiqlWithExplorerProps {
   url: string;
   headers?: Record<string, string>;
   method?: string;
-  onSave?: (query: string, variables) => void;
+  onSave?: (query: string, variables: string | undefined) => void;
   onCancel?: () => void;
 }
 
@@ -63,17 +26,14 @@ export default function GraphiqlWithExplorer({
   defaultVariables,
   url,
   headers,
+  method = "POST",
   onSave,
   onCancel,
 }: GraphiqlWithExplorerProps) {
-  const fetcher = useMemo(
-    () => createFetcher({ url, headers }),
-    ["url", "headers", "method"],
+  const transport = useMemo(
+    () => createGraphqlTransport({ url, headers, method }),
+    [url, headers, method],
   );
-  const explorer = explorerPlugin({
-    showAttribution: false,
-    explorerIsOpen: true,
-  });
   const [query, setQuery] = useState(defaultQuery ?? "");
   const [variables, setVariables] = useState(defaultVariables);
   return (
@@ -84,14 +44,13 @@ export default function GraphiqlWithExplorer({
       >
         <GraphiQL
           forcedTheme="light"
-          fetcher={fetcher}
-          query={query}
+          transport={transport}
+          initialQuery={defaultQuery ?? ""}
           onEditQuery={setQuery}
           onEditVariables={setVariables}
           isHeadersEditorEnabled={false}
-          visiblePlugin={"GraphiQL Explorer"}
-          plugins={[explorer]}
-          variables={variables}
+          visiblePlugin={QUERY_BUILDER_PLUGIN.title}
+          initialVariables={defaultVariables}
         />
       </Scrollbar>
 

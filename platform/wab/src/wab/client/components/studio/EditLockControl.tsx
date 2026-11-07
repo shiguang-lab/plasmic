@@ -1,16 +1,17 @@
+import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import { READ_ONLY_EXPLANATION } from "@/wab/client/components/Messages";
 import { LinkButton } from "@/wab/client/components/widgets";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { Tooltip } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
 
 export function _EditLockControl() {
   const { t } = useI18n();
   const sc = useStudioCtx();
-  if (sc.isAtTip) {
+  const isAtTip = useStudioSaveState(sc, (state) => state.isAtTip);
+  if (isAtTip) {
     return null;
   }
   return (
@@ -33,4 +34,4 @@ export function _EditLockControl() {
   );
 }
 
-export const EditLockControl = observer(_EditLockControl);
+export const EditLockControl = _EditLockControl;

@@ -1,6 +1,8 @@
+import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { useArenaStatus } from "@/wab/client/studio-ctx/arena-state";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { ComponentArenaLayout } from "@/wab/client/components/studio/arenas/ComponentArenaLayout";
-import { FocusModeLayout } from "@/wab/client/components/studio/arenas/FocusModeLayout";
+import { FocusModeLayout, useArenaFocusedFrame } from "@/wab/client/components/studio/arenas/FocusModeLayout";
 import { FreeFramesLayout } from "@/wab/client/components/studio/arenas/FreeFramesLayout";
 import { PageArenaLayout } from "@/wab/client/components/studio/arenas/PageArenaLayout";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -13,17 +15,16 @@ import {
 } from "@/wab/shared/Arenas";
 import { cx, unexpected } from "@/wab/shared/common";
 import { ArenaFrame } from "@/wab/shared/model/classes";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const CanvasArenaShell = observer(function CanvasArenaShell(props: {
+export function CanvasArenaShell(props: {
   studioCtx: StudioCtx;
   arena: AnyArena;
   onFrameLoad: (frame: ArenaFrame, canvasCtx: CanvasCtx) => void;
 }) {
   const { studioCtx, arena, onFrameLoad } = props;
-  const isDevMode = studioCtx.isDevMode;
-  const status = studioCtx.getArenaStatus(arena);
+  const isDevMode = useStudioRenderPolicy(studioCtx, (policy) => policy.devMode);
+  const status = useArenaStatus(studioCtx, arena);
 
   return (
     <div
@@ -46,14 +47,15 @@ export const CanvasArenaShell = observer(function CanvasArenaShell(props: {
       )}
     </div>
   );
-});
+}
 
-export const CanvasArena = observer(function CanvasArena(props: {
+export function CanvasArena(props: {
   studioCtx: StudioCtx;
   arena: AnyArena;
   onFrameLoad: (frame: ArenaFrame, canvasCtx: CanvasCtx) => void;
 }) {
   const { studioCtx, arena, onFrameLoad } = props;
+  const focusedFrame = useArenaFocusedFrame(studioCtx, arena);
   if (isMixedArena(arena)) {
     return (
       <FreeFramesLayout
@@ -62,7 +64,7 @@ export const CanvasArena = observer(function CanvasArena(props: {
         onFrameLoad={onFrameLoad}
       />
     );
-  } else if (isFocusedDedicatedArena(arena)) {
+  } else if (focusedFrame && isFocusedDedicatedArena(arena)) {
     return (
       <FocusModeLayout
         arena={arena}
@@ -89,4 +91,4 @@ export const CanvasArena = observer(function CanvasArena(props: {
   } else {
     unexpected();
   }
-});
+}

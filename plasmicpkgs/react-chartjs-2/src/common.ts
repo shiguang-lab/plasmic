@@ -1,4 +1,4 @@
-import { Plugin } from "chart.js/dist/types";
+import type { Plugin } from "chart.js";
 import { useEffect, useState } from "react";
 
 export const baseOptions = {

@@ -13,15 +13,18 @@ import TrashIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Trash";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
-import { isEditable } from "@/wab/shared/core/sites";
 import { ImageAsset, isKnownImageAsset } from "@/wab/shared/model/classes";
 import { placeholderImgUrl } from "@/wab/shared/urls";
 import { Tooltip } from "antd";
 import L from "lodash";
-import { observer } from "mobx-react";
 import React from "react";
+import { useStore } from "zustand";
+import { createStore } from "zustand/vanilla";
 
-export const ImagePropEditor = observer(function ImagePropEditor(props: {
+const emptyName = createStore<string>(() => "");
+const emptyDataUri = createStore<string | null>(() => null);
+
+export function ImagePropEditor(props: {
   attr: string;
   studioCtx: StudioCtx;
   value?: ImageAsset | string;
@@ -32,12 +35,16 @@ export const ImagePropEditor = observer(function ImagePropEditor(props: {
   const { t: uiT } = useI18n();
   const { attr, studioCtx, value, onPicked, type, readOnly } = props;
   const asset = isKnownImageAsset(value) ? value : undefined;
-  const uri =
-    asset && asset.dataUri
-      ? asset.dataUri
-      : L.isString(value)
-        ? value
-        : undefined;
+  const models = studioCtx.modelSnapshots;
+  const assetName = useStore(asset ? models.field(asset, "name") : emptyName);
+  const assetDataUri = useStore(
+    asset ? models.field(asset, "dataUri") : emptyDataUri,
+  );
+  const assetRef = asset ? models.ref(asset) : undefined;
+  const editable = useStore(models.field(studioCtx.site, "imageAssets"), (assets) =>
+    assetRef !== undefined && assets.includes(assetRef),
+  );
+  const uri = assetDataUri || (L.isString(value) ? value : undefined);
   const [pickingImage, setPickingImage] = React.useState(false);
 
   return (
@@ -66,7 +73,7 @@ export const ImagePropEditor = observer(function ImagePropEditor(props: {
             }
             filename={
               <MaybeWrap
-                cond={asset ? isEditable(studioCtx.site, asset) : false}
+                cond={editable}
                 wrapper={(x) =>
                   readOnly ? (
                     <Tooltip title={uiT("Replace image...")}>
@@ -81,7 +88,7 @@ export const ImagePropEditor = observer(function ImagePropEditor(props: {
                   onClick={() => !readOnly && setPickingImage(true)}
                 >
                   {asset
-                    ? asset.name
+                    ? assetName
                     : !readOnly
                       ? uiT("Choose an image...")
                       : ""}
@@ -122,4 +129,4 @@ export const ImagePropEditor = observer(function ImagePropEditor(props: {
       )}
     </div>
   );
-});
+}

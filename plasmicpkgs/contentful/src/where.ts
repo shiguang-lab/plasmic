@@ -1,4 +1,5 @@
-import type { Field } from "@react-awesome-query-builder/core";
+import type { QueryBuilderConfig } from "@plasmicapp/host";
+import type { Field } from "@react-querybuilder/core";
 import type { RulesLogic } from "json-logic-js";
 import type { ContentTypeField, ContentTypeSchema } from "./schema";
 import { capitalize } from "./utils";
@@ -7,54 +8,52 @@ import { capitalize } from "./utils";
  * Convert Contentful field type to query builder field configuration
  */
 function contentfulSchemaFieldToQueryBuilderField(
-  field: ContentTypeField
-): Field | undefined {
+  field: ContentTypeField,
+): (Omit<Field, "name"> & { label: string }) | undefined {
   switch (field.type) {
     case "Integer":
     case "Number":
       return {
         label: capitalize(field.name),
-        type: "number",
-        operators: [
-          "equal",
-          "not_equal",
-          "less",
-          "less_or_equal",
-          "greater",
-          "greater_or_equal",
-          "is_null",
-          "is_not_null",
-        ],
+        datatype: "number",
+        inputType: "number",
+        valueEditorType: "text",
+        operators: ["=", "!=", "<", "<=", ">", ">=", "null", "notNull"].map(
+          (name) => ({ name, label: name }),
+        ),
       };
 
     case "Boolean":
       return {
         label: capitalize(field.name),
-        type: "boolean",
+        datatype: "boolean",
+        inputType: "text",
+        valueEditorType: "checkbox",
+        operators: ["=", "!="].map((name) => ({ name, label: name })),
       };
 
     case "Date":
       return {
         label: capitalize(field.name),
-        type: "datetime",
-        operators: [
-          "equal",
-          "not_equal",
-          "less",
-          "less_or_equal",
-          "greater",
-          "greater_or_equal",
-          "is_null",
-          "is_not_null",
-        ],
+        datatype: "datetime",
+        inputType: "datetime-local",
+        valueEditorType: "text",
+        operators: ["=", "!=", "<", "<=", ">", ">=", "null", "notNull"].map(
+          (name) => ({ name, label: name }),
+        ),
       };
 
     case "Symbol":
     case "Text":
       return {
         label: capitalize(field.name),
-        type: "text",
-        operators: ["equal", "not_equal", "like", "is_null", "is_not_null"],
+        datatype: "text",
+        inputType: "text",
+        valueEditorType: "text",
+        operators: ["=", "!=", "contains", "null", "notNull"].map((name) => ({
+          name,
+          label: name,
+        })),
       };
 
     default:
@@ -65,8 +64,10 @@ function contentfulSchemaFieldToQueryBuilderField(
 /**
  * Build query builder config from content type schema
  */
-export function schemaToQueryBuilderConfig(schema: ContentTypeSchema) {
-  const fields: Record<string, Field> = {};
+export function schemaToQueryBuilderConfig(
+  schema: ContentTypeSchema,
+): QueryBuilderConfig {
+  const fields: Record<string, Omit<Field, "name"> & { label: string }> = {};
 
   for (const field of schema.fields) {
     const qbField = contentfulSchemaFieldToQueryBuilderField(field);
@@ -76,19 +77,10 @@ export function schemaToQueryBuilderConfig(schema: ContentTypeSchema) {
   }
 
   return {
-    fields,
-    conjunctions: {
-      AND: {
-        label: "All",
-      },
-      // OR explicitly omitted - not supported by Contentful API
-    },
-    settings: {
-      showNot: false,
-      maxNesting: 1,
-      canRegroup: false,
-      canLeaveEmptyGroup: false,
-    },
+    fields: Object.entries(fields).map(([name, field]) => ({ name, ...field })),
+    combinators: [{ name: "and", label: "All" }],
+    showNotToggle: false,
+    showAddGroupAction: false,
   };
 }
 
@@ -99,7 +91,7 @@ export function schemaToQueryBuilderConfig(schema: ContentTypeSchema) {
  * - https://www.contentful.com/developers/docs/references/content-delivery-api/
  */
 export function rulesLogicToContentfulFilters(
-  logic: RulesLogic | undefined
+  logic: RulesLogic | undefined,
 ): Record<string, any> {
   if (logic === null || logic === undefined) {
     return {};
@@ -114,12 +106,12 @@ export function rulesLogicToContentfulFilters(
   } else if ("or" in logic) {
     // OR is not supported by Contentful API
     throw new Error(
-      "Contentful API does not support OR operations. Please restructure your query using only AND conditions."
+      "Contentful API does not support OR operations. Please restructure your query using only AND conditions.",
     );
   } else if ("!" in logic) {
     // NOT is not supported by Contentful API
     throw new Error(
-      "Contentful API does not support NOT operations. Please use field-level negation operators like 'not_equal' ([ne]) instead."
+      "Contentful API does not support NOT operations. Please use field-level negation operators like 'not_equal' ([ne]) instead.",
     );
   } else if ("==" in logic) {
     const [{ var: field }, operand] = logic["=="] as [{ var: string }, unknown];

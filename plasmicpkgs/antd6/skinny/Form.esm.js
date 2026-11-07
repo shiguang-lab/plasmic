@@ -1,7 +1,8 @@
+import { jsx } from 'react/jsx-runtime';
+import React, { createElement } from 'react';
 import { Form } from 'antd';
 import equal from 'fast-deep-equal';
-import React from 'react';
-import { s as setFieldsToUndefined, u as usePrevious } from './utils-U416WEAa.esm.js';
+import { s as setFieldsToUndefined, u as usePrevious } from './utils-DPGVAauG.esm.js';
 import { I as InternalFormInstanceContext, F as FormLayoutContext } from './contexts-DtHxvgts.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -116,7 +117,7 @@ const Internal = React.forwardRef(
       },
       [onIsSubmittingChange, setIsSubmitting]
     );
-    return /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ jsx(
       InternalFormInstanceContext.Provider,
       {
         value: {
@@ -126,39 +127,39 @@ const Internal = React.forwardRef(
           registerField,
           internalFieldCtx,
           initialValues: props.initialValues ?? {}
-        }
-      },
-      /* @__PURE__ */ React.createElement(FormLayoutContext.Provider, { value: formLayout }, /* @__PURE__ */ React.createElement(
-        Form,
-        {
-          ...rest,
-          key: props.initialValues ? JSON.stringify(props.initialValues) : void 0,
-          onValuesChange: (...args) => {
-            props.onValuesChange?.(...args);
-            extendedOnValuesChange?.(form.getFieldsValue(true));
-          },
-          onFinish: async (values) => {
-            if (pendingSubmissions.current && autoDisableWhileSubmitting) {
-              return;
-            }
-            if (++pendingSubmissions.current === 1) {
-              updateIsSubmitting(true);
-            }
-            try {
-              await props.onFinish?.(values);
-            } finally {
-              if (--pendingSubmissions.current === 0) {
-                updateIsSubmitting(false);
-              }
-            }
-          },
-          form,
-          labelCol: props.labelCol?.horizontalOnly && props.layout !== "horizontal" ? void 0 : props.labelCol,
-          wrapperCol: props.wrapperCol?.horizontalOnly && props.layout !== "horizontal" ? void 0 : props.wrapperCol,
-          disabled: isSubmitting && autoDisableWhileSubmitting ? true : disabled
         },
-        childrenNode
-      ))
+        children: /* @__PURE__ */ jsx(FormLayoutContext.Provider, { value: formLayout, children: /* @__PURE__ */ createElement(
+          Form,
+          {
+            ...rest,
+            key: props.initialValues ? JSON.stringify(props.initialValues) : void 0,
+            onValuesChange: (...args) => {
+              props.onValuesChange?.(...args);
+              extendedOnValuesChange?.(form.getFieldsValue(true));
+            },
+            onFinish: async (values) => {
+              if (pendingSubmissions.current && autoDisableWhileSubmitting) {
+                return;
+              }
+              if (++pendingSubmissions.current === 1) {
+                updateIsSubmitting(true);
+              }
+              try {
+                await props.onFinish?.(values);
+              } finally {
+                if (--pendingSubmissions.current === 0) {
+                  updateIsSubmitting(false);
+                }
+              }
+            },
+            form,
+            labelCol: props.labelCol?.horizontalOnly && props.layout !== "horizontal" ? void 0 : props.labelCol,
+            wrapperCol: props.wrapperCol?.horizontalOnly && props.layout !== "horizontal" ? void 0 : props.wrapperCol,
+            disabled: isSubmitting && autoDisableWhileSubmitting ? true : disabled
+          },
+          childrenNode
+        ) })
+      }
     );
   }
 );
@@ -187,10 +188,9 @@ const FormWrapper = React.forwardRef(
       }),
       [layout, props.labelCol?.span]
     );
-    return /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ jsx(
       Internal,
       {
-        key: remountKey,
         forceRemount,
         formLayout,
         internalFieldCtx,
@@ -198,7 +198,8 @@ const FormWrapper = React.forwardRef(
         ref,
         ...props,
         layout
-      }
+      },
+      remountKey
     );
   }
 );

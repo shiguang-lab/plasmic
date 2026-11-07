@@ -13,6 +13,7 @@ import {
 import { DraggableInsertable } from "@/wab/client/components/studio/add-drawer/DraggableInsertable";
 import { Matcher } from "@/wab/client/components/view-common";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { AddItemType } from "@/wab/client/definitions/insertables";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
@@ -23,7 +24,6 @@ import {
 } from "@/wab/client/observability/events/insert-item";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { UiActionsOverlay } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -50,10 +50,11 @@ import {
 import { isTplComponent } from "@/wab/shared/core/tpls";
 import { Component } from "@/wab/shared/model/classes";
 import { mkProjectLocation } from "@/wab/shared/route/app-routes";
-import { Menu, Popover, notification, message } from "antd";
+import { Menu, Popover, message, notification } from "antd";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
+import { useStore } from "zustand";
 
 export const ComponentRow = observer(function ComponentRow(props: {
   component: Component;
@@ -64,6 +65,9 @@ export const ComponentRow = observer(function ComponentRow(props: {
   const { component, matcher, importedFrom, indentMultiplier } = props;
   const studioCtx = useStudioCtx();
   const commentsCtx = studioCtx.commentsCtx;
+  const commentsStats = useStore(commentsCtx.store, (state) =>
+    state.commentStatsByComponent.get(component.uuid),
+  );
   const isPlainComponent =
     isReusableComponent(component) &&
     !isCodeComponent(component) &&
@@ -98,9 +102,6 @@ export const ComponentRow = observer(function ComponentRow(props: {
     component,
   );
   const icon = (() => {
-    const commentsStats = commentsCtx
-      .computedData()
-      .commentStatsByComponent.get(component.uuid);
     if (commentsStats && studioCtx.showCommentsPanel) {
       return (
         <CommentIndicatorIcon
@@ -430,7 +431,9 @@ function buildCodeComponentMenuItems(
               }
             },
             (err) => {
-              showError(err, { title: translate(getUiLocale(), "Operation failed") });
+              showError(err, {
+                title: translate(getUiLocale(), "Operation failed"),
+              });
               reportError(err);
             },
           );

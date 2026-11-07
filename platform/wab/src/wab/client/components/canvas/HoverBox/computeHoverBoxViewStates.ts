@@ -160,7 +160,7 @@ export function computeHoverBoxTargets(studioCtx: StudioCtx): HoverBoxTarget[] {
 export type HoverBoxTarget =
   ArenaFrame | { node: JQuery<HTMLElement> | null; focusObj: Selectable };
 
-export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget) {
+export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, transformingObject: boolean, draggingObject: boolean) {
   const studioCtx = vc.studioCtx;
   if (studioCtx.canvasContentEditor &&
     (isKnownArenaFrame(target) || !vc.contentEditor.contains(target.focusObj))) {
@@ -218,7 +218,7 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget) {
 
   // Hide if no vc is selected, or if we are dragging the object (not the
   // HoverBox label).
-  if (studioCtx.isDraggingObject() || studioCtx.isTransformingObject()) {
+  if (draggingObject || transformingObject) {
     return { display: "none" };
   }
 

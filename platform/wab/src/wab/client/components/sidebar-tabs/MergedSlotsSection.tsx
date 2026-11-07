@@ -1,3 +1,6 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import { useInspectorComponentEvalContext } from "@/wab/client/studio-ctx/inspector-state";
 import { ComponentPropsSection } from "@/wab/client/components/sidebar-tabs/ComponentPropsSection";
 import {
   TextOnlySection,
@@ -36,6 +39,7 @@ export const MergedSlotsTextSection = observer(
     const { t: studioUiT } = useI18n();
 
     const { viewCtx, tpl, tab } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
 
     const slotParams = getSlotParams(tpl.component).filter(
       (p) => p.mergeWithParent,
@@ -97,10 +101,11 @@ export const MergedSlotsPropsSection = observer(
     tab: "settings" | "style";
   }) {
     const { viewCtx, tpl, tab } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
 
     const propTypes = getComponentPropTypes(viewCtx, tpl.component);
     const { componentPropValues, ccContextData } =
-      viewCtx.getInspectorComponentEvalContext(tpl);
+      useInspectorComponentEvalContext(viewCtx, tpl);
 
     const slotParams = getSlotParams(tpl.component).filter((p) => {
       if (!p.mergeWithParent || !(p.variable.name in propTypes)) {

@@ -4,6 +4,7 @@ import {
   LabeledStyleSelectItemRow,
 } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -11,9 +12,9 @@ import ContainIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Contain";
 import CoverIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Cover";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { assert, ensure, spawn } from "@/wab/shared/common";
+import { getProjectFlags } from "@/wab/shared/devflags";
 import { isTplTagOrComponent } from "@/wab/shared/core/tpls";
 import { Alert, Tooltip } from "antd";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
 
@@ -43,17 +44,51 @@ interface ContentPanelSectionProps {
   shouldShowSizeProps?: boolean;
 }
 
+/** One captured Site.flags field; no view/global flags mirror is created. */
+function usePlasmicImageOptimization(provider: TplExpsProvider) {
+  const source = React.useMemo(() => {
+    const native = provider.getNativeStyleSource();
+    assert(native.kind === "tpl", "Image content requires the original tpl provider");
+    const lifetime = provider.viewCtx.disposeSignal;
+    const closed = { getSnapshot: () => false, subscribe: () => () => undefined };
+    if (native.inputs.isDisposed || lifetime.aborted) { return closed; }
+    const studio = provider.studioCtx, models = studio.modelSnapshots, site = native.source.site;
+    assert(site === studio.site, "Image optimization flags belong to another model world");
+    const flags = models.field(site, "flags");
+    let current = false;
+    const isClosed = () => native.inputs.isDisposed || lifetime.aborted || studio.modelSnapshots !== models;
+    const getSnapshot = () => {
+      if (!isClosed()) { current = getProjectFlags({ flags: flags.getState() }).usePlasmicImg; }
+      return current;
+    };
+    getSnapshot();
+    const subscribe = (listener: () => void) => {
+      if (isClosed()) { return () => undefined; }
+      const stop = flags.subscribe(listener);
+      const stopDefaults = studio.appCtx.subscribeUiEnvironmentInputs(listener);
+      let stopped = false;
+      const close = () => { if (stopped) { return; } stopped = true; stop(); stopDefaults(); lifetime.removeEventListener("abort", close); };
+      lifetime.addEventListener("abort", close, { once: true });
+      return close;
+    };
+    return { getSnapshot, subscribe };
+  }, [provider]);
+  return React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
+}
+
 function _ContentPanelSection(props: ContentPanelSectionProps) {
   const { t: uiT } = useI18n();
   const { expsProvider, shouldShowSizeProps } = props;
   const studioCtx = expsProvider.studioCtx;
   const viewCtx = expsProvider.viewCtx;
-  const rsh = expsProvider.mergedExp();
+  const [objectPositionCell] = useStyleCells(expsProvider, [
+    "object-position",
+  ]);
   const tpl = expsProvider.tpl;
   const shouldShowPlasmicImgOptimizationProps =
-    viewCtx.projectFlags().usePlasmicImg && isTplTagOrComponent(tpl);
+    usePlasmicImageOptimization(expsProvider) && isTplTagOrComponent(tpl);
 
-  const pos = ObjectPosition.parse(rsh.get("object-position"));
+  const pos = ObjectPosition.parse(objectPositionCell?.value ?? "initial");
   return (
     <>
       {shouldShowPlasmicImgOptimizationProps && (
@@ -188,8 +223,10 @@ function _ContentPanelSection(props: ContentPanelSectionProps) {
           onChange: (v) =>
             spawn(
               studioCtx.change(() => {
-                pos.xAlign = ensure(v, `v should be set`);
-                rsh.set("object-position", pos.showCss());
+                const rsh = expsProvider.mergedExp();
+                const current = ObjectPosition.parse(rsh.get("object-position"));
+                current.xAlign = ensure(v, `v should be set`);
+                rsh.set("object-position", current.showCss());
                 return ok();
               }),
             ),
@@ -207,8 +244,10 @@ function _ContentPanelSection(props: ContentPanelSectionProps) {
           onChange: (v) =>
             spawn(
               studioCtx.change(() => {
-                pos.yAlign = ensure(v, `v should be set`);
-                rsh.set("object-position", pos.showCss());
+                const rsh = expsProvider.mergedExp();
+                const current = ObjectPosition.parse(rsh.get("object-position"));
+                current.yAlign = ensure(v, `v should be set`);
+                rsh.set("object-position", current.showCss());
                 return ok();
               }),
             ),
@@ -218,4 +257,4 @@ function _ContentPanelSection(props: ContentPanelSectionProps) {
   );
 }
 
-export const ContentPanelSection = observer(_ContentPanelSection);
+export const ContentPanelSection = _ContentPanelSection;

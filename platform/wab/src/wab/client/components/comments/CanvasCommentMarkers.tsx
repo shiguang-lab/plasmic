@@ -1,9 +1,19 @@
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { useStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
+import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useStudioArena, useViewEntryForFrame } from "@/wab/client/studio-ctx/arena-state";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { useCanvasTransforming, useViewportValue } from "@/wab/client/studio-ctx/viewport-state";
 import { CanvasTransformedBox } from "@/wab/client/components/canvas/CanvasTransformedBox";
 import { useRerenderOnUserBodyChange } from "@/wab/client/components/canvas/UserBodyObserver";
 import { AddCommentMarker } from "@/wab/client/components/comments/AddCommentMarker";
 import { CommentMarker } from "@/wab/client/components/comments/CommentMarker";
 import CommentPost from "@/wab/client/components/comments/CommentPost";
 import {
+  getCommentFrameKey,
   getSubjectVariantsKey,
   TplCommentThread,
 } from "@/wab/client/components/comments/utils";
@@ -15,7 +25,12 @@ import {
   ViewCtx,
 } from "@/wab/client/studio-ctx/view-ctx";
 import { AnyArena } from "@/wab/shared/Arenas";
-import { ensure, ensureString, withoutNils } from "@/wab/shared/common";
+import {
+  ensure,
+  ensureString,
+  withoutNils,
+  xGroupBy,
+} from "@/wab/shared/common";
 import {
   isTplNamable,
   isTplVariantable,
@@ -29,7 +44,9 @@ import $ from "jquery";
 import { observer } from "mobx-react";
 import React, { ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useStore } from "zustand";
 
+const emptyThreads: TplCommentThread[] = [];
 const HORIZONTAL_MARKER_OFFSET = 12;
 const ADD_COMMENT_MARKER_MARGIN = 10;
 const ADD_COMMENT_INDIVIDUAL_MARKER_MARGIN = 20;
@@ -68,15 +85,19 @@ const CanvasCommentMarker = observer(function CanvasCommentMarker(props: {
 
   const threadComments = commentThread.comments;
   const [comment] = threadComments;
-  const openedThread = commentsCtx.openedThread();
+  const isSelected = useStore(
+    commentsCtx.dialogStore,
+    (state) => state.thread?.threadId === commentThread.id,
+  );
   const subject = commentsCtx
     .bundler()
     .objByAddr(commentThread.location.subject) as TplNode;
   const author = ensure(
-    commentsCtx.computedData().usersMap.get(ensureString(comment.createdById)),
+    useStore(commentsCtx.store, (state) =>
+      state.usersMap.get(ensureString(comment.createdById)),
+    ),
     "Comment author should exist",
   );
-  const isSelected = openedThread?.threadId === commentThread.id;
 
   return (
     <CanvasCommentOverlay
@@ -135,8 +156,18 @@ export const CanvasAddCommentMarker = observer(
   function CanvasAddCommentMarker(props: { viewCtx: ViewCtx; tpl: TplNode }) {
     const { t: uiT } = useI18n();
     const { viewCtx, tpl } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global, variantState.isEditingNonBaseVariant]));
+  useViewSelection(viewCtx, (state) => state.context);
     const commentsCtx = viewCtx.studioCtx.commentsCtx;
-    const commentStats = commentsCtx.computedData().commentStatsByVariant;
+    const variants = getSetOfPinnedVariantsForViewCtx(
+      viewCtx,
+      viewCtx.bundler(),
+    );
+    const variantKey = getSubjectVariantsKey(tpl, variants);
+    const commentCount = useStore(
+      commentsCtx.store,
+      (state) => state.commentStatsByVariant.get(variantKey)?.commentCount ?? 0,
+    );
     const spotlightComponent = viewCtx?.currentComponentCtx()?.component();
     const ownerComponent = tryGetTplOwnerComponent(tpl);
     const isRecording = viewCtx.isEditingNonBaseVariant;
@@ -149,14 +180,7 @@ export const CanvasAddCommentMarker = observer(
       return null;
     }
 
-    const variants = getSetOfPinnedVariantsForViewCtx(
-      viewCtx,
-      viewCtx.bundler(),
-    );
-
-    const offsetRight =
-      (commentStats.get(getSubjectVariantsKey(tpl, variants))?.commentCount ||
-        0) * HORIZONTAL_MARKER_OFFSET;
+    const offsetRight = commentCount * HORIZONTAL_MARKER_OFFSET;
     return (
       <CanvasCommentOverlay
         tpl={tpl}
@@ -201,7 +225,13 @@ const CanvasSubjectCommentMarkers = observer(
       null,
     );
     const commentsCtx = viewCtx.studioCtx.commentsCtx;
-    const openedThreadId = commentsCtx.openedThread()?.threadId;
+    const openedThreadId = useStore(commentsCtx.dialogStore, (state) =>
+      subjectCommentThreads.some(
+        (thread) => thread.id === state.thread?.threadId,
+      )
+        ? state.thread?.threadId
+        : undefined,
+    );
 
     const focusedIndex = subjectCommentThreads.findIndex(
       (t) => t.id === (hoveredThreadId ?? openedThreadId),
@@ -247,12 +277,31 @@ export const CanvasCommentMarkers = observer(function CanvasCommentMarkers({
   arenaFrame: ArenaFrame;
 }) {
   const studioCtx = useStudioCtx();
-  const viewCtx = studioCtx.tryGetViewCtxForFrame(arenaFrame);
+  useStudioArena(studioCtx, (state) => state.frames);
+  useCanvasTransforming(studioCtx);
+  useViewportValue(studioCtx, (state) => state.visibleScalerBox);
+  const viewCtx = useViewEntryForFrame(studioCtx, arenaFrame)?.view;
+  useStudioLiveMode(studioCtx);
+  useStudioSelection(studioCtx, (state) => state.view === viewCtx);
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  useViewSelection(viewCtx, (state) => state.tpls);
   const commentsCtx = studioCtx.commentsCtx;
+  const frameKey = viewCtx
+    ? getCommentFrameKey(
+        viewCtx.component,
+        getSetOfPinnedVariantsForViewCtx(viewCtx, viewCtx.bundler()),
+      )
+    : undefined;
+  const threadsForFrame =
+    useStore(commentsCtx.store, (state) =>
+      frameKey ? state.unresolvedThreadsByFrame.get(frameKey) : undefined,
+    ) ?? emptyThreads;
   const focusedTpls = withoutNils(viewCtx?.focusedTpls() ?? []);
 
   useRerenderOnUserBodyChange(studioCtx, viewCtx);
 
+  useStudioRenderPolicy(studioCtx, (policy) => policy.devMode);
+  useStudioOverlayState(studioCtx, (state) => state.screenshotting || state.resizeDragging);
   const shouldHideCommentMarker =
     studioCtx.shouldHideUIOverlay() || !viewCtx || !viewCtx.isVisible();
 
@@ -260,8 +309,10 @@ export const CanvasCommentMarkers = observer(function CanvasCommentMarkers({
     return null;
   }
 
-  const threadsGroupedBySubject =
-    commentsCtx.getThreadsGroupedBySubjectForViewCtx(viewCtx);
+  const threadsGroupedBySubject = xGroupBy(
+    threadsForFrame,
+    (thread) => thread.subjectInfo?.subject.uuid,
+  );
 
   return (
     <>
@@ -298,9 +349,8 @@ export const CanvasCommentOverlay = observer(function CanvasCommentOverlay({
   offsetRight: number;
   zIndex?: number;
 }) {
-  // We directly use the render count here to make this component depend on it and re-render every time the render count changes
-  // This is necessary for elements that are visible in the canvas conditionally (e.g. auto opened elements)
-  const renderCount = viewCtx.renderCount;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  const renderCount = useCanvasRenderCount(viewCtx);
   if (renderCount === 0) {
     return null;
   }

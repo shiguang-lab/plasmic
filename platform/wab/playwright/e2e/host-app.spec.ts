@@ -154,21 +154,6 @@ test.describe("host-app", () => {
       consoleLogs.some((text) => text.includes("Save result is Success")),
     ).toBe(false);
 
-    await models.studio.rightPanel.configureProjectAppHost(
-      "plasmic-host-updated-old-host",
-    );
-    await waitForFrameToLoad(page);
-    await models.studio.waitStudioLoaded();
-
-    await models.studio.leftPanel.selectTreeNode(["free box", "badge"]);
-
-    const artboardFrameByName2 = models.studio.getComponentFrameByIndex(0);
-    await expect(
-      artboardFrameByName2.locator("body").getByText("State value: 0"),
-    ).toBeVisible();
-
-    await models.studio.rightPanel.closeNotificationWarning();
-    await models.studio.rightPanel.checkNoErrors();
   });
 
   test("Should accept host URLs with query params", async ({

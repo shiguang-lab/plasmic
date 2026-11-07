@@ -23,7 +23,7 @@ function buildItemIndexToVirtualIndexMap<I, V extends VirtualItem<I>>(
 }
 
 export function useVirtualCombobox<I, V extends VirtualItem<I>>(opts: {
-  listRef: React.RefObject<FixedSizeList | VariableSizeList>;
+  listRef: React.RefObject<FixedSizeList | VariableSizeList | null>;
   /**
    * virtualRows is the same as virtualItems, but chunked up into what we want to show in the same row, e.g. if you want
    * to show multiple items in the same row. Helps the scrolling behavior know where to scroll to.

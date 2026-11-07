@@ -3,7 +3,7 @@ import * as antd from "antd";
 import assert from "node:assert/strict";
 import { readdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { test } from "node:test";
+import { test } from "vitest";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { componentChildren } from "./componentSections";
@@ -173,7 +173,7 @@ test("table title is an optional native render slot with current page data", () 
   }
 });
 
-// The non-deprecated top-level visual components exported by antd 6.6.5.
+// The non-deprecated top-level visual components exported by antd 6.7.0.
 const families = [
   "affix",
   "alert",

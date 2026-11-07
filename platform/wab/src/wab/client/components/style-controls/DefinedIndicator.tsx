@@ -1,3 +1,5 @@
+import { useFocusedViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import { resolvedBackgroundImageCss } from "@/wab/client/components/sidebar-tabs/background-utils";
 import {
@@ -65,8 +67,10 @@ import { ExprCtx, summarizeExpr, tryExtractLit } from "@/wab/shared/core/exprs";
 import {
   TokenValueResolver,
   siteFinalStyleTokensAllDeps,
+  siteFinalColorTokens,
 } from "@/wab/shared/core/site-style-tokens";
 import {
+  CssVarResolver,
   getDefaultStyleTag,
   sourceMatchThemeStyle,
 } from "@/wab/shared/core/styles";
@@ -87,6 +91,7 @@ import {
   VariantSettingSourceStack,
   isTargetOverwritten,
 } from "@/wab/shared/defined-indicator";
+import { allMixins } from "@/wab/shared/core/sites";
 import { getEffectiveVariantSetting } from "@/wab/shared/effective-variant-setting";
 import { BASE_THEMABLE_TAG } from "@/wab/shared/html";
 import {
@@ -176,9 +181,13 @@ export function getStylePropValue(
           backgroundSize: "cover",
           backgroundImage: resolvedBackgroundImageCss(
             parsedBgImg.image,
-            clientTokenResolver,
-            site,
-            vsh,
+            (tokenId) => {
+              const colorToken = siteFinalColorTokens(site, { includeDeps: "all" }).find((candidate) => candidate.uuid === tokenId);
+              return colorToken ? clientTokenResolver(colorToken, vsh) : undefined;
+            },
+            (cssValue) => new CssVarResolver(
+              siteFinalStyleTokensAllDeps(site), allMixins(site, { includeDeps: "all" }), site.imageAssets, site.activeTheme, {}, vsh,
+            ).resolveTokenRefs(cssValue),
           ),
         }}
       />
@@ -830,9 +839,9 @@ function DefinedIndicator_(props: {
   className?: string;
 }) {
   const studioCtx = useStudioCtx();
+  useStudioSelection(studioCtx, (state) => state.view);
 
-  const isEditingNonBaseVariant =
-    studioCtx.focusedViewCtx()?.isEditingNonBaseVariant;
+  const isEditingNonBaseVariant = useFocusedViewVariants(studioCtx, (variantState) => variantState.isEditingNonBaseVariant);
 
   const { type, label, menu, alwaysShowPropLabel } = props;
   const [visible, setVisible] = React.useState(false);
@@ -921,7 +930,7 @@ function DefinedIndicator_(props: {
 export const VariantSettingPopoverTitle = observer(
   function VariantSettingPopoverTitle(props: {
     vs: VariantSetting;
-    children: React.ReactNode;
+    children: React.ReactNode | (() => React.ReactNode);
     viewCtx: ViewCtx;
   }) {
     const { children, viewCtx, vs } = props;
@@ -947,7 +956,7 @@ export const VariantSettingPopoverTitle = observer(
     };
     return (
       <div className="flex flex-vcenter">
-        {children}
+        {typeof children === "function" ? children() : children}
         <div className="flex flex-vcenter flex-push-right">
           <MenuButton menu={isBaseVariant(vs.variants) ? undefined : menu} />
         </div>

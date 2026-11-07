@@ -5,7 +5,7 @@ import * as React from "react";
 import { useAsyncFn, useAsyncRetry } from "react-use";
 import { AsyncFnReturn } from "react-use/lib/useAsync";
 import { AsyncStateRetry as AsyncState } from "react-use/lib/useAsyncRetry";
-import { FnReturningPromise, PromiseType } from "react-use/lib/util";
+import { FunctionReturningPromise, PromiseType } from "react-use/lib/misc/types";
 export type { AsyncFnReturn } from "react-use/lib/useAsync";
 export type { AsyncStateRetry as AsyncState } from "react-use/lib/useAsyncRetry";
 /* eslint-enable no-restricted-imports */
@@ -18,7 +18,7 @@ export type { AsyncStateRetry as AsyncState } from "react-use/lib/useAsyncRetry"
  * This actually uses useAsyncRetry to add the retry functionality
  * for force reloading the async function.
  */
-export function useAsyncStrict<T extends FnReturningPromise>(
+export function useAsyncStrict<T extends FunctionReturningPromise>(
   fn: T,
   deps?: React.DependencyList,
 ): AsyncState<PromiseType<ReturnType<T>>> {
@@ -36,7 +36,7 @@ export function useAsyncStrict<T extends FnReturningPromise>(
  * async function more verbosely - displaying an error message and reporting
  * the error before returning it.
  */
-export function useAsyncFnStrict<T extends FnReturningPromise>(
+export function useAsyncFnStrict<T extends FunctionReturningPromise>(
   fn: T,
   deps?: React.DependencyList,
   initialState?: AsyncState<PromiseType<ReturnType<T>>>,

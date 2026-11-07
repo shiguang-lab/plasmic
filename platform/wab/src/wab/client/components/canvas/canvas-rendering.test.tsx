@@ -1,3 +1,13 @@
+import { StudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { CanvasFrameInfoOwner } from "@/wab/client/components/canvas/canvas-frame-info";
+import { mkArenaFrame } from "@/wab/shared/Arenas";
+import { CanvasRenderOwner } from "@/wab/client/components/canvas/canvas-cache";
+import { CanvasRegistrations } from "@/wab/client/components/canvas/canvas-registrations";
+import { CodeComponentsRegistry } from "@/wab/shared/code-components/code-components";
+import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
+import { ViewVariantState } from "@/wab/client/studio-ctx/view-variant-state";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { createStore } from "zustand/vanilla";
 import {
   _testOnlyUtils,
   RenderingCtx,
@@ -35,7 +45,7 @@ import { ensure } from "@/wab/shared/common";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { usePlasmicQueries } from "@plasmicapp/data-sources";
+import { QueryComponentNode, usePlasmicQueries } from "@plasmicapp/data-sources";
 import { $StateSpec, get, set, useDollarState } from "@plasmicapp/react-web";
 import { act, fireEvent, render } from "@testing-library/react";
 import React from "react";
@@ -59,30 +69,43 @@ it.each([TplVisibility.NotRendered, TplVisibility.CustomExpr, TplVisibility.Disp
       setTplVisibility(node, base, visibility);
     }
     if (visibility === TplVisibility.CustomExpr) {node.vsettings[0].dataCond = codeLit(false);}
-    let interactive = false;
-    const exporting = observable.box(false);
+    const renderPolicy = new StudioRenderPolicy({ isLive: () => false, isDragging: () => false });
+    let exporting = false;
+    const snapshots = new ModelSnapshots();
+    const selection = new ViewSelection(() => snapshots);
+    const variants = new ViewVariantState(() => snapshots, () => { throw new Error("This isolated visibility test has no artboard"); }, () => site, () => false, () => false);
+    selection.setTpls([node]);
+    const session = new CanvasSessionState();
+    const owner = new CanvasRenderOwner(session);
+    const frame = mkArenaFrame({ site, component, width: 800, height: 600, name: "Visibility" });
     const viewCtx = {
-      canvasSessionState: new CanvasSessionState(), canvasExporting: exporting,
-      studioCtx: { get isInteractiveMode() { return interactive; }, isAutoOpenMode: true },
+      canvasSessionState: session, canvasRenderOwner: owner, get canvasExporting() { return exporting; },
+      site, arenaFrame: () => frame,
+      variantStore: variants.store,
+      selection, selectionStore: selection.store, frameState: { valRootStore: createStore(() => null) },
+      currentComponent: () => component, valComponentStack: () => [], componentStackFrames: () => [], showDefaultSlotContents: () => false,
+      studioCtx: { draggingObjectStore: createStore<boolean>(() => false), modelSnapshots: snapshots, subscribeModelChanges: () => () => undefined, hasPendingModelChanges: () => false, renderPolicy, get isInteractiveMode() { return renderPolicy.interactive; }, isAutoOpenMode: true },
       focusedTplAncestorsThroughComponents: () => [{ node, layer: 0 }],
-      canvasCtx: { win: () => window },
+      canvasCtx: { win: () => window, frameInfo: () => frameInfo.store },
     } as unknown as ViewCtx;
+    const frameInfo = new CanvasFrameInfoOwner(viewCtx);
     const ctx = { valKey: node.uuid, env: {}, viewCtx, site, ownerComponent: component, projectFlags: DEVFLAGS } as unknown as RenderingCtx;
     const read = () => _testOnlyUtils.determineAutoOpenState(ctx, node, new EffectiveVariantSetting(node, node.vsettings, site));
     const before = JSON.stringify(node.vsettings);
     expect(read().autoOpened).toBe(true);
     if (visibility === "css-display-none") {expect(read().style?.display).toBe("revert");}
-    interactive = true;
+    renderPolicy.interactive = true; renderPolicy.prepareInputs();
     expect(read().autoOpened).toBe(true);
-    interactive = false;
+    renderPolicy.interactive = false; renderPolicy.prepareInputs();
     expect(read().autoOpened).toBe(true);
-    exporting.set(true);
+    exporting = true; frameInfo.sync();
     expect(read().autoOpened).toBe(false);
     if (visibility === TplVisibility.DisplayNone || visibility === "css-display-none") {expect(read().style).toBeUndefined();}
     else {expect(read().rendered).toBe(false);}
     expect(JSON.stringify(node.vsettings)).toBe(before);
-    exporting.set(false);
+    exporting = false; frameInfo.sync();
     expect(read().autoOpened).toBe(true);
+    frameInfo.dispose(); owner.dispose(); renderPolicy.dispose(); session.dispose(); selection.dispose(); variants.dispose(); snapshots.dispose();
   },
 );
 
@@ -201,6 +224,13 @@ function mkCtx(
   registeredFunctions: Map<string, any>,
   stateSpecs: $StateSpec<any>[] = [],
 ) {
+  const registrations = new CanvasRegistrations();
+  const source = Object.assign(new CodeComponentsRegistry(globalThis, {}), {
+    getRegisteredFunctionsMap: vi.fn().mockReturnValue(registeredFunctions),
+    getRegisteredComponentsAndContextsMap: vi.fn().mockReturnValue(new Map()),
+    getRegisteredLibrariesMap: vi.fn().mockReturnValue(new Map()),
+  });
+  registrations.install(source);
   return {
     env,
     projectFlags: {},
@@ -209,10 +239,12 @@ function mkCtx(
     setDollarQueries: vi.fn(),
     viewCtx: {
       canvasCtx: {
+        registrations,
         win: () => window,
         getRegisteredFunctionsMap: () => registeredFunctions,
       },
       studioCtx: {
+        renderPolicy: new StudioRenderPolicy({ isLive: () => false, isDragging: () => false }),
         executeServerQuery: (_id: string, fn: any, ...args: any[]) =>
           fn(...args),
       },
@@ -489,6 +521,47 @@ describe("useComponentLevelQueries", () => {
         consoleError.mockRestore();
       }
     });
+
+    it("remounts through native registration notifications without an external rerender", async () => {
+      const { component, ctx, env, Fetcher, register } = setup();
+      const sub = { React } as SubDeps;
+      function Harness() {
+        _testOnlyUtils.useServerQueryRegistrations(sub, ctx.viewCtx, component);
+        return <Fetcher key={getQueryFetcherHookCounts(ctx, component).join(":")} />;
+      }
+      const view = render(<Harness />);
+      expect(Object.keys(env.$q)).toEqual([]);
+      await act(async () => { register(); ctx.viewCtx.canvasCtx.registrations.refresh(); });
+      expect(Object.keys(env.$q)).toEqual(["myQuery"]);
+      view.unmount(); ctx.viewCtx.canvasCtx.registrations.dispose();
+    });
+  });
+
+  it("rebuilds a same-id query's captured implementation and detaches its keyed subscription", async () => {
+    const component = mkEmptyComponent(); component.serverQueries.push(mkFunctionServerQuery(mkFetchFunction()));
+    const first = vi.fn(async () => ["first"]), second = vi.fn(async () => ["second"]);
+    const registrations = new Map([ ["plasmic.fetch", { function: first, meta: { name: "fetch", params: [] } }] ]);
+    const ctx = mkCtx(mkEnv(), registrations);
+    const queryTrees = vi.fn((tree: QueryComponentNode) => { void tree; return {}; });
+    const sub = { React, dataSources: { usePlasmicQueries: queryTrees } } as unknown as SubDeps;
+    function Harness() { useComponentLevelQueries(sub, ctx, component); return null; }
+    const view = render(<Harness />);
+    const before = ensure(queryTrees.mock.lastCall?.[0], "The query tree must be supplied");
+    await expect(before.queries.myQuery.fn()).resolves.toEqual(["first"]);
+    registrations.set("plasmic.fetch", { function: second, meta: { name: "fetch", params: [] } });
+    act(() => ctx.viewCtx.canvasCtx.registrations.refresh());
+    const after = ensure(queryTrees.mock.lastCall?.[0], "The replacement query tree must be supplied");
+    expect(after).not.toBe(before);
+    await expect(after.queries.myQuery.fn()).resolves.toEqual(["second"]);
+    expect(first).toHaveBeenCalledTimes(1); expect(second).toHaveBeenCalledTimes(1);
+    const count = queryTrees.mock.calls.length;
+    act(() => ctx.viewCtx.canvasCtx.registrations.refresh());
+    expect(queryTrees).toHaveBeenCalledTimes(count);
+    view.unmount();
+    registrations.set("plasmic.fetch", { function: first, meta: { name: "fetch", params: [] } });
+    ctx.viewCtx.canvasCtx.registrations.refresh();
+    expect(queryTrees).toHaveBeenCalledTimes(count);
+    ctx.viewCtx.canvasCtx.registrations.dispose();
   });
 });
 
@@ -572,10 +645,10 @@ describe("authored canvas click interactions", () => {
     initBuiltinActions({ projectId: "canvas-click", platform: "react", projectFlags: ctx.projectFlags, inStudio: true });
     Object.assign(ctx, { sub: { reactWeb: { get, set } } });
     Object.assign(ctx.viewCtx.studioCtx, {
-      isInteractiveMode: false,
       executePlasmicDataOp: vi.fn(),
       tplMgr: () => ({ findInteractionByUuid: () => undefined }),
     });
+    Object.defineProperty(ctx.viewCtx.studioCtx, "isInteractiveMode", { get: () => ctx.viewCtx.studioCtx.renderPolicy.interactive, set: (value: boolean) => { ctx.viewCtx.studioCtx.renderPolicy.interactive = value; ctx.viewCtx.studioCtx.renderPolicy.prepareInputs(); } });
     Object.assign(ctx.viewCtx, {
       componentArgsContainer: () => undefined,
       componentStackFrames: () => [],
@@ -645,10 +718,12 @@ describe("authored canvas click interactions", () => {
 
 
 it("keeps one native Table render-slot tooltip open and retains RichText classes on hover", async () => {
+  const lifetime = new AbortController();
   const site = createSite();
   const node = mkTplTagX("span");
   const viewCtx = {
-    studioCtx: { isDevMode: true },
+    disposeSignal: lifetime.signal,
+    studioCtx: { isDevMode: true, renderPolicy: new StudioRenderPolicy({ isLive: () => false, isDragging: () => false }) },
     canvasCtx: { Sub: { DataContext: React.createContext({}) } },
     trackCanvasObserver: vi.fn(), commitCanvasObserver: vi.fn(),
     disposeCanvasObserver: (reaction: any) => reaction.dispose(),
@@ -693,5 +768,29 @@ it("keeps one native Table render-slot tooltip open and retains RichText classes
     await waitFor(() => expect(document.querySelectorAll(".ant-tooltip:not(.ant-tooltip-hidden)")).toHaveLength(0));
   }
   expect(callback.mock.calls).toEqual([4, 1, 0].flatMap((index) => [[rows[index].text, true], [rows[index].text, false]]));
-  view.unmount();
+  view.unmount(); lifetime.abort();
+});
+
+it.each([false, true])("keeps a render-slot callback callable when its component provides data: %s", (providesData) => {
+  const param = mkParam({
+    name: "renderItem",
+    type: typeFactory.renderFunc({ params: [typeFactory.arg("item", typeFactory.any())], allowed: [], allowRootWrapper: undefined }),
+    paramType: "slot",
+  });
+  const component = mkComponent({
+    name: "DataList", type: ComponentType.Code, params: [param],
+    codeComponentMeta: { importPath: "./DataList", importName: "DataList", defaultExport: false, providesData } as CodeComponentMeta,
+    tplTree: (baseVariant) => mkTplTagX("div", { baseVariant }),
+  });
+  const tpl = mkTplComponentX({ component, baseVariant: component.variants[0], args: { renderItem: new RenderExpr({ tpl: [mkTplTagX("span")] }) } });
+  const ctx = mkCtx(mkEnv(), new Map());
+  Object.assign(ctx, { sub: { React, DataCtxReader: () => null }, valKey: "list", renderSlotInstance: "parent" });
+  Object.assign(ctx.viewCtx, { componentArgsContainer: () => undefined, componentStackFrames: () => [] });
+  Object.assign(ctx.viewCtx.canvasCtx, { getRegisteredCodeComponentsAndContextsMap: () => new Map() });
+  const before = tpl.vsettings[0].args[0].expr;
+  const props = _testOnlyUtils.computeTplComponentArgs(tpl, { args: tpl.vsettings[0].args, attrs: {} } as any, ctx);
+  expect(props.renderItem).toBeTypeOf("function");
+  expect(React.isValidElement(props.renderItem({ id: "row-1" }))).toBe(true);
+  expect(React.isValidElement(props.renderItem({ id: "row-2" }))).toBe(true);
+  expect(tpl.vsettings[0].args[0].expr).toBe(before);
 });

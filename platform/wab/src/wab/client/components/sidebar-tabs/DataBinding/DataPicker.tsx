@@ -1,3 +1,5 @@
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useInspectorSelection } from "@/wab/client/studio-ctx/inspector-state";
 import type { FullCodeEditor } from "@/wab/client/components/coding/FullCodeEditor";
 import {
   checkDisallowedStateBindingAssignment,
@@ -133,6 +135,7 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
     context,
   } = props;
   const viewCtx = useViewCtxMaybe();
+  const componentContext = useViewSelection(viewCtx, (state) => state.context);
 
   // Transform value from storage format to display format for DataPicker UI
   const displayValue = React.useMemo(() => {
@@ -166,9 +169,8 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
         ? pathToString(displayValue)
         : undefined,
   );
-  const focusedTpl = viewCtx?.studioCtx.inspectorSelection?.tplCount === 1
-    ? viewCtx.inspectorTpl() ?? undefined
-    : undefined;
+  const selection = useInspectorSelection(viewCtx?.studioCtx);
+  const focusedTpl = selection?.viewCtx === viewCtx && selection?.tplCount === 1 ? selection.tpl ?? undefined : undefined;
   const fixedData = React.useMemo(
     // If schema is given, then include schema, mapped to undefined, in the
     // data env, even if it's not present in `data`
@@ -182,7 +184,7 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
         viewCtx?.currentComponent(),
         focusedTpl,
       ),
-    [data, schema, viewCtx?.currentComponent(), focusedTpl],
+    [data, schema, viewCtx?.currentComponent(), focusedTpl, componentContext],
   );
   // fixedData unwraps `$q` with `unwrapStatefulQueryResult`, but the code
   // editor preview needs real query results so `$q.x.data` throws on error.

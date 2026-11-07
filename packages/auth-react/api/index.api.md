@@ -13,7 +13,7 @@ export function usePlasmicAuth(opts: {
 }): {
     user: PlasmicUser | null;
     token: string | null;
-    isUserLoading: boolean | undefined;
+    isUserLoading: boolean;
 };
 
 

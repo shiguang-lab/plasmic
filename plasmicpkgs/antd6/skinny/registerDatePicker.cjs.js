@@ -1,12 +1,13 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var cls = require('classnames');
 var dayjs = require('dayjs');
-var React = require('react');
-var canvasOverlay = require('./canvas-overlay-CK330rTr.cjs.js');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var canvasOverlay = require('./canvas-overlay-Dk7zLz_N.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host');
+require('react');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
@@ -15,12 +16,11 @@ function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
 var cls__default = /*#__PURE__*/_interopDefault(cls);
 var dayjs__default = /*#__PURE__*/_interopDefault(dayjs);
-var React__default = /*#__PURE__*/_interopDefault(React);
 
 function AntdDatePicker(props) {
   const { props: canvasProps, open, isEditing } = canvasOverlay.useCanvasOverlay(props);
   const { picker, popupScopeClassName, classNames, ...rest } = canvasProps;
-  return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children: /* @__PURE__ */ jsxRuntime.jsx(
     Ant.DatePicker,
     {
       ...rest,
@@ -48,7 +48,7 @@ function AntdDatePicker(props) {
         );
       }
     }
-  ));
+  ) });
 }
 const datePickerComponentName = "plasmic-antd6-date-picker";
 const datePickerHelpers = {
@@ -150,7 +150,6 @@ function registerDatePicker(loader) {
         options: ["outlined", "borderless", "filled", "underlined"],
         defaultValueHint: "outlined"
       },
-      // TODO - see how it works with plasmic-rich-components
       // format: {
       //   advanced: true
       // },

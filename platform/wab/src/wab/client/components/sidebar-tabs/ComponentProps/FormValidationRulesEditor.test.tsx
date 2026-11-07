@@ -1,3 +1,4 @@
+import { createStore } from "zustand/vanilla";
 import { FormValidationRulesEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/FormValidationRulesEditor";
 import { ExprCtx, codeLit, getRawCode, tryExtractString } from "@/wab/shared/core/exprs";
 import { createSite } from "@/wab/shared/core/sites";
@@ -26,7 +27,8 @@ const exprCtx: ExprCtx = { component: null, inStudio: true, projectFlags: getPro
 
 function mountRules(initialValue?: JsonValue | Expr) {
   const saved = vi.fn();
-  const viewCtx = { customFunctionsSchema: () => ({}), getInspectorCanvasEnvForTpl: () => ({}) } as any;
+  const environment = createStore(() => ({}));
+  const viewCtx = { customFunctionsSchema: () => ({}), getInspectorReadOwner: () => ({ canvasEnvStore: () => environment }) } as any;
   const tpl = mkTplTagX("div");
   function Harness() {
     const [value, setValue] = React.useState(initialValue);

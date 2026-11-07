@@ -2086,19 +2086,18 @@ export function localMixins(site: Site) {
   return [...site.mixins];
 }
 
+/** Root resources followed by the original ordered dependency resources. */
+export function collectDependencyResources<Resource, Dependency>(local: readonly Resource[], dependencies: readonly Dependency[],
+  readResources: (dependency: Dependency) => readonly Resource[]): Resource[] {
+  return [...local, ...dependencies.flatMap(readResources)];
+}
+
 export function allMixins(
   site: Site,
   opts: { includeDeps?: DependencyWalkScope } = {},
 ) {
   const mixins = localMixins(site);
-  if (opts.includeDeps) {
-    mixins.push(
-      ...walkDependencyTree(site, opts.includeDeps).flatMap(
-        (d) => d.site.mixins,
-      ),
-    );
-  }
-  return mixins;
+  return collectDependencyResources(mixins, opts.includeDeps ? walkDependencyTree(site, opts.includeDeps) : [], (dependency) => dependency.site.mixins);
 }
 
 export function localAnimationSequences(site: Site) {
@@ -2133,14 +2132,7 @@ export function allImageAssets(
   opts: { includeDeps?: DependencyWalkScope } = {},
 ) {
   const images = localImageAssets(site);
-  if (opts.includeDeps) {
-    images.push(
-      ...walkDependencyTree(site, opts.includeDeps).flatMap(
-        (d) => d.site.imageAssets,
-      ),
-    );
-  }
-  return images;
+  return collectDependencyResources(images, opts.includeDeps ? walkDependencyTree(site, opts.includeDeps) : [], (dependency) => dependency.site.imageAssets);
 }
 
 export type StyleTokenWithProjectInfo = Omit<
@@ -2216,11 +2208,17 @@ export function getSiteArenas(
 }
 
 export function getResponsiveStrategy(site: Site) {
-  const screenVariants =
-    site.activeScreenVariantGroup?.variants.map((it) =>
-      it.mediaQuery ? parseScreenSpec(it.mediaQuery) : undefined,
-    ) || [];
+  return getResponsiveStrategyFromMediaQueries(
+    site.activeScreenVariantGroup?.variants.map((variant) => variant.mediaQuery) ?? [],
+  );
+}
 
+export function getResponsiveStrategyFromMediaQueries(
+  mediaQueries: readonly (string | null | undefined)[],
+) {
+  const screenVariants = mediaQueries.map((query) =>
+    query ? parseScreenSpec(query) : undefined,
+  );
   return screenVariants.length > 0
     ? screenVariants.every((it) => it?.minWidth && !it?.maxWidth)
       ? ResponsiveStrategy.mobileFirst

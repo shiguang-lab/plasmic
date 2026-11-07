@@ -318,9 +318,13 @@ function create$StateProxy(
             "inserting a primitive value into a non-leaf"
           );
         }
+        // Valtio 2 proxies its input in place. Mutable state owns a copy so
+        // updates cannot change props or the saved initial value used by reset.
         const newValue =
           nextNode.isLeaf() && nextSpec?.isImmutable
             ? mkUntrackedValue(value)
+            : canProxy(value) && !isValtioProxy(value)
+            ? clone(value)
             : value;
 
         unsubscribeToValtio($$state, nextPath);

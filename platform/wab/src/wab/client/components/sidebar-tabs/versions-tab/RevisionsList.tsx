@@ -14,25 +14,23 @@ import { ApiUser, MainBranchId } from "@/wab/shared/ApiSchema";
 import { MinimalRevisionInfo } from "@/wab/shared/SharedApi";
 import { spawn } from "@/wab/shared/common";
 import { Tooltip } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
+import { useStore } from "zustand";
 
 interface RevisionsListProps {
   studioCtx: StudioCtx;
 }
 
-export const RevisionsList = observer(function RevisionsList(
+export function RevisionsList(
   props: RevisionsListProps,
 ) {
   const { t: uiT } = useI18n();
   const { studioCtx } = props;
-  const dbCtx = studioCtx.dbCtx();
-  const currentBranchName = dbCtx.branchInfo?.name ?? MainBranchId;
-  const revisions = studioCtx.revisions;
-
-  const { data: userById } = useUsersMap(
-    studioCtx.revisions.map((r) => r.createdById),
-  );
+  const currentBranchName = useStore(studioCtx.uiEnvironment.store, (state) => state.branchName);
+  const revisions = useStore(studioCtx.versionHistory.store, (state) => state.revisions);
+  const hasReleases = useStore(studioCtx.versionHistory.store, (state) => state.releases.length > 0);
+  const selectedRevisionId = useStore(studioCtx.versionHistory.store, (state) => state.selectedRevisionId);
+  const { data: userById } = useUsersMap(revisions.map((row) => row.createdById));
 
   const onSelectRevision = async (projectRevision: MinimalRevisionInfo) => {
     const answer =
@@ -54,7 +52,7 @@ export const RevisionsList = observer(function RevisionsList(
 
         // remove initial revision which were created during project creation
         if (
-          studioCtx.releases.length === 0 &&
+          !hasReleases &&
           currentBranchName === MainBranchId &&
           revision.revision <= 2
         ) {
@@ -63,17 +61,15 @@ export const RevisionsList = observer(function RevisionsList(
 
         return true;
       }),
-    [revisions.length, studioCtx.releases.length, currentBranchName],
+    [revisions, hasReleases, currentBranchName],
   );
 
   const onRevert = async (revision: MinimalRevisionInfo, user?: ApiUser) => {
     const answer = await promptRevisionRevert(
       revision,
-      revisions[0],
+      studioCtx.revisions[0],
       studioCtx,
-      userById && revision.createdById
-        ? userById[revision.createdById]
-        : undefined,
+      user,
     );
     if (answer) {
       await studioCtx.revertTo(revision);
@@ -99,10 +95,10 @@ export const RevisionsList = observer(function RevisionsList(
           <VersionsListItem
             key={revision.id}
             isSelected={
-              !studioCtx.editMode && dbCtx.revisionInfo?.id === revision.id
+              selectedRevisionId === revision.id
             }
             itemDate={revision.createdAt}
-            onClick={() => onSelectRevision(revision)}
+            onClick={() => onSelectRevision(studioCtx.versionHistory.getRevision(revision.id))}
             revertBtn={{
               wrap: (node) => (
                 <ClickStopper
@@ -118,7 +114,7 @@ export const RevisionsList = observer(function RevisionsList(
                 </ClickStopper>
               ),
               props: {
-                onClick: () => spawn(onRevert(revision, author)),
+                onClick: () => spawn(onRevert(studioCtx.versionHistory.getRevision(revision.id), author)),
               },
             }}
             author={author}
@@ -127,4 +123,4 @@ export const RevisionsList = observer(function RevisionsList(
       })}
     </>
   );
-});
+}

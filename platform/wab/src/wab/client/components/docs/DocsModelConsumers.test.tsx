@@ -1,0 +1,92 @@
+import ComponentsPanel from "@/wab/client/components/docs/ComponentsPanel";
+import ImagesPanel from "@/wab/client/components/docs/ImagesPanel";
+import VariantProp from "@/wab/client/components/docs/VariantProp";
+import SlotProp from "@/wab/client/components/docs/SlotProp";
+import { providesDocsPortalCtx } from "@/wab/client/components/docs/DocsPortalCtx";
+import { createDocsModelFixture } from "@/wab/client/components/docs/__testonly__/model-fixture";
+import { TplMgr, VariantOptionsType } from "@/wab/shared/TplMgr";
+import { getBaseVariant, tryGetBaseVariantSetting } from "@/wab/shared/Variants";
+import { ensure } from "@/wab/shared/common";
+import { ComponentType } from "@/wab/shared/core/components";
+import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
+import { mkImageAsset } from "@/wab/shared/core/image-assets";
+import { mkParam } from "@/wab/shared/core/lang";
+import { createSite } from "@/wab/shared/core/sites";
+import { mkSlot, mkTplInlinedText } from "@/wab/shared/core/tpls";
+import { asSvgDataUrl } from "@/wab/shared/data-urls";
+import { ensureKnownRawText, ensureKnownTplTag } from "@/wab/shared/model/classes";
+import { typeFactory } from "@/wab/shared/model/model-util";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import React from "react";
+import { useStore } from "zustand";
+
+vi.mock("@/wab/client/components/PublicLink", () => ({ PublicLink: (props: React.ComponentProps<"a">) => <a {...props} /> }));
+vi.mock("@/wab/client/components/style-controls/ImageSelector", () => ({ ImagePreview: ({ uri }: { uri: string }) => <img alt="Icon preview" src={uri} /> }));
+vi.mock("@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicComponentsPanel", () => ({ PlasmicComponentsPanel: ({ searchbox, children }: any) => <section><input aria-label="Component search" {...searchbox} />{children}</section> }));
+vi.mock("@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicImagesPanel", () => ({ PlasmicImagesPanel: ({ searchbox, children }: any) => <section><input aria-label="Icon search" {...searchbox} />{children}</section> }));
+vi.mock("@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicComponentListItem", () => ({ PlasmicComponentListItem: ({ root, children, isSelected }: any) => root.render({ children: <span data-selected={isSelected}>{children}</span> }) }));
+vi.mock("@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicImageListItem", () => ({ PlasmicImageListItem: ({ root, children, icon }: any) => root.render({ children: <span>{icon}{children}</span> }) }));
+vi.mock("@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicVariantProp", () => ({ PlasmicVariantProp: ({ label, children }: any) => <label>{label}{children}</label> }));
+vi.mock("@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicSlotProp", () => ({ PlasmicSlotProp: ({ label, children }: any) => <label>{label}{children}</label> }));
+vi.mock("@/wab/client/components/widgets/Select", () => {
+  const Select = ({ children, onChange, value, ...props }: any) => <select {...props} value={value ?? ""} onChange={(event) => onChange(event.target.value)}>{children}</select>;
+  Select.Option = ({ children, value }: any) => <option value={value ?? ""}>{children}</option>;
+  return { default: Select };
+});
+vi.mock("@/wab/client/components/widgets/Textbox", () => ({ default: ({ value, onChange, placeholder }: any) => <input value={value} onChange={onChange} placeholder={placeholder} /> }));
+afterEach(cleanup);
+
+it("updates actual directory labels, routes, filtering and icon previews from native model fields", () => {
+  const site = createSite();
+  const mgr = new TplMgr({ site });
+  const component = mgr.addComponent({ name: "First", type: ComponentType.Plain });
+  const icon = mkImageAsset({ name: "FirstIcon", type: ImageAssetType.Icon, dataUri: asSvgDataUrl('<svg xmlns="http://www.w3.org/2000/svg"/>') });
+  site.imageAssets.push(icon);
+  const { ctx, commit } = createDocsModelFixture(site);
+  ctx.setFocusedComponent(component);
+  render(providesDocsPortalCtx(ctx)(<><ComponentsPanel /><ImagesPanel /></>));
+  expect(screen.getByRole("link", { name: "First" }).querySelector("[data-selected=true]")).toBeTruthy();
+  act(() => { component.name = "Renamed"; icon.name = "RenamedIcon"; commit(component, "name", [component]); commit(icon, "name"); });
+  expect(screen.getByRole("link", { name: "Renamed" }).getAttribute("href")).toContain("Renamed");
+  expect(screen.getByRole("link", { name: /RenamedIcon/ }).getAttribute("href")).toContain("RenamedIcon");
+  const uri = asSvgDataUrl('<svg xmlns="http://www.w3.org/2000/svg"><circle r="3"/></svg>');
+  act(() => { icon.dataUri = uri; commit(icon, "dataUri"); });
+  expect(screen.getByRole("img", { name: "Icon preview" }).getAttribute("src")).toBe(uri);
+  fireEvent.change(screen.getByRole("textbox", { name: "Component search" }), { target: { value: "missing" } });
+  expect(screen.queryByRole("link", { name: "Renamed" })).toBeNull();
+  ctx.dispose();
+});
+
+it.each(["loader", "codegen"] as const)("keeps native variant and slot controls bound to actual props in %s", async (mode) => {
+  const site = createSite();
+  const mgr = new TplMgr({ site });
+  const component = mgr.addComponent({ name: "Widget", type: ComponentType.Plain });
+  const group = mgr.createVariantGroup({ component, name: "Size", optionsType: VariantOptionsType.singleChoice });
+  const option = mgr.createVariant(component, group, "Small");
+  const slotParam = mkParam({ name: "children", paramType: "slot", type: typeFactory.renderable() });
+  component.params.push(slotParam);
+  const text = mkTplInlinedText("Before", [getBaseVariant(component)], "div", { baseVariant: getBaseVariant(component) });
+  const slot = mkSlot(slotParam, [text]);
+  ensureKnownTplTag(component.tplTree).children.push(slot);
+  slot.parent = component.tplTree;
+  const { ctx, commit } = createDocsModelFixture(site);
+  ctx.setCodegenType(mode);
+  ctx.setFocusedComponent(component);
+  const ref = ctx.models.snapshots.ref(component);
+  function Controls() {
+    const model = useStore(ctx.models.getComponentStore(ref));
+    return <><VariantProp docsCtx={ctx} group={model.variantGroups[0]} /><SlotProp docsCtx={ctx} slot={model.slots[0]} /></>;
+  }
+  render(<Controls />);
+  act(() => { option.name = "Large"; commit(option, "name", [component]); });
+  expect(screen.getByRole("option", { name: "large" })).toBeTruthy();
+  fireEvent.change(screen.getByRole("combobox", { name: "size" }), { target: { value: option.uuid } });
+  expect(ctx.getComponentToggle(component, group.param)).toBe(option);
+  const raw = ensureKnownRawText(ensure(tryGetBaseVariantSetting(text), "Default text").text);
+  act(() => { raw.text = "After"; commit(raw, "text", [component]); });
+  fireEvent.change(screen.getByPlaceholderText("After"), { target: { value: "Configured" } });
+  expect(ctx.getComponentToggle(component, slotParam)).toBe("Configured");
+  await vi.waitFor(() => expect(ctx.getComponentCustomCode(component)).toContain("Configured"));
+  expect(ctx.getComponentCustomCode(component)).toContain(mode === "loader" ? "componentProps" : "<PlasmicWidget");
+  ctx.dispose();
+});

@@ -18,19 +18,19 @@ export function registerAll(loader?: {
 }): void;
 
 // @public (undocumented)
-export function WordpressFetcher({ queryOperator, filterValue, noAutoRepeat, limit, queryType, children, className, noLayout, }: WordpressFetcherProps): React_2.JSX.Element;
+export function WordpressFetcher(input: WordpressFetcherProps): React_2.JSX.Element;
 
 // @public (undocumented)
 export const WordpressFetcherMeta: CodeComponentMeta<WordpressFetcherProps>;
 
 // @public (undocumented)
-export function WordpressField({ className, field }: WordpressFieldProps): React_2.JSX.Element;
+export function WordpressField(input: WordpressFieldProps): React_2.JSX.Element;
 
 // @public (undocumented)
 export const WordpressFieldMeta: CodeComponentMeta<WordpressFieldProps>;
 
 // @public (undocumented)
-export function WordpressProvider({ wordpressUrl, children, }: React_2.PropsWithChildren<WordpressProviderProps>): React_2.JSX.Element;
+export function WordpressProvider(input: React_2.PropsWithChildren<WordpressProviderProps>): React_2.JSX.Element;
 
 // @public (undocumented)
 export const WordpressProviderMeta: GlobalContextMeta<WordpressProviderProps>;

@@ -1,7 +1,7 @@
 import registerComponent, {
   CodeComponentMeta,
 } from "@plasmicapp/host/registerComponent";
-import React from "react";
+
 import useCart from "./cart/use-cart";
 import usePrice from "./product/use-price";
 import { Registerable } from "./registerable";

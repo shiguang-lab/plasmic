@@ -16,6 +16,10 @@
 !**/*.mjs
 !**/*.ts
 !**/*.tsx
+!**/index.html
+!**/pnpm-workspace.yaml
+!**/.oxlintrc.json
+!**/tsconfig.*.json
 
 # for tanstack start
 .tanstack/

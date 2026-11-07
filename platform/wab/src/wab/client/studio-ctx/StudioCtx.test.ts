@@ -1,5 +1,5 @@
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
-import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
   ApiFeatureTier,
   ApiTeam,
@@ -55,14 +55,17 @@ it("binds the active canvas to the restored draft model instead of the previous 
     topApi.writeDesktopDraft.mockResolvedValue(undefined);
     appCtx.topFrameApi = topApi;
 
+    studioCtx.latestVariantCreated = ensure(page.variants[0], "Expected the previous page base variant");
     await studioCtx.initializeDesktopDrafts();
+    expect(studioCtx.latestVariantCreatedStore.getState()).toBeUndefined();
+    expect(studioCtx.latestVariantCreated).toBeUndefined();
 
     const restoredPage = ensure(studioCtx.site.components.find(component => component.uuid === page.uuid), "Missing restored page");
     assert(isTplTag(restoredPage.tplTree), "Expected a page root tag");
     expect(restoredPage.tplTree.name).toBe("RecoveredRoot");
     expect(studioCtx.currentArena).toBe(getDedicatedArena(studioCtx.site, restoredPage));
     expect(studioCtx.currentArena).not.toBe(previousArena);
-    expect(studioCtx.desktopDraft?.error).toBeUndefined();
+    expect(studioCtx.desktopDraft?.store.getState().status?.error).toBeUndefined();
   } finally {
     studioCtx.dispose();
   }
@@ -212,19 +215,22 @@ describe("background arenas", () => {
   // Share the site, each test gets its own StudioCtx.
   const site = generateSiteFromBundle(_bundle as [string, Bundle][]);
 
-  function setup() {
+  const contexts: StudioCtx[] = [];
+  afterEach(() => contexts.splice(0).forEach((context) => context.dispose()));
+
+  async function setup() {
     const { studioCtx } = fakeStudioCtx({
       site,
       devFlagOverrides: { noObserve: true },
     });
-    const arenas = withoutNils(
-      site.components.map((c) => getDedicatedArena(site, c)),
-    );
+    contexts.push(studioCtx);
+    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+    const arenas = withoutNils(site.components.map((component) => getDedicatedArena(site, component))).filter((arena) => arena !== studioCtx.currentArena);
     return { studioCtx, arenas };
   }
 
-  it("ensureArenaAliveInBackground marks the arena alive without changing currentArena or focus", () => {
-    const { studioCtx, arenas } = setup();
+  it("ensureArenaAliveInBackground marks the arena alive without changing currentArena or focus", async () => {
+    const { studioCtx, arenas } = await setup();
     const arena = arenas[0];
     const prevArena = studioCtx.currentArena;
     const prevFocused = studioCtx.focusedViewCtx();
@@ -236,39 +242,20 @@ describe("background arenas", () => {
     expect(studioCtx.focusedViewCtx()).toBe(prevFocused);
   });
 
-  // A class instance, not an object literal, to avoid mobx converting everything to observable
-  class FakeViewCtx {
-    isDisposed = false;
-    constructor(
-      readonly component: unknown,
-      private readonly frame?: unknown,
-    ) {}
-    arenaFrame() {
-      return this.frame;
-    }
-    dispose() {
-      this.isDisposed = true;
-    }
-  }
-
-  it("tryGetLiveViewCtxForComponent finds a live ViewCtx in a non-current arena", () => {
-    const { studioCtx } = setup();
-    const comp = site.components.find((c) => getDedicatedArena(site, c))!;
-    const fakeVc = new FakeViewCtx(comp) as unknown as ViewCtx;
-    studioCtx.viewCtxs.push(fakeVc);
+  it("tryGetLiveViewCtxForComponent finds a live ViewCtx in a non-current arena", async () => {
+    const { studioCtx } = await setup();
+    const comp = site.components.find((c) => getDedicatedArena(site, c) && getDedicatedArena(site, c) !== studioCtx.currentArena)!;
+    const arena = ensure(getDedicatedArena(site, comp), "Component arena");
+    const fakeVc = ensure(studioCtx.tryGetViewCtxForFrame(getArenaFrames(arena)[0]), "Live component view");
 
     expect(studioCtx.tryGetLiveViewCtxForComponent(comp)).toBe(fakeVc);
   });
 
   it("withBackgroundViewCtxForComponent runs the callback with a reused live ViewCtx", async () => {
-    const { studioCtx } = setup();
-    const comp = site.components.find((c) => getDedicatedArena(site, c))!;
+    const { studioCtx } = await setup();
+    const comp = site.components.find((c) => getDedicatedArena(site, c) && getDedicatedArena(site, c) !== studioCtx.currentArena)!;
     const arena = getDedicatedArena(site, comp)!;
-    const fakeVc = new FakeViewCtx(
-      comp,
-      getArenaFrames(arena)[0],
-    ) as unknown as ViewCtx;
-    studioCtx.viewCtxs.push(fakeVc);
+    const fakeVc = ensure(studioCtx.tryGetViewCtxForFrame(getArenaFrames(arena)[0]), "Live component view");
 
     const received = await studioCtx.withBackgroundViewCtxForComponent(
       comp,
@@ -277,24 +264,21 @@ describe("background arenas", () => {
     expect(received).toBe(fakeVc);
   });
 
-  it("garbage collects background arenas before user-visited ones", () => {
-    const { studioCtx, arenas } = setup();
+  it("garbage collects background arenas before user-visited ones", async () => {
+    const { studioCtx, arenas } = await setup();
     const [userArena, bgArena] = arenas;
     expect(userArena).not.toBe(bgArena);
 
     // user visited userArena at some point. The background arena was touched
     // just now, but still needs to be evicted first.
-    (studioCtx as any).arenaViewStates.set(userArena, {
-      isAlive: true,
-      lastAccess: 1,
-      lastViewSnapshot: undefined,
-    });
+    studioCtx.arenaState.activate(userArena, 1);
     studioCtx.ensureArenaAliveInBackground(bgArena);
 
     const savedLiveArenas = DEVFLAGS.liveArenas;
     try {
       DEVFLAGS.liveArenas = 1;
-      (studioCtx as any).maybeGarbageCollectArenas();
+      studioCtx.arenaState.collect(DEVFLAGS.liveArenas);
+      studioCtx.pruneInvalidViewCtxs();
     } finally {
       DEVFLAGS.liveArenas = savedLiveArenas;
     }
@@ -304,22 +288,13 @@ describe("background arenas", () => {
   });
 
   it("renders a cached arena during a background read and restores its cached status", async () => {
-    const { studioCtx, arenas } = setup();
+    const { studioCtx, arenas } = await setup();
     const arena = arenas[0];
     const comp = site.components.find(
       (c) => getDedicatedArena(site, c) === arena,
     )!;
-    const fakeVc = new FakeViewCtx(
-      comp,
-      getArenaFrames(arena)[0],
-    ) as unknown as ViewCtx;
-    studioCtx.viewCtxs.push(fakeVc);
-    (studioCtx as any).arenaViewStates.set(arena, {
-      isAlive: true,
-      isBackground: false,
-      lastAccess: Date.now(),
-      lastViewSnapshot: undefined,
-    });
+    ensure(studioCtx.tryGetViewCtxForFrame(getArenaFrames(arena)[0]), "Live component view");
+    studioCtx.arenaState.activate(arena, Date.now());
     const currentArena = studioCtx.currentArena;
     expect(studioCtx.getArenaStatus(arena)).toBe("cached");
     await studioCtx.withBackgroundViewCtxForComponent(comp, async () => {
@@ -330,22 +305,14 @@ describe("background arenas", () => {
   });
 
   it("withBackgroundViewCtxForComponent keeps the arena alive until the callback resolves", async () => {
-    const { studioCtx, arenas } = setup();
+    const { studioCtx, arenas } = await setup();
     const [userArena, bgArena] = arenas;
     const bgComp = site.components.find(
       (c) => getDedicatedArena(site, c) === bgArena,
     )!;
-    const fakeVc = new FakeViewCtx(
-      bgComp,
-      getArenaFrames(bgArena)[0],
-    ) as unknown as ViewCtx;
-    studioCtx.viewCtxs.push(fakeVc);
+    ensure(studioCtx.tryGetViewCtxForFrame(getArenaFrames(bgArena)[0]), "Live background view");
 
-    (studioCtx as any).arenaViewStates.set(userArena, {
-      isAlive: true,
-      lastAccess: 1,
-      lastViewSnapshot: undefined,
-    });
+    studioCtx.arenaState.activate(userArena, 1);
     studioCtx.ensureArenaAliveInBackground(bgArena);
 
     const savedLiveArenas = DEVFLAGS.liveArenas;
@@ -356,7 +323,8 @@ describe("background arenas", () => {
       await studioCtx.withBackgroundViewCtxForComponent(bgComp, async () => {
         // A GC triggered mid-read (e.g. the user switches arenas) must not evict the arena
         // whose ViewCtx we're reading, or promote the user's arena into the victim slot.
-        (studioCtx as any).maybeGarbageCollectArenas();
+        studioCtx.arenaState.collect(DEVFLAGS.liveArenas);
+      studioCtx.pruneInvalidViewCtxs();
         statusDuringRead = studioCtx.getArenaStatus(bgArena);
         userStatusDuringRead = studioCtx.getArenaStatus(userArena);
       });
@@ -408,4 +376,40 @@ describe("attachComponent", () => {
     );
     expect(studioCtx.observeComponents([select, option])).toBe(false);
   });
+});
+
+
+it("cancels the actual pending initial-route producer when its Studio is disposed", async () => {
+  const fixture = fakeStudioCtx();
+  await waitFor(() => expect(fixture.studioCtx.initialRouteReady).toBe(true));
+  fixture.studioCtx.dispose();
+  let resolvePreferences: (value: string | null) => void = vi.fn();
+  const preferences = new Promise<string | null>((resolve) => { resolvePreferences = resolve; });
+  fixture.api.getStorageItem.mockReturnValue(preferences);
+  fixture.history.replace(`/projects/${fixture.dbCtx.siteInfo.id}`);
+  const original = StudioCtx.prototype["handleInitialRoute"];
+  let routeTask: Promise<void> | undefined;
+  StudioCtx.prototype["handleInitialRoute"] = function(this: StudioCtx) {
+    const task = original.call(this);
+    routeTask = task;
+    return task;
+  };
+  let reopened: StudioCtx | undefined;
+  try {
+    reopened = new StudioCtx({ dbCtx: fixture.dbCtx, autoSave: false });
+    const change = vi.spyOn(reopened, "change");
+    const snapshots = reopened.modelSnapshots;
+    reopened.dispose();
+    resolvePreferences("true");
+    await ensure(routeTask, "The constructor must start its actual initial route task");
+    expect(change).not.toHaveBeenCalled();
+    expect(reopened.initialRouteReady).toBe(false);
+    expect(reopened.focusedViewCtx()).toBeUndefined();
+    expect(reopened.focusedOrFirstViewCtx()).toBeUndefined();
+    expect(reopened.modelSnapshots).toBe(snapshots);
+  } finally {
+    StudioCtx.prototype["handleInitialRoute"] = original;
+    resolvePreferences(null);
+    reopened?.dispose();
+  }
 });

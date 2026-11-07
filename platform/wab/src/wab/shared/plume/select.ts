@@ -42,7 +42,6 @@ import {
 } from "@/wab/shared/plume/plume-utils";
 import type { SelectRef } from "@plasmicapp/react-web";
 import { omit, pick } from "lodash";
-import { computedFn } from "mobx-utils";
 import type React from "react";
 
 const RESERVED_PROPS = [
@@ -73,17 +72,34 @@ interface CanvasSelectedValueState {
   selectedValue: string;
 }
 
-export const mkCanvasSelectedValueState = computedFn(
-  function mkCanvasSelectState(react: typeof React) {
-    return react.createContext<undefined | CanvasSelectedValueState>(undefined);
-  },
-);
+const canvasSelectedValueStateContexts = new WeakMap<
+  typeof React,
+  React.Context<undefined | CanvasSelectedValueState>
+>();
 
-export const mkCanvasIsFirstGroupState = computedFn(
-  function mkCanvasSelectState(react: typeof React) {
-    return react.createContext<boolean>(false);
-  },
-);
+export function mkCanvasSelectedValueState(react: typeof React) {
+  let context = canvasSelectedValueStateContexts.get(react);
+  if (!context) {
+    context =
+      react.createContext<undefined | CanvasSelectedValueState>(undefined);
+    canvasSelectedValueStateContexts.set(react, context);
+  }
+  return context;
+}
+
+const canvasIsFirstGroupStateContexts = new WeakMap<
+  typeof React,
+  React.Context<boolean>
+>();
+
+export function mkCanvasIsFirstGroupState(react: typeof React) {
+  let context = canvasIsFirstGroupStateContexts.get(react);
+  if (!context) {
+    context = react.createContext<boolean>(false);
+    canvasIsFirstGroupStateContexts.set(react, context);
+  }
+  return context;
+}
 
 export const SelectPlugin: PlumePlugin = {
   // PlumeCanvasPlugin

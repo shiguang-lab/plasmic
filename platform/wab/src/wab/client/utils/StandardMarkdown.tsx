@@ -1,10 +1,11 @@
 import { UserMentionDisplay } from "@/wab/client/components/user-mentions/UserMentionDisplay";
 import { MENTION_EMAIL_REGEX } from "@/wab/shared/comments-utils";
 import React, { ComponentProps } from "react";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { defaultUrlTransform } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-export function StandardMarkdown(props: ComponentProps<typeof ReactMarkdown>) {
+export function StandardMarkdown(props: ComponentProps<typeof ReactMarkdown> & { className?: string }) {
+  const { className = "markdown-body", ...markdownProps } = props;
   const processedChildren =
     typeof props.children === "string"
       ? processUserMentions(props.children)
@@ -17,11 +18,12 @@ export function StandardMarkdown(props: ComponentProps<typeof ReactMarkdown>) {
   }
 
   return (
+    <div className={className}>
     <ReactMarkdown
-      linkTarget={"_blank"}
       remarkPlugins={[remarkGfm]}
+      urlTransform={(url) => url.startsWith("mention:") ? url : defaultUrlTransform(url)}
       components={{
-        a: ({ href, children, ...restProps }) => {
+        a: ({ href, children, node, ...restProps }) => {
           const defaultLinkNode = (
             <a
               href={href}
@@ -34,7 +36,7 @@ export function StandardMarkdown(props: ComponentProps<typeof ReactMarkdown>) {
           );
 
           const hrefProperty =
-            restProps.node.properties?.href?.toString() || "";
+            node?.properties?.href?.toString() || "";
           if (hrefProperty.startsWith("mention:")) {
             return (
               <UserMentionDisplay
@@ -47,9 +49,9 @@ export function StandardMarkdown(props: ComponentProps<typeof ReactMarkdown>) {
           return defaultLinkNode;
         },
       }}
-      className="markdown-body"
-      {...props}
+      {...markdownProps}
       children={processedChildren}
     />
+    </div>
   );
 }

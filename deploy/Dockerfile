@@ -99,8 +99,8 @@ RUN pnpm build
 FROM node:24.16.0-bookworm-slim AS preview
 WORKDIR /app
 COPY --from=preview-build --chown=node:node /plasmic/platform/preview/.next/standalone ./
-COPY --from=preview-build --chown=node:node /plasmic/platform/preview/.next/static ./preview/.next/static
+COPY --from=preview-build --chown=node:node /plasmic/platform/preview/.next/static ./platform/preview/.next/static
 USER node
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3011 HOSTNAME=0.0.0.0
 EXPOSE 3011
-CMD ["node", "preview/server.js"]
+CMD ["node", "platform/preview/server.js"]

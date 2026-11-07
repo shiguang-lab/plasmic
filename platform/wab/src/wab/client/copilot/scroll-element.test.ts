@@ -1,8 +1,7 @@
-import { mockDeepAuto } from "@/wab/__testonly__/mock";
-import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { fakeRegistryViewCtx, fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { PROTOTYPE_TOOL_META } from "@/wab/shared/copilot/prototype-tools";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
-import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import type { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
+import { createViewportFixture } from "@/wab/client/__testonly__/viewport";
 import { getArenaFrames } from "@/wab/shared/Arenas";
 import { ensure } from "@/wab/shared/common";
 import { Box } from "@/wab/shared/geom";
@@ -14,7 +13,8 @@ async function fixture() {
     JSON.parse(
       await ensure(COPILOT_TOOLS[name], "Tool missing").execute(
         studioCtx,
-        input,
+        "reviewContext" in PROTOTYPE_TOOL_META[name as keyof typeof PROTOTYPE_TOOL_META].inputSchema.shape
+          ? { ...input, reviewContext: { purpose: "验证画布滚动和选择行为" } } : input,
       ),
     );
   const created = await call("createComponent", {
@@ -31,12 +31,14 @@ async function fixture() {
     getArenaFrames(studioCtx.currentArena)[0],
     "Frame missing",
   );
-  const vc = mockDeepAuto<ViewCtx>();
-  vc.awaitSync.mockResolvedValue(undefined);
-  vc.arenaFrame.mockReturnValue(frame);
-  vc.renderState.tpl2fullKeys.mockReturnValue(["first", "second"]);
-  vc.renderState.fullKey2val.mockReturnValue({} as any);
-  studioCtx.viewCtxs.push(vc);
+  const vc = ensure(studioCtx.tryGetViewCtxForFrame(frame), "Native View missing");
+  vi.spyOn(vc, "awaitSync").mockResolvedValue(undefined);
+  vi.spyOn(vc, "arenaFrame").mockReturnValue(frame);
+  vi.spyOn(vc, "setStudioFocusByTpl").mockImplementation(() => undefined);
+  vi.spyOn(vc, "setStudioFocusBySelectable").mockImplementation(() => undefined);
+  vi.spyOn(vc.renderState, "tpl2fullKeys").mockReturnValue(["first", "second"]);
+  vi.spyOn(vc.renderState, "fullKey2val").mockReturnValue({} as any);
+  vi.spyOn(vc.renderState, "val2dom");
   vi.spyOn(studioCtx, "focusedViewCtx").mockReturnValue(vc);
   vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(vc);
   vi.spyOn(studioCtx, "canEditProject").mockReturnValue(false);
@@ -72,7 +74,7 @@ async function fixture() {
   vi.spyOn(target, "getClientRects").mockImplementation(
     () => [rect()] as unknown as DOMRectList,
   );
-  vc.renderState.val2dom.mockReturnValue([target]);
+  vi.mocked(vc.renderState.val2dom).mockReturnValue([target]);
   studioCtx.copilotActivity.dispose();
   const input = { componentUuid: page.uuid, elementUuid: page.tplTree.uuid };
   return {
@@ -96,16 +98,12 @@ afterEach(() => {
 async function visibleEditorFixture() {
   const f = await fixture();
   f.studioCtx.studioIsVisible = true;
-  Object.defineProperty(f.vc, "isDisposed", { value: false });
-  Object.defineProperty(f.vc, "studioCtx", { value: f.studioCtx });
-  Object.defineProperty(f.vc, "component", { value: f.studioCtx.site.components.find(c => c.uuid === f.input.componentUuid) });
-  f.vc.renderState.tpl2fullKeys.mockReturnValue(["first"]);
+  vi.mocked(f.vc.renderState.tpl2fullKeys).mockReturnValue(["first"]);
   vi.spyOn(f.studioCtx, "change").mockImplementation(async fn => fn());
   const viewport = document.createElement("iframe");
-  f.vc.canvasCtx.viewport.mockReturnValue(viewport);
-  const viewportCtx = mockDeepAuto<ViewportCtx>();
-  viewportCtx.scale.mockReturnValue(1);
-  viewportCtx.clipperBox.mockReturnValue(Box.fromRect(new DOMRect(0, 0, 800, 600)));
+  vi.mocked(f.vc.canvasCtx.viewport).mockReturnValue(viewport);
+  const viewportCtx = ensure(createViewportFixture().viewportCtx, "Viewport");
+  vi.spyOn(viewportCtx, "clipperBox").mockReturnValue(Box.fromRect(new DOMRect(0, 0, 800, 600)));
   vi.spyOn(f.studioCtx, "viewportCtx", "get").mockReturnValue(viewportCtx);
   const fit = vi.spyOn(f.studioCtx, "tryZoomToFitDomElement").mockImplementation(() => undefined);
   return { ...f, viewport, fit };
@@ -119,7 +117,7 @@ it("automatically presents a targeted model read by selection reveal followed by
   const businessHandler = vi.fn();
   f.target.onclick = businessHandler;
   f.target.hidden = true;
-  f.vc.setStudioFocusByTpl.mockImplementation(() => { f.target.hidden = false; });
+  vi.mocked(f.vc.setStudioFocusByTpl).mockImplementation(() => { f.target.hidden = false; });
   const result = await f.call("read", { view: "properties", elements: [f.input] });
   expect(result.presentation, result.presentation?.message).toMatchObject({ ...f.input, visible: true, reason: "visible", phase: "after" });
   expect(f.vc.setStudioFocusByTpl).toHaveBeenCalledWith(page.tplTree);
@@ -141,7 +139,7 @@ it("locates a target outside the visible Studio workspace using the existing vie
 it("returns from interaction to editing before automatically selecting the read target", async () => {
   const f = await visibleEditorFixture();
   runInAction(() => { f.studioCtx.isInteractiveMode = true; });
-  f.vc.setStudioFocusByTpl.mockImplementation(() => {
+  vi.mocked(f.vc.setStudioFocusByTpl).mockImplementation(() => {
     expect(f.studioCtx.isInteractiveMode).toBe(false);
   });
   const result = await f.call("read", { elements: [f.input] });
@@ -153,7 +151,7 @@ it("returns from interaction to editing before automatically selecting the read 
 it("preserves a successful mutation when automatic presentation throws", async () => {
   const f = await visibleEditorFixture();
   vi.mocked(f.studioCtx.canEditProject).mockReturnValue(true);
-  f.vc.setStudioFocusByTpl.mockImplementation(() => { throw new Error("Canvas unavailable"); });
+  vi.mocked(f.vc.setStudioFocusByTpl).mockImplementation(() => { throw new Error("Canvas unavailable"); });
   const result = await f.call("changeElement", { ...f.input, name: "Updated" });
   expect(result.presentation).toMatchObject({ visible: false, reason: "presentation-failed", message: expect.stringContaining("Do not repeat a successful mutation") });
   expect(f.studioCtx.site.components.find(c => c.uuid === f.input.componentUuid)?.tplTree).toMatchObject({ name: "Updated" });
@@ -163,7 +161,7 @@ it("automatically presents an edited target without an extra Agent call", async 
   const f = await visibleEditorFixture();
   vi.mocked(f.studioCtx.canEditProject).mockReturnValue(true);
   const names: (string | null)[] = [];
-  f.vc.setStudioFocusByTpl.mockImplementation(tpl => { if (tpl && "name" in tpl) { names.push(tpl.name ?? null); } });
+  vi.mocked(f.vc.setStudioFocusByTpl).mockImplementation(tpl => { if (tpl && "name" in tpl) { names.push(tpl.name ?? null); } });
   const result = await f.call("changeElement", { ...f.input, name: "Updated" });
   expect(result.presentation, result.presentation?.message).toMatchObject({ ...f.input, visible: true, reason: "visible", phase: "after" });
   expect(f.vc.setStudioFocusByTpl).toHaveBeenCalled();
@@ -210,7 +208,7 @@ it("does not mistake a CSS-hidden target for a scroll problem or run its busines
 
 it("keeps model data when a target has no rendered instance and does not infer it is uncreated", async () => {
   const f = await visibleEditorFixture();
-  f.vc.renderState.val2dom.mockReturnValue([]);
+  vi.mocked(f.vc.renderState.val2dom).mockReturnValue([]);
   const result = await f.call("read", { view: "properties", elements: [f.input] });
   expect(result.results).toHaveLength(1);
   expect(result.presentation).toMatchObject({ visible: false, reason: "not-rendered", message: expect.stringContaining("do not infer") });
@@ -227,7 +225,7 @@ it("does not invent a node or change the view for a failed model lookup or empty
 
 it("does not silently select a repeated instance during a model read", async () => {
   const f = await visibleEditorFixture();
-  f.vc.renderState.tpl2fullKeys.mockReturnValue(["first", "second"]);
+  vi.mocked(f.vc.renderState.tpl2fullKeys).mockReturnValue(["first", "second"]);
   const result = await f.call("read", { elements: [f.input] });
   expect(result.presentation).toMatchObject({ visible: false, reason: "ambiguous-instance", message: expect.stringContaining("instanceIndex") });
   expect(f.vc.setStudioFocusByTpl).not.toHaveBeenCalled();
@@ -235,7 +233,7 @@ it("does not silently select a repeated instance during a model read", async () 
 
 it("reveals content on a read-only project without changing selection, mode or design", async () => {
   const f = await fixture();
-  const count = f.studioCtx.copilotActivity.requests.length;
+  const count = f.studioCtx.copilotActivity.store.getState().requests.length;
   const interactive = f.studioCtx.isInteractiveMode;
   const result = await f.call("scrollElementIntoView", f.input);
   expect(f.parent.scrollTop).toBe(420);
@@ -252,7 +250,7 @@ it("reveals content on a read-only project without changing selection, mode or d
   expect(f.change).not.toHaveBeenCalled();
   expect(f.selection).not.toHaveBeenCalled();
   expect(f.studioCtx.isInteractiveMode).toBe(interactive);
-  expect(f.studioCtx.copilotActivity.requests).toHaveLength(count);
+  expect(f.studioCtx.copilotActivity.store.getState().requests).toHaveLength(count);
   await f.call("scrollElementIntoView", f.input);
   expect(f.parent.scrollTo).toHaveBeenCalledTimes(1);
 });
@@ -281,11 +279,11 @@ it("rejects missing and unrendered targets without pretending to reveal them", a
   await expect(
     f.call("scrollElementIntoView", { ...f.input, elementUuid: "missing" }),
   ).rejects.toThrow("not found");
-  f.vc.renderState.tpl2fullKeys.mockReturnValue([]);
+  vi.mocked(f.vc.renderState.tpl2fullKeys).mockReturnValue([]);
   await expect(f.call("scrollElementIntoView", f.input)).rejects.toThrow(
     "not rendered",
   );
-  f.vc.renderState.tpl2fullKeys.mockReturnValue(["first"]);
+  vi.mocked(f.vc.renderState.tpl2fullKeys).mockReturnValue(["first"]);
   f.target.remove();
   await expect(f.call("scrollElementIntoView", f.input)).rejects.toThrow(
     "hidden",
@@ -324,11 +322,11 @@ it("requires an artboard when the target has multiple unfocused renderings", asy
   );
   vi.spyOn(f.studioCtx, "currentArena", "get").mockReturnValue(arena);
   const frames = getArenaFrames(f.studioCtx.currentArena);
-  f.vc.arenaFrame.mockReturnValue(frames[0]);
-  const second = mockDeepAuto<ViewCtx>();
-  second.arenaFrame.mockReturnValue(frames[1]);
+  f.studioCtx.arenaState.viewRegistry.remove(f.vc);
+  vi.mocked(f.vc.arenaFrame).mockReturnValue(frames[0]);
+  f.studioCtx.arenaState.viewRegistry.register(f.vc);
+  const { view: second } = fakeRegistryViewCtx(f.studioCtx, frames[1]);
   second.renderState.tpl2fullKeys.mockReturnValue(["first"]);
-  f.studioCtx.viewCtxs.push(second);
   vi.mocked(f.studioCtx.focusedViewCtx).mockReturnValue(undefined);
   await expect(f.call("scrollElementIntoView", f.input)).rejects.toThrow(
     "specify frameUuid",
@@ -346,7 +344,7 @@ it("requires an artboard when the target has multiple unfocused renderings", asy
 it("selects and reveals an explicit rendered instance without mutating the design", async () => {
   const f = await fixture();
   vi.spyOn(f.studioCtx, "change").mockImplementation(async (fn) => fn());
-  f.vc.setStudioFocusBySelectable.mockClear();
+  vi.mocked(f.vc.setStudioFocusBySelectable).mockClear();
   const result = await f.call("selectElement", {
     ...f.input,
     frameUuid: f.frame.uuid,
@@ -360,7 +358,7 @@ it("selects and reveals an explicit rendered instance without mutating the desig
     guidance: expect.stringContaining("workspace screenshot"),
   });
   expect(f.vc.setStudioFocusBySelectable).toHaveBeenCalledWith(
-    f.vc.renderState.fullKey2val.mock.results[0].value,
+    vi.mocked(f.vc.renderState.fullKey2val).mock.results[0].value,
   );
   expect(f.vc.renderState.fullKey2val).toHaveBeenLastCalledWith("second");
   expect(f.parent.scrollTop).toBe(420);
@@ -390,7 +388,7 @@ it.each(["layout-clipped", "no-layout", "hidden", "not-rendered"])(
       f.target.hidden = true;
       vi.mocked(f.target.getClientRects).mockReturnValue([] as unknown as DOMRectList);
     } else {
-      f.vc.renderState.val2dom.mockReturnValue([]);
+      vi.mocked(f.vc.renderState.val2dom).mockReturnValue([]);
     }
     await expect(f.call("selectElement", f.input)).resolves.toMatchObject({
       ...f.input,
@@ -406,16 +404,16 @@ it.each(["layout-clipped", "no-layout", "hidden", "not-rendered"])(
 it("waits for selection and resolves the refreshed rendered instance before scrolling", async () => {
   const f = await fixture();
   const selectedVal = {} as any;
-  f.vc.renderState.val2dom.mockReturnValue([]);
+  vi.mocked(f.vc.renderState.val2dom).mockReturnValue([]);
   vi.spyOn(f.studioCtx, "change").mockImplementation(async (fn) => {
     await Promise.resolve();
     return fn();
   });
-  f.vc.awaitSync.mockImplementation(async () => {
-    if (f.vc.setStudioFocusBySelectable.mock.calls.length) {
+  vi.mocked(f.vc.awaitSync).mockImplementation(async () => {
+    if (vi.mocked(f.vc.setStudioFocusBySelectable).mock.calls.length) {
       await Promise.resolve();
-      f.vc.renderState.fullKey2val.mockReturnValue(selectedVal);
-      f.vc.renderState.val2dom.mockImplementation((val) =>
+      vi.mocked(f.vc.renderState.fullKey2val).mockReturnValue(selectedVal);
+      vi.mocked(f.vc.renderState.val2dom).mockImplementation((val) =>
         val === selectedVal ? [f.target] : [],
       );
     }

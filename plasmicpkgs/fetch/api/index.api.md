@@ -7,7 +7,7 @@
 import registerFunction from '@plasmicapp/host/registerFunction';
 
 // @public (undocumented)
-function fetch_2({ url, method, headers, body }: FetchOpts): Promise<{
+function fetch_2(input: FetchOpts): Promise<{
     statusCode: number;
     headers: {
         [k: string]: string;

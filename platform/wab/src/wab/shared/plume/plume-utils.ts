@@ -179,7 +179,7 @@ export function traverseReactEltTree(
   const rec = (elts: React.ReactNode) => {
     if (Array.isArray(elts)) {
       elts.forEach((x) => rec(x));
-    } else if (React.isValidElement(elts)) {
+    } else if (React.isValidElement<{ children?: React.ReactNode }>(elts)) {
       callback(elts);
       rec(elts.props.children);
     }
@@ -190,7 +190,7 @@ export function traverseReactEltTree(
 export function isPlumeTypeElement(
   elt: React.ReactElement,
   type: PlumeType,
-): elt is React.ReactElement {
+): elt is React.ReactElement<{ value?: string }> {
   return !!elt && !!elt.type && (elt.type as any).__plumeType === type;
 }
 

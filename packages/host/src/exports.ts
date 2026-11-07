@@ -63,3 +63,5 @@ export {
 } from "./registerTrait";
 export { default as repeatedElement } from "./repeatedElement";
 export * from "./translation";
+
+export type { QueryBuilderConfig } from "./types/query-builder-types";

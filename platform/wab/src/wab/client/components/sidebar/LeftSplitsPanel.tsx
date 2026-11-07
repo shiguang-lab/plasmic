@@ -13,9 +13,9 @@ import { assert } from "@/wab/shared/common";
 import { SplitStatus, SplitType } from "@/wab/shared/core/splits";
 import { Split } from "@/wab/shared/model/classes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { autorun } from "mobx";
 import * as React from "react";
-import { animated, useTransition } from "react-spring";
+import { useStore } from "zustand";
+import { animated, useTransition } from "@react-spring/web";
 
 export type LeftSplitsPanelProps = DefaultLeftSplitsPanelProps;
 
@@ -38,8 +38,8 @@ function LeftSplitsPanel_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const studioCtx = useStudioCtx();
-  const splits = studioCtx.site.splits;
-  const readOnly = studioCtx.getLeftTabPermission("splits") === "readable";
+  const splits = useStore(studioCtx.modelSnapshots.field(studioCtx.site, "splits"));
+  const readOnly = useStore(studioCtx.uiEnvironment.store, (state) => state.leftTabPermissions.splits === "readable");
 
   const [editSplit, setEditSplit] = React.useState<Split | undefined>(
     undefined,
@@ -52,13 +52,15 @@ function LeftSplitsPanel_(
   };
 
   React.useEffect(() => {
-    const dispose = autorun(() => {
+    const consumeRequest = () => {
       const forceOpenSplit = studioCtx.forceOpenSpit;
       if (forceOpenSplit) {
         focusSplit(forceOpenSplit);
         studioCtx.forceOpenSplit = null;
       }
-    });
+    };
+    const dispose = studioCtx.forceOpenSplitStore.subscribe(consumeRequest);
+    consumeRequest();
     return dispose;
   }, [studioCtx]);
 

@@ -31,7 +31,7 @@ export type PlasmicClass<
   A extends Record<string, any>,
   O extends Record<string, any>
 > = {
-  (props: { variants?: V; args?: A; overrides?: O }): React.ReactNode;
+  (props: { variants?: V; args?: A; overrides?: O }): ReturnType<React.FunctionComponent>;
   internalVariantProps: (keyof V)[];
   internalArgProps: (keyof A)[];
 };
@@ -69,7 +69,7 @@ export function noOutline() {
   return { outline: "none" };
 }
 
-export function getPlumeType(child: React.ReactChild): string | undefined {
+export function getPlumeType(child: React.ReactElement | string | number): string | undefined {
   if (!React.isValidElement(child)) {
     return undefined;
   }

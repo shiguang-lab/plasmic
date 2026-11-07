@@ -1,0 +1,35 @@
+{
+  "status": "resumed-by-user; accumulating50\u2013100-file verification milestone",
+  "remaining": {
+    "files": 283,
+    "source": 233,
+    "test": 49,
+    "tooling": 1
+  },
+  "currentCohort": "u35l",
+  "currentSourceHash": "203db27b62f3e8a3ff4119ad6fe357eba2aeca6f06f72be5e2c6842041a167d7",
+  "checks": {
+    "fullTypecheck": 0,
+    "integration": {
+      "files": 10,
+      "passed": 60
+    },
+    "previewCodegenFollowup": {
+      "files": 1,
+      "passed": 14
+    },
+    "lintErrors": 0
+  },
+  "workers": "3 subagents + DeepSeek reactivated, disjoint source ownership",
+  "pendingPrivateOnly": [
+    "canvas-agent/u55-native-frame-hash (3files; not applied/tested)",
+    "style-core-native-private (baseline/prototype seed only; no new implementation)",
+    "deepseek-bulk-style-consumers/private-consumers (unapplied partial proposals)"
+  ],
+  "styleReviewCorrection": "ThemeStyle.selector and SlotParam.tplSlot are readonly Const; illegal mutation reproductions were withdrawn; actual mutable TplTag.type/slot/SingleRs recipe cases remain unimplemented",
+  "artifacts": "/tmp/plasmic-react19-20261105",
+  "sourceVerified": true,
+  "nativeGP": "passed",
+  "nativeComplex": "passed",
+  "heavyValidationSinceResume": false
+}

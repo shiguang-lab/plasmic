@@ -22,7 +22,7 @@ import {
   DefaultViewAsButtonProps,
   PlasmicViewAsButton,
 } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicViewAsButton";
-import { StudioAppUser, isUserProjectEditor } from "@/wab/client/studio-ctx/StudioCtx";
+import type { StudioAppUser } from "@/wab/client/studio-ctx/StudioCtx";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { trackEvent } from "@/wab/client/tracking";
 import { ApiAppUser } from "@/wab/shared/ApiSchema";
@@ -32,9 +32,10 @@ import { ifEmpty, spawn } from "@/wab/shared/common";
 import { isValidCurrentUserPropsExpr } from "@/wab/shared/core/exprs";
 import { DataSourceOpExpr } from "@/wab/shared/model/classes";
 import { Menu, notification } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useState } from "react";
+import { useStore } from "zustand";
+import { useStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
 
 // Your component props start with props for variants and slots you defined
 // in Plasmic, but you can add more here, like event handlers that you can
@@ -53,25 +54,23 @@ export type ViewAsButtonProps = DefaultViewAsButtonProps;
 
 const maxListedUsers = 30;
 
-function _ViewAsButton(props: ViewAsButtonProps) {
+function ViewAsButton(props: ViewAsButtonProps) {
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const topFrameApi = useTopFrameApi();
-  const currentAppUserCtx = studioCtx.currentAppUserCtx;
+  const email = useStore(studioCtx.currentAppUserStore, (state) => state.appUser.email);
+  const externalId = useStore(studioCtx.currentAppUserStore, (state) => state.appUser.externalId);
+  const hasAppAuth = useStore(studioCtx.uiEnvironment.store, (state) => state.hasAppAuth);
+  const isEditor = useStore(studioCtx.uiEnvironment.store, (state) => state.isProjectEditor);
+  const isLive = useStudioLiveMode(studioCtx);
   const appCtx = studioCtx.appCtx;
-  const appId = studioCtx.siteInfo.id;
+  const appId = useStore(studioCtx.projectMetadataStore, (state) => state.id);
   const { appUsers } = useAppUsers(appCtx, appId);
-
-  const isEditor = isUserProjectEditor(
-    appCtx.selfInfo,
-    studioCtx.siteInfo,
-    studioCtx.siteInfo.perms,
-  );
 
   const [search, setSearch] = useState("");
 
   // Only show it for projects with auth enabled
-  if (!studioCtx.siteInfo.hasAppAuth || !appUsers) {
+  if (!hasAppAuth || !appUsers) {
     return null;
   }
 
@@ -102,10 +101,10 @@ function _ViewAsButton(props: ViewAsButtonProps) {
   }
 
   function getViewAsLabel() {
-    if (currentAppUserCtx.appUser.email) {
-      return `Viewing as ${currentAppUserCtx.appUser.email}`;
-    } else if (currentAppUserCtx.appUser.externalId) {
-      return `Viewing as ${currentAppUserCtx.appUser.externalId}`;
+    if (email) {
+      return `Viewing as ${email}`;
+    } else if (externalId) {
+      return `Viewing as ${externalId}`;
     } else {
       return "Viewing as anonymous";
     }
@@ -193,7 +192,7 @@ function _ViewAsButton(props: ViewAsButtonProps) {
                 <UiText message={"Manage users & settings"} />
               </Menu.Item>
               <Menu.Divider />
-              {!studioCtx.isLiveMode && <AdvancedAppAuthMenuItems />}
+              {!isLive && <AdvancedAppAuthMenuItems />}
             </>
           )}
         </Menu>
@@ -208,7 +207,7 @@ export function AdvancedAppAuthMenuItems() {
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const appCtx = studioCtx.appCtx;
-  const appId = studioCtx.siteInfo.id;
+  const appId = useStore(studioCtx.projectMetadataStore, (state) => state.id);
   const { roles } = useAppRoles(appCtx, appId);
   const dataSourceModal = useDataSourceOpExprBottomModal(
     "current-user-properties",
@@ -348,7 +347,5 @@ function getDataSourceOpExprFromBundle(bundled?: string | null) {
   const bundler = new FastBundler();
   return bundler.unbundle(bundle, "currentUserOpExpr") as DataSourceOpExpr;
 }
-
-const ViewAsButton = observer(_ViewAsButton);
 
 export default ViewAsButton;

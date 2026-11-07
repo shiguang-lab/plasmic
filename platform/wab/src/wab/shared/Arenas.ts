@@ -87,18 +87,39 @@ import {
   VariantCombo,
 } from "@/wab/shared/Variants";
 import { has, isArray, isEmpty, keyBy, orderBy, uniq } from "lodash";
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { IObservableValue, observable } from "mobx";
+import { createStore, type StoreApi } from "zustand/vanilla";
 
 export type AnyArena = Arena | ComponentArena | PageArena;
+type AutoFrameHeightStore = Pick<StoreApi<number | undefined>, "getState" | "getInitialState" | "subscribe">;
+const autoFrameHeights = new WeakMap<ArenaFrame, { readonly state: StoreApi<number | undefined>; readonly store: AutoFrameHeightStore }>();
 
-export interface IArenaFrame extends ArenaFrame {
-  // Auto-sized value, doesn't need to exist in the model.
-  // That's important not only to avoid saving a new revision whenever opening
-  // a large project, but also to avoid broadcasting updates to all sessions
-  // when having multi-player editing (which causes all sessions to lookup the
-  // newest changes).
-  _height?: IObservableValue<number>;
+/** A record can be demanded without initializing its first-read cached height. */
+function autoFrameHeight(frame: ArenaFrame) {
+  let record = autoFrameHeights.get(frame);
+  if (!record) {
+    const state = createStore<number | undefined>(() => undefined);
+    record = { state, store: { getState: state.getState, getInitialState: state.getInitialState, subscribe: state.subscribe } };
+    autoFrameHeights.set(frame, record);
+  }
+  return record;
+}
+
+export function getAutoDerivedFrameHeightStore(frame: ArenaFrame): AutoFrameHeightStore {
+  return autoFrameHeight(frame).store;
+}
+
+/** Does not initialize an unread frame; page-size propagation relies on this. */
+export function peekAutoDerivedFrameHeight(frame: ArenaFrame): number | undefined {
+  return autoFrameHeights.get(frame)?.state.getState();
+}
+
+/** First-read initialization latches the authored value, as the prior getter did. */
+export function ensureAutoDerivedFrameHeight(frame: ArenaFrame, initialHeight: number): number {
+  const { state } = autoFrameHeight(frame);
+  const previous = state.getState();
+  if (previous !== undefined) { return previous; }
+  state.setState(initialHeight, true);
+  return initialHeight;
 }
 
 export function mkMixedArena(name: string, children: ArenaChild[] = []) {
@@ -234,7 +255,7 @@ export type PositionedArenaFrame = ArenaFrame & {
   left: number;
 };
 
-function getPositionedArenaFrames(arena: Arena): PositionedArenaFrame[] {
+export function getPositionedArenaFrames(arena: Arena): PositionedArenaFrame[] {
   return arena.children as PositionedArenaFrame[];
 }
 
@@ -356,7 +377,7 @@ export enum FrameViewMode {
 
 export function isHeightAutoDerived(
   arenaFrame: ArenaFrame,
-): arenaFrame is IArenaFrame {
+): boolean {
   return (
     isPageComponent(arenaFrame.container.component) ||
     isStretchyComponentFrame(arenaFrame)
@@ -364,16 +385,12 @@ export function isHeightAutoDerived(
 }
 
 export function updateAutoDerivedFrameHeight(
-  arenaFrame: IArenaFrame,
+  arenaFrame: ArenaFrame,
   newHeight: number,
 ) {
   const minHeight = isPageFrame(arenaFrame) ? arenaFrame.height : 0;
   const height = Math.max(newHeight, minHeight);
-  if (!arenaFrame._height) {
-    arenaFrame._height = observable.box(height);
-  }
-
-  arenaFrame._height.set(height);
+  autoFrameHeight(arenaFrame).state.setState(height, true);
 }
 
 export function deriveInitFrameSettings(
@@ -927,16 +944,9 @@ export function resizeFrameForScreenVariant(
 }
 
 export function getFrameHeight(arenaFrame: ArenaFrame) {
-  if (isHeightAutoDerived(arenaFrame)) {
-    const height = arenaFrame._height?.get() ?? arenaFrame.height;
-    if (!arenaFrame._height) {
-      // Create the mobx and read from observable so we'll subscribe to updates
-      arenaFrame._height = observable.box(height);
-      arenaFrame._height.get();
-    }
-    return height;
-  }
-  return arenaFrame.height;
+  return isHeightAutoDerived(arenaFrame)
+    ? ensureAutoDerivedFrameHeight(arenaFrame, arenaFrame.height)
+    : arenaFrame.height;
 }
 
 export function getGridRowLabels(arena: AnyArena | null | undefined): string[] {

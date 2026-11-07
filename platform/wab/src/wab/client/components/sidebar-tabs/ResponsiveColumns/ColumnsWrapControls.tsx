@@ -5,6 +5,8 @@ import {
 } from "@/wab/client/components/sidebar/sidebar-helpers";
 import StyleCheckbox from "@/wab/client/components/style-controls/StyleCheckbox";
 import { ExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { useColumnsWrapInputs } from "@/wab/client/studio-ctx/columns-wrap-inputs";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
 import { IconLinkButton } from "@/wab/client/components/widgets";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -18,19 +20,17 @@ import {
   redistributeColumns,
   updateCurrentTplColumns,
 } from "@/wab/shared/columns-utils";
-import { spawn } from "@/wab/shared/common";
+import { ensure, spawn } from "@/wab/shared/common";
 import { TplColumnsTag } from "@/wab/shared/core/tpls";
 import { NUMBER_UNITS } from "@/wab/shared/css/types";
 import { ColumnsConfig } from "@/wab/shared/model/classes";
 import cn from "classnames";
 import { clamp } from "lodash";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
 
-export const ColumnsWrapControls = observer(
-  function ColumnsWrapControls(props: {
-    config: ColumnsConfig;
+export function ColumnsWrapControls(props: {
+    config: ColumnsConfig | undefined;
     viewCtx: ViewCtx;
     tpl: TplColumnsTag;
     expsProvider: ExpsProvider;
@@ -38,25 +38,30 @@ export const ColumnsWrapControls = observer(
   }) {
     const { t: uiT } = useI18n();
     const { viewCtx, tpl, config, isDisabled, expsProvider } = props;
-    const { breakUpRows, colsSizes } = config;
+    const { breakUpRows, colsSizes, childCount } = useColumnsWrapInputs(viewCtx, tpl, config);
     const studioCtx = viewCtx.studioCtx;
-    const exp = expsProvider.mergedExp();
+    const currentConfig = () => ensure(viewCtx.effectiveCurrentVariantSetting(tpl).columnsConfig, "Responsive columns config must exist for editing");
+    const [flexDirectionCell, flexWrapCell] = useStyleCells(
+      expsProvider,
+      ["flex-direction", "flex-wrap"],
+    );
 
     const isReversed =
-      isReverseValue(exp.get("flex-direction")) ||
-      isReverseValue(exp.get("flex-wrap"));
+      isReverseValue(flexDirectionCell?.value ?? "") ||
+      isReverseValue(flexWrapCell?.value ?? "");
 
-    const handleChangeColsPerRow = async (delta) => {
+    const handleChangeColsPerRow = async (delta: number, absolute = false) => {
       await studioCtx.change<never>(() => {
+        const actual = currentConfig();
         const newColsPerRow = clamp(
-          colsSizes.length + delta,
+          absolute ? delta : actual.colsSizes.length + delta,
           1,
           tpl.children.length,
         );
         updateCurrentTplColumns(
           tpl,
           {
-            colsSizes: redistributeColumns(colsSizes, newColsPerRow),
+            colsSizes: redistributeColumns(actual.colsSizes, newColsPerRow),
           },
           viewCtx.variantTplMgr(),
         );
@@ -77,7 +82,7 @@ export const ColumnsWrapControls = observer(
                   {
                     breakUpRows: val,
                     colsSizes: redistributeColumns(
-                      colsSizes,
+                      currentConfig().colsSizes,
                       tpl.children.length,
                     ),
                   },
@@ -95,7 +100,8 @@ export const ColumnsWrapControls = observer(
             isChecked={isReversed}
             onChange={async (val) => {
               await studioCtx.change(() => {
-                if (config.breakUpRows) {
+                const exp = expsProvider.mergedExp();
+                if (currentConfig().breakUpRows) {
                   exp.set("flex-wrap", `wrap${val ? "-reverse" : ""}`);
                 } else {
                   exp.set("flex-direction", `row${val ? "-reverse" : ""}`);
@@ -107,7 +113,7 @@ export const ColumnsWrapControls = observer(
             <UiText message={"Reverse?"} />
           </StyleCheckbox>
         </LabeledItemRow>
-        {config.breakUpRows && (
+        {breakUpRows && (
           <LabeledItemRow label={uiT("Columns / row")}>
             <FullRow twinCols>
               <DimTokenSpinner
@@ -115,15 +121,14 @@ export const ColumnsWrapControls = observer(
                 value={`${colsSizes.length}`}
                 onChange={async (val) => {
                   if (val && +val !== colsSizes.length && +val > 0) {
-                    const delta = +val - colsSizes.length;
-                    spawn(handleChangeColsPerRow(delta));
+                    spawn(handleChangeColsPerRow(+val, true));
                   }
                 }}
                 noClear
                 allowedUnits={NUMBER_UNITS}
                 extraOptions={[]}
                 min={1}
-                max={tpl.children.length}
+                max={childCount}
                 studioCtx={studioCtx}
                 allowFunctions={false}
               />
@@ -140,7 +145,7 @@ export const ColumnsWrapControls = observer(
                   disabled={
                     isDisabled ||
                     !breakUpRows ||
-                    colsSizes.length === tpl.children.length
+                    colsSizes.length === childCount
                   }
                   onClick={() => handleChangeColsPerRow(1)}
                 >
@@ -152,5 +157,4 @@ export const ColumnsWrapControls = observer(
         )}
       </>
     );
-  },
-);
+  }

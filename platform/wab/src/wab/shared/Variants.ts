@@ -111,11 +111,15 @@ export function mkBaseVariant() {
   return mkVariant({ name: "base" });
 }
 
+export function isBaseVariantName(name: string) {
+  return name === BASE_VARIANT_NAME;
+}
+
 export function isBaseVariant(variants: Variant | VariantCombo) {
   if (Array.isArray(variants)) {
-    return variants.length === 1 && variants[0].name === BASE_VARIANT_NAME;
+    return variants.length === 1 && isBaseVariantName(variants[0].name);
   }
-  return variants.name === BASE_VARIANT_NAME;
+  return isBaseVariantName(variants.name);
 }
 
 export function canHaveStyleOrCodeComponentVariant(component: Component) {

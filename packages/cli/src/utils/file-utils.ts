@@ -83,7 +83,7 @@ export function defaultPagePath(
   context: {
     config: Pick<
       PlasmicConfig,
-      "platform" | "gatsbyConfig" | "nextjsConfig" | "tanstackConfig"
+      "platform" | "nextjsConfig" | "tanstackConfig"
     >;
   },
   fileName: string,
@@ -107,8 +107,6 @@ export function defaultPagePath(
     } else {
       return path.join(context.config.nextjsConfig?.pagesDir || "", fileName);
     }
-  } else if (context.config.platform === "gatsby") {
-    return path.join(context.config.gatsbyConfig?.pagesDir || "", fileName);
   } else if (context.config.platform === "tanstack") {
     // use $ for dynamic paths, convert "/posts/[postId]" to "/posts/$postId"
     let renamedFileName = fileName.replace(/\[(\w+)\]/g, "$$$1");
@@ -367,9 +365,6 @@ function getAllPaths(context: PlasmicContext): BundleKeyPair[] {
   pushPath(config, "defaultPlasmicDir");
   if (config.images.publicDir) {
     pushPath(config.images, "publicDir");
-  }
-  if (config.gatsbyConfig) {
-    pushPath(config.gatsbyConfig, "pagesDir");
   }
   if (config.nextjsConfig) {
     pushPath(config.nextjsConfig, "pagesDir");

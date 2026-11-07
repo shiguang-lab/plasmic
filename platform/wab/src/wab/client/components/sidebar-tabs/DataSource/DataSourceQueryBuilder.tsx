@@ -1,295 +1,131 @@
 import { DataPickerWidgetFactory } from "@/wab/client/components/QueryBuilder/Components/DataPickerWidgetFactory";
-import S from "@/wab/client/components/QueryBuilder/QueryBuilder.module.scss";
-import "@/wab/client/components/QueryBuilder/QueryBuilder.scss";
 import {
-  AwesomeBuilder,
-  QueryBuilderConfig,
-} from "@/wab/client/components/QueryBuilder/QueryBuilderConfig";
-import { getEmptyTree } from "@/wab/client/components/QueryBuilder/query-builder-utils";
+  FilterQueryBuilder,
+  RenderQueryValue,
+} from "@/wab/client/components/QueryBuilder/FilterQueryBuilder";
+import { useQueryBuilderStyles } from "@/wab/client/components/QueryBuilder/QueryBuilder.styles";
 import { DataPickerTypesSchema } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { mkBindingId } from "@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker";
 import { TemplatedTextWidget } from "@/wab/client/components/sidebar-tabs/DataSource/TemplatedTextWidget";
-import { arrayEq, ensure } from "@/wab/shared/common";
+import { arrayEq } from "@/wab/shared/common";
 import { ExprCtx } from "@/wab/shared/core/exprs";
 import { Filters } from "@/wab/shared/data-sources-meta/data-sources";
-import { isDynamicValue } from "@/wab/shared/dynamic-bindings";
 import {
   CustomCode,
   ObjectPath,
   TemplatedString,
   isKnownTemplatedString,
 } from "@/wab/shared/model/classes";
-import {
-  Config,
-  ConfigContext,
-  Fields,
-  ImmutableTree,
-  JsonTree,
-  Utils as QbUtils,
-  Query,
-  TextWidgetProps,
-  WidgetProps,
-} from "@react-awesome-query-builder/antd";
+import { getEmptyQuery } from "@/wab/shared/query-builder";
+import type { QueryBuilderConfig } from "@plasmicapp/host";
 import cn from "classnames";
-import { isNil, isString, merge, pick } from "lodash";
 import * as React from "react";
+import type { RuleGroupType } from "react-querybuilder";
 
-const InitialConfig = QueryBuilderConfig;
-
-const baseConfig: Config = {
-  ...InitialConfig,
-};
-
+type Bindings = Record<string, TemplatedString | CustomCode | ObjectPath>;
 interface DataSourceQueryBuilderProps {
-  saveTree: (
-    data: Filters,
-    bindings: Record<string, TemplatedString | CustomCode | ObjectPath>,
-  ) => void;
-  logic?: any;
-  tree: JsonTree | undefined;
-  fields: Fields;
-  dataSourceConfig: Config;
+  saveTree: (data: Filters, bindings: Bindings) => void;
+  tree: RuleGroupType | undefined;
+  dataSourceConfig: QueryBuilderConfig;
   data: Record<string, any> | undefined;
   schema?: DataPickerTypesSchema;
-  bindings: Record<string, TemplatedString | CustomCode | ObjectPath>;
+  bindings: Bindings;
   exprCtx: ExprCtx;
 }
-
 function DataSourceQueryBuilder_(
-  props: DataSourceQueryBuilderProps,
-  outerRef: React.Ref<HTMLDivElement>,
-) {
-  const {
+  {
     saveTree,
-    logic,
-    tree,
-    fields: defaultFields,
-    dataSourceConfig,
+    tree: initial,
+    dataSourceConfig: config,
     data,
     schema,
-    bindings: defaultBindings,
+    bindings: initialBindings,
     exprCtx,
-  } = props;
-
-  const fields = Object.entries(defaultFields)
-    .filter(([_key, field]) => field.type !== "json")
-    .reduce((acum, [key, value]) => {
-      acum[key] = value;
-      if (acum[key].type === "string") {
-        acum[key].type = "text";
-      } else if (acum[key].type === "enum") {
-        acum[key].type = "select";
-      }
-      return acum;
-    }, {} as Fields);
-
-  const config = React.useMemo(() => {
-    const mergedConfig = merge({}, baseConfig, dataSourceConfig);
-
-    return {
-      ...mergedConfig,
-      fields: {
-        ...fields,
-      },
-    } as Config;
-  }, [dataSourceConfig, fields]);
-
-  // We create a ref to `data` to use it in query builder widgets factory
-  // below, so that the widget factory always use the latest/current
-  // data.
-  const curData = React.useRef<Record<string, any> | undefined>(undefined);
-  React.useEffect(() => {
-    curData.current = data;
-  }, [data]);
-
-  const types = React.useMemo(
-    () => ["boolean", "number", "datetime", "date", "select"],
-    [],
+  }: DataSourceQueryBuilderProps,
+  outerRef: React.Ref<HTMLDivElement>,
+) {
+  const bindings = React.useRef({ ...initialBindings });
+  const { styles } = useQueryBuilderStyles();
+  const [tree, setTree] = React.useState(
+    () => initial ?? getEmptyQuery(config.fields, true),
   );
-
-  const [state, setState] = React.useState<{
-    tree: ImmutableTree;
-    config: Config;
-  }>(() => {
-    const initialWidgetsConfig = {
-      widgets: {
-        text: {
-          factory: (textProps: TextWidgetProps) => {
-            const setValue = (expr: TemplatedString) => {
-              const binding = mkBindingId();
-              bindings.current = {
-                ...bindings.current,
-                [binding]: expr,
-              };
-              if (isKnownTemplatedString(expr) && arrayEq(expr.text, [""])) {
-                textProps.setValue(undefined);
-              } else {
-                textProps.setValue(binding);
-              }
-            };
-            return (
-              <TemplatedTextWidget
-                {...textProps}
-                setValue={setValue}
-                exprCtx={exprCtx}
-                data={curData.current}
-                schema={schema}
-                bindings={bindings.current}
-              />
-            );
-          },
-        },
-        ...Object.fromEntries(
-          types.map((widgetType) => [
-            `${widgetType}-custom`,
-            {
-              type: `${widgetType}-custom`,
-              factory: (widgetProps: WidgetProps, context?: ConfigContext) => {
-                const bindingId = widgetProps.value;
-                const realValue =
-                  typeof bindingId === "string" &&
-                  isDynamicValue(bindingId) &&
-                  bindings.current[bindingId]
-                    ? bindings.current[bindingId]
-                    : undefined;
-
-                const setValue = (
-                  expr: CustomCode | ObjectPath | null | undefined,
-                ) => {
-                  if (isNil(expr)) {
-                    widgetProps.setValue(undefined);
-                    return;
-                  }
-                  const binding = mkBindingId();
-                  bindings.current = {
-                    ...bindings.current,
-                    [binding]: expr,
-                  };
-                  widgetProps.setValue(binding);
-                };
-                const widgetPropsWithRealValue = {
-                  ...widgetProps,
-                  value: realValue,
-                };
-                return (
-                  <DataPickerWidgetFactory
-                    widgetProps={widgetPropsWithRealValue}
-                    setValue={setValue}
-                    data={curData.current}
-                    schema={schema}
-                    renderOriginalWidget={() =>
-                      ensure(
-                        baseConfig.widgets[widgetType].factory,
-                        () => `No factory for widget: ${widgetType}`,
-                      )(widgetPropsWithRealValue as any, context)
-                    }
-                    exprCtx={exprCtx}
-                  />
-                );
-              },
-            },
-          ]),
-        ),
-      },
-      types: Object.fromEntries(
-        types.map((type) => [
-          `${type}-custom`,
-          {
-            widgets: {
-              [`${type}-custom`]: {
-                operators: config.types[type].widgets[type].operators,
-              },
-            },
-            mainWidget: `${type}-custom`,
-            ...pick(
-              config.types[type],
-              "excludeOperators",
-              "defaultOperator",
-              "valueSources",
-            ),
-          },
-        ]),
-      ),
-      fields: Object.fromEntries(
-        Object.entries(config.fields)
-          .filter(([_field, fieldConfig]) => types.includes(fieldConfig.type))
-          .map(([field, fieldConfig]) => [
-            field,
-            {
-              ...fieldConfig,
-              type: `${fieldConfig.type}-custom`,
-              widgets: {
-                [`${fieldConfig.type}-custom`]: {
-                  operators: fieldConfig["operators"] && [
-                    ...fieldConfig["operators"],
-                  ],
-                },
-              },
-              fieldSettings: {
-                validateValue: (v) => {
-                  // TODO: Better validation for select / datetime?
-                  return (
-                    (isString(v) && isDynamicValue(v)) ||
-                    typeof v === fieldConfig.type ||
-                    `${typeof v}-custom` === fieldConfig.type ||
-                    (fieldConfig.type === "select" && isString(v)) ||
-                    (fieldConfig.type === "datetime" && isString(v)) ||
-                    (fieldConfig.type === "date" && isString(v))
-                  );
-                },
-              },
-            },
-          ]),
-      ),
-    };
-    return {
-      tree:
-        (tree
-          ? QbUtils.loadTree(tree)
-          : QbUtils.loadFromJsonLogic(
-              logic,
-              merge({}, config, initialWidgetsConfig),
-            )) ??
-        QbUtils.loadTree(
-          getEmptyTree(merge({}, config, initialWidgetsConfig), {
-            appendFirstField: true,
-          }),
-        ),
-      config: merge({}, config, initialWidgetsConfig),
-    };
-  });
-
-  const bindings = React.useRef(defaultBindings);
-
-  const fixBindings = (jsonTree: string) => {
-    for (const key in bindings.current) {
-      if (!jsonTree.includes(key)) {
-        delete bindings.current[key];
-      }
+  const renderValueEditor: RenderQueryValue = (props, renderInput) => {
+    if (["in", "notIn"].includes(props.operator)) {
+      return renderInput();
     }
+    const boundValue =
+      typeof props.value === "string"
+        ? bindings.current[props.value]
+        : undefined;
+    const setValue = (
+      value: TemplatedString | CustomCode | ObjectPath | null | undefined,
+    ) => {
+      if (props.disabled) {
+        return;
+      }
+      if (
+        value == null ||
+        (isKnownTemplatedString(value) && arrayEq(value.text, [""]))
+      ) {
+        props.handleOnChange(undefined);
+        return;
+      }
+      const id = mkBindingId();
+      bindings.current = { ...bindings.current, [id]: value };
+      props.handleOnChange(id);
+    };
+    if (
+      props.fieldData.datatype === "text" &&
+      !["in", "notIn", "null", "notNull"].includes(props.operator)
+    ) {
+      return (
+        <TemplatedTextWidget
+          value={typeof props.value === "string" ? props.value : undefined}
+          disabled={props.disabled}
+          bindings={bindings.current}
+          setValue={setValue}
+          exprCtx={exprCtx}
+          data={data}
+          schema={schema}
+        />
+      );
+    }
+    return (
+      <DataPickerWidgetFactory
+        value={boundValue ?? props.value}
+        disabled={props.disabled}
+        setValue={setValue}
+        data={data}
+        schema={schema}
+        exprCtx={exprCtx}
+        renderOriginalWidget={() =>
+          renderInput(boundValue ? undefined : props.value)
+        }
+      />
+    );
   };
-
-  const handleChange = (_tree, _config) => {
-    setState({ tree: _tree, config: _config });
-    const jsonTree = QbUtils.getTree(_tree);
-    fixBindings(JSON.stringify(jsonTree));
-    saveTree({ tree: jsonTree, fields: fields }, bindings.current);
-  };
-
   return (
     <div
-      className={cn("plasmic-query-builder-scope", S.plasmicQueryBuilderScope)}
+      className={cn("plasmic-query-builder-scope", styles.frame)}
       ref={outerRef}
     >
-      <Query
-        {...state.config}
-        value={state.tree}
-        onChange={handleChange}
-        renderBuilder={AwesomeBuilder}
+      <FilterQueryBuilder
+        config={config}
+        value={tree}
+        renderValueEditor={renderValueEditor}
+        onChange={(next) => {
+          setTree(next);
+          const serialized = JSON.stringify(next);
+          const used = Object.fromEntries(
+            Object.entries(bindings.current).filter(([id]) =>
+              serialized.includes(id),
+            ),
+          );
+          bindings.current = used;
+          saveTree({ tree: next, fields: config.fields }, used);
+        }}
       />
     </div>
   );
 }
-
-const DataSourceQueryBuilder = React.forwardRef(DataSourceQueryBuilder_);
-export default DataSourceQueryBuilder;
+export default React.forwardRef(DataSourceQueryBuilder_);

@@ -21,6 +21,7 @@ import { translate } from "@/wab/client/i18n/locales";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
 import SearchIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SearchSvg";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { areEquivalentScreenVariants } from "@/wab/shared/Variants";
 import { spawn } from "@/wab/shared/common";
@@ -45,6 +46,8 @@ import {
 } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 
 function isDevUser(studioCtx: StudioCtx) {
   return (
@@ -367,10 +370,18 @@ function _ProjectDependenciesPanel() {
   const [query, setQuery] = React.useState("");
   const [refreshing, setRefreshing] = React.useState(false);
 
+  const [importsAccess, librariesAccess] = useStore(
+    sc.uiEnvironment.store,
+    useShallow((state) => [
+      state.leftTabPermissions.imports,
+      state.leftTabPermissions.libraries,
+    ] as const),
+  );
+  const canSave = useStudioSaveState(sc, (state) => state.canSave);
   const readOnly =
-    sc.getLeftTabPermission("imports") !== "writable" ||
-    sc.getLeftTabPermission("libraries") !== "writable" ||
-    !sc.canSave();
+    importsAccess !== "writable" ||
+    librariesAccess !== "writable" ||
+    !canSave;
   const matcher = new Matcher(query);
 
   // Function called when a user clicks the "+" icon

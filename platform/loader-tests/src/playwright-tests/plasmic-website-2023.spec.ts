@@ -1,5 +1,5 @@
 import { expect } from "@playwright/test";
-import { LOADER_NEXTJS_VERSIONS_EXHAUSTIVE } from "../env";
+import { LOADER_NEXTJS_VERSIONS } from "../env";
 import { test } from "../fixtures";
 import {
   matchScreenshot,
@@ -17,7 +17,7 @@ import {
 } from "./setup-utils";
 
 const ENVS = [
-  ...LOADER_NEXTJS_VERSIONS_EXHAUSTIVE.map((x) => ({
+  ...LOADER_NEXTJS_VERSIONS.map((x) => ({
     ...x,
     type: "nextjs" as const,
     template: "vanilla-template",
@@ -64,7 +64,7 @@ test.describe(`Plasmic Website`, async () => {
         await test.step("Click on /pricing link", async () => {
           await page.locator(`a[href^="/pricing"]`).first().click();
           await expect(
-            page.getByText("scale as you grow").first()
+            page.getByText("scale as you grow").first(),
           ).toBeVisible();
           await matchScreenshot(page, "plasmic-website-2023-pricing.png");
         });
@@ -91,11 +91,11 @@ test.describe(`Plasmic Website`, async () => {
         await test.step("Go to /pricing", async () => {
           await page.goto(`${serverCtx.host}/pricing`);
           await expect(
-            page.getByText("scale as you grow").first()
+            page.getByText("scale as you grow").first(),
           ).toBeVisible();
           await matchScreenshot(
             page,
-            "plasmic-website-2023-pricing-mobile.png"
+            "plasmic-website-2023-pricing-mobile.png",
           );
         });
       });

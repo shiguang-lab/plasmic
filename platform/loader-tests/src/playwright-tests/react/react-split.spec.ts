@@ -1,0 +1,120 @@
+import { expect } from "@playwright/test";
+import { LOADER_REACT_VERSIONS } from "../../env";
+import { test } from "../../fixtures";
+import {
+  ReactContext,
+  setupReact,
+  teardownReact,
+} from "../../react/react-setup";
+import { matchScreenshot, waitForPlasmicDynamic } from "../playwright-utils";
+
+const SPLIT_ID = "j7cCxfS-Vu";
+const SLICE_0_ID = "I4hoVVeME_";
+const SLICE_1_ID = "6z5_V8jUij";
+
+for (const { reactVersion, loaderReactVersion } of LOADER_REACT_VERSIONS) {
+  test.describe(`Plasmic React loader-react@${loaderReactVersion}, react@${reactVersion}`, async () => {
+    let ctx: ReactContext;
+    const mainHeaderText = "Split testing page";
+
+    test.beforeAll(async () => {
+      ctx = await setupReact({
+        bundleFile: "plasmic-split-components.json",
+        projectName: "Split",
+        template: "split",
+        reactVersion,
+        loaderReactVersion,
+      });
+    });
+
+    test.afterAll(async () => {
+      await teardownReact(ctx);
+    });
+
+    test(`should render root page from plasmic`, async ({ page, context }) => {
+      await context.addCookies([
+        {
+          name: `plasmic:exp.${SPLIT_ID}`,
+          value: SLICE_1_ID,
+          url: ctx.host || "",
+        },
+      ]);
+
+      await page.goto(ctx.host);
+      await waitForPlasmicDynamic(page);
+      await expect(page.getByText(mainHeaderText)).toBeVisible({
+        timeout: 10000,
+      });
+
+      await expect(page.getByText("active experiment")).toBeVisible();
+      await expect(page.getByText("inactive segment")).toBeVisible();
+      await expect(page.getByText("active schedule")).toBeVisible();
+      await matchScreenshot(page, "plasmic-splits-home.png");
+    });
+
+    test(`should render segment page`, async ({ page, context }) => {
+      await context.addCookies([
+        {
+          name: `plasmic:exp.${SPLIT_ID}`,
+          value: SLICE_1_ID,
+          url: ctx.host || "",
+        },
+      ]);
+
+      await page.goto(`${ctx.host}/segment`);
+      await waitForPlasmicDynamic(page);
+      await expect(page.getByText(mainHeaderText)).toBeVisible({
+        timeout: 10000,
+      });
+
+      await expect(page.getByText("active experiment")).toBeVisible();
+      await expect(page.getByText("active segment")).toBeVisible();
+      await expect(page.getByText("active schedule")).toBeVisible();
+      await matchScreenshot(page, "plasmic-splits-home-segment.png");
+    });
+
+    test(`should render schedule page`, async ({ page, context }) => {
+      await context.addCookies([
+        {
+          name: `plasmic:exp.${SPLIT_ID}`,
+          value: SLICE_1_ID,
+          url: ctx.host || "",
+        },
+      ]);
+
+      await page.goto(`${ctx.host}/schedule`);
+      await waitForPlasmicDynamic(page);
+      await expect(page.getByText(mainHeaderText)).toBeVisible({
+        timeout: 10000,
+      });
+
+      await expect(page.getByText("active experiment")).toBeVisible();
+      await expect(page.getByText("inactive schedule")).toBeVisible();
+      await matchScreenshot(page, "plasmic-splits-home-schedule.png");
+    });
+
+    test(`should render experiment based on cookie`, async ({
+      page,
+      context,
+    }) => {
+      await context.addCookies([
+        {
+          name: `plasmic:exp.${SPLIT_ID}`,
+          value: SLICE_0_ID,
+          url: ctx.host || "",
+        },
+      ]);
+
+      await page.goto(ctx.host);
+      await waitForPlasmicDynamic(page);
+      await expect(page.getByText(mainHeaderText)).toBeVisible({
+        timeout: 10000,
+      });
+
+      await expect(page.getByText("inactive experiment")).toBeVisible();
+      await expect(page.getByText("inactive segment")).toBeVisible();
+      await expect(page.getByText("active schedule")).toBeVisible();
+      await matchScreenshot(page, "plasmic-splits-home-experiment.png");
+    });
+  });
+}

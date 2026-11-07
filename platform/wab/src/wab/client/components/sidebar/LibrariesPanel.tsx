@@ -5,17 +5,16 @@ import { useLibraryPanelStyles } from "@/wab/client/components/ui/layout-styles"
 import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { spawn } from "@/wab/shared/common";
-import { observer } from "mobx-react";
 import React from "react";
+import { useStore } from "zustand";
 
-export const LibrariesPanel = observer(function LibrariesPanel() {
+export function LibrariesPanel() {
   const studioCtx = useStudioCtx();
   const { t } = useI18n();
   const { styles } = useLibraryPanelStyles();
-  const canViewImports =
-    !!studioCtx.appCtx.selfInfo &&
-    studioCtx.getLeftTabPermission("imports") !== "hidden";
-  const showImports = canViewImports && studioCtx.libraryTab === "imports";
+  const canViewImports = useStore(studioCtx.uiEnvironment.store, (state) => state.hasUserInfo && state.leftTabPermissions.imports !== "hidden");
+  const libraryTab = useStore(studioCtx.libraryTabStore);
+  const showImports = canViewImports && libraryTab === "imports";
   const closePanel = () =>
     spawn(studioCtx.changeUnsafe(() => studioCtx.switchLeftTab(undefined)));
   return (
@@ -33,4 +32,4 @@ export const LibrariesPanel = observer(function LibrariesPanel() {
       </div>
     </div>
   );
-});
+}

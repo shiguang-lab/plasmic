@@ -1,3 +1,4 @@
+import { useStore } from "zustand";
 import ListItem from "@/wab/client/components/ListItem";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import { FindReferencesModal } from "@/wab/client/components/sidebar/FindReferencesModal";
@@ -48,7 +49,7 @@ import { Menu } from "antd";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
-import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
+import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
 type ImageAssetTypeExpanded = {
   [ImageAssetType.Icon]: boolean;
@@ -316,7 +317,7 @@ export const ImageAssetsPanel = observer(function ImageAssetsPanel() {
   );
 });
 
-const ImageAssetControl = observer(function ImageAssetControl(props: {
+export function ImageAssetControl(props: {
   studioCtx: StudioCtx;
   asset: ImageAsset;
   matcher: Matcher;
@@ -337,6 +338,12 @@ const ImageAssetControl = observer(function ImageAssetControl(props: {
     onClick,
   } = props;
 
+  const name = useStore(studioCtx.modelSnapshots.field(asset, "name"));
+  const uuid = useStore(studioCtx.modelSnapshots.field(asset, "uuid"));
+  const dataUri = useStore(studioCtx.modelSnapshots.field(asset, "dataUri"));
+  const type = useStore(studioCtx.modelSnapshots.field(asset, "type"));
+  const width = useStore(studioCtx.modelSnapshots.field(asset, "width"));
+  const height = useStore(studioCtx.modelSnapshots.field(asset, "height"));
   const multiAssetsActions = useMultiAssetsActions();
 
   const renderMenu = () => {
@@ -347,7 +354,7 @@ const ImageAssetControl = observer(function ImageAssetControl(props: {
           <UiText message={"Find all references"} />
         </Menu.Item>,
       );
-      if (asset.dataUri) {
+      if (dataUri) {
         push(
           <Menu.Item key="download" onClick={() => downloadImageAsset(asset)}>
             <UiText message={"Download image"} />
@@ -383,11 +390,11 @@ const ImageAssetControl = observer(function ImageAssetControl(props: {
     });
   };
   const size =
-    asset.type === ImageAssetType.Picture && !!asset.width && !!asset.height
-      ? `${Math.round(asset.width)} × ${Math.round(asset.height)}`
+    type === ImageAssetType.Picture && !!width && !!height
+      ? `${Math.round(width)} × ${Math.round(height)}`
       : undefined;
 
-  const isSelected = multiAssetsActions.isAssetSelected(asset.uuid);
+  const isSelected = multiAssetsActions.isAssetSelected(uuid);
   const onToggle = () => {
     multiAssetsActions.onAssetSelected(asset.uuid, !isSelected);
   };
@@ -396,8 +403,8 @@ const ImageAssetControl = observer(function ImageAssetControl(props: {
     <DraggableInsertable
       sc={studioCtx}
       spec={{
-        key: asset.uuid,
-        label: asset.name,
+        key: uuid,
+        label: name,
         factory: (vc: ViewCtx) => {
           return vc.variantTplMgr().mkTplImage({ asset });
         },
@@ -414,7 +421,7 @@ const ImageAssetControl = observer(function ImageAssetControl(props: {
               <Checkbox isChecked={isSelected}> </Checkbox>
             )}
             <ImagePreview
-              uri={asset.dataUri || undefined}
+              uri={dataUri || undefined}
               className="mr-ch"
               style={{
                 width: 28,
@@ -429,14 +436,13 @@ const ImageAssetControl = observer(function ImageAssetControl(props: {
         rightContent={size}
         hasRightContents={!!size}
       >
-        {matcher.boldSnippets(asset.name)}
+        {matcher.boldSnippets(name)}
       </ListItem>
     </DraggableInsertable>
   );
-});
+}
 
-export const ImageAssetSidebarPopup = observer(
-  function ImageAssetSidebarPopup(props: {
+export function ImageAssetSidebarPopup(props: {
     studioCtx: StudioCtx;
     asset: ImageAsset;
     editable: boolean;
@@ -445,6 +451,9 @@ export const ImageAssetSidebarPopup = observer(
   }) {
     const { t: uiT } = useI18n();
     const { studioCtx, asset, editable, onClose, autoFocusTitle } = props;
+    const assetName = useStore(studioCtx.modelSnapshots.field(asset, "name"));
+    const dataUri = useStore(studioCtx.modelSnapshots.field(asset, "dataUri"));
+    const type = useStore(studioCtx.modelSnapshots.field(asset, "type"));
 
     const handleUploaded = async (image: ResizableImage, file?: File) => {
       const { imageResult, opts } = await studioCtx.app.withSpinner(
@@ -482,7 +491,7 @@ export const ImageAssetSidebarPopup = observer(
             />
 
             <SimpleTextbox
-              defaultValue={asset.name}
+              defaultValue={assetName}
               disabled={!editable}
               onValueChange={(name) =>
                 studioCtx.changeUnsafe(() =>
@@ -506,10 +515,10 @@ export const ImageAssetSidebarPopup = observer(
         onClose={onClose}
       >
         <div>
-          {asset.dataUri && (
+          {dataUri && (
             <>
               <ImagePreview
-                uri={asset.dataUri}
+                uri={dataUri}
                 style={{
                   height: 200,
                 }}
@@ -525,7 +534,7 @@ export const ImageAssetSidebarPopup = observer(
                 <UiText message={"Upload a new image"} />
               </div>
               <ImageUploader
-                accept={asset.type === ImageAssetType.Picture ? "image" : "svg"}
+                accept={type === ImageAssetType.Picture ? "image" : "svg"}
                 onUploaded={handleUploaded}
               />
 
@@ -538,8 +547,7 @@ export const ImageAssetSidebarPopup = observer(
         </div>
       </SidebarModal>
     );
-  },
-);
+}
 
 export function getCmsImageUrl(uploaded: ImageUploadResponse) {
   return uploaded.dataUri;

@@ -1,0 +1,541 @@
+{
+  "date": "2026-11-06",
+  "status": "planned and built in isolated checkout; no external publication",
+  "reason": "React 19 and new SDK minimum requirements; breaking public prepass API",
+  "sdk": [
+    {
+      "name": "@plasmicapp/loader-nextjs",
+      "path": "packages/loader-nextjs/package.json",
+      "old": "2.0.28",
+      "version": "3.0.0",
+      "breaking": true
+    },
+    {
+      "name": "@plasmicapp/loader-core",
+      "path": "packages/loader-core/package.json",
+      "old": "2.0.8",
+      "version": "2.0.10",
+      "breaking": false
+    },
+    {
+      "name": "@plasmicapp/loader-fetcher",
+      "path": "packages/loader-fetcher/package.json",
+      "old": "2.0.8",
+      "version": "2.0.10",
+      "breaking": false
+    },
+    {
+      "name": "@plasmicapp/loader-edge",
+      "path": "packages/loader-edge/package.json",
+      "old": "1.0.85",
+      "version": "1.0.87",
+      "breaking": false
+    },
+    {
+      "name": "@plasmicapp/loader-splits",
+      "path": "packages/loader-splits/package.json",
+      "old": "1.0.79",
+      "version": "1.0.81",
+      "breaking": false
+    },
+    {
+      "name": "@plasmicapp/loader-react",
+      "path": "packages/loader-react/package.json",
+      "old": "2.0.23",
+      "version": "3.0.0",
+      "breaking": true
+    },
+    {
+      "name": "@plasmicapp/data-sources-context",
+      "path": "packages/data-sources-context/package.json",
+      "old": "0.1.26",
+      "version": "0.2.0",
+      "breaking": true
+    },
+    {
+      "name": "@plasmicapp/host",
+      "path": "packages/host/package.json",
+      "old": "2.0.19",
+      "version": "3.0.0",
+      "breaking": true
+    },
+    {
+      "name": "@plasmicapp/query",
+      "path": "packages/query/package.json",
+      "old": "0.2.0",
+      "version": "0.2.0",
+      "breaking": true
+    },
+    {
+      "name": "@plasmicapp/prepass",
+      "path": "packages/prepass/package.json",
+      "old": "1.0.30",
+      "version": "2.0.0",
+      "breaking": true
+    },
+    {
+      "name": "@plasmicapp/watcher",
+      "path": "packages/watcher/package.json",
+      "old": "1.0.88",
+      "version": "1.0.89",
+      "breaking": false
+    },
+    {
+      "name": "@plasmicapp/react-web",
+      "path": "packages/react-web/package.json",
+      "old": "1.0.39",
+      "version": "2.0.0",
+      "breaking": true
+    },
+    {
+      "name": "@plasmicapp/auth-react",
+      "path": "packages/auth-react/package.json",
+      "old": "0.0.34",
+      "version": "0.1.0",
+      "breaking": true
+    },
+    {
+      "name": "@plasmicapp/auth-api",
+      "path": "packages/auth-api/package.json",
+      "old": "0.0.20",
+      "version": "0.0.21",
+      "breaking": false
+    },
+    {
+      "name": "@plasmicapp/data-sources",
+      "path": "packages/data-sources/package.json",
+      "old": "1.0.29",
+      "version": "2.0.0",
+      "breaking": true
+    },
+    {
+      "name": "@plasmicapp/cli",
+      "path": "packages/cli/package.json",
+      "old": "0.1.381",
+      "version": "0.2.0",
+      "breaking": true
+    },
+    {
+      "name": "create-plasmic-app",
+      "path": "packages/create-plasmic-app/package.json",
+      "old": "0.0.180",
+      "version": "0.1.0",
+      "breaking": true
+    }
+  ],
+  "components": [
+    {
+      "path": "packages/react-web-runtime/package.json",
+      "name": "@plasmicapp/react-web-runtime",
+      "from": "1.0.39",
+      "to": "2.0.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/airtable/package.json",
+      "name": "@plasmicpkgs/airtable",
+      "from": "0.0.276",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/antd/package.json",
+      "name": "@plasmicpkgs/antd",
+      "from": "2.0.184",
+      "to": "3.0.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/antd5/package.json",
+      "name": "@plasmicpkgs/antd5",
+      "from": "0.0.377",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/antd6/package.json",
+      "name": "@shiguang-lab/plasmic-antd6",
+      "from": "0.0.1",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/cms/package.json",
+      "name": "@plasmicpkgs/cms",
+      "from": "0.0.41",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/commerce-providers/commerce/package.json",
+      "name": "@plasmicpkgs/commerce",
+      "from": "0.0.263",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/commerce-providers/commercetools/package.json",
+      "name": "@plasmicpkgs/commerce-commercetools",
+      "from": "0.0.213",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/commerce-providers/local/package.json",
+      "name": "@plasmicpkgs/commerce-local",
+      "from": "0.0.264",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/commerce-providers/saleor/package.json",
+      "name": "@plasmicpkgs/commerce-saleor",
+      "from": "0.0.229",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/commerce-providers/shopify/package.json",
+      "name": "@plasmicpkgs/commerce-shopify",
+      "from": "0.0.273",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/commerce-providers/swell/package.json",
+      "name": "@plasmicpkgs/commerce-swell",
+      "from": "0.0.274",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/contentful/package.json",
+      "name": "@plasmicpkgs/contentful",
+      "from": "0.0.35",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/fetch/package.json",
+      "name": "@plasmicpkgs/fetch",
+      "from": "0.0.54",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/framer-motion/package.json",
+      "name": "@plasmicpkgs/framer-motion",
+      "from": "0.0.260",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/google-maps/package.json",
+      "name": "@plasmicpkgs/plasmic-google-maps",
+      "from": "0.0.41",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/graphql/package.json",
+      "name": "@plasmicpkgs/graphql",
+      "from": "0.0.48",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/keen-slider/package.json",
+      "name": "@plasmicpkgs/plasmic-keen-slider",
+      "from": "0.0.105",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/lottie-react/package.json",
+      "name": "@plasmicpkgs/lottie-react",
+      "from": "0.0.254",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/mailchimp/package.json",
+      "name": "@plasmicpkgs/plasmic-mailchimp",
+      "from": "0.0.39",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/overseas/package.json",
+      "name": "@shiguang-lab/plasmic-overseas",
+      "from": "0.0.1",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-basic-components/package.json",
+      "name": "@plasmicpkgs/plasmic-basic-components",
+      "from": "0.0.291",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-calendly/package.json",
+      "name": "@plasmicpkgs/plasmic-calendly",
+      "from": "0.0.108",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-cms/package.json",
+      "name": "@plasmicpkgs/plasmic-cms",
+      "from": "0.0.333",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-content-stack/package.json",
+      "name": "@plasmicpkgs/plasmic-content-stack",
+      "from": "0.0.217",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-contentful/package.json",
+      "name": "@plasmicpkgs/plasmic-contentful",
+      "from": "0.0.211",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-embed-css/package.json",
+      "name": "@plasmicpkgs/plasmic-embed-css",
+      "from": "0.1.246",
+      "to": "0.2.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-eventbrite/package.json",
+      "name": "@plasmicpkgs/plasmic-eventbrite",
+      "from": "0.0.94",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-giphy/package.json",
+      "name": "@plasmicpkgs/plasmic-giphy",
+      "from": "0.0.95",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-graphcms/package.json",
+      "name": "@plasmicpkgs/plasmic-graphcms",
+      "from": "0.0.233",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-hubspot/package.json",
+      "name": "@plasmicpkgs/plasmic-hubspot",
+      "from": "0.0.106",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-intercom/package.json",
+      "name": "@plasmicpkgs/plasmic-intercom",
+      "from": "0.0.39",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-link-preview/package.json",
+      "name": "@plasmicpkgs/plasmic-link-preview",
+      "from": "1.0.173",
+      "to": "2.0.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-nav/package.json",
+      "name": "@plasmicpkgs/plasmic-nav",
+      "from": "0.0.232",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-pigeon-maps/package.json",
+      "name": "@plasmicpkgs/plasmic-pigeon-maps",
+      "from": "0.0.95",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-query/package.json",
+      "name": "@plasmicpkgs/plasmic-query",
+      "from": "0.0.281",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-sanity-io/package.json",
+      "name": "@plasmicpkgs/plasmic-sanity-io",
+      "from": "1.0.242",
+      "to": "2.0.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-soundcloud/package.json",
+      "name": "@plasmicpkgs/plasmic-soundcloud",
+      "from": "0.0.106",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-strapi/package.json",
+      "name": "@plasmicpkgs/plasmic-strapi",
+      "from": "0.1.222",
+      "to": "0.2.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-tabs/package.json",
+      "name": "@plasmicpkgs/plasmic-tabs",
+      "from": "0.0.103",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-typeform/package.json",
+      "name": "@plasmicpkgs/plasmic-typeform",
+      "from": "0.0.106",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-wordpress-graphql/package.json",
+      "name": "@plasmicpkgs/plasmic-wordpress-graphql",
+      "from": "0.0.179",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-wordpress/package.json",
+      "name": "@plasmicpkgs/plasmic-wordpress",
+      "from": "0.0.190",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/plasmic-yotpo/package.json",
+      "name": "@plasmicpkgs/plasmic-yotpo",
+      "from": "0.0.105",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/radix-ui/package.json",
+      "name": "@plasmicpkgs/radix-ui",
+      "from": "0.0.121",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/react-aria/package.json",
+      "name": "@plasmicpkgs/react-aria",
+      "from": "0.0.199",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/react-audio-player/package.json",
+      "name": "@plasmicpkgs/react-audio-player",
+      "from": "0.0.89",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/react-awesome-reveal/package.json",
+      "name": "@plasmicpkgs/react-awesome-reveal",
+      "from": "3.8.264",
+      "to": "4.0.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/react-chartjs-2/package.json",
+      "name": "@plasmicpkgs/react-chartjs-2",
+      "from": "1.0.172",
+      "to": "2.0.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/react-parallax-tilt/package.json",
+      "name": "@plasmicpkgs/react-parallax-tilt",
+      "from": "0.0.265",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/react-scroll-parallax/package.json",
+      "name": "@plasmicpkgs/react-scroll-parallax",
+      "from": "0.0.271",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/react-slick/package.json",
+      "name": "@plasmicpkgs/react-slick",
+      "from": "0.0.285",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/react-twitter-widgets/package.json",
+      "name": "@plasmicpkgs/react-twitter-widgets",
+      "from": "0.0.260",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/react-ui/package.json",
+      "name": "@shiguang-lab/plasmic-react-ui",
+      "from": "0.0.1",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/spotify/package.json",
+      "name": "@plasmicpkgs/plasmic-spotify",
+      "from": "0.0.39",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/strapi/package.json",
+      "name": "@plasmicpkgs/strapi",
+      "from": "0.0.41",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/tiptap/package.json",
+      "name": "@plasmicpkgs/tiptap",
+      "from": "0.0.54",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/vanilla-cookieconsent/package.json",
+      "name": "@plasmicpkgs/vanilla-cookieconsent",
+      "from": "0.0.38",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    },
+    {
+      "path": "plasmicpkgs/wordpress/package.json",
+      "name": "@plasmicpkgs/wordpress",
+      "from": "0.0.40",
+      "to": "0.1.0",
+      "publicVersionUnused": true
+    }
+  ]
+}

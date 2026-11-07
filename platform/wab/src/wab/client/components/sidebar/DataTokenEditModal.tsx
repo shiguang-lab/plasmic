@@ -20,9 +20,9 @@ import {
 import { componentsReferencingDataToken } from "@/wab/shared/cached-selectors";
 import { DataToken } from "@/wab/shared/model/classes";
 import { isNil } from "lodash";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
+import { useStore } from "zustand";
 
 /**
  * Prettifies a modal title for consistent styling across different modal types.
@@ -36,7 +36,7 @@ export function prettifyModalTitle(content: React.ReactNode): React.ReactNode {
   );
 }
 
-export const DataTokenEditModal = observer(function DataTokenEditModal(props: {
+export function DataTokenEditModal(props: {
   token: DataToken;
   studioCtx: StudioCtx;
   defaultEditingName?: boolean;
@@ -54,11 +54,14 @@ export const DataTokenEditModal = observer(function DataTokenEditModal(props: {
     popoverFrameValuePath,
   } = props;
 
+  const tokenName = useStore(studioCtx.modelSnapshots.field(token, "name"));
+  const tokenUuid = useStore(studioCtx.modelSnapshots.field(token, "uuid"));
+  const valueSource = studioCtx.modelSnapshots.field(token, "value");
   const [selectedTokenType, setSelectedTokenType] =
-    React.useState<DataTokenType>(getDataTokenType(token.value));
+    React.useState<DataTokenType>(() => getDataTokenType(valueSource.getState()));
 
-  const [value, setValue] = React.useState(
-    toDataTokenDisplayValue(token.value, selectedTokenType),
+  const [value, setValue] = React.useState(() =>
+    toDataTokenDisplayValue(valueSource.getState(), selectedTokenType),
   );
 
   const storeValue = React.useCallback(
@@ -111,7 +114,7 @@ export const DataTokenEditModal = observer(function DataTokenEditModal(props: {
         className="data-token-fg custom-svg-icon--lg monochrome-exempt"
       />
       <SimpleTextbox
-        defaultValue={token.name}
+        defaultValue={tokenName}
         onValueChange={(name) => {
           const projectId = studioCtx.siteInfo.id;
           return studioCtx.changeObserved(
@@ -161,7 +164,7 @@ export const DataTokenEditModal = observer(function DataTokenEditModal(props: {
         <LabeledItemRow label={uiT("Value")}>
           {selectedTokenType === "code" ? (
             <CodeEditor
-              title={token.name || uiT("Data Token Value")}
+              title={tokenName || uiT("Data Token Value")}
               value={value}
               onChange={(val) => {
                 if (!isNil(val)) {
@@ -169,7 +172,7 @@ export const DataTokenEditModal = observer(function DataTokenEditModal(props: {
                 }
               }}
               lang="javascript"
-              fileName={`data-token-${token.uuid}-code`}
+              fileName={`data-token-${tokenUuid}-code`}
             />
           ) : (
             <Textbox
@@ -218,7 +221,7 @@ export const DataTokenEditModal = observer(function DataTokenEditModal(props: {
       {content}
     </SidebarModal>
   );
-});
+}
 
 function isValidValue(displayValue: string, type: DataTokenType) {
   if (type === "number") {

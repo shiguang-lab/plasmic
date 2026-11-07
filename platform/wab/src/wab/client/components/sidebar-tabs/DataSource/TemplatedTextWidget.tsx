@@ -10,15 +10,13 @@ import {
   CustomCode,
   ObjectPath,
   TemplatedString,
-  ensureKnownTemplatedString,
+  isKnownTemplatedString,
 } from "@/wab/shared/model/classes";
-import { TextWidgetProps } from "@react-awesome-query-builder/antd";
 import React from "react";
 
-interface TemplatedTextWidgetProps extends Pick<
-  TextWidgetProps,
-  "value" | "readonly"
-> {
+interface TemplatedTextWidgetProps {
+  value?: string;
+  disabled?: boolean;
   setValue: (expr: TemplatedString) => void;
   placeholder?: string;
   data: Record<string, any> | undefined;
@@ -31,9 +29,9 @@ interface TemplatedTextWidgetProps extends Pick<
 export function TemplatedTextWidget(props: TemplatedTextWidgetProps) {
   const { value, bindings, setValue, ...rest } = props;
   const realValue =
-    bindings && value
-      ? ensureKnownTemplatedString(bindings[value])
-      : new TemplatedString({ text: [] });
+    bindings && value && bindings[value]
+      ? isKnownTemplatedString(bindings[value]) ? bindings[value] : new TemplatedString({text: [bindings[value]]})
+      : new TemplatedString({ text: value ? [value] : [] });
 
   return (
     <TemplatedTextEditorWithMenuIndicator
@@ -51,7 +49,7 @@ export function TemplatedTextEditorWithMenuIndicator(
   const { t: uiT } = useI18n();
   return (
     <ContextMenuIndicator
-      showDynamicValueButton
+      showDynamicValueButton={!props.disabled}
       tooltip={uiT("Append dynamic value")}
       className="qb-custom-widget"
       fullWidth

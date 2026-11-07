@@ -2,7 +2,7 @@ import * as React from "react";
 import { mergeProps } from "../react-utils";
 import { Trans } from "./translation";
 
-export function PlasmicSlot<T extends keyof JSX.IntrinsicElements = "div">(
+export function PlasmicSlot<T extends keyof React.JSX.IntrinsicElements = "div">(
   props: React.ComponentProps<T> & {
     as?: T;
     defaultContents?: React.ReactNode;
@@ -13,7 +13,7 @@ export function PlasmicSlot<T extends keyof JSX.IntrinsicElements = "div">(
 }
 
 export function renderPlasmicSlot<
-  T extends keyof JSX.IntrinsicElements = "div"
+  T extends keyof React.JSX.IntrinsicElements = "div"
 >(opts: {
   as?: T;
   defaultContents?: React.ReactNode;
@@ -57,7 +57,7 @@ function maybeAsString(
   node: React.ReactNode
 ): string | React.ReactElement | undefined {
   // Unwrap fragments
-  if (React.isValidElement(node)) {
+  if (React.isValidElement<{ children?: React.ReactNode }>(node)) {
     // Fragment doesn't render DOM elements
     if (node.type === React.Fragment) {
       return maybeAsString(node.props.children);

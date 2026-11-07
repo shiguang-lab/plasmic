@@ -95,7 +95,7 @@ function addMiddlewares(app: express.Application) {
       promClient: {
         collectDefaultMetrics: {},
       },
-    })
+    }),
   );
 
   // Parse body further down to prevent unauthorized users from incurring large parses.
@@ -104,23 +104,28 @@ function addMiddlewares(app: express.Application) {
 }
 
 export async function renderBundleSandboxed(
-  args: Parameters<typeof renderBundle>[0]
+  args: Parameters<typeof renderBundle>[0],
 ) {
   const cmd = `node -r esbuild-register src/renderer.ts`;
   if (process.env.DISABLE_BWRAP === "1") {
-    const { stdout } = await execa("node", [
-      ...cmd.split(/\s+/g).slice(1),
-      JSON.stringify(args),
-    ]);
+    const { stdout } = await execa(
+      "node",
+      [...cmd.split(/\s+/g).slice(1), JSON.stringify(args)],
+      { timeout: 30_000, killSignal: "SIGKILL" },
+    );
     return { html: stdout };
   } else {
     const bwrapArgs = process.env.BWRAP_ARGS || "";
-    const { stdout } = await execa(`bwrap`, [
-      ...`--unshare-user --unshare-pid --unshare-ipc --unshare-uts --unshare-cgroup --ro-bind /lib /lib --ro-bind /usr /usr --ro-bind /etc /etc --ro-bind /run /run ${bwrapArgs} --chdir ${process.cwd()} ${cmd}`.split(
-        /\s+/g
-      ),
-      JSON.stringify(args),
-    ]);
+    const { stdout } = await execa(
+      `bwrap`,
+      [
+        ...`--die-with-parent --unshare-user --unshare-pid --unshare-ipc --unshare-uts --unshare-cgroup --ro-bind /lib /lib --ro-bind /usr /usr --ro-bind /etc /etc --ro-bind /run /run ${bwrapArgs} --chdir ${process.cwd()} ${cmd}`.split(
+          /\s+/g,
+        ),
+        JSON.stringify(args),
+      ],
+      { timeout: 30_000, killSignal: "SIGKILL" },
+    );
     return { html: stdout };
   }
 }
@@ -137,19 +142,19 @@ function addRoutes(app: express.Application) {
   app.post(
     "/api/v1/render",
     withNext(async (req, res) => {
-      const result = renderBundleSandboxed(req.body);
+      const result = await renderBundleSandboxed(req.body);
       res.json(result);
-    })
+    }),
   );
 }
 
 function withNext(
-  f: (req: Request, res: Response, next: NextFunction) => Promise<void>
+  f: (req: Request, res: Response, next: NextFunction) => Promise<void>,
 ) {
   return (req: Request, res: Response, next: NextFunction) => {
     f(req, res, next).then(
       () => next(),
-      (err) => next(err)
+      (err) => next(err),
     );
   };
 }
@@ -166,12 +171,12 @@ function addEndErrorHandlers(app: express.Application) {
       } else {
         next(err);
       }
-    }
+    },
   );
 }
 
 export async function createApp(
-  config: ServerConfig
+  config: ServerConfig,
 ): Promise<express.Application> {
   const app = express();
 
@@ -203,7 +208,7 @@ export async function createApp(
   console.log(
     `Starting React-rendering server with heap memory ${
       v8.getHeapStatistics().total_available_size / 1024 / 1024
-    }MB`
+    }MB`,
   );
 
   return app;

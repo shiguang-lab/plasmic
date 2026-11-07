@@ -24,7 +24,7 @@ export function IconComponentPreview({
   runtime: Pick<SubDeps, "React" | "ReactDOMClient">;
 }) {
   const container = React.useRef<HTMLSpanElement>(null);
-  const root = React.useRef<Root>();
+  const root = React.useRef<Root>(undefined);
   const { token } = theme.useToken();
 
   React.useEffect(() => {

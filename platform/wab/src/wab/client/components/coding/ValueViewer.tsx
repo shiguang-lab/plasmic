@@ -1,6 +1,6 @@
 import { useInspectorTheme } from "@/wab/client/components/coding/useInspectorTheme";
 import React from "react";
-import Inspector from "react-inspector";
+import { ObjectInspector } from "react-inspector";
 
 export function ValueViewer({
   value,
@@ -11,7 +11,7 @@ export function ValueViewer({
 }) {
   const inspectorTheme = useInspectorTheme();
   return (
-    <Inspector
+    <ObjectInspector
       theme={inspectorTheme}
       data={value}
       expandLevel={expandFully ? 99 : undefined}

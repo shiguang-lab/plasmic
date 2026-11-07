@@ -68,7 +68,7 @@ import {
 import { capitalizeFirst } from "@/wab/shared/strs";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Input, Select, notification } from "antd";
-import { observer } from "mobx-react";
+     
 import * as React from "react";
 import { ReactElement, useEffect, useState } from "react";
 import useSWR, { mutate } from "swr";
@@ -87,7 +87,7 @@ interface MergeModalWrapperProps {
   currentBranch: ApiBranch | undefined;
 }
 
-export const MergeModalWrapper = observer(function MergeModalWrapper({
+export const MergeModalWrapper = function MergeModalWrapper({
   project,
   latestPublishedVersionData,
   mergeModalContext,
@@ -115,7 +115,7 @@ export const MergeModalWrapper = observer(function MergeModalWrapper({
       )}
     </>
   );
-});
+};
 
 export interface MergeFlowProps
   extends DefaultMergeFlowProps, MergeModalWrapperProps {

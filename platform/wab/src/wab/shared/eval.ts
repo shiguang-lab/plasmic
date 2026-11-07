@@ -1,6 +1,6 @@
+import { BoundedCache } from "@/wab/shared/bounded-cache";
 import { stripParensAndMaybeConvertToIife } from "@/wab/shared/core/exprs";
 import { stampIgnoreError } from "@/wab/shared/error-handling";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
 import { throwIfPlasmicUndefinedDataError } from "@plasmicapp/data-sources";
 import { $State } from "@plasmicapp/react-web";
 
@@ -66,10 +66,38 @@ export function compileCodeExpr(
   return _compileCodeExpr(src, currGlobalThis);
 }
 
-const _compileCodeExpr = maybeComputedFn(function _compileCodeExpr(
+type SandboxEvaluator = (sandbox: object, thisObj?: object) => any;
+
+const EVAL_CACHE_MAX_SIZE = 100;
+
+// Compiled evaluators are pure functions of the code body and the realm whose
+// Function constructor built them, so keep a bounded cache per realm. The
+// realm must be part of the cache identity: a function constructed with one
+// realm's Function closes over that realm's globals.
+const evaluatorCaches = new WeakMap<
+  typeof globalThis,
+  BoundedCache<SandboxEvaluator>
+>();
+
+function getEvaluatorCache(currGlobalThis: typeof globalThis) {
+  let cache = evaluatorCaches.get(currGlobalThis);
+  if (!cache) {
+    cache = new BoundedCache<SandboxEvaluator>(EVAL_CACHE_MAX_SIZE);
+    evaluatorCaches.set(currGlobalThis, cache);
+  }
+  return cache;
+}
+
+const _compileCodeExpr = function _compileCodeExpr(
   src: string,
   currGlobalThis: typeof globalThis,
-) {
+): SandboxEvaluator {
+  const cache = getEvaluatorCache(currGlobalThis);
+  const cached = cache.get(src);
+  if (cached) {
+    return cached;
+  }
+
   const makeFunction = () => {
     try {
       return new currGlobalThis.Function(
@@ -93,7 +121,7 @@ const _compileCodeExpr = maybeComputedFn(function _compileCodeExpr(
 
   const code = makeFunction();
 
-  return function (sandbox: object, thisObj?: object) {
+  const evaluator: SandboxEvaluator = function (sandbox, thisObj) {
     const sandboxProxy = new Proxy(sandbox, {
       has: (_: object, key: PropertyKey) => {
         if (typeof key === "string" && ENABLED_GLOBALS.has(key)) {
@@ -124,7 +152,10 @@ const _compileCodeExpr = maybeComputedFn(function _compileCodeExpr(
       throw err;
     }
   };
-});
+
+  cache.set(src, evaluator);
+  return evaluator;
+};
 
 export function evalExprInSandbox(
   code: string,

@@ -4,7 +4,6 @@ import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import { ApiProject, MainBranchId } from "@/wab/shared/ApiSchema";
 import { assert, spawn } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { observer } from "mobx-react";
 import { useEffect } from "react";
 
 interface CloneProjectModalProps {
@@ -13,7 +12,7 @@ interface CloneProjectModalProps {
   setShowCloneProjectModal: (val: boolean) => Promise<void>;
 }
 
-export const CloneProjectModal = observer(function ProjectNameModal({
+export const CloneProjectModal = function ProjectNameModal({
   project,
   showCloneProjectModal,
   setShowCloneProjectModal,
@@ -58,6 +57,6 @@ export const CloneProjectModal = observer(function ProjectNameModal({
   }, [showCloneProjectModal]);
 
   return null;
-});
+};
 
 export default CloneProjectModal;

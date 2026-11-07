@@ -1,3 +1,8 @@
+import { useStudioArena, useViewRegistry } from "@/wab/client/studio-ctx/arena-state";
+import { useViewVariantsList } from "@/wab/client/studio-ctx/variant-state";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { matchesSelectionTarget, useFocusedViewSelection, useHoveredViewCtx, useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
 import { revealCanvasElement } from "@/wab/client/components/canvas/canvas-scroll";
 import {
   getPreferredInsertLocs,
@@ -18,6 +23,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import { ListSpace } from "@/wab/client/components/widgets/ListStack";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
 import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -34,7 +40,6 @@ import UnlockIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIc
 import VerticalDashIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__VerticalDash";
 import RepeatingsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__RepeatingSvg";
 import { DragInsertState, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   getSetOfPinnedVariantsForViewCtx,
   ViewCtx,
@@ -54,7 +59,15 @@ import {
   getArenaFrames,
   isMixedArena,
 } from "@/wab/shared/Arenas";
-import { assert, ensure, maybe, spawn, unexpected } from "@/wab/shared/common";
+import {
+  assert,
+  ensure,
+  ensureHTMLElt,
+  maybe,
+  spawn,
+  unexpected,
+  withoutNils,
+} from "@/wab/shared/common";
 import { isCodeComponent } from "@/wab/shared/core/components";
 import { Selectable } from "@/wab/shared/core/selection";
 import { isSlotSelection, SlotSelection } from "@/wab/shared/core/slots";
@@ -70,8 +83,6 @@ import {
 import {
   bestValForTpl,
   ValComponent,
-  ValNode,
-  ValSlot,
 } from "@/wab/shared/core/val-nodes";
 import { asTpl } from "@/wab/shared/core/vals";
 import { EffectiveVariantSetting } from "@/wab/shared/effective-variant-setting";
@@ -117,6 +128,7 @@ import { computedFn } from "mobx-utils";
 
 import * as React from "react";
 import { FixedSizeList } from "react-window";
+import { useStore } from "zustand";
 
 import { TplClip } from "@/wab/client/clipboard/local";
 import { COMMANDS } from "@/wab/client/commands/command";
@@ -197,104 +209,58 @@ const TplTreeNode = observer(function TplTreeNode(props: {
     parentId,
     isDropParent,
   } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+
+
+
 
   const commentsCtx = useStudioCtx().commentsCtx;
+  const commentSubjectId = isKnownTplNode(item) ? item.uuid : undefined;
+  const commentVariantKey = isKnownTplNode(item)
+    ? getSubjectVariantsKey(
+        item,
+        getSetOfPinnedVariantsForViewCtx(viewCtx, viewCtx.bundler()),
+      )
+    : undefined;
+  const subjectCommentStats = useStore(commentsCtx.store, (state) =>
+    commentSubjectId
+      ? state.commentStatsBySubject.get(commentSubjectId)
+      : undefined,
+  );
+  const variantCommentStats = useStore(commentsCtx.store, (state) =>
+    commentVariantKey
+      ? state.commentStatsByVariant.get(commentVariantKey)
+      : undefined,
+  );
+
   const component = $$$(item).owningComponent();
   const isInFrame = !!viewCtx
     .componentStackFrames()
     .find((f) => f.tplComponent.component === component);
+  const itemIdentity = item instanceof SlotSelection ? { tplUid: item.getTpl().uid, paramUid: item.slotParam.uid } : { tplUid: item.uid, paramUid: undefined };
+  const isFocusedView = useStudioSelection(viewCtx.studioCtx, (state) => state.view === viewCtx);
+  const isFocused = useViewSelection(viewCtx, (state) => isFocusedView && (itemIdentity.paramUid === undefined && state.tpls.some((ref) => ref?.uid === itemIdentity.tplUid) || state.targets.some((target) => matchesSelectionTarget(target, itemIdentity))));
+  const defaultEditing = useStore(viewCtx.studioCtx.renamingOnPanelStore, (renaming) => renaming && isFocused);
+  const focusedMode = useStudioArena(viewCtx.studioCtx, (state) => state.focusedMode);
+  const isHovered = useViewSelection(viewCtx, (state) => matchesSelectionTarget(state.hover, itemIdentity));
+  const parents = $$$(item).parentsWithSlotSelections().toArray().map((node) => node instanceof SlotSelection ? { tplUid: node.getTpl().uid, paramUid: node.slotParam.uid } : { tplUid: node.uid, paramUid: undefined });
+  const isStrictDescendantOfFocus = useViewSelection(viewCtx, (state) => {
+    const first = state.targets[0];
+    if (isFocused || !first) { return false; }
+    return parents.some((parent) => parent.paramUid === undefined ? first.kind === "value" && first.tpl.uid === parent.tplUid : first.kind === "slot" && first.tpl.uid === parent.tplUid && first.slotParam?.uid === parent.paramUid);
+  });
+  const focusedElsewhere = useStudioSelection(viewCtx.studioCtx, (state) => !!state.view && state.view !== viewCtx);
+  const focusedContext = useFocusedViewSelection(viewCtx.studioCtx, (state) => !!state.context);
+  const localOutOfContext = useViewSelection(viewCtx, (state) => !!state.context && state.context.component.uid !== component.uid);
+  const isOutOfContext = focusedElsewhere && focusedContext || localOutOfContext;
+  const isDrilled = useViewSelection(viewCtx, (state) => {
+    const context = state.context;
+    return !(item instanceof SlotSelection) && !!context && context.tpl.uid === item.uid && !!state.targets[0]?.owners.some((owner) => owner.tpl.uid === context.tpl.uid && owner.fullKey === context.valFullKey);
+  });
+  const isDrilledDescendant = useViewSelection(viewCtx, (state) => state.context?.component.uid === component.uid);
   if (!isInFrame) {
     return null;
   }
-
-  function isMatchingSelectable(sel: Selectable | null) {
-    if (!sel) {
-      return false;
-    }
-    if (item instanceof SlotSelection && sel instanceof ValSlot) {
-      // When we call SQ().ancestors().toArray().some(isMatchingSelectable)
-      // below we are using fullStack SQ to query for ancestors, so we expect to
-      // only see ValSlot instead of SlotSelection for ancestors.  Thus, we
-      // try to match up a ValSlot with a SlotSelection here.
-      const valComponent = sel.valOwner;
-      if (
-        valComponent &&
-        item.getTpl() === valComponent.tpl &&
-        item.slotParam === sel.tpl.param
-      ) {
-        return true;
-      }
-    }
-    if (sel instanceof ValNode) {
-      return sel.tpl === item;
-    } else {
-      return (
-        item instanceof SlotSelection && sel.toTplSlotSelection().equals(item)
-      );
-    }
-  }
-
-  const isFocused = computed(
-    () => {
-      if (!viewCtx.isFocusedViewCtx()) {
-        return false;
-      }
-      const focusedTpls = viewCtx.focusedTpls();
-      if (focusedTpls.some((tpl) => tpl === item)) {
-        return true;
-      }
-
-      const focusedSelectables = viewCtx.focusedSelectables();
-      if (focusedSelectables.some((sel) => isMatchingSelectable(sel))) {
-        return true;
-      }
-
-      return false;
-    },
-    { name: "isFocused" },
-  ).get();
-
-  const isHovered = computed(
-    () => {
-      const hoveredSelectable = viewCtx.hoveredSelectable();
-      return !!hoveredSelectable && isMatchingSelectable(hoveredSelectable);
-    },
-    { name: "isHovered" },
-  ).get();
-
-  const parentsWithSlotSelections = computed(
-    () => $$$(item).parentsWithSlotSelections().toArray(),
-    { name: "parentsWithSlotSelections" },
-  );
-
-  const isStrictDescendantOfFocus = computed(
-    () => {
-      const focusedSelectable = viewCtx.focusedSelectable();
-      if (isFocused || !focusedSelectable) {
-        return false;
-      }
-
-      return parentsWithSlotSelections.get().some((node) => {
-        if (
-          node instanceof SlotSelection &&
-          focusedSelectable instanceof SlotSelection
-        ) {
-          return (
-            node.slotParam === focusedSelectable.slotParam &&
-            node.getTpl() === focusedSelectable.getTpl()
-          );
-        } else if (
-          isKnownTplNode(node) &&
-          focusedSelectable instanceof ValNode
-        ) {
-          return node === focusedSelectable.tpl;
-        } else {
-          return false;
-        }
-      });
-    },
-    { name: "isStrictDescendantOfFocus" },
-  ).get();
 
   const effectiveVs = computed(
     () =>
@@ -306,7 +272,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
 
   const indicatedVs = computed(
     () => {
-      if (isTplVariantable(item) && viewCtx.isFocusedViewCtx()) {
+      if (isTplVariantable(item) && isFocusedView) {
         const vtm = viewCtx.variantTplMgr();
         const getRelevantVs = () => {
           if (getAncestorTplSlot(item, true)) {
@@ -332,55 +298,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
     { name: "indicatedVs" },
   ).get();
 
-  const itemAsTpl = () => {
-    // If `item` is a SlotSelection, then `tpl` is the instantiated `TplComponent`
-    return item instanceof SlotSelection
-      ? ensure(
-          item.toTplSlotSelection().tpl,
-          "Slot selection in tpl tree should have a tpl",
-        )
-      : item;
-  };
 
-  const isOutOfContext = computed(
-    () => {
-      const focusedVc = viewCtx.studioCtx.focusedOrFirstViewCtx();
-      if (
-        focusedVc &&
-        focusedVc.currentComponentCtx() &&
-        focusedVc !== viewCtx
-      ) {
-        return true;
-      }
-      return viewCtx.isOutOfContext(itemAsTpl());
-    },
-    { name: "isOutOfContext" },
-  ).get();
-
-  const isDrilled = computed(
-    () => {
-      return maybe(
-        viewCtx.currentComponentCtx(),
-        (ctx) =>
-          ctx.valComponent() ===
-          tryGetValForTpl(viewCtx, item, componentFrameNum),
-      );
-    },
-    { name: "isDrilled" },
-  ).get();
-
-  const isDrilledDescendant = computed(
-    () => {
-      const spotlightComponent = maybe(viewCtx.currentComponentCtx(), (ctx) =>
-        ctx.component(),
-      );
-      return (
-        !!spotlightComponent &&
-        $$$(itemAsTpl()).tryGetOwningComponent() === spotlightComponent
-      );
-    },
-    { name: "isDrilledDescendant" },
-  ).get();
 
   const hasRep = computed(
     () => {
@@ -616,10 +534,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
     } else if (!Tpls.isTplNodeNamable(item)) {
       return <TplTreeNodeLabel summary={summarizeTpl(item)} />;
     } else if (Tpls.isTplNamable(item)) {
-      const defaultEditing = computed(
-        () => viewCtx.studioCtx.renamingOnPanel() && isFocused,
-        { name: "defaultEditing" },
-      ).get();
+
       const itemName = item.name || "";
       return (
         <EditableLabel
@@ -667,10 +582,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
               getTextContent(item.defaultContents[0]) || "",
             )
           : undefined;
-      const defaultEditing = computed(
-        () => viewCtx.studioCtx.renamingOnPanel() && isFocused,
-        { name: "defaultEditing" },
-      ).get();
+
       return (
         <EditableLabel
           labelFactory={(_props) => (
@@ -701,10 +613,8 @@ const TplTreeNode = observer(function TplTreeNode(props: {
       ? getPlumeElementDef(component, item)
       : undefined;
 
-  const getCommentStatsForTpl = (tpl: TplNode) => {
-    const commentStatsBySubject = commentsCtx
-      .computedData()
-      .commentStatsBySubject.get(tpl.uuid);
+  const getCommentStatsForTpl = () => {
+    const commentStatsBySubject = subjectCommentStats;
 
     if (!commentStatsBySubject) {
       return null;
@@ -716,14 +626,8 @@ const TplTreeNode = observer(function TplTreeNode(props: {
       otherVariantsCount: 0,
     };
 
-    if (viewCtx.studioCtx.focusedMode) {
-      const variants = getSetOfPinnedVariantsForViewCtx(
-        viewCtx,
-        viewCtx.bundler(),
-      );
-      const commentStatsByVariant = commentsCtx
-        .computedData()
-        .commentStatsByVariant.get(getSubjectVariantsKey(tpl, variants));
+    if (focusedMode) {
+      const commentStatsByVariant = variantCommentStats;
 
       if (!commentStatsByVariant) {
         return null;
@@ -741,7 +645,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
   const icon = computed(
     () => {
       if (isKnownTplNode(item) && viewCtx.studioCtx.showCommentsPanel) {
-        const commentStats = getCommentStatsForTpl(item);
+        const commentStats = getCommentStatsForTpl();
         if (commentStats) {
           return (
             <CommentIndicatorIcon
@@ -1021,7 +925,7 @@ const DraggableTreeNode = observer(function DraggableTreeNode(props: {
           return false;
         }
         setLabelTarget(
-          $(e.mouseEvent.target)
+          $(ensureHTMLElt(e.mouseEvent.target))
             .parents(".tpltree__draggable")
             .get(0) as HTMLElement,
         );
@@ -1383,7 +1287,10 @@ export class TreeDndManager {
     }
   });
 
-  onDragStart(e: React.DragEvent | React.MouseEvent, items: TplClip[]) {
+  onDragStart(
+    e: Pick<MouseEvent, "preventDefault" | "clientX" | "clientY">,
+    items: TplClip[],
+  ) {
     if (
       items.some(
         (item) =>
@@ -1439,7 +1346,7 @@ export class TreeDndManager {
     e.preventDefault();
   }
 
-  onDrop(e: React.DragEvent | React.MouseEvent) {
+  onDrop(e: Pick<MouseEvent, "preventDefault" | "stopPropagation">) {
     // We rely on onDrop, because if the user cancels the drag (by hitting ESC),
     // then onDrop is not called, though onDragEnd is.
     e.preventDefault();
@@ -1769,9 +1676,12 @@ const ArtboardOutlineRow = observer(function ArtboardOutlineRow(props: {
   style?: React.CSSProperties;
 }) {
   const { frame, outlineCtx, studioCtx, style } = props;
+  useStudioSelection(studioCtx, (state) => state.view);
   const { styles } = useStructurePanelStyles();
   const { t } = useI18n();
-  const arena = ensure(studioCtx.currentArena, "Artboard arena missing");
+  const arenaRef = useStudioArena(studioCtx, (state) => state.frames.some((ref) => studioCtx.modelSnapshots.resolve(ref) === frame) ? state.current : null);
+  if (!arenaRef) { return null; }
+  const arena = studioCtx.modelSnapshots.resolve(arenaRef);
   const label = getArenaFrameDesc(arena, frame, studioCtx.site);
   const expanded = outlineCtx.isFrameExpanded(frame);
   return (
@@ -1815,7 +1725,7 @@ const ArtboardOutlineRow = observer(function ArtboardOutlineRow(props: {
   );
 });
 
-const ArenaTreeNode = observer(function ArenaTreeNode(props: {
+const ArenaTreeNode = function ArenaTreeNode(props: {
   index: number;
   data: TreeRowItemData;
   style?: React.CSSProperties;
@@ -1837,7 +1747,7 @@ const ArenaTreeNode = observer(function ArenaTreeNode(props: {
       style={style}
     />
   );
-});
+};
 
 export type ArenaTreeRef = FixedSizeList;
 
@@ -1872,6 +1782,7 @@ export const ArenaTree = observer(
     outerRef: React.Ref<ArenaTreeRef>,
   ) {
     const { studioCtx, arena, outlineCtx, dndManager } = props;
+  useStudioSelection(studioCtx, (state) => state.view);
     const { ref: listRef, onRef } = useForwardedRef(outerRef);
 
     const { visibleNodes } = useTreeData(
@@ -1967,12 +1878,35 @@ function useTreeData(
   outlineCtx: OutlineCtx,
   dndManager: TreeDndManager,
 ) {
+  useStudioSelection(studioCtx, (state) => state.view);
+  const view = outlineCtx.viewCtx();
+  const focus = useViewSelection(view, useShallow((state) => [state.context, state.tpls, state.targets]));
+  const entries = useViewRegistry(studioCtx, (snapshot) => snapshot);
+  const views = React.useMemo(
+    () =>
+      arena
+        ? withoutNils(
+            getArenaFrames(arena).map(
+              (frame) =>
+                studioCtx.arenaState.viewRegistry.selectFrame(entries, frame)
+                  ?.view,
+            ),
+          )
+        : view
+          ? [view]
+          : [],
+    [studioCtx, arena, view, entries],
+  );
+  const variantInputs = useViewVariantsList(views);
+  React.useLayoutEffect(() => { outlineCtx.refreshVariantSearch(); }, [outlineCtx, variantInputs]);
+  const hoveredView = useHoveredViewCtx(studioCtx);
+  const hover = useViewSelection(hoveredView, (state) => state.hover);
   const buildVisibleNodes = React.useMemo(
     () =>
       computedFn(function _buildVisibleNodes() {
         return buildVisibleOutlineRows(arena, outlineCtx);
       }),
-    [studioCtx, arena, outlineCtx, dndManager],
+    [studioCtx, arena, outlineCtx, dndManager, focus, hoveredView, hover, variantInputs],
   );
 
   return { visibleNodes: buildVisibleNodes() };
@@ -2052,7 +1986,7 @@ function useRevealOnFocus(opts: {
   useChanged(focusedKey, scrollToKey);
 }
 
-const TplVisibilityToggle = observer(function TplVisibilityToggle(props: {
+const TplVisibilityToggle = function TplVisibilityToggle(props: {
   tpl: TplNode;
   viewCtx: ViewCtx;
   visibility: TplVisibility;
@@ -2100,4 +2034,4 @@ const TplVisibilityToggle = observer(function TplVisibilityToggle(props: {
     </Tooltip>
   );
   return elt;
-});
+};

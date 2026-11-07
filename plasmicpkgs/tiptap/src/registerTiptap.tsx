@@ -36,7 +36,7 @@ export function Tiptap(props: TiptapProps) {
   const isClient = useIsClient();
   const [active, setActive] = useState<boolean>(false);
   const [refreshKey, setRefreshKey] = useState(0);
-  const activeRef = useRef<boolean>();
+  const activeRef = useRef<boolean>(undefined);
   activeRef.current = active;
 
   const {

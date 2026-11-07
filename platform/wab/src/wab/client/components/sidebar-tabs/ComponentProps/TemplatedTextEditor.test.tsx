@@ -13,9 +13,11 @@ import {
 } from "@testing-library/react";
 import * as React from "react";
 import { ReactEditor } from "slate-react";
+import { createStore } from "zustand/vanilla";
 
 vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => ({
+    selectionStore: createStore(() => ({ view: undefined, frames: Object.freeze([]) })),
     focusedViewCtx: () => undefined,
     projectFlags: () => getProjectFlags(createSite()),
   }),

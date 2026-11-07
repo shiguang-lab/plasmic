@@ -91,9 +91,6 @@
 .nextConfig:global(.__wab_instance) {
   position: relative;
 }
-.gatsbyConfig:global(.__wab_instance) {
-  position: relative;
-}
 .h2__abaX {
   font-size: 18px;
   font-weight: 600;

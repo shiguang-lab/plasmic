@@ -64,12 +64,6 @@ export const PlasmicLinkInternal = React.forwardRef(
       });
     }
 
-    if (props.platform === "gatsby" && isInternalHref(props.href)) {
-      return React.createElement(props.component, {
-        ...omit(props, ...INTERNAL_PROPS, "href"),
-        ...{ to: props.href, ref },
-      });
-    }
 
     if (props.platform === "tanstack" && isInternalHref(props.href)) {
       return React.createElement(props.component, {

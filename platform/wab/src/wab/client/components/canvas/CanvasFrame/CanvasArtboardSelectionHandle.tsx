@@ -1,3 +1,6 @@
+import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { useFocusedViewSelection, useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
 import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import styles from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
 import { makeFrameMenu } from "@/wab/client/components/frame-menu";
@@ -21,6 +24,9 @@ export const CanvasArtboardSelectionHandle = observer(
     onClick: (e?: React.MouseEvent<HTMLElement>) => void;
   }) {
     const studioCtx = useStudioCtx();
+    useContentEditorScope(studioCtx);
+  useFocusedViewSelection(studioCtx, useShallow((state) => [state.context, state.targets, state.tpls]));
+  useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view]));
     const stopClickPropagation = React.useCallback(
       (e?: React.MouseEvent<HTMLElement>) => e?.stopPropagation(),
       [],

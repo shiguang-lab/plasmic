@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { expect, test } from "vitest";
 import { render } from "@testing-library/react";
-import React from "react";
+
 import { AntdDrawer, registerDrawer } from "../src/registerDrawer";
 import type { Registerable } from "../src/utils";
 

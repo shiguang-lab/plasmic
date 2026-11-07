@@ -76,12 +76,22 @@ export function getCommonStyleValue(
   return { value: mixed ? undefined : values[0], mixed };
 }
 
+/** Native access supplied by the rendering component. Command-time calls omit
+ * it so the unique policy reads the current canonical Studio permission. */
+export interface MultiSelectionEditAccess {
+  readonly canEditProject: boolean;
+  readonly canEditBranch: boolean;
+}
+
 export function getMultiSelectionFieldState(
   viewCtx: ViewCtx,
   providers: TplExpsProvider[],
   prop: MultiSelectionProp,
+  access?: MultiSelectionEditAccess,
 ) {
   const studioCtx = viewCtx.studioCtx;
+  const canEditProject = access?.canEditProject ?? studioCtx.canEditProject();
+  const canEditBranch = access?.canEditBranch ?? studioCtx.canEditBranch();
   const field = multiSelectionFields[prop];
   const selectables = viewCtx.focusedSelectables();
   const supported =
@@ -113,8 +123,8 @@ export function getMultiSelectionFieldState(
     });
   const disabled =
     !supported ||
-    !studioCtx.canEditProject() ||
-    !studioCtx.canEditBranch() ||
+    !canEditProject ||
+    !canEditBranch ||
     selectables.some((sel) => {
       if (!sel || isSelectableLocked(sel, viewCtx.valState())) {
         return true;

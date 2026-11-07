@@ -1,6 +1,6 @@
 {
   "name": "@plasmicapp/host",
-  "version": "2.0.19",
+  "version": "3.0.0",
   "description": "plasmic library for app hosting",
   "homepage": "https://www.plasmic.app",
   "license": "MIT",
@@ -53,7 +53,8 @@
   "dependencies": {
     "@plasmicapp/query": "workspace:*",
     "csstype": "^3.1.2",
-    "window-or-global": "^1.0.1"
+    "window-or-global": "^1.0.1",
+    "@react-querybuilder/core": "8.26.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.2",
@@ -74,7 +75,7 @@
     "vitest": "catalog:"
   },
   "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }

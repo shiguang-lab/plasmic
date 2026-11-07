@@ -49,6 +49,47 @@ describe("evalExprInSandbox", () => {
       }),
     ).toBe(encodeURIComponent);
   });
+
+  it("binds thisObj as this and defaults to an empty object", () => {
+    expect(evalExprInSandbox("this.value", {}, { value: 7 })).toBe(7);
+    expect(evalExprInSandbox("typeof this", {})).toBe("object");
+  });
+
+  it("reuses the compiled evaluator for the same code and realm", () => {
+    let constructions = 0;
+    const realm = {
+      Function: function (...args: any[]) {
+        constructions++;
+        return new Function(...args);
+      },
+    } as unknown as typeof globalThis;
+
+    expect(
+      evalExprInSandbox(
+        "$props.value",
+        { $props: { value: 1 } },
+        undefined,
+        realm,
+      ),
+    ).toBe(1);
+    expect(
+      evalExprInSandbox(
+        "$props.value",
+        { $props: { value: 2 } },
+        undefined,
+        realm,
+      ),
+    ).toBe(2);
+    expect(constructions).toBe(1);
+  });
+
+  it("keeps compiled evaluators isolated per realm", () => {
+    const realmA = { Function } as unknown as typeof globalThis;
+    const realmB = { Function } as unknown as typeof globalThis;
+
+    expect(evalExprInSandbox("globalThis", {}, undefined, realmA)).toBe(realmA);
+    expect(evalExprInSandbox("globalThis", {}, undefined, realmB)).toBe(realmB);
+  });
 });
 
 describe("tryEvalExpr", () => {

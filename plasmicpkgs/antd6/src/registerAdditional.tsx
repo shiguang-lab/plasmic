@@ -65,7 +65,7 @@ export const AntdDescriptions = React.forwardRef<
       children={undefined}
       items={getCanvasItems(children, (item) => item.type === AntdDescriptionsItem).map(
         (item, index) => {
-          const { __plasmic_selection_prop__: _selection, ...itemProps } = item.props;
+          const { __plasmic_selection_prop__: _selection, ...itemProps } = (item as React.ReactElement<React.ComponentProps<typeof AntdDescriptionsItem> & CanvasOverlayProps>).props;
           return { ...itemProps, key: item.key ?? String(index) };
         }
       )}

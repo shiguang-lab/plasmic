@@ -1,6 +1,16 @@
-import { getHostWindow } from "@/wab/client/frame-ctx/host-window";
-import { scriptExec } from "@/wab/client/script-exec";
-import { LEFT_PANE_INIT_WIDTH } from "@/wab/client/ClientConstants";
+import { CanvasContentEditorIndex } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { SingleRsStyleInputs } from "@/wab/client/studio-ctx/style-inputs";
+import { FrameHeights } from "@/wab/client/studio-ctx/frame-heights";
+import { StudioSaveState } from "@/wab/client/studio-ctx/save-state";
+import { StudioArenaState, type ArenaStatus, type StudioViewportSnapshot } from "@/wab/client/studio-ctx/studio-arena-state";
+import { subscribeStudioSelection, subscribeFocusedViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
+import { StudioVersionHistory } from "@/wab/client/studio-ctx/studio-version-history";
+import { StudioUiEnvironment } from "@/wab/client/studio-ctx/studio-ui-environment";
+import type { Site } from "@/wab/shared/model/classes";
+import { subscribeStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
+import { StudioRenderPolicy, type RenderPolicyInputs } from "@/wab/client/studio-ctx/studio-render-policy";
+import { StudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { DragInsertManager } from "@/wab/client/Dnd";
 import {
   handleError,
@@ -88,6 +98,7 @@ import {
 } from "@/wab/client/dom-utils";
 import { fixupChrome, fixupForChanges } from "@/wab/client/fixes-post-change";
 import { FontManager } from "@/wab/client/fonts";
+import { getHostWindow } from "@/wab/client/frame-ctx/host-window";
 import type { SavedEditorView } from "@/wab/client/frame-ctx/top-frame-api";
 import {
   getRootSubHostVersion,
@@ -104,6 +115,7 @@ import {
 import { PLATFORM } from "@/wab/client/platform";
 import { requestIdleCallbackAsync } from "@/wab/client/requestidlecallback";
 import { plasmicExtensionAvailable } from "@/wab/client/screenshot-util";
+import { scriptExec } from "@/wab/client/script-exec";
 import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import {
   COMMENTS_DIALOG_RIGHT_ZOOM_PADDING,
@@ -111,7 +123,15 @@ import {
 } from "@/wab/client/studio-ctx/comments-ctx";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { DesktopDraftController } from "@/wab/client/studio-ctx/desktop-drafts";
+import { InspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
 import { MultiplayerCtx } from "@/wab/client/studio-ctx/multiplayer-ctx";
+import { ModelSnapshots, type ModelRef, type ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
+import {
+  StudioLeftPanelState,
+  type LeftPanel,
+  type OnboardingTourState,
+} from "@/wab/client/studio-ctx/left-panel-state";
+import { subscribeViewport } from "@/wab/client/studio-ctx/viewport-state";
 import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
 import { UiActionBus } from "@/wab/client/studio-ctx/ui/UiActionBus";
 import { UiId, parseUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
@@ -124,8 +144,6 @@ import {
   UpsertStyleChanges,
   summaryToStyleChanges,
 } from "@/wab/client/style-mgr";
-import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
-import { TutorialStateFlags } from "@/wab/client/tours/tutorials/tutorials-types";
 import { trackEvent } from "@/wab/client/tracking";
 import { UndoLog, UndoRecord, ViewStateSnapshot } from "@/wab/client/undo-log";
 import {
@@ -158,7 +176,6 @@ import {
 import {
   AnyArena,
   FrameViewMode,
-  IArenaFrame,
   cloneArenaFrame,
   doesFrameVariantMatch,
   ensureActivatedScreenVariantsForArena,
@@ -292,13 +309,11 @@ import {
 } from "@/wab/shared/core/selection";
 import {
   allGlobalVariants,
-  getAllSiteFrames,
   getArenaByNameOrUuidOrPath,
   getDedicatedArena,
   getSiteArenas,
   isHostLessPackage,
   isTplAttachedToSite,
-  isValidArena,
   siteIsEmpty,
   tryGetGlobalVariantByUuid,
 } from "@/wab/shared/core/sites";
@@ -382,7 +397,7 @@ import {
   ensurePageOverviewArena,
   findPageOverviewArena,
 } from "@/wab/shared/page-overview";
-import { getAccessLevelToResource } from "@/wab/shared/perms";
+import { getAccessLevelToResource, getUniqueUsersFromApiPermissions } from "@/wab/shared/perms";
 import {
   APP_ROUTES,
   SEARCH_PROMPT,
@@ -440,29 +455,26 @@ import {
   maxBy,
   memoize,
   partition,
+  throttle,
   uniq,
 } from "lodash";
-import assign from "lodash/assign";
 import defer from "lodash/defer";
 import isEqual from "lodash/isEqual";
-import orderBy from "lodash/orderBy";
 import {
   action,
   autorun,
   flow,
-  makeObservable,
   observable,
   reaction,
   runInAction,
-  when,
 } from "mobx";
-import { InspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
 import { computedFn } from "mobx-utils";
 import { Result, err, ok } from "neverthrow";
 import React from "react";
 import semver from "semver";
 import * as Signals from "signals";
 import { mutate } from "swr";
+import { StoreApi, createStore } from "zustand/vanilla";
 
 (window as any).dbg.classes = classes;
 
@@ -514,25 +526,21 @@ export class DragInsertState {
   ) {}
 }
 
-interface ArenaViewInfo {
-  lastAccess: number;
-  isAlive: boolean;
-  lastViewSnapshot: StudioViewportSnapshot | undefined;
-  /**
-   * Renders hidden and is garbage-collected before user-visited arenas.
-   * Used for copilot context read.
-   */
-  isBackground?: boolean;
-}
 
-/** See StudioCtx.getArenaStatus. */
-export type ArenaStatus = "visible" | "background" | "cached" | "dead";
+export type ProjectMentionUser = Readonly<Pick<ApiUser, "id" | "email" | "displayName">>;
+export type ProjectMetadataSnapshot = Readonly<Pick<SiteInfo,
+  "id" | "name" | "appAuthProvider" | "projectApiToken" | "isMainBranchProtected"
+>> & { readonly mentionUsers: readonly ProjectMentionUser[] };
 
-interface StudioViewportSnapshot {
-  readonly focusedArenaFrame?: ArenaFrame;
-  readonly scroll: Pt;
-  readonly canvasPadding: Pt;
-  readonly scale: number;
+const emptyMentionUsers: readonly ProjectMentionUser[] = Object.freeze([]);
+function captureMentionUsers(perms: SiteInfo["perms"], previous = emptyMentionUsers) {
+  const next = getUniqueUsersFromApiPermissions(perms).map((user) => {
+    const old = previous.find((candidate) => candidate.id === user.id);
+    return old && old.email === user.email && old.displayName === user.displayName
+      ? old : Object.freeze({ id: user.id, email: user.email, displayName: user.displayName });
+  });
+  return next.length === previous.length && next.every((user, index) => user === previous[index])
+    ? previous : Object.freeze(next);
 }
 
 export type StudioAppUser = Pick<
@@ -660,12 +668,8 @@ export enum RightTabKey {
   component = "component",
 }
 
-const RECENT_ARENAS_LIMIT = 5;
 
-export type LeftPanel =
-  | { type: "tab"; tab: LeftTabKey }
-  | { type: "insert"; inline: boolean }
-  | { type: "ai"; opts?: CopilotChatOpenOpts };
+export type ModelCommit = { type: "commit"; summary: ChangeSummary } | { type: "site-replaced"; site: Site };
 
 export class StudioCtx extends WithDbCtx {
   //
@@ -680,15 +684,37 @@ export class StudioCtx extends WithDbCtx {
   private disposals: (() => void)[] = [];
   _dbCtx: DbCtx;
   readonly commentsCtx: CommentsCtx;
+  modelSnapshots = new ModelSnapshots();
+  singleRsStyleInputs = new SingleRsStyleInputs(() => this.modelSnapshots);
+  readonly arenaState: StudioArenaState;
+  private readonly modelCommitListeners = new Set<(event: ModelCommit) => void>();
+  readonly frameHeights = new FrameHeights(this);
+  private readonly contentEditors = new CanvasContentEditorIndex(() => this.viewCtxs);
+  readonly activeContentEditorStore = this.contentEditors.store;
+  subscribeModelChanges(listener: (event: ModelCommit) => void) {
+    this.modelCommitListeners.add(listener);
+    return () => { this.modelCommitListeners.delete(listener); };
+  }
   readonly clipboard = new LocalClipboard();
   fontManager: FontManager;
-  previewCtx: PreviewCtx | undefined;
-  _viewportCtx = observable.box<ViewportCtx | null>(null);
+  readonly renderPolicy: StudioRenderPolicy;
+  readonly overlayState = new StudioOverlayState();
+  readonly previewOwnerStore = createStore<PreviewCtx | undefined>(() => undefined);
+  get previewCtx() { return this.previewOwnerStore.getState(); }
+  set previewCtx(value: PreviewCtx | undefined) {
+    this.withPreviewLivePolicy(value?.isLive ?? false, () => this.previewOwnerStore.setState(value, true));
+  }
+  private readonly _viewportCtx = createStore<ViewportCtx | null>(() => null);
+  readonly viewportOwnerStore = {
+    getState: this._viewportCtx.getState,
+    getInitialState: this._viewportCtx.getInitialState,
+    subscribe: this._viewportCtx.subscribe,
+  };
   get viewportCtx() {
-    return this._viewportCtx.get();
+    return this._viewportCtx.getState();
   }
   set viewportCtx(value: ViewportCtx | null) {
-    this._viewportCtx.set(value);
+    this._viewportCtx.setState(value, true);
   }
 
   studioIsVisible = false;
@@ -706,7 +732,19 @@ export class StudioCtx extends WithDbCtx {
   get hasInitialEditorView() {
     return this.initialEditorView !== null;
   }
-  latestVariantCreated: Variant | undefined = undefined;
+  readonly latestVariantCreatedStore = createStore<ModelRef<Variant> | undefined>(
+    () => undefined,
+  );
+  get latestVariantCreated(): Variant | undefined {
+    const ref = this.latestVariantCreatedStore.getState();
+    return ref ? this.modelSnapshots.resolve(ref) : undefined;
+  }
+  set latestVariantCreated(variant: Variant | undefined) {
+    this.latestVariantCreatedStore.setState(
+      variant ? this.modelSnapshots.ref(variant) : undefined,
+      true,
+    );
+  }
   latestVariantGroupCreated: VariantGroup | undefined = undefined;
 
   private hostLessRegistry: CodeComponentsRegistry;
@@ -725,20 +763,15 @@ export class StudioCtx extends WithDbCtx {
   constructor(args: StudioCtxArgs) {
     super();
 
-    makeObservable<this, "saveErrorState" | "isSaving">(this, {
-      studioIsVisible: observable,
-      latestVariantCreated: observable,
-      isAtTip: observable,
-      _changeCounter: observable,
-      _savedChangeCounter: observable,
-      _isUnlogged: observable,
-      saveErrorState: observable,
-      isSaving: observable,
-      desktopDraft: observable.ref,
-    });
 
     this.loadTimings = args.loadTimings ?? new StudioLoadTimings();
     ({ dbCtx: this._dbCtx } = args);
+    this.renderPolicy = new StudioRenderPolicy({ isLive: () => !!this.isLiveMode, isDragging: () => this.isDraggingObject() });
+    this.projectMetadataStore = createStore<ProjectMetadataSnapshot>(() => Object.freeze({ id: this.siteInfo.id, name: this.siteInfo.name, appAuthProvider: this.siteInfo.appAuthProvider, projectApiToken: this.siteInfo.projectApiToken, isMainBranchProtected: this.siteInfo.isMainBranchProtected, mentionUsers: captureMentionUsers(this.siteInfo.perms) }));
+    this.syncSaveAccess();
+    this.arenaState = new StudioArenaState(this);
+    this.uiEnvironment = new StudioUiEnvironment(this);
+    this.versionHistory = new StudioVersionHistory(this);
 
     const hostPageUrl = (toggleTrailingSlash: boolean) =>
       maybeToggleTrailingSlash(
@@ -846,23 +879,22 @@ export class StudioCtx extends WithDbCtx {
     this.isDocs = !!APP_ROUTES.projectDocs.parse(location.pathname, false);
     const initialLoadTimer = setTimeout(() => {
       if (!this.activeCanvasReady || !this.initialViewportReady) {
-        this.reportCanvasLoadError(new Error("Timed out waiting for the initial artboard to render"));
+        this.reportCanvasLoadError(
+          new Error("Timed out waiting for the initial artboard to render"),
+        );
       }
     }, 180_000);
     this.disposals.push(() => clearTimeout(initialLoadTimer));
-    this.runAfterInitialCanvasReady(async () => { clearTimeout(initialLoadTimer); });
-
+    this.runAfterInitialCanvasReady(async () => {
+      clearTimeout(initialLoadTimer);
+    });
 
     this.runAfterInitialCanvasReady(() =>
-      this.getProjectReleases().then((releases) =>
-        this.releases.replace(releases),
-      ),
+      this.versionHistory.refreshReleases(),
     );
 
     this.runAfterInitialCanvasReady(() =>
-      this.listUnpublishedProjectRevisions().then((revision) =>
-        this.revisions.replace(revision),
-      ),
+      this.versionHistory.refreshRevisions(),
     );
 
     this.runAfterInitialCanvasReady(async () => {
@@ -870,32 +902,6 @@ export class StudioCtx extends WithDbCtx {
     });
 
     this.disposals.push(
-      reaction(
-        () => {
-          const vc = this.focusedViewCtx();
-          return {
-            vc,
-            frame: this.focusedFrame(),
-            tpls: vc?.focusedTpls().slice() ?? [],
-            keys: vc?.focusedSelectables().map((selection) => selection && makeSelectableFullKey(selection)) ?? [],
-            clones: vc?.focusedCloneKeys().slice() ?? [],
-            context: vc?.currentComponentCtx(),
-            part: vc?.focusedComponentPart?.name,
-          };
-        },
-        () => {
-          // changeSelection() already owns the pending paint for pure selection.
-          // This covers focus changed by model edits, undo and component-part edits.
-          if (!this.isSelectionPending) {
-            this.scheduleInspectorSelection();
-          }
-        },
-        {
-          name: "StudioCtx.inspectorSelection",
-          equals: (a, b) => a.vc === b.vc && a.frame === b.frame && a.context === b.context && a.part === b.part &&
-            arrayEq(a.tpls, b.tpls) && arrayEq(a.keys, b.keys) && arrayEq(a.clones, b.clones),
-        },
-      ),
       this.appCtx.history.listen(({ location }) => {
         spawn(this.handleRouteChange(location));
       }),
@@ -983,123 +989,17 @@ export class StudioCtx extends WithDbCtx {
             assertNever(parsed);
         }
       }).dispose,
-      autorun(
-        async () => {
-          const projectName = this.siteInfo.name;
-          const branch = this.dbCtx().branchInfo;
-          const branchName = branch ? branch.name : MainBranchId;
-          const version = this.dbCtx().pkgVersionInfoMeta?.version;
-          const arenaName = this.currentArena
-            ? getArenaName(this.currentArena)
-            : undefined;
-
-          let title = `${projectName} - Plasmic`;
-          if (arenaName) {
-            if (version && !isLatest(version)) {
-              title = `${arenaName} (${branchName}@${version}) - ${projectName} - Plasmic`;
-            } else if (branch) {
-              title = `${arenaName} (${branchName}) - ${projectName} - Plasmic`;
-            } else {
-              title = `${arenaName} - ${projectName} - Plasmic`;
-            }
-          }
-          await this.appCtx.topFrameApi?.setDocumentTitle(title);
-        },
-        {
-          name: "StudioCtx.setDocumentTitle",
-        },
-      ),
-      reaction(
-        () => [this.currentArena, getAllSiteFrames(this.site)],
-        () => defer(() => this.framesChanged.dispatch()),
-      ),
-      autorun(
-        () => {
-          if (!this.isAtTip) {
-            this.blockChanges = true;
-            if (this.alertBannerState.get() !== AlertSpec.Watch) {
-              createDarkMask(this);
-            }
-            spawn(this.multiplayerCtx.updateSessions([]));
-            spawn(this.stopListeningForSocketEvents());
-          }
-        },
-        { name: "StudioCtx.createDarkMask" },
-      ),
-      autorun(
-        () => {
-          if (!this.canEditProject() || !this.canEditBranch()) {
-            this.blockChanges = true;
-          } else {
-            this.blockChanges = false;
-          }
-        },
-        { name: "StudioCtx.updateBlockChanges" },
-      ),
-      autorun(
-        () => {
-          if (!isDedicatedArena(this.currentArena)) {
-            return;
-          }
-
-          const focusPreference = this.focusedMode;
-          this.focusPreference.set(focusPreference);
-          spawn(
-            this.appCtx.api.addStorageItem(
-              this.mkFocusPreferenceKey(),
-              focusPreference ? "true" : "false",
-            ),
-          );
-        },
-        { name: "StudioCtx.updateFocusPreference" },
-      ),
-      reaction(
-        () => [getSiteArenas(this.site)],
-        () => {
-          this.recentArenas = this.recentArenas.filter((arena) =>
-            isValidArena(this.site, arena),
-          );
-        },
-        { name: "StudioCtx.fixRecentArenas" },
-      ),
-      autorun(
-        () => {
-          const currentArena = this.currentArena;
-          if (!currentArena) {
-            return;
-          }
-          const componentsToObserve = isDedicatedArena(currentArena)
-            ? [currentArena.component]
-            : currentArena.children.map((child) => child.container.component);
-          this.dbCtx().maybeObserveComponents(
-            componentsToObserve,
-            ComponentContext.Arena,
-          );
-        },
-        { name: "StudioCtx.observeCurrentArena" },
-      ),
-      autorun(
-        () => {
-          const currentViewCtxComponent =
-            this.focusedViewCtx()?.currentComponent();
-          if (!currentViewCtxComponent) {
-            return;
-          }
-          const componentsToObserve = [currentViewCtxComponent];
-          this.dbCtx().maybeObserveComponents(
-            componentsToObserve,
-            ComponentContext.View,
-          );
-        },
-        { name: "StudioCtx.observeCurrentViewCtx" },
-      ),
+      this.observeArenaCommands(),
+      this.observeSaveInputs(),
+      this.observeFocusedViewComponent(),
       autorun(() => {
         if (!isHostLessPackage(this.site)) {
           this.updatePkgsList(usedHostLessPkgs(this.site));
         }
       }),
-      reaction(
-        () => this.isTransforming(),
+      subscribeViewport(
+        this,
+        (state) => state.isTransforming,
         () => {
           // Things that should be fixed upon canvas transform
           this.fixRuler();
@@ -1107,6 +1007,84 @@ export class StudioCtx extends WithDbCtx {
         },
       ),
     );
+  }
+
+  private observeArenaCommands() {
+    let active = true;
+    let pendingFrames: object | undefined;
+    const updateTitle = () => {
+      if (!active || this.canvasLoadingDisposed) { return; }
+      const projectName = this.projectMetadataStore.getState().name;
+      const branch = this.dbCtx().branchInfo;
+      const branchName = branch ? branch.name : MainBranchId;
+      const version = this.dbCtx().pkgVersionInfoMeta?.version;
+      const arenaName = this.arenaState.store.getState().name;
+      let title = `${projectName} - Plasmic`;
+      if (arenaName) {
+        title = version && !isLatest(version)
+          ? `${arenaName} (${branchName}@${version}) - ${projectName} - Plasmic`
+          : branch ? `${arenaName} (${branchName}) - ${projectName} - Plasmic` : `${arenaName} - ${projectName} - Plasmic`;
+      }
+      const task = this.appCtx.topFrameApi?.setDocumentTitle(title);
+      if (task) { spawn(task); }
+    };
+    const framesChanged = () => {
+      const lifetime = this.arenaState.lifetime();
+      if (pendingFrames === lifetime) { return; }
+      pendingFrames = lifetime;
+      defer(() => {
+        if (pendingFrames !== lifetime) { return; }
+        pendingFrames = undefined;
+        if (active && this.arenaState.isCurrentLifetime(lifetime)) { this.framesChanged.dispatch(); }
+      });
+    };
+    const persistFocus = () => {
+      const state = this.arenaState.store.getState();
+      if ((state.kind === "component" || state.kind === "page") && this.focusPreference !== state.focusedMode) {
+        this.focusPreference = state.focusedMode;
+        spawn(this.appCtx.api.addStorageItem(this.mkFocusPreferenceKey(), state.focusedMode ? "true" : "false"));
+      }
+    };
+    const observeComponents = () => {
+      const components = this.arenaState.observedComponentsStore.getState();
+      if (components.length) { this.dbCtx().maybeObserveComponents(components.map((ref) => this.modelSnapshots.resolve(ref)), ComponentContext.Arena); }
+    };
+    let branch = this.dbCtx().branchInfo;
+    let version = this.dbCtx().pkgVersionInfoMeta?.version;
+    const stops = [
+      this.arenaState.store.subscribe((next, previous) => {
+        if (next.current !== previous.current || next.name !== previous.name) { updateTitle(); }
+        if (next.current !== previous.current) { framesChanged(); }
+        if (next.kind !== previous.kind || next.focusedMode !== previous.focusedMode) { persistFocus(); }
+      }),
+      this.arenaState.frameMembershipStore.subscribe(framesChanged),
+      this.arenaState.observedComponentsStore.subscribe(observeComponents),
+      this.projectMetadataStore.subscribe((next, previous) => { if (next.name !== previous.name) { updateTitle(); } }),
+      this.dbCtx().subscribeVersionInputs(() => {
+        const nextBranch = this.dbCtx().branchInfo;
+        const nextVersion = this.dbCtx().pkgVersionInfoMeta?.version;
+        if (nextBranch !== branch || nextVersion !== version) { branch = nextBranch; version = nextVersion; updateTitle(); }
+      }),
+    ];
+    updateTitle(); persistFocus(); observeComponents();
+    return () => { active = false; pendingFrames = undefined; stops.forEach((stop) => stop()); };
+  }
+
+  private observeFocusedViewComponent() {
+    const observe = () => {
+      const component = this.focusedViewCtx()?.currentComponent();
+      if (component) { this.dbCtx().maybeObserveComponents([component], ComponentContext.View); }
+    };
+    let stopContext: (() => void) | undefined;
+    const follow = () => {
+      stopContext?.();
+      const view = this.focusedViewCtx();
+      stopContext = view?.selectionStore.subscribe((state, previous) => { if (state.context !== previous.context) { observe(); } });
+      observe();
+    };
+    const stopOwner = subscribeStudioSelection(this, (state) => state.view, follow);
+    follow();
+    return () => { stopOwner(); stopContext?.(); };
   }
 
   private setHostLessPkgs() {
@@ -1135,12 +1113,17 @@ export class StudioCtx extends WithDbCtx {
           pkgs.map((pkg) => getHostLessPkgIdentity(pkg, this.site)),
         );
         const pkgsData = await getSortedHostLessPkgs(
-          ensure(this.hostLessPkgsFrame.contentWindow, "Missing hostless window"),
+          ensure(
+            this.hostLessPkgsFrame.contentWindow,
+            "Missing hostless window",
+          ),
           this.appCtx.api,
           pkgs.filter(
             (pkg) =>
               this.site.hostLessPackageInfo?.name === pkg ||
-              !this.installedHostLessPkgs.has(getHostLessPkgIdentity(pkg, this.site)),
+              !this.installedHostLessPkgs.has(
+                getHostLessPkgIdentity(pkg, this.site),
+              ),
           ),
           getVersionForCanvasPackages(this.hostLessPkgsFrame.contentWindow),
           this.site,
@@ -1211,7 +1194,9 @@ export class StudioCtx extends WithDbCtx {
 
     if (this.canvasContentEditor) {
       const selection = vc?.focusedSelectable();
-      return selection && vc?.contentEditor.contains(selection) ? selection : undefined;
+      return selection && vc?.contentEditor.contains(selection)
+        ? selection
+        : undefined;
     }
 
     if (!vc) {
@@ -1241,7 +1226,7 @@ export class StudioCtx extends WithDbCtx {
   }
 
   get canvasContentEditor() {
-    return this.viewCtxs.find((vc) => vc.contentEditor.target)?.contentEditor;
+    return this.activeContentEditorStore.getState();
   }
 
   get hoverBoxControlledObjs() {
@@ -1343,6 +1328,7 @@ export class StudioCtx extends WithDbCtx {
       appAuthProvider,
       isMainBranchProtected,
     } = await this.appCtx.api.getSiteInfo(this.siteInfo.id);
+    this.runNativeSaveCommand(() => this.uiEnvironment.deferPublication(() => {
     this.dbCtx().setSiteInfo({
       ...project,
       perms,
@@ -1352,6 +1338,14 @@ export class StudioCtx extends WithDbCtx {
       appAuthProvider,
       isMainBranchProtected,
     });
+    this.uiEnvironment.sync();
+    const settings = this.projectMetadataStore.getState();
+    const mentionUsers = captureMentionUsers(this.siteInfo.perms, settings.mentionUsers);
+    if (settings.mentionUsers !== mentionUsers || settings.id !== this.siteInfo.id || settings.name !== this.siteInfo.name || settings.appAuthProvider !== this.siteInfo.appAuthProvider || settings.projectApiToken !== this.siteInfo.projectApiToken || settings.isMainBranchProtected !== this.siteInfo.isMainBranchProtected) {
+      this.projectMetadataStore.setState(Object.freeze({ id: this.siteInfo.id, name: this.siteInfo.name, appAuthProvider: this.siteInfo.appAuthProvider, projectApiToken: this.siteInfo.projectApiToken, isMainBranchProtected: this.siteInfo.isMainBranchProtected, mentionUsers }), true);
+    }
+    this.versionHistory.syncContext();
+    }));
     return this.siteInfo;
   }
 
@@ -1430,18 +1424,30 @@ export class StudioCtx extends WithDbCtx {
     return this._isChanging;
   }
 
-  private selectionPending = observable.box(false);
-  private committedInspectorSelection = observable.box<InspectorSelection | undefined>(undefined, { deep: false });
+  readonly inspectorStore = createStore<{ selection: InspectorSelection | undefined; pending: boolean }>(() => Object.freeze({ selection: undefined, pending: false }));
+  private inspectorFocus?: { vc: ViewCtx | undefined; frame: ArenaFrame | undefined; tpls: (TplNode | null)[]; keys: (string | null | undefined)[]; clones: (string | undefined)[]; context: ComponentCtx | null | undefined; part: string | undefined };
+
+  /** Explicit editor setters and completed model transactions publish focus. */
+  notifyInspectorFocusChanged() {
+    if (this.canvasLoadingDisposed) {return;}
+    const vc = this.focusedViewCtx();
+    const next = { vc, frame: this.focusedFrame(), tpls: vc?.focusedTpls().slice() ?? [], keys: vc?.focusedSelectables().map((selection) => selection && makeSelectableFullKey(selection)) ?? [], clones: vc?.focusedCloneKeys().slice() ?? [], context: vc?.currentComponentCtx(), part: vc?.focusedComponentPart?.name };
+    const previous = this.inspectorFocus;
+    if (!previous && !vc && !next.frame) { this.inspectorFocus = next; return; }
+    if (previous && previous.vc === next.vc && previous.frame === next.frame && previous.context === next.context && previous.part === next.part && arrayEq(previous.tpls, next.tpls) && arrayEq(previous.keys, next.keys) && arrayEq(previous.clones, next.clones)) {return;}
+    this.inspectorFocus = next;
+    this.scheduleInspectorSelection();
+  }
   private inspectorGeneration = 0;
   private selectionPaintFrame?: number;
   private selectionPaintTask?: ReturnType<typeof setTimeout>;
 
   get isSelectionPending() {
-    return this.selectionPending.get();
+    return this.inspectorStore.getState().pending;
   }
 
   get inspectorSelection() {
-    return this.committedInspectorSelection.get();
+    return this.inspectorStore.getState().selection;
   }
 
   private scheduleInspectorSelection() {
@@ -1451,7 +1457,7 @@ export class StudioCtx extends WithDbCtx {
     clearTimeout(this.selectionPaintTask);
     runInAction(() => {
       this.inspectorSelection?.pause();
-      this.selectionPending.set(true);
+      this.inspectorStore.setState((state) => Object.freeze({ ...state, pending: true }), true);
     });
     this.selectionPaintFrame = requestAnimationFrame(() => {
       this.selectionPaintFrame = undefined;
@@ -1459,17 +1465,200 @@ export class StudioCtx extends WithDbCtx {
         this.selectionPaintTask = undefined;
         runInAction(() => {
           const vc = this.focusedViewCtx();
-          this.committedInspectorSelection.set(vc && !vc.isDisposed ? new InspectorSelection(vc, ++this.inspectorGeneration) : undefined);
-          this.selectionPending.set(false);
+          const previous = this.inspectorSelection;
+          this.inspectorStore.setState(Object.freeze({ selection: vc && !vc.isDisposed ? new InspectorSelection(vc, ++this.inspectorGeneration) : undefined, pending: false }), true);
+          previous?.dispose();
         });
       }, 0);
     });
   }
 
+  private runNativeSelectionCommand<Result>(command: () => Result): Result {
+    const views = this.viewCtxs.filter((view) => !view.isDisposed);
+    const inspectorFocus = this.inspectorFocus;
+    const wasPending = this.isSelectionPending;
+    const runView = (index: number): Result => index === views.length ? this.runRenderPolicyCommand(command) : views[index].transactionSelectionInputs(() => runView(index + 1));
+    const deferViews = (index: number): Result => index === views.length ? this.selection.transaction(() => runView(0)) : views[index].styleInputs.deferPublication(() => views[index].selection.deferPublication(() => views[index].variants.deferPublication(() => deferViews(index + 1))));
+    try { return this.contentEditors.deferPublication(() => this.singleRsStyleInputs.deferPublication(() => this.overlayState.deferPublication(() => this.renderPolicy.deferPublication(() => this.selection.deferPublication(() => deferViews(0)))))); }
+    catch (error) {
+      if (this.canvasLoadingDisposed) { throw error; }
+      if (this.selectionPaintFrame !== undefined) { cancelAnimationFrame(this.selectionPaintFrame); this.selectionPaintFrame = undefined; }
+      clearTimeout(this.selectionPaintTask);
+      this.selectionPaintTask = undefined;
+      this.inspectorFocus = inspectorFocus;
+      if (wasPending) { this.scheduleInspectorSelection(); }
+      else { this.inspectorSelection?.resume(); this.inspectorStore.setState((state) => Object.freeze({ ...state, pending: false }), true); }
+      throw error;
+    }
+  }
+
+  private prepareNativeArenaInputs(changes?: readonly ModelChange[]) {
+    if (changes) { this.arenaState.prepareModelCommit(changes); } else { this.arenaState.prepareCommit(); }
+    if (changes) { this.frameHeights.prepareCommit(); }
+    this.selection.prepareCommit();
+    this.singleRsStyleInputs.prepareCommit();
+    this.viewCtxs.forEach((view) => {
+      if (!view.isDisposed) {
+        view.selection.prepareCommit();
+        if (changes) { view.variants.prepareModelCommit(changes); } else { view.variants.prepareCommit(); }
+        view.styleInputs.prepareCommit();
+      }
+    });
+    this.uiEnvironment.syncArena();
+    this.viewportCtx?.syncArenaFrames(changes);
+    this.prepareRenderPolicyInputs();
+    if (changes) { this.prepareContentEditorOwnership(); }
+    this.contentEditors.sync();
+  }
+
+  /** Install all policy-dependent outputs before any source can notify. */
+  prepareRenderPolicyInputs(input: RenderPolicyInputs = {}) {
+    if (this.canvasLoadingDisposed) { return; }
+    const policy = this.renderPolicy.prepareInputs(input);
+    const views = this.viewCtxs.filter((view) => !view.isDisposed);
+    const framePublications = views.map((view) => view.canvasCtx.prepareFrameInfo(view));
+    const canvasPublications = views.map((view) => view.canvasRenderOwner.prepareRenderPolicy(policy));
+    if (!this.nativeArenaDepth || input.liveOverride === true) { this.prepareContentEditorOwnership(input); }
+    framePublications.forEach((publish) => this.renderPolicy.queuePublication(publish));
+    canvasPublications.forEach((publish) => this.renderPolicy.queuePublication(publish));
+  }
+
+  private prepareContentEditorOwnership(input: RenderPolicyInputs = {}) {
+    const interactive = this.renderPolicy.store.getState().interactive;
+    const prepare = (view: ViewCtx) => { if (!view.isDisposed) { view.contentEditor.prepareOwnership({ live: input.liveOverride, interactive }); } };
+    this.viewCtxs.forEach(prepare);
+    this.pendingArenaViewDisposals.forEach(prepare);
+  }
+
+  /** Content-session writes share existing viewport, overlay and selection
+   * publication barriers. All current outputs/cache paths install before UI. */
+  withContentEditorPublication<Result>(command: () => Result): Result {
+    const views = this.viewCtxs.filter((view) => !view.isDisposed);
+    const deferView = (index: number): Result => index === views.length ? command() : views[index].selection.deferPublication(() => deferView(index + 1));
+    const run = () => this.overlayState.deferPublication(() => this.selection.deferPublication(() => deferView(0)));
+    return this.contentEditors.deferPublication(() => this.viewportCtx ? this.viewportCtx.deferPublication(run) : run());
+  }
+
+  publishContentEditorInputs(publish: () => void) { this.contentEditors.queue(publish); }
+
+  private runRenderPolicyCommand<Result>(command: () => Result): Result {
+    return this.renderPolicy.deferPublication(() => {
+      const interactive = this.renderPolicy.store.getState().interactive;
+      try { return command(); }
+      finally {
+        this.prepareRenderPolicyInputs();
+        if (!interactive && this.renderPolicy.store.getState().interactive) { this.prepareContentEditorOwnership(); }
+      }
+    });
+  }
+
+  /** The Preview source remains canonical; prepare its effective canvas policy
+   * before the actual native source publishes the synchronous live change. */
+  withPreviewLivePolicy<Result>(live: boolean, command: () => Result): Result {
+    return this.renderPolicy.deferPublication(() => {
+      this.prepareRenderPolicyInputs({ liveOverride: live });
+      try { return command(); }
+      finally { this.prepareRenderPolicyInputs(); }
+    });
+  }
+
+  private nativeArenaDepth = 0;
+  private nativeArenaBodyDepth = 0;
+  private pendingArenaRoute: (() => void) | undefined;
+  private readonly pendingArenaViewDisposals: ViewCtx[] = [];
+  private readonly pendingNativeFrameResolutions: [ViewCtx, (view: ViewCtx) => void][] = [];
+  private readonly nativeFramePromiseJournal: [ArenaFrame, [Promise<ViewCtx>, (view: ViewCtx) => void]][] = [];
+
+  private runNativeArenaCommand<Result>(command: () => Result): Result {
+    const viewport = this.viewportCtx;
+    const views = this.viewCtxs.slice();
+    const pendingDisposals = this.pendingArenaViewDisposals.length;
+    const promiseSavepoint = this.nativeFramePromiseJournal.length;
+    const resolutionSavepoint = this.pendingNativeFrameResolutions.length;
+    const routeSavepoint = this.pendingArenaRoute;
+    const lifetime = this.arenaState.lifetime();
+    this.nativeArenaDepth++;
+    const run = () => {
+      this.nativeArenaBodyDepth++;
+      try {
+        const result = command();
+        this.prepareNativeArenaInputs();
+        if (this.nativeArenaBodyDepth === 1) { this.commitPendingArenaRoute(); }
+        return result;
+      } catch (error) {
+        if (!this.canvasLoadingDisposed && this.arenaState.isCurrentLifetime(lifetime)) {
+          this.pendingArenaRoute = routeSavepoint;
+          const abandonedViews = this.viewCtxs.filter((view) => !views.includes(view));
+          this.pendingNativeFrameResolutions.length = resolutionSavepoint;
+          this.pendingArenaViewDisposals.length = pendingDisposals;
+          this.pendingArenaViewDisposals.push(...abandonedViews);
+          while (this.nativeFramePromiseJournal.length > promiseSavepoint) {
+            const [frame, waiter] = ensure(this.nativeFramePromiseJournal.pop(), "Frame waiter savepoint");
+            this.frameToViewCtxPromise.set(frame, waiter);
+          }
+        }
+        throw error;
+      } finally { this.nativeArenaBodyDepth--; }
+    };
+    const transactions = () => {
+      const result = this.arenaState.transaction(() => this.uiEnvironment.transaction(() => this.commentsCtx.transaction(() => viewport ? viewport.transaction(run) : run())));
+      // A nested/prepared switch can still roll back. Retire its DOM session
+      // only at the successful outer command fence, before any native publication.
+      if (this.nativeArenaDepth === 1) { this.prepareContentEditorOwnership(); }
+      return result;
+    };
+    const comments = () => this.commentsCtx.deferPublication(transactions);
+    let succeeded = false;
+    try {
+      const result = this.arenaState.deferResourceDisposal(() => runInAction(() => this.arenaState.deferPublication(() => this.runNativeSelectionCommand(() => this.uiEnvironment.deferPublication(() => viewport ? viewport.deferPublication(comments) : comments())))));
+      succeeded = true;
+      return result;
+    } finally {
+      this.nativeArenaDepth--;
+      if (!this.nativeArenaDepth) {
+        if (!succeeded) { this.pendingArenaRoute = undefined; }
+        this.nativeFramePromiseJournal.length = 0;
+        const resolutions = this.pendingNativeFrameResolutions.splice(0);
+        if (succeeded) {
+          for (const [view, resolve] of resolutions) {
+            if (this.arenaState.viewRegistry.forFrame(view.arenaFrame())?.view === view) { resolve(view); }
+          }
+        }
+        // A waiter created while a registration was staged must observe only
+        // the final successful or restored registry, never an abandoned view.
+        for (const [frame, [, resolve]] of this.frameToViewCtxPromise) {
+          const entry = this.arenaState.viewRegistry.forFrame(frame);
+          if (entry) { this.frameToViewCtxPromise.delete(frame); resolve(entry.view); }
+        }
+        for (const view of this.pendingArenaViewDisposals.splice(0)) {
+          if (!this.viewCtxs.includes(view) && !view.isDisposed) { view.dispose(); }
+        }
+      }
+    }
+  }
+
+  private commitPendingArenaRoute() {
+    const route = this.pendingArenaRoute;
+    this.pendingArenaRoute = undefined;
+    route?.();
+  }
+
+  private runNativeArenaResult<T, E>(command: () => Result<T, E>): Result<T, E> {
+    const abort = {};
+    let rejected: Result<T, E> | undefined;
+    try { return this.runNativeArenaCommand(() => {
+      const result = command();
+      if (result.isErr()) { rejected = result; throw abort; }
+      return result;
+    }); }
+    catch (error) { if (error !== abort) { throw error; } return ensure(rejected, "Aborted native command result"); }
+  }
+
   /** Selection is editor state. Actual variant/context edits still use change(). */
   changeSelection(f: () => void) {
+    if (this.canvasLoadingDisposed) { return; }
     if (this._isChanging) {
-      f();
+      this.runNativeSelectionCommand(f);
       return;
     }
     if (this.hasPendingModelChanges()) {
@@ -1487,19 +1676,20 @@ export class StudioCtx extends WithDbCtx {
     const previousViewCtx = this.focusedViewCtx();
     const previousFrames = this.focusedFrames();
     let selectionChanged = false;
-    runInAction(() => {
-      try {
+    runInAction(() => this.runNativeSelectionCommand(() => {
         f();
+        if (this.canvasLoadingDisposed) { return; }
         const vc = this.focusedViewCtx();
         selectionChanged =
           vc !== previousViewCtx ||
           !arrayEq(previousFrames, this.focusedFrames()) ||
-          previous.some(({ vc: view, context, info, selectables, tpls, cloneKeys }) =>
-            context !== view.currentComponentCtx() ||
-            viewCtxInfoChanged(view.getSpotlightAndVariantsInfo(), info) ||
-            !arrayEq(selectables, view.focusedSelectables()) ||
-            !arrayEq(tpls, view.focusedTpls()) ||
-            !arrayEq(cloneKeys, view.focusedCloneKeys()),
+          previous.some(
+            ({ vc: view, context, info, selectables, tpls, cloneKeys }) =>
+              context !== view.currentComponentCtx() ||
+              viewCtxInfoChanged(view.getSpotlightAndVariantsInfo(), info) ||
+              !arrayEq(selectables, view.focusedSelectables()) ||
+              !arrayEq(tpls, view.focusedTpls()) ||
+              !arrayEq(cloneKeys, view.focusedCloneKeys()),
           );
         if (!selectionChanged) {
           return;
@@ -1510,7 +1700,7 @@ export class StudioCtx extends WithDbCtx {
         clearTimeout(this.selectionPaintTask);
         // The action publishes the new focus and pending state together.
         this.inspectorSelection?.pause();
-        this.selectionPending.set(true);
+        this.inspectorStore.setState((state) => Object.freeze({ ...state, pending: true }), true);
         const tpl = vc?.focusedTpl();
         if (
           vc &&
@@ -1520,12 +1710,7 @@ export class StudioCtx extends WithDbCtx {
           this.changeSpawn(() => fixupChrome(this));
         }
         this.createViewStateUndoRecord();
-      } catch (error) {
-        this.inspectorSelection?.resume();
-        this.selectionPending.set(false);
-        throw error;
-      }
-    });
+    }));
     if (!selectionChanged) {
       return;
     }
@@ -1682,13 +1867,13 @@ export class StudioCtx extends WithDbCtx {
       ViewCtx,
       SpotlightAndVariantsInfo
     >(this.viewCtxs.map((vc) => tuple(vc, vc.getSpotlightAndVariantsInfo())));
-    const showPlaceholderBeforeChange = this._showSlotPlaceholder.get();
+    const showPlaceholderBeforeChange = this.showSlotPlaceholder();
     const isInteractiveModeBeforeChange = this.isInteractiveMode;
 
     // First, we perform a runInAction for f(), as well as all associated
     // changes that are mutating the top-level observables (specifically,
     // all the TplNodes and view-level observables, but not the ValNodes)
-    const maybeSummary = runInAction(
+    const maybeSummary = this.runNativeArenaResult(() => this.runNativeSaveCommand(() => runInAction(
       (): Result<
         {
           summary: ChangeSummary;
@@ -1716,8 +1901,7 @@ export class StudioCtx extends WithDbCtx {
             }
           }
 
-          const styleChanges = this.syncAfterChanges(summary);
-
+          const styleChanges = this.syncAfterChanges(summary, () => {
           // Record the changes to undo log before we kick off the evaluators.
           // That's because evaluators may invoke some postEval() handlers that
           // will create new undo records (for example, viewCtx.selectNewTpl),
@@ -1739,12 +1923,14 @@ export class StudioCtx extends WithDbCtx {
             this.recordAndMarkDirty(newChanges);
           }
 
+          });
+
           return ok({ summary, styleChanges });
         } finally {
           this._isChanging = false;
         }
       },
-    );
+    )));
 
     if (maybeSummary.isErr()) {
       return err(maybeSummary.error);
@@ -1759,7 +1945,7 @@ export class StudioCtx extends WithDbCtx {
     const focusedVC = this.focusedViewCtx();
 
     const showPlaceholderChanged =
-      showPlaceholderBeforeChange !== this._showSlotPlaceholder.get();
+      showPlaceholderBeforeChange !== this.showSlotPlaceholder();
     const interactiveModeChanged =
       isInteractiveModeBeforeChange !== this.isInteractiveMode;
 
@@ -1797,14 +1983,12 @@ export class StudioCtx extends WithDbCtx {
     return this.dbCtx().maybeObserveComponents(components);
   }
 
-  private _isDocs = observable.box(false);
-
-  set isDocs(v: boolean) {
-    this._isDocs.set(v);
+  set isDocs(value: boolean) {
+    this.runRenderPolicyCommand(() => { this.renderPolicy.docs = value; });
   }
 
   get isDocs() {
-    return this._isDocs.get();
+    return this.renderPolicy.docs;
   }
 
   private addToChangeRecords(changes: RecordedChanges) {
@@ -1817,6 +2001,10 @@ export class StudioCtx extends WithDbCtx {
   }
 
   recordAndMarkDirty(changes: RecordedChanges) {
+    return this.runNativeSaveCommand(() => this.recordAndMarkDirtyInternal(changes));
+  }
+
+  private recordAndMarkDirtyInternal(changes: RecordedChanges) {
     const allChanges = mergeRecordedChanges(
       this._queuedUnloggedChanges,
       changes,
@@ -1832,15 +2020,18 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
-  _isUnlogged = false;
+  get _isUnlogged() { return this.saveState.isUnlogged; }
+  set _isUnlogged(value: boolean) { this.saveState.isUnlogged = value; }
   private _queuedUnloggedChanges: RecordedChanges = emptyRecordedChanges();
   stopUnlogged() {
+    this.runNativeSaveCommand(() => {
     this._isUnlogged = false;
     if (!this._isChanging) {
       // If we're not in a change block, then record the changes that were previoulsy
       // unlogged.  Else we let the outer change block do it.
       this.recordAndMarkDirty(emptyRecordedChanges());
     }
+    });
   }
 
   startUnlogged() {
@@ -1872,7 +2063,7 @@ export class StudioCtx extends WithDbCtx {
   get activeCanvasReady() {
     const frame = this.activeCanvasFrame;
     return (
-      this.initialRouteReady &&
+      this.initialRouteReady && this.arenaState.isArenaResolved() &&
       (!frame || !!this.tryGetViewCtxForFrame(frame)?.initialRenderReady)
     );
   }
@@ -1955,7 +2146,9 @@ export class StudioCtx extends WithDbCtx {
       1,
     );
     asyncQueue.error((error, task) => {
-      if (task.type !== "change" || !task.opts?.noErrorNotification) { handleError(error); }
+      if (task.type !== "change" || !task.opts?.noErrorNotification) {
+        handleError(error);
+      }
       // The task callback already rejects its caller. Throwing here interrupts
       // async's completion bookkeeping, leaving drain() and later tasks stuck.
     });
@@ -1966,25 +2159,14 @@ export class StudioCtx extends WithDbCtx {
   // Managing all ViewCtxs in the current view, one for each artboard
   //
 
-  /** Observable list of ViewCtxs */
-  viewCtxs = observable.array<ViewCtx>();
+  /** Registered command handles, in their original creation priority. */
+  get viewCtxs(): readonly ViewCtx[] { return this.arenaState.viewRegistry.commandViews(); }
   readonly copilotActivity = new CopilotActivity();
   readonly aiSessionId = mkShortId();
 
-  private frame2ViewCtx = computedFn(
-    () =>
-      new Map<ArenaFrame, ViewCtx>(
-        [...this.viewCtxs].map((vc) => [vc.arenaFrame(), vc] as const),
-      ),
-    { name: "frame2ViewCtx" },
-  );
-
-  tryGetViewCtxForFrame = computedFn(
-    (frame: ArenaFrame | undefined) => {
-      return frame && this.frame2ViewCtx().get(frame);
-    },
-    { name: "tryGetViewCtxForFrame" },
-  );
+  tryGetViewCtxForFrame(frame: ArenaFrame | undefined) {
+    return this.arenaState.viewRegistry.forFrame(frame)?.view;
+  }
 
   private frameToViewCtxPromise = new Map<
     ArenaFrame,
@@ -1992,7 +2174,7 @@ export class StudioCtx extends WithDbCtx {
   >();
   async awaitViewCtxForFrame(frame: ArenaFrame) {
     const vc = this.tryGetViewCtxForFrame(frame);
-    if (vc) {
+    if (vc && !this.nativeArenaDepth) {
       return vc;
     }
 
@@ -2009,7 +2191,9 @@ export class StudioCtx extends WithDbCtx {
     return promise;
   }
 
-  pruneInvalidViewCtxs() {
+  pruneInvalidViewCtxs() { return this.runNativeArenaCommand(() => this.pruneInvalidViewCtxsInternal()); }
+
+  private pruneInvalidViewCtxsInternal() {
     const allLiveFrames = new Set(
       getSiteArenas(this.site)
         .filter((arena) => this.getArenaStatus(arena) !== "dead")
@@ -2027,80 +2211,187 @@ export class StudioCtx extends WithDbCtx {
 
     if (liveVcs.length !== this.viewCtxs.length) {
       const disposedVcs = this.viewCtxs.filter((vc) => !liveVcs.includes(vc));
-      disposedVcs.forEach((vc) => vc.dispose());
+      this.commentsCtx.resetViewSessions(disposedVcs);
+      this.pendingArenaViewDisposals.push(...disposedVcs);
       console.log(
         "PRUNING VCs",
         disposedVcs.map((vc) => vc.arenaFrame().uid),
       );
-      this.viewCtxs.replace(liveVcs);
+      for (const view of disposedVcs) { this.arenaState.viewRegistry.remove(view); }
     }
 
     for (const frame of this.frameToViewCtxPromise.keys()) {
       if (!allLiveFrames.has(frame)) {
+        this.nativeFramePromiseJournal.push([frame, ensure(this.frameToViewCtxPromise.get(frame), "Departing frame waiter")]);
         this.frameToViewCtxPromise.delete(frame);
       }
     }
   }
 
   disposeViewCtx(vc: ViewCtx) {
-    this.viewCtxs.replace([...this.viewCtxs].filter((v) => v !== vc));
-    vc.dispose();
+    return this.runNativeArenaCommand(() => {
+    this.commentsCtx.resetViewSessions([vc]);
+    this.arenaState.viewRegistry.remove(vc);
     const focusedVc = this.focusedViewCtx();
     if (focusedVc && !this.viewCtxs.includes(focusedVc)) {
       this.setStudioFocusOnFrame({ frame: undefined });
     }
+    this.pendingArenaViewDisposals.push(vc);
+      });
+  }
+
+  /** Arena, registered views and per-view readiness are explicit native sources.
+   * The remaining reaction reads only literal route/viewport startup flags. */
+  private observeActiveCanvasInputs(listener: () => void) {
+    let stopped = false;
+    let stopReady: () => void = () => undefined;
+    let stopLifetime: () => void = () => undefined;
+    const bindReady = () => {
+      stopReady();
+      const view = this.activeCanvasViewCtx();
+      stopReady = view ? view.initialRenderReadyStore.subscribe(listener) : () => undefined;
+    };
+    const changed = () => {
+      if (stopped) { return; }
+      bindReady(); bindLifetime(); listener();
+    };
+    const bindLifetime = () => {
+      stopLifetime();
+      const signal = this.arenaState.lifetime();
+      signal.addEventListener("abort", changed, { once: true });
+      stopLifetime = () => signal.removeEventListener("abort", changed);
+    };
+    const stops = [
+      this.arenaState.store.subscribe((next, previous) => { if (next.current !== previous.current || next.frames !== previous.frames) { changed(); } }),
+      this.arenaState.readinessStore.subscribe(changed),
+      this.selectionStore.subscribe((next, previous) => { if (next.view !== previous.view || next.frames !== previous.frames) { changed(); } }),
+      this.arenaState.viewRegistry.store.subscribe(changed),
+      reaction(() => [this.initialRouteReady, this.initialViewportReady], listener),
+      this.subscribeModelChanges((event) => { if (event.type === "site-replaced") { changed(); } }),
+    ];
+    bindReady(); bindLifetime();
+    return () => { stopped = true; stopReady(); stopLifetime(); stops.forEach((stop) => stop()); };
+  }
+
+  private async awaitActiveCanvasInputs(predicate: () => boolean, description: string) {
+    const lifetime = this.arenaState.lifetime();
+    let stopped = false;
+    let stop: () => void = () => undefined;
+    const waiting = new Promise<void>((resolve) => {
+      const finish = () => {
+        if (!stopped && (this.canvasLoadingDisposed || !this.arenaState.isCurrentLifetime(lifetime) || predicate())) { stopped = true; stop(); resolve(); }
+      };
+      stop = this.observeActiveCanvasInputs(finish);
+      this.disposals.push(() => { if (!stopped) { stopped = true; stop(); resolve(); } });
+      finish();
+    });
+    try { await withTimeout(waiting, description, 60_000); }
+    finally { stopped = true; stop(); }
   }
 
   runAfterInitialCanvasReady(task: () => Promise<unknown>) {
-    this.disposals.push(
-      when(
-        () =>
-          this.canvasLoadingDisposed ||
-          (this.initialRouteReady &&
-            this.initialViewportReady &&
-            this.activeCanvasReady),
-        () => {
-          if (!this.canvasLoadingDisposed) {
-            spawn(task());
-          }
-        },
-      ),
-    );
+    let complete = false;
+    let stop: () => void = () => undefined;
+    const check = () => {
+      if (complete) { return; }
+      if (this.canvasLoadingDisposed) { complete = true; stop(); return; }
+      if (this.initialRouteReady && this.initialViewportReady && this.activeCanvasReady) {
+        complete = true; stop(); spawn(task());
+      }
+    };
+    stop = this.observeActiveCanvasInputs(check);
+    this.disposals.push(() => { complete = true; stop(); });
+    check();
+  }
+
+  /** Publish the loading/closed owner state while every departing model is still
+   * readable. Resource destruction happens only after this transaction returns. */
+  private exitNativeModelOwner() {
+    const departingViews = this.viewCtxs;
+    this.runNativeArenaCommand(() => {
+      if (this.selectionPaintFrame !== undefined) { cancelAnimationFrame(this.selectionPaintFrame); this.selectionPaintFrame = undefined; }
+      clearTimeout(this.selectionPaintTask); this.selectionPaintTask = undefined;
+      this.commentsCtx.resetViewSessions();
+      this.canvasLoadRequests = [];
+      this.pendingArenaRoute = undefined;
+      this.withContentEditorPublication(() => departingViews.forEach((view) => view.contentEditor.exit(false)));
+      departingViews.forEach((view) => { if (!view.isDisposed) { view.selection.clear(); } });
+      this.pendingArenaViewDisposals.push(...departingViews);
+      for (const [frame, waiter] of this.frameToViewCtxPromise) {
+        this.nativeFramePromiseJournal.push([frame, waiter]);
+      }
+      this.frameToViewCtxPromise.clear();
+      this.arenaState.reset();
+      this.viewportCtx?.resetArena();
+      this.selection.resetModelOwner();
+      this.frameHeights.resetModelOwner();
+      this.prepareNativeArenaInputs();
+      this.inspectorFocus = undefined;
+      this.inspectorSelection?.dispose();
+      this.inspectorStore.setState(Object.freeze({ selection: undefined, pending: false }), true);
+      this.latestVariantCreated = undefined;
+      this.newlyAddedQuery = undefined;
+      this.newlyAddedEventHandlerKey = undefined;
+      this.forceOpenSplit = null;
+      this.forceOpenProp = null;
+    });
+    this.singleRsStyleInputs.dispose();
   }
 
   dispose() {
+    if (this.canvasLoadingDisposed) { return; }
     if (this.selectionPaintFrame !== undefined) {
       cancelAnimationFrame(this.selectionPaintFrame);
     }
     clearTimeout(this.selectionPaintTask);
     this.canvasLoadingDisposed = true;
+    this.bindProjectSearchInput(null);
+    this.exitNativeModelOwner();
+    this.arenaState.dispose();
     // Detach UI observers before destroying evaluators, without committing pending edits.
     runInAction(() => {
-      this._xFocusedViewCtx.set(undefined);
-      this._xFocusedFrames.set([]);
-      this.committedInspectorSelection.set(undefined);
+      this.hoveredViewStore.setState(undefined, true);
+      this.selection.dispose();
+      this.inspectorSelection?.dispose();
+      this.inspectorStore.setState(Object.freeze({ selection: undefined, pending: false }), true);
     });
     this.copilotActivity.dispose();
+    this.saveState.dispose();
+    this.renderPolicy.dispose();
+    this.frameHeights.dispose();
+    this.overlayState.dispose();
     this.disposals.forEach((d) => d());
     this.clearUndoLog();
     this.viewInfoObserverDispose?.();
     this.watchPlayerDispose?.();
+    this.versionHistory.dispose();
     this.dbCtx().dispose();
     this.viewCtxs.forEach((vc) => vc.dispose());
-    this.viewCtxs.clear();
+    this.contentEditors.dispose();
     this.commentsCtx.dispose();
+    this.uiEnvironment.dispose();
+    this.latestVariantCreated = undefined;
+    this.newlyAddedQuery = undefined;
+    this.newlyAddedEventHandlerKey = undefined;
+    this.forceOpenSplit = null;
+    this.forceOpenProp = null;
+    this.modelSnapshots.dispose();
+    this.modelCommitListeners.clear();
+    this.fontManager.dispose();
     window.clearInterval(this.asyncSaverTimer);
     this.desktopDraft?.dispose();
+    this.desktopDraft = undefined;
     spawn(this.stopListeningForSocketEvents());
   }
 
   // Does not require running inside `studioCtx.change`
   createViewCtx(frame: ArenaFrame, canvasCtx: CanvasCtx) {
+    return this.runNativeArenaCommand(() => {
+    const shouldRefocus = frame === this.focusedFrame();
     const existing = this.tryGetViewCtxForFrame(frame);
 
     if (existing) {
-      arrayRemove(this.viewCtxs, existing);
-      existing.dispose();
+      this.disposeViewCtx(existing);
     }
 
     const viewCtx = new ViewCtx({
@@ -2110,20 +2401,19 @@ export class StudioCtx extends WithDbCtx {
       arenaFrame: frame,
     });
 
-    this.viewCtxs.push(viewCtx);
+    this.arenaState.viewRegistry.register(viewCtx);
+    this.contentEditors.sync();
 
     if (this.frameToViewCtxPromise.has(frame)) {
-      const [_promise, resolve] = ensure(
-        this.frameToViewCtxPromise.get(frame),
-        "you should find a viewCtx from the frame",
-      );
-      resolve(viewCtx);
+      const waiter = ensure(this.frameToViewCtxPromise.get(frame), "Pending frame waiter");
+      this.nativeFramePromiseJournal.push([frame, waiter]);
       this.frameToViewCtxPromise.delete(frame);
+      this.pendingNativeFrameResolutions.push([viewCtx, waiter[1]]);
     }
 
     // If we're currently focused on the frame but just now created the viewCtx for
     // that frame, then also focus on this viewCtx
-    if (frame === this.focusedFrame()) {
+    if (shouldRefocus || frame === this.focusedFrame()) {
       this.setStudioFocusOnFrame({ frame: frame, autoZoom: false });
 
       // As part of initialization, make sure we have the appropriate variant
@@ -2155,54 +2445,25 @@ export class StudioCtx extends WithDbCtx {
       this.loadTimings.report("all-frame-contexts-created");
     }
     return viewCtx;
+    });
   }
 
   //
   // Managing arena
   //
 
-  private _currentArena = observable.box<AnyArena | null>(null);
-  private _recentArenas = observable.box<AnyArena[]>([]);
-
-  get currentArena() {
-    return this._currentArena.get();
-  }
-
+  get currentArena() { return this.arenaState.currentArena(); }
   set currentArena(arena: AnyArena | null) {
-    if (arena) {
-      const fixedRecentArenas = this.recentArenas.filter((a) => {
-        return a !== arena && isValidArena(this.site, a);
-      });
-      fixedRecentArenas.push(arena);
-      if (fixedRecentArenas.length > RECENT_ARENAS_LIMIT) {
-        fixedRecentArenas.shift();
-      }
-      this.recentArenas = fixedRecentArenas;
-    }
-    this._currentArena.set(arena);
+    this.arenaState.setCurrent(arena);
+    this.uiEnvironment.syncArena();
+    this.syncHoveredViewCtx();
   }
-
   get previousArena() {
     const recentLength = this.recentArenas.length;
     return recentLength >= 2 ? this.recentArenas[recentLength - 1] : null;
   }
-
-  get recentArenas() {
-    return this._recentArenas.get();
-  }
-
-  set recentArenas(arenas: AnyArena[]) {
-    this._recentArenas.set(arenas);
-  }
-
-  private arenaViewStates = observable.map<AnyArena, ArenaViewInfo>();
-
-  // The arena of the active background read, kept alive so GC doesn't dispose the ViewCtx
-  // being read. One background read occurs at a time (see withBackgroundViewCtxForComponent).
-  private pinnedBackgroundArena = observable.box<AnyArena | undefined>(
-    undefined,
-    { deep: false },
-  );
+  get recentArenas() { return this.arenaState.recentArenas(); }
+  set recentArenas(arenas: readonly AnyArena[]) { this.arenaState.setRecent(arenas); }
 
   // Runs background reads one at a time, so they don't thrash each other's arenas.
   private serializeBackgroundRead = asyncMaxAtATime(
@@ -2348,6 +2609,13 @@ export class StudioCtx extends WithDbCtx {
       threadId?: string;
     },
   ) {
+    return this.runNativeArenaCommand(() => this.switchToArenaInternal(arena, opts));
+  }
+
+  private switchToArenaInternal(
+    arena: Arena | PageArena | ComponentArena | null | undefined,
+    opts?: { noFocusedModeChange?: boolean; replace?: boolean; stopWatching?: boolean; threadId?: string },
+  ) {
     if (isDedicatedArena(arena) && !this.canEditComponent(arena.component)) {
       const error = new Error(
         `Tried to switch to an component arena as a content editor without access to it`,
@@ -2364,12 +2632,15 @@ export class StudioCtx extends WithDbCtx {
       return;
     }
 
-    if (this.currentArena !== (arena ?? null) || this.watchPlayerId !== null) {
+    if (this.currentArena !== (arena ?? null) || this.watchPlayerId !== null || !this.arenaState.isArenaResolved()) {
+      if (this.watchPlayerId !== null && this.isInteractiveMode) {
+        this.isInteractiveMode = false;
+      }
       this.changeArena(arena ?? null, {
         noFocusedModeChange: opts?.noFocusedModeChange,
       });
     }
-    this.switchRoute({
+    const route = () => this.switchRoute({
       branch: this.dbCtx().branchInfo,
       pkgVersionInfoMeta: this.dbCtx().pkgVersionInfoMeta,
       branchRevision: this.dbCtx().revisionInfo?.id,
@@ -2378,6 +2649,7 @@ export class StudioCtx extends WithDbCtx {
       stopWatching: opts?.stopWatching,
       threadId: opts?.threadId,
     });
+    if (this.nativeArenaDepth) { this.pendingArenaRoute = route; } else { route(); }
   }
 
   /**
@@ -2498,6 +2770,7 @@ export class StudioCtx extends WithDbCtx {
   }
 
   private async handleInitialRoute() {
+    let lifetime = this.arenaState.lifetime();
     const routeDone = this.loadTimings.begin("initial-route");
     const viewportDone = this.loadTimings.begin("initial-viewport");
     const desktop = navigator.userAgent.includes("PlasmicDesktop/");
@@ -2511,6 +2784,7 @@ export class StudioCtx extends WithDbCtx {
             const saved = await this.appCtx.topFrameApi.getSavedEditorView(
               this.siteInfo.id,
             );
+            if (this.canvasLoadingDisposed) { return; }
             const parsed =
               prototypeToolMeta.restoreEditorView.inputSchema.safeParse(saved);
             this.initialEditorView = parsed.success ? parsed.data : null;
@@ -2520,14 +2794,20 @@ export class StudioCtx extends WithDbCtx {
         }
       })(),
     ]);
+    if (this.canvasLoadingDisposed) { return; }
     // Initialize the focus preference before handleRouteChange reads it.
     if (!isNil(focusPreference)) {
-      this.focusPreference.set(focusPreference === "true");
+      this.focusPreference = focusPreference === "true";
     }
-    this._fullPageHeight.set(fullPageHeightPreference === "true");
+    this.runRenderPolicyCommand(() => {
+      this.renderPolicy.installStoredFullPageHeight(fullPageHeightPreference === "true");
+      if (this.viewCtxs.length) { this.resyncFullPageHeightViews(); }
+    });
 
     const location = this.appCtx.history.location;
     await this.handleRouteChange(location);
+    if (this.canvasLoadingDisposed) { return; }
+    lifetime = this.arenaState.lifetime();
     this.initialCanvasFrames = getArenaFrames(this.currentArena).slice();
     this.loadTimings.setInitialFrames(
       this.initialCanvasFrames.map((frame) => frame.uuid),
@@ -2556,10 +2836,8 @@ export class StudioCtx extends WithDbCtx {
         ) {
           this.setStudioFocusOnFrame({ frame, autoZoom: false });
           const targetWaitDone = this.loadTimings.begin("initial-target-wait");
-          await when(
-            () => !!this.activeCanvasViewCtx() || !this.activeCanvasFrame,
-            { timeout: 60_000 },
-          );
+          await this.awaitActiveCanvasInputs(() => !!this.activeCanvasViewCtx() || !this.activeCanvasFrame, "Timed out waiting for the active canvas context");
+          if (this.canvasLoadingDisposed || !this.arenaState.isCurrentLifetime(lifetime)) { return; }
           // The saved target may be offscreen until its camera is restored.
           // Resume its queue without holding restoration on later evaluations.
           const targetViewCtx = this.activeCanvasViewCtx();
@@ -2580,13 +2858,17 @@ export class StudioCtx extends WithDbCtx {
             asyncTimeout(100),
           ]);
           layoutDone();
+          if (this.canvasLoadingDisposed || !this.arenaState.isCurrentLifetime(lifetime)) { return; }
           const commitDone = this.loadTimings.begin("initial-viewport-commit");
           this.restoreStudioViewportSnapshot(
             {
               focusedArenaFrame: frame,
               scale: saved.scale,
               scroll: new Pt(saved.scroll.x, saved.scroll.y),
-              canvasPadding: new Pt(saved.canvasPadding.x, saved.canvasPadding.y),
+              canvasPadding: new Pt(
+                saved.canvasPadding.x,
+                saved.canvasPadding.y,
+              ),
             },
             false,
           );
@@ -2598,10 +2880,11 @@ export class StudioCtx extends WithDbCtx {
             asyncTimeout(100),
           ]);
           commitDone();
+          if (this.canvasLoadingDisposed || !this.arenaState.isCurrentLifetime(lifetime)) { return; }
           const renderWaitDone = this.loadTimings.begin(
             "initial-target-render-wait",
           );
-          await when(() => this.activeCanvasReady, { timeout: 60_000 });
+          await this.awaitActiveCanvasInputs(() => this.activeCanvasReady, "Timed out waiting for the active canvas render");
           renderWaitDone();
         } else {
           this.initialEditorView = null;
@@ -2609,17 +2892,19 @@ export class StudioCtx extends WithDbCtx {
         }
       }
     } catch (error) {
+      if (this.canvasLoadingDisposed || !this.arenaState.isCurrentLifetime(lifetime)) { return; }
       this.initialEditorView = null;
       this.tryZoomToFitArena();
       console.warn("Cannot initialize saved editor viewport", error);
     } finally {
-      runInAction(() => this.initialViewportLoaded.set(true));
+      if (!this.canvasLoadingDisposed) { runInAction(() => this.initialViewportLoaded.set(true)); }
       this.initialEditorView = null;
       viewportDone();
     }
 
     // 'prompt' is prefilled from marketing site AI landing page, which opens up
     // Plasmic AI chat and auto-submits the prompt.
+    if (this.canvasLoadingDisposed || !this.arenaState.isCurrentLifetime(lifetime)) { return; }
     const prompt = new URLSearchParams(location.search).get(SEARCH_PROMPT);
     if (prompt) {
       this.openCopilotChat({ prompt, mode: "starter" });
@@ -2627,6 +2912,7 @@ export class StudioCtx extends WithDbCtx {
   }
 
   private async handleRouteChange(location: Location) {
+    if (this.canvasLoadingDisposed) { return; }
     const match = parseProjectLocation(location);
     if (match) {
       const {
@@ -2639,10 +2925,12 @@ export class StudioCtx extends WithDbCtx {
         branchRevision,
       } = match;
       await this.handleBranchChange(branchName, branchVersion, branchRevision);
+      if (this.canvasLoadingDisposed) { return; }
       if (!isPreview) {
         // We don't want to render the arenas in preview mode, for performance
         // and to avoid setting the zoom level when the arena is not rendered.
         const isHandled = await this.handleCommentThreadChange(threadId);
+        if (this.canvasLoadingDisposed) { return; }
         if (!isHandled) {
           await this.handleArenaChange(
             arenaType,
@@ -2734,6 +3022,7 @@ export class StudioCtx extends WithDbCtx {
     opts?: StudioChangeOpts,
   ) {
     return this.change(() => {
+      if (this.canvasLoadingDisposed) { return ok(); }
       const currentArena = this.currentArena;
       if (!arenaType && !arenaName) {
         // A route without arenaType and arenaName is valid for projects without any arenas.
@@ -2778,6 +3067,7 @@ export class StudioCtx extends WithDbCtx {
     }
 
     await this.commentsCtx.waitForInitialCommentsLoad();
+    if (this.canvasLoadingDisposed) { return false; }
 
     const commentThread = this.commentsCtx
       .computedData()
@@ -2819,7 +3109,11 @@ export class StudioCtx extends WithDbCtx {
     return true;
   }
 
-  private changeArena(
+  private changeArena(arena: AnyArena | null, opts?: { noFocusedModeChange?: boolean }) {
+    return this.runNativeArenaCommand(() => this.changeArenaInternal(arena, opts));
+  }
+
+  private changeArenaInternal(
     arena: AnyArena | null,
     opts?: {
       noFocusedModeChange?: boolean;
@@ -2833,15 +3127,11 @@ export class StudioCtx extends WithDbCtx {
       const prevArena = this.currentArena;
 
       if (prevFocusedViewCtx && prevArena) {
-        this.arenaViewStates.set(prevArena, {
-          isAlive: true,
-          lastAccess: new Date().getTime(),
-          lastViewSnapshot: this.getCurrentStudioViewportSnapshot(),
-        });
+        this.arenaState.rememberViewport(prevArena, this.getCurrentStudioViewportSnapshot(), Date.now());
       }
-
-      this.viewportCtx?.setArena(arena);
+      if (prevArena !== arena) { this.commentsCtx.resetViewSessions(); }
       this.currentArena = arena;
+      this.viewportCtx?.setArena(arena);
       if (this.canvasOverviewViewport.get()?.arena !== arena) {
         this.canvasOverviewViewport.set(undefined);
       }
@@ -2849,19 +3139,7 @@ export class StudioCtx extends WithDbCtx {
         return;
       }
 
-      let viewState = this.arenaViewStates.get(arena);
-      if (!viewState) {
-        viewState = {
-          isAlive: true,
-          lastAccess: new Date().getTime(),
-          lastViewSnapshot: undefined,
-        };
-      }
-      this.arenaViewStates.set(arena, {
-        ...viewState,
-        isAlive: true,
-        isBackground: false,
-      });
+      const viewState = this.arenaState.activate(arena, Date.now());
 
       if (!this.watchPlayerId) {
         if (viewState.lastViewSnapshot) {
@@ -2869,7 +3147,8 @@ export class StudioCtx extends WithDbCtx {
 
           // We dispatch a framesChanged event, as new frames are now rendered,
           // so that hoverbox can position itself properly
-          defer(() => this.framesChanged.dispatch());
+          const lifetime = this.arenaState.lifetime();
+          defer(() => { if (this.arenaState.isCurrentLifetime(lifetime) && this.currentArena === arena) { this.framesChanged.dispatch(); } });
         } else {
           if (isDedicatedArena(arena) && !opts?.noFocusedModeChange) {
             // Dedicated/focused based on the following order of precedence
@@ -2881,7 +3160,7 @@ export class StudioCtx extends WithDbCtx {
               ? false
               : isDedicatedArena(prevArena)
                 ? !!prevArena._focusedFrame
-                : (this.focusPreference.get() ?? this.siteInfo.hasAppAuth);
+                : (this.focusPreference ?? this.siteInfo.hasAppAuth);
             if (focusedMode) {
               const newFocusedFrame = setFocusedFrame(this.site, arena);
               ensureActivatedScreenVariantsForFrameByWidth(
@@ -2891,15 +3170,16 @@ export class StudioCtx extends WithDbCtx {
             }
           }
 
-          const firstFrame: IArenaFrame | undefined = getArenaFrames(arena)[0];
+          const firstFrame: ArenaFrame | undefined = getArenaFrames(arena)[0];
           this.setStudioFocusOnFrame({
             frame: firstFrame,
             autoZoom: false,
           });
 
           if (!this.hasInitialEditorView) {
+            const lifetime = this.arenaState.lifetime();
             defer(() => {
-              this.tryZoomToFitArena();
+              if (this.arenaState.isCurrentLifetime(lifetime) && this.currentArena === arena) { this.tryZoomToFitArena(); }
             });
           }
         }
@@ -2922,22 +3202,7 @@ export class StudioCtx extends WithDbCtx {
    * - "cached": alive from a previous visit, rendered display:none
    * - "dead": not rendered at all.
    */
-  getArenaStatus = computedFn(
-    (arena: AnyArena): ArenaStatus => {
-      if (this.currentArena === arena) {
-        // switchToArena always marks the current arena alive and non-background.
-        return "visible";
-      }
-      const info = this.arenaViewStates.get(arena);
-      if (!info?.isAlive) {
-        return "dead";
-      }
-      return info.isBackground || this.pinnedBackgroundArena.get() === arena
-        ? "background"
-        : "cached";
-    },
-    { name: "getArenaStatus" },
-  );
+  getArenaStatus = (arena: AnyArena): ArenaStatus => this.arenaState.getStatus(arena);
 
   addArena(prefix?: string) {
     const arena = this.tplMgr().addArenaWithPrefix(prefix);
@@ -2946,43 +3211,7 @@ export class StudioCtx extends WithDbCtx {
   }
 
   private maybeGarbageCollectArenas() {
-    // We only keep at most MAX_ALIVE_ARENAS "alive" -- that is, keep their ViewCtx
-    // running for fast switching.  Once we exceed this number, we start unloading
-    // arenas that had been least recently accessed.
-    const allArenas = new Set(getSiteArenas(this.site));
-    for (const key of [...this.arenaViewStates.keys()]) {
-      if (!allArenas.has(key)) {
-        this.arenaViewStates.delete(key);
-      }
-    }
-    if (this.arenaViewStates.size > DEVFLAGS.liveArenas) {
-      const entries = Array.from<[AnyArena, ArenaViewInfo]>(
-        this.arenaViewStates.entries(),
-      );
-      // Evict background arenas before user-visited ones, so they can't evict arenas the
-      // user is actively visiting. Background arenas are not evicted outright so repeated
-      // copilot reads reuse the live ViewCtx instead of re-rendering the arena.
-      // The in-flight background read's arena is skipped after slicing victims, so
-      // keeping it doesn't promote a different (user-visited) arena into the victim slot.
-      const arenasToFree = orderBy(
-        entries.filter(([arena, _info]) => arena !== this.currentArena),
-        [
-          ([_arena, info]) => (info.isBackground ? 0 : 1),
-          ([_arena, info]) => info.lastAccess,
-        ],
-        ["asc", "asc"],
-      )
-        .slice(0, this.arenaViewStates.size - DEVFLAGS.liveArenas)
-        .filter(([arena, _info]) => arena !== this.pinnedBackgroundArena.get());
-      for (const [arena, info] of arenasToFree) {
-        console.log("Garbage collecting arena", getArenaName(arena));
-        this.arenaViewStates.set(arena, {
-          ...info,
-          isAlive: false,
-        });
-      }
-      this.pruneInvalidViewCtxs();
-    }
+    if (this.arenaState.collect(DEVFLAGS.liveArenas)) { this.pruneInvalidViewCtxs(); }
   }
 
   get currentArenaEmpty() {
@@ -3069,11 +3298,14 @@ export class StudioCtx extends WithDbCtx {
   // Manage currently-focused frame and element
   //
 
-  private _xFocusedFrames = observable.box<ArenaFrame[]>([], {
-    deep: false,
-    equals: arrayEq,
-  });
-  private _xFocusedViewCtx = observable.box<ViewCtx | undefined>();
+  readonly selection = new StudioSelection(() => this.modelSnapshots);
+  get selectionStore() { return this.selection.store; }
+  readonly hoveredViewStore = createStore<ViewCtx | undefined>(() => undefined);
+  syncHoveredViewCtx() {
+    const frames = getArenaFrames(this.currentArena);
+    const view = this.canvasLoadingDisposed ? undefined : this.viewCtxs.find((candidate) => !candidate.isDisposed && !!candidate.$hoveredDomElt() && frames.includes(candidate.arenaFrame()));
+    if (this.hoveredViewStore.getState() !== view) { this.hoveredViewStore.setState(view, true); }
+  }
 
   // This only sets the high level focus for the studio, i.e. viewCtx and frame.
   private setHighLevelFocusOnly(
@@ -3084,16 +3316,16 @@ export class StudioCtx extends WithDbCtx {
     if (curFocusedViewCtx && (viewCtx !== curFocusedViewCtx || frames.length)) {
       curFocusedViewCtx.clearViewCtxFocus();
     }
-    this._xFocusedViewCtx.set(viewCtx);
-
-    this._xFocusedFrames.set(frames);
+    this.selection.set(viewCtx, frames);
+    this.notifyInspectorFocusChanged();
   }
 
   focusedViewCtx() {
-    return this._xFocusedViewCtx.get();
+    return this.selection.current().view;
   }
 
   focusedOrFirstViewCtx() {
+    if (this.canvasLoadingDisposed) { return undefined; }
     return (
       this.focusedViewCtx() ??
       (isDedicatedArena(this.currentArena)
@@ -3121,7 +3353,10 @@ export class StudioCtx extends WithDbCtx {
           : [...selected, frame],
       );
     } else {
-      this.setHighLevelFocusOnly(this.tryGetViewCtxForFrame(frame), frame ? [frame] : []);
+      this.setHighLevelFocusOnly(
+        this.tryGetViewCtxForFrame(frame),
+        frame ? [frame] : [],
+      );
     }
 
     if (frame && autoZoom) {
@@ -3142,7 +3377,10 @@ export class StudioCtx extends WithDbCtx {
 
   // Set the studio focus to focus only on the frame object, not on the root node.
   setStudioFocusOnlyOnFrame(frame: ArenaFrame | undefined) {
-    this.setHighLevelFocusOnly(this.tryGetViewCtxForFrame(frame), frame ? [frame] : []);
+    this.setHighLevelFocusOnly(
+      this.tryGetViewCtxForFrame(frame),
+      frame ? [frame] : [],
+    );
   }
 
   // In this case, the focus is inside a viewCtx. Set the viewCtx with the
@@ -3304,18 +3542,10 @@ export class StudioCtx extends WithDbCtx {
    * Unlike `changeArena`, this doesn't touch `currentArena`, viewport, focus, undo log, etc.
    */
   ensureArenaAliveInBackground(arena: AnyArena) {
-    if (arena === this.currentArena) {
-      return;
-    }
-    const viewState = this.arenaViewStates.get(arena);
-    this.arenaViewStates.set(arena, {
-      lastViewSnapshot: viewState?.lastViewSnapshot,
-      lastAccess: new Date().getTime(),
-      isAlive: true,
-      // Keep non-background status for visited arenas to avoid demoting them during GC.
-      isBackground: viewState?.isAlive ? viewState.isBackground : true,
+    return this.runNativeArenaCommand(() => {
+      this.arenaState.ensureBackground(arena, Date.now());
+      this.drainCanvasFrameForArena(arena);
     });
-    this.drainCanvasFrameForArena(arena);
   }
 
   /** Resolves the arena and frame that render `component` as a root, or undefined
@@ -3365,8 +3595,10 @@ export class StudioCtx extends WithDbCtx {
    */
   private async loadBackgroundViewCtxForComponent(
     component: Component,
-    opts?: { timeoutMs?: number; frameUuid?: string },
+    opts: { timeoutMs?: number; frameUuid?: string } | undefined,
+    lifetime: AbortSignal,
   ): Promise<{ viewCtx: ViewCtx; arena: AnyArena } | undefined> {
+    if (lifetime.aborted) { return undefined; }
     const existing = opts?.frameUuid
       ? this.viewCtxs.find(
           (vc) =>
@@ -3402,12 +3634,21 @@ export class StudioCtx extends WithDbCtx {
     // awaitViewCtxForFrame has no timeout of its own; time out instead of
     // hanging if e.g. the host never loads.
     const timeoutMs = opts?.timeoutMs ?? 30000;
-    const viewCtx = await withTimeout(
-      this.awaitViewCtxForFrame(frame),
-      `Timed out waiting for component "${component.name}" to render`,
-      timeoutMs,
-    );
-    return { viewCtx, arena };
+    let stopAborted: () => void = () => undefined;
+    const abandoned = new Promise<undefined>((resolve) => {
+      const abort = () => resolve(undefined);
+      lifetime.addEventListener("abort", abort, { once: true });
+      stopAborted = () => lifetime.removeEventListener("abort", abort);
+      if (lifetime.aborted) { abort(); }
+    });
+    try {
+      const viewCtx = await withTimeout(
+        Promise.race([this.awaitViewCtxForFrame(frame), abandoned]),
+        `Timed out waiting for component "${component.name}" to render`,
+        timeoutMs,
+      );
+      return viewCtx && !lifetime.aborted ? { viewCtx, arena } : undefined;
+    } finally { stopAborted(); }
   }
 
   /**
@@ -3420,20 +3661,23 @@ export class StudioCtx extends WithDbCtx {
     cb: (viewCtx: ViewCtx) => Promise<T>,
     opts?: { timeoutMs?: number; frameUuid?: string },
   ): Promise<T | undefined> {
+    const lifetime = this.arenaState.lifetime();
     return this.serializeBackgroundRead(async () => {
+      if (!this.arenaState.isCurrentLifetime(lifetime)) { return undefined; }
       const resolved = await this.loadBackgroundViewCtxForComponent(
         component,
         opts,
+        lifetime,
       );
-      if (!resolved) {
+      if (!resolved || !this.arenaState.isCurrentLifetime(lifetime) || resolved.viewCtx.isDisposed) {
         return undefined;
       }
-      this.pinnedBackgroundArena.set(resolved.arena);
+      const unpin = this.arenaState.pinBackground(resolved.arena);
       try {
         return await cb(resolved.viewCtx);
       } finally {
-        this.pinnedBackgroundArena.set(undefined);
-        this.maybeGarbageCollectArenas();
+        unpin();
+        if (this.arenaState.isCurrentLifetime(lifetime)) { this.maybeGarbageCollectArenas(); }
       }
     }) as Promise<T | undefined>;
   }
@@ -3539,9 +3783,7 @@ export class StudioCtx extends WithDbCtx {
     const arenaFrames = this.currentArena
       ? getArenaFrames(this.currentArena)
       : [];
-    return this._xFocusedFrames
-      .get()
-      .filter((frame) => arenaFrames.includes(frame));
+    return this.selection.frames().filter((frame) => arenaFrames.includes(frame));
   }
 
   /** Returns frame of whatever content StudioCtx is focused on */
@@ -3557,41 +3799,36 @@ export class StudioCtx extends WithDbCtx {
 
   toggleCommentsPanel = action(() => {
     const open = !this.showCommentsPanel;
-    if (open) {
-      this._panelsHidden.set(false);
-    }
-    this._showCommentsPanel.set(open);
+    this.leftPanelState.deferPublication(() => {
+      if (open) {
+        this.leftPanelState.setPanelsHidden(false);
+      }
+      this._showCommentsPanel.set(open);
+    });
   });
 
-  private _leftPanel = observable.box<LeftPanel | undefined>(undefined, {
-    deep: false,
-    equals: (a, b) =>
-      a?.type === "ai" && b?.type === "ai"
-        ? a.opts === b.opts
-        : isEqual(a, b),
-  });
+  readonly leftPanelState = new StudioLeftPanelState();
 
   get leftPanel(): LeftPanel | undefined {
-    return this.onboardingTourState.flags.forceAddDrawerOpen
-      ? { type: "insert", inline: false }
-      : this._leftPanel.get();
+    return this.leftPanelState.leftPanel;
   }
 
   private setLeftPanel(panel: LeftPanel | undefined) {
-    if (panel) {
-      this._leftTabGroup.set(undefined);
-      this._panelsHidden.set(false);
-    }
-    this._leftPanel.set(panel);
+    this.leftPanelState.deferPublication(() => {
+      if (panel) {
+        this.leftPanelState.clearLeftTabGroup();
+        this.leftPanelState.setPanelsHidden(false);
+      }
+      this.leftPanelState.setPanel(panel);
+    });
   }
 
   get isCopilotChatOpen() {
-    return this.leftPanel?.type === "ai";
+    return this.leftPanelState.isCopilotChatOpen;
   }
 
   get copilotChatOpenOpts() {
-    const panel = this.leftPanel;
-    return panel?.type === "ai" ? panel.opts : undefined;
+    return this.leftPanelState.copilotChatOpenOpts;
   }
 
   setCopilotChatOpen(open: boolean) {
@@ -3611,31 +3848,32 @@ export class StudioCtx extends WithDbCtx {
   }
 
   closeEditorPanels() {
-    this.setLeftPanel(undefined);
-    this.setLeftTabGroup(undefined);
+    this.leftPanelState.deferPublication(() => {
+      this.setLeftPanel(undefined);
+      this.leftPanelState.setLeftTabGroup(undefined);
+    });
     this._showCommentsPanel.set(false);
   }
 
-  private _preferredAiOutputFormat = observable.box<AiOutputFormat>("json");
+  private _preferredAiOutputFormat: AiOutputFormat = "json";
 
   /**
    * Serialization format an AI agent prefers for copilot tool output, declared
    * via `window.PLASMIC_AI_TOOLS.identify`. Defaults to JSON.
    */
   preferredAiOutputFormat(): AiOutputFormat {
-    return this._preferredAiOutputFormat.get();
+    return this._preferredAiOutputFormat;
   }
 
   setPreferredAiOutputFormat(format: AiOutputFormat) {
-    this._preferredAiOutputFormat.set(format);
+    this._preferredAiOutputFormat = format;
   }
 
-  private _panelsHidden = observable.box(false);
   get panelsHidden() {
-    return this._panelsHidden.get();
+    return this.leftPanelState.panelsHidden;
   }
   togglePanels = action(() => {
-    this._panelsHidden.set(!this.panelsHidden);
+    this.leftPanelState.togglePanels();
   });
 
   get canOpenPageOverview() {
@@ -3709,18 +3947,15 @@ export class StudioCtx extends WithDbCtx {
     this.canvasOverviewViewport.set(undefined);
   });
 
-  private _xLeftPaneWidth = observable.box(LEFT_PANE_INIT_WIDTH);
   get leftPaneWidth() {
-    return this._xLeftPaneWidth.get();
+    return this.leftPanelState.leftPaneWidth;
   }
   set leftPaneWidth(width: number) {
-    this._xLeftPaneWidth.set(width);
+    this.leftPanelState.setLeftPaneWidth(width);
   }
 
-  private lastLeftTabKey: LeftTabKey = "outline";
   get leftTabKey() {
-    const panel = this.leftPanel;
-    return panel?.type === "tab" ? panel.tab : undefined;
+    return this.leftPanelState.leftTabKey;
   }
   private _xRightTabKey = observable.box<RightTabKey | undefined>(undefined);
   private lastElementRightTabKey:
@@ -3730,31 +3965,32 @@ export class StudioCtx extends WithDbCtx {
     return this._xRightTabKey.get();
   }
 
-  private _leftTabGroup = observable.box<string | undefined>(undefined);
   get leftTabGroup() {
-    return this._leftTabGroup.get();
+    return this.leftPanelState.leftTabGroup;
   }
   setLeftTabGroup(group: string | undefined) {
-    this._leftTabGroup.set(group);
+    this.leftPanelState.setLeftTabGroup(group);
   }
 
   switchLeftTab(
     tabKey: LeftTabKey | undefined,
     opts?: { highlight?: boolean },
   ) {
-    if (tabKey) {
-      this.lastLeftTabKey = tabKey;
-      this.setLeftPanel({ type: "tab", tab: tabKey });
-    } else if (this.leftPanel?.type === "tab") {
-      this.setLeftPanel(undefined);
-    }
+    this.leftPanelState.deferPublication(() => {
+      if (tabKey) {
+        this.leftPanelState.setLastLeftTab(tabKey);
+        this.setLeftPanel({ type: "tab", tab: tabKey });
+      } else if (this.leftPanel?.type === "tab") {
+        this.setLeftPanel(undefined);
+      }
+    });
     if (opts?.highlight) {
       this.highlightLeftPanel();
     }
   }
 
   restoreLastLeftTab() {
-    this.switchLeftTab(this.lastLeftTabKey);
+    this.switchLeftTab(this.leftPanelState.lastLeftTabKey);
   }
 
   switchRightTab(tabKey: RightTabKey) {
@@ -3782,33 +4018,42 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
-  private _isShortcutsModalOpen = observable.box(false);
+  readonly shortcutsModalStore = createStore<boolean>(() => false);
   isShortcutsModalOpen = () => {
-    return this._isShortcutsModalOpen.get();
+    return this.shortcutsModalStore.getState();
   };
   openShortcutsModal = () => {
-    this._isShortcutsModalOpen.set(true);
+    this.shortcutsModalStore.setState(true, true);
   };
   closeShortcutsModal = () => {
-    this._isShortcutsModalOpen.set(false);
+    this.shortcutsModalStore.setState(false, true);
   };
   toggleShortcutsModal = () => {
-    this._isShortcutsModalOpen.set(!this._isShortcutsModalOpen.get());
+    this.shortcutsModalStore.setState(!this.shortcutsModalStore.getState(), true);
   };
 
-  private _projectSearchInputRef = observable.box(
-    React.createRef<HTMLInputElement>(),
-  );
+  readonly projectSearchInputRef = React.createRef<HTMLInputElement>();
+  private projectSearchFocusPending = false;
 
-  get projectSearchInputRef() {
-    return this._projectSearchInputRef.get();
-  }
+  readonly bindProjectSearchInput = (input: HTMLInputElement | null) => {
+    if (this.canvasLoadingDisposed) {
+      this.projectSearchFocusPending = false;
+      this.projectSearchInputRef.current = null;
+      return;
+    }
+    this.projectSearchInputRef.current = input;
+    if (!input) { this.projectSearchFocusPending = false; }
+    else if (this.projectSearchFocusPending) {
+      this.projectSearchFocusPending = false;
+      input.focus();
+    }
+  };
 
   focusOnProjectSearchInput() {
-    when(
-      () => !!this.projectSearchInputRef.current,
-      () => this.projectSearchInputRef.current?.focus(),
-    );
+    if (this.canvasLoadingDisposed) { return; }
+    const input = this.projectSearchInputRef.current;
+    if (input) { this.projectSearchFocusPending = false; input.focus(); }
+    else { this.projectSearchFocusPending = true; }
   }
 
   //
@@ -3821,18 +4066,20 @@ export class StudioCtx extends WithDbCtx {
     return this.previewCtx?.isLive;
   }
   get isDevMode() {
-    return !this.isLiveMode && !this.isDocs;
+    return this.renderPolicy.devMode;
   }
 
-  private _isInteractiveMode = observable.box(false);
   get isInteractiveMode() {
-    return this._isInteractiveMode.get();
+    return this.renderPolicy.interactive;
   }
   set isInteractiveMode(interactive: boolean) {
-    this._isInteractiveMode.set(interactive);
-    for (const viewCtx of this.viewCtxs) {
-      viewCtx.canvasCtx.setInteractiveMode(interactive);
-    }
+    this.runRenderPolicyCommand(() => {
+      this.renderPolicy.interactive = interactive;
+      this.prepareRenderPolicyInputs();
+      for (const viewCtx of this.viewCtxs) {
+        viewCtx.canvasCtx.setInteractiveMode(interactive);
+      }
+    });
   }
 
   toggleInteractiveMode() {
@@ -3841,23 +4088,23 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
-  private _isAutoOpenMode = observable.box(true);
   get isAutoOpenMode() {
-    return !this.isDraggingObject() && this._isAutoOpenMode.get();
+    return this.renderPolicy.autoOpen;
   }
   set isAutoOpenMode(autoOpen: boolean) {
-    this._isAutoOpenMode.set(autoOpen);
+    this.runRenderPolicyCommand(() => { this.renderPolicy.autoOpen = autoOpen; });
   }
   toggleAutoOpenMode() {
-    this.isAutoOpenMode = !this.isAutoOpenMode;
-    this.viewCtxs.forEach((vc) => vc.resetAutoOpenState());
+    this.runNativeSelectionCommand(() => {
+      this.renderPolicy.autoOpen = !this.isAutoOpenMode;
+      this.viewCtxs.forEach((vc) => vc.resetAutoOpenState());
+    });
   }
 
   shouldHideUIOverlay(includeResizing = true): boolean {
     return Boolean(
       this.freestyleState() ||
       this.dragInsertState() ||
-      this.isResizingFocusedArenaFrame ||
       !this.showDevControls ||
       this.screenshotting ||
       this.isTransforming() ||
@@ -3865,12 +4112,11 @@ export class StudioCtx extends WithDbCtx {
     );
   }
 
-  private _showCommentsOverlay = observable.box(true);
   get showCommentsOverlay() {
-    return this._showCommentsOverlay.get();
+    return this.overlayState.commentsOverlay;
   }
   set showCommentsOverlay(show: boolean) {
-    this._showCommentsOverlay.set(show);
+    this.overlayState.commentsOverlay = show;
   }
   toggleShowCommentsOverlay() {
     this.showCommentsOverlay = !this.showCommentsOverlay;
@@ -3879,14 +4125,12 @@ export class StudioCtx extends WithDbCtx {
   //
   // Manage parent stack display
   //
-  private _showStackOfParents = observable.box(false);
-
   set showStackOfParents(value: boolean) {
-    this._showStackOfParents.set(value);
+    this.overlayState.stackOfParents = value;
   }
 
   get showStackOfParents() {
-    return this._showStackOfParents.get();
+    return this.overlayState.stackOfParents;
   }
 
   shouldShowArenaFrame = (arenaChild: ArenaChild) => {
@@ -3950,12 +4194,16 @@ export class StudioCtx extends WithDbCtx {
     return this.interactionEventArgsCache.has(eventHandlerUid);
   };
 
-  private _canvasTool = observable.box<"select" | "pan">("select");
+  private readonly _canvasTool = createStore<"select" | "pan">(() => "select");
+  readonly canvasToolStore: Pick<
+    StoreApi<"select" | "pan">,
+    "getState" | "getInitialState" | "subscribe"
+  > = this._canvasTool;
   get canvasTool() {
-    return this._canvasTool.get();
+    return this._canvasTool.getState();
   }
   setCanvasTool = (tool: "select" | "pan") => {
-    this._canvasTool.set(tool);
+    this._canvasTool.setState(tool, true);
     this.setFreestyleState(undefined);
     if (this.isPanning()) {
       this.endPanning();
@@ -4159,24 +4407,26 @@ export class StudioCtx extends WithDbCtx {
   //
   // Managing the "Add Drawer"
   //
-  private _libraryTab = observable.box<"store" | "imports">("imports");
+  readonly libraryTabStore = createStore<"store" | "imports">(() => "imports");
   get libraryTab() {
-    return this._libraryTab.get();
+    return this.libraryTabStore.getState();
   }
   setLibraryTab(tab: "store" | "imports") {
-    this._libraryTab.set(tab);
+    this.libraryTabStore.setState(tab, true);
   }
   openLibraries(tab: "store" | "imports") {
     this.setLibraryTab(tab);
-    this.setShowAddDrawer(false);
-    this.switchLeftTab("libraries");
-    if (this.panelsHidden) {
-      this.togglePanels();
-    }
+    this.leftPanelState.deferPublication(() => {
+      this.setShowAddDrawer(false);
+      this.switchLeftTab("libraries");
+      if (this.panelsHidden) {
+        this.togglePanels();
+      }
+    });
   }
 
   showAddDrawer() {
-    return this.leftPanel?.type === "insert";
+    return this.leftPanelState.showAddDrawer();
   }
   setShowAddDrawer(show: boolean) {
     if (show) {
@@ -4187,8 +4437,7 @@ export class StudioCtx extends WithDbCtx {
   }
 
   showInlineAddDrawer = () => {
-    const panel = this.leftPanel;
-    return panel?.type === "insert" && panel.inline;
+    return this.leftPanelState.showInlineAddDrawer();
   };
   setShowInlineAddDrawer = (show: boolean) => {
     if (show) {
@@ -4270,24 +4519,14 @@ export class StudioCtx extends WithDbCtx {
    * content instead of their authored viewport height. Stored per user and
    * project; it never changes the site model, previews or exports.
    */
-  private readonly _fullPageHeight = observable.box(false);
-  /**
-   * Session-only override set by AI tools (setCanvasPageHeight). It is never
-   * persisted, so the user's own preference returns on the next load.
-   */
-  private readonly _fullPageHeightOverride = observable.box<
-    boolean | undefined
-  >(undefined);
-
   get fullPageHeight() {
-    return this._fullPageHeightOverride.get() ?? this._fullPageHeight.get();
+    return this.renderPolicy.fullPageHeight;
   }
 
   /** User toggle: becomes the persisted preference and clears AI overrides. */
   toggleFullPageHeight = action(() => {
-    const next = !this.fullPageHeight;
-    this._fullPageHeightOverride.set(undefined);
-    this._fullPageHeight.set(next);
+    this.runRenderPolicyCommand(() => {
+    const next = this.renderPolicy.toggleFullPageHeight();
     spawn(
       this.appCtx.api.addStorageItem(
         this.mkFullPageHeightKey(),
@@ -4295,6 +4534,7 @@ export class StudioCtx extends WithDbCtx {
       ),
     );
     this.resyncFullPageHeightViews();
+    });
   });
 
   /**
@@ -4302,18 +4542,19 @@ export class StudioCtx extends WithDbCtx {
    * stored preference. Restoring the user's value clears the override.
    */
   setFullPageHeightOverride = action((full: boolean) => {
-    this._fullPageHeightOverride.set(
-      full === this._fullPageHeight.get() ? undefined : full,
-    );
-    this.resyncFullPageHeightViews();
+    this.runRenderPolicyCommand(() => {
+      this.renderPolicy.setFullPageHeightOverride(full);
+      this.resyncFullPageHeightViews();
+    });
   });
 
   // Code components read the view through their canvas props, which are
   // produced by a render evaluation rather than observed directly.
   private resyncFullPageHeightViews() {
-    this.viewCtxs.forEach((vc) =>
-      vc.scheduleSync({ eval: true, styles: false, asap: true }),
-    );
+    this.prepareRenderPolicyInputs();
+    this.viewCtxs.forEach((vc) => {
+      vc.scheduleSync({ eval: true, styles: false, asap: true });
+    });
   }
 
   /**
@@ -4321,9 +4562,7 @@ export class StudioCtx extends WithDbCtx {
    *
    * Note `undefined` is a valid value and means there is no focus preference.
    */
-  private readonly focusPreference = observable.box<boolean | undefined>(
-    undefined,
-  );
+  private focusPreference: boolean | undefined;
 
   getDataSource = memoize((sourceId: string) =>
     this.appCtx.api.getDataSourceById(sourceId).catch((dataSourceErr) => {
@@ -4348,8 +4587,7 @@ export class StudioCtx extends WithDbCtx {
   shouldHidePreselectBox() {
     return (
       this.isDraggingObject() ||
-      this.screenshotting ||
-      this.isResizingFocusedArenaFrame
+      this.screenshotting
     );
   }
 
@@ -4404,6 +4642,8 @@ export class StudioCtx extends WithDbCtx {
       // Turn it off
       this._contentEditorMode.set(false);
     }
+    this.uiEnvironment.sync();
+    this.versionHistory.syncContext();
   }
 
   //
@@ -4654,7 +4894,7 @@ export class StudioCtx extends WithDbCtx {
     )?.meta;
   }
 
-  getTokenRegistration(token: classes.StyleToken) {
+  getTokenRegistration(token: Pick<classes.StyleToken, "regKey">) {
     if (token.regKey) {
       const key = token.regKey;
       return (
@@ -5154,14 +5394,12 @@ export class StudioCtx extends WithDbCtx {
     top: number;
   } | null>(null);
 
-  private _watchPlayerId = observable.box<number | null>(null);
-
   get watchPlayerId() {
-    return this._watchPlayerId.get();
+    return this.multiplayerCtx.followStore.getState();
   }
 
   setWatchPlayerId(v: number | null) {
-    this._watchPlayerId.set(v);
+    this.multiplayerCtx.setFollowedPlayer(v);
   }
 
   updateCursorLocation(pos: { left: number; top: number } | null) {
@@ -5212,8 +5450,9 @@ export class StudioCtx extends WithDbCtx {
 
         if (this.isAtTip) {
           if (this.canSendMultiplayerInfo()) {
-            this.viewInfoObserverDispose = autorun(
-              () => {
+            const syncView = () => {
+                const arenaState = this.arenaState.store.getState();
+                const arena = arenaState.current && this.modelSnapshots.resolve(arenaState.current);
                 const focusedVc = this.focusedViewCtx();
                 const frameUuid = focusedVc?.arenaFrame().uuid;
                 const selectable = this.hoverBoxControlledObj;
@@ -5228,11 +5467,11 @@ export class StudioCtx extends WithDbCtx {
                 const data: UpdatePlayerViewRequest = {
                   projectId: this.siteInfo.id,
                   branchId: branchInfo ? branchInfo.id : null,
-                  arena: this.currentArena
+                  arena: arena
                     ? {
-                        type: getArenaType(this.currentArena),
-                        uuidOrName: getArenaUuidOrName(this.currentArena),
-                        focused: this.focusedMode,
+                        type: getArenaType(arena),
+                        uuidOrName: arenaState.kind === "mixed" ? arenaState.name : getArenaUuidOrName(arena),
+                        focused: arenaState.focusedMode,
                       }
                     : null,
                   cursor:
@@ -5252,32 +5491,71 @@ export class StudioCtx extends WithDbCtx {
                   position: position,
                 };
                 spawn(api.emit("view", data));
-              },
+              };
+            const stopModelView = autorun(
+              syncView,
               { name: "StudioCtx.syncView", delay: 200 },
             );
+            const syncViewportView = throttle(syncView, 200, { leading: false, trailing: true });
+            const stopViewportView = subscribeViewport(this, (state) => state.visibleScalerBox, syncViewportView);
+            const stopArenaView = this.arenaState.store.subscribe((next, previous) => {
+              if (next.current !== previous.current || next.kind !== previous.kind || next.name !== previous.name || next.focusedMode !== previous.focusedMode) { syncViewportView(); }
+            });
+            const stopLiveView = subscribeStudioLiveMode(this, syncViewportView);
+            const stopFocusView = subscribeStudioSelection(this, (state) => state.view, syncViewportView);
+            const stopFrameView = subscribeStudioSelection(this, (state) => state.frames, syncViewportView);
+            const stopTargetView = subscribeFocusedViewSelection(this, (state) => state.targets, syncViewportView);
+            this.viewInfoObserverDispose = () => {
+              stopLiveView(); stopFocusView(); stopFrameView(); stopTargetView(); stopArenaView();
+              stopModelView();
+              stopViewportView();
+              syncViewportView.cancel();
+            };
           }
-          this.watchPlayerDispose = autorun(
-            () => {
-              if (this.watchPlayerId) {
-                const playerData = this.multiplayerCtx.getPlayerDataById(
-                  this.watchPlayerId,
-                );
-                if (!playerData) {
-                  this.setWatchPlayerId(null);
-                  return;
-                }
-
-                // TODO: https://app.shortcut.com/plasmic/story/37322
-                if (playerData.viewInfo?.arenaInfo?.focused) {
-                  this.setWatchPlayerId(null);
-                  return;
-                }
-
-                spawn(this.goToPlayer(this.watchPlayerId, true));
+          let unsubscribePosition: (() => void) | undefined;
+          const selectPlayer = (playerId: number | null) => {
+            unsubscribePosition?.();
+            unsubscribePosition = undefined;
+            if (playerId === null) {
+              return;
+            }
+            let pending: ReturnType<typeof setTimeout> | undefined;
+            const updatePosition = () => {
+              if (pending) {
+                return;
               }
-            },
-            { name: "StudioCtx.watchPlayer", delay: 200 },
-          );
+              // Preserve the prior delayed reaction's bounded cadence, even
+              // while the followed player keeps moving continuously.
+              pending = setTimeout(() => {
+                pending = undefined;
+                if (this.watchPlayerId !== playerId) {
+                  return;
+                }
+                const playerData =
+                  this.multiplayerCtx.getPlayerDataById(playerId);
+                if (!playerData || playerData.viewInfo?.arenaInfo?.focused) {
+                  this.setWatchPlayerId(null);
+                  return;
+                }
+                spawn(this.goToPlayer(playerId, true));
+              }, 200);
+            };
+            const unsubscribe = this.multiplayerCtx.subscribePlayerPosition(
+              playerId,
+              updatePosition,
+            );
+            unsubscribePosition = () => {
+              unsubscribe();
+              clearTimeout(pending);
+            };
+          };
+          const stopWatching =
+            this.multiplayerCtx.followStore.subscribe(selectPlayer);
+          selectPlayer(this.watchPlayerId);
+          this.watchPlayerDispose = () => {
+            stopWatching();
+            unsubscribePosition?.();
+          };
         }
       },
       initServerInfo: (data) => {
@@ -5305,7 +5583,7 @@ export class StudioCtx extends WithDbCtx {
 
         // Append revision to the list if it's from the current branch
         if (revisionBranchId === currentBranchId) {
-          this.revisions.unshift(data.rev);
+          this.versionHistory.prependRevision(data.rev);
         }
 
         if (!this.editMode) {
@@ -5355,14 +5633,16 @@ export class StudioCtx extends WithDbCtx {
       },
       publish: async (data: PkgVersionInfoMeta) => {
         if (this.releases.length === 0 || this.releases[0].id !== data.id) {
-          this.releases.unshift(data);
+          this.versionHistory.prependRelease(data);
         }
         await this.refreshRevisions();
       },
       hostlessDataVersionUpdate: (data: any) => {
         if (data.hostlessDataVersion !== this.dbCtx().hostlessDataVersion) {
-          this.alertBannerState.set(AlertSpec.OutOfDate);
-          this.isAtTip = false;
+          this.saveState.deferPublication(() => {
+            this.alertBannerState.set(AlertSpec.OutOfDate);
+            this.isAtTip = false;
+          });
         }
       },
     };
@@ -5493,14 +5773,14 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
-  private _focusedBottomModalIndex = observable.box<number | undefined>();
+  private _focusedBottomModalIndex: number | undefined;
 
   get focusedBottomModalIndex() {
-    return this._focusedBottomModalIndex.get();
+    return this._focusedBottomModalIndex;
   }
 
   setFocusedBottomModalIndex(v: number | undefined) {
-    this._focusedBottomModalIndex.set(v);
+    this._focusedBottomModalIndex = v;
   }
 
   isBottomModalFocused() {
@@ -5510,7 +5790,9 @@ export class StudioCtx extends WithDbCtx {
   //
   // Manage undo / redo
   //
-  undoLog: UndoLog;
+  readonly undoLogOwnerStore = createStore<UndoLog | undefined>(() => undefined);
+  get undoLog() { return ensure(this.undoLogOwnerStore.getState(), "Undo log must be initialized"); }
+  set undoLog(undoLog: UndoLog) { this.undoLogOwnerStore.setState(undoLog, true); }
 
   createViewStateUndoRecord() {
     this.undoLog.record(this.createUndoRecord());
@@ -5596,7 +5878,11 @@ export class StudioCtx extends WithDbCtx {
     };
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const sc = this;
-    const update = flow(function* () {
+    const update = flow(function* (): Generator<Promise<ViewCtx>, {
+      record?: UndoRecord;
+      summary?: ChangeSummary;
+      styleChanges?: UpsertStyleChanges;
+    }, unknown> {
       if (type === "undo" && !sc.undoLog.canUndo()) {
         notification.error({
           message: translate(getUiLocale(), "Cannot undo anymore."),
@@ -5647,6 +5933,7 @@ export class StudioCtx extends WithDbCtx {
         vc.restoreViewState(record.view);
       }
 
+      return sc.runNativeArenaCommand(() => sc.runNativeSaveCommand(() => {
       record.changes = mergeRecordedChanges(
         record.changes,
         sc.recorder.withRecording(() => {
@@ -5669,6 +5956,7 @@ export class StudioCtx extends WithDbCtx {
 
       console.log(`Done restoring ${type} record`, record);
       return { record, summary, styleChanges };
+      }));
     });
     try {
       sc._isUndoing = true;
@@ -5892,33 +6180,41 @@ export class StudioCtx extends WithDbCtx {
   // element). This is needed to hide the HoverBox, which doesn't know about
   // the state of ViewEditor when dragging an element otherwise.
   //
-  private _isDraggingObject = observable.box<boolean>(false);
+  private readonly _isDraggingObject = createStore<boolean>(() => false);
+  readonly draggingObjectStore: ModelFieldStore<boolean> = this._isDraggingObject;
   setIsDraggingObject(v: boolean) {
     this.app.setIsDragging(v);
-    this._isDraggingObject.set(v);
+    if (v === this._isDraggingObject.getState()) { return; }
+    this.runRenderPolicyCommand(() => {
+      this.prepareRenderPolicyInputs({ draggingOverride: v });
+      const publications = this.viewCtxs.map((view) =>
+        view.canvasRenderOwner.prepareDraggingObject(v),
+      );
+      publications.forEach((publish) => this.renderPolicy.queuePublication(publish));
+      this._isDraggingObject.setState(v, true);
+    });
   }
   isDraggingObject() {
-    return this._isDraggingObject.get();
+    return this._isDraggingObject.getState();
   }
-  private _isDraggingResize = observable.box<boolean>(false);
   get isResizeDragging() {
-    return this._isDraggingResize.get();
+    return this.overlayState.resizeDragging;
   }
   set isResizeDragging(v: boolean) {
     this.app.setIsDragging(v);
-    this._isDraggingResize.set(v);
+    this.overlayState.resizeDragging = v;
   }
 
   //
   // Indicate whether we are transforming an element, with css transforms.
   // This is needed to hide the HoverBox during the change
   //
-  private _isTransformingObject = observable.box<boolean>(false);
+  readonly transformingObjectStore = createStore<boolean>(() => false);
   setIsTransformingObject(v: boolean) {
-    this._isTransformingObject.set(v);
+    this.transformingObjectStore.setState(v, true);
   }
   isTransformingObject() {
-    return this._isTransformingObject.get();
+    return this.transformingObjectStore.getState();
   }
 
   public splitsStatusChanges = new Map<string, string>();
@@ -5941,13 +6237,12 @@ export class StudioCtx extends WithDbCtx {
     this.leftPanelHighlightingRequested.dispatch();
   };
 
-  private _navigationPanel = observable.box<"pages" | "outline">("outline");
+  readonly navigationPanelStore = createStore<"pages" | "outline">(() => "outline");
   get navigationPanel() {
-    return this._navigationPanel.get();
+    return this.navigationPanelStore.getState();
   }
-  setNavigationPanel = action((panel: "pages" | "outline") =>
-    this._navigationPanel.set(panel),
-  );
+  setNavigationPanel = (panel: "pages" | "outline") =>
+    this.navigationPanelStore.setState(panel, true);
 
   showProjectPanel = () => {
     this.showNavigationPanelRequested.dispatch("pages");
@@ -6354,29 +6649,53 @@ export class StudioCtx extends WithDbCtx {
 
   // When adding a data query from a shortcut (such as from the DataPicker)
   // we set it here so the component query section can auto-open it.
-  private _newlyAddedQuery = observable.box<
-    classes.ComponentDataQuery | undefined
-  >();
+  readonly newlyAddedQueryStore = createStore<ModelRef<classes.ComponentDataQuery> | undefined>(
+    () => undefined,
+  );
 
   get newlyAddedQuery() {
-    return this._newlyAddedQuery.get();
+    const ref = this.newlyAddedQueryStore.getState();
+    return ref ? this.modelSnapshots.resolve(ref) : undefined;
   }
 
-  set newlyAddedQuery(v: classes.ComponentDataQuery | undefined) {
-    this._newlyAddedQuery.set(v);
+  set newlyAddedQuery(query: classes.ComponentDataQuery | undefined) {
+    this.newlyAddedQueryStore.setState(
+      query ? this.modelSnapshots.ref(query) : undefined,
+      true,
+    );
   }
 
   // When adding an event handler we set it here so the interaction section modal can auto-open it.
-  private _newlyAddedEventHandlerKey = observable.box<
-    EventHandlerKeyType | undefined
-  >();
+  readonly newlyAddedEventHandlerKeyStore = createStore<
+    Readonly<{ attr: string }> |
+    Readonly<{ param: ModelRef<classes.Param> }> |
+    Readonly<{ funcType: ModelRef<classes.FunctionType> }> |
+    undefined
+  >(() => undefined);
 
-  get newlyAddedEventHandlerKey() {
-    return this._newlyAddedEventHandlerKey.get();
+  get newlyAddedEventHandlerKey(): EventHandlerKeyType | undefined {
+    const request = this.newlyAddedEventHandlerKeyStore.getState();
+    if (!request || "attr" in request) { return request; }
+    if ("param" in request) { return { param: this.modelSnapshots.resolve(request.param) }; }
+    return { funcType: this.modelSnapshots.resolve(request.funcType) };
   }
 
-  set newlyAddedEventHandlerKey(v: EventHandlerKeyType | undefined) {
-    this._newlyAddedEventHandlerKey.set(v);
+  set newlyAddedEventHandlerKey(value: EventHandlerKeyType | undefined) {
+    if (!value) {
+      this.newlyAddedEventHandlerKeyStore.setState(undefined, true);
+    } else if ("attr" in value) {
+      const { attr } = value;
+      this.newlyAddedEventHandlerKeyStore.setState((previous) =>
+        previous && "attr" in previous && previous.attr === attr ? previous : Object.freeze({ attr }), true);
+    } else if ("param" in value) {
+      const param = this.modelSnapshots.ref(value.param);
+      this.newlyAddedEventHandlerKeyStore.setState((previous) =>
+        previous && "param" in previous && previous.param === param ? previous : Object.freeze({ param }), true);
+    } else {
+      const funcType = this.modelSnapshots.ref(value.funcType);
+      this.newlyAddedEventHandlerKeyStore.setState((previous) =>
+        previous && "funcType" in previous && previous.funcType === funcType ? previous : Object.freeze({ funcType }), true);
+    }
   }
 
   //
@@ -6394,9 +6713,12 @@ export class StudioCtx extends WithDbCtx {
    * Change counter, incremented on each meaningful change (change that requires
    * a save).  This is how we can detect if we are dirty and need to save
    */
-  _changeCounter = 0;
+  readonly saveState = new StudioSaveState();
+  get _changeCounter() { return this.saveState.counter; }
+  set _changeCounter(value: number) { this.saveState.counter = value; }
   /** This is the _changeCounter that was successfully saved. */
-  _savedChangeCounter = 0;
+  get _savedChangeCounter() { return this.saveState.savedChangeCounter; }
+  set _savedChangeCounter(value: number) { this.saveState.savedChangeCounter = value; }
   /** Changes to be saved. */
   private _changeRecords: RecordedChanges[] = [];
   /** The iids in the last successfully saved revision */
@@ -6405,8 +6727,6 @@ export class StudioCtx extends WithDbCtx {
   private needsFullSave = false;
   /** Count the number of times saves have failed since last successful save */
   _saveFailedCounter = 0;
-  /** Set to false if we're viewing old versions */
-  _editMode = observable.box<boolean>(true, { deep: false });
   /** Waiting for a save (which may already be in flight). */
   needsSaving() {
     return this.hasUnsavedChanges() && this.canSave();
@@ -6416,19 +6736,54 @@ export class StudioCtx extends WithDbCtx {
    * state to be saved
    */
   canSave() {
-    return this.isAtTip && this.canEditProject() && this.canEditBranch();
+    return this.saveState.canSave;
   }
 
   /** Whether the project is dirty and should be saved */
   hasUnsavedChanges() {
-    return this._changeCounter > this._savedChangeCounter;
+    return this.saveState.hasUnsavedChanges;
   }
 
+  /** Set to false while viewing old versions. */
   get editMode() {
-    return this._editMode.get();
+    return this.saveState.editMode;
   }
   set editMode(editMode: boolean) {
-    this._editMode.set(editMode);
+    if (this.saveState.editMode === editMode) { return; }
+    this.saveState.deferPublication(() => this.uiEnvironment.deferPublication(() => {
+      this.saveState.editMode = editMode;
+      this.syncSaveAccess();
+      this.uiEnvironment.sync();
+      this.versionHistory.syncContext();
+    }));
+  }
+
+  private savePermissionInputs: readonly unknown[] | undefined;
+  syncSaveAccess() {
+    const projectEditable = this.canEditProject();
+    const branchEditable = this.canEditBranch();
+    const inputs = [this.editMode, this.editMode ? this.appCtx.selfInfo : undefined,
+      this.editMode ? this.siteInfo : undefined,
+      projectEditable ? this.branchInfo() : undefined, projectEditable, projectEditable ? branchEditable : undefined];
+    const previous = this.savePermissionInputs;
+    const changed = !previous || inputs.some((value, index) => value !== previous[index]);
+    this.savePermissionInputs = inputs;
+    this.saveState.syncAccess(projectEditable, branchEditable, changed);
+  }
+
+  private observeSaveInputs() {
+    this.saveState.bindTipEffects(() => {
+      if (this.alertBannerState.get() !== AlertSpec.Watch) { createDarkMask(this); }
+      spawn(this.multiplayerCtx.updateSessions([]));
+      spawn(this.stopListeningForSocketEvents());
+    });
+    return this.dbCtx().subscribeVersionInputs(() => this.uiEnvironment.sync());
+  }
+
+  /** A synchronous completed segment: never retain a publication fence over I/O. */
+  private runNativeSaveCommand<Result>(command: () => Result): Result {
+    return this.saveState.deferPublication(() => this.modelSnapshots.deferPublication(() =>
+      this.undoLog.deferPublication(() => this.dbCtx().deferVersionInputs(command))));
   }
 
   canEditProject() {
@@ -6456,7 +6811,8 @@ export class StudioCtx extends WithDbCtx {
   /**
    * Whether we are viewing the latest revision and thus able to save.
    */
-  isAtTip = true;
+  get isAtTip() { return this.saveState.isAtTip; }
+  set isAtTip(value: boolean) { this.saveState.isAtTip = value; }
 
   /**
    * Indicates whether we already have seen an error and the app is in an "error
@@ -6464,30 +6820,43 @@ export class StudioCtx extends WithDbCtx {
    * every time we retry saving. We can recover from this state once saves
    * succeed again.
    */
-  private saveErrorState: "normal" | "error" = "normal";
-  private isSaving = false;
-  desktopDraft: DesktopDraftController | undefined = undefined;
+  private get saveErrorState() { return this.saveState.saveErrorState; }
+  private set saveErrorState(value: "normal" | "error") { this.saveState.saveErrorState = value; }
+  private get isSaving() { return this.saveState.isSaving; }
+  private set isSaving(value: boolean) { this.saveState.isSaving = value; }
+  private readonly desktopDraftOwner = createStore<
+    DesktopDraftController | undefined
+  >(() => undefined);
+  readonly desktopDraftStore = {
+    getState: this.desktopDraftOwner.getState,
+    getInitialState: this.desktopDraftOwner.getInitialState,
+    subscribe: this.desktopDraftOwner.subscribe,
+  };
+  get desktopDraft() {
+    return this.desktopDraftStore.getState();
+  }
+  set desktopDraft(controller: DesktopDraftController | undefined) {
+    this.desktopDraftOwner.setState(controller, true);
+  }
   private desktopSaveConflict = false;
 
-  async useRemoteVersion() {
+  async restoreRemoteVersion() {
     if (!this.desktopSaveConflict) {
       return;
     }
     await this.loadVersion(undefined, true, this.branchInfo());
-    runInAction(() => {
+    this.saveState.deferPublication(() => runInAction(() => {
       this.desktopSaveConflict = false;
       this.blockChanges = false;
       this.isAtTip = true;
       this.alertBannerState.set(null);
-    });
+    }));
     clearDarkMask();
   }
 
   async initializeDesktopDrafts() {
     this.desktopDraft?.dispose();
-    runInAction(() => {
-      this.desktopDraft = undefined;
-    });
+    this.desktopDraft = undefined;
     if (
       !this.appCtx.selfInfo?.id ||
       !this.canSave() ||
@@ -6578,9 +6947,7 @@ export class StudioCtx extends WithDbCtx {
         });
       },
     );
-    runInAction(() => {
-      this.desktopDraft = drafts;
-    });
+    this.desktopDraft = drafts;
     await drafts.initialize(
       this.appCtx.selfInfo.id,
       this.siteInfo.id,
@@ -6588,23 +6955,10 @@ export class StudioCtx extends WithDbCtx {
     );
   }
 
-  get saveStatus() {
-    if (this.isUnlogged()) {
-      return "unlogged" as const;
-    }
-    if (this.isSaving) {
-      return "saving" as const;
-    }
-    if (this.saveErrorState === "error") {
-      return "error" as const;
-    }
-    if (this.hasUnsavedChanges() && !this.canSave()) {
-      return "blocked" as const;
-    }
-    return this.hasUnsavedChanges() ? ("pending" as const) : ("saved" as const);
-  }
+  get saveStatus() { return this.saveState.saveStatus; }
 
-  blockChanges = false;
+  get blockChanges() { return this.saveState.blockChanges; }
+  set blockChanges(value: boolean) { this.saveState.blockChanges = value; }
 
   aiSaveReceipt?: {
     operationId: string;
@@ -6616,23 +6970,37 @@ export class StudioCtx extends WithDbCtx {
     let failure: unknown;
     const result = await this.asyncSaver(true, {
       ...opts,
-      onError: opts?.noErrorNotification ? (error: unknown) => { failure = error; } : undefined,
+      onError: opts?.noErrorNotification
+        ? (error: unknown) => {
+            failure = error;
+          }
+        : undefined,
     });
-    if (failure) { throw failure; }
+    if (failure) {
+      throw failure;
+    }
     return result;
   }
 
-  private async trySave(preferIncremental = true, opts?: {
-    noErrorNotification?: boolean;
-    onError?: (error: unknown) => void;
-  }): Promise<SaveResult> {
-    const showSaveError = (error: unknown, options?: Parameters<typeof showError>[1]) => {
-      if (!opts?.noErrorNotification) { showError(error, options); }
+  private async trySave(
+    preferIncremental = true,
+    opts?: {
+      noErrorNotification?: boolean;
+      onError?: (error: unknown) => void;
+    },
+  ): Promise<SaveResult> {
+    const showSaveError = (
+      error: unknown,
+      options?: Parameters<typeof showError>[1],
+    ) => {
+      if (!opts?.noErrorNotification) {
+        showError(error, options);
+      }
     };
     if (this.desktopSaveConflict) {
       return SaveResult.SkipIsChanging;
     }
-    if (this.desktopDraft?.initializing) {
+    if (this.desktopDraft?.store.getState().initializing) {
       return SaveResult.SkipUpToDate;
     }
     if (this.hasUnsavedChanges()) {
@@ -6699,9 +7067,11 @@ export class StudioCtx extends WithDbCtx {
           });
         } catch (e) {
           reportError(e);
-          this.alertBannerState.set(AlertSpec.InvariantError);
-          this.blockChanges = true;
-          this.isAtTip = false;
+          this.saveState.deferPublication(() => {
+            this.alertBannerState.set(AlertSpec.InvariantError);
+            this.blockChanges = true;
+            this.isAtTip = false;
+          });
           return SaveResult.StopSaving;
         }
       }
@@ -6725,6 +7095,7 @@ export class StudioCtx extends WithDbCtx {
           // Two-minute timeout
           120 * 1000,
         );
+        this.runNativeSaveCommand(() => {
         this.dbCtx().revisionNum++;
         // We can clear the change records as they have already been saved
         this._changeRecords.splice(
@@ -6745,24 +7116,28 @@ export class StudioCtx extends WithDbCtx {
           this.saveErrorState = "normal";
         });
         this._saveFailedCounter = 0;
+        });
         return SaveResult.Success;
       } catch (e) {
         // Successful recovery should not return a failure to the caller.
-        if ((e.name !== "ProjectRevisionError" || this.desktopDraft?.enabled) &&
-            !(incremental && e.name === "UnknownReferencesError")) {
+        if (
+          (e.name !== "ProjectRevisionError" ||
+            this.desktopDraft?.store.getState().enabled) &&
+          !(incremental && e.name === "UnknownReferencesError")
+        ) {
           opts?.onError?.(e);
         }
         if (e.name === "ProjectRevisionError") {
-          if (this.desktopDraft?.enabled) {
+          if (this.desktopDraft?.store.getState().enabled) {
             // A lost save response may already have committed these edits.
             // Keep the current model and draft instead of replaying them twice.
             await this.desktopDraft.markConflict();
-            runInAction(() => {
+            this.saveState.deferPublication(() => runInAction(() => {
               this.desktopSaveConflict = true;
               this.blockChanges = true;
               this.isAtTip = false;
               this.alertBannerState.set(AlertSpec.ConcurrentEdit);
-            });
+            }));
             return SaveResult.SkipIsChanging;
           }
           return await withTimeout(
@@ -6774,18 +7149,24 @@ export class StudioCtx extends WithDbCtx {
           });
         } else if (e.name === "ForbiddenError") {
           showSaveError(e);
-          this.alertBannerState.set(AlertSpec.PermError);
-          this.isAtTip = false;
+          this.saveState.deferPublication(() => {
+            this.alertBannerState.set(AlertSpec.PermError);
+            this.isAtTip = false;
+          });
           return SaveResult.StopSaving;
         } else if (e.name === "AuthError") {
           showSaveError(e);
-          this.alertBannerState.set(AlertSpec.AuthError);
-          this.isAtTip = false;
+          this.saveState.deferPublication(() => {
+            this.alertBannerState.set(AlertSpec.AuthError);
+            this.isAtTip = false;
+          });
           return SaveResult.StopSaving;
         } else if (e.name === "SchemaMismatchError") {
           showSaveError(e);
-          this.alertBannerState.set(AlertSpec.OutOfDate);
-          this.isAtTip = false;
+          this.saveState.deferPublication(() => {
+            this.alertBannerState.set(AlertSpec.OutOfDate);
+            this.isAtTip = false;
+          });
           return SaveResult.StopSaving;
         } else if (
           e.message.includes("Bad Gateway") ||
@@ -7079,26 +7460,20 @@ export class StudioCtx extends WithDbCtx {
   }
 
   /** Stores any persistent error message to show user, like being in read-only mode */
-  alertBannerState = observable.box<null | AlertData>(null, { deep: false });
+  readonly alertBannerState = {
+    get: (): AlertData | null => this.saveState.getAlert(),
+    set: (value: AlertData | null) => this.saveState.setAlert(value),
+  };
 
   //
   // Manage project dependencies and past revisions
   //
   projectDependencyManager: ProjectDependencyManager;
-  releases = observable.array<PkgVersionInfoMeta>([], { deep: false });
-  revisions = observable.array<MinimalRevisionInfo>([], { deep: false });
+  get releases() { return this.versionHistory.releases; }
+  get revisions() { return this.versionHistory.revisions; }
 
-  async refreshRevisions(revisionNumGt?: number) {
-    const newRevisions =
-      await this.listUnpublishedProjectRevisions(revisionNumGt);
-
-    if (revisionNumGt) {
-      // Prepend only new revisions to existing ones
-      this.revisions.replace([...newRevisions, ...this.revisions]);
-    } else {
-      // Full load, replace all
-      this.revisions.replace(newRevisions);
-    }
+  refreshRevisions(revisionNumGt?: number) {
+    return this.versionHistory.refreshRevisions(revisionNumGt);
   }
 
   /** Reverts the current branch to the given version or revision and switches to the latest. */
@@ -7178,12 +7553,12 @@ export class StudioCtx extends WithDbCtx {
 
     try {
       this._isRestoring = true;
-      runInAction(() => {
+      this.saveState.deferPublication(() => runInAction(() => {
         // Disable saves while we load
         this.editMode = false;
         this.alertBannerState.set(editMode ? null : AlertSpec.ViewOld);
         this.setHighLevelFocusOnly(undefined, []); // Hide the focused box
-      });
+      }));
       const {
         rev: _currRev,
         bundle,
@@ -7241,7 +7616,7 @@ export class StudioCtx extends WithDbCtx {
       if (!draft) {
         await this.desktopDraft?.reconcileRemote(bundle);
       }
-      runInAction(() => {
+      this.runNativeSaveCommand(() => runInAction(() => {
         const newBundler = new FastBundler();
         const { site, depPkgs: depPkgVersions } = unbundleSite(
           newBundler,
@@ -7249,8 +7624,21 @@ export class StudioCtx extends WithDbCtx {
           bundle,
           depPkgs,
         );
+        this.exitNativeModelOwner();
+        this.pruneInvalidViewCtxs();
+        this.modelSnapshots.dispose();
+        this.modelSnapshots = new ModelSnapshots();
+        this.singleRsStyleInputs = new SingleRsStyleInputs(() => this.modelSnapshots);
+        this.viewCtxs.forEach((view) => view.resetStyleInputs());
         this.appCtx.bundler = newBundler;
+        this.runNativeArenaCommand(() => {
         this.dbCtx().setSite(site, branch, versionOrRevision);
+        this.runNativeArenaCommand(() => {
+          this.arenaState.attachSite();
+          this.uiEnvironment.sync();
+        });
+        this.fontManager.syncSite(site);
+        this.commentsCtx.onSiteReplaced();
         spawn(
           checkDepPkgHosts(
             this.appCtx,
@@ -7270,7 +7658,7 @@ export class StudioCtx extends WithDbCtx {
         }
 
         // Clear undo log
-        this.clearUndoLog();
+        this.clearUndoLog(() => {
 
         if (!versionOrRevision && !draft && editMode) {
           this.saveErrorState = "normal";
@@ -7280,8 +7668,6 @@ export class StudioCtx extends WithDbCtx {
 
         // Only re-enable saves after we're done loading
         if (editMode) {
-          this.editMode = true;
-
           if (versionOrRevision || draft) {
             // Mark for saving
             this._changeCounter += 1;
@@ -7301,11 +7687,18 @@ export class StudioCtx extends WithDbCtx {
           if (revisionNum) {
             this.dbCtx().revisionNum = revisionNum;
           }
+          this.editMode = true;
         }
-      });
+        });
+        this.versionHistory.syncContext();
+        this.runNativeArenaCommand(() => {
+          for (const listener of this.modelCommitListeners) {listener({ type: "site-replaced", site });}
+        });
+        });
+      }));
       if (branchChanged) {
         await this.refreshRevisions();
-        this.releases.replace(await this.getProjectReleases());
+        await this.versionHistory.refreshReleases();
         await this.initializeDesktopDrafts();
       }
     } catch (error) {
@@ -7338,35 +7731,55 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
-  private _forceOpenProp = observable.box<
-    readonly [classes.Component, string] | null
-  >(null);
-  get forceOpenProp() {
-    return this._forceOpenProp.get();
+  readonly forceOpenPropStore = createStore<Readonly<{
+    component: ModelRef<classes.Component>;
+    prop: string;
+  }> | null>(() => null);
+  get forceOpenProp(): readonly [classes.Component, string] | null {
+    const request = this.forceOpenPropStore.getState();
+    return request ? [this.modelSnapshots.resolve(request.component), request.prop] : null;
   }
 
-  set forceOpenProp(p: readonly [classes.Component, string] | null) {
-    this._forceOpenProp.set(p);
+  set forceOpenProp(value: readonly [classes.Component, string] | null) {
+    if (!value) {
+      this.forceOpenPropStore.setState(null, true);
+      return;
+    }
+    const component = this.modelSnapshots.ref(value[0]);
+    const prop = value[1];
+    this.forceOpenPropStore.setState((previous) =>
+      previous?.component === component && previous.prop === prop
+        ? previous
+        : Object.freeze({ component, prop }),
+      true,
+    );
   }
 
   readonly uiActionBus = new UiActionBus<UiId>();
 
-  private _forceOpenSplit = observable.box<classes.Split | null>(null);
+  readonly forceOpenSplitStore = createStore<ModelRef<classes.Split> | null>(
+    () => null,
+  );
   get forceOpenSpit() {
-    return this._forceOpenSplit.get();
+    const ref = this.forceOpenSplitStore.getState();
+    return ref ? this.modelSnapshots.resolve(ref) : null;
   }
 
-  set forceOpenSplit(p: classes.Split | null) {
-    this._forceOpenSplit.set(p);
+  set forceOpenSplit(split: classes.Split | null) {
+    this.forceOpenSplitStore.setState(
+      split ? this.modelSnapshots.ref(split) : null,
+      true,
+    );
   }
 
   private _serverUpdatesSummary: DeletedAssetsSummary;
 
-  private clearUndoLog() {
+  private clearUndoLog(complete?: () => void) {
     console.log("UNDO: Clear");
     this._savedChangeCounter = this._changeCounter;
     this._changeRecords = [];
     this._serverUpdatesSummary = getEmptyDeletedAssetsSummary();
+    complete?.();
     this.undoLog = new UndoLog(
       this.site,
       this.recorder,
@@ -7415,7 +7828,7 @@ export class StudioCtx extends WithDbCtx {
     }
 
     const latestRelease = ensure(
-      asOne(this.releases),
+      this.releases[0],
       "should have at least one release",
     );
     const { rev: latestPublishedRev } =
@@ -7613,7 +8026,7 @@ export class StudioCtx extends WithDbCtx {
       );
       await mutate(calculateNextVersionKey(this));
       const newPkg = ensure(resp.pkg, "newPkg should exist");
-      this.releases.unshift(newPkg);
+      this.versionHistory.prependRelease(newPkg);
       return PublishResult.PreFilling;
     } catch (e) {
       // TODO
@@ -7641,20 +8054,7 @@ export class StudioCtx extends WithDbCtx {
     branchId: BranchId | null,
     toMerge: Partial<PkgVersionInfo>,
   ) {
-    const { pkg: updatedPkgVersion } = await this.appCtx.api.updatePkgVersion(
-      pkgId,
-      version,
-      branchId,
-      toMerge,
-    );
-    const newReleases = this.releases.slice().map((r) => {
-      if (r.pkgId === pkgId && r.version === version) {
-        return assign(r, updatedPkgVersion);
-      } else {
-        return r;
-      }
-    });
-    this.releases.replace(newReleases);
+    await this.versionHistory.updatePkgVersion(pkgId, version, branchId, toMerge);
   }
 
   //
@@ -7805,9 +8205,9 @@ export class StudioCtx extends WithDbCtx {
     }
     this.blockChanges = false;
     if (partial.data) {
-      this.dbCtx().revisionNum = partial.revision;
       const { data, depPkgs } = partial;
       await this.changeUnsafe(() => {
+        this.dbCtx().revisionNum = partial.revision;
         depPkgs.forEach((dep) =>
           taggedUnbundle(this.bundler(), dep.model, dep.id),
         );
@@ -7848,7 +8248,7 @@ export class StudioCtx extends WithDbCtx {
     const projectId = this.siteInfo.id;
     if (
       this.hasUnsavedChanges() &&
-      this.desktopDraft?.enabled &&
+      this.desktopDraft?.store.getState().enabled &&
       !(await this.desktopDraft.flush())
     ) {
       throw new Error(
@@ -8114,9 +8514,15 @@ export class StudioCtx extends WithDbCtx {
   }
 
   // Fixes that are made after every `.change()`, `.undo()`, and `.refreshUpdates()`
-  private syncAfterChanges(summary: ChangeSummary) {
+  private syncAfterChanges(summary: ChangeSummary, complete?: () => void) {
+    return this.runNativeArenaCommand(() => this.syncAfterChangesInternal(summary, complete));
+  }
+
+  private syncAfterChangesInternal(summary: ChangeSummary, complete?: () => void) {
     // Sync dependency manager
     this.projectDependencyManager.syncDirectDeps();
+
+    this.fontManager.syncSite(this.site, summary.changes);
 
     // Upsert the style changes
     const _styleChanges = summaryToStyleChanges(summary);
@@ -8141,6 +8547,23 @@ export class StudioCtx extends WithDbCtx {
       },
     );
 
+    this.modelSnapshots.sync(summary.changes, () => {
+      const previousArena = this.currentArena;
+      this.arenaState.prepareModelCommit(summary.changes);
+      if (previousArena && !this.currentArena) { this.selection.clear(); this.commentsCtx.resetViewSessions(); }
+      this.prepareNativeArenaInputs(summary.changes);
+      complete?.();
+      this.commitPendingArenaRoute();
+    });
+    this.commentsCtx.syncModel(summary);
+    this.syncHoveredViewCtx();
+    this.notifyInspectorFocusChanged();
+    this.inspectorSelection?.syncModel(summary.changes);
+    this.viewCtxs.forEach((view) => view.syncInspectorModel(summary.changes));
+    for (const listener of this.modelCommitListeners) {listener({ type: "commit", summary });}
+    this.viewCtxs.forEach((view) => view.variants.publishCommit());
+    this.viewCtxs.forEach((view) => view.styleInputs.publishCommit());
+    this.singleRsStyleInputs.publishCommit();
     return _styleChanges;
   }
 
@@ -8160,87 +8583,79 @@ export class StudioCtx extends WithDbCtx {
   //
   // Managing renaming a TPL element (when user presses ctrl+R)
   //
-  private _renamingFocused = observable.box(false);
+  readonly renamingFocusedStore = createStore<boolean>(() => false);
   renamingFocused() {
-    return this._renamingFocused.get();
+    return this.renamingFocusedStore.getState();
   }
   tryStartRenamingFocused() {
     if (this.focusedFrame()) {
-      this._renamingFocused.set(true);
+      this.renamingFocusedStore.setState(true, true);
     } else {
       const focusedTpl = this.focusedViewCtx()?.focusedTpl();
       if (focusedTpl && (isTplNamable(focusedTpl) || isTplSlot(focusedTpl))) {
-        this._renamingFocused.set(true);
+        this.renamingFocusedStore.setState(true, true);
       }
     }
   }
   endRenamingFocused() {
-    this._renamingFocused.set(false);
+    this.renamingFocusedStore.setState(false, true);
   }
 
   //
   // Managing renaming a TPL element (when users uses context menu on tpl-tree panel)
   //
-  private _renamingOnPanel = observable.box(false);
+  readonly renamingOnPanelStore = createStore<boolean>(() => false);
   renamingOnPanel() {
-    return this._renamingOnPanel.get();
+    return this.renamingOnPanelStore.getState();
   }
   startRenamingOnPanel() {
-    this._renamingOnPanel.set(true);
+    this.renamingOnPanelStore.setState(true, true);
   }
   endRenamingOnPanel() {
-    this._renamingOnPanel.set(false);
+    this.renamingOnPanelStore.setState(false, true);
   }
 
   //
   // Whether to show placeholder for slots
   //
-  private _showSlotPlaceholder = observable.box(true);
-
   toggleShowSlotPlaceholder() {
-    this._showSlotPlaceholder.set(!this._showSlotPlaceholder.get());
+    this.runRenderPolicyCommand(() => this.renderPolicy.toggleSlotPlaceholder());
   }
   showSlotPlaceholder() {
-    return this._showSlotPlaceholder.get();
+    return this.renderPolicy.showSlotPlaceholder;
   }
 
   //
   // Whether to show placeholder for containers
   //
-  private _showContainerPlaceholder = observable.box(true);
-
   toggleShowContainerPlaceholder() {
-    this._showContainerPlaceholder.set(!this._showContainerPlaceholder.get());
+    this.runRenderPolicyCommand(() => this.renderPolicy.toggleContainerPlaceholder());
   }
 
   showContainerPlaceholder() {
-    return this._showContainerPlaceholder.get();
+    return this.renderPolicy.showContainerPlaceholder;
   }
 
   //
   // Whether to show placeholder for selection boxes and cursors
   //
-  private _showMultiplayerSelections = observable.box(true);
-
   toggleShowMultiplayerSelections() {
-    this._showMultiplayerSelections.set(!this._showMultiplayerSelections.get());
+    this.overlayState.multiplayerSelections = !this.overlayState.multiplayerSelections;
   }
 
   showMultiplayerSelections() {
-    return this._showMultiplayerSelections.get();
+    return this.overlayState.multiplayerSelections;
   }
 
   //
   // Whether to show hover boxes for ancestors of hovered target
   //
-  private _showAncestorsHoverBoxes = observable.box(true);
-
   toggleShowAncestorsHoverBoxes() {
-    this._showAncestorsHoverBoxes.set(!this._showAncestorsHoverBoxes.get());
+    this.overlayState.ancestorsHoverBoxes = !this.overlayState.ancestorsHoverBoxes;
   }
 
   showAncestorsHoverBoxes() {
-    return this._showAncestorsHoverBoxes.get();
+    return this.overlayState.ancestorsHoverBoxes;
   }
 
   // Manage saving a Component preset; need this because taking screenshots
@@ -8282,12 +8697,11 @@ export class StudioCtx extends WithDbCtx {
     return true;
   };
 
-  private _screenshotting = observable.box(false);
   get screenshotting() {
-    return this._screenshotting.get();
+    return this.overlayState.screenshotting;
   }
   set screenshotting(show: boolean) {
-    this._screenshotting.set(show);
+    this.overlayState.screenshotting = show;
   }
 
   // Manage state of opening and closing the component preset drawer
@@ -8303,16 +8717,6 @@ export class StudioCtx extends WithDbCtx {
     this._presetDrawerState.set(v);
   }
   */
-
-  private _isResizingFocusedArenaFrame = observable.box(false);
-
-  get isResizingFocusedArenaFrame() {
-    return this._isResizingFocusedArenaFrame.get();
-  }
-
-  set isResizingFocusedArenaFrame(resizing: boolean) {
-    this._isResizingFocusedArenaFrame.set(resizing);
-  }
 
   private _findReferencesComponent = observable.box<Component | undefined>(
     undefined,
@@ -8542,7 +8946,11 @@ export class StudioCtx extends WithDbCtx {
   readonly canvasLoadError = observable.box<string | undefined>(undefined);
 
   reportCanvasLoadError(error: unknown) {
-    runInAction(() => this.canvasLoadError.set(error instanceof Error ? error.message : String(error)));
+    runInAction(() =>
+      this.canvasLoadError.set(
+        error instanceof Error ? error.message : String(error),
+      ),
+    );
   }
 
   private canvasLoadRequests: CanvasLoadRequest[] = [];
@@ -8606,11 +9014,17 @@ export class StudioCtx extends WithDbCtx {
         // we have switched arena since loading, and we should just bail on this request.
         let done = false;
         await Promise.race([
-          withTimeout(nextRequest.load(), `Unable to load artboard: ${nextRequest.name}`, 180_000).finally(() => {
-            done = true;
-          }).then(() => {
-            loadDone();
-          }),
+          withTimeout(
+            nextRequest.load(),
+            `Unable to load artboard: ${nextRequest.name}`,
+            180_000,
+          )
+            .finally(() => {
+              done = true;
+            })
+            .then(() => {
+              loadDone();
+            }),
           (async () => {
             // eslint-disable-next-line no-constant-condition
             while (true) {
@@ -8654,6 +9068,12 @@ export class StudioCtx extends WithDbCtx {
     this.canvasLoadRequests.push(request);
     // Don't care about what we actually store into the canvasLoadQueue
     spawn(this.canvasLoadQueue.push({}));
+    return () => {
+      const index = this.canvasLoadRequests.indexOf(request);
+      if (index >= 0) {
+        this.canvasLoadRequests.splice(index, 1);
+      }
+    };
   }
   drainCanvasFrameForArena(arena: AnyArena) {
     const canvasRequests = this.canvasLoadRequests.filter(
@@ -8806,39 +9226,27 @@ export class StudioCtx extends WithDbCtx {
   };
 
   getAllDataOpCacheKeys = () => {
-    return this.dataOpCache.keys();
+    return Array.from(this.dataOpCache.keys());
   };
 
-  private _currentAppUserCtx = observable.box<{
-    appUser: StudioAppUser;
-    fakeAuthToken?: string;
-  }>(
-    {
-      appUser: {
-        isLoggedIn: false,
-        email: undefined,
-        externalId: undefined,
-        properties: undefined,
-        customProperties: undefined,
-        roleName: undefined,
-        roleIds: undefined,
-      },
-    },
-    {
-      name: "StudioCtx._currentAppUserCtx",
-    },
-  );
+  readonly uiEnvironment: StudioUiEnvironment;
+  readonly versionHistory: StudioVersionHistory;
+  readonly projectMetadataStore: StoreApi<ProjectMetadataSnapshot>;
+
+  readonly currentAppUserStore = createStore<{ appUser: StudioAppUser; fakeAuthToken?: string }>(() => ({
+    appUser: { isLoggedIn: false, email: undefined, externalId: undefined, properties: undefined, customProperties: undefined, roleName: undefined, roleIds: undefined },
+  }));
 
   get currentAppUserCtx() {
-    return this._currentAppUserCtx.get();
+    return this.currentAppUserStore.getState();
   }
 
   get currentAppUser() {
-    return this._currentAppUserCtx.get().appUser;
+    return this.currentAppUserStore.getState().appUser;
   }
 
   async logAsAppUser(appUser: StudioAppUser) {
-    this._currentAppUserCtx.set({
+    this.currentAppUserStore.setState({
       appUser,
       // We assign a fake auth token to emulate the proper behavior in live-preview
       // mode. Data sources use only the auth token to cache data.
@@ -8898,22 +9306,14 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
-  private _onboardingTourState = observable.box<OnboardingTourState>({
-    run: false,
-    stepIndex: 0,
-    tour: "",
-    flags: {},
-    triggers: [],
-  });
-
   tourActionEvents = new Signals.Signal();
 
   get onboardingTourState() {
-    return this._onboardingTourState.get();
+    return this.leftPanelState.onboardingTourState;
   }
 
   setOnboardingTourState(state: OnboardingTourState) {
-    this._onboardingTourState.set(state);
+    this.leftPanelState.setOnboardingTourState(state);
   }
 
   shownSyntheticSections = observable.map(new Map());
@@ -8937,15 +9337,6 @@ export interface CopilotInteraction<T = unknown> {
   id: CopilotInteractionId;
   response: T;
   displayMessage?: string;
-}
-
-interface OnboardingTourState {
-  run: boolean;
-  stepIndex: number;
-  // List of events that will trigger the tour to advance to the next step
-  triggers: TutorialEventsType[];
-  tour: string;
-  flags: Partial<TutorialStateFlags>;
 }
 
 interface CanvasLoadRequest {

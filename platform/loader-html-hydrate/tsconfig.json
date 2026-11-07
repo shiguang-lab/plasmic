@@ -20,8 +20,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "moduleResolution": "bundler",
-    // transpile JSX to React.createElement
-    "jsx": "react",
+    // Use the automatic JSX runtime
+    "jsx": "react-jsx",
     // interop between ESM and CJS modules. Recommended by TS
     "esModuleInterop": true,
     // significant perf increase by skipping checking .d.ts files, particularly those in node_modules. Recommended by TS

@@ -10,12 +10,12 @@ import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { assert, spawn } from "@/wab/shared/common";
 import { MutableToken, OverrideableToken } from "@/wab/shared/core/tokens";
 import { StyleToken } from "@/wab/shared/model/classes";
-import { observer } from "mobx-react";
+import { useStyleTokenInputs } from "@/wab/client/studio-ctx/style-token-inputs";
+import { useShallow } from "zustand/react/shallow";
 import { ok } from "neverthrow";
 import * as React from "react";
 
-export const FontFamilyTokenEditModal = observer(
-  function FontFamilyTokenEditModal(props: {
+export const FontFamilyTokenEditModal = function FontFamilyTokenEditModal(props: {
     token: MutableToken<StyleToken> | OverrideableToken<StyleToken>;
     studioCtx: StudioCtx;
     defaultEditingName?: boolean;
@@ -27,8 +27,14 @@ export const FontFamilyTokenEditModal = observer(
       token,
       studioCtx,
       defaultEditingName,
-      vsh = new VariantedStylesHelper(),
+      vsh: suppliedVsh,
     } = props;
+    const defaultVsh = React.useMemo(() => new VariantedStylesHelper(), [studioCtx]);
+    const vsh = suppliedVsh ?? defaultVsh;
+
+    const snapshot = useStyleTokenInputs(studioCtx, token, vsh, useShallow((state) => state && [state.name, state.activeValue] as const));
+    if (!snapshot) { return null; }
+    const [tokenName, activeValue] = snapshot;
 
     const onChange = (val: string) => {
       assert(val !== undefined);
@@ -53,7 +59,7 @@ export const FontFamilyTokenEditModal = observer(
               className="token-fg custom-svg-icon--lg monochrome-exempt"
             />
             <SimpleTextbox
-              defaultValue={token.name}
+              defaultValue={tokenName}
               onValueChange={(name) =>
                 studioCtx.changeUnsafe(() => {
                   studioCtx.tplMgr().renameStyleToken(token.base, name);
@@ -75,12 +81,11 @@ export const FontFamilyTokenEditModal = observer(
             studioCtx={studioCtx}
             selectOpts={{
               onChange,
-              value: vsh.getActiveTokenValue(token),
+              value: activeValue,
               vsh,
             }}
           />
         </div>
       </SidebarModal>
     );
-  },
-);
+};

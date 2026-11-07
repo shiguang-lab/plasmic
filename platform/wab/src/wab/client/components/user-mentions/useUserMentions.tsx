@@ -7,7 +7,7 @@ import { useMentionsPopover } from "@/wab/client/components/mentions/useMentions
 import { UserMentionsPopoverContent } from "@/wab/client/components/user-mentions/UserMentionsPopoverContent";
 import { useQuerySelector } from "@/wab/client/hooks/useQuerySelector";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { getUniqueUsersFromApiPermissions } from "@/wab/shared/perms";
+import { useStore } from "zustand";
 import * as React from "react";
 
 /**
@@ -24,10 +24,7 @@ export function useUserMentions({
   inputSelector: string;
 }) {
   const studioCtx = useStudioCtx();
-  const users = React.useMemo(
-    () => getUniqueUsersFromApiPermissions(studioCtx.siteInfo.perms),
-    [studioCtx.siteInfo.perms],
-  );
+  const users = useStore(studioCtx.projectMetadataStore, (state) => state.mentionUsers);
 
   const inputElement =
     useQuerySelector<HTMLInputElement>(inputSelector) ?? null;

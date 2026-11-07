@@ -1,3 +1,4 @@
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useContextMenu } from "@/wab/client/components/ContextMenu";
 import { PlumyIcon } from "@/wab/client/components/plume/plume-markers";
 import {
@@ -33,14 +34,14 @@ import { Variant } from "@/wab/shared/model/classes";
 import { PlumeVariantDef } from "@/wab/shared/plume/plume-registry";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
+import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
 interface VariantRowProps {
   studioCtx: StudioCtx;
   viewCtx?: ViewCtx;
   variant: Variant | VariantCombo;
   pinState: VariantPinState | undefined;
-  label?: React.ReactNode;
+  label?: React.ReactNode | (() => React.ReactNode);
   menu?: () => React.ReactElement;
   className?: string;
   style?: React.CSSProperties;
@@ -107,6 +108,7 @@ const VariantRow = observer(function VariantRow(props: VariantRowProps) {
     previewAnimationContainer,
     ...rest
   } = props;
+  useViewSelection(viewCtx, (state) => state.tpls);
 
   const contextMenuProps = useContextMenu({ menu });
 
@@ -252,7 +254,7 @@ const VariantRow = observer(function VariantRow(props: VariantRowProps) {
       }
       {...rest}
     >
-      {label}
+      {typeof label === "function" ? label() : label}
     </PlasmicVariantRow>
   );
 });

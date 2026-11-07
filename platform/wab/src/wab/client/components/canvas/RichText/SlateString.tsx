@@ -4,8 +4,8 @@ and modified to support our specific use case, which contains multiple iframes.
 
 The modifications include:
 - Change in the signature of the function to receive the correct react and slateReact objects, from the canvas-packages.
-- Usage of the ownedComputedFn function from mobx-util to memoize the functions that create the elements.
-- Usage of the react.createElement function to create the elements, instead of JSX.
+- Cache component factories by their canvas React and Slate module identities.
+- Usage of the react.createElement function to create the elements, instead of React.JSX.
 
 No change was made to the logic of the file, only to the way the elements are created.
 
@@ -17,7 +17,6 @@ elements are properly rendered/created in the right DOM. This seems to be a mixe
 issue with the way slate breaks the text combined with our elements handling.
 Also together with the check for a dom node by slate.
  */
-import { ownedComputedFn } from "@/wab/shared/mobx-util";
 import type React from "react";
 import { Editor, Element, Node, Path, Text } from "slate";
 import type SlateDom from "slate-dom";
@@ -26,13 +25,13 @@ import type SlateReact from "slate-react";
 /**
  * Leaf content strings.
  */
-export const mkSlateString = ownedComputedFn(
-  (
+function createSlateString(
+  
     react: typeof React,
     slateDom: typeof SlateDom,
     slateReact: typeof SlateReact,
-  ) =>
-    function SlateString(props: {
+) {
+  return function SlateString(props: {
       isLast: boolean;
       leaf: Text;
       parent: Element;
@@ -93,15 +92,14 @@ export const mkSlateString = ownedComputedFn(
       return react.createElement(mkTextString(react), {
         text: leaf.text,
       });
-    },
-);
+    };
+}
 
 /**
  * Leaf strings with text in them.
  */
-export const mkTextString = ownedComputedFn(
-  (react: typeof React) =>
-    function TextString(props: { text: string; isTrailing?: boolean }) {
+function createTextString(react: typeof React) {
+  return function TextString(props: { text: string; isTrailing?: boolean }) {
       const { text, isTrailing = false } = props;
       const ref = react.useRef<HTMLSpanElement>(null);
       const getTextContent = () => {
@@ -139,11 +137,11 @@ export const mkTextString = ownedComputedFn(
         ref,
         children: initialText,
       });
-    },
-);
+    };
+}
 
-const mkMemoizedText = ownedComputedFn((react: typeof React) =>
-  react.memo(
+function createMemoizedText(react: typeof React) {
+  return react.memo(
     react.forwardRef<HTMLSpanElement, { children: string }>((props, ref) => {
       // return (
       //   <span data-slate-string ref={ref}>
@@ -156,15 +154,14 @@ const mkMemoizedText = ownedComputedFn((react: typeof React) =>
         children: props.children,
       });
     }),
-  ),
-);
+  );
+}
 
 /**
  * Leaf strings without text, render as zero-width strings.
  */
-const mkZeroWidthString = ownedComputedFn(
-  (react: typeof React, slateDom: typeof SlateDom) =>
-    function ZeroWidthString(props: {
+function createZeroWidthString(react: typeof React, slateDom: typeof SlateDom) {
+  return function ZeroWidthString(props: {
       length?: number;
       isLineBreak?: boolean;
       isMarkPlaceholder?: boolean;
@@ -207,5 +204,42 @@ const mkZeroWidthString = ownedComputedFn(
         !slateDom.IS_ANDROID || !isLineBreak ? "\uFEFF" : null,
         isLineBreak ? react.createElement("br") : null,
       ]);
-    },
-);
+    };
+}
+
+
+// Component types are scoped to the actual canvas module graph, so repeated
+// renders preserve text DOM while distinct iframe module instances stay apart.
+const slateStrings = new WeakMap<typeof React, WeakMap<typeof SlateDom, WeakMap<typeof SlateReact, ReturnType<typeof createSlateString>>>>();
+export function mkSlateString(react: typeof React, slateDom: typeof SlateDom, slateReact: typeof SlateReact) {
+  let byDom = slateStrings.get(react);
+  if (!byDom) { byDom = new WeakMap(); slateStrings.set(react, byDom); }
+  let bySlateReact = byDom.get(slateDom);
+  if (!bySlateReact) { bySlateReact = new WeakMap(); byDom.set(slateDom, bySlateReact); }
+  let component = bySlateReact.get(slateReact);
+  if (!component) { component = createSlateString(react, slateDom, slateReact); bySlateReact.set(slateReact, component); }
+  return component;
+}
+
+const textStrings = new WeakMap<typeof React, ReturnType<typeof createTextString>>();
+export function mkTextString(react: typeof React) {
+  let component = textStrings.get(react);
+  if (!component) { component = createTextString(react); textStrings.set(react, component); }
+  return component;
+}
+
+const memoizedTexts = new WeakMap<typeof React, ReturnType<typeof createMemoizedText>>();
+function mkMemoizedText(react: typeof React) {
+  let component = memoizedTexts.get(react);
+  if (!component) { component = createMemoizedText(react); memoizedTexts.set(react, component); }
+  return component;
+}
+
+const zeroWidthStrings = new WeakMap<typeof React, WeakMap<typeof SlateDom, ReturnType<typeof createZeroWidthString>>>();
+function mkZeroWidthString(react: typeof React, slateDom: typeof SlateDom) {
+  let byDom = zeroWidthStrings.get(react);
+  if (!byDom) { byDom = new WeakMap(); zeroWidthStrings.set(react, byDom); }
+  let component = byDom.get(slateDom);
+  if (!component) { component = createZeroWidthString(react, slateDom); byDom.set(slateDom, component); }
+  return component;
+}

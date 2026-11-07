@@ -1,4 +1,20 @@
+import { StudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
+import { StudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import { TplMgr } from "@/wab/shared/TplMgr";
+import { ComponentType } from "@/wab/shared/core/components";
+import { createSite, getDedicatedArena } from "@/wab/shared/core/sites";
+import { setFocusedFrame } from "@/wab/shared/Arenas";
+import { ensure } from "@/wab/shared/common";
+import { createStore } from "zustand/vanilla";
 import ViewButton from "@/wab/client/components/top-bar/ViewButton";
+import { createStudioSelectionFixture } from "@/wab/client/__testonly__/studio-selection";
+import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
+import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { mock } from "vitest-mock-extended";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { languageOptions, translate } from "@/wab/client/i18n/locales";
 import {
@@ -7,17 +23,15 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from "@testing-library/react";
 import { Menu } from "antd";
 import React from "react";
 
 const { getStudioCtx } = vi.hoisted(() => ({ getStudioCtx: vi.fn() }));
-vi.mock("@/wab/client/contexts/StudioContexts", () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", async (original) => ({
+  ...await original<typeof import("@/wab/client/contexts/StudioContexts")>(),
   useStudioCtx: () => getStudioCtx(),
-}));
-vi.mock("@/wab/shared/Arenas", async (original) => ({
-  ...(await original<typeof import("@/wab/shared/Arenas")>()),
-  isDedicatedArena: () => true,
 }));
 vi.mock("@/wab/shared/devflags", async (original) => {
   const actual = await original<typeof import("@/wab/shared/devflags")>();
@@ -26,7 +40,8 @@ vi.mock("@/wab/shared/devflags", async (original) => {
     DEVFLAGS: { ...actual.DEVFLAGS, contentEditorMode: false },
   };
 });
-vi.mock("@/wab/client/shortcuts/studio/studio-shortcuts", () => ({
+vi.mock("@/wab/client/shortcuts/studio/studio-shortcuts", async (original) => ({
+  ...await original<typeof import("@/wab/client/shortcuts/studio/studio-shortcuts")>(),
   getComboForAction: () => "",
 }));
 vi.mock("@/wab/client/components/widgets", () => ({
@@ -78,23 +93,54 @@ vi.mock("@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicTopBar", () => ({
   default: () => null,
 }));
 
+const contextDisposals: (() => void)[] = [];
 function context(shown: boolean) {
+  const site = createSite();
+  const component = new TplMgr({ site }).addComponent({ name: "Action canvas", type: ComponentType.Plain });
+  const arena = ensure(getDedicatedArena(site, component), "Dedicated action canvas");
+  if (shown) { setFocusedFrame(site, arena); }
+  const modelSnapshots = new ModelSnapshots();
+  const arenaState = new StudioArenaState({ site, modelSnapshots });
+  arenaState.setCurrent(arena);
+  const draggingObjectStore = createStore<boolean>(() => false);
+  const renderPolicy = new StudioRenderPolicy({
+    isLive: () => false,
+    isDragging: () => draggingObjectStore.getState(),
+  });
+  if (!shown) {
+    renderPolicy.toggleSlotPlaceholder();
+    renderPolicy.toggleContainerPlaceholder();
+  }
+  renderPolicy.autoOpen = shown;
+  renderPolicy.installStoredFullPageHeight(shown);
+  renderPolicy.prepareInputs();
+  renderPolicy.publishCommit();
+  contextDisposals.push(() => { renderPolicy.dispose(); arenaState.dispose(); modelSnapshots.dispose(); });
+  const overlayState = new StudioOverlayState();
+  overlayState.multiplayerSelections = shown; overlayState.ancestorsHoverBoxes = shown; overlayState.commentsOverlay = shown;
+  contextDisposals.push(() => overlayState.dispose());
+  const view = mock<ViewCtx>();
+  Object.defineProperty(view, "canvasCtx", { value: mock<CanvasCtx>({ isOutlineMode: () => shown, setOutlineMode: vi.fn() }) });
   return {
-    focusedViewCtx: () => ({
-      canvasCtx: { isOutlineMode: () => shown, setOutlineMode: vi.fn() },
-    }),
-    showSlotPlaceholder: () => shown,
-    showContainerPlaceholder: () => shown,
-    showMultiplayerSelections: () => shown,
-    showAncestorsHoverBoxes: () => shown,
+    ...createStudioSelectionFixture(view),
+    ...createStudioUiEnvironmentFixture({ contentEditorMode: shown }),
+    draggingObjectStore,
+    renderPolicy,
+    overlayState,
+    arenaState,
+    modelSnapshots,
+    focusedViewCtx: () => view,
+    showSlotPlaceholder: () => renderPolicy.showSlotPlaceholder,
+    showContainerPlaceholder: () => renderPolicy.showContainerPlaceholder,
+    showMultiplayerSelections: () => overlayState.multiplayerSelections,
+    showAncestorsHoverBoxes: () => overlayState.ancestorsHoverBoxes,
     focusedMode: shown,
-    currentArena: {},
-    isAutoOpenMode: shown,
+    currentArena: arena,
+    get isAutoOpenMode() { return renderPolicy.autoOpen; },
     showComments: () => true,
-    showCommentsOverlay: shown,
+    get showCommentsOverlay() { return overlayState.commentsOverlay; },
     isContentEditor: () => false,
-    contentEditorMode: shown,
-    fullPageHeight: shown,
+    get fullPageHeight() { return renderPolicy.fullPageHeight; },
     toggleFullPageHeight: vi.fn(),
     toggleShowSlotPlaceholder: vi.fn(),
     toggleShowContainerPlaceholder: vi.fn(),
@@ -139,6 +185,7 @@ const hideMessages = [
 
 afterEach(async () => {
   cleanup();
+  act(() => contextDisposals.splice(0).forEach((dispose) => dispose()));
   await act(async () => await setLanguagePreference("en"));
 });
 it.each(languageOptions)(
@@ -177,4 +224,42 @@ it("updates an already mounted menu and preserves its actions", async () => {
   await act(async () => fireEvent.click(screen.getByText("刷新数据")));
   expect(studio.refreshFetchedDataFromPlasmicQuery).toHaveBeenCalledOnce();
   expect(studio.refreshAppUserProperties).toHaveBeenCalledOnce();
+});
+
+it("follows native dragging in the existing auto-open menu read without another prop change", async () => {
+  await setLanguagePreference("en");
+  const { studioCtx: studio } = fakeStudioCtx({ devFlagOverrides: { ccStubs: true } });
+  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  getStudioCtx.mockReturnValue(studio);
+  const view = render(<ViewButton />);
+  try {
+    expect(screen.getByText("Turn off auto-open mode")).toBeTruthy();
+    act(() => studio.setIsDraggingObject(true));
+    expect(screen.getByText("Turn on auto-open mode")).toBeTruthy();
+    act(() => studio.setIsDraggingObject(false));
+    expect(screen.getByText("Turn off auto-open mode")).toBeTruthy();
+  } finally {
+    view.unmount();
+    await studio.awaitEval();
+    studio.dispose();
+  }
+});
+
+
+it("updates an already mounted View menu from all three actual overlay commands", async () => {
+  await setLanguagePreference("en");
+  const { studioCtx: studio } = fakeStudioCtx({ devFlagOverrides: { ccStubs: true } });
+  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  vi.spyOn(studio, "showComments").mockReturnValue(true);
+  getStudioCtx.mockReturnValue(studio);
+  const mounted = render(<ViewButton />);
+  try {
+    expect(screen.getByText("Hide cursors and selections from other users")).toBeTruthy();
+    expect(screen.getByText("Hide container outlines when hovering")).toBeTruthy();
+    expect(screen.getByText("Hide comments overlay")).toBeTruthy();
+    act(() => { studio.toggleShowMultiplayerSelections(); studio.toggleShowAncestorsHoverBoxes(); studio.toggleShowCommentsOverlay(); });
+    expect(screen.getByText("Show cursors and selections from other users")).toBeTruthy();
+    expect(screen.getByText("Show container outlines when hovering")).toBeTruthy();
+    expect(screen.getByText("Show comments overlay")).toBeTruthy();
+  } finally { mounted.unmount(); await studio.awaitEval(); studio.dispose(); }
 });

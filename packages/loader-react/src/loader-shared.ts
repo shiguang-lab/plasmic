@@ -46,7 +46,7 @@ export interface InitOptions {
     version?: string;
   }[];
   cache?: LoaderBundleCache;
-  platform?: "react" | "nextjs" | "gatsby";
+  platform?: "react" | "nextjs";
   platformOptions?: {
     nextjs?: {
       appDir: boolean;
@@ -399,7 +399,8 @@ export abstract class BaseInternalPlasmicComponentLoader {
     onBundleMerged?: () => void;
     /** Called after any `fetch` calls. */
     onBundleFetched?: () => void;
-    builtinModules: BuiltinRegisteredModules;
+    // Server loaders register only modules used by server queries.
+    builtinModules: Partial<BuiltinRegisteredModules>;
   }) {
     this.opts = args.opts;
     this.fetcher = args.fetcher;

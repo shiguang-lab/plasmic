@@ -1,3 +1,4 @@
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { COMMANDS } from "@/wab/client/commands/command";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import {
@@ -88,8 +89,8 @@ export function useVariableRow({
   state: State;
   viewCtx: ViewCtx;
 }): {
-  menu: JSX.Element;
-  modals: JSX.Element;
+  menu: React.JSX.Element;
+  modals: React.JSX.Element;
   props: {
     hasTempValue?: boolean;
     showValueConfigModal: () => void;
@@ -99,9 +100,10 @@ export function useVariableRow({
     value: any;
     isExternal: boolean;
     variableType: StateVariableType;
-    menuButton: { menu: JSX.Element };
+    menuButton: { menu: React.JSX.Element };
   };
 } {
+  useStudioSelection(studioCtx, (selection) => selection.view);
   const vc = ensure(
     viewCtx || studioCtx.focusedViewCtx(),
     "Must have a focusedViewCtx",

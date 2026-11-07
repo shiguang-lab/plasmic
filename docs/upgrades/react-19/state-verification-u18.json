@@ -1,0 +1,327 @@
+{
+  "date": "2026-11-06",
+  "stage": "U18",
+  "complete": false,
+  "reactCompiler": {
+    "enabledByDefault": true,
+    "target": "19",
+    "mode": "annotation",
+    "panicThreshold": "all_errors",
+    "compiledFunctions": [
+      "CodeDisplayContent",
+      "DesktopDraftDialog",
+      "FollowingPlayer",
+      "SettingsPageContent",
+      "CommentsDialogs",
+      "RootComment"
+    ],
+    "transformTests": {
+      "passed": 9,
+      "failed": 0,
+      "log": "u18-comments-compiler-final.log"
+    },
+    "productionArtifact": {
+      "path": "/tmp/plasmic-react19-20261105/renderer-react19-zustand-compiler-u18",
+      "sourceHash": "8f30fbb6b94c2fcb11b70ea285caa4764616c4904a2019635ec63bff61740d2c",
+      "rendererHash": "a0ecc571b605f69ada3b9445378823e9c4caa8a8418a7d9025f4c18c19b1fe02",
+      "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+      "files": 837,
+      "bytes": 105460345,
+      "studioArtifactHash": "f467d6e61503f415102f731395270d501d5b541e6ed8ff5fecda9c5bcc14e0d4",
+      "reactCompiler": {
+        "enabled": true,
+        "target": "19",
+        "compilationMode": "annotation",
+        "files": [
+          "src/wab/client/components/coding/CodeDisplayContent.tsx",
+          "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+          "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+          "src/wab/client/components/dashboard/SettingsPage.tsx",
+          "src/wab/client/components/comments/CommentsDialogs.tsx",
+          "src/wab/client/components/comments/RootComment.tsx"
+        ]
+      }
+    }
+  },
+  "stateInventory": {
+    "scannedSourceFiles": 6309,
+    "remainingFiles": 416,
+    "byKind": {
+      "source": 353,
+      "test": 62,
+      "tooling": 1
+    },
+    "manifests": [
+      {
+        "file": "platform/wab/package.json",
+        "dependencies": [
+          {
+            "section": "dependencies",
+            "name": "mobx",
+            "version": "6.13.6"
+          },
+          {
+            "section": "dependencies",
+            "name": "mobx-react",
+            "version": "9.2.0"
+          },
+          {
+            "section": "dependencies",
+            "name": "mobx-utils",
+            "version": "6.1.1"
+          }
+        ]
+      }
+    ]
+  },
+  "verification": {
+    "commentsIntegration": {
+      "files": 11,
+      "passed": 60,
+      "failed": 0,
+      "log": "u18-comments-integration-final.log"
+    },
+    "realCommentsPanel": {
+      "passed": 2,
+      "failed": 0,
+      "log": "u18-comments-panel-tests.log"
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "incremental": false,
+      "log": "u18-comments-typecheck-final.log"
+    },
+    "lint": {
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 6,
+      "log": "u18-comments-lint-final.log"
+    },
+    "preCommentsFullStudio": {
+      "sourceHash": "67a586a7a456003c2641c89d9e11c4f473b6489d4ff665d45ae866fd7abcdda0",
+      "files": 554,
+      "passed": 4577,
+      "skipped": 4,
+      "failed": 0,
+      "log": "u18-studio-full-suite.log"
+    },
+    "currentFullStudio": {
+      "files": 555,
+      "passedFiles": 554,
+      "failedFiles": 1,
+      "passed": 4587,
+      "failed": 1,
+      "skipped": 4,
+      "log": "u18-comments-full-studio.log",
+      "failure": "LivePopOutButton loading exit motion assertion; corrected and included in U19 regression, not counted as a passing U18 full suite"
+    },
+    "nativeProduction": {
+      "artifact": {
+        "sourceHash": "8f30fbb6b94c2fcb11b70ea285caa4764616c4904a2019635ec63bff61740d2c",
+        "rendererHash": "a0ecc571b605f69ada3b9445378823e9c4caa8a8418a7d9025f4c18c19b1fe02",
+        "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+        "files": 837,
+        "bytes": 105460345,
+        "studioArtifactHash": "f467d6e61503f415102f731395270d501d5b541e6ed8ff5fecda9c5bcc14e0d4",
+        "reactCompiler": {
+          "enabled": true,
+          "target": "19",
+          "compilationMode": "annotation",
+          "files": [
+            "src/wab/client/components/coding/CodeDisplayContent.tsx",
+            "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+            "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+            "src/wab/client/components/dashboard/SettingsPage.tsx",
+            "src/wab/client/components/comments/CommentsDialogs.tsx",
+            "src/wab/client/components/comments/RootComment.tsx"
+          ]
+        }
+      },
+      "reports": {
+        "gp": {
+          "functional": {
+            "cases": [
+              {
+                "case": "switch-artboard",
+                "frame": "dO6gEmTQ80cE",
+                "rendered": true
+              },
+              {
+                "case": "rename-undo-redo",
+                "passed": true
+              },
+              {
+                "case": "rendered-style-undo-redo",
+                "passed": true
+              },
+              {
+                "case": "frame-position-undo-redo",
+                "passed": true
+              },
+              {
+                "case": "preview-business-pagination-return",
+                "passed": true
+              }
+            ],
+            "revision": 159,
+            "reopen": true
+          },
+          "docs": {
+            "codegen": {
+              "dependencyModelsValidated": 50,
+              "editReachedSelectedStore": true,
+              "mode": "codegen",
+              "monacoMounted": true,
+              "persistedModelUnchanged": true,
+              "previewUpdated": true,
+              "restored": true,
+              "typeScriptWorkerDiagnostics": 0
+            },
+            "loader": {
+              "dependencyModelsValidated": 50,
+              "editReachedSelectedStore": true,
+              "mode": "loader",
+              "monacoMounted": true,
+              "persistedModelUnchanged": true,
+              "previewUpdated": true,
+              "restored": true,
+              "typeScriptWorkerDiagnostics": 0
+            },
+            "serializedModelUnchanged": true,
+            "harnessSha256": "164d4d701ff8843d105cf270c0d555fa764f13c2aa3f6a24e451aa2c7a95670d"
+          },
+          "draftDialog": {
+            "enabled": true,
+            "opened": true,
+            "remoteActionClosed": true
+          },
+          "nativeChecks": [],
+          "rendererErrors": 0,
+          "previewErrors": 0
+        },
+        "complex": {
+          "functional": {
+            "cases": [
+              {
+                "case": "switch-artboard",
+                "frame": "g6iKNJJfK8J6",
+                "rendered": true
+              },
+              {
+                "case": "switch-artboard",
+                "frame": "58rcnoga5nrA",
+                "rendered": true
+              },
+              {
+                "case": "switch-artboard",
+                "frame": "yqGY4RQZ5MAn",
+                "rendered": true
+              },
+              {
+                "case": "rename-undo-redo",
+                "passed": true
+              },
+              {
+                "case": "rendered-style-undo-redo",
+                "passed": true
+              },
+              {
+                "case": "frame-position-undo-redo",
+                "passed": true
+              },
+              {
+                "case": "cold-frame-undo-selection-style",
+                "passed": true
+              },
+              {
+                "case": "cold-frame-redo-rendered-style",
+                "passed": true
+              }
+            ],
+            "revision": 1,
+            "reopen": true
+          },
+          "docs": null,
+          "draftDialog": null,
+          "nativeChecks": null,
+          "rendererErrors": 0,
+          "previewErrors": 0
+        },
+        "restore": {
+          "functional": {
+            "cases": [
+              {
+                "case": "switch-artboard",
+                "frame": "dO6gEmTQ80cE",
+                "rendered": true
+              },
+              {
+                "case": "rename-undo-redo",
+                "passed": true
+              },
+              {
+                "case": "rendered-style-undo-redo",
+                "passed": true
+              },
+              {
+                "case": "frame-position-undo-redo",
+                "passed": true
+              },
+              {
+                "case": "preview-business-pagination-return",
+                "passed": true
+              }
+            ],
+            "revision": 160,
+            "reopen": true
+          },
+          "docs": null,
+          "draftDialog": null,
+          "nativeChecks": [
+            {
+              "iteration": 1,
+              "recovered": true,
+              "conflict": false,
+              "viewportDelta": 0
+            }
+          ],
+          "rendererErrors": 0,
+          "previewErrors": 0
+        },
+        "conflict": {
+          "functional": null,
+          "docs": null,
+          "draftDialog": null,
+          "nativeChecks": [
+            {
+              "iteration": 1,
+              "recovered": false,
+              "conflict": true,
+              "viewportDelta": 0
+            }
+          ],
+          "rendererErrors": 0,
+          "previewErrors": 0
+        }
+      },
+      "logs": [
+        "u18-gp-replay.log",
+        "u18-complex-replay.log",
+        "u18-restore-functional-replay.log",
+        "u18-conflict-replay.log"
+      ],
+      "diagnosticAttempt": {
+        "log": "u18-restore-replay.log",
+        "result": "Recovery check passed but fixture rejected automatic save with HTTP 405; rerun with the isolated functional-save handler passed"
+      }
+    }
+  },
+  "performanceComparison": "paused by user",
+  "remaining": [
+    "Full model write/transaction replacement",
+    "Viewport and Inspector explicit subscriptions",
+    "Canvas renderer and computed-cache replacement",
+    "Remaining MobX consumers and dependency removal",
+    "Full upgrade acceptance gates"
+  ]
+}

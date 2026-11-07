@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
+
 import { expect, test, vi } from "vitest";
 import { AntdCollapse, AntdCollapsePanel, registerCollapse } from "../src/registerCollapse";
 import { AntdMenu, AntdMenuItem, AntdSubMenu, registerMenu } from "../src/registerMenu";

@@ -9,7 +9,7 @@ import {
   generateWelcomePage,
   getPlasmicConfig,
 } from "../utils/file-utils";
-import { initYarnBerryProject, installUpgrade } from "../utils/npm-utils";
+import { initYarnBerryProject, installUpgrade, REACT_DEPENDENCIES } from "../utils/npm-utils";
 import { CPAStrategy } from "../utils/strategy";
 
 export const reactStrategy: CPAStrategy = {
@@ -37,7 +37,7 @@ export const reactStrategy: CPAStrategy = {
     const parentDir = path.dirname(fullProjectPath);
     process.chdir(parentDir);
 
-    const createCommand = `npx create-vite@5 ${projectName} --no-interactive`;
+    const createCommand = `npx create-vite@9.3.4 ${projectName} --no-interactive`;
 
     if (!template) {
       template = jsOrTs === "ts" ? "react-ts" : "react";
@@ -52,7 +52,7 @@ export const reactStrategy: CPAStrategy = {
   },
   installDeps: async ({ projectPath, scheme, packageManager }) => {
     if (scheme === "loader") {
-      return await installUpgrade("@plasmicapp/loader-react", {
+      return await installUpgrade(`@plasmicapp/loader-react ${REACT_DEPENDENCIES}`, {
         workingDir: projectPath,
         packageManager,
       });

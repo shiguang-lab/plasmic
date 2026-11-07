@@ -12,7 +12,7 @@ export type CustomFunctionId = Opaque<string, "CustomFunctionId">;
 /**
  * The stable id for a custom function: `<namespace>.<importName>`
  */
-export function customFunctionId(f: CustomFunction) {
+export function customFunctionId(f: Pick<CustomFunction, "namespace" | "importName">) {
   return `${f.namespace ? f.namespace + "." : ""}${
     f.importName
   }` as CustomFunctionId;

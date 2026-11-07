@@ -57,7 +57,7 @@ export function AntdDropdown(
     <Dropdown
       {...rest}
       trigger={[trigger]}
-      overlay={() => {
+      popupRender={() => {
         const itemsChildren = useMenuItemsSlot
           ? menuItems?.() ?? []
           : undefined;

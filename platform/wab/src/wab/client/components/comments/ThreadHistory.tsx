@@ -13,6 +13,7 @@ import { ensure, ensureString } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import moment from "moment";
 import * as React from "react";
+import { useStore } from "zustand";
 
 export interface ThreadHistoryProps extends DefaultThreadHistoryProps {
   history: ApiCommentThreadHistory;
@@ -29,7 +30,9 @@ function ThreadHistory_(
   const commentsCtx = studioCtx.commentsCtx;
 
   const author = ensure(
-    commentsCtx.computedData().usersMap.get(ensureString(history.createdById)),
+    useStore(commentsCtx.store, (state) =>
+      state.usersMap.get(ensureString(history.createdById)),
+    ),
     `Author of comment ${history.createdById} should be present in usersMap`,
   );
 

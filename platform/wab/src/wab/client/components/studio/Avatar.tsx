@@ -73,7 +73,7 @@ export function RawAvatar({
 }
 
 interface AvatarProps {
-  user: ApiUser;
+  user: Pick<ApiUser, "displayName" | "email">;
   className?: string;
   style?: CSSProperties;
   tooltipPlacement?: Side;

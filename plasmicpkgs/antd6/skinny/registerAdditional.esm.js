@@ -1,9 +1,10 @@
+import { jsx } from 'react/jsx-runtime';
 import { usePlasmicCanvasContext } from '@plasmicapp/host';
 import * as Ant from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
-import { r as renderCanvasSlot, g as getCanvasItems, u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as renderCanvasSlot, g as getCanvasItems, u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-k3p9M5S2.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -27,7 +28,7 @@ function AntdCard({
   actions,
   ...rest
 }) {
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.Card,
     {
       ...rest,
@@ -44,9 +45,9 @@ const AntdCol = Ant.Col;
 const AntdDescriptionsItem = Ant.Descriptions.Item;
 const AntdDescriptions = React.forwardRef((props, ref) => {
   if (props.items != null) {
-    return /* @__PURE__ */ React.createElement(Ant.Descriptions, { ...props, ref });
+    return /* @__PURE__ */ jsx(Ant.Descriptions, { ...props, ref });
   }
-  return renderCanvasSlot(props.children, (children) => /* @__PURE__ */ React.createElement(
+  return renderCanvasSlot(props.children, (children) => /* @__PURE__ */ jsx(
     Ant.Descriptions,
     {
       ...props,
@@ -69,7 +70,7 @@ const AntdFloatButtonGroup = Ant.FloatButton.Group;
 const AntdBackTop = Ant.FloatButton.BackTop;
 function AntdImage(props) {
   const canvas = usePlasmicCanvasContext();
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.Image,
     {
       ...props,
@@ -79,7 +80,7 @@ function AntdImage(props) {
 }
 function AntdImagePreviewGroup(props) {
   const canvas = usePlasmicCanvasContext();
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.Image.PreviewGroup,
     {
       ...props,
@@ -100,7 +101,7 @@ function AntdPopconfirm(props) {
     isEditing,
     destroyOnHidden
   } = useCanvasOverlay(props, canvasOverlay.triggerSlot);
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.Popconfirm,
     {
       ...rest,
@@ -144,7 +145,7 @@ function AntdInputSearch({
   onChange,
   ...rest
 }) {
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.Input.Search,
     {
       ...rest,
@@ -159,7 +160,7 @@ function AntdCalendar({
   onSelect,
   ...rest
 }) {
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.Calendar,
     {
       ...rest,
@@ -170,7 +171,7 @@ function AntdCalendar({
   );
 }
 function AntdTimePicker({ value, onChange, ...rest }) {
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.TimePicker,
     {
       ...rest,
@@ -184,7 +185,7 @@ function AntdTimeRangePicker({
   onChange,
   ...rest
 }) {
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.TimePicker.RangePicker,
     {
       ...rest,
@@ -199,7 +200,7 @@ function AntdTimeRangePicker({
   );
 }
 function AntdList(props) {
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.List,
     {
       ...props,
@@ -211,7 +212,7 @@ function AntdListItem({
   actions,
   ...rest
 }) {
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.List.Item,
     {
       ...rest,
@@ -221,26 +222,26 @@ function AntdListItem({
 }
 const AntdListItemMeta = Ant.List.Item.Meta;
 function AntdListy(props) {
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.Listy,
     {
       ...props,
       rowKey: "key",
-      itemRender: (item) => /* @__PURE__ */ React.createElement("div", null, item.content)
+      itemRender: (item) => /* @__PURE__ */ jsx("div", { children: item.content })
     }
   );
 }
 function AntdMasonry(props) {
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.Masonry,
     {
       ...props,
-      itemRender: (item) => /* @__PURE__ */ React.createElement("div", null, item.data?.content)
+      itemRender: (item) => /* @__PURE__ */ jsx("div", { children: item.data?.content })
     }
   );
 }
 function AntdTransfer(props) {
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.Transfer,
     {
       ...props,
@@ -249,7 +250,7 @@ function AntdTransfer(props) {
   );
 }
 function AntdTour(props) {
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Ant.Tour,
     {
       ...props,

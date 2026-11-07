@@ -254,11 +254,7 @@ export function makeStylesImports(
     `import "./${stripExtension(path, true)}.css"`;
 
   const componentCssImport = (name: string, path: string) => {
-    const importName = !useCssModules
-      ? ""
-      : opts.platform === "gatsby"
-        ? `* as ${name} from`
-        : `${name} from`;
+    const importName = useCssModules ? `${name} from` : "";
     const ext = useCssModules ? ".module.css" : ".css";
     return `import ${importName} "./${stripExtension(path, true)}${ext}"`;
   };
@@ -322,11 +318,7 @@ export function makeUseClient(opts: Partial<ExportOpts>): string {
 }
 
 export function makePlatformImports(opts: ExportOpts): string {
-  if (opts.platform === "gatsby") {
-    return `
-      import { Link, GatsbyLinkProps as LinkProps, navigate as __gatsbyNavigate } from "gatsby";
-    `;
-  } else if (opts.platform === "nextjs") {
+  if (opts.platform === "nextjs") {
     // Next.js has multiple routing hooks depending on your Next.js version and pages/ or app/ dir:
     // * next/router - all recent Next.js versions, but only works for pages/
     // * next/navigation - Next.js 13+, works for both pages/ and app/
@@ -361,9 +353,6 @@ export function getPlatformImportComponents(platform: ExportPlatform) {
   const names: string[] = [];
   if (platform === "nextjs") {
     names.push("Link", "LinkProps", "Head");
-  }
-  if (platform === "gatsby") {
-    names.push("Link", "LinkProps");
   }
   if (platform === "tanstack") {
     names.push("Link", "LinkProps");
@@ -402,7 +391,7 @@ export function getNormalizedComponentName(component: Component) {
 
 export function isPageAwarePlatform(platform: string) {
   return (
-    platform === "nextjs" || platform === "gatsby" || platform === "tanstack"
+    platform === "nextjs" || platform === "tanstack"
   );
 }
 

@@ -14,6 +14,8 @@ import {
   createStyleContextMenu,
   useStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
+import { useStyleCells, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
 import { DropdownTooltip } from "@/wab/client/components/widgets/DropdownTooltip";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useI18n } from "@/wab/client/i18n";
@@ -22,19 +24,17 @@ import ChevronLeftsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/Pla
 import ChevronRightsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronRightSvg";
 import ChevronUpsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronUpSvg";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { makeVariantedStylesHelperFromCurrentCtx } from "@/wab/client/utils/style-utils";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { reverseIf } from "@/wab/shared/common";
-import { isGapPropValidForRsh } from "@/wab/shared/core/style-props-tpl";
+import { isGapPropValidForLayout } from "@/wab/shared/core/style-props-tpl";
 import { camelProp } from "@/wab/shared/css";
 import { LENGTH_PERCENTAGE_UNITS } from "@/wab/shared/css/types";
 import { DefinedIndicatorType } from "@/wab/shared/defined-indicator";
-import { flexDirToArrangement } from "@/wab/shared/layoututils";
+import { flexDirToArrangement, getContainerLayoutType } from "@/wab/shared/layoututils";
 import { Menu } from "antd";
 import cn from "classnames";
 import { mapKeys, range } from "lodash";
-import { observer } from "mobx-react";
 import React, { useState } from "react";
 
 type FlexArrangement = "row" | "column";
@@ -45,6 +45,8 @@ type AlignmentProp =
 
 type FlexAlignmentStyles = Partial<Record<AlignmentProp, FlexOptions>>;
 type FlexConfig = {
+  display: string;
+  direction: string;
   arrangement: FlexArrangement;
   isReverse: boolean;
   isWrap: boolean;
@@ -226,23 +228,38 @@ function PreviewStack2({
 }
 
 export function useFlexConfig(expsProvider: ExpsProvider) {
-  const getStyle = (prop: string) => expsProvider.mergedExp().get(prop);
-
-  const direction = getStyle("flex-direction");
-  const isReverse = getStyle("flex-direction").endsWith("reverse");
-  const isWrap = getStyle("flex-wrap").startsWith("wrap");
-  const isWrapReverse = getStyle("flex-wrap").endsWith("reverse");
+  const [
+    directionCell,
+    wrapCell,
+    alignItemsCell,
+    alignContentCell,
+    justifyContentCell,
+    displayCell,
+  ] = useStyleCells(expsProvider, [
+    "flex-direction",
+    "flex-wrap",
+    "align-items",
+    "align-content",
+    "justify-content",
+    "display",
+  ]);
+  const direction = directionCell?.value ?? "";
+  const isReverse = direction.endsWith("reverse");
+  const isWrap = (wrapCell?.value ?? "").startsWith("wrap");
+  const isWrapReverse = (wrapCell?.value ?? "").endsWith("reverse");
   const arrangement = flexDirToArrangement(direction);
 
   return {
+    display: displayCell?.value ?? "",
+    direction,
     isReverse,
     isWrap,
     isWrapReverse,
     arrangement,
     alignment: {
-      "align-items": getStyle("align-items") as FlexOptions,
-      "align-content": getStyle("align-content") as FlexOptions,
-      "justify-content": getStyle("justify-content") as FlexOptions,
+      "align-items": (alignItemsCell?.value ?? "") as FlexOptions,
+      "align-content": (alignContentCell?.value ?? "") as FlexOptions,
+      "justify-content": (justifyContentCell?.value ?? "") as FlexOptions,
     },
   } as FlexConfig;
 }
@@ -260,24 +277,24 @@ function FlexContainerControls_(props: FlexContainerControlsProps) {
   const {
     expsProvider,
     renderMaybeCollapsibleRows,
-    vsh = makeVariantedStylesHelperFromCurrentCtx(studioCtx),
   } = props;
+  const defaultVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : studioCtx);
+  const vsh = props.vsh ?? defaultVsh;
+  const [columnGapCell, rowGapCell] = useStyleCells(styling.props.expsProvider, ["column-gap", "row-gap"]);
+  const { display, direction, isReverse, isWrap, isWrapReverse, arrangement, alignment } = useFlexConfig(expsProvider);
+  const containerType = getContainerLayoutType(display, direction);
 
   let showColumnGapControls: boolean;
   let showRowGapControls: boolean;
   if (expsProvider instanceof TplExpsProvider) {
     // If editing tpl, check if allowed.
-    const rsh = expsProvider.mergedExp();
-    showColumnGapControls = isGapPropValidForRsh("column-gap", rsh);
-    showRowGapControls = isGapPropValidForRsh("row-gap", rsh);
+    showColumnGapControls = isGapPropValidForLayout("column-gap", containerType, isWrap);
+    showRowGapControls = isGapPropValidForLayout("row-gap", containerType, isWrap);
   } else {
     // If editing theme/mixin, always show.
     showColumnGapControls = true;
     showRowGapControls = true;
   }
-
-  const { isReverse, isWrap, isWrapReverse, arrangement, alignment } =
-    useFlexConfig(expsProvider);
 
   const getGapFieldProps = (prop: string): any => ({
     styleName: prop,
@@ -285,7 +302,7 @@ function FlexContainerControls_(props: FlexContainerControlsProps) {
     dimOpts: {
       min: 0,
       dragScale: "10",
-      value: styling.exp().get(prop),
+      value: prop === "column-gap" ? columnGapCell?.value : rowGapCell?.value,
       onChange: (val) =>
         studioCtx.changeUnsafe(() => {
           if (val) {
@@ -362,7 +379,7 @@ function FlexContainerControls_(props: FlexContainerControlsProps) {
         arrangement={arrangement}
         containerStyles={{
           display: "flex",
-          flexDirection: styling.exp().get("flex-direction") as any,
+          flexDirection: direction as any,
           flexWrap: isWrapReverse ? "wrap-reverse" : isWrap ? "wrap" : "nowrap",
         }}
         isWrap={isWrap}
@@ -423,7 +440,7 @@ function FlexContainerControls_(props: FlexContainerControlsProps) {
   );
 }
 
-export const FlexContainerControls = observer(FlexContainerControls_);
+export const FlexContainerControls = FlexContainerControls_;
 
 export function getFlexLabel(opts: {
   value: string;
@@ -834,15 +851,15 @@ export function AlignmentGridControl(props: {
 
   const styling = useStyleComponent();
 
+  const keys = [xProp, yProp, ...(outerYProp ? [outerYProp] : []), ...(outerXProp ? [outerXProp] : [])];
+  const cells = useStyleCells(styling.props.expsProvider, keys);
+  const indicators = useStyleIndicators(styling.props.expsProvider, keys);
+  const valueFor = (prop: AlignmentProp) => cells.find((cell) => cell.key === prop)?.value ?? "unset";
   const alignment: FlexAlignmentStyles = {
-    [xProp]: styling.exp().get(xProp) ?? "unset",
-    [yProp]: styling.exp().get(yProp) ?? "unset",
-    ...(outerYProp && {
-      [outerYProp]: styling.exp().get(outerYProp) ?? "unset",
-    }),
-    ...(outerXProp && {
-      [outerXProp]: styling.exp().get(outerXProp) ?? "unset",
-    }),
+    [xProp]: valueFor(xProp),
+    [yProp]: valueFor(yProp),
+    ...(outerYProp && { [outerYProp]: valueFor(outerYProp) }),
+    ...(outerXProp && { [outerXProp]: valueFor(outerXProp) }),
   };
 
   const setHoveringPreviewAlignment = (opts: Partial<FlexAlignmentStyles>) => {
@@ -864,7 +881,7 @@ export function AlignmentGridControl(props: {
         axis={axis}
         onShowPreview={(val) => setHoveringPreviewAlignment({ [prop]: val })}
         onSelect={(val) => styling.change(() => styling.exp().set(prop, val))}
-        definedIndicator={styling.definedIndicator(prop)}
+        definedIndicator={indicators[cells.findIndex((cell) => cell.key === prop)]}
         contextMenu={() => createStyleContextMenu(styling, [prop])}
         isInnerAxis={isInner}
       />

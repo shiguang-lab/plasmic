@@ -371,7 +371,7 @@ export function useSelect<P extends BaseSelectProps, C extends AnyPlasmicClass>(
     [config.optionsContainer]: {
       wrap: (content: React.ReactNode) => (
         <ListBoxWrapper state={state} menuProps={menuProps}>
-          {content as React.ReactElement}
+          {content as React.ReactElement<React.HTMLAttributes<HTMLElement>>}
         </ListBoxWrapper>
       ),
     },
@@ -429,7 +429,7 @@ export function useSelect<P extends BaseSelectProps, C extends AnyPlasmicClass>(
 function ListBoxWrapper(props: {
   state: AriaSelectState<any>;
   menuProps: AriaListBoxOptions<any>;
-  children: React.ReactElement;
+  children: React.ReactElement<React.HTMLAttributes<HTMLElement>>;
 }) {
   const { state, menuProps, children } = props;
 

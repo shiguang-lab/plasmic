@@ -1,7 +1,7 @@
 import { showCanvasAuthNotification } from "@/wab/client/components/canvas/studio-canvas-util";
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
-import { buildPreviewUpdate } from "@/wab/client/components/live/preview-codegen";
+import { buildPreviewUpdate, subscribePreviewCodegen } from "@/wab/client/components/live/preview-codegen";
 import {
   liveFrame,
   syncPreview,
@@ -16,12 +16,10 @@ import { translate } from "@/wab/client/i18n/locales";
 import { PlasmicWindowInternals } from "@/wab/client/frame-ctx/windows";
 import { requestIdleCallback } from "@/wab/client/requestidlecallback";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { VariantCombo } from "@/wab/shared/Variants";
 import { getBuiltinComponentRegistrations } from "@/wab/shared/code-components/builtin-code-components";
 import { withTimeout } from "@/wab/shared/common";
 import * as Sentry from "@sentry/browser";
 import L from "lodash";
-import { autorun, untracked } from "mobx";
 
 const LIVE_HOST_TIMEOUT_MS = 3 * 60 * 1000;
 
@@ -42,8 +40,8 @@ export function pushPreviewModules(
       return buildPreviewUpdate(previewCtx.studioCtx, {
         component: previewCtx.component,
         previewPath: previewCtx.previewPath,
-        variants: untracked(() => previewCtx.variants),
-        globals: untracked(() => previewCtx.global),
+        variants: previewCtx.variants,
+        globals: previewCtx.global,
         pageParams: previewCtx.pageParams,
         pageQuery: previewCtx.pageQuery,
         appUser: {
@@ -64,22 +62,42 @@ export function pushPreviewModules(
       }
       opts.onRendered?.();
     },
-    { name: "liveUpdate", scheduler },
+    {
+      name: "liveUpdate",
+      scheduler,
+      subscribe: (invalidate) => {
+        const disposeRoute = previewCtx.store.subscribe((next, previous) => {
+          const component = (state: typeof next) => state.previewData && typeof state.previewData.componentPath !== "string" ? state.previewData.componentPath.component : undefined;
+          const pageParams = (state: typeof next) => state.previewData && typeof state.previewData.componentPath !== "string" ? state.previewData.componentPath.pageParams : undefined;
+          if (component(next) !== component(previous) ||
+            next.previewData?.previewPath !== previous.previewData?.previewPath ||
+            !L.isEqual(pageParams(next), pageParams(previous)) ||
+            !L.isEqual(next.previewData?.pageQuery, previous.previewData?.pageQuery)) {
+            invalidate();
+          }
+        });
+        const disposeModel = subscribePreviewCodegen(previewCtx.studioCtx, () => previewCtx.component, invalidate);
+        const disposeUser = previewCtx.studioCtx.currentAppUserStore.subscribe(invalidate);
+        return () => { disposeRoute(); disposeModel(); disposeUser(); };
+      },
+    },
   );
 
-  // Variant changes update state without remounting the preview.
-  let curVariants: VariantCombo = previewCtx.getVariants();
-  const disposeVariants = autorun(
-    () => {
-      if (!L.isEqual(curVariants, previewCtx.getVariants())) {
+  // Route variants update runtime state independently of module generation.
+  let disposed = false;
+  const disposeVariants = previewCtx.store.subscribe((next, previous) => {
+    if (L.isEqual(next.previewData?.variants, previous.previewData?.variants) &&
+      L.isEqual(next.previewData?.global, previous.previewData?.global)) { return; }
+    const update = () => {
+      if (!disposed) {
         liveFrame(win).setGlobals(previewCtx.global);
         liveFrame(win).setProps(previewCtx.variants);
-        curVariants = previewCtx.getVariants();
       }
-    },
-    { name: "liveUpdateVariants", scheduler },
-  );
+    };
+    if (scheduler) { scheduler(update); } else { update(); }
+  });
   return () => {
+    disposed = true;
     disposeRun();
     disposeVariants();
   };

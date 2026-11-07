@@ -63,7 +63,7 @@ export const BaseButton = React.forwardRef(function BaseButtonInner(
     return (
       <LinkButton
         props={props}
-        ref={ref as React.RefObject<HTMLAnchorElement>}
+        ref={ref as React.RefObject<HTMLAnchorElement | null>}
       />
     );
   } else {
@@ -104,7 +104,7 @@ function LinkButton({
   ref,
 }: {
   props: BaseButtonProps;
-  ref: React.RefObject<HTMLAnchorElement>;
+  ref: React.RefObject<HTMLAnchorElement | null>;
 }) {
   const { href, children, plasmicUpdateVariant, ...rest } = props;
   const PlasmicLink = usePlasmicLink();

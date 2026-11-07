@@ -1,3 +1,4 @@
+import { waitFor } from "@testing-library/react";
 import { DragMoveFrameManager } from "@/wab/client/FreestyleManipulator";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import {
@@ -9,11 +10,12 @@ import { DomActions, ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
 import { Box, Pt } from "@/wab/shared/geom";
-import { autorun, runInAction } from "mobx";
+import { runInAction } from "mobx";
 import { mock } from "vitest-mock-extended";
 
 async function setup() {
   const { studioCtx } = fakeStudioCtx();
+  await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
   vi.spyOn(studioCtx, "tryZoomToFitArena").mockImplementation(() => undefined);
   const arena = await studioCtx.changeUnsafe(() => {
     const result = studioCtx.addArena("Pages");
@@ -99,9 +101,9 @@ it("keeps the inspector stable when all selected artboards are selected again", 
   runInAction(() => selectAllInCanvas(studioCtx));
   const vc = ensure(studioCtx.focusedViewCtx(), "Focused view context");
   const update = vi.fn();
-  const disposeObserver = autorun(() => update(
-    studioCtx.focusedFrames(), studioCtx.focusedViewCtx(), vc.focusedTpls(),
-  ));
+  const readSelection = () => update(studioCtx.focusedFrames(), studioCtx.focusedViewCtx(), vc.focusedTpls());
+  const stops = [studioCtx.selectionStore.subscribe(readSelection), vc.selectionStore.subscribe(readSelection)];
+  const disposeObserver = () => stops.forEach((stop) => stop());
   try {
     update.mockClear();
     runInAction(() => selectAllInCanvas(studioCtx));

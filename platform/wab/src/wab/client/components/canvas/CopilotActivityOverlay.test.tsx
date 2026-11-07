@@ -1,21 +1,21 @@
-import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { ComponentType, mkComponent } from "@/wab/shared/core/components";
+import { createSite } from "@/wab/shared/core/sites";
+import { fakeRegistryViewCtx, fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { productTheme } from "@/wab/client/antd-theme";
 import {
   activityBounds,
   CopilotActivityOverlay,
 } from "@/wab/client/components/canvas/CopilotActivityOverlay";
 import { ActivityTarget } from "@/wab/client/copilot/activity";
-import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { IArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
+import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { ensure } from "@/wab/shared/common";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { ValTag } from "@/wab/shared/core/val-nodes";
-import { Component, TplComponent, TplNode } from "@/wab/shared/model/classes";
+import { ArenaFrame, Component, TplNode } from "@/wab/shared/model/classes";
 import { act, cleanup, render } from "@testing-library/react";
 import { theme } from "antd";
 import { ThemeProvider } from "antd-style";
-import { observable } from "mobx";
 import React from "react";
 import { afterEach, expect, it, vi } from "vitest";
 import { mock } from "vitest-mock-extended";
@@ -26,45 +26,45 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-function nestedActivity() {
+function nestedActivity(withArena = false) {
   vi.useFakeTimers();
   vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
-  const { studioCtx } = fakeStudioCtx();
   const descendant = mkTplTagX("span");
   const child = mkTplTagX("div", {}, [descendant]);
   const parent = mkTplTagX("div", {}, [child]);
   const sibling = mkTplTagX("div");
-  const component = mock<Component>({
-    uuid: "page",
-    type: "page",
-  });
-  const frame = mock<IArenaFrame>({
-    uuid: "frame",
-    width: 1440,
-    height: 1024,
-    _height: observable.box(1024),
-    container: mock<TplComponent>({ component }),
-  });
-  component.tplTree = mkTplTagX("div", {}, [parent, sibling]);
+  const site = createSite();
+  const root = mkTplTagX("div", {}, [parent, sibling]);
+  const initialComponent = mkComponent({ name: "Page", type: ComponentType.Page, tplTree: root });
+  const component = withArena ? initialComponent : new Component({ ...initialComponent, uuid: "page" });
+  const initialFrame = mkArenaFrame({ site, component, name: "First", width: 1440, height: 1024 });
+  const frame = withArena ? initialFrame : new ArenaFrame({ ...initialFrame, uuid: "frame" });
+  const otherFrame = withArena ? mkArenaFrame({ site, component, name: "Second", width: 1440, height: 1024 }) : undefined;
+  const arena = withArena ? mkMixedArena("Canvas", [frame, ensure(otherFrame, "Second activity frame")]) : undefined;
+  site.components.push(component);
+  if (arena) { site.arenas.push(arena); }
+  const { studioCtx } = fakeStudioCtx({ site });
+  component.tplTree = root;
   const element = document.createElement("div");
   document.body.append(element);
   rect(element, 10, 10, 100, 100);
   const renderState = mock<ViewCtx["renderState"]>();
   renderState.tpl2bestVal.mockReturnValue(mock<ValTag>());
   renderState.sel2dom.mockReturnValue([element]);
-  const viewCtx = mock<ViewCtx>();
-  viewCtx.arenaFrame.mockReturnValue(frame);
-  Object.defineProperties(viewCtx, {
-    studioCtx: { value: mock<StudioCtx>({ zoom: 1 }) },
-    renderState: { value: renderState },
-  });
+  const { view: viewCtx } = fakeRegistryViewCtx(studioCtx, frame);
+  Object.defineProperty(viewCtx, "renderState", { value: renderState });
+  if (otherFrame) {
+    const { view: otherView } = fakeRegistryViewCtx(studioCtx, otherFrame);
+    Object.defineProperty(otherView, "renderState", { value: renderState });
+  }
   vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(viewCtx);
+  if (arena) { studioCtx.currentArena = arena; }
   const target = (elementUuid?: string): ActivityTarget => ({
     componentUuid: component.uuid,
     elementUuid,
     label: elementUuid ?? "Page",
   });
-  return { studioCtx, frame, parent, child, descendant, sibling, target, renderState };
+  return { studioCtx, frame, parent, child, descendant, sibling, target, renderState, otherFrame };
 }
 
 /** Renders only the given Tpls, each at its own box; others have no DOM. */
@@ -146,7 +146,7 @@ it.each(["inspection", "edit"] as const)("merges overlapping scope aliases for t
       { elementUuid: child.uuid, label: "Child" },
     ], kind);
   });
-  expect(activity.regions).toHaveLength(3);
+  expect(activity.store.getState().regions).toHaveLength(3);
   expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(1);
   expect(container.querySelector("[data-copilot-target]")).toBe(region);
   act(() => {
@@ -185,7 +185,7 @@ it.each([
   const visibleTargets = () => Array.from(container.querySelectorAll("[data-copilot-target]"), (region) => region.getAttribute("data-copilot-target"));
   const expected = scope === "page" ? ["page"] : [sibling.uuid, parent.uuid];
   expect(visibleTargets()).toEqual(expected);
-  expect(activity.regions).toHaveLength(4);
+  expect(activity.store.getState().regions).toHaveLength(4);
   act(() => {
     finishParent("success");
     vi.advanceTimersByTime(1999);
@@ -320,24 +320,21 @@ it("keeps a different-kind scan nested in an unrendered target's drawn ancestor"
   activity.dispose();
 });
 
+function pageActivityFixture() {
+  const site = createSite();
+  const component = new Component({ ...mkComponent({ name: "Page", type: ComponentType.Page, tplTree: mkTplTagX("div") }), uuid: "page" });
+  site.components.push(component);
+  const frame = mkArenaFrame({ site, component, name: "Page", width: 1440, height: 1024 });
+  const { studioCtx } = fakeStudioCtx({ site });
+  fakeRegistryViewCtx(studioCtx, frame);
+  return { studioCtx, frame };
+}
+
 it("renders a single persistent scan DOM node until its last reference expires", () => {
   vi.useFakeTimers();
   vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
-  const { studioCtx } = fakeStudioCtx();
+  const { studioCtx, frame } = pageActivityFixture();
   const activity = studioCtx.copilotActivity;
-  const component = mock<Component>({ uuid: "page", type: "page", tplTree: mkTplTagX("div") });
-  const frame = mock<IArenaFrame>({
-    width: 1440,
-    height: 1024,
-    _height: observable.box(1024),
-    container: mock<TplComponent>({ component }),
-  });
-  const viewCtx = mock<ViewCtx>();
-  Object.defineProperty(viewCtx, "studioCtx", {
-    value: mock<StudioCtx>({ zoom: 1 }),
-  });
-  viewCtx.arenaFrame.mockReturnValue(frame);
-  vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(viewCtx);
   const target = { componentUuid: "page", label: "Page" };
   const first = activity.begin([target, target]);
   const { container } = render(
@@ -376,20 +373,7 @@ it.each([
 ] as const)("preserves the %s color through scanning and completion in %s appearance", (kind, appearance) => {
   vi.useFakeTimers();
   vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
-  const { studioCtx } = fakeStudioCtx();
-  const component = mock<Component>({ uuid: "page", type: "page", tplTree: mkTplTagX("div") });
-  const frame = mock<IArenaFrame>({
-    width: 1440,
-    height: 1024,
-    _height: observable.box(1024),
-    container: mock<TplComponent>({ component }),
-  });
-  const viewCtx = mock<ViewCtx>();
-  viewCtx.arenaFrame.mockReturnValue(frame);
-  Object.defineProperty(viewCtx, "studioCtx", {
-    value: mock<StudioCtx>({ zoom: 1 }),
-  });
-  vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(viewCtx);
+  const { studioCtx, frame } = pageActivityFixture();
   const finish = studioCtx.copilotActivity.begin([
     { componentUuid: "page", label: "Page" },
   ], kind);
@@ -486,10 +470,8 @@ it("clips a table cell to its nested scrolling viewport instead of highlighting 
 });
 
 it("owns one cursor across artboards and destroys completed feedback on disconnect", () => {
-  const { studioCtx, frame, target } = nestedActivity();
-  const other = mock<IArenaFrame>({ uuid: "other-frame", width: 1440, height: 1024 });
-  other.container = frame.container;
-  vi.spyOn(studioCtx, "currentArena", "get").mockReturnValue(mkMixedArena("Canvas", [frame, other]));
+  const { studioCtx, frame, target, otherFrame } = nestedActivity(true);
+  const other = ensure(otherFrame, "Second activity frame");
   let next = 0;
   const callbacks = new Map<number, FrameRequestCallback>();
   vi.mocked(window.requestAnimationFrame).mockImplementation((cb) => { callbacks.set(++next, cb); return next; });
@@ -518,14 +500,38 @@ it("owns one cursor across artboards and destroys completed feedback on disconne
   expect(container.querySelectorAll("[data-plasmic-agent-cursor]")).toHaveLength(1);
   expect(container.querySelector('[data-frame="second"] [data-plasmic-agent-cursor]')).not.toBeNull();
   act(() => { finishOther("success"); vi.advanceTimersByTime(2000); });
-  expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+  expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
   act(() => studioCtx.copilotActivity.clearCaller(caller.id));
   expect(container.querySelector("[data-plasmic-agent-cursor]")).toBeNull();
   // A component-wide request matches both artboards, but still has one cursor.
   act(() => { studioCtx.copilotActivity.begin([target()], "edit", caller); });
   step(); step();
   expect(container.querySelectorAll("[data-plasmic-agent-cursor]")).toHaveLength(1);
-  act(() => vi.advanceTimersByTime(6500));
+  act(() => { vi.advanceTimersByTime(6500); });
   expect(container.querySelector("[data-plasmic-agent-cursor]")).toBeNull();
   act(() => studioCtx.copilotActivity.dispose());
+});
+
+it("does not commit or start DOM polling for work in unrelated frames", () => {
+  const { studioCtx, frame, target } = nestedActivity();
+  const commits = vi.fn();
+  const view = render(<React.Profiler id="activity" onRender={commits}>
+    <CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />
+  </React.Profiler>);
+  commits.mockClear();
+  vi.mocked(window.requestAnimationFrame).mockClear();
+  let finish = (_status: "success" | "error") => {};
+  act(() => {finish = studioCtx.copilotActivity.begin([{ ...target(), componentUuid: "other-page" }]);});
+  expect(commits).not.toHaveBeenCalled();
+  expect(window.requestAnimationFrame).not.toHaveBeenCalled();
+  act(() => finish("success"));
+  act(() => { vi.advanceTimersByTime(2000); });
+  expect(commits).not.toHaveBeenCalled();
+  expect(window.requestAnimationFrame).not.toHaveBeenCalled();
+  let own = finish;
+  act(() => {own = studioCtx.copilotActivity.begin([target()]);});
+  expect(commits).toHaveBeenCalled();
+  expect(window.requestAnimationFrame).toHaveBeenCalled();
+  act(() => own("error"));
+  view.unmount(); studioCtx.copilotActivity.dispose();
 });

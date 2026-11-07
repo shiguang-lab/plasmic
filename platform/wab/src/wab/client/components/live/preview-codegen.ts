@@ -85,12 +85,14 @@ import {
   isKnownPropParam,
 } from "@/wab/shared/model/classes";
 import { getPlumeEditorPlugin } from "@/wab/shared/plume/plume-registry";
-import { comparer } from "mobx";
-import { computedFn } from "mobx-utils";
+import type { ModelCommit } from "@/wab/client/studio-ctx/StudioCtx";
+import { isKnownArena, isKnownArenaFrame, isKnownComponent } from "@/wab/shared/model/classes";
 
 export interface PreviewCodegenContext {
   site: Site;
   siteInfo: Pick<StudioCtx["siteInfo"], "id" | "name" | "appAuthProvider">;
+  subscribeModelChanges?: StudioCtx["subscribeModelChanges"];
+  projectMetadataStore?: StudioCtx["projectMetadataStore"];
 }
 
 export interface PreviewRoute {
@@ -121,6 +123,7 @@ function buildComponentModules(
       ? [rootComponent, ...extractDependentComponents(rootComponent)]
       : [],
   );
+  const componentOutputs = new Map<Component, ComponentExportOutput>();
   const modules: SourceModule[] = [
     {
       name: `./${styleOutput.defaultStyleCssFileName}`,
@@ -134,10 +137,11 @@ function buildComponentModules(
       components,
       projectConfig,
       depsProjectConfigs,
+      componentOutputs,
     ),
     createCustomFunctionsModule(site),
   ];
-  return { modules, projectConfig, depsProjectConfigs, components };
+  return { modules, projectConfig, depsProjectConfigs, components, componentOutputs };
 }
 
 function createReferencedComponentModules(
@@ -145,6 +149,7 @@ function createReferencedComponentModules(
   components: Iterable<Component>,
   projectConfig: ProjectConfig,
   depsProjectConfigs: ProjectConfig[],
+  componentOutputs: Map<Component, ComponentExportOutput>,
 ) {
   const modules: SourceModule[] = [];
   for (const component of components) {
@@ -165,40 +170,22 @@ function createReferencedComponentModules(
         getOwnerSite(component) === studioCtx.site
           ? projectConfig
           : getComponentProjectConfig(studioCtx, component, depsProjectConfigs);
-      modules.push(
-        ...createComponentModules(
-          createComponentOutput(
-            studioCtx,
-            component,
-            componentProjectConfig,
-            false,
-          ),
-        ),
-      );
+      const output = createComponentOutput(studioCtx, component, componentProjectConfig, false);
+      componentOutputs.set(component, output);
+      modules.push(...createComponentModules(output));
     }
   }
   return modules;
 }
 
-export function buildPreviewModules(
+function generatePreviewModules(
   studioCtx: PreviewCodegenContext,
   rootComponent?: Component,
 ) {
   const site = studioCtx.site;
-  const result = buildComponentModules(studioCtx, rootComponent);
+  const { componentOutputs, ...result } = buildComponentModules(studioCtx, rootComponent);
   const { modules, projectConfig, components } = result;
-  // Memoized, so this is the output already emitted as the root's modules.
-  const rootOutput =
-    rootComponent && !isCodeComponent(rootComponent)
-      ? createComponentOutput(
-          studioCtx,
-          rootComponent,
-          getOwnerSite(rootComponent) === site
-            ? projectConfig
-            : getComponentProjectConfig(studioCtx, rootComponent, result.depsProjectConfigs),
-          false,
-        )
-      : undefined;
+  const rootOutput = rootComponent ? componentOutputs.get(rootComponent) : undefined;
   modules.push(
     ...[...extractUsedIconAssetsForComponents(site, [...components])]
       .filter((asset) => asset.dataUri)
@@ -214,13 +201,13 @@ export function buildPreviewModules(
   return { ...result, rootOutput };
 }
 
-export function buildDocsPreviewModules(
+function generateDocsPreviewModules(
   studioCtx: PreviewCodegenContext,
   component: Component | undefined,
   usePlasmicImg: boolean,
 ) {
   const site = studioCtx.site;
-  const result = buildComponentModules(studioCtx, component);
+  const { componentOutputs: _componentOutputs, ...result } = buildComponentModules(studioCtx, component);
   const globalGroups = [
     ...getReferencedVariantGroups(
       extractUsedGlobalVariantsForComponents(
@@ -238,6 +225,103 @@ export function buildDocsPreviewModules(
     ...globalGroups.map((group) => createGlobalVariantGroupModule(group)),
   );
   return { ...result, globalGroups };
+}
+
+type PreviewModules = ReturnType<typeof generatePreviewModules>;
+type DocsModules = ReturnType<typeof generateDocsPreviewModules>;
+
+/** Codegen entries belong to a Studio and a root; completed model changes
+ * invalidate the affected roots before any preview subscriber runs. */
+class PreviewCodegenCache {
+  readonly live = new Map<Component | undefined, PreviewModules>();
+  readonly docs = new Map<Component | undefined, Map<boolean, DocsModules>>();
+  private readonly listeners = new Set<{ root: () => Component | undefined; listener: () => void }>();
+  private readonly dirtyRoots = new Set<Component>();
+  constructor(private readonly ctx: PreviewCodegenContext) {}
+
+  reset() {
+    this.live.clear();
+    this.docs.clear();
+    for (const { listener } of this.listeners) { listener(); }
+  }
+
+  sync(event: ModelCommit) {
+    if (event.type === "site-replaced") {
+      this.reset();
+      return;
+    }
+    const { summary } = event;
+    if (!summary.changes.length) { return; }
+    // Arena viewport/selection/presentation metadata does not participate in codegen.
+    // Every other project resource is emitted by project CSS, global providers,
+    // custom functions, or can affect serializers for the rendered component tree.
+    const projectChanged = this.ctx.site.globalContexts.some((tpl) => summary.updatedComponents.has(tpl.component)) || summary.changes.some((change) => {
+      const path = change.path ?? [change.changeNode];
+      return !path.some(({ inst }) => isKnownComponent(inst) || isKnownArena(inst) || isKnownArenaFrame(inst));
+    });
+    this.dirtyRoots.clear();
+    for (const root of summary.deepUpdatedComponents) { this.dirtyRoots.add(root); }
+    for (const root of summary.updatedComponents) { this.dirtyRoots.add(root); }
+    const affected = (root: Component | undefined) => {
+      if (projectChanged || (!!root && this.dirtyRoots.has(root))) { return true; }
+      const entry = this.live.get(root) ?? this.docs.get(root)?.values().next().value;
+      return !!entry && [...entry.components].some((component) => this.dirtyRoots.has(component));
+    };
+    const pendingListeners = [...this.listeners].filter(({ root }) => affected(root()));
+    for (const root of this.live.keys()) { if (affected(root)) { this.live.delete(root); } }
+    for (const root of this.docs.keys()) { if (affected(root)) { this.docs.delete(root); } }
+    for (const { listener } of pendingListeners) { listener(); }
+  }
+
+  subscribe(root: () => Component | undefined, listener: () => void) {
+    const entry = { root, listener };
+    this.listeners.add(entry);
+    return () => { this.listeners.delete(entry); };
+  }
+}
+
+const codegenCaches = new WeakMap<PreviewCodegenContext, PreviewCodegenCache>();
+function getCodegenCache(ctx: PreviewCodegenContext) {
+  let cache = codegenCaches.get(ctx);
+  if (!cache) {
+    cache = new PreviewCodegenCache(ctx);
+    codegenCaches.set(ctx, cache);
+    ctx.subscribeModelChanges?.((event) => cache?.sync(event));
+    ctx.projectMetadataStore?.subscribe((next, previous) => {
+      if (next.id !== previous.id || next.name !== previous.name || next.appAuthProvider !== previous.appAuthProvider) { cache?.reset(); }
+    });
+  }
+  return cache;
+}
+
+export function subscribePreviewCodegen(
+  ctx: PreviewCodegenContext,
+  root: () => Component | undefined,
+  listener: () => void,
+) {
+  return getCodegenCache(ctx).subscribe(root, listener);
+}
+
+export function buildPreviewModules(ctx: PreviewCodegenContext, root?: Component): PreviewModules {
+  const cache = getCodegenCache(ctx);
+  let result = cache.live.get(root);
+  if (!result) {
+    result = generatePreviewModules(ctx, root);
+    cache.live.set(root, result);
+  }
+  return { ...result, modules: result.modules.slice() };
+}
+
+export function buildDocsPreviewModules(ctx: PreviewCodegenContext, root: Component | undefined, usePlasmicImg: boolean): DocsModules {
+  const cache = getCodegenCache(ctx);
+  let entries = cache.docs.get(root);
+  if (!entries) { entries = new Map(); cache.docs.set(root, entries); }
+  let result = entries.get(usePlasmicImg);
+  if (!result) {
+    result = generateDocsPreviewModules(ctx, root, usePlasmicImg);
+    entries.set(usePlasmicImg, result);
+  }
+  return { ...result, modules: result.modules.slice() };
 }
 
 export function buildPreviewUpdate(
@@ -565,15 +649,7 @@ function getComponentProjectConfig(
   );
 }
 
-// For the expensive parts of code-gen, we use computedFn to keep a cache of
-// outputs as long as the model objects haven't changed.  We use keepAlive
-// so that even when we're not currently using a component, we hold onto the
-// generated code for it.  We're not worried about memory leak because the only
-// time a component's code becomes useless for this purpose is when we delete it,
-// which is rare.
-
-const createProjectOutput = computedFn(
-  function createProjectOutput(
+function createProjectOutput(
     site: Site,
     projectId: ProjectId,
     projectName: string,
@@ -622,12 +698,9 @@ const createProjectOutput = computedFn(
       "latest",
       exportOpts,
     );
-  },
-  { name: "createProjectOutput", keepAlive: true, equals: comparer.structural },
-);
+}
 
-const createComponentOutput = computedFn(
-  function createComponentOutput(
+function createComponentOutput(
     studioCtx: PreviewCodegenContext,
     component: Component,
     projectConfig: ProjectConfig,
@@ -696,44 +769,27 @@ const createComponentOutput = computedFn(
       exportOpts,
       computeSerializerSiteContext(studioCtx.site),
     );
-  },
-  { name: "createComponentMods", keepAlive: true, equals: comparer.structural },
-);
+}
 
-const createIconAssetModule = computedFn(
-  function createIconAssetModule(asset: ImageAsset) {
+function createIconAssetModule(asset: ImageAsset) {
     const bundle = exportIconAsset(asset, { idFileNames: true });
     return {
       name: `./${bundle.fileName}`,
       lang: "tsx",
       source: bundle.module,
     };
-  },
-  {
-    name: "createIconAssetModule",
-    keepAlive: true,
-    equals: comparer.structural,
-  },
-);
+}
 
-const createGlobalVariantGroupModule = computedFn(
-  function createGlobalVariantGroupModule(group: VariantGroup) {
+function createGlobalVariantGroupModule(group: VariantGroup) {
     const bundle = exportGlobalVariantGroup(group, { idFileNames: true });
     return {
       name: `./${bundle.contextFileName}`,
       lang: "tsx",
       source: bundle.contextModule,
     };
-  },
-  {
-    name: "createGlobalVariantGroupModule",
-    keepAlive: true,
-    equals: comparer.structural,
-  },
-);
+}
 
-const createCustomFunctionsModule = computedFn(
-  function createCustomFunctionsModule(site: Site) {
+function createCustomFunctionsModule(site: Site) {
     const source = `${allCustomFunctions(site)
       .map(
         ({ customFunction: fn }) =>
@@ -761,13 +817,7 @@ const createCustomFunctionsModule = computedFn(
       lang: "tsx",
       source,
     };
-  },
-  {
-    name: "createCustomFunctionsModule",
-    keepAlive: true,
-    equals: comparer.structural,
-  },
-);
+}
 
 function createDepsProjectOutput(site: Site): ProjectConfig[] {
   return walkDependencyTree(site, "all").map((dep) => {
@@ -789,8 +839,7 @@ function createDepsProjectMods(
 /**
  * Creates project-level modules for the given project.
  */
-const createProjectMods = computedFn(
-  function createProjectMods(projectOutput: ProjectConfig): SourceModule[] {
+function createProjectMods(projectOutput: ProjectConfig): SourceModule[] {
     const mods: SourceModule[] = [
       {
         name: `./${projectOutput.cssFileName}`,
@@ -820,6 +869,4 @@ const createProjectMods = computedFn(
       });
     }
     return mods;
-  },
-  { name: "createProjectMods", keepAlive: true, equals: comparer.structural },
-);
+}

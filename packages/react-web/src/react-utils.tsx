@@ -49,7 +49,7 @@ export function ensureNotArray(children: React.ReactNode) {
  * Flattens ReactNode into an array of ReactChild, but does NOT replace
  * missing keys with array index, as React.Children.toArray() does.
  */
-export function toChildArray(children: React.ReactNode): React.ReactChild[] {
+export function toChildArray(children: React.ReactNode): (React.ReactElement | string | number)[] {
   if (isReactChild(children)) {
     return [children];
   } else if (Array.isArray(children)) {
@@ -59,13 +59,13 @@ export function toChildArray(children: React.ReactNode): React.ReactChild[] {
   }
 }
 
-export function isReactText(child: React.ReactNode): child is React.ReactText {
+export function isReactText(child: React.ReactNode): child is string | number {
   return typeof child === "string" || typeof child === "number";
 }
 
 export function isReactChild(
   child: React.ReactNode
-): child is React.ReactChild {
+): child is React.ReactElement | string | number {
   return React.isValidElement(child) || isReactText(child);
 }
 
@@ -90,7 +90,7 @@ export type StrictProps<T, TExpected> = Exclude<
   ? {}
   : Partial<"Unexpected extraneous props">;
 
-export type HTMLElementRefOf<T extends keyof JSX.IntrinsicElements> = Exclude<
+export type HTMLElementRefOf<T extends keyof React.JSX.IntrinsicElements> = Exclude<
   React.ComponentProps<T>["ref"],
   string
 >;
@@ -120,7 +120,7 @@ function updateRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
   }
 
   if (typeof ref === "function") {
-    ref(value);
+    return ref(value);
   } else {
     if (!Object.isFrozen(ref)) {
       (ref as React.MutableRefObject<T | null>).current = value;
@@ -128,11 +128,23 @@ function updateRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
   }
 }
 
-export function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]) {
-  return (value: T) => {
-    for (const ref of refs) {
-      updateRef(ref, value);
+export function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
+  return (value) => {
+    const cleanups = refs.map((ref) => updateRef(ref, value));
+    if (value === null) {
+      return;
     }
+
+    return () => {
+      refs.forEach((ref, index) => {
+        const cleanup = cleanups[index];
+        if (typeof cleanup === "function") {
+          cleanup();
+        } else {
+          updateRef(ref, null);
+        }
+      });
+    };
   };
 }
 

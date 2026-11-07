@@ -5,51 +5,45 @@ import {
   PlasmicArenaSwitcher,
 } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicArenaSwitcher";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import {
-  AnyArena,
-  getArenaName,
-  isComponentArena,
-  isPageArena,
-} from "@/wab/shared/Arenas";
-import { observer } from "mobx-react";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import * as React from "react";
+import { useShallow } from "zustand/react/shallow";
 
 export type ArenaSwitcherProps = DefaultArenaSwitcherProps;
 
-const ArenaSwitcher = observer(function ArenaSwitcher(
-  props: ArenaSwitcherProps,
-) {
+const ArenaSwitcher = function ArenaSwitcher(props: ArenaSwitcherProps) {
   const studioCtx = useStudioCtx();
-  const currentArena = studioCtx.currentArena as AnyArena;
-  const currentArenaName = currentArena ? getArenaName(currentArena) : "";
+  const [current, kind, name] = useStudioArena(
+    studioCtx,
+    useShallow((state) => [state.current, state.kind, state.name] as const),
+  );
+
+  // The context menu still takes the opaque real model. Read it through the
+  // canonical getter; the selected ref above only schedules this component
+  // when the arena identity changes.
+  const currentArena = current !== null ? studioCtx.currentArena : null;
 
   const contextMenuProps = useContextMenu({
-    menu: (
+    menu: currentArena ? (
       <ArenaContextMenu
         studioCtx={studioCtx}
         arena={currentArena}
         onSelectRename={undefined /* TODO: implement rename here */}
       />
-    ),
+    ) : null,
   });
 
   return (
     <PlasmicArenaSwitcher
       onClick={() => studioCtx.showProjectPanel()}
-      arenaType={
-        isComponentArena(currentArena)
-          ? "component"
-          : isPageArena(currentArena)
-            ? "page"
-            : "mixed"
-      }
+      arenaType={kind ?? "mixed"}
       root={{
         children: (
           <span
             className="fill-width text-ellipsis inline-block"
             style={{ maxWidth: 300 }}
           >
-            {currentArenaName}
+            {name}
           </span>
         ),
       }}
@@ -58,6 +52,6 @@ const ArenaSwitcher = observer(function ArenaSwitcher(
       {...props}
     />
   );
-});
+};
 
 export default ArenaSwitcher;

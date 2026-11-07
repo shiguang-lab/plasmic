@@ -1,13 +1,14 @@
+import { jsx } from 'react/jsx-runtime';
 import { Pagination } from 'antd';
 import React from 'react';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 function AntdPagination(props) {
   const { paginatedUrl, pageSizeOptions, ...rest } = props;
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Pagination,
     {
       pageSizeOptions: pageSizeOptions?.filter((i) => i?.pageSize).map((i) => i.pageSize),
@@ -24,9 +25,9 @@ function AntdPagination(props) {
           ...originalElement.props,
           rel,
           href,
-          style: {
-            ...originalElement.props?.style ?? {},
-            pointerEvents: "none"
+          onClick: (event) => {
+            originalElement.props.onClick?.(event);
+            event.preventDefault();
           }
         });
       } : void 0,

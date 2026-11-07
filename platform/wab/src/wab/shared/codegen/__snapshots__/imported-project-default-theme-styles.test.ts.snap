@@ -381,7 +381,6 @@ const $$ = {};
 
 
 
-
     function PlasmicHomepage__RenderFunc(
       props: {
         variants: PlasmicHomepage__VariantsArgs,
@@ -927,7 +926,6 @@ const $$ = {};
 
 
 
-
     function PlasmicTest__RenderFunc(
       props: {
         variants: PlasmicTest__VariantsArgs,
@@ -1181,7 +1179,8 @@ declare module '*.module.css' {
       
       
       :where(.root_reset_1234567890) {
-      font-family: var(--mixin-K-a1yZi9mim-_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-K-a1yZi9mim-_font-family);
 font-size: var(--mixin-K-a1yZi9mim-_font-size);
 font-weight: var(--mixin-K-a1yZi9mim-_font-weight);
 font-style: var(--mixin-K-a1yZi9mim-_font-style);
@@ -1343,6 +1342,7 @@ line-height: var(--mixin-PZGG7T7JBi57_line-height);
   
 --- plasmic__default_style.css ---
 
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.plasmic_default__all) {   display: block;
   white-space: inherit;
   grid-row: auto;
@@ -2032,7 +2032,6 @@ const $$ = {};
 
 
 
-
     function PlasmicHomepage__RenderFunc(
       props: {
         variants: PlasmicHomepage__VariantsArgs,
@@ -2578,7 +2577,6 @@ const $$ = {};
 
 
 
-
     function PlasmicTest__RenderFunc(
       props: {
         variants: PlasmicTest__VariantsArgs,
@@ -2831,6 +2829,7 @@ declare module '*.module.css' {
       
       
       
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.all) {   display: block;
   white-space: inherit;
   grid-row: auto;
@@ -3121,7 +3120,8 @@ declare module '*.module.css' {
 .plasmic_page_wrapper > * { height: auto !important; }
 .__wab_expr_html_text { white-space: normal; }
       :where(.root_reset_1234567890) {
-      font-family: var(--mixin-K-a1yZi9mim-_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-K-a1yZi9mim-_font-family);
 font-size: var(--mixin-K-a1yZi9mim-_font-size);
 font-weight: var(--mixin-K-a1yZi9mim-_font-weight);
 font-style: var(--mixin-K-a1yZi9mim-_font-style);
@@ -3283,6 +3283,7 @@ line-height: var(--mixin-PZGG7T7JBi57_line-height);
   
 --- plasmic__default_style.css ---
 
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.all) {   display: block;
   white-space: inherit;
   grid-row: auto;

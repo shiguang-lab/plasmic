@@ -21,8 +21,6 @@ beforeAll(() => {
       disconnect() {}
     },
   );
-  const getComputedStyle = window.getComputedStyle;
-  vi.spyOn(window, "getComputedStyle").mockImplementation((element) =>
-    getComputedStyle(element),
-  );
+  const nativeComputedStyle = window.getComputedStyle.bind(window);
+  window.getComputedStyle = (element) => nativeComputedStyle(element);
 });

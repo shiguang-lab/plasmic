@@ -53,8 +53,6 @@ function fixture() {
   const vc = {
     dom2focusObj: () => undefined,
     studioCtx: {
-      isDraggingObject: () => false,
-      isTransformingObject: () => false,
     },
     canvasCtx: { viewportContainerOffset: () => ({ left: 100, top: 200 }) },
   } as unknown as ViewCtx;
@@ -68,9 +66,9 @@ it("hides an already-selected background node while a modal is open", () => {
   modal.setAttribute("role", "dialog");
   modal.setAttribute("aria-modal", "true");
   const target = { node: $(background), focusObj };
-  expect(computeHoverBoxViewState(vc, target)).toEqual({ display: "none" });
+  expect(computeHoverBoxViewState(vc, target, false, false)).toEqual({ display: "none" });
   modal.style.visibility = "hidden";
-  expect(computeHoverBoxViewState(vc, target).display).toBe("unset");
+  expect(computeHoverBoxViewState(vc, target, false, false).display).toBe("unset");
 });
 
 it("measures only foreground roots when a selected component also renders behind a modal", () => {
@@ -79,7 +77,7 @@ it("measures only foreground roots when a selected component also renders behind
   const modal = document.body.appendChild(element(new Box(100, 100, 600, 300)));
   modal.setAttribute("role", "dialog");
   modal.setAttribute("aria-modal", "true");
-  const result = computeHoverBoxViewState(vc, { node: $([background, modal]), focusObj });
+  const result = computeHoverBoxViewState(vc, { node: $([background, modal]), focusObj }, false, false);
   expect(result.displayProps).toMatchObject({ top: 300, left: 200, width: 600, height: 300 });
   expect(result.focusedElt?.toArray()).toEqual([modal]);
 });
@@ -94,7 +92,7 @@ it.each(["style", "hidden root"])(
     const node = $(
       [leading, element(new Box(20, 10, 30, 40)), element(new Box(80, 150, 40, 20))],
     );
-    const result = computeHoverBoxViewState(vc, { node, focusObj });
+    const result = computeHoverBoxViewState(vc, { node, focusObj }, false, false);
     expect(result.display).toBe("unset");
     expect(result.displayProps).toMatchObject({
       top: 220, left: 110, width: 180, height: 80,
@@ -114,7 +112,7 @@ it("hides an empty or entirely non-layout selection", () => {
     $(document.createElement("style")),
     $(element(new Box(0, 0, 1000, 1000), false)),
   ]) {
-    expect(computeHoverBoxViewState(vc, { node, focusObj })).toEqual({
+    expect(computeHoverBoxViewState(vc, { node, focusObj }, false, false)).toEqual({
       display: "none",
     });
     expect(getSelectionBounds([node])).toBeUndefined();
@@ -128,7 +126,7 @@ it("resolves a native component part without a global jQuery", () => {
   Object.defineProperty(vc, "focusedComponentPart", {
     value: { tpl: owner.tpl, element: button, displayName: "Confirm button" },
   });
-  expect(computeHoverBoxViewState(vc, { node: $(document.createElement("div")), focusObj: owner }))
+  expect(computeHoverBoxViewState(vc, { node: $(document.createElement("div")), focusObj: owner }, false, false))
     .toEqual({ display: "none" });
 });
 
@@ -142,9 +140,9 @@ it("shows a selection when an initially hidden root gains layout", () => {
     () => new DOMRect(10, 20, visible ? 80 : 0, visible ? 40 : 0),
   );
   const target = { node: $(elt), focusObj };
-  expect(computeHoverBoxViewState(vc, target).display).toBe("none");
+  expect(computeHoverBoxViewState(vc, target, false, false).display).toBe("none");
   visible = true;
-  expect(computeHoverBoxViewState(vc, target).displayProps).toMatchObject({
+  expect(computeHoverBoxViewState(vc, target, false, false).displayProps).toMatchObject({
     top: 220, left: 110, width: 80, height: 40,
   });
 });
@@ -174,7 +172,7 @@ describe("clipped selections", () => {
     const container = clipper(new Box(0, 0, 300, 100));
     const elt = element(new Box(50, 20, 200, 400));
     container.appendChild(elt);
-    const result = computeHoverBoxViewState(vc, { node: $(elt), focusObj });
+    const result = computeHoverBoxViewState(vc, { node: $(elt), focusObj }, false, false);
     expect(result.displayProps).toMatchObject({
       // Real box: drives the size badge and drag computations.
       top: 250,
@@ -192,8 +190,24 @@ describe("clipped selections", () => {
     const container = clipper(new Box(0, 0, 300, 100));
     const elt = element(new Box(150, 20, 200, 40));
     container.appendChild(elt);
-    expect(computeHoverBoxViewState(vc, { node: $(elt), focusObj })).toEqual({
+    expect(computeHoverBoxViewState(vc, { node: $(elt), focusObj }, false, false)).toEqual({
       display: "none",
     });
   });
+});
+
+it("uses the explicit transform snapshot to hide geometry without an observable command getter", () => {
+  const { vc, focusObj } = fixture();
+  const root = document.body.appendChild(element(new Box(20, 20, 100, 50)));
+  const target = { node: $(root), focusObj };
+  expect(computeHoverBoxViewState(vc, target, true, false)).toEqual({ display: "none" });
+  expect(computeHoverBoxViewState(vc, target, false, false).display).toBe("unset");
+});
+
+it("uses the explicit dragging snapshot without a mutable command getter", () => {
+  const { vc, focusObj } = fixture();
+  const root = document.body.appendChild(element(new Box(20, 20, 100, 50)));
+  const target = { node: $(root), focusObj };
+  expect(computeHoverBoxViewState(vc, target, false, true)).toEqual({ display: "none" });
+  expect(computeHoverBoxViewState(vc, target, false, false).display).toBe("unset");
 });

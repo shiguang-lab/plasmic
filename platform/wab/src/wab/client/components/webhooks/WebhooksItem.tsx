@@ -14,7 +14,6 @@ import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { ApiProjectWebhook } from "@/wab/shared/ApiSchema";
 import { httpMethods } from "@/wab/shared/HttpClientUtil";
 import { Menu, Popover } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 export type ToggleWebhook = ApiProjectWebhook & { enable: boolean };
@@ -27,7 +26,7 @@ interface WebhooksItemProps extends DefaultWebhooksItemProps {
   onRemove: () => void;
 }
 
-const WebhooksItem = observer(function WebhooksItem(props: WebhooksItemProps) {
+const WebhooksItem = function WebhooksItem(props: WebhooksItemProps) {
   const { t: uiT } = useI18n();
   const { webhook, setWebhook, enabled, setEnabled, onRemove, ...rest } = props;
 
@@ -185,6 +184,6 @@ const WebhooksItem = observer(function WebhooksItem(props: WebhooksItemProps) {
       />
     </>
   );
-});
+};
 
 export default WebhooksItem;

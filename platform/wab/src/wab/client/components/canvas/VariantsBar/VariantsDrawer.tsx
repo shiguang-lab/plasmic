@@ -1,3 +1,4 @@
+import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { translateUiLabel } from "@/wab/client/i18n/locales";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
@@ -49,7 +50,7 @@ const codeComponentVariantsLabel = "Registered Variants";
 const baseLabel = "Base";
 
 interface VariantsDrawerProps extends DefaultVariantsDrawerProps {
-  searchInputRef?: React.RefObject<HTMLInputElement>;
+  searchInputRef?: React.RefObject<HTMLInputElement | null>;
   targetedVariants: Variant[];
   hideBase?: boolean;
   hideInteractions?: boolean;
@@ -79,7 +80,9 @@ function VariantsDrawer_({
   const { t: studioUiT } = useI18n();
 
   const studioCtx = useStudioCtx();
+  useStudioSelection(studioCtx, (state) => state.view);
   const viewCtx = studioCtx.focusedViewCtx();
+  useViewSelection(viewCtx, (state) => state.tpls);
   const focusedTpl = viewCtx?.focusedTpl();
 
   const targetedVariantsSet = new Set(targetedVariants);

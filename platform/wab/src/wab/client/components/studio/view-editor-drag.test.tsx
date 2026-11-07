@@ -2,7 +2,7 @@ import { DragMoveManager } from "@/wab/client/Dnd";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { ViewOps } from "@/wab/client/components/canvas/view-ops";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
-import { ViewEditor } from "@/wab/client/components/studio/view-editor";
+import { ViewEditor_ } from "@/wab/client/components/studio/view-editor";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { ValTag } from "@/wab/shared/core/val-nodes";
@@ -61,7 +61,11 @@ function fixture() {
   source.getViewOps.mockReturnValue(viewOps);
   const target = mock<ViewCtx>();
   Reflect.set(target, "studioCtx", studioCtx);
-  const editor = new ViewEditor({
+  const editor = new ViewEditor_({
+    renderInteractive: studioCtx.renderPolicy.store.getState().interactive,
+    renderDocs: studioCtx.renderPolicy.store.getState().docs,
+    renderDevMode: studioCtx.renderPolicy.store.getState().devMode,
+    panelsHidden: studioCtx.leftPanelState.panelsHidden,
     studioCtx,
     viewCtx: source,
     previewCtx: mock<PreviewCtx>(),

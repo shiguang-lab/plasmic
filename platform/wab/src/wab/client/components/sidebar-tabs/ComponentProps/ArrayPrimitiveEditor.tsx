@@ -12,7 +12,6 @@ import {
   arrayReplaceAt,
 } from "@/wab/shared/collections";
 import { ChoiceOptions, ChoiceValue } from "@plasmicapp/host";
-import { observer } from "mobx-react";
 import React from "react";
 
 /**
@@ -85,7 +84,7 @@ interface ArrayPrimitiveEditorProps {
   "data-test-id": string;
 }
 
-export const ArrayPrimitiveEditor = observer(function ArrayPrimitiveEditor({
+export function ArrayPrimitiveEditor({
   label,
   options,
   onChange,
@@ -187,4 +186,4 @@ export const ArrayPrimitiveEditor = observer(function ArrayPrimitiveEditor({
       </div>
     </LabeledItemRow>
   );
-});
+}

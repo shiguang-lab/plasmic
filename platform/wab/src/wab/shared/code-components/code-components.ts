@@ -235,7 +235,7 @@ import type {
   ObjectType,
 } from "@plasmicapp/host/registerComponent";
 import { RefActionRegistration } from "@plasmicapp/host/registerComponent";
-import type { Config } from "@react-awesome-query-builder/antd";
+import type { QueryBuilderConfig } from "@plasmicapp/host";
 import {
   assign,
   clone,
@@ -256,7 +256,6 @@ import { Result, err, ok, safeTry } from "neverthrow";
 import React, { CSSProperties } from "react";
 import semver from "semver";
 import stripCssComments from "strip-css-comments";
-import type { PartialDeep } from "type-fest";
 
 export type VariablePropType<P> = PropTypeBaseDefault<P, VarRef> & {
   type: "variable";
@@ -445,7 +444,7 @@ export type FormDataConnectionPropType<P> = PropTypeBase<
 
 export type QueryBuilderPropType<P> = PropTypeBaseDefault<P, any> & {
   type: "queryBuilder";
-  config: ComponentContextConfig<P, PartialDeep<Config>>;
+  config: ComponentContextConfig<P, QueryBuilderConfig>;
 };
 
 export type AnyPropType<P> = PropTypeBaseDefault<P, any> & {

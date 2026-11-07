@@ -1,6 +1,5 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
-import { mockDeepAuto } from "@/wab/__testonly__/mock";
-import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
+import { createViewportFixture } from "@/wab/client/__testonly__/viewport";
 import { Pt } from "@/wab/shared/geom";
 import { FastBundler } from "@/wab/shared/bundler";
 import { svgData } from "@/wab/client/clipboard/__testonly__/clipboard-test-data";
@@ -44,9 +43,23 @@ import { ok } from "neverthrow";
 import { vi } from "vitest";
 import { runInNewContext } from "node:vm";
 import { assertSiteInvariants } from "@/wab/shared/site-invariants";
+import { createStore } from "zustand/vanilla";
+
+function bindNativePreviewState(preview: { isLive: boolean }) {
+  const store = createStore(() => ({ isLive: preview.isLive }));
+  Object.defineProperties(preview, {
+    store: { value: store },
+    isLive: {
+      enumerable: true,
+      get: () => store.getState().isLive,
+      set: (isLive: boolean) => store.setState({ isLive }),
+    },
+  });
+  return store;
+}
 
 function reviewedInput(name: string, input: Record<string, unknown>): Record<string, unknown> {
-  if (name === "executeLocalEdit") return { ...input, input: reviewedInput(String(input.name), input.input as Record<string, unknown>) };
+  if (name === "executeLocalEdit") { return { ...input, input: reviewedInput(String(input.name), input.input as Record<string, unknown>) }; }
   const tool = PROTOTYPE_TOOL_META[name as keyof typeof PROTOTYPE_TOOL_META];
   return tool && "reviewContext" in tool.inputSchema.shape ? { ...input, reviewContext: input.reviewContext ?? { purpose: "执行本测试定义的业务操作" } } : input;
 }
@@ -1429,14 +1442,15 @@ describe("AI prototype editor tools", () => {
     const { studioCtx, call, createPage } = fixture();
     const sql = await createPage("SQL");
     vi.spyOn(studioCtx, "isLiveMode", "get").mockReturnValue(true);
-    Object.assign(studioCtx, {
-      previewCtx: {
-        component: sql,
-        previewPath: "sql",
-        width: 320,
-        height: 480,
-      },
-    });
+    const preview = {
+      isLive: true,
+      component: sql,
+      previewPath: "sql",
+      width: 320,
+      height: 480,
+    };
+    bindNativePreviewState(preview);
+    Object.assign(studioCtx, { previewCtx: preview });
     const previewFrame = document.createElement("iframe");
     previewFrame.dataset.testId = "live-frame";
     Object.defineProperties(previewFrame, {
@@ -1472,6 +1486,7 @@ describe("AI prototype editor tools", () => {
       pushComponent: vi.fn(async () => undefined),
       pushViewport: vi.fn(async (value: { width: number; height: number }) => { preview.width = value.width; preview.height = value.height; }),
     };
+    bindNativePreviewState(preview);
     Object.assign(studioCtx, { previewCtx: preview });
     await expect(call("preview", { action: "open", width: 1440 })).rejects.toThrow("supplied together");
     expect(preview.toggleLiveMode).not.toHaveBeenCalled();
@@ -1496,6 +1511,7 @@ describe("AI prototype editor tools", () => {
       goForward: vi.fn(async () => { preview.canGoBack = true; preview.canGoForward = false; }),
       refresh: vi.fn(), toggleLiveMode: vi.fn(),
     };
+    bindNativePreviewState(preview);
     Object.assign(studioCtx, { previewCtx: preview });
     const before = await call("read", { view: "full" });
     for (const action of ["back", "forward", "refresh"]) {
@@ -1521,11 +1537,10 @@ describe("AI prototype editor tools", () => {
     const frame = ensure(arena.children.find((f) => f.container.component === original), "Original artboard missing");
     studioCtx.currentArena = arena;
     vi.spyOn(studioCtx, "focusedFrame").mockReturnValue(frame);
-    const viewport = mockDeepAuto<ViewportCtx>();
-    viewport.scale.mockReturnValue(0.75);
-    viewport.scroll.mockReturnValue(new Pt(123, 456));
+    const viewport = ensure(createViewportFixture(0.75).viewportCtx, "Viewport");
+    vi.spyOn(viewport, "scroll").mockReturnValue(new Pt(123, 456));
     const savedPadding = new Pt(9000, 3000);
-    viewport.canvasPadding.mockReturnValue(savedPadding);
+    vi.spyOn(viewport, "canvasPadding").mockReturnValue(savedPadding);
     vi.spyOn(studioCtx, "viewportCtx", "get").mockReturnValue(viewport);
     const releases: Array<() => void> = [];
     const ready = vi.spyOn(studioCtx, "awaitStudioReady").mockImplementation(() => new Promise<void>((resolve) => { releases.push(resolve); }));
@@ -1536,10 +1551,11 @@ describe("AI prototype editor tools", () => {
       stopLiveMode: vi.fn(async () => { preview.isLive = false; }),
       parseRoute: vi.fn().mockResolvedValue(undefined), pushComponent: vi.fn().mockResolvedValue(undefined),
     };
+    bindNativePreviewState(preview);
     Object.assign(studioCtx, { previewCtx: preview });
     const model = await call("read", { view: "full" });
     await call("preview", { action: "open", componentUuid: target.uuid });
-    viewport.canvasPadding.mockReturnValue(new Pt(950, 760));
+    vi.mocked(viewport.canvasPadding).mockReturnValue(new Pt(950, 760));
     studioCtx.currentArena = ensure(studioCtx.site.pageArenas.find((a) => a.component === target), "Target arena missing");
     let done = false;
     const close = call("preview", { action: "close" }).then((result) => { done = true; return result; });
@@ -1578,7 +1594,7 @@ describe("AI prototype editor tools", () => {
       await call(name, input);
       expect(change).not.toHaveBeenCalled();
       expect(studioCtx.focusedViewCtx()).toBe(selected);
-      expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+      expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
       await expect(
         call(
           name,
@@ -1587,10 +1603,10 @@ describe("AI prototype editor tools", () => {
             : { componentUuid: "missing" },
         ),
       ).rejects.toThrow("not found");
-      expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+      expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
       expect(beginActivity).not.toHaveBeenCalled();
       await expect(call(name, { unknown: true })).rejects.toThrow();
-      expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+      expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
       studioCtx.copilotActivity.dispose();
       change.mockRestore();
       beginActivity.mockRestore();
@@ -1614,7 +1630,7 @@ describe("AI prototype editor tools", () => {
         },
       ],
     }, { caller });
-    expect(studioCtx.copilotActivity.requests[0]).toMatchObject({
+    expect(studioCtx.copilotActivity.store.getState().requests[0]).toMatchObject({
       caller,
       status: "success",
       targets: [{ componentUuid: page.uuid, elementUuid: page.tplTree.uuid }],
@@ -1625,8 +1641,8 @@ describe("AI prototype editor tools", () => {
         elementUuid: "missing",
       }),
     ).rejects.toThrow("not found");
-    expect(studioCtx.copilotActivity.requests).toHaveLength(1);
-    expect(studioCtx.copilotActivity.requests[0].status).toBe("success");
+    expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(1);
+    expect(studioCtx.copilotActivity.store.getState().requests[0].status).toBe("success");
     studioCtx.copilotActivity.dispose();
   });
   it("clears cancelled edit feedback without reviving it when the transaction completes", async () => {
@@ -1638,13 +1654,13 @@ describe("AI prototype editor tools", () => {
       componentUuid: page.uuid, elementUuid: page.tplTree.uuid, styles: { color: "red" },
     } }] };
     const result = COPILOT_TOOLS.executeBatch.execute(studioCtx, input, { signal: controller.signal });
-    expect(studioCtx.copilotActivity.requests).toHaveLength(1);
+    expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(1);
     controller.abort();
-    expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+    expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
     await result;
-    expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+    expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
     await expect(COPILOT_TOOLS.executeBatch.execute(studioCtx, input, { signal: controller.signal })).rejects.toThrow();
-    expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+    expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
     studioCtx.copilotActivity.dispose();
   });
   it("organizes canvases and keeps pages while replacing device previews with Desktop", async () => {
@@ -2218,7 +2234,7 @@ describe("AI prototype editor tools", () => {
         call("readVector", { componentUuid: page.uuid, elementUuid: tpl.uuid }),
       ).rejects.toThrow("not SVG");
       expect(beginActivity).not.toHaveBeenCalled();
-      expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+      expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
     } finally {
       fetcher.mockRestore();
       beginActivity.mockRestore();

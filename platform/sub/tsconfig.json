@@ -10,7 +10,7 @@
     "rootDir": "./src",
     "outDir": "build",
     "sourceMap": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "esModuleInterop": true
   },
   "files": ["src/index.tsx"],

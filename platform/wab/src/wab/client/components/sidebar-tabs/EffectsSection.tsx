@@ -13,11 +13,13 @@ import {
   ExpsProvider,
   StylePanelSection,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import {
+  useStyleCells,
+  useStyleIndicators,
+} from "@/wab/client/studio-ctx/style-inputs-react";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { isStylePropSet } from "@/wab/client/utils/style-utils";
 import L from "lodash";
-import { observer } from "mobx-react";
 import React from "react";
 import {
   FaHandPaper,
@@ -56,17 +58,35 @@ const effectsStyleProps = [
   "isolation",
 ];
 
-export const EffectsPanelSection = observer(
-  function EffectsPanelSection(props: {
-    expsProvider: ExpsProvider;
-    animatableOnly?: boolean;
-  }) {
+const effectIndicatorProps = [
+  ...effectsStyleProps,
+  "filter",
+  "backdrop-filter",
+];
+
+export function EffectsPanelSection(props: {
+  expsProvider: ExpsProvider;
+  animatableOnly?: boolean;
+}) {
     const { t: uiT } = useI18n();
     const { expsProvider, animatableOnly } = props;
     const { studioCtx } = expsProvider;
-    const exp = expsProvider.mergedExp();
+    const [pointerEventsCell, isolationCell] = useStyleCells(expsProvider, [
+      "pointer-events",
+      "isolation",
+    ]);
+    const effectIndicators = useStyleIndicators(
+      expsProvider,
+      effectIndicatorProps,
+    );
+    const indicatorByKey = new Map(
+      effectIndicatorProps.map((key, index) => [key, effectIndicators[index]]),
+    );
 
-    const isSet = isStylePropSet(expsProvider);
+    const isSet = (...properties: string[]) =>
+      properties.some(
+        (prop) => indicatorByKey.get(prop)?.source !== "none",
+      );
 
     return (
       <StylePanelSection
@@ -179,10 +199,10 @@ export const EffectsPanelSection = observer(
                           <LabeledStyleSwitchItem
                             styleName="pointer-events"
                             label={uiT("Interactive")}
-                            value={exp.get("pointer-events") === "auto"}
+                            value={pointerEventsCell?.value === "auto"}
                             onChange={(checked) =>
                               studioCtx.changeUnsafe(() =>
-                                exp.set(
+                                expsProvider.mergedExp().set(
                                   "pointer-events",
                                   checked ? "auto" : "none",
                                 ),
@@ -223,10 +243,10 @@ export const EffectsPanelSection = observer(
                           <LabeledStyleSwitchItem
                             styleName="isolation"
                             label={uiT("Reset context")}
-                            value={exp.get("isolation") === "isolate"}
+                            value={isolationCell?.value === "isolate"}
                             onChange={(checked) =>
                               studioCtx.changeUnsafe(() =>
-                                exp.set(
+                                expsProvider.mergedExp().set(
                                   "isolation",
                                   checked ? "isolate" : "auto",
                                 ),
@@ -288,5 +308,4 @@ export const EffectsPanelSection = observer(
         )}
       </StylePanelSection>
     );
-  },
-);
+}

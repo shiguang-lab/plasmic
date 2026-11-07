@@ -29,13 +29,13 @@ import { Action, ActionProps, PlasmicElement } from "@plasmicapp/host";
 import { ConfigProvider, notification } from "antd";
 import domAlign from "dom-align";
 import $ from "jquery";
-import { observer } from "mobx-react";
+     
 import { ok } from "neverthrow";
 import React from "react";
 import { Root } from "react-dom/client";
 import { useUnmount } from "react-use";
 
-export const ComponentActionsSection = observer(
+export const ComponentActionsSection = 
   function ComponentActionsSection(props: {
     viewCtx: ViewCtx;
     tpl: TplComponent;
@@ -99,8 +99,8 @@ export const ComponentActionsSection = observer(
         }
       </>
     );
-  },
-);
+  }
+;
 
 export function useStudioOps(
   viewCtx: ViewCtx,
@@ -137,7 +137,7 @@ export function useStudioOps(
     if (!node) {
       return;
     }
-    if (sub.ReactDOMClient && !root.current) {
+    if (!root.current) {
       root.current = sub.ReactDOMClient.createRoot(node);
     }
     const renderElement = sub.React.createElement(
@@ -158,18 +158,13 @@ export function useStudioOps(
         }),
       ),
     );
-    if (root.current) {
-      root.current.render(renderElement);
-    } else if (sub.ReactDOM.render) {
-      sub.ReactDOM.render(renderElement, node);
-    }
+    root.current.render(renderElement);
   }, [modalProps, sub, node, FullScreenModal, theme]);
 
   useUnmount(() => {
     if (root.current) {
       root.current.unmount();
-    } else if (node && sub.ReactDOM.unmountComponentAtNode) {
-      sub.ReactDOM.unmountComponentAtNode(node);
+      root.current = null;
     }
   });
 
@@ -487,12 +482,17 @@ function CustomAction<P>({
   );
   const projectData = viewCtx.studioCtx.getProjectData();
 
+  React.useEffect(() => () => {
+    actionRoot.current?.unmount();
+    actionRoot.current = null;
+  }, []);
+
   React.useEffect(() => {
     const node = actionContainerRef.current;
     if (!node) {
       return;
     }
-    if (sub.ReactDOMClient && !actionRoot.current) {
+    if (!actionRoot.current) {
       actionRoot.current = sub.ReactDOMClient.createRoot(node);
     }
     const renderElement = sub.React.createElement(
@@ -512,11 +512,7 @@ function CustomAction<P>({
         }),
       ),
     );
-    if (actionRoot.current) {
-      actionRoot.current.render(renderElement);
-    } else if (sub.ReactDOM.render) {
-      sub.ReactDOM.render(renderElement, node);
-    }
+    actionRoot.current.render(renderElement);
   }, [
     actionContainerRef.current,
     componentPropValues,

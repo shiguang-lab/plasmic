@@ -1,4 +1,8 @@
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import { NavigationDropdown } from "@/wab/client/components/sidebar-tabs/ProjectPanel/NavigationDropdown";
+import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { languageOptions, translate } from "@/wab/client/i18n/locales";
 import {
@@ -21,8 +25,11 @@ import {
   waitFor,
 } from "@testing-library/react";
 import React from "react";
+import { createStore } from "zustand/vanilla";
 
 const fixture = vi.hoisted(() => ({ ctx: undefined as any }));
+const studios = new Set<StudioCtx>();
+const ownerDisposals = new Set<() => void>();
 vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => fixture.ctx,
 }));
@@ -97,7 +104,12 @@ beforeAll(() =>
 );
 afterAll(() => vi.unstubAllGlobals());
 afterEach(async () => {
-  cleanup();
+  await act(async () => { cleanup(); });
+  for (const studio of studios) { await studio.awaitEval(); studio.dispose(); }
+  studios.clear();
+  for (const dispose of ownerDisposals) { dispose(); }
+  ownerDisposals.clear();
+  vi.restoreAllMocks();
   await act(async () => await setLanguagePreference("en"));
 });
 
@@ -113,13 +125,31 @@ function Directory() {
 }
 beforeEach(async () => {
   await setLanguagePreference("en");
+  const navigationPanelStore = createStore<"pages" | "outline">(
+    () => "outline",
+  );
   const arena = new Arena({ name: "Customer overview", children: [] });
+  const site = createSite();
+  site.arenas.push(arena);
+  const modelSnapshots = new ModelSnapshots();
+  const arenaState = new StudioArenaState({site,modelSnapshots});
+  arenaState.setCurrent(arena);
+  ownerDisposals.add(() => { arenaState.dispose(); modelSnapshots.dispose(); });
+  const projectSearchInputRef = React.createRef<HTMLInputElement>();
   fixture.ctx = {
-    site: createSite(),
-    currentArena: arena,
+    site,
+    modelSnapshots,
+    arenaState,
+    get currentArena() { return arenaState.currentArena(); },
     contentEditorMode: false,
-    navigationPanel: "outline",
-    projectSearchInputRef: React.createRef<HTMLInputElement>(),
+    navigationPanelStore,
+    get navigationPanel() {
+      return navigationPanelStore.getState();
+    },
+    projectSearchInputRef,
+    bindProjectSearchInput: (input: HTMLInputElement | null) => {
+      projectSearchInputRef.current = input;
+    },
     getSortedMixedArenas: () => [arena],
     getSortedPageArenas: () => [],
     getSortedComponentArenas: () => [],
@@ -131,8 +161,8 @@ beforeEach(async () => {
         type: opts.type,
       }),
     ),
-    setNavigationPanel: vi.fn((panel) => {
-      fixture.ctx.navigationPanel = panel;
+    setNavigationPanel: vi.fn((panel: "pages" | "outline") => {
+      navigationPanelStore.setState(panel, true);
     }),
   };
 });
@@ -205,7 +235,7 @@ it("expands the directory when its create menu is opened", async () => {
 });
 
 it("retains a shortcut-opened search when the directory is collapsed and reopened", () => {
-  fixture.ctx.navigationPanel = "pages";
+  fixture.ctx.navigationPanelStore.setState("pages", true);
   render(<Directory />);
   const input = screen.getByRole("textbox", { name: "Go to page/component" });
   fireEvent.change(input, { target: { value: "Customers" } });
@@ -261,4 +291,71 @@ it("creates an artboard group through the top menu", async () => {
   );
   fireEvent.click(await screen.findByText("New custom arena"));
   await waitFor(() => expect(fixture.ctx.addArena).toHaveBeenCalledOnce());
+});
+
+async function actualStudio() {
+  const { studioCtx } = fakeStudioCtx({ devFlagOverrides: { ccStubs: true } });
+  studios.add(studioCtx);
+  await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+  return studioCtx;
+}
+
+it("retains an actual focus command before DOM mount, focuses immediately after mount and clears on detach/dispose", async () => {
+  const studio = await actualStudio();
+  const focus = vi.spyOn(HTMLInputElement.prototype, "focus");
+  const stableRef = studio.projectSearchInputRef;
+  const stableBinding = studio.bindProjectSearchInput;
+  studio.focusOnProjectSearchInput();
+  studio.focusOnProjectSearchInput();
+  expect(focus).not.toHaveBeenCalled();
+  const view = render(<input aria-label="Actual pending search" ref={stableBinding} />);
+  const input = screen.getByRole("textbox", { name: "Actual pending search" });
+  expect(studio.projectSearchInputRef).toBe(stableRef);
+  expect(studio.bindProjectSearchInput).toBe(stableBinding);
+  expect(stableRef.current).toBe(input);
+  expect(input).toHaveFocus();
+  expect(focus).toHaveBeenCalledOnce();
+  studio.focusOnProjectSearchInput();
+  expect(focus).toHaveBeenCalledTimes(2);
+  view.unmount();
+  expect(stableRef.current).toBeNull();
+  const remounted = render(<input aria-label="Reopened search" ref={stableBinding} />);
+  expect(focus).toHaveBeenCalledTimes(2);
+  remounted.unmount();
+  studio.focusOnProjectSearchInput();
+  studio.dispose(); studios.delete(studio);
+  const disposedInput = document.createElement("input");
+  document.body.append(disposedInput);
+  stableBinding(disposedInput);
+  studio.focusOnProjectSearchInput();
+  expect(focus).toHaveBeenCalledTimes(2);
+  expect(stableRef.current).toBeNull();
+  stableBinding(null); disposedInput.remove();
+});
+
+it("connects the actual directory callback ref and detaches the old Studio when ownership changes", async () => {
+  const first = await actualStudio(), second = await actualStudio();
+  fixture.ctx = first;
+  first.setNavigationPanel("pages");
+  first.focusOnProjectSearchInput();
+  const view = render(<Directory />);
+  const input = screen.getByRole("textbox", { name: "Go to page/component" });
+  expect(first.projectSearchInputRef.current).toBe(input);
+  expect(input).toHaveFocus();
+  second.setNavigationPanel("pages");
+  second.focusOnProjectSearchInput();
+  fixture.ctx = second;
+  view.rerender(<Directory />);
+  expect(first.projectSearchInputRef.current).toBeNull();
+  expect(second.projectSearchInputRef.current).toBe(input);
+  expect(input).toHaveFocus();
+  const focus = vi.spyOn(input, "focus");
+  first.focusOnProjectSearchInput();
+  expect(focus).not.toHaveBeenCalled();
+  second.focusOnProjectSearchInput();
+  expect(focus).toHaveBeenCalledOnce();
+  view.unmount();
+  expect(second.projectSearchInputRef.current).toBeNull();
+  second.focusOnProjectSearchInput();
+  expect(focus).toHaveBeenCalledOnce();
 });

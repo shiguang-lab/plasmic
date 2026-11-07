@@ -15,7 +15,6 @@ import {
   defaultCssTransform,
 } from "@/wab/shared/css/transforms";
 import { Slider } from "antd";
-import { observer } from "mobx-react";
 import React, { useEffect } from "react";
 
 interface TransformPanelProps {
@@ -24,7 +23,7 @@ interface TransformPanelProps {
   onChange: (newTransform: CssTransform) => void;
 }
 
-export const TransformPanel = observer(function TransformPanel(
+export function TransformPanel(
   props: TransformPanelProps,
 ) {
   const { t: uiT } = useI18n();
@@ -95,7 +94,7 @@ export const TransformPanel = observer(function TransformPanel(
       {renderSliders(transform, studioCtx, onChange)}
     </>
   );
-});
+}
 
 function renderSliders(
   transform: CssTransform,

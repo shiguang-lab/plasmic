@@ -1,3 +1,7 @@
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
+import { createStore } from "zustand/vanilla";
 import {
   OutlineCtx,
   OutlineNode,
@@ -55,7 +59,14 @@ function setup() {
   );
   const arena = new Arena({ name: "Overview", children: frames });
   const studio = mock<StudioCtx>();
-  Object.assign(studio, { site, currentArena: arena });
+  site.arenas.push(arena);
+  const models = new ModelSnapshots();
+  const arenaState = new StudioArenaState({ site, modelSnapshots: models });
+  arenaState.setCurrent(arena);
+  const focus = new StudioSelection(() => models);
+  Object.assign(studio, { site, modelSnapshots: models, arenaState, currentArena: arena });
+  Object.defineProperties(studio, { selectionStore: { value: focus.store }, hoveredViewStore: { value: createStore(() => undefined) } });
+  studio.focusedViewCtx.mockImplementation(() => focus.current().view);
   studio.changeUnsafe.mockImplementation((fn: any) => fn());
   const expanded = observable.map<ArenaFrame, boolean>();
   const outline = mock<OutlineCtx>();
@@ -68,6 +79,7 @@ function setup() {
     }),
   );
   outline.focusedNodeKeyPath.mockReturnValue([]);
+  outline.viewCtx.mockReturnValue(undefined);
   const children = frames.map(() => {
     const child = mock<OutlineCtx>();
     child.rootTreeNode.mockReturnValue(null);

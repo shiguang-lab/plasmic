@@ -4,7 +4,9 @@ import { SlotSelection } from "@/wab/shared/core/slots";
 import { ValComponent, ValNode } from "@/wab/shared/core/val-nodes";
 import { CanvasEnv } from "@/wab/shared/eval";
 import { TplNode } from "@/wab/shared/model/classes";
-import { IObservableValue, ObservableMap } from "mobx";
+import { FrameContextData } from "@/wab/client/react-global-hook/frame-context-data";
+import type { FrameVariantInputs } from "@/wab/client/react-global-hook/frame-variant-inputs";
+import type { StoreApi } from "zustand/vanilla";
 
 export interface GlobalHookCtx {
   uuidToTplNode: Map<string, WeakRef<TplNode>>;
@@ -26,10 +28,12 @@ export interface FrameState {
   readonly uid: number;
   readonly envIdToFullKey: Map<string, string>;
   readonly renderState: RenderState;
-  /** The frame's root ValComponent, set by the hook on each commit. */
-  readonly valRoot: IObservableValue<ValComponent | null>;
+  /** Root identity, published after the committed Fiber inputs are installed. */
+  readonly valRootStore: StoreApi<ValComponent | null>;
   /** Context data set by the frame's code components, by val key. */
-  readonly contextData: ObservableMap<string, any>;
+  readonly contextData: FrameContextData;
+  /** Narrow committed Fiber variant flags, independent of root object identity. */
+  readonly variantInputs: FrameVariantInputs;
   /** Dispose frame state so the frame can be freed from memory. */
   dispose: () => void;
 }

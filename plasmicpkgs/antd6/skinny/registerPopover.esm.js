@@ -1,9 +1,10 @@
+import { jsx } from 'react/jsx-runtime';
 import { Popover } from 'antd';
 import cls from 'classnames';
-import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-k3p9M5S2.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
+import 'react';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -25,7 +26,7 @@ function AntdPopover(props) {
     classNames,
     ...rest
   } = canvasProps;
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Popover,
     {
       content: content === void 0 ? contentText : content,

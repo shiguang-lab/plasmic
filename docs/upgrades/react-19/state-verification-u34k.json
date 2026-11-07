@@ -1,0 +1,131 @@
+{
+  "status": "cohort-native-accepted",
+  "scope": "K: J plus47 frozen render-policy A/B/C and necessary owner/fixture/prepared-field files; excludes later overlay/Simplified/project-metadata/style work",
+  "source": {
+    "revision": "32df7af09a1df7d119143b546f14a81b6d876c83",
+    "dirty": true,
+    "sourceHash": "1a592f1133fb7179c3f7ca1ab9fe75a8ba8bd5dc367f475af03350919b87f572"
+  },
+  "artifact": {
+    "sourceHash": "1a592f1133fb7179c3f7ca1ab9fe75a8ba8bd5dc367f475af03350919b87f572",
+    "rendererHash": "baa3ca2e435da5c092f7562df8c2e43faab254219fe2772dff9f727ebf96753b",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 104927138,
+    "studioArtifactHash": "686fb49737e50b97f5e7d30b0a195ec5cd3224321a1d975978390d99b81960d7",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "checks": {
+    "typecheck": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u34k-isolated-typecheck-2.log"
+    },
+    "integration": {
+      "filesPassed": 20,
+      "testsPassed": 105,
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u34k-isolated-integration-final.log"
+    },
+    "typedLint": {
+      "files": 47,
+      "exitCode": 0,
+      "warnings": 15,
+      "newWarnings": 1,
+      "log": "/tmp/plasmic-react19-20261105/u34k-isolated-eslint-final.log",
+      "note": "Root unused test import removed live and frozen for next cohort; K remained immutable through build/replay"
+    },
+    "productionBuild": {
+      "exitCode": 0
+    },
+    "assets": {
+      "exitCode": 0
+    },
+    "archive": {
+      "exitCode": 0
+    }
+  },
+  "nativeGP": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/gp/list-open-u34k-gp-native.json",
+    "reportSha256": "945058f840436f43517ed066d3f4b0be3e3ab31a5e1bff26115b185fda5bdb69",
+    "functionalCases": 5,
+    "functionalPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "error": false,
+    "draftDialog": {
+      "enabled": true,
+      "opened": true,
+      "remoteActionClosed": true
+    },
+    "docs": {
+      "codegen": {
+        "dependencyModelsValidated": 50,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      },
+      "loader": {
+        "dependencyModelsValidated": 50,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      }
+    }
+  },
+  "nativeComplex": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/complex/list-open-u34k-complex.json",
+    "reportSha256": "b87c2857f1fa46e43de6ddf370a6fe65531a3351293917e1e6a5a4090e5f9415",
+    "functionalCases": 6,
+    "functionalPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "error": false
+  },
+  "fullStudioSuite": {
+    "rerun": false,
+    "base": "u29f:636passed13failed60testfail9unhandled; not green",
+    "failedSuitesTargeted": {
+      "filesPassed": 13,
+      "testsPassed": 197,
+      "note": "Original failed suites corrected and rechecked in owned groups; union includes4 PlayerPresence native tests. Does not claim one197test command or fullK suite pass"
+    },
+    "verification": "Targeted owner manifests preserve exact logs/inputs; unchanged passing base reused"
+  },
+  "fullMigration": false
+}

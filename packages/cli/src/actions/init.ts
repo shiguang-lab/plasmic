@@ -17,7 +17,6 @@ import {
 } from "../utils/config-utils";
 import {
   detectCreateReactApp,
-  detectGatsby,
   detectNextJs,
   detectNextJsAppDir,
   detectTanStackApp,
@@ -34,7 +33,7 @@ import { confirmWithUser } from "../utils/user-utils";
 
 export interface InitArgs extends CommonArgs {
   host: string;
-  platform: "" | "react" | "nextjs" | "gatsby" | "tanstack";
+  platform: "" | "react" | "nextjs" | "tanstack";
   codeLang: "" | "ts" | "js";
   codeScheme: "" | "blackbox";
   styleScheme: "" | "css" | "css-modules";
@@ -97,11 +96,6 @@ export function createInitConfig(
     defaultPlasmicDir: opts.plasmicDir,
     ...(opts.platform === "nextjs" && {
       nextjsConfig: {
-        pagesDir: opts.pagesDir,
-      },
-    }),
-    ...(opts.platform === "gatsby" && {
-      gatsbyConfig: {
         pagesDir: opts.pagesDir,
       },
     }),
@@ -181,8 +175,6 @@ async function deriveInitAnswers(
     ? opts.platform
     : detectNextJs()
     ? "nextjs"
-    : detectGatsby()
-    ? "gatsby"
     : detectTanStackApp()
     ? "tanstack"
     : detectCreateReactApp()
@@ -191,9 +183,8 @@ async function deriveInitAnswers(
   const isCra = platform === "react";
   const isNext = platform === "nextjs";
   const isNextAppDir = isNext && detectNextJsAppDir();
-  const isGatsby = platform === "gatsby";
   const isTanStack = platform === "tanstack";
-  const isGeneric = !isCra && !isNext && !isGatsby && !isTanStack;
+  const isGeneric = !isCra && !isNext && !isTanStack;
   const isTypescript = detectTypescript();
 
   if (isNext) {
@@ -202,8 +193,6 @@ async function deriveInitAnswers(
     } else {
       logger.info("Detected Next.js...");
     }
-  } else if (isGatsby) {
-    logger.info("Detected Gatsby...");
   } else if (isTanStack) {
     logger.info("Detected TanStack router app...");
   } else if (isCra) {
@@ -213,8 +202,6 @@ async function deriveInitAnswers(
   // Platform-specific defaults that take precedent
   const deriver = isNext
     ? getNextDefaults(plasmicRootDir, isNextAppDir)
-    : isGatsby
-    ? getGatsbyDefaults(plasmicRootDir)
     : isTanStack
     ? getTanStackDefaults(plasmicRootDir)
     : isCra
@@ -472,31 +459,6 @@ function getNextDefaults(
   };
 }
 
-function getGatsbyDefaults(plasmicRootDir: string): DefaultDeriver {
-  const projectRootDir = findPackageJsonDir(plasmicRootDir) ?? plasmicRootDir;
-  return {
-    srcDir: path.relative(
-      plasmicRootDir,
-      path.join(projectRootDir, "src", "components")
-    ),
-    pagesDir: (srcDir: string) => {
-      const absSrcDir = path.join(plasmicRootDir, srcDir);
-      const absPagesDir = path.join(projectRootDir, "src", "pages");
-      const relDir = path.relative(absSrcDir, absPagesDir);
-      return relDir;
-    },
-    styleScheme: "css-modules",
-    imagesScheme: "files",
-    imagesPublicDir: (srcDir: string) =>
-      path.relative(
-        path.join(plasmicRootDir, srcDir),
-        path.join(projectRootDir, "static")
-      ),
-    imagesPublicUrlPrefix: "/",
-    alwaysDerived: ["imagesScheme", "pagesDir"],
-  };
-}
-
 function getTanStackDefaults(plasmicRootDir: string): DefaultDeriver {
   const projectRootDir = findPackageJsonDir(plasmicRootDir) ?? plasmicRootDir;
   return {
@@ -573,7 +535,7 @@ const INIT_ARGS_DESCRIPTION: {
   platform: {
     shortDescription: "Target platform",
     longDescription: "Target platform to generate code for",
-    choices: ["react", "nextjs", "gatsby", "tanstack"],
+    choices: ["react", "nextjs", "tanstack"],
   },
   codeLang: {
     shortDescription: "Target language",

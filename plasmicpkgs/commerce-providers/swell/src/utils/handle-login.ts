@@ -2,7 +2,7 @@
   Forked from https://github.com/vercel/commerce/tree/main/packages/swell/src
   Changes: None
 */
-import { ValidationError } from "@vercel/commerce/utils/errors";
+import { ValidationError } from "@plasmicpkgs/commerce";
 import { setCustomerToken } from "./customer-token";
 
 const getErrorMessage = ({

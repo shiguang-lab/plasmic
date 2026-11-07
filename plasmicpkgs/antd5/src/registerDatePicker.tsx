@@ -9,9 +9,10 @@ import { capitalize, Registerable, registerComponentHelper } from "./utils";
  *
  */
 export function AntdDatePicker(
-  props: Omit<React.ComponentProps<typeof DatePicker>, "value" | "onChange"> & {
+  props: Omit<React.ComponentProps<typeof DatePicker>, "value" | "defaultValue" | "onChange" | "multiple"> & {
     onChange?: (value: string | null) => void;
     value?: Dayjs | string | null;
+    defaultValue?: Dayjs | string | null;
     // Not sure why this is missing from DatePicker props!
     showTime?: boolean;
     popupScopeClassName?: string;
@@ -88,6 +89,7 @@ export function AntdDatePicker(
       <DatePicker
         {...rest}
         picker={picker as any}
+        multiple={false}
         value={
           props.value === undefined
             ? undefined
@@ -209,7 +211,6 @@ export function registerDatePicker(loader?: Registerable) {
         type: "boolean",
         advanced: true,
       },
-      // TODO - see how it works with plasmic-rich-components
       // format: {
       //   advanced: true
       // },

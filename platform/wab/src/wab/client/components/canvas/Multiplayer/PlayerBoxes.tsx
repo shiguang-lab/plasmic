@@ -1,3 +1,8 @@
+import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
+import { useStudioArena, useViewEntryForFrame } from "@/wab/client/studio-ctx/arena-state";
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { computeScalerVisibility } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { hasLayoutBox } from "@/wab/client/dom";
@@ -11,25 +16,31 @@ import { maybe } from "@/wab/shared/common";
 import $ from "jquery";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 
-export const PlayerBoxes = observer(function PlayerBoxes() {
+export function PlayerBoxes() {
   const studioCtx = useStudioCtx();
+  const multiplayerSelections = useStudioOverlayState(studioCtx, (state) => state.multiplayerSelections);
+  const editMode = useStudioSaveState(studioCtx, (state) => state.editMode);
+  const playerIds = useStore(
+    studioCtx.multiplayerCtx.store,
+    (state) => state.playerIds,
+  );
   return (
     <>
-      {!studioCtx.editMode || !studioCtx.showMultiplayerSelections()
+      {!editMode || !multiplayerSelections
         ? null
-        : studioCtx.multiplayerCtx
-            .getAllPlayerIds()
-            .map((playerId) => (
-              <PlayerBox
-                studioCtx={studioCtx}
-                key={playerId}
-                playerId={playerId}
-              />
-            ))}
+        : playerIds.map((playerId) => (
+            <PlayerBox
+              studioCtx={studioCtx}
+              key={playerId}
+              playerId={playerId}
+            />
+          ))}
     </>
   );
-});
+}
 
 interface PlayerBoxProps {
   studioCtx: StudioCtx;
@@ -40,29 +51,42 @@ const PlayerBox = observer(function PlayerBox({
   studioCtx,
   playerId,
 }: PlayerBoxProps) {
+  useContentEditorScope(studioCtx);
+  useStudioArena(studioCtx, (state) => state.frames);
+  const viewportZoom = useCanvasZoom(studioCtx);
+  const [color, knowsSelf, selectionInfo, branchId] = useStore(
+    studioCtx.multiplayerCtx.store,
+    useShallow((state) => {
+      const player = state.players.get(playerId);
+      return [
+        player?.color,
+        state.selfId !== -1,
+        player?.viewInfo?.selectionInfo,
+        player?.viewInfo?.branchId,
+      ] as const;
+    }),
+  );
+  const frame =
+    knowsSelf && color && selectionInfo?.selectableFrameUuid
+      ? getArenaFrames(studioCtx.currentArena).find(
+          (candidate) => candidate.uuid === selectionInfo.selectableFrameUuid,
+        )
+      : undefined;
+  const viewEntry = useViewEntryForFrame(studioCtx, frame);
   const maybeData = (() => {
-    const multiplayerCtx = studioCtx.multiplayerCtx;
-    const playerData = multiplayerCtx.getPlayerDataById(playerId);
-    if (
-      !multiplayerCtx.knowsSelf() ||
-      !playerData ||
-      !playerData.viewInfo?.selectionInfo?.selectableFrameUuid
-    ) {
+    if (!frame || !knowsSelf || !color || !selectionInfo?.selectableFrameUuid) {
       return null;
     }
     const branch = studioCtx.branchInfo();
-    if (playerData.viewInfo?.branchId !== branch?.id) {
+    if (branchId !== branch?.id) {
       return null;
     }
-    const viewCtx = tryGetViewCtxFromFrameUuid(
-      studioCtx,
-      playerData.viewInfo.selectionInfo.selectableFrameUuid,
-    );
+    const viewCtx = viewEntry?.view;
     if (!viewCtx) {
       return null;
     }
     const selectable = viewCtx.getSelectableFromSelectionId(
-      playerData.viewInfo.selectionInfo.selectableKey,
+      selectionInfo.selectableKey,
     );
     if (!selectable) {
       return null;
@@ -73,7 +97,7 @@ const PlayerBox = observer(function PlayerBox({
         (dom) => $(dom),
       ),
       viewCtx,
-      playerData,
+      color,
     };
   })();
 
@@ -102,14 +126,14 @@ const PlayerBox = observer(function PlayerBox({
     return null;
   }
 
-  const { viewCtx, playerData } = maybeData;
+  const { viewCtx } = maybeData;
 
   // Like the local selection, outline only the visible part of the element.
   const { visible: scalerRect } = computeScalerVisibility($elt, viewCtx);
   if (!scalerRect) {
     return null;
   }
-  const cssProps = cssPropsForInvertTransform(studioCtx.zoom, scalerRect);
+  const cssProps = cssPropsForInvertTransform(viewportZoom, scalerRect);
 
   return (
     <div
@@ -120,7 +144,7 @@ const PlayerBox = observer(function PlayerBox({
         display: "block",
         ...scalerRect,
         ...cssProps,
-        borderColor: playerData.color,
+        borderColor: color,
       }}
     />
   );

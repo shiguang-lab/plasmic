@@ -110,8 +110,11 @@ it("keeps the live link and allows closing while actual publication continues", 
 
 it("retains the live version after failure and offers retry", () => {
   const actions = props({ error: new Error("Build failed") });
-  render(<PreviewPublishSection {...actions} />);
-  expect(screen.getByText("Build failed")).toBeTruthy();
+  const { container } = render(<PreviewPublishSection {...actions} />);
+  expect(
+    screen.getByText("The previous website remains available."),
+  ).toBeTruthy();
+  expect(container.querySelector(".ant-alert-error")).toBeNull();
   expect(screen.getByText("Published version: 1.0.0")).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Retry publishing" }));
   expect(actions.publish).toHaveBeenCalledOnce();

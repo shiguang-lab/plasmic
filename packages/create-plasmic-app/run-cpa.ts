@@ -30,11 +30,6 @@ async function run() {
         typescript,
       });
       allArgSets.push({
-        platform: "gatsby",
-        scheme,
-        typescript,
-      });
-      allArgSets.push({
         platform: "nextjs",
         appDir: true,
         scheme,

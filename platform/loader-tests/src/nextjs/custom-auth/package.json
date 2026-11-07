@@ -7,21 +7,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
-    "@plasmicapp/auth-api": "^0.0.4",
-    "@plasmicapp/loader-nextjs": "^1.0.298",
-    "next": "12.3.7",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "@plasmicapp/auth-api": "^0.0.21",
+    "@plasmicapp/loader-nextjs": "^3.0.0",
+    "next": "16.4.5",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
-    "@types/node": "^18.7.14",
-    "@types/react": "^18.0.18",
-    "@types/react-dom": "^18.0.6",
-    "eslint": "8.57.1",
-    "eslint-config-next": "12.3.7",
+    "@types/node": "^24.12.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.4.5",
     "typescript": "6.0.3"
   }
 }

@@ -56,7 +56,7 @@ import {
   Draggable,
   DropResult,
   Droppable,
-} from "react-beautiful-dnd";
+} from "@hello-pangea/dnd";
 import { createPortal } from "react-dom";
 import { FaUpload } from "react-icons/fa";
 
@@ -802,7 +802,7 @@ export type MenuMaker = (onMenuClicked: () => void) => React.ReactNode;
  */
 export function PopupFocuser(props: {
   targetId: string;
-  targetRef: React.RefObject<{ focus: () => void }>;
+  targetRef: React.RefObject<{ focus: () => void } | null>;
 }) {
   const { targetId, targetRef } = props;
   useToggleDisplayed(
@@ -917,7 +917,7 @@ export const IFrameAwareDropdownMenu = (props: {
         const { menu } = props;
         const effectiveMenu = (
           L.isFunction(menu) ? menu(() => setMenuVisible(false)) : menu
-        ) as React.ReactElement;
+        ) as React.ReactElement<import("antd").MenuProps>;
         return (
           <DropdownMenuContent
             menu={effectiveMenu}
@@ -946,7 +946,7 @@ function DropdownMenuContent({
   maxHeight: menuMaxHeight,
   onClose,
 }: {
-  menu: React.ReactElement;
+  menu: React.ReactElement<import("antd").MenuProps>;
   productUI: boolean;
   maxHeight?: number;
   onClose: () => void;

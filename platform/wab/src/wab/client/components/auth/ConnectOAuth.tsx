@@ -25,7 +25,7 @@ interface ConnectOAuthButtonProps {
   size?: PlasmicButton__VariantsArgs["size"];
 
   // Set this to render a custom element instead of the default button
-  render?: (props: { onClick: () => void; isWaiting: boolean }) => JSX.Element;
+  render?: (props: { onClick: () => void; isWaiting: boolean }) => React.JSX.Element;
 }
 
 export function useAuthPopup(opts: {

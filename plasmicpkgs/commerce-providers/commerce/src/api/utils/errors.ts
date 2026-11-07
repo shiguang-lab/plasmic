@@ -2,7 +2,7 @@
   Forked from https://github.com/vercel/commerce/tree/main/packages/commerce/src
   Changes: None
 */
-import type { Response } from '@vercel/fetch'
+import type { Response } from 'node-fetch'
 
 export class CommerceAPIError extends Error {
   status: number

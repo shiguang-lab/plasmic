@@ -1,3 +1,4 @@
+import { jsx } from 'react/jsx-runtime';
 import { usePlasmicCanvasContext, DataProvider, repeatedElement } from '@plasmicapp/host';
 import { Form } from 'antd';
 import React from 'react';
@@ -53,20 +54,20 @@ const FormListWrapper = React.forwardRef(function FormListWrapper2(props, ref) {
       }
     }, [JSON.stringify(props.initialValue), JSON.stringify(fullFormItemName)]);
   }
-  return /* @__PURE__ */ React.createElement(FormList, { ...props, name: relativeFormItemName ?? [] }, (...args) => {
+  return /* @__PURE__ */ jsx(FormList, { ...props, name: relativeFormItemName ?? [], children: (...args) => {
     operationsRef.current = args;
-    return args[0].map((field, index) => /* @__PURE__ */ React.createElement(
+    return args[0].map((field, index) => /* @__PURE__ */ jsx(
       PathContext.Provider,
       {
-        key: field.key,
         value: {
           relativePath: [field.name],
           fullPath: [...fullFormItemName ?? [], field.name]
-        }
+        },
+        children: /* @__PURE__ */ jsx(DataProvider, { name: "currentField", data: field, children: /* @__PURE__ */ jsx(DataProvider, { name: "currentFieldIndex", data: index, children: repeatedElement(index, props.children) }) })
       },
-      /* @__PURE__ */ React.createElement(DataProvider, { name: "currentField", data: field }, /* @__PURE__ */ React.createElement(DataProvider, { name: "currentFieldIndex", data: index }, repeatedElement(index, props.children)))
+      field.key
     ));
-  });
+  } });
 });
 
 export { FormListWrapper };

@@ -1,19 +1,25 @@
-import { showPreviewLoadError, syncPreview } from "@/wab/client/components/live/preview-sync";
-import type { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { pushPreviewModules } from "@/wab/client/components/live/live-syncer";
 import * as codegen from "@/wab/client/components/live/preview-codegen";
+import {
+  showPreviewLoadError,
+  syncPreview,
+} from "@/wab/client/components/live/preview-sync";
 import {
   LiveFrame,
   PreviewRender,
   PreviewUpdate,
 } from "@/wab/client/components/live/preview-types";
-import { observable, runInAction } from "mobx";
+import type { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import React from "react";
 import { Root, createRoot } from "react-dom/client";
+import { createStore } from "zustand/vanilla";
+import {
+  createDiagnostics,
+  installErrorHandlers,
+} from "../../../../../../live-frame/src/diagnostics";
 import { createPreview } from "../../../../../../live-frame/src/preview";
 import { createRenderer } from "../../../../../../live-frame/src/render";
 import { createLiveRuntime } from "../../../../../../live-frame/src/runtime";
-import { createDiagnostics, installErrorHandlers } from "../../../../../../live-frame/src/diagnostics";
 
 let container: HTMLDivElement;
 let root: Root;
@@ -71,7 +77,10 @@ beforeEach(() => {
     ...preview,
     ...renderer,
     update: async (modules, spec) => {
-      if (spec) renderer.beginRender("componentUuid" in spec ? spec.componentUuid : undefined);
+      if (spec)
+        {renderer.beginRender(
+          "componentUuid" in spec ? spec.componentUuid : undefined,
+        );}
       runtime.update(modules);
       if (spec) {
         await preview.render(spec);
@@ -186,10 +195,20 @@ it("contains a render error, records its cause, and recovers on the next render"
       update('export default () => { throw new Error("render failed"); }'),
     ),
   ).toEqual({ error: undefined, text: "Error: render failed" });
-  expect(container.querySelector('[data-plasmic-preview-error]')).not.toBeNull();
-  expect(frame.getDiagnostics()).toMatchObject({ status: "failed", errors: [
-    { message: "render failed", kind: "render", fatal: true, stack: expect.stringContaining("render failed") },
-  ] });
+  expect(
+    container.querySelector("[data-plasmic-preview-error]"),
+  ).not.toBeNull();
+  expect(frame.getDiagnostics()).toMatchObject({
+    status: "failed",
+    errors: [
+      {
+        message: "render failed",
+        kind: "render",
+        fatal: true,
+        stack: expect.stringContaining("render failed"),
+      },
+    ],
+  });
   expect(await deliver(update())).toEqual({
     error: undefined,
     text: "Fresh preview",
@@ -215,20 +234,21 @@ it("serializes commits and coalesces pending updates", async () => {
   const css = (code: string): PreviewUpdate => ({
     modules: [{ name: "./test.css", lang: "css", source: code }],
   });
-  const value = observable.box(css("first"), { deep: false });
+  const value = createStore(() => css("first"));
   let done = 0;
   const dispose = syncPreview(
     { __plasmicLive: fake } as unknown as Window,
-    () => value.get(),
+    () => value.getState(),
     () => {
       if (++done === 2) {
         completed.resolve();
       }
     },
+    { subscribe: value.subscribe },
   );
   await vi.waitFor(() => expect(calls).toEqual(["first"]));
-  runInAction(() => value.set(css("second")));
-  runInAction(() => value.set(css("latest")));
+  value.setState(css("second"), true);
+  value.setState(css("latest"), true);
   first.resolve();
   await completed.promise;
   expect(calls).toEqual(["first", "latest"]);
@@ -238,26 +258,45 @@ it("serializes commits and coalesces pending updates", async () => {
 it("serializes build failures after in-flight commits, then recovers on a valid build", async () => {
   const gate = Promise.withResolvers<void>();
   const originalUpdate = frame.update;
-  frame.update = vi.fn(async (...args: Parameters<LiveFrame["update"]>) => { await gate.promise; return originalUpdate(...args); });
-  const version = observable.box(0);
+  frame.update = vi.fn(async (...args: Parameters<LiveFrame["update"]>) => {
+    await gate.promise;
+    return originalUpdate(...args);
+  });
+  const version = createStore(() => 0);
   const error = new Error("Invalid preview model");
   const onDone = vi.fn();
-  const dispose = syncPreview({ __plasmicLive: frame } as unknown as Window, () => {
-    if (version.get() === 1) { throw error; }
-    return update();
-  }, onDone);
+  const dispose = syncPreview(
+    { __plasmicLive: frame } as unknown as Window,
+    () => {
+      if (version.getState() === 1) {
+        throw error;
+      }
+      return update();
+    },
+    onDone,
+    { subscribe: version.subscribe },
+  );
   try {
     await vi.waitFor(() => expect(frame.update).toHaveBeenCalledOnce());
-    runInAction(() => version.set(1));
+    version.setState(1, true);
     gate.resolve();
     await vi.waitFor(() => expect(onDone).toHaveBeenLastCalledWith(error));
     expect(container.textContent).toContain("Invalid preview model");
     expect(container.textContent).not.toContain("Fresh preview");
-    expect(frame.getDiagnostics()).toMatchObject({ status: "failed", errors: [{ message: error.message, stack: error.stack }] });
-    runInAction(() => version.set(2));
+    expect(frame.getDiagnostics()).toMatchObject({
+      status: "failed",
+      errors: [{ message: error.message, stack: error.stack }],
+    });
+    version.setState(2, true);
     await vi.waitFor(() => expect(container.textContent).toBe("Fresh preview"));
-    expect(frame.getDiagnostics()).toMatchObject({ status: "ready", errors: [] });
-  } finally { gate.resolve(); dispose(); }
+    expect(frame.getDiagnostics()).toMatchObject({
+      status: "ready",
+      errors: [],
+    });
+  } finally {
+    gate.resolve();
+    dispose();
+  }
 });
 
 it("shows bootstrap failures before the runtime exists without losing their stack", async () => {
@@ -267,19 +306,24 @@ it("shows bootstrap failures before the runtime exists without losing their stac
     const win = iframe.contentWindow as Window;
     const error = new Error("Runtime download failed");
     await showPreviewLoadError(win, error);
-    const failure = win.document.querySelector('[data-plasmic-preview-error]');
+    const failure = win.document.querySelector("[data-plasmic-preview-error]");
     expect(failure?.textContent).toBe(error.message);
     expect(failure?.getAttribute("data-plasmic-error-stack")).toBe(error.stack);
     expect(failure?.getAttribute("role")).toBe("alert");
-  } finally { iframe.remove(); }
+  } finally {
+    iframe.remove();
+  }
 });
 
-it.each(["data", "hide", "unmount"])("recovers a local failure after %s changes without an automatic retry loop", async (recovery) => {
-  vi.spyOn(console, "error").mockImplementation(() => undefined);
-  window.addEventListener("error", preventRenderErrorReport);
-  const disposeErrors = installErrorHandlers(window, frame.reportError);
-  try {
-    await deliver(update(`import React from "react"; import { renderBoundary } from "test-renderer";
+it.each(["data", "hide", "unmount"])(
+  "recovers a local failure after %s changes without an automatic retry loop",
+  async (recovery) => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    window.addEventListener("error", preventRenderErrorReport);
+    const disposeErrors = installErrorHandlers(window, frame.reportError);
+    try {
+      await deliver(
+        update(`import React from "react"; import { renderBoundary } from "test-renderer";
       export default function Page() {
         const [mode, setMode] = React.useState("broken");
         return <div>
@@ -290,29 +334,41 @@ it.each(["data", "hide", "unmount"])("recovers a local failure after %s changes 
             return mode === "hide" ? null : <span>Valid data</span>;
           }, { elementUuid: "records" })}
         </div>;
-      }`));
-    const attempts = (window as any).boundaryAttempts;
-    await new Promise((resolve) => setTimeout(resolve, 40));
-    expect((window as any).boundaryAttempts).toBe(attempts);
-    expect(frame.getDiagnostics().status).toBe("degraded");
-    const unrelated = new Error("Unrelated action failed");
-    frame.reportError(unrelated, { kind: "interaction", fatal: false });
-    container.querySelector("button")?.click();
-    await vi.waitFor(() => expect(container.querySelector('[data-plasmic-preview-error]')).toBeNull());
-    expect(container.textContent).toBe(recovery === "data" ? "RecoverValid data" : "Recover");
-    expect(frame.getDiagnostics().errors).toEqual([expect.objectContaining({ message: unrelated.message })]);
-  } finally {
-    disposeErrors();
-    window.removeEventListener("error", preventRenderErrorReport);
-    delete (window as any).boundaryAttempts;
-  }
-});
+      }`),
+      );
+      const attempts = (window as any).boundaryAttempts;
+      await new Promise((resolve) => setTimeout(resolve, 40));
+      expect((window as any).boundaryAttempts).toBe(attempts);
+      expect(frame.getDiagnostics().status).toBe("degraded");
+      const unrelated = new Error("Unrelated action failed");
+      frame.reportError(unrelated, { kind: "interaction", fatal: false });
+      container.querySelector("button")?.click();
+      await vi.waitFor(() =>
+        expect(
+          container.querySelector("[data-plasmic-preview-error]"),
+        ).toBeNull(),
+      );
+      expect(container.textContent).toBe(
+        recovery === "data" ? "RecoverValid data" : "Recover",
+      );
+      expect(frame.getDiagnostics().errors).toEqual([
+        expect.objectContaining({ message: unrelated.message }),
+      ]);
+    } finally {
+      disposeErrors();
+      window.removeEventListener("error", preventRenderErrorReport);
+      delete (window as any).boundaryAttempts;
+    }
+  },
+);
 
-it.each(["props", "render"])("isolates %s failures while siblings remain interactive", async (kind) => {
-  vi.spyOn(console, "error").mockImplementation(() => undefined);
-  window.addEventListener("error", preventRenderErrorReport);
-  try {
-    const value = update(`import React from "react";
+it.each(["props", "render"])(
+  "isolates %s failures while siblings remain interactive",
+  async (kind) => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    window.addEventListener("error", preventRenderErrorReport);
+    try {
+      const value = update(`import React from "react";
       import { renderBoundary } from "test-renderer";
       function Broken() { throw new Error("render failed"); }
       export default function Page() {
@@ -325,21 +381,37 @@ it.each(["props", "render"])("isolates %s failures while siblings remain interac
             { componentUuid: "page", elementUuid: "table", nodeName: "Records" })}
         </div>;
       }`);
-    await deliver(value);
-    container.querySelectorAll("button")[1].click();
-    await vi.waitFor(() => expect(container.textContent).toContain("Error: render failed"));
-    expect(frame.getDiagnostics()).toMatchObject({ status: "degraded", errors: [
-      { elementUuid: "table", nodeName: "Records", fatal: false, componentStack: expect.any(String) },
-    ] });
-    expect(container.querySelector(".live-root-container")).not.toBeNull();
-    container.querySelector("button")?.click();
-    await vi.waitFor(() => expect(container.textContent).toContain("Count 1"));
-    await deliver(update());
-    expect(frame.getDiagnostics()).toMatchObject({ status: "ready", errors: [] });
-  } finally {
-    window.removeEventListener("error", preventRenderErrorReport);
-  }
-});
+      await deliver(value);
+      container.querySelectorAll("button")[1].click();
+      await vi.waitFor(() =>
+        expect(container.textContent).toContain("Error: render failed"),
+      );
+      expect(frame.getDiagnostics()).toMatchObject({
+        status: "degraded",
+        errors: [
+          {
+            elementUuid: "table",
+            nodeName: "Records",
+            fatal: false,
+            componentStack: expect.any(String),
+          },
+        ],
+      });
+      expect(container.querySelector(".live-root-container")).not.toBeNull();
+      container.querySelector("button")?.click();
+      await vi.waitFor(() =>
+        expect(container.textContent).toContain("Count 1"),
+      );
+      await deliver(update());
+      expect(frame.getDiagnostics()).toMatchObject({
+        status: "ready",
+        errors: [],
+      });
+    } finally {
+      window.removeEventListener("error", preventRenderErrorReport);
+    }
+  },
+);
 
 it("captures browser and promise failures with bounded, render-scoped diagnostics", () => {
   const diagnostics = createDiagnostics();
@@ -352,34 +424,70 @@ it("captures browser and promise failures with bounded, render-scoped diagnostic
     const rejection = new Event("unhandledrejection");
     Object.defineProperty(rejection, "reason", { value: error });
     window.dispatchEvent(rejection);
-    expect(diagnostics.read()).toMatchObject({ status: "degraded", errors: [{ message: "request failed", stack: error.stack }] });
+    expect(diagnostics.read()).toMatchObject({
+      status: "degraded",
+      errors: [{ message: "request failed", stack: error.stack }],
+    });
     const old = diagnostics.read().generation;
     diagnostics.begin("second");
     diagnostics.commit();
     diagnostics.report(error, { kind: "interaction", fatal: false }, old);
     // Rethrowing the old interaction also reaches the browser rejection event.
     window.dispatchEvent(rejection);
-    expect(diagnostics.read()).toMatchObject({ componentUuid: "second", status: "ready", errors: [] });
-    for (let i = 0; i < 100; i++) diagnostics.report(new Error(`Failure ${i}`), { kind: "unhandled", fatal: false });
+    expect(diagnostics.read()).toMatchObject({
+      componentUuid: "second",
+      status: "ready",
+      errors: [],
+    });
+    for (let i = 0; i < 100; i++)
+      {diagnostics.report(new Error(`Failure ${i}`), {
+        kind: "unhandled",
+        fatal: false,
+      });}
     expect(diagnostics.read().errors).toHaveLength(50);
     expect(diagnostics.read().errors.at(-1)?.message).toBe("Failure 99");
-  } finally { dispose(); }
+  } finally {
+    dispose();
+  }
 });
 
 it("does not discard historical or asynchronous failures when correlating React development probes", async () => {
   const diagnostics = createDiagnostics();
   diagnostics.begin("page");
   diagnostics.commit();
-  const error = () => Object.assign(new Error("same failure"), { stack: "Error: same failure\n    at widget (widget.js:1:1)\n    at render (view.js:1:1)\n    at caller (main.js:1:1)" });
-  diagnostics.report(error(), { kind: "unhandled", fatal: false, source: "window-error" });
+  const error = () =>
+    Object.assign(new Error("same failure"), {
+      stack:
+        "Error: same failure\n    at widget (widget.js:1:1)\n    at render (view.js:1:1)\n    at caller (main.js:1:1)",
+    });
+  diagnostics.report(error(), {
+    kind: "unhandled",
+    fatal: false,
+    source: "window-error",
+  });
   await Promise.resolve();
-  diagnostics.report(error(), { kind: "unhandled", fatal: false, source: "unhandledrejection" });
-  diagnostics.report(error(), { kind: "unhandled", fatal: false, source: "window-error" });
+  diagnostics.report(error(), {
+    kind: "unhandled",
+    fatal: false,
+    source: "unhandledrejection",
+  });
+  diagnostics.report(error(), {
+    kind: "unhandled",
+    fatal: false,
+    source: "window-error",
+  });
   const caught = error();
-  diagnostics.report(caught, { kind: "render", fatal: false, elementUuid: "widget" });
+  diagnostics.report(caught, {
+    kind: "render",
+    fatal: false,
+    elementUuid: "widget",
+  });
   expect(diagnostics.read().errors).toHaveLength(3);
   diagnostics.resolve(caught, diagnostics.read().generation);
-  expect(diagnostics.read().errors.map((item) => item.source)).toEqual(["window-error", "unhandledrejection"]);
+  expect(diagnostics.read().errors.map((item) => item.source)).toEqual([
+    "window-error",
+    "unhandledrejection",
+  ]);
 });
 
 it("invalidates importers while preserving unrelated modules and CSS order", async () => {
@@ -433,21 +541,15 @@ it("includes the JSX pragma in the transpilation cache key", async () => {
     lang: "tsx",
     source: "export default <div />",
   };
-  const value = observable.box<PreviewUpdate>(
-    { modules: [mod] },
-    { deep: false },
-  );
+  const value = createStore<PreviewUpdate>(() => ({ modules: [mod] }));
   const dispose = syncPreview(
     { __plasmicLive: fake } as unknown as Window,
-    () => value.get(),
+    () => value.getState(),
     () => undefined,
+    { subscribe: value.subscribe },
   );
   await vi.waitFor(() => expect(codes).toHaveLength(1));
-  runInAction(() =>
-    value.set({
-      modules: [{ ...mod, jsxPragma: "createPlasmicElementProxy" }],
-    }),
-  );
+  value.setState({ modules: [{ ...mod, jsxPragma: "createPlasmicElementProxy" }] }, true);
   await vi.waitFor(() => expect(codes).toHaveLength(2));
   expect(codes[0]).toContain("React.createElement");
   expect(codes[1]).toContain("createPlasmicElementProxy");
@@ -484,39 +586,69 @@ it("updates component and global variants without losing component state", async
 });
 
 it("keeps variant changes made before the first render commits", async () => {
-  const state = observable({ variant: "before", theme: "light" });
-  const value = update(`import React from "react"; import { Theme } from "./theme";
+  const state = createStore(() => ({ previewData: { componentPath: "/preview", variants: { variant: "before" }, global: { theme: "light" } } }));
+  const value =
+    update(`import React from "react"; import { Theme } from "./theme";
     export default function Counter(props) {
       const [count, setCount] = React.useState(0);
       return <button onClick={() => setCount(count + 1)}>{count}/{props.variant}/{React.useContext(Theme)}</button>;
     }`);
   value.modules[1].source = 'export default {variant:"before"}';
-  value.modules.push({ name: "./theme.tsx", lang: "tsx", source: 'import React from "react"; export const Theme=React.createContext("light"); export const Provider=Theme.Provider;' });
-  value.render = { ...spec, globals: {theme:"light"}, globalVariants: [{module:"./theme.tsx", provider:"Provider", prop:"theme"}] };
+  value.modules.push({
+    name: "./theme.tsx",
+    lang: "tsx",
+    source:
+      'import React from "react"; export const Theme=React.createContext("light"); export const Provider=Theme.Provider;',
+  });
+  value.render = {
+    ...spec,
+    globals: { theme: "light" },
+    globalVariants: [
+      { module: "./theme.tsx", provider: "Provider", prop: "theme" },
+    ],
+  };
   vi.spyOn(codegen, "buildPreviewUpdate").mockReturnValue(value);
   const ctx = {
-    studioCtx: {currentAppUserCtx:{}}, previewData: {},
-    get variants() { return {variant:state.variant}; },
-    get global() { return {theme:state.theme}; },
-    getVariants: () => [state.variant, state.theme],
+    store: state,
+    studioCtx: { currentAppUserCtx: {}, currentAppUserStore: createStore(() => ({})) },
+    previewData: {},
+    get variants() {
+      return state.getState().previewData.variants;
+    },
+    get global() {
+      return state.getState().previewData.global;
+    },
+    getVariants: () => [],
   } as unknown as PreviewCtx;
   let release = () => {};
-  const gate = new Promise<void>((resolve) => { release = resolve; });
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
   const updateFrame = frame.update;
   let started = false;
-  frame.update = async (...args) => { started = true; await gate; await updateFrame(...args); };
+  frame.update = async (...args) => {
+    started = true;
+    await gate;
+    await updateFrame(...args);
+  };
   const onRendered = vi.fn();
-  const dispose = pushPreviewModules({__plasmicLive:frame} as unknown as Window, ctx, {onRendered});
+  const dispose = pushPreviewModules(
+    { __plasmicLive: frame } as unknown as Window,
+    ctx,
+    { onRendered },
+  );
   try {
     await vi.waitFor(() => expect(started).toBe(true));
-    runInAction(() => { state.variant="after"; state.theme="dark"; });
+    state.setState({ previewData: { componentPath: "/preview", variants: { variant: "after" }, global: { theme: "dark" } } });
     release();
     await vi.waitFor(() => expect(onRendered).toHaveBeenCalledOnce());
     await vi.waitFor(() => expect(container.textContent).toBe("0/after/dark"));
     container.querySelector("button")?.click();
     await vi.waitFor(() => expect(container.textContent).toBe("1/after/dark"));
-    runInAction(() => { state.variant="latest"; state.theme="light"; });
-    await vi.waitFor(() => expect(container.textContent).toBe("1/latest/light"));
+    state.setState({ previewData: { componentPath: "/preview", variants: { variant: "latest" }, global: { theme: "light" } } });
+    await vi.waitFor(() =>
+      expect(container.textContent).toBe("1/latest/light"),
+    );
     expect(codegen.buildPreviewUpdate).toHaveBeenCalledOnce();
   } finally {
     release();
@@ -563,4 +695,49 @@ it("does not deliver pending updates after disposal", async () => {
   await new Promise((resolve) => setTimeout(resolve, 10));
   expect(fake.update).not.toHaveBeenCalled();
   expect(onDone).not.toHaveBeenCalled();
+});
+
+it("coalesces native store inputs without observable revisions and releases subscriptions", async () => {
+  const value = createStore(() => ({ color: "first", unrelated: false }));
+  const calls: string[] = [];
+  const fake = {
+    update: vi.fn(async (modules) => {
+      calls.push(modules[0].source);
+    }),
+  };
+  const build = vi.fn(() => ({
+    modules: [
+      {
+        name: "./native.css",
+        lang: "css" as const,
+        source: value.getState().color,
+      },
+    ],
+  }));
+  const dispose = syncPreview(
+    { __plasmicLive: fake } as unknown as Window,
+    build,
+    () => {},
+    {
+      subscribe: (invalidate) =>
+        value.subscribe((next, previous) => {
+          if (next.color !== previous.color) {
+            invalidate();
+          }
+        }),
+    },
+  );
+  await vi.waitFor(() => expect(calls).toEqual(["first"]));
+  value.setState({ color: "intermediate" });
+  value.setState({ color: "latest" });
+  await vi.waitFor(() => expect(calls).toEqual(["first", "latest"]));
+  expect(build).toHaveBeenCalledTimes(2);
+  value.setState({ unrelated: true });
+  await Promise.resolve();
+  expect(build).toHaveBeenCalledTimes(2);
+  value.setState({ color: "after disposal" });
+  dispose();
+  await Promise.resolve();
+  expect(build).toHaveBeenCalledTimes(2);
+  expect(calls).toEqual(["first", "latest"]);
 });

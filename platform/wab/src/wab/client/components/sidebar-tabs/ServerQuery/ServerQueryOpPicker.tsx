@@ -1,3 +1,4 @@
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { showError } from "@/wab/client/ErrorNotifications";
 
 import { BottomModalButtons } from "@/wab/client/components/BottomModal";
@@ -233,6 +234,7 @@ export const ServerQueryOpDraftForm = observer(
       currGlobalThis,
     } = props;
     const studioCtx = useStudioCtx();
+  useStudioSelection(studioCtx, (state) => state.view);
     const viewCtx = studioCtx.focusedViewCtx();
 
     const cleanedEnvData = React.useMemo(

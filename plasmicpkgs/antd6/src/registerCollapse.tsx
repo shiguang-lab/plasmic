@@ -15,7 +15,7 @@ function CollapseWithChildren(props: React.ComponentProps<typeof Collapse>) {
   const { children, activeKey, defaultActiveKey, onChange, accordion, ...rest } = props;
   const canvas = usePlasmicCanvasContext();
   const state = usePlasmicCanvasComponentInfo(props)?.states?.activeKey;
-  const panels = getCanvasItems(children, (item) => item.type === AntdCollapsePanel || item.type === Collapse.Panel);
+  const panels = getCanvasItems(children, (item) => item.type === AntdCollapsePanel || item.type === Collapse.Panel).filter(React.isValidElement<React.ComponentProps<typeof Collapse.Panel> & { __plasmic_selection_prop__?: unknown }>);
   const selectedKey = canvas && !canvas.interactive ? getSelectedCanvasItemKey(panels) : undefined;
   const businessKeys = activeKey ?? defaultActiveKey ?? [];
   const revealKeys = selectedKey == null ? undefined : accordion ? String(selectedKey) : Array.from(new Set([...(Array.isArray(businessKeys) ? businessKeys : [businessKeys]), String(selectedKey)]));
@@ -23,7 +23,7 @@ function CollapseWithChildren(props: React.ComponentProps<typeof Collapse>) {
   return <Collapse {...rest} accordion={accordion} activeKey={openKeys} defaultActiveKey={defaultActiveKey}
     onChange={state || selectedKey == null ? onChange : undefined}
     items={panels.map((panel, index) => {
-      const { header, __plasmic_selection_prop__: _selection, ...panelProps } = panel.props;
+      const { header, ref: _ref, __plasmic_selection_prop__: _selection, ...panelProps } = panel.props;
       return { ...panelProps, key: panel.key ?? String(index), label: header };
     })}
   />;

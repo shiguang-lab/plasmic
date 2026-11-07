@@ -16,7 +16,6 @@ import {
 import { DataSourceSchema } from "@plasmicapp/data-sources";
 import { Tooltip } from "antd";
 import { isString, range } from "lodash";
-import { observer } from "mobx-react";
 import React from "react";
 
 export interface CopilotCodePromptProps {
@@ -31,7 +30,7 @@ export interface CopilotCodePromptProps {
   className: string;
 }
 
-export const CopilotCodePrompt = observer(function CopilotCodePrompt({
+export function CopilotCodePrompt({
   onUpdate,
   currentValue,
   data,
@@ -110,7 +109,7 @@ export const CopilotCodePrompt = observer(function CopilotCodePrompt({
       }}
     />
   );
-});
+}
 
 function processCurrentCode(currentCode: string | undefined) {
   // Max current code size

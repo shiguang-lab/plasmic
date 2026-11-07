@@ -1,22 +1,28 @@
+import { useStore } from "zustand";
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { useFrameSelectionBounds } from "@/wab/client/components/canvas/selection-bounds";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   StudioCtx,
   cssPropsForInvertTransform,
 } from "@/wab/client/studio-ctx/StudioCtx";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const FrameSelectionBox = observer(function FrameSelectionBox({
+export function FrameSelectionBox({
   studioCtx,
 }: {
   studioCtx: StudioCtx;
 }) {
+  useStudioSelection(studioCtx, (state) => state.frames);
+  const draggingObject = useStore(studioCtx.draggingObjectStore);
+  const transformingObject = useStore(studioCtx.transformingObjectStore);
+  const viewportZoom = useCanvasZoom(studioCtx);
   const bounds = useFrameSelectionBounds(studioCtx);
   if (
     !bounds ||
-    studioCtx.isDraggingObject() ||
-    studioCtx.isTransformingObject()
+    draggingObject ||
+    transformingObject
   ) {
     return null;
   }
@@ -29,7 +35,7 @@ export const FrameSelectionBox = observer(function FrameSelectionBox({
       style={{
         top: rect.top,
         left: rect.left,
-        ...cssPropsForInvertTransform(studioCtx.zoom, rect),
+        ...cssPropsForInvertTransform(viewportZoom, rect),
       }}
     >
       <div className="canvas-editor__multi-selection-label">
@@ -43,4 +49,4 @@ export const FrameSelectionBox = observer(function FrameSelectionBox({
       </div>
     </div>
   );
-});
+}

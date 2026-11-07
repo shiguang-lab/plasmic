@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/plasmic-giphy",
-  "version": "0.0.95",
+  "version": "0.1.0",
   "description": "Plasmic Giphy components.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -28,7 +28,7 @@
     "analyze": "size-limit --why"
   },
   "peerDependencies": {
-    "react": ">=16"
+    "react": "^19.3.1"
   },
   "size-limit": [
     {
@@ -44,15 +44,15 @@
     "@plasmicapp/host": "workspace:*",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "tsdx": "catalog:",
     "tslib": "catalog:"
   },
   "dependencies": {
     "@giphy/js-fetch-api": "^5.1.0",
     "@giphy/js-types": "^4.4.0",
-    "@giphy/react-components": "^9.0.1",
+    "@giphy/react-components": "10.2.0",
     "change-case": "^4.1.2"
   }
 }

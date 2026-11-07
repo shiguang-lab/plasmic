@@ -1,3 +1,5 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import { PlumyIcon } from "@/wab/client/components/plume/plume-markers";
 import { getContextDependentValuesForImplicitState } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerUtil";
@@ -41,6 +43,7 @@ const ImplicitVariablesSection = observer(
     ref: HTMLElementRefOf<"div">,
   ) {
     const { sc, component, tpl, viewCtx, ...rest } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
 
     assert(viewCtx, "component should have a focused or first view ctx");
 

@@ -179,7 +179,6 @@ export function registerDatePicker(loader?: Registerable) {
         options: ["outlined", "borderless", "filled", "underlined"],
         defaultValueHint: "outlined",
       },
-      // TODO - see how it works with plasmic-rich-components
       // format: {
       //   advanced: true
       // },

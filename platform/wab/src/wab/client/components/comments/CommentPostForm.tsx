@@ -12,7 +12,7 @@ import {
 import { isSubmitKeyCombo } from "@/wab/client/shortcuts/shortcut";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { spawn } from "@/wab/shared/common";
-import { observer } from "mobx-react";
+
 import * as React from "react";
 import { useState } from "react";
 import ReactDOM from "react-dom";
@@ -27,7 +27,7 @@ export type CommentPostFormProps = DefaultCommentPostFormProps & {
   onSubmit?: (value: string) => void;
 };
 
-const CommentPostForm = observer(function CommentPostForm(
+const CommentPostForm = function CommentPostForm(
   props: CommentPostFormProps,
 ) {
   const { t: uiT } = useI18n();
@@ -164,6 +164,6 @@ const CommentPostForm = observer(function CommentPostForm(
       {ReactDOM.createPortal(userMentionsPopover, document.body)}
     </>
   );
-});
+};
 
 export default CommentPostForm;

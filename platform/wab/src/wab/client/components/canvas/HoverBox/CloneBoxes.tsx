@@ -1,3 +1,7 @@
+import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
 import { CanvasTransformedBox } from "@/wab/client/components/canvas/CanvasTransformedBox";
 import { useRerenderOnUserBodyChange } from "@/wab/client/components/canvas/UserBodyObserver";
 import {
@@ -17,9 +21,12 @@ import { observer } from "mobx-react";
 import * as React from "react";
 export const CloneBoxes = observer(function CloneBoxes() {
   const studioCtx = useStudioCtx();
+  useStudioSelection(studioCtx, (state) => state.view);
   const viewCtx = studioCtx.focusedViewCtx();
+  useViewSelection(viewCtx, (state) => state.targets);
   const selectable = viewCtx?.focusedSelectable();
-  const cloneKeys = viewCtx?.studioCtx.isUnlogged()
+  const isUnlogged = useStudioSaveState(studioCtx, (state) => state.isUnlogged);
+  const cloneKeys = isUnlogged
     ? []
     : (viewCtx?.selectableToCloneKeys(selectable) ?? []);
 
@@ -55,6 +62,8 @@ const CloneBox = observer(function CloneBox({
   selectable,
   viewCtx,
 }: CloneBoxProps) {
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  useViewSelection(viewCtx, useShallow((state) => [state.cloneKeys, state.doms]));
   const cloneSelectable = viewCtx.renderState.sel2clone(selectable, cloneKey);
   const $elt = maybes(cloneSelectable)((sel) =>
     viewCtx.renderState.sel2dom(sel, viewCtx.canvasCtx, cloneKey),

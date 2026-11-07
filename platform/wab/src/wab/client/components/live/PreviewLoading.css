@@ -26,6 +26,8 @@
 }
 #preview-startup-loading {
   display: none;
+  z-index: 36;
+  pointer-events: none;
 }
 #preview-startup-loading.visible {
   display: flex;

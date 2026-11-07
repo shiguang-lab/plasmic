@@ -29,7 +29,8 @@ vi.mock("@/wab/client/figma-importer/FigmaPagePicker", () => ({
 }));
 vi.mock("@/wab/client/i18n", () => ({ getUiLocale: () => "en" }));
 vi.mock("antd", () => ({
-  notification: { error: mocks.error, info: mocks.info },
+  notification: { error: mocks.error },
+  message: { success: mocks.info },
 }));
 vi.mock("comlink", () => ({
   wrap: () => ({
@@ -100,7 +101,7 @@ it("imports a single page without any page or component confirmation", async () 
     "Desktop",
   );
   expect(mocks.info).toHaveBeenCalledWith({
-    message: 'Imported "Desktop" page from Figma',
+    content: 'Imported "Desktop" page from Figma',
   });
   expect(mocks.terminate).toHaveBeenCalledOnce();
   expect(mocks.release).toHaveBeenCalledOnce();

@@ -1,3 +1,5 @@
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useInspectorComponentEvalContext } from "@/wab/client/studio-ctx/inspector-state";
 import { ArrayPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/ArrayPropEditor";
 import { BoolPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/BoolPropEditor";
 import { CardPickerEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/CardPickerEditor";
@@ -205,6 +207,7 @@ const PropValueEditor_ = (
     ccContextData,
     exprCtx,
   } = usePropValueEditorContext();
+  useViewSelection(viewCtx, (state) => state.context);
   const studioCtx = useStudioCtx();
   const litValue = React.useMemo(
     () => (isKnownExpr(value) ? tryExtractJson(value) : value),
@@ -228,6 +231,8 @@ const PropValueEditor_ = (
     [componentPropValues, ccContextData, controlExtras],
   );
 
+  const targetTpl = viewCtx && isPlainObjectPropType(propType) && propType.type === "functionArgs" && propType.targetTpl ? _getContextDependentValue(propType.targetTpl) : undefined;
+  const targetContext = useInspectorComponentEvalContext(targetTpl ? viewCtx : undefined, targetTpl);
   let defaultValueHint;
 
   let readOnly: boolean | undefined = undefined;
@@ -565,14 +570,11 @@ const PropValueEditor_ = (
       innerCcContextData = undefined;
       innerComponentPropValues = undefined;
     }
-    if (propType.targetTpl && viewCtx) {
-      const targetTpl = _getContextDependentValue(propType.targetTpl);
-      if (targetTpl) {
-        ({
-          componentPropValues: innerComponentPropValues,
-          ccContextData: innerCcContextData,
-        } = viewCtx.getInspectorComponentEvalContext(targetTpl));
-      }
+    if (targetTpl && viewCtx) {
+      ({
+        componentPropValues: innerComponentPropValues,
+        ccContextData: innerCcContextData,
+      } = targetContext);
     }
 
     return (

@@ -1,5 +1,5 @@
 import { Select } from "antd";
-import React, { ComponentProps } from "react";
+import { ComponentProps } from "react";
 import {
   optionComponentName,
   optionGroupComponentName,

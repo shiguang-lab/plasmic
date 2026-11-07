@@ -1,3 +1,6 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import {
   clipBox,
   computeClipBounds,
@@ -25,6 +28,9 @@ export const Spotlight = observer(Spotlight_);
 
 function Spotlight_(props: { viewCtx: ViewCtx }) {
   const { viewCtx } = props;
+  useViewVariants(viewCtx, (variantState) => variantState.showDefaultSlots);
+  useStudioLiveMode(viewCtx.studioCtx);
+  const viewportZoom = useCanvasZoom(viewCtx.studioCtx);
   const showDefaultSlotContents = viewCtx.showDefaultSlotContents();
   const { tplComponent, valComponent, shouldRender } =
     getSpotlightInfo(viewCtx);
@@ -65,7 +71,7 @@ function Spotlight_(props: { viewCtx: ViewCtx }) {
   }, [shouldRender, showDefaultSlotContents, viewCtx]);
 
   React.useEffect(() => {
-    adjustSpotLightDueToZoom(viewCtx.studioCtx.zoom);
+    adjustSpotLightDueToZoom(viewportZoom);
   });
 
   React.useEffect(() => {

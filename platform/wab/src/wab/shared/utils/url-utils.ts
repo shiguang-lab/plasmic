@@ -87,7 +87,7 @@ export interface PathParamMeta {
   required: boolean;
 }
 
-export function extractPathParamMetas(pageMeta: PageMeta): PathParamMeta[] {
+export function extractPathParamMetas(pageMeta: Readonly<Pick<PageMeta, "path" | "params">>): PathParamMeta[] {
   // Ordered based on the path
   return [...pageMeta.path.matchAll(reParamKeys)].map((m) => {
     const param = m.groups!["param"];
@@ -108,7 +108,7 @@ export interface QueryParamMeta {
   previewValue: string;
 }
 
-export function extractQueryParamMetas(pageMeta: PageMeta): QueryParamMeta[] {
+export function extractQueryParamMetas(pageMeta: Readonly<Pick<PageMeta, "query">>): QueryParamMeta[] {
   return Object.entries(pageMeta.query).map(
     ([key, previewValue]): QueryParamMeta => ({
       type: "Query",

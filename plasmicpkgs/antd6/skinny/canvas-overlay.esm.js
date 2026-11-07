@@ -2,7 +2,7 @@ import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmic
 import React, { useRef, useEffect } from 'react';
 
 function getSelectedCanvasItemKey(items) {
-  const index = items.findIndex((item) => item.props.__plasmic_selection_prop__?.isSelected);
+  const index = items.findIndex((item) => React.isValidElement(item) && item.props.__plasmic_selection_prop__?.isSelected);
   return index < 0 ? void 0 : items[index].key ?? String(index);
 }
 function renderCanvasSlot(children, render) {

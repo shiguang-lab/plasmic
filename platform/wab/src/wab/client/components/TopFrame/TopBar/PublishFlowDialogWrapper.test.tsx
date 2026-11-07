@@ -1,11 +1,6 @@
-import { showError } from "@/wab/client/ErrorNotifications";
-vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
-  ...(await original<typeof import("@/wab/client/ErrorNotifications")>()),
-  showError: vi.fn(),
-}));
-import { message } from "antd";
 import PreviewPublishSection from "@/wab/client/components/TopFrame/TopBar/PreviewPublishSection";
 import PublishFlowDialogWrapper from "@/wab/client/components/TopFrame/TopBar/PublishFlowDialogWrapper";
+import { showError } from "@/wab/client/ErrorNotifications";
 import {
   act,
   fireEvent,
@@ -13,9 +8,14 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import { message } from "antd";
 import React from "react";
 import { SWRConfig } from "swr";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
+  ...(await original<typeof import("@/wab/client/ErrorNotifications")>()),
+  showError: vi.fn(),
+}));
 
 const mocks = vi.hoisted(() => ({
   saveVersion: vi.fn(),
@@ -118,7 +118,10 @@ vi.mock("@/wab/client/components/quick-modals", async (original) => ({
 vi.mock("@/wab/client/tracking", () => ({ trackEvent: vi.fn() }));
 vi.mock("antd", async (importOriginal) => {
   const actual = await importOriginal<typeof import("antd")>();
-  return { ...actual, message: { ...actual.message, success: vi.fn(), error: vi.fn() } };
+  return {
+    ...actual,
+    message: { ...actual.message, success: vi.fn(), error: vi.fn() },
+  };
 });
 
 const oldPublication = {
@@ -187,9 +190,15 @@ describe("website publishing from the dialog", () => {
 
   it("reports a successful unpublish once through message.success", async () => {
     await openDialog();
-    mocks.getPublication.mockResolvedValue({ publication: { ...oldPublication, enabled: false } });
+    mocks.getPublication.mockResolvedValue({
+      publication: { ...oldPublication, enabled: false },
+    });
     fireEvent.click(screen.getByRole("button", { name: /Unpublish website/ }));
-    await waitFor(() => expect(message.success).toHaveBeenCalledExactlyOnceWith({ content: "Website unpublished" }));
+    await waitFor(() =>
+      expect(message.success).toHaveBeenCalledExactlyOnceWith({
+        content: "Website unpublished",
+      }),
+    );
     expect(mocks.unpublish).toHaveBeenCalledExactlyOnceWith("project");
     expect(message.error).not.toHaveBeenCalled();
   });
@@ -199,9 +208,15 @@ describe("website publishing from the dialog", () => {
     mocks.unpublish.mockRejectedValueOnce(error);
     await openDialog();
     fireEvent.click(screen.getByRole("button", { name: /Unpublish website/ }));
-    await waitFor(() => expect(showError).toHaveBeenCalledExactlyOnceWith(error, { title: "Website publishing failed" }));
+    await waitFor(() =>
+      expect(showError).toHaveBeenCalledExactlyOnceWith(error, {
+        title: "Website publishing failed",
+      }),
+    );
     expect(message.success).not.toHaveBeenCalled();
-    expect(screen.getByRole("link").getAttribute("href")).toBe(oldPublication.url);
+    expect(screen.getByRole("link").getAttribute("href")).toBe(
+      oldPublication.url,
+    );
   });
 
   it("saves the version without building the website when its checkbox is off", async () => {
@@ -257,7 +272,11 @@ describe("website publishing from the dialog", () => {
     async (result) => {
       mocks.saveVersion.mockResolvedValue(result);
       fireEvent.click(await openDialog());
-      await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Website publishing failed" }));
+      await waitFor(() =>
+        expect(showError).toHaveBeenCalledWith(expect.any(Error), {
+          title: "Website publishing failed",
+        }),
+      );
       expect(mocks.buildWebsite).not.toHaveBeenCalled();
       expect(screen.getByRole("link").getAttribute("href")).toBe(
         oldPublication.url,
@@ -271,14 +290,22 @@ describe("website publishing from the dialog", () => {
     await screen.findByText("Published version: 0.0.2");
     expect(mocks.saveVersion).toHaveBeenCalledOnce();
     expect(mocks.buildWebsite).toHaveBeenCalledOnce();
-    expect(message.success).toHaveBeenCalledExactlyOnceWith({ content: "Published successfully" });
+    await waitFor(() =>
+      expect(message.success).toHaveBeenCalledExactlyOnceWith({
+        content: "Published successfully",
+      }),
+    );
     expect(document.querySelector(".ant-alert-success")).toBeNull();
   });
 
   it("stops the main action after a failed version save", async () => {
     mocks.saveVersion.mockResolvedValue("SaveFailed");
     fireEvent.click(await openDialog());
-    await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Website publishing failed" }));
+    await waitFor(() =>
+      expect(showError).toHaveBeenCalledWith(expect.any(Error), {
+        title: "Website publishing failed",
+      }),
+    );
     expect(mocks.buildWebsite).not.toHaveBeenCalled();
   });
 
@@ -287,7 +314,12 @@ describe("website publishing from the dialog", () => {
       new Error("Code generation failed"),
     );
     fireEvent.click(await openDialog());
-    await waitFor(() => expect(showError).toHaveBeenCalledWith(new Error("Code generation failed"), { title: "Website publishing failed" }));
+    await waitFor(() =>
+      expect(showError).toHaveBeenCalledWith(
+        new Error("Code generation failed"),
+        { title: "Website publishing failed" },
+      ),
+    );
     expect(document.querySelector(".ant-alert-error")).toBeNull();
     expect(screen.getByText("Published version: 0.0.1")).toBeTruthy();
     const retry = screen.getByRole("button", { name: "Retry publishing" });
@@ -299,7 +331,11 @@ describe("website publishing from the dialog", () => {
     expect(mocks.saveVersion).toHaveBeenCalledTimes(2);
     expect(mocks.buildWebsite).toHaveBeenCalledTimes(2);
     expect(showError).toHaveBeenCalledTimes(1);
-    expect(message.success).toHaveBeenCalledExactlyOnceWith({ content: "Published successfully" });
+    await waitFor(() =>
+      expect(message.success).toHaveBeenCalledExactlyOnceWith({
+        content: "Published successfully",
+      }),
+    );
   });
   it("reuses the saved version when only website publication is needed", async () => {
     mocks.saveEnabled = false;
@@ -367,7 +403,11 @@ describe("website publishing from the dialog", () => {
     await screen.findByText("Published version: 0.0.2");
     expect(mocks.saveVersion).toHaveBeenCalledOnce();
     expect(mocks.buildWebsite).toHaveBeenCalledOnce();
-    expect(message.success).toHaveBeenCalledExactlyOnceWith({ content: "Published successfully" });
+    await waitFor(() =>
+      expect(message.success).toHaveBeenCalledExactlyOnceWith({
+        content: "Published successfully",
+      }),
+    );
     fireEvent.click(screen.getByRole("button", { name: "Done" }));
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
     fireEvent.click(screen.getByRole("button", { name: "Reopen publication" }));

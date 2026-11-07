@@ -3,10 +3,13 @@ import { shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helper
 import {
   ExpsProvider,
   StylePanelSection,
-  useStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { TransformPanel } from "@/wab/client/components/style-controls/TransformPanel";
 import { TransformSettingsPanel } from "@/wab/client/components/style-controls/TransformSettingsPanel";
+import {
+  useStyleCells,
+  useStyleIndicators,
+} from "@/wab/client/studio-ctx/style-inputs-react";
 import {
   IconLinkButton,
   ListBox,
@@ -25,36 +28,46 @@ import {
   parseOrigin,
 } from "@/wab/shared/css/transforms";
 import { capitalize } from "lodash";
-import { observer } from "mobx-react";
 import React, { useState } from "react";
 
-export const TransformPanelSection = observer(
-  (props: { expsProvider: ExpsProvider }) => {
+export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
     const { t: uiT } = useI18n();
     const { expsProvider } = props;
     const { studioCtx } = expsProvider;
-    const exp = expsProvider.mergedExp();
     const [inspect, setInspect] = useState<number | undefined>(undefined);
     const [isSettingOpen, setIsSettingOpen] = useState<boolean>(false);
-    const sc = useStyleComponent();
+    const [
+      transformCell,
+      transformOriginCell,
+      perspectiveOriginCell,
+      backfaceVisibilityCell,
+      childPerspectiveCell,
+    ] = useStyleCells(expsProvider, [
+      "transform",
+      "transform-origin",
+      "perspective-origin",
+      "backface-visibility",
+      "perspective",
+    ]);
 
-    const cssTransforms = CssTransforms.fromCss(exp.getRaw("transform") ?? "");
+    const cssTransforms = CssTransforms.fromCss(transformCell?.raw ?? "");
 
     const transforms = cssTransforms.transforms;
 
-    const rawTransformOrigin = exp.getRaw("transform-origin");
+    const rawTransformOrigin = transformOriginCell?.raw;
     const transformOrigin = parseOrigin(rawTransformOrigin);
 
-    const rawPerspectiveOrigin = exp.getRaw("perspective-origin");
+    const rawPerspectiveOrigin = perspectiveOriginCell?.raw;
     const perspectiveOrigin = parseOrigin(rawPerspectiveOrigin);
 
-    const backfaceVisibility = exp.getRaw("backface-visibility") || "visible";
+    const backfaceVisibility = backfaceVisibilityCell?.raw || "visible";
 
-    const childPerspective = exp.getRaw("perspective") || "0px";
+    const childPerspective = childPerspectiveCell?.raw || "0px";
 
     const setProp = (prop: string, value: string | undefined) => {
       spawn(
         studioCtx.changeUnsafe(() => {
+          const exp = expsProvider.mergedExp();
           if (!value) {
             exp.clear(prop);
           } else {
@@ -67,7 +80,7 @@ export const TransformPanelSection = observer(
     const setsProp = (prop: string, value: CssTransforms) => {
       spawn(
         studioCtx.changeUnsafe(() => {
-          exp.set(prop, value.showCss());
+          expsProvider.mergedExp().set(prop, value.showCss());
         }),
       );
     };
@@ -130,9 +143,13 @@ export const TransformPanelSection = observer(
       "perspective-origin",
     ];
 
+    const styleIndicators = useStyleIndicators(expsProvider, styleProps).filter(
+      (indicator) => indicator.source !== "none",
+    );
+
     const { isDisabled } = shouldBeDisabled({
       props: {},
-      indicators: sc.definedIndicators(...styleProps),
+      indicators: styleIndicators,
     });
 
     return (
@@ -235,5 +252,4 @@ export const TransformPanelSection = observer(
         )}
       </StylePanelSection>
     );
-  },
-);
+}

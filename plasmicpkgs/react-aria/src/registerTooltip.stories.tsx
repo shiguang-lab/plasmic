@@ -1,7 +1,7 @@
 import { PlasmicCanvasContext } from "@plasmicapp/host";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
-import React, { useState } from "react";
+import { useState } from "react";
 import { BaseButton } from "./registerButton";
 import { BaseTooltip } from "./registerTooltip";
 

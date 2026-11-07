@@ -1,4 +1,4 @@
-import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
+import { usePreviewCtx, usePreviewSelector } from "@/wab/client/components/live/PreviewCtx";
 import { PreviewFrame } from "@/wab/client/components/live/PreviewFrame";
 import { PreviewTopBar } from "@/wab/client/components/live/PreviewTopBar";
 import { TopFrameObserver } from "@/wab/client/components/studio/TopFrameObserver";
@@ -8,17 +8,20 @@ import { PREVIEW_SHORTCUTS } from "@/wab/client/shortcuts/preview/preview-shortc
 import { useBindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { spawn } from "@/wab/shared/common";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 interface PreviewProps {
   studioCtx: StudioCtx;
 }
 
-const Preview = observer(function Preview(props: PreviewProps) {
+function Preview(props: PreviewProps) {
+  "use memo";
   const { studioCtx } = props;
   const { styles } = useEditorLayoutStyles();
   const previewCtx = usePreviewCtx();
+  const full = usePreviewSelector(previewCtx, (state) => state.previewData?.full ?? false);
+  const isLive = usePreviewSelector(previewCtx, (state) => state.isLive);
+  const refreshKey = usePreviewSelector(previewCtx, (state) => state.refreshKey);
   const [dimensions, setDimensions] = React.useState<{
     width: number;
     height: number;
@@ -31,7 +34,7 @@ const Preview = observer(function Preview(props: PreviewProps) {
   useBindShortcutHandlers(
     document.body,
     PREVIEW_SHORTCUTS,
-    !previewCtx.full
+    !full
       ? {
           EXIT_PREVIEW_MODE: () => {
             spawn(previewCtx.toggleLiveMode());
@@ -52,19 +55,19 @@ const Preview = observer(function Preview(props: PreviewProps) {
         bottom: 0,
       }}
     >
-      {!previewCtx.full && previewCtx.isLive && (
+      {!full && isLive && (
         <TopFrameObserver preview={true} />
       )}
-      {!previewCtx.full && previewCtx.isLive && (
+      {!full && isLive && (
         <PreviewTopBar dimensions={dimensions} />
       )}
       <PreviewFrame
-        key={previewCtx.refreshKey}
+        key={refreshKey}
         previewCtx={previewCtx}
         onDimensionsChange={setDimensions}
       />
     </div>
   );
-});
+}
 
 export default Preview;

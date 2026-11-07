@@ -7,13 +7,13 @@
   "module": "./esm/index.js",
   "types": "./esm/index.d.ts",
   "dependencies": {
-    "antd": "6.6.5",
-    "@ant-design/icons": "^6.0.0",
+    "antd": "6.7.0",
+    "@ant-design/icons": "6.3.4",
     "classcat": "^5.0.5",
     "antd-style": "^4.1.0"
   },
   "peerDependencies": {
-    "react": ">=18",
-    "react-dom": ">=18"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }

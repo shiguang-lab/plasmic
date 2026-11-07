@@ -5,7 +5,6 @@ import { useMultiAssetsActions } from "@/wab/client/components/sidebar/MultiAsse
 import {
   TOKEN_ROW_HEIGHT,
   getLeftPadding,
-  isDataTokenPanelReadOnly,
 } from "@/wab/client/components/sidebar/token-utils";
 import { Matcher } from "@/wab/client/components/view-common";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -17,11 +16,11 @@ import { spawn } from "@/wab/shared/common";
 import { FinalToken, MutableToken } from "@/wab/shared/core/tokens";
 import { DataToken } from "@/wab/shared/model/classes";
 import { Menu } from "antd";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
+import { useStore } from "zustand";
 
-const DataTokenRow = observer(function _DataTokenRow(props: {
+function DataTokenRow(props: {
   token: FinalToken<DataToken>;
   tokenValue: DataTokenValue;
   matcher: Matcher;
@@ -32,7 +31,11 @@ const DataTokenRow = observer(function _DataTokenRow(props: {
   const multiAssetsActions = useMultiAssetsActions();
   const { onDuplicate, onSelect } = useDataTokenControls();
 
-  const tokenPanelReadOnly = isDataTokenPanelReadOnly(studioCtx);
+  const tokenPanelReadOnly = useStore(
+    studioCtx.uiEnvironment.store,
+    (state) => state.dataTokenPanelReadOnly,
+  );
+  const uuid = useStore(studioCtx.modelSnapshots.field(token.base, "uuid"));
 
   const onFindReferences = () => {
     spawn(
@@ -73,7 +76,7 @@ const DataTokenRow = observer(function _DataTokenRow(props: {
             <Menu.Item
               key="bulk-select"
               onClick={() => {
-                multiAssetsActions.onAssetSelected(token.uuid, true);
+                multiAssetsActions.onAssetSelected(uuid, true);
               }}
             >
               <UiText message={"Start bulk selection"} />
@@ -100,13 +103,12 @@ const DataTokenRow = observer(function _DataTokenRow(props: {
 
   const onToggle = React.useCallback(() => {
     if (multiAssetsActions.isSelecting) {
-      const uuid = token.uuid;
       multiAssetsActions.onAssetSelected(
         uuid,
         !multiAssetsActions.isAssetSelected(uuid),
       );
     }
-  }, [multiAssetsActions, token.uuid]);
+  }, [multiAssetsActions, uuid]);
 
   const openEditor =
     !tokenPanelReadOnly && isDataTokenEditable(token)
@@ -128,9 +130,9 @@ const DataTokenRow = observer(function _DataTokenRow(props: {
         menu={overlay}
         onClick={onClickHandler}
       />
-      <UiActionsOverlay uiId={mkModelUiId(token.base)} />
+      <UiActionsOverlay uiId={mkModelUiId({ typeTag: token.base.typeTag, uuid })} />
     </>
   );
-});
+}
 
 export default DataTokenRow;

@@ -32,7 +32,7 @@ export function menuChildrenToItems(
     [];
   const visit = (nodes: React.ReactNode) =>
     React.Children.forEach(nodes, (child) => {
-      if (!React.isValidElement(child)) {
+      if (!React.isValidElement<React.ComponentProps<typeof NativeMenu.Item> & { title?: React.ReactNode }>(child)) {
         return;
       }
       const { children: content, title, ...rest } = child.props;

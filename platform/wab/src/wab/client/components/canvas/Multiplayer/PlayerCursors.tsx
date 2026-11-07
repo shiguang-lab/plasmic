@@ -1,27 +1,40 @@
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { useStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
 import MultiplayerCursor from "@/wab/client/components/canvas/Multiplayer/MultiplayerCursor";
-import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { getArenaType, getArenaUuidOrName } from "@/wab/shared/Arenas";
 import { Pt } from "@/wab/shared/geom";
 import { observer } from "mobx-react";
 import { PerfectCursor } from "perfect-cursors";
 import * as React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 
-export const PlayerCursors = observer(function PlayerCursors() {
+export function PlayerCursors() {
   const studioCtx = useStudioCtx();
-  const viewportCtx = studioCtx.viewportCtx;
+  const multiplayerSelections = useStudioOverlayState(studioCtx, (state) => state.multiplayerSelections);
+  const editMode = useStudioSaveState(studioCtx, (state) => state.editMode);
+  const liveMode = useStudioLiveMode(studioCtx);
+  const viewportCtx = useStore(studioCtx.viewportOwnerStore);
+  const playerIds = useStore(
+    studioCtx.multiplayerCtx.store,
+    (state) => state.playerIds,
+  );
   if (
     !viewportCtx ||
-    !studioCtx.editMode ||
-    studioCtx.isLiveMode ||
-    !studioCtx.showMultiplayerSelections()
+    !editMode ||
+    liveMode ||
+    !multiplayerSelections
   ) {
     return null;
   }
   return (
     <>
-      {studioCtx.multiplayerCtx.getAllPlayerIds().map((playerId) => (
+      {playerIds.map((playerId) => (
         <PlayerCursor
           studioCtx={studioCtx}
           viewportCtx={viewportCtx}
@@ -31,7 +44,7 @@ export const PlayerCursors = observer(function PlayerCursors() {
       ))}
     </>
   );
-});
+}
 
 interface PlayerCursorProps {
   studioCtx: StudioCtx;
@@ -44,13 +57,29 @@ const PlayerCursor = observer(function PlayerCursor({
   viewportCtx,
   playerId,
 }: PlayerCursorProps) {
+  const [scale, canvasPadding, scroll] = useStore(viewportCtx.store,
+    useShallow((state) => [state.scale, state.canvasPadding, state.scroll] as const));
   const multiplayerCtx = studioCtx.multiplayerCtx;
-  const playerData = multiplayerCtx.getPlayerDataById(playerId);
-  const color = playerData?.color;
-  const viewInfo = playerData?.viewInfo;
-  const cursorData = viewInfo?.cursorInfo;
+  const [color, userName, knowsSelf, cursorData, branchId, arenaInfo] =
+    useStore(
+      multiplayerCtx.store,
+      useShallow((state) => {
+        const player = state.players.get(playerId);
+        return [
+          player?.color,
+          player?.user?.displayName ?? "Anonymous",
+          state.selfId !== -1,
+          player?.viewInfo?.cursorInfo,
+          player?.viewInfo?.branchId,
+          player?.viewInfo?.arenaInfo,
+        ] as const;
+      }),
+    );
+  useStudioArena(studioCtx, (state) => state.current);
+  useStudioArena(studioCtx, (state) => state.name);
+  const focusedMode = useStudioArena(studioCtx, (state) => state.focusedMode);
   const activeArena = studioCtx.currentArena;
-  if (!multiplayerCtx.knowsSelf() || !cursorData || !color || !activeArena) {
+  if (!knowsSelf || !cursorData || !color || !activeArena) {
     return null;
   }
 
@@ -60,39 +89,34 @@ const PlayerCursor = observer(function PlayerCursor({
   const branch = studioCtx.branchInfo();
 
   if (
-    viewInfo?.branchId !== branch?.id ||
-    viewInfo?.arenaInfo?.type !== arenaType ||
-    viewInfo?.arenaInfo.uuidOrName !== arenaUuidOrName ||
+    branchId !== branch?.id ||
+    arenaInfo?.type !== arenaType ||
+    arenaInfo.uuidOrName !== arenaUuidOrName ||
     !clipper
   ) {
     return null;
   }
 
   // TODO: https://app.shortcut.com/plasmic/story/37322
-  if (studioCtx.focusedMode || viewInfo?.arenaInfo?.focused) {
+  if (focusedMode || arenaInfo?.focused) {
     return null;
   }
 
-  const pt = viewportCtx
-    .scalerToClient(new Pt(cursorData.left, cursorData.top))
-    .sub(viewportCtx.clipperBox().topLeft());
+  const pt = new Pt(cursorData.left, cursorData.top).scale(scale).plus(canvasPadding).sub(scroll);
 
-  const dataTestId = (playerData?.user?.displayName ?? "Anonymous").replace(
-    /[^a-zA-Z0-9-]/g,
-    "",
-  );
+  const dataTestId = userName.replace(/[^a-zA-Z0-9-]/g, "");
 
   return (
     <AnimatedCursor
       point={pt}
-      userName={playerData?.user?.displayName ?? "Anonymous"}
+      userName={userName}
       data-test-id={dataTestId}
       color={color}
     />
   );
 });
 
-const AnimatedCursor = observer(function AnimatedCursor(props: {
+const AnimatedCursor = React.memo(function AnimatedCursor(props: {
   point: Pt;
   userName: string;
   color: string;

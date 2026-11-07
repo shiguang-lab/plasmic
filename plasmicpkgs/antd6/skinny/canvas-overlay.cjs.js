@@ -8,7 +8,7 @@ function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 var React__default = /*#__PURE__*/_interopDefault(React);
 
 function getSelectedCanvasItemKey(items) {
-  const index = items.findIndex((item) => item.props.__plasmic_selection_prop__?.isSelected);
+  const index = items.findIndex((item) => React__default.default.isValidElement(item) && item.props.__plasmic_selection_prop__?.isSelected);
   return index < 0 ? void 0 : items[index].key ?? String(index);
 }
 function renderCanvasSlot(children, render) {

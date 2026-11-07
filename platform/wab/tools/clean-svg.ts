@@ -1,3 +1,4 @@
+import type * as React from "react";
 import fs from "fs";
 import glob from "glob";
 import { last } from "lodash";
@@ -53,7 +54,7 @@ fs.writeFileSync(
   `\
 import * as React from "react";
 
-type SvgProps = JSX.IntrinsicElements["svg"];
+type SvgProps = React.JSX.IntrinsicElements["svg"];
 interface SvgIconProps extends SvgProps {
   scale?: number;
 }

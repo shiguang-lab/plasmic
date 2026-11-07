@@ -1,3 +1,4 @@
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import DataPicker from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { ClickStopper } from "@/wab/client/components/widgets";
@@ -430,6 +431,7 @@ export function VariantDataPicker(props: {
     visibleDataPicker,
     setVisibleDataPicker,
   } = props;
+  useStudioSelection(studioCtx, (state) => state.view);
   const viewCtx = studioCtx.focusedOrFirstViewCtx();
   const canvasEnv = viewCtx?.getCanvasEnvForTpl(component.tplTree);
   return (

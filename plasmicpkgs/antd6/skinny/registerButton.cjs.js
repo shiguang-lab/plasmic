@@ -1,9 +1,10 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var React = require('react');
 var names = require('./names-DbJduus8.cjs.js');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
@@ -16,7 +17,7 @@ const AntdButton = React__default.default.forwardRef(
   function AntdButton2(props, ref) {
     const { submitsForm = false, ...rest } = props;
     const target = props.target === true ? "_blank" : props.target === false ? void 0 : props.target;
-    return /* @__PURE__ */ React__default.default.createElement(
+    return /* @__PURE__ */ jsxRuntime.jsx(
       Ant.Button,
       {
         ...rest,

@@ -1,6 +1,6 @@
 import type { Meta } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
-import React from "react";
+
 import { BaseLabel } from "./registerLabel";
 import { BaseTextArea } from "./registerTextArea";
 import { BaseTextField } from "./registerTextField";

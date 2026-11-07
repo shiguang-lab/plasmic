@@ -6,7 +6,7 @@ import path from "path";
 import esbuild from "rollup-plugin-esbuild";
 import replaceImports from "rollup-plugin-replace-imports";
 
-const SKINNY_INPUTS = glob.sync('./src/register*.ts*');
+const SKINNY_INPUTS = glob.sync('./src/register*.ts*').filter((file) => !/\.(?:test|spec)\.[jt]sx?$/.test(file));
 
 export default [
   {

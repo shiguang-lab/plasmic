@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  ReactElement,
-  ReactNode,
-  useContext,
-  useMemo,
-} from "react";
+import { createContext, ReactElement, ReactNode, useContext, useMemo, } from "react";
 import { tuple } from "./common";
 import { useBrowserQueryParams } from "./history";
 

@@ -2,16 +2,24 @@ import InsertPanel from "@/wab/client/components/insert-panel/InsertPanel";
 import { isAnyModalOpen } from "@/wab/client/components/widgets/open-modals";
 import { useDismissibleStudioOverlay } from "@/wab/client/hooks/useDismissibleStudioOverlay";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { observer } from "mobx-react";
+import {
+  selectShowAddDrawer,
+} from "@/wab/client/studio-ctx/left-panel-state";
+
 import React from "react";
+import { useStore } from "zustand";
 
 /** Insert content uses the shared left shell and retains its outside-dismiss behavior. */
-const InsertPanelWrapper = observer(function InsertPanelWrapper() {
+const InsertPanelWrapper = function InsertPanelWrapper() {
   const studioCtx = useStudioCtx();
+  const showAddDrawer = useStore(
+    studioCtx.leftPanelState.store,
+    selectShowAddDrawer,
+  );
   const ref = React.useRef<HTMLDivElement>(null);
   useDismissibleStudioOverlay({
     overlayRef: ref,
-    isOpen: studioCtx.showAddDrawer(),
+    isOpen: showAddDrawer,
     onDismiss: (event) => {
       if (
         event.target instanceof Element &&
@@ -29,5 +37,5 @@ const InsertPanelWrapper = observer(function InsertPanelWrapper() {
       <InsertPanel onClose={() => studioCtx.setShowAddDrawer(false)} />
     </div>
   );
-});
+};
 export default InsertPanelWrapper;

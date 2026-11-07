@@ -1,3 +1,4 @@
+import type * as React from "react";
 /**
  * Munges in-place the SVGs in src/wab/client/icons/, which are expected to be
  * exported from Figma with the hard-coded fill color of #050505.  Replaces this
@@ -40,7 +41,7 @@ async function main() {
 import React from "react";
 import { ReactComponent as Icon } from "../../icons/${filename}";
 
-type SvgProps = JSX.IntrinsicElements["svg"];
+type SvgProps = React.JSX.IntrinsicElements["svg"];
 
 export function ${componentName}(props: SvgProps) {
   const className = "custom-svg-icon " + props.className || "";

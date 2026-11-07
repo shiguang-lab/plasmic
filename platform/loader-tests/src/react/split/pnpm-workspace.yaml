@@ -1,0 +1,5 @@
+packages: []
+minimumReleaseAge: 0
+strictPeerDependencies: true
+allowBuilds:
+  esbuild: true

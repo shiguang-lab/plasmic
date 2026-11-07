@@ -33,8 +33,7 @@ export type SubDeps = {
   hostVersion: string | undefined;
   React: typeof React;
   ReactDOM: typeof ReactDOM;
-  // Only available in @plasmicapp/host@>=2.0.0
-  ReactDOMClient?: typeof ReactDOMClient;
+  ReactDOMClient: typeof ReactDOMClient;
   jsxRuntime?: typeof jsxRuntime;
   jsxDevRuntime?: typeof jsxDevRuntime;
   hostUtils: {
@@ -72,7 +71,7 @@ interface CanvasPkgs {
   localElement?: typeof Element;
   createModal: (
     props: Pick<ModalProps, InternalModalProps>,
-  ) => (restProps: Omit<ModalProps, InternalModalProps>) => JSX.Element;
+  ) => (restProps: Omit<ModalProps, InternalModalProps>) => React.JSX.Element;
   createThumbnail: (
     element: HTMLElement,
     opts?: {

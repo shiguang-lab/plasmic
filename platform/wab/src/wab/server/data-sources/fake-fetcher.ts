@@ -1,4 +1,4 @@
-import { toJsonLogicFormat } from "@/wab/server/data-sources/data-source-utils";
+import { queryToJsonLogic } from "@/wab/shared/query-builder";
 import { BadRequestError } from "@/wab/shared/ApiErrors/errors";
 import {
   DataSourceError,
@@ -20,7 +20,6 @@ import {
   TableFieldSchema,
   TableSchema,
 } from "@plasmicapp/data-sources";
-import { AntdConfig } from "@react-awesome-query-builder/antd";
 import { cloneDeep, isString } from "lodash";
 
 export function makeFakeFetcher(source: FakeDataSource) {
@@ -31,9 +30,7 @@ function filterRow(row: Record<string, any>, filters?: Filters): boolean {
   if (!filters) {
     return true;
   }
-  const filtersLogic = filters.tree
-    ? toJsonLogicFormat(filters.tree, { ...AntdConfig, fields: filters.fields })
-    : filters.logic;
+  const filtersLogic = filters.tree.rules.length ? queryToJsonLogic(filters.tree, filters.fields) as FiltersLogic : undefined;
   if (!filtersLogic) {
     return true;
   }
@@ -47,6 +44,9 @@ function filterRow(row: Record<string, any>, filters?: Filters): boolean {
     } else if ("!!" in logic) {
       return !!evaluateLogic(logic["!!"] as FiltersLogic);
     } else if ("in" in logic) {
+      if (typeof logic.in[0] === "object" && logic.in[0] !== null && "var" in logic.in[0] && Array.isArray(logic.in[1])) {
+        return logic.in[1].includes(row[String(logic.in[0].var)]);
+      }
       const fieldName = logic.in[1]?.["var"];
       const value = logic.in[0];
       if (!isString(value) || !isString(row[fieldName])) {

@@ -1,5 +1,5 @@
 import { apiKey } from "@/wab/client/api";
-import { SimpleConfetti } from "@/wab/client/components/SimpleConfetti";
+import { showConfetti } from "@/wab/client/components/SimpleConfetti";
 import { topFrameTourSignals } from "@/wab/client/components/TopFrame/TopFrameChrome";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
@@ -17,8 +17,6 @@ import {
 import { RevalidatePlasmicHostingResponse } from "@/wab/shared/ApiSchema";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { notification } from "antd";
-import { createElement } from "react";
-import { render } from "react-dom";
 import { mutate } from "swr";
 
 export enum TopFramePublishTours {
@@ -104,9 +102,7 @@ Here we've configured the app to deploy to <https://{APP_DOMAIN}>.
         return false;
       }
 
-      const node = document.createElement("div");
-      document.body.appendChild(node);
-      render(createElement(SimpleConfetti), node);
+      showConfetti();
 
       return true;
     },

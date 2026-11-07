@@ -1,8 +1,9 @@
+import { jsx } from 'react/jsx-runtime';
 import { ColorPicker } from 'antd';
-import React from 'react';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import 'react';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 function AntdColorPicker({
@@ -10,7 +11,7 @@ function AntdColorPicker({
   onChange,
   ...props
 }) {
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     ColorPicker,
     {
       ...props,

@@ -3,25 +3,25 @@ import Button from "@/wab/client/components/widgets/Button";
 import { useApi } from "@/wab/client/contexts/AppContexts";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { useTourStepTargetVisibility } from "@/wab/client/tours/useTourStepTargetVisibility";
 import { zIndex } from "@/wab/client/z-index";
 import { spawn } from "@/wab/shared/common";
-import { observer } from "mobx-react";
 import React from "react";
-import { StoreHelpers } from "react-joyride";
+import type { EventData } from "react-joyride";
 import { useMountedState } from "react-use";
 import { Signal } from "signals";
 
-const LazyJoyRide = React.lazy(() => import("react-joyride"));
+const LazyJoyRide = React.lazy(() => import("react-joyride").then(({ Joyride }) => ({ default: Joyride })));
 
 interface TourProps<T> {
   seenStateKey: LocalStorageKey;
   onlyUsersCreatedBefore: string;
   didActionSignal?: Signal<T>;
   targetSelector: string;
-  content: JSX.Element;
+  content: React.JSX.Element;
 }
 
-export const Tour = observer(function Tour<T>({
+export function Tour<T>({
   seenStateKey,
   onlyUsersCreatedBefore,
   didActionSignal,
@@ -30,7 +30,7 @@ export const Tour = observer(function Tour<T>({
 }: TourProps<T>) {
   const studioCtx = useStudioCtx();
   const api = useApi();
-  const helpersRef = React.useRef<StoreHelpers | null>(null);
+  const statusRef = React.useRef<EventData["status"]>("idle");
 
   const [tourState, setTourState] = React.useState({
     run: false,
@@ -38,6 +38,7 @@ export const Tour = observer(function Tour<T>({
   });
 
   const isMounted = useMountedState();
+  const { isTargetVisible } = useTourStepTargetVisibility(tourState.run, targetSelector);
 
   React.useEffect(() => {
     spawn(
@@ -56,7 +57,7 @@ export const Tour = observer(function Tour<T>({
       const listener = () => {
         // We use a showNavigationPanelRequested listener in case the user opened
         // the panel via "p" or clicking the button
-        if (helpersRef.current?.info().status === "running") {
+        if (statusRef.current === "running") {
           spawn(closeTour());
         }
       };
@@ -74,21 +75,16 @@ export const Tour = observer(function Tour<T>({
     await api.addStorageItem(seenStateKey, "true");
   };
 
-  if (!tourState.run) {
+  if (!tourState.run || !isTargetVisible) {
     return null;
   }
 
   return (
     <LazyJoyRide
       continuous
-      hideCloseButton
-      hideBackButton
-      disableOverlayClose
       {...tourState}
+      options={{ zIndex: zIndex.tour, buttons: [], overlayClickAction: false, targetWaitTimeout: 0 }}
       styles={{
-        options: {
-          zIndex: zIndex.tour,
-        },
         tooltip: {
           color: undefined,
           fontSize: undefined,
@@ -119,17 +115,17 @@ export const Tour = observer(function Tour<T>({
               </div>
             </>
           ),
-          spotlightClicks: true,
-          disableBeacon: true,
-          hideFooter: true,
+          blockTargetInteraction: false,
+          skipBeacon: true,
+          buttons: [],
         },
       ]}
-      callback={async (data) => {
+      onEvent={async (data) => {
+        statusRef.current = data.status;
         if (data.action === "close") {
           await closeTour();
         }
       }}
-      getHelpers={(helpers) => (helpersRef.current = helpers)}
     />
   );
-});
+}

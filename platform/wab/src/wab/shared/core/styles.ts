@@ -201,6 +201,24 @@ import L, { camelCase, pick, repeat } from "lodash";
 import { CSSProperties } from "react";
 import { unquote } from "underscore.string";
 
+/** Original CSS reference phases shared by model and finite readonly inputs. */
+export function resolveCssVarInput(value: string, resolveMixin: (ref: string) => string, resolveTokens: (value: string) => string): string {
+  if (isMixinPropRef(value)) { value = resolveMixin(value); }
+  return resolveTokens(value);
+}
+
+export function resolveCssTokenInput(value: string, opts: Readonly<{ keepAssetRefs?: boolean; useCssVariables?: boolean }>,
+  resolveAssets: (value: string) => string, resolveTokens: (value: string) => string): string {
+  const resolved = !opts.keepAssetRefs ? resolveAssets(value) : value;
+  return opts.useCssVariables ? resolved : resolveTokens(resolved);
+}
+
+export function resolveMixinInput<T extends object>(ref: string, parse: (ref: string) => readonly [T | undefined, string] | undefined,
+  resolveProp: (mixin: T, prop: string) => string): string {
+  const [mixin, prop] = ensure(parse(ref), () => "Couldn't resolve mixin ref " + ref);
+  return resolveProp(ensure(mixin, () => "No mixin"), prop);
+}
+
 export class CssVarResolver {
   private tokens: Map<string, FinalToken<StyleToken>>;
   private assets: Map<string, ImageAsset>;
@@ -231,10 +249,7 @@ export class CssVarResolver {
   }
 
   tryResolveTokenOrMixinRef(refOrValue: string) {
-    if (isMixinPropRef(refOrValue)) {
-      refOrValue = this.resolveMixinRef(refOrValue);
-    }
-    return this.tryResolveTokenRefs(refOrValue);
+    return resolveCssVarInput(refOrValue, (ref) => this.resolveMixinRef(ref), (value) => this.tryResolveTokenRefs(value));
   }
 
   tryResolveTokenRefs(str: string) {
@@ -242,24 +257,13 @@ export class CssVarResolver {
   }
 
   resolveTokenRefs(str: string) {
-    const resolved = !this.opts.keepAssetRefs
-      ? resolveAllAssetRefs(str, this.assets)
-      : str;
-    if (this.opts.useCssVariables) {
-      return resolved;
-    }
-    return resolveAllTokenRefs(resolved, this.tokens, undefined, this.vsh);
+    return resolveCssTokenInput(str, this.opts, (value) => resolveAllAssetRefs(value, this.assets),
+      (value) => resolveAllTokenRefs(value, this.tokens, undefined, this.vsh));
   }
 
   resolveMixinRef(ref: string) {
-    const [mixin, prop] = ensure(
-      tryParseMixinPropRef(ref, this.mixins),
-      () => "Couldn't resolve mixin ref " + ref,
-    );
-    return this.resolveMixinProp(
-      ensure(mixin, () => "No mixin"),
-      prop,
-    );
+    return resolveMixinInput(ref, (value) => tryParseMixinPropRef(value, this.mixins),
+      (mixin, prop) => this.resolveMixinProp(mixin, prop));
   }
 
   resolveMixinProp(mixin: Mixin, prop: string) {

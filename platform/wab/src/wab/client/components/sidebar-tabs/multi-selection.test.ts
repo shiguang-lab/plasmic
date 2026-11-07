@@ -1,3 +1,7 @@
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
+import { ViewStyleInputs } from "@/wab/client/studio-ctx/style-inputs";
+import { TransientComponentVariantFrame } from "@/wab/shared/component-frame";
 import { buildValTree } from "@/wab/__testonly__/tpls";
 import {
   getCommonStyleValue,
@@ -41,8 +45,12 @@ function setup() {
     mkTplComponent(component, ensure(component.variants[0], "Base variant")),
   );
   const root = ensureInstance(owner.contents?.[0], ValTag);
+  const models = new ModelSnapshots();
+  const selection = new ViewSelection(() => models);
+  const styleInputs = new ViewStyleInputs(() => models, new AbortController().signal);
   const studio = mock<StudioCtx>();
   Object.assign(studio, {
+    site, modelSnapshots: models,
     codeComponentsRegistry: new CodeComponentsRegistry(globalThis, {}),
     contentEditorMode: false,
   });
@@ -50,7 +58,8 @@ function setup() {
   studio.canEditProject.mockReturnValue(true);
   studio.canEditBranch.mockReturnValue(true);
   const vc = mock<ViewCtx>();
-  Object.assign(vc, { studioCtx: studio, site });
+  Object.assign(vc, { studioCtx: studio, site, styleInputs, selectionStore: selection.store });
+  vc.componentStackFrames.mockReturnValue([new TransientComponentVariantFrame(owner.tpl)]);
   vc.variantTplMgr.mockReturnValue(vtm);
   vc.currentComponent.mockReturnValue(component);
   vc.focusedTpls.mockReturnValue([first, second]);

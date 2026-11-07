@@ -4,6 +4,7 @@ import {
   FrameViewMode,
   isHeightAutoDerived,
   mkArenaFrame,
+  peekAutoDerivedFrameHeight,
   updateAutoDerivedFrameHeight,
 } from "@/wab/shared/Arenas";
 import { usedGlobalVariantGroups } from "@/wab/shared/cached-selectors";
@@ -186,8 +187,9 @@ export function syncPageArenaFrameSize(
       const frame = row.cols[index].frame;
       frame.width = anchor.width;
       frame.height = anchor.height;
-      if (isHeightAutoDerived(anchor) && anchor._height) {
-        updateAutoDerivedFrameHeight(frame, anchor._height.get());
+      const cachedHeight = peekAutoDerivedFrameHeight(anchor);
+      if (isHeightAutoDerived(anchor) && cachedHeight !== undefined) {
+        updateAutoDerivedFrameHeight(frame, cachedHeight);
       }
       ensureActivatedScreenVariantsForFrameByWidth(site, frame);
     }

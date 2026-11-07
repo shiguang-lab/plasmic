@@ -1,9 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import { App, withAppContext } from "@/wab/client/components/top-view";
-import { ensure, safeCast } from "@/wab/shared/common";
+import { assert, ensure } from "@/wab/shared/common";
 import L from "lodash";
 import * as React from "react";
-import { MouseEvent, ReactNode } from "react";
+import { ReactNode } from "react";
 import { unstable_batchedUpdates } from "react-dom";
 import {
   DraggableCore,
@@ -11,7 +11,9 @@ import {
   DraggableData,
   DraggableEventHandler,
 } from "react-draggable";
-import UseKey from "react-use/lib/comps/UseKey";
+import UseKey from "react-use/lib/component/UseKey";
+
+type MouseEvent = React.MouseEvent | globalThis.MouseEvent;
 
 interface DraggableState {
   initX: number;
@@ -31,7 +33,7 @@ export type XDraggableData = DraggableState & {
 };
 
 export interface XDraggableEvent {
-  mouseEvent: React.MouseEvent;
+  mouseEvent: MouseEvent;
   draggableData: DraggableData;
   data: XDraggableData;
 }
@@ -40,7 +42,8 @@ export type XDraggableEventHandler = (e: XDraggableEvent) => void;
 
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type XDraggableProps = Partial<
-  Omit<DraggableCoreProps, "onStart" | "onStop" | "onDrag"> & {
+  Omit<DraggableCoreProps, "onStart" | "onStop" | "onDrag" | "nodeRef"> & {
+    nodeRef?: React.RefObject<HTMLElement | SVGElement | null>;
     onDrag: XDraggableEventHandler;
     onStart: XDraggableEventHandler;
     onStop: XDraggableEventHandler;
@@ -61,6 +64,7 @@ interface XDraggableState {
  * Extras for React-Draggable.
  */
 class _XDraggable extends React.Component<XDraggableProps, XDraggableState> {
+  private readonly nodeRef = React.createRef<HTMLElement | SVGElement>();
   static defaultProps = {
     minPx: 4,
   };
@@ -81,7 +85,7 @@ class _XDraggable extends React.Component<XDraggableProps, XDraggableState> {
 
   private handleStart: DraggableEventHandler = (_e, data) => {
     unstable_batchedUpdates(() => {
-      const e = safeCast(_e as MouseEvent);
+      const e = _e;
       const newState: XDraggableData = {
         initX: e.pageX,
         initY: e.pageY,
@@ -108,7 +112,7 @@ class _XDraggable extends React.Component<XDraggableProps, XDraggableState> {
   private handleDrag: DraggableEventHandler = (_e, data) => {
     let toRet: boolean | undefined = undefined;
     unstable_batchedUpdates(() => {
-      const e = safeCast(_e as MouseEvent);
+      const e = _e;
       const lastEvent = ensure(this.state.lastEvent, "expected a lastEvent");
       if (lastEvent.data.aborted) {
         toRet = false;
@@ -144,7 +148,7 @@ class _XDraggable extends React.Component<XDraggableProps, XDraggableState> {
   private handleStop: DraggableEventHandler = (_e, data) => {
     let toRet: boolean | undefined = undefined;
     unstable_batchedUpdates(() => {
-      const e = safeCast(_e as MouseEvent);
+      const e = _e;
       const lastEvent = ensure(this.state.lastEvent, "expected a lastEvent");
       if (lastEvent.data.aborted) {
         toRet = false;
@@ -208,23 +212,31 @@ class _XDraggable extends React.Component<XDraggableProps, XDraggableState> {
   };
 
   render() {
-    const { onStart, onStop, onDrag, minPx, ...props } = this.props;
+    const { onStart, onStop, onDrag, minPx, nodeRef, ...props } = this.props;
+    const child = (this.props.render && this.props.render(this.state.lastEvent)) || this.props.children;
+    let dragChild = child;
+    if (!nodeRef) {
+      assert(React.isValidElement<React.RefAttributes<HTMLElement | SVGElement>>(child) && typeof child.type === "string",
+        "XDraggable component children must provide a nodeRef to their native drag target");
+      dragChild = React.cloneElement(child, { ref: this.nodeRef });
+    }
     return (
       <>
         {this.state.lastEvent && this.state.lastEvent.data.started && (
           <UseKey filter={"Escape"} fn={this.handleEscape} />
         )}
-        {/* @ts-ignore */}
         <DraggableCore
           {...props}
+          // Upstream accepts SVG targets at runtime, but its nodeRef declaration
+          // only names HTMLElement. Keep the native SVG ref (no wrapper).
+          nodeRef={(nodeRef ?? this.nodeRef) as DraggableCoreProps["nodeRef"]}
           // DraggableCore breaks input focus.  See https://github.com/mzabriskie/react-draggable/issues/410.
           enableUserSelectHack={false}
           onStart={this.handleStart}
           onDrag={this.handleDrag}
           onStop={this.handleStop}
         >
-          {(this.props.render && this.props.render(this.state.lastEvent)) ||
-            this.props.children}
+          {dragChild}
         </DraggableCore>
       </>
     );

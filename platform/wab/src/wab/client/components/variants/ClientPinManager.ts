@@ -10,7 +10,6 @@ import {
 import { ValComponent } from "@/wab/shared/core/val-nodes";
 import { Variant } from "@/wab/shared/model/classes";
 import L from "lodash";
-import { computed } from "mobx";
 
 /**
  * Returns the ClientPinManager for the current viewCtx state
@@ -129,15 +128,8 @@ export class ClientPinManager extends PinManager {
   }
 
   protected get curState() {
-    return this._curState.get();
+    return extractPinStateFromVariantFrames(this.componentFrame, this.globalFrame);
   }
-
-  private _curState = computed(() => {
-    return extractPinStateFromVariantFrames(
-      this.componentFrame,
-      this.globalFrame,
-    );
-  });
 
   protected applyPinState(state: PinState) {
     applyPinStateToVariantFrames(state, this.componentFrame, this.globalFrame);

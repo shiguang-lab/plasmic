@@ -7,19 +7,19 @@
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "rollup -c rollup.config.mjs && tsc --emitDeclarationOnly --declaration src/index.ts --resolveJsonModule --skipLibCheck --esModuleInterop --strict --outDir dist",
+    "build": "rollup -c rollup.config.mjs && tsc -p tsconfig.build.json",
     "test": "tsx --test src/index.test.ts"
   },
   "dependencies": {
     "@ant-design/icons": "6.3.4"
   },
   "devDependencies": {
-    "@plasmicapp/host": "2.0.19",
+    "@plasmicapp/host": "3.0.0",
     "@types/react": "catalog:",
     "react": "catalog:"
   },
   "peerDependencies": {
-    "@plasmicapp/host": ">=1.0.0",
-    "react": ">=18.0.0"
+    "@plasmicapp/host": "^3.0.0",
+    "react": "^19.3.1"
   }
 }

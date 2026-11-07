@@ -2514,7 +2514,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         components: studio.site.components.filter((component) => !isPageComponent(component) && !isCodeComponent(component) && !isFrameComponent(component)).length,
       },
       saveStatus: studio.saveStatus,
-      desktopDraftStatus: studio.desktopDraft?.status ?? null,
+      desktopDraftStatus: studio.desktopDraft?.store.getState().status ?? null,
       canvasName: studio.currentArena ? getArenaName(studio.currentArena) : null,
       projectId: studio.siteInfo.id,
       branchId: studio.dbCtx().branchInfo?.id ?? null,

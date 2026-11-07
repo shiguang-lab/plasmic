@@ -1,3 +1,4 @@
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { CustomCssProps } from "@/wab/client/components/canvas/CanvasText";
 import {
   marksForToolbar,
@@ -53,13 +54,13 @@ import { Editor, Range, Element as SlateElement, Text } from "slate";
 
 type BlockElement = {
   tag: TagName;
-  icon: (props: any) => JSX.Element;
+  icon: (props: any) => React.JSX.Element;
   label: string;
 };
 
 const INLINE_TAG_ICONS: Record<
   Exclude<TextInlineTag, "a">,
-  (props: any) => JSX.Element
+  (props: any) => React.JSX.Element
 > = {
   code: CodesvgIcon,
   span: TextsvgIcon,
@@ -165,6 +166,7 @@ function RichTextToolbar_(
   const [block, setBlock] = React.useState<TagName | undefined>(undefined);
 
   const studioCtx = useStudioCtx();
+  const focusedMode = useStudioArena(studioCtx, (state) => state.focusedMode);
   const resolver = useClientTokenResolver();
 
   const maybeRealColor = marks?.color
@@ -257,7 +259,7 @@ function RichTextToolbar_(
         root={{ ref: rootRef }}
         style={{
           position: "absolute",
-          top: studioCtx.focusedMode ? 60 : 12,
+          top: focusedMode ? 60 : 12,
         }}
         hideBlock={!showBlock}
         block={{

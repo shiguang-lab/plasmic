@@ -2,7 +2,8 @@ import {
   showCanvasPageNavigationNotification,
   trapInteractionError,
 } from "@/wab/client/components/canvas/studio-canvas-util";
-import { CodePreviewCtx } from "@/wab/client/components/docs/CodePreviewSnippet";
+import type { CodePreviewCtx } from "@/wab/client/components/docs/CodePreviewCtx";
+import { useDocsFocusedComponentRef, useDocsFocusedIconRef } from "@/wab/client/components/docs/DocsModelResources";
 import { DocsPortalCtx } from "@/wab/client/components/docs/DocsPortalCtx";
 import { syncDocsPreview } from "@/wab/client/components/docs/serialize-docs-preview";
 import { onLoadInjectLiveRuntime } from "@/wab/client/components/live/live-syncer";
@@ -10,14 +11,13 @@ import {
   getSortedHostLessPkgs,
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
-import { scriptExec } from "@/wab/client/script-exec";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { scriptExec } from "@/wab/client/script-exec";
 import { maybeToggleTrailingSlash } from "@/wab/client/utils/app-hosting-utils";
-import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
 import { nodeJsName } from "@/wab/shared/codegen/react-p";
 import { getExportedComponentName } from "@/wab/shared/codegen/react-p/serialize-utils";
 import { toJsIdentifier } from "@/wab/shared/codegen/util";
-import { ensure } from "@/wab/shared/common";
+import { ensure, spawn } from "@/wab/shared/common";
 import {
   InteractionArgLoc,
   InteractionLoc,
@@ -26,26 +26,30 @@ import {
 import { TplNamable } from "@/wab/shared/core/tpls";
 import { Component } from "@/wab/shared/model/classes";
 import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
-import { autorun } from "mobx";
-import { observer } from "mobx-react";
 import React from "react";
+import { useStore } from "zustand";
 
-export const DocsPreviewCanvas = observer(function DocsPreviewCanvas(props: {
+export function DocsPreviewCanvas(props: {
   docsCtx: DocsPortalCtx;
   codePreviewCtx?: CodePreviewCtx;
 }) {
   const { docsCtx, codePreviewCtx } = props;
   const studioCtx = docsCtx.studioCtx;
-  const component = docsCtx.tryGetFocusedComponent();
-  const icon = docsCtx.tryGetFocusedIcon();
+  const hostUrl = useStore(studioCtx.uiEnvironment.store, (state) => state.hostUrl);
+  const componentRef = useDocsFocusedComponentRef(docsCtx);
+  const iconRef = useDocsFocusedIconRef(docsCtx);
   const [doc, setDoc] = React.useState<Document>();
   const [frameLoaded, setFrameLoaded] = React.useState(false);
   const [error, setError] = React.useState<Error | null>(null);
-  const usedPkgs = usedHostLessPkgs(studioCtx.site);
+  const packages = useStore(docsCtx.models.getPackagesStore());
+  const [installedPackages, setInstalledPackages] = React.useState<readonly string[]>([]);
+  const packagesReady = packages.identities.every((identity) => installedPackages.includes(identity));
   const [toggleTrailingSlash, setToggleTrailingSlash] = React.useState(false);
 
   React.useEffect(() => {
-    if ((!component && !icon) || !frameLoaded || !doc) {
+    const component = componentRef && docsCtx.models.snapshots.resolve(componentRef);
+    const icon = iconRef && docsCtx.models.snapshots.resolve(iconRef);
+    if ((!component && !icon) || !frameLoaded || !packagesReady || !doc) {
       return;
     }
 
@@ -69,21 +73,35 @@ export const DocsPreviewCanvas = observer(function DocsPreviewCanvas(props: {
       codePreviewCtx,
     });
 
-    const disposeHover = autorun(
-      () => {
-        // Whenever the focused node changes, reposition the hover box
+    reposition();
+    const disposeHover = docsCtx.store.subscribe((next, previous) => {
+      if (next.focusedElement !== previous.focusedElement) {
         reposition();
-      },
-      { name: "DocsPreviewCanvas.hover" },
-    );
+      }
+    });
 
     return () => {
       disposeSync();
       disposeHover();
     };
-  }, [component, icon, frameLoaded, doc]);
+  }, [docsCtx, codePreviewCtx, componentRef, iconRef, frameLoaded, packagesReady, doc]);
 
-  if (!component && !icon) {
+  React.useEffect(() => {
+    if (!frameLoaded || !doc?.defaultView || packagesReady) { return; }
+    const win = doc.defaultView;
+    let active = true;
+    spawn((async () => {
+      const modules = await getSortedHostLessPkgs(win, studioCtx.appCtx.api, packages.packages.slice(), getVersionForCanvasPackages(win), studioCtx.site);
+      for (const [identity, source] of modules) {
+        if (!active) { return; }
+        if (!installedPackages.includes(identity)) { scriptExec(win, source); }
+      }
+      if (active) { setInstalledPackages(modules.map(([identity]) => identity)); }
+    })().catch((failure) => { if (active) { setError(failure); } }));
+    return () => { active = false; };
+  }, [doc, studioCtx, frameLoaded, packagesReady, packages, installedPackages]);
+
+  if (!componentRef && !iconRef) {
     return null;
   }
 
@@ -93,7 +111,7 @@ export const DocsPreviewCanvas = observer(function DocsPreviewCanvas(props: {
         src={
           maybeToggleTrailingSlash(
             toggleTrailingSlash,
-            studioCtx.getHostUrl(),
+            hostUrl,
           ) +
           "#live=true" +
           `&origin=${encodeURIComponent(getPublicUrl())}` +
@@ -141,15 +159,15 @@ export const DocsPreviewCanvas = observer(function DocsPreviewCanvas(props: {
               }
             };
 
-            for (const [_pkg, pkgModule] of await getSortedHostLessPkgs(
+            const modules = await getSortedHostLessPkgs(
               frameWindow,
               studioCtx.appCtx.api,
-              usedPkgs,
+              packages.packages.slice(),
               getVersionForCanvasPackages(frameWindow),
               studioCtx.site,
-            )) {
-              scriptExec(frameWindow, pkgModule);
-            }
+            );
+            for (const [_pkg, pkgModule] of modules) { scriptExec(frameWindow, pkgModule); }
+            setInstalledPackages(modules.map(([identity]) => identity));
             setFrameLoaded(true);
             setDoc(frameWindow.document);
           } catch (err: any) {
@@ -176,7 +194,7 @@ export const DocsPreviewCanvas = observer(function DocsPreviewCanvas(props: {
       )}
     </>
   );
-});
+}
 
 /**
  * Positions a hover box within `doc` to highlight the rendered

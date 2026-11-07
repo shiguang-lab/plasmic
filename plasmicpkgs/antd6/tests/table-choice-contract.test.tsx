@@ -1,4 +1,4 @@
-import React from "react";
+
 import { expect, test } from "vitest";
 import { registerTable } from "../src/registerTable";
 import { AntdTabItem, registerTabs } from "../src/registerTabs";

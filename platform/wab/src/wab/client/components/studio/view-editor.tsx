@@ -1,3 +1,5 @@
+import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { subscribeStudioArena, subscribeViewRegistry } from "@/wab/client/studio-ctx/arena-state";
 import { getContentEditorTarget } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { CanvasContentEditorControls } from "@/wab/client/components/canvas/CanvasContentEditorControls";
 import { StudioLoading } from "@/wab/client/components/widgets/StudioLoading";
@@ -19,7 +21,7 @@ import { CloneBoxes } from "@/wab/client/components/canvas/HoverBox/CloneBoxes";
 import { HoverBoxes } from "@/wab/client/components/canvas/HoverBox/HoverBoxes";
 import { PreselectBoxes } from "@/wab/client/components/canvas/HoverBox/PreselectBoxes";
 import { MeasureTool } from "@/wab/client/components/canvas/MeasureTool";
-import MultiplayerFollowingBorder from "@/wab/client/components/canvas/Multiplayer/MultiplayerFollowingBorder";
+import { FollowingPlayer } from "@/wab/client/components/canvas/Multiplayer/FollowingPlayer";
 import { PlayerBoxes } from "@/wab/client/components/canvas/Multiplayer/PlayerBoxes";
 import { PlayerCursors } from "@/wab/client/components/canvas/Multiplayer/PlayerCursors";
 import RichTextToolbar from "@/wab/client/components/canvas/RichText/RichTextToolbar";
@@ -72,15 +74,17 @@ import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
 import { shouldHandleStudioShortcut } from "@/wab/client/shortcuts/studio/studio-shortcut-handlers";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { RightTabKey, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { selectPanelsHidden } from "@/wab/client/studio-ctx/left-panel-state";
 import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
+import { useCanvasGeometry } from "@/wab/client/studio-ctx/viewport-state";
+import { subscribeStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
+import { useCanvasReveals } from "@/wab/client/studio-ctx/canvas-session-ui";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
   getArenaFrames,
   getFrameHeight,
-  isComponentArena,
   isDedicatedArena,
   isMixedArena,
-  isPageArena,
 } from "@/wab/shared/Arenas";
 import {
   assert,
@@ -129,6 +133,7 @@ import React, { createRef } from "react";
 import { createPortal } from "react-dom";
 import ResizeObserver from "resize-observer-polyfill";
 import { SignalBinding } from "signals";
+import { useStore } from "zustand";
 
 const minDragPx = 4;
 interface DragState {
@@ -146,10 +151,14 @@ interface ViewEditorProps {
   viewCtx: ViewCtx | undefined;
   previewCtx: PreviewCtx;
   canvasLoading?: boolean;
+  renderInteractive: boolean;
+  renderDocs: boolean;
+  renderDevMode: boolean;
+  panelsHidden: boolean;
 }
 type ViewEditorState = { marqueeBox?: Box };
 
-class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
+export class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   private canvasClipper: HTMLElement | null = null;
   private initialFitFrameUuid?: string;
   private canvas = createRef<HTMLDivElement>();
@@ -178,11 +187,51 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   private canvasContainer = createRef<HTMLDivElement>();
 
   private unbindShortcutHandlers?: () => void;
+  private stopLiveMode?: () => void;
+  private stopDraggingObject?: () => void;
+  private stopArena?: () => void;
+
+  private subscribeArena() {
+    const studio = this.props.studioCtx;
+    let stopReady: () => void = () => undefined;
+    const bindReady = () => {
+      stopReady();
+      const view = studio.tryGetViewCtxForFrame(studio.activeCanvasFrame);
+      stopReady = view ? view.initialRenderReadyStore.subscribe(() => this.forceUpdate()) : () => undefined;
+    };
+    const update = () => { bindReady(); this.forceUpdate(); };
+    const stops = [
+      subscribeStudioArena(studio, (state) => state.current, update),
+      subscribeStudioArena(studio, (state) => state.focusedMode, update),
+      subscribeStudioArena(studio, (state) => state.frames, update),
+      subscribeViewRegistry(studio, (entries) => entries, update),
+      studio.selectionStore.subscribe((next, previous) => {
+        if (next.view !== previous.view || next.frames !== previous.frames) { update(); }
+      }),
+    ];
+    bindReady();
+    return () => { stopReady(); stops.forEach((stop) => stop()); };
+  }
 
   constructor(props: ViewEditorProps) {
     super(props);
     this.state = {};
     dbg.viewEditor = this;
+  }
+
+  componentDidMount() {
+    this.stopArena = this.subscribeArena();
+    this.stopLiveMode = subscribeStudioLiveMode(this.props.studioCtx, () => this.forceUpdate());
+    this.stopDraggingObject = this.props.studioCtx.draggingObjectStore.subscribe(() => this.forceUpdate());
+  }
+
+  componentDidUpdate(previous: ViewEditorProps) {
+    if (previous.studioCtx !== this.props.studioCtx) {
+      this.stopArena?.();
+      this.stopArena = this.subscribeArena();
+      this.stopDraggingObject?.();
+      this.stopDraggingObject = this.props.studioCtx.draggingObjectStore.subscribe(() => this.forceUpdate());
+    }
   }
 
   private viewCtx() {
@@ -896,6 +945,9 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   };
 
   componentWillUnmount() {
+    this.stopArena?.();
+    this.stopLiveMode?.();
+    this.stopDraggingObject?.();
     const canvasClipper = this.canvasClipper;
 
     this.unbindShortcutHandlers?.();
@@ -1965,6 +2017,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 
   private makeAlert = () => {
     const { studioCtx } = this.props;
+    const arena = studioCtx.arenaState.store.getState();
     const freestyleState = studioCtx.freestyleState();
     const dragInsertState = studioCtx.dragInsertState();
     if (freestyleState) {
@@ -1993,16 +2046,16 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         </div>
       );
     }
-    if (!studioCtx.currentArena || studioCtx.currentArenaEmpty) {
+    if (!arena.current || arena.frames.length === 0) {
       assert(
-        !isComponentArena(studioCtx.currentArena),
+        arena.kind !== "component",
         `Component arenas cannot be empty`,
       );
-      if (!studioCtx.currentArena || isMixedArena(studioCtx.currentArena)) {
+      if (!arena.current || arena.kind === "mixed") {
         return (
           <EmptyCanvasPrompt
             studioCtx={studioCtx}
-            emptyProject={!studioCtx.currentArena}
+            emptyProject={!arena.current}
           />
         );
       }
@@ -2010,12 +2063,12 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
         <div className="canvas-editor__floating-msg">
           <Alert
             message={
-              isPageArena(studioCtx.currentArena)
+              arena.kind === "page"
                 ? translate(getUiLocale(), "This page is empty.")
                 : translate(getUiLocale(), "This project is empty.")
             }
             description={
-              isPageArena(studioCtx.currentArena) ? (
+              arena.kind === "page" ? (
                 <>
                   <p>
                     <UiText
@@ -2152,21 +2205,19 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
 
   render() {
     const { studioCtx, viewCtx } = this.props;
+    const arenaInputs = studioCtx.arenaState.store.getState();
     const canvasLoading =
       this.props.canvasLoading || !studioCtx.activeCanvasReady;
-
-    const watchedPlayer = studioCtx.watchPlayerId
-      ? studioCtx.multiplayerCtx.getPlayerDataById(studioCtx.watchPlayerId)
-      : undefined;
+    const panelsHidden = this.props.panelsHidden;
 
     return (
       <div
         className={cn("canvas-editor", {
-          "canvas-editor--panels-hidden": studioCtx.panelsHidden,
+          "canvas-editor--panels-hidden": panelsHidden,
         })}
       >
         {viewCtx && <CanvasOverlayToolbar viewCtx={viewCtx} fallback />}
-        {studioCtx.currentArena && (
+        {arenaInputs.current && (
           <>
             <ComponentPresetsModal />
           </>
@@ -2177,7 +2228,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
           <DevContainer className="canvas-editor__top-bar" showControls={true}>
             <TopBar />
             {!this.props.studioCtx.isLiveMode &&
-              !this.props.studioCtx.isDocs && (
+              !this.props.renderDocs && (
                 <TopFrameObserver
                   studioReady={!canvasLoading && studioCtx.initialViewportReady}
                 />
@@ -2190,7 +2241,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
               ref={this.canvasContainer}
               className={cn("canvas-editor__canvas-container", {
                 "canvas-editor__canvas-container__focus_mode":
-                  studioCtx.focusedMode,
+                  arenaInputs.focusedMode,
               })}
               // Handle drag-n-drop files into blank canvas
               onDrop={async (e) => this.handleDrop(e)}
@@ -2206,13 +2257,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                 this.props.studioCtx.setWatchPlayerId(null);
               }}
             >
-              {watchedPlayer && (
-                <MultiplayerFollowingBorder
-                  className="canvas-editor__watch-mode"
-                  name={watchedPlayer.user?.displayName ?? "Anon"}
-                  hexColor={watchedPlayer.color}
-                />
-              )}
+              <FollowingPlayer studioCtx={studioCtx} />
               {studioCtx.showDevControls && (
                 <div className="canvas-editor__top-pane">
                   <div className="canvas-editor__top-pane__floating-elements-container">
@@ -2230,7 +2275,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                 defer={false}
                 className="canvas-editor__canvas-scrollbar"
               >
-                {studioCtx.isDevMode && (
+                {this.props.renderDevMode && (
                   <div className="canvas-editor__canvas-clipper-grid" />
                 )}
                 <div ref={this.canvas} className="canvas-editor__canvas">
@@ -2252,30 +2297,22 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                       )}
                     <DevContainer
                       className="abs"
-                      showControls={studioCtx.isDevMode}
+                      showControls={this.props.renderDevMode}
                     >
                       <div className="canvas-editor__hoverbox-scroller">
                         {this.viewCtx() && (
                           <Spotlight viewCtx={this.ensureViewCtx()} />
                         )}
                         <PlayerBoxes />
-                        {!studioCtx.isInteractiveMode && <CloneBoxes />}
-                        {!studioCtx.isInteractiveMode && <PreselectBoxes />}
-                        {!studioCtx.isInteractiveMode && (
+                        {!this.props.renderInteractive && <CloneBoxes />}
+                        {!this.props.renderInteractive && <PreselectBoxes />}
+                        {!this.props.renderInteractive && (
                           <HoverBoxes studioCtx={studioCtx} />
                         )}
                         <MeasureTool />
                         <FreestyleBox />
-                        {this.state.marqueeBox && studioCtx.viewportCtx && (
-                          <div
-                            className="canvas-editor__marquee"
-                            style={{
-                              ...studioCtx.viewportCtx
-                                .clientToScaler(this.state.marqueeBox)
-                                .rect(),
-                              borderWidth: 1 / studioCtx.zoom,
-                            }}
-                          />
+                        {this.state.marqueeBox && (
+                          <CanvasMarquee studioCtx={studioCtx} box={this.state.marqueeBox} />
                         )}
                         <input
                           className="hidden-image-selector"
@@ -2283,7 +2320,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                           accept={".gif,.jpg,.jpeg,.png,.avif,.tif,.svg"}
                         />
                         <>
-                          {!studioCtx.isInteractiveMode &&
+                          {!this.props.renderInteractive &&
                             this.props.studioCtx.viewCtxs.map((vc) => (
                               <DndMarkers
                                 key={vc.arenaFrame().uid}
@@ -2291,7 +2328,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                               />
                             ))}
                         </>
-                        {!studioCtx.isInteractiveMode && this.viewCtx() && (
+                        {!this.props.renderInteractive && this.viewCtx() && (
                           <>
                             <DndAdoptee key="dnd-adoptee" />
                           </>
@@ -2306,7 +2343,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
                   </div>
                   <div className="canvas-editor__viewport-click-guard" />
                 </div>
-                {!studioCtx.focusedMode && <VariantsBar />}
+                {!arenaInputs.focusedMode && <VariantsBar />}
               </Scrollbar>
               {(canvasLoading || !studioCtx.initialViewportReady) && (
                 <StudioLoading />
@@ -2331,13 +2368,7 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
               )}
               {studioCtx.showDevControls && (
                 <>
-                  {!studioCtx.isInteractiveMode &&
-                    viewCtx?.hasShownHiddenContent && (
-                      <AutoOpenBanner
-                        className="canvas-editor__bottom-banner"
-                        onHide={() => viewCtx.hideShownHiddenContent()}
-                      />
-                    )}
+                  {!this.props.renderInteractive && viewCtx && <HiddenContentBanner viewCtx={viewCtx} />}
                 </>
               )}
             </div>
@@ -2378,5 +2409,28 @@ class ViewEditor_ extends React.Component<ViewEditorProps, ViewEditorState> {
   }
 }
 
-export const ViewEditor = observer(ViewEditor_);
+const ObservedViewEditor = observer(ViewEditor_);
+export const ViewEditor = React.forwardRef<ViewEditor_, Omit<ViewEditorProps, "renderInteractive" | "renderDocs" | "renderDevMode" | "panelsHidden">>(function ViewEditor(props, ref) {
+  const renderInteractive = useStudioRenderPolicy(props.studioCtx, (policy) => policy.interactive);
+  const renderDocs = useStudioRenderPolicy(props.studioCtx, (policy) => policy.docs);
+  const renderDevMode = useStudioRenderPolicy(props.studioCtx, (policy) => policy.devMode);
+  const panelsHidden = useStore(
+    props.studioCtx.leftPanelState.store,
+    selectPanelsHidden,
+  );
+  return <ObservedViewEditor {...props} ref={ref} panelsHidden={panelsHidden} renderInteractive={renderInteractive} renderDocs={renderDocs} renderDevMode={renderDevMode} />;
+});
+
+const HiddenContentBanner = observer(function HiddenContentBanner({ viewCtx }: { viewCtx: ViewCtx }) {
+  const revealed = useCanvasReveals(viewCtx);
+  return viewCtx.autoOpenedUuid || revealed ? <AutoOpenBanner
+    className="canvas-editor__bottom-banner" onHide={() => viewCtx.hideShownHiddenContent()} /> : null;
+});
+
+function CanvasMarquee({ studioCtx, box }: { studioCtx: StudioCtx; box: Box }) {
+  const { scale, scroll, canvasPadding, clipperBox } = useCanvasGeometry(studioCtx);
+  if (!studioCtx.viewportCtx) {return null;}
+  const rect = box.plus(scroll).sub(canvasPadding).sub(clipperBox.topLeft()).scale(1 / scale).rect();
+  return <div className="canvas-editor__marquee" style={{ ...rect, borderWidth: 1 / scale }} />;
+}
 import { findCanvasComponentPart } from "@/wab/client/components/canvas/canvas-component-parts";

@@ -1,109 +1,28 @@
 import type { RulesLogic } from "json-logic-js";
 import { describe, expect, it } from "vitest";
-import { ApiCmsTable, CmsFieldMeta, CmsMetaType } from "./schema";
+import { CmsFieldMeta, CmsMetaType } from "./schema";
 import { cmsTableToQueryBuilderConfig, rulesLogicToCmsWhere } from "./where";
 
 describe("cmsTableToQueryBuilderConfig", () => {
-  it("converts table without fields", () => {
-    const table: ApiCmsTable = {
-      identifier: "foo",
-      name: "Foo",
-      schema: { fields: [] },
-    };
-    expect(cmsTableToQueryBuilderConfig(table)).toEqual({
-      fields: {
-        _id: {
-          type: "text",
-          label: "System ID",
-          operators: ["equal", "not_equal"],
-        },
-      },
-    });
+  it("provides native fields for every supported schema type", () => {
+    const config = cmsTableToQueryBuilderConfig({ identifier: "blog", name: "Blog", schema: { fields: [
+      { identifier: "title", type: CmsMetaType.TEXT },
+      { identifier: "words", type: CmsMetaType.NUMBER },
+      { identifier: "show", label: "Shown?", type: CmsMetaType.BOOLEAN },
+      { identifier: "kind", type: CmsMetaType.ENUM, options: ["news", "guide"] },
+      { identifier: "published", type: CmsMetaType.DATE_TIME },
+      { identifier: "content", type: CmsMetaType.RICH_TEXT },
+    ] as CmsFieldMeta[] } });
+    expect(config.fields.map((field) => field.name)).toEqual(["_id", "title", "words", "show", "kind", "published"]);
+    expect(config.fields.find((field) => field.name === "words")).toMatchObject({ datatype: "number", inputType: "number" });
+    expect(config.fields.find((field) => field.name === "show")).toMatchObject({ datatype: "boolean", label: "Shown?", valueEditorType: "checkbox" });
+    expect(config.fields.find((field) => field.name === "kind")).toMatchObject({ valueEditorType: "select", values: [{ name: "news", label: "news" }, { name: "guide", label: "guide" }] });
+    expect(config.fields.find((field) => field.name === "published")).toMatchObject({ inputType: "datetime-local" });
+    expect(config.fields.find((field) => field.name === "title")?.operators).toEqual(["=", "!=", "regex"].map((name) => ({ name, label: name })));
   });
-  it("converts table with all field types", () => {
-    const table: ApiCmsTable = {
-      identifier: "blogPost",
-      name: "Blog Post",
-      schema: {
-        fields: [
-          {
-            identifier: "title",
-            type: CmsMetaType.TEXT,
-          },
-          {
-            identifier: "content",
-            label: "Content",
-            type: CmsMetaType.RICH_TEXT,
-          },
-          {
-            identifier: "wordCount",
-            type: CmsMetaType.NUMBER,
-          },
-          {
-            identifier: "show",
-            label: "Is shown?",
-            type: CmsMetaType.BOOLEAN,
-          },
-          {
-            identifier: "type",
-            type: CmsMetaType.ENUM,
-            options: ["announcement", "marketing"],
-          },
-          {
-            identifier: "publishedAt",
-            type: CmsMetaType.DATE_TIME,
-          },
-        ] as CmsFieldMeta[],
-      },
-    };
-    expect(cmsTableToQueryBuilderConfig(table)).toEqual({
-      fields: {
-        _id: {
-          type: "text",
-          label: "System ID",
-          operators: ["equal", "not_equal"],
-        },
-        title: {
-          type: "text",
-          label: "title",
-          operators: ["equal", "not_equal", "regex"],
-        },
-        wordCount: {
-          type: "number",
-          label: "wordCount",
-          operators: [
-            "equal",
-            "not_equal",
-            "less",
-            "less_or_equal",
-            "greater",
-            "greater_or_equal",
-          ],
-        },
-        show: {
-          type: "boolean",
-          label: "Is shown?",
-        },
-        type: {
-          type: "select",
-          label: "type",
-          listValues: ["announcement", "marketing"],
-          operators: ["select_equals", "select_not_equals", "select_any_in"],
-        },
-        publishedAt: {
-          type: "datetime",
-          label: "publishedAt",
-          operators: [
-            "equal",
-            "not_equal",
-            "less",
-            "less_or_equal",
-            "greater",
-            "greater_or_equal",
-          ],
-        },
-      },
-    });
+  it("keeps the system ID field when the schema is empty", () => {
+    const config = cmsTableToQueryBuilderConfig({ identifier: "foo", name: "Foo", schema: { fields: [] } });
+    expect(config.fields).toEqual([{ name: "_id", label: "System ID", datatype: "text", inputType: "text", valueEditorType: "text", operators: ["=", "!="].map((name) => ({ name, label: name })) }]);
   });
 });
 

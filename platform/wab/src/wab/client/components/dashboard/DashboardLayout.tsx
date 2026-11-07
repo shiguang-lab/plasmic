@@ -7,10 +7,10 @@ import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { observer } from "mobx-react";
+     
 import * as React from "react";
 
-export const DashboardLayout = observer(function DashboardLayout({
+export const DashboardLayout = function DashboardLayout({
   children,
   loadingFailed = false,
 }: {
@@ -72,4 +72,4 @@ export const DashboardLayout = observer(function DashboardLayout({
       )}
     </DefaultTeamLayout>
   );
-});
+};

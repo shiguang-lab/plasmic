@@ -1,7 +1,7 @@
 import registerComponent, {
   CodeComponentMeta,
 } from "@plasmicapp/host/registerComponent";
-import React from "react";
+
 import { useFormContext } from "react-hook-form";
 import { useProduct } from "./contexts";
 import usePrice from "./product/use-price";

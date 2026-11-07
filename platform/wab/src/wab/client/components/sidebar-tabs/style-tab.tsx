@@ -1,3 +1,8 @@
+import { useStore } from "zustand";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
+import { useInspectorSelection, useInspectorPending, useInspectorDom } from "@/wab/client/studio-ctx/inspector-state";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import {
   TplComponentNameSection,
@@ -109,7 +114,9 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
   viewCtx: ViewCtx;
 }) {
   const { tpl, viewCtx } = props;
+  const variantInputs = useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const studioCtx = viewCtx.studioCtx;
+  useInspectorDom(viewCtx);
   const styleTabFilter = useContext(StyleTabContext);
   const [showMixins, setShowMixins] = React.useState(isMixinSet(tpl, viewCtx));
   const [showPrivateStyleVariants, setShowPrivateStyleVariants] =
@@ -122,7 +129,7 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
         // Read the committed inspector target instead of the captured tpl,
         // and this reaction may be running before the surrounding component
         // has been re-rendered.
-        const curTpl = viewCtx.inspectorTpl(false);
+        const curTpl = tpl;
         return !!curTpl && isMixinSet(curTpl, viewCtx);
       },
       (mixinVisible) => setShowMixins(mixinVisible),
@@ -132,7 +139,7 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
     );
     const privateStyleVariantsDisposal = mobx.reaction(
       () => {
-        const curTpl = viewCtx.inspectorTpl(false);
+        const curTpl = tpl;
         return (
           !!curTpl && shouldShowPrivateStyleVariantsSection(curTpl, viewCtx)
         );
@@ -147,7 +154,7 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
       mixinDisposal();
       privateStyleVariantsDisposal();
     };
-  }, [tpl, viewCtx]);
+  }, [tpl, viewCtx, variantInputs]);
   const isTag = isTplTag(tpl);
   const isComponent = isTplComponent(tpl);
   const ancestorSlot = getAncestorTplSlot(tpl, true);
@@ -331,6 +338,7 @@ export const ComponentOrPageTab = observer(function ComponentOrPageTab(props: {
   isHalf?: boolean;
 }) {
   const { studioCtx, viewCtx, isHalf } = props;
+  useViewSelection(viewCtx, useShallow((state) => [state.context, state.targets, state.tpls]));
   const component = viewCtx.currentComponent();
   const focused = viewCtx.focusedSelectable();
   const tpl = viewCtx.focusedTpl(false);
@@ -391,10 +399,11 @@ export const StyleTab = observer(function StyleTab(props: {
   viewCtx?: ViewCtx;
 }) {
   const { studioCtx, viewCtx } = props;
-  const selection = studioCtx.inspectorSelection;
-  const pending = studioCtx.isSelectionPending;
+  useViewSelection(viewCtx, (state) => state.context);
+  const selection = useInspectorSelection(studioCtx);
+  const pending = useInspectorPending(studioCtx);
   const contextMatches = selection?.viewCtx === viewCtx && selection?.componentCtx === viewCtx?.currentComponentCtx();
-  const tpl = contextMatches ? viewCtx?.inspectorTpl(true) : null;
+  const tpl = contextMatches ? selection?.slotTpl : null;
 
   React.useEffect(() => {
     if (!pending && tpl && !isTplAttachedToSite(studioCtx.site, tpl)) {
@@ -434,10 +443,13 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
   viewCtx: ViewCtx;
 }) {
   const { viewCtx } = props;
+  useViewSelection(viewCtx, (state) => state.context);
+  const selection = useInspectorSelection(props.studioCtx);
+  const pending = useInspectorPending(props.studioCtx);
   const partTab = useContext(StyleTabContext);
 
-  const focused = viewCtx.inspectorSelectable();
-  const tpl = viewCtx.inspectorTpl(false);
+  const focused = selection?.viewCtx === viewCtx ? selection.selectable : undefined;
+  const tpl = selection?.viewCtx === viewCtx ? selection.tpl : null;
   const component = viewCtx.currentComponent();
 
   const currentTarget = useCurrentRecordingTarget();
@@ -460,9 +472,9 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
                 : undefined
             }
           >
-            <SelectionInspector pending={props.studioCtx.isSelectionPending}>
-            {viewCtx.inspectorComponentPart() ? (
-              <CanvasComponentPartSection key={props.studioCtx.inspectorSelection?.generation} viewCtx={viewCtx} interactions={partTab === "interactions"} />
+            <SelectionInspector pending={pending}>
+            {selection?.componentPart ? (
+              <CanvasComponentPartSection key={selection?.generation} viewCtx={viewCtx} interactions={partTab === "interactions"} />
             ) : focused instanceof SlotSelection ? (
               <SlotSelectionMessage node={focused} viewCtx={viewCtx} />
             ) : tpl === component.tplTree && isCodeComponent(component) ? (
@@ -471,7 +483,7 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
               <CodeComponentTplSlotMessage component={component} />
             ) : tpl ? (
               <>
-                <StyleTabForTpl key={props.studioCtx.inspectorSelection?.generation} viewCtx={viewCtx} tpl={tpl} />
+                <StyleTabForTpl key={selection?.generation} viewCtx={viewCtx} tpl={tpl} />
               </>
             ) : null}
             </SelectionInspector>
@@ -647,12 +659,18 @@ const TplSlotMessage = observer(function TplSlotMessage(props: {
   );
 });
 
-const NonBaseTplSlotDescendantMessage = observer(
+export const NonBaseTplSlotDescendantMessage =
   function NonBaseTplSlotDescendantMessage(props: {
     viewCtx: ViewCtx;
     slot: TplSlot;
   }) {
     const { slot, viewCtx } = props;
+    const models = viewCtx.studioCtx.modelSnapshots;
+    const paramRef = useStore(models.field(slot, "param"));
+    const param = models.resolve(paramRef);
+    const variableRef = useStore(models.field(param, "variable"));
+    const variable = models.resolve(variableRef);
+    const name = useStore(models.field(variable, "name"));
     return (
       <SidebarSection>
         <Alert
@@ -665,7 +683,7 @@ const NonBaseTplSlotDescendantMessage = observer(
                   "This is default content for slot target {part1}. Note that the default slot content is the same for all variants, so edits you make will target the Base variant. If you want to {part2} slot content differently for different variants, you can do so {part3}."
                 }
                 values={{
-                  part1: <code>{slot.param.variable.name}</code>,
+                  part1: <code>{name}</code>,
                   part2: (
                     <em>
                       <UiText message={"style"} />
@@ -691,12 +709,12 @@ const NonBaseTplSlotDescendantMessage = observer(
         />
       </SidebarSection>
     );
-  },
-);
+  }
+;
 
-export const NonBaseVariantTransitionsMessage = observer(
-  NonBaseVariantTransitionsMessage_,
-);
+export const NonBaseVariantTransitionsMessage =
+  NonBaseVariantTransitionsMessage_
+;
 
 function NonBaseVariantTransitionsMessage_() {
   const studioCtx = useStudioCtx();

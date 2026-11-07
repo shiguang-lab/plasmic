@@ -1,5 +1,5 @@
 import { cloneDeep, isEqual } from "lodash";
-import { observable } from "mobx";
+import { createStore, StoreApi } from "zustand/vanilla";
 import { ensure } from "@/wab/shared/common";
 
 interface Entry {
@@ -19,89 +19,173 @@ const sourceValue = (entry: Pick<Entry, "nativeValue" | "initialValue">) =>
   entry.nativeValue !== undefined ? entry.nativeValue : entry.initialValue;
 
 /** Transient state belongs to a rendered instance in one artboard, never the Site. */
-export class CanvasSessionState {
-  private entries = observable.map<string, Entry>(undefined, { deep: false });
+export interface CanvasSessionValue {
+  readonly value: unknown;
+  readonly runtimeValue: unknown;
+  readonly revealed: boolean;
+}
 
-  private key(instance: string, name: string) {
-    return JSON.stringify([instance, name]);
+export type CanvasSessionSnapshot = Readonly<Record<string, CanvasSessionValue>>;
+export type CanvasSessionStore = Pick<StoreApi<CanvasSessionSnapshot>, "getState" | "getInitialState" | "subscribe">;
+
+interface SessionResource {
+  readonly entries: Readonly<Record<string, Entry>>;
+  readonly values: CanvasSessionSnapshot;
+}
+interface InstanceResource {
+  readonly state: StoreApi<SessionResource>;
+  readonly store: CanvasSessionStore;
+}
+
+export class CanvasSessionState {
+  private instances = new Map<string, InstanceResource>();
+  private listeners = new Set<(instance: string) => (() => void) | void>();
+  readonly revealsStore = createStore<boolean>(() => false);
+  private shownCount = 0;
+
+  private isShown(entry: Entry | undefined) {
+    return !!entry && entry.revealed && entry.value !== false && !isEqual(entry.value, sourceValue(entry));
+  }
+
+  private updateShown(previous: Entry | undefined, next: Entry) {
+    this.shownCount += Number(this.isShown(next)) - Number(this.isShown(previous));
+    const hasReveals = this.shownCount > 0;
+    if (this.revealsStore.getState() !== hasReveals) {
+      this.revealsStore.setState(hasReveals, true);
+    }
+  }
+
+  /** Stable shallow readonly runtime views for exactly one rendered instance. */
+  instanceStore(instance: string): CanvasSessionStore {
+    return this.instanceResource(instance).store;
+  }
+
+  /** Invalidate before publication; an optional returned callback runs afterward. */
+  subscribeToChanges(listener: (instance: string) => (() => void) | void) {
+    this.listeners.add(listener);
+    return () => { this.listeners.delete(listener); };
+  }
+
+  private instanceResource(instance: string): InstanceResource {
+    let resource = this.instances.get(instance);
+    if (!resource) {
+      const state = createStore<SessionResource>(() => ({ entries: Object.freeze({}), values: Object.freeze({}) }));
+      resource = {
+        state,
+        store: {
+          getState: () => state.getState().values,
+          getInitialState: () => state.getInitialState().values,
+          subscribe: (listener) => state.subscribe((next, previous) => {
+            if (next.values !== previous.values) {
+              listener(next.values, previous.values);
+            }
+          }),
+        },
+      };
+      this.instances.set(instance, resource);
+    }
+    return resource;
+  }
+
+  private entry(instance: string, name: string) {
+    return this.instances.get(instance)?.state.getState().entries[name];
+  }
+
+  private write(instance: string, name: string, entry: Entry) {
+    const resource = this.instanceResource(instance);
+    const current = resource.state.getState();
+    if (isEqual(current.entries[name], entry)) {
+      return;
+    }
+    const entries = Object.freeze({ ...current.entries, [name]: Object.freeze(entry) });
+    const previous = current.values[name];
+    const runtimeValue = entry.revealed ? entry.beforeReveal : entry.value;
+    if (previous && isEqual(previous.value, entry.value) &&
+        isEqual(previous.runtimeValue, runtimeValue) && previous.revealed === entry.revealed) {
+      resource.state.setState({ entries, values: current.values }, true);
+      this.updateShown(current.entries[name], entry);
+      return;
+    }
+    const next = Object.freeze({ value: entry.value, runtimeValue, revealed: entry.revealed });
+    // Invalidate the instance's cached render before its React subscribers run.
+    const notify = [...this.listeners].map((listener) => listener(instance));
+    resource.state.setState({ entries, values: Object.freeze({ ...current.values, [name]: next }) }, true);
+    this.updateShown(current.entries[name], entry);
+    notify.forEach((afterPublish) => afterPublish?.());
   }
 
   resolve(instance: string, name: string, nativeValue: unknown, initialValue?: unknown) {
-    const key = this.key(instance, name);
-    let entry = this.entries.get(key);
+    let entry = this.entry(instance, name);
     if (entry && !entry.initialized) {
       entry = {
         ...entry, nativeValue: cloneDeep(nativeValue), initialValue: cloneDeep(initialValue),
-        beforeReveal: nativeValue !== undefined ? nativeValue : initialValue, initialized: true,
+        beforeReveal: cloneDeep(nativeValue !== undefined ? nativeValue : initialValue), initialized: true,
       };
-      this.entries.set(key, entry);
+      this.write(instance, name, entry);
     }
     if (!entry || !isEqual(entry.nativeValue, nativeValue) || !isEqual(entry.initialValue, initialValue)) {
       entry = {
         nativeValue: cloneDeep(nativeValue), initialValue: cloneDeep(initialValue),
-        value: nativeValue !== undefined ? nativeValue : initialValue, revealInput: entry?.revealInput,
+        value: cloneDeep(nativeValue !== undefined ? nativeValue : initialValue), revealInput: entry?.revealInput,
         hasRevealInput: entry?.hasRevealInput ?? false, revealed: false, initialized: true,
         sourceChanged: !!entry,
       };
-      this.entries.set(key, entry);
+      this.write(instance, name, entry);
     } else if (entry.sourceChanged) {
       entry = { ...entry, sourceChanged: false };
-      this.entries.set(key, entry);
+      this.write(instance, name, entry);
     }
     return entry.value;
   }
 
   reveal(instance: string, name: string, value: unknown) {
-    const key = this.key(instance, name);
-    const entry = ensure(this.entries.get(key), `Canvas state ${name} was not initialized`);
+    const entry = ensure(this.entry(instance, name), `Canvas state ${name} was not initialized`);
     if (entry.locked) {
       return entry.value;
     }
     if (entry.sourceChanged) {
-      this.entries.set(key, { ...entry, revealInput: cloneDeep(value), hasRevealInput: true, sourceChanged: false });
+      this.write(instance, name, { ...entry, revealInput: cloneDeep(value), hasRevealInput: true, sourceChanged: false });
       return entry.value;
     }
     if (!entry.hasRevealInput || !isEqual(entry.revealInput, value)) {
       const releasing = isEqual(value, sourceValue(entry));
-      this.entries.set(key, {
+      this.write(instance, name, {
         ...entry,
-        value: releasing && entry.revealed ? entry.beforeReveal : value,
+        value: releasing && entry.revealed ? entry.beforeReveal : cloneDeep(value),
         beforeReveal: releasing ? undefined : entry.revealed ? entry.beforeReveal : entry.value,
         revealInput: cloneDeep(value), hasRevealInput: true, revealed: !releasing,
       });
     }
-    return this.entries.get(key)?.value;
+    return this.entry(instance, name)?.value;
   }
 
   set(instance: string, name: string, value: unknown, revealed = false) {
-    const key = this.key(instance, name);
-    const entry = this.entries.get(key);
+    const entry = this.entry(instance, name);
     if (!entry) {
-      this.entries.set(key, { nativeValue: undefined, initialValue: undefined, value,
+      this.write(instance, name, { nativeValue: undefined, initialValue: undefined, value: cloneDeep(value),
         hasRevealInput: false, revealed, initialized: false, locked: revealed });
       return;
     }
     if (!isEqual(entry.value, value) || entry.revealed !== revealed) {
-      this.entries.set(key, { ...entry, value, revealed, locked: revealed,
+      this.write(instance, name, { ...entry, value: cloneDeep(value), revealed, locked: revealed,
         beforeReveal: revealed ? entry.revealed ? entry.beforeReveal : entry.value : undefined });
     }
   }
 
   get(instance: string, name: string) {
-    return this.entries.get(this.key(instance, name))?.value;
+    return this.entry(instance, name)?.value;
   }
 
   getRuntime(instance: string, name: string) {
-    const entry = this.entries.get(this.key(instance, name));
+    const entry = this.entry(instance, name);
     return entry?.revealed ? entry.beforeReveal : entry?.value;
   }
 
   setRuntime(instance: string, name: string, value: unknown) {
-    const key = this.key(instance, name);
-    const entry = this.entries.get(key);
+    const entry = this.entry(instance, name);
     if (entry?.revealed) {
       if (!isEqual(entry.beforeReveal, value)) {
-        this.entries.set(key, { ...entry, beforeReveal: cloneDeep(value) });
+        this.write(instance, name, { ...entry, beforeReveal: cloneDeep(value) });
       }
     } else {
       this.set(instance, name, value);
@@ -109,25 +193,40 @@ export class CanvasSessionState {
   }
 
   has(instance: string, name: string) {
-    return this.entries.has(this.key(instance, name));
+    return !!this.entry(instance, name);
   }
 
   get hasReveals() {
-    return Array.from(this.entries.values()).some((entry) =>
-      entry.revealed && entry.value !== false && !isEqual(entry.value, sourceValue(entry)),
-    );
+    return this.revealsStore.getState();
   }
 
   hideReveals() {
-    for (const [key, entry] of this.entries) {
-      if (entry.revealed && entry.value !== false && !isEqual(entry.value, sourceValue(entry))) {
-        this.entries.set(key, { ...entry, value: entry.beforeReveal, revealed: false, beforeReveal: undefined });
+    for (const [instance, resource] of this.instances) {
+      for (const [name, entry] of Object.entries(resource.state.getState().entries)) {
+        if (entry.revealed && entry.value !== false && !isEqual(entry.value, sourceValue(entry))) {
+          this.write(instance, name, { ...entry, value: entry.beforeReveal, revealed: false, beforeReveal: undefined });
+        }
       }
     }
   }
 
   clear() {
-    this.entries.clear();
+    this.shownCount = 0;
+    this.revealsStore.setState(false, true);
+    for (const [instance, resource] of this.instances) {
+      if (Object.keys(resource.state.getState().entries).length === 0) {
+        continue;
+      }
+      const notify = [...this.listeners].map((listener) => listener(instance));
+      resource.state.setState({ entries: Object.freeze({}), values: Object.freeze({}) }, true);
+      notify.forEach((afterPublish) => afterPublish?.());
+    }
+  }
+
+  dispose() {
+    this.clear();
+    this.listeners.clear();
+    this.instances.clear();
   }
 }
 

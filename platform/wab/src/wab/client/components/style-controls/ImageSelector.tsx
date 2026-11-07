@@ -1,3 +1,4 @@
+import { useImageAssetList, useSelectedImageAsset } from "@/wab/client/studio-ctx/image-asset-inputs";
 import { ReadableClipboard } from "@/wab/client/clipboard/ReadableClipboard";
 import { ImageAssetSidebarPopup } from "@/wab/client/components/sidebar/image-asset-controls";
 import { FileUploader, PlainLinkButton } from "@/wab/client/components/widgets";
@@ -26,18 +27,15 @@ import {
   spawnWrapper,
 } from "@/wab/shared/common";
 import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
-import { allImageAssets, isEditable } from "@/wab/shared/core/sites";
 import { isValidUrl } from "@/wab/shared/css/urls";
 import { ImageAsset, isKnownImageAsset } from "@/wab/shared/model/classes";
 import { placeholderImgUrl } from "@/wab/shared/urls";
 import { Select, Tooltip, notification } from "antd";
 import L from "lodash";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React, { CSSProperties } from "react";
 
-export const ImageAssetPreviewAndPicker = observer(
-  function ImageAssetPreviewAndPicker(props: {
+export function ImageAssetPreviewAndPicker(props: {
     studioCtx: StudioCtx;
     value?: ImageAsset | string;
     onPicked: (picked: ImageAsset | string) => void;
@@ -49,9 +47,10 @@ export const ImageAssetPreviewAndPicker = observer(
     const { t: uiT } = useI18n();
     const { studioCtx, value, onPicked, type, keepOpen, forFallback } = props;
     const asset = isKnownImageAsset(value) ? value : undefined;
+    const assetInput = useSelectedImageAsset(studioCtx, asset);
     const uri =
-      asset && asset.dataUri
-        ? asset.dataUri
+      assetInput?.dataUri
+        ? assetInput.dataUri
         : L.isString(value)
           ? value
           : undefined;
@@ -60,7 +59,7 @@ export const ImageAssetPreviewAndPicker = observer(
     const [pickingImage, setPickingImage] = React.useState(
       !forFallback && (uri === placeholderImgUrl(isIcon) || !uri),
     );
-    const [showAssetPopup, setShowAssetPopup] = React.useState(false);
+    const [assetPopupTarget, setAssetPopupTarget] = React.useState<ImageAsset>();
 
     React.useEffect(() => {
       if (!uri && !forFallback) {
@@ -98,11 +97,11 @@ export const ImageAssetPreviewAndPicker = observer(
                   filename={
                     asset && (
                       <MaybeWrap
-                        cond={isEditable(studioCtx.site, asset)}
+                        cond={!!assetInput?.editable}
                         wrapper={(x) => (
                           <Tooltip title={uiT("Update image asset")}>
                             <PlainLinkButton
-                              onClick={() => setShowAssetPopup(true)}
+                              onClick={() => setAssetPopupTarget(asset)}
                             >
                               {x as React.ReactElement}
                             </PlainLinkButton>
@@ -111,7 +110,7 @@ export const ImageAssetPreviewAndPicker = observer(
                       >
                         <>
                           <Icon icon={ImageBlockIcon} className="mr-xs" />
-                          {asset.name}
+                          {assetInput?.name}
                         </>
                       </MaybeWrap>
                     )
@@ -138,18 +137,17 @@ export const ImageAssetPreviewAndPicker = observer(
             />
           </div>
         )}
-        {showAssetPopup && asset && (
+        {asset && assetPopupTarget === asset && assetInput?.editable && (
           <ImageAssetSidebarPopup
             asset={asset}
             editable // consider using the left tab icons/images setting here?
-            onClose={() => setShowAssetPopup(false)}
+            onClose={() => setAssetPopupTarget(undefined)}
             studioCtx={studioCtx}
           />
         )}
       </div>
     );
-  },
-);
+}
 
 type ImgInfoProps = {
   url: string;
@@ -167,6 +165,7 @@ function useImageSize(url: string) {
     { width: number; height: number } | undefined
   >(undefined);
   React.useEffect(() => {
+    if (!url) { setSize(undefined); return; }
     const img = new Image();
     promiseRef.current = makeCancelable(
       new Promise((resolve) => (img.onload = resolve)),
@@ -189,7 +188,7 @@ function useImageSize(url: string) {
 
 export function ImgInfo(props: ImgInfoProps) {
   const { url, filename, imagePreview, extended } = props;
-  const size = url ? useImageSize(url) : undefined;
+  const size = useImageSize(url);
 
   if (extended) {
     return (
@@ -264,8 +263,7 @@ export function ImagePreview(props: {
   );
 }
 
-export const ImageAssetOrUrlPicker = observer(
-  function ImageAssetOrUrlPicker(props: {
+export function ImageAssetOrUrlPicker(props: {
     studioCtx: StudioCtx;
     value?: ImageAsset | string;
     onPicked: (picked: ImageAsset | string | undefined) => void;
@@ -357,9 +355,9 @@ export const ImageAssetOrUrlPicker = observer(
       </form>
     );
 
-    const selectableAssets = allImageAssets(studioCtx.site, {
-      includeDeps: "direct",
-    }).filter((x) => x.type === type && x.dataUri);
+    const { rows: assetRows, resolve } = useImageAssetList(studioCtx, "direct");
+    const selectedAsset = useSelectedImageAsset(studioCtx, isKnownImageAsset(value) ? value : undefined);
+    const selectableAssets = assetRows.filter((asset) => asset.type === type && asset.dataUri);
 
     return (
       <div className={"panel-dim-block rel"}>
@@ -407,13 +405,13 @@ export const ImageAssetOrUrlPicker = observer(
                 className={cx({
                   "flex-fill textboxlike code flex-stretch": true,
                 })}
-                value={isKnownImageAsset(value) ? value.uuid : undefined}
+                value={selectedAsset?.uuid}
                 onChange={(val) =>
                   props.onPicked(
-                    ensure(
-                      selectableAssets.find((x) => x.uuid === val),
+                    resolve(ensure(
+                      selectableAssets.find((asset) => asset.uuid === val),
                       "Unexpected undefined asset selected",
-                    ),
+                    ).ref),
                   )
                 }
                 showSearch
@@ -514,8 +512,7 @@ export const ImageAssetOrUrlPicker = observer(
         </div>
       </div>
     );
-  },
-);
+}
 
 export function ImageUploader(props: {
   onUploaded: (image: ResizableImage, file: File) => void;

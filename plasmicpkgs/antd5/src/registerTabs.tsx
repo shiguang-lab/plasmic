@@ -1,5 +1,6 @@
 import { ActionProps } from "@plasmicapp/host/registerComponent";
 import { Tabs } from "antd";
+import { toChildArray } from "./react-utils";
 import React, { ReactElement, useMemo } from "react";
 import {
   Registerable,
@@ -19,10 +20,11 @@ export const AntdTabItem: React.FC<TabItemType> = ({ children }) => {
 };
 
 function getTabItems(items: ReactElement): React.ReactElement<TabItemType>[] {
-  if (!React.isValidElement(items) && Array.isArray(items)) return [...items]; // indicates a single TabItem on repeat
-  return (items?.type as any)?.name == AntdTabItem.name
-    ? [items]
-    : items?.props?.children?.flat(1);
+  if (Array.isArray(items)) return [...items];
+  if (!React.isValidElement<{ children?: React.ReactNode }>(items)) return [];
+  return (items.type as any)?.name === AntdTabItem.name
+    ? [items as React.ReactElement<TabItemType>]
+    : toChildArray(items.props.children).filter(React.isValidElement<TabItemType>);
 }
 
 function getTabItemKeys(items: ReactElement): string[] {

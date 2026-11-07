@@ -1,6 +1,6 @@
 import { newTokenValueAllowed } from "@/wab/client/components/sidebar/token-utils";
 import { ColorSidebarPopup } from "@/wab/client/components/style-controls/ColorButton";
-import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
+import { useClientTokenValue } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
 import { useI18n } from "@/wab/client/i18n";
@@ -8,14 +8,15 @@ import TokenIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Token";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isTokenRef } from "@/wab/commons/StyleToken";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
-import { siteFinalColorTokens } from "@/wab/shared/core/site-style-tokens";
+import { useStyleColorTokens } from "@/wab/client/studio-ctx/style-color-token-inputs";
+import { useStyleTokenInputs } from "@/wab/client/studio-ctx/style-token-inputs";
+import { useShallow } from "zustand/react/shallow";
 import { MutableToken, OverrideableToken } from "@/wab/shared/core/tokens";
 import { StyleToken } from "@/wab/shared/model/classes";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
 
-export const ColorTokenPopup = observer(function ColorTokenPopup(props: {
+export const ColorTokenPopup = function ColorTokenPopup(props: {
   token: MutableToken<StyleToken> | OverrideableToken<StyleToken>;
   studioCtx: StudioCtx;
   show: boolean;
@@ -30,15 +31,24 @@ export const ColorTokenPopup = observer(function ColorTokenPopup(props: {
     show,
     onClose,
     autoFocusName,
-    vsh = new VariantedStylesHelper(props.studioCtx.site),
+    vsh: suppliedVsh,
   } = props;
 
-  const resolver = useClientTokenResolver();
-  const activeTokenValue = vsh.getActiveTokenValue(token);
-  // Resolve CSS variable refs only
-  const tokenRefOrRealColor = isTokenRef(activeTokenValue)
-    ? activeTokenValue
-    : resolver(token, vsh);
+  const defaultVsh = React.useMemo(() => new VariantedStylesHelper(studioCtx.site), [studioCtx]);
+  const vsh = suppliedVsh ?? defaultVsh;
+  const lifetime = React.useMemo(() => studioCtx.arenaState.lifetime(), [studioCtx, token]);
+  const nativeToken = useStyleTokenInputs(studioCtx, token, vsh, useShallow((state) => state && [state.name, state.activeValue, state.isRegistered, state.regKey] as const));
+  const colors = useStyleColorTokens(studioCtx, token);
+  const clientValue = useClientTokenValue(
+    nativeToken && !isTokenRef(nativeToken[1]) ? nativeToken[1] : undefined,
+    nativeToken && { isRegistered: nativeToken[2], regKey: nativeToken[3] },
+    lifetime,
+  );
+  // The editor belongs to its captured world, including its opaque picker
+  // handles. Leave that scope before child resolvers can see another world.
+  if (!nativeToken || !colors.snapshot.active || lifetime.aborted) { return null; }
+  const [tokenName, activeTokenValue] = nativeToken;
+  const tokenRefOrRealColor = isTokenRef(activeTokenValue) ? activeTokenValue : clientValue;
 
   return (
     <ColorSidebarPopup
@@ -51,9 +61,7 @@ export const ColorTokenPopup = observer(function ColorTokenPopup(props: {
       show={show}
       onClose={() => onClose()}
       autoFocus={!autoFocusName}
-      colorTokens={siteFinalColorTokens(studioCtx.site, {
-        includeDeps: "direct",
-      }).filter((t) => t.uuid !== token.uuid)}
+      colorTokens={colors.commands}
       popupTitle={
         <>
           <Icon
@@ -62,7 +70,7 @@ export const ColorTokenPopup = observer(function ColorTokenPopup(props: {
           />
 
           <SimpleTextbox
-            defaultValue={token.name}
+            defaultValue={tokenName}
             onValueChange={(name) =>
               studioCtx.change(() => {
                 studioCtx.tplMgr().renameStyleToken(token.base, name);
@@ -81,4 +89,4 @@ export const ColorTokenPopup = observer(function ColorTokenPopup(props: {
       vsh={vsh}
     />
   );
-});
+};

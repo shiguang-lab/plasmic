@@ -1,10 +1,11 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var host = require('@plasmicapp/host');
 var Ant = require('antd');
 var React = require('react');
 var reactUtils = require('./react-utils-CP3JYj1p.cjs.js');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 var contexts = require('./contexts-DbLDJr3k.cjs.js');
 require('classnames');
 require('@plasmicapp/host/registerComponent');
@@ -151,7 +152,7 @@ function FormItemWrapper(props) {
     const unregister = registerField?.(fieldEntity);
     return () => unregister?.();
   }, []);
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     FormItem,
     {
       ...rest,
@@ -164,9 +165,9 @@ function FormItemWrapper(props) {
       colon: noLabel ? false : props.colon,
       valuePropName: deriveValuePropName(props),
       trigger: deriveOnChangePropName(props),
-      wrapperCol: props.wrapperCol ?? (layoutContext?.layout === "horizontal" && noLabel && alignLabellessWithControls && layoutContext.labelSpan ? { offset: layoutContext.labelSpan } : void 0)
-    },
-    /* @__PURE__ */ React__default.default.createElement(FormItemForwarder, { formItemProps: props })
+      wrapperCol: props.wrapperCol ?? (layoutContext?.layout === "horizontal" && noLabel && alignLabellessWithControls && layoutContext.labelSpan ? { offset: layoutContext.labelSpan } : void 0),
+      children: /* @__PURE__ */ jsxRuntime.jsx(FormItemForwarder, { formItemProps: props })
+    }
   );
 }
 function deriveValuePropName(props) {

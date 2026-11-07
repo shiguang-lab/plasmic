@@ -4,7 +4,7 @@ import type {
   UploadChangeParam,
   UploadProps,
 } from "antd/es/upload";
-import React, { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Registerable, registerComponentHelper } from "./utils";
 
 interface UploadFile {
@@ -32,7 +32,7 @@ function getThumbUrl(file?: UploadFile): string | undefined {
 
 export function UploadWrapper(props: ExtendedUploadProps) {
   const { files, dragAndDropFiles, onFilesChange, maxCount, ...rest } = props;
-  const filesRef = useRef<Array<UploadFile>>(); // if multiple = true, it facilitates adding multiple files
+  const filesRef = useRef<Array<UploadFile>>(undefined); // if multiple = true, it facilitates adding multiple files
 
   filesRef.current = files;
 

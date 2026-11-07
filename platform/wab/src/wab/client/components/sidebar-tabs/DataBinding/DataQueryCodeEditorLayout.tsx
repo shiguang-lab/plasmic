@@ -1,3 +1,4 @@
+import { useFocusedViewCtx } from "@/wab/client/studio-ctx/selection-state";
 import { DataInspector } from "@/wab/client/components/coding/DataInspector";
 import type { FullCodeEditor } from "@/wab/client/components/coding/FullCodeEditor";
 import LazyFullCodeEditor from "@/wab/client/components/coding/LazyFullCodeEditor";
@@ -35,7 +36,7 @@ function DataQueryCodeEditorLayout_(
   const { data, defaultValue, onChange, schema, context, ...rest } = props;
   const studioCtx = useStudioCtx();
   const editorRef = React.useRef<FullCodeEditor>(null);
-  const viewCtx = studioCtx.focusedViewCtx();
+  const viewCtx = useFocusedViewCtx(studioCtx);
   const showCopilot = DEVFLAGS.showCopilot && !!viewCtx;
 
   // Convert stored flattened format ($dataTokens_projId_name) to editor display format
@@ -57,7 +58,7 @@ function DataQueryCodeEditorLayout_(
 
   const [currentValue, setCurrentValue] = React.useState(displayValue);
   const [codeEditorKey, setCodeEditorKey] = React.useState(0);
-  const justCommitted = React.useRef<string>();
+  const justCommitted = React.useRef<string>(undefined);
 
   // Storing the code normalizes its formatting, so adopting the value we just
   // committed would rewrite what the user typed. Everything else, such as a data

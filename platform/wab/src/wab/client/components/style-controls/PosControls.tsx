@@ -29,10 +29,12 @@ import PositionCoverIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Pos
 import PositionSideIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__PositionSide";
 import { useForwardedRef } from "@/wab/commons/components/ReactUtil";
 import { XDraggable } from "@/wab/commons/components/XDraggable";
-import { tryParseTokenRef } from "@/wab/commons/StyleToken";
+import { useStyleCells, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
+import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
+import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
+import type { DefinedIndicatorType } from "@/wab/shared/defined-indicator";
 import { sidesAndCorners } from "@/wab/commons/ViewUtil";
 import { cx, ensure, maybe, spawn } from "@/wab/shared/common";
-import { siteFinalStyleTokensAllDeps } from "@/wab/shared/core/site-style-tokens";
 import { parseCssNumericNew } from "@/wab/shared/css";
 import { ensureUnit, isDraggableSize } from "@/wab/shared/css-size";
 import { LENGTH_PERCENTAGE_UNITS } from "@/wab/shared/css/types";
@@ -54,7 +56,6 @@ import { Tooltip } from "antd";
 import { MenuProps } from "antd/lib/menu";
 import $ from "jquery";
 import L from "lodash";
-import { observer } from "mobx-react";
 import * as React from "react";
 import {
   DismissButton,
@@ -73,7 +74,9 @@ import { useOverlayTriggerState } from "react-stately";
 interface MeasureControlProps extends StyleComponentProps {
   prop: Side;
   exp?: IRuleSetHelpers;
-  manip: DimManip;
+  manip: () => DimManip;
+  rawValue: string;
+  indicator: DefinedIndicatorType;
   menu: () => React.ReactElement<MenuProps>;
   dimOpts?: Partial<DimValueOpts>;
 }
@@ -140,18 +143,16 @@ function MeasureControl_(props: MeasureControlProps) {
       // oppSide to this side
       exp().set(oppSide(prop), "auto");
     }
-    manip.trySetUsingMeasured(existingUnit || "px");
+    manip().trySetUsingMeasured(existingUnit || "px");
   };
 
-  const sc = mkStyleComponent(props);
-  const indicator = sc.definedIndicator(prop);
-
-  const rawValue = exp().get(prop);
-  const maybeToken = tryParseTokenRef(rawValue, () =>
-    siteFinalStyleTokensAllDeps(studioCtx.site),
-  );
+  const { indicator, rawValue } = props;
+  const helper = React.useMemo(() => new VariantedStylesHelper(), []);
+  const tokenInputs = useStyleTokenRefs(studioCtx, [rawValue], helper, "allHead", (snapshot) => snapshot.rows[0]);
+  const maybeToken = tokenInputs.selected?.applied;
+  const tokenValue = tokenInputs.selected?.resolved?.value;
   const isDraggingDisabled = !isDraggableSize(
-    (maybeToken && maybeToken.value) || rawValue,
+    tokenValue || rawValue,
   );
 
   return (
@@ -209,7 +210,7 @@ function MeasureControl_(props: MeasureControlProps) {
               const newVal = `${dimVal}${unit}`;
               spawn(
                 studioCtx.changeUnsafe(() => {
-                  manip.setNum(newVal);
+                  manip().setNum(newVal);
                 }),
               );
             }}
@@ -262,7 +263,7 @@ function MeasureControl_(props: MeasureControlProps) {
               >
                 <FullRow>
                   <DimTokenSpinner
-                    value={exp().get(prop)}
+                    value={rawValue}
                     onChange={(val, type) => {
                       spawn(
                         studioCtx.changeUnsafe(() => {
@@ -302,9 +303,9 @@ function MeasureControl_(props: MeasureControlProps) {
   );
 }
 
-const MeasureControl = observer(MeasureControl_);
+const MeasureControl = MeasureControl_;
 
-export const GenericPosPushButtons = observer(
+export const GenericPosPushButtons = 
   function GenericPosPushButtons(props: {
     expsProvider: ExpsProvider;
     directions: ReadonlyArray<Side | Corner | "cover">;
@@ -354,10 +355,10 @@ export const GenericPosPushButtons = observer(
         ))}
       </div>
     );
-  },
-);
+  }
+;
 
-export const PosPushButtons = observer(function PosPushButtons(props: {
+export const PosPushButtons = function PosPushButtons(props: {
   expsProvider: ExpsProvider;
 }) {
   const { expsProvider } = props;
@@ -382,7 +383,7 @@ export const PosPushButtons = observer(function PosPushButtons(props: {
       zeroSides={zeroSides}
     />
   );
-});
+};
 
 const DIRECTION_ICONS = {
   "top-left": <Icon icon={PositionCornerIcon} />,
@@ -396,27 +397,46 @@ const DIRECTION_ICONS = {
   cover: <Icon icon={PositionCoverIcon} />,
 } as const;
 
-export const PosControls2 = observer(function PosControls2(props: {
+interface PosControlsProps {
   expsProvider: ExpsProvider;
   posProp?: string;
   exp?: IRuleSetHelpers;
   dimOpts?: Partial<DimValueOpts>;
-}) {
+}
+
+export function PosControls2(props: PosControlsProps) {
+  const studio = props.expsProvider.studioCtx;
+  const lifetime = React.useMemo(() => studio.arenaState.lifetime(), [studio, props.expsProvider]);
+  const subscribe = React.useCallback((notify: () => void) => {
+    lifetime.addEventListener("abort", notify);
+    return () => lifetime.removeEventListener("abort", notify);
+  }, [lifetime]);
+  const readActive = React.useCallback(() => !lifetime.aborted, [lifetime]);
+  const active = React.useSyncExternalStore(subscribe, readActive, readActive);
+  return active ? <PositionInputs {...props} /> : null;
+}
+
+function PositionInputs(props: PosControlsProps) {
   const { expsProvider, posProp, dimOpts } = props;
   const exp = props.exp || expsProvider.mergedExp();
+  const cells = useStyleCells(expsProvider, props.exp ? [] : standardSides);
+  const indicators = useStyleIndicators(expsProvider, standardSides);
+  const parentIndicators = useStyleIndicators(expsProvider, props.posProp ? [props.posProp] : []);
+  // The only explicit exp caller is the background panel's parsed plain bgPos.
+  // Default position values use the finite native CSS source.
+  const values = standardSides.map((side) => props.exp ? props.exp.get(side) : cells.find((cell) => cell.key === side)?.value);
+  if (values.some((value) => value === undefined) || indicators.length !== standardSides.length || props.posProp && parentIndicators.length !== 1) { return null; }
   return (
     <div className={styles.Nums}>
       {sidesAndCorners({
         side: (side) => {
-          const cssIndicatorType = expsProvider.definedIndicator(
-            posProp || side,
-          );
+          const cssIndicatorType = ensure(posProp ? parentIndicators[0] : indicators[standardSides.indexOf(side)], "Position CSS indicator");
           // We only show cssIndicatorType for the defined side.
           const indicatorType =
             !posProp || exp.has(side)
               ? cssIndicatorType
               : { source: "none" as const };
-          const manip = new DimManip(
+          const manip = () => new DimManip(
             expsProvider.studioCtx,
             expsProvider.forDom(),
             () => exp,
@@ -425,7 +445,7 @@ export const PosControls2 = observer(function PosControls2(props: {
           const sc = mkStyleComponent(props);
           const menu = () =>
             createStyleContextMenu(sc, [side], {
-              initialMenuContent: manip.renderConvertMenuItems(),
+              initialMenuContent: manip().renderConvertMenuItems(),
             });
           const indicator = (
             <div
@@ -460,6 +480,8 @@ export const PosControls2 = observer(function PosControls2(props: {
                 expsProvider={expsProvider}
                 prop={side}
                 manip={manip}
+                rawValue={ensure(values[standardSides.indexOf(side)], "Position CSS value")}
+                indicator={ensure(indicators[standardSides.indexOf(side)], "Measure CSS indicator")}
                 menu={menu}
                 dimOpts={dimOpts}
               />
@@ -476,7 +498,7 @@ export const PosControls2 = observer(function PosControls2(props: {
       })}
     </div>
   );
-});
+}
 
 let nextId = 1;
 const genPopoverId = () => {

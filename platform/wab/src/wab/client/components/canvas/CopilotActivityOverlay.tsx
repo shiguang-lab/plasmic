@@ -1,3 +1,5 @@
+import { useStudioArena, useViewEntryForFrame } from "@/wab/client/studio-ctx/arena-state";
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import styles from "@/wab/client/components/canvas/CopilotActivityOverlay.module.scss";
 import {
   clipBox,
@@ -13,7 +15,7 @@ import { createAgentCursor } from "@/wab/client/copilot/agent-cursor";
 import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { getArenaFrames, getArenaName, getFrameHeight } from "@/wab/shared/Arenas";
+import { getArenaFrames, getFrameHeight } from "@/wab/shared/Arenas";
 import { ensure } from "@/wab/shared/common";
 import { ancestorsUp, flattenTpls } from "@/wab/shared/core/tpls";
 import { Box } from "@/wab/shared/geom";
@@ -23,6 +25,8 @@ import classNames from "classnames";
 import { findLast, groupBy } from "lodash";
 import { observer } from "mobx-react";
 import React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 
 const useActivityStyles = createStyles(({ token }) => ({
   root: {
@@ -104,7 +108,7 @@ function measureRegion(
   return undefined;
 }
 
-const ActivityRegion = observer(function ActivityRegion({
+const ActivityRegion = function ActivityRegion({
   viewCtx,
   request,
   target,
@@ -119,7 +123,7 @@ const ActivityRegion = observer(function ActivityRegion({
 }) {
   const { t } = useI18n();
   const { styles: themeStyles } = useActivityStyles();
-  const zoom = viewCtx.studioCtx.zoom;
+  const zoom = useCanvasZoom(viewCtx.studioCtx);
   return (
     <div
       className={classNames(styles.region, themeStyles.root)}
@@ -136,7 +140,7 @@ const ActivityRegion = observer(function ActivityRegion({
       </div>
     </div>
   );
-});
+};
 
 export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
   studioCtx,
@@ -146,22 +150,31 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
   frame: ArenaFrame;
 }) {
   const cursorHost = React.useRef<HTMLDivElement>(null);
-  const cursor = React.useRef<ReturnType<typeof createAgentCursor>>();
+  const cursor = React.useRef<ReturnType<typeof createAgentCursor>>(undefined);
   const { t } = useI18n();
   const { styles: themeStyles } = useActivityStyles();
-  const viewCtx = studioCtx.tryGetViewCtxForFrame(frame);
+  const viewCtx = useViewEntryForFrame(studioCtx, frame)?.view;
+  const current = useStudioArena(studioCtx, (state) => state.current);
+  const arenaName = useStudioArena(studioCtx, (state) => state.name);
+  useStudioArena(studioCtx, (state) => state.frames);
+  const componentUuid = frame.container.component.uuid;
+  const frameUuid = frame.uuid;
   const matchesFrame = (target: ActivityTarget, candidate: ArenaFrame) =>
     (!target.componentUuid || target.componentUuid === candidate.container.component.uuid) &&
-    (!target.canvasName || (studioCtx.currentArena && getArenaName(studioCtx.currentArena) === target.canvasName)) &&
+    (!target.canvasName || arenaName === target.canvasName) &&
     (!target.frameUuid || target.frameUuid === candidate.uuid);
-  const matchingRegions = studioCtx.copilotActivity.regions.filter(
-    ({ target }) => matchesFrame(target, frame),
-  );
-  const cursorRequest = studioCtx.copilotActivity.cursorActivity;
-  const cursorFrame = cursorRequest && (
-    studioCtx.currentArena ? getArenaFrames(studioCtx.currentArena) : [frame]
-  ).find((candidate) => cursorRequest.targets.some((target) => matchesFrame(target, candidate)));
-  const ownsCursor = cursorFrame === frame;
+  const matchingRegions = useStore(studioCtx.copilotActivity.store, useShallow(state =>
+    state.regions.filter(({ target }) =>
+      (!target.componentUuid || target.componentUuid === componentUuid) &&
+      (!target.canvasName || arenaName === target.canvasName) &&
+      (!target.frameUuid || target.frameUuid === frameUuid))));
+  const frames = current ? getArenaFrames(studioCtx.currentArena) : [frame];
+  const cursorRequest = useStore(studioCtx.copilotActivity.cursorStore, state => {
+    const request = state.current;
+    const owner = request && frames.find(candidate => request.targets.some(target => matchesFrame(target, candidate)));
+    return owner === frame ? request : undefined;
+  });
+  const ownsCursor = !!cursorRequest;
   React.useEffect(() => {
     if (!ownsCursor || !cursorHost.current || !viewCtx) {
       return;

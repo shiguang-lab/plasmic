@@ -1,5 +1,4 @@
 import { applyCanvasSessionState, canvasSessionInstanceKey, CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
-import { computed } from "mobx";
 
 it("observes native overlay events without an implicit state and isolates editing reveals", () => {
   const session = new CanvasSessionState();
@@ -12,7 +11,10 @@ it("observes native overlay events without an implicit state and isolates editin
     props.__plasmic_selection_prop__.states = states;
     return props;
   });
-  const cached = computed(render, { keepAlive: true });
+  let result: ReturnType<typeof render> | undefined;
+  const store = session.instanceStore("tooltip[0]");
+  const stop = store.subscribe(() => { result = undefined; });
+  const cached = { get: () => result ?? (result = render()) };
   expect(cached.get().open).toBe(false);
   expect(cached.get().__plasmic_selection_prop__.getState("open").value).toBe(false);
   expect(session.get("tooltip[0]", "open")).toBe(true);
@@ -23,6 +25,7 @@ it("observes native overlay events without an implicit state and isolates editin
   expect(cached.get().open).toBe(false);
   expect(onOpenChange.mock.calls).toEqual([[true], [false]]);
   expect(render).toHaveBeenCalledTimes(3);
+  stop();
 });
 
 it.each([undefined, false, true])("overlay defaults and controlled open retain native ownership: %s", (open) => {
@@ -190,4 +193,44 @@ it("isolates render-slot clones despite shared generated implicit-state props", 
   expect(render("row-b").open).toBeUndefined();
   expect(callback.mock.calls).toEqual([[true], [false]]);
   expect(first.__plasmic_selection_prop__.sessionInstance).toBe(canvasSessionInstanceKey("column.tooltip[0]", "row-a"));
+});
+
+it("publishes shallow readonly runtime views only for changed instances and retains no-op identities", () => {
+  const session = new CanvasSessionState();
+  session.resolve("first", "selected", undefined, ["a"]);
+  session.resolve("first", "open", false);
+  session.resolve("second", "open", false);
+  const first = session.instanceStore("first"), second = session.instanceStore("second");
+  const notify = vi.fn(), other = vi.fn();
+  const stop = first.subscribe(notify), stopOther = second.subscribe(other);
+  const before = first.getState(), untouched = second.getState();
+  session.resolve("first", "selected", undefined, ["a"]);
+  session.set("first", "selected", ["a"]);
+  expect(first.getState()).toBe(before);
+  expect(notify).not.toHaveBeenCalled();
+  const selected = ["b"];
+  session.set("first", "selected", selected);
+  selected.push("uncommitted");
+  expect(first.getState().selected.value).toEqual(["b"]);
+  expect(first.getState().open).toBe(before.open);
+  expect(second.getState()).toBe(untouched);
+  expect(notify).toHaveBeenCalledTimes(1);
+  expect(other).not.toHaveBeenCalled();
+  stop(); stopOther();
+  session.dispose();
+});
+
+it("invalidates the owning render before publishing an instance snapshot and stops on disposal", () => {
+  const session = new CanvasSessionState();
+  session.resolve("instance", "open", false);
+  const order: string[] = [];
+  session.subscribeToChanges((key) => { order.push(`invalidate:${key}`); });
+  const stop = session.instanceStore("instance").subscribe(() => order.push("publish"));
+  session.set("instance", "open", true);
+  expect(order).toEqual(["invalidate:instance", "publish"]);
+  stop();
+  session.dispose();
+  order.length = 0;
+  session.set("instance", "open", false);
+  expect(order).toEqual([]);
 });

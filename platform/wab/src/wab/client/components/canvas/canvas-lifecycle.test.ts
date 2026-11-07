@@ -1,8 +1,27 @@
+import { ViewStyleInputs } from "@/wab/client/studio-ctx/style-inputs";
+import { createStore } from "zustand/vanilla";
+import { CanvasRenderOwner } from "@/wab/client/components/canvas/canvas-cache";
+import { CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
+import { CanvasRegistrations } from "@/wab/client/components/canvas/canvas-registrations";
 import { globalHookCtx } from "@/wab/client/react-global-hook/globalHook";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { ViewVariantState } from "@/wab/client/studio-ctx/view-variant-state";
+import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { ownedComputedFn } from "@/wab/shared/mobx-util";
 import { observable, onBecomeUnobserved, Reaction } from "mobx";
+
+it.each([false, true])("returns no rendered values after disposal, evaluator released: %s", (released) => {
+  const read = vi.fn(() => { throw new Error("Disposed evaluator was read"); });
+  const view: ViewCtx = Object.assign(Object.create(ViewCtx.prototype), {
+    _isDisposed: true,
+    csEvaluator: released ? null : { valState: read },
+  });
+  expect(view.maybeTpl2ValsInContext(mkTplTagX("div"))).toEqual([]);
+  expect(read).not.toHaveBeenCalled();
+});
 
 it.each([false, true])("unmounts once and releases frame-owned resources even when unmount fails: %s", (fails) => {
   const unmount = vi.fn(() => { if (fails) { throw new Error("unmount failed"); } });
@@ -14,10 +33,11 @@ it.each([false, true])("unmounts once and releases frame-owned resources even wh
   read(sub);
   read(sub.React);
   const frame = globalHookCtx.createFrameState({ uid: 400, objectPrototype: {} });
-  const resize = vi.fn(), mutation = vi.fn(), bridge = vi.fn(), packages = vi.fn(), listener = vi.fn();
+  const resize = vi.fn(), mutation = vi.fn(), frameInputs = vi.fn(), packages = vi.fn(), listener = vi.fn();
   const canvas: CanvasCtx = Object.assign(Object.create(CanvasCtx.prototype), {
-    Sub: sub, _frameState: frame, _name: "Fixture", _resizeObserver: { disconnect: resize },
-    _mutationObserver: { disconnect: mutation }, bridgeDispose: bridge, usedPkgsDispose: packages, disposals: [listener],
+    Sub: sub, _frameState: frame, _name: "Fixture", bodySizeCleanup: resize,
+    pendingBodyWaits: new Set([mutation]), frameInfoOwner: { dispose: frameInputs }, usedPackages: { dispose: packages },
+    registrations: new CanvasRegistrations(), disposals: [listener],
   });
   const log = vi.spyOn(console, "error").mockImplementation(() => {});
   try {
@@ -27,7 +47,7 @@ it.each([false, true])("unmounts once and releases frame-owned resources even wh
     expect(unmount).toHaveBeenCalledExactlyOnceWith(null);
     expect(unobserved).toHaveBeenCalledTimes(1);
     expect(globalHookCtx.frames.has(400)).toBe(false);
-    for (const cleanup of [resize, mutation, bridge, packages, listener]) {
+    for (const cleanup of [resize, mutation, frameInputs, packages, listener]) {
       expect(cleanup).toHaveBeenCalledTimes(1);
     }
     expect(log).toHaveBeenCalledTimes(fails ? 1 : 0);
@@ -43,8 +63,19 @@ it("marks a view disposed before reentrant cleanup and keeps its render-state ha
   const reaction = new Reaction("fixture", () => {});
   const states: boolean[] = [];
   const uncommittedCanvasObservers = new Map();
+  const session = new CanvasSessionState();
+  const renderOwner = new CanvasRenderOwner(session);
+  const models = new ModelSnapshots(), selection = new ViewSelection(() => models);
+  const variants = new ViewVariantState(() => models,
+    () => { throw new Error("Disposal must not read an uninitialized artboard"); },
+    () => { throw new Error("Disposal must not read an uninitialized site"); }, () => false, () => false);
+  const viewLifetimeController = new AbortController();
   const view: ViewCtx = Object.assign(Object.create(ViewCtx.prototype), {
-    frameState: frame, contentEditor: { exit: vi.fn() },
+    viewLifetimeController,
+    readySubscriptions: new Set<() => void>(),
+    styleInputs: new ViewStyleInputs(() => models, viewLifetimeController.signal),
+    textDataRequestsStore: createStore<ReturnType<ViewCtx["textDataRequestsStore"]["getState"]>>(() => Object.freeze({ editing: null, creating: null })),
+    variants, selection, canvasSessionState: session, canvasRenderOwner: renderOwner, contextDataSetters: new Map(), frameState: frame, contentEditor: { dispose: vi.fn() },
     canvasCtx: { dispose: canvas }, csEvaluator: { dispose: evaluator },
     canvasObservers: new Set(), uncommittedCanvasObservers, canvasErrorObservers: new Set(), disposals: [],
   });
@@ -68,6 +99,7 @@ it("marks a view disposed before reentrant cleanup and keeps its render-state ha
   expect(view.canvasObservers.size).toBe(0);
   expect(uncommittedCanvasObservers.size).toBe(0);
   expect(view.renderState).toBe(frame.renderState);
+  models.dispose();
   expect(view.renderState.fullKey2val("gone")).toBeUndefined();
   frame.dispose();
 });

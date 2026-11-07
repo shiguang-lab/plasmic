@@ -1,0 +1,78 @@
+{
+  "milestone": "u37n",
+  "uniqueChangedFiles": 95,
+  "status": "scoped native accepted; affected Studio suites failed on two stale lifecycle fixtures; not full green",
+  "identity": {
+    "sourceHash": "ff6309432e6809f4370af16dccb272752446ef1c68382bc6be5aaeddd48b9009",
+    "rendererHash": "8a163a50a089c759df98bbf7c512e2166b55d9711c4fec7af133b7c70445fe52",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 105019222,
+    "studioArtifactHash": "cd27523366e32411adc02927defc1dfcfa5c901840e6ee61274dcc41b7bd0119",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "types": {
+    "exitCode": 0,
+    "log": "/tmp/plasmic-react19-20261105/u37n-frozen-types.log",
+    "firstRun": "failed diagnostics recorded in tool output; original log replaced by second run"
+  },
+  "buildAssetsArchive": {
+    "exitCode": 0,
+    "log": "/tmp/plasmic-react19-20261105/u37n-build-pipeline-2.log"
+  },
+  "native": {
+    "gp": {
+      "cases": 5,
+      "reopen": true,
+      "viewportChecks": 7,
+      "draftChecks": 3,
+      "docsModes": 2,
+      "dependencyModelsEach": 50,
+      "typeScriptDiagnostics": 0
+    },
+    "complex": {
+      "cases": 6,
+      "reopen": true,
+      "viewportChecks": 7
+    },
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "sourceUnchangedAfterReplay": true,
+    "log": "/tmp/plasmic-react19-20261105/u37n-native-pipeline-2.log",
+    "firstAttempt": "harness missing PERF_OPEN_NATIVE=empty for draft; failed before functional stage; corrected flag rerun, no source changes"
+  },
+  "affectedStudio": {
+    "files": 36,
+    "filesPassed": 34,
+    "filesFailed": 2,
+    "tests": 253,
+    "passed": 233,
+    "failed": 20,
+    "unhandled": 3,
+    "seconds": 121.37,
+    "log": "/tmp/plasmic-react19-20261105/u37n-affected-tests.log",
+    "failedSuites": [
+      "progressive-canvas.test.ts: missing fake ViewCtx contentEditor.exit",
+      "PreviewCtx.test.ts: fake Studio missing prepareContentEditorOwnership"
+    ],
+    "followup": "repair actual lifecycle fixtures in live next batch; preserve original frozen failure result"
+  },
+  "fullStudio": "not rerun; last full result is u36m, 13 failed suites; full run reserved for major integration/final milestone",
+  "compilerScope": "enabled React19 annotation mode, actual 10 files"
+}

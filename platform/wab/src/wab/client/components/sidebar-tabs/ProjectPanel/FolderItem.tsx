@@ -9,7 +9,6 @@ import {
   PlasmicFolderItem,
 } from "@/wab/client/plasmic/plasmic_kit_project_panel/PlasmicFolderItem";
 import cn from "classnames";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { CSSProperties, ReactNode, useRef } from "react";
 
@@ -30,8 +29,7 @@ interface FolderItemProps
   renamingDisabled?: boolean;
 }
 
-const FolderItem = observer(
-  React.forwardRef(function FolderItem(
+const FolderItem = React.forwardRef(function FolderItem(
     {
       name,
       cleanName,
@@ -95,7 +93,6 @@ const FolderItem = observer(
         </EditableLabel>
       </PlasmicFolderItem>
     );
-  }),
-);
+  });
 
 export default FolderItem;

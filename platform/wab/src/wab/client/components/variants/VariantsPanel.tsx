@@ -1,3 +1,4 @@
+import { useVariantsControllerInputs } from "@/wab/client/studio-ctx/variant-state";
 import {
   StyleOrCodeComponentVariantLabel,
   VariantLabel,
@@ -94,7 +95,7 @@ import sortBy from "lodash/sortBy";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
-import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
+import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import { useSessionStorage } from "react-use";
 
 interface VariantsPanelProps {
@@ -131,6 +132,7 @@ export const VariantsPanel = observer(
       true,
     );
 
+    useVariantsControllerInputs(studioCtx, viewCtx);
     const vcontroller = makeVariantsController(studioCtx, viewCtx);
 
     React.useImperativeHandle(ref, () => ({
@@ -263,7 +265,7 @@ export const VariantsPanel = observer(
 
     const maybeReorderableVariants = (
       group: VariantGroup,
-      children: React.ReactElement[],
+      children: React.ReactElement<{ isDraggable?: boolean }>[],
     ) => {
       if (group.variants.length > 1) {
         return (

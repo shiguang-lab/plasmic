@@ -1,10 +1,11 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-CK330rTr.cjs.js');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-Dk7zLz_N.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -37,7 +38,7 @@ function AntdDrawer(props) {
       return void 0;
     }
   }, [onOpenChange, onClose]);
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant.Drawer,
     {
       ...rest,

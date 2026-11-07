@@ -14,20 +14,22 @@ import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { Switch, switchCase, switchDefault } from "@/wab/client/route/Switch";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useState } from "react";
+import { useStore } from "zustand";
 
 interface DocsPortalProps {
   hostFrameCtx: HostFrameCtx;
   studioCtx: StudioCtx;
 }
 
-const DocsPortal = observer(function DocsPortal(props: DocsPortalProps) {
+function DocsPortal(props: DocsPortalProps) {
   const { studioCtx } = props;
   const { styles } = useDocsLayoutStyles();
   const history = useHistory();
   const [docsCtx] = useState(() => new DocsPortalCtx(studioCtx));
+  const projectName = useStore(studioCtx.projectMetadataStore, (state) => state.name);
+  React.useEffect(() => docsCtx.retainModelResources(), [docsCtx]);
 
   React.useEffect(() => {
     studioCtx.isDocs = true;
@@ -51,7 +53,8 @@ const DocsPortal = observer(function DocsPortal(props: DocsPortalProps) {
     };
   }, [docsCtx]);
 
-  const codegenType = docsCtx.getCodegenType();
+  const codegenType = useStore(docsCtx.store, (state) => state.codegenType);
+  const tab = useStore(docsCtx.store, (state) => state.tab);
 
   return providesDocsPortalCtx(docsCtx)(
     <CodegenTypeContext.Provider
@@ -69,8 +72,8 @@ const DocsPortal = observer(function DocsPortal(props: DocsPortalProps) {
             render: () => (
               <BottomModalsProvider>
                 <PlasmicDocsPortal
-                  activeTab={docsCtx.docsTabKey}
-                  docsPortalHeader={{ projectName: studioCtx.siteInfo.name }}
+                  activeTab={tab}
+                  docsPortalHeader={{ projectName }}
                   root={{
                     className: styles.root,
                     style: {
@@ -89,6 +92,6 @@ const DocsPortal = observer(function DocsPortal(props: DocsPortalProps) {
       />
     </CodegenTypeContext.Provider>,
   );
-});
+}
 
 export default DocsPortal;

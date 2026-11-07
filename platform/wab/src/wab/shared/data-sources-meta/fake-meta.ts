@@ -7,7 +7,6 @@ import {
   MAKE_DEFAULT_STANDARD_QUERIES,
   TableArgMeta,
 } from "@/wab/shared/data-sources-meta/data-sources";
-import { QueryBuilderPostgresConfig } from "@/wab/shared/data-sources-meta/postgres-meta";
 import { capitalizeFirst } from "@/wab/shared/strs";
 import { DataSourceSchema, TableFieldType } from "@plasmicapp/data-sources";
 import { cloneDeep } from "lodash";
@@ -307,5 +306,3 @@ export const FAKE_META: DataSourceMeta = {
     update: MAKE_DEFAULT_STANDARD_QUERIES.update("updateMany"),
   },
 };
-
-export const QueryBuilderFakeConfig = QueryBuilderPostgresConfig;

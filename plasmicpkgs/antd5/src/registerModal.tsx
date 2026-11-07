@@ -54,7 +54,7 @@ export function AntdModal(
   }, [onOpenChange, onOk]);
   const memoOnCancel = React.useMemo(() => {
     if (onOpenChange || onCancel) {
-      return (e: React.MouseEvent<HTMLButtonElement>) => {
+      return (e: Parameters<NonNullable<React.ComponentProps<typeof Modal>["onCancel"]>>[0]) => {
         onOpenChange?.(false);
         onCancel?.(e);
       };

@@ -48,19 +48,19 @@ export function BaseSliderThumb({
   const isStandalone = !React.useContext(SliderTrackContext);
   const thumb = (
     <SliderThumb {...rest} style={COMMON_STYLES}>
-      {({ isDragging, isHovered, isFocused, isFocusVisible, isDisabled }) => (
+      {(renderProps) => (
         <>
           <VariantUpdater
             changes={{
-              dragging: isDragging,
-              hovered: isHovered,
-              focused: isFocused,
-              focusVisible: isFocusVisible,
-              disabled: isDisabled,
+              dragging: renderProps.isDragging,
+              hovered: renderProps.isHovered,
+              focused: renderProps.isFocused,
+              focusVisible: renderProps.isFocusVisible,
+              disabled: renderProps.isDisabled,
             }}
             updateVariant={plasmicUpdateVariant}
           />
-          {advanced ? children : undefined}
+          {advanced ? (typeof children === "function" ? children(renderProps) : children) : undefined}
         </>
       )}
     </SliderThumb>

@@ -1,3 +1,4 @@
+import { subscribeStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import {
   MaybeCollapsibleRowsRenderer,
   SidebarSection,
@@ -46,6 +47,11 @@ import React from "react";
 
 export const PositioningPanelSection = observer(
   class extends StyleComponent {
+    private stopSelection?: () => void;
+    componentDidMount() {
+      this.stopSelection = subscribeStudioSelection(this.studioCtx(), (state) => state.view, () => this.forceUpdate());
+    }
+    componentWillUnmount() { this.stopSelection?.(); }
     render() {
       if (!this.props.expsProvider.showPositioningPanel()) {
         return (
@@ -340,7 +346,7 @@ const AutoChildSettings = observer(function AutoChildSettings(props: {
   );
 });
 
-const FreeChildSettings = observer(function FreeChildSettings({
+const FreeChildSettings = function FreeChildSettings({
   expsProvider,
   renderMaybeCollapsibleRows,
 }: {
@@ -384,9 +390,9 @@ const FreeChildSettings = observer(function FreeChildSettings({
       ])}
     </>
   );
-});
+};
 
-const FixedChildSettings = observer(function FixedChildSettings({
+const FixedChildSettings = function FixedChildSettings({
   expsProvider,
   renderMaybeCollapsibleRows,
 }: {
@@ -436,7 +442,7 @@ const FixedChildSettings = observer(function FixedChildSettings({
       ])}
     </>
   );
-});
+};
 
 const GridChildSettings = observer(function GridChildSettings(props: {
   expsProvider: ExpsProvider;

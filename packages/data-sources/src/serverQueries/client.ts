@@ -1,5 +1,4 @@
 import {
-  SWRResponse,
   useMutablePlasmicQueryData,
   usePlasmicDataConfig,
   wrapLoadingFetcher,
@@ -164,7 +163,7 @@ export function usePlasmicQueries(
 
   // Core loop that starts queries outside SWR and checks caches.
   // Stop when a new render starts or the component unmounts.
-  const stopRef = React.useRef<() => void>();
+  const stopRef = React.useRef<() => void>(undefined);
   stopRef.current?.();
   let stopped = false;
   const stop = new Promise<void>((resolve) => {
@@ -262,7 +261,7 @@ function initPlasmicQueriesSync(
   paramsResults: Record<string, ResolveParamsResult>,
   executionCtx: QueryExecutionContext,
   prefetchedCache: { [k: string]: unknown },
-  clientCache: { get: (k: string) => unknown }
+  clientCache: ReturnType<typeof usePlasmicDataConfig>["cache"]
 ): void {
   // Since we don't know the exact order of the dependency graph of queries,
   // we continuously iterate over the queries if any queries were cached from
@@ -305,9 +304,14 @@ function initPlasmicQueriesSync(
         }
 
         // Try SWR cache
-        const clientCacheData = clientCache.get(cacheKey);
-        if (clientCacheData !== undefined) {
-          $query.resolvePromise(cacheKey, clientCacheData);
+        const clientCacheState = clientCache.get(cacheKey);
+        if (clientCacheState?.error !== undefined) {
+          $query.rejectPromise(cacheKey, clientCacheState.error);
+          anySettled = true;
+          return;
+        }
+        if (clientCacheState?.data !== undefined) {
+          $query.resolvePromise(cacheKey, clientCacheState.data);
           anySettled = true;
           return;
         }
@@ -340,7 +344,7 @@ function usePlasmicQuery<T, F extends (...args: unknown[]) => Promise<T>>(
   $query: PlasmicQueryResult<T>,
   query: PlasmicQuery<F>,
   paramsResult: ResolveParamsResult<Parameters<F>>
-): SWRResponse<T, unknown> {
+): ReturnType<typeof useMutablePlasmicQueryData<T, unknown>> {
   const $queryState = $query as StatefulQueryResult<T>;
 
   const { key, fetcher } = React.useMemo((): {

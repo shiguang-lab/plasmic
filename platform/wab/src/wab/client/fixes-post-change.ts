@@ -38,6 +38,7 @@ import {
   isTplTag,
   isTplTagOrComponent,
   isTplVariantable,
+  trackComponentRoot,
   tryGetOwnerSite,
 } from "@/wab/shared/core/tpls";
 import { isTagListContainer } from "@/wab/shared/html";
@@ -48,6 +49,7 @@ import {
   TplComponent,
   TplNode,
   TplSlot,
+  isKnownComponent,
   isKnownSlotParam,
   isKnownTplComponent,
   isKnownTplSlot,
@@ -70,6 +72,12 @@ export function fixupForChanges(
   studioCtx: StudioCtx,
   changes: RecordedChanges,
 ) {
+  // Root replacement must update ownership before fixups or deferred CSS reads.
+  for (const { changeNode } of changes.changes) {
+    if (changeNode.field === "tplTree" && isKnownComponent(changeNode.inst)) {
+      trackComponentRoot(changeNode.inst);
+    }
+  }
   let summary = summarizeChanges(studioCtx, changes);
 
   const applyFix = (f: () => void) => {

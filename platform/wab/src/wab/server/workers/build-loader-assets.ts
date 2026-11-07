@@ -18,7 +18,7 @@ export async function workerBuildAssets(
   codegenOutputs: CachedCodegenOutputBundle[],
   componentDeps: Record<string, string[]>,
   componentRefs: ComponentReference[],
-  platform: "react" | "nextjs" | "gatsby" | "tanstack",
+  platform: "react" | "nextjs" | "tanstack",
   opts: {
     mode: "production" | "development";
     loaderVersion: number;

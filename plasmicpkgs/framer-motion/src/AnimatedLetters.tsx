@@ -2,7 +2,7 @@ import registerComponent, {
   CodeComponentMeta,
 } from "@plasmicapp/host/registerComponent";
 import { motion, Variants } from "framer-motion";
-import React from "react";
+
 
 export interface AnimatedLettersProps {
   className?: string;

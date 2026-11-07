@@ -12,12 +12,6 @@ interface LoadingBoundaryProps {
   forceLoading?: boolean;
 }
 
-const reactMajorVersion = +React.version.split(".")[0];
-
-if (reactMajorVersion < 18) {
-  console.warn("The LoadingBoundary component only works with React 18+");
-}
-
 const enableLoadingBoundaryKey = "plasmicInternalEnableLoadingBoundary";
 const hasLoadingBoundaryKey = "plasmicInternalHasLoadingBoundary";
 
@@ -35,7 +29,7 @@ function warnDisabledLoadingBoundary() {
   if (!hasWarnedDisabledLoadingBoundary) {
     hasWarnedDisabledLoadingBoundary = true;
     console.warn(
-      `LoadingBoundary feature is not enabled. To use the LoadingBoundary component make sure to upgrade your @plasmicapp/* dependencies to the latest version and to wrap you App inside <PlasmicRootProvider />`
+      `LoadingBoundary feature is not enabled. To use the LoadingBoundary component make sure to upgrade your @plasmicapp/* dependencies to the latest version and to wrap you App inside <PlasmicRootProvider />`,
     );
   }
 }
@@ -46,14 +40,11 @@ export function LoadingBoundary({
   loadingState,
 }: LoadingBoundaryProps) {
   const isClient = useIsClient();
+  const isPrepass = plasmicQuery.usePlasmicPrepass();
   const enableLoadingBoundary = !!useDataEnv()?.[enableLoadingBoundaryKey];
 
-  if ((!isClient && !plasmicQuery.isPlasmicPrepass?.()) || forceLoading) {
+  if ((!isClient && !isPrepass) || forceLoading) {
     return <>{loadingState ?? null}</>;
-  }
-
-  if (reactMajorVersion < 18) {
-    return <>{children ?? null}</>;
   }
 
   if (!enableLoadingBoundary) {
@@ -100,17 +91,17 @@ export const loadingBoundaryMeta: CodeComponentMeta<LoadingBoundaryProps> = {
 
 export function registerLoadingBoundary(
   loader?: { registerComponent: typeof registerComponent },
-  customLoadingBoundaryMeta?: CodeComponentMeta<LoadingBoundaryProps>
+  customLoadingBoundaryMeta?: CodeComponentMeta<LoadingBoundaryProps>,
 ) {
   if (loader) {
     loader.registerComponent(
       LoadingBoundary,
-      customLoadingBoundaryMeta ?? loadingBoundaryMeta
+      customLoadingBoundaryMeta ?? loadingBoundaryMeta,
     );
   } else {
     registerComponent(
       LoadingBoundary,
-      customLoadingBoundaryMeta ?? loadingBoundaryMeta
+      customLoadingBoundaryMeta ?? loadingBoundaryMeta,
     );
   }
 }

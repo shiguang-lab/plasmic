@@ -482,8 +482,8 @@ export function wrapFragmentInDiv(
   node: React.ReactNode,
   className?: string
 ): React.ReactNode {
-  if (React.isValidElement(node) && node.type === React.Fragment) {
-    const props: { [key: string]: string | undefined | null } = {
+  if (React.isValidElement<React.HTMLAttributes<HTMLDivElement>>(node) && node.type === React.Fragment) {
+    const props: React.HTMLAttributes<HTMLDivElement> & React.Attributes = {
       ...omit(node.props, ["children"]),
       key: node.key,
     };

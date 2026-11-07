@@ -4,6 +4,8 @@ import { ColorSwatch } from "@/wab/client/components/style-controls/ColorSwatch"
 import { UnloggedDragCatcher } from "@/wab/client/components/style-controls/UnloggedDragCatcher";
 import Button from "@/wab/client/components/widgets/Button";
 import "@/wab/client/components/widgets/ColorPicker/Pickr.overrides.scss";
+import { useColorTokenChoiceInputs, type ColorTokenChoice } from "@/wab/client/studio-ctx/color-token-choice-inputs";
+import { useClientTokenValues } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import {
   ColorMode,
@@ -32,7 +34,7 @@ import {
 } from "@/wab/commons/StyleToken";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
-import { ensure } from "@/wab/shared/common";
+import { ensure, spawn } from "@/wab/shared/common";
 import {
   TokenValueResolver,
   siteFinalColorTokens,
@@ -126,6 +128,9 @@ function ColorPicker_({
   const [editToken, setEditToken] = React.useState<
     MutableToken<StyleToken> | OverrideableToken<StyleToken> | undefined
   >(undefined);
+
+  const palette = useColorTokenChoiceInputs(sc, hideTokenPicker ? [] : colorTokens.filter((token) => token !== appliedToken), vsh);
+  const paletteColors = useClientTokenValues(palette.snapshot.choices.map((row) => row.resolved), palette.lifetime);
 
   if (maybeRealColor === undefined) {
     console.log(`Invalid token - hopefully caused by undo`, color);
@@ -433,6 +438,40 @@ function ColorPicker_({
   const isEditable =
     appliedToken && isStyleTokenEditable(appliedToken, vsh, uiConfig);
 
+  const selectPaletteToken = async (row: ColorTokenChoice) => {
+    const token = palette.command(row);
+    if (!token) { return; }
+
+              if (derefToken) {
+                onChange(
+                  derefTokenRefs(
+                    siteFinalStyleTokensAllDeps(sc.site),
+                    vsh.getActiveTokenValue(token),
+                    vsh,
+                  ),
+                );
+              } else if (appliedToken && editToken) {
+                const value = mkTokenRef(token.base);
+                if (newTokenValueAllowed(appliedToken, sc.site, value, vsh)) {
+                  await sc.changeUnsafe(() => {
+                    const current = palette.command(row);
+                    if (current && isStyleTokenEditable(appliedToken, vsh, sc.getCurrentUiConfig()) && siteFinalStyleTokensAllDeps(sc.site).some((candidate) => candidate.base === appliedToken.base)) {
+                      vsh.updateToken(appliedToken, mkTokenRef(current.base));
+                    }
+                  });
+                }
+              } else {
+                onChange(mkTokenRef(token.base));
+              }
+              };
+  // Closures capture this committed render's original callbacks and source.
+  // No shared handler ref is changed by speculative renders.
+  const paletteRows = palette.snapshot.active ? palette.snapshot.choices.map((row, index) => ({
+    id: row.id, name: row.name, color: ensure(paletteColors[index], "Native palette color must exist"),
+    selected: palette.command(row) === appliedToken,
+    onSelect: () => spawn(selectPaletteToken(row)),
+  })) : [];
+
   return (
     <div>
       {!appliedToken && (
@@ -541,32 +580,12 @@ function ColorPicker_({
               </MaybeWrap>
             </div>
           )}
-          <ColorTokenSelector
-            tokens={colorTokens.filter((token) => token !== appliedToken)}
-            onSelect={async (token) => {
-              if (derefToken) {
-                onChange(
-                  derefTokenRefs(
-                    siteFinalStyleTokensAllDeps(sc.site),
-                    vsh.getActiveTokenValue(token),
-                    vsh,
-                  ),
-                );
-              } else if (appliedToken && editToken) {
-                const value = mkTokenRef(token.base);
-                if (newTokenValueAllowed(appliedToken, sc.site, value, vsh)) {
-                  await sc.changeUnsafe(() =>
-                    vsh.updateToken(appliedToken, mkTokenRef(token.base)),
-                  );
-                }
-              } else {
-                onChange(mkTokenRef(token.base));
-              }
-            }}
-            selectedToken={appliedToken}
+          {palette.snapshot.active && <ColorTokenSelector
+            rows={paletteRows}
             hideAddToken={!canCreateToken}
             onAddToken={async () => {
               return sc.changeUnsafe(() => {
+                if (!palette.isActive() || !canCreateAlias(sc.getCurrentUiConfig(), "token")) { return; }
                 const newToken = sc.tplMgr().addStyleToken({
                   tokenType: "Color",
                   value: realColor,
@@ -576,11 +595,9 @@ function ColorPicker_({
                 setEditToken(new MutableToken(newToken));
               });
             }}
-            resolver={resolver}
             autoFocusSearch={!!appliedToken}
             maxRows={appliedToken ? 5 : 3}
-            vsh={vsh}
-          />
+          />}
         </div>
       )}
       {editToken && (

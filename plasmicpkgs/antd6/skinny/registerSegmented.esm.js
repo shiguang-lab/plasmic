@@ -1,13 +1,14 @@
+import { jsx } from 'react/jsx-runtime';
 import { Segmented } from 'antd';
-import React from 'react';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import 'react';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 const segmentedComponentName = "plasmic-antd6-segmented";
 function AntdSegmented(props) {
-  return /* @__PURE__ */ React.createElement(Segmented, { ...props });
+  return /* @__PURE__ */ jsx(Segmented, { ...props });
 }
 function registerSegmented(loader) {
   registerComponentHelper(loader, AntdSegmented, {

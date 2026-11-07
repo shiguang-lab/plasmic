@@ -1,3 +1,6 @@
+import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
+import { useVariantsControllerInputs } from "@/wab/client/studio-ctx/variant-state";
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import ExperimentCanvasButton from "@/wab/client/components/splits/ExperimentCanvasButton";
@@ -23,8 +26,7 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import {
   ensureCustomFrameForActivatedVariants,
-  getFrameHeight,
-} from "@/wab/shared/Arenas";
+  } from "@/wab/shared/Arenas";
 import {
   COMBINATIONS_CAP,
   FRAME_LOWER,
@@ -40,7 +42,7 @@ import {
   isStandaloneVariantGroup,
 } from "@/wab/shared/Variants";
 import { isTplRootWithCodeComponentVariants } from "@/wab/shared/code-components/variants";
-import { maybe, spawn } from "@/wab/shared/common";
+import { spawn } from "@/wab/shared/common";
 import { getComponentArenaRowLabel } from "@/wab/shared/component-arenas";
 import {
   allComponentVariants,
@@ -74,6 +76,7 @@ export const ComponentArenaLayout = observer(
   }) {
     const { t: uiT } = useI18n();
     const { studioCtx, arena, onFrameLoad } = props;
+  const viewportZoom = useCanvasZoom(studioCtx);
     const component = arena.component;
 
     const componentVariants = allComponentVariants(component);
@@ -85,9 +88,7 @@ export const ComponentArenaLayout = observer(
 
     const allowCombos =
       componentVariants.length + globalVariantGroups.length > 2;
-    const framesHeight = maybe(arena.matrix.rows[0]?.cols[0]?.frame, (frame) =>
-      getFrameHeight(frame),
-    );
+    const framesHeight = useFrameHeight(studioCtx, arena.matrix.rows[0]?.cols[0]?.frame);
     const framesWidth = arena.matrix.rows[0]?.cols[0]?.frame.width;
 
     const groupToSuperComp =
@@ -170,6 +171,7 @@ export const ComponentArenaLayout = observer(
       (it) => isKnownVariantGroup(it.rowKey) && isScreenVariantGroup(it.rowKey),
     );
 
+    useVariantsControllerInputs(studioCtx);
     const vController = makeVariantsController(studioCtx);
     const tplRoot = component.tplTree;
     return (
@@ -384,7 +386,7 @@ export const ComponentArenaLayout = observer(
             <div className="overflow-hidden">
               <hr
                 className={sty.customGridDivider}
-                style={{ transform: `scale(${1 / studioCtx.zoom})` }}
+                style={{ transform: `scale(${1 / viewportZoom})` }}
               />
             </div>
             <GridFramesLayout
@@ -413,9 +415,7 @@ export const VariantComboGhostFrame = observer(
     const { studioCtx, arena } = props;
     const [visible, setVisible] = React.useState(false);
 
-    const framesHeight = maybe(arena.matrix.rows[0]?.cols[0]?.frame, (frame) =>
-      getFrameHeight(frame),
-    );
+    const framesHeight = useFrameHeight(studioCtx, arena.matrix.rows[0]?.cols[0]?.frame);
     const framesWidth = arena.matrix.rows[0]?.cols[0]?.frame.width;
 
     return (

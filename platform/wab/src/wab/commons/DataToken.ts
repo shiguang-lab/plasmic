@@ -6,12 +6,8 @@ import { ensure, mkShortId } from "@/wab/shared/common";
 import { isFrameComponent } from "@/wab/shared/core/components";
 import { customCode, stripParens } from "@/wab/shared/core/exprs";
 import { walkDependencyTree } from "@/wab/shared/core/project-deps";
-import {
-  finalDataTokensForDep,
-  siteFinalDataTokens,
-} from "@/wab/shared/core/site-data-tokens";
 import { GeneralUsageSummary } from "@/wab/shared/core/sites";
-import { FinalToken, MutableToken } from "@/wab/shared/core/tokens";
+import { FinalToken, MutableToken, toFinalToken } from "@/wab/shared/core/tokens";
 import { tryEvalExpr } from "@/wab/shared/eval";
 import { makeDataTokenIdentifier } from "@/wab/shared/eval/expression-parser";
 import { DataToken, Site } from "@/wab/shared/model/classes";
@@ -151,7 +147,7 @@ export function isDataTokenEditable(
  * Computes a single data token value from its token definition.
  */
 export function computeDataTokenValue(
-  token: FinalToken<DataToken> | DataToken,
+  token: Readonly<Pick<DataToken, "value">>,
   evalEnv?: Record<string, any>,
 ): any {
   const tokenType = getDataTokenType(token.value);
@@ -180,76 +176,81 @@ export function computeDataTokenValue(
  *   $dataTokens_1T8AH_token1: value1,
  * }
  */
-type EvaluatedDataTokens =
+export type EvaluatedDataTokens =
   | { $dataTokens: Record<string, any>; pickerEnv: Record<string, any> }
   | undefined;
 
-export function computeDataTokens(
-  site: Site,
-  siteId: ProjectId,
+export interface DataTokenDefinition {
+  readonly uuid: string;
+  readonly name: string;
+  readonly value: string;
+}
+export interface DataTokenProjectDefinition {
+  readonly projectId: ProjectId;
+  /** undefined is the local picker namespace; null excludes a transitive dep. */
+  readonly pickerName: string | null | undefined;
+  readonly tokens: readonly DataTokenDefinition[];
+}
+export type DataTokenDefinitions = readonly DataTokenProjectDefinition[];
+
+/** Committed source text and names only. Evaluation payloads belong to each caller. */
+export function captureDataTokenDefinitions(site: Site, siteId: ProjectId): DataTokenDefinitions {
+  const capture = (tokens: readonly DataToken[]) => Object.freeze(tokens.map((base) => {
+    const token = toFinalToken(base, site);
+    return Object.freeze({ uuid: token.uuid, name: token.name, value: token.value });
+  }));
+  const directDepIds = new Set(site.projectDependencies.map((dep) => dep.projectId));
+  const projects: DataTokenProjectDefinition[] = [];
+  const localTokens = capture(site.dataTokens);
+  if (localTokens.length) { projects.push(Object.freeze({ projectId: siteId, pickerName: undefined, tokens: localTokens })); }
+  for (const dep of walkDependencyTree(site, "all")) {
+    const tokens = capture(dep.site.dataTokens);
+    if (!tokens.length) { continue; }
+    projects.push(Object.freeze({
+      projectId: dep.projectId as ProjectId,
+      pickerName: directDepIds.has(dep.projectId) ? dep.name : null,
+      tokens,
+    }));
+  }
+  return Object.freeze(projects);
+}
+
+/** Keep flat evaluation and picker evaluation separate, including within one
+ * component: code tokens can return independent mutable objects or handles. */
+export function evaluateDataTokenDefinitions(
+  definitions: DataTokenDefinitions,
   evalEnv?: Record<string, any>,
 ): EvaluatedDataTokens {
+  if (!definitions.some((project) => project.tokens.length)) { return undefined; }
   const $dataTokens: Record<string, any> = {};
   const pickerEnv: Record<string, any> = {};
-  const localShortId = makeShortProjectId(siteId);
-
-  const computeProjectTokensForEval = (
-    tokens: readonly FinalToken<DataToken>[],
-    shortId: string,
-  ) => {
-    for (const token of tokens) {
-      const tokenVarName = toVarName(token.name);
-      const value = computeDataTokenValue(token, evalEnv);
-      const tokenIdentifier = makeDataTokenIdentifier(shortId, tokenVarName);
-      $dataTokens[tokenIdentifier] = value;
-      $dataTokens[mkMetaName(tokenIdentifier)] = { hidden: true };
+  for (const project of definitions) {
+    if (!project.tokens.length) { continue; }
+    const shortId = makeShortProjectId(project.projectId);
+    for (const token of project.tokens) {
+      const identifier = makeDataTokenIdentifier(shortId, toVarName(token.name));
+      $dataTokens[identifier] = computeDataTokenValue(token, evalEnv);
+      $dataTokens[mkMetaName(identifier)] = { hidden: true };
     }
-  };
-
-  const computeProjectTokensForPicker = (
-    tokens: readonly FinalToken<DataToken>[],
-    envObj: Record<string, any>,
-  ) => {
-    for (const token of tokens) {
-      const tokenVarName = toVarName(token.name);
-      const value = computeDataTokenValue(token, evalEnv);
-      // Nested token structure for DataPicker eval/code completion
-      envObj[mkMetaName(tokenVarName)] = { label: token.name };
-      envObj[tokenVarName] = value;
-    }
-  };
-
-  const localTokens = siteFinalDataTokens(site);
-  computeProjectTokensForEval(localTokens, localShortId);
-  computeProjectTokensForPicker(localTokens, pickerEnv);
-
-  const directDepIds = new Set(
-    site.projectDependencies.map((dep) => dep.projectId),
-  );
-
-  // Walk all dependencies (including transitive) for canvas evaluation
-  let hasDependencyTokens = false;
-  for (const dep of walkDependencyTree(site, "all")) {
-    const depTokens = finalDataTokensForDep(site, dep.site);
-    if (depTokens.length) {
-      hasDependencyTokens = true;
-      const depShortId = makeShortProjectId(dep.projectId as ProjectId);
-      computeProjectTokensForEval(depTokens, depShortId);
-
-      // Only show direct dependencies in the data picker UI
-      if (directDepIds.has(dep.projectId)) {
-        const depVarName = toVarName(dep.name);
-        pickerEnv[mkMetaName(depVarName)] = { label: dep.name };
-        pickerEnv[depVarName] = {};
-        computeProjectTokensForPicker(depTokens, pickerEnv[depVarName]);
+    if (project.pickerName !== null) {
+      const envObj: Record<string, any> = project.pickerName === undefined ? pickerEnv : {};
+      if (project.pickerName !== undefined) {
+        const key = toVarName(project.pickerName);
+        pickerEnv[mkMetaName(key)] = { label: project.pickerName };
+        pickerEnv[key] = envObj;
+      }
+      for (const token of project.tokens) {
+        const key = toVarName(token.name);
+        envObj[mkMetaName(key)] = { label: token.name };
+        envObj[key] = computeDataTokenValue(token, evalEnv);
       }
     }
   }
-
-  if (!localTokens.length && !hasDependencyTokens) {
-    return undefined;
-  }
   return { $dataTokens, pickerEnv };
+}
+
+export function computeDataTokens(site: Site, siteId: ProjectId, evalEnv?: Record<string, any>): EvaluatedDataTokens {
+  return evaluateDataTokenDefinitions(captureDataTokenDefinitions(site, siteId), evalEnv);
 }
 
 /**

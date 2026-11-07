@@ -1,0 +1,119 @@
+{
+  "date": "2026-11-06",
+  "status": "partial",
+  "artifact": "renderer-react19-sdk3-u15",
+  "sourceHash": "a97630a856dd6b31001f5703e0475234d49c3ad09348bfac0c7e95758b39a220",
+  "rendererHash": "9ee36036e5d77191ab34f46d622284b1a342f8e534e96571a0f9856d1dcc7ab5",
+  "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+  "files": 837,
+  "bytes": 105450046,
+  "studioArtifactHash": "1ddd2fbb3160fe7796e36dceaeee8b3c9caad1288e5c1b264d52220189cdc907",
+  "reactCompiler": {
+    "enabled": false,
+    "target": "19",
+    "compilationMode": "annotation",
+    "files": [
+      "src/wab/client/components/coding/CodeDisplayContent.tsx"
+    ]
+  },
+  "sourceArchives": [
+    "u15-studio-source.patch",
+    "u15-studio-untracked.tar.gz"
+  ],
+  "tests": {
+    "gp": {
+      "passed": true,
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "passed": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "preview-business-pagination-return",
+          "passed": true
+        }
+      ],
+      "saveAndReopen": true,
+      "errors": [],
+      "previewErrors": [],
+      "datasetSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97",
+      "log": "u15-native-gp.log",
+      "docs": {
+        "persistedModelUnchanged": true,
+        "harnessSha256": "164d4d701ff8843d105cf270c0d555fa764f13c2aa3f6a24e451aa2c7a95670d",
+        "codegen": {
+          "dependencyModelsValidated": 50,
+          "editReachedSelectedStore": true,
+          "mode": "codegen",
+          "monacoMounted": true,
+          "persistedModelUnchanged": true,
+          "previewUpdated": true,
+          "restored": true
+        },
+        "loader": {
+          "dependencyModelsValidated": 50,
+          "editReachedSelectedStore": true,
+          "mode": "loader",
+          "monacoMounted": true,
+          "persistedModelUnchanged": true,
+          "previewUpdated": true,
+          "restored": true
+        }
+      }
+    },
+    "complex": {
+      "passed": true,
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "passed": true
+        },
+        {
+          "case": "switch-artboard",
+          "passed": true
+        },
+        {
+          "case": "switch-artboard",
+          "passed": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-undo-selection-style",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-redo-rendered-style",
+          "passed": true
+        }
+      ],
+      "saveAndReopen": true,
+      "errors": [],
+      "previewErrors": [],
+      "datasetSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517",
+      "log": "u15-native-complex.log"
+    }
+  }
+}

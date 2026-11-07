@@ -1,4 +1,4 @@
-import { Fiber, SuspenseComponent } from "@/wab/client/react-global-hook/fiber";
+import { Fiber, OffscreenComponent, SuspenseComponent } from "@/wab/client/react-global-hook/fiber";
 
 export function fiberChildren(fiber: Fiber) {
   const children: Fiber[] = [];
@@ -26,7 +26,17 @@ export function traverseUpdates(
   const nextDidTimeOut = isSuspense && node.memoizedState !== null;
   enter(node);
 
-  if (prevDidTimeout && nextDidTimeOut) {
+  const wasHidden = node.tag === OffscreenComponent && prev.memoizedState !== null;
+  const isHidden = node.tag === OffscreenComponent && node.memoizedState !== null;
+  if (isHidden) {
+    if (!wasHidden) {
+      recursivelyUnmount(prev, onFakeUnmount);
+    }
+  } else if (wasHidden) {
+    if (node.child) {
+      traverseTree(node.child, enter, leave, true);
+    }
+  } else if (prevDidTimeout && nextDidTimeOut) {
     // Special case
     const child = node.child;
     const nextFallback = child ? child.sibling : null;
@@ -98,7 +108,10 @@ export function traverseTree(
     const didTimeout = isSuspense && node.memoizedState !== null;
     enter(node);
 
-    if (isSuspense && didTimeout) {
+    const isHidden = node.tag === OffscreenComponent && node.memoizedState !== null;
+    if (isHidden) {
+      // Activity retains its DOM and state, but hidden descendants are not selectable.
+    } else if (isSuspense && didTimeout) {
       const primary = node.child;
       const fallback = primary ? primary.sibling : null;
       const fallbackChild = fallback ? fallback.child : null;
@@ -117,6 +130,9 @@ export function traverseTree(
 }
 
 function recursivelyUnmount(fiber: Fiber, onUnmount: (node: Fiber) => void) {
+  if (fiber.tag === OffscreenComponent && fiber.memoizedState !== null) {
+    return;
+  }
   const didTimeout =
     fiber.tag === SuspenseComponent && fiber.memoizedState !== null;
 

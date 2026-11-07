@@ -1,23 +1,24 @@
+import { jsx, Fragment } from 'react/jsx-runtime';
 import { Menu } from 'antd';
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
-import { r as renderCanvasSlot } from './canvas-overlay-27tNRB55.esm.js';
+import { r as renderCanvasSlot } from './canvas-overlay-k3p9M5S2.esm.js';
 import React from 'react';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 function AntdMenuItem(props) {
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, props.children);
+  return /* @__PURE__ */ jsx(Fragment, { children: props.children });
 }
 function AntdMenuDivider(_props) {
   return null;
 }
 function AntdMenuItemGroup(props) {
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, props.children);
+  return /* @__PURE__ */ jsx(Fragment, { children: props.children });
 }
 function AntdSubMenu(props) {
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, props.children);
+  return /* @__PURE__ */ jsx(Fragment, { children: props.children });
 }
 function menuChildrenToItems(children) {
   const result = [];
@@ -47,7 +48,7 @@ function menuChildrenToItems(children) {
   return result;
 }
 function AntdMenu(props) {
-  return props.items !== void 0 ? /* @__PURE__ */ React.createElement(Menu, { ...props }) : renderCanvasSlot(props.children, (children) => /* @__PURE__ */ React.createElement(MenuWithChildren, { ...props, children }));
+  return props.items !== void 0 ? /* @__PURE__ */ jsx(Menu, { ...props }) : renderCanvasSlot(props.children, (children) => /* @__PURE__ */ jsx(MenuWithChildren, { ...props, children }));
 }
 function MenuWithChildren(props) {
   const { children, openKeys, defaultOpenKeys, onOpenChange, ...rest } = props;
@@ -75,7 +76,7 @@ function MenuWithChildren(props) {
   const reveal = selectedKeys.length > 0;
   const revealedKeys = Array.from(/* @__PURE__ */ new Set([...openKeys ?? defaultOpenKeys ?? [], ...selectedKeys]));
   const keys = reveal ? state ? state.reveal(revealedKeys) : revealedKeys : state ? state.value : openKeys;
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Menu,
     {
       ...rest,

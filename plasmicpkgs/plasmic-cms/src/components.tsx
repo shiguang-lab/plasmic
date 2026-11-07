@@ -42,7 +42,7 @@ interface FetcherComponentProps {
 
 function renderMaybeData<T>(
   maybeData: ReturnType<typeof usePlasmicQueryData>,
-  renderFn: (data: T) => JSX.Element | any,
+  renderFn: (data: T) => React.JSX.Element | any,
   loaderProps: FetcherComponentProps,
   inEditor: boolean,
   loadingMessage?: React.ReactNode,

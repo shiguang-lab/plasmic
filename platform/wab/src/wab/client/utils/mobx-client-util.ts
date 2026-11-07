@@ -9,9 +9,9 @@ type IReactComponent<P = any> =
 export function observer<T extends IReactComponent<P>, P = any>(
   baseComponent: T,
 ) {
-  const wrappedComponent = (props: P, ref?: React.Ref<T>) => {
+  const wrappedComponent = (props: P) => {
     dependOnGlobalObservable();
-    return baseComponent(props, ref);
+    return baseComponent(props);
   };
   return mobxObserver(wrappedComponent) as T;
 }

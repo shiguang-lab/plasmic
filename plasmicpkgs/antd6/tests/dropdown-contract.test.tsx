@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
+
 import { expect, test, vi } from "vitest";
 import { AntdDropdown, registerDropdown } from "../src/registerDropdown";
 import type { Registerable } from "../src/utils";

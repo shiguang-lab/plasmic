@@ -1,7 +1,7 @@
 import { PlasmicCanvasContext } from "@plasmicapp/host";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, spyOn, userEvent, waitFor, within } from "@storybook/test";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { BaseButton } from "./registerButton";
 import { BaseDialog } from "./registerDialog";
 import { BaseDialogTrigger } from "./registerDialogTrigger";

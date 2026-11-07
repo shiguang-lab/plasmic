@@ -20,7 +20,7 @@ export function getURL(type: AuthType, state: string): string {
 export function GithubConnect(props: {
   api: PromisifyMethods<Api>;
   type: AuthType;
-  render: (props: { onClick: () => void; isWaiting: boolean }) => JSX.Element;
+  render: (props: { onClick: () => void; isWaiting: boolean }) => React.JSX.Element;
   onSuccess: () => void;
   onFailure?: (reason: string) => void;
   refreshDeps?: any[];

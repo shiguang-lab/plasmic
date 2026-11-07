@@ -6,6 +6,7 @@
 
 import { CodeComponentMeta } from '@plasmicapp/host/registerComponent';
 import { GlobalContextMeta } from '@plasmicapp/host';
+import { JSX } from 'react';
 import { default as React_2 } from 'react';
 import { ReactNode } from 'react';
 import registerComponent from '@plasmicapp/host/registerComponent';
@@ -18,19 +19,19 @@ export function registerAll(loader?: {
 }): void;
 
 // @public (undocumented)
-export function StrapiCollection({ name, filterParameter, filterValue, filterField, limit, children, className, noLayout, noAutoRepeat, setControlContextData, }: StrapiCollectionProps): React_2.JSX.Element;
+export function StrapiCollection(input: StrapiCollectionProps): JSX.Element;
 
 // @public (undocumented)
 export const strapiCollectionMeta: CodeComponentMeta<StrapiCollectionProps>;
 
 // @public (undocumented)
-export function StrapiCredentialsProvider({ host, token, children, }: React_2.PropsWithChildren<StrapiCredentials>): React_2.JSX.Element;
+export function StrapiCredentialsProvider(input: React_2.PropsWithChildren<StrapiCredentials>): React_2.JSX.Element;
 
 // @public (undocumented)
 export const strapiCredentialsProviderMeta: GlobalContextMeta<StrapiCredentials>;
 
 // @public (undocumented)
-export function StrapiField({ className, path, setControlContextData, }: StrapiFieldProps): React_2.JSX.Element;
+export function StrapiField(input: StrapiFieldProps): JSX.Element;
 
 // @public (undocumented)
 export const strapiFieldMeta: CodeComponentMeta<StrapiFieldProps>;

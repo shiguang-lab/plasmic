@@ -3,12 +3,12 @@ import {
   ExpsProvider,
   useStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { useStyleCells, useStyleIndicator } from "@/wab/client/studio-ctx/style-inputs-react";
 import { useI18n } from "@/wab/client/i18n";
-import { makeVariantedStylesHelperFromCurrentCtx } from "@/wab/client/utils/style-utils";
+import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
 import { isTokenRef } from "@/wab/commons/StyleToken";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { PERCENTAGE_UNITS } from "@/wab/shared/css/types";
-import { observer } from "mobx-react";
 import React from "react";
 
 interface OpacityControlProps {
@@ -16,7 +16,7 @@ interface OpacityControlProps {
   vsh?: VariantedStylesHelper;
 }
 
-export const OpacityControl = observer(function OpacityControl(
+export function OpacityControl(
   props: OpacityControlProps,
 ) {
   const { t: uiT } = useI18n();
@@ -24,17 +24,16 @@ export const OpacityControl = observer(function OpacityControl(
   const styling = useStyleComponent();
 
   // Use provided vsh or create one from studio context
-  const vsh =
-    props.vsh ??
-    makeVariantedStylesHelperFromCurrentCtx(expsProvider.studioCtx);
+  const currentVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : expsProvider.studioCtx);
+  const vsh = props.vsh ?? currentVsh;
 
-  // Get current opacity value
-  const opacity = expsProvider.mergedExp().get("opacity") || "1";
+  const [opacityCell] = useStyleCells(expsProvider, ["opacity"]);
+  const opacity = opacityCell?.value || "1";
   const formattedOpacity = isTokenRef(opacity)
     ? opacity
     : `${Math.round(parseFloat(opacity) * 100)}%`;
 
-  const opacityDefinedIndicator = expsProvider.definedIndicator("opacity");
+  const opacityDefinedIndicator = useStyleIndicator(expsProvider, "opacity");
 
   const handleOpacityChange = (val?: string) => {
     const newVal = val?.includes("%")
@@ -71,4 +70,4 @@ export const OpacityControl = observer(function OpacityControl(
       vsh={vsh}
     />
   );
-});
+}

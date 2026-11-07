@@ -15,7 +15,7 @@ import { TriggeredOverlayContextValue } from "../triggered-overlay/context";
 export function useMenuTrigger(
   opts: {
     isDisabled?: boolean;
-    triggerRef: React.RefObject<HTMLElement>;
+    triggerRef: React.RefObject<HTMLElement | null>;
     placement?: Placement;
     menuMatchTriggerWidth?: boolean;
     menuWidth?: number;
@@ -26,7 +26,7 @@ export function useMenuTrigger(
   state: MenuTriggerState
 ): {
   triggerProps: PressResult["pressProps"];
-  makeMenu: () => React.ReactElement;
+  makeMenu: () => React.ReactElement<BaseMenuProps> | null;
   triggerContext: TriggeredOverlayContextValue;
 } {
   const {

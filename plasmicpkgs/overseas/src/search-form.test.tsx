@@ -1,8 +1,8 @@
 import { PlasmicCanvasContext } from "@plasmicapp/host";
 import { Input } from "antd";
 import assert from "node:assert/strict";
-import test from "node:test";
-import React from "react";
+import { test } from "vitest";
+
 import { renderToStaticMarkup } from "react-dom/server";
 import {
   SearchForm,

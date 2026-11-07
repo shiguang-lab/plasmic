@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/react-awesome-reveal",
-  "version": "3.8.264",
+  "version": "4.0.0",
   "description": "Plasmic registration call for react-awesome-reveal",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -46,8 +46,8 @@
     "react-awesome-reveal": "^4.2.12"
   },
   "peerDependencies": {
-    "@plasmicapp/host": ">=1.0.0",
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "@plasmicapp/host": "^3.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }

@@ -256,7 +256,7 @@ function PlasmicDocsPortalBranches__RenderFunc(props: {
                 <div
                   className={classNames("all", "__wab_text", sty.text__wI0Nv)}
                 >
-                  {<><UiText message={"For Next.js/Gatsby only."} />{" "}</>}
+                  {<><UiText message={"For Next.js only."} />{" "}</>}
                 </div>
               </React.Fragment>
             }

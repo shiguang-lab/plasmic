@@ -42,35 +42,20 @@ describe("rulesLogicToWordPressFilters", () => {
 
     expect(
       rulesLogicToWordPressFilters({
-        some: [
-          { var: "categories" },
-          {
-            in: [{ var: "categories" }, [4]],
-          },
-        ],
+        in: [{ var: "categories" }, [4]],
       })
     ).toEqual({ categories: [4] });
 
     expect(
       rulesLogicToWordPressFilters({
-        some: [
-          { var: "tags" },
-          {
-            in: [{ var: "tags" }, [4, 6]],
-          },
-        ],
+        in: [{ var: "tags" }, [4, 6]],
       })
     ).toEqual({ tags: [4, 6] });
 
     expect(
       rulesLogicToWordPressFilters({
         "!": {
-          some: [
-            { var: "categories" },
-            {
-              in: [{ var: "" }, [4]],
-            },
-          ],
+          in: [{ var: "categories" }, [4]],
         },
       })
     ).toEqual({ categories_exclude: [4] });
@@ -78,12 +63,7 @@ describe("rulesLogicToWordPressFilters", () => {
     expect(
       rulesLogicToWordPressFilters({
         "!": {
-          some: [
-            { var: "tags" },
-            {
-              in: [{ var: "" }, [5, 7]],
-            },
-          ],
+          in: [{ var: "tags" }, [5, 7]],
         },
       })
     ).toEqual({ tags_exclude: [5, 7] });
@@ -126,12 +106,7 @@ describe("rulesLogicToWordPressFilters", () => {
 
     expect(
       rulesLogicToWordPressFilters({
-        some: [
-          { var: "search_columns" },
-          {
-            in: [{ var: "" }, ["post_title", "post_content"]],
-          },
-        ],
+        in: [{ var: "search_columns" }, ["post_title", "post_content"]],
       })
     ).toEqual({ search_columns: ["post_title", "post_content"] });
 
@@ -157,24 +132,14 @@ describe("rulesLogicToWordPressFilters", () => {
   it("should handle empty array values", () => {
     expect(
       rulesLogicToWordPressFilters({
-        some: [
-          { var: "categories" },
-          {
-            in: [{ var: "" }, []],
-          },
-        ],
+        in: [{ var: "categories" }, []],
       })
     ).toEqual({ categories: [] });
 
     expect(
       rulesLogicToWordPressFilters({
         "!": {
-          some: [
-            { var: "tags" },
-            {
-              in: [{ var: "" }, []],
-            },
-          ],
+          in: [{ var: "tags" }, []],
         },
       })
     ).toEqual({ tags_exclude: [] });
@@ -211,20 +176,10 @@ describe("rulesLogicToWordPressFilters", () => {
           "!=": [{ var: "author" }, 2],
         },
         {
-          some: [
-            { var: "categories" },
-            {
-              in: [{ var: "categories" }, [4]],
-            },
-          ],
+          in: [{ var: "categories" }, [4]],
         },
         {
-          some: [
-            { var: "tags" },
-            {
-              in: [{ var: "tags" }, [8, 9]],
-            },
-          ],
+          in: [{ var: "tags" }, [8, 9]],
         },
         { "==": [{ var: "sticky" }, true] },
         { "==": [{ var: "sticky" }, false] },

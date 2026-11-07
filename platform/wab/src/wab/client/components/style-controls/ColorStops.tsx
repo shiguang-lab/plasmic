@@ -1,6 +1,5 @@
-import { getHTMLElt } from "@/wab/client/components/view-common";
 import { ColorPicker } from "@/wab/client/components/widgets/ColorPicker";
-import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
+import { makeClientTokenResolver, useClientTokenValues } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import ColorStopIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__ColorStop";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -19,12 +18,13 @@ import {
   withoutNils,
 } from "@/wab/shared/common";
 import { Dim, LinearGradient, Stop } from "@/wab/shared/core/bg-styles";
-import { siteFinalStyleTokensAllDeps } from "@/wab/shared/core/site-style-tokens";
+import { makeTokenResolver, siteFinalStyleTokensAllDeps } from "@/wab/shared/core/site-style-tokens";
 import { Chroma } from "@/wab/shared/utils/color-utils";
 import classNames from "classnames";
 import $ from "jquery";
 import L from "lodash";
-import { observer } from "mobx-react";
+import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
+import { useShallow } from "zustand/react/shallow";
 import React from "react";
 
 // Normally:
@@ -50,24 +50,30 @@ const ColorStops_ = (props: ColorStopsProps) => {
   const [removing, setRemoving] = React.useState(false);
   const [ghostLeftPct, setGhostLeftPct] = React.useState<number | null>(null);
   const [isDragging, setIsDragging] = React.useState(false);
-  const resolver = useClientTokenResolver();
+  const inputs = props.stops.map((stop) => stop.color);
+  const { selected: resolved, lifetime } = useStyleTokenRefs(props.studioCtx, inputs, props.vsh, "all", useShallow((snapshot) => snapshot.rows.map((row) => row.resolved)));
+  const colors = useClientTokenValues(resolved, lifetime);
 
-  const stopsAndBarRef = React.useRef(null);
-  const barRef = React.useRef(null);
+  const stopsAndBarRef = React.useRef<HTMLDivElement>(null);
+  const barRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (stopsAndBarRef.current) {
-      $(getHTMLElt(stopsAndBarRef.current)).on("mouseout", () => {
-        return setGhostLeftPct(null);
-      });
+      const element = $(stopsAndBarRef.current);
+      const clearGhost = () => setGhostLeftPct(null);
+      element.on("mouseout", clearGhost);
+      return () => {
+        element.off("mouseout", clearGhost);
+      };
     }
+    return undefined;
   }, []);
 
   const relOffset = React.useCallback(
-    (e: React.MouseEvent) => {
+    (e: Pick<React.MouseEvent, "clientX" | "clientY">) => {
       if (barRef.current) {
         const containerOffset = ensure(
-          $(getHTMLElt(barRef.current)).offset(),
+          $(barRef.current).offset(),
           "Element must have offset",
         );
         const colorStopsWidth = ensureHTMLElt(barRef.current).offsetWidth;
@@ -83,14 +89,16 @@ const ColorStops_ = (props: ColorStopsProps) => {
   );
 
   const realStopColor = (stop: Stop) => {
-    const maybeToken = tryParseTokenRef(
-      stop.color,
-      siteFinalStyleTokensAllDeps(props.studioCtx.site),
-    );
-    if (maybeToken) {
-      return resolver(maybeToken, props.vsh);
-    }
-    return stop.color;
+    const index = inputs.indexOf(stop.color);
+    return index >= 0 ? colors[index] ?? stop.color : stop.color;
+  };
+  // Writes may run before React repaints a completed token edit. Keep the
+  // original command-time resolver instead of interpolating cached UI colors.
+  const currentStopColor = (stop: Stop) => {
+    const maybeToken = tryParseTokenRef(stop.color, siteFinalStyleTokensAllDeps(props.studioCtx.site));
+    if (!maybeToken) { return stop.color; }
+    const resolver = makeClientTokenResolver(makeTokenResolver(props.studioCtx.site), props.studioCtx.focusedViewCtx() ?? props.studioCtx);
+    return resolver(maybeToken, props.vsh);
   };
 
   const handleChange = (f: /*TWZ*/ () => any) => {
@@ -102,7 +110,7 @@ const ColorStops_ = (props: ColorStopsProps) => {
    * Create a stop, but do not actually insert it, just return it with the
    * proposed index where it should be inserted.
    */
-  const createStop = (pct: number) => {
+  const createStop = (pct: number, stopColor = realStopColor) => {
     let color: string;
     let index = props.stops.findIndex((stop: /*TWZ*/ Stop | Stop) => {
       return pct <= stop.dim.getNumericValue();
@@ -117,8 +125,8 @@ const ColorStops_ = (props: ColorStopsProps) => {
       const prev = props.stops[index - 1];
       const next = props.stops[index];
       color = Chroma.interpolate(
-        realStopColor(prev),
-        realStopColor(next),
+        stopColor(prev),
+        stopColor(next),
         (pct - prev.dim.getNumericValue()) /
           (next.dim.getNumericValue() - prev.dim.getNumericValue()),
       ).hex();
@@ -170,7 +178,7 @@ const ColorStops_ = (props: ColorStopsProps) => {
           onClick={(e) => {
             return handleChange(() => {
               const { leftPct } = relOffset(e);
-              const res = createStop(leftPct);
+              const res = createStop(leftPct, currentStopColor);
               if (res != null) {
                 const { index, stop } = res;
                 insert(props.stops, index, stop);
@@ -291,4 +299,4 @@ const ColorStops_ = (props: ColorStopsProps) => {
   );
 };
 
-export const ColorStops = observer(ColorStops_);
+export const ColorStops = ColorStops_;

@@ -1,10 +1,9 @@
 module.exports = {
   "*.{js,jsx,ts,tsx,cjs,mjs,cts,mts}": (files) => {
-    // Examples and the loader-test app templates lint themselves via
-    // `next lint`; the monorepo eslint can't load their eslint-config-next
-    // (`extends` resolves before ignores).
+    // Loader-test applications own their framework lint configuration.
+    // ESLint resolves their config before applying monorepo ignores.
     const selfLinted =
-      /(^|\/)(examples|platform\/loader-tests\/src\/(cra|gatsby|html|nextjs)\/[^/]+)\//;
+      /(^|\/)platform\/loader-tests\/src\/(react|html|nextjs)\/[^/]+\//;
     const eslintable = files.filter((f) => !selfLinted.test(f));
     const cmds = [];
     if (eslintable.length) {

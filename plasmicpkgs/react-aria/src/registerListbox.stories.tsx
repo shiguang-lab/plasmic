@@ -8,7 +8,7 @@ import {
   waitFor,
   within,
 } from "@storybook/test";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ListBoxItem } from "react-aria-components";
 import { BaseListBox } from "./registerListBox";
 import { BaseListBoxItem } from "./registerListBoxItem";

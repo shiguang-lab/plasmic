@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import enUS from "antd/lib/locale/en_US.js";
 import zhCN from "antd/lib/locale/zh_CN.js";
-import React from "react";
+
 import { expect, test } from "vitest";
 import { AntdPopconfirm } from "../src/registerAdditional";
 import { AntdConfigProvider } from "../src/registerConfigProvider";
@@ -25,7 +25,7 @@ test("project locale updates portal confirmation buttons and pagination", () => 
   );
   expect(screen.getByRole("button", { name: "OK" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "Cancel" })).toBeTruthy();
-  expect(screen.getByTitle("Next Page")).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Next Page" })).toBeTruthy();
 
   view.rerender(
     <AntdConfigProvider themeStyles={{}} removeLoading locale="zh_CN">
@@ -34,7 +34,7 @@ test("project locale updates portal confirmation buttons and pagination", () => 
   );
   expect(screen.getByRole("button", { name: "确 定" })).toBeTruthy();
   expect(screen.getByRole("button", { name: "取 消" })).toBeTruthy();
-  expect(screen.getByTitle("下一页")).toBeTruthy();
+  expect(screen.getByRole("button", { name: "下一页" })).toBeTruthy();
   expect(screen.queryByRole("button", { name: "Cancel" })).toBeNull();
 
   view.rerender(
@@ -43,7 +43,7 @@ test("project locale updates portal confirmation buttons and pagination", () => 
     </AntdConfigProvider>,
   );
   expect(screen.getByRole("button", { name: "Cancel" })).toBeTruthy();
-  expect(screen.getByTitle("Next Page")).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Next Page" })).toBeTruthy();
 });
 
 test("Chinese locale applies to Popconfirm without overriding business labels", () => {

@@ -20,7 +20,7 @@ import {
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
 import { deserializeApiError } from "@/wab/shared/ApiErrors/errors";
-import type { GetProjectResponse } from "@/wab/shared/ApiSchema";
+import type { ProjectOpeningResponse } from "@/wab/shared/ApiSchema";
 import {
   getActivatedVariantsForFrame,
   getArenaFrames,
@@ -63,7 +63,8 @@ export async function prepare(request: PreviewRequest) {
       response.status,
     );
   }
-  const data: GetProjectResponse = await response.json();
+  const model: Omit<ProjectOpeningResponse, "startup"> = await response.json();
+  const data = await new Api().resolveProjectModel(model);
   if (data.rev.revision !== request.revision) {
     throw new Error("Preview revision changed");
   }

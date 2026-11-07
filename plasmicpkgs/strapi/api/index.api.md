@@ -43,10 +43,10 @@ export const _queryParameters: {
 }[];
 
 // @public
-export function queryStrapi({ host, token, collection, filterLogic, }: QueryStrapiOpts): Promise<StrapiQueryResponse | null>;
+export function queryStrapi(input: QueryStrapiOpts): Promise<StrapiQueryResponse | null>;
 
 // @public @deprecated
-export function _queryStrapi({ host, token, collection, filterLogic, filterField, filterValue, filterParameter, }: QueryStrapiOpts & StrapiQueryOldFilterProps): Promise<StrapiQueryResponse | null>;
+export function _queryStrapi(input: QueryStrapiOpts & StrapiQueryOldFilterProps): Promise<StrapiQueryResponse | null>;
 
 // @public (undocumented)
 export function registerStrapi(loader?: {

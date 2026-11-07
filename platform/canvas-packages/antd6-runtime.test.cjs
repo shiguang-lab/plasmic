@@ -72,6 +72,8 @@ for (const suffix of ["", "-v2"]) {
               `antd6${suffix}`,
               `overseas${suffix}`,
               `react-ui${suffix}`,
+              `antd${suffix}`,
+              `antd5${suffix}`,
               "client",
             ]
           : [
@@ -80,6 +82,8 @@ for (const suffix of ["", "-v2"]) {
               `antd6${suffix}`,
               `overseas${suffix}`,
               `react-ui${suffix}`,
+              `antd${suffix}`,
+              `antd5${suffix}`,
             ];
         for (const file of files) {
           win.eval(
@@ -110,14 +114,33 @@ for (const suffix of ["", "-v2"]) {
         // advertised locale through the shared native ConfigProvider context.
         for (const locale of providerEntry.meta.props.locale.options) {
           let observed;
-          function ReadLocale() {
+          const ReadLocale = () => {
             observed = React.useContext(nativeAntd.ConfigProvider.ConfigContext).locale;
             return null;
-          }
+          };
           await flush(() => root.render(React.createElement(Provider,
             { themeStyles: {}, locale }, React.createElement(ReadLocale))));
           assert.equal(typeof observed?.locale, "string", `missing native pack: ${locale}`);
         }
+        const LegacyButton = get("AntdButton");
+        const Table = get("plasmic-antd6-table");
+        const Column = get("plasmic-antd6-table-column");
+        const rows = [{ id: "a", name: "Alpha" }, { id: "b", name: "Beta" }];
+        let selected;
+        await flush(() => root.render(React.createElement(Provider, { themeStyles: {} },
+          React.createElement(LegacyButton, { type: "primary" }, "Legacy native button"),
+          React.createElement(Table, {
+            data: { data: rows, schema: { id: "items", fields: [{ id: "id", type: "string" }, { id: "name", type: "string" }] } },
+            rowKey: "id", pagination: false, isSelectable: "single",
+            onSelectedRowKeysChange: (keys) => { selected = keys; },
+          }, React.createElement(Column, { title: "Name", dataIndex: "name" })),
+        )));
+        assert.ok(win.document.body.textContent.includes("Legacy native button"));
+        assert.ok(win.document.body.textContent.includes("Alpha"));
+        const radio = win.document.querySelector('input[type="radio"]');
+        assert.ok(radio, "Antd 6 table did not render the native row selection control");
+        await flush(() => radio.click());
+        assert.equal(JSON.stringify(selected), '["a"]');
         const show = async (readonly) => {
           await flush(() => {
             root.render(

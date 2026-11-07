@@ -1,13 +1,14 @@
+import { jsx } from 'react/jsx-runtime';
 import { Switch } from 'antd';
-import React from 'react';
 import { h as switchComponentName } from './names-DQIzgrvq.esm.js';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import 'react';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 function AntdSwitch(props) {
-  return /* @__PURE__ */ React.createElement(Switch, { ...props });
+  return /* @__PURE__ */ jsx(Switch, { ...props });
 }
 AntdSwitch.__plasmicFormFieldMeta = { valueProp: "checked" };
 function registerSwitch(loader) {

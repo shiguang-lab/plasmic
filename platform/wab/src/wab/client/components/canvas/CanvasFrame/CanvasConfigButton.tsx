@@ -1,24 +1,33 @@
+import { useFrameWidth } from "@/wab/client/studio-ctx/frame-width";
+import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
+import { useStudioArena, useViewEntryForFrame } from "@/wab/client/studio-ctx/arena-state";
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { FramePanel } from "@/wab/client/components/sidebar-tabs/frame-tab";
 import { getGlobalCssVariableValue } from "@/wab/client/components/studio/GlobalCssVariables";
 import { useScaledElementRef } from "@/wab/client/hooks/useScaledElementRef";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { getFrameHeight } from "@/wab/shared/Arenas";
 import { ArenaFrame } from "@/wab/shared/model/classes";
 import { gridSpacing, hoverBoxTagHeight } from "@/wab/styles/css-variables";
 import { Popover } from "antd";
 import cn from "classnames";
-import { observer } from "mobx-react";
 import * as React from "react";
 
-export const CanvasConfigButton = observer(function CanvasConfigButton_(props: {
+export function CanvasConfigButton(props: {
   studioCtx: StudioCtx;
   frame: ArenaFrame;
   contained?: boolean;
   showDims?: boolean;
 }) {
   const { studioCtx, frame, showDims } = props;
-  const vc = studioCtx.tryGetViewCtxForFrame(frame);
+  useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view]));
+  const viewportZoom = useCanvasZoom(studioCtx);
+  const frameHeight = useFrameHeight(studioCtx, showDims ? frame : undefined);
+  const frameWidth = useFrameWidth(studioCtx, showDims ? frame : undefined);
+  useStudioArena(studioCtx, (state) => state.frames);
+  const vc = useViewEntryForFrame(studioCtx, frame)?.view;
   const isFocused = studioCtx.focusedContentFrame() === frame;
   const [visible, setVisible] = React.useState(false);
   const _gridSpacing = parseInt(getGlobalCssVariableValue(gridSpacing), 10);
@@ -26,7 +35,7 @@ export const CanvasConfigButton = observer(function CanvasConfigButton_(props: {
     getGlobalCssVariableValue(hoverBoxTagHeight),
     10,
   );
-  const minZoom = Math.max(studioCtx.zoom, _hoverBoxTagHeight / _gridSpacing);
+  const minZoom = Math.max(viewportZoom, _hoverBoxTagHeight / _gridSpacing);
 
   const buttonRef = useScaledElementRef<HTMLButtonElement>({
     minZoom,
@@ -65,12 +74,12 @@ export const CanvasConfigButton = observer(function CanvasConfigButton_(props: {
         <GearIcon className="CanvasFrame__Config__icon" />
         {showDims && (
           <>
-            {frame.width}{" "}
+            {frameWidth}{" "}
             <span style={{ margin: "0 5px", fontSize: ".7em" }}>✕</span>{" "}
-            {getFrameHeight(frame)}
+            {frameHeight}
           </>
         )}
       </button>
     </Popover>
   );
-});
+}

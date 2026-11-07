@@ -7,7 +7,7 @@
 import registerFunction from '@plasmicapp/host/registerFunction';
 
 // @public (undocumented)
-export function fetchGraphQL({ url, method, headers, request, varOverrides, }: FetchGraphQLOpts): Promise<{
+export function fetchGraphQL(input: FetchGraphQLOpts): Promise<{
     statusCode: number;
     headers: {
         [k: string]: string;

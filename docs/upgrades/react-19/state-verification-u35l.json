@@ -1,0 +1,157 @@
+{
+  "status": "cohort-native-accepted; user-paused",
+  "scope": "L: K plus28 frozen overlay/independent leaf/metadata/lifecycle/fixture files; no private Style/frame-hash next-batch work",
+  "source": {
+    "revision": "32df7af09a1df7d119143b546f14a81b6d876c83",
+    "dirty": true,
+    "sourceHash": "203db27b62f3e8a3ff4119ad6fe357eba2aeca6f06f72be5e2c6842041a167d7"
+  },
+  "artifact": {
+    "sourceHash": "203db27b62f3e8a3ff4119ad6fe357eba2aeca6f06f72be5e2c6842041a167d7",
+    "rendererHash": "df665cbb73c9dd64b8a687967fd3ae39534097e8544c3ac8561532d2635d7822",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 104931386,
+    "studioArtifactHash": "261f5b6dfb09d8b23e8a0caddbb377b99e454371c5cde6995bbc581c162aa532",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "checks": {
+    "typecheck": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u35l-isolated-typecheck-2.log"
+    },
+    "integration": {
+      "filesPassed": 10,
+      "testsPassed": 60,
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u35l-isolated-integration-1.log",
+      "scopeNote": "Before sole required Preview codegen fixture field and AST-only shadow wrapper addition; unrelated passing source inputs retained"
+    },
+    "previewCodegenFollowup": {
+      "filesPassed": 1,
+      "testsPassed": 14,
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u35l-preview-codegen-followup.log"
+    },
+    "typedLint": {
+      "initialFiles": 26,
+      "correctionFiles": 2,
+      "exitCode": 0,
+      "warningCounts": [
+        7,
+        2
+      ],
+      "newWarnings": 0,
+      "logs": [
+        "/tmp/plasmic-react19-20261105/u35l-isolated-eslint-1.log",
+        "/tmp/plasmic-react19-20261105/u35l-isolated-corrections-eslint.log"
+      ]
+    },
+    "shadowWrapper": {
+      "classBodyByteIdentical": true,
+      "renderBodyByteIdentical": true,
+      "proof": "/tmp/plasmic-react19-20261105/deepseek-bulk-style-consumers/evidence/remove-observer.ast.json"
+    },
+    "productionBuild": {
+      "exitCode": 0
+    },
+    "assets": {
+      "exitCode": 0
+    },
+    "archive": {
+      "exitCode": 0
+    }
+  },
+  "nativeGP": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/gp/list-open-u35l-gp-native.json",
+    "reportSha256": "bf642f1723a2ecb62b7397dfc6959a74d9aa4eea1d282060abe27a85062f5a7b",
+    "functionalCases": 5,
+    "functionalPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "error": false,
+    "draftDialog": {
+      "enabled": true,
+      "opened": true,
+      "remoteActionClosed": true
+    },
+    "docs": {
+      "codegen": {
+        "dependencyModelsValidated": 50,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      },
+      "loader": {
+        "dependencyModelsValidated": 50,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      }
+    }
+  },
+  "nativeComplex": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/complex/list-open-u35l-complex.json",
+    "reportSha256": "e83acd6c404ca09ce018f1ca372ce67703bd30fb32f6338d8694a66a333b20a4",
+    "functionalCases": 6,
+    "functionalPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "error": false
+  },
+  "fullStudioSuite": {
+    "rerun": false,
+    "base": "u29f:636passed13failed60testfail9unhandled; not green",
+    "failedSuitesTargeted": {
+      "filesPassed": 13,
+      "testsPassed": 197,
+      "note": "Original failed suites corrected and rechecked in owned groups; union includes4 PlayerPresence native tests. Does not claim one197test command or fullL suite pass"
+    },
+    "verification": "Targeted owner manifests preserve exact logs/inputs; unchanged passing base reused"
+  },
+  "fullMigration": false,
+  "pausedByUser": true,
+  "remaining": {
+    "files": 283,
+    "source": 233,
+    "test": 49,
+    "tooling": 1,
+    "manifests": 1
+  }
+}

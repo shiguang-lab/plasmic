@@ -18,7 +18,7 @@ export type AntdSegmentedProps = Omit<
   "options"
 > & {
   options?: { label: string; value: string }[];
-  optionsSlot?: ReactElement; // options with more than just text
+  optionsSlot?: ReactElement<{ children?: ReactElement<AntdSegmentedOptionProps>[] }>; // options with more than just text
   useSlotOptions: boolean;
 };
 
@@ -39,8 +39,8 @@ export function AntdSegmented(props: AntdSegmentedProps) {
           : optionsSlot?.props.children;
       return optionElts
         ?.filter(
-          (el: any) =>
-            React.isValidElement(el) &&
+          (el): el is ReactElement<AntdSegmentedOptionProps> =>
+            React.isValidElement<AntdSegmentedOptionProps>(el) &&
             (el.type as any)?.name === AntdSegmentedOption.name
         )
         .map((el: ReactElement<AntdSegmentedOptionProps>) => ({
@@ -53,7 +53,7 @@ export function AntdSegmented(props: AntdSegmentedProps) {
     return optionLabelObjs?.filter((l) => l.label && l.value) || [];
   }, [optionsSlot, useSlotOptions, optionLabelObjs]);
 
-  return <Segmented options={options} {...rest} />;
+  return <Segmented options={options ?? []} {...rest} />;
 }
 export function AntdSegmentedOption(props: AntdSegmentedOptionProps) {
   return <>{props.children}</>;

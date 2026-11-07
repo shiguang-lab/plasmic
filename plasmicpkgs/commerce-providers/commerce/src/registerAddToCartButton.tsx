@@ -55,9 +55,9 @@ export function AddToCartButton(props: AddToCartButtonProps) {
     }
   };
 
-  return React.isValidElement(children)
+  return React.isValidElement<React.DOMAttributes<HTMLElement>>(children)
     ? React.cloneElement(children, {
-        onClick: (e: MouseEvent) => {
+        onClick: (e: React.MouseEvent<HTMLElement>) => {
           if (
             children.props.onClick &&
             typeof children.props.onClick === "function"

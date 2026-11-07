@@ -1,19 +1,14 @@
 import tmp from "tmp";
 import {
-  CraContext,
-  setupCraServer,
-  teardownCraServer,
-} from "../cra/cra-setup";
-import {
-  GatsbyContext,
-  setupGatsbyServer,
-  teardownGatsbyServer,
-} from "../gatsby/gatsby-setup";
-import {
   NextJsContext,
   setupNextjsServer,
   teardownNextJsServer,
 } from "../nextjs/nextjs-setup";
+import {
+  ReactContext,
+  setupReactServer,
+  teardownReactServer,
+} from "../react/react-setup";
 import { apiRequestWithLogin, unreachable, uploadProject } from "../utils";
 
 export interface NextJsEnv {
@@ -23,27 +18,18 @@ export interface NextJsEnv {
   reactVersion?: string;
   removeComponentsPage?: boolean;
   template?: string;
-  /** Merged into compilerOptions after copying the template, before pnpm install */
-  tsConfigOverrides?: Record<string, unknown>;
 }
-export interface GatsbyEnv {
-  type: "gatsby";
-  template?: string;
-}
-
-export interface CraEnv {
-  type: "cra";
+export interface ReactEnv {
+  type: "react";
   reactVersion?: string;
   loaderReactVersion?: string;
   template?: string;
 }
 
-export type LoaderEnv = NextJsEnv | GatsbyEnv | CraEnv;
+export type LoaderEnv = NextJsEnv | ReactEnv;
 
 export type ServerContext =
-  | ({ type: "nextjs" } & NextJsContext)
-  | ({ type: "gatsby" } & GatsbyContext)
-  | ({ type: "cra" } & CraContext);
+  ({ type: "nextjs" } & NextJsContext) | ({ type: "react" } & ReactContext);
 
 export type ProjectConfig =
   | string
@@ -72,7 +58,7 @@ export async function setupBundle(bundle: ProjectConfig) {
     {
       bundleTransformation:
         typeof bundle === "string" ? undefined : bundle.transform,
-    }
+    },
   );
 
   return { projectId, projectToken };
@@ -84,7 +70,7 @@ export async function teardownBundle(ctx: ProjectContext) {
 
 export async function setupServer(
   env: LoaderEnv,
-  project: ProjectContext
+  project: ProjectContext,
 ): Promise<ServerContext> {
   const { name: tmpdir, removeCallback: tmpdirCleanup } = tmp.dirSync({
     unsafeCleanup: true,
@@ -98,19 +84,10 @@ export async function setupServer(
       tmpdir,
       tmpdirCleanup,
     };
-  } else if (env.type === "gatsby") {
-    const ctx = await setupGatsbyServer(project, env, tmpdir);
+  } else if (env.type === "react") {
+    const ctx = await setupReactServer(project, env, tmpdir);
     return {
-      type: "gatsby",
-      ...ctx,
-      ...project,
-      tmpdir,
-      tmpdirCleanup,
-    };
-  } else if (env.type === "cra") {
-    const ctx = await setupCraServer(project, env, tmpdir);
-    return {
-      type: "cra",
+      type: "react",
       ...ctx,
       ...project,
       tmpdir,
@@ -124,10 +101,8 @@ export async function setupServer(
 export async function teardownServer(ctx: ServerContext) {
   if (ctx.type === "nextjs") {
     await teardownNextJsServer(ctx);
-  } else if (ctx.type === "gatsby") {
-    await teardownGatsbyServer(ctx);
-  } else if (ctx.type === "cra") {
-    await teardownCraServer(ctx);
+  } else if (ctx.type === "react") {
+    await teardownReactServer(ctx);
   }
   await ctx.tmpdirCleanup();
 }
@@ -143,9 +118,7 @@ export function makeEnvName(env: LoaderEnv) {
       parts.push(`react@${env.reactVersion}`);
     }
     return parts.join(", ");
-  } else if (env.type === "gatsby") {
-    return `loader-gatsby`;
-  } else if (env.type === "cra") {
+  } else if (env.type === "react") {
     return `create-react-app`;
   } else {
     unreachable(env);

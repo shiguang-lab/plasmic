@@ -1,3 +1,4 @@
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox";
 import { computeElementVisibility } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { frameToScalerRect } from "@/wab/client/coords";
@@ -7,11 +8,10 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { unexpected } from "@/wab/shared/common";
 import $ from "jquery";
 import { omit } from "lodash";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { ReactNode } from "react";
 
-export const CanvasTransformedBox = observer(function CanvasTransformedBox({
+export function CanvasTransformedBox({
   relativeTo,
   $elt,
   viewCtx,
@@ -35,6 +35,7 @@ export const CanvasTransformedBox = observer(function CanvasTransformedBox({
    */
   clipToVisible?: boolean;
 }) {
+  const viewportZoom = useCanvasZoom(viewCtx.studioCtx);
   const element = useElementHasLayout($elt.length > 0 ? $elt[0] : null);
   if (!element) {
     return null;
@@ -56,7 +57,7 @@ export const CanvasTransformedBox = observer(function CanvasTransformedBox({
     return null;
   }
   const cssProps = cssPropsForInvertTransform(
-    viewCtx.studioCtx.zoom,
+    viewportZoom,
     scalerRect,
   );
   const cssPropsForJqElt = {
@@ -80,4 +81,4 @@ export const CanvasTransformedBox = observer(function CanvasTransformedBox({
       {children}
     </div>
   );
-});
+}

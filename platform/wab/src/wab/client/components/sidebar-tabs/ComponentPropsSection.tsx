@@ -1,3 +1,7 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useInspectorComponentEvalContext } from "@/wab/client/studio-ctx/inspector-state";
 import { showError } from "@/wab/client/ErrorNotifications";
 
 import { COMMANDS } from "@/wab/client/commands/command";
@@ -5,6 +9,7 @@ import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import { TextAndShortcut } from "@/wab/client/components/menu-builder";
 import { reactPrompt } from "@/wab/client/components/quick-modals";
 import { ComponentActionsSection } from "@/wab/client/components/sidebar-tabs/ComponentActionsSection";
+import { ModelNameHeader } from "@/wab/client/components/sidebar-tabs/ModelNameHeader";
 import { DataPickerEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/DataPickerEditor";
 import {
   DataPickerRunCodeActionContext,
@@ -26,7 +31,6 @@ import {
 } from "@/wab/client/components/sidebar/SidebarSection";
 import {
   LabeledItem,
-  NamedPanelHeader,
   ValueSetState,
 } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
@@ -128,10 +132,10 @@ import { wabToTsType } from "@/wab/shared/model/model-util";
 import { getPlumeEditorPlugin } from "@/wab/shared/plume/plume-registry";
 import { Dropdown, Input, Menu, Tooltip, notification } from "antd";
 import L, { defer, isArray, sortBy } from "lodash";
-import { autorun } from "mobx";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
+import { useStore } from "zustand";
 
 export type TplComponentPropCtx = {
   tpl: TplComponent;
@@ -269,7 +273,7 @@ export const ComponentPropsSection = observer(
     }
 
     const { componentPropValues, ccContextData } =
-      viewCtx.getInspectorComponentEvalContext(tpl);
+      useInspectorComponentEvalContext(viewCtx, tpl);
     const propTypes = getComponentPropTypes(viewCtx, component);
 
     // Primitive slot content is edited on its owning component, without a Tpl node.
@@ -417,7 +421,7 @@ export const ComponentPropsSection = observer(
   },
 );
 
-export const InteractionPropEditor = observer(
+export const InteractionPropEditor = 
   function InteractionPropEditor(props: {
     studioCtx: StudioCtx;
     viewCtx: ViewCtx;
@@ -447,17 +451,23 @@ export const InteractionPropEditor = observer(
       React.useState(false);
 
     React.useEffect(() => {
-      if (
-        studioCtx.newlyAddedEventHandlerKey &&
-        getDisplayNameOfEventHandlerKey(eventHandlerKey, { tpl }) ===
-          getDisplayNameOfEventHandlerKey(studioCtx.newlyAddedEventHandlerKey, {
-            tpl,
-          })
-      ) {
-        studioCtx.newlyAddedEventHandlerKey = undefined;
-        setShowInteractionModal(true);
-      }
-    }, [eventHandlerKey, studioCtx.newlyAddedEventHandlerKey]);
+      const openRequestedInteraction = () => {
+        const request = studioCtx.newlyAddedEventHandlerKey;
+        if (
+          request &&
+          getDisplayNameOfEventHandlerKey(eventHandlerKey, { tpl }) ===
+            getDisplayNameOfEventHandlerKey(request, { tpl })
+        ) {
+          studioCtx.newlyAddedEventHandlerKey = undefined;
+          setShowInteractionModal(true);
+        }
+      };
+      const unsubscribe = studioCtx.newlyAddedEventHandlerKeyStore.subscribe(
+        openRequestedInteraction,
+      );
+      openRequestedInteraction();
+      return unsubscribe;
+    }, [studioCtx, eventHandlerKey, tpl]);
     return !value || isKnownEventHandler(value) ? (
       <>
         <ActionChip
@@ -495,8 +505,8 @@ export const InteractionPropEditor = observer(
         component={component}
       />
     );
-  },
-);
+  }
+;
 
 export function VariableEditor(props: {
   component: Component;
@@ -655,6 +665,7 @@ export function InteractionExprEditor(props: {
     isRunCodeInteraction,
     hidePreview: initialHidePreview,
   } = props;
+  useViewSelection(viewCtx, (state) => state.context);
 
   const [stepValue, setStepValue] = React.useState(null);
   const [hidePreview, setHidePreview] = React.useState(initialHidePreview);
@@ -845,6 +856,7 @@ export const TplRefEditor = observer(function TplRefEditor(props: {
 }) {
   const { t: uiT } = useI18n();
   const { value, onChange, viewCtx, valueSetState } = props;
+  useViewSelection(viewCtx, (state) => state.context);
   const component = viewCtx.currentComponent();
   const reffableTpls = flattenComponent(component)
     .filter(isTplNamable)
@@ -902,18 +914,20 @@ export const DataSourceEditor = observer(function DataSourceEditor({
   const studioCtx = useStudioCtx();
   const topFrameApi = useTopFrameApi();
 
-  const onClick = async () => {
+  const existingSourceId = value?.id;
+  const onClick = React.useCallback(async () => {
     const maybeVal = await topFrameApi.pickDataSource({
       sourceType: dataSourceType,
-      existingSourceId: value?.id,
+      existingSourceId,
     });
     if (maybeVal && maybeVal !== "CANCELED") {
       onChange(maybeVal);
     }
-  };
+  }, [topFrameApi, dataSourceType, existingSourceId, onChange]);
 
+  const targetComponent = useStore(studioCtx.modelSnapshots.field(tpl, "component"));
   React.useEffect(() => {
-    const dispose = autorun(() => {
+    const consumeRequest = () => {
       const forceOpenProp = studioCtx.forceOpenProp;
       if (forceOpenProp) {
         const [c, p] = forceOpenProp;
@@ -922,9 +936,11 @@ export const DataSourceEditor = observer(function DataSourceEditor({
           studioCtx.forceOpenProp = null;
         }
       }
-    });
+    };
+    const dispose = studioCtx.forceOpenPropStore.subscribe(consumeRequest);
+    consumeRequest();
     return dispose;
-  }, [studioCtx]);
+  }, [studioCtx, tpl, targetComponent, paramName, onClick]);
 
   const { data: dataSource, isValidating } = useDataSource(value?.id);
 
@@ -1008,7 +1024,7 @@ export const DataSelectorEditor = (props: {
   );
 };
 
-export const FallbackEditor = observer(function FallbackEditor_(props: {
+export const FallbackEditor = function FallbackEditor_(props: {
   children: React.ReactNode;
   hideFallbackLabel?: boolean;
   isSet?: boolean;
@@ -1042,7 +1058,7 @@ export const FallbackEditor = observer(function FallbackEditor_(props: {
       {children}
     </IndentedRow>
   );
-});
+};
 
 export function IndentedRow(props: {
   label?: React.ReactNode;
@@ -1206,9 +1222,9 @@ function TplComponentNameSection_(props: {
 
   return (
     <SidebarSection>
-      <NamedPanelHeader
+      <ModelNameHeader
         icon={<Icon icon={ComponentIcon} className="component-fg" />}
-        value={tpl.name || ""}
+        nameStore={studioCtx.modelSnapshots.field(tpl, "name")}
         onChange={(name) =>
           COMMANDS.element.rename.execute(
             studioCtx,
@@ -1238,16 +1254,17 @@ function TplTagNameSection_(props: {
   buildMenu: () => React.ReactElement | null;
 }) {
   const { viewCtx, tpl, buildMenu } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const vtm = viewCtx.variantTplMgr();
   const effectiveVs = vtm.effectiveVariantSetting(tpl);
 
   return (
     <SidebarSection hasExtraContent={true}>
-      <NamedPanelHeader
+      <ModelNameHeader
         icon={
           <span className="tag-fg">{createNodeIcon(tpl, effectiveVs)}</span>
         }
-        value={tpl.name || ""}
+        nameStore={viewCtx.studioCtx.modelSnapshots.field(tpl, "name")}
         onChange={(name) =>
           COMMANDS.element.rename.execute(
             viewCtx.studioCtx,

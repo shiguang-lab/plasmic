@@ -1,12 +1,13 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var cls = require('classnames');
 var dayjs = require('dayjs');
 var kebabCase = require('lodash/kebabCase');
 var React = require('react');
-var canvasOverlay = require('./canvas-overlay-CK330rTr.cjs.js');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var canvasOverlay = require('./canvas-overlay-Dk7zLz_N.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 var localeData = require('dayjs/plugin/localeData');
 var weekday = require('dayjs/plugin/weekday');
 require('@plasmicapp/host');
@@ -19,7 +20,6 @@ function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 var cls__default = /*#__PURE__*/_interopDefault(cls);
 var dayjs__default = /*#__PURE__*/_interopDefault(dayjs);
 var kebabCase__default = /*#__PURE__*/_interopDefault(kebabCase);
-var React__default = /*#__PURE__*/_interopDefault(React);
 var localeData__default = /*#__PURE__*/_interopDefault(localeData);
 var weekday__default = /*#__PURE__*/_interopDefault(weekday);
 
@@ -66,7 +66,7 @@ function AntdDateRangePicker(props) {
     () => presets?.map((p) => ({ ...p, value: getDayjsRange([p.startDate, p.endDate]) })).filter((p) => p.value[0]?.isValid() && p.value[1]?.isValid()),
     [presets]
   );
-  return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children: /* @__PURE__ */ jsxRuntime.jsx(
     RangePicker,
     {
       ...rest,
@@ -98,7 +98,7 @@ function AntdDateRangePicker(props) {
         onChange?.(getStrRange(values) || [null, null]);
       }
     }
-  ));
+  ) });
 }
 const dateRangePickerComponentName = "plasmic-antd6-date-range-picker";
 const dateRangePickerHelpers = {

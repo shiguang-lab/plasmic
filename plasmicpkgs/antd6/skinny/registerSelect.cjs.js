@@ -1,12 +1,13 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var cls = require('classnames');
-var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-CK330rTr.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-Dk7zLz_N.cjs.js');
 var names = require('./names-DbJduus8.cjs.js');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host');
+require('react');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
@@ -14,7 +15,6 @@ require('@shiguang-lab/plasmic-antd6/thumbnails');
 function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
 var cls__default = /*#__PURE__*/_interopDefault(cls);
-var React__default = /*#__PURE__*/_interopDefault(React);
 
 const canvasOverlay = {};
 const AntdOption = Ant.Select.Option;
@@ -35,7 +35,7 @@ function AntdSelect(props) {
   if (useChildren) {
     curated.options = void 0;
   }
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant.Select,
     {
       ...curated,

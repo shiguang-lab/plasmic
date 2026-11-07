@@ -73,71 +73,14 @@ describe("schemaToQueryBuilderConfig", () => {
     const config = schemaToQueryBuilderConfig(schema);
 
     // Text and Symbol fields
-    expect(config.fields.title).toEqual({
-      label: "Post title",
-      type: "text",
-      operators: ["equal", "not_equal", "like", "is_null", "is_not_null"],
-    });
-    expect(config.fields.slug).toEqual({
-      label: "Slug",
-      type: "text",
-      operators: ["equal", "not_equal", "like", "is_null", "is_not_null"],
-    });
-
-    // Number fields
-    expect(config.fields.views).toEqual({
-      label: "View count",
-      type: "number",
-      operators: [
-        "equal",
-        "not_equal",
-        "less",
-        "less_or_equal",
-        "greater",
-        "greater_or_equal",
-        "is_null",
-        "is_not_null",
-      ],
-    });
-    expect(config.fields.rating).toEqual({
-      label: "Rating",
-      type: "number",
-      operators: [
-        "equal",
-        "not_equal",
-        "less",
-        "less_or_equal",
-        "greater",
-        "greater_or_equal",
-        "is_null",
-        "is_not_null",
-      ],
-    });
-
-    // Boolean fields
-    expect(config.fields.featured).toEqual({
-      label: "Featured",
-      type: "boolean",
-    });
-
-    // Date fields
-    expect(config.fields.publishedAt).toEqual({
-      label: "Published at",
-      type: "datetime",
-      operators: [
-        "equal",
-        "not_equal",
-        "less",
-        "less_or_equal",
-        "greater",
-        "greater_or_equal",
-        "is_null",
-        "is_not_null",
-      ],
-    });
-
-    // Unsupported field types should be excluded
-    expect(config.fields.richContent).toBeUndefined();
+    expect(config.fields.map(({ name, datatype }) => [name, datatype])).toEqual([
+      ["title", "text"], ["slug", "text"], ["views", "number"], ["rating", "number"], ["featured", "boolean"], ["publishedAt", "datetime"],
+    ]);
+    expect(config.fields.find((field) => field.name === "title")?.operators).toEqual(["=", "!=", "contains", "null", "notNull"].map((name) => ({ name, label: name })));
+    expect(config.fields.find((field) => field.name === "publishedAt")?.inputType).toBe("datetime-local");
+    expect(config.combinators).toEqual([{ name: "and", label: "All" }]);
+    expect(config.showNotToggle).toBe(false);
+    expect(config.showAddGroupAction).toBe(false);
   });
 
   it("should return empty fields for empty schema", () => {
@@ -148,7 +91,7 @@ describe("schemaToQueryBuilderConfig", () => {
     };
 
     const config = schemaToQueryBuilderConfig(schema);
-    expect(config.fields).toEqual({});
+    expect(config.fields).toEqual([]);
   });
 });
 

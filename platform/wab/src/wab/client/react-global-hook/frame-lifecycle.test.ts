@@ -33,7 +33,7 @@ it("releases the closed frame's tree, context and renderer while preserving the 
   frame.renderState.registerVal(root);
   other.renderState.registerVal(root);
   runInAction(() => {
-    frame.valRoot.set(root);
+    frame.valRootStore.setState(root, true);
     frame.contextData.set("node", { value: 0 });
     other.contextData.set("node", { value: false });
   });
@@ -43,13 +43,13 @@ it("releases the closed frame's tree, context and renderer while preserving the 
   frame.dispose();
   expect(dispose).toHaveBeenCalledTimes(1);
   expect(globalHookCtx.frames.has(1)).toBe(false);
-  expect(frame.valRoot.get()).toBeNull();
-  expect(frame.contextData.size).toBe(0);
+  expect(frame.valRootStore.getState()).toBeNull();
+  expect(frame.contextData.getStore("node").getState()).toBeUndefined();
   expect(frame.renderState.fullKey2val(root.fullKey)).toBeUndefined();
   expect(hook.renderers.has(1)).toBe(false);
   expect(globalHookCtx.frames.get(2)).toBe(other);
   expect(hook.renderers.get(2)).toBe(otherRenderer);
-  expect(other.contextData.get("node")).toEqual({ value: false });
+  expect(other.contextData.getStore("node").getState()).toEqual({ value: false });
   expect(other.renderState.fullKey2val(root.fullKey)).toBeTruthy();
 });
 

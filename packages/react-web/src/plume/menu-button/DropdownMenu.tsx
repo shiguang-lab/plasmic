@@ -12,7 +12,7 @@ export interface DropdownMenuProps {
    * pointer events. The dropdown menu will be positioned relative to this
    * trigger.
    */
-  children: React.ReactElement;
+  children: React.ReactElement<React.HTMLAttributes<HTMLElement>>;
 
   /**
    * The menu to show; must be either a ReactElement of Menu type, or

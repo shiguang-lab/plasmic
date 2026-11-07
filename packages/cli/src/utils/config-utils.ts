@@ -27,7 +27,7 @@ export const ENV_AUTH_TOKEN = "PLASMIC_AUTH_TOKEN";
 
 export interface PlasmicConfig {
   /** Target platform to generate code for */
-  platform: "react" | "nextjs" | "gatsby" | "tanstack";
+  platform: "react" | "nextjs" | "tanstack";
 
   /**
    * The folder containing the component source files; this is the default place where
@@ -46,12 +46,6 @@ export interface PlasmicConfig {
    * Next.js specific config
    */
   nextjsConfig?: {
-    /** The folder containing page components source files. */
-    pagesDir?: string;
-  };
-
-  /** Gatsby-specific config */
-  gatsbyConfig?: {
     /** The folder containing page components source files. */
     pagesDir?: string;
   };
@@ -643,6 +637,6 @@ export function getOrAddProjectLock(
 
 export function isPageAwarePlatform(platform: string): boolean {
   return (
-    platform === "nextjs" || platform === "gatsby" || platform === "tanstack"
+    platform === "nextjs" || platform === "tanstack"
   );
 }

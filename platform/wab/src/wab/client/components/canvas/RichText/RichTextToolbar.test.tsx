@@ -1,3 +1,6 @@
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import { createSite } from "@/wab/shared/core/sites";
 import RichTextToolbar from "@/wab/client/components/canvas/RichText/RichTextToolbar";
 import { dispatchFrameInteraction } from "@/wab/client/frame-ctx/frame-interactions";
 import type { EditingTextContext } from "@/wab/client/studio-ctx/view-ctx";
@@ -5,6 +8,8 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
+let arenaState: StudioArenaState;
+let models: ModelSnapshots;
 const state = vi.hoisted(() => ({ blur: vi.fn() }));
 vi.mock("@/wab/client/contexts/StudioContexts", async (original) => ({
   ...(await original<typeof import("@/wab/client/contexts/StudioContexts")>()),
@@ -12,7 +17,7 @@ vi.mock("@/wab/client/contexts/StudioContexts", async (original) => ({
     focusedViewCtx: () => ({ tryBlurEditingText: state.blur }),
     getCurrentUiConfig: () => ({}),
     contentEditorMode: false,
-    focusedMode: false,
+    arenaState,
   }),
 }));
 vi.mock(
@@ -40,9 +45,14 @@ vi.mock(
     ),
   }),
 );
+beforeEach(() => {
+  models = new ModelSnapshots();
+  arenaState = new StudioArenaState({ site: createSite(), modelSnapshots: models });
+});
 afterEach(() => {
   cleanup();
   state.blur.mockClear();
+  arenaState.dispose(); models.dispose();
 });
 function setup() {
   render(

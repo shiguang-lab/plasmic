@@ -60,7 +60,7 @@ import { isEmpty } from "lodash";
 import { observer } from "mobx-react";
 import { err, ok } from "neverthrow";
 import * as React from "react";
-import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
+import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
 export interface ActionBuilderProps extends DefaultActionBuilderProps {
   tpl: TplComponent | TplTag;

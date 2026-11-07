@@ -1,5 +1,5 @@
 import { trapInteractionError } from "@/wab/client/components/canvas/studio-canvas-util";
-import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
+import { PreviewCtx, usePreviewSelector } from "@/wab/client/components/live/PreviewCtx";
 import styles from "@/wab/client/components/live/PreviewViewport.module.scss";
 import {
   onLoadInjectLiveRuntime,
@@ -35,10 +35,10 @@ import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
 import { readBusinessAnchor } from "@plasmic-shared/preview";
 import { theme } from "antd";
 import { createStyles } from "antd-style";
-import { autorun } from "mobx";
-import { observer } from "mobx-react";
 import React from "react";
 import { useMountedState } from "react-use";
+import { useStore } from "zustand";
+import { createStore } from "zustand/vanilla";
 
 const frameHash =
   `#live=true&origin=${encodeURIComponent(getPublicUrl())}` +
@@ -59,7 +59,10 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   const { revealStudio } = useHostFrameCtx();
   const { t } = useI18n();
   const { token } = theme.useToken();
-  const full = previewCtx.full;
+  const full = usePreviewSelector(previewCtx, (state) => state.previewData?.full ?? false);
+  const route = usePreviewSelector(previewCtx, (state) => state.previewData);
+  const pageHash = route?.pageHash ?? "";
+  const isLive = usePreviewSelector(previewCtx, (state) => state.isLive);
   const frameRef = React.useRef<Window | null>(null);
   const frameGeneration = React.useRef(0);
   const [frameLoaded, setFrameLoaded] = React.useState(false);
@@ -81,15 +84,18 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
           : 1;
       },
     });
-    const stop = autorun(() => {
+    const clear = () => {
       // SPA navigation keeps the iframe but must discard the previous target.
-      void previewCtx.previewData;
       win.dispatchEvent(
         new (win as Window & typeof globalThis).CustomEvent(
           "plasmic-agent-cursor",
           { detail: { action: "clear" } },
         ),
       );
+    };
+    clear();
+    const stop = previewCtx.store.subscribe((next, previous) => {
+      if (next.previewData !== previous.previewData) { clear(); }
     });
     return () => {
       stop();
@@ -97,7 +103,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     };
   }, [frameLoaded, frameRef.current, previewCtx, t, token.colorPrimary]);
 
-  const usedPkgs = usedHostLessPkgs(previewCtx.studioCtx.site);
+  const usedPkgs = usePreviewPackages(previewCtx);
   const [installedPkgs, setInstalledPkgs] = React.useState<string[]>([]);
   const [installationStatus, setInstallationStatus] = React.useState<"idle" | "loading" | "failed">("idle");
   const isMounted = useMountedState();
@@ -327,20 +333,11 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     revealStudio,
   ]);
 
-  // This effect scrolls when the component or hash changes.
+  // Route inputs are subscribed independently of package installation.
   React.useEffect(() => {
-    return autorun(() => {
-      if (!frameRef.current || !previewCtx.isLive) {
-        return;
-      }
-
-      if (previewCtx.pageHash) {
-        scrollToHash();
-      } else {
-        frameRef.current.scrollTo(0, 0);
-      }
-    });
-  }, [frameRef.current, previewCtx]);
+    if (!frameRef.current || !isLive) { return; }
+    if (pageHash) { scrollToHash(); } else { frameRef.current.scrollTo(0, 0); }
+  }, [frameRef.current, previewCtx, isLive, route, pageHash]);
 
   return {
     frameRef,
@@ -360,13 +357,18 @@ const usePreviewStyles = createStyles(({ token }) => ({
   },
 }));
 
-export const PreviewFrame = observer(function PreviewFrame({
+export function PreviewFrame({
   previewCtx,
   onDimensionsChange,
 }: PreviewFrameProps) {
   const { styles: themeStyles } = usePreviewStyles();
   const { t: uiT } = useI18n();
   const studioCtx = previewCtx.studioCtx;
+  const hostUrl = useStore(studioCtx.uiEnvironment.store, (state) => state.hostUrl);
+  const full = usePreviewSelector(previewCtx, (state) => state.previewData?.full ?? false);
+  const viewportMode = usePreviewSelector(previewCtx, (state) => state.previewData?.viewport ?? "desktop");
+  const width = usePreviewSelector(previewCtx, (state) => state.previewData?.width ?? 320);
+  const height = usePreviewSelector(previewCtx, (state) => state.previewData?.height ?? 480);
   const stageRef = React.useRef<HTMLDivElement | null>(null);
   const iframeRef = React.useRef<HTMLIFrameElement | null>(null);
   const { frameRef, onLoad } = useLivePreview(previewCtx);
@@ -405,7 +407,7 @@ export const PreviewFrame = observer(function PreviewFrame({
 
   React.useEffect(() => {
     setDraft(null);
-  }, [previewCtx.viewport, previewCtx.width, previewCtx.height]);
+  }, [viewportMode, width, height]);
 
   const setFrameColor = React.useCallback(
     (
@@ -420,10 +422,10 @@ export const PreviewFrame = observer(function PreviewFrame({
   );
   useFrameBgColor(iframeRef, previewCtx, setFrameColor);
 
-  const fillsWindow = previewCtx.full || previewCtx.viewport === "desktop";
+  const fillsWindow = full || viewportMode === "desktop";
   const dimensions = draft ?? {
-    width: previewCtx.width,
-    height: previewCtx.height,
+    width: width,
+    height: height,
   };
   const scale = fillsWindow
     ? 1
@@ -431,7 +433,7 @@ export const PreviewFrame = observer(function PreviewFrame({
       ? drag.current.scale
       : getViewportScale(available, dimensions);
   const viewport = {
-    viewport: previewCtx.viewport,
+    viewport: viewportMode,
     ...(fillsWindow ? available : dimensions),
   };
 
@@ -467,7 +469,7 @@ export const PreviewFrame = observer(function PreviewFrame({
 
   return (
     <div
-      className={`${styles.viewport} ${themeStyles.root} ${previewCtx.full ? styles.full : ""}`}
+      className={`${styles.viewport} ${themeStyles.root} ${full ? styles.full : ""}`}
     >
       <div
         ref={stageRef}
@@ -497,7 +499,7 @@ export const PreviewFrame = observer(function PreviewFrame({
             src={
               maybeToggleTrailingSlash(
                 toggleTrailingSlash,
-                studioCtx.getHostUrl(),
+                hostUrl,
               ) + frameHash
             }
             ref={iframeRef}
@@ -523,8 +525,8 @@ export const PreviewFrame = observer(function PreviewFrame({
             data-test-id="live-frame"
           />
           {dragging && <div className="CanvasFrame__Cover" />}
-          {!previewCtx.full &&
-            previewCtx.viewport === "custom" &&
+          {!full &&
+            viewportMode === "custom" &&
             (["left", "right", "bottom"] as const).map((edge) => (
               <button
                 key={edge}
@@ -598,7 +600,29 @@ export const PreviewFrame = observer(function PreviewFrame({
       </div>
     </div>
   );
-});
+}
+
+function usePreviewPackages(previewCtx: PreviewCtx) {
+  const studioCtx = previewCtx.studioCtx;
+  const readPackages = () => {
+    const packages = usedHostLessPkgs(studioCtx.site);
+    return { packages, identities: packages.map((pkg) => getHostLessPkgIdentity(pkg, studioCtx.site)) };
+  };
+  const store = React.useMemo(() => createStore(readPackages), [studioCtx]);
+  React.useEffect(() => {
+    const sync = () => {
+      const next = readPackages();
+      const previous = store.getState();
+      if (next.identities.length !== previous.identities.length || next.identities.some((identity, index) => identity !== previous.identities[index])) { store.setState(next, true); }
+    };
+    const dispose = studioCtx.subscribeModelChanges((event) => {
+      if (event.type === "site-replaced" || event.summary.changes.some(({ path, changeNode }) => (path ?? [changeNode]).some(({ field }) => ["projectDependencies", "hostLessPackageInfo"].includes(field)))) { sync(); }
+    });
+    sync();
+    return dispose;
+  }, [studioCtx, store]);
+  return useStore(store, (state) => state.packages);
+}
 
 export function useFrameBgColor<T>(
   iframeRef: React.MutableRefObject<T | null>,
@@ -638,11 +662,10 @@ export function useFrameBgColor<T>(
 
   React.useEffect(() => {
     adjustBackgroundColor();
-  }, [
-    previewCtx.component,
-    previewCtx.variants,
-    previewCtx.global,
-    previewCtx.studioCtx.focusedFrame()?.bgColor,
-    iframeRef.current,
-  ]);
+    const stopRoute = previewCtx.store.subscribe((next, previous) => {
+      if (next.previewData !== previous.previewData) { adjustBackgroundColor(); }
+    });
+    const stopModel = previewCtx.studioCtx.subscribeModelChanges(() => adjustBackgroundColor());
+    return () => { stopRoute(); stopModel(); };
+  }, [previewCtx, iframeRef.current, setFrameColor]);
 }

@@ -13,11 +13,7 @@ import {
 } from "@/wab/shared/data-sources-meta/data-sources";
 import { capitalizeFirst } from "@/wab/shared/strs";
 import { DataSourceSchema } from "@plasmicapp/data-sources";
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import SqlString from "sqlstring";
 
-dayjs.extend(customParseFormat);
 
 export interface PostgresDataSource extends DataSource {
   source: "postgres";
@@ -97,22 +93,13 @@ const makeFields = (schemaData: DataSourceSchema, tableId?: string) => {
         }
       })
       .map((field) => {
-        const fieldSettings =
-          field.type === "enum"
-            ? {
-                listValues: (field.options ?? []).map((o) => ({
-                  value: o,
-                  title: o,
-                })),
-                allowCustomValues: true,
-              }
-            : undefined;
+        const options = field.type === "enum" ? (field.options ?? []).map((value) => ({ value, label: value })) : undefined;
         return [
           field.id,
           {
             type: field.type,
             label: field.label ?? capitalizeFirst(field.id),
-            fieldSettings,
+            options,
           },
         ];
       }),
@@ -367,71 +354,5 @@ export const POSTGRES_META: DataSourceMeta = {
     getOne: MAKE_DEFAULT_STANDARD_QUERIES.getOne("getMany"),
     create: MAKE_DEFAULT_STANDARD_QUERIES.create("create"),
     update: MAKE_DEFAULT_STANDARD_QUERIES.update("updateMany"),
-  },
-};
-
-const OPERATORS_NOT_AVAILABLE = ["proximity", "starts_with", "ends_with"];
-
-export const QueryBuilderPostgresConfig = {
-  types: {
-    text: {
-      valueSources: ["value"],
-      excludeOperators: OPERATORS_NOT_AVAILABLE,
-    },
-    datetime: {
-      valueSources: ["value"],
-      excludeOperators: OPERATORS_NOT_AVAILABLE,
-      widgets: {
-        datetime: {
-          widgetProps: {
-            timeFormat: "HH:mm:ss",
-            dateFormat: "YYYY-MM-DD",
-            valueFormat: "YYYY-MM-DDTHH:mm:ss",
-            sqlFormatValue: (val, _, wgtDef) => {
-              // If it's not a string, it's a dynamic value and we should keep it
-              if (typeof val === "string") {
-                const dateVal = dayjs(val, wgtDef.valueFormat, true);
-                if (!dateVal.isValid()) {
-                  return val;
-                }
-                return SqlString.escape(dateVal.format(wgtDef.valueFormat));
-              }
-              return val;
-            },
-          },
-        },
-      },
-    },
-    date: {
-      valueSources: ["value"],
-      excludeOperators: OPERATORS_NOT_AVAILABLE,
-      widgets: {
-        date: {
-          widgetProps: {
-            dateFormat: "YYYY-MM-DD",
-            valueFormat: "YYYY-MM-DD",
-            sqlFormatValue: (val, _, wgtDef) => {
-              // If it's not a string, it's a dynamic value and we should keep it
-              if (typeof val === "string") {
-                const dateVal = dayjs(val, wgtDef.valueFormat, true);
-                if (!dateVal.isValid()) {
-                  return val;
-                }
-                return SqlString.escape(dateVal.format(wgtDef.valueFormat));
-              }
-              return val;
-            },
-          },
-        },
-      },
-    },
-    number: {
-      valueSources: ["value"],
-      excludeOperators: OPERATORS_NOT_AVAILABLE,
-    },
-    boolean: {
-      valueSources: ["value"],
-      excludeOperators: OPERATORS_NOT_AVAILABLE,
-    },
   },
 };

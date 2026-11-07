@@ -1,7 +1,7 @@
 {
   "name": "@plasmicapp/prepass",
-  "version": "1.0.30",
-  "description": "Server-side prepass that fake-renders a React tree to prefetch all @plasmicapp/query data requirements.",
+  "version": "2.0.0",
+  "description": "Server-side React prerendering to prefetch Plasmic query data.",
   "homepage": "https://www.plasmic.app",
   "repository": {
     "type": "git",
@@ -15,7 +15,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=12"
+    "node": ">=20.9"
   },
   "scripts": {
     "build": "pnpm build:types && pnpm build:index",
@@ -27,15 +27,16 @@
     "prepublishOnly": "npm run build"
   },
   "devDependencies": {
-    "@types/react": "catalog:"
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "swr": "2.5.1"
   },
   "dependencies": {
-    "@plasmicapp/query": "workspace:*",
-    "@plasmicapp/react-ssr-prepass": "^2.0.9"
+    "@plasmicapp/query": "workspace:*"
   },
   "peerDependencies": {
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "license": "MIT",
   "exports": {

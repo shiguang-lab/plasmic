@@ -18,7 +18,6 @@ import {
 import { parseCssNumericNew } from "@/wab/shared/css";
 import { LENGTH_UNITS } from "@/wab/shared/css/types";
 import { Slider } from "antd";
-import { observer } from "mobx-react";
 import React, { useEffect } from "react";
 
 interface FilterEffectPanelProps {
@@ -33,7 +32,7 @@ const menuDescription = {
   "Color Effects": ["grayscale", "invert", "sepia"],
 };
 
-export const FilterEffectPanel = observer((props: FilterEffectPanelProps) => {
+export function FilterEffectPanel(props: FilterEffectPanelProps) {
   const { t: uiT } = useI18n();
   const { filterEffect, onChange } = props;
 
@@ -63,7 +62,7 @@ export const FilterEffectPanel = observer((props: FilterEffectPanelProps) => {
       <FilterEffectEditor {...props} />
     </>
   );
-});
+}
 
 const FilterEffectEditor = (props: FilterEffectPanelProps) => {
   const { t: uiT } = useI18n();

@@ -5,14 +5,24 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import { downloadImageAsset } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
 import { extractImageAssetUsages } from "@/wab/shared/core/image-assets";
 import { ImageAsset } from "@/wab/shared/model/classes";
-import { canWrite } from "@/wab/shared/ui-config-utils";
+import { canWrite, type UiAccess } from "@/wab/shared/ui-config-utils";
 import { MoreOutlined } from "@ant-design/icons";
 import { Button, Dropdown, Input, Typography } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
+
+type AssetEditAccess = Readonly<{
+  canSave: boolean;
+  images: UiAccess;
+  imagesSection: UiAccess;
+  iconsSection: UiAccess;
+}>;
 
 export const ResourceAssetActions = observer(function ResourceAssetActions({
   studioCtx,
@@ -26,16 +36,33 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
   const [name, setName] = React.useState(asset.name);
   const [busy, setBusy] = React.useState(false);
   const pending = React.useRef(false);
-  const canEdit = () =>
-    studioCtx.site.imageAssets.includes(asset) &&
-    studioCtx.canSave() &&
-    canWrite(
-      studioCtx.getLeftTabPermission("images"),
-      studioCtx.getLeftTabPermission(
-        asset.type === ImageAssetType.Icon ? "iconsSection" : "imagesSection",
-      ),
+  const canSave = useStudioSaveState(studioCtx, (state) => state.canSave);
+  const [imagesPermission, imagesSectionPermission, iconsSectionPermission] =
+    useStore(
+      studioCtx.uiEnvironment.store,
+      useShallow((state) => [
+        state.leftTabPermissions.images,
+        state.leftTabPermissions.imagesSection,
+        state.leftTabPermissions.iconsSection,
+      ] as const),
     );
-  const editable = canEdit();
+  const canEdit = (access?: AssetEditAccess) =>
+    studioCtx.site.imageAssets.includes(asset) &&
+    (access?.canSave ?? studioCtx.canSave()) &&
+    canWrite(
+      access?.images ?? studioCtx.getLeftTabPermission("images"),
+      asset.type === ImageAssetType.Icon
+        ? (access?.iconsSection ??
+            studioCtx.getLeftTabPermission("iconsSection"))
+        : (access?.imagesSection ??
+            studioCtx.getLeftTabPermission("imagesSection")),
+    );
+  const editable = canEdit({
+    canSave,
+    images: imagesPermission,
+    imagesSection: imagesSectionPermission,
+    iconsSection: iconsSectionPermission,
+  });
 
   async function mutate(action: "rename" | "delete") {
     if (

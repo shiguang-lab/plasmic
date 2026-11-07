@@ -234,7 +234,7 @@ export const SelectOptionPlugin: PlumePlugin = {
   tagToAttachEventHandlers: "option",
 };
 
-export function getSelectOptionValue(elt: React.ReactElement) {
+export function getSelectOptionValue(elt: React.ReactElement<{ value: string }>) {
   assert(
     (elt.type as any).__plumeType === "select-option",
     `Expected plume type to be 'select-option', but found: ${

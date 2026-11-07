@@ -1,9 +1,10 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var host = require('@plasmicapp/host');
 var Ant = require('antd');
 var React = require('react');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
@@ -48,51 +49,62 @@ function TablePaginationControl({
     }
     updateValue(result);
   };
-  return /* @__PURE__ */ React__default.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" } }, /* @__PURE__ */ React__default.default.createElement(
-    Ant.Checkbox,
-    {
-      styles: checkboxStyles,
-      checked: value !== false,
-      onChange: (e) => updateValue(e.target.checked ? { ...options } : false)
-    },
-    "Show pagination"
-  ), value !== false && /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, /* @__PURE__ */ React__default.default.createElement("label", { style: rowStyle }, "Page size", " ", /* @__PURE__ */ React__default.default.createElement(
-    Ant.Input,
-    {
-      type: "number",
-      style: inputStyle,
-      "aria-label": "Page size",
-      min: 1,
-      step: 1,
-      value: options.pageSize ?? options.defaultPageSize ?? "",
-      placeholder: "10",
-      onChange: (e) => {
-        if (!e.target.validity.valid) {
-          return;
-        }
-        update(
-          options.pageSize !== void 0 ? "pageSize" : "defaultPageSize",
-          e.target.value === "" ? null : Number(e.target.value)
-        );
+  return /* @__PURE__ */ jsxRuntime.jsxs("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" }, children: [
+    /* @__PURE__ */ jsxRuntime.jsx(
+      Ant.Checkbox,
+      {
+        styles: checkboxStyles,
+        checked: value !== false,
+        onChange: (e) => updateValue(e.target.checked ? { ...options } : false),
+        children: "Show pagination"
       }
-    }
-  )), /* @__PURE__ */ React__default.default.createElement(
-    Ant.Checkbox,
-    {
-      styles: checkboxStyles,
-      checked: options.showSizeChanger ?? (options.total ?? componentProps?.data?.data?.length ?? 0) > 50,
-      onChange: (e) => update("showSizeChanger", e.target.checked)
-    },
-    "Show size changer"
-  ), /* @__PURE__ */ React__default.default.createElement(
-    Ant.Checkbox,
-    {
-      styles: checkboxStyles,
-      checked: options.showQuickJumper ?? false,
-      onChange: (e) => update("showQuickJumper", e.target.checked)
-    },
-    "Show quick jumper"
-  )));
+    ),
+    value !== false && /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
+      /* @__PURE__ */ jsxRuntime.jsxs("label", { style: rowStyle, children: [
+        "Page size",
+        " ",
+        /* @__PURE__ */ jsxRuntime.jsx(
+          Ant.Input,
+          {
+            type: "number",
+            style: inputStyle,
+            "aria-label": "Page size",
+            min: 1,
+            step: 1,
+            value: options.pageSize ?? options.defaultPageSize ?? "",
+            placeholder: "10",
+            onChange: (e) => {
+              if (!e.target.validity.valid) {
+                return;
+              }
+              update(
+                options.pageSize !== void 0 ? "pageSize" : "defaultPageSize",
+                e.target.value === "" ? null : Number(e.target.value)
+              );
+            }
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntime.jsx(
+        Ant.Checkbox,
+        {
+          styles: checkboxStyles,
+          checked: options.showSizeChanger ?? (options.total ?? componentProps?.data?.data?.length ?? 0) > 50,
+          onChange: (e) => update("showSizeChanger", e.target.checked),
+          children: "Show size changer"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntime.jsx(
+        Ant.Checkbox,
+        {
+          styles: checkboxStyles,
+          checked: options.showQuickJumper ?? false,
+          onChange: (e) => update("showQuickJumper", e.target.checked),
+          children: "Show quick jumper"
+        }
+      )
+    ] })
+  ] });
 }
 function TableScrollControl({
   value,
@@ -108,37 +120,46 @@ function TableScrollControl({
     }
     updateValue(result);
   };
-  return /* @__PURE__ */ React__default.default.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" } }, /* @__PURE__ */ React__default.default.createElement("label", { style: rowStyle }, /* @__PURE__ */ React__default.default.createElement(Ant.Tooltip, { title: "Horizontal scroll width in pixels, a percentage, or max-content. Leave empty to fit the container without horizontal scrolling." }, /* @__PURE__ */ React__default.default.createElement("span", null, "x")), /* @__PURE__ */ React__default.default.createElement(
-    Ant.Input,
-    {
-      type: "text",
-      style: inputStyle,
-      "aria-label": "scroll.x",
-      value: options.x ?? "",
-      onChange: (e) => {
-        const text = e.target.value.trim();
-        update(
-          "x",
-          text && Number.isFinite(Number(text)) ? Number(text) : text
-        );
-      }
-    }
-  )), /* @__PURE__ */ React__default.default.createElement("label", { style: rowStyle }, /* @__PURE__ */ React__default.default.createElement(Ant.Tooltip, { title: "Table body height in pixels. Leave empty to grow with content." }, /* @__PURE__ */ React__default.default.createElement("span", null, "y")), /* @__PURE__ */ React__default.default.createElement(
-    Ant.Input,
-    {
-      type: "number",
-      style: inputStyle,
-      "aria-label": "scroll.y",
-      min: 1,
-      value: options.y ?? "",
-      onChange: (e) => {
-        if (!e.target.validity.valid) {
-          return;
+  return /* @__PURE__ */ jsxRuntime.jsxs("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" }, children: [
+    /* @__PURE__ */ jsxRuntime.jsxs("label", { style: rowStyle, children: [
+      /* @__PURE__ */ jsxRuntime.jsx(Ant.Tooltip, { title: "Horizontal scroll width in pixels, a percentage, or max-content. Leave empty to fit the container without horizontal scrolling.", children: /* @__PURE__ */ jsxRuntime.jsx("span", { children: "x" }) }),
+      /* @__PURE__ */ jsxRuntime.jsx(
+        Ant.Input,
+        {
+          type: "text",
+          style: inputStyle,
+          "aria-label": "scroll.x",
+          value: options.x ?? "",
+          onChange: (e) => {
+            const text = e.target.value.trim();
+            update(
+              "x",
+              text && Number.isFinite(Number(text)) ? Number(text) : text
+            );
+          }
         }
-        update("y", e.target.value === "" ? null : Number(e.target.value));
-      }
-    }
-  )));
+      )
+    ] }),
+    /* @__PURE__ */ jsxRuntime.jsxs("label", { style: rowStyle, children: [
+      /* @__PURE__ */ jsxRuntime.jsx(Ant.Tooltip, { title: "Table body height in pixels. Leave empty to grow with content.", children: /* @__PURE__ */ jsxRuntime.jsx("span", { children: "y" }) }),
+      /* @__PURE__ */ jsxRuntime.jsx(
+        Ant.Input,
+        {
+          type: "number",
+          style: inputStyle,
+          "aria-label": "scroll.y",
+          min: 1,
+          value: options.y ?? "",
+          onChange: (e) => {
+            if (!e.target.validity.valid) {
+              return;
+            }
+            update("y", e.target.value === "" ? null : Number(e.target.value));
+          }
+        }
+      )
+    ] })
+  ] });
 }
 
 function AntdColumn(props) {
@@ -165,7 +186,7 @@ function AntdColumn(props) {
 }
 const AntdColumnGroup = Object.assign(
   function AntdColumnGroup2(props) {
-    return /* @__PURE__ */ React__default.default.createElement(AntdColumn, { ...props });
+    return /* @__PURE__ */ jsxRuntime.jsx(AntdColumn, { ...props });
   },
   { __ANT_TABLE_COLUMN_GROUP: true }
 );
@@ -266,15 +287,15 @@ function TableWithColumns({
   ) && typeof children.props.children === "function") {
     const renderChildren = children.props.children;
     return React__default.default.cloneElement(children, {
-      children: (...args) => /* @__PURE__ */ React__default.default.createElement(
+      children: (...args) => /* @__PURE__ */ jsxRuntime.jsx(
         TableWithColumns,
         {
           ...props,
           components,
           contentEditing,
-          fullContentView
-        },
-        renderChildren(...args)
+          fullContentView,
+          children: renderChildren(...args)
+        }
       )
     });
   }
@@ -305,7 +326,7 @@ function TableWithColumns({
     return contentEditing ? expandColumns(visible) : visible;
   };
   if (columns !== void 0) {
-    return /* @__PURE__ */ React__default.default.createElement(
+    return /* @__PURE__ */ jsxRuntime.jsx(
       Ant.Table,
       {
         ...props,
@@ -317,29 +338,32 @@ function TableWithColumns({
     );
   }
   const body = typeof components?.body === "object" ? components.body : void 0;
-  return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, canvas && !canvas.interactive && /* @__PURE__ */ React__default.default.createElement("style", { "data-plasmic-editor-style": true }, "[data-plasmic-table-column-selected] { outline: 1px solid #1677ff; background: #e6f4ff !important; }"), /* @__PURE__ */ React__default.default.createElement(
-    Ant.Table,
-    {
-      ...props,
-      pagination,
-      "data-plasmic-canvas-part-scope": canvas && !canvas.interactive ? "true" : void 0,
-      columns: (() => {
-        const resolved = getColumns(
-          children,
-          body?.cell ?? "td",
-          components?.header?.cell ?? "th",
-          !!canvas && !canvas.interactive
-        );
-        return prepareColumns(resolved);
-      })(),
-      ...editingProps,
-      components: {
-        ...components,
-        header: { ...components?.header, cell: TableHeaderCell },
-        body: typeof components?.body === "function" ? components.body : { ...body, cell: TableBodyCell }
+  return /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
+    canvas && !canvas.interactive && /* @__PURE__ */ jsxRuntime.jsx("style", { "data-plasmic-editor-style": true, children: "[data-plasmic-table-column-selected] { outline: 1px solid #1677ff; background: #e6f4ff !important; }" }),
+    /* @__PURE__ */ jsxRuntime.jsx(
+      Ant.Table,
+      {
+        ...props,
+        pagination,
+        "data-plasmic-canvas-part-scope": canvas && !canvas.interactive ? "true" : void 0,
+        columns: (() => {
+          const resolved = getColumns(
+            children,
+            body?.cell ?? "td",
+            components?.header?.cell ?? "th",
+            !!canvas && !canvas.interactive
+          );
+          return prepareColumns(resolved);
+        })(),
+        ...editingProps,
+        components: {
+          ...components,
+          header: { ...components?.header, cell: TableHeaderCell },
+          body: typeof components?.body === "function" ? components.body : { ...body, cell: TableBodyCell }
+        }
       }
-    }
-  ));
+    )
+  ] });
 }
 const AntdTable = React__default.default.forwardRef(function AntdTable2(props, ref) {
   const {
@@ -467,7 +491,7 @@ const AntdTable = React__default.default.forwardRef(function AntdTable2(props, r
       isControlled
     ]
   );
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     TableWithColumns,
     {
       loading: data?.isLoading,

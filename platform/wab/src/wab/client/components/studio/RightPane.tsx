@@ -1,3 +1,8 @@
+import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
+import { useInspectorPending } from "@/wab/client/studio-ctx/inspector-state";
 import CommentsTab from "@/wab/client/components/comments/CommentsTab";
 import { DevContainer } from "@/wab/client/components/dev";
 import { FrameSelectionPanel } from "@/wab/client/components/sidebar-tabs/FrameSelectionPanel";
@@ -12,12 +17,14 @@ import { providesSidebarPopupSetting } from "@/wab/client/components/style-contr
 import * as widgets from "@/wab/client/components/widgets";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { RightTabKey, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { selectPanelsHidden } from "@/wab/client/studio-ctx/left-panel-state";
 import { isTplComponent, summarizeTpl } from "@/wab/shared/core/tpls";
 import { isKnownTplTag } from "@/wab/shared/model/classes";
 import { Tabs } from "antd";
 import cx from "classnames";
 import { observer } from "mobx-react";
 import React from "react";
+import { useStore } from "zustand";
 
 export const RightPane = observer(function RightPane({
   studioCtx,
@@ -26,9 +33,18 @@ export const RightPane = observer(function RightPane({
   studioCtx: StudioCtx;
   canvasLoading: boolean;
 }) {
+  useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view]));
   const [hover, setHover] = React.useState(false);
+  const pending = useInspectorPending(studioCtx);
+  const devMode = useStudioRenderPolicy(studioCtx, (state) => state.devMode);
+  const panelsHidden = useStore(
+    studioCtx.leftPanelState.store,
+    selectPanelsHidden,
+  );
 
   const focusedViewCtx = studioCtx.focusedViewCtx();
+  useStudioArena(studioCtx, useShallow((state) => [state.current, state.frames[0]] as const));
+  useViewSelection(focusedViewCtx, useShallow((state) => [state.doms, state.part, state.targets, state.tpls]));
   const isFrameSelection = studioCtx.focusedFrames().length > 1;
   const selectionCount = isFrameSelection
     ? studioCtx.focusedFrames().length
@@ -83,7 +99,7 @@ export const RightPane = observer(function RightPane({
         name: <UiText message={"Data"} />,
         key: RightTabKey.component,
         contents: () => (
-          !studioCtx.isSelectionPending && <ComponentOrPageTab
+          !pending && <ComponentOrPageTab
             studioCtx={studioCtx}
             viewCtx={focusedOrFirstViewCtx}
           />
@@ -102,8 +118,8 @@ export const RightPane = observer(function RightPane({
     studioCtx.showComments() && studioCtx.showCommentsPanel;
   const open =
     !canvasLoading &&
-    studioCtx.showDevControls &&
-    !studioCtx.panelsHidden &&
+    devMode &&
+    !panelsHidden &&
     (tabs.length > 0 || showCommentsPanel || isFrameSelection);
 
   return providesSidebarPopupSetting({ left: false })(
@@ -143,9 +159,9 @@ export const RightPane = observer(function RightPane({
               </strong>
             </div>
             {isFrameSelection ? (
-              !studioCtx.isSelectionPending && <FrameSelectionPanel studioCtx={studioCtx} />
+              !pending && <FrameSelectionPanel studioCtx={studioCtx} />
             ) : isMultiSelection && focusedViewCtx ? (
-              !studioCtx.isSelectionPending && <MultiSelectionPanel viewCtx={focusedViewCtx} />
+              !pending && <MultiSelectionPanel viewCtx={focusedViewCtx} />
             ) : (
               <Tabs
                 className="editor-inspector-tabs"

@@ -1283,7 +1283,7 @@ export class ViewOps {
    * If editing is blocked, returns an error message; otherwise returns
    * undefined.
    */
-  private textEditingIsBlocked(textValNode: ValTag): JSX.Element | undefined {
+  private textEditingIsBlocked(textValNode: ValTag): React.JSX.Element | undefined {
     const vtm = this.viewCtx().variantTplMgr();
     const effectiveVs = this.viewCtx().effectiveCurrentVariantSetting(
       textValNode.tpl,

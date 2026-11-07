@@ -1,3 +1,5 @@
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useCanvasGeometry, useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import {
   ManipState,
   ManipulatorAbortedError,
@@ -110,6 +112,7 @@ const insertionStripThickness = 4;
 const insertionStripExtension = 0;
 
 function DndMarkers_(props: { viewCtx: ViewCtx }) {
+  useViewSelection(props.viewCtx, (state) => state.tpls);
   return (
     <>
       {props.viewCtx.focusedTpls().map((tpl, i) => {
@@ -129,6 +132,7 @@ export const DndMarkers = observer(DndMarkers_);
 
 function DndTentativeContainerMarker_(props: { viewCtx: ViewCtx }) {
   const vc = props.viewCtx;
+  const geometry = useCanvasGeometry(vc.studioCtx);
   const ins = vc.getDndTentativeInsertion();
 
   if (!ins) {
@@ -238,7 +242,7 @@ function DndTentativeContainerMarker_(props: { viewCtx: ViewCtx }) {
       style={{
         top: containerRect.top,
         left: containerRect.left,
-        ...cssPropsForInvertTransform(vc.studioCtx.zoom, {
+        ...cssPropsForInvertTransform(geometry.scale, {
           width: containerRect.width,
           height: containerRect.height,
         }),
@@ -263,6 +267,7 @@ export const DndTentativeContainerMarker = observer(
 
 function DndTentativeSlotDropMarker_(props: { viewCtx: ViewCtx }) {
   const vc = props.viewCtx;
+  const geometry = useCanvasGeometry(vc.studioCtx);
   const ins = vc.getDndTentativeInsertion();
   if (!ins || ins.type !== "SiblingInsertion") {
     return null;
@@ -282,7 +287,7 @@ function DndTentativeSlotDropMarker_(props: { viewCtx: ViewCtx }) {
       style={{
         left: scalerMarkerBox.left(),
         top: scalerMarkerBox.top(),
-        ...cssPropsForInvertTransform(vc.studioCtx.zoom, {
+        ...cssPropsForInvertTransform(geometry.scale, {
           width: scalerMarkerBox.width(),
           height: scalerMarkerBox.height(),
         }),
@@ -294,6 +299,7 @@ export const DndTentativeSlotDropMarker = observer(DndTentativeSlotDropMarker_);
 
 export function DndAdoptee() {
   const vc = useViewCtx();
+  const zoom = useCanvasZoom(vc.studioCtx);
   const getParentLoc = L.memoize(() => {
     const elt = ensure(
       vc.canvasCtx.viewport().parentElement,
@@ -312,7 +318,7 @@ export function DndAdoptee() {
     return {
       top: r.top,
       left: r.left,
-      ...cssPropsForInvertTransform(vc.studioCtx.zoom, {
+      ...cssPropsForInvertTransform(zoom, {
         width: r.width,
         height: r.height,
       }),

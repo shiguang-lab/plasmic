@@ -351,7 +351,7 @@ export const queryContentfulMeta: CustomFunctionMeta<typeof queryContentful> = {
             }
 
             return {
-              fields: {},
+              fields: [],
             };
           },
         },

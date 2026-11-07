@@ -1,8 +1,9 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var React = require('react');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
@@ -13,7 +14,7 @@ var React__default = /*#__PURE__*/_interopDefault(React);
 
 function AntdPagination(props) {
   const { paginatedUrl, pageSizeOptions, ...rest } = props;
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant.Pagination,
     {
       pageSizeOptions: pageSizeOptions?.filter((i) => i?.pageSize).map((i) => i.pageSize),
@@ -30,9 +31,9 @@ function AntdPagination(props) {
           ...originalElement.props,
           rel,
           href,
-          style: {
-            ...originalElement.props?.style ?? {},
-            pointerEvents: "none"
+          onClick: (event) => {
+            originalElement.props.onClick?.(event);
+            event.preventDefault();
           }
         });
       } : void 0,

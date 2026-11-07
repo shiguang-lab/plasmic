@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import { ComponentMeta } from '@plasmicapp/loader-react/react-server-conditional';
 import { ComponentRenderData } from '@plasmicapp/loader-react/react-server-conditional';
 import type { IncomingMessage } from 'http';

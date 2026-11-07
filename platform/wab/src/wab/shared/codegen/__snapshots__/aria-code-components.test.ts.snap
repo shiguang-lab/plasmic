@@ -982,7 +982,6 @@ const $$ = {};
 
 
 
-
     function PlasmicButton__RenderFunc(
       props: {
         variants: PlasmicButton__VariantsArgs,
@@ -2251,7 +2250,6 @@ const $$ = {};
 
 
 
-
     function PlasmicDataFetcherGrandParent__RenderFunc(
       props: {
         variants: PlasmicDataFetcherGrandParent__VariantsArgs,
@@ -2533,7 +2531,6 @@ export type PlasmicDataFetcherParent__OverridesType = {
 
 
 const $$ = {};
-
 
 
 
@@ -2837,7 +2834,6 @@ text?: Flex__<"div">;
 
 
 const $$ = {};
-
 
 
 
@@ -3457,7 +3453,6 @@ const $$ = {};
 
 
 
-
     function PlasmicModalDialog__RenderFunc(
       props: {
         variants: PlasmicModalDialog__VariantsArgs,
@@ -3998,7 +3993,6 @@ const $$ = {};
 
 
 
-
     function PlasmicMyOverlayArrow__RenderFunc(
       props: {
         variants: PlasmicMyOverlayArrow__VariantsArgs,
@@ -4488,7 +4482,6 @@ helloWorld?: Flex__<typeof HelloWorld>;
 
 
 const $$ = {};
-
 
 
 
@@ -5002,7 +4995,6 @@ const $$ = {};
 
 
 
-
     function PlasmicPopover__RenderFunc(
       props: {
         variants: PlasmicPopover__VariantsArgs,
@@ -5419,7 +5411,6 @@ popover?: Flex__<typeof Popover>;
 
 
 const $$ = {};
-
 
 
 
@@ -5906,7 +5897,6 @@ const $$ = {};
 
 
 
-
     function PlasmicTooltip__RenderFunc(
       props: {
         variants: PlasmicTooltip__VariantsArgs,
@@ -6375,7 +6365,8 @@ declare module '*.module.css' {
       
       
       :where(.root_reset_1234567890) {
-      font-family: var(--mixin-xbpnamo4RagB_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-xbpnamo4RagB_font-family);
 font-size: var(--mixin-xbpnamo4RagB_font-size);
 font-weight: var(--mixin-xbpnamo4RagB_font-weight);
 font-style: var(--mixin-xbpnamo4RagB_font-style);
@@ -6534,6 +6525,7 @@ column-gap: var(--mixin-SFG6O5da3UHa_column-gap);
   
 --- plasmic__default_style.css ---
 
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.plasmic_default__all) {   display: block;
   white-space: inherit;
   grid-row: auto;
@@ -7824,7 +7816,6 @@ const $$ = {};
 
 
 
-
     function PlasmicButton__RenderFunc(
       props: {
         variants: PlasmicButton__VariantsArgs,
@@ -9093,7 +9084,6 @@ const $$ = {};
 
 
 
-
     function PlasmicDataFetcherGrandParent__RenderFunc(
       props: {
         variants: PlasmicDataFetcherGrandParent__VariantsArgs,
@@ -9375,7 +9365,6 @@ export type PlasmicDataFetcherParent__OverridesType = {
 
 
 const $$ = {};
-
 
 
 
@@ -9679,7 +9668,6 @@ text?: Flex__<"div">;
 
 
 const $$ = {};
-
 
 
 
@@ -10299,7 +10287,6 @@ const $$ = {};
 
 
 
-
     function PlasmicModalDialog__RenderFunc(
       props: {
         variants: PlasmicModalDialog__VariantsArgs,
@@ -10840,7 +10827,6 @@ const $$ = {};
 
 
 
-
     function PlasmicMyOverlayArrow__RenderFunc(
       props: {
         variants: PlasmicMyOverlayArrow__VariantsArgs,
@@ -11330,7 +11316,6 @@ helloWorld?: Flex__<typeof HelloWorld>;
 
 
 const $$ = {};
-
 
 
 
@@ -11844,7 +11829,6 @@ const $$ = {};
 
 
 
-
     function PlasmicPopover__RenderFunc(
       props: {
         variants: PlasmicPopover__VariantsArgs,
@@ -12261,7 +12245,6 @@ popover?: Flex__<typeof Popover>;
 
 
 const $$ = {};
-
 
 
 
@@ -12748,7 +12731,6 @@ const $$ = {};
 
 
 
-
     function PlasmicTooltip__RenderFunc(
       props: {
         variants: PlasmicTooltip__VariantsArgs,
@@ -13216,6 +13198,7 @@ declare module '*.module.css' {
       
       
       
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.all) {   display: block;
   white-space: inherit;
   grid-row: auto;
@@ -13506,7 +13489,8 @@ declare module '*.module.css' {
 .plasmic_page_wrapper > * { height: auto !important; }
 .__wab_expr_html_text { white-space: normal; }
       :where(.root_reset_1234567890) {
-      font-family: var(--mixin-xbpnamo4RagB_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-xbpnamo4RagB_font-family);
 font-size: var(--mixin-xbpnamo4RagB_font-size);
 font-weight: var(--mixin-xbpnamo4RagB_font-weight);
 font-style: var(--mixin-xbpnamo4RagB_font-style);
@@ -13665,6 +13649,7 @@ column-gap: var(--mixin-SFG6O5da3UHa_column-gap);
   
 --- plasmic__default_style.css ---
 
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.all) {   display: block;
   white-space: inherit;
   grid-row: auto;

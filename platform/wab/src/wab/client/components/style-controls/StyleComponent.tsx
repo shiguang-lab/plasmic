@@ -1,3 +1,8 @@
+import { useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
+import type { NativeStyleSource, SingleRsReadRecipe } from "@/wab/client/studio-ctx/style-inputs";
+import { computeSingleRsDefinedIndicator } from "@/wab/shared/defined-indicator";
+import { useFocusedViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 
 import {
@@ -89,6 +94,8 @@ import {
 import {
   ensureKnownTplTag,
   isKnownTplTag,
+  Component,
+  Site,
   Mixin,
   RuleSet,
   StyleToken,
@@ -783,7 +790,7 @@ interface StylePanelSectionProps extends StyleComponentProps {
   onExtraContentExpanded?: () => void;
 }
 
-export const StylePanelSection = observer(forwardRef(StylePanelSection_));
+export const StylePanelSection = forwardRef(StylePanelSection_);
 
 function StylePanelSection_(
   props: StylePanelSectionProps,
@@ -808,14 +815,13 @@ function StylePanelSection_(
     ...otherProps
   } = props;
   const studioCtx = expsProvider.studioCtx;
-  const isEditingNonBaseVariant =
-    studioCtx.focusedViewCtx()?.isEditingNonBaseVariant;
+  useStudioSelection(studioCtx, (state) => state.view);
+  const isEditingNonBaseVariant = useFocusedViewVariants(studioCtx, (variantState) => variantState.isEditingNonBaseVariant);
   const isMixin = expsProvider instanceof SingleRsExpsProvider;
   const unremovableProps =
     unremovableStyleProps && !isMixin ? unremovableStyleProps : [];
 
-  const definedIndicators = styleProps
-    .map((p) => expsProvider.definedIndicator(p))
+  const definedIndicators = useStyleIndicators(expsProvider, styleProps)
     .filter((x) => {
       // Filter definedIndicator for properties that are included in ignorableStyleProps or match the default style props
       if (!isEditingNonBaseVariant && isIndicatorExplicitlySet(x)) {
@@ -830,8 +836,7 @@ function StylePanelSection_(
       return x.source !== "none";
     });
 
-  const collapsableDefinedIndicators = collapsableIndicatorNames
-    .map((p) => expsProvider.definedIndicator(p))
+  const collapsableDefinedIndicators = useStyleIndicators(expsProvider, collapsableIndicatorNames)
     .filter((x) => x.source !== "none");
 
   const headerOverlay = () => {
@@ -1058,6 +1063,7 @@ export interface ExpsProvider {
   isPropRemovable: (prop: string) => boolean;
 
   definedIndicator: (prop: string) => DefinedIndicatorType;
+  getNativeStyleSource(): NativeStyleSource;
 }
 
 export class FlexControlHelper {
@@ -1142,8 +1148,10 @@ export class SingleRsExpsProvider implements ExpsProvider {
     private readonly rsh: IRuleSetHelpersX,
     public readonly studioCtx: StudioCtx,
     private readonly unremovableProps: string[],
+    private readonly readRecipe: SingleRsReadRecipe,
     private readonly themeTag?: ThemableTag,
-  ) {}
+  ) { this.nativeStyleInputs = studioCtx.singleRsStyleInputs; }
+  private readonly nativeStyleInputs: StudioCtx["singleRsStyleInputs"];
   maybeTargetExp = () => this.rsh;
   targetExp = () => this.rsh;
   targetRs = () => this.rs;
@@ -1176,23 +1184,21 @@ export class SingleRsExpsProvider implements ExpsProvider {
 
   isPropRemovable = (prop: string) => !this.unremovableProps.includes(prop);
 
-  definedIndicator = (prop: string): DefinedIndicatorType => {
-    if (this.rsh.has(prop)) {
-      return {
-        source: "setNonVariable",
-        prop,
-        value: ensure(this.rsh.getRaw(prop), "value should be set"),
-        themeTag: this.themeTag,
-      };
-    } else {
-      return { source: "none" };
-    }
-  };
+  definedIndicator = (prop: string): DefinedIndicatorType =>
+    computeSingleRsDefinedIndicator(this.rsh, prop, this.themeTag);
+
+  getNativeStyleSource = (): NativeStyleSource => ({ kind: "singleRs", inputs: this.nativeStyleInputs,
+    source: { kind: "singleRs", read: this.readRecipe, themeTag: this.themeTag } });
+
 }
 
 export class TplExpsProvider implements ExpsProvider {
   private readonly selection: InspectorSelection | undefined;
   private vtm: VariantTplMgr;
+  private readonly nativeStyleInputs: ViewCtx["styleInputs"];
+  private readonly nativeStyleSite: Site;
+  private readonly nativeStyleComponent: Component;
+  private readonly nativeContextKey: string;
   targetVariantCombo: VariantCombo;
   activeVariantCombo: VariantCombo;
   targetIndicatorCombo: VariantCombo;
@@ -1203,6 +1209,10 @@ export class TplExpsProvider implements ExpsProvider {
     readonly tpl: TplTag | TplComponent | TplSlot,
   ) {
     this.studioCtx = viewCtx.studioCtx;
+    this.nativeStyleInputs = viewCtx.styleInputs;
+    this.nativeStyleSite = viewCtx.site;
+    this.nativeStyleComponent = viewCtx.currentComponent();
+    this.nativeContextKey = viewCtx.componentStackFrames().map((frame) => frame.tplComponent.uid).join(".") + ":" + (viewCtx.selectionStore.getState().context?.valFullKey ?? "");
     this.selection = this.studioCtx.inspectorSelection;
     // We request a fixed componentStackFrame so that we don't use stale
     // inconsistent ComponentStackFrames for tpl.
@@ -1268,7 +1278,7 @@ export class TplExpsProvider implements ExpsProvider {
     });
   };
 
-  forDom = () => this.selection ? this.selection.dom : this.viewCtx.focusedDomElt();
+  forDom = () => this.selection ? this.selection.domStore().getState() : this.viewCtx.focusedDomElt();
 
   canEdit = () => canEditInspectorSelection(this.studioCtx, this.selection);
 
@@ -1335,6 +1345,17 @@ export class TplExpsProvider implements ExpsProvider {
       this.targetIndicatorCombo,
     );
   };
+  getNativeStyleSource = (): NativeStyleSource => ({
+    kind: "tpl", inputs: this.nativeStyleInputs,
+    source: { kind: "tpl", tpl: this.tpl, site: this.nativeStyleSite, component: this.nativeStyleComponent,
+      contextKey: this.nativeContextKey, readContext: () => {
+        const activeVariantCombo = this.vtm.getEffectiveVariantComboForNode(this.tpl);
+        return { activeVariantCombo, targetVariantCombo: this.vtm.getTargetVariantComboForNode(this.tpl),
+          targetIndicatorCombo: this.vtm.getTargetIndicatorComboForNode(this.tpl),
+          effectiveVariantSetting: this.vtm.effectiveVariantSetting(this.tpl, activeVariantCombo) };
+      } },
+  });
+
 }
 
 export function makeMobxExpProxy(exp: IRuleSetHelpersX) {

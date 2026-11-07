@@ -1,30 +1,27 @@
 import { setElementStyles } from "@/wab/client/dom-utils";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { autorun } from "mobx";
+import { subscribeViewport } from "@/wab/client/studio-ctx/viewport-state";
 import * as React from "react";
-import { RefObject, useCallback, useMemo } from "react";
+import { RefObject, useCallback } from "react";
 
 export function useZoomStyledRef<T extends HTMLElement>(
   fn: (zoom: number) => Partial<CSSStyleDeclaration>,
-  ref?: RefObject<T>,
+  ref?: RefObject<T | null>,
 ) {
   const studioCtx = useStudioCtx();
-  const id = useMemo(() => Math.random().toString(36).substr(2), []);
-  const _ref = ref || React.useRef<T>(null);
+  const ownRef = React.useRef<T>(null);
+  const _ref = ref ?? ownRef;
 
   React.useEffect(() => {
-    const dispose = autorun(
-      () => {
-        if (_ref.current) {
-          setElementStyles(_ref.current, fn(studioCtx.zoom));
-        }
-      },
-      {
-        name: `zoomStyledRef_${id}`,
-      },
-    );
-    return () => dispose();
-  }, [fn, studioCtx, studioCtx.focusedViewCtx()?.arenaFrame()]);
+    const update = (zoom: number) => {
+      if (_ref.current) {
+        setElementStyles(_ref.current, fn(zoom));
+      }
+    };
+    const stopZoom = subscribeViewport(studioCtx, (state) => state.scale, update);
+    update(studioCtx.viewportCtx?.store.getState().scale ?? 1);
+    return stopZoom;
+  }, [fn, studioCtx, _ref]);
 
   return _ref;
 }
@@ -48,7 +45,7 @@ export function useScaledElementRef<T extends HTMLElement>({
               1 / zoom,
             )}) ${extraTransformation}`,
           },
-    [minZoom, extraTransformation],
+    [minZoom, extraTransformation, disableScaling],
   );
   return useZoomStyledRef<T>(callback);
 }

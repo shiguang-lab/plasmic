@@ -2,15 +2,13 @@ import { Textbox } from "@/wab/client/components/widgets/Textbox";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { getResponsiveStrategy } from "@/wab/shared/core/sites";
+import { useResponsiveStrategy } from "@/wab/client/studio-ctx/responsive-strategy-state";
 import { ScreenSizeSpec } from "@/wab/shared/css-size";
 import { ResponsiveStrategy } from "@/wab/shared/responsiveness";
 import { Button, Col, Row } from "antd";
-import { observer } from "mobx-react";
 import React, { FormEvent, useState } from "react";
 
-export const NewScreenVariantForm = observer(NewScreenVariantForm_);
-function NewScreenVariantForm_(props: {
+export function NewScreenVariantForm(props: {
   isVisible?: boolean;
   onSubmit: () => void;
 }) {
@@ -20,7 +18,7 @@ function NewScreenVariantForm_(props: {
   const [minWidth, setMinWidth] = useState("");
   const [maxWidth, setMaxWidth] = useState("");
 
-  const strategy = getResponsiveStrategy(studioCtx.site);
+  const strategy = useResponsiveStrategy(studioCtx);
   const isUnknownStrategy = strategy === ResponsiveStrategy.unknown;
   const isMobileFirst = strategy === ResponsiveStrategy.mobileFirst;
 

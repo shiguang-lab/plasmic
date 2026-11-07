@@ -10,11 +10,10 @@ import { arrayReversed } from "@/wab/shared/collections";
 import { cx, ensure } from "@/wab/shared/common";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import L from "lodash";
-import { observer } from "mobx-react";
 import React from "react";
 import { OverlayProvider, useOverlay } from "react-aria";
 import ReactDOM from "react-dom";
-import { animated, useReducedMotion, useTransition } from "react-spring";
+import { animated, useReducedMotion, useTransition } from "@react-spring/web";
 
 interface Store {
   state: SidebarModalContextState;
@@ -149,7 +148,7 @@ export function SidebarModal(
   ) : null;
 }
 
-const SidebarModalInternal = observer(function SidebarModalInternal(props: {
+function SidebarModalInternal(props: {
   frameId: string;
   title?: React.ReactNode;
   children?: React.ReactNode;
@@ -270,7 +269,7 @@ const SidebarModalInternal = observer(function SidebarModalInternal(props: {
     </ModalScope>,
     element,
   );
-});
+}
 
 function SidebarModalShell() {
   const { state } = useSidebarModalContext();

@@ -1,3 +1,8 @@
+import { useFrameWidth } from "@/wab/client/studio-ctx/frame-width";
+import { useStudioArena, useViewEntryForFrame } from "@/wab/client/studio-ctx/arena-state";
+import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import {
   StyleVariantEditor,
@@ -55,6 +60,10 @@ function CanvasHeader_(props: {
   frame: ArenaFrame;
 }) {
   const { studioCtx, frame, arena } = props;
+  useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view]));
+  const focusedMode = useStudioArena(studioCtx, (state) => state.focusedMode);
+  const viewportZoom = useCanvasZoom(studioCtx);
+  const width = useFrameWidth(studioCtx, frame);
   const { t } = useI18n();
   const canFocus =
     isMixedArena(arena) &&
@@ -64,14 +73,14 @@ function CanvasHeader_(props: {
     studioCtx.focusedContentFrame() === frame;
   const isFocusedFrame = studioCtx.focusedViewCtx()?.arenaFrame() === frame;
   const shouldShowFrameConfigButton =
-    !studioCtx.focusedMode && (!isComponentArena(arena) || isFocusedFrame);
+    !focusedMode && (!isComponentArena(arena) || isFocusedFrame);
 
   const rootRef = useScaledElementRef<HTMLDivElement>();
   const focusRef = useScaledElementRef<HTMLButtonElement>();
 
   useZoomStyledRef(
     (zoom) => ({
-      maxWidth: `${Math.max(0, frame.width * zoom - (canFocus ? 72 : 0))}px`,
+      maxWidth: `${Math.max(0, width * zoom - (canFocus ? 72 : 0))}px`,
     }),
     rootRef,
   );
@@ -83,7 +92,7 @@ function CanvasHeader_(props: {
         rootRef.current.offsetWidth < rootRef.current.scrollWidth,
       );
     }
-  }, [studioCtx.zoom]);
+  }, [viewportZoom]);
 
   return (
     <>
@@ -152,7 +161,10 @@ function CanvasHeaderContent_(props: {
   showTooltip: boolean;
 }) {
   const { studioCtx, frame, arena, showTooltip } = props;
+  const arenaKind = useStudioArena(studioCtx, (state) => state.kind);
+  useStudioSelection(studioCtx, (state) => state.view);
   const vc = studioCtx.focusedViewCtx();
+  useViewSelection(vc, (state) => state.tpls);
   const component = frame.container.component;
 
   const arenaFrameNameLabel = studioCtx.tplMgr().describeArenaFrame(frame);
@@ -180,7 +192,7 @@ function CanvasHeaderContent_(props: {
           placement={"topLeft"}
           title={
             <div>
-              {isMixedArena(studioCtx.currentArena) && (
+              {arenaKind === "mixed" && (
                 <>
                   {componentIcon} {arenaFrameNameLabel}
                 </>
@@ -188,7 +200,7 @@ function CanvasHeaderContent_(props: {
               {displayVariants && (
                 <div
                   className={
-                    isMixedArena(studioCtx.currentArena)
+                    arenaKind === "mixed"
                       ? styles.tooltipVariantsContainer
                       : undefined
                   }
@@ -293,13 +305,15 @@ function CanvasVariantsDesc_(props: {
   isPageArena?: boolean;
 }) {
   const { studioCtx, frame } = props;
+  const vc = useViewEntryForFrame(studioCtx, frame)?.view;
+  useViewSelection(vc, (state) => state.tpls);
+  useStudioSelection(studioCtx, (state) => state.view);
 
   if (frame === studioCtx.focusedViewCtx()?.arenaFrame()) {
     // Variants description in the recording panel instead
     return null;
   }
 
-  const vc = studioCtx.tryGetViewCtxForFrame(frame);
   const displayVariants = getDisplayVariants({
     frame,
     site: studioCtx.site,

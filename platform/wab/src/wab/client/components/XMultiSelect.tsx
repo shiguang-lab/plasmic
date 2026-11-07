@@ -59,7 +59,7 @@ interface _XMultiSelectState<Item> {
 // antd 5 mounts overlay content while it is still display:none, so the input's
 // autoFocus never fires when this is rendered inside a Popover or Dropdown.
 function AutoFocuser(props: {
-  inputBox: React.RefObject<HTMLInputElement>;
+  inputBox: React.RefObject<HTMLInputElement | null>;
   autoFocus?: boolean;
 }) {
   useFocusOnDisplayed(props.inputBox, { autoFocus: props.autoFocus });

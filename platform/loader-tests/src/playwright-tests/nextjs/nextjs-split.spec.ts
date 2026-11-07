@@ -14,20 +14,7 @@ const SPLIT_ID = "j7cCxfS-Vu";
 const SLICE_0_ID = "I4hoVVeME_";
 const SLICE_1_ID = "6z5_V8jUij";
 
-const SPLIT_VERSIONS = [
-  ...LOADER_NEXTJS_VERSIONS,
-  // React 17 compatibility check (Next 12 is the last version supporting React 17).
-  // Next.js 12 forces moduleResolution:"node" in tsconfig during build, which
-  // is deprecated in TS6. ignoreDeprecations silences it for this old combo.
-  {
-    loaderVersion: "1",
-    nextVersion: "12",
-    reactVersion: "17",
-    tsConfigOverrides: { ignoreDeprecations: "6.0" },
-  },
-];
-
-for (const versions of SPLIT_VERSIONS) {
+for (const versions of LOADER_NEXTJS_VERSIONS) {
   test.describe(`NextJS Split ${makeEnvName({
     type: "nextjs",
     ...versions,

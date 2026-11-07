@@ -1,7 +1,8 @@
+import { jsx } from 'react/jsx-runtime';
 import { Checkbox } from 'antd';
 import React from 'react';
 import { c as checkboxComponentName, a as checkboxGroupComponentName } from './names-DQIzgrvq.esm.js';
-import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -15,7 +16,7 @@ function AntdCheckbox(props) {
       return void 0;
     }
   }, [onChange]);
-  return /* @__PURE__ */ React.createElement(Checkbox, { ...rest, onChange: wrappedOnChange });
+  return /* @__PURE__ */ jsx(Checkbox, { ...rest, onChange: wrappedOnChange });
 }
 AntdCheckbox.__plasmicFormFieldMeta = { valueProp: "checked" };
 const AntdCheckboxGroup = Checkbox.Group;

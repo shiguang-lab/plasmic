@@ -238,7 +238,7 @@ it("opens the existing integration setup from the two add-action cards", async (
     await screen.findByRole("region", { name: "Add publish actions" }),
   ).toBeTruthy();
   expect(
-    screen.getByText("Generate a new Next.js / Gatsby / React repo."),
+    screen.getByText("Generate a new Next.js / React repo."),
   ).toBeTruthy();
   fireEvent.click(screen.getByRole("button", { name: "Push to GitHub" }));
   expect(sections.pushDeploy.setVisibleEnableBlock).toHaveBeenCalledWith(

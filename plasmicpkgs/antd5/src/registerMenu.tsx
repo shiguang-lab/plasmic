@@ -283,13 +283,13 @@ export function registerMenu(loader?: Registerable) {
         type: "slot",
         allowedComponents: allowedMenuComponents,
         defaultValue: [1, 2].map((i) => ({
-          type: "component",
+          type: "component" as const,
           name: "plasmic-antd5-menu-item",
           props: {
             key: `subMenuItemKey${i}`,
             children: [
               {
-                type: "text",
+                type: "text" as const,
                 value: `Sub-menu item ${i}`,
               },
             ],

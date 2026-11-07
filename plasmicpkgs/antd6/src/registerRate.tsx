@@ -10,7 +10,7 @@ type AntdRateProps = Omit<React.ComponentProps<typeof Rate>, "tooltips"> & {
 
 function getSymbols(symbols: React.ReactNode) {
   return React.Children.toArray(
-    React.isValidElement(symbols) && Array.isArray(symbols.props.children)
+    React.isValidElement<{ children?: React.ReactNode }>(symbols) && Array.isArray(symbols.props.children)
       ? symbols.props.children
       : symbols,
   );

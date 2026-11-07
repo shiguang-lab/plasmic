@@ -173,7 +173,7 @@ export class Api {
   async fetchLoaderData(
     projectIds: string[],
     opts: {
-      platform?: "react" | "nextjs" | "gatsby";
+      platform?: "react" | "nextjs";
       platformOptions?: {
         nextjs?: {
           appDir: boolean;

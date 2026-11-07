@@ -1,20 +1,12 @@
 import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
-import { renderInspector } from "@/wab/client/components/coding/CodePreview";
+import { renderInspector, type InspectorNodeProps } from "@/wab/client/components/coding/CodePreview";
 import type { FullCodeEditor } from "@/wab/client/components/coding/FullCodeEditor";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { Menu } from "antd";
 import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { InspectorNodeParams, ObjectLabel } from "react-inspector";
-
-/**
- * Extends InspectorNodeParams with internal react-inspector TreeNode props
- * like `path`, which are spread but not included in the public type.
- */
-type InspectorNodeProps = InspectorNodeParams & {
-  path?: string;
-};
+import { ObjectLabel } from "react-inspector";
 
 /**
  * A data inspector tree where right-clicking any node shows a context menu

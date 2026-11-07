@@ -1,0 +1,124 @@
+{
+  "artifact": {
+    "sourceHash": "1688672a8ed749c8f9122ad0ef04fabb087415725b19c4e52d2fbf24e65d6d5c",
+    "rendererHash": "ebb8ff3a8fd218fd4c8ae6e56f90e6bfac12687c428249d5fbec8310f6c5aa3e",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "builtAt": "2026-11-05T17:38:36.789Z",
+    "reactCompiler": {
+      "enabled": false,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx"
+      ]
+    }
+  },
+  "gp": {
+    "cases": [
+      {
+        "case": "switch-artboard",
+        "rendered": true
+      },
+      {
+        "case": "rename-undo-redo",
+        "passed": true
+      },
+      {
+        "case": "rendered-style-undo-redo",
+        "passed": true
+      },
+      {
+        "case": "frame-position-undo-redo",
+        "passed": true
+      },
+      {
+        "case": "preview-business-pagination-return",
+        "passed": true
+      }
+    ],
+    "reopen": true,
+    "errors": [],
+    "previewErrors": [],
+    "docsPortal": {
+      "codegen": {
+        "dependencyModelsValidated": 50,
+        "editReachedSelectedStore": true,
+        "mode": "codegen",
+        "monacoMounted": true,
+        "persistedModelUnchanged": true,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      },
+      "loader": {
+        "dependencyModelsValidated": 50,
+        "editReachedSelectedStore": true,
+        "mode": "loader",
+        "monacoMounted": true,
+        "persistedModelUnchanged": true,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      },
+      "serializedModelUnchanged": true,
+      "harnessSha256": "164d4d701ff8843d105cf270c0d555fa764f13c2aa3f6a24e451aa2c7a95670d"
+    }
+  },
+  "complex": {
+    "cases": [
+      {
+        "case": "switch-artboard",
+        "rendered": true
+      },
+      {
+        "case": "switch-artboard",
+        "rendered": true
+      },
+      {
+        "case": "switch-artboard",
+        "rendered": true
+      },
+      {
+        "case": "rename-undo-redo",
+        "passed": true
+      },
+      {
+        "case": "rendered-style-undo-redo",
+        "passed": true
+      },
+      {
+        "case": "frame-position-undo-redo",
+        "passed": true
+      },
+      {
+        "case": "cold-frame-undo-selection-style",
+        "passed": true
+      },
+      {
+        "case": "cold-frame-redo-rendered-style",
+        "passed": true
+      }
+    ],
+    "reopen": true,
+    "errors": [],
+    "previewErrors": []
+  },
+  "checks": {
+    "combined": {
+      "files": 32,
+      "tests": 336,
+      "log": "u12-state-combined.log"
+    },
+    "docsAfterNoOpCorrection": {
+      "files": 7,
+      "tests": 57,
+      "log": "u12-docs-preview-final.log"
+    },
+    "typecheck": "u12-state-typecheck-exact.log",
+    "lint": [
+      "u12-follow-lint-final.log",
+      "u12-docs-lint-final.log"
+    ]
+  },
+  "scope": "Module correctness and isolated production regressions only; excludes final full migration, formal whole-editor performance and memory acceptance."
+}

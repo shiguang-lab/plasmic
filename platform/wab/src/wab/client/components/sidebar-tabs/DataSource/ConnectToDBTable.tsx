@@ -1,3 +1,4 @@
+import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
 import {
   BottomModalButtons,
   useBottomModalActions,
@@ -94,6 +95,7 @@ export function ConnectToDBTable({
 }) {
   const { t: uiT, label } = useI18n();
   const studioCtx = useStudioCtx();
+  const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl);
   const [selectedFormOption, setSelectedFormOption] = React.useState<
     FormType | undefined
   >(undefined);
@@ -224,7 +226,7 @@ export function ConnectToDBTable({
           <DataSourceTablePicker
             studioCtx={viewCtx.studioCtx}
             requireLookupValue={selectedFormOption === FormType.UpdateEntry}
-            env={viewCtx.getInspectorCanvasEnvForTpl(tpl)}
+            env={canvasEnv}
             schema={viewCtx.customFunctionsSchema()}
             draft={lookupDraft}
             onChange={(newDraft) => setLookupDraft(newDraft)}

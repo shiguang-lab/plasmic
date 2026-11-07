@@ -1,6 +1,6 @@
 {
   "name": "@shiguang-lab/plasmic-react-ui",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Installable React UI business components for Plasmic",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -29,30 +29,40 @@
     "skinny"
   ],
   "scripts": {
-    "build": "rollup -c rollup.config.mjs && NODE_OPTIONS=--max-old-space-size=8192 tsc --module esnext --moduleResolution bundler --emitDeclarationOnly --declaration src/index.ts --incremental --tsBuildInfoFile ./dist/.tsbuildinfo  --skipLibCheck --jsx react --lib dom,esnext --esModuleInterop --strict --outDir ./dist/",
+    "build": "rm -rf dist/ skinny/ .declarations/ && rollup -c rollup.config.mjs && NODE_OPTIONS=--max-old-space-size=8192 tsc -p tsconfig.build.json && rollup -c rollup.types.config.mjs && rm -rf .declarations",
     "prepublishOnly": "npm run build",
     "clean": "rm -rf dist/ skinny/*.ts skinny/*.map skinny/*.js",
-    "test": "tsx --test src/*.test.tsx",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "test:interactions": "vitest run --config vitest.config.mts"
   },
   "dependencies": {
-    "@react/ui": "file:../../vendor/react-ui",
-    "antd": "6.6.5",
-    "@shiguang-lab/plasmic-antd6": "workspace:*"
+    "antd": "6.7.0",
+    "@shiguang-lab/plasmic-antd6": "workspace:*",
+    "@ant-design/icons": "6.3.4",
+    "classcat": "^5.0.5",
+    "antd-style": "^4.1.0"
   },
   "devDependencies": {
-    "@plasmicapp/host": "2.0.19",
-    "@types/react": "18.3.27",
-    "@types/react-dom": "18.3.7",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "typescript": "5.2.2"
+    "@plasmicapp/host": "3.0.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "typescript": "catalog:",
+    "vitest": "catalog:",
+    "@react/ui": "workspace:*",
+    "rollup-plugin-dts": "catalog:",
+    "rollup": "^4.62.2",
+    "@rollup/plugin-commonjs": "^29.0.3",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "rollup-plugin-esbuild": "^6.2.1"
   },
   "peerDependencies": {
-    "@plasmicapp/host": ">=1.0.0",
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "@plasmicapp/host": "^3.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "publishConfig": {
     "access": "public"

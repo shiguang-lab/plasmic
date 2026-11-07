@@ -39,7 +39,7 @@ function FieldControl({
   [key: string]: any;
 }) {
   const child = React.Children.toArray(control)[0];
-  if (!React.isValidElement<any>(child)) {
+  if (!React.isValidElement<Record<string, unknown>>(child)) {
     return <>{control}</>;
   }
   const ownHandler = child.props[trigger];
@@ -48,7 +48,7 @@ function FieldControl({
     ...binding,
     [trigger]: (...args: any[]) => {
       formHandler?.(...args);
-      ownHandler?.(...args);
+      if (typeof ownHandler === "function") ownHandler(...args);
     },
   });
 }

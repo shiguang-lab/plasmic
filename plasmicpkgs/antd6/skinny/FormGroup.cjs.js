@@ -1,5 +1,6 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var React = require('react');
 var contexts = require('./contexts-DbLDJr3k.cjs.js');
 require('antd');
@@ -10,15 +11,15 @@ var React__default = /*#__PURE__*/_interopDefault(React);
 
 function FormGroup(props) {
   const pathCtx = React__default.default.useContext(contexts.PathContext);
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     contexts.PathContext.Provider,
     {
       value: {
         relativePath: [...pathCtx.relativePath, props.name],
         fullPath: [...pathCtx.fullPath, props.name]
-      }
-    },
-    props.children
+      },
+      children: props.children
+    }
   );
 }
 

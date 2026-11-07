@@ -110,7 +110,7 @@ describe("component advisory preflight", () => {
       }));
       counts.push(result.componentReview.suggestions.length);
       expect(result.operations[1].replacedElementUuid).toBeUndefined();
-      expect(studioCtx.copilotActivity.requests.at(-1)?.status).toBe("success");
+      expect(studioCtx.copilotActivity.store.getState().requests.at(-1)?.status).toBe("success");
       elementUuid = result.operations[1].created[0].uuid;
     }
     expect(counts).toEqual([1, 0, 0, 0]);
@@ -218,7 +218,7 @@ describe("component advisory preflight", () => {
       reviewContext: { purpose: "确认当前业务操作。点击确认；提交当前操作" },
     }));
     expect(output.created).toHaveLength(1); expect(output.componentReview.status).toBe("unavailable");
-    expect(studioCtx.copilotActivity.requests.at(-1)?.status).toBe("success");
+    expect(studioCtx.copilotActivity.store.getState().requests.at(-1)?.status).toBe("success");
   });
   it("keeps the same atomic batch scan open through review and closes it once", async () => {
     const f = fixture(); const { studioCtx } = fakeStudioCtx({ devFlagOverrides: { enableComponentReuseAdvisory: true } });
@@ -232,12 +232,12 @@ describe("component advisory preflight", () => {
       reviewContext: { purpose: "Confirm or reset the current operation。Click Confirm or Reset；Submit or reset the current values" },
     });
     await vi.waitFor(() => expect(f.review).toHaveBeenCalledOnce());
-    const activity = studioCtx.copilotActivity.requests.at(-1);
+    const activity = studioCtx.copilotActivity.store.getState().requests.at(-1);
     expect(activity?.status).toBe("running"); expect(activity?.scanning).toBe(true); expect(begin).toHaveBeenCalledOnce();
     complete({ status: "completed", indexed: 1, total: 1, elapsedMs: 25, suggestions: [] });
     const result = JSON.parse(await pending);
     expect(result.operations).toHaveLength(2); expect(result.componentReview.status).toBe("completed");
-    expect(studioCtx.copilotActivity.requests.at(-1)?.id).toBe(activity?.id);
-    expect(studioCtx.copilotActivity.requests.at(-1)?.status).toBe("success");
+    expect(studioCtx.copilotActivity.store.getState().requests.at(-1)?.id).toBe(activity?.id);
+    expect(studioCtx.copilotActivity.store.getState().requests.at(-1)?.status).toBe("success");
   });
 });

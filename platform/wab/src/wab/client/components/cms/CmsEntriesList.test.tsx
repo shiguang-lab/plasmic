@@ -1,5 +1,5 @@
-import { showError } from "@/wab/client/ErrorNotifications";
 import CmsEntriesList from "@/wab/client/components/cms/CmsEntriesList";
+import { setLanguagePreference } from "@/wab/client/i18n";
 import { ApiCmseRow } from "@/wab/shared/ApiSchema";
 import "@testing-library/jest-dom/vitest";
 import {
@@ -9,6 +9,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import { message } from "antd";
 import * as React from "react";
 
 const mocks = vi.hoisted(() => ({
@@ -34,10 +35,6 @@ vi.mock("@/wab/client/route/useMatchedRoute", () => ({
 vi.mock("@/wab/client/components/cms/CmsEntryItem", () => ({
   default: ({ row }: { row: ApiCmseRow }) => <div>{row.identifier}</div>,
 }));
-vi.mock("@/wab/client/i18n", () => ({
-  useI18n: () => ({ t: (message: string) => message }),
-}));
-vi.mock("@/wab/client/ErrorNotifications", () => ({ reportError: vi.fn(), showError: vi.fn() }));
 
 const rows = [
   {
@@ -53,8 +50,12 @@ const rows = [
     updatedAt: "2026-10-02",
   },
 ] as ApiCmseRow[];
+beforeEach(async () => {
+  await setLanguagePreference("en");
+});
 afterEach(() => {
   cleanup();
+  message.destroy();
   vi.clearAllMocks();
 });
 
@@ -102,7 +103,11 @@ it("shows creation failure without discarding the list and retries the real crea
   mocks.mutate.mockResolvedValue(undefined);
   render(<CmsEntriesList rows={rows} />);
   fireEvent.click(screen.getByRole("button", { name: "Add new entry" }));
-  await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to create content entry" }));
+  await waitFor(() => expect(mocks.create).toHaveBeenCalledOnce());
+  await expect(mocks.create.mock.results[0].value).rejects.toThrow("Offline");
+  expect(
+    await screen.findByText("Failed to create content entry"),
+  ).toBeTruthy();
   expect(screen.getByText("Alpha")).toBeTruthy();
   expect(mocks.navigate).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "Add new entry" }));

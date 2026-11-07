@@ -24,7 +24,7 @@ export interface DraggableInsertableProps {
 export function DraggableInsertable(props: DraggableInsertableProps) {
   const { spec, shouldInterceptInsert, sc, onDragStart, onDragEnd, minPx } =
     props;
-  const dragManagerRef = React.useRef<DragInsertManager>();
+  const dragManagerRef = React.useRef<DragInsertManager>(undefined);
   // `onDrag` might run before `onDragStart` finishes since
   // `DragInsertManager.build` is async, so we chain the drag operations
   // to make sure they run in sequentially.

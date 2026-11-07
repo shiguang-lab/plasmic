@@ -5,15 +5,25 @@ import {
 } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
-import { canWrite } from "@/wab/shared/ui-config-utils";
+import { canWrite, type UiAccess } from "@/wab/shared/ui-config-utils";
 import { UploadOutlined } from "@ant-design/icons";
 import { Button, Flex, Upload, message } from "antd";
-import { observer } from "mobx-react";
+
 import { ok } from "neverthrow";
 import React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 
-export const ResourceUpload = observer(function ResourceUpload({
+type ResourceUploadAccess = Readonly<{
+  canSave: boolean;
+  images: UiAccess;
+  imagesSection: UiAccess;
+  iconsSection: UiAccess;
+}>;
+
+export const ResourceUpload = function ResourceUpload({
   studioCtx,
   onUploaded,
 }: {
@@ -24,29 +34,40 @@ export const ResourceUpload = observer(function ResourceUpload({
   const [uploadingType, setUploadingType] = React.useState<ImageAssetType>();
   const uploading = uploadingType !== undefined;
   const pending = React.useRef(false);
-  const editable = studioCtx.canSave();
-  const permission = studioCtx.getLeftTabPermission("images");
-  const canUploadImage =
-    editable &&
-    canWrite(permission, studioCtx.getLeftTabPermission("imagesSection"));
-  const canUploadIcon =
-    editable &&
-    canWrite(permission, studioCtx.getLeftTabPermission("iconsSection"));
+  const canSave = useStudioSaveState(studioCtx, (state) => state.canSave);
+  const [permission, imagesSectionPermission, iconsSectionPermission] =
+    useStore(
+      studioCtx.uiEnvironment.store,
+      useShallow((state) => [
+        state.leftTabPermissions.images,
+        state.leftTabPermissions.imagesSection,
+        state.leftTabPermissions.iconsSection,
+      ] as const),
+    );
+  const canUpload = (type: ImageAssetType, access?: ResourceUploadAccess) =>
+    (access?.canSave ?? studioCtx.canSave()) &&
+    canWrite(
+      access?.images ?? studioCtx.getLeftTabPermission("images"),
+      type === ImageAssetType.Icon
+        ? (access?.iconsSection ??
+            studioCtx.getLeftTabPermission("iconsSection"))
+        : (access?.imagesSection ??
+            studioCtx.getLeftTabPermission("imagesSection")),
+    );
+  const access = {
+    canSave,
+    images: permission,
+    imagesSection: imagesSectionPermission,
+    iconsSection: iconsSectionPermission,
+  };
+  const canUploadImage = canUpload(ImageAssetType.Picture, access);
+  const canUploadIcon = canUpload(ImageAssetType.Icon, access);
   if (!canUploadImage && !canUploadIcon) {
     return null;
   }
 
   async function upload(file: File, type: ImageAssetType) {
-    if (
-      pending.current ||
-      !studioCtx.canSave() ||
-      !canWrite(
-        studioCtx.getLeftTabPermission("images"),
-        studioCtx.getLeftTabPermission(
-          type === ImageAssetType.Icon ? "iconsSection" : "imagesSection",
-        ),
-      )
-    ) {
+    if (pending.current || !canUpload(type)) {
       return false;
     }
     pending.current = true;
@@ -68,15 +89,7 @@ export const ResourceUpload = observer(function ResourceUpload({
         return false;
       }
       // Permissions and the editable version can change while the upload is in flight.
-      if (
-        !studioCtx.canSave() ||
-        !canWrite(
-          studioCtx.getLeftTabPermission("images"),
-          studioCtx.getLeftTabPermission(
-            type === ImageAssetType.Icon ? "iconsSection" : "imagesSection",
-          ),
-        )
-      ) {
+      if (!canUpload(type)) {
         return false;
       }
       await studioCtx.change(() => {
@@ -135,4 +148,4 @@ export const ResourceUpload = observer(function ResourceUpload({
       </Flex>
     </Flex>
   );
-});
+};

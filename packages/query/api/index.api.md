@@ -5,7 +5,6 @@
 ```ts
 
 import { Cache as Cache_2 } from 'swr';
-import { Fetcher } from 'swr';
 import { Key } from 'swr';
 import { PropsWithChildren } from 'react';
 import { default as React_2 } from 'react';
@@ -30,9 +29,6 @@ export type HeadMetadata = {
 export const HeadMetadataContext: React_2.Context<HeadMetadata>;
 
 // @public (undocumented)
-export function isPlasmicPrepass(): boolean;
-
-// @public (undocumented)
 export type LoadingStateListener = (isLoading: boolean) => void;
 
 // @public (undocumented)
@@ -51,8 +47,9 @@ export function PlasmicQueryDataProvider(props: {
 export { SWRResponse }
 
 // @public
-export function useMutablePlasmicQueryData<T, E>(key: Key, fetcher: Fetcher<T>, options?: SWRConfiguration<T, E>): SWRResponse<T, E> & {
-    isLoading?: boolean;
+export function useMutablePlasmicQueryData<T, E>(key: Key, fetcher: (...args: any[]) => T | Promise<T>, options?: SWRConfiguration<T, E>): Omit<SWRResponse<T, E>, "data" | "error"> & {
+    data?: T;
+    error?: E;
     isLagging?: boolean;
 };
 
@@ -60,7 +57,10 @@ export function useMutablePlasmicQueryData<T, E>(key: Key, fetcher: Fetcher<T>, 
 export const usePlasmicDataConfig: typeof useSWRConfig;
 
 // @public
-export function usePlasmicQueryData<T>(key: Key, fetcher: Fetcher<T>): {
+export function usePlasmicPrepass(): boolean;
+
+// @public
+export function usePlasmicQueryData<T>(key: Key, fetcher: (...args: any[]) => T | Promise<T>): {
     data?: T;
     error?: Error;
     isLoading?: boolean;

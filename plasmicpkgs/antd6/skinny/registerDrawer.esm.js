@@ -1,8 +1,9 @@
+import { jsx } from 'react/jsx-runtime';
 import { Drawer } from 'antd';
 import cls from 'classnames';
 import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-k3p9M5S2.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -30,7 +31,7 @@ function AntdDrawer(props) {
       return void 0;
     }
   }, [onOpenChange, onClose]);
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Drawer,
     {
       ...rest,

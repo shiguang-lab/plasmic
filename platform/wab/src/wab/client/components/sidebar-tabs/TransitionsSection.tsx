@@ -1,8 +1,11 @@
+import { useFocusedViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useBaseTransitionInputs } from "@/wab/client/studio-ctx/transition-inputs";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
 import { NonBaseVariantTransitionsMessage } from "@/wab/client/components/sidebar-tabs/style-tab";
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { SidebarSectionHandle } from "@/wab/client/components/sidebar/SidebarSection";
 import {
-  StyleComponent,
+  mkStyleComponent,
   StyleComponentProps,
   StylePanelSection,
   TplExpsProvider,
@@ -20,14 +23,13 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { RSH } from "@/wab/shared/RuleSetHelpers";
-import { isBaseVariant, tryGetBaseVariantSetting } from "@/wab/shared/Variants";
+import { tryGetBaseVariantSetting } from "@/wab/shared/Variants";
 import { arrayMoveIndex, arrayRemove } from "@/wab/shared/collections";
 import { assert, ensure, maybe, tuple, uniqueKey } from "@/wab/shared/common";
 import { transitionProps } from "@/wab/shared/core/style-props";
 import { getCssInitial } from "@/wab/shared/css";
 import { joinCssValues, splitCssValue } from "@/wab/shared/css/parse";
-import { observer } from "mobx-react";
-import React, { createRef } from "react";
+import React from "react";
 
 export class Transition {
   transitionProperty: string;
@@ -36,40 +38,25 @@ export class Transition {
   transitionDelay: string;
 }
 
-interface TransitionsPanelSectionState {
-  // index of the inspected transition
-  index?: number;
-}
+export function TransitionsPanelSection(props: StyleComponentProps) {
+  const { expsProvider } = props;
+  const studio = expsProvider.studioCtx;
+  const styling = mkStyleComponent(props);
+  const [inspectedIndex, setIndex] = React.useState<number>();
+  const sectionRef = React.useRef<SidebarSectionHandle>(null);
+  const baseRaw = useBaseTransitionInputs(expsProvider instanceof TplExpsProvider ? expsProvider : undefined);
+  const singleCells = useStyleCells(expsProvider, expsProvider instanceof TplExpsProvider ? [] : transitionProps);
+  const targeting = useFocusedViewVariants(studio, (state) => state.isTargetingNonBaseVariant);
+  const isTargetingNonBaseVariant = expsProvider instanceof TplExpsProvider && targeting;
+  const rawValues = expsProvider instanceof TplExpsProvider ? baseRaw : transitionProps.map((prop) => singleCells.find((cell) => cell.key === prop)?.raw);
 
-class _TransitionsPanelSection extends StyleComponent<
-  StyleComponentProps,
-  TransitionsPanelSectionState
-> {
-  private readonly sectionRef: React.RefObject<SidebarSectionHandle>;
+  const baseExp = () => expsProvider instanceof TplExpsProvider
+    ? RSH(ensure(tryGetBaseVariantSetting(expsProvider.tpl), "Unexpected undefined base variant for tpl").rs, expsProvider.tpl)
+    : expsProvider.mergedExp();
 
-  constructor(props: StyleComponentProps) {
-    super(props);
-    this.state = {};
-    this.sectionRef = createRef<SidebarSectionHandle>();
-  }
-
-  get baseExp() {
-    if (this.props.expsProvider instanceof TplExpsProvider) {
-      const tpl = this.props.expsProvider.tpl;
-      return RSH(
-        ensure(
-          tryGetBaseVariantSetting(tpl),
-          "Unexpected undefined base variant for tpl",
-        ).rs,
-        tpl,
-      );
-    } else {
-      return this.props.expsProvider.mergedExp();
-    }
-  }
-
-  updateTransitions = (transitions: Transition[]) => {
-    return this.change(() => {
+  const updateTransitions = (transitions: Transition[]) => {
+    return styling.change(() => {
+      const exp = baseExp();
       const updateRule = (key: string, values: string[]) => {
         // "transition-property" should be always set when transitions are used,
         // so we avoid deleting them. Other properties might be omitted if they
@@ -78,9 +65,9 @@ class _TransitionsPanelSection extends StyleComponent<
           values.some((value) => value !== getCssInitial(key, undefined)) ||
           (values.length > 0 && key === "transition-property")
         ) {
-          this.baseExp.set(key, joinCssValues(key, values));
+          exp.set(key, joinCssValues(key, values));
         } else {
-          this.baseExp.clear(key);
+          exp.clear(key);
         }
       };
       updateRule(
@@ -102,27 +89,9 @@ class _TransitionsPanelSection extends StyleComponent<
     });
   };
 
-  inspectTransition = (index: number) => {
-    this.setState({ index });
-  };
-
-  render() {
-    const viewCtx = this.studioCtx().focusedViewCtx();
-
-    const isTargetingNonBaseVariant =
-      this.props.expsProvider instanceof TplExpsProvider &&
-      viewCtx &&
-      !isBaseVariant(viewCtx.variantTplMgr().getCurrentVariantCombo());
-
     const transitions = ((): Transition[] => {
-      const exp = this.baseExp;
       const parsedRules = Object.fromEntries(
-        transitionProps.map((prop) =>
-          tuple(
-            prop,
-            maybe(exp.getRaw(prop), (val) => splitCssValue(prop, val)) ?? [],
-          ),
-        ),
+        transitionProps.map((prop, i) => tuple(prop, maybe(rawValues[i], (val) => splitCssValue(prop, val)) ?? [])),
       );
       const parsedRulesArray = Object.values(parsedRules);
       const numLayers = ensure(
@@ -154,19 +123,17 @@ class _TransitionsPanelSection extends StyleComponent<
         transitionDelay: "0s",
       };
       transitions.push(newTransition);
-      this.updateTransitions(transitions);
-      this.inspectTransition(transitions.length - 1);
+      updateTransitions(transitions);
+      setIndex(transitions.length - 1);
 
-      this.sectionRef.current?.expand();
+      sectionRef.current?.expand();
     };
-
-    const { index } = this.state;
 
     return (
       <StylePanelSection
         key={String(transitions.length > 0)}
-        ref={this.sectionRef}
-        expsProvider={this.props.expsProvider}
+        ref={sectionRef}
+        expsProvider={expsProvider}
         title={<UiText message={"Transitions"} />}
         styleProps={transitionProps}
         onHeaderClick={transitions.length === 0 ? addTransition : undefined}
@@ -184,23 +151,19 @@ class _TransitionsPanelSection extends StyleComponent<
                 <NonBaseVariantTransitionsMessage />
               </div>
             )}
-            {index !== undefined && (
+            {inspectedIndex !== undefined && (
               <SidebarModal
                 show
                 title={translate(getUiLocale(), "Transition")}
-                onClose={() =>
-                  this.setState({
-                    index: undefined,
-                  })
-                }
+                onClose={() => setIndex(undefined)}
               >
                 {
                   <div className="panel-content">
                     <TransitionPanel
-                      transition={transitions[index]}
+                      transition={transitions[inspectedIndex]}
                       onChange={(newValue: Transition) => {
-                        transitions[index] = newValue;
-                        this.updateTransitions(transitions);
+                        transitions[inspectedIndex] = newValue;
+                        updateTransitions(transitions);
                       }}
                     />
                   </div>
@@ -217,7 +180,7 @@ class _TransitionsPanelSection extends StyleComponent<
                 appendPrepend={"append"}
                 onReorder={(from, to) => {
                   const moved = arrayMoveIndex(transitions, from, to);
-                  this.updateTransitions(moved);
+                  updateTransitions(moved);
                 }}
               >
                 {transitions.map((transition: Transition, i: number) => {
@@ -227,9 +190,9 @@ class _TransitionsPanelSection extends StyleComponent<
                       index={i}
                       onRemove={() => {
                         arrayRemove(transitions, transition);
-                        return this.updateTransitions(transitions);
+                        return updateTransitions(transitions);
                       }}
-                      onClick={() => this.inspectTransition(i)}
+                      onClick={() => setIndex(i)}
                       mainContent={
                         <div className="labeled-item labeled-item--horizontal--vcenter">
                           <div className="labeled-item__label labeled-item__label--horizontal">
@@ -247,6 +210,4 @@ class _TransitionsPanelSection extends StyleComponent<
         )}
       </StylePanelSection>
     );
-  }
 }
-export const TransitionsPanelSection = observer(_TransitionsPanelSection);

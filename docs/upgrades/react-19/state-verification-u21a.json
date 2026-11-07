@@ -1,0 +1,125 @@
+{
+  "checkpoint": "u21a",
+  "scope": "U20 + completed Docs model resources + lifecycle review + Page metadata/details + Canvas FrameInfo; canonical selection/UIEnvironment/registry changes belong to later checkpoint u21b.",
+  "artifact": {
+    "path": "/tmp/plasmic-react19-20261105/renderer-react19-zustand-compiler-u21a",
+    "sourceHash": "81965962ece6968bd4687bf1df5b9dacb700796f2389ce738870042fbff4ac34",
+    "rendererHash": "738f2d9d7a76af9478c9f9ca041f7de235aff35180935b98e4b4bd461dd5b931",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 832,
+    "bytes": 104773520,
+    "studioArtifactHash": "b0e52378fedc9aa27b46aa073714d6073ac6d09a8728be65d1bd67330eeb4f31",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "checks": {
+    "typecheck": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u21a-isolated-typecheck-3.log"
+    },
+    "focusedNative": {
+      "files": 13,
+      "passedTests": 62,
+      "log": "/tmp/plasmic-react19-20261105/u21a-isolated-native-tests-4.log"
+    },
+    "reactCompiler": {
+      "files": 1,
+      "passedTests": 13,
+      "log": "/tmp/plasmic-react19-20261105/u21a-isolated-compiler.log"
+    },
+    "productionBuild": {
+      "exitCode": 0
+    },
+    "desktopAssets": {
+      "exitCode": 0
+    },
+    "archiveIdentity": {
+      "exitCode": 0
+    }
+  },
+  "native": {
+    "gp": {
+      "path": "/tmp/plasmic-react19-20261105/fixtures/gp/list-open-u21a-gp-native.json",
+      "sha256": "9a535439da8e5160a0b713e28afa7eb98ae7d53781df204895298dcac94e4d6f",
+      "functionalCases": 5,
+      "reopen": true,
+      "viewport": {
+        "equalScrollRetainsSnapshot": true,
+        "inputPreserved": true,
+        "modelUnchanged": true,
+        "nativeStores": true,
+        "restored": true,
+        "zoomInputUpdatedStore": true,
+        "zoomLabelUpdated": true
+      },
+      "rendererErrors": 0,
+      "previewErrors": 0,
+      "draftDialog": {
+        "enabled": true,
+        "opened": true,
+        "remoteActionClosed": true
+      },
+      "docs": {
+        "codegen": {
+          "dependencyModelsValidated": 50,
+          "editReachedSelectedStore": true,
+          "mode": "codegen",
+          "monacoMounted": true,
+          "persistedModelUnchanged": true,
+          "previewUpdated": true,
+          "restored": true,
+          "typeScriptWorkerDiagnostics": 0
+        },
+        "loader": {
+          "dependencyModelsValidated": 50,
+          "editReachedSelectedStore": true,
+          "mode": "loader",
+          "monacoMounted": true,
+          "persistedModelUnchanged": true,
+          "previewUpdated": true,
+          "restored": true,
+          "typeScriptWorkerDiagnostics": 0
+        },
+        "serializedModelUnchanged": true,
+        "harnessSha256": "164d4d701ff8843d105cf270c0d555fa764f13c2aa3f6a24e451aa2c7a95670d"
+      }
+    },
+    "complex": {
+      "path": "/tmp/plasmic-react19-20261105/fixtures/complex/list-open-u21a-complex.json",
+      "sha256": "67e23512505e934c771eea1a20cf1b275be199dafb6846aed90e6def6250ff37",
+      "functionalCases": 6,
+      "reopen": true,
+      "viewport": {
+        "equalScrollRetainsSnapshot": true,
+        "inputPreserved": true,
+        "modelUnchanged": true,
+        "nativeStores": true,
+        "restored": true,
+        "zoomInputUpdatedStore": true,
+        "zoomLabelUpdated": true
+      },
+      "rendererErrors": 0,
+      "previewErrors": 0
+    }
+  },
+  "fullStudio": "Not run for u21a; later u21b frozen source is running the milestone full Studio suite.",
+  "performanceComparisons": "Paused per user instruction; no performance comparison or speedup claim.",
+  "setupAttempts": [
+    "First native attempt omitted the isolated desktop IPC bridge; viewport passed but draft controller was inactive. Final gp run explicitly installed the empty isolated bridge and passed. Missing ignored generated build inputs and vendor/react-ui modules in the verification copy were copied from the actual source installation; dependency verification was preserved."
+  ]
+}

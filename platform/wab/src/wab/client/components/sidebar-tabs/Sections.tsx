@@ -1112,7 +1112,7 @@ export function getOrderedSectionRender(
 }
 
 function isImageCodeComponent(vc: ViewCtx) {
-  const selectable = vc.inspectorSelectable();
+  const selectable = vc.studioCtx.inspectorSelection?.selectable;
   if (selectable instanceof ValComponent) {
     const $doms =
       ensureArray(vc.renderState.sel2dom(selectable, vc.canvasCtx)) ?? [];
@@ -1122,10 +1122,8 @@ function isImageCodeComponent(vc: ViewCtx) {
 }
 
 function isFocusedCodeComponentMissingPositionClass(vc: ViewCtx) {
-  const selectable = vc.inspectorSelectable();
+  const selectable = vc.studioCtx.inspectorSelection?.selectable;
   if (selectable instanceof ValComponent) {
-    // Subscribe to changes to the DOM elt
-    vc.inspectorDomElt();
     return isCodeComponentMissingPositionClass(vc, selectable);
   }
   return false;

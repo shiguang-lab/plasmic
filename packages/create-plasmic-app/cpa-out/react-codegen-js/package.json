@@ -6,26 +6,21 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
+    "lint": "oxlint",
     "preview": "vite preview"
   },
   "dependencies": {
-    "@plasmicapp/cli": "^0.1.372",
-    "@plasmicapp/host": "^2.0.17",
-    "@plasmicapp/react-web": "^1.0.32",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "@plasmicapp/cli": "^0.2.0",
+    "@plasmicapp/host": "^3.0.0",
+    "@plasmicapp/react-web": "^2.0.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "devDependencies": {
-    "@eslint/js": "^9.13.0",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.3",
-    "eslint": "^9.13.0",
-    "eslint-plugin-react": "^7.37.2",
-    "eslint-plugin-react-hooks": "^5.0.0",
-    "eslint-plugin-react-refresh": "^0.4.14",
-    "globals": "^15.11.0",
-    "vite": "^5.4.10"
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "oxlint": "^1.90.0",
+    "vite": "^8.3.6"
   }
 }

@@ -258,11 +258,15 @@ export function isGapPropValidForRsh(
   rsh: ReadonlyIRuleSetHelpersX,
 ): boolean {
   const containerType = getRshContainerType(rsh);
+  const isWrap = rsh.get("flex-wrap")?.startsWith("wrap") ?? false;
+  return isGapPropValidForLayout(prop, containerType, isWrap);
+}
 
+/** The same gap policy for installed finite CSS inputs. */
+export function isGapPropValidForLayout(prop: string, containerType: ContainerLayoutType, isWrap: boolean): boolean {
   const isFlexRow = containerType === ContainerLayoutType.flexRow;
   const isFlexColumn = containerType === ContainerLayoutType.flexColumn;
   const isGrid = containerType === ContainerLayoutType.grid;
-  const isWrap = rsh.get("flex-wrap")?.startsWith("wrap") ?? false;
 
   if (prop === "column-gap") {
     return isFlexRow || isWrap || isGrid;

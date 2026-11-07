@@ -1,8 +1,9 @@
+import { useFrameHeights } from "@/wab/client/studio-ctx/frame-heights";
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useFrameSelectionBounds } from "@/wab/client/components/canvas/selection-bounds";
 import { useMultiSelectionStyles } from "@/wab/client/components/sidebar-tabs/MultiSelectionPanel";
 import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { getFrameHeight } from "@/wab/shared/Arenas";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { observer } from "mobx-react";
 import React from "react";
@@ -12,9 +13,12 @@ export const FrameSelectionPanel = observer(function FrameSelectionPanel({
 }: {
   studioCtx: StudioCtx;
 }) {
+  useStudioSelection(studioCtx, (state) => state.frames);
   const { t } = useI18n();
   const { styles } = useMultiSelectionStyles();
   const bounds = useFrameSelectionBounds(studioCtx);
+  const frames = studioCtx.focusedFrames();
+  const heights = useFrameHeights(studioCtx, frames);
   return (
     <Scrollbar
       scrollX={false}
@@ -29,11 +33,11 @@ export const FrameSelectionPanel = observer(function FrameSelectionPanel({
           </div>
         )}
         <ul className={styles.layers}>
-          {studioCtx.focusedFrames().map((frame) => {
+          {frames.map((frame, index) => {
             const name = studioCtx.tplMgr().describeArenaFrame(frame);
             return (
               <li key={frame.uuid} title={name}>
-                {name} · {frame.width} × {getFrameHeight(frame)}
+                {name} · {frame.width} × {heights[index]}
               </li>
             );
           })}

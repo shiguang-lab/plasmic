@@ -1,3 +1,6 @@
+import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
 import { makeFrameSizeMenu } from "@/wab/client/components/menus/FrameSizeMenu";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
 import { LabeledItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
@@ -17,7 +20,6 @@ import { ViewComponentProps, ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { isTokenRef } from "@/wab/commons/StyleToken";
 import {
   FrameViewMode,
-  getFrameHeight,
   isHeightAutoDerived,
 } from "@/wab/shared/Arenas";
 import { FRAME_CAP } from "@/wab/shared/Labels";
@@ -50,6 +52,7 @@ export const FramePanel = observer(function FramePanel(props: FramePanelProps) {
   const { t: uiT } = useI18n();
   const { styles } = useFramePanelStyles();
   const { viewCtx, frame } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
 
   const component = frame.container.component;
 
@@ -193,6 +196,7 @@ const FrameSizeSection = observer(function FrameSizeSection(
 ) {
   const { t: uiT } = useI18n();
   const { frame, viewCtx } = props;
+  const frameHeight = useFrameHeight(viewCtx.studioCtx, frame);
 
   const changeSize = (prop: "width" | "height", val: string) => {
     viewCtx.change(() => {
@@ -281,7 +285,7 @@ const FrameSizeSection = observer(function FrameSizeSection(
           <DimTokenSpinner
             data-test-id="artboard-size-content-height"
             allowedUnits={["px"]}
-            value={`${getFrameHeight(frame)}px`}
+            value={`${frameHeight}px`}
             noClear
             onChange={() => {
               /* this should never be invoked */

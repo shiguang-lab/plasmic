@@ -49,7 +49,7 @@ export function ensureNotArray(children: React.ReactNode) {
  * Flattens ReactNode into an array of ReactChild, but does NOT replace
  * missing keys with array index, as React.Children.toArray() does.
  */
-export function toChildArray(children: React.ReactNode): React.ReactChild[] {
+export function toChildArray(children: React.ReactNode): (React.ReactElement | string | number)[] {
   if (isReactChild(children)) {
     return [children];
   } else if (Array.isArray(children)) {
@@ -59,13 +59,13 @@ export function toChildArray(children: React.ReactNode): React.ReactChild[] {
   }
 }
 
-export function isReactText(child: React.ReactNode): child is React.ReactText {
+export function isReactText(child: React.ReactNode): child is string | number {
   return typeof child === "string" || typeof child === "number";
 }
 
 export function isReactChild(
   child: React.ReactNode,
-): child is React.ReactChild {
+): child is React.ReactElement | string | number {
   return React.isValidElement(child) || isReactText(child);
 }
 
@@ -88,7 +88,7 @@ export type StrictProps<T, TExpected> =
     ? any
     : Partial<"Unexpected extraneous props">;
 
-export type HTMLElementRefOf<T extends keyof JSX.IntrinsicElements> = Exclude<
+export type HTMLElementRefOf<T extends keyof React.JSX.IntrinsicElements> = Exclude<
   React.ComponentProps<T>["ref"],
   string
 >;
@@ -193,7 +193,7 @@ export function reactNodeToString(reactNode: React.ReactNode): string {
     reactNode.forEach(function (child) {
       string += reactNodeToString(child);
     });
-  } else if (isValidElement(reactNode)) {
+  } else if (isValidElement<{ children?: React.ReactNode }>(reactNode)) {
     string += reactNodeToString(reactNode.props.children);
   }
   return string;

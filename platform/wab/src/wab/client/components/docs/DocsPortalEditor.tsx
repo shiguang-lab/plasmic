@@ -1,4 +1,6 @@
-import { CodePreviewCtx } from "@/wab/client/components/docs/CodePreviewSnippet";
+import type { CodePreviewCtx } from "@/wab/client/components/docs/CodePreviewCtx";
+import { useDocsFocusedComponentRef, useDocsFocusedIconRef } from "@/wab/client/components/docs/DocsModelResources";
+import { subscribePreviewCodegen } from "@/wab/client/components/live/preview-codegen";
 import { DocsPortalCtx } from "@/wab/client/components/docs/DocsPortalCtx";
 import {
   makePlumeDepsImports,
@@ -6,7 +8,7 @@ import {
   serializeToggledComponent,
   serializeToggledIcon,
 } from "@/wab/client/components/docs/serialize-docs-preview";
-import { fixWorkerUrl } from "@/wab/client/monaco-worker-url";
+import { configureMonacoWorkers } from "@/wab/client/monaco-worker-url";
 import { useUiAppearance } from "@/wab/client/ui-theme";
 import {
   makeAssetClassName,
@@ -21,12 +23,12 @@ import {
   isCodeComponent,
   isPlumeComponent,
 } from "@/wab/shared/core/components";
+import MonacoEditor, { loader } from "@monaco-editor/react";
 import L from "lodash";
-import { autorun, runInAction } from "mobx";
-import { observer } from "mobx-react";
-import * as monacoEditor from "monaco-editor/esm/vs/editor/editor.api";
+import * as monacoEditor from "monaco-editor";
 import React from "react";
-import MonacoEditor from "react-monaco-editor";
+
+loader.config({ monaco: monacoEditor });
 
 // @ts-expect-error: Importing raw @plasmicapp/react-web types as a string
 import REACT_WEB_TYPES from "!raw-loader!../../../../../node_modules/@plasmicapp/react-web/dist/all.d.ts";
@@ -38,28 +40,47 @@ import REACT_TYPES from "!raw-loader!../../../../../node_modules/@types/react/in
 
 type MonacoType = typeof monacoEditor;
 
-export const DocsPortalEditor = observer(function DocsPortalEditor(props: {
+export function DocsPortalEditor(props: {
   docsCtx: DocsPortalCtx;
   codePreviewCtx?: CodePreviewCtx;
 }) {
   const { docsCtx, codePreviewCtx } = props;
   const { appearance } = useUiAppearance();
-  const component = docsCtx.tryGetFocusedComponent();
-  const icon = docsCtx.tryGetFocusedIcon();
+  const [dependencyError, setDependencyError] = React.useState<string>();
+  const componentRef = useDocsFocusedComponentRef(docsCtx);
+  const iconRef = useDocsFocusedIconRef(docsCtx);
   const [{ monaco, editor }, setMonaco] = React.useState<{
     monaco?: MonacoType;
     editor?: monacoEditor.editor.IStandaloneCodeEditor;
   }>({ monaco: undefined, editor: undefined });
 
   const [modelDirectory] = React.useState(() => `file:///docs_${mkUuid()}/`);
-  const models = React.useRef(new Map<string, monacoEditor.editor.ITextModel>());
+  const editorInstance =
+    React.useRef<monacoEditor.editor.IStandaloneCodeEditor | null>(null);
+  const models = React.useRef(
+    new Map<string, monacoEditor.editor.ITextModel>(),
+  );
   const extraLibs = React.useRef<monacoEditor.IDisposable[]>([]);
 
-  fixWorkerUrl();
+  configureMonacoWorkers();
+
+  React.useEffect(
+    () => () => {
+      if (editorInstance.current?.getModel())
+        {editorInstance.current.setModel(null);}
+      editorInstance.current = null;
+      models.current.forEach((model) => model.dispose());
+      models.current.clear();
+      extraLibs.current.forEach((lib) => lib.dispose());
+      extraLibs.current = [];
+    },
+    [],
+  );
 
   React.useEffect(() => {
-    // This effect is run whenever component/icon changes (monaco and editor
-    // should always stay the same)
+    // Command handles stay inside the editor effect; rendered metadata is native.
+    const component = componentRef && docsCtx.models.snapshots.resolve(componentRef);
+    const icon = iconRef && docsCtx.models.snapshots.resolve(iconRef);
     if ((!component && !icon) || !monaco || !editor) {
       return;
     }
@@ -81,7 +102,11 @@ export const DocsPortalEditor = observer(function DocsPortalEditor(props: {
     }
 
     // Whenver the model content changes, we inform docsCtx about it
-    const disposeModel = model.onDidChangeContent((event) => {
+    let synchronizing = false;
+    const disposeModel = model.onDidChangeContent((_event) => {
+      if (synchronizing) {
+        return;
+      }
       const newCode = removeInjectedCode(model.getValue());
 
       if (codePreviewCtx) {
@@ -96,45 +121,11 @@ export const DocsPortalEditor = observer(function DocsPortalEditor(props: {
       }
     });
 
-    const dispose = autorun(
-      () => {
-        // This function is in a mobx autorun, so it'll be called whenever
-        // observables change.  Specifically, whenever the dependent
-        // Component / TplNodes / etc. change, and whenever the component/icon
-        // toggles change.
-
-        // First, re-generate the dependent code modules, in case they have
-        // changed
-        const { modules } = serializeDependentModules(docsCtx);
-        for (const dep of modules) {
-          if (dep.lang === "tsx") {
-            const depUri = monaco.Uri.parse(
-              `${modelDirectory}${ensure(dep.name, "has name")}`,
-            );
-            upsertModel(monaco, models.current, depUri, dep.source);
-          }
-        }
-
-        // We need to inject some definitions so that the model file will
-        // typecheck correctly.  See injection comment at the end of this file.
-        const componentOrIconName =
-          component &&
-          (isPlumeComponent(component) || isCodeComponent(component))
-            ? getExportedComponentName(component)
-            : component
-              ? makePlasmicComponentName(component)
-              : makeAssetClassName(ensure(icon, "picked icon"));
-        const injectedCode = markInjectedCode(`
-import React from "react";
-import ${componentOrIconName} from "./${
-          component
-            ? componentOrIconName
-            : makeIconAssetFileNameWithoutExt(ensure(icon, "picked icon"))
-        }";
-${component ? makePlumeDepsImports(docsCtx.studioCtx.site, component) : ""}
-        `);
-
-        const docsCtxCode = component
+    let injectedCode = "";
+    const syncCode = () => {
+      const docsCtxCode = codePreviewCtx
+        ? codePreviewCtx.getCode()
+        : component
           ? (docsCtx.getComponentCustomCode(component) ??
             "// Try directly editing this code to pass in different props and overrides\n" +
               serializeToggledComponent(
@@ -150,35 +141,105 @@ ${component ? makePlumeDepsImports(docsCtx.studioCtx.site, component) : ""}
                 docsCtx.useLoader(),
               ));
 
-        if (component && !docsCtx.getComponentCustomCode(component)) {
-          runInAction(() => {
-            docsCtx.setComponentCustomCode(component, docsCtxCode, true);
-          });
-        }
+      if (
+        !codePreviewCtx &&
+        component &&
+        docsCtx.getComponentCustomCode(component) === undefined
+      ) {
+        docsCtx.setComponentCustomCode(component, docsCtxCode, true);
+      }
 
-        const code = `
+      const code = `
 ${injectedCode}
 ${codePreviewCtx?.getCode() ?? docsCtxCode}
 `.trim();
-        if (model.getValue() !== code) {
+      if (model.getValue() !== code) {
+        synchronizing = true;
+        try {
           model.setValue(code);
-          hideInjectedCode(editor);
+        } finally {
+          synchronizing = false;
         }
-      },
-      { name: "DocsPortalEditor" },
-    );
+        hideInjectedCode(editor);
+      }
+    };
+    const syncDependencies = () => {
+      try {
+        // Regenerate dependencies only for project-model changes. Native
+        // code/toggle edits below update the editor text without codegen.
 
+        // First, re-generate the dependent code modules, in case they have
+        // changed
+        const { modules } = serializeDependentModules(
+          docsCtx.studioCtx,
+          component,
+        );
+        for (const dep of modules) {
+          if (dep.lang === "tsx") {
+            const depUri = monaco.Uri.parse(
+              new URL(ensure(dep.name, "has name"), modelDirectory).href,
+            );
+            upsertModel(monaco, models.current, depUri, dep.source);
+          }
+        }
+
+        // We need to inject some definitions so that the model file will
+        // typecheck correctly.  See injection comment at the end of this file.
+        const componentOrIconName =
+          component &&
+          (isPlumeComponent(component) || isCodeComponent(component))
+            ? getExportedComponentName(component)
+            : component
+              ? makePlasmicComponentName(component)
+              : makeAssetClassName(ensure(icon, "picked icon"));
+        injectedCode = markInjectedCode(`
+import React from "react";
+import ${componentOrIconName} from "./${
+          component
+            ? componentOrIconName
+            : makeIconAssetFileNameWithoutExt(ensure(icon, "picked icon"))
+        }";
+${component ? makePlumeDepsImports(docsCtx.studioCtx.site, component) : ""}
+        `);
+
+        syncCode();
+        setDependencyError(undefined);
+      } catch (error) {
+        setDependencyError(error instanceof Error ? error.message || error.name : String(error));
+      }
+    };
+    const dispose = subscribePreviewCodegen(docsCtx.studioCtx, () => component, syncDependencies);
+    syncDependencies();
+
+    const disposeInputs = docsCtx.subscribePreviewInputs(
+      codePreviewCtx ? undefined : (component ?? icon),
+      syncCode,
+    );
+    const disposeExample = codePreviewCtx?.store.subscribe(syncCode);
     return () => {
       dispose();
+      disposeExample?.();
+      disposeInputs();
       disposeModel.dispose();
     };
-  }, [component, icon, docsCtx, codePreviewCtx, monaco, editor, modelDirectory]);
+  }, [
+    componentRef,
+    iconRef,
+    docsCtx,
+    codePreviewCtx,
+    monaco,
+    editor,
+    modelDirectory,
+  ]);
 
-  if (!component && !icon) {
+  if (!componentRef && !iconRef) {
     return null;
   }
 
   return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+      {dependencyError && <div role="alert" className="code error-bg p-sm">{dependencyError}</div>}
+      <div style={{ flex: 1, minHeight: 0 }}>
     <MonacoEditor
       theme={appearance === "dark" ? "vs-dark" : "vs"}
       options={{
@@ -199,7 +260,11 @@ ${codePreviewCtx?.getCode() ?? docsCtxCode}
       }}
       width="100%"
       height="100%"
-      editorDidMount={(editor_, monaco_) => {
+      onMount={(
+        editor_: monacoEditor.editor.IStandaloneCodeEditor,
+        monaco_: typeof monacoEditor,
+      ) => {
+        editorInstance.current = editor_;
         const initialModel = editor_.getModel();
         if (initialModel) {
           models.current.set(initialModel.uri.toString(), initialModel);
@@ -207,59 +272,60 @@ ${codePreviewCtx?.getCode() ?? docsCtxCode}
         // set state to trigger re-render
         setMonaco({ editor: editor_, monaco: monaco_ });
       }}
-      editorWillUnmount={(editor_) => {
-        editor_.setModel(null);
-        models.current.forEach((model) => model.dispose());
-        models.current.clear();
-        extraLibs.current.forEach((lib) => lib.dispose());
-        extraLibs.current = [];
-      }}
-      editorWillMount={(monaco_) => {
+      keepCurrentModel
+      beforeMount={(monaco_: typeof monacoEditor) => {
         // Upon initialization, set up monaco configurations to make sure
         // typechecking works as expected
 
-        monaco_.languages.typescript.typescriptDefaults.setCompilerOptions({
-          target: monaco_.languages.typescript.ScriptTarget.Latest,
+        monaco_.typescript.typescriptDefaults.setCompilerOptions({
+          target: monaco_.typescript.ScriptTarget.Latest,
           allowNonTsExtensions: true,
-          moduleResolution:
-            monaco_.languages.typescript.ModuleResolutionKind.NodeJs,
-          module: monaco_.languages.typescript.ModuleKind.CommonJS,
+          moduleResolution: monaco_.typescript.ModuleResolutionKind.NodeJs,
+          module: monaco_.typescript.ModuleKind.CommonJS,
           noEmit: true,
           esModuleInterop: true,
-          jsx: monaco_.languages.typescript.JsxEmit.React,
+          jsx: monaco_.typescript.JsxEmit.React,
           reactNamespace: "React",
           allowJs: true,
           typeRoots: ["node_modules/@types"],
         });
-        monaco_.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+        monaco_.typescript.typescriptDefaults.setDiagnosticsOptions({
           noSemanticValidation: false,
           noSyntaxValidation: false,
         });
         // Makes sure content changes in dependent files are reflected immediately
-        monaco_.languages.typescript.typescriptDefaults.setEagerModelSync(true);
+        monaco_.typescript.typescriptDefaults.setEagerModelSync(true);
 
         // We add typing information as libraries for react and @plasmicapp/react-web,
         // which are the minimum necessary for typing to work when working with
         // Plasmic* components.
         // See https://github.com/microsoft/monaco-editor/issues/264#issuecomment-654578687
-        extraLibs.current.push(monaco_.languages.typescript.typescriptDefaults.addExtraLib(
-          REACT_TYPES as any,
-          `${modelDirectory}node_modules/@types/react/index.d.ts`,
-        ));
-        extraLibs.current.push(monaco_.languages.typescript.typescriptDefaults.addExtraLib(
-          REACT_WEB_TYPES as any,
-          `${modelDirectory}node_modules/@plasmicapp/react-web/index.d.ts`,
-        ));
-        extraLibs.current.push(monaco_.languages.typescript.typescriptDefaults.addExtraLib(
-          `function PlasmicComponent(props: {component: string, componentProps?: Record<string, any>}) {
+        extraLibs.current.push(
+          monaco_.typescript.typescriptDefaults.addExtraLib(
+            REACT_TYPES as any,
+            `${modelDirectory}node_modules/@types/react/index.d.ts`,
+          ),
+        );
+        extraLibs.current.push(
+          monaco_.typescript.typescriptDefaults.addExtraLib(
+            REACT_WEB_TYPES as any,
+            `${modelDirectory}node_modules/@plasmicapp/react-web/index.d.ts`,
+          ),
+        );
+        extraLibs.current.push(
+          monaco_.typescript.typescriptDefaults.addExtraLib(
+            `function PlasmicComponent(props: {component: string, componentProps?: Record<string, any>}) {
             return <div />;
           }`,
-          `${modelDirectory}globals.d.ts`,
-        ));
+            `${modelDirectory}globals.d.ts`,
+          ),
+        );
       }}
     />
+      </div>
+    </div>
   );
-});
+}
 
 /**
  * Finds an existing Model for the argument `uri`, and if none exists,

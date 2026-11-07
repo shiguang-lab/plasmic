@@ -22,7 +22,7 @@ export function useMentionsPopover<T>({
   onClose,
   onPick,
 }: {
-  items: T[];
+  items: readonly T[];
   /**
    * What the user has typed after the `@`, or `undefined` when the caret is
    * not inside a mention

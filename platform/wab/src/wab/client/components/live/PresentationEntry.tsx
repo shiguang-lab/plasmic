@@ -1,7 +1,7 @@
 import { Api } from "@/wab/client/api";
 import { asApiError } from "@/wab/client/api-error-presentation";
 import { getLoginRouteWithContinuation } from "@/wab/client/cli-routes";
-import { PreviewLoading } from "@/wab/client/components/live/PreviewLoading";
+import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { Loadable } from "@/wab/client/components/widgets";
 import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
 import { useHostFrameCtxIfHostFrame } from "@/wab/client/frame-ctx/host-frame-ctx";
@@ -27,15 +27,15 @@ export function PresentationEntry({ children }: { children: React.ReactNode }) {
         registerPresentationProject(code, result.projectId);
         return result;
       }}
-      loadingContents={() => <PreviewLoading />}
+      loadingContents={() => <StudioChrome />}
       contents={() => <>{children}</>}
       failureContents={(retry, error) =>
         asApiError(error)?.statusCode === 401 ? (
           <Redirect to={getLoginRouteWithContinuation()} />
         ) : (
-          <PreviewLoading>
+          <StudioChrome>
             <LoadingError onRetry={retry} />
-          </PreviewLoading>
+          </StudioChrome>
         )
       }
     />

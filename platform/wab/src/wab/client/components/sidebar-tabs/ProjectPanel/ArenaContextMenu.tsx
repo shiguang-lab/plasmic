@@ -3,6 +3,7 @@ import { promptDeleteComponent } from "@/wab/client/components/modals/componentD
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import {
   AnyArena,
   getArenaName,
@@ -71,7 +72,7 @@ export function ArenaContextMenu({
   onClose?: () => void;
 }) {
   const { t: uiT } = useI18n();
-  const currentArena = studioCtx.currentArena;
+  const isCurrentMixedArena = useStudioArena(studioCtx, (state) => state.kind === "mixed");
   const component = isDedicatedArena(arena) ? arena.component : undefined;
 
   const isSubComp = !!component && !!component.superComp;
@@ -143,7 +144,7 @@ export function ArenaContextMenu({
       !isSubComp &&
       (!contentEditorMode || (component && isPageComponent(component))),
     editInNewArtboard:
-      isMixedArena(currentArena) &&
+      isCurrentMixedArena &&
       isDedicatedArena(arena) &&
       !contentEditorMode,
     convertToComponent:

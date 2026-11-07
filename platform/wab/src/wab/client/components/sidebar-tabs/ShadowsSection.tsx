@@ -3,8 +3,8 @@ import { shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helper
 import { BoxShadowPanel } from "@/wab/client/components/style-controls/BoxShadowControls";
 import { ColorSwatch } from "@/wab/client/components/style-controls/ColorSwatch";
 import {
-  StyleComponent,
   StyleComponentProps,
+  TplExpsProvider,
   StylePanelSection,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { StyleWrapper } from "@/wab/client/components/style-controls/StyleWrapper";
@@ -19,23 +19,20 @@ import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translate } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
-import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { makeVariantedStylesHelperFromCurrentCtx } from "@/wab/client/utils/style-utils";
-import { derefTokenRefs, tryParseTokenRef } from "@/wab/commons/StyleToken";
+import { derefTokenRefs, extractAllReferencedTokenIds, replaceAllTokenRefs } from "@/wab/commons/StyleToken";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
-import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { arrayMoveIndex, arrayRemove } from "@/wab/shared/collections";
 import { BoxShadow, BoxShadows, Dim } from "@/wab/shared/core/bg-styles";
-import {
-  siteFinalColorTokens,
-  siteFinalStyleTokensAllDeps,
-} from "@/wab/shared/core/site-style-tokens";
-import { allMixins } from "@/wab/shared/core/sites";
-import { CssVarResolver } from "@/wab/shared/core/styles";
 import { parseCss } from "@/wab/shared/css";
 import { Tooltip } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
+import { useStyleCell, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
+import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
+import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
+import { useImageAssetList } from "@/wab/client/studio-ctx/image-asset-inputs";
+import { extractAllAssetRefs, resolveAllAssetRefs } from "@/wab/shared/core/image-assets";
+import { findLast } from "lodash";
+import { useShallow } from "zustand/react/shallow";
 
 interface ShadowsPanelSectionState {
   inspectedShadow?: BoxShadow;
@@ -43,52 +40,42 @@ interface ShadowsPanelSectionState {
   index?: number;
 }
 
-const resolvedShadowCss = (
-  shadow: BoxShadow,
-  sc: StudioCtx,
-  vsh: VariantedStylesHelper,
-) => {
-  const site = sc.site;
-  const resolver = new CssVarResolver(
-    siteFinalStyleTokensAllDeps(site),
-    allMixins(site, { includeDeps: "all" }),
-    site.imageAssets,
-    site.activeTheme,
-    {},
-    vsh,
-  );
-  return resolver.resolveTokenRefs(shadow.showCss());
-};
+export function ShadowsPanelSection(props: StyleComponentProps) {
+  const studio = props.expsProvider.studioCtx;
+  const lifetime = React.useMemo(() => studio.arenaState.lifetime(), [studio, props.expsProvider]);
+  const subscribe = React.useCallback((notify: () => void) => {
+    lifetime.addEventListener("abort", notify);
+    return () => lifetime.removeEventListener("abort", notify);
+  }, [lifetime]);
+  const readActive = React.useCallback(() => !lifetime.aborted, [lifetime]);
+  const active = React.useSyncExternalStore(subscribe, readActive, readActive);
+  return active ? <ShadowsContent {...props} /> : null;
+}
 
-class _ShadowsPanelSection extends StyleComponent<
-  StyleComponentProps,
-  ShadowsPanelSectionState
-> {
-  constructor(props: StyleComponentProps) {
-    super(props);
-    this.state = {};
-  }
-  updateBoxShadows = (boxShadows: BoxShadows) => {
-    return this.change(() => {
-      return boxShadows.shadows.length
-        ? this.exp().set("box-shadow", boxShadows.showCss())
-        : this.exp().set("box-shadow", "none");
-    });
-  };
-  inspectBoxShadow = (shadow: /*TWZ*/ BoxShadow, index: number) => {
-    this.setState({ inspectedShadow: shadow, index });
-  };
-
-  render() {
+function ShadowsContent(props: StyleComponentProps) {
+    const { expsProvider } = props;
+    const studio = expsProvider.studioCtx;
+    const cell = useStyleCell(expsProvider, "box-shadow");
+    const indicators = useStyleIndicators(expsProvider, ["box-shadow"]).filter((indicator) => indicator.source !== "none");
+    const currentVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : studio);
+    const vsh = props.vsh ?? currentVsh;
+    const [{ inspectedShadow, index }, setState] = React.useState<ShadowsPanelSectionState>({});
+    const updateBoxShadows = (shadows: BoxShadows) => {
+      studio.changeSpawn(() => {
+        if (!(expsProvider instanceof TplExpsProvider) || expsProvider.canEdit()) {
+          expsProvider.mergedExp().set("box-shadow", shadows.shadows.length ? shadows.showCss() : "none");
+        }
+      });
+    };
+    const inspectBoxShadow = (shadow: BoxShadow, position: number) => setState({ inspectedShadow: shadow, index: position });
     const boxShadows: BoxShadows = (() => {
-      const v = this.exp().get("box-shadow");
+      const v = cell?.value ?? "none";
       if (v === "none") {
         return new BoxShadows([]);
       } else {
         return parseCss(v, { startRule: "boxShadows" });
       }
     })();
-    const { inspectedShadow, index } = this.state;
     const addShadowLayer = () => {
       const layer = new BoxShadow({
         inset: false,
@@ -101,24 +88,33 @@ class _ShadowsPanelSection extends StyleComponent<
 
       boxShadows.shadows.push(layer);
 
-      this.updateBoxShadows(boxShadows);
-      this.inspectBoxShadow(layer, boxShadows.shadows.length - 1);
+      updateBoxShadows(boxShadows);
+      inspectBoxShadow(layer, boxShadows.shadows.length - 1);
     };
 
     const { isDisabled, disabledTooltip } = shouldBeDisabled({
       props: {},
       label: translate(getUiLocale(), "Shadows"),
-      indicators: this.definedIndicators("box-shadow"),
+      indicators: indicators,
     });
 
-    const vsh =
-      this.props.vsh ??
-      makeVariantedStylesHelperFromCurrentCtx(this.studioCtx());
+    const inputs = boxShadows.shadows.map((shadow) => shadow.color);
+    const colors = useStyleTokenRefs(studio, inputs, vsh, "all", useShallow((state) => state.rows.map((row) => row.resolved?.value)));
+    const labels = useStyleTokenRefs(studio, inputs, vsh, "ColorLabel", useShallow((state) => state.rows.map((row) => row.applied)));
+    const imageAssets = useImageAssetList(studio);
+    const raw = boxShadows.shadows.map((shadow) => shadow.showCss());
+    const assets = new Map(extractAllAssetRefs(raw.join(" ")).flatMap((id) => {
+      const asset = findLast(imageAssets.rows, (candidate) => candidate.uuid === id);
+      return asset ? [[id, asset] as const] : [];
+    }));
+    const assetResolved = raw.map((value) => resolveAllAssetRefs(value, assets));
+    const requests = assetResolved.flatMap((value) => extractAllReferencedTokenIds(value).map((id) => `var(--token-${id})`));
+    const thumbnails = useStyleTokenRefs(studio, requests, vsh, "dictionary", useShallow((state) => state.rows.map((row) => row.resolved?.value)));
 
     return (
       <StylePanelSection
         key={String(boxShadows.shadows.length > 0)}
-        expsProvider={this.props.expsProvider}
+        expsProvider={expsProvider}
         title={<UiText message={"Shadows"} />}
         styleProps={["box-shadow"]}
         onExtraContentExpanded={() => {
@@ -149,17 +145,17 @@ class _ShadowsPanelSection extends StyleComponent<
           <>
             <SidebarModal
               show={!!inspectedShadow && !isDisabled}
-              onClose={() => this.setState({ inspectedShadow: undefined })}
+              onClose={() => setState({ inspectedShadow: undefined })}
               title={translate(getUiLocale(), "Shadow")}
             >
               {inspectedShadow && index !== undefined && (
                 <div className="panel-content">
                   <BoxShadowPanel
-                    expsProvider={this.props.expsProvider}
+                    expsProvider={expsProvider}
                     defaultShadow={inspectedShadow}
                     onUpdated={() => {
                       boxShadows.shadows[index] = inspectedShadow;
-                      this.updateBoxShadows(boxShadows);
+                      updateBoxShadows(boxShadows);
                     }}
                     vsh={vsh}
                   />
@@ -172,7 +168,6 @@ class _ShadowsPanelSection extends StyleComponent<
               showDefinedIndicator={true}
             >
               <ListBox
-                ref={"boxShadowList"}
                 appendPrepend={"append"}
                 {...(isDisabled
                   ? {}
@@ -183,21 +178,13 @@ class _ShadowsPanelSection extends StyleComponent<
                           from,
                           to,
                         );
-                        this.updateBoxShadows(boxShadows);
+                        updateBoxShadows(boxShadows);
                       },
                     })}
               >
                 {boxShadows.shadows.map((shadow: BoxShadow, i: number) => {
-                  const sc = this.props.expsProvider.studioCtx;
-                  const color = derefTokenRefs(
-                    siteFinalStyleTokensAllDeps(sc.site),
-                    shadow.color,
-                    vsh,
-                  );
-                  const token = tryParseTokenRef(
-                    shadow.color,
-                    siteFinalColorTokens(sc.site, { includeDeps: "all" }),
-                  );
+                  const color = colors.selected[i] ?? derefTokenRefs([], shadow.color);
+                  const token = labels.selected[i];
                   return (
                     <ListBoxItem
                       key={i}
@@ -205,11 +192,11 @@ class _ShadowsPanelSection extends StyleComponent<
                       onRemove={() => {
                         if (!isDisabled) {
                           arrayRemove(boxShadows.shadows, shadow);
-                          return this.updateBoxShadows(boxShadows);
+                          return updateBoxShadows(boxShadows);
                         }
                       }}
                       onClick={() =>
-                        !isDisabled && this.inspectBoxShadow(shadow, i)
+                        !isDisabled && inspectBoxShadow(shadow, i)
                       }
                       mainContent={
                         <>
@@ -223,7 +210,7 @@ class _ShadowsPanelSection extends StyleComponent<
                         <div
                           className="shadow-thumb"
                           style={{
-                            boxShadow: resolvedShadowCss(shadow, sc, vsh),
+                            boxShadow: replaceAllTokenRefs(assetResolved[i], (id) => thumbnails.selected[requests.indexOf(`var(--token-${id})`)]),
                           }}
                         />
                       }
@@ -237,6 +224,5 @@ class _ShadowsPanelSection extends StyleComponent<
         )}
       </StylePanelSection>
     );
-  }
 }
-export const ShadowsPanelSection = observer(_ShadowsPanelSection);
+

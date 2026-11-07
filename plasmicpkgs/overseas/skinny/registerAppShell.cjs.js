@@ -1,5 +1,6 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var thumbnails = require('@shiguang-lab/plasmic-overseas/thumbnails');
 var icons = require('@ant-design/icons');
 var host = require('@plasmicapp/host');
@@ -18,9 +19,12 @@ function AppSourceSelect({ options, value, language, onChange }) {
   const title = chinese ? "\u8FD0\u8425 App" : "Operations App";
   const current = chinese ? "\u5F53\u524D" : "Current";
   const hint = chinese ? "\u5207\u6362 App \u4EE5\u67E5\u770B\u5BF9\u5E94\u6570\u636E" : "Switch apps to view their data";
-  const label = (text, active) => /* @__PURE__ */ React__default.default.createElement("span", { style: { display: "inline-flex", gap: 10, alignItems: "center", minWidth: 0 } }, /* @__PURE__ */ React__default.default.createElement("i", { "aria-hidden": "true", style: { display: "inline-block", width: 8, height: 8, borderRadius: "50%", flexShrink: 0, background: active ? token.colorPrimary : token.colorTextQuaternary } }), /* @__PURE__ */ React__default.default.createElement("span", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, text));
+  const label = (text, active) => /* @__PURE__ */ jsxRuntime.jsxs("span", { style: { display: "inline-flex", gap: 10, alignItems: "center", minWidth: 0 }, children: [
+    /* @__PURE__ */ jsxRuntime.jsx("i", { "aria-hidden": "true", style: { display: "inline-block", width: 8, height: 8, borderRadius: "50%", flexShrink: 0, background: active ? token.colorPrimary : token.colorTextQuaternary } }),
+    /* @__PURE__ */ jsxRuntime.jsx("span", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: text })
+  ] });
   const hintStyle = { padding: "8px 12px", color: token.colorTextTertiary, fontSize: 12 };
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     antd.Select,
     {
       "aria-label": title,
@@ -31,8 +35,15 @@ function AppSourceSelect({ options, value, language, onChange }) {
       onChange: (next) => {
         if (next !== value) onChange(next);
       },
-      optionRender: (option) => /* @__PURE__ */ React__default.default.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, padding: "8px 4px" } }, label(option.data.text, option.value === value), option.value === value && /* @__PURE__ */ React__default.default.createElement("span", { style: { color: token.colorPrimary, fontSize: 12, flexShrink: 0 } }, current)),
-      popupRender: (menu) => /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, /* @__PURE__ */ React__default.default.createElement("div", { style: hintStyle }, title), menu, /* @__PURE__ */ React__default.default.createElement("div", { style: hintStyle }, hint))
+      optionRender: (option) => /* @__PURE__ */ jsxRuntime.jsxs("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, padding: "8px 4px" }, children: [
+        label(option.data.text, option.value === value),
+        option.value === value && /* @__PURE__ */ jsxRuntime.jsx("span", { style: { color: token.colorPrimary, fontSize: 12, flexShrink: 0 }, children: current })
+      ] }),
+      popupRender: (menu) => /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
+        /* @__PURE__ */ jsxRuntime.jsx("div", { style: hintStyle, children: title }),
+        menu,
+        /* @__PURE__ */ jsxRuntime.jsx("div", { style: hintStyle, children: hint })
+      ] })
     }
   );
 }
@@ -180,7 +191,7 @@ function AppShell({
   const breadcrumbItems = [
     { title: productName },
     ...menuPath.filter((item) => item.label).map((item) => ({
-      title: item.href && item !== menuPath.at(-1) ? /* @__PURE__ */ React__default.default.createElement(PlasmicLink, { href: item.href }, item.label) : item.label
+      title: item.href && item !== menuPath.at(-1) ? /* @__PURE__ */ jsxRuntime.jsx(PlasmicLink, { href: item.href, children: item.label }) : item.label
     }))
   ];
   const timeParts = Object.fromEntries(
@@ -200,12 +211,12 @@ function AppShell({
     (item) => item && {
       ...item,
       ...item.href ? {
-        label: /* @__PURE__ */ React__default.default.createElement(PlasmicLink, { href: item.href }, item.label)
+        label: /* @__PURE__ */ jsxRuntime.jsx(PlasmicLink, { href: item.href, children: item.label })
       } : {},
       ...item.children ? { children: linkedMenu(item.children) } : {}
     }
   );
-  return /* @__PURE__ */ React__default.default.createElement(antd.ConfigProvider, { direction: currentDirection }, /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(antd.ConfigProvider, { direction: currentDirection, children: /* @__PURE__ */ jsxRuntime.jsx(
     "div",
     {
       className,
@@ -220,222 +231,243 @@ function AppShell({
         minHeight: "var(--viewport-height, 100vh)",
         flexShrink: 0,
         overflow: "hidden"
-      }
-    },
-    /* @__PURE__ */ React__default.default.createElement(
-      antd.Layout,
-      {
-        style: {
-          width: "100%",
-          height: "100%",
-          // Fills the viewport when the shell height is `auto`.
-          minHeight: "var(--viewport-height, 100vh)",
-          overflow: "hidden",
-          background: "#f0f2f5"
-        }
       },
-      /* @__PURE__ */ React__default.default.createElement(
-        antd.Layout.Sider,
-        {
-          width: 239,
-          collapsedWidth: 80,
-          collapsed: isCollapsed,
-          theme: "light",
-          style: {
-            borderInlineEnd: `1px solid ${token.colorBorderSecondary}`,
-            overflow: "auto"
-          }
-        },
-        /* @__PURE__ */ React__default.default.createElement(
-          "div",
-          {
-            style: {
-              height: 64,
-              padding: "0 16px",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              overflow: "hidden",
-              whiteSpace: "nowrap"
-            }
-          },
-          logoUrl ? /* @__PURE__ */ React__default.default.createElement(
-            "img",
-            {
-              src: logoUrl,
-              alt: "",
-              style: {
-                width: 30,
-                height: 30,
-                objectFit: "contain",
-                flexShrink: 0
-              }
-            }
-          ) : /* @__PURE__ */ React__default.default.createElement(antd.Avatar, { shape: "square", size: 30, style: { flexShrink: 0 } }, productName.slice(0, 1)),
-          !isCollapsed && /* @__PURE__ */ React__default.default.createElement(
-            "strong",
-            {
-              style: { fontSize: 16, color: token.colorText },
-              title: productName
-            },
-            productName
-          )
-        ),
-        /* @__PURE__ */ React__default.default.createElement(
-          antd.Menu,
-          {
-            mode: "inline",
-            theme: "light",
-            inlineCollapsed: isCollapsed,
-            items: linkedMenu(visibleMenuItems(menuItems ?? [])),
-            openKeys: isCollapsed ? [] : menuState.openKeys,
-            onOpenChange: (openKeys) => {
-              if (!isCollapsed) setMenuState({ ...menuState, openKeys });
-            },
-            selectedKeys: selectedKey ? [selectedKey] : [],
-            onClick: ({ key }) => {
-              setMenu(key);
-              onMenuSelect?.(key);
-            },
-            style: { borderInlineEnd: 0 }
-          }
-        )
-      ),
-      /* @__PURE__ */ React__default.default.createElement(antd.Layout, { style: { minWidth: 0, minHeight: 0 } }, /* @__PURE__ */ React__default.default.createElement(
-        antd.Layout.Header,
+      children: /* @__PURE__ */ jsxRuntime.jsxs(
+        antd.Layout,
         {
           style: {
-            height: 64,
-            padding: "0 24px",
-            background: token.colorBgContainer,
-            borderBottom: `1px solid ${token.colorBorderSecondary}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
-            lineHeight: "normal"
-          }
-        },
-        /* @__PURE__ */ React__default.default.createElement(
-          "div",
-          {
-            style: {
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              minWidth: 0
-            }
+            width: "100%",
+            height: "100%",
+            // Fills the viewport when the shell height is `auto`.
+            minHeight: "var(--viewport-height, 100vh)",
+            overflow: "hidden",
+            background: "#f0f2f5"
           },
-          /* @__PURE__ */ React__default.default.createElement(
-            antd.Button,
-            {
-              type: "text",
-              "aria-label": isCollapsed ? "\u5C55\u5F00\u4FA7\u680F" : "\u6298\u53E0\u4FA7\u680F",
-              icon: isCollapsed ? /* @__PURE__ */ React__default.default.createElement(icons.MenuUnfoldOutlined, null) : /* @__PURE__ */ React__default.default.createElement(icons.MenuFoldOutlined, null),
-              onClick: () => {
-                setCollapsed(!isCollapsed);
-                onCollapsedChange?.(!isCollapsed);
-              }
-            }
-          ),
-          breadcrumbItems.length > 0 && /* @__PURE__ */ React__default.default.createElement(antd.Breadcrumb, { items: breadcrumbItems })
-        ),
-        /* @__PURE__ */ React__default.default.createElement(
-          "div",
-          {
-            style: {
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              minWidth: 0
-            }
-          },
-          /* @__PURE__ */ React__default.default.createElement(
-            "time",
-            {
-              style: {
-                color: token.colorTextSecondary,
-                whiteSpace: "nowrap",
-                fontSize: 14
-              }
-            },
-            "\u5F53\u5730\u65F6\u95F4\uFF1A",
-            clock
-          ),
-          appSources.length > 0 && /* @__PURE__ */ React__default.default.createElement(
-            AppSourceSelect,
-            {
-              value: currentSource,
-              options: appSources,
-              language: currentLanguage,
-              onChange: (value) => {
-                setSource(value);
-                onAppSourceChange?.(value);
-              }
-            }
-          ),
-          languages.length > 0 && /* @__PURE__ */ React__default.default.createElement(
-            antd.Dropdown,
-            {
-              menu: {
-                items: languages.map(({ value, label }) => ({
-                  key: value,
-                  label
-                })),
-                selectedKeys: [currentLanguage],
-                onClick: ({ key }) => {
-                  setLanguage(key);
-                  onLanguageChange?.(key);
-                }
-              }
-            },
-            /* @__PURE__ */ React__default.default.createElement(
-              antd.Button,
+          children: [
+            /* @__PURE__ */ jsxRuntime.jsxs(
+              antd.Layout.Sider,
               {
-                type: "text",
-                "aria-label": "\u8BED\u8A00",
-                title: languages.find(
-                  (option) => option.value === currentLanguage
-                )?.label,
-                icon: /* @__PURE__ */ React__default.default.createElement(icons.GlobalOutlined, null)
+                width: 239,
+                collapsedWidth: 80,
+                collapsed: isCollapsed,
+                theme: "light",
+                style: {
+                  borderInlineEnd: `1px solid ${token.colorBorderSecondary}`,
+                  overflow: "auto"
+                },
+                children: [
+                  /* @__PURE__ */ jsxRuntime.jsxs(
+                    "div",
+                    {
+                      style: {
+                        height: 64,
+                        padding: "0 16px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        overflow: "hidden",
+                        whiteSpace: "nowrap"
+                      },
+                      children: [
+                        logoUrl ? /* @__PURE__ */ jsxRuntime.jsx(
+                          "img",
+                          {
+                            src: logoUrl,
+                            alt: "",
+                            style: {
+                              width: 30,
+                              height: 30,
+                              objectFit: "contain",
+                              flexShrink: 0
+                            }
+                          }
+                        ) : /* @__PURE__ */ jsxRuntime.jsx(antd.Avatar, { shape: "square", size: 30, style: { flexShrink: 0 }, children: productName.slice(0, 1) }),
+                        !isCollapsed && /* @__PURE__ */ jsxRuntime.jsx(
+                          "strong",
+                          {
+                            style: { fontSize: 16, color: token.colorText },
+                            title: productName,
+                            children: productName
+                          }
+                        )
+                      ]
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntime.jsx(
+                    antd.Menu,
+                    {
+                      mode: "inline",
+                      theme: "light",
+                      inlineCollapsed: isCollapsed,
+                      items: linkedMenu(visibleMenuItems(menuItems ?? [])),
+                      openKeys: isCollapsed ? [] : menuState.openKeys,
+                      onOpenChange: (openKeys) => {
+                        if (!isCollapsed) setMenuState({ ...menuState, openKeys });
+                      },
+                      selectedKeys: selectedKey ? [selectedKey] : [],
+                      onClick: ({ key }) => {
+                        setMenu(key);
+                        onMenuSelect?.(key);
+                      },
+                      style: { borderInlineEnd: 0 }
+                    }
+                  )
+                ]
               }
-            )
-          ),
-          /* @__PURE__ */ React__default.default.createElement(
-            antd.Button,
-            {
-              type: currentDirection === "rtl" ? "primary" : "text",
-              "aria-label": currentDirection === "rtl" ? "\u5207\u6362\u4E3A LTR" : "\u5207\u6362\u4E3A RTL",
-              icon: /* @__PURE__ */ React__default.default.createElement(icons.SwapOutlined, null),
-              onClick: () => {
-                const next = currentDirection === "rtl" ? "ltr" : "rtl";
-                setDirection(next);
-                onDirectionChange?.(next);
-              }
-            }
-          ),
-          /* @__PURE__ */ React__default.default.createElement(
-            antd.Dropdown,
-            {
-              menu: {
-                items: userMenuItems,
-                onClick: ({ key }) => onUserAction?.(key)
-              }
-            },
-            /* @__PURE__ */ React__default.default.createElement(antd.Button, { type: "text", style: { height: 32, paddingInline: 0 } }, /* @__PURE__ */ React__default.default.createElement(antd.Avatar, { size: 32 }, userName.slice(0, 1)), /* @__PURE__ */ React__default.default.createElement("span", null, userName), /* @__PURE__ */ React__default.default.createElement(icons.DownOutlined, null))
-          )
-        )
-      ), /* @__PURE__ */ React__default.default.createElement(
-        antd.Layout.Content,
-        {
-          ref: contentRef,
-          onScroll: (event) => onContentScroll?.(event.currentTarget.scrollTop),
-          style: { padding: 16, minHeight: 0, overflow: "auto" }
-        },
-        /* @__PURE__ */ React__default.default.createElement("div", { style: { minHeight: "100%" } }, children)
-      ))
-    )
-  ));
+            ),
+            /* @__PURE__ */ jsxRuntime.jsxs(antd.Layout, { style: { minWidth: 0, minHeight: 0 }, children: [
+              /* @__PURE__ */ jsxRuntime.jsxs(
+                antd.Layout.Header,
+                {
+                  style: {
+                    height: 64,
+                    padding: "0 24px",
+                    background: token.colorBgContainer,
+                    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 16,
+                    lineHeight: "normal"
+                  },
+                  children: [
+                    /* @__PURE__ */ jsxRuntime.jsxs(
+                      "div",
+                      {
+                        style: {
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 16,
+                          minWidth: 0
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxRuntime.jsx(
+                            antd.Button,
+                            {
+                              type: "text",
+                              "aria-label": isCollapsed ? "\u5C55\u5F00\u4FA7\u680F" : "\u6298\u53E0\u4FA7\u680F",
+                              icon: isCollapsed ? /* @__PURE__ */ jsxRuntime.jsx(icons.MenuUnfoldOutlined, {}) : /* @__PURE__ */ jsxRuntime.jsx(icons.MenuFoldOutlined, {}),
+                              onClick: () => {
+                                setCollapsed(!isCollapsed);
+                                onCollapsedChange?.(!isCollapsed);
+                              }
+                            }
+                          ),
+                          breadcrumbItems.length > 0 && /* @__PURE__ */ jsxRuntime.jsx(antd.Breadcrumb, { items: breadcrumbItems })
+                        ]
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntime.jsxs(
+                      "div",
+                      {
+                        style: {
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          minWidth: 0
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxRuntime.jsxs(
+                            "time",
+                            {
+                              style: {
+                                color: token.colorTextSecondary,
+                                whiteSpace: "nowrap",
+                                fontSize: 14
+                              },
+                              children: [
+                                "\u5F53\u5730\u65F6\u95F4\uFF1A",
+                                clock
+                              ]
+                            }
+                          ),
+                          appSources.length > 0 && /* @__PURE__ */ jsxRuntime.jsx(
+                            AppSourceSelect,
+                            {
+                              value: currentSource,
+                              options: appSources,
+                              language: currentLanguage,
+                              onChange: (value) => {
+                                setSource(value);
+                                onAppSourceChange?.(value);
+                              }
+                            }
+                          ),
+                          languages.length > 0 && /* @__PURE__ */ jsxRuntime.jsx(
+                            antd.Dropdown,
+                            {
+                              menu: {
+                                items: languages.map(({ value, label }) => ({
+                                  key: value,
+                                  label
+                                })),
+                                selectedKeys: [currentLanguage],
+                                onClick: ({ key }) => {
+                                  setLanguage(key);
+                                  onLanguageChange?.(key);
+                                }
+                              },
+                              children: /* @__PURE__ */ jsxRuntime.jsx(
+                                antd.Button,
+                                {
+                                  type: "text",
+                                  "aria-label": "\u8BED\u8A00",
+                                  title: languages.find(
+                                    (option) => option.value === currentLanguage
+                                  )?.label,
+                                  icon: /* @__PURE__ */ jsxRuntime.jsx(icons.GlobalOutlined, {})
+                                }
+                              )
+                            }
+                          ),
+                          /* @__PURE__ */ jsxRuntime.jsx(
+                            antd.Button,
+                            {
+                              type: currentDirection === "rtl" ? "primary" : "text",
+                              "aria-label": currentDirection === "rtl" ? "\u5207\u6362\u4E3A LTR" : "\u5207\u6362\u4E3A RTL",
+                              icon: /* @__PURE__ */ jsxRuntime.jsx(icons.SwapOutlined, {}),
+                              onClick: () => {
+                                const next = currentDirection === "rtl" ? "ltr" : "rtl";
+                                setDirection(next);
+                                onDirectionChange?.(next);
+                              }
+                            }
+                          ),
+                          /* @__PURE__ */ jsxRuntime.jsx(
+                            antd.Dropdown,
+                            {
+                              menu: {
+                                items: userMenuItems,
+                                onClick: ({ key }) => onUserAction?.(key)
+                              },
+                              children: /* @__PURE__ */ jsxRuntime.jsxs(antd.Button, { type: "text", style: { height: 32, paddingInline: 0 }, children: [
+                                /* @__PURE__ */ jsxRuntime.jsx(antd.Avatar, { size: 32, children: userName.slice(0, 1) }),
+                                /* @__PURE__ */ jsxRuntime.jsx("span", { children: userName }),
+                                /* @__PURE__ */ jsxRuntime.jsx(icons.DownOutlined, {})
+                              ] })
+                            }
+                          )
+                        ]
+                      }
+                    )
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsxRuntime.jsx(
+                antd.Layout.Content,
+                {
+                  ref: contentRef,
+                  onScroll: (event) => onContentScroll?.(event.currentTarget.scrollTop),
+                  style: { padding: 16, minHeight: 0, overflow: "auto" },
+                  children: /* @__PURE__ */ jsxRuntime.jsx("div", { style: { minHeight: "100%" }, children })
+                }
+              )
+            ] })
+          ]
+        }
+      )
+    }
+  ) });
 }
 const optionType = {
   type: "object",

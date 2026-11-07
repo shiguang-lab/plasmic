@@ -43,10 +43,6 @@ export async function detectSyncOptions(
     return await fileExists("tsconfig.json");
   };
 
-  const detectGatsby = async () => {
-    return await fileExists("gatsby-config.js");
-  };
-
   const detectNextJs = async () => {
     return (
       packageJsonContent.scripts?.build === "next build" ||
@@ -57,10 +53,6 @@ export async function detectSyncOptions(
 
   return {
     language: (await detectTypeScript()) ? "ts" : "js",
-    platform: (await detectGatsby())
-      ? "gatsby"
-      : (await detectNextJs())
-        ? "nextjs"
-        : "react",
+    platform: (await detectNextJs()) ? "nextjs" : "react",
   };
 }

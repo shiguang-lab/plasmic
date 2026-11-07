@@ -9,6 +9,7 @@ import {
 import { ClientPinManager } from "@/wab/client/components/variants/ClientPinManager";
 import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import type { ModelRef, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { withProvider } from "@/wab/commons/components/ContextUtil";
 import { MainBranchId, ProjectId } from "@/wab/shared/ApiSchema";
 import { getFrameHeight } from "@/wab/shared/Arenas";
@@ -16,15 +17,24 @@ import {
   VariantCombo,
   getReferencedVariantGroups,
   isGlobalVariant,
+  getAllVariantsForTpl,
+  isBaseVariant,
+  isPrivateStyleVariant,
+  isScreenVariant,
+  isStyleOrCodeComponentVariant,
 } from "@/wab/shared/Variants";
 import { toVarName } from "@/wab/shared/codegen/util";
 import { ensure, hackyCast, spawn, tuple } from "@/wab/shared/common";
 import {
   allComponentNonStyleVariants,
   allComponentVariants,
+  isCodeComponent,
+  isFrameComponent,
+  isPageComponent,
+  isReusableComponent,
 } from "@/wab/shared/core/components";
 import { allGlobalVariants } from "@/wab/shared/core/sites";
-import { Component, Variant } from "@/wab/shared/model/classes";
+import { Component, Variant, isKnownComponent } from "@/wab/shared/model/classes";
 import {
   APP_ROUTES,
   SEARCH_PARAM_BRANCH,
@@ -42,7 +52,8 @@ import {
 import * as Sentry from "@sentry/browser";
 import { Location, createPath, parsePath } from "history";
 import _ from "lodash";
-import { makeObservable, observable } from "mobx";
+import { useStore } from "zustand";
+import { createStore } from "zustand/vanilla";
 import React from "react";
 
 const DEFAULT_VIEWPORT_WIDTH = 320;
@@ -85,15 +96,143 @@ interface PreviewDataOutput extends PreviewInputData {
   global: Record<string, string | string[]>;
 }
 
+export interface PreviewTarget {
+  readonly uuid: string;
+  readonly name: string;
+  readonly kind: "page" | "component" | "artboard";
+}
+
+export interface PreviewDataSnapshot extends Omit<PreviewDataOutput, "componentPath" | "allVariants"> {
+  readonly componentPath: string | { readonly component: ModelRef<Component>; readonly pageParams?: Record<string, string | string[]> };
+  readonly allVariants: readonly ModelRef<Variant>[];
+}
+
+export interface PreviewState {
+  readonly previewData: PreviewDataSnapshot | undefined;
+  readonly isLive: boolean;
+  readonly navigationEntries: readonly Partial<Location>[];
+  readonly navigationIndex: number;
+  readonly navigating: boolean;
+  readonly refreshKey: number;
+  readonly targets: readonly PreviewTarget[];
+  readonly hasVariants: boolean;
+  readonly componentUuid?: string;
+}
+
+export function usePreviewSelector<T>(
+  previewCtx: PreviewCtx,
+  selector: (state: PreviewState) => T,
+): T {
+  return useStore(previewCtx.store, selector);
+}
+
 export class PreviewCtx {
   private disposals: (() => void)[] = [];
-
-  previewData: PreviewDataOutput | undefined = undefined;
+  private disposed = false;
+  readonly store = createStore<PreviewState>(() => ({
+    previewData: undefined,
+    isLive: false,
+    navigationEntries: [],
+    navigationIndex: -1,
+    navigating: false,
+    refreshKey: 0,
+    targets: [],
+    hasVariants: false,
+  }));
   private previousLocation: Partial<Location> | undefined = undefined;
-  private navigationEntries: Partial<Location>[] = [];
-  private navigationIndex = -1;
-  private navigating = false;
-  refreshKey = 0;
+  private commandPreviewData: PreviewDataOutput | undefined = undefined;
+  private routeSnapshotsOwner: ModelSnapshots | undefined;
+
+  private update(next: Partial<PreviewState>) {
+    if (this.disposed) {
+      return;
+    }
+    const current = this.store.getState();
+    if ((Object.keys(next) as (keyof PreviewState)[]).some((key) => !Object.is(current[key], next[key]))) {
+      if (
+        next.isLive !== undefined &&
+        next.isLive !== current.isLive &&
+        this.studioCtx.previewCtx === this
+      ) {
+        this.studioCtx.withPreviewLivePolicy(next.isLive, () => {
+          this.store.setState(next);
+        });
+      } else {
+        this.store.setState(next);
+      }
+    }
+  }
+
+  get previewData() { return this.commandPreviewData; }
+  set previewData(value: PreviewDataOutput | undefined) {
+    const previous = this.previewData;
+    const snapshots = this.studioCtx.modelSnapshots;
+    const sameOwner = this.routeSnapshotsOwner === snapshots;
+    const component = (data: PreviewDataOutput | undefined) =>
+      data && typeof data.componentPath !== "string" ? data.componentPath.component : undefined;
+    if (sameOwner && component(previous) === component(value) && _.isEqual(
+      previous && { ...previous, componentPath: typeof previous.componentPath === "string" ? previous.componentPath : previous.componentPath.pageParams, allVariants: previous.allVariants.map((variant) => variant.uid) },
+      value && { ...value, componentPath: typeof value.componentPath === "string" ? value.componentPath : value.componentPath.pageParams, allVariants: value.allVariants.map((variant) => variant.uid) },
+    )) { return; }
+    if (this.disposed) { return; }
+    const freezeRecord = <T,>(record: Record<string, T | T[]>, before?: Record<string, T | T[]>) => {
+      if (before && _.isEqual(before, record)) { return before; }
+      const frozen = Object.fromEntries(Object.entries(record).map(([key, item]) => [key, Array.isArray(item) ? Object.freeze(item.slice()) : item])) as Record<string, T | T[]>;
+      return Object.freeze(frozen);
+    };
+    const allVariants = value && previous && value.allVariants.length === previous.allVariants.length && value.allVariants.every((variant, index) => variant === previous.allVariants[index]) ? previous.allVariants : value?.allVariants.slice();
+    if (allVariants) { Object.freeze(allVariants); }
+    const previousPath = previous && typeof previous.componentPath !== "string" ? previous.componentPath : undefined;
+    const nextPath = value && typeof value.componentPath !== "string" ? { ...value.componentPath, pageParams: value.componentPath.pageParams && freezeRecord(value.componentPath.pageParams, previousPath?.pageParams) } : value?.componentPath;
+    const componentPath = nextPath && typeof nextPath !== "string" && previousPath && nextPath.component === previousPath.component && nextPath.pageParams === previousPath.pageParams ? previousPath : nextPath;
+    const command = value && Object.freeze({
+      ...value,
+      componentPath: typeof componentPath === "string" ? componentPath : Object.freeze(ensure(componentPath, "Preview component path missing")),
+      pageQuery: freezeRecord(value.pageQuery, previous?.pageQuery),
+      variants: freezeRecord(value.variants, previous?.variants),
+      global: freezeRecord(value.global, previous?.global),
+      allVariants: ensure(allVariants, "Preview variants missing"),
+    });
+    this.commandPreviewData = command;
+    this.routeSnapshotsOwner = snapshots;
+    const before = sameOwner ? this.store.getState().previewData : undefined;
+    const previewData = command && Object.freeze({
+      ...command,
+      componentPath: command.componentPath === previous?.componentPath && before ? before.componentPath : typeof command.componentPath === "string" ? command.componentPath : Object.freeze({ ...command.componentPath, component: snapshots.ref(command.componentPath.component) }),
+      allVariants: command.allVariants === previous?.allVariants && before ? before.allVariants : Object.freeze(command.allVariants.map((variant) => snapshots.ref(variant))),
+    });
+    this.update({ previewData, componentUuid: component(command)?.uuid, hasVariants: this.hasSelectableVariants(component(command)) });
+  }
+  get isLive() { return this.store.getState().isLive; }
+  set isLive(value: boolean) { this.update({ isLive: value }); }
+  get refreshKey() { return this.store.getState().refreshKey; }
+  set refreshKey(value: number) { this.update({ refreshKey: value }); }
+  private get navigationEntries() { return this.store.getState().navigationEntries; }
+  private get navigationIndex() { return this.store.getState().navigationIndex; }
+  private get navigating() { return this.store.getState().navigating; }
+
+  private syncTargets() {
+    const targets = this.studioCtx.site.components.flatMap((component): PreviewTarget[] => {
+      const kind = isPageComponent(component) ? "page" : isFrameComponent(component) ? "artboard" : isReusableComponent(component) && !isCodeComponent(component) ? "component" : undefined;
+      return kind ? [{ uuid: component.uuid, name: component.name, kind }] : [];
+    });
+    const previous = this.store.getState().targets;
+    if (!_.isEqual(previous, targets)) {
+      const previousByUuid = new Map(previous.map((target) => [target.uuid, target]));
+      this.update({ targets: Object.freeze(targets.map((target) => {
+        const before = previousByUuid.get(target.uuid);
+        return _.isEqual(target, before) ? ensure(before, "Missing previous Preview target") : Object.freeze(target);
+      })) });
+    }
+  }
+
+  private hasSelectableVariants(component: Component | undefined) {
+    return !!component && getAllVariantsForTpl({ component, tpl: null, site: this.studioCtx.site }).some((variant) => !isStyleOrCodeComponentVariant(variant) && !isScreenVariant(variant) && !isPrivateStyleVariant(variant) && !isBaseVariant(variant));
+  }
+
+  private syncVariantAvailability() {
+    this.update({ hasVariants: this.hasSelectableVariants(this.component) });
+  }
 
   get canGoBack() {
     return this.isLive && !this.navigating && this.navigationIndex > 0;
@@ -109,8 +248,9 @@ export class PreviewCtx {
 
   private recordNavigation(location: Location) {
     if (!this.isLive) {
-      this.navigationEntries = [];
-      this.navigationIndex = -1;
+      if (this.navigationEntries.length) {
+        this.update({ navigationEntries: [], navigationIndex: -1 });
+      }
       return;
     }
     const current = this.navigationEntries[this.navigationIndex];
@@ -122,14 +262,14 @@ export class PreviewCtx {
         new URLSearchParams(entry.search).get("component"),
       ]);
     if (!current || pageKey(current) !== pageKey(location)) {
-      this.navigationEntries = this.navigationEntries.slice(
-        0,
-        this.navigationIndex + 1,
-      );
-      this.navigationEntries.push(location);
-      this.navigationIndex++;
-    } else {
-      this.navigationEntries[this.navigationIndex] = location;
+      this.update({
+        navigationEntries: [...this.navigationEntries.slice(0, this.navigationIndex + 1), location],
+        navigationIndex: this.navigationIndex + 1,
+      });
+    } else if (!_.isEqual(current, location)) {
+      const entries = this.navigationEntries.slice();
+      entries[this.navigationIndex] = location;
+      this.update({ navigationEntries: entries });
     }
   }
 
@@ -163,8 +303,7 @@ export class PreviewCtx {
       }
     }
     const previousIndex = this.navigationIndex;
-    this.navigating = true;
-    this.navigationIndex = index;
+    this.update({ navigating: true, navigationIndex: index });
     try {
       // Replace the Studio route; never traverse the editor's browser history.
       await this.pushRouteToHistory(
@@ -172,10 +311,10 @@ export class PreviewCtx {
         true,
       );
     } catch (error) {
-      this.navigationIndex = previousIndex;
+      this.update({ navigationIndex: previousIndex });
       throw error;
     } finally {
-      this.navigating = false;
+      this.update({ navigating: false });
     }
   }
 
@@ -235,27 +374,25 @@ export class PreviewCtx {
     return this.previewData?.viewport || "desktop";
   }
 
-  /**
-   * True if current window is a preview URl.
-   */
-  isLive = false;
-
   constructor(
     public hostFrameCtx: HostFrameCtx,
     public studioCtx: StudioCtx,
   ) {
-    makeObservable<
-      this,
-      "navigationEntries" | "navigationIndex" | "navigating"
-    >(this, {
-      previewData: observable,
-      isLive: observable,
-      navigationEntries: observable.shallow,
-      navigationIndex: observable,
-      navigating: observable,
-      refreshKey: observable,
-    });
     studioCtx.previewCtx = this;
+    this.syncTargets();
+    this.disposals.push(studioCtx.subscribeModelChanges((event) => {
+      if (event.type === "site-replaced") {
+        this.syncTargets();
+        this.syncVariantAvailability();
+        spawn(this.parseRoute());
+        return;
+      }
+      if (event.summary.changes.some(({ changeNode: { inst, field } }) =>
+        (inst === studioCtx.site && field === "components") ||
+        (isKnownComponent(inst) && studioCtx.site.components.includes(inst) && ["name", "uuid", "type", "pageMeta", "codeComponentMeta"].includes(field))
+      )) { this.syncTargets(); }
+      if (event.summary.changes.length) { this.syncVariantAvailability(); }
+    }));
 
     // Add history listener
     const historyListener = (location: Location) => {
@@ -292,7 +429,8 @@ export class PreviewCtx {
   }
 
   dispose() {
-    this.disposals.forEach((d) => d());
+    this.disposed = true;
+    this.disposals.splice(0).forEach((d) => d());
   }
 
   async toggleLiveMode() {

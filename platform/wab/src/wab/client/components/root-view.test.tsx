@@ -17,6 +17,13 @@ const mocks = vi.hoisted(() => ({
   loadAppCtxData: vi.fn(),
   reportError: vi.fn(),
 }));
+vi.mock("@/wab/client/components/normal-layout", () => ({
+  NormalNonAuthLayout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  NormalLayout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+vi.mock("@/wab/client/components/studio/view-initializer", () => ({
+  default: ({ projectId }: { projectId: string }) => <div data-testid="project-initializer">{projectId}</div>,
+}));
 vi.mock("@/wab/client/api", () => ({
   setUser: vi.fn(),
   Api: class {
@@ -232,3 +239,17 @@ it("consumes the desktop opening response without repeating the project GET", as
     Reflect.deleteProperty(window, "desktopEnvironment");
   }
 });
+
+// Docs intentionally stays outside parseProjectLocation() so its component/icon
+// route does not change the canvas arena. The shared project entry still owns it.
+it.each(["", "/codegen/component/ComponentId", "/loader/icon/IconId"])(
+  "resolves the project initializer for the Docs route %s",
+  async (suffix) => {
+    const history = createMemoryHistory({ initialEntries: [`/projects/project/docs${suffix}`] });
+    mocks.loadAppCtx.mockResolvedValue({ selfInfo: null, history });
+    render(<HistoryProvider history={history}><Root /></HistoryProvider>);
+    expect((await screen.findByTestId("project-initializer")).textContent).toBe("project");
+    expect(history.location.pathname).toBe(`/projects/project/docs${suffix}`);
+    expect(screen.queryByRole("alert")).toBeNull();
+  },
+);

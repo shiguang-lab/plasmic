@@ -1,18 +1,15 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
-var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-CK330rTr.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-Dk7zLz_N.cjs.js');
 var registerMenu = require('./registerMenu.cjs.js');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host');
+require('react');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
-
-function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
-
-var React__default = /*#__PURE__*/_interopDefault(React);
 
 function addKeysToUnkeyedMenuItems(unkeyedMenuItems, maybeGenKey) {
   const genKey = maybeGenKey ?? /* @__PURE__ */ (() => {
@@ -54,7 +51,7 @@ function AntdDropdown(props) {
     ...rest
   } = canvasProps;
   const keyedMenuItems = addKeysToUnkeyedMenuItems(unkeyedMenuItems);
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant.Dropdown,
     {
       ...rest,
@@ -65,18 +62,18 @@ function AntdDropdown(props) {
       popupRender: () => {
         const itemsChildren = useMenuItemsSlot ? menuItems?.() ?? [] : void 0;
         const items = useMenuItemsSlot ? void 0 : keyedMenuItems;
-        return /* @__PURE__ */ React__default.default.createElement(
+        return /* @__PURE__ */ jsxRuntime.jsx(
           registerMenu.AntdMenu,
           {
             className: `${dropdownMenuScopeClassName}`,
             onClick: isEditing ? void 0 : (event) => onAction?.(event.key),
-            items
-          },
-          itemsChildren
+            items,
+            children: itemsChildren
+          }
         );
-      }
-    },
-    typeof children === "string" ? /* @__PURE__ */ React__default.default.createElement("div", null, children) : children
+      },
+      children: typeof children === "string" ? /* @__PURE__ */ jsxRuntime.jsx("div", { children }) : children
+    }
   );
 }
 function registerDropdown(loader) {

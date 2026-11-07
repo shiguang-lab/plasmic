@@ -1,3 +1,4 @@
+import { useStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
 import { apiKey } from "@/wab/client/api";
 import { menuSection } from "@/wab/client/components/menu-builder";
 import {
@@ -41,7 +42,7 @@ import {
   notification,
 } from "antd";
 import { createStyles } from "antd-style";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
 import React, { useState } from "react";
 import { useDebounce } from "react-use";
 import useSWR, { mutate } from "swr";
@@ -80,7 +81,7 @@ const useStyles = createStyles(({ token }) => ({
   },
 }));
 
-export const BranchPanelTop = observer(React.forwardRef(BranchPanelTop_));
+export const BranchPanelTop = React.forwardRef(BranchPanelTop_);
 
 function BranchPanelTop_(
   { onClose }: { onClose: () => void },
@@ -90,7 +91,11 @@ function BranchPanelTop_(
   const { styles } = useStyles();
   const topFrameApi = useTopFrameApi();
   const studioCtx = useStudioCtx();
-  const projectId = studioCtx.siteInfo.id;
+  const isLive = useStudioLiveMode(studioCtx);
+  const projectId = useStore(studioCtx.projectMetadataStore, (state) => state.id);
+  const isMainBranchProtected = useStore(studioCtx.projectMetadataStore, (state) => state.isMainBranchProtected);
+  const focusedBranchId = useStore(studioCtx.uiEnvironment.store, (state) => state.branchId);
+  const canEditProject = useStore(studioCtx.uiEnvironment.store, (state) => state.canEditProject);
   const api = studioCtx.appCtx.api;
   const {
     data: branchesResponse,
@@ -132,7 +137,7 @@ function BranchPanelTop_(
 
   const allBranches = branchesResponse.branches;
   const focusedBranch = allBranches.find(
-    (branch) => branch.id === studioCtx.dbCtx().branchInfo?.id,
+    (branch) => branch.id === focusedBranchId,
   );
   const activeBranches = allBranches.filter(
     (branch) => branch.status === "active",
@@ -298,7 +303,7 @@ function BranchPanelTop_(
     return newBranch;
   }
 
-  const canManage = studioCtx.canEditProject() && !studioCtx.isLiveMode;
+  const canManage = canEditProject && !isLive;
   const renderBranch = ({
     branch,
     nameWithQueryHighlighting,
@@ -338,6 +343,8 @@ function BranchPanelTop_(
               t,
               branch,
               studioCtx,
+              projectId,
+              isMainBranchProtected,
               onClose,
               onSwitch,
               onRename: async () => {
@@ -426,6 +433,8 @@ function getBranchMenuRenderer({
   t,
   branch: _branch,
   studioCtx,
+  projectId,
+  isMainBranchProtected,
   onRename,
   onSwitch,
   onDuplicate,
@@ -439,11 +448,11 @@ function getBranchMenuRenderer({
   onDuplicate: () => Promise<void>;
   onToggleProtectionMainBranch: () => Promise<void>;
   studioCtx: StudioCtx;
+  projectId: StudioCtx["siteInfo"]["id"];
+  isMainBranchProtected: boolean;
 }) {
   return () => {
     const branch = _branch;
-    const projectId = studioCtx.siteInfo.id;
-    const isMainBranchProtected = studioCtx.siteInfo.isMainBranchProtected;
     const api = studioCtx.appCtx.api;
 
     function refresh() {

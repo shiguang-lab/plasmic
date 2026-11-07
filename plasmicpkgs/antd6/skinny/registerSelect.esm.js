@@ -1,10 +1,11 @@
+import { jsx } from 'react/jsx-runtime';
 import { Select } from 'antd';
 import cls from 'classnames';
-import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-k3p9M5S2.esm.js';
 import { o as optionComponentName, g as optionGroupComponentName, s as selectComponentName } from './names-DQIzgrvq.esm.js';
-import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
+import 'react';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -28,7 +29,7 @@ function AntdSelect(props) {
   if (useChildren) {
     curated.options = void 0;
   }
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Select,
     {
       ...curated,

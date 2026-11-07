@@ -1,0 +1,200 @@
+import { createDocsModelFixture } from "@/wab/client/components/docs/__testonly__/model-fixture";
+import { TplMgr, VariantOptionsType } from "@/wab/shared/TplMgr";
+import { getBaseVariant, tryGetBaseVariantSetting } from "@/wab/shared/Variants";
+import { Bundler } from "@/wab/shared/bundler";
+import { ensure } from "@/wab/shared/common";
+import { ComponentType, mkComponent } from "@/wab/shared/core/components";
+import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
+import { mkImageAsset } from "@/wab/shared/core/image-assets";
+import { mkParam } from "@/wab/shared/core/lang";
+import { createSite } from "@/wab/shared/core/sites";
+import { mkSlot, mkTplInlinedText, mkTplTagX } from "@/wab/shared/core/tpls";
+import { asSvgDataUrl } from "@/wab/shared/data-urls";
+import { PlumeInfo, ensureKnownRawText, ensureKnownSite, ensureKnownTplTag } from "@/wab/shared/model/classes";
+import { typeFactory } from "@/wab/shared/model/model-util";
+
+function fixture() {
+  const site = createSite();
+  const mgr = new TplMgr({ site });
+  const first = mgr.addComponent({ name: "First", type: ComponentType.Plain });
+  const second = mgr.addComponent({ name: "Second", type: ComponentType.Plain });
+  const icon = mkImageAsset({ name: "NativeIcon", type: ImageAssetType.Icon, dataUri: asSvgDataUrl('<svg xmlns="http://www.w3.org/2000/svg"><circle r="2"/></svg>') });
+  site.imageAssets.push(icon);
+  return { ...createDocsModelFixture(site), site, mgr, first, second, icon };
+}
+
+it("publishes directory fields after commit and preserves unrelated and reordered rows", () => {
+  const { ctx, site, first, second, icon, commit } = fixture();
+  const store = ctx.models.getDirectoryStore();
+  store.subscribe(vi.fn());
+  const before = store.getState();
+  first.name = "Renamed";
+  expect(before.components[0].name).toBe("First");
+  commit(first, "name", [first]);
+  const renamed = store.getState();
+  expect(renamed.components[0].name).toBe("Renamed");
+  expect(renamed.components[0].ref).not.toBe(first);
+  expect(renamed.components[1]).toBe(before.components[1]);
+  expect(renamed.icons).toBe(before.icons);
+  expect(Object.isFrozen(renamed.components[0])).toBe(true);
+
+  site.components.reverse();
+  commit(site, "components");
+  expect(store.getState().components).toEqual([renamed.components[1], renamed.components[0]]);
+  expect(store.getState().components[0]).toBe(renamed.components[1]);
+  first.superComp = second;
+  commit(first, "superComp", [first]);
+  expect(store.getState().components.map((row) => row.name)).toEqual(["Second"]);
+  icon.dataUri = asSvgDataUrl('<svg xmlns="http://www.w3.org/2000/svg"><path d="M0 0h1v1z"/></svg>');
+  commit(icon, "dataUri");
+  expect(store.getState().icons[0].dataUri).toBe(icon.dataUri);
+  expect(store.getState().components[0]).toBe(renamed.components[1]);
+
+  const changed = vi.fn();
+  const off = store.subscribe(changed);
+  const settled = store.getState();
+  ctx.dispose();
+  second.name = "After disposal";
+  commit(second, "name", [second]);
+  expect(store.getState()).toBe(settled);
+  expect(changed).not.toHaveBeenCalled();
+  off();
+});
+
+it("projects contract names, options, types, node labels and default text for one demanded component", () => {
+  const { ctx, site, mgr, first, second, commit } = fixture();
+  const group = mgr.createVariantGroup({ component: first, name: "Size", optionsType: VariantOptionsType.multiChoice });
+  const option = mgr.createVariant(first, group, "Small");
+  const param = mkParam({ name: "caption", paramType: "prop", type: typeFactory.choice(["One", "Two"]) });
+  const slotParam = mkParam({ name: "children", paramType: "slot", type: typeFactory.renderable() });
+  first.params.push(param, slotParam);
+  const text = mkTplInlinedText("Before", [getBaseVariant(first)], "div", { baseVariant: getBaseVariant(first) });
+  const slot = mkSlot(slotParam, [text]);
+  const root = ensureKnownTplTag(first.tplTree);
+  root.children.push(slot);
+  slot.parent = root;
+  root.name = "Content";
+  const ref = ctx.models.snapshots.ref(first);
+  const store = ctx.models.getComponentStore(ref);
+  store.subscribe(vi.fn());
+  const slotText = ctx.models.getSlotTextStore(ref, ctx.models.snapshots.ref(slot));
+  const before = store.getState();
+  const property = (state: typeof before) => ensure(state.linkedProps.find((prop) => prop.param.uid === param.uid), "Caption property");
+  expect(before.variantGroups[0].name).toBe("size");
+  expect(before.variantGroups[0].options[0].name).toBe("Small");
+  expect(before.slots[0].name).toBe("children");
+  expect(slotText.getState()).toBe("Before");
+  expect(property(before).type).toContain("One");
+  expect(Object.isFrozen(property(before).propType)).toBe(true);
+
+  option.name = "Large";
+  commit(option, "name", [first]);
+  const variantChanged = store.getState();
+  expect(variantChanged.variantGroups[0].options[0].name).toBe("Large");
+  expect(variantChanged.slots).toBe(before.slots);
+  expect(variantChanged.linkedProps).toBe(before.linkedProps);
+  param.variable.name = "displayText";
+  commit(param.variable, "name", [first]);
+  expect(property(store.getState()).name).toBe("displayText");
+  param.type = typeFactory.bool();
+  commit(param, "type", [first]);
+  expect(property(store.getState()).type).toBe("boolean");
+  root.name = "RenamedRoot";
+  commit(root, "name", [first]);
+  expect(store.getState().elements.find((node) => node.ref.uid === root.uid)?.name).toBe("renamedRoot");
+  const raw = ensureKnownRawText(ensure(tryGetBaseVariantSetting(text), "Text setting").text);
+  raw.text = "After";
+  commit(raw, "text", [first]);
+  expect(slotText.getState()).toBe("After");
+
+  const settled = store.getState();
+  const changed = vi.fn();
+  const off = store.subscribe(changed);
+  second.name = "Unrelated";
+  commit(second, "name", [second]);
+  commit(site, "imageAssets");
+  expect(store.getState()).toBe(settled);
+  expect(changed).not.toHaveBeenCalled();
+  off();
+  ctx.dispose();
+});
+
+it("rebinds focused model references after site replacement and ignores old owners", () => {
+  const { ctx, site, first, commit, replaceSite } = fixture();
+  const directory = ctx.models.getDirectoryStore();
+  directory.subscribe(vi.fn());
+  ctx.setFocusedComponent(first);
+  const oldRef = ctx.models.snapshots.ref(first);
+  const bundle = new Bundler().bundle(site, "docs-test", "test");
+  const next = ensureKnownSite(new Bundler().unbundle(bundle, "docs-test"));
+  const nextComponent = ensure(next.components.find((component) => component.uuid === first.uuid), "Replacement component");
+  nextComponent.name = "Replacement";
+  replaceSite(next);
+  expect(ctx.getFocusedComponent()).toBe(nextComponent);
+  const row = ensure(directory.getState().components.find((component) => component.uuid === first.uuid), "Replacement row");
+  expect(row.name).toBe("Replacement");
+  expect(row.ref).not.toBe(oldRef);
+  expect(ctx.models.snapshots.resolve(row.ref)).toBe(nextComponent);
+  const settled = directory.getState();
+  first.name = "Stale";
+  commit(first, "name", [first]);
+  expect(directory.getState()).toBe(settled);
+  ctx.dispose();
+});
+
+it("retains native store identities across StrictMode leases and disconnects synchronously", () => {
+  const { ctx, listeners } = fixture();
+  const store = ctx.models.getDirectoryStore();
+  expect(listeners.size).toBe(0);
+  const firstCleanup = ctx.retainModelResources();
+  firstCleanup();
+  expect(listeners.size).toBe(0);
+  const lastCleanup = ctx.retainModelResources();
+  expect(ctx.models.getDirectoryStore()).toBe(store);
+  expect(listeners.size).toBe(1);
+  lastCleanup();
+  expect(listeners.size).toBe(0);
+});
+
+it("refreshes Plume property types and example dependencies in codegen and loader modes", () => {
+  const site = createSite();
+  const button = mkComponent({ name: "MenuButton", type: ComponentType.Plain, tplTree: mkTplTagX("div", {}), plumeInfo: new PlumeInfo({ type: "menu-button" }) });
+  const menu = mkComponent({ name: "Menu", type: ComponentType.Plain, tplTree: mkTplTagX("div", {}), plumeInfo: new PlumeInfo({ type: "menu" }) });
+  site.components.push(button, menu);
+  const menuParam = mkParam({ name: "menu", paramType: "slot", type: typeFactory.renderable() });
+  button.params.push(menuParam);
+  const menuSlot = mkSlot(menuParam);
+  const root = ensureKnownTplTag(button.tplTree);
+  root.children.push(menuSlot);
+  menuSlot.parent = root;
+  const { ctx, commit } = createDocsModelFixture(site);
+  const ref = ctx.models.snapshots.ref(button);
+  const model = ctx.models.getComponentStore(ref);
+  model.subscribe(vi.fn());
+  const source = ctx.models.getExampleStore(ref, { title: "Dependency", code: "return <InstanceMenu />;", instances: { Menu: { plumeType: "menu", props: {} } } });
+  const before = source.getState();
+  expect(before.codegen).toContain("<Menu");
+  expect(before.loader).toContain('component="Menu"');
+  menu.name = "RenamedMenu";
+  commit(menu, "name", [menu]);
+  expect(source.getState().codegen).toContain("<RenamedMenu");
+  expect(source.getState().loader).toContain('component="RenamedMenu"');
+  expect(model.getState().baseProps.find((prop) => prop.name === "menu")?.type).toContain("RenamedMenu");
+  const settled = source.getState();
+  commit(button, "params", [button]);
+  expect(source.getState()).toBe(settled);
+  ctx.dispose();
+});
+
+it("replaces references when snapshots change while model identities are retained", () => {
+  const { ctx, site, first, replaceSite } = fixture();
+  const directory = ctx.models.getDirectoryStore();
+  directory.subscribe(vi.fn());
+  ctx.setFocusedComponent(first);
+  const oldRef = directory.getState().components[0].ref;
+  replaceSite(site);
+  const ref = directory.getState().components[0].ref;
+  expect(ref).not.toBe(oldRef);
+  expect(ctx.models.snapshots.resolve(ref)).toBe(first);
+  ctx.dispose();
+});

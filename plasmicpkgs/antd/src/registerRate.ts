@@ -4,7 +4,7 @@ import registerComponent, {
 import { Rate as AntdRate } from "antd";
 import type { RateProps } from "antd/es/rate";
 import { Registerable } from "./registerable";
-export const Rate = AntdRate;
+export const Rate: typeof AntdRate = AntdRate;
 
 export const rateMeta: CodeComponentMeta<RateProps> = {
   name: "AntdRate",

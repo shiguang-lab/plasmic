@@ -12,8 +12,6 @@ import {
   Site,
 } from "@/wab/shared/model/classes";
 import { Form } from "antd";
-import { computed } from "mobx";
-import { useLocalStore, useObserver } from "mobx-react";
 import React from "react";
 
 export interface ExtractComponentResponse {
@@ -59,24 +57,9 @@ export function ExtractComponentForm(props: {
     serverQueriesToCreateProps,
   } = props;
 
-  const resp = useLocalStore<ExtractComponentResponse>(() => ({
-    name: "",
-    resurfaceParams: false,
-  }));
+  const [name, setName] = React.useState("");
 
-  const validateName = (name: string) => {
-    if (!name.trim()) {
-      return undefined;
-    }
-
-    return undefined;
-  };
-
-  const errors = computed(() => ({
-    name: validateName(resp.name),
-  }));
-
-  return useObserver(() => (
+  return (
     <Modal
       title={<UiText message="Create new component" />}
       open
@@ -86,28 +69,24 @@ export function ExtractComponentForm(props: {
       okButtonProps={{
         htmlType: "submit",
         form: formId,
-        disabled: !resp.name || !!errors.get().name,
+        disabled: !name,
       }}
     >
       <Form
         id={formId}
         form={form}
         onFinish={(_e) => {
-          if (resp.name && !errors.get().name) {
-            props.onSubmit(resp);
+          if (name) {
+            props.onSubmit({ name });
           }
         }}
         layout="horizontal"
         data-test-id="extract-component-form"
       >
-        <Form.Item
-          label={uiT("Component name")}
-          validateStatus={errors.get().name ? "error" : undefined}
-          help={errors.get().name}
-        >
+        <Form.Item label={uiT("Component name")}>
           <Textbox
-            onChange={(e) => (resp.name = e.target.value)}
-            value={resp.name}
+            onChange={(e) => setName(e.target.value)}
+            value={name}
             autoFocus={true}
             placeholder={uiT("Enter the name of your new component")}
             data-test-id="extract-component-name"
@@ -142,5 +121,5 @@ export function ExtractComponentForm(props: {
           )}
       </Form>
     </Modal>
-  ));
+  );
 }

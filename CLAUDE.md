@@ -21,7 +21,7 @@ Plasmic is an open-source visual web builder. This monorepo contains:
 - **Platform** (`platform/`) - Apps that make up the Plasmic platform, such as the wab, img-optimizer, etc
 - **SDK packages** (`packages/`) - npm packages for integrating with Plasmic
 - **Plasmic packages** (`plasmicpkgs/`) - npm packages that provide code components on Plasmic
-- **Examples** (`examples/`) - Miscellaneous reference implementations
+- **Scaffolding** (`packages/create-plasmic-app/`) - Project generators and maintained output fixtures
 
 ## Tech Stack
 

@@ -12,12 +12,14 @@ import {
 } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { MaybeCollapsibleRowsRenderer } from "@/wab/client/components/sidebar/SidebarSection";
 import {
-  StyleComponent,
   useStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { useStyleCells, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useI18n } from "@/wab/client/i18n";
+import type { FontInstallSpec } from "@/wab/shared/fonts";
+import { useStore } from "zustand";
 
 import AlignCenterIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__AlignCenter";
 import AlignLeftIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__AlignLeft";
@@ -37,14 +39,13 @@ import {
   fontWeightOptions,
   isValidFontWeight,
 } from "@/wab/client/typography-utils";
-import { makeVariantedStylesHelperFromCurrentCtx } from "@/wab/client/utils/style-utils";
+import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
 import { derefTokenRefs, tokenTypeDimOpts } from "@/wab/commons/StyleToken";
 import { ensure, filterMapTruthy, maybe } from "@/wab/shared/common";
 import { siteFinalStyleTokensAllDeps } from "@/wab/shared/core/site-style-tokens";
 import { fontWeightNumber, parseCssNumericNew } from "@/wab/shared/css";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { notification } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { ReactElement } from "react";
 
@@ -61,21 +62,16 @@ interface TypographyContentProps {
   animatableOnly?: boolean;
 }
 
-export const Typography = observer(_Typography);
+export const Typography = _Typography;
 
 function mkFontWeightOptions(
-  sc: StyleComponent,
+  fonts: readonly FontInstallSpec[],
+  fontFamily: string,
   currentFontWeight: string | undefined,
 ): StyleSelectOption[] {
-  const exp = sc.exp();
-
   // For Google fonts, where only certain variants are valid,
   // only show those variants
-  const fontFamily = exp.get("font-family");
-  const spec = sc
-    .studioCtx()
-    .fontManager.availFonts()
-    .find((font) => font.fontFamily === fontFamily);
+  const spec = fonts.find((font) => font.fontFamily === fontFamily);
 
   return filterMapTruthy(fontWeightOptions, (option) =>
     isValidFontWeight(option.value, spec)
@@ -98,12 +94,32 @@ function _Typography({
 }: TypographyContentProps) {
   const { t: uiT } = useI18n();
   const sc = useStyleComponent();
-  const exp = sc.exp();
-  const vsh =
-    props.vsh ?? makeVariantedStylesHelperFromCurrentCtx(sc.studioCtx());
+  const fonts = useStore(
+    sc.studioCtx().fontManager.store,
+    (state) => state.availableFonts,
+  );
+  const expsProvider = sc.props.expsProvider;
+  const [
+    fontFamilyCell,
+    fontWeightCell,
+    userSelectCell,
+    whiteSpaceCell,
+    textOverflowCell,
+  ] = useStyleCells(expsProvider, [
+    "font-family",
+    "font-weight",
+    "user-select",
+    "white-space",
+    "text-overflow",
+  ]);
+  const currentVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : sc.studioCtx());
+  const vsh = props.vsh ?? currentVsh;
+  const spacingIndicators = useStyleIndicators(expsProvider, ["line-height", "letter-spacing"]);
+  const selectableIndicators = useStyleIndicators(expsProvider, ["user-select", "text-transform"]);
+  const whiteSpaceIndicators = useStyleIndicators(expsProvider, ["white-space"]);
 
   const currentFontWeight = maybe(
-    exp.get("font-weight"),
+    fontWeightCell?.value,
     (x) => `${fontWeightNumber(x)}`,
   );
 
@@ -138,7 +154,7 @@ function _Typography({
           selectOpts={{
             value: currentFontWeight,
             onChange: (val) => props.onChange("font-weight", `${val}`),
-            options: mkFontWeightOptions(sc, currentFontWeight),
+            options: mkFontWeightOptions(fonts, fontFamilyCell?.value ?? "", currentFontWeight),
           }}
           isDisabled={readOnly}
         />
@@ -258,7 +274,7 @@ function _Typography({
           {
             collapsible: !isSetOrInherited(
               getValueSetState(
-                ...sc.definedIndicators("line-height", "letter-spacing"),
+                ...spacingIndicators,
               ),
             ),
             content: (
@@ -268,7 +284,7 @@ function _Typography({
           {
             collapsible: !isSetOrInherited(
               getValueSetState(
-                ...sc.definedIndicators("user-select", "text-transform"),
+                ...selectableIndicators,
               ),
             ),
             content: (
@@ -277,7 +293,7 @@ function _Typography({
                   <LabeledStyleSwitchItem
                     label={uiT("Selectable")}
                     styleName="user-select"
-                    value={exp.get("user-select") === "text"}
+                    value={userSelectCell?.value === "text"}
                     onChange={(val) => {
                       props.onChange("user-select", val ? "text" : "none");
                     }}
@@ -310,7 +326,7 @@ function _Typography({
           },
           {
             collapsible: !isSetOrInherited(
-              getValueSetState(...sc.definedIndicators("white-space")),
+              getValueSetState(...whiteSpaceIndicators),
             ),
             content: (
               <>
@@ -318,7 +334,7 @@ function _Typography({
                   <LabeledStyleSwitchItem
                     label={uiT("Line wrap")}
                     styleName="white-space"
-                    value={exp.get("white-space") !== "nowrap"}
+                    value={whiteSpaceCell?.value !== "nowrap"}
                     onChange={(val) => {
                       props.onChange(
                         "white-space",
@@ -337,13 +353,13 @@ function _Typography({
                   <LabeledToggleButtonGroup
                     label={uiT("Overflow")}
                     styleName="text-overflow"
-                    isDisabled={readOnly || exp.get("white-space") !== "nowrap"}
+                    isDisabled={readOnly || whiteSpaceCell?.value !== "nowrap"}
                     disabledTooltip={uiT(
                       "Line wrap needs to be turned off to set the text overflow options",
                     )}
                     value={
-                      exp.has("text-overflow")
-                        ? exp.get("text-overflow")
+                      textOverflowCell?.has
+                        ? textOverflowCell?.value
                         : "overflow"
                     }
                     onChange={(val) =>

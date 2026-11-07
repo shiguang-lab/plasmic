@@ -9,11 +9,10 @@ import { cx, ensure } from "@/wab/shared/common";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import domAlign from "dom-align";
 import L from "lodash";
-import { observer } from "mobx-react";
 import React from "react";
 import { OverlayProvider, useOverlay, useOverlayPosition } from "react-aria";
 import ReactDOM from "react-dom";
-import { animated, useSpring } from "react-spring";
+import { animated, useSpring } from "@react-spring/web";
 import ResizeObserver from "resize-observer-polyfill";
 
 interface Store {
@@ -173,9 +172,7 @@ export function PopoverFrame(props: PopoverFrameProps) {
   ) : null;
 }
 
-const PopoverFrameInternal = observer(function PopoverFrameInternal(
-  props: PopoverFrameProps & { frameId: string },
-) {
+function PopoverFrameInternal(props: PopoverFrameProps & { frameId: string }) {
   // This component doesn't render anything; it dispatches push and pop
   // actions to the PopoverFrameContext store to manage popover content.
   // PopoverFrameShell picks up new frames and renders popovers.
@@ -264,7 +261,7 @@ const PopoverFrameInternal = observer(function PopoverFrameInternal(
     </ModalScope>,
     element,
   );
-});
+}
 
 function PopoverFrameShell() {
   const popupRef = React.useRef<HTMLDivElement>(null);

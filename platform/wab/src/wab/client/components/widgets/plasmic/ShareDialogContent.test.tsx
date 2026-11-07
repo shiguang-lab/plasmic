@@ -4,8 +4,9 @@ import ShareDialogContent from "@/wab/client/components/widgets/plasmic/ShareDia
 import { ApiFeatureTier, ApiTeam, TeamId } from "@/wab/shared/ApiSchema";
 import { AccessLevel } from "@/wab/shared/EntUtil";
 import "@testing-library/jest-dom/vitest";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { message } from "antd";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -80,6 +81,15 @@ beforeEach(() => {
   actor.updateTeam.mockReset().mockResolvedValue({});
   actor.grant.mockReset().mockResolvedValue({ perms: [] });
   actor.copy.mockReset().mockReturnValue(true);
+});
+
+afterEach(async () => {
+  await act(async () => {
+    cleanup();
+    message.destroy();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+  });
+  expect(document.querySelector(".ant-message-notice")).toBeNull();
 });
 
 function renderShare() {

@@ -1,8 +1,9 @@
+import { jsx } from 'react/jsx-runtime';
 import { usePlasmicCanvasContext } from '@plasmicapp/host';
 import { Form } from 'antd';
 import React, { isValidElement, cloneElement } from 'react';
 import { r as reactNodeToString, m as mergeProps } from './react-utils-BpvCcwyE.esm.js';
-import { e as ensureArray, g as get } from './utils-U416WEAa.esm.js';
+import { e as ensureArray, g as get } from './utils-DPGVAauG.esm.js';
 import { u as useFormItemRelativeName, a as useFormItemFullName, P as PathContext, F as FormLayoutContext, I as InternalFormInstanceContext, b as useFormInstanceMaybe } from './contexts-DtHxvgts.esm.js';
 import 'classnames';
 import '@plasmicapp/host/registerComponent';
@@ -145,7 +146,7 @@ function FormItemWrapper(props) {
     const unregister = registerField?.(fieldEntity);
     return () => unregister?.();
   }, []);
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     FormItem,
     {
       ...rest,
@@ -158,9 +159,9 @@ function FormItemWrapper(props) {
       colon: noLabel ? false : props.colon,
       valuePropName: deriveValuePropName(props),
       trigger: deriveOnChangePropName(props),
-      wrapperCol: props.wrapperCol ?? (layoutContext?.layout === "horizontal" && noLabel && alignLabellessWithControls && layoutContext.labelSpan ? { offset: layoutContext.labelSpan } : void 0)
-    },
-    /* @__PURE__ */ React.createElement(FormItemForwarder, { formItemProps: props })
+      wrapperCol: props.wrapperCol ?? (layoutContext?.layout === "horizontal" && noLabel && alignLabellessWithControls && layoutContext.labelSpan ? { offset: layoutContext.labelSpan } : void 0),
+      children: /* @__PURE__ */ jsx(FormItemForwarder, { formItemProps: props })
+    }
   );
 }
 function deriveValuePropName(props) {

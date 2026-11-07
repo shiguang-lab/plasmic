@@ -10,7 +10,7 @@ import {
 } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
-import { derefTokenRefs, tryParseTokenRef } from "@/wab/commons/StyleToken";
+import { derefTokenRefs } from "@/wab/commons/StyleToken";
 import { arrayMoveIndex, arrayRemove } from "@/wab/shared/collections";
 import { cx, maybe, spawn, uniqueKey } from "@/wab/shared/common";
 import {
@@ -19,29 +19,41 @@ import {
   fromFilterObjToString,
   fromFilterStringToObj,
 } from "@/wab/shared/core/filter-effect-utils";
-import { siteFinalColorTokens } from "@/wab/shared/core/site-style-tokens";
 import { joinCssValues, splitCssValue } from "@/wab/shared/css/parse";
 import { capitalize } from "lodash";
-import { observer } from "mobx-react";
 import React, { useState } from "react";
+import { useStyleCell } from "@/wab/client/studio-ctx/style-inputs-react";
+import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
+import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 
 const _GenericFilterEffectSection = (
   cssProp: string,
   title: string,
   label: string,
 ) =>
-  observer((props: { expsProvider: ExpsProvider }) => {
+  (props: { expsProvider: ExpsProvider }) => {
     const { expsProvider } = props;
     const { studioCtx } = expsProvider;
     const exp = expsProvider.mergedExp();
+    const cell = useStyleCell(expsProvider, cssProp);
+    const helper = React.useMemo(() => new VariantedStylesHelper(), []);
+    const lifetime = React.useMemo(() => studioCtx.arenaState.lifetime(), [expsProvider, studioCtx]);
+    const subscribe = React.useCallback((notify: () => void) => {
+      lifetime.addEventListener("abort", notify);
+      return () => lifetime.removeEventListener("abort", notify);
+    }, [lifetime]);
+    const readActive = React.useCallback(() => !lifetime.aborted, [lifetime]);
+    const active = React.useSyncExternalStore(subscribe, readActive, readActive);
 
     const [inspect, setInspect] = useState<number | undefined>(undefined);
 
     const rawFilters =
-      maybe(exp.getRaw(cssProp), (val) =>
+      maybe(cell?.raw, (val) =>
         val === "none" ? [] : splitCssValue(cssProp, val),
       ) ?? [];
     const filters = rawFilters.map(fromFilterStringToObj);
+    const colorInputs = active ? filters.filter((filter) => filter.type === "drop-shadow").map((filter) => filter.args.slice(-1)[0]) : [];
+    const colors = useStyleTokenRefs(studioCtx, colorInputs, helper, "ColorOnly", (state) => state.rows);
 
     const setsProp = (prop: string, values: string[]) => {
       spawn(
@@ -71,6 +83,8 @@ const _GenericFilterEffectSection = (
       updateFilters([defaultFilterEffects.blur, ...filters]);
       setInspect(0);
     };
+
+    if (!active) { return null; }
 
     return (
       <div>
@@ -116,16 +130,13 @@ const _GenericFilterEffectSection = (
               const isDropShadow = filter.type === "drop-shadow";
 
               const filterValue = filter.args.slice(-1)?.[0];
-              const colorTokens = siteFinalColorTokens(studioCtx.site, {
-                includeDeps: "all",
-              });
-
+              const row = colors.selected.find((candidate) => candidate.input === filterValue);
+              // A missing head retains derefTokenRefs' original exception;
+              // nested aliases are resolved by the finite native source.
               const color = isDropShadow
-                ? derefTokenRefs(colorTokens, filterValue)
+                ? row?.resolved?.value ?? derefTokenRefs([], filterValue)
                 : null;
-              const token = isDropShadow
-                ? tryParseTokenRef(filterValue, colorTokens)
-                : null;
+              const token = isDropShadow ? row?.applied : undefined;
 
               return (
                 <ListBoxItem
@@ -163,7 +174,7 @@ const _GenericFilterEffectSection = (
         )}
       </div>
     );
-  });
+  };
 
 export const FilterEffectSection = _GenericFilterEffectSection(
   "filter",

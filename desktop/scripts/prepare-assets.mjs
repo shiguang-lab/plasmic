@@ -127,6 +127,7 @@ try {
           dirty,
           builtAt: studioBuild?.builtAt ?? new Date().toISOString(),
           sourceHash: studioBuild?.sourceHash,
+          reactCompiler: studioBuild?.reactCompiler,
           rendererHash: await hashFiles(target, ["."], ["desktop-assets.json"]),
           desktopHash: await hashFiles(desktop, desktopSources),
         },

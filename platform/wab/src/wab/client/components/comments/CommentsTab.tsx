@@ -1,9 +1,10 @@
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { showError } from "@/wab/client/ErrorNotifications";
 import RootComment from "@/wab/client/components/comments/RootComment";
 import { CommentFilters } from "@/wab/client/components/comments/utils";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { DefaultCommentsTabProps } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicCommentsTab";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   BellOutlined,
   CheckOutlined,
@@ -11,10 +12,22 @@ import {
   MessageOutlined,
 } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Alert, Button, Checkbox, Dropdown, Flex, Segmented, Skeleton, Tooltip, Typography } from "antd";
+import {
+  Alert,
+  Button,
+  Checkbox,
+  Dropdown,
+  Flex,
+  Segmented,
+  Skeleton,
+  Tooltip,
+  Typography,
+} from "antd";
 import { createStyles } from "antd-style";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 
 const useCommentsStyles = createStyles(({ token }) => ({
   root: {
@@ -122,15 +135,27 @@ export const CommentsTab = observer(function CommentsTab(
   const [savingNotification, setSavingNotification] = React.useState(false);
 
   const commentsCtx = studioCtx.commentsCtx;
-  const filters = commentsCtx.commentsFilter();
+  const filters = useStore(commentsCtx.filterStore, (state) => state);
+  useStudioArena(studioCtx, (state) => filters.scope === "current" ? state.current : null);
+  useStudioArena(studioCtx, (state) => filters.scope === "current" ? state.frames : undefined);
+  useStore(commentsCtx.store, (state) => state.allThreads);
+  const { isLoading, loadFailed, hasLoaded, selfNotificationSettings } =
+    useStore(
+      commentsCtx.requestStore,
+      useShallow((state) => ({
+        isLoading: state.loadFailed && state.isLoading,
+        loadFailed: state.loadFailed,
+        hasLoaded: state.hasLoaded,
+        selfNotificationSettings: state.selfNotificationSettings,
+      })),
+    );
   const threads = commentsCtx.filteredThreads();
 
   const projectId = studioCtx.siteInfo.id;
   const branchId = studioCtx.branchInfo()?.id;
 
   const currentNotificationLevel =
-    commentsCtx.selfNotificationSettings()?.notifyAbout ??
-    DEFAULT_NOTIFICATION_LEVEL;
+    selfNotificationSettings?.notifyAbout ?? DEFAULT_NOTIFICATION_LEVEL;
 
   const changeNotification = async (
     notifyAbout: keyof typeof notifyAboutKeyToLabel,
@@ -141,7 +166,7 @@ export const CommentsTab = observer(function CommentsTab(
         projectId,
         branchId,
         {
-          ...commentsCtx.selfNotificationSettings(),
+          ...selfNotificationSettings,
           notifyAbout,
         },
       );
@@ -285,25 +310,30 @@ export const CommentsTab = observer(function CommentsTab(
       </header>
       <Scrollbar scrollX={false} style={{ flex: 1, minHeight: 0 }}>
         <div className={styles.content}>
-          {commentsCtx.loadFailed && (
+          {loadFailed && (
             <Alert
               type="error"
               showIcon
               title={uiT("Failed to fetch comments for project")}
               action={
-                <Button size="small" loading={commentsCtx.isLoading}
-                  onClick={() => { void commentsCtx.fetchComments(); }}>
+                <Button
+                  size="small"
+                  loading={isLoading}
+                  onClick={() => {
+                    void commentsCtx.fetchComments();
+                  }}
+                >
                   {uiT("Retry")}
                 </Button>
               }
             />
           )}
-          {!commentsCtx.hasLoaded && !commentsCtx.loadFailed ? (
+          {!hasLoaded && !loadFailed ? (
             <Skeleton active paragraph={{ rows: 4 }} />
           ) : threads.length ? (
             renderThreads(threads)
           ) : (
-            commentsCtx.hasLoaded && (
+            hasLoaded && (
               <div className={styles.empty} role="status">
                 <span className={styles.emptyIcon} aria-hidden="true">
                   {filters.status === "resolved" ? (

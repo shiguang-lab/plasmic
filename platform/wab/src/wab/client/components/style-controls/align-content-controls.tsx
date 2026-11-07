@@ -31,14 +31,19 @@ import RowWrapStartIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__RowW
 import RowWrapStretchIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__RowWrapStretch";
 import { cx } from "@/wab/shared/common";
 import { flexDirToArrangement, isFlexReverse } from "@/wab/shared/layoututils";
-import { observer } from "mobx-react";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
 import React from "react";
 
-class AlignContentControls_ extends StyleComponent<StyleComponentProps> {
+interface AlignContentRenderProps extends StyleComponentProps {
+  readonly flexDirection: string;
+  readonly flexWrap: string;
+}
+
+class AlignContentControls_ extends StyleComponent<AlignContentRenderProps> {
   render() {
     // currently flexDir can only be row/column, not -reverse
-    const flexDir = this.exp().get("flexDirection");
-    const flexWrap = this.exp().get("flexWrap");
+    const flexDir = this.props.flexDirection;
+    const flexWrap = this.props.flexWrap;
 
     // TODO: shouldn't use flexAxis to index into icons, and icons
     // will change depending on whether flexDir is reverse or not.
@@ -110,4 +115,12 @@ const icons = {
   },
 };
 
-export const AlignContentControls = observer(AlignContentControls_);
+export const AlignContentControls = React.forwardRef<AlignContentControls_, StyleComponentProps>(
+  function AlignContentControls(props, ref) {
+    const cells = useStyleCells(props.expsProvider, ["flex-direction", "flex-wrap"]);
+    const flexDirection = cells.find((cell) => cell.key === "flex-direction")?.value;
+    const flexWrap = cells.find((cell) => cell.key === "flex-wrap")?.value;
+    if (flexDirection === undefined || flexWrap === undefined) { return null; }
+    return <AlignContentControls_ {...props} ref={ref} flexDirection={flexDirection} flexWrap={flexWrap} />;
+  },
+);

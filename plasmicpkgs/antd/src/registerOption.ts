@@ -2,11 +2,12 @@ import registerComponent, {
   CodeComponentMeta,
 } from "@plasmicapp/host/registerComponent";
 import { Select } from "antd";
-import type { OptGroupProps } from "rc-select/es/OptGroup";
-import type { OptionProps } from "rc-select/es/Option";
+import type React from "react";
+type OptGroupProps = React.ComponentProps<typeof Select.OptGroup>;
+type OptionProps = React.ComponentProps<typeof Select.Option>;
 import { Registerable } from "./registerable";
-export const Option = Select.Option;
-export const OptGroup = Select.OptGroup;
+export const Option: typeof Select.Option = Select.Option;
+export const OptGroup: typeof Select.OptGroup = Select.OptGroup;
 
 export const optionMeta: CodeComponentMeta<OptionProps> = {
   name: "AntdOption",

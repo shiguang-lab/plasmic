@@ -4,26 +4,24 @@ import {
   PlasmicDocsPropsTableRow__OverridesType,
 } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicDocsPropsTableRow";
 import { toVarName } from "@/wab/shared/codegen/util";
-import { Site } from "@/wab/shared/model/classes";
-import { PlumeDocsProp } from "@/wab/shared/plume/plume-registry";
+import { DocsContractProp } from "@/wab/client/components/docs/docs-model-projections";
 import * as React from "react";
 
 interface DocsPropsTableRowProps
   extends
     DefaultDocsPropsTableRowProps,
     PlasmicDocsPropsTableRow__OverridesType {
-  prop: PlumeDocsProp;
-  site: Site;
+  prop: DocsContractProp;
 }
 
 function DocsPropsTableRow(props: DocsPropsTableRowProps) {
-  const { prop, site, ...rest } = props;
+  const { prop, ...rest } = props;
   return (
     <PlasmicDocsPropsTableRow
       {...rest}
       propName={toVarName(prop.name)}
       description={prop.info}
-      propType={typeof prop.type === "string" ? prop.type : prop.type(site)}
+      propType={prop.type}
     />
   );
 }

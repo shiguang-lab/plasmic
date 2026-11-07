@@ -1,7 +1,8 @@
+import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
 import LivePopOutButton from "@/wab/client/components/top-bar/LivePopOutButton";
 import { registerPresentationProject } from "@/wab/client/route/presentation-projects";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { notification } from "antd";
 import React from "react";
 
@@ -10,7 +11,6 @@ const mocks = vi.hoisted(() => ({
     save: vi.fn(),
     hasUnsavedChanges: vi.fn(),
     appCtx: { api: { getStudioUrl: vi.fn() } },
-    currentArenaEmpty: false,
     currentArena: {},
     isDevMode: true,
     focusedViewCtx: () => undefined,
@@ -23,6 +23,9 @@ const mocks = vi.hoisted(() => ({
   getUrls: vi.fn(),
   openDesktopPreview: vi.fn(),
 }));
+
+const environment = createStudioUiEnvironmentFixture();
+Object.assign(mocks.studio, environment);
 
 vi.mock("@/wab/client/platform", () => ({ PLATFORM: "osx" }));
 vi.mock("@/wab/client/observability", () => ({
@@ -87,7 +90,7 @@ beforeEach(() => {
     hash: "#/groups/123?market=MX",
   });
   mocks.preview.isLive = false;
-  mocks.studio.currentArenaEmpty = false;
+  environment.uiEnvironment.store.setState({ currentArenaEmpty: false });
   mocks.studio.isDevMode = true;
   mocks.history.location = {
     pathname: "/projects/project",
@@ -205,7 +208,7 @@ test("does not present while editing an input", () => {
 });
 
 test("disables both click and keyboard presentation when the canvas is empty", () => {
-  mocks.studio.currentArenaEmpty = true;
+  environment.uiEnvironment.store.setState({ currentArenaEmpty: true });
   render(<LivePopOutButton iconOnly />);
   expect(
     screen.getByRole("button", { name: "Present" }).hasAttribute("disabled"),
@@ -266,7 +269,8 @@ test("shows loading through native browser handoff and prevents repeated clicks 
   finishOpen();
   await waitFor(() => expect(button.getAttribute("aria-busy")).toBe("false"));
   expect(button.hasAttribute("disabled")).toBe(false);
-  expect(button.querySelector(".anticon-loading")).toBeNull();
+  // Antd removes the icon after its loading exit motion finishes.
+  await waitFor(() => expect(button.querySelector(".anticon-loading")).toBeNull());
 });
 
 test("clears loading and allows retry when unsaved changes prevent presentation", async () => {
@@ -323,4 +327,19 @@ test("web presentation uses the same saved standalone page with no opener channe
   );
   expect(browserWindow.opener).toBeNull();
   expect(browserWindow.close).not.toHaveBeenCalled();
+});
+
+
+test("rebinds presentation availability and keyboard commands when the native arena becomes empty", async () => {
+  render(<LivePopOutButton iconOnly />);
+  const button = screen.getByRole("button", { name: "Present" }) as HTMLButtonElement;
+  expect(button.disabled).toBe(false);
+  act(() => { environment.uiEnvironment.store.setState({ currentArenaEmpty: true }); });
+  expect(button.disabled).toBe(true);
+  pressPresent();
+  expect(mocks.studio.save).not.toHaveBeenCalled();
+  act(() => { environment.uiEnvironment.store.setState({ currentArenaEmpty: false }); });
+  expect(button.disabled).toBe(false);
+  pressPresent();
+  await waitFor(() => expect(mocks.openDesktopPreview).toHaveBeenCalledOnce());
 });

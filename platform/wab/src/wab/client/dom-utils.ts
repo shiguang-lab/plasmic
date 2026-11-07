@@ -637,7 +637,7 @@ export function useFocusOnDisplayed(
  * Calls `onScroll` whenever an ancestor of the `ref` has been scrolled
  */
 export function useOnContainerScroll(opts: {
-  ref: React.RefObject<HTMLElement>;
+  ref: React.RefObject<HTMLElement | null>;
   onScroll: (container: HTMLElement) => void;
   disabled?: boolean;
 }) {

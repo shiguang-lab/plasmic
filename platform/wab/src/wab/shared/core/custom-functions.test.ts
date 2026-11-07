@@ -15,7 +15,6 @@ import {
   QueryExecutionContext,
   _StatefulQueryResult as StatefulQueryResult,
 } from "@plasmicapp/data-sources";
-import { autorun, observable, runInAction } from "mobx";
 
 const { getCustomCodeFactory } = _testonly;
 
@@ -30,7 +29,7 @@ describe("unwrapStatefulQueryResult", () => {
 
   it("does not surface the suspense promise as error while loading", () => {
     const result = new StatefulQueryResult();
-    result.loadingPromise("my-key", { then: () => {} } as Promise<unknown>);
+    result.loadingPromise("my-key", new Promise<unknown>(() => undefined));
     expect(unwrapStatefulQueryResult(result)).toEqual({
       data: undefined,
       error: undefined,
@@ -145,30 +144,19 @@ describe("buildCustomCodePlasmicQuery", () => {
     await expect(query.fn(resolvedQctx)).resolves.toBe("second");
   });
 
-  it("does not memoize the compiled factory outside a reaction", () => {
-    // getCustomCodeFactory only memoizes while its result is observed in a reaction.
-    expect(getCustomCodeFactory("2", JSON.stringify([]))).not.toBe(
+  it("reuses the compiled factory for the same code and static keys", () => {
+    expect(getCustomCodeFactory("2", JSON.stringify([]))).toBe(
       getCustomCodeFactory("2", JSON.stringify([])),
     );
   });
 
-  it("returns the same compiled factory while it is observed", () => {
-    const tick = observable.box(0);
-    const seen = new Set<Function>();
-    let runs = 0;
-    const dispose = autorun(() => {
-      runs++;
-      tick.get();
-      seen.add(getCustomCodeFactory("1", JSON.stringify([])));
-    });
-    try {
-      expect(runs).toBe(1);
-      runInAction(() => tick.set(tick.get() + 1));
-      expect(runs).toBe(2);
-      expect(seen.size).toBe(1);
-    } finally {
-      dispose();
-    }
+  it("keys the compiled factory by code and static keys", () => {
+    expect(getCustomCodeFactory("2", JSON.stringify([]))).not.toBe(
+      getCustomCodeFactory("3", JSON.stringify([])),
+    );
+    expect(getCustomCodeFactory("2", JSON.stringify([]))).not.toBe(
+      getCustomCodeFactory("2", JSON.stringify(["$$"])),
+    );
   });
 
   it("narrows args to only the $ctx/$props/$q/$state keys referenced", () => {

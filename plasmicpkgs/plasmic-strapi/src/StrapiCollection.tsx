@@ -8,7 +8,7 @@ import {
   _queryStrapi,
 } from "@plasmicpkgs/strapi";
 import { pascalCase } from "change-case";
-import React, { ReactNode } from "react";
+import { ReactNode } from "react";
 import { useStrapiCredentials } from "./StrapiCredentialsProvider";
 import { modulePath } from "./utils";
 

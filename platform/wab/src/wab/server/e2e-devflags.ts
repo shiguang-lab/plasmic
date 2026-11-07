@@ -89,40 +89,12 @@ const E2E_DEVFLAGS: Partial<DevFlagsType> = {
     },
     {
       type: "hostless-package",
-      name: "App blocks",
-      sectionLabel: "Basics",
-      hiddenWhenInstalled: true,
-      codeName: "plasmic-rich-components",
-      codeLink:
-        "https://github.com/plasmicapp/plasmic/tree/master/plasmicpkgs/plasmic-rich-components",
-      items: [
-        {
-          type: "hostless-component",
-          componentName: "hostless-rich-table",
-          displayName: "Table",
-          imageUrl: "https://static1.plasmic.app/table.svg",
-          gray: true,
-        },
-        {
-          type: "hostless-component",
-          componentName: "plasmic-antd5-form",
-          displayName: "Form",
-          imageUrl: "https://static1.plasmic.app/form.svg",
-        },
-      ],
-      projectId: [
-        "jkU663o1Cz7HrJdwdxhVHk", // PROJECT_IDS["rich-components"]
-        "ohDidvG9XsCeFumugENU6J", // PROJECT_IDS.antd5
-      ],
-    },
-    {
-      type: "hostless-package",
       name: "Form",
       sectionLabel: "Basics",
       hiddenWhenInstalled: true,
       codeName: "antd5-form",
       codeLink:
-        "https://github.com/plasmicapp/plasmic/tree/master/plasmicpkgs/plasmic-rich-components",
+        "https://github.com/plasmicapp/plasmic/tree/master/plasmicpkgs/antd5",
       items: [
         {
           type: "hostless-component",

@@ -4,9 +4,9 @@ import { useConstant } from "@/wab/commons/components/ReactUtil";
 import { ensure } from "@/wab/shared/common";
 import classNames from "classnames";
 import { omit, size } from "lodash";
-import React, { Dispatch, Reducer } from "react";
+import React, { Dispatch } from "react";
 import { FocusScope } from "react-aria";
-import { animated, useSpring, useTransition } from "react-spring";
+import { animated, useSpring, useTransition } from "@react-spring/web";
 import { useMeasure } from "react-use";
 import tunnel from "tunnel-rat";
 
@@ -35,10 +35,8 @@ type BottomModalsAction =
   BottomModalsPushAction | BottomModalsPopAction | BottomModalsFocusAction;
 
 export function BottomModalsProvider(props: { children?: React.ReactNode }) {
-  const [state, dispatch] = React.useReducer<
-    Reducer<BottomModalsState, BottomModalsAction>
-  >(
-    (curState, action) => {
+  const [state, dispatch] = React.useReducer(
+    (curState: BottomModalsState, action: BottomModalsAction): BottomModalsState => {
       switch (action.type) {
         case "push": {
           const newModals = {

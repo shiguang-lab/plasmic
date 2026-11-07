@@ -2,6 +2,7 @@ import { COMMANDS } from "@/wab/client/commands/command";
 import RowGroup, { RowGroupProps } from "@/wab/client/components/RowGroup";
 import RowItem from "@/wab/client/components/RowItem";
 import CommentIndicatorIcon from "@/wab/client/components/comments/CommentIndicatorIcon";
+import type { CommentsStats } from "@/wab/client/components/comments/utils";
 import { ArenaContextMenu } from "@/wab/client/components/sidebar-tabs/ProjectPanel/ArenaContextMenu";
 import { FolderContextMenu } from "@/wab/client/components/sidebar-tabs/ProjectPanel/FolderContextMenu";
 import { NavigationDropdownContext } from "@/wab/client/components/sidebar-tabs/ProjectPanel/NavigationDropdown";
@@ -10,13 +11,13 @@ import { Matcher } from "@/wab/client/components/view-common";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
 import MixedArenaIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__MixedArena";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
-import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { ArenaType } from "@/wab/shared/ApiSchema";
 import {
   AnyArena,
@@ -33,6 +34,7 @@ import { Button } from "antd";
 import cn from "classnames";
 import * as React from "react";
 import { FiChevronDown, FiChevronRight, FiPlus } from "react-icons/fi";
+import { useStore } from "zustand";
 
 export const HEADER_HEIGHT = 28;
 export const ROW_HEIGHT = 30;
@@ -224,6 +226,17 @@ export function NavigationArenaRow({
   const { t: uiT } = useI18n();
   const [renaming, setRenaming] = React.useState(false);
   const studioCtx = useStudioCtx();
+  const isCurrentArena = useStudioArena(
+    studioCtx,
+    (state) => state.current?.uid === arena.uid,
+  );
+  const componentId =
+    isPageArena(arena) || isComponentArena(arena)
+      ? arena.component.uuid
+      : undefined;
+  const commentsStats = useStore(studioCtx.commentsCtx.store, (state) =>
+    componentId ? state.commentStatsByComponent.get(componentId) : undefined,
+  );
   const { onClose } = ensure(
     React.useContext(NavigationDropdownContext),
     "Expected NavigationDropdownContext",
@@ -259,7 +272,7 @@ export function NavigationArenaRow({
     <RowItem
       className={[
         styles.navRow,
-        studioCtx.currentArena === arena && "editor-navigation-current",
+        isCurrentArena && "editor-navigation-current",
         isSelected && "editor-navigation-keyboard",
       ]
         .filter(Boolean)
@@ -269,8 +282,15 @@ export function NavigationArenaRow({
         paddingLeft: indentMultiplier * 16 + 12,
       }}
       onClick={() => onClick(arena)}
-      icon={<Icon icon={getArenaIcon(arena, studioCtx)} />}
-      isSelected={studioCtx.currentArena === arena}
+      icon={
+        <Icon
+          icon={getArenaIcon(
+            arena,
+            studioCtx.showCommentsPanel ? commentsStats : undefined,
+          )}
+        />
+      }
+      isSelected={isCurrentArena}
       menuSize="small"
       menu={
         <ArenaContextMenu
@@ -319,12 +339,12 @@ export function NavigationArenaRow({
   );
 }
 
-function getArenaIcon(arena: AnyArena, studioCtx: StudioCtx) {
+function getArenaIcon(
+  arena: AnyArena,
+  commentsStats: CommentsStats | undefined,
+) {
   if (isPageArena(arena) || isComponentArena(arena)) {
-    const commentsStats = studioCtx.commentsCtx
-      .computedData()
-      .commentStatsByComponent.get(arena.component.uuid);
-    if (commentsStats && studioCtx.showCommentsPanel) {
+    if (commentsStats) {
       return () => (
         <CommentIndicatorIcon
           commentCount={commentsStats.commentCount}

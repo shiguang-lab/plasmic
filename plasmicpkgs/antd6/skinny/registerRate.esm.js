@@ -1,6 +1,7 @@
+import { jsx } from 'react/jsx-runtime';
 import { Rate } from 'antd';
 import React, { useMemo } from 'react';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -25,7 +26,7 @@ function AntdRate(props) {
     }
     return symbolsProp?.length ? ({ index }) => symbolsProp[index] : character;
   }, [character, multiCharacter, symbolsProp]);
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Rate,
     {
       tooltips: tooltips?.map((t) => t?.label),

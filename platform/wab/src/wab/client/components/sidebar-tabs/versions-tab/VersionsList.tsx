@@ -16,7 +16,7 @@ import { ApiUser, BranchId } from "@/wab/shared/ApiSchema";
 import { PkgVersionInfoMeta } from "@/wab/shared/SharedApi";
 import { formatDateShortTimeShort } from "@/wab/shared/utils/date-utils";
 import { Menu, Tag } from "antd";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
 import React from "react";
 
 interface VersionsListProps {
@@ -24,30 +24,28 @@ interface VersionsListProps {
   matcher: Matcher;
 }
 
-export const VersionsList = observer(function VersionsList(
+export function VersionsList(
   props: VersionsListProps,
 ) {
   const { t: studioUiT } = useI18n();
 
   const { studioCtx, matcher } = props;
-  const dbCtx = studioCtx.dbCtx();
-
-  const { data: userById } = useUsersMap(
-    studioCtx.releases.map((r) => r.createdById),
-  );
+  const releases = useStore(studioCtx.versionHistory.store, (state) => state.releases);
+  const selectedReleaseId = useStore(studioCtx.versionHistory.store, (state) => state.selectedReleaseId);
+  const { data: userById } = useUsersMap(releases.map((row) => row.createdById));
 
   const filteredReleases = React.useMemo(() => {
     if (!userById) {
       return [];
     }
-    return studioCtx.releases.filter((release) => {
+    return releases.filter((release) => {
       const title = `${release.version} : ${
         release.description ??
         formatDateShortTimeShort(new Date(release.createdAt))
       }`;
       return matcher.matches(title);
     });
-  }, [userById, studioCtx.releases.length, matcher]);
+  }, [userById, releases, matcher]);
 
   const onSelect = async (release: PkgVersionInfoMeta) => {
     const answer =
@@ -60,11 +58,12 @@ export const VersionsList = observer(function VersionsList(
   };
 
   const renderMenu =
-    (release: PkgVersionInfoMeta, user?: ApiUser | null) => () => (
+    (releaseId: string, user?: ApiUser | null) => () => (
       <Menu>
         <Menu.Item
           key="rename"
           onClick={async () => {
+            const release = studioCtx.versionHistory.getRelease(releaseId);
             const tagsAndDesc = await promptTagsAndDesc(
               release.description,
               release.tags ?? [],
@@ -89,6 +88,7 @@ export const VersionsList = observer(function VersionsList(
         <Menu.Item
           key="revert"
           onClick={async () => {
+            const release = studioCtx.versionHistory.getRelease(releaseId);
             const answer = await promptVersionRevert(
               release,
               studioCtx.releases,
@@ -109,7 +109,7 @@ export const VersionsList = observer(function VersionsList(
   if (filteredReleases.length === 0) {
     return (
       <NoItemMessage>
-        {studioCtx.releases.length === 0
+        {releases.length === 0
           ? studioUiT("No Published Versions")
           : studioUiT("No versions match your search")}
       </NoItemMessage>
@@ -123,7 +123,7 @@ export const VersionsList = observer(function VersionsList(
           release.createdById && userById
             ? userById[release.createdById]
             : undefined;
-        const menu = renderMenu(release, user);
+        const menu = renderMenu(release.id, user);
         const title = `${release.version} : ${
           release.description ??
           formatDateShortTimeShort(new Date(release.createdAt))
@@ -134,8 +134,8 @@ export const VersionsList = observer(function VersionsList(
             <VersionsListItem
               itemDate={release.createdAt}
               publish
-              isSelected={dbCtx.pkgVersionInfoMeta?.id === release.id}
-              onClick={() => onSelect(release)}
+              isSelected={selectedReleaseId === release.id}
+              onClick={() => onSelect(studioCtx.versionHistory.getRelease(release.id))}
               versionNumber={{ children: `v${release.version}` }}
               versionTitle={{
                 children: matcher.boldSnippets(release.description || title),
@@ -164,4 +164,4 @@ export const VersionsList = observer(function VersionsList(
       })}
     </>
   );
-});
+}

@@ -1,7 +1,9 @@
+import { useStore } from "zustand";
 import { getUploadedFile } from "@/wab/client/dom-utils";
 import { BrandLink } from "@/wab/client/components/BrandLink";
 import { VersionsTab } from "@/wab/client/components/sidebar-tabs/versions-tab";
 import { useVersionsPublishNotice } from "@/wab/client/components/sidebar-tabs/versions-tab/useVersionsPublishNotice";
+import { EditorHistoryControls } from "@/wab/client/components/top-bar/EditorHistoryControls";
 import { EditorIconAction } from "@/wab/client/components/top-bar/EditorActions";
 import { TopBarChrome } from "@/wab/client/components/top-bar/TopBarChrome";
 import { EditorBrandGroup } from "@/wab/client/components/top-bar/EditorBrandGroup";
@@ -11,7 +13,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 
 /** @format */
 
-import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
+import { usePreviewCtx, usePreviewSelector } from "@/wab/client/components/live/PreviewCtx";
 import {
   MenuBuilder,
   TextAndShortcut,
@@ -32,6 +34,8 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import Select from "@/wab/client/components/widgets/Select";
 import { useAppCtx, useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { selectIsCopilotChatOpen } from "@/wab/client/studio-ctx/left-panel-state";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
@@ -75,8 +79,19 @@ function _TopBar({ preview }: TopBarProps) {
   const { token } = theme.useToken();
   const { styles: popupStyles } = useEditorPopupStyles();
   const studioCtx = useStudioCtx();
+  const isCopilotChatOpen = useStore(
+    studioCtx.leftPanelState.store,
+    selectIsCopilotChatOpen,
+  );
+  const currentArenaRef = useStudioArena(studioCtx, (state) => state.current);
+  const isArenaEmpty = useStudioArena(
+    studioCtx,
+    (state) => state.frames.length === 0,
+  );
+  const showBranching = useStore(studioCtx.uiEnvironment.store, (state) => state.showBranching);
   const appCtx = useAppCtx();
   const previewCtx = usePreviewCtx();
+  usePreviewSelector(previewCtx, (state) => state.previewData);
   const topFrameApi = useTopFrameApi();
   const { openShareDialog } = useShareDialog();
   const [projectOpen, setProjectOpen] = React.useState(false);
@@ -553,10 +568,7 @@ function _TopBar({ preview }: TopBarProps) {
       }
     : undefined;
 
-  const brand =
-    uiConfig.brand ??
-    appCtx.appConfig.brands?.[studioCtx.siteInfo.teamId ?? ""] ??
-    appCtx.appConfig.brands?.[""];
+  const brand = useStore(studioCtx.uiEnvironment.store, (state) => state.brand);
 
   const previewPages = previewCtx.studioCtx.site.components.filter((c) =>
     isPageComponent(c),
@@ -568,8 +580,6 @@ function _TopBar({ preview }: TopBarProps) {
     isFrameComponent(c),
   );
 
-  const canUndo = studioCtx.canEditProject() && studioCtx.canUndo();
-  const canRedo = studioCtx.canEditProject() && studioCtx.canRedo();
 
   return (
     <>
@@ -653,40 +663,7 @@ function _TopBar({ preview }: TopBarProps) {
               <div className="editor-primary-actions">
                 {!preview && (
                   <>
-                    <div className="editor-history-controls">
-                      <Tooltip
-                        title={
-                          <TextAndShortcut variant="tooltip" shortcut={getComboForAction("UNDO")}>
-                            {t("Undo")}
-                          </TextAndShortcut>
-                        }
-                      >
-                        <EditorIconAction
-                          action="Undo"
-
-                          type="text"
-                          className="editor-icon-action"
-                          disabled={!canUndo}
-                          onClick={() => spawn(studioCtx.undo())}
-                        />
-                      </Tooltip>
-                      <Tooltip
-                        title={
-                          <TextAndShortcut variant="tooltip" shortcut={getComboForAction("REDO")}>
-                            {t("Redo")}
-                          </TextAndShortcut>
-                        }
-                      >
-                        <EditorIconAction
-                          action="Redo"
-
-                          type="text"
-                          className="editor-icon-action"
-                          disabled={!canRedo}
-                          onClick={() => spawn(studioCtx.redo())}
-                        />
-                      </Tooltip>
-                    </div>
+                    <EditorHistoryControls />
                     <span className="editor-action-divider" />
                   </>
                 )}
@@ -725,9 +702,7 @@ function _TopBar({ preview }: TopBarProps) {
                     action="Preview"
                     type="text"
                     className="editor-icon-action"
-                    disabled={
-                      !studioCtx.currentArena || studioCtx.currentArenaEmpty
-                    }
+                    disabled={currentArenaRef === null || isArenaEmpty}
 
                     data-test-id="enter-live-mode-btn"
                     onClick={() => {
@@ -839,7 +814,7 @@ function _TopBar({ preview }: TopBarProps) {
         saveIndicator={{
           wrap: (indicator) => (
             <>
-              {studioCtx.showBranching() && (
+              {showBranching && (
                 <BranchSwitcher className={styles.branchSwitcher} />
               )}
               {indicator}
@@ -870,7 +845,7 @@ function _TopBar({ preview }: TopBarProps) {
               {t("Preview")}
             </TextAndShortcut>
           ),
-          disabled: !studioCtx.currentArena || studioCtx.currentArenaEmpty,
+          disabled: currentArenaRef === null || isArenaEmpty,
           ...{ "data-test-id": "enter-live-mode-btn" },
         }}
         stop={{
@@ -904,7 +879,7 @@ function _TopBar({ preview }: TopBarProps) {
             preview && studioCtx.chatCopilotEnabled() ? undefined : () => null,
           props: {
             "aria-label": t("AI assistant"),
-            active: studioCtx.isCopilotChatOpen,
+            active: isCopilotChatOpen,
             onClick: () => studioCtx.toggleCopilotChat(),
           },
         }}

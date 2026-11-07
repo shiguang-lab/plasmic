@@ -2,21 +2,26 @@
 // This file is owned by you, feel free to edit as you see fit.
 import ScheduleControls from "@/wab/client/components/splits/ScheduleControls";
 import SegmentControls from "@/wab/client/components/splits/SegmentControls";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { SplitType } from "@/wab/shared/core/splits";
 import { Split } from "@/wab/shared/model/classes";
 import { DatePicker, Slider } from "antd";
 import dayjs, { Dayjs } from "dayjs";
-import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
 
-const SliceControls = observer(function SliceControls(props: {
+const SliceControls = function SliceControls(props: {
   split: Split;
   idx: number;
   values: any[];
   onChange: (vals: any[]) => void;
 }) {
   const { split, idx, values, onChange } = props;
-  if (split.splitType === SplitType.Experiment) {
+  const studioCtx = useStudioCtx();
+  const splitType = useStore(
+    studioCtx.modelSnapshots.field(split, "splitType"),
+  );
+  if (splitType === SplitType.Experiment) {
     return (
       <Slider
         value={values[idx]}
@@ -31,7 +36,7 @@ const SliceControls = observer(function SliceControls(props: {
         }}
       />
     );
-  } else if (split.splitType === SplitType.Schedule) {
+  } else if (splitType === SplitType.Schedule) {
     if (idx === 0) {
       return null;
     }
@@ -119,6 +124,6 @@ const SliceControls = observer(function SliceControls(props: {
       );
     }
   }
-});
+};
 
 export default SliceControls;

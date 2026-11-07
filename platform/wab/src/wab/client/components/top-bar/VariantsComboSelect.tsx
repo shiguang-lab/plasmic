@@ -1,4 +1,4 @@
-import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
+import { usePreviewCtx, usePreviewSelector } from "@/wab/client/components/live/PreviewCtx";
 import VariantsMenu from "@/wab/client/components/top-bar/VariantsMenu";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
@@ -31,6 +31,7 @@ const VariantsComboSelect = observer(function VariantsComboSelect(
 ) {
   const studioCtx = useStudioCtx();
   const previewCtx = usePreviewCtx();
+  usePreviewSelector(previewCtx, (state) => state.previewData);
 
   const [showDropdown, setShowDropdown] = React.useState(false);
   const [isOpen, setIsOpen] = React.useState(false);

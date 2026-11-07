@@ -1,3 +1,4 @@
+import type * as React from "react";
 import { createPlasmicElementProxy } from "@plasmicapp/react-web";
 
 /**
@@ -7,13 +8,15 @@ import { createPlasmicElementProxy } from "@plasmicapp/react-web";
 export function jsxShim(
   type: React.ElementType<any>,
   props: any,
-  key?: string
+  key?: React.Key | null
 ) {
-  const { children, ...restProps } = props;
-  restProps["key"] = key;
+  const { children, ...restProps } = props ?? {};
+  if (key !== undefined) {
+    restProps.key = key;
+  }
   return createPlasmicElementProxy(
     type,
     restProps,
-    ...(Array.isArray(children) ? children : children ? [children] : [])
+    ...(Array.isArray(children) ? children : [children])
   );
 }

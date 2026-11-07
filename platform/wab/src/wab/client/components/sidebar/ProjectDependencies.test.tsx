@@ -1,4 +1,7 @@
 import { ProjectDependenciesPanel } from "@/wab/client/components/sidebar/ProjectDependencies";
+import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
+import { StudioSaveState } from "@/wab/client/studio-ctx/save-state";
+import type { StudioUiEnvironmentState } from "@/wab/client/studio-ctx/studio-ui-environment";
 import { getPublicUrl } from "@/wab/shared/urls";
 import "@testing-library/jest-dom/vitest";
 import {
@@ -16,7 +19,7 @@ const mocks = vi.hoisted(() => ({
   deps: [] as any[],
   catalog: [] as any[],
   permission: "writable",
-  canSave: true,
+  nativeInputs: vi.fn(),
   refresh: vi.fn(),
   remove: vi.fn(),
   dependents: vi.fn(),
@@ -30,6 +33,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => ({
+    ...mocks.nativeInputs(),
     appCtx: {
       selfInfo: { email: "user@example.com" },
       appConfig: { hostLessComponents: mocks.catalog },
@@ -38,7 +42,7 @@ vi.mock("@/wab/client/contexts/StudioContexts", () => ({
       },
     },
     bundler: () => ({}),
-    canSave: () => mocks.canSave,
+    canSave: () => mocks.nativeInputs().saveState.store.getState().canSave,
     getLeftTabPermission: () => mocks.permission,
     projectDependencyManager: {
       getDependencies: () => mocks.deps,
@@ -145,7 +149,10 @@ function dependency(
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.permission = "writable";
-  mocks.canSave = true;
+  mocks.nativeInputs.mockReturnValue({
+    ...createStudioUiEnvironmentFixture(),
+    saveState: new StudioSaveState(),
+  });
   mocks.catalog = [{ name: "Ant Design 6", projectId: "antd6" }];
   mocks.deps = [
     dependency("antd6", true, "0.4.7", "0.5.0"),
@@ -161,7 +168,10 @@ beforeEach(() => {
     depPkgs: [],
   });
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  mocks.nativeInputs().saveState.dispose();
+});
 
 it("shows real names, stable types and imported versions without invented provenance", () => {
   render(<ProjectDependenciesPanel />);
@@ -197,10 +207,14 @@ it("searches friendly and raw names while keeping the direct dependency total", 
   fireEvent.change(input, { target: { value: "missing" } });
   expect(screen.getByText("No matching libraries")).toBeVisible();
 });
-it.each(["readable", "hidden"])(
+it.each(["readable", "hidden"] as const)(
   "hides mutation actions for %s permissions",
   (permission) => {
     mocks.permission = permission;
+    mocks.nativeInputs().uiEnvironment.store.setState((state: StudioUiEnvironmentState) => ({
+      ...state,
+      leftTabPermissions: { ...state.leftTabPermissions, imports: permission, libraries: permission },
+    }), true);
     render(<ProjectDependenciesPanel />);
     expect(screen.queryByRole("button", { name: "Import project" })).toBeNull();
     expect(screen.queryByText("Remove imported project")).toBeNull();

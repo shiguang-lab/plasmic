@@ -13,15 +13,16 @@ export function AntdBreadcrumb(
   const { itemsRaw, items: configuredItems, ...rest } = props;
   const items = React.useMemo(() => {
     const children =
-      React.isValidElement(itemsRaw) && itemsRaw.type !== AntdBreadcrumbItem
+      React.isValidElement<{ children?: React.ReactNode }>(itemsRaw) && itemsRaw.type !== AntdBreadcrumbItem
         ? itemsRaw.props.children
         : itemsRaw;
     return asArray(children)
       .flat(1)
-      .filter(React.isValidElement)
-      .map((currentItem: React.ReactElement) => {
+      .filter(React.isValidElement<BreadcrumbItemProps>)
+      .map((currentItem) => {
+        const { children: _children, ...itemProps } = currentItem.props;
         return {
-          ...currentItem.props,
+          ...itemProps,
           title: React.cloneElement(<>{currentItem}</>),
         };
       });

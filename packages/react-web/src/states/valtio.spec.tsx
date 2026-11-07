@@ -43,6 +43,34 @@ afterEach(() => {
 });
 
 describe("useDollarState with a deterministic initFunc", () => {
+  it("keeps object initial values intact for repeated resets", () => {
+    const initial = { nested: { count: 1 }, rows: ["first"] };
+    const { Comp, seen } = mkComponent(spec(() => initial));
+    render(<Comp />);
+
+    for (const count of [2, 3]) {
+      act(() => {
+        seen.$state.val.nested.count = count;
+        seen.$state.val.rows.push("edited");
+      });
+      expect(seen.$state.val.nested.count).toBe(count);
+      expect(seen.$state.val.rows).toEqual(["first", "edited"]);
+      expect(getCurrentInitialValue(seen.$state, ["val"])).toEqual(initial);
+      act(() => resetToInitialValue(seen.$state, ["val"]));
+      expect(seen.$state.val).toEqual(initial);
+    }
+  });
+
+  it("owns mutable objects assigned from props", () => {
+    const input = { nested: { count: 1 } };
+    const { Comp, seen } = mkComponent(spec(() => null));
+    render(<Comp />);
+    act(() => { seen.$state.val = input; });
+    act(() => { seen.$state.val.nested.count = 2; });
+    expect(input).toEqual({ nested: { count: 1 } });
+    expect(seen.$state.val.nested.count).toBe(2);
+  });
+
   // An init value derived from something the user types changes on every
   // keystroke, and must keep resetting the state every time.
   it.each([true, false])(

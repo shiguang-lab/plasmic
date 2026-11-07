@@ -26,7 +26,7 @@ function getTabItems(
   items: React.ReactNode,
 ): React.ReactElement<TabItemType>[] {
   return asArray(items).flatMap((item) => {
-    if (!React.isValidElement(item)) {
+    if (!React.isValidElement<{ children?: React.ReactNode }>(item)) {
       return [];
     }
     return (item.type as any)?.name === AntdTabItem.name

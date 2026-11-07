@@ -1,0 +1,115 @@
+{
+  "date": "2026-11-06",
+  "stage": "U17",
+  "complete": false,
+  "reactCompiler": {
+    "enabledByDefault": true,
+    "target": "19",
+    "mode": "annotation",
+    "panicThreshold": "all_errors",
+    "compiledFunctions": [
+      "CodeDisplayContent",
+      "DesktopDraftDialog",
+      "FollowingPlayer",
+      "SettingsPageContent"
+    ],
+    "productionArtifact": {
+      "sourceHash": "ea994430549bda7d17a9c9912756e4ef38df28d8441959a1d6170bd894528350",
+      "rendererHash": "97c8153b3d108425ce2ab0b5255bd483d71d2c9df3c4d50fbbc90b0249b90a36",
+      "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+      "files": 837,
+      "bytes": 105455177,
+      "studioArtifactHash": "ac443825d220b5ca55900ee6e1a4c3b9fcf0552173f03715f5a2e1c799d263ad",
+      "reactCompiler": {
+        "enabled": true,
+        "target": "19",
+        "compilationMode": "annotation",
+        "files": [
+          "src/wab/client/components/coding/CodeDisplayContent.tsx",
+          "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+          "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+          "src/wab/client/components/dashboard/SettingsPage.tsx"
+        ]
+      }
+    }
+  },
+  "stateInventory": {
+    "scannedSourceFiles": 6308,
+    "remainingFiles": 420,
+    "source": 357,
+    "test": 62,
+    "tooling": 1
+  },
+  "verification": {
+    "unit": {
+      "files": 21,
+      "passed": 165,
+      "failed": 0,
+      "log": "u17-native-state-integration-final.log"
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "incremental": false,
+      "log": "u17-state-typecheck-final-2.log"
+    },
+    "lint": {
+      "exitCode": 0,
+      "errors": 0,
+      "warnings": 3,
+      "log": "u17-native-state-lint-3.log"
+    },
+    "nativeProduction": {
+      "gpCases": 5,
+      "complexCases": 8,
+      "saveReopen": true,
+      "docsModes": [
+        "codegen",
+        "loader"
+      ],
+      "docsSerializedModelUnchanged": true,
+      "nativeDraftDialog": {
+        "enabled": true,
+        "opened": true,
+        "remoteActionClosed": true
+      },
+      "nativeDraftRestore": [
+        {
+          "iteration": 1,
+          "recovered": true,
+          "conflict": false,
+          "viewportDelta": 0
+        }
+      ],
+      "nativeDraftConflict": [
+        {
+          "iteration": 1,
+          "recovered": false,
+          "conflict": true,
+          "viewportDelta": 0
+        }
+      ],
+      "rendererErrors": [],
+      "previewErrors": [],
+      "logs": [
+        "u17-native-gp-bridge.log",
+        "u17-native-complex.log",
+        "u17-native-draft-restore.log",
+        "u17-native-draft-conflict.log"
+      ]
+    },
+    "nativeDraftService": {
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "log": "u17-native-draft-service-tests.log"
+    }
+  },
+  "performanceComparison": "paused by user",
+  "remaining": [
+    "Full model write/transaction replacement",
+    "Viewport and Inspector explicit subscriptions",
+    "Canvas renderer and computed-cache replacement",
+    "Remaining MobX consumers and dependency removal",
+    "Full upgrade acceptance gates"
+  ]
+}

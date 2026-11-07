@@ -4,10 +4,10 @@ import { AnyArena } from "@/wab/shared/Arenas";
 import { assert } from "@/wab/shared/common";
 import { ComponentVariantFrame } from "@/wab/shared/component-frame";
 import {
-  IChangeRecorder,
-  RecordedChanges,
   emptyRecordedChanges,
+  IChangeRecorder,
   mergeRecordedChanges,
+  RecordedChanges,
 } from "@/wab/shared/core/observable-model";
 import { Selectable } from "@/wab/shared/core/selection";
 import { SlotSelection } from "@/wab/shared/core/slots";
@@ -19,7 +19,7 @@ import {
   undoChangesAndResolveConflicts,
 } from "@/wab/shared/server-updates-utils";
 import L from "lodash";
-import { observable } from "mobx";
+import { createStore, StoreApi } from "zustand/vanilla";
 
 export const MAX_UNDO_STEPS = 50;
 
@@ -47,20 +47,61 @@ export interface UndoSnapshot {
   changes: RecordedChanges;
 }
 
+export interface UndoAvailability {
+  readonly canUndo: boolean;
+  readonly canRedo: boolean;
+}
+
 export class UndoLog {
-  _log = observable.array<UndoRecord>([], { deep: false });
-  __nextInsertPos = observable.box(0);
+  // The command history is bounded and owned here, not copied into UI state.
+  readonly _log: UndoRecord[] = [];
+  _nextInsertPos = 0;
+  private readonly availability = createStore<UndoAvailability>(() => Object.freeze({
+    canUndo: false,
+    canRedo: false,
+  }));
+  private currentAvailability = this.availability.getState();
+  private publicationDepth = 0;
+  readonly store: Pick<
+    StoreApi<UndoAvailability>,
+    "getState" | "getInitialState" | "subscribe"
+  > = {
+    getState: () => this.currentAvailability,
+    getInitialState: this.availability.getInitialState,
+    subscribe: this.availability.subscribe,
+  };
+
+  /** Hold notifications within a synchronous completed command, never across I/O. */
+  deferPublication<Result>(command: () => Result): Result {
+    this.publicationDepth++;
+    try {
+      return command();
+    } finally {
+      this.publicationDepth--;
+      if (!this.publicationDepth) {
+        this.availability.setState(this.currentAvailability, true);
+      }
+    }
+  }
+
+  private publishAvailability() {
+    const canUndo = this.canUndo();
+    const canRedo = this.canRedo();
+    const published = this.availability.getState();
+    if (published.canUndo === canUndo && published.canRedo === canRedo) {
+      this.currentAvailability = published;
+    } else if (this.currentAvailability.canUndo !== canUndo || this.currentAvailability.canRedo !== canRedo) {
+      this.currentAvailability = Object.freeze({ canUndo, canRedo });
+    }
+    if (!this.publicationDepth) {
+      this.availability.setState(this.currentAvailability, true);
+    }
+  }
   constructor(
     private site: Site,
     private recorder: IChangeRecorder,
     private summary: DeletedAssetsSummary,
   ) {}
-  get _nextInsertPos() {
-    return this.__nextInsertPos.get();
-  }
-  set _nextInsertPos(num: number) {
-    this.__nextInsertPos.set(num);
-  }
   head() {
     return L.last(this._log);
   }
@@ -266,6 +307,7 @@ export class UndoLog {
       const recordsToDelete = this._log.length - this._nextInsertPos;
       this._log.splice(this._nextInsertPos, recordsToDelete);
     }
+    this.publishAvailability();
   }
 
   record(record: UndoRecord) {
@@ -292,6 +334,7 @@ export class UndoLog {
         changes: emptyRecordedChanges(),
       };
     }
+    this.publishAvailability();
   }
   undo() {
     assert(this.canUndo(), () => "Can't undo");
@@ -301,6 +344,8 @@ export class UndoLog {
     } catch (err) {
       this._nextInsertPos += 1;
       throw err;
+    } finally {
+      this.publishAvailability();
     }
   }
   redo() {
@@ -311,6 +356,8 @@ export class UndoLog {
     } catch (err) {
       this._nextInsertPos -= 1;
       throw err;
+    } finally {
+      this.publishAvailability();
     }
   }
   canUndo() {

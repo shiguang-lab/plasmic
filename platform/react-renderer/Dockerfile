@@ -1,39 +1,32 @@
-FROM node:24-alpine
+FROM node:24-alpine AS builder
 
-# Config
-ARG RENDERER_PORT=3010
-ENV RENDERER_PORT=${RENDERER_PORT}
-
-# System setup
 RUN apk add --no-cache bubblewrap~=0.12 bash~=5 make~=4 python3 g++ libseccomp-dev
-SHELL ["/bin/bash","-o", "pipefail","-l","-c"]
+RUN corepack enable
+ENV CI=1 PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 PUPPETEER_SKIP_DOWNLOAD=1 CYPRESS_INSTALL_BINARY=0
+WORKDIR /plasmic
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml build.mjs tsconfig.types.json ./
+COPY packages ./packages
+COPY plasmicpkgs ./plasmicpkgs
+COPY plasmicpkgs-dev ./plasmicpkgs-dev
+COPY vendor ./vendor
+COPY platform/patches ./platform/patches
+COPY platform/react-renderer/package.json ./platform/react-renderer/package.json
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    --mount=type=cache,target=/root/.cache/pnpm \
+    pnpm install --frozen-lockfile --ignore-scripts --filter react-renderer...
+RUN pnpm --filter @plasmicapp/loader-react... build
+COPY platform/react-renderer ./platform/react-renderer
+RUN pnpm --filter react-renderer build
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+    --mount=type=cache,target=/root/.cache/pnpm \
+    pnpm --filter react-renderer deploy --legacy --prod --frozen-lockfile --ignore-scripts /opt/react-renderer
 
-# Keep corepack's cache world-readable and bake the pnpm dist in, so the
-# unprivileged user below does not download it at container startup.
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-ENV COREPACK_HOME="/pnpm/corepack"
-RUN corepack enable && pnpm --version && chmod -R a+rX "$COREPACK_HOME"
-
-WORKDIR /
-
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-
-RUN pnpm install --frozen-lockfile
-
-COPY *.cc *.c *.h *.gyp ./
-
-# Builds the seccomp addon. A repeat `pnpm install` would short-circuit with
-# "Already up to date" and never run the implicit binding.gyp rebuild.
-RUN pnpm build
-
-COPY . .
-
-EXPOSE ${RENDERER_PORT}
-
-RUN echo | adduser normaluser --disabled-password
+FROM node:24-alpine
+RUN apk add --no-cache bubblewrap~=0.12 bash~=5 libseccomp && adduser -D normaluser
+WORKDIR /home/normaluser/react-renderer
+COPY --from=builder --chown=normaluser:normaluser /opt/react-renderer ./
 USER normaluser
-
 ENV BWRAP_ARGS='--ro-bind /home /home'
-
-CMD ["pnpm", "start-prod"]
+ENV REACT_RENDERER_PORT=3010
+EXPOSE 3010
+CMD ["bash", "tools/run.bash", "src/main.ts", "-c", "src/config.prod.json"]

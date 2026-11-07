@@ -21,8 +21,6 @@ async function getCPAStrategy(platform: PlatformType): Promise<CPAStrategy> {
   switch (platform) {
     case "nextjs":
       return (await import("./nextjs/nextjs")).nextjsStrategy;
-    case "gatsby":
-      return (await import("./gatsby/gatsby")).gatsbyStrategy;
     case "react":
       return (await import("./react/react")).reactStrategy;
     case "tanstack":
@@ -56,7 +54,7 @@ export async function create(args: CreatePlasmicAppArgs): Promise<void> {
   const packageManager = resolvePackageManager(args.packageManager);
   console.log("Let's get started! Here's what we'll do: ");
   console.log("1. Authenticate with Plasmic");
-  console.log("2. Create a React/Next/Gatsby repo");
+  console.log("2. Create a React/Next/TanStack repo");
   console.log("3. Integrate with Plasmic");
 
   // Authenticate with Plasmic
@@ -81,7 +79,7 @@ export async function create(args: CreatePlasmicAppArgs): Promise<void> {
 
   // Calling `npx create-XXX` means we don't have to keep these dependencies up to date
   banner("CREATING THE PROJECT");
-  if (!["nextjs", "gatsby", "react", "tanstack"].includes(platform)) {
+  if (!["nextjs", "react", "tanstack"].includes(platform)) {
     throw new Error(`Unrecognized platform: ${platform}`);
   }
 
@@ -102,7 +100,7 @@ export async function create(args: CreatePlasmicAppArgs): Promise<void> {
   });
 
   // Ensure that we have a empty tsconfig and @types packages.
-  // Gatsby and Next.js by default support typescript handling internally
+  // Next.js by default support typescript handling internally
   // tsconfig so we don't have to ensure it.
   if (jsOrTs === "ts" && platform === "react") {
     await ensureTsconfig(resolvedProjectPath, packageManager);
@@ -158,8 +156,6 @@ export async function create(args: CreatePlasmicAppArgs): Promise<void> {
   const command =
     platform === "nextjs"
       ? `${npmRunCmd} dev`
-      : platform === "gatsby"
-      ? `${npmRunCmd} develop`
       : platform === "react"
       ? `${npmRunCmd} dev`
       : "";
@@ -184,7 +180,7 @@ export async function create(args: CreatePlasmicAppArgs): Promise<void> {
   console.log(chalk.bold(`cd ${relativeDir}`));
   console.log(chalk.bold(command));
   console.log();
-  if (platform === "nextjs" || platform === "gatsby") {
+  if (platform === "nextjs") {
     console.log(
       "Navigate to the routes (e.g. /home) defined by your page components from Plasmic Studio."
     );

@@ -1,4 +1,3 @@
-import { registerPresentationProject } from "@/wab/client/route/presentation-projects";
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { ApplicationPageLoading } from "@/wab/client/components/ApplicationPageLoading";
 import {
@@ -9,6 +8,7 @@ import {
 import { Loadable } from "@/wab/client/components/widgets";
 import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
+import { registerPresentationProject } from "@/wab/client/route/presentation-projects";
 import {
   act,
   cleanup,
@@ -82,15 +82,27 @@ it("keeps one logo and its animation nodes across app startup, app context, lazy
     />,
   );
   const loadingNode = screen.getByRole("status");
-  const input = screen.getByRole("textbox", { name: "Describe changes or a new page…" });
+  const input = screen.getByRole("textbox", {
+    name: "Describe changes or a new page…",
+  });
   expect(input.getAttribute("aria-disabled")).toBe("false");
   input.focus();
-  fireEvent.input(input, { target: { innerText: "Prepare the canvas while it loads" } });
-  expect((screen.getByRole("button", { name: "Send AI request" }) as HTMLButtonElement).disabled).toBe(true);
+  fireEvent.input(input, {
+    target: { innerText: "Prepare the canvas while it loads" },
+  });
+  expect(
+    (
+      screen.getByRole("button", {
+        name: "Send AI request",
+      }) as HTMLButtonElement
+    ).disabled,
+  ).toBe(true);
   const logo = loadingNode.querySelector("svg [data-solid]");
   expect(logo).toBeTruthy();
   const unchanged = () => {
-    expect(screen.getByRole("textbox", { name: "Describe changes or a new page…" })).toBe(input);
+    expect(
+      screen.getByRole("textbox", { name: "Describe changes or a new page…" }),
+    ).toBe(input);
     expect(input.innerText).toBe("Prepare the canvas while it loads");
     expect(document.activeElement).toBe(input);
     expect(screen.getAllByRole("status")).toHaveLength(1);
@@ -107,7 +119,9 @@ it("keeps one logo and its animation nodes across app startup, app context, lazy
   unchanged();
   rerender(<ReadyCanvas ready />);
   expect(screen.queryByRole("status")).toBeNull();
-  expect(screen.getByRole("textbox", { name: "Describe changes or a new page…" })).toBe(input);
+  expect(
+    screen.getByRole("textbox", { name: "Describe changes or a new page…" }),
+  ).toBe(input);
 });
 
 it("keeps the first-paint HTML logo until ready without mounting a second logo", () => {
@@ -190,12 +204,13 @@ it("starts loading for a new project but not for arena or slug changes within a 
 it.each(["/projects/project/preview", "/d/0123456789"])(
   "uses preview loading throughout %s startup and removes it when ready",
   (mode) => {
-    const { rerender } = setup(
-      <ApplicationPageLoading />,
-      `${mode}#/home`,
-    );
+    const { rerender } = setup(<ApplicationPageLoading />, `${mode}#/home`);
     expect(screen.getAllByRole("status")).toHaveLength(1);
-    expect(screen.getByRole("status", { name: "Loading preview…" }).querySelector("svg")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("status", { name: "Loading preview…" })
+        .querySelector("svg"),
+    ).toBeTruthy();
     expect(
       document.querySelector(".canvas-editor, .studio-loading, .ant-skeleton"),
     ).toBeNull();
@@ -205,6 +220,81 @@ it.each(["/projects/project/preview", "/d/0123456789"])(
     expect(screen.queryByRole("status")).toBeNull();
   },
 );
+
+it.each(["/projects/project/preview", "/d/fresh12345"])(
+  "preserves the first-paint preview logo through startup and route resolution at %s",
+  (mode) => {
+    const bootstrap = document.createElement("div");
+    bootstrap.id = "preview-startup-loading";
+    bootstrap.className = "preview-loading visible";
+    bootstrap.setAttribute("role", "status");
+    bootstrap.innerHTML = "<svg><g data-solid></g></svg>";
+    document.body.append(bootstrap);
+    try {
+      const logo = bootstrap.querySelector("svg");
+      const { rerender, history } = setup(
+        <ApplicationPageLoading />,
+        `${mode}#/home`,
+      );
+      const unchanged = () => {
+        expect(screen.getAllByRole("status")).toEqual([bootstrap]);
+        expect(bootstrap.querySelector("svg")).toBe(logo);
+        expect(bootstrap.classList.contains("fadeOut")).toBe(false);
+        expect(document.querySelector(".canvas-editor")).toBeNull();
+      };
+      unchanged();
+      if (mode.startsWith("/d/")) {
+        registerPresentationProject(
+          "fresh12345",
+          "project" as import("@/wab/shared/ApiSchema").ProjectId,
+        );
+      }
+      rerender(<StudioChrome />);
+      unchanged();
+      rerender(<ReadyCanvas ready={false} />);
+      unchanged();
+      act(() => history.push(`${mode}#/next`));
+      unchanged();
+      rerender(<ReadyCanvas ready />);
+      expect(bootstrap.classList.contains("fadeOut")).toBe(true);
+      act(() => history.push(`${mode}#/home`));
+      expect(bootstrap.classList.contains("fadeOut")).toBe(true);
+    } finally {
+      cleanup();
+      bootstrap.remove();
+    }
+  },
+);
+
+it("reveals preview failures and restores the same HTML logo on retry", () => {
+  const bootstrap = document.createElement("div");
+  bootstrap.id = "preview-startup-loading";
+  bootstrap.className = "preview-loading visible";
+  bootstrap.setAttribute("role", "status");
+  bootstrap.innerHTML = "<svg></svg>";
+  document.body.append(bootstrap);
+  try {
+    const retry = vi.fn();
+    const { rerender } = setup(
+      <ApplicationPageLoading />,
+      "/d/0123456789#/home",
+    );
+    const logo = bootstrap.firstElementChild;
+    rerender(
+      <ApplicationPageLoading failure={<LoadingError onRetry={retry} />} />,
+    );
+    expect(bootstrap.classList.contains("fadeOut")).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    expect(retry).toHaveBeenCalledOnce();
+    rerender(<ApplicationPageLoading />);
+    expect(bootstrap.classList.contains("fadeOut")).toBe(false);
+    expect(bootstrap.firstElementChild).toBe(logo);
+    expect(screen.getAllByRole("status")).toEqual([bootstrap]);
+  } finally {
+    cleanup();
+    bootstrap.remove();
+  }
+});
 
 it("shows preview startup failures with retry without editor chrome", () => {
   const retry = vi.fn();
@@ -222,13 +312,28 @@ it.each(["/projects/project/preview", "/d/0123456789"])(
   "keeps a lazy sign-in failure inside a loading boundary during %s startup",
   async (mode) => {
     let releaseSignIn!: () => void;
-    const SignIn = React.lazy(() => new Promise<{ default: React.ComponentType }>((resolve) => {
-      releaseSignIn = () => resolve({ default: () => <div>Sign in to preview</div> });
-    }));
-    class ErrorBoundary extends React.Component<React.PropsWithChildren, { failed: boolean }> {
+    const SignIn = React.lazy(
+      () =>
+        new Promise<{ default: React.ComponentType }>((resolve) => {
+          releaseSignIn = () =>
+            resolve({ default: () => <div>Sign in to preview</div> });
+        }),
+    );
+    class ErrorBoundary extends React.Component<
+      React.PropsWithChildren,
+      { failed: boolean }
+    > {
       state = { failed: false };
-      static getDerivedStateFromError() { return { failed: true }; }
-      render() { return this.state.failed ? <div>Startup crashed</div> : this.props.children; }
+      static getDerivedStateFromError() {
+        return { failed: true };
+      }
+      render() {
+        return this.state.failed ? (
+          <div>Startup crashed</div>
+        ) : (
+          this.props.children
+        );
+      }
     }
     const history = createMemoryHistory({ initialEntries: [`${mode}#/home`] });
     render(
@@ -236,20 +341,25 @@ it.each(["/projects/project/preview", "/d/0123456789"])(
         <AntdConfigProvider productUI>
           <ErrorBoundary>
             <StudioStartupBoundary>
-              <Loadable loader={async () => true} contents={() => (
-                <React.Suspense fallback={<ApplicationPageLoading />}>
-                  <ApplicationPageLoading failure={<SignIn />} />
-                </React.Suspense>
-              )} loadingContents={() => <ApplicationPageLoading />} />
+              <Loadable
+                loader={async () => true}
+                contents={() => (
+                  <React.Suspense fallback={<ApplicationPageLoading />}>
+                    <ApplicationPageLoading failure={<SignIn />} />
+                  </React.Suspense>
+                )}
+                loadingContents={() => <ApplicationPageLoading />}
+              />
             </StudioStartupBoundary>
           </ErrorBoundary>
         </AntdConfigProvider>
       </HistoryProvider>,
-      { legacyRoot: true },
     );
     await act(() => Promise.resolve());
     expect(screen.queryByText("Startup crashed")).toBeNull();
-    expect(screen.getByRole("status").getAttribute("aria-label")).toBe("Loading preview…");
+    expect(screen.getByRole("status").getAttribute("aria-label")).toBe(
+      "Loading preview…",
+    );
     await act(async () => releaseSignIn());
     expect(screen.getByText("Sign in to preview")).toBeTruthy();
     expect(screen.queryByRole("status")).toBeNull();
@@ -263,14 +373,17 @@ it("provides one desktop update slot after the loading editor brand capsule", ()
   const { container } = setup(<ApplicationPageLoading />);
   const slot = container.querySelector('[data-desktop-update-slot="header"]');
   expect(slot).toBeTruthy();
-  expect(container.querySelectorAll('[data-desktop-update-slot="header"]')).toHaveLength(1);
-  expect(slot?.previousElementSibling?.querySelector(".editor-project-title")).toBeTruthy();
+  expect(
+    container.querySelectorAll('[data-desktop-update-slot="header"]'),
+  ).toHaveLength(1);
+  expect(
+    slot?.previousElementSibling?.querySelector(".editor-project-title"),
+  ).toBeTruthy();
   expect(slot?.closest(".canvas-editor__top-bar")).toBeTruthy();
   expect(slot?.getAttribute("data-desktop-update-position")).toBeNull();
   expect(slot?.closest(".editor-tool-rail-group")).toBeNull();
   vi.restoreAllMocks();
 });
-
 
 it("hides web import throughout browser startup", () => {
   vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
@@ -278,31 +391,48 @@ it("hides web import throughout browser startup", () => {
   );
   try {
     const { container, rerender } = setup(<ApplicationPageLoading />);
-    expect(container.querySelector('[data-test-id="import-from-web-button"]')).toBeNull();
+    expect(
+      container.querySelector('[data-test-id="import-from-web-button"]'),
+    ).toBeNull();
     rerender(<StudioChrome projectName="Project" />);
-    expect(container.querySelector('[data-test-id="import-from-web-button"]')).toBeNull();
+    expect(
+      container.querySelector('[data-test-id="import-from-web-button"]'),
+    ).toBeNull();
   } finally {
     vi.restoreAllMocks();
   }
 });
 
 it("keeps the Desktop web import action inside the tool rail and opens it through the native bridge", () => {
-  vi.spyOn(navigator, "userAgent", "get").mockReturnValue("PlasmicDesktop/darwin");
+  vi.spyOn(navigator, "userAgent", "get").mockReturnValue(
+    "PlasmicDesktop/darwin",
+  );
   const open = vi.fn();
   vi.stubGlobal("desktopBrowser", { open });
   try {
     const { container, rerender } = setup(<ApplicationPageLoading />);
-    const button = container.querySelector('[data-test-id="import-from-web-button"]');
+    const button = container.querySelector(
+      '[data-test-id="import-from-web-button"]',
+    );
     expect(button?.closest("#left-tab-strip")).toBeTruthy();
     expect(button?.getAttribute("aria-label")).toBe("Import from the web");
-    fireEvent.click(screen.getByRole("button", { name: "Import from the web" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Import from the web" }),
+    );
     expect(open).toHaveBeenCalledOnce();
     rerender(<StudioChrome projectName="Project" />);
-    expect(container.querySelectorAll('[data-test-id="import-from-web-button"]')).toHaveLength(1);
+    expect(
+      container.querySelectorAll('[data-test-id="import-from-web-button"]'),
+    ).toHaveLength(1);
   } finally {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   }
 });
 
-beforeEach(() => registerPresentationProject("0123456789", "project" as import("@/wab/shared/ApiSchema").ProjectId));
+beforeEach(() =>
+  registerPresentationProject(
+    "0123456789",
+    "project" as import("@/wab/shared/ApiSchema").ProjectId,
+  ),
+);

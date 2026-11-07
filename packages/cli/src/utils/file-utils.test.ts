@@ -15,30 +15,6 @@ describe("defaultPagePath", () => {
       defaultPagePath({ config: { platform: "react" } }, "/nested/index.tsx")
     ).toBe("/nested/index.tsx");
   });
-  it("handles gatsby pagesDir", () => {
-    expect(
-      defaultPagePath(
-        {
-          config: {
-            platform: "gatsby",
-            gatsbyConfig: { pagesDir: "../pages" },
-          },
-        },
-        "/index.tsx"
-      )
-    ).toBe("../pages/index.tsx");
-    expect(
-      defaultPagePath(
-        {
-          config: {
-            platform: "gatsby",
-            gatsbyConfig: { pagesDir: "../pages" },
-          },
-        },
-        "/nested/index.tsx"
-      )
-    ).toBe("../pages/nested/index.tsx");
-  });
   it("handles nextjs pagesDir", () => {
     expect(
       defaultPagePath(

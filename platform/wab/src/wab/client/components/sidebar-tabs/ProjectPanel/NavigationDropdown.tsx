@@ -1,3 +1,5 @@
+import { useShallow } from "zustand/react/shallow";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { RenameArenaProps } from "@/wab/client/commands/arena/renameArena";
 import { COMMANDS } from "@/wab/client/commands/command";
 import {
@@ -64,14 +66,11 @@ import { ArenaType, isArenaType } from "@/wab/shared/ApiSchema";
 import {
   AnyArena,
   getArenaName,
-  isComponentArena,
-  isPageArena,
 } from "@/wab/shared/Arenas";
 import { ARENAS_DESCRIPTION } from "@/wab/shared/Labels";
 import { tryGetMainContentSlotTarget } from "@/wab/shared/SlotUtils";
 import { addEmptyQuery } from "@/wab/shared/TplMgr";
 import { $$$ } from "@/wab/shared/TplQuery";
-import { getHostLessComponents } from "@/wab/shared/code-components/code-components";
 import { toVarName } from "@/wab/shared/codegen/util";
 import {
   assert,
@@ -93,7 +92,6 @@ import {
   isTplContainer,
   isTplTag,
   isTplTextBlock,
-  mkTplComponentX,
   mkTplInlinedText,
 } from "@/wab/shared/core/tpls";
 import { getDataSourceMeta } from "@/wab/shared/data-sources-meta/data-source-registry";
@@ -129,6 +127,7 @@ import { observer } from "mobx-react";
 import { computedFn } from "mobx-utils";
 import { ok } from "neverthrow";
 import React from "react";
+import { useStore } from "zustand";
 import {
   FiChevronDown,
   FiChevronRight,
@@ -309,6 +308,7 @@ function NavigationDropdown_(
 ) {
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
+  const navigationPanel = useStore(studioCtx.navigationPanelStore);
   const contentEditorMode = studioCtx.contentEditorMode;
   const { styles: panelStyles } = useStructurePanelStyles();
   const [searchVisible, setSearchVisible] = React.useState(false);
@@ -316,12 +316,15 @@ function NavigationDropdown_(
   const showSearch =
     expanded &&
     (searchVisible ||
-      studioCtx.navigationPanel === "pages" ||
+      navigationPanel === "pages" ||
       searchValue.length > 0);
-  const currentArena = studioCtx.currentArena;
-  const CurrentArenaIcon = isPageArena(currentArena)
+  const { current: currentArenaRef, kind: currentArenaKind, name: currentArenaName } = useStudioArena(
+    studioCtx, useShallow((state) => ({ current: state.current, kind: state.kind, name: state.name })),
+  );
+  const currentArena = currentArenaRef ? studioCtx.modelSnapshots.resolve(currentArenaRef) : null;
+  const CurrentArenaIcon = currentArenaKind === "page"
     ? FiFile
-    : isComponentArena(currentArena)
+    : currentArenaKind === "component"
       ? FiGrid
       : FiColumns;
 
@@ -613,26 +616,6 @@ function NavigationDropdown_(
 
                     $$$(targetParent).prepend(newTpl);
 
-                    // Try also adding a RichDetails component, if installed.
-                    // We're only adding this if inserting a new title.
-                    // We don't try this if we found some existing h1.
-                    const richDetailsComponent = getHostLessComponents(
-                      studioCtx.site,
-                    ).find((c) => c.name === "hostless-rich-details");
-                    if (richDetailsComponent) {
-                      $$$(newTpl).after(
-                        mkTplComponentX({
-                          component: richDetailsComponent,
-                          baseVariant,
-                          args: {
-                            data: new ObjectPath({
-                              path: ["$queries", "query", "data", 0],
-                              fallback: codeLit(null),
-                            }),
-                          },
-                        }),
-                      );
-                    }
                     return newTpl;
                   }
 
@@ -773,16 +756,13 @@ function NavigationDropdown_(
     defaultOpenKeys: ["$custom-folder", "$page-folder"],
   });
 
-  const revealedArena = React.useRef<AnyArena | null>();
+  const revealedArena = React.useRef<AnyArena | null>(undefined);
   React.useEffect(() => {
-    if (
-      studioCtx.currentArena &&
-      studioCtx.currentArena !== revealedArena.current
-    ) {
-      expandTo(mapToArenaData(studioCtx.currentArena).key);
+    if (currentArena && currentArena !== revealedArena.current) {
+      expandTo(mapToArenaData(currentArena).key);
     }
-    revealedArena.current = studioCtx.currentArena;
-  }, [studioCtx.currentArena, expandTo]);
+    revealedArena.current = currentArena;
+  }, [currentArena, expandTo]);
 
   const selectedIndex = nodeData.treeData.selectedIndex;
   const selectedKey =
@@ -901,7 +881,7 @@ function NavigationDropdown_(
       >
         <FiSearch size={14} />
         <input
-          ref={searchInputRef}
+          ref={studioCtx.bindProjectSearchInput}
           value={searchValue}
           aria-label={uiT("Go to page/component")}
           placeholder={uiT("Search…")}
@@ -940,10 +920,10 @@ function NavigationDropdown_(
           type="button"
           className={panelStyles.directorySummary}
           onClick={() => onExpandedChange(true)}
-          title={getArenaName(currentArena)}
+          title={currentArenaName}
         >
           <CurrentArenaIcon size={14} />
-          <span>{getArenaName(currentArena)}</span>
+          <span>{currentArenaName}</span>
           <FiChevronDown size={13} />
         </button>
       )}

@@ -1,3 +1,5 @@
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import { SingleRsStyleInputs } from "@/wab/client/studio-ctx/style-inputs";
 import { AntdConfigProvider, productTheme } from "@/wab/client/antd-theme";
 import { EnumPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/EnumPropEditor";
 import {
@@ -29,7 +31,6 @@ import {
   within,
 } from "@testing-library/react";
 import { ConfigProvider, theme } from "antd";
-import { observable } from "mobx";
 import { mock } from "vitest-mock-extended";
 import * as React from "react";
 import {
@@ -38,6 +39,8 @@ import {
   StylePanelSection,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { mkRuleSet } from "@/wab/shared/core/styles";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
@@ -68,7 +71,8 @@ vi.mock(
   }),
 );
 
-afterEach(cleanup);
+const styleOwners: SingleRsStyleInputs[] = [];
+afterEach(() => { cleanup(); styleOwners.splice(0).forEach((owner) => owner.dispose()); });
 
 it("keeps sidebar modal surfaces readable with a light scrim across themes", async () => {
   const onClose = vi.fn();
@@ -422,7 +426,13 @@ it("themes the actual property-source popup outside the document's product theme
   document.documentElement.appendChild(popupHost);
   onTestFinished(() => popupHost.remove());
   const studioCtx = mock<StudioCtx>({ site: createSite() });
-  studioCtx.viewCtxs = observable.array();
+  const models = new ModelSnapshots();
+  const selection = new StudioSelection(() => models);
+  Object.defineProperty(studioCtx, "selectionStore", { value: selection.store });
+  const arenas = new StudioArenaState({ site: studioCtx.site, modelSnapshots: models });
+  Object.defineProperty(studioCtx, "arenaState", { value: arenas });
+  Object.defineProperty(studioCtx, "viewCtxs", { get: () => arenas.viewRegistry.commandViews() });
+  onTestFinished(() => { arenas.dispose(); selection.dispose(); models.dispose(); });
   studioCtx.focusedViewCtx.mockReturnValue(undefined);
   const source: AttrSource = {
     type: "attr",
@@ -483,12 +493,18 @@ describe("removing a section's styles", () => {
   function setup(mixin = false) {
     const rs = mkRuleSet({ values: { color: "blue", position: "absolute" } });
     const exp = RSH(rs, mkTplTagX("div", {}));
+    const models = new ModelSnapshots();
+    const singleRsStyleInputs = new SingleRsStyleInputs(() => models);
+    styleOwners.push(singleRsStyleInputs);
     const studioCtx = {
       site: { mixins: [] },
+      modelSnapshots: models,
+      singleRsStyleInputs,
+      selectionStore: new StudioSelection(() => models).store,
       focusedViewCtx: () => undefined,
       changeUnsafe: async (change: () => void) => change(),
     } as unknown as StudioCtx;
-    const provider = new SingleRsExpsProvider(rs, exp, studioCtx, []);
+    const provider = new SingleRsExpsProvider(rs, exp, studioCtx, [], { kind: "ruleSet", rs, forTag: "div" });
     // A Tpl provider and a mixin provider differ only in whether the section's
     // required layout defaults apply. Keep the actual ruleset operations.
     const expsProvider: ExpsProvider = mixin ? provider : { ...provider };

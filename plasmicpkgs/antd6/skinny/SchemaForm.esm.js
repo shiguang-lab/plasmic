@@ -1,3 +1,4 @@
+import { jsxs, Fragment, jsx } from 'react/jsx-runtime';
 import { usePlasmicDataOp, normalizeData, deriveFieldConfigs } from '@plasmicapp/data-sources';
 import { Input, InputNumber } from 'antd';
 import React from 'react';
@@ -5,13 +6,13 @@ import { AntdCheckbox } from './registerCheckbox.esm.js';
 import { AntdDatePicker } from './registerDatePicker.esm.js';
 import { AntdRadioGroup } from './registerRadio.esm.js';
 import { AntdSelect } from './registerSelect.esm.js';
-import { u as usePrevious, E as ErrorBoundary, o as omit } from './utils-U416WEAa.esm.js';
+import { u as usePrevious, E as ErrorBoundary, o as omit } from './utils-DPGVAauG.esm.js';
 import { InputType, SchemaFormContext, FormWrapper } from './Form.esm.js';
 import { FormItemWrapper } from './FormItem.esm.js';
 import './names-DQIzgrvq.esm.js';
 import 'classnames';
 import 'dayjs';
-import './canvas-overlay-27tNRB55.esm.js';
+import './canvas-overlay-k3p9M5S2.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -83,67 +84,75 @@ const SchemaForm = React.forwardRef(
       }
     }, [rawData, actualFormItems]);
     if (props.mode === "simplified" && rawData && "error" in rawData) {
-      return /* @__PURE__ */ React.createElement("div", null, "Error when fetching data: ", rawData.error.message);
+      return /* @__PURE__ */ jsxs("div", { children: [
+        "Error when fetching data: ",
+        rawData.error.message
+      ] });
     }
-    const childrenNode = props.mode === "simplified" ? /* @__PURE__ */ React.createElement(React.Fragment, null, (actualFormItems ?? []).map((formItem) => /* @__PURE__ */ React.createElement(
-      ErrorBoundary,
-      {
-        canvasEnvId: props["data-plasmic-canvas-envs"],
-        message: `Error rendering input for ${formItem.label ?? formItem.name ?? "undefined"}`
-      },
-      /* @__PURE__ */ React.createElement(
-        FormItemWrapper,
+    const childrenNode = props.mode === "simplified" ? /* @__PURE__ */ jsxs(Fragment, { children: [
+      (actualFormItems ?? []).map((formItem) => /* @__PURE__ */ jsx(
+        ErrorBoundary,
         {
-          ...omit(formItem, "key"),
-          noLabel: formItem.inputType === InputType.Checkbox || formItem.noLabel,
-          valuePropName: formItem.valuePropName ?? (formItem.inputType === InputType.Checkbox ? "checked" : void 0)
-        },
-        formItem.inputType === InputType.Text ? /* @__PURE__ */ React.createElement(Input, null) : formItem.inputType === InputType.Password ? /* @__PURE__ */ React.createElement(Input.Password, null) : formItem.inputType === InputType.TextArea ? /* @__PURE__ */ React.createElement(Input.TextArea, null) : formItem.inputType === InputType.Number ? /* @__PURE__ */ React.createElement(InputNumber, null) : formItem.inputType === InputType.Checkbox ? /* @__PURE__ */ React.createElement(AntdCheckbox, null, formItem.label) : formItem.inputType === InputType.Select ? /* @__PURE__ */ React.createElement(AntdSelect, { options: formItem.options }) : formItem.inputType === InputType.DatePicker ? /* @__PURE__ */ React.createElement(AntdDatePicker, { showTime: formItem.showTime }) : formItem.inputType === InputType.RadioGroup ? /* @__PURE__ */ React.createElement(
-          AntdRadioGroup,
-          {
-            options: formItem.options,
-            optionType: formItem.optionType
-          }
-        ) : null
-      )
-    )), props.submitSlot) : props.children;
+          canvasEnvId: props["data-plasmic-canvas-envs"],
+          message: `Error rendering input for ${formItem.label ?? formItem.name ?? "undefined"}`,
+          children: /* @__PURE__ */ jsx(
+            FormItemWrapper,
+            {
+              ...omit(formItem, "key"),
+              noLabel: formItem.inputType === InputType.Checkbox || formItem.noLabel,
+              valuePropName: formItem.valuePropName ?? (formItem.inputType === InputType.Checkbox ? "checked" : void 0),
+              children: formItem.inputType === InputType.Text ? /* @__PURE__ */ jsx(Input, {}) : formItem.inputType === InputType.Password ? /* @__PURE__ */ jsx(Input.Password, {}) : formItem.inputType === InputType.TextArea ? /* @__PURE__ */ jsx(Input.TextArea, {}) : formItem.inputType === InputType.Number ? /* @__PURE__ */ jsx(InputNumber, {}) : formItem.inputType === InputType.Checkbox ? /* @__PURE__ */ jsx(AntdCheckbox, { children: formItem.label }) : formItem.inputType === InputType.Select ? /* @__PURE__ */ jsx(AntdSelect, { options: formItem.options }) : formItem.inputType === InputType.DatePicker ? /* @__PURE__ */ jsx(AntdDatePicker, { showTime: formItem.showTime }) : formItem.inputType === InputType.RadioGroup ? /* @__PURE__ */ jsx(
+                AntdRadioGroup,
+                {
+                  options: formItem.options,
+                  optionType: formItem.optionType
+                }
+              ) : null
+            }
+          )
+        }
+      )),
+      props.submitSlot
+    ] }) : props.children;
     const isSchemaForm = props.mode === "simplified" && !!props.data;
     const isLoadingData = rawData?.isLoading;
-    return /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ jsxs(
       SchemaFormContext.Provider,
       {
         value: {
           mergedFields: formItemDefinitions?.mergedFields,
           minimalFullLengthFields: formItemDefinitions?.mergedFields,
           schema: rawData?.schema
-        }
-      },
-      /* @__PURE__ */ React.createElement(
-        FormWrapper,
-        {
-          key: remountKey,
-          ...rest,
-          children: childrenNode,
-          formItems: rawData && rawData.isLoading ? previousFormItems.current : actualFormItems,
-          ref,
-          style: isSchemaForm && isLoadingData ? {
-            ...props.style,
-            opacity: 0.5,
-            transitionDelay: "250ms",
-            transition: "1s"
-          } : props.style
-        }
-      ),
-      isSchemaForm && isLoadingData && /* @__PURE__ */ React.createElement(
-        "div",
-        {
-          style: {
-            position: "absolute",
-            width: "100%",
-            height: "100%"
-          }
-        }
-      )
+        },
+        children: [
+          /* @__PURE__ */ jsx(
+            FormWrapper,
+            {
+              ...rest,
+              children: childrenNode,
+              formItems: rawData && rawData.isLoading ? previousFormItems.current : actualFormItems,
+              ref,
+              style: isSchemaForm && isLoadingData ? {
+                ...props.style,
+                opacity: 0.5,
+                transitionDelay: "250ms",
+                transition: "1s"
+              } : props.style
+            },
+            remountKey
+          ),
+          isSchemaForm && isLoadingData && /* @__PURE__ */ jsx(
+            "div",
+            {
+              style: {
+                position: "absolute",
+                width: "100%",
+                height: "100%"
+              }
+            }
+          )
+        ]
+      }
     );
   }
 );

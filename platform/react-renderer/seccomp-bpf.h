@@ -55,6 +55,8 @@ struct seccomp_data {
 #elif defined(__x86_64__)
 # define REG_SYSCALL	REG_RAX
 # define ARCH_NR	AUDIT_ARCH_X86_64
+#elif defined(__aarch64__)
+# define ARCH_NR AUDIT_ARCH_AARCH64
 #else
 # warning "Platform does not support seccomp filter yet"
 # define REG_SYSCALL	0
@@ -64,7 +66,7 @@ struct seccomp_data {
 #define VALIDATE_ARCHITECTURE \
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, arch_nr), \
 	BPF_JUMP(BPF_JMP+BPF_JEQ+BPF_K, ARCH_NR, 1, 0), \
-	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_KILL)
+	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_KILL_PROCESS)
 
 #define EXAMINE_SYSCALL \
 	BPF_STMT(BPF_LD+BPF_W+BPF_ABS, syscall_nr)
@@ -74,6 +76,6 @@ struct seccomp_data {
 	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_ALLOW)
 
 #define KILL_PROCESS \
-	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_KILL)
+	BPF_STMT(BPF_RET+BPF_K, SECCOMP_RET_KILL_PROCESS)
 
 #endif /* _SECCOMP_BPF_H_ */

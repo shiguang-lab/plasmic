@@ -6,7 +6,7 @@ export {
   withPlasmicPageGuard,
 } from "./auth/PlasmicPageGuard";
 export { omit, pick } from "./common";
-export { HTMLElementRefOf, StrictProps } from "./react-utils";
+export { HTMLElementRefOf, StrictProps, mergeRefs } from "./react-utils";
 export { PlasmicHead, plasmicHeadMeta } from "./render/PlasmicHead";
 export { PlasmicIcon } from "./render/PlasmicIcon";
 export { PlasmicImg } from "./render/PlasmicImg";

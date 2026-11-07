@@ -1,6 +1,8 @@
 import { mkCanvasErrorBoundary } from "@/wab/client/components/canvas/canvas-error";
 import { mkUseCanvasObserver } from "@/wab/client/components/canvas/canvas-observer";
+import { globalHookCtx } from "@/wab/client/react-global-hook/globalHook";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { ensure } from "@/wab/shared/common";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { act, cleanup, render } from "@testing-library/react";
 import { observable, runInAction } from "mobx";
@@ -8,8 +10,10 @@ import React from "react";
 import * as ReactDOM from "react-dom";
 
 function fixture() {
+  const lifetime = new AbortController();
+  const frame = globalHookCtx.createFrameState({ uid: 402, objectPrototype: {} });
   const view: ViewCtx = Object.assign(Object.create(ViewCtx.prototype), {
-    _isDisposed: false,
+    _isDisposed: false, disposeSignal: lifetime.signal, frameState: frame, arenaFrame: () => ({ uid: 402 }),
     canvasObservers: new Set(), uncommittedCanvasObservers: new Map(),
     canvasErrorObservers: new Set(), _canvasRerenderQueue: new Set(),
     canvasCtx: { Sub: { React, ReactDOM, DataContext: React.createContext({}) } },
@@ -19,8 +23,8 @@ function fixture() {
   });
   const useObserver = mkUseCanvasObserver({ React } as any, view);
   const Boundary = mkCanvasErrorBoundary(view, React);
-  const boundaryProps = { ctx: { env: {}, wrappingEnv: {}, valKey: "table", ownerKey: "page" }, nodeOrComponent: mkTplTagX("div") } as any;
-  return { view, useObserver, Boundary, boundaryProps };
+  const boundaryProps = { ctx: { viewCtx: view, env: {}, wrappingEnv: {}, valKey: "table", ownerKey: "page" }, nodeOrComponent: mkTplTagX("div") } as any;
+  return { view, useObserver, Boundary, boundaryProps, lifetime };
 }
 
 beforeEach(() => {
@@ -31,6 +35,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  globalHookCtx.frames.get(402)?.dispose();
   vi.clearAllTimers();
   vi.useRealTimers();
   vi.unstubAllGlobals();
@@ -106,4 +111,44 @@ it("can resume a suspended render after its uncommitted reaction was reclaimed",
   expect(result.getByText("查询更新")).toBeTruthy();
   result.unmount();
   expect(view.canvasObservers.size).toBe(0);
+});
+
+
+it("scopes boundary types to the real view, React and DataContext identities", () => {
+  const first = fixture(), second = fixture();
+  expect(mkCanvasErrorBoundary(first.view, React)).toBe(first.Boundary);
+  expect(second.Boundary).not.toBe(first.Boundary);
+  const originalContext = first.view.canvasCtx.Sub.DataContext;
+  first.view.canvasCtx.Sub.DataContext = React.createContext<React.ContextType<typeof originalContext>>(undefined);
+  const otherContext = mkCanvasErrorBoundary(first.view, React);
+  expect(otherContext).not.toBe(first.Boundary);
+  expect(otherContext.contextType).toBe(first.view.canvasCtx.Sub.DataContext);
+  first.view.canvasCtx.Sub.DataContext = originalContext;
+  expect(mkCanvasErrorBoundary(first.view, React)).toBe(first.Boundary);
+  first.lifetime.abort(); second.lifetime.abort();
+  expect(() => mkCanvasErrorBoundary(first.view, React)).toThrow("Cannot create a canvas error boundary for a disposed view");
+});
+
+it("releases a persistent error subscription at view abort before React unmount and ignores a queued retry", () => {
+  const { view, Boundary, boundaryProps, lifetime } = fixture();
+  const register = view.subscribeToCanvasChanges.bind(view), stopped = vi.fn();
+  const subscribed = vi.spyOn(view, "subscribeToCanvasChanges").mockImplementation((listener) => {
+    const off = register(listener);
+    return () => { stopped(); return off(); };
+  });
+  function Broken(): React.ReactNode { throw new Error("Persistent failure"); }
+  const result = render(<React.StrictMode><Boundary {...boundaryProps}><Broken /></Boundary></React.StrictMode>);
+  expect(result.container.textContent).toContain("Persistent failure");
+  expect(subscribed).toHaveBeenCalled();
+  const retry = ensure(subscribed.mock.lastCall?.[0], "Actual retry callback");
+  stopped.mockClear();
+  const stateUpdates = vi.spyOn(Boundary.prototype, "setState");
+  act(() => lifetime.abort());
+  expect(stopped).toHaveBeenCalledOnce();
+  act(() => retry());
+  expect(stateUpdates).not.toHaveBeenCalled();
+  expect(result.container.textContent).toContain("Persistent failure");
+  result.unmount(); lifetime.abort();
+  expect(stopped).toHaveBeenCalledOnce();
+  stateUpdates.mockRestore();
 });

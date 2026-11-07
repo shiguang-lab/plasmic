@@ -1,0 +1,130 @@
+{
+  "status": "cohort-native-accepted",
+  "scope": "J: I plus20 frozen reviewed leaf/command/DataToken source/test files; excludes subsequent renderPolicy/style/Simplified-mode work",
+  "source": {
+    "revision": "32df7af09a1df7d119143b546f14a81b6d876c83",
+    "dirty": true,
+    "sourceHash": "e45a60b2bad77abb5068908e28d9506255ead12ffee3c0cdc2ae017868f1ca78"
+  },
+  "artifact": {
+    "sourceHash": "e45a60b2bad77abb5068908e28d9506255ead12ffee3c0cdc2ae017868f1ca78",
+    "rendererHash": "d0b2a19b8817fe429ed0da8ef4a77ca1f9c24d153ff666f64b14de9deba0b3b2",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 104918982,
+    "studioArtifactHash": "4c17d8b6adefa76a5126063bb61ec24e42673c94915073aba10d14d9216de89c",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "checks": {
+    "typecheck": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u33j-isolated-typecheck-2.log"
+    },
+    "integration": {
+      "filesPassed": 9,
+      "testsPassed": 37,
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u33j-isolated-integration.log",
+      "scopeNote": "Before final inner-local alpha rename id→childId; exact non-behavioral delta recorded in overlay, no redundant test repeat"
+    },
+    "dataTokenTypedLint": {
+      "exitCode": 0,
+      "warnings": 4,
+      "newWarnings": 0,
+      "log": "/tmp/plasmic-react19-20261105/u33j-isolated-data-token-eslint-2.log"
+    },
+    "productionBuild": {
+      "exitCode": 0
+    },
+    "assets": {
+      "exitCode": 0
+    },
+    "archive": {
+      "exitCode": 0
+    }
+  },
+  "nativeGP": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/gp/list-open-u33j-gp-native.json",
+    "reportSha256": "1258d3a0bf8bb841d97d2eb9f5193d982926e1c386a25b5c4dc0145707a9667b",
+    "functionalCases": 5,
+    "functionalPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "error": false,
+    "draftDialog": {
+      "enabled": true,
+      "opened": true,
+      "remoteActionClosed": true
+    },
+    "docs": {
+      "codegen": {
+        "dependencyModelsValidated": 50,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      },
+      "loader": {
+        "dependencyModelsValidated": 50,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      }
+    }
+  },
+  "nativeComplex": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/complex/list-open-u33j-complex.json",
+    "reportSha256": "6834268172eb402431a66624b2f2a5d9171ab8c873894bdc8aef56f6b4f4bff5",
+    "functionalCases": 6,
+    "functionalPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "error": false
+  },
+  "fullStudioSuite": {
+    "rerun": false,
+    "base": "u29f:636passed13failed60testfail9unhandled; not green",
+    "failedSuitesTargeted": {
+      "filesPassed": 13,
+      "testsPassed": 197,
+      "note": "Original failed suites corrected and rechecked in owned groups; union includes4 PlayerPresence native tests. Does not claim one197test command or fullJ suite pass"
+    },
+    "verification": "Targeted owner manifests preserve exact logs/inputs; unchanged passing base reused"
+  },
+  "fullMigration": false
+}

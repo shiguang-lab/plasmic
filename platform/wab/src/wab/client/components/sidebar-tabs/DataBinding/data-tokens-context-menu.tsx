@@ -21,7 +21,7 @@ export function makeDataTokensSubMenu(opts: {
   projectId: ProjectId;
   onSelect: (dataTokenRef: DataTokenRef) => void;
   onCreate?: () => void;
-}): JSX.Element | null {
+}): React.JSX.Element | null {
   const localTokens = naturalSortByName(opts.site.dataTokens);
   const depGroups = walkDependencyTree(opts.site, "direct").filter(
     (d) => d.site.dataTokens.length > 0,

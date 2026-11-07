@@ -1,25 +1,24 @@
-import type {
-  Config,
-  Field,
-  FieldOrGroup,
-} from "@react-awesome-query-builder/core";
+import type { QueryBuilderConfig } from "@plasmicapp/host";
+import type { Field } from "@react-querybuilder/core";
 import type { RulesLogic } from "json-logic-js";
 import { ApiCmsTable, CmsFieldMeta, CmsMetaType } from "./schema";
 
 /**
- * Maps Plasmic CMS table to react-awesome-query-builder config.
+ * Maps Plasmic CMS table to react-querybuilder config.
  *
  * The result will be handled by {@link rulesLogicToCmsWhere}.
  * Make sure it supports all operators defined here.
  */
 export function cmsTableToQueryBuilderConfig(
-  table: ApiCmsTable
-): Pick<Config, "fields"> {
-  const qbFields: { [key: string]: FieldOrGroup } = {
+  table: ApiCmsTable,
+): QueryBuilderConfig {
+  const qbFields: { [key: string]: Omit<Field, "name"> & { label: string } } = {
     _id: {
-      type: "text",
+      datatype: "text",
+      inputType: "text",
+      valueEditorType: "text",
       label: "System ID",
-      operators: ["equal", "not_equal"],
+      operators: ["=", "!="].map((name) => ({ name, label: name })),
     },
   };
   for (const field of table.schema.fields) {
@@ -29,62 +28,70 @@ export function cmsTableToQueryBuilderConfig(
     }
   }
   return {
-    fields: qbFields,
+    fields: Object.entries(qbFields).map(([name, field]) => ({
+      name,
+      ...field,
+    })),
   };
 }
 
-function cmsFieldToQueryBuilderField(field: CmsFieldMeta): Field | undefined {
+function cmsFieldToQueryBuilderField(
+  field: CmsFieldMeta,
+): (Omit<Field, "name"> & { label: string }) | undefined {
   const label = field.label || field.identifier;
   switch (field.type) {
     case CmsMetaType.TEXT:
     case CmsMetaType.LONG_TEXT:
     case CmsMetaType.REF: {
       return {
-        type: "text",
+        datatype: "text",
+        inputType: "text",
+        valueEditorType: "text",
         label,
-        operators: ["equal", "not_equal", "regex"],
+        operators: ["=", "!=", "regex"].map((name) => ({ name, label: name })),
       };
     }
     case CmsMetaType.NUMBER: {
       return {
-        type: "number",
+        datatype: "number",
+        inputType: "number",
+        valueEditorType: "text",
         label,
-        operators: [
-          "equal",
-          "not_equal",
-          "less",
-          "less_or_equal",
-          "greater",
-          "greater_or_equal",
-        ],
+        operators: ["=", "!=", "<", "<=", ">", ">="].map((name) => ({
+          name,
+          label: name,
+        })),
       };
     }
     case CmsMetaType.BOOLEAN: {
       return {
-        type: "boolean",
+        datatype: "boolean",
+        inputType: "text",
+        valueEditorType: "checkbox",
+        operators: ["=", "!="].map((name) => ({ name, label: name })),
         label,
       };
     }
     case CmsMetaType.DATE_TIME: {
       return {
-        type: "datetime",
+        datatype: "datetime",
+        inputType: "datetime-local",
+        valueEditorType: "text",
         label,
-        operators: [
-          "equal",
-          "not_equal",
-          "less",
-          "less_or_equal",
-          "greater",
-          "greater_or_equal",
-        ],
+        operators: ["=", "!=", "<", "<=", ">", ">="].map((name) => ({
+          name,
+          label: name,
+        })),
       };
     }
     case CmsMetaType.ENUM: {
       return {
-        type: "select",
+        datatype: "select",
+        inputType: "text",
+        valueEditorType: "select",
         label,
-        listValues: field.options,
-        operators: ["select_equals", "select_not_equals", "select_any_in"],
+        values: (field.options ?? []).map((name) => ({ name, label: name })),
+        operators: ["=", "!=", "in"].map((name) => ({ name, label: name })),
       };
     }
 

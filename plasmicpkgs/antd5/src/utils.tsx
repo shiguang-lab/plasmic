@@ -17,7 +17,7 @@ export type Registerable = {
 
 export function makeRegisterComponent<T extends React.ComponentType<any>>(
   component: T,
-  meta: CodeComponentMeta<React.ComponentProps<T>>
+  meta: NoInfer<CodeComponentMeta<React.ComponentProps<T>>>
 ) {
   return function (loader?: Registerable) {
     registerComponentHelper(loader, component, meta);
@@ -26,7 +26,7 @@ export function makeRegisterComponent<T extends React.ComponentType<any>>(
 
 export function makeRegisterGlobalContext<T extends React.ComponentType<any>>(
   component: T,
-  meta: GlobalContextMeta<React.ComponentProps<T>>
+  meta: NoInfer<GlobalContextMeta<React.ComponentProps<T>>>
 ) {
   return function (loader?: Registerable) {
     if (loader) {
@@ -40,7 +40,7 @@ export function makeRegisterGlobalContext<T extends React.ComponentType<any>>(
 export function registerComponentHelper<T extends React.ComponentType<any>>(
   loader: Registerable | undefined,
   component: T,
-  meta: CodeComponentMeta<React.ComponentProps<T>>
+  meta: NoInfer<CodeComponentMeta<React.ComponentProps<T>>>
 ) {
   if (loader) {
     loader.registerComponent(component, meta);

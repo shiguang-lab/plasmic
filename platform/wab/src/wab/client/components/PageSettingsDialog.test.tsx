@@ -1,5 +1,9 @@
 import { PageSettingsDialog } from "@/wab/client/components/PageSettingsDialog";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { TplMgr } from "@/wab/shared/TplMgr";
+import { mkArenaFrame } from "@/wab/shared/Arenas";
 import { ComponentType, PageComponent } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
 import {
@@ -10,10 +14,14 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { observable } from "mobx";
 import React from "react";
+import { createStore } from "zustand/vanilla";
 
-const fixture = vi.hoisted(() => ({ viewCtxs: [] as any[] }));
+const fixture = vi.hoisted(() => ({
+  arenaState: undefined as any,
+  modelSnapshots: undefined as any,
+  site: undefined as any,
+}));
 vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => fixture,
 }));
@@ -27,17 +35,54 @@ vi.mock("@/wab/client/components/PageSettings", () => ({
     </div>
   ),
 }));
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  fixture.arenaState?.dispose?.();
+  fixture.modelSnapshots?.dispose?.();
+  fixture.arenaState = undefined;
+  fixture.modelSnapshots = undefined;
+  fixture.site = undefined;
+});
+
+function setup() {
+  const mgr = new TplMgr({ site: createSite() });
+  fixture.modelSnapshots = new ModelSnapshots();
+  fixture.site = mgr.site();
+  fixture.arenaState = new StudioArenaState({
+    site: fixture.site,
+    modelSnapshots: fixture.modelSnapshots,
+  });
+  return mgr;
+}
+
+function registerView(component: PageComponent): ViewCtx {
+  const frame = mkArenaFrame({
+    site: fixture.site,
+    component,
+    name: component.name,
+    width: 100,
+    height: 100,
+  });
+  const view = {
+    studioCtx: fixture,
+    component,
+    modelLifetime: fixture.arenaState.lifetime(),
+    isDisposed: false,
+    arenaFrame: () => frame,
+    initialRenderReadyStore: createStore<boolean>(() => false),
+  } as unknown as ViewCtx;
+  fixture.arenaState.viewRegistry.register(view);
+  return view;
+}
 
 it("identifies the requested page and excludes another page's canvas context", () => {
-  const mgr = new TplMgr({ site: createSite() });
+  const mgr = setup();
   const current = mgr.addComponent({ name: "Page1", type: ComponentType.Page });
   const page = mgr.addComponent({
     name: "Page2",
     type: ComponentType.Page,
   }) as PageComponent;
-  const contexts = observable.array([{ component: current }], { deep: false });
-  fixture.viewCtxs = contexts;
+  registerView(current as PageComponent);
   const onClose = vi.fn();
   render(<PageSettingsDialog open page={page} onClose={onClose} />);
   expect(
@@ -47,21 +92,27 @@ it("identifies the requested page and excludes another page's canvas context", (
   expect(screen.getByTestId("page-context").textContent).toBe(
     "No canvas context",
   );
+  let pageView: ViewCtx | undefined;
   act(() => {
-    contexts.push({ component: page });
+    pageView = registerView(page);
   });
   expect(screen.getByTestId("page-context").textContent).toBe("Page2");
+  act(() => {
+    fixture.arenaState.viewRegistry.remove(pageView!);
+  });
+  expect(screen.getByTestId("page-context").textContent).toBe(
+    "No canvas context",
+  );
 });
 
 it.each(["Done", "Close"])(
   "keeps page settings mounted after closing through %s and reopening",
   async (buttonName) => {
-    const mgr = new TplMgr({ site: createSite() });
+    const mgr = setup();
     const page = mgr.addComponent({
       name: "Page2",
       type: ComponentType.Page,
     }) as PageComponent;
-    fixture.viewCtxs = [];
     const onClose = vi.fn();
     function Dialog() {
       const [open, setOpen] = React.useState(true);

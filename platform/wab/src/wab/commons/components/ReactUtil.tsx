@@ -7,7 +7,10 @@ import {
   withoutNils,
 } from "@/wab/shared/common";
 import { assignIn, groupBy, isFunction, isNil } from "lodash";
+import { mergeRefs } from "@plasmicapp/react-web";
 import React, { SyntheticEvent, useState } from "react";
+
+export { mergeRefs };
 
 export interface KeyModifiers {
   alt?: boolean;
@@ -71,26 +74,6 @@ export function joinReactNodes(
   return <>{res}</>;
 }
 
-function updateRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
-  if (!ref) {
-    return;
-  }
-
-  if (isFunction(ref)) {
-    ref(value);
-  } else {
-    (ref as any).current = value;
-  }
-}
-
-export function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]) {
-  return (value: T) => {
-    for (const ref of refs) {
-      updateRef(ref, value);
-    }
-  };
-}
-
 /**
  * Hook for when you're writing a component that where you want to both
  * forwardRef, _and_ make use of the ref yourself in your component.
@@ -106,15 +89,8 @@ export function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]) {
  * @param ref
  */
 export function useForwardedRef<T>(ref: React.Ref<T>) {
-  const onRef = React.useCallback(
-    (x: T) => {
-      updateRef(ref, x);
-      ensuredRef.current = x;
-    },
-    [ref],
-  );
-
   const ensuredRef = React.useRef<T | null>(null);
+  const onRef = React.useMemo(() => mergeRefs(ref, ensuredRef), [ref]);
   return { ref: ensuredRef, onRef };
 }
 
@@ -146,7 +122,7 @@ export function MaybeWrap(props: {
  * like a ResizeObserver.
  */
 export function useConstant<T>(fn: () => T): T {
-  const ref = React.useRef<{ v: T }>();
+  const ref = React.useRef<{ v: T }>(undefined);
 
   if (!ref.current) {
     ref.current = { v: fn() };
@@ -191,7 +167,7 @@ export function nullIfEmpty(nodes: React.ReactNode): React.ReactNode {
     return filteredNodes.length === 0
       ? null
       : React.createElement(React.Fragment, {}, ...filteredNodes);
-  } else if (React.isValidElement(nodes) && nodes.type === React.Fragment) {
+  } else if (React.isValidElement<{ children?: React.ReactNode }>(nodes) && nodes.type === React.Fragment) {
     return nullIfEmpty(nodes.props.children);
   } else {
     return nodes;

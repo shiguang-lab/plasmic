@@ -1,43 +1,32 @@
+import { useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
 import { DefinedIndicator } from "@/wab/client/components/style-controls/DefinedIndicator";
 import {
   getLabelForStyleName,
-  StyleComponent,
-  useStyleComponent,
-  withStyleComponent,
+  StyleComponentContext,
   WithStyleContextMenu,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { ensure, ensureArray } from "@/wab/shared/common";
 import classNames from "classnames";
-import { observer } from "mobx-react";
 import * as React from "react";
 
-export class StyleWrapper_ extends React.Component<
-  {
-    styleName: string | string[];
-    showDefinedIndicator?: boolean;
-    // Must be provided when showDefinedIndicator is true
-    sc?: StyleComponent;
-    displayStyleName?: string;
-    className?: string;
-    children?: React.ReactNode;
-  },
-  {}
-> {
-  render() {
-    const {
-      showDefinedIndicator = false,
-      sc,
-      styleName,
-      displayStyleName,
-      className,
-    } = this.props;
-    const styleNames = ensureArray(styleName);
+export function StyleWrapper(props: {
+  styleName: string | string[];
+  showDefinedIndicator?: boolean;
+  displayStyleName?: string;
+  className?: string;
+  children?: React.ReactNode;
+}) {
+  const { showDefinedIndicator = false, styleName, displayStyleName, className } = props;
+  const context = React.useContext(StyleComponentContext);
+  const sc = ensure(context, "StyleWrapper requires a StyleComponent");
+  const styleNames = ensureArray(styleName);
+  const indicators = useStyleIndicators(sc.props.expsProvider, showDefinedIndicator ? styleNames : []);
     return (
       <WithStyleContextMenu
         className={`style-wrapper ${className}`}
         styleNames={styleNames}
         displayStyleName={displayStyleName}
-        sc={sc || useStyleComponent()}
+        sc={sc}
       >
         {showDefinedIndicator && (
           <div
@@ -46,10 +35,7 @@ export class StyleWrapper_ extends React.Component<
             })}
           >
             <DefinedIndicator
-              type={ensure(
-                sc,
-                "must have styleComponent if showing defined indicator",
-              ).definedIndicators(...styleNames)}
+              type={indicators.filter((indicator) => indicator.source !== "none")}
               label={
                 displayStyleName
                   ? getLabelForStyleName(displayStyleName)
@@ -60,10 +46,8 @@ export class StyleWrapper_ extends React.Component<
             />
           </div>
         )}
-        {this.props.children}
+        {props.children}
       </WithStyleContextMenu>
     );
-  }
 }
 
-export const StyleWrapper = withStyleComponent(observer(StyleWrapper_));

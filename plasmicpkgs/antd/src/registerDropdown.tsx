@@ -2,28 +2,14 @@ import registerComponent, {
   CodeComponentMeta,
 } from "@plasmicapp/host/registerComponent";
 import { Dropdown as AntdDropdown } from "antd";
-import type { DropdownButtonProps, DropDownProps } from "antd/es/dropdown";
+import type { DropdownButtonProps, DropdownProps } from "antd/es/dropdown";
 
-import React from "react";
 import { Registerable } from "./registerable";
 
 export const DropdownButton: typeof AntdDropdown.Button = AntdDropdown.Button;
+export const Dropdown: typeof AntdDropdown = AntdDropdown;
 
-export class Dropdown extends React.Component<DropDownProps> {
-  render() {
-    const thisProps = this.props as any;
-    const finalProps = { ...thisProps };
-    finalProps.children =
-      typeof thisProps.children === "string" ? (
-        <div>{thisProps.children}</div>
-      ) : (
-        thisProps.children
-      );
-    return <AntdDropdown {...finalProps}>{}</AntdDropdown>;
-  }
-}
-
-export const dropdownMeta: CodeComponentMeta<DropDownProps> = {
+export const dropdownMeta: CodeComponentMeta<DropdownProps> = {
   name: "AntdDropdown",
   displayName: "Antd Dropdown",
   props: {
@@ -37,8 +23,9 @@ export const dropdownMeta: CodeComponentMeta<DropDownProps> = {
       description: "Whether the dropdown menu is disabled",
       defaultValueHint: false,
     },
-    overlay: {
+    popupRender: {
       type: "slot",
+      renderPropParams: ["menus"],
       allowedComponents: ["AntdMenu"],
       defaultValue: [
         {
@@ -51,10 +38,10 @@ export const dropdownMeta: CodeComponentMeta<DropDownProps> = {
       type: "choice",
       options: [
         "bottomLeft",
-        "bottomCenter",
+        "bottom",
         "bottomRight",
         "topLeft",
-        "topCenter",
+        "top",
         "topRight",
       ],
       description: "Placement of popup menu",
@@ -62,15 +49,23 @@ export const dropdownMeta: CodeComponentMeta<DropDownProps> = {
     },
     trigger: {
       type: "choice",
+      multiSelect: true,
       options: ["click", "hover", "contextMenu"],
       description: "The trigger mode which executes the dropdown action",
-      defaultValueHint: "hover",
+      defaultValueHint: ["hover"],
     },
-    visible: {
+    open: {
       type: "boolean",
       description: "Toggle visibility of dropdown menu in Plasmic Editor",
       editOnly: true,
       defaultValueHint: false,
+    },
+    onOpenChange: {
+      type: "eventHandler",
+      argTypes: [
+        { name: "open", type: "boolean" },
+        { name: "info", type: "object" },
+      ],
     },
     children: {
       type: "slot",
@@ -88,7 +83,7 @@ export const dropdownMeta: CodeComponentMeta<DropDownProps> = {
 
 export function registerDropdown(
   loader?: Registerable,
-  customDropdownMeta?: CodeComponentMeta<DropDownProps>
+  customDropdownMeta?: CodeComponentMeta<DropdownProps>
 ) {
   const doRegisterComponent: typeof registerComponent = (...args) =>
     loader ? loader.registerComponent(...args) : registerComponent(...args);
@@ -108,8 +103,9 @@ export const dropdownButtonMeta: CodeComponentMeta<DropdownButtonProps> = {
       type: "slot",
       hidePlaceholder: true,
     },
-    overlay: {
+    popupRender: {
       type: "slot",
+      renderPropParams: ["menus"],
       allowedComponents: ["AntdMenu"],
       defaultValue: [
         {
@@ -122,10 +118,10 @@ export const dropdownButtonMeta: CodeComponentMeta<DropdownButtonProps> = {
       type: "choice",
       options: [
         "bottomLeft",
-        "bottomCenter",
+        "bottom",
         "bottomRight",
         "topLeft",
-        "topCenter",
+        "top",
         "topRight",
       ],
       description: "Placement of popup menu",
@@ -133,27 +129,35 @@ export const dropdownButtonMeta: CodeComponentMeta<DropdownButtonProps> = {
     },
     size: {
       type: "choice",
-      options: ["small", "medium", "large"],
+      options: ["small", "middle", "large"],
       description: "Set the size of button",
-      defaultValueHint: "medium",
+      defaultValueHint: "middle",
     },
     trigger: {
       type: "choice",
+      multiSelect: true,
       options: ["click", "hover", "contextMenu"],
       description: "The trigger mode which executes the dropdown action",
-      defaultValueHint: "hover",
+      defaultValueHint: ["hover"],
     },
     type: {
       type: "choice",
-      options: ["default", "primary", "ghost", "dashed", "link", "text"],
-      description: "Can be set to primary, ghost, dashed, link, text, default",
+      options: ["default", "primary", "dashed", "link", "text"],
+      description: "Can be set to primary, dashed, link, text, default",
       defaultValueHint: "default",
     },
-    visible: {
+    open: {
       type: "boolean",
       description: "Toggle visibility of dropdown menu in Plasmic Editor",
       editOnly: true,
       defaultValueHint: false,
+    },
+    onOpenChange: {
+      type: "eventHandler",
+      argTypes: [
+        { name: "open", type: "boolean" },
+        { name: "info", type: "object" },
+      ],
     },
     children: {
       type: "slot",
@@ -172,7 +176,7 @@ export const dropdownButtonMeta: CodeComponentMeta<DropdownButtonProps> = {
 
 export function registerDropdownButton(
   loader?: Registerable,
-  customDropdownButtonMeta?: CodeComponentMeta<DropDownProps>
+  customDropdownButtonMeta?: CodeComponentMeta<DropdownButtonProps>
 ) {
   const doRegisterComponent: typeof registerComponent = (...args) =>
     loader ? loader.registerComponent(...args) : registerComponent(...args);

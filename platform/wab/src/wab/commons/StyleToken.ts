@@ -194,6 +194,9 @@ export const isTokenRef = (ref: string) => ref.startsWith("var(--token-");
 const RE_TOKENREF = /var\(--token-([^)]+)\)/;
 const RE_TOKENREF_ALL = new RegExp(RE_TOKENREF, "g");
 
+/** Array lookup can match the existing first-array or last-dictionary role. */
+export type TokenLookupOrder = "first" | "last";
+
 /**
  * Returns the referenced token (shallow parse).
  * If no token is referenced, returns undefined.
@@ -207,6 +210,7 @@ export const tryParseTokenRef = (
     | (() => ReadonlyArray<FinalToken<StyleToken>>)
     | Readonly<Record<string, FinalToken<StyleToken>>>
     | ReadonlyMap<string, FinalToken<StyleToken>>,
+  lookupOrder: TokenLookupOrder = "first",
 ): FinalToken<StyleToken> | undefined => {
   const m = ref.match(RE_TOKENREF);
   if (!m) {
@@ -217,7 +221,7 @@ export const tryParseTokenRef = (
     const tokens = L.isArray(tokensProvider)
       ? tokensProvider
       : tokensProvider();
-    return tokens.find((t) => t.uuid === tokenId);
+    return lookupOrder === "last" ? L.findLast(tokens, (t) => t.uuid === tokenId) : tokens.find((t) => t.uuid === tokenId);
   } else if (tokensProvider instanceof Map) {
     return tokensProvider.get(tokenId);
   } else {
@@ -238,9 +242,10 @@ export const parseTokenRef = (
     | (() => ReadonlyArray<FinalToken<StyleToken>>)
     | Readonly<Record<string, FinalToken<StyleToken>>>
     | ReadonlyMap<string, FinalToken<StyleToken>>,
+  lookupOrder: TokenLookupOrder = "first",
 ) => {
   return ensure(
-    tryParseTokenRef(ref, tokensProvider),
+    tryParseTokenRef(ref, tokensProvider, lookupOrder),
     `Expected to be a token ref`,
   );
 };
@@ -334,16 +339,17 @@ export const mkMixinPropRef = (
 
 export const isMixinPropRef = (ref: string) => ref.startsWith("var(--mixin-");
 
-export const tryParseMixinPropRef = (
+export const tryParseMixinPropRef = <T extends Pick<Mixin, "uuid">>(
   ref: string,
-  mixins: Mixin[] | Map<string, Mixin>,
+  mixins: ReadonlyArray<T> | ReadonlyMap<string, T>,
+  lookupOrder: "first" | "last" = "first",
 ) => {
   const m = ref.match(/var\(--mixin-(.+)_(.*)\)$/);
   if (!m) {
     return undefined;
   }
-  const mixin = Array.isArray(mixins)
-    ? mixins.find((t) => t.uuid === m[1])
+  const mixin = isReadonlyArray(mixins)
+    ? lookupOrder === "last" ? L.findLast(mixins, (t) => t.uuid === m[1]) : mixins.find((t) => t.uuid === m[1])
     : mixins.get(m[1]);
   return tuple(mixin, m[2]);
 };
@@ -362,14 +368,18 @@ export function resolveToken(
     | ReadonlyMap<string, FinalToken<StyleToken>>,
   token: FinalToken<StyleToken>,
   vsh?: VariantedStylesHelper,
+  visitToken?: (token: FinalToken<StyleToken>) => void,
+  lookupOrder: TokenLookupOrder = "first",
 ): ResolvedToken {
   const seenTokens = new Set<StyleToken>();
   vsh = vsh ?? new VariantedStylesHelper();
 
   let curToken = token;
+  visitToken?.(curToken);
   let curValue = vsh.getActiveTokenValue(token);
   while (isTokenRef(curValue)) {
-    curToken = parseTokenRef(curValue, tokens);
+    curToken = parseTokenRef(curValue, tokens, lookupOrder);
+    visitToken?.(curToken);
     curValue = vsh.getActiveTokenValue(curToken);
 
     // Return original token if we hit a cycle.

@@ -7,7 +7,8 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { observable } from "mobx";
+import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
+import { createStore } from "zustand/vanilla";
 import React from "react";
 const mocks = vi.hoisted(() => ({ ctx: undefined as any, close: vi.fn() }));
 vi.mock("@/wab/client/contexts/StudioContexts", () => ({
@@ -29,19 +30,18 @@ vi.mock("@/wab/client/i18n", () => ({
 }));
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.ctx = observable({
-    libraryTab: "imports",
-    permission: "writable",
+  const tabs = createStore<"store" | "imports">(() => "imports");
+  mocks.ctx = {
+    ...createStudioUiEnvironmentFixture({ hasUserInfo: true }),
+    libraryTabStore: tabs,
+    get libraryTab() { return tabs.getState(); },
     appCtx: { selfInfo: {} },
-    getLeftTabPermission() {
-      return this.permission;
-    },
-    setLibraryTab(tab: string) {
-      this.libraryTab = tab;
+    setLibraryTab(tab: "store" | "imports") {
+      tabs.setState(tab, true);
     },
     changeUnsafe: async (fn: () => any) => fn(),
     switchLeftTab: mocks.close,
-  });
+  };
 });
 afterEach(cleanup);
 it("shows the selected Library view with a single title and no tabs", async () => {
@@ -72,7 +72,8 @@ it("closes from the shared header and retains the selected library tab on reopen
   expect(mocks.ctx.libraryTab).toBe("store");
 });
 it("uses the store when imported projects are hidden", () => {
-  mocks.ctx.permission = "hidden";
+  const state = mocks.ctx.uiEnvironment.store.getState();
+  mocks.ctx.uiEnvironment.store.setState({ leftTabPermissions: Object.freeze({ ...state.leftTabPermissions, imports: "hidden" }) });
   render(<LibrariesPanel />);
   expect(screen.queryByText("Imported projects")).toBeNull();
   expect(screen.getByText("Component store")).toBeTruthy();
@@ -80,6 +81,7 @@ it("uses the store when imported projects are hidden", () => {
 });
 it("uses the store for anonymous users even if imports was selected", () => {
   mocks.ctx.appCtx.selfInfo = null;
+  mocks.ctx.uiEnvironment.store.setState({ hasUserInfo: false });
   render(<LibrariesPanel />);
   expect(screen.queryByText("Imported dependency list")).toBeNull();
   expect(screen.getByText("Component store")).toBeTruthy();

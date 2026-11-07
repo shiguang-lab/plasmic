@@ -1,9 +1,10 @@
+import { jsx, Fragment } from 'react/jsx-runtime';
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
 import { Tabs } from 'antd';
 import cls from 'classnames';
 import React, { useMemo } from 'react';
-import { a as getSelectedCanvasItemKey } from './canvas-overlay-27tNRB55.esm.js';
-import { r as registerComponentHelper, a as asArray, t as traverseReactEltTree } from './utils-U416WEAa.esm.js';
+import { a as getSelectedCanvasItemKey } from './canvas-overlay-k3p9M5S2.esm.js';
+import { r as registerComponentHelper, a as asArray, t as traverseReactEltTree } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -11,7 +12,7 @@ import '@shiguang-lab/plasmic-antd6/thumbnails';
 const tabsComponentName = "plasmic-antd6-tabs";
 const tabItemComponentName = "plasmic-antd6-tab-item";
 const AntdTabItem = ({ children }) => {
-  return /* @__PURE__ */ React.createElement("div", null, children);
+  return /* @__PURE__ */ jsx("div", { children });
 };
 function getTabItems(items) {
   return asArray(items).flatMap((item) => {
@@ -37,7 +38,7 @@ function AntdTabs(props) {
     const observer = props.items;
     const renderItems = observer.props.children;
     return React.cloneElement(observer, {
-      children: (...args) => /* @__PURE__ */ React.createElement(
+      children: (...args) => /* @__PURE__ */ jsx(
         TabsWithItems,
         {
           ...props,
@@ -46,7 +47,7 @@ function AntdTabs(props) {
       )
     });
   }
-  return /* @__PURE__ */ React.createElement(TabsWithItems, { ...props });
+  return /* @__PURE__ */ jsx(TabsWithItems, { ...props });
 }
 function TabsWithItems(props) {
   const canvas = usePlasmicCanvasContext();
@@ -79,12 +80,12 @@ function TabsWithItems(props) {
     return {
       ...currentItem.props,
       key: currentItem.key,
-      children: /* @__PURE__ */ React.createElement(React.Fragment, null, currentItem.props?.children)
+      children: /* @__PURE__ */ jsx(Fragment, { children: currentItem.props?.children })
     };
   }).filter((i) => i != null);
   const initialActiveKey = rest.activeKey ?? rest.defaultActiveKey;
   const activeKey = selectedKey !== void 0 && state ? state.reveal(String(selectedKey)) : rest.activeKey;
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Tabs,
     {
       className: cls(className, tabsScopeClassName),
@@ -114,7 +115,7 @@ function TabsWithItems(props) {
   );
 }
 function OutlineMessage() {
-  return /* @__PURE__ */ React.createElement("div", null, "Drag tabs in the outline to reorder them");
+  return /* @__PURE__ */ jsx("div", { children: "Drag tabs in the outline to reorder them" });
 }
 function registerTabs(loader) {
   registerComponentHelper(loader, AntdTabs, {

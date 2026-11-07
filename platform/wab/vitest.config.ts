@@ -1,12 +1,19 @@
+import { transformAsync } from "@babel/core";
 import fs from "fs";
 import { createRequire, isBuiltin } from "module";
 import os from "os";
 import path from "path";
 import { defineConfig, Plugin } from "vitest/config";
+import {
+  reactCompilerInclude,
+  reactCompilerOptions,
+} from "./tools/react-compiler.mjs";
 
 const srcDir = path.join(__dirname, "src");
 const mobxReactRequire = createRequire(require.resolve("mobx-react"));
-const mobxReactLiteRequire = createRequire(mobxReactRequire.resolve("mobx-react-lite"));
+const mobxReactLiteRequire = createRequire(
+  mobxReactRequire.resolve("mobx-react-lite"),
+);
 
 // jsdom makes vite resolve for the browser, which picks npm shims such as
 // path@0.12.7 over the real builtins. Tests run in node, so use the builtins.
@@ -60,8 +67,35 @@ function stubStylesheets(): Plugin {
   };
 }
 
+function reactCompilerForTests(): Plugin {
+  return {
+    name: "studio-react-compiler",
+    enforce: "pre",
+    async transform(code, id) {
+      const filename = id.split("?")[0];
+      if (!reactCompilerInclude.test(filename)) return null;
+      const result = await transformAsync(code, {
+        filename,
+        babelrc: false,
+        configFile: false,
+        sourceMaps: true,
+        parserOpts: { plugins: ["typescript", "jsx"] },
+        plugins: [["babel-plugin-react-compiler", reactCompilerOptions()]],
+      });
+      if (!result?.code)
+        throw new Error(`React Compiler returned no code for ${filename}`);
+      return { code: result.code, map: result.map };
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [nodeBuiltins(), webpackLoaderPrefixes(), stubStylesheets()],
+  plugins: [
+    nodeBuiltins(),
+    webpackLoaderPrefixes(),
+    stubStylesheets(),
+    reactCompilerForTests(),
+  ],
   server: {
     // The codegen tests compile into a temp dir and import the result.
     fs: {
@@ -75,16 +109,58 @@ export default defineConfig({
   resolve: {
     // Workspace SDK sources and their external-store hook must share Studio's React.
     dedupe: ["react", "react-dom"],
-    alias: {
-      "use-sync-external-store/shim/index.js": mobxReactLiteRequire.resolve("use-sync-external-store/shim/index.js"),
-      "monaco-editor": require.resolve("monaco-editor/esm/vs/editor/editor.api.js"),
-      "@plasmicpkgs/antd5/form-meta": path.resolve(__dirname, "../../plasmicpkgs/antd5/src/form-meta.ts"),
-      "@/": `${srcDir}/`,
-      "src/": `${srcDir}/`,
-    },
+    alias: [
+      {
+        find: /^monaco-editor$/,
+        replacement: require.resolve("monaco-editor/editor/editor.main.js"),
+      },
+      // The legacy lib/host entry re-exports Host through native require(),
+      // which bypasses Vite's React dedupe when the SDK is workspace-linked.
+      {
+        find: /^@plasmicapp\/(?:host|react-web\/lib\/host)$/,
+        replacement: path.resolve(
+          __dirname,
+          "../../packages/host/dist/host.esm.js",
+        ),
+      },
+      // Consume the published ESM entry so Vite can dedupe its Host/React imports.
+      {
+        find: /^@plasmicpkgs\/plasmic-basic-components$/,
+        replacement: path.resolve(
+          __dirname,
+          "../../plasmicpkgs/plasmic-basic-components/dist/plasmic-basic-components.esm.js",
+        ),
+      },
+      {
+        find: /^use-sync-external-store\/shim(?:\/index\.js)?$/,
+        replacement: mobxReactLiteRequire.resolve(
+          "use-sync-external-store/shim",
+        ),
+      },
+      ...Object.entries({
+        "@plasmicpkgs/antd5/form-meta": path.resolve(
+          __dirname,
+          "../../plasmicpkgs/antd5/src/form-meta.ts",
+        ),
+        "@/": `${srcDir}/`,
+        "src/": `${srcDir}/`,
+      }).map(([find, replacement]) => ({ find, replacement })),
+    ],
   },
   test: {
-    server: { deps: { inline: [/valtio/] } },
+    server: {
+      deps: {
+        inline: [
+          /valtio/,
+          /swr\//,
+          /@plasmicpkgs\/react-aria/,
+          /react-aria-components/,
+          /@react-querybuilder\/antd/,
+          /antd\/es\//,
+          /(?:@react-aria|@react-stately|@internationalized|react-aria|react-stately)\//,
+        ],
+      },
+    },
     projects: [
       {
         extends: true,
@@ -104,7 +180,11 @@ export default defineConfig({
         test: {
           name: "studio",
           // Server and webpack utility tests use the node project above.
-          include: ["src/**/*.{spec,test}.{js,jsx,ts,tsx}", "tools/dashboard-preview-probe/engine.test.ts", "tools/dashboard-preview-probe/entry.test.ts"],
+          include: [
+            "src/**/*.{spec,test}.{js,jsx,ts,tsx}",
+            "tools/dashboard-preview-probe/engine.test.ts",
+            "tools/dashboard-preview-probe/entry.test.ts",
+          ],
           exclude: ["src/wab/server/**"],
           environment: "jsdom",
           // DEVFLAGS.hostUrl is http://localhost in tests; keep the document on

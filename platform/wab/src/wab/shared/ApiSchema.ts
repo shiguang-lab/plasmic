@@ -878,7 +878,7 @@ export type UpdateProjectMetaRequest = Partial<
 
 export type GitSyncAction = "commit" | "pr" | "build";
 export type GitSyncScheme = "codegen" | "loader";
-export type GitSyncPlatform = "react" | "nextjs" | "gatsby";
+export type GitSyncPlatform = "react" | "nextjs";
 export type GitSyncLanguage = "js" | "ts";
 
 export interface GitSyncOptions {

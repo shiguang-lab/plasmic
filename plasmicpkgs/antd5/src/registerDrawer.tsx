@@ -13,7 +13,7 @@ export function AntdDrawer(
     props;
   const memoOnClose = React.useMemo(() => {
     if (onOpenChange || onClose) {
-      return (e: React.MouseEvent | React.KeyboardEvent) => {
+      return (e: Parameters<NonNullable<React.ComponentProps<typeof Drawer>["onClose"]>>[0]) => {
         onOpenChange?.(false);
         onClose?.(e);
       };

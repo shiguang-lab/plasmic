@@ -2,7 +2,7 @@ import * as React from "react";
 import { createElementWithChildren } from "../react-utils";
 import { wrapFlexContainerChildren } from "./elements";
 
-function renderStack<T extends keyof JSX.IntrinsicElements>(
+function renderStack<T extends keyof React.JSX.IntrinsicElements>(
   as: T,
   props: React.ComponentProps<T>,
   hasGap: boolean | undefined,
@@ -13,7 +13,7 @@ function renderStack<T extends keyof JSX.IntrinsicElements>(
   return createElementWithChildren(as, { ref, ...rest }, wrappedChildren);
 }
 
-function FlexStack_<T extends keyof JSX.IntrinsicElements = "div">(
+function FlexStack_<T extends keyof React.JSX.IntrinsicElements = "div">(
   props: { as?: T; hasGap?: boolean } & React.ComponentProps<T>,
   outerRef: React.Ref<any>
 ) {
@@ -27,15 +27,15 @@ function FlexStack_<T extends keyof JSX.IntrinsicElements = "div">(
 }
 
 const FlexStack = React.forwardRef(FlexStack_) as <
-  T extends keyof JSX.IntrinsicElements = "div"
+  T extends keyof React.JSX.IntrinsicElements = "div"
 >(
   props: { as?: T; hasGap?: boolean } & React.ComponentProps<T>
 ) => React.ReactElement;
 
-const makeStackImpl = <T extends keyof JSX.IntrinsicElements>(as: T) => {
+const makeStackImpl = <T extends keyof React.JSX.IntrinsicElements>(as: T) => {
   return React.forwardRef(
     (
-      props: React.ComponentProps<T> & { hasGap?: boolean },
+      props: React.PropsWithoutRef<React.ComponentProps<T> & { hasGap?: boolean }>,
       ref: React.Ref<any>
     ) => {
       const { hasGap, ...rest } = props;

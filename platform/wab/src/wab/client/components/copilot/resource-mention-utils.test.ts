@@ -548,7 +548,7 @@ describe("mkMentionableResources", () => {
     runInAction(() => {
       writeable(own.imported.site).hostLessPackageInfo =
         new HostLessPackageInfo({
-          name: "plasmic-rich-components",
+          name: "antd6",
           npmPkg: [],
           cssImport: [],
           deps: [],

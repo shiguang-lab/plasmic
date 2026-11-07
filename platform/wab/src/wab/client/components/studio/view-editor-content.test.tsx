@@ -2,7 +2,7 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { ViewOps } from "@/wab/client/components/canvas/view-ops";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
-import { ViewEditor } from "@/wab/client/components/studio/view-editor";
+import { ViewEditor_ } from "@/wab/client/components/studio/view-editor";
 import { CanvasContentEditor } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
@@ -33,7 +33,12 @@ function fixture() {
   const target = vi.spyOn(source.contentEditor, "target", "get").mockReturnValue({
     tpl: mkTplTagX("div"), fullKey: "target", element: root,
   });
-  const editor = new ViewEditor({ studioCtx, viewCtx: source,
+  const editor = new ViewEditor_({
+    renderInteractive: studioCtx.renderPolicy.store.getState().interactive,
+    renderDocs: studioCtx.renderPolicy.store.getState().docs,
+    renderDevMode: studioCtx.renderPolicy.store.getState().devMode,
+    panelsHidden: studioCtx.leftPanelState.panelsHidden,
+    studioCtx, viewCtx: source,
     previewCtx: mock<PreviewCtx>(), canvasLoading: false });
   const eventFor = (element: HTMLElement) => {
     const event = new MouseEvent("pointerdown", { bubbles: true, cancelable: true });

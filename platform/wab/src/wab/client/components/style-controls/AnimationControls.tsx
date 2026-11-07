@@ -12,7 +12,6 @@ import { useUndo } from "@/wab/client/shortcuts/studio/useUndo";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { cx, ensure, spawn } from "@/wab/shared/common";
-import { walkDependencyTree } from "@/wab/shared/core/project-deps";
 import {
   AnimationDirectionKeyword,
   FillModeKeyword,
@@ -22,11 +21,10 @@ import {
 } from "@/wab/shared/css/animations";
 import { NUMBER_UNITS } from "@/wab/shared/css/types";
 import { Animation } from "@/wab/shared/model/classes";
-import { naturalSortByName } from "@/wab/shared/sort";
 import { Select } from "antd";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
-import React, { useMemo } from "react";
+import React from "react";
+import { useAnimationControlInputs } from "@/wab/client/studio-ctx/animation-control-inputs";
 
 interface AnimationControlsProps {
   studioCtx: StudioCtx;
@@ -35,12 +33,13 @@ interface AnimationControlsProps {
   onUpdated: () => void;
 }
 
-export const AnimationControls = observer(function AnimationControls(
+export function AnimationControls(
   props: AnimationControlsProps,
 ) {
   const { t: uiT } = useI18n();
   const { animation, studioCtx, onUpdated } = props;
-  const site = studioCtx.site;
+  const inputs = useAnimationControlInputs(studioCtx, animation);
+  const state = inputs.snapshot;
 
   const handleChange = (f: () => void) => {
     spawn(
@@ -53,22 +52,9 @@ export const AnimationControls = observer(function AnimationControls(
     onUpdated?.();
   };
 
-  const allAnimationSequencesGroups = useMemo(() => {
-    return [
-      {
-        name: "This project",
-        animationSequences: naturalSortByName(site.animationSequences),
-      },
-      ...naturalSortByName(
-        walkDependencyTree(site, "direct").map((dep) => ({
-          name: studioCtx.projectDependencyManager.getNiceDepName(dep),
-          animationSequences: naturalSortByName(dep.site.animationSequences),
-        })),
-      ),
-    ].filter((g) => g.animationSequences.length > 0);
-  }, [site, studioCtx]);
-
   const searchUndo = useUndo("");
+
+  if (!state?.active) { return null; }
 
   return (
     <>
@@ -82,11 +68,9 @@ export const AnimationControls = observer(function AnimationControls(
             className={cx({
               "flex-fill textboxlike": true,
             })}
-            value={animation.sequence.uuid}
+            value={state.sequenceId}
             onChange={(val) => {
-              const sequence = allAnimationSequencesGroups
-                .flatMap((g) => g.animationSequences)
-                .find((seq) => seq.uuid === val);
+              const sequence = inputs.sequence(val);
               if (sequence) {
                 handleChange(() => {
                   animation.sequence = sequence;
@@ -112,10 +96,10 @@ export const AnimationControls = observer(function AnimationControls(
             }}
             suffixIcon={<Icon icon={TriangleBottomIcon} />}
             optionLabelProp="label"
-            options={allAnimationSequencesGroups.map(
-              ({ name, animationSequences }) => ({
+            options={state.groups.map(
+              ({ name, sequences }) => ({
                 label: name,
-                options: animationSequences.map((seq) => ({
+                options: sequences.map((seq) => ({
                   label: seq.name,
                   value: seq.uuid,
                   searchText: seq.name,
@@ -130,7 +114,7 @@ export const AnimationControls = observer(function AnimationControls(
         <FullRow>
           <LabeledItem label={uiT("Duration")}>
             <DimTokenSpinner
-              value={animation.duration}
+              value={state.duration}
               onChange={(val) =>
                 handleChange(() => (animation.duration = val || "1s"))
               }
@@ -145,7 +129,7 @@ export const AnimationControls = observer(function AnimationControls(
         <FullRow>
           <LabeledItem label={uiT("Delay")}>
             <DimTokenSpinner
-              value={animation.delay || "0s"}
+              value={state.delay || "0s"}
               onChange={(val) =>
                 handleChange(() => (animation.delay = val || "0s"))
               }
@@ -166,11 +150,11 @@ export const AnimationControls = observer(function AnimationControls(
         <FullRow>
           <LabeledItem label={uiT("Easing")}>
             <StyleSelect
-              value={animation.timingFunction || "ease"}
+              value={state.timingFunction || "ease"}
               onChange={(val) =>
                 handleChange(() => (animation.timingFunction = val || "ease"))
               }
-              valueSetState={animation.timingFunction ? "isSet" : "isUnset"}
+              valueSetState={state.timingFunction ? "isSet" : "isUnset"}
             >
               {timingFunctionKeywords.map((timingFunction) => (
                 <StyleSelect.Option value={timingFunction}>
@@ -185,7 +169,7 @@ export const AnimationControls = observer(function AnimationControls(
           <LabeledItem label={uiT("Iteration Count")}>
             <DimTokenSpinner
               min={0}
-              value={animation.iterationCount || "1"}
+              value={state.iterationCount || "1"}
               onChange={(val) =>
                 handleChange(() => (animation.iterationCount = val || "1"))
               }
@@ -200,7 +184,7 @@ export const AnimationControls = observer(function AnimationControls(
         <FullRow>
           <LabeledItem label={uiT("Direction")}>
             <StyleSelect
-              value={animation.direction}
+              value={state.direction}
               onChange={(val) =>
                 handleChange(
                   () =>
@@ -229,7 +213,7 @@ export const AnimationControls = observer(function AnimationControls(
       >
         <FullRow>
           <StyleSelect
-            value={animation.fillMode || "none"}
+            value={state.fillMode || "none"}
             onChange={(val) =>
               handleChange(
                 () =>
@@ -239,7 +223,7 @@ export const AnimationControls = observer(function AnimationControls(
                   )),
               )
             }
-            valueSetState={animation.fillMode ? "isSet" : "isUnset"}
+            valueSetState={state.fillMode ? "isSet" : "isUnset"}
           >
             {fillModeKeywords.map((fillMode) => (
               <StyleSelect.Option value={fillMode}>
@@ -251,4 +235,4 @@ export const AnimationControls = observer(function AnimationControls(
       </SidebarSection>
     </>
   );
-});
+}

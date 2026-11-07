@@ -1,3 +1,4 @@
+import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 
 import {
@@ -77,7 +78,9 @@ const VariantLabel_: ForwardRefRenderFunction<
   const { t: studioUiT } = useI18n();
 
   const studioCtx = useStudioCtx();
+  useStudioSelection(studioCtx, (state) => state.view);
   const viewCtx = studioCtx.focusedViewCtx()!;
+  useViewSelection(viewCtx, (state) => state.tpls);
   const focusedTpl = viewCtx?.focusedTpl();
 
   const variantName = (() => {

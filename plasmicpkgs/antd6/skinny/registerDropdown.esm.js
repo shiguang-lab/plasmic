@@ -1,9 +1,10 @@
+import { jsx } from 'react/jsx-runtime';
 import { Dropdown } from 'antd';
-import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
+import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-k3p9M5S2.esm.js';
 import { AntdMenu, MENU_ITEM_TYPE } from './registerMenu.esm.js';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
+import 'react';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -48,7 +49,7 @@ function AntdDropdown(props) {
     ...rest
   } = canvasProps;
   const keyedMenuItems = addKeysToUnkeyedMenuItems(unkeyedMenuItems);
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Dropdown,
     {
       ...rest,
@@ -59,18 +60,18 @@ function AntdDropdown(props) {
       popupRender: () => {
         const itemsChildren = useMenuItemsSlot ? menuItems?.() ?? [] : void 0;
         const items = useMenuItemsSlot ? void 0 : keyedMenuItems;
-        return /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ jsx(
           AntdMenu,
           {
             className: `${dropdownMenuScopeClassName}`,
             onClick: isEditing ? void 0 : (event) => onAction?.(event.key),
-            items
-          },
-          itemsChildren
+            items,
+            children: itemsChildren
+          }
         );
-      }
-    },
-    typeof children === "string" ? /* @__PURE__ */ React.createElement("div", null, children) : children
+      },
+      children: typeof children === "string" ? /* @__PURE__ */ jsx("div", { children }) : children
+    }
   );
 }
 function registerDropdown(loader) {

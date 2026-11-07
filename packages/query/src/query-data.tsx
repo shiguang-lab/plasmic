@@ -1,14 +1,13 @@
 import React, { PropsWithChildren } from "react";
 import useSWR, {
   Cache,
-  Fetcher,
   Key,
   SWRConfig,
   SWRConfiguration,
   SWRResponse,
+  unstable_serialize,
   useSWRConfig,
 } from "swr";
-import { reactCurrentDispatcher } from "./react-utils";
 
 export type { SWRResponse } from "swr";
 
@@ -49,15 +48,14 @@ function getPlasmicDefaultSWROptions(opts?: {
  */
 export function usePlasmicQueryData<T>(
   key: Key,
-  fetcher: Fetcher<T>
+  fetcher: (...args: any[]) => T | Promise<T>,
 ): { data?: T; error?: Error; isLoading?: boolean } {
   const prepassCtx = React.useContext(PrepassContext);
 
   const opts = getPlasmicDefaultSWROptions();
+  const prepassResult = usePrepassQuery<T, Error>(prepassCtx, key, fetcher);
   if (prepassCtx) {
-    // If we're doing prepass, then we are always in suspense mode, because
-    // react-ssr-prepass only works with suspense-throwing data fetching.
-    opts.suspense = true;
+    opts.fallbackData = prepassResult?.data;
   }
 
   const config = useSWRConfig();
@@ -65,12 +63,15 @@ export function usePlasmicQueryData<T>(
     __SWRConfig = config;
   }, [config]);
 
-  const wrappedFetcher = React.useMemo(
-    () => wrapLoadingFetcher(fetcher),
-    [fetcher]
-  );
+  const wrappedFetcher = React.useMemo(() => {
+    const fetch = wrapLoadingFetcher(fetcher);
+    return (fetchKey: unknown) => fetch(...(Array.isArray(fetchKey) ? fetchKey : [fetchKey]));
+  }, [fetcher]);
 
   const resp = useSWR(key, wrappedFetcher, opts);
+  if (prepassResult) {
+    return prepassResult;
+  }
   if (resp.data !== undefined) {
     return { data: resp.data };
   } else if (resp.error) {
@@ -92,17 +93,23 @@ export function usePlasmicQueryData<T>(
  */
 export function useMutablePlasmicQueryData<T, E>(
   key: Key,
-  fetcher: Fetcher<T>,
-  options?: SWRConfiguration<T, E>
-): SWRResponse<T, E> & { isLoading?: boolean; isLagging?: boolean } {
+  fetcher: (...args: any[]) => T | Promise<T>,
+  options?: SWRConfiguration<T, E>,
+): Omit<SWRResponse<T, E>, "data" | "error"> & {
+  data?: T;
+  error?: E;
+  isLagging?: boolean;
+} {
   const prepassCtx = React.useContext(PrepassContext);
 
   const opts = {
     ...getPlasmicDefaultSWROptions({ isMutable: true }),
     ...options,
   };
+  const prepassResult = usePrepassQuery<T, E>(prepassCtx, key, fetcher);
   if (prepassCtx) {
-    opts.suspense = true;
+    opts.suspense = false;
+    opts.fallbackData = prepassResult?.data;
   }
 
   const config = useSWRConfig();
@@ -112,25 +119,25 @@ export function useMutablePlasmicQueryData<T, E>(
 
   const [isLoading, setIsLoading] = React.useState(false);
   const fetcherWrapper = React.useCallback(
-    async (...args: any[]) => {
+    async (fetchKey: unknown) => {
       setIsLoading(true);
       try {
-        return await wrapLoadingFetcher(fetcher)(...args);
+        return await wrapLoadingFetcher(fetcher)(
+          ...(Array.isArray(fetchKey) ? fetchKey : [fetchKey]),
+        );
       } finally {
         setIsLoading(false);
       }
     },
-    [fetcher]
+    [fetcher],
   );
 
   // Based on https://swr.vercel.app/docs/middleware#keep-previous-result
-  const laggyDataRef = React.useRef<any>();
+  const laggyDataRef = React.useRef<any>(undefined);
 
-  const { isValidating, mutate, data, error } = useSWR(
-    key,
-    fetcherWrapper,
-    opts
-  );
+  const response = useSWR(key, fetcherWrapper, opts);
+  const { isValidating, mutate } = response;
+  const { data, error } = prepassResult ?? response;
 
   React.useEffect(() => {
     if (data !== undefined) {
@@ -146,12 +153,12 @@ export function useMutablePlasmicQueryData<T, E>(
       ...(data !== undefined
         ? { data }
         : error === undefined && laggyDataRef.current
-        ? // Show previous data if available
-          { data: laggyDataRef.current, isLagging: true }
-        : {}),
+          ? // Show previous data if available
+            { data: laggyDataRef.current, isLagging: true }
+          : {}),
       ...(error !== undefined ? { error } : {}),
     }),
-    [isValidating, mutate, data, error, isLoading]
+    [isValidating, mutate, data, error, isLoading],
   );
 }
 
@@ -182,25 +189,60 @@ export function PlasmicQueryDataProvider(props: {
   }
 }
 
-const PrepassContext = React.createContext<boolean>(false);
+type PrepassResult = { data?: any; error?: any };
+interface PrepassContextValue {
+  cache: Map<string, any>;
+  pending: Map<string, Promise<PrepassResult>>;
+}
+const PrepassContext = React.createContext<PrepassContextValue | null>(null);
+
+function usePrepassQuery<T, E>(
+  context: PrepassContextValue | null,
+  key: Key,
+  fetcher: (...args: any[]) => T | Promise<T>,
+): { data?: T; error?: E } | undefined {
+  if (!context) {return undefined;}
+  let args;
+  try {
+    args = typeof key === "function" ? key() : key;
+  } catch {
+    return {};
+  }
+  const serialized = unstable_serialize(args);
+  if (!serialized) {return {};}
+  if (context.cache.has(serialized))
+    {return { data: context.cache.get(serialized) };}
+  let pending = context.pending.get(serialized);
+  if (!pending) {
+    pending = Promise.resolve()
+      .then(() =>
+        wrapLoadingFetcher(fetcher)(...(Array.isArray(args) ? args : [args])),
+      )
+      .then(
+        (data) => {
+          context.cache.set(serialized, data);
+          return { data };
+        },
+        (error) => ({ error }),
+      );
+    context.pending.set(serialized, pending);
+  }
+  return React.use(pending);
+}
 
 export function PlasmicPrepassContext(
-  props: PropsWithChildren<{
-    cache: Map<string, any>;
-  }>
+  props: PropsWithChildren<{ cache: Map<string, any> }>,
 ) {
   const { cache, children } = props;
+  const context = React.useMemo(
+    () => ({ cache, pending: new Map<string, Promise<PrepassResult>>() }),
+    [cache],
+  );
+  // SWR 2 stores state envelopes; extracted query data contains raw values.
+  const swrCache = React.useMemo(() => new Map(), [cache]);
   return (
-    <PrepassContext.Provider value={true}>
-      <SWRConfig
-        value={{
-          provider: () => cache,
-          suspense: true,
-          fallback: {},
-        }}
-      >
-        {children}
-      </SWRConfig>
+    <PrepassContext.Provider value={context}>
+      <SWRConfig value={{ provider: () => swrCache }}>{children}</SWRConfig>
     </PrepassContext.Provider>
   );
 }
@@ -217,7 +259,7 @@ const listeners: LoadingStateListener[] = [];
  */
 export function addLoadingStateListener(
   listener: LoadingStateListener,
-  opts?: { immediate?: boolean }
+  opts?: { immediate?: boolean },
 ) {
   listeners.push(listener);
   if (opts?.immediate) {
@@ -234,7 +276,7 @@ export function addLoadingStateListener(
  * are any loads happening via addLoadingStateListener().
  */
 export function wrapLoadingFetcher<
-  T extends (...args: any[]) => Promise<any> | any
+  T extends (...args: any[]) => Promise<any> | any,
 >(fetcher: T): T {
   return (async (...args: any) => {
     if (loadingCount === 0) {
@@ -259,8 +301,9 @@ function isPromiseLike(x: any) {
   );
 }
 
-export function isPlasmicPrepass() {
-  return reactCurrentDispatcher()?.isPlasmicPrepass ?? false;
+/** Whether this component is rendering inside the current request's prepass. */
+export function usePlasmicPrepass(): boolean {
+  return React.useContext(PrepassContext) !== null;
 }
 
 export type HeadMetadata = {

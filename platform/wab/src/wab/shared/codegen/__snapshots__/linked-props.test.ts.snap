@@ -279,7 +279,6 @@ const $$ = {};
 
 
 
-
     function PlasmicInner__RenderFunc(
       props: {
         variants: PlasmicInner__VariantsArgs,
@@ -742,7 +741,6 @@ const $$ = {};
 
 
 
-
     function PlasmicOuter__RenderFunc(
       props: {
         variants: PlasmicOuter__VariantsArgs,
@@ -1116,7 +1114,6 @@ const $$ = {};
 
 
 
-
     function PlasmicPropLinkingTest__RenderFunc(
       props: {
         variants: PlasmicPropLinkingTest__VariantsArgs,
@@ -1448,7 +1445,8 @@ declare module '*.module.css' {
       
       
       :where(.root_reset_1234567890) {
-      font-family: var(--mixin-6eGe0rgLeaVr_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-6eGe0rgLeaVr_font-family);
 font-size: var(--mixin-6eGe0rgLeaVr_font-size);
 font-weight: var(--mixin-6eGe0rgLeaVr_font-weight);
 font-style: var(--mixin-6eGe0rgLeaVr_font-style);
@@ -1595,6 +1593,7 @@ column-gap: var(--mixin-EIkPCv9qHHvg_column-gap);
   
 --- plasmic__default_style.css ---
 
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.plasmic_default__all) {   display: block;
   white-space: inherit;
   grid-row: auto;

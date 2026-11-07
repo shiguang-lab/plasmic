@@ -7,7 +7,7 @@ import {
   isPrivateStyleVariant,
 } from "@/wab/shared/Variants";
 import { ComponentType } from "@/wab/shared/core/components";
-import { mkTplTagX } from "@/wab/shared/core/tpls";
+import { mkTplTagX, tryGetTplOwnerComponent } from "@/wab/shared/core/tpls";
 import { ScreenSizeSpec } from "@/wab/shared/css-size";
 import { ok } from "neverthrow";
 
@@ -49,6 +49,7 @@ describe("Fixes post change", () => {
     );
 
     expect(component.updatedAt).toBeGreaterThan(componentUpdatedAt);
+    expect(tryGetTplOwnerComponent(tpls[0])).toBe(component);
 
     componentUpdatedAt = component.updatedAt!;
 
@@ -100,7 +101,7 @@ describe("Fixes post change", () => {
     );
 
     // Add a variant setting for hover on the parent
-    ensureVariantSetting(gridTpl, [baseVariant, parentHoverVariant]);
+    ensureVariantSetting(gridTpl, [parentHoverVariant]);
 
     // Verify initial state - child should have only 1 vsetting (base)
     expect(child.vsettings.length).toBe(1);
@@ -162,7 +163,7 @@ describe("Fixes post change", () => {
     childBaseRsh.set("right", "auto");
     childBaseRsh.set("bottom", "auto");
     const childMobileRsh = RSH(
-      ensureVariantSetting(child, [baseVariant, mobileVariant]).rs,
+      ensureVariantSetting(child, [mobileVariant]).rs,
       child,
     );
     childMobileRsh.set("left", "8px");
@@ -189,10 +190,10 @@ describe("Fixes post change", () => {
     await studioCtx.changeObserved(
       () => [component],
       () => {
-        RSH(
-          ensureVariantSetting(gridTpl, [baseVariant, mobileVariant]).rs,
-          gridTpl,
-        ).set("grid-template-columns", "repeat(1, minmax(0, 1fr))");
+        RSH(ensureVariantSetting(gridTpl, [mobileVariant]).rs, gridTpl).set(
+          "grid-template-columns",
+          "repeat(1, minmax(0, 1fr))",
+        );
         return ok();
       },
     );

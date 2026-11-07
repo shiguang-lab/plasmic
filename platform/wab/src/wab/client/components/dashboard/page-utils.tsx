@@ -1,9 +1,8 @@
 import * as React from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 
 export function documentTitle(title: string) {
   return (
-    // @ts-ignore
     <Helmet>
       <title>{title ? `${title} - Plasmic` : `Plasmic`}</title>
     </Helmet>

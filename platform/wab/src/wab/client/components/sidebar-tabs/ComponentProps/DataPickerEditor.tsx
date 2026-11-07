@@ -1,3 +1,4 @@
+import { useInspectorSelection } from "@/wab/client/studio-ctx/inspector-state";
 import { isContextMenuOpen } from "@/wab/client/components/ContextMenu";
 import DataPicker, {
   DataPickerTypesSchema,
@@ -74,6 +75,7 @@ export const InternalDataPickerEditor = observer(
       isRunCodeInteraction,
       onRunClick,
     } = props;
+    const selection = useInspectorSelection(viewCtx?.studioCtx);
     const firstRenderRef = React.useRef(true);
     React.useLayoutEffect(() => {
       if (!firstRenderRef.current) {
@@ -81,7 +83,7 @@ export const InternalDataPickerEditor = observer(
         return;
       }
       firstRenderRef.current = false;
-    }, [viewCtx?.inspectorTpl(), viewCtx?.inspectorCloneKey()]);
+    }, [selection?.tpl, selection?.cloneKey]);
     const autoFocusCallback = React.useCallback(
       (divElement: HTMLDivElement) => {
         if (divElement) {
@@ -234,7 +236,7 @@ export const InternalDataPickerEditor = observer(
   },
 );
 
-export const DataPickerEditor = observer(function DataPickerEditor_(
+export const DataPickerEditor = function DataPickerEditor_(
   props: DataPickerEditorProps & {
     visible?: boolean;
     setVisible?: (value: boolean) => void;
@@ -263,4 +265,4 @@ export const DataPickerEditor = observer(function DataPickerEditor_(
       {...rest}
     />
   );
-});
+};

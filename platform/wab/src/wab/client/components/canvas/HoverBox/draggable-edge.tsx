@@ -709,7 +709,7 @@ export function DraggableEdge(props: {
   );
 }
 
-function deriveDragMode(event: React.MouseEvent): EdgeDragMode {
+function deriveDragMode(event: Pick<React.MouseEvent, "shiftKey" | "altKey">): EdgeDragMode {
   if (event.shiftKey) {
     return "all";
   } else if (event.altKey) {

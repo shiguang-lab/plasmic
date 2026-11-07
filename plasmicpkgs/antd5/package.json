@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/antd5",
-  "version": "0.0.377",
+  "version": "0.1.0",
   "description": "Plasmic registration calls for Ant Design v5 components.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -59,7 +59,7 @@
     }
   ],
   "scripts": {
-    "build": "rollup -c rollup.config.mjs && tsc --emitDeclarationOnly --declaration src/index.ts --incremental --tsBuildInfoFile ./dist/.tsbuildinfo  --skipLibCheck --jsx react --lib dom,esnext --esModuleInterop --strict --outDir ./dist/ && cp ./dist/*.d.ts skinny/ && rm skinny/index.d.ts",
+    "build": "rollup -c rollup.config.mjs && NODE_OPTIONS=--max-old-space-size=8192 tsc -p tsconfig.build.json && cp ./dist/*.d.ts skinny/ && rm skinny/index.d.ts",
     "prepublishOnly": "npm run build",
     "clean": "rm -rf dist/ skinny/*.ts skinny/*.map skinny/*.js",
     "storybook": "storybook dev -p 6006 --no-open",
@@ -68,9 +68,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "antd": "^5.12.7",
+    "antd": "6.7.0",
     "classnames": "^2.3.2",
-    "dayjs": "^1.11.23",
+    "dayjs": "1.11.23",
     "fast-deep-equal": "^3.1.3",
     "lodash": "^4.17.21"
   },
@@ -82,30 +82,31 @@
     "@plasmicapp/host": "workspace:*",
     "@plasmicapp/query": "workspace:*",
     "@plasmicapp/react-web": "workspace:*",
-    "@rollup/plugin-commonjs": "^11.0.0",
-    "@rollup/plugin-json": "^4.0.0",
-    "@rollup/plugin-node-resolve": "^9.0.0",
+    "@rollup/plugin-commonjs": "^29.0.3",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
     "@types/lodash": "catalog:",
-    "@types/node": "^14.18.63",
+    "@types/node": "^24.12.2",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "glob": "^8.1.0",
     "rc-input-number": "^8.1.0",
     "rc-menu": "^9.12.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "rollup": "^3.10.1",
     "rollup-plugin-dts": "catalog:",
     "rollup-plugin-esbuild": "catalog:",
     "rollup-plugin-replace-imports": "catalog:",
     "vite": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "typescript": "catalog:"
   },
   "peerDependencies": {
-    "@plasmicapp/data-sources": ">=0.1.0",
-    "@plasmicapp/host": ">=1.0.0",
-    "@plasmicapp/query": ">=0.1.0",
-    "react": ">=16.8.0"
+    "@plasmicapp/data-sources": "^2.0.0",
+    "@plasmicapp/host": "^3.0.0",
+    "@plasmicapp/query": "^0.2.0",
+    "react": "^19.3.1"
   },
   "publishConfig": {
     "access": "public"

@@ -11,7 +11,7 @@ import { UiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { combineProps, swallowClick } from "@/wab/commons/components/ReactUtil";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import * as React from "react";
-import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
+import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
 export interface LabeledListItemProps
   extends

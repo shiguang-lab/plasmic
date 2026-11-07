@@ -200,7 +200,7 @@ interface SidebarSectionProps extends Omit<
   isHeaderActive?: boolean;
   defaultExtraContentExpanded?: boolean;
   oneLiner?: boolean;
-  makeHeaderMenu?: () => React.ReactElement;
+  makeHeaderMenu?: () => React.ReactElement<import("antd").MenuProps>;
 }
 
 export type SidebarSectionHandle = {
