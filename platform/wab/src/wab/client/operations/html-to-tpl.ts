@@ -28,7 +28,7 @@ import { ProjectId } from "@/wab/shared/ApiSchema";
 import { CodeComponentsRegistry, maybePropTypeToDefaultExpr } from "@/wab/shared/code-components/code-components";
 import { paramToVarName, toVarName } from "@/wab/shared/codegen/util";
 import { assert, assertNever, ensure, mkShortId } from "@/wab/shared/common";
-import { isContextCodeComponent } from "@/wab/shared/core/components";
+import { isCodeComponent, isContextCodeComponent } from "@/wab/shared/core/components";
 import {
   interpolatedStringToCodeExpr,
   interpolatedStringToExpr,
@@ -37,7 +37,7 @@ import {
   objectLiteralToExpr,
 } from "@/wab/shared/copilot/dynamic-value-input";
 import { mkNormalizedRep } from "@/wab/shared/copilot/utils";
-import { validateRegisteredValue } from "@/wab/shared/copilot/model-read";
+import { isEditorOnlyRegistration, validateRegisteredValue } from "@/wab/shared/copilot/model-read";
 import {
   code,
   codeLit,
@@ -873,6 +873,7 @@ async function wiTreeToTpl(
       for (const param of component.params) {
         const name = paramToVarName(component, param);
         const metaProp = registration?.props[name];
+        if (isCodeComponent(component) && (param.exportType === ParamExportType.ToolsOnly || isEditorOnlyRegistration(metaProp))) { continue; }
         if (!metaProp || typeof metaProp !== "object" || isSlot(param)
             || !("defaultValue" in metaProp) || typeof metaProp.defaultValue === "function"
             || Object.hasOwn(node.props ?? {}, name) || Object.hasOwn(node.slots ?? {}, name)) continue;
@@ -1178,10 +1179,12 @@ export function getComponentArgFromHtmlProp(
     component.params.find((p) => paramToVarName(component, p, { useControlledProp: true }) === propName) ??
     component.params.find((p) => paramToVarName(component, p) === propName) ??
     component.params.find((p) => paramToVarName(component, p) === name);
+  const editorOnly = isCodeComponent(component) &&
+    (param?.exportType === ParamExportType.ToolsOnly || isEditorOnlyRegistration(registration));
   // Unknown props and invalid optional literal values can be omitted. Slots,
   // required props, handlers, links and bindings need a corrected request.
   const recoverable =
-    !param ||
+    !editorOnly && (!param ||
     (!param.required &&
       !isSlot(param) &&
       !isKnownHrefType(param.type) &&
@@ -1191,7 +1194,7 @@ export function getComponentArgFromHtmlProp(
         isMultiChoiceType(param.type) ||
         isKnownColorPropType(param.type) ||
         isKnownDateString(param.type) ||
-        isKnownDateRangeStrings(param.type)));
+        isKnownDateRangeStrings(param.type))));
   const fail = (reason: string) =>
     err<[Param, Expr], WIError>({
       code: "invalid-component-prop",
@@ -1204,6 +1207,9 @@ export function getComponentArgFromHtmlProp(
 
   if (!param) {
     return fail("no such prop exists on the component");
+  }
+  if (editorOnly) {
+    return fail("not available in the public component contract");
   }
 
   if (isSlot(param)) {

@@ -2,15 +2,23 @@ import VariantBadge from "@/wab/client/components/canvas/VariantsBar/VariantBadg
 import VariantsDrawer from "@/wab/client/components/canvas/VariantsBar/VariantsDrawer";
 import styles from "@/wab/client/components/variants/VariantComboPicker.module.scss";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useAutoFocus } from "@/wab/client/hooks/useAutoFocus";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
+import type { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { VARIANTS_LOWER } from "@/wab/shared/Labels";
 import { PinStateManager } from "@/wab/shared/PinManager";
-import { VariantCombo, isBaseVariant } from "@/wab/shared/Variants";
+import { BASE_VARIANT_NAME, VariantCombo } from "@/wab/shared/Variants";
+import { arrayEq } from "@/wab/shared/common";
 import { Component, Site, Variant } from "@/wab/shared/model/classes";
 import { Dropdown } from "antd";
-import { observer } from "mobx-react";
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 interface VariantComboPickerProps {
   site: Site;
@@ -27,7 +35,7 @@ interface VariantComboPickerProps {
   hideScreen?: boolean;
 }
 
-export const VariantComboPicker = observer(VariantComboPicker_);
+export const VariantComboPicker = VariantComboPicker_;
 
 function VariantComboPicker_({
   site,
@@ -47,7 +55,9 @@ function VariantComboPicker_({
   // const preventDismissingRef = useRef(true);
 
   const machine = new PinStateManager(site, component, new Map());
-  const displayVariants = value.filter((v) => !isBaseVariant(v));
+  const models = useStudioCtx().modelSnapshots;
+  const baseFlags = useBaseVariantFlags(models, value);
+  const displayVariants = value.filter((_, index) => !baseFlags[index]);
 
   const onRemoveVariant = (variant: Variant) => {
     const newState = machine.removeSelectedVariants(
@@ -133,5 +143,44 @@ function VariantComboPicker_({
         )}
       </TriggerTarget>
     </Dropdown>
+  );
+}
+
+/**
+ * The combo list is owned by the parent and can change at any time. Read each
+ * variant's exact name field through the Studio snapshot owner, and expose only
+ * the immutable base flags needed by this picker. Subscriptions are attached to
+ * the current list by useSyncExternalStore and detached when it is replaced.
+ */
+function useBaseVariantFlags(
+  models: ModelSnapshots,
+  variants: readonly Variant[],
+): readonly boolean[] {
+  const source = useMemo(() => {
+    const nameStores = variants.map((variant) => models.field(variant, "name"));
+    const initialSnapshot = Object.freeze(
+      nameStores.map((store) => store.getState() === BASE_VARIANT_NAME),
+    );
+    let snapshot = initialSnapshot;
+    const getSnapshot = () => {
+      const next = nameStores.map(
+        (store) => store.getState() === BASE_VARIANT_NAME,
+      );
+      if (!arrayEq(snapshot, next)) {
+        snapshot = Object.freeze(next);
+      }
+      return snapshot;
+    };
+    const getServerSnapshot = () => initialSnapshot;
+    const subscribe = (listener: () => void) => {
+      const stops = nameStores.map((store) => store.subscribe(listener));
+      return () => stops.forEach((stop) => stop());
+    };
+    return { getSnapshot, getServerSnapshot, subscribe };
+  }, [models, variants]);
+  return useSyncExternalStore(
+    source.subscribe,
+    source.getSnapshot,
+    source.getServerSnapshot,
   );
 }

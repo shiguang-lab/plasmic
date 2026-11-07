@@ -1,3 +1,6 @@
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
 import { StyleOrCodeComponentVariantLabel } from "@/wab/client/components/VariantControls";
 import { BaseVariantRow } from "@/wab/client/components/sidebar-tabs/BaseVariantRow";
 import { VariantAnimations } from "@/wab/client/components/sidebar-tabs/VariantAnimations";
@@ -31,6 +34,8 @@ export const PrivateStyleVariantsPanel = observer(
     studioCtx: StudioCtx;
   }) {
     const { tpl, studioCtx, viewCtx } = props;
+    useCanvasRenderCount(viewCtx);
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
 
     const component = viewCtx.currentTplComponent().component;
     const [editingVariant, setEditingVariant] = React.useState<

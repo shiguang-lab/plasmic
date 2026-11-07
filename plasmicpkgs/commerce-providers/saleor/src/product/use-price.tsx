@@ -3,5 +3,4 @@
   Changes:None
 */
 
-export * from "@vercel/commerce/product/use-price";
-export { default } from "@vercel/commerce/product/use-price";
+export { usePrice as default, formatPrice, formatVariantPrice } from "@plasmicpkgs/commerce";

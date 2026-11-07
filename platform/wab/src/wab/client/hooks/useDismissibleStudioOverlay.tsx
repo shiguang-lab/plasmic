@@ -17,7 +17,7 @@ export function useDismissibleStudioOverlay({
 }: {
   onDismiss: (e: Event) => any;
   isOpen?: boolean;
-  overlayRef?: RefObject<HTMLElement>;
+  overlayRef?: RefObject<HTMLElement | null>;
 }) {
   const studio = useMemo(() => document.querySelector(".studio"), []);
   const _onDismissRef = useRef(onDismiss);

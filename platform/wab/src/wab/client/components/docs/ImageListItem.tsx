@@ -7,20 +7,24 @@ import {
 } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicImageListItem";
 import { toClassName } from "@/wab/shared/codegen/util";
 import { asOne, ensure } from "@/wab/shared/common";
-import { ImageAsset } from "@/wab/shared/model/classes";
+import { DocsIconRow, useDocsFocusedIconRef } from "@/wab/client/components/docs/DocsModelResources";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
 
 interface ImageListItemProps extends Omit<DefaultImageListItemProps, "icon"> {
-  icon: ImageAsset;
+  icon: DocsIconRow;
   docsCtx: DocsPortalCtx;
 }
 
-const ImageListItem = observer(function ImageListItem(
+function ImageListItem(
   props: ImageListItemProps,
 ) {
   const { icon, docsCtx, ...rest } = props;
+  const projectId = useStore(docsCtx.studioCtx.projectMetadataStore, (state) => state.id);
+  const focused = useDocsFocusedIconRef(docsCtx);
+  const selected = focused === icon.ref;
+  const codegenType = useStore(docsCtx.store, (state) => state.codegenType);
   return (
     <PlasmicImageListItem
       {...rest}
@@ -31,15 +35,15 @@ const ImageListItem = observer(function ImageListItem(
               {...(rest2 as any)}
               children={asOne(children)}
               href={APP_ROUTES.projectDocsIcon.fill({
-                projectId: docsCtx.studioCtx.siteInfo.id,
+                projectId,
                 iconIdOrClassName: toClassName(icon.name) || icon.uuid,
-                codegenType: docsCtx.getCodegenType(),
+                codegenType: codegenType,
               })}
             />
           );
         },
       }}
-      isSelected={docsCtx.tryGetFocusedIcon() === icon}
+      isSelected={selected}
       icon={
         <ImagePreview
           uri={ensure(icon.dataUri, "must have dataUri")}
@@ -54,6 +58,6 @@ const ImageListItem = observer(function ImageListItem(
       {icon.name}
     </PlasmicImageListItem>
   );
-});
+}
 
 export default ImageListItem;

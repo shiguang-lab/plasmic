@@ -41,10 +41,6 @@
   min-width: 0;
   min-height: 0;
 }
-.gatsby:global(.__wab_instance) {
-  position: relative;
-  flex-shrink: 0;
-}
 .img__i3ZU {
   position: relative;
   object-fit: cover;

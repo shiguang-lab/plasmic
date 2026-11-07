@@ -5,28 +5,30 @@ import {
   DefaultDocsComponentsPortalProps,
   PlasmicDocsComponentsPortal,
 } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicDocsComponentsPortal";
-import { isPlumeComponent } from "@/wab/shared/core/components";
-import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
+import { useDocsFocusedComponentRef } from "@/wab/client/components/docs/DocsModelResources";
+import type { ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
+import { createStore } from "zustand/vanilla";
 
 type DocsComponentsPortalProps = DefaultDocsComponentsPortalProps;
 
-const DocsComponentsPortal = observer(function DocsComponentsPortal(
-  props: DocsComponentsPortalProps,
-) {
+const emptyComponent = createStore(() => null);
+
+function DocsComponentsPortal(props: DocsComponentsPortalProps) {
   const docsCtx = useDocsPortalCtx();
-  const component = docsCtx.tryGetFocusedComponent();
+  const component = useDocsFocusedComponentRef(docsCtx);
+  const store: ModelFieldStore<unknown> = component ? docsCtx.models.snapshots.field(docsCtx.models.snapshots.resolve(component), "plumeInfo") : emptyComponent;
+  const isPlume = useStore(store, (state) => !!state);
   return (
     <PlasmicDocsComponentsPortal
       {...props}
       editor={<DocsPortalEditor docsCtx={docsCtx} />}
       viewport={<DocsPreviewCanvas docsCtx={docsCtx} />}
-      componentType={
-        component && isPlumeComponent(component) ? "plume" : undefined
-      }
+      componentType={isPlume ? "plume" : undefined}
       componentView={{ docsCtx }}
     />
   );
-});
+}
 
 export default DocsComponentsPortal;

@@ -1,8 +1,25 @@
-import { componentReviewContextSchema } from "@/wab/shared/copilot/component-review";
+import { componentReviewContextSchema, describeReviewRegistration } from "@/wab/shared/copilot/component-review";
 import { PROTOTYPE_TOOL_META, prototypeMutationSchema } from "@/wab/shared/copilot/prototype-tools";
 import { mapCopilotToolsToJsonSchema } from "@/wab/shared/copilot/copilot-tool-types";
 
 const context = { purpose: "Switch customer information content panels without route navigation" };
+test("component suggestions expose runtime props without leaking internal editing controls", () => {
+  const described = describeReviewRegistration({ name: "Overlay", props: {
+    previewOpen: { type: "boolean", editOnly: true, description: "Internal editing reveal" },
+    open: { type: "boolean" },
+    value: { type: "string", editOnly: true, uncontrolledProp: "defaultValue" },
+    onOpenChange: { type: "eventHandler", argTypes: [{ name: "open", type: "boolean" }] },
+  } });
+  expect(described.props).toEqual(["open", "value"]);
+  expect(described.events).toEqual(["onOpenChange"]);
+  expect(JSON.stringify(described)).not.toContain("previewOpen");
+  expect(JSON.stringify(described)).not.toContain("Internal editing reveal");
+});
+test("summary field order follows registration priorities while retrieval text remains sorted", () => {
+  const described = describeReviewRegistration({ name: "Records", props: { value: "string", zebra: "boolean", appearance: "object" } });
+  expect(described.props).toEqual(["value", "zebra", "appearance"]);
+  expect(described.sections[1]).toBe("appearance: object\nvalue: string\nzebra: boolean");
+});
 describe("component review contract", () => {
   it("accepts one natural functional description without operation mappings", () => {
     expect(componentReviewContextSchema.parse(context)).toEqual(context);

@@ -23,7 +23,7 @@ import * as React from "react";
 // You can also stop extending from DefaultExperimentEternalIdsProps altogether and have
 // total control over the props for your component.
 export interface ExperimentEternalIdsProps extends DefaultExperimentEternalIdsProps {
-  split: Split;
+  splitType: Split["splitType"];
   meta: {
     externalId?: string;
     aExternalId?: string;
@@ -36,13 +36,13 @@ function ExperimentEternalIds_(
   props: ExperimentEternalIdsProps,
   ref: HTMLElementRefOf<"div">,
 ) {
-  const { split, meta, onChange } = props;
+  const { splitType, meta, onChange } = props;
   const [isExpanded, setIsExpanded] = React.useState(false);
   return (
     <PlasmicExperimentEternalIds
       root={{ ref }}
       isExpanded={isExpanded}
-      isSegmentation={split.splitType !== SplitType.Experiment}
+      isSegmentation={splitType !== SplitType.Experiment}
       expandBtn={{
         onClick: () => {
           setIsExpanded((e) => !e);

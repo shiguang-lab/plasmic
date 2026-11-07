@@ -1,3 +1,6 @@
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
+import { useStudioArena, useViewRegistry } from "@/wab/client/studio-ctx/arena-state";
 import { OutlineCtx } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
 import styles from "@/wab/client/components/sidebar-tabs/outline-tab.module.scss";
 import {
@@ -16,6 +19,7 @@ import MixedArenaIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__ChevronDownSvg";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import {
   getArenaFrameDesc,
   getArenaFrames,
@@ -44,6 +48,10 @@ export const OutlineTab = observer(OutlineTab_);
 function OutlineTab_() {
   const { t: uiT, label: uiLabel } = useI18n();
   const studioCtx = useStudioCtx();
+  useStudioSelection(studioCtx, (state) => state.view);
+  // Subscribe precisely to save permission so the overview menu re-evaluates
+  // when it changes; the unique overview policy stays in StudioCtx.
+  useStudioSaveState(studioCtx, (state) => state.canSave);
   const { styles: panelStyles } = useStructurePanelStyles();
   const dndManager = React.useMemo(
     () => new TreeDndManager(studioCtx),
@@ -70,6 +78,10 @@ function OutlineTab_() {
     }
   }, []);
   useToggleDisplayed(ref, onVisible);
+  useStudioArena(studioCtx, useShallow((state) => [state.current, state.frames, state.focusedMode, state.name]));
+  // The outline tree uses the current ViewCtx command owner; a roster change
+  // must rebuild the rows without converting the whole outline state to UI data.
+  useViewRegistry(studioCtx, (entries) => entries);
   const arena = studioCtx.currentArena;
 
   const currentArenaFrame = outlineCtx.viewCtx()?.arenaFrame();

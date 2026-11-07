@@ -1,0 +1,18 @@
+diff --git a/dist/index.d.ts b/dist/index.d.ts
+--- a/dist/index.d.ts
++++ b/dist/index.d.ts
+@@ -82,12 +82,12 @@
+ 
+ declare const themedObjectInspector: ({ theme, ...restProps }: {
+     [x: string]: any;
+-    theme?: string | undefined;
++    theme?: string | typeof theme$1 | undefined;
+ }) => React.JSX.Element;
+ 
+ declare const themedTableInspector: ({ theme, ...restProps }: {
+     [x: string]: any;
+-    theme?: string | undefined;
++    theme?: string | typeof theme$1 | undefined;
+ }) => React.JSX.Element;
+ 
+ declare const ObjectLabel: FC<any>;

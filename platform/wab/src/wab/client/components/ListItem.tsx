@@ -8,7 +8,7 @@ import {
 } from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicListItem";
 import { combineProps } from "@/wab/commons/components/ReactUtil";
 import * as React from "react";
-import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
+import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
 interface ListItemProps extends Omit<
   DefaultListItemProps & PlasmicListItem__OverridesType,

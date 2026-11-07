@@ -8,7 +8,7 @@ describe("BoundedCache", () => {
     expect(cache.get("a")).toBe(1);
     expect(cache.get("missing")).toBeUndefined();
     expect(cache.size).toBe(2);
-    expect(cache.keys()).toEqual(["a", "b"]);
+    expect(Array.from(cache.keys())).toEqual(["a", "b"]);
   });
 
   it("evicts the oldest entry once maxSize is exceeded", () => {
@@ -16,7 +16,7 @@ describe("BoundedCache", () => {
     cache.set("a", 1).set("b", 2).set("c", 3);
     expect(cache.size).toBe(2);
     expect(cache.has("a")).toBe(false);
-    expect(cache.keys()).toEqual(["b", "c"]);
+    expect(Array.from(cache.keys())).toEqual(["b", "c"]);
   });
 
   it("refreshes recency on set so reused keys are evicted last", () => {
@@ -28,7 +28,7 @@ describe("BoundedCache", () => {
     expect(cache.has("a")).toBe(true);
     expect(cache.get("a")).toBe(11);
     expect(cache.has("b")).toBe(false);
-    expect(cache.keys()).toEqual(["a", "c"]);
+    expect(Array.from(cache.keys())).toEqual(["a", "c"]);
   });
 
   it("does not refresh recency on get (eviction is by write, not read)", () => {
@@ -38,7 +38,7 @@ describe("BoundedCache", () => {
     expect(cache.get("a")).toBe(1);
     cache.set("c", 3);
     expect(cache.has("a")).toBe(false);
-    expect(cache.keys()).toEqual(["b", "c"]);
+    expect(Array.from(cache.keys())).toEqual(["b", "c"]);
   });
 
   it("supports delete and clear", () => {
@@ -49,7 +49,7 @@ describe("BoundedCache", () => {
     expect(cache.size).toBe(1);
     cache.clear();
     expect(cache.size).toBe(0);
-    expect(cache.keys()).toEqual([]);
+    expect(Array.from(cache.keys())).toEqual([]);
   });
 
   it("rejects an invalid maxSize", () => {

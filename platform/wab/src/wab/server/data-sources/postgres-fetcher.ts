@@ -9,7 +9,7 @@ import {
   fillPagination,
 } from "@/wab/shared/data-sources-meta/data-sources";
 import { PostgresDataSource } from "@/wab/shared/data-sources-meta/postgres-meta";
-import type { CrudSorting } from "@pankod/refine-core";
+import type { DataSourceSorting } from "@/wab/shared/data-sources-meta/data-sources";
 import {
   DataSourceSchema,
   ManyRowsResult,
@@ -275,7 +275,7 @@ export class PostgresFetcher {
     resource: string;
     filters?: ParameterizedField | string;
     pagination?: RawPagination;
-    sort?: CrudSorting;
+    sort?: DataSourceSorting;
   }): Promise<ManyRowsResult<any>> {
     return this.getList(opts);
   }
@@ -284,7 +284,7 @@ export class PostgresFetcher {
     resource: string;
     filters?: ParameterizedField | string;
     pagination?: RawPagination;
-    sort?: CrudSorting;
+    sort?: DataSourceSorting;
   }): Promise<ManyRowsResult<any>> {
     const { parameterizedStr: filter, parameters } =
       this.getparameterizedStringAndParameters(opts.filters);

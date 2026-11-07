@@ -24,12 +24,12 @@ import type {
   SemVerSiteElement,
 } from "@/wab/shared/site-diffs";
 import L, { uniq } from "lodash";
-import { observer } from "mobx-react";
+     
 import * as React from "react";
 
 import { DataTokenIcon } from "@/wab/client/icons";
 
-export const SiteDiffs = observer(function SideDiffs(props: {
+export const SiteDiffs = function SideDiffs(props: {
   diffs: ChangeLogEntry[];
 }) {
   const { diffs } = props;
@@ -102,7 +102,7 @@ export const SiteDiffs = observer(function SideDiffs(props: {
       })}
     </div>
   );
-});
+};
 
 export function getObjClassName(typename: SemVerSiteElement["type"]) {
   switch (typename) {
@@ -160,7 +160,7 @@ export function objIcon(obj: SemVerSiteElement, tplIcon?: React.ReactNode) {
   }
 }
 
-export const SplitStatusUpdateSection = observer(
+export const SplitStatusUpdateSection = 
   function SplitStatusUpdateSection(props: { diffs: ChangeLogEntry[] }) {
     const { diffs } = props;
     const splitStatusUpdate = diffs.filter(
@@ -185,10 +185,10 @@ export const SplitStatusUpdateSection = observer(
         )}
       </>
     );
-  },
-);
+  }
+;
 
-export const SplitStatusUpdateSummarySection = observer(
+export const SplitStatusUpdateSummarySection = 
   function SplitStatusUpdateSummarySection(props: { diffs: ChangeLogEntry[] }) {
     const { diffs } = props;
     const getTypeText = (type: string) => {
@@ -241,10 +241,10 @@ export const SplitStatusUpdateSummarySection = observer(
         />
       </div>
     );
-  },
-);
+  }
+;
 
-const ChangeSubSection = observer(function ChangeSubSection(props: {
+const ChangeSubSection = function ChangeSubSection(props: {
   diffs: ChangeLogEntry[];
 }) {
   const { diffs } = props;
@@ -325,7 +325,7 @@ const ChangeSubSection = observer(function ChangeSubSection(props: {
       )}
     </div>
   );
-});
+};
 
 function getEntityTypeLabel(type: SemVerSiteElement["type"]) {
   switch (type) {
@@ -352,7 +352,7 @@ function getEntityTypeLabel(type: SemVerSiteElement["type"]) {
   }
 }
 
-const ChangeEntity = observer(function ChangeEntity(props: {
+const ChangeEntity = function ChangeEntity(props: {
   diff: ChangeLogEntry;
 }) {
   const entity = props.diff.newValue ?? props.diff.oldValue;
@@ -366,9 +366,9 @@ const ChangeEntity = observer(function ChangeEntity(props: {
     );
   }
   return null;
-});
+};
 
-const SplitChangeEntity = observer(function SplitChangeEntity(props: {
+const SplitChangeEntity = function SplitChangeEntity(props: {
   diff: ChangeLogEntry;
 }) {
   const oldValue = props.diff.oldValue;
@@ -385,9 +385,9 @@ const SplitChangeEntity = observer(function SplitChangeEntity(props: {
     );
   }
   return null;
-});
+};
 
-const ChangeRenamedEntity = observer(function ChangeRenamedEntity(props: {
+const ChangeRenamedEntity = function ChangeRenamedEntity(props: {
   diff: ChangeLogEntry;
 }) {
   const { diff } = props;
@@ -414,4 +414,4 @@ const ChangeRenamedEntity = observer(function ChangeRenamedEntity(props: {
     );
   }
   return null;
-});
+};

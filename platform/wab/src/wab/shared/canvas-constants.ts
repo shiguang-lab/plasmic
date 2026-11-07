@@ -32,4 +32,4 @@ export const internalCanvasElementProps = [
   slotArgParamProp,
 ] as const;
 
-export const INTERNAL_CC_CANVAS_SELECTION_PROP = "__plasmic_selection_prop__";
+export const INTERNAL_CC_CANVAS_PROP = "__canvas";

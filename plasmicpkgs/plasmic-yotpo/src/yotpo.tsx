@@ -1,7 +1,6 @@
 import { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 import { GlobalContextMeta } from "@plasmicapp/host/registerGlobalContext";
 import { usePlasmicQueryData } from "@plasmicapp/query";
-import isArray from "lodash/isArray";
 import React, { useContext } from "react";
 
 import { Image, ProductElement, ReviewResponse } from "./types";
@@ -196,7 +195,7 @@ export function YotpoReviews({
   }
 
   const review = Object.values(reviewsData).flatMap((item: any) =>
-    (isArray(item) ? item : [item]).filter((r: any) => r.id === reviewId)
+    (Array.isArray(item) ? item : [item]).filter((r: any) => r.id === reviewId)
   );
 
   const renderedData = reviewData?.response.review.products.map(
@@ -338,7 +337,7 @@ export function YotpoStarRating({
     );
   }
   const product = Object.values(reviews).flatMap((item: any) =>
-    (isArray(item) ? item : [item]).filter((r: any) => r.id === productId)
+    (Array.isArray(item) ? item : [item]).filter((r: any) => r.id === productId)
   );
 
   const renderedData = review?.response.review.products.map(

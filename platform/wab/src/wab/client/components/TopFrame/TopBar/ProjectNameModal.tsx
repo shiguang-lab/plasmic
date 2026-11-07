@@ -10,7 +10,6 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import { ApiProject } from "@/wab/shared/ApiSchema";
 import { spawn } from "@/wab/shared/common";
 import { Form } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 interface ProjectNameModalProps {
@@ -20,7 +19,7 @@ interface ProjectNameModalProps {
   setShowProjectNameModal: (val: boolean) => Promise<void>;
 }
 
-export const ProjectNameModal = observer(function ProjectNameModal({
+export function ProjectNameModal({
   project,
   refreshProjectAndPerms,
   showProjectNameModal,
@@ -92,6 +91,6 @@ export const ProjectNameModal = observer(function ProjectNameModal({
       )}
     </>
   );
-});
+}
 
 export default ProjectNameModal;

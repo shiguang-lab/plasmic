@@ -23,7 +23,8 @@ import {
   Pagination,
   TableSchema,
 } from "@plasmicapp/data-sources";
-import type { Field, JsonTree } from "@react-awesome-query-builder/antd";
+import type { Field, RuleGroupType } from "@react-querybuilder/core";
+import { dataSourceQueryFields } from "@/wab/shared/query-builder";
 import type {
   JsonLogicAnd,
   JsonLogicDoubleNegation,
@@ -125,7 +126,7 @@ export type RawType =
   | "http-body";
 
 export type Fields = {
-  [key: string]: Field;
+  [key: string]: { type: string; label?: string; options?: (string | { value: string; label: string })[] };
 };
 
 export type LabeledValue = {
@@ -207,6 +208,8 @@ export interface FilterArgMeta extends ArgMetaBase {
    */
   isSql?: boolean;
 }
+
+export type DataSourceSorting = { field: string; order: "asc" | "desc" }[];
 
 export interface SortArgMeta extends ArgMetaBase {
   type: "sort[]";
@@ -404,12 +407,8 @@ export type FiltersLogic =
 export type FiltersLogicExpr = boolean | string | number | FiltersLogic;
 
 export interface Filters {
-  /**
-   * @deprecated Now we use `tree` instead
-   */
-  logic?: FiltersLogic;
-  tree?: JsonTree;
-  fields: any;
+  tree: RuleGroupType;
+  fields: Field[];
 }
 
 export interface ParameterizedField {
@@ -647,43 +646,9 @@ function mkFilterQuery(
     bindings: Record<string, TemplatedString | CustomCode | ObjectPath>;
   },
 ) {
-  // building filter query
-  const rules = Object.entries(filters.value).map(([field, value]) => {
-    let fieldType =
-      tableSchema.fields.find((f) => f.id === field)?.type ?? "text";
-    if (fieldType === "string") {
-      fieldType = "text";
-    }
-    return {
-      type: "rule",
-      id: mkUuid(),
-      properties: {
-        field,
-        value: [value],
-        valueSrc: ["value"],
-        valueType: [`${fieldType}${fieldType !== "text" ? "-custom" : ""}`],
-        operator: "equal",
-      },
-    };
-  });
   return {
-    tree: {
-      type: "group",
-      id: mkUuid(),
-      children1: rules,
-      properties: {
-        conjunction: "AND",
-      },
-    },
-    fields: Object.fromEntries(
-      tableSchema.fields.map((field) => [
-        field.id,
-        {
-          type: field.type,
-          label: field.label ?? field.id,
-        },
-      ]),
-    ),
+    tree: { id: mkUuid(), combinator: "and", rules: Object.entries(filters.value).map(([field, value]) => ({ id: mkUuid(), field, operator: "=", value })) },
+    fields: dataSourceQueryFields(Object.fromEntries(tableSchema.fields.map((field) => [field.id, { type: field.type, label: field.label ?? field.id }]))),
   };
 }
 
@@ -736,30 +701,8 @@ export function extractFiltersFromDefaultDataSourceQueries(
   dataOp: DataSourceOpExpr,
 ) {
   const pattern = z.object({
-    tree: z.object({
-      type: z.literal("group"),
-      properties: z.object({
-        conjunction: z.literal("AND"),
-      }),
-      children1: z.array(
-        z.object({
-          type: z.literal("rule"),
-          properties: z.object({
-            field: z.string(),
-            operator: z.literal("equal"),
-            value: z.tuple([z.any()]),
-            valueSrc: z.tuple([z.literal("value")]),
-            valueType: z.tuple([z.string()]),
-          }),
-        }),
-      ),
-    }),
-    fields: z.record(
-      z.object({
-        type: z.string(),
-        label: z.string(),
-      }),
-    ),
+    tree: z.object({ combinator: z.literal("and"), not: z.literal(false).optional(), rules: z.array(z.object({ field: z.string(), operator: z.literal("="), value: z.any() })) }),
+    fields: z.array(z.object({ name: z.string() })),
   });
   const parseResult = dataOp.templates.filters
     ? pattern.safeParse(
@@ -768,9 +711,9 @@ export function extractFiltersFromDefaultDataSourceQueries(
     : undefined;
   return parseResult && parseResult.success
     ? Object.fromEntries(
-        parseResult.data.tree.children1.map((child) => [
-          child.properties.field,
-          child.properties.value[0],
+        parseResult.data.tree.rules.map((child) => [
+          child.field,
+          child.value,
         ]),
       )
     : undefined;

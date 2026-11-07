@@ -1,9 +1,10 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
+var React = require('react');
 var Ant = require('antd');
 var equal = require('fast-deep-equal');
-var React = require('react');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 var contexts = require('./contexts-DbLDJr3k.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -11,8 +12,8 @@ require('@shiguang-lab/plasmic-antd6/thumbnails');
 
 function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-var equal__default = /*#__PURE__*/_interopDefault(equal);
 var React__default = /*#__PURE__*/_interopDefault(React);
+var equal__default = /*#__PURE__*/_interopDefault(equal);
 
 var InputType = /* @__PURE__ */ ((InputType2) => {
   InputType2["Text"] = "Text";
@@ -123,7 +124,7 @@ const Internal = React__default.default.forwardRef(
       },
       [onIsSubmittingChange, setIsSubmitting]
     );
-    return /* @__PURE__ */ React__default.default.createElement(
+    return /* @__PURE__ */ jsxRuntime.jsx(
       contexts.InternalFormInstanceContext.Provider,
       {
         value: {
@@ -133,39 +134,39 @@ const Internal = React__default.default.forwardRef(
           registerField,
           internalFieldCtx,
           initialValues: props.initialValues ?? {}
-        }
-      },
-      /* @__PURE__ */ React__default.default.createElement(contexts.FormLayoutContext.Provider, { value: formLayout }, /* @__PURE__ */ React__default.default.createElement(
-        Ant.Form,
-        {
-          ...rest,
-          key: props.initialValues ? JSON.stringify(props.initialValues) : void 0,
-          onValuesChange: (...args) => {
-            props.onValuesChange?.(...args);
-            extendedOnValuesChange?.(form.getFieldsValue(true));
-          },
-          onFinish: async (values) => {
-            if (pendingSubmissions.current && autoDisableWhileSubmitting) {
-              return;
-            }
-            if (++pendingSubmissions.current === 1) {
-              updateIsSubmitting(true);
-            }
-            try {
-              await props.onFinish?.(values);
-            } finally {
-              if (--pendingSubmissions.current === 0) {
-                updateIsSubmitting(false);
-              }
-            }
-          },
-          form,
-          labelCol: props.labelCol?.horizontalOnly && props.layout !== "horizontal" ? void 0 : props.labelCol,
-          wrapperCol: props.wrapperCol?.horizontalOnly && props.layout !== "horizontal" ? void 0 : props.wrapperCol,
-          disabled: isSubmitting && autoDisableWhileSubmitting ? true : disabled
         },
-        childrenNode
-      ))
+        children: /* @__PURE__ */ jsxRuntime.jsx(contexts.FormLayoutContext.Provider, { value: formLayout, children: /* @__PURE__ */ React.createElement(
+          Ant.Form,
+          {
+            ...rest,
+            key: props.initialValues ? JSON.stringify(props.initialValues) : void 0,
+            onValuesChange: (...args) => {
+              props.onValuesChange?.(...args);
+              extendedOnValuesChange?.(form.getFieldsValue(true));
+            },
+            onFinish: async (values) => {
+              if (pendingSubmissions.current && autoDisableWhileSubmitting) {
+                return;
+              }
+              if (++pendingSubmissions.current === 1) {
+                updateIsSubmitting(true);
+              }
+              try {
+                await props.onFinish?.(values);
+              } finally {
+                if (--pendingSubmissions.current === 0) {
+                  updateIsSubmitting(false);
+                }
+              }
+            },
+            form,
+            labelCol: props.labelCol?.horizontalOnly && props.layout !== "horizontal" ? void 0 : props.labelCol,
+            wrapperCol: props.wrapperCol?.horizontalOnly && props.layout !== "horizontal" ? void 0 : props.wrapperCol,
+            disabled: isSubmitting && autoDisableWhileSubmitting ? true : disabled
+          },
+          childrenNode
+        ) })
+      }
     );
   }
 );
@@ -194,10 +195,9 @@ const FormWrapper = React__default.default.forwardRef(
       }),
       [layout, props.labelCol?.span]
     );
-    return /* @__PURE__ */ React__default.default.createElement(
+    return /* @__PURE__ */ jsxRuntime.jsx(
       Internal,
       {
-        key: remountKey,
         forceRemount,
         formLayout,
         internalFieldCtx,
@@ -205,7 +205,8 @@ const FormWrapper = React__default.default.forwardRef(
         ref,
         ...props,
         layout
-      }
+      },
+      remountKey
     );
   }
 );

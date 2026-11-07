@@ -1,9 +1,14 @@
-import { mockDeepAuto } from "@/wab/__testonly__/mock";
-import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
-import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { mkArenaFrame } from "@/wab/shared/Arenas";
+import { TplMgr } from "@/wab/shared/TplMgr";
+import { ComponentType } from "@/wab/shared/core/components";
+import { createSite } from "@/wab/shared/core/sites";
+import { fakeRegistryViewCtx, fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 
 function setup() {
-  const { studioCtx } = fakeStudioCtx();
+  const site = createSite();
+  const component = new TplMgr({ site }).addComponent({ name: "Wheel", type: ComponentType.Plain });
+  const frame = mkArenaFrame({ site, component, width: 100, height: 100, name: "Wheel" });
+  const { studioCtx } = fakeStudioCtx({ site });
   const clipper = document.createElement("div");
   const overlay = document.createElement("div");
   const iframe = document.createElement("iframe");
@@ -32,11 +37,9 @@ function setup() {
     panel.scrollTop = opts.top ?? panel.scrollTop;
     panel.scrollLeft = opts.left ?? panel.scrollLeft;
   });
-  const vc = mockDeepAuto<ViewCtx>();
-  Object.defineProperty(vc, "studioCtx", { value: studioCtx });
+  const { view: vc } = fakeRegistryViewCtx(studioCtx, frame);
   vc.canvasCtx.viewport.mockReturnValue(iframe);
   vc.canvasCtx.getActualTargetUnderCanvasOverlay.mockReturnValue(panel);
-  studioCtx.viewCtxs.push(vc);
   return { studioCtx, vc, panel, overlay, clipper };
 }
 

@@ -1,10 +1,12 @@
 import { NavigationDropdown } from "@/wab/client/components/sidebar-tabs/ProjectPanel/NavigationDropdown";
 import { OutlineTab } from "@/wab/client/components/sidebar-tabs/outline-tab";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { selectLeftTabKey } from "@/wab/client/studio-ctx/left-panel-state";
 import { Splitter } from "antd";
 import { createStyles } from "antd-style";
-import { observer } from "mobx-react";
+
 import * as React from "react";
+import { useStore } from "zustand";
 
 const useStyles = createStyles(() => ({
   root: { height: "100%", minHeight: 0, overflow: "hidden" },
@@ -15,30 +17,27 @@ const useStyles = createStyles(() => ({
   },
 }));
 
-export const StructurePanel = observer(function StructurePanel() {
+export const StructurePanel = function StructurePanel() {
   const studioCtx = useStudioCtx();
+  const navigationPanel = useStore(studioCtx.navigationPanelStore);
+  const leftTabKey = useStore(
+    studioCtx.leftPanelState.store,
+    selectLeftTabKey,
+  );
   const { styles } = useStyles();
   const [directoryExpanded, setDirectoryExpanded] = React.useState(true);
   const [directorySize, setDirectorySize] = React.useState<number | string>(
     "42%",
   );
   React.useEffect(() => {
-    if (
-      studioCtx.navigationPanel === "pages" &&
-      studioCtx.leftTabKey === "outline"
-    ) {
+    if (navigationPanel === "pages" && leftTabKey === "outline") {
       if (!directoryExpanded) {
         setDirectoryExpanded(true);
       } else {
         studioCtx.focusOnProjectSearchInput();
       }
     }
-  }, [
-    studioCtx,
-    studioCtx.navigationPanel,
-    studioCtx.leftTabKey,
-    directoryExpanded,
-  ]);
+  }, [studioCtx, navigationPanel, leftTabKey, directoryExpanded]);
 
   return (
     <Splitter
@@ -71,4 +70,4 @@ export const StructurePanel = observer(function StructurePanel() {
       </Splitter.Panel>
     </Splitter>
   );
-});
+};

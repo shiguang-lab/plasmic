@@ -10,13 +10,15 @@ const isProd = process.env.NODE_ENV === "production";
 
 export default {
   input: "src/index.ts",
-  external: ["react", "react-dom", "@plasmicapp/host", "@plasmicapp/query"],
+  external: ["react", "react/jsx-runtime", "react/jsx-dev-runtime", "react-dom", "@plasmicapp/host", "@plasmicapp/query"],
   output: {
     file: "build/client.js",
     format: "iife",
     sourcemap: true,
     globals: {
       react: "__Sub.React",
+      "react/jsx-runtime": "__Sub.jsxRuntime",
+      "react/jsx-dev-runtime": "__Sub.jsxDevRuntime",
       "react-dom": "__Sub.ReactDOM",
       "@plasmicapp/host": "__Sub",
       "@plasmicapp/query": "__Sub.PlasmicQuery || {}",
@@ -33,7 +35,7 @@ export default {
       transforms: ["typescript"],
     }),
     babel({
-      presets: ["@babel/react"],
+      presets: [["@babel/react", { runtime: "automatic" }]],
     }),
     replace({
       // Get production-mode react

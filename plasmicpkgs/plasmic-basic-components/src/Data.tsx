@@ -1,3 +1,4 @@
+import type * as React from "react";
 import {
   DataProviderProps,
   SelectorDict,
@@ -11,7 +12,7 @@ import {
 import registerComponent, {
   CodeComponentMeta,
 } from "@plasmicapp/host/registerComponent";
-import React, { ComponentProps, ReactNode, createElement } from "react";
+import { ComponentProps, ReactNode, createElement } from "react";
 
 const thisModule = "@plasmicpkgs/plasmic-basic-components";
 
@@ -62,7 +63,7 @@ export interface CommonDynamicProps {
 }
 
 export function DynamicElement<
-  Tag extends keyof JSX.IntrinsicElements = "div"
+  Tag extends keyof React.JSX.IntrinsicElements = "div"
 >({
   tag = "div",
   className,

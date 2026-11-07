@@ -8,7 +8,9 @@ import type {
   MenuProps,
   SubMenuProps,
 } from "antd/es/menu";
-import type { MenuItemGroupProps } from "rc-menu";
+import type { ComponentProps } from "react";
+
+type MenuItemGroupProps = ComponentProps<typeof AntdMenu.ItemGroup>;
 import { traverseReactEltTree } from "./customControls";
 import { Registerable } from "./registerable";
 export const Menu = AntdMenu;

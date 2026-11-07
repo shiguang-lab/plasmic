@@ -1,9 +1,9 @@
-import { preloadAiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
-import { requestIdleCallback, clearIdleCallback } from "@/wab/client/requestidlecallback";
+import { subscribeStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { plexusKey, storageViewAsKey } from "@/wab/client/LocalStorageKey";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { isHostFrame } from "@/wab/client/cli-routes";
 import { syncCodeComponentsAndHandleErrors } from "@/wab/client/code-components/code-components";
+import { preloadAiMarkdown } from "@/wab/client/components/copilot/AiMarkdown";
 import importAndRetry from "@/wab/client/components/dynamic-import";
 import {
   PreviewCtx,
@@ -16,18 +16,27 @@ import { ViewEditor } from "@/wab/client/components/studio/view-editor";
 import * as widgets from "@/wab/client/components/widgets";
 import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
 import { AlertSpec } from "@/wab/client/components/widgets/plasmic/AlertBanner";
-import { providesViewCtx } from "@/wab/client/contexts/StudioContexts";
-import { HostFrameCtx, useHostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
+import {
+  providesStudioCtx,
+  providesViewCtx,
+} from "@/wab/client/contexts/StudioContexts";
+import {
+  HostFrameCtx,
+  useHostFrameCtx,
+} from "@/wab/client/frame-ctx/host-frame-ctx";
 import { checkRootSubHostVersion } from "@/wab/client/frame-ctx/windows";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import { initStudioCtx } from "@/wab/client/init-view-ctx";
 import "@/wab/client/moment-config";
 import "@/wab/client/react-global-hook/globalHook"; // Run once studio loads to inject our hook
+import {
+  clearIdleCallback,
+  requestIdleCallback,
+} from "@/wab/client/requestidlecallback";
 import { Switch, switchCase, switchDefault } from "@/wab/client/route/Switch";
 import { initializePlasmicExtension } from "@/wab/client/screenshot-util";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { providesStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
 import { ProjectId } from "@/wab/shared/ApiSchema";
 import { isUnownedProject } from "@/wab/shared/EntUtil";
@@ -39,7 +48,7 @@ import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { notification } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 
 type StudioInitializerProps = {
   loadTimings?: StudioLoadTimings;
@@ -58,6 +67,14 @@ class StudioInitializer_ extends React.Component<
 > {
   _cleanups: (() => void)[];
   _disposed = false;
+  private stopSelection?: () => void;
+  componentDidUpdate(_previousProps: StudioInitializerProps, previous: StudioInitializerState) {
+    if (previous.studioCtx !== this.state.studioCtx) {
+      this.stopSelection?.();
+      const studio = this.state.studioCtx;
+      this.stopSelection = studio ? subscribeStudioSelection(studio, (state) => state.view, () => this.forceUpdate()) : undefined;
+    }
+  }
   constructor(props) {
     super(props);
     this._cleanups = [];
@@ -84,6 +101,8 @@ class StudioInitializer_ extends React.Component<
       return;
     }
     this._disposed = true;
+    this.stopSelection?.();
+    this.stopSelection = undefined;
     const studioCtx = this.state.studioCtx;
     if (studioCtx) {
       try {
@@ -142,6 +161,9 @@ class StudioInitializer_ extends React.Component<
       loadTimings,
     );
     const previewCtx = new PreviewCtx(hostFrameCtx, studioCtx);
+    this._cleanups.push(previewCtx.store.subscribe((next, previous) => {
+      if (next.isLive !== previous.isLive || next.previewData?.full !== previous.previewData?.full) { this.forceUpdate(); }
+    }));
     if (this._disposed) {
       previewCtx.dispose();
       studioCtx.dispose();
@@ -173,7 +195,10 @@ class StudioInitializer_ extends React.Component<
     this.setState({ studioCtx, previewCtx });
 
     const listener = (e: BeforeUnloadEvent) => {
-      if (studioCtx.needsSaving() && !studioCtx.desktopDraft?.hasCurrentBackup) {
+      if (
+        studioCtx.needsSaving() &&
+        !studioCtx.desktopDraft?.hasCurrentBackup
+      ) {
         e.preventDefault();
         e.returnValue = "Changes you made may not be saved.";
       }
@@ -195,7 +220,9 @@ class StudioInitializer_ extends React.Component<
     if (!appCtx.appConfig.ccStubs && !isHostLessPackage(studioCtx.site)) {
       // Version metadata and insertable templates are not needed to paint the
       // current page. Component sync awaits Plume only for missing defaults.
-      studioCtx.runAfterInitialCanvasReady(() => studioCtx.projectDependencyManager.refreshDeps());
+      studioCtx.runAfterInitialCanvasReady(() =>
+        studioCtx.projectDependencyManager.refreshDeps(),
+      );
       const syncDone = studioCtx.loadTimings.begin("code-component-sync");
       await syncCodeComponentsAndHandleErrors(studioCtx);
       syncDone();
@@ -255,6 +282,8 @@ class StudioInitializer_ extends React.Component<
   }
 
   render() {
+    const { studioCtx: loadingStudioCtx, previewCtx: loadingPreviewCtx } =
+      this.state;
     if (!isHostFrame()) {
       notification.error({
         message: translate(getUiLocale(), "Unknown URL"),
@@ -297,7 +326,6 @@ class StudioInitializer_ extends React.Component<
                     route: [APP_ROUTES.project, APP_ROUTES.projectSlug],
                     render: () => {
                       return (
-                        // @ts-expect-error Helmet typings reject React 18 JSX components.
                         <Helmet>
                           <body className="no-text-select" />
                         </Helmet>
@@ -364,9 +392,11 @@ class StudioInitializer_ extends React.Component<
         contents={contents}
         failureContents={(retry) => <StudioInitializationError retry={retry} />}
         loadingContents={() => {
-          const { studioCtx, previewCtx } = this.state;
-          return studioCtx && previewCtx ? (
-            contents({ studioCtx, previewCtx }, true)
+          return loadingStudioCtx && loadingPreviewCtx ? (
+            contents(
+              { studioCtx: loadingStudioCtx, previewCtx: loadingPreviewCtx },
+              true,
+            )
           ) : (
             <StudioChrome />
           );

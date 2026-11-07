@@ -1,24 +1,25 @@
 import { loadCacheKey } from "@/wab/client/LocalStorageKey";
+import { AppNavigationState } from "@/wab/client/app-navigation-state";
 import { Api, setUser } from "@/wab/client/api";
 import { asApiError } from "@/wab/client/api-error-presentation";
 import { Router, isHostFrame } from "@/wab/client/cli-routes";
 import { getClientDevFlagOverrides } from "@/wab/client/client-dev-flags";
 import { StarterGroupProps } from "@/wab/client/components/StarterGroup";
-import { downloadBlob } from "@/wab/client/dom-utils";
 import { App } from "@/wab/client/components/top-view";
+import { downloadBlob } from "@/wab/client/dom-utils";
 import { TopFrameApi } from "@/wab/client/frame-ctx/top-frame-api";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
 import { retryStartupRead } from "@/wab/client/startup-request";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
 import {
-  ProjectStartupInfo,
   ApiPermission,
   ApiTeam,
   ApiUser,
   ApiWorkspace,
   AppCtxResponse,
   PersonalApiToken,
+  ProjectStartupInfo,
   WorkspaceId,
 } from "@/wab/shared/ApiSchema";
 import { FastBundler } from "@/wab/shared/bundler";
@@ -37,9 +38,9 @@ import { message } from "antd";
 import { History } from "history";
 import $ from "jquery";
 import L from "lodash";
-import { observable } from "mobx";
 import * as React from "react";
 import { useContext } from "react";
+import { createStore } from "zustand/vanilla";
 
 export class NonAuthCtx {
   /** PromisifyMethods so that `api` behaves the same in both the top frame and host frame. */
@@ -52,7 +53,11 @@ export class NonAuthCtx {
   change: (f: () => void) => void;
   bundler: FastBundler;
   initialProjectInfo?: ProjectStartupInfo;
-  initialProjectModel?: { projectId: string; branchId?: import("@/wab/shared/ApiSchema").BranchId; data: ReturnType<Api["getSiteInfo"]> };
+  initialProjectModel?: {
+    projectId: string;
+    branchId?: import("@/wab/shared/ApiSchema").BranchId;
+    data: ReturnType<Api["getSiteInfo"]>;
+  };
   readonly lastBundleVersion: string;
 
   constructor(args: NonAuthCtx) {
@@ -143,7 +148,11 @@ interface AppCtxArgs {
   ops: AppOps | null;
   appConfig: typeof DEVFLAGS;
   initialProjectInfo?: ProjectStartupInfo;
-  initialProjectModel?: { projectId: string; branchId?: import("@/wab/shared/ApiSchema").BranchId; data: ReturnType<Api["getSiteInfo"]> };
+  initialProjectModel?: {
+    projectId: string;
+    branchId?: import("@/wab/shared/ApiSchema").BranchId;
+    data: ReturnType<Api["getSiteInfo"]>;
+  };
   readonly lastBundleVersion: string;
 }
 
@@ -169,15 +178,61 @@ export class AppCtx {
   appConfigOverrides: Partial<typeof DEVFLAGS>;
 
   initialProjectInfo?: ProjectStartupInfo;
-  initialProjectModel?: { projectId: string; branchId?: import("@/wab/shared/ApiSchema").BranchId; data: ReturnType<Api["getSiteInfo"]> };
+  initialProjectModel?: {
+    projectId: string;
+    branchId?: import("@/wab/shared/ApiSchema").BranchId;
+    data: ReturnType<Api["getSiteInfo"]>;
+  };
   readonly lastBundleVersion: string;
 
-  private _personalApiTokens = observable.box<PersonalApiToken[] | null>(null);
-  get personalApiTokens() {
-    return this._personalApiTokens.get();
+  private readonly uiEnvironmentListeners = new Set<() => void>();
+  private navigation: AppNavigationState | undefined;
+
+  get navigationStore() {
+    return (this.navigation ??= new AppNavigationState(this)).store;
   }
-  set personalApiTokens(tokens: PersonalApiToken[] | null) {
-    this._personalApiTokens.set(tokens);
+
+  subscribeUiEnvironmentInputs(listener: () => void) {
+    this.uiEnvironmentListeners.add(listener);
+    return () => { this.uiEnvironmentListeners.delete(listener); };
+  }
+
+  publishUiEnvironmentInputs() {
+    this.navigation?.sync();
+    for (const listener of this.uiEnvironmentListeners) { listener(); }
+  }
+
+  private readonly personalApiTokensState = createStore<
+    PersonalApiToken[] | null
+  >(() => null);
+  readonly personalApiTokensStore = {
+    getState: this.personalApiTokensState.getState,
+    getInitialState: this.personalApiTokensState.getInitialState,
+    subscribe: this.personalApiTokensState.subscribe,
+  };
+  setPersonalApiTokens(tokens: PersonalApiToken[] | null) {
+    this.personalApiTokensState.setState((previous) => {
+      if (
+        previous === tokens ||
+        (previous &&
+          tokens &&
+          previous.length === tokens.length &&
+          previous.every(
+            (token, index) =>
+              token.token === tokens[index].token &&
+              +new Date(token.createdDate) ===
+                +new Date(tokens[index].createdDate),
+          ))
+      ) {
+        return previous;
+      }
+      return (
+        tokens?.map((token) => ({
+          ...token,
+          createdDate: new Date(token.createdDate),
+        })) ?? null
+      );
+    }, true);
   }
 
   constructor(args: AppCtxArgs) {
@@ -207,6 +262,7 @@ export class AppCtx {
       await this.api.logout();
     }
     this.selfInfo = null;
+    this.publishUiEnvironmentInputs();
     // Explicitly setting window.location.href, instead of
     // using router, to make sure we completely clear in-page
     // js state
@@ -272,21 +328,23 @@ export class AppOps extends AppComponent {
   async deleteSite(siteId: string) {
     await this.api().deleteSite(siteId);
     await this.reloadAll();
-    void message.success({ content: translate(getUiLocale(), "Project deleted") });
+    void message.success({
+      content: translate(getUiLocale(), "Project deleted"),
+    });
   }
   async createPersonalApiToken() {
     const token = await this.api().createPersonalApiToken();
-    this.appCtx().personalApiTokens = null;
+    this.appCtx().setPersonalApiTokens(null);
     return token;
   }
   async revokePersonalApiToken(token: string) {
     await this.api().revokePersonalApiToken(token);
-    this.appCtx().personalApiTokens = null;
+    this.appCtx().setPersonalApiTokens(null);
     return token;
   }
   async emitPersonalApiToken(initToken: string) {
     const token = await this.api().emitPersonalApiToken(initToken);
-    this.appCtx().personalApiTokens = null;
+    this.appCtx().setPersonalApiTokens(null);
     return token;
   }
   private lastDownloadUrl: string | null = null;
@@ -370,8 +428,8 @@ export class AppOps extends AppComponent {
       type: "application/json;charset=utf-8",
     });
     const safeBase =
-      (L.kebabCase(projectName) ||
-        projectName.replace(/[\/\\:*?"<>|]/g, "_").trim()) ||
+      L.kebabCase(projectName) ||
+      projectName.replace(/[/\\:*?"<>|]/g, "_").trim() ||
       "project";
     const fileName = `${safeBase}.plasmic`;
     downloadBlob(blob, fileName);
@@ -557,11 +615,13 @@ export async function loadAppCtx(
 
   async function reloadAll() {
     Object.assign(appCtx, await load());
+    appCtx.publishUiEnvironmentInputs();
     return nonAuthCtx.change(() => {});
   }
 
   async function reloadAppCtx() {
     Object.assign(appCtx, await getAppCtxData(nonAuthCtx));
+    appCtx.publishUiEnvironmentInputs();
     return nonAuthCtx.change(() => {});
   }
 

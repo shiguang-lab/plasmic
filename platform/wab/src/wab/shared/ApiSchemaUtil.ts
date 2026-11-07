@@ -13,7 +13,7 @@ import {
 export function fullName(user: ApiUser) {
   return user.displayName || user.email;
 }
-export function fullNameAndEmail(user: ApiUser) {
+export function fullNameAndEmail(user: Pick<ApiUser, "displayName" | "email">) {
   return user.displayName ? `${user.displayName} (${user.email})` : user.email;
 }
 export function fullNameLastAbbreviated(user: ApiUser) {

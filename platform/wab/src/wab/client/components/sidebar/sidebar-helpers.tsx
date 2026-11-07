@@ -1,3 +1,4 @@
+import { useStyleCells, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
 import { useContextMenu } from "@/wab/client/components/ContextMenu";
 import { useLabel } from "@/wab/client/components/aria-utils";
 import { ColorButton } from "@/wab/client/components/style-controls/ColorButton";
@@ -286,11 +287,12 @@ export const DraggableDimLabel = observer(function DraggableDimLabel(props: {
   const isDraggingDisabled = disabledDragging || isDraggingDisabledFromStyles;
   return (
     <XDraggable
+      nodeRef={ref}
       useMovement={true}
       disabled={isDraggingDisabled}
       onStart={() => {
         if (ref.current) {
-          ref.current.requestPointerLock();
+          spawn(ref.current.requestPointerLock());
         }
         studioCtx.startUnlogged();
         const elt = maybe(expsProvider.forDom(), ($dom) => $dom[0]);
@@ -753,7 +755,7 @@ export const LabeledStyleComboBoxItem = observer(
   },
 );
 
-export const LabeledFontFamilySelector = observer(
+export const LabeledFontFamilySelector = 
   function LabeledFontFamilySelector(
     props: Omit<React.ComponentProps<typeof LabeledStyleItem>, "children"> & {
       selectOpts: {
@@ -768,9 +770,9 @@ export const LabeledFontFamilySelector = observer(
     const { labelProps } = useLabel(props);
     const sc = useStyleComponent();
     const styleName = ensureArray(props.styleName);
-    const indicators = ensureArray(
-      props.definedIndicator || sc.definedIndicators(...styleName),
-    );
+    const nativeIndicators = useStyleIndicators(sc.props.expsProvider, props.definedIndicator ? [] : styleName);
+    const indicators = props.definedIndicator ? ensureArray(props.definedIndicator) : [...nativeIndicators];
+    const nativeValues = useStyleCells(sc.props.expsProvider, styleName.length === 1 && !("value" in selectOpts) ? styleName : []);
     const { isDisabled, disabledTooltip } = shouldBeDisabled({
       props,
       label: rest.label,
@@ -779,7 +781,7 @@ export const LabeledFontFamilySelector = observer(
     const value =
       styleName.length > 1 || "value" in selectOpts
         ? selectOpts.value
-        : sc.exp().get(styleName[0]);
+        : nativeValues[0]?.value;
     const onChange =
       styleName.length > 1 || selectOpts.onChange
         ? ensure(selectOpts.onChange, "Should have onChange handler")
@@ -813,10 +815,10 @@ export const LabeledFontFamilySelector = observer(
         </MaybeWrap>
       </LabeledStyleItem>
     );
-  },
-);
+  }
+;
 
-export const LabeledStyleCheckboxItem = observer(
+export const LabeledStyleCheckboxItem = 
   function LabeledStyleCheckboxItem(
     props: Omit<React.ComponentProps<typeof LabeledStyleItem>, "children"> & {
       value: boolean;
@@ -827,9 +829,8 @@ export const LabeledStyleCheckboxItem = observer(
     const { label, value, onChange, tooltip, ...rest } = props;
     const sc = useStyleComponent();
     const styleName = ensureArray(props.styleName);
-    const indicators = ensureArray(
-      props.definedIndicator || sc.definedIndicators(...styleName),
-    );
+    const nativeIndicators = useStyleIndicators(sc.props.expsProvider, props.definedIndicator ? [] : styleName);
+    const indicators = props.definedIndicator ? ensureArray(props.definedIndicator) : [...nativeIndicators];
     const { isDisabled, disabledTooltip } = shouldBeDisabled({
       props,
       label: props.label,
@@ -854,8 +855,8 @@ export const LabeledStyleCheckboxItem = observer(
         </StyleCheckbox>
       </LabeledStyleItem>
     );
-  },
-);
+  }
+;
 
 export const LabeledStyleSwitchItem = observer(function LabeledStyleSwitchItem(
   props: Omit<React.ComponentProps<typeof LabeledStyleItem>, "children"> & {
@@ -913,7 +914,7 @@ export const LabeledStyleSwitchItem = observer(function LabeledStyleSwitchItem(
   );
 });
 
-export const LabeledToggleButtonGroup = observer(LabeledToggleButtonGroup_);
+export const LabeledToggleButtonGroup = LabeledToggleButtonGroup_;
 
 function LabeledToggleButtonGroup_(
   props: React.ComponentProps<typeof LabeledStyleItem> & {
@@ -926,13 +927,10 @@ function LabeledToggleButtonGroup_(
   const { children, styleType, className, autoWidth, ...rest } = props;
   const sc = useStyleComponent();
   const styleName = ensureArray(props.styleName);
-  const indicators = ensureArray(
-    props.definedIndicator || sc.definedIndicators(...styleName),
-  );
-  const value =
-    styleName.length > 1 || "value" in props
-      ? props.value
-      : sc.exp().get(styleName[0]);
+  const nativeIndicators = useStyleIndicators(sc.props.expsProvider, props.definedIndicator ? [] : styleName);
+  const indicators = props.definedIndicator ? ensureArray(props.definedIndicator) : [...nativeIndicators];
+  const nativeValues = useStyleCells(sc.props.expsProvider, styleName.length === 1 && !("value" in props) ? styleName : []);
+  const value = styleName.length > 1 || "value" in props ? props.value : nativeValues[0]?.value;
   const onChange =
     styleName.length > 1 || props.onChange
       ? ensure(props.onChange, "Should have onChange handler")
@@ -1015,7 +1013,7 @@ export function shouldBeDisabled(opts: {
     disabledTooltip?: React.ReactNode | (() => React.ReactNode);
   };
   label?: React.ReactNode;
-  indicators: DefinedIndicatorType[];
+  indicators: readonly DefinedIndicatorType[];
   studioCtx?: StudioCtx;
 }) {
   if (opts.props.isDisabled) {

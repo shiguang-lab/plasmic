@@ -1,15 +1,16 @@
+import { jsx } from 'react/jsx-runtime';
 import { Avatar } from 'antd';
-import React from 'react';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import 'react';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 function AntdAvatar({
   letters,
   ...props
 }) {
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Avatar,
     {
       ...props,
@@ -18,7 +19,7 @@ function AntdAvatar({
   );
 }
 function AntdAvatarGroup(props) {
-  return /* @__PURE__ */ React.createElement(Avatar.Group, { ...props });
+  return /* @__PURE__ */ jsx(Avatar.Group, { ...props });
 }
 function registerAvatar(loader) {
   registerComponentHelper(loader, AntdAvatar, {

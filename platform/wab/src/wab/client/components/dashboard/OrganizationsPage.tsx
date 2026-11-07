@@ -8,16 +8,16 @@ import { Redirect } from "@/wab/client/route/Redirect";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { PlusOutlined } from "@ant-design/icons";
 import { Button, Empty } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
 
-export default observer(function OrganizationsPage() {
+export default function OrganizationsPage() {
   const appCtx = useAppCtx();
   const { t } = useI18n();
   const history = useHistory();
-  const team = appCtx.getAllTeams()[0];
-  if (team) {
-    return <Redirect to={APP_ROUTES.org.fill({ teamId: team.id })} />;
+  const teamId = useStore(appCtx.navigationStore, (state) => state.teams[0]?.id);
+  if (teamId) {
+    return <Redirect to={APP_ROUTES.org.fill({ teamId })} />;
   }
   return (
     <section className={styles.spacesEmpty}>
@@ -36,4 +36,4 @@ export default observer(function OrganizationsPage() {
       </Empty>
     </section>
   );
-});
+}

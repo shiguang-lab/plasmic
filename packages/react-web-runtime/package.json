@@ -1,6 +1,6 @@
 {
   "name": "@plasmicapp/react-web-runtime",
-  "version": "1.0.39",
+  "version": "2.0.0",
   "description": "Custom JSX runtime for @plasmicapp/react-web, used by Plasmic-generated code.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -25,11 +25,10 @@
     "@types/react": "catalog:",
     "react": "catalog:",
     "rollup": "^4.60.2",
-    "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "catalog:"
   },
   "peerDependencies": {
-    "@plasmicapp/react-web": ">=0.2.49",
-    "react": ">=18.0.0"
+    "@plasmicapp/react-web": "^2.0.0",
+    "react": "^19.3.1"
   }
 }

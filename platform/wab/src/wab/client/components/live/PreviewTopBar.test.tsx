@@ -1,3 +1,4 @@
+import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
 import { PreviewTopBar } from "@/wab/client/components/live/PreviewTopBar";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import {
@@ -32,22 +33,30 @@ const mocks = vi.hoisted(() => ({
     canGoForward: false,
   },
   variants: [] as object[],
-  branching: true,
   setDragRegion: vi.fn().mockResolvedValue(undefined),
 }));
+const environment = createStudioUiEnvironmentFixture();
+
 vi.mock("@/wab/client/contexts/AppContexts", () => ({
   useTopFrameApi: () => ({ setDesktopTitleBarDragRegions: mocks.setDragRegion }),
 }));
 vi.mock("@/wab/client/components/live/PreviewCtx", () => ({
   usePreviewCtx: () => mocks.preview,
+  usePreviewSelector: (_ctx: unknown, selector: (state: any) => unknown) => selector({
+    previewData: { viewport: mocks.preview.viewport, width: mocks.preview.width, height: mocks.preview.height }, componentUuid: mocks.preview.component.uuid,
+    targets: mocks.preview.studioCtx.site.components.length ? mocks.preview.studioCtx.site.components : [mocks.preview.component],
+    hasVariants: mocks.variants.length > 0,
+    isLive: true, navigating: false,
+    navigationIndex: mocks.preview.canGoBack ? 1 : 0,
+    navigationEntries: Array(mocks.preview.canGoForward ? 3 : 1),
+  }),
 }));
 vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => ({
+    ...environment,
     site: {},
     siteInfo: {},
     appCtx: { appConfig: {} },
-    getCurrentUiConfig: () => ({}),
-    showBranching: () => mocks.branching,
   }),
 }));
 vi.mock("@/wab/client/components/top-bar/VariantsComboSelect", () => ({
@@ -82,6 +91,7 @@ afterEach(() => {
 });
 beforeEach(() => {
   mocks.variants = [];
+  environment.uiEnvironment.store.setState({ brand: undefined, showBranching: true });
   vi.clearAllMocks();
   mocks.preview.canGoBack = false;
   mocks.preview.canGoForward = false;
@@ -323,14 +333,13 @@ test("reopening dimensions reads current viewport and rejects fractional sizes",
 });
 
 test("shows branch switching in preview when branching is enabled", () => {
-  mocks.branching = true;
-  const view = render(<PreviewTopBar />);
-  expect(screen.getByRole("button", { name: "Branches: main" })).toBeTruthy();
-  view.unmount();
-  mocks.branching = false;
+  environment.uiEnvironment.store.setState({ showBranching: true });
   render(<PreviewTopBar />);
+  expect(screen.getByRole("button", { name: "Branches: main" })).toBeTruthy();
+  act(() => { environment.uiEnvironment.store.setState({ showBranching: false }); });
   expect(screen.queryByRole("button", { name: "Branches: main" })).toBeNull();
-  mocks.branching = true;
+  act(() => { environment.uiEnvironment.store.setState({ showBranching: true }); });
+  expect(screen.getByRole("button", { name: "Branches: main" })).toBeTruthy();
 });
 
 test("preview navigation buttons follow availability and act only on Preview", () => {
@@ -354,4 +363,14 @@ test("preview navigation buttons follow availability and act only on Preview", (
   expect(mocks.preview.refresh).toHaveBeenCalledOnce();
   expect(mocks.preview.stopLiveMode).not.toHaveBeenCalled();
   expect(mocks.preview.toggleLiveMode).not.toHaveBeenCalled();
+});
+
+
+test("updates preview brand links from the native environment while mounted", () => {
+  render(<PreviewTopBar />);
+  expect(screen.getByRole("link", { name: "Back to dashboard" })).toBeTruthy();
+  act(() => { environment.uiEnvironment.store.setState({ brand: { logoTooltip: "Project identity", logoHref: "/project-home", logoImgSrc: "/project-logo.svg", logoAlt: "Project logo" } }); });
+  expect(screen.getByRole("link", { name: "Project identity" }).getAttribute("href")).toBe("/project-home");
+  expect(screen.getByRole("img", { name: "Project logo" }).getAttribute("src")).toBe("/project-logo.svg");
+  expect(screen.queryByRole("link", { name: "Back to dashboard" })).toBeNull();
 });

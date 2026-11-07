@@ -1,5 +1,7 @@
+import { mkArenaFrame } from "@/wab/shared/Arenas";
+import { createSite } from "@/wab/shared/core/sites";
 import { buildValTree } from "@/wab/__testonly__/tpls";
-import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { fakeRegistryViewCtx, fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { getMarqueeFrames } from "@/wab/client/components/canvas/marquee-selection";
 import { getFrameSelectionBounds } from "@/wab/client/components/canvas/selection-bounds";
 import { CanvasContentEditor } from "@/wab/client/studio-ctx/canvas-content-editor";
@@ -20,18 +22,17 @@ function fixture() {
   const outsideTpl = mkTplTag("aside");
   const component = mkComponent({ name: "Page", type: ComponentType.Page,
     tplTree: mkTplTag("main", [rootTpl, outsideTpl]) });
-  const owner = buildValTree(mkTplComponent(component, ensure(component.variants[0])));
+  const owner = buildValTree(mkTplComponent(component, ensure(component.variants[0], "Content fixture requires a base variant")));
   const vals = flattenVals(owner);
   const root = ensureInstance(vals.find((val) => val.tpl === rootTpl), ValTag);
   const child = ensureInstance(vals.find((val) => val.tpl === leaf), ValTag);
   const outside = ensureInstance(vals.find((val) => val.tpl === outsideTpl), ValTag);
   const ancestor = ensureInstance(owner.contents?.[0], ValTag);
-  const { studioCtx } = fakeStudioCtx();
-  const vc = mock<ViewCtx>();
-  Object.defineProperty(vc, "studioCtx", { value: studioCtx });
-  const editor = new CanvasContentEditor(vc);
-  Object.defineProperty(vc, "contentEditor", { value: editor });
-  studioCtx.viewCtxs.push(vc);
+  const site = createSite(); site.components.push(component);
+  const frame = mkArenaFrame({ site, component, width: 100, height: 100, name: "Editing" });
+  const { studioCtx } = fakeStudioCtx({ site });
+  const { view: vc } = fakeRegistryViewCtx(studioCtx, frame);
+  const editor: CanvasContentEditor = vc.contentEditor;
   vi.spyOn(studioCtx, "focusedViewCtx").mockReturnValue(vc);
   vc.valState.mockReturnValue(new ValState({ sysRoot: owner, globalRoot: undefined }));
   vc.maybeTpl2ValsInContext.mockImplementation((tpl) => vals.filter((val) => val.tpl === tpl));
@@ -40,9 +41,10 @@ function fixture() {
   const childElement = rootElement.appendChild(document.createElement("span"));
   const outsideElement = outerElement.appendChild(document.createElement("aside"));
   const doms = new Map<ValNode, HTMLElement>([[root, rootElement], [child, childElement], [outside, outsideElement], [ancestor, outerElement]]);
-  vc.eltFinder.mockImplementation((val) => doms.has(val) ? [ensure(doms.get(val))] : []);
-  const target = vi.spyOn(editor, "target", "get").mockReturnValue({tpl: rootTpl, fullKey: root.fullKey, element: rootElement});
-  return { studioCtx, vc, editor, root, child, outside, ancestor, rootElement, childElement, outsideElement, outerElement, target };
+  vc.eltFinder.mockImplementation((val) => doms.has(val) ? [ensure(doms.get(val), "Selected fixture value requires a DOM element")] : []);
+  editor["commitSession"]({ target: { tpl: rootTpl, fullKey: root.fullKey, element: rootElement },
+    size: undefined, ready: false, expandedAncestors: Object.freeze([]) });
+  return { studioCtx, vc, editor, root, child, outside, ancestor, rootElement, childElement, outsideElement, outerElement };
 }
 
 it("shares one root boundary across selection and rendered elements, including nodes with no DOM", () => {
@@ -60,9 +62,9 @@ it("shares one root boundary across selection and rendered elements, including n
     f.vc.eltFinder.mockReturnValue([]);
     expect(f.editor.contains(f.child)).toBe(true);
     expect(f.editor.contains(f.outside)).toBe(false);
-    f.target.mockReturnValue(undefined);
+    f.editor.exit(false);
     expect(f.editor.contains(f.ancestor)).toBe(true);
-  } finally { f.studioCtx.viewCtxs.splice(0); f.studioCtx.dispose(); }
+  } finally { f.studioCtx.disposeViewCtx(f.vc); f.studioCtx.dispose(); }
 });
 
 it("never falls back to an artboard outline or artboard marquee while a content scene is active", () => {
@@ -76,7 +78,7 @@ it("never falls back to an artboard outline or artboard marquee while a content 
     expect(getFrameSelectionBounds(f.studioCtx)).toBeUndefined();
     f.vc.focusedSelectables.mockReturnValue([f.ancestor, f.child]);
     expect(f.studioCtx.hoverBoxControlledObjs).toEqual([f.child]);
-  } finally { f.studioCtx.viewCtxs.splice(0); f.studioCtx.dispose(); }
+  } finally { f.studioCtx.disposeViewCtx(f.vc); f.studioCtx.dispose(); }
 });
 
 it("excludes other frames and repeated rendered instances from the same active scene", () => {
@@ -90,5 +92,5 @@ it("excludes other frames and repeated rendered instances from the same active s
     const repeatedRoot = f.rootElement.cloneNode(true) as HTMLElement;
     document.body.append(repeatedRoot);
     expect(f.editor.containsElement(repeatedRoot)).toBe(false);
-  } finally { f.studioCtx.viewCtxs.splice(0); f.studioCtx.dispose(); }
+  } finally { f.studioCtx.disposeViewCtx(f.vc); f.studioCtx.dispose(); }
 });

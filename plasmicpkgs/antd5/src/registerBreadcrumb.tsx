@@ -12,7 +12,7 @@ export function AntdBreadcrumb(
 ) {
   const { itemsRaw, ...rest } = props;
   const items = React.useMemo(() => {
-    if (!React.isValidElement(itemsRaw) && !Array.isArray(itemsRaw)) return [];
+    if (!React.isValidElement<{ children?: React.ReactElement[] }>(itemsRaw) && !Array.isArray(itemsRaw)) return [];
     return (
       Array.isArray(itemsRaw)
         ? itemsRaw

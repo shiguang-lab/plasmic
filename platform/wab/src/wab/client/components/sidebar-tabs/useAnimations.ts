@@ -1,3 +1,6 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import { useInspectorSelection } from "@/wab/client/studio-ctx/inspector-state";
 import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -24,6 +27,7 @@ export function useAnimations(options: UseAnimationsOptions) {
   const { t: studioUiT, label } = useI18n();
 
   const { tpl, variants, viewCtx, isDisabled } = options;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const studioCtx = useStudioCtx();
   const vtm = viewCtx.variantTplMgr();
 
@@ -43,7 +47,7 @@ export function useAnimations(options: UseAnimationsOptions) {
 
   const vsh = makeVariantedStylesHelperFromCurrentCtx(studioCtx);
 
-  const focusedTpl = studioCtx.inspectorSelection?.tpl;
+  const focusedTpl = useInspectorSelection(studioCtx)?.tpl;
   const forceUpdate = useForceUpdate();
   useSignalListener(studioCtx.animationChanged, forceUpdate, [studioCtx]);
 

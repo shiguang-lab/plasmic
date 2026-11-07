@@ -38,7 +38,7 @@ export type PlasmicTranslator = (
   str: string,
   opts?: {
     components?: {
-      [key: string]: React.ReactElement | React.ReactFragment;
+      [key: string]: React.ReactElement | Iterable<React.ReactNode>;
     };
   }
 ) => React.ReactNode;

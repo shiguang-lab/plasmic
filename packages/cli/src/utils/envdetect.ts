@@ -84,10 +84,6 @@ export function detectNextJsVersion(): string | undefined {
   }
 }
 
-export function detectGatsby() {
-  return findupSync("gatsby-config.js") || findupSync("gatsby-config.ts");
-}
-
 export function detectCreateReactApp() {
   try {
     const packageJsonContent = getParsedPackageJson();

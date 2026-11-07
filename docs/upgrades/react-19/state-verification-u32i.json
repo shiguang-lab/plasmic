@@ -1,0 +1,129 @@
+{
+  "status": "focused-native-accepted",
+  "scope": "I: H plus14 frozen DOM/RAF lifetime and prepared-field/FrameInfo correction files; excludes next leaf/command/DataToken/style changes",
+  "source": {
+    "revision": "32df7af09a1df7d119143b546f14a81b6d876c83",
+    "dirty": true,
+    "sourceHash": "caca02a236bc0f91646f91281499b3624ab8e5193caa84a83e11096d2817c501"
+  },
+  "artifact": {
+    "sourceHash": "caca02a236bc0f91646f91281499b3624ab8e5193caa84a83e11096d2817c501",
+    "rendererHash": "4cd8140c23e7e62f2d44a8d3c88f16c6e6ea740bd8950fcf581b9d4cf54ab9ce",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 104911227,
+    "studioArtifactHash": "90158067e7d4d42d5e8e7027e46d64f17f3b7f0836ac82b141a383471138f9f4",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "checks": {
+    "typecheck": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u32i-isolated-typecheck-1.log"
+    },
+    "criticalIntegration": {
+      "filesPassed": 7,
+      "testsPassed": 36,
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u32i-isolated-integration.log"
+    },
+    "cacheFollowup": {
+      "filesPassed": 2,
+      "testsPassed": 14,
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u32i-isolated-cache-followup.log"
+    },
+    "productionBuild": {
+      "exitCode": 0
+    },
+    "assets": {
+      "exitCode": 0
+    },
+    "archive": {
+      "exitCode": 0
+    }
+  },
+  "nativeGP": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/gp/list-open-u32i-gp-native.json",
+    "reportSha256": "96d817a765762731c4317a559849d9b9f82927dd812dc40b50e77e9c0e8cc041",
+    "functionalCases": 5,
+    "functionalPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "error": false,
+    "draftDialog": {
+      "enabled": true,
+      "opened": true,
+      "remoteActionClosed": true
+    },
+    "docs": {
+      "codegen": {
+        "dependencyModelsValidated": 50,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      },
+      "loader": {
+        "dependencyModelsValidated": 50,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      }
+    }
+  },
+  "nativeComplex": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/complex/list-open-u32i-complex.json",
+    "reportSha256": "3fcf520c3ab8c5d019e7d5a5545bf193d40a3b184d8f3045de1b2ca39bdecaa2",
+    "functionalCases": 6,
+    "functionalPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "error": false
+  },
+  "fullStudioSuite": {
+    "rerun": false,
+    "base": "u29f:636passed13failed60testfail9unhandled; not green",
+    "failedSuitesTargeted": {
+      "filesPassed": 13,
+      "testsPassed": 197,
+      "note": "Original failed suites corrected and rechecked in owned groups; union includes4 PlayerPresence native tests. Does not claim one197test command or fullI suite pass"
+    },
+    "verification": "Targeted owner manifests preserve exact logs/inputs; unchanged passing base reused"
+  },
+  "fullMigration": false
+}

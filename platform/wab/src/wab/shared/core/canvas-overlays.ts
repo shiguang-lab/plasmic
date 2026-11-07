@@ -14,14 +14,6 @@ import {
 } from "@/wab/shared/model/classes";
 import type { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 
-/** Components with the editing-only overlay override contract. */
-export function supportsCanvasOverlay(tpl: TplNode): tpl is TplComponent {
-  return (
-    isCodeComponentTpl(tpl) &&
-    tpl.component.params.some((param) => param.variable.name === "previewOpen")
-  );
-}
-
 function eventHandlers(
   setting: DeepReadonly<Pick<VariantSetting, "args" | "attrs">>,
   event?: string,
@@ -58,6 +50,8 @@ export function getCanvasOverlayTargets(
     getProp: (tpl: TplComponent, prop: string) => unknown;
   },
 ): TplComponent[] {
+  const supportsCanvasOverlay = (tpl: TplNode): tpl is TplComponent =>
+    isCodeComponentTpl(tpl) && !!context?.getMeta(tpl)?.canvasOverlay;
   const selected = ancestors[0];
   // Selecting the overlay itself must never expose its content's actions.
   if (selected && supportsCanvasOverlay(selected)) {

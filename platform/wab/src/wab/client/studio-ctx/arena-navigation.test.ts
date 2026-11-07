@@ -7,6 +7,9 @@ import { ComponentType } from "@/wab/shared/core/components";
 import { getDedicatedArena } from "@/wab/shared/core/sites";
 import { Box, Pt } from "@/wab/shared/geom";
 import { SEARCH_PARAM_COMMENT } from "@/wab/shared/route/app-routes";
+import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
+import { TplMgr } from "@/wab/shared/TplMgr";
+import { createSite } from "@/wab/shared/core/sites";
 import { waitFor } from "@testing-library/react";
 import { mock } from "vitest-mock-extended";
 
@@ -41,6 +44,41 @@ async function setup() {
 }
 
 afterEach(() => vi.restoreAllMocks());
+
+it("publishes arena membership only after committed model edits, undo and redo", async () => {
+  vi.spyOn(ViewCtx.prototype, "isVisible").mockReturnValue(false);
+  const site = createSite();
+  const component = new TplMgr({ site }).addComponent({ name: "Page", type: ComponentType.Plain });
+  const arena = mkMixedArena("Native viewport");
+  site.arenas.push(arena);
+  const frame = mkArenaFrame({ site, component, name: "Page", width: 100, height: 100, left: 0, top: 0 });
+  const { studioCtx: sc } = fakeStudioCtx({ site });
+  await waitFor(() => expect(sc.initialRouteReady).toBe(true));
+  const viewport = new ViewportCtx({ dom: mock<DomActions>(), initialArena: arena,
+    initialClipperBox: new Box(0, 0, 1000, 800), initialClipperScroll: Pt.zero() });
+  sc.viewportCtx = viewport;
+  sc.switchToArena(arena);
+  sc.createViewStateUndoRecord();
+  const publish = vi.fn();
+  const stop = viewport.store.subscribe(publish);
+  try {
+    expect(viewport.canvasPadding()).toEqual(Pt.zero());
+    await sc.changeUnsafe(() => {
+      arena.children.push(frame);
+      expect(viewport.store.getState().hasFrames).toBe(false);
+    });
+    expect(viewport.store.getState().hasFrames).toBe(true);
+    expect(viewport.canvasPadding()).toEqual(new Pt(950, 760));
+    expect(publish).toHaveBeenCalledOnce();
+    await sc.undo();
+    expect(viewport.canvasPadding()).toEqual(Pt.zero());
+    await sc.redo();
+    expect(viewport.canvasPadding()).toEqual(new Pt(950, 760));
+    expect(publish).toHaveBeenCalledTimes(3);
+    await sc.changeUnsafe(() => { component.name = "Renamed"; });
+    expect(publish).toHaveBeenCalledTimes(3);
+  } finally { stop(); viewport.dispose(); sc.dispose(); }
+});
 
 it("keeps selection, viewport, animation preview and history stable when reopening the current component", async () => {
   const { sc, history, components, arenas, dispose } = await setup();

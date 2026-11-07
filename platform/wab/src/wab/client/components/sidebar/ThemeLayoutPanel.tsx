@@ -13,18 +13,20 @@ import {
   PlasmicThemeLayoutPanel,
 } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicThemeLayoutPanel";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { RuleSetHelpers } from "@/wab/shared/RuleSetHelpers";
+import { ThemeLayoutRuleSetHelpers } from "@/wab/shared/RuleSetHelpers";
 import {
-  CONTENT_LAYOUT_DEFAULTS,
   CONTENT_LAYOUT_STANDARD_WIDTH_PROP,
   CONTENT_LAYOUT_VIEWPORT_GAP_PROP,
   CONTENT_LAYOUT_WIDE_WIDTH_PROP,
 } from "@/wab/shared/core/style-props";
 import { LENGTH_PERCENTAGE_UNITS } from "@/wab/shared/css/types";
-import { makeExpProxy } from "@/wab/shared/exprs";
 import { RuleSet, ThemeLayoutSettings } from "@/wab/shared/model/classes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
+import { useThemeSelection } from "@/wab/client/components/sidebar/theme-selection-state";
+import type { ModelRef } from "@/wab/client/studio-ctx/model-snapshots";
+import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import type { Theme } from "@/wab/shared/model/classes";
 import * as React from "react";
 
 export type ThemeLayoutPanelProps = DefaultThemeLayoutPanelProps;
@@ -33,35 +35,51 @@ function ThemeLayoutPanel_(
   props: ThemeLayoutPanelProps,
   ref: HTMLElementRefOf<"div">,
 ) {
-  const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
-  const theme = studioCtx.site.activeTheme;
-  const layout =
-    theme?.layout ??
-    new ThemeLayoutSettings({
-      rs: new RuleSet({ values: {}, mixins: [], animations: null }),
-    });
+  const { selection: theme } = useThemeSelection(studioCtx, (state) => state.activeThemeRef);
+  return theme
+    ? <ThemeLayoutFields key={theme.uid} studio={studioCtx} themeRef={theme} panelProps={props} panelRef={ref} />
+    : <ThemeLayoutBody studio={studioCtx} panelProps={props} panelRef={ref} />;
+}
+
+function ThemeLayoutFields({ studio, themeRef, panelProps, panelRef }: {
+  studio: StudioCtx; themeRef: ModelRef<Theme>; panelProps: ThemeLayoutPanelProps; panelRef: HTMLElementRefOf<"div">;
+}) {
+  const models = studio.modelSnapshots;
+  const theme = React.useMemo(() => models.resolve(themeRef), [models, themeRef]);
+  const layoutStore = React.useMemo(() => models.field(theme, "layout"), [models, theme]);
+  const layout = useStore(layoutStore);
+  return layout
+    ? <MaterializedLayout key={layout.uid} studio={studio} theme={theme} layoutRef={layout} panelProps={panelProps} panelRef={panelRef} />
+    : <ThemeLayoutBody studio={studio} theme={theme} panelProps={panelProps} panelRef={panelRef} />;
+}
+
+function MaterializedLayout({ studio, theme, layoutRef, panelProps, panelRef }: {
+  studio: StudioCtx; theme: Theme; layoutRef: ModelRef<ThemeLayoutSettings>; panelProps: ThemeLayoutPanelProps; panelRef: HTMLElementRefOf<"div">;
+}) {
+  const models = studio.modelSnapshots;
+  const layout = React.useMemo(() => models.resolve(layoutRef), [models, layoutRef]);
+  const rsStore = React.useMemo(() => models.field(layout, "rs"), [models, layout]);
+  const rsRef = useStore(rsStore);
+  return <ThemeLayoutBody key={rsRef.uid} studio={studio} theme={theme} layout={layout} panelProps={panelProps} panelRef={panelRef} />;
+}
+
+function ThemeLayoutBody({ studio: studioCtx, theme, layout: storedLayout, panelProps: props, panelRef: ref }: {
+  studio: StudioCtx; theme?: Theme; layout?: ThemeLayoutSettings; panelProps: ThemeLayoutPanelProps; panelRef: HTMLElementRefOf<"div">;
+}) {
+  const { t: uiT } = useI18n();
+  const layout = React.useMemo(() => storedLayout ?? new ThemeLayoutSettings({
+    rs: new RuleSet({ values: {}, mixins: [], animations: null }),
+  }), [storedLayout]);
   const sc = React.useMemo(() => {
-    const baseExpr = new RuleSetHelpers(layout.rs, "div");
-    const ensureLayout = () => {
-      if (theme && !theme.layout) {
-        theme.layout = layout;
-      }
-    };
+    const baseExpr = new ThemeLayoutRuleSetHelpers(layout, theme);
     return new StyleComponent({
       expsProvider: new SingleRsExpsProvider(
         baseExpr.rs(),
-        makeExpProxy(baseExpr, {
-          get: (p: string) => {
-            return baseExpr.getRaw(p) ?? CONTENT_LAYOUT_DEFAULTS[p];
-          },
-          set: (p: string, val: string) => {
-            baseExpr.set(p, val);
-            ensureLayout();
-          },
-        }),
+        baseExpr,
         studioCtx,
         [],
+        { kind: "themeLayout", theme, layout },
       ),
     });
   }, [theme, layout, studioCtx]);
@@ -109,5 +127,5 @@ function ThemeLayoutPanel_(
   );
 }
 
-const ThemeLayoutPanel = observer(React.forwardRef(ThemeLayoutPanel_));
+const ThemeLayoutPanel = React.forwardRef(ThemeLayoutPanel_);
 export default ThemeLayoutPanel;

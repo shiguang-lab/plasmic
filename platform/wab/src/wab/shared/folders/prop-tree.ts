@@ -47,13 +47,14 @@ export function collectParams(node: PropTreeNode): Param[] {
  * Moves a sibling within its level; folders drag their descendants along.
  * Level params are compacted contiguously at the position of the first one.
  */
-export function reorderLevel(
+export function reorderLevelWithParams<T>(
   component: Component,
-  siblings: PropTreeNode[],
+  siblings: readonly T[],
+  collect: (node: T) => readonly Param[],
   fromIdx: number,
   toIdx: number,
 ) {
-  const blocks = siblings.map(collectParams);
+  const blocks = siblings.map(collect);
   moveIndex(blocks, fromIdx, toIdx);
   const newOrder = blocks.flat();
 
@@ -62,4 +63,13 @@ export function reorderLevel(
   const rest = component.params.filter((p) => !levelUids.has(p.uid));
   rest.splice(insertAt, 0, ...newOrder);
   component.params.splice(0, component.params.length, ...rest);
+}
+
+export function reorderLevel(
+  component: Component,
+  siblings: PropTreeNode[],
+  fromIdx: number,
+  toIdx: number,
+) {
+  reorderLevelWithParams(component, siblings, collectParams, fromIdx, toIdx);
 }

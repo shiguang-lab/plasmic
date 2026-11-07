@@ -25,7 +25,7 @@ export interface RenderElementProps<T> {
 
 type NodeKey = string;
 
-type RenderElement<T> = React.FunctionComponent<RenderElementProps<T>>;
+type RenderElement<T> = (props: RenderElementProps<T>) => React.ReactNode;
 
 type SelectDirection = 1 | -1;
 

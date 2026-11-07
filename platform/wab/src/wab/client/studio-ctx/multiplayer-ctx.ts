@@ -5,178 +5,205 @@ import {
   PlayerViewInfo,
   ServerPlayerInfo,
 } from "@/wab/shared/ApiSchema";
-import { asyncOneAtATime, ensure, xDifference } from "@/wab/shared/common";
+import { asyncOneAtATime, ensure } from "@/wab/shared/common";
 import { isEqual } from "lodash";
-import { observable, runInAction } from "mobx";
+import { subscribeWithSelector } from "zustand/middleware";
+import { shallow } from "zustand/shallow";
+import { createStore } from "zustand/vanilla";
 
 interface PlayerDataBase {
-  color: (typeof PLAYER_COLORS)[number];
-  viewInfo?: PlayerViewInfo;
+  readonly color: (typeof PLAYER_COLORS)[number];
+  readonly viewInfo?: Readonly<PlayerViewInfo>;
 }
-
 interface NormalPlayerData extends PlayerDataBase {
-  type: "NormalUser";
-  user: Readonly<ApiUser>;
+  readonly type: "NormalUser";
+  readonly user: Readonly<ApiUser>;
 }
-
 interface AnonPlayerData extends PlayerDataBase {
-  type: "AnonUser";
-  user?: undefined;
+  readonly type: "AnonUser";
+  readonly user?: undefined;
 }
-
 export type PlayerData = NormalPlayerData | AnonPlayerData;
-
-function isNormalPlayerData(data: PlayerData): data is NormalPlayerData {
-  return data.type === "NormalUser";
+interface MultiplayerState {
+  readonly selfId: number;
+  readonly playerIds: readonly number[];
+  readonly players: ReadonlyMap<number, PlayerData>;
 }
 
+function mergeViewInfo(
+  previous: Readonly<PlayerViewInfo> | undefined,
+  value: PlayerViewInfo | undefined,
+) {
+  if (!value) {
+    return undefined;
+  }
+  const next: PlayerViewInfo = {
+    branchId: value.branchId,
+    arenaInfo: isEqual(previous?.arenaInfo, value.arenaInfo)
+      ? previous?.arenaInfo
+      : value.arenaInfo && { ...value.arenaInfo },
+    cursorInfo: isEqual(previous?.cursorInfo, value.cursorInfo)
+      ? previous?.cursorInfo
+      : value.cursorInfo && { ...value.cursorInfo },
+    selectionInfo: isEqual(previous?.selectionInfo, value.selectionInfo)
+      ? previous?.selectionInfo
+      : value.selectionInfo && { ...value.selectionInfo },
+    positionInfo: isEqual(previous?.positionInfo, value.positionInfo)
+      ? previous?.positionInfo
+      : value.positionInfo && { ...value.positionInfo },
+  };
+  return previous && shallow(previous, next) ? previous : next;
+}
+
+/** One project connection. Rows subscribe by player ID and the fields they use. */
 export class MultiplayerCtx {
-  private _selfId = observable.box(-1);
+  // Follow selection changes at user cadence, independently of incoming packets.
+  private readonly followedPlayer = createStore<number | null>(() => null);
+  readonly followStore: Pick<
+    typeof this.followedPlayer,
+    "getState" | "getInitialState" | "subscribe"
+  > = this.followedPlayer;
+
+  setFollowedPlayer(id: number | null) {
+    this.followedPlayer.setState(id, true);
+  }
+
+  private readonly state = createStore(
+    subscribeWithSelector<MultiplayerState>(() => ({
+      selfId: -1,
+      playerIds: [],
+      players: new Map(),
+    })),
+  );
+  readonly store: Pick<
+    typeof this.state,
+    "getState" | "getInitialState" | "subscribe"
+  > = this.state;
   constructor(private studioCtx: StudioCtx) {}
 
-  get appCtx() {
-    return this.studioCtx.appCtx;
-  }
-
   updateSelfId(id: number) {
-    this._selfId.set(id);
-    this.playerIdToData.delete(id);
+    this.state.setState((previous) => {
+      if (id === previous.selfId && !previous.players.has(id)) {
+        return previous;
+      }
+      if (!previous.players.has(id)) {
+        return { ...previous, selfId: id };
+      }
+      const players = new Map(previous.players);
+      players.delete(id);
+      return {
+        selfId: id,
+        players,
+        playerIds: previous.playerIds.filter((playerId) => playerId !== id),
+      };
+    }, true);
   }
 
-  get selfId() {
-    return this._selfId.get();
+  getPlayerDataById(id: number) {
+    return this.store.getState().players.get(id);
   }
 
-  knowsSelf() {
-    return this.selfId !== -1;
-  }
-
-  private readonly playerIdToData = observable.map<number, PlayerData>(
-    undefined,
-    { deep: true },
-  );
-
-  getAllPlayerIds() {
-    return [...this.playerIdToData.keys()];
-  }
-
-  getAllPlayerData() {
-    return [...this.playerIdToData];
-  }
-
-  getPlayerDataById(playerId: number) {
-    return this.playerIdToData.get(playerId);
+  subscribePlayerPosition(id: number, listener: () => void) {
+    return this.state.subscribe(
+      (state) => {
+        const player = state.players.get(id);
+        return [
+          !!player,
+          player?.viewInfo?.branchId,
+          player?.viewInfo?.arenaInfo,
+          player?.viewInfo?.positionInfo,
+        ] as const;
+      },
+      listener,
+      { equalityFn: shallow, fireImmediately: true },
+    );
   }
 
   updateSessions = asyncOneAtATime(async (sessions: ServerPlayerInfo[]) => {
-    // Fetch missing user data
-    const userById = new Map(
-      [...this.playerIdToData.values()]
-        .filter(isNormalPlayerData)
-        .map((player) => [player.user.id, player.user]),
+    const initial = this.store.getState();
+    const users = new Map(
+      [...initial.players.values()].flatMap((player) =>
+        player.type === "NormalUser"
+          ? [[player.user.id, player.user] as const]
+          : [],
+      ),
     );
-    const dataToFetch = sessions
-      .filter(
-        (player) =>
-          player.playerId !== this.selfId &&
-          !this.playerIdToData.has(player.playerId) &&
+    const missing = [
+      ...new Set(
+        sessions.flatMap((player) =>
+          player.playerId !== initial.selfId &&
           player.type === "NormalUser" &&
-          !userById.has(player.userId),
-      )
-      .map((player) => player.userId!);
-    if (dataToFetch.length > 0) {
-      const users = await this.appCtx.api.getUsersById(dataToFetch);
-      users.users.forEach((user) => userById.set(user.id, user));
+          !users.has(player.userId)
+            ? [player.userId]
+            : [],
+        ),
+      ),
+    ];
+    if (missing.length) {
+      const response = await this.studioCtx.appCtx.api.getUsersById(missing);
+      response.users.forEach((user) => users.set(user.id, user));
     }
-
-    runInAction(() => {
-      // Remove disconnected players
-      xDifference(
-        this.playerIdToData.keys(),
-        sessions.map(({ playerId }) => playerId),
-      ).forEach((id) => this.playerIdToData.delete(id));
-
-      sessions.forEach((player) => {
-        if (player.playerId !== this.selfId) {
-          const existing = this.playerIdToData.get(player.playerId);
-          if (!existing || existing.user?.id != player.userId) {
-            // Handle new players
-            const commonData: PlayerDataBase = {
-              color:
-                PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)],
-              viewInfo: player.viewInfo,
-            };
-            if (player.type === "AnonUser") {
-              this.playerIdToData.set(player.playerId, {
-                type: "AnonUser",
-                ...commonData,
-              });
-            } else {
-              this.playerIdToData.set(player.playerId, {
-                type: "NormalUser",
-                user: ensure(
-                  userById.get(player.userId),
-                  "Should have fetched all missing data",
-                ),
-                ...commonData,
-              });
-            }
-          } else {
-            // Update existing players
-            const playerData = ensure(
-              this.playerIdToData.get(player.playerId),
-              `Expected ${player.playerId} to exist since \`existing\` is truthy: ` +
-                existing,
-            );
-            // Update ViewInfo, trying to avoid unnecessary rerenders
-            if (playerData.viewInfo && player.viewInfo) {
-              // Update SelectionInfo
-              if (
-                !isEqual(
-                  playerData.viewInfo.selectionInfo,
-                  player.viewInfo.selectionInfo,
-                )
-              ) {
-                playerData.viewInfo.selectionInfo =
-                  player.viewInfo.selectionInfo;
-              }
-              // Update CursorInfo
-              if (
-                !isEqual(
-                  playerData.viewInfo.cursorInfo,
-                  player.viewInfo.cursorInfo,
-                )
-              ) {
-                playerData.viewInfo.cursorInfo = player.viewInfo.cursorInfo;
-              }
-              // Update Branch
-              if (playerData.viewInfo.branchId !== player.viewInfo.branchId) {
-                playerData.viewInfo.branchId = player.viewInfo.branchId;
-              }
-              // Update Arena
-              if (
-                !isEqual(
-                  playerData.viewInfo.arenaInfo,
-                  player.viewInfo.arenaInfo,
-                )
-              ) {
-                playerData.viewInfo.arenaInfo = player.viewInfo.arenaInfo;
-              }
-              // Update PositionInfo
-              if (
-                !isEqual(
-                  playerData.viewInfo.positionInfo,
-                  player.viewInfo.positionInfo,
-                )
-              ) {
-                playerData.viewInfo.positionInfo = player.viewInfo.positionInfo;
-              }
-            } else if (!!playerData.viewInfo !== !!player.viewInfo) {
-              playerData.viewInfo = player.viewInfo;
-            }
+    this.state.setState((previous) => {
+      let changed: Map<number, PlayerData> | undefined;
+      const ids = new Set(sessions.map((player) => player.playerId));
+      const remove = (id: number) => {
+        changed ??= new Map(previous.players);
+        changed.delete(id);
+      };
+      const put = (id: number, player: PlayerData) => {
+        changed ??= new Map(previous.players);
+        changed.set(id, player);
+      };
+      for (const id of previous.playerIds) {
+        if (id === previous.selfId || !ids.has(id)) {
+          remove(id);
+        }
+      }
+      for (const player of sessions) {
+        if (player.playerId === previous.selfId) {
+          continue;
+        }
+        const existing = (changed ?? previous.players).get(player.playerId);
+        const sameUser =
+          existing?.type === player.type &&
+          existing?.user?.id === player.userId;
+        if (!sameUser || !existing) {
+          const common = {
+            color:
+              PLAYER_COLORS[Math.floor(Math.random() * PLAYER_COLORS.length)],
+            viewInfo: mergeViewInfo(undefined, player.viewInfo),
+          };
+          put(
+            player.playerId,
+            player.type === "AnonUser"
+              ? { type: "AnonUser", ...common }
+              : {
+                  type: "NormalUser",
+                  user: ensure(
+                    users.get(player.userId),
+                    "Should have fetched all missing data",
+                  ),
+                  ...common,
+                },
+          );
+        } else {
+          const viewInfo = mergeViewInfo(existing.viewInfo, player.viewInfo);
+          if (viewInfo !== existing.viewInfo) {
+            put(player.playerId, { ...existing, viewInfo });
           }
         }
-      });
-    });
+      }
+      if (!changed) {
+        return previous;
+      }
+      const playerIds = [...changed.keys()];
+      return {
+        ...previous,
+        players: changed,
+        playerIds: shallow(previous.playerIds, playerIds)
+          ? previous.playerIds
+          : playerIds,
+      };
+    }, true);
   }, undefined);
 }

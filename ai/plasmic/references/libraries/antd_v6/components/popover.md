@@ -14,4 +14,4 @@ Use Popover for small supplemental content with its real title/content/children 
 
 ### Editing and acceptance
 
-The wrapper's temporary previewOpen/reveal belongs to canvas editing, not saved business open state. Explicit empty content must retain its actual native/wrapper semantics instead of showing stale fallback text. Verify entering the popup, interaction, dismissal, keyboard access, viewport bounds and returned focus where appropriate. Save/reopen to ensure transient reveal and inspection state did not enter Preview or export.
+Studio's temporary selection reveal belongs to canvas editing and does not change saved business open state. MCP edits public runtime props and content Slots; selecting the target reveals content through the internal editor mechanism. Explicit empty content must retain its actual native/wrapper semantics instead of showing stale fallback text. Verify entering the popup, interaction, dismissal, keyboard access, viewport bounds and returned focus where appropriate. Save/reopen to ensure transient reveal and inspection state did not enter Preview or export.

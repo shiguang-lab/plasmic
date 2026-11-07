@@ -7,6 +7,7 @@ import {
 } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicSyncProjectSnippet";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import * as React from "react";
+import { useStore } from "zustand";
 
 // Your component props start with props for variants and slots you defined
 // in Plasmic, but you can add more here, like event handlers that you can
@@ -40,13 +41,14 @@ function SyncProjectSnippet(props: SyncProjectSnippetProps) {
   // to do whatever works for you.
 
   const studioCtx = useStudioCtx();
+  const projectId = useStore(studioCtx.projectMetadataStore, (state) => state.id);
   return (
     <PlasmicSyncProjectSnippet {...props}>
       <DocsCodeSnippet
         data-plasmic-name={"docsCodeSnippet"}
         language={"bash" as const}
       >
-        {`plasmic sync --projects ${studioCtx.siteInfo.id}`}
+        {`plasmic sync --projects ${projectId}`}
       </DocsCodeSnippet>
     </PlasmicSyncProjectSnippet>
   );

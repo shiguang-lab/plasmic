@@ -1,0 +1,123 @@
+{
+  "date": "2026-11-06",
+  "status": "partial",
+  "retiredIntegrations": [
+    "plasmic-rich-components",
+    "dnd-kit",
+    "react-quill",
+    "rive",
+    "react-youtube"
+  ],
+  "retiredExclusiveDependencies": [
+    "@ant-design/pro-components",
+    "ant-design-pro-form-stub",
+    "react-quill-new",
+    "quill-delta"
+  ],
+  "preserved": [
+    "Studio drag-and-drop",
+    "Slate rich text",
+    "QueryBuilder @dnd-kit/core",
+    "auth, data-source CRUD and form coverage"
+  ],
+  "publicComponentReleaseCount": 59,
+  "versions": {
+    "react": "19.3.1",
+    "antd": "6.7.0"
+  },
+  "checks": {
+    "workspaceTests": {
+      "files": 95,
+      "passed": 738,
+      "log": "u15-retirement-workspace-tests.log"
+    },
+    "wabTargetedTests": {
+      "files": 5,
+      "passed": 82,
+      "log": "u15-retirement-wab-targeted-tests.log"
+    },
+    "queryBuilderAndRetainedFixtures": {
+      "files": 3,
+      "passed": 25,
+      "log": "u15-retained-query-and-fixtures-tests.log"
+    },
+    "sdkRefCleanup": {
+      "passed": 7,
+      "redBeforeFix": 3,
+      "log": "u15-ref-cleanup-after.log"
+    },
+    "studioRefCleanup": {
+      "passed": 2,
+      "log": "u15-studio-ref-cleanup-tests.log"
+    },
+    "canvasRuntime": {
+      "passed": 5,
+      "log": "u15-optional-retirement-canvas-runtime.log"
+    },
+    "declarationBuilds": {
+      "passed": 9,
+      "log": "u15-current-components-build-4.log"
+    },
+    "wabTypecheck": {
+      "exitCode": 0,
+      "log": "u15-current-wab-typecheck.log"
+    },
+    "platformPeers": {
+      "exitCode": 0,
+      "log": "u15-retirement-platform-peers.log"
+    },
+    "lint": {
+      "errors": 0,
+      "existingWarnings": 12,
+      "log": "u15-retirement-lint-2.log"
+    },
+    "pokedexBrowser": {
+      "passed": true,
+      "scope": "Generated code and real SDK/Antd, isolated HTTP data-operation fixture; not PostgreSQL backend E2E",
+      "mutationsExactlyOnce": [
+        "create",
+        "update",
+        "delete"
+      ],
+      "errors": [],
+      "log": "u15-pokedex-browser-5.log"
+    }
+  },
+  "independentPublicConsumer": {
+    "packages": 59,
+    "strictPeerInstall": true,
+    "productionBuild": true,
+    "browserModuleEvaluation": true,
+    "actionGroupClicks": true,
+    "browserErrors": [],
+    "skipLibCheck": false,
+    "declarationCheck": "failed",
+    "upstreamDeclarationErrors": [
+      {
+        "package": "@rc-component/image",
+        "typescriptCode": "TS2430"
+      },
+      {
+        "package": "@vercel/fetch",
+        "typescriptCode": "TS2498"
+      },
+      {
+        "package": "swell-js",
+        "typescriptCode": "TS2304"
+      }
+    ],
+    "ownPackageDeclarationErrors": 0,
+    "lockfileSha256": "19b5923a8cf550b4aab911f3706d6b19fa2ea0f63cb991a317a44092529b07da",
+    "externalPublication": false
+  },
+  "remaining": [
+    "Upstream public declaration diagnostics",
+    "Actual CLI/backend protocol regression",
+    "Full MobX replacement: 426 files remain",
+    "Final performance and memory comparison",
+    "Measured startup regressions exceed thresholds and require diagnosis/fix"
+  ],
+  "logsArePrivate": true,
+  "runtimeEvidence": "runtime-verification-u15.json",
+  "performanceEvidence": "performance-u15.json"
+}

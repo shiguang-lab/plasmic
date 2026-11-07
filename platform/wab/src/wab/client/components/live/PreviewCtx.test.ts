@@ -1,3 +1,6 @@
+import { toOpaque } from "@/wab/commons/types";
+import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { waitFor } from "@testing-library/react";
 import {
   PreviewCtx,
   getUrlsForLiveMode,
@@ -7,8 +10,8 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { mkComponentVariantGroup, mkVariant } from "@/wab/shared/Variants";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkParam } from "@/wab/shared/core/lang";
-import { createSite } from "@/wab/shared/core/sites";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
+import type { ChangeSummary } from "@/wab/shared/model/model-change-util";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { createMemoryHistory } from "history";
 
@@ -16,25 +19,23 @@ vi.mock("@/wab/client/components/canvas/studio-canvas-util", () => ({
   showCanvasPageNavigationNotification: vi.fn(),
 }));
 
-function setup(hash = "") {
+async function setup(hash = "") {
   const history = createMemoryHistory({
     initialEntries: [
       `/projects/project/preview${hash.replace(/^#/, "?")}#/groups`,
     ],
   });
-  const ctx = Object.create(PreviewCtx.prototype) as PreviewCtx;
-  ctx.hostFrameCtx = { history } as unknown as HostFrameCtx;
-  ctx.studioCtx = {
-    siteInfo: { id: "project" },
-    site: createSite(),
-    appCtx: { history },
-  } as unknown as StudioCtx;
+  const { studioCtx: studio } = fakeStudioCtx({ siteInfo: { id: toOpaque("project") } });
+  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  studio.appCtx.history = history;
+  vi.spyOn(studio, "closeEditorPanels").mockImplementation(() => undefined);
+  const ctx = new PreviewCtx({ history } as unknown as HostFrameCtx, studio);
   vi.spyOn(ctx, "getLocation").mockImplementation(async () => history.location);
   return { ctx, history };
 }
 
 test("ordinary preview defaults to desktop without carrying artboard dimensions", async () => {
-  const { ctx, history } = setup("#width=1440&height=848");
+  const { ctx, history } = await setup("#width=1440&height=848");
   await ctx.parseRoute();
   expect(ctx.viewport).toBe("desktop");
   await ctx.pushViewport({ viewport: "desktop", width: 1600, height: 872 });
@@ -43,7 +44,7 @@ test("ordinary preview defaults to desktop without carrying artboard dimensions"
 });
 
 test("Preview operations await the host history bridge before reporting their state", async () => {
-  const { ctx, history } = setup();
+  const { ctx, history } = await setup();
   await ctx.parseRoute();
   const host = createMemoryHistory({
     initialEntries: ["/projects/project/preview#/groups"],
@@ -72,13 +73,13 @@ test("Preview operations await the host history bridge before reporting their st
 test.each(["phone", "tablet", "custom"] as const)(
   "%s viewport survives page navigation and route rereading",
   async (viewport) => {
-    const { ctx, history } = setup();
+    const { ctx, history } = await setup();
     await ctx.parseRoute();
     await ctx.pushViewport({ viewport, width: 844, height: 390 });
     await ctx.parseRoute();
     await ctx.handleNavigation("/details");
     expect(history.location.hash).toBe("#/details");
-    const reopened = setup(history.location.search);
+    const reopened = await setup(history.location.search);
     await reopened.ctx.parseRoute();
     expect(reopened.ctx.viewport).toBe(viewport);
     expect([reopened.ctx.width, reopened.ctx.height]).toEqual([844, 390]);
@@ -86,13 +87,13 @@ test.each(["phone", "tablet", "custom"] as const)(
 );
 
 test("invalid dimensions fall back to the selected device, never NaN or a fractional viewport", async () => {
-  const { ctx } = setup("#viewport=phone&width=NaN&height=300.5");
+  const { ctx } = await setup("#viewport=phone&width=NaN&height=300.5");
   await ctx.parseRoute();
   expect([ctx.width, ctx.height]).toEqual([390, 844]);
 });
 
 test("native navigation keeps business paths and encoded context inside Preview history", async () => {
-  const { ctx, history } = setup();
+  const { ctx, history } = await setup();
   await ctx.parseRoute();
   await ctx.pushViewport({ viewport: "custom", width: 1440, height: 720 });
   await ctx.handleNavigation(
@@ -113,7 +114,7 @@ test("native navigation keeps business paths and encoded context inside Preview 
 });
 
 test("a standalone presentation reads the hash route and retains its short code", async () => {
-  const { ctx, history } = setup();
+  const { ctx, history } = await setup();
   history.replace("/d/0123456789?branch=design#/groups?tag=a&tag=b#rules");
   await ctx.parseRoute();
   expect(ctx.full).toBe(true);
@@ -125,7 +126,7 @@ test("a standalone presentation reads the hash route and retains its short code"
 });
 
 test("explicit addresses for another presentation stay outside the current draft route", async () => {
-  const { ctx, history } = setup();
+  const { ctx, history } = await setup();
   history.replace("/d/0123456789#/groups?tag=a");
   await ctx.parseRoute();
   expect(ctx.hrefForNavigation("/d/abcdefghij#/details/7")).toBeUndefined();
@@ -137,7 +138,7 @@ test("explicit addresses for another presentation stay outside the current draft
 });
 
 test("modified links carry the same variant settings as ordinary business navigation", async () => {
-  const { ctx, history } = setup();
+  const { ctx, history } = await setup();
   await ctx.parseRoute();
   const variant = mkVariant({ name: "compact" });
   mkComponentVariantGroup({
@@ -151,7 +152,7 @@ test("modified links carry the same variant settings as ordinary business naviga
   if (!ctx.previewData) {
     throw new Error("Expected preview data");
   }
-  ctx.previewData.allVariants = [variant];
+  ctx.previewData = { ...ctx.previewData, allVariants: [variant] };
   const samePage = new URL(ctx.hrefForNavigation("?tab=next") as string);
   expect(new URLSearchParams(samePage.search).get("variants")).toBe(
     '{"size":"compact"}',
@@ -163,7 +164,7 @@ test("modified links carry the same variant settings as ordinary business naviga
 });
 
 test("a malformed authority-like hash cannot crash draft presentation parsing", async () => {
-  const { ctx, history } = setup();
+  const { ctx, history } = await setup();
   history.replace("/d/0123456789#//");
   await ctx.parseRoute();
   expect(ctx.isLive).toBe(true);
@@ -171,23 +172,21 @@ test("a malformed authority-like hash cannot crash draft presentation parsing", 
   expect(ctx.component).toBeUndefined();
 });
 
-function navigationSetup() {
+async function navigationSetup() {
   const history = createMemoryHistory({
     initialEntries: ["/projects/project"],
   });
-  const studio = {
-    siteInfo: { id: "project" },
-    site: createSite(),
-    appCtx: { history },
-    closeEditorPanels: vi.fn(),
-  } as unknown as StudioCtx;
+  const { studioCtx: studio } = fakeStudioCtx({ siteInfo: { id: toOpaque("project") } });
+  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  studio.appCtx.history = history;
+  vi.spyOn(studio, "closeEditorPanels").mockImplementation(() => undefined);
   const ctx = new PreviewCtx({ history } as unknown as HostFrameCtx, studio);
   history.push("/projects/project/preview#/groups");
   return { ctx, history };
 }
 
 test("Preview back/forward stay within business page history, preserving viewport and editor exit", async () => {
-  const { ctx, history } = navigationSetup();
+  const { ctx, history } = await navigationSetup();
   try {
     await ctx.parseRoute();
     const go = vi.spyOn(history, "go");
@@ -221,7 +220,7 @@ test("Preview back/forward stay within business page history, preserving viewpor
 });
 
 test("query/hash navigation and a new destination after back update Preview history; refresh keeps it", async () => {
-  const { ctx, history } = navigationSetup();
+  const { ctx, history } = await navigationSetup();
   try {
     await ctx.parseRoute();
     await ctx.handleNavigation("/groups?page=2");
@@ -245,7 +244,7 @@ test("query/hash navigation and a new destination after back update Preview hist
 });
 
 test("Preview traversal awaits the host bridge and ignores repeated clicks during navigation", async () => {
-  const { ctx, history } = navigationSetup();
+  const { ctx, history } = await navigationSetup();
   try {
     await ctx.parseRoute();
     await ctx.handleNavigation("/details");
@@ -272,7 +271,7 @@ test("Preview traversal awaits the host bridge and ignores repeated clicks durin
 });
 
 test("relative links, query-only links, repeated values and anchors share business resolution", async () => {
-  const { ctx, history } = setup();
+  const { ctx, history } = await setup();
   history.replace(
     "/projects/project/preview?branch=design#/coupons/42?tag=a&tag=b",
   );
@@ -290,7 +289,7 @@ test("relative links, query-only links, repeated values and anchors share busine
 });
 
 test("non-page targets stay in presentation context, not business routes", async () => {
-  const { ctx, history } = setup();
+  const { ctx, history } = await setup();
   const component = mkComponent({
     name: "Widget",
     type: ComponentType.Plain,
@@ -326,16 +325,14 @@ test("non-page targets stay in presentation context, not business routes", async
 });
 
 test("opening a presentation preserves the current draft page and separates branch from business query", async () => {
-  const { ctx, history } = setup();
+  const { ctx, history } = await setup();
   history.replace(
     "/projects/project/preview?branch=design#/coupons/42?branch=business&tag=a&tag=b#rules",
   );
   await ctx.parseRoute();
   ctx.studioCtx.previewCtx = ctx;
   const create = vi.fn().mockResolvedValue({ code: "0123456789" });
-  ctx.studioCtx.appCtx.api = {
-    createPresentation: create,
-  } as unknown as typeof ctx.studioCtx.appCtx.api;
+  ctx.studioCtx.appCtx.api.createPresentation = create;
   const location = await getUrlsForLiveMode(ctx.studioCtx, true);
   expect(create).toHaveBeenCalledExactlyOnceWith("project");
   expect(location).toEqual({
@@ -343,4 +340,57 @@ test("opening a presentation preserves the current draft page and separates bran
     search: "?branch=design",
     hash: "#/coupons/42?branch=business&tag=a&tag=b#rules",
   });
+});
+
+test("native route snapshots retain identity for a no-op parse and publish immutable model references", async () => {
+  const { ctx, history } = await setup();
+  const component = mkComponent({ name: "Widget", type: ComponentType.Plain, tplTree: mkTplTagX("div") });
+  ctx.studioCtx.site.components.push(component);
+  history.replace(`/projects/project/preview?component=${component.uuid}#/`);
+  await ctx.parseRoute();
+  const state = ctx.store.getState();
+  const changed = vi.fn();
+  const stop = ctx.store.subscribe(changed);
+  await ctx.parseRoute();
+  expect(ctx.store.getState()).toBe(state);
+  expect(changed).not.toHaveBeenCalled();
+  const route = state.previewData;
+  expect(typeof route?.componentPath).toBe("object");
+  if (route && typeof route.componentPath !== "string") {
+    expect(route.componentPath.component).toEqual({ uid: component.uid, type: "Component" });
+    expect(route.componentPath.component).not.toBe(component);
+    expect(Object.isFrozen(route.componentPath.component)).toBe(true);
+  }
+  ctx.dispose();
+  ctx.refresh();
+  await ctx.parseRoute();
+  expect(changed).not.toHaveBeenCalled();
+  stop();
+});
+
+test("target labels publish after a completed model event and preserve unaffected row identities", async () => {
+  const { ctx, history } = await setup();
+  ctx.dispose();
+  const first = mkComponent({ name: "First", type: ComponentType.Plain, tplTree: mkTplTagX("div") });
+  const second = mkComponent({ name: "Second", type: ComponentType.Plain, tplTree: mkTplTagX("div") });
+  ctx.studioCtx.site.components.push(first, second);
+  const listeners = new Set<Parameters<StudioCtx["subscribeModelChanges"]>[0]>();
+  ctx.studioCtx.subscribeModelChanges = (listener) => {
+    listeners.add(listener);
+    return () => { listeners.delete(listener); };
+  };
+  const preview = new PreviewCtx({ history } as unknown as HostFrameCtx, ctx.studioCtx);
+  await preview.parseRoute();
+  const before = preview.store.getState().targets;
+  first.name = "Renamed";
+  expect(before[0].name).toBe("First");
+  const changeNode = { inst: first, field: "name" };
+  const summary = { changes: [{ type: "update", changeNode, path: [{ inst: ctx.studioCtx.site, field: "components" }, changeNode], oldValue: "First", newValue: "Renamed" }] } as ChangeSummary;
+  listeners.forEach((listener) => listener({ type: "commit", summary }));
+  const after = preview.store.getState().targets;
+  expect(after[0].name).toBe("Renamed");
+  expect(after[1]).toBe(before[1]);
+  expect(Object.isFrozen(after[0])).toBe(true);
+  preview.dispose();
+  expect(listeners.size).toBe(0);
 });

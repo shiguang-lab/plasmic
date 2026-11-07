@@ -20,7 +20,6 @@ import { Interaction } from "@/wab/shared/model/classes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { notification } from "antd";
 import cn from "classnames";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 export interface DataPickerColumnItemProps extends Omit<
@@ -100,5 +99,5 @@ function DataPickerColumnItem_(
   );
 }
 
-const DataPickerColumnItem = observer(React.forwardRef(DataPickerColumnItem_));
+const DataPickerColumnItem = React.forwardRef(DataPickerColumnItem_);
 export default DataPickerColumnItem;

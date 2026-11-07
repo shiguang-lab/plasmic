@@ -21,7 +21,7 @@ export function AntdPagination(props: AntdPaginationProps) {
       itemRender={
         paginatedUrl
           ? (pageNo, _, originalElement) => {
-              if (!React.isValidElement(originalElement) || !props.pageSize) {
+              if (!React.isValidElement<React.AnchorHTMLAttributes<HTMLAnchorElement>>(originalElement) || !props.pageSize) {
                 return originalElement;
               }
               let rel = undefined;
@@ -41,9 +41,9 @@ export function AntdPagination(props: AntdPaginationProps) {
                 ...originalElement.props,
                 rel,
                 href,
-                style: {
-                  ...(originalElement.props?.style ?? {}),
-                  pointerEvents: "none",
+                onClick: (event) => {
+                  originalElement.props.onClick?.(event);
+                  event.preventDefault();
                 },
               });
             }

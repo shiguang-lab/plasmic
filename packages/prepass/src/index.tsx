@@ -3,7 +3,7 @@ import {
   HeadMetadataContext,
   PlasmicPrepassContext,
 } from "@plasmicapp/query";
-import prepass, { ClientReferenceVisitor } from "@plasmicapp/react-ssr-prepass";
+
 import React from "react";
 
 interface PlasmicPrepassData {
@@ -15,8 +15,7 @@ interface PlasmicPrepassData {
  * Runs prepass on the React tree and returns all data for prerendering a Plasmic page.
  */
 export async function plasmicPrepassExtract(
-  element: React.ReactElement,
-  onClientComponentRef?: ClientReferenceVisitor
+  element: React.ReactElement
 ): Promise<PlasmicPrepassData> {
   const cache = new Map<string, any>();
   const headMetadata: HeadMetadata = {};
@@ -26,8 +25,7 @@ export async function plasmicPrepassExtract(
         <HeadMetadataContext.Provider value={headMetadata}>
           {element}
         </HeadMetadataContext.Provider>
-      </PlasmicPrepassContext>,
-      onClientComponentRef
+      </PlasmicPrepassContext>
     );
   } catch (err) {
     console.warn(`PLASMIC: Error encountered while pre-rendering`, err);
@@ -67,18 +65,18 @@ export async function plasmicPrepassExtract(
  * Runs prepass on the React tree and returns query data for prerendering a Plasmic page.
  */
 export async function extractPlasmicQueryData(
-  element: React.ReactElement,
-  onClientComponentRef?: ClientReferenceVisitor
+  element: React.ReactElement
 ): Promise<Record<string, any>> {
-  return (await plasmicPrepassExtract(element, onClientComponentRef)).queryData;
+  return (await plasmicPrepassExtract(element)).queryData;
 }
 
 /**
  * Runs prepass on the React tree.
  */
 export async function plasmicPrepass(
-  element: React.ReactElement,
-  onClientComponentRef?: ClientReferenceVisitor
+  element: React.ReactElement
 ) {
-  await prepass(element, undefined, onClientComponentRef);
+  const { prerender } = await import("react-dom/static");
+  const { prelude } = await prerender(element);
+  await prelude.cancel();
 }

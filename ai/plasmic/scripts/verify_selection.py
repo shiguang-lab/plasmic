@@ -786,7 +786,7 @@ def table_feature_sections(plan):
             continue
         names = set(values) | {name.split('.')[0] for name in dynamic if isinstance(name, str)}
         if key == 'plasmicantd6table' and names & {
-                'expandable', 'expandedRowRender', 'canvasExpandedRowKeys', 'onExpand', 'onExpandedRowsChange'}:
+                'expandable', 'expandedRowRender', 'onExpand', 'onExpandedRowsChange'}:
             needed.add(expansion)
         if key == 'plasmicantd6tablecolumn' and names & {
                 'sorter', 'defaultSortOrder', 'sortOrder', 'sortDirections'}:

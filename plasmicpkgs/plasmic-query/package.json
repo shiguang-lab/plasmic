@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/plasmic-query",
-  "version": "0.0.281",
+  "version": "0.1.0",
   "description": "Plasmic components and registration calls for data fetching",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -43,9 +43,9 @@
     "tslib": "catalog:"
   },
   "peerDependencies": {
-    "@plasmicapp/host": ">=1.0.0",
-    "@plasmicapp/query": ">=0.1.0",
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "@plasmicapp/host": "^3.0.0",
+    "@plasmicapp/query": "^0.2.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }

@@ -5,7 +5,6 @@ import {
 import { ensure } from "@/wab/shared/common";
 import L from "lodash";
 import * as React from "react";
-import * as ReactDOM from "react-dom";
 
 interface Ellipse {
   cx: number;
@@ -25,9 +24,7 @@ export class EllipseControl extends React.Component<EllipseControlProps> {
 
   private getDragPcts(e: XDraggableEvent) {
     const orig = ensure(this.initEllipse);
-    const area = (
-      ReactDOM.findDOMNode(ensure(this.svg)) as SVGElement
-    ).getBoundingClientRect();
+    const area = ensure(this.svg).getBoundingClientRect();
     const dx = (e.data.deltaX / area.width) * 100;
     const dy = (e.data.deltaY / area.height) * 100;
 

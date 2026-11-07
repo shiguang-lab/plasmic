@@ -10,13 +10,11 @@ import {
 import { ExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { useI18n } from "@/wab/client/i18n";
 import { LENGTH_PERCENTAGE_UNITS } from "@/wab/shared/css/types";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const ContentLayoutContainerControls = observer(
-  function ContentLayoutContainerControls(props: {
-    expsProvider: ExpsProvider;
-  }) {
+export function ContentLayoutContainerControls(_props: {
+  expsProvider: ExpsProvider;
+}) {
     const { t: uiT } = useI18n();
     return (
       <>
@@ -44,8 +42,7 @@ export const ContentLayoutContainerControls = observer(
         />
       </>
     );
-  },
-);
+}
 
 const xValues = ["flex-start", "center", "flex-end", "stretch"] as const;
 

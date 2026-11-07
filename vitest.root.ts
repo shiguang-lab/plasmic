@@ -20,7 +20,8 @@ function packageDirs(...parents: string[]) {
           entry.isDirectory() &&
           fs.existsSync(
             path.join(__dirname, parent, entry.name, "package.json")
-          )
+          ) &&
+          !/^(node|tsx) --test\b/.test(JSON.parse(fs.readFileSync(path.join(__dirname, parent, entry.name, "package.json"), "utf8")).scripts?.test ?? "")
       )
       .map((entry) => `${parent}/${entry.name}`)
   );

@@ -1,4 +1,5 @@
 import { expect, Locator, Page } from "@playwright/test";
+import { NEXTJS_TEST_VERSIONS } from "../../env";
 
 import { test } from "../../fixtures";
 import {
@@ -56,9 +57,7 @@ test.describe(`NextJS Subtree Prefetching Config`, () => {
       bundleFile: "subtree-prefetching-config.json",
       projectName: "Subtree Prefetching Config",
       template: "template-app",
-      loaderVersion: "latest",
-      nextVersion: "16",
-      reactVersion: "latest",
+      ...NEXTJS_TEST_VERSIONS,
     });
   });
 

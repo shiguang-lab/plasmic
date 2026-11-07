@@ -1,3 +1,5 @@
+import { useFocusedViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { HighlightBlinker } from "@/wab/commons/components/HighlightBlinker";
 import { showError } from "@/wab/client/ErrorNotifications";
 
@@ -89,7 +91,9 @@ import {
   DefaultInsertPanelProps,
   PlasmicInsertPanel,
 } from "@/wab/client/plasmic/plasmic_kit_insert_panel/PlasmicInsertPanel";
+import { selectShowInlineAddDrawer } from "@/wab/client/studio-ctx/left-panel-state";
 import { normalizeTemplateSpec, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { isFlexContainer } from "@/wab/client/utils/tpl-client-utils";
@@ -174,6 +178,7 @@ import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { useMemo, useState } from "react";
+import { useStore } from "zustand";
 import { FocusScope } from "react-aria";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { areEqual, VariableSizeList } from "react-window";
@@ -230,7 +235,7 @@ export interface InsertPanelProps extends DefaultInsertPanelProps {
   mode?: "insert" | "store";
 }
 
-export const InsertPanel = observer(function InsertPanel_({
+export const InsertPanel = function InsertPanel_({
   onClose,
   mode = "insert",
   ...props
@@ -303,7 +308,7 @@ export const InsertPanel = observer(function InsertPanel_({
       </div>
     </FocusScope>
   );
-});
+};
 // export const InsertPanel = React.forwardRef(InsertPanel_);
 export default InsertPanel;
 
@@ -385,6 +390,8 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     onClose,
     recentItems,
   } = props;
+  useFocusedViewSelection(studioCtx, (state) => state.targets);
+  const includeFrames = useStudioArena(studioCtx, (state) => state.kind === "mixed");
   const inputRef = React.useRef<InputRef | null>(null);
   const contentRef = React.useRef<HTMLElement>(null);
   const listRef = React.useRef<VariableSizeList>(null);
@@ -396,8 +403,12 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
   const [highlightSection, setHighlightSection] = useState<string | undefined>(
     undefined,
   );
+  const showInlineAddDrawer = useStore(
+    studioCtx.leftPanelState.store,
+    selectShowInlineAddDrawer,
+  );
 
-  const filterToTarget = !storeMode && studioCtx.showInlineAddDrawer();
+  const filterToTarget = !storeMode && showInlineAddDrawer;
   const [selectedPlacementIndex, setSelectedPlacementIndex] = useState(0);
   const insertLoc =
     getPlacementOptions(studioCtx)[selectedPlacementIndex].insertLoc;
@@ -407,9 +418,26 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     studioCtx.site.projectDependencies.slice(),
   );
 
-  const canSave =
-    studioCtx.canSave() &&
-    (!storeMode || studioCtx.getLeftTabPermission("libraries") === "writable");
+  const canSavePermission = useStudioSaveState(
+    studioCtx,
+    (state) => state.canSave,
+  );
+  const librariesAccess = useStore(
+    studioCtx.uiEnvironment.store,
+    (state) => state.leftTabPermissions.libraries,
+  );
+  const hasSavePermission = (access?: {
+    canSave: boolean;
+    librariesWritable: boolean;
+  }) =>
+    (access?.canSave ?? studioCtx.canSave()) &&
+    (!storeMode ||
+      (access?.librariesWritable ??
+        (studioCtx.getLeftTabPermission("libraries") === "writable")));
+  const canSave = hasSavePermission({
+    canSave: canSavePermission,
+    librariesWritable: librariesAccess === "writable",
+  });
   const imageAssetsKey = studioCtx.site.imageAssets
     .map((asset) => `${asset.uuid}:${asset.name}:${asset.dataUri}`)
     .join("|");
@@ -421,11 +449,12 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
       uiLocale: locale,
       studioCtx,
       matcher: new Matcher(""),
-      includeFrames: isKnownArena(studioCtx.currentArena),
+      includeFrames,
       recentItems: [],
       filterToTarget,
       insertLoc,
       projectDependencies,
+      canSave: canSavePermission,
     });
     return groupBy(allItemGroups, (group) => group.familyKey ?? "");
   }, [
@@ -437,6 +466,8 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     category,
     imageAssetsKey,
     canSave,
+    canSavePermission,
+    includeFrames,
   ]);
   const allFamilies = groupBy(
     filterResourceGroups(
@@ -510,11 +541,12 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
         uiLocale: locale,
         studioCtx: studioCtx,
         matcher: matcher,
-        includeFrames: isKnownArena(studioCtx.currentArena),
+        includeFrames,
         recentItems,
         filterToTarget,
         insertLoc,
         projectDependencies,
+        canSave: canSavePermission,
       });
       if (!query) {
         groupedItems = filterResourceGroups(groupedItems, category);
@@ -631,6 +663,8 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
       storeContents,
       imageAssetsKey,
       canSave,
+      canSavePermission,
+      includeFrames,
       iconQuery,
       iconTheme,
       locale,
@@ -724,7 +758,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
   const pendingPageCreation = React.useRef(false);
   const [creatingPage, setCreatingPage] = React.useState(false);
   const onInsert = spawnWrapper(async (item: AddItem) => {
-    if (!canSave || item.isDisabled || shouldInterceptOnInsert(item)) {
+    if (!hasSavePermission() || item.isDisabled || shouldInterceptOnInsert(item)) {
       return;
     }
 
@@ -1264,7 +1298,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
                 (candidate) =>
                   candidate.type === AddItemType.fake && candidate.isPackage,
               );
-            if (item && canSave) {
+            if (item && hasSavePermission()) {
               onInsert(item);
             }
           }}
@@ -1715,6 +1749,7 @@ export function buildAddItemGroups({
   filterToTarget,
   insertLoc,
   projectDependencies,
+  canSave,
 }: {
   uiLocale: UiLocale;
   includeFrames?: boolean;
@@ -1724,6 +1759,7 @@ export function buildAddItemGroups({
   filterToTarget?: boolean;
   insertLoc?: InsertRelLoc;
   projectDependencies: Array<ProjectDependency>;
+  canSave: boolean;
 }): AddItemGroup[] {
   const localizeLabel = (text: string) => translateUiLabel(uiLocale, text);
   const uiConfig = studioCtx.getCurrentUiConfig();
@@ -2065,7 +2101,7 @@ export function buildAddItemGroups({
               .filter((item) => item.onlyShownIn !== "old")
               .map((meta) => ({
                 ...createAddPageTemplate(meta),
-                isDisabled: !studioCtx.canSave(),
+                isDisabled: !canSave,
               })),
           }))
       : []),

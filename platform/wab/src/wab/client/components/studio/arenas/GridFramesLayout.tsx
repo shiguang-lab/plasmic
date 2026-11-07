@@ -1,3 +1,5 @@
+import { useFrameHeights } from "@/wab/client/studio-ctx/frame-heights";
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { CanvasFrame } from "@/wab/client/components/canvas/CanvasFrame";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import sty from "@/wab/client/components/studio/arenas/GridFramesLayout.module.sass";
@@ -99,6 +101,12 @@ function ArenaGridRowLabel_(props: {
   style?: React.CSSProperties;
 }) {
   const { studioCtx, children, style } = props;
+  const viewportZoom = useCanvasZoom(studioCtx);
+  const heightFrames = switchType(props.arena)
+    .when(ComponentArena, (arena) => arena.matrix.rows[0]?.cols[0]?.frame ? [arena.matrix.rows[0].cols[0].frame] : [])
+    .when(PageArena, (arena) => arena.matrix.rows.flatMap((row) => row.cols.map((cell) => cell.frame)))
+    .elseUnsafe(() => []);
+  useFrameHeights(studioCtx, heightFrames);
 
   const minRowHeight = switchType(props.arena)
     .when(ComponentArena, (arena) =>
@@ -124,7 +132,7 @@ function ArenaGridRowLabel_(props: {
       className={sty.rowLabel}
       style={{
         transform: `scale(${Math.min(
-          1 / studioCtx.zoom,
+          1 / viewportZoom,
           minRowHeight / 27 /* label line-height */,
         )})`,
         ...style,

@@ -1,5 +1,5 @@
 import { Menu as NativeMenu } from "antd";
-import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from "@plasmicapp/host";
+import { PlasmicCanvasProps, usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from "@plasmicapp/host";
 import { renderCanvasSlot } from "./canvas-overlay";
 import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
@@ -32,7 +32,7 @@ export function menuChildrenToItems(
     [];
   const visit = (nodes: React.ReactNode) =>
     React.Children.forEach(nodes, (child) => {
-      if (!React.isValidElement(child)) {
+      if (!React.isValidElement<React.ComponentProps<typeof NativeMenu.Item> & { title?: React.ReactNode }>(child)) {
         return;
       }
       const { children: content, title, ...rest } = child.props;
@@ -61,12 +61,13 @@ export function menuChildrenToItems(
   visit(children);
   return result;
 }
-export function AntdMenu(props: React.ComponentProps<typeof NativeMenu>) {
-  return props.items !== undefined ? <NativeMenu {...props} /> : renderCanvasSlot(props.children, (children) => <MenuWithChildren {...props} children={children} />);
+export function AntdMenu(props: React.ComponentProps<typeof NativeMenu> & PlasmicCanvasProps) {
+  const { __canvas: _canvas, ...nativeProps } = props;
+  return props.items !== undefined ? <NativeMenu {...nativeProps} /> : renderCanvasSlot(props.children, (children) => <MenuWithChildren {...props} children={children} />);
 }
 
-function MenuWithChildren(props: React.ComponentProps<typeof NativeMenu>) {
-  const { children, openKeys, defaultOpenKeys, onOpenChange, ...rest } = props;
+function MenuWithChildren(props: React.ComponentProps<typeof NativeMenu> & PlasmicCanvasProps) {
+  const { children, openKeys, defaultOpenKeys, onOpenChange, __canvas: _canvas, ...rest } = props;
   const canvas = usePlasmicCanvasContext();
   const info = usePlasmicCanvasComponentInfo(props);
   const state = canvas ? info?.getState?.("openKeys", openKeys, defaultOpenKeys) : undefined;
@@ -74,9 +75,9 @@ function MenuWithChildren(props: React.ComponentProps<typeof NativeMenu>) {
   const selectedKeys: string[] = [];
   const visit = (nodes: typeof items, ancestors: string[]) => nodes.forEach((item) => {
     if (!item) {return;}
-    const data = item as typeof item & { __plasmic_selection_prop__?: { isSelected?: boolean }; children?: typeof items };
+    const data = item as typeof item & PlasmicCanvasProps & { children?: typeof items };
     const path = data.children && data.type !== "group" ? [...ancestors, String(data.key)] : ancestors;
-    if (data.__plasmic_selection_prop__?.isSelected) {selectedKeys.push(...path);}
+    if (data.__canvas?.selected) {selectedKeys.push(...path);}
     if (data.children) {visit(data.children, path);}
   });
   if (canvas && !canvas.interactive) {visit(items, []);}

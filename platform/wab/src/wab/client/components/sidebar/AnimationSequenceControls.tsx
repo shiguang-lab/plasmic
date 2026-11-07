@@ -1,3 +1,5 @@
+import { useShallow } from "zustand/react/shallow";
+import { useStore } from "zustand";
 import { showError } from "@/wab/client/ErrorNotifications";
 import ListItem from "@/wab/client/components/ListItem";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
@@ -94,8 +96,7 @@ interface AnimationSequenceRowProps {
   onFindReferences: () => void;
 }
 
-const AnimationSequenceEditModal = observer(
-  function AnimationSequenceEditModal(props: {
+export function AnimationSequenceEditModal(props: {
     studioCtx: StudioCtx;
     sequence: AnimationSequence;
     show: boolean;
@@ -104,14 +105,18 @@ const AnimationSequenceEditModal = observer(
   }) {
     const { t: uiT } = useI18n();
     const { studioCtx, sequence } = props;
+    const sequenceName = useStore(studioCtx.modelSnapshots.field(sequence, "name"));
+    const [firstKeyframe, keyframeCount] = useStore(
+      studioCtx.modelSnapshots.field(sequence, "keyframes"),
+      useShallow((keyframes) => [keyframes[0], keyframes.length] as const),
+    );
     const [selectedKeyframe, setSelectedKeyframe] = React.useState<
       KeyFrame | undefined
-    >(sequence.keyframes.length > 0 ? sequence.keyframes[0] : undefined);
-    const vsh = new VariantedStylesHelper(studioCtx.site);
+    >(() => firstKeyframe ? studioCtx.modelSnapshots.resolve(firstKeyframe) : undefined);
 
     // Create a default keyframe if none exist
     React.useEffect(() => {
-      if (sequence.keyframes.length === 0) {
+      if (keyframeCount === 0) {
         spawn(
           studioCtx.change(() => {
             const defaultKeyframe = new KeyFrame({
@@ -124,7 +129,7 @@ const AnimationSequenceEditModal = observer(
           }),
         );
       }
-    }, [sequence.keyframes.length, studioCtx]);
+    }, [keyframeCount, studioCtx]);
 
     return (
       <SidebarModal
@@ -139,7 +144,7 @@ const AnimationSequenceEditModal = observer(
         <SidebarSection>
           <div className="panel-row--separated">
             <SimpleTextbox
-              defaultValue={sequence.name}
+              defaultValue={sequenceName}
               onValueChange={(name) =>
                 spawn(
                   studioCtx.change(() => {
@@ -191,10 +196,27 @@ const AnimationSequenceEditModal = observer(
             />
           </div>
           {selectedKeyframe && (
+            <AnimationKeyframePercentage studioCtx={studioCtx} sequence={sequence} selectedKeyframe={selectedKeyframe} />
+          )}
+        </SidebarSection>
+
+        {selectedKeyframe && (
+          <AnimationKeyframeStyles studioCtx={studioCtx} selectedKeyframe={selectedKeyframe} />
+        )}
+      </SidebarModal>
+    );
+}
+
+function AnimationKeyframePercentage({studioCtx, sequence, selectedKeyframe}: {
+  studioCtx: StudioCtx; sequence: AnimationSequence; selectedKeyframe: KeyFrame;
+}) {
+  const {t: uiT} = useI18n();
+  const percentage = useStore(studioCtx.modelSnapshots.field(selectedKeyframe, "percentage"));
+  return (
             <FullRow>
               <LabeledItem label={uiT("Percentage")}>
                 <DimTokenSpinner
-                  value={`${selectedKeyframe.percentage}%`}
+                  value={`${percentage}%`}
                   onChange={(val) => {
                     const numVal = parseFloat(val || "0");
                     if (!isNaN(numVal) && numVal >= 0 && numVal <= 100) {
@@ -220,26 +242,17 @@ const AnimationSequenceEditModal = observer(
                 />
               </LabeledItem>
             </FullRow>
-          )}
-        </SidebarSection>
+  );
+}
 
-        {selectedKeyframe && (
-          <AnimationSequenceStylePanelSections
-            expsProvider={
-              new SingleRsExpsProvider(
-                selectedKeyframe.rs,
-                new RuleSetHelpers(selectedKeyframe.rs, "div"),
-                studioCtx,
-                [],
-              )
-            }
-            vsh={vsh}
-          />
-        )}
-      </SidebarModal>
-    );
-  },
-);
+function AnimationKeyframeStyles({studioCtx, selectedKeyframe}: {studioCtx: StudioCtx; selectedKeyframe: KeyFrame}) {
+  const rsRef = useStore(studioCtx.modelSnapshots.field(selectedKeyframe, "rs"));
+  const rs = studioCtx.modelSnapshots.resolve(rsRef);
+  return <AnimationSequenceStylePanelSections
+    expsProvider={new SingleRsExpsProvider(rs, new RuleSetHelpers(rs, "div"), studioCtx, [], { kind: "ruleSet", rs, forTag: "div" })}
+    vsh={new VariantedStylesHelper(studioCtx.site)}
+  />;
+}
 
 function AnimationSequenceStylePanelSections({
   expsProvider,
@@ -350,10 +363,12 @@ function AnimationSequenceStylePanelSections({
   );
 }
 
-const AnimationSequenceRow = observer(function AnimationSequenceRow(
+export function AnimationSequenceRow(
   props: AnimationSequenceRowProps,
 ) {
   const { sequence, onDuplicate, onDelete, onEdit, onClick } = props;
+  const name = useStore(props.studioCtx.modelSnapshots.field(sequence, "name"));
+  const uuid = useStore(props.studioCtx.modelSnapshots.field(sequence, "uuid"));
 
   const renderMenu = () => {
     const builder = new MenuBuilder();
@@ -396,12 +411,12 @@ const AnimationSequenceRow = observer(function AnimationSequenceRow(
         }}
         menu={renderMenu}
       >
-        {sequence.name}
+        {name}
       </ListItem>
-      <UiActionsOverlay uiId={mkModelUiId(sequence)} />
+      <UiActionsOverlay uiId={mkModelUiId({typeTag:sequence.typeTag,uuid})} />
     </>
   );
-});
+}
 
 export const AnimationSequencesPanel = observer(
   function AnimationSequencesPanel() {

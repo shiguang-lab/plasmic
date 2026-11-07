@@ -633,7 +633,7 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
                   <div
                     className={classNames("all", "__wab_text", sty.text__j4Rcl)}
                   >
-                    {<UiText message={"Generate a new Next.js / Gatsby / React repo."} />}
+                    {<UiText message={"Generate a new Next.js / React repo."} />}
                   </div>
                 </div>
                 <div

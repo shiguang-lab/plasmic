@@ -5,7 +5,7 @@ import { useInteractOutsideWithCommonExceptions } from "@/wab/commons/components
 import { BranchesOutlined, DownOutlined } from "@ant-design/icons";
 import { Button, Popover } from "antd";
 import { createStyles } from "antd-style";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
 import * as React from "react";
 
 const useStyles = createStyles(({ token }) => ({
@@ -30,13 +30,13 @@ export interface BranchSwitcherProps {
   className?: string;
 }
 
-const BranchSwitcher = observer(function BranchSwitcher({
+function BranchSwitcher({
   className,
 }: BranchSwitcherProps) {
   const studioCtx = useStudioCtx();
   const { t } = useI18n();
   const { styles, cx } = useStyles();
-  const currentBranchName = studioCtx.dbCtx().branchInfo?.name ?? "main";
+  const currentBranchName = useStore(studioCtx.uiEnvironment.store, (state) => state.branchName);
   const [visible, setVisible] = React.useState(false);
   const panelRef = React.useRef<HTMLDivElement>(null);
   useInteractOutsideWithCommonExceptions({
@@ -83,6 +83,6 @@ const BranchSwitcher = observer(function BranchSwitcher({
       </Button>
     </Popover>
   );
-});
+}
 
 export default BranchSwitcher;

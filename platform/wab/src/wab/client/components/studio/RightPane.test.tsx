@@ -1,5 +1,13 @@
+import { StudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import { createSite } from "@/wab/shared/core/sites";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
+import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
+import { createStore } from "zustand/vanilla";
 import { RightPane } from "@/wab/client/components/studio/RightPane";
 import { RightTabKey, type StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioLeftPanelState } from "@/wab/client/studio-ctx/left-panel-state";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ensureInstance } from "@/wab/shared/common";
 import type { Component } from "@/wab/shared/model/classes";
@@ -80,25 +88,38 @@ vi.mock("@/wab/client/components/widgets", () => ({
     }
   },
 }));
-afterEach(cleanup);
+const arenaOwners = new Set<{ dispose(): void }>();
+afterEach(() => { cleanup(); for (const owner of arenaOwners) { owner.dispose(); } arenaOwners.clear(); });
 
 it("resets header geometry when available tabs change, retaining the active page editor", async () => {
-  const state = observable({ nodeSelected: true, tab: RightTabKey.component });
+  const state = observable({ tab: RightTabKey.component });
+  const models = new ModelSnapshots();
+  const arenaState = new StudioArenaState({ site: createSite(), modelSnapshots: models });
+  arenaOwners.add(arenaState);
+  arenaOwners.add(models);
+  const renderPolicy = new StudioRenderPolicy({ isLive: () => false, isDragging: () => false });
+  arenaOwners.add(renderPolicy);
+  const focus = new StudioSelection(() => models);
+  const selection = new ViewSelection(() => models);
+  const leftPanelState = new StudioLeftPanelState();
   const sc = mock<StudioCtx>();
   const vc = mock<ViewCtx>({ component: mock<Component>({ name: "Page" }) });
   vc.focusedTpl.mockReturnValue(null);
   vc.focusedSelectables.mockReturnValue([]);
-  sc.focusedViewCtx.mockImplementation(() =>
-    state.nodeSelected ? vc : undefined,
-  );
+  focus.set(vc, []);
+  Object.defineProperty(vc, "selectionStore", { value: selection.store });
+  sc.focusedViewCtx.mockImplementation(() => focus.current().view);
   sc.focusedOrFirstViewCtx.mockReturnValue(vc);
   sc.focusedFrames.mockReturnValue([]);
   sc.showComments.mockReturnValue(false);
   Object.defineProperties(sc, {
+    arenaState: { value: arenaState },
+    selectionStore: { value: focus.store },
     rightTabKey: { get: () => state.tab },
     showDevControls: { value: true },
-    panelsHidden: { value: false },
-    isSelectionPending: { value: false },
+    leftPanelState: { value: leftPanelState },
+    inspectorStore: { value: createStore(() => ({ selection: undefined, pending: false })) },
+    renderPolicy: { value: renderPolicy },
   });
   sc.switchRightTab.mockImplementation((tab) => {
     runInAction(() => {
@@ -121,7 +142,7 @@ it("resets header geometry when available tabs change, retaining the active page
 
   await act(() =>
     runInAction(() => {
-      state.nodeSelected = false;
+      focus.set(undefined, []);
     }),
   );
   expect(screen.getAllByRole("tab")).toHaveLength(1);
@@ -134,7 +155,7 @@ it("resets header geometry when available tabs change, retaining the active page
 
   await act(() =>
     runInAction(() => {
-      state.nodeSelected = true;
+      focus.set(vc, []);
     }),
   );
   expect(screen.getAllByRole("tab")).toHaveLength(3);

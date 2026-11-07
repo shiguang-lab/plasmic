@@ -1,5 +1,6 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var host = require('@plasmicapp/host');
 var registerToken = require('@plasmicapp/host/registerToken');
 var query = require('@plasmicapp/query');
@@ -146,7 +147,7 @@ require('dayjs/locale/vi');
 require('dayjs/locale/zh-cn');
 require('dayjs/locale/zh-tw');
 var reactUtils = require('./react-utils-CP3JYj1p.cjs.js');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('classnames');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -358,7 +359,7 @@ function themeToAntdConfig(opts) {
 }
 function AntdConfigProvider(props) {
   const { children, locale, themeStyles, loadingText, removeLoading, ...rest } = props;
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant.ConfigProvider,
     {
       locale: typeof locale === "string" ? antdLocales[locale] : locale ?? antdLocales.en_US,
@@ -368,16 +369,16 @@ function AntdConfigProvider(props) {
         fontSize: themeStyles.fontSize ? parseInt(themeStyles.fontSize) : void 0,
         lineHeight: themeStyles.lineHeight ? parseInt(themeStyles.lineHeight) : void 0,
         colorTextBase: themeStyles.color
-      })
-    },
-    /* @__PURE__ */ React__default.default.createElement(Ant.App, { style: { display: "contents" } }, /* @__PURE__ */ React__default.default.createElement(ForkedApp, null, /* @__PURE__ */ React__default.default.createElement(
-      InnerConfigProvider,
-      {
-        loadingText,
-        removeLoading
-      },
-      children
-    )))
+      }),
+      children: /* @__PURE__ */ jsxRuntime.jsx(Ant.App, { style: { display: "contents" }, children: /* @__PURE__ */ jsxRuntime.jsx(ForkedApp, { children: /* @__PURE__ */ jsxRuntime.jsx(
+        InnerConfigProvider,
+        {
+          loadingText,
+          removeLoading,
+          children
+        }
+      ) }) })
+    }
   );
 }
 function normTokenValue(val) {
@@ -427,18 +428,22 @@ function InnerConfigProvider(props) {
   if (!host.GlobalActionsProvider) {
     warnOutdatedDeps();
   }
-  let content = host.GlobalActionsProvider ? /* @__PURE__ */ React__default.default.createElement(
+  let content = host.GlobalActionsProvider ? /* @__PURE__ */ jsxRuntime.jsx(
     host.GlobalActionsProvider,
     {
       contextName: "plasmic-antd6-config-provider",
-      actions
-    },
-    children
+      actions,
+      children
+    }
   ) : children;
   if (!removeLoading && enableLoadingBoundary) {
-    content = /* @__PURE__ */ React__default.default.createElement(React__default.default.Suspense, null, content);
+    content = /* @__PURE__ */ jsxRuntime.jsx(React__default.default.Suspense, { children: content });
   }
-  return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, /* @__PURE__ */ React__default.default.createElement("style", { dangerouslySetInnerHTML: { __html: cssStyles } }), content, !removeLoading && /* @__PURE__ */ React__default.default.createElement(GlobalLoadingIndicator, { loadingText }));
+  return /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntime.jsx("style", { dangerouslySetInnerHTML: { __html: cssStyles } }),
+    content,
+    !removeLoading && /* @__PURE__ */ jsxRuntime.jsx(GlobalLoadingIndicator, { loadingText })
+  ] });
 }
 let warned = false;
 function warnOutdatedDeps() {
@@ -518,7 +523,11 @@ function ForkedApp(props) {
     }),
     [messageApi, notificationApi]
   );
-  return /* @__PURE__ */ React__default.default.createElement(ForkedAppContext.Provider, { value: appContext }, messageContextHolder, notificationContextHolder, props.children);
+  return /* @__PURE__ */ jsxRuntime.jsxs(ForkedAppContext.Provider, { value: appContext, children: [
+    messageContextHolder,
+    notificationContextHolder,
+    props.children
+  ] });
 }
 function registerTokens(loader) {
   const regs = [];

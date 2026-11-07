@@ -1,8 +1,9 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var React = require('react');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
@@ -19,13 +20,14 @@ function AntdBreadcrumb(props) {
   const items = React__default.default.useMemo(() => {
     const children = React__default.default.isValidElement(itemsRaw) && itemsRaw.type !== AntdBreadcrumbItem ? itemsRaw.props.children : itemsRaw;
     return utils.asArray(children).flat(1).filter(React__default.default.isValidElement).map((currentItem) => {
+      const { children: _children, ...itemProps } = currentItem.props;
       return {
-        ...currentItem.props,
-        title: React__default.default.cloneElement(/* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, currentItem))
+        ...itemProps,
+        title: React__default.default.cloneElement(/* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children: currentItem }))
       };
     });
   }, [itemsRaw]);
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant.Breadcrumb,
     {
       ...rest,

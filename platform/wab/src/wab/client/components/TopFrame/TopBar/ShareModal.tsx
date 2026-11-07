@@ -3,7 +3,6 @@
 import ShareDialog from "@/wab/client/components/widgets/ShareDialog";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
 import { ApiPermission, ApiProject } from "@/wab/shared/ApiSchema";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 interface ShareModalProps {
@@ -14,7 +13,7 @@ interface ShareModalProps {
   setShowShareModal: (val: boolean) => Promise<void>;
 }
 
-export const ShareModal = observer(function ShareModal({
+export const ShareModal = function ShareModal({
   refreshProjectAndPerms,
   project,
   perms,
@@ -42,6 +41,6 @@ export const ShareModal = observer(function ShareModal({
       }}
     />
   );
-});
+};
 
 export default ShareModal;

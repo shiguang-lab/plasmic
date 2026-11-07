@@ -38,6 +38,31 @@ export class DbCtx {
   private _recorder: IChangeRecorder;
   private _siteInfo: IObservableValue<SiteInfo>;
   private _revisionNum: IObservableValue<number>;
+  private readonly versionInputListeners = new Set<() => void>();
+  private versionPublicationDepth = 0;
+  private versionInputsPending = false;
+
+  deferVersionInputs<Result>(command: () => Result): Result {
+    this.versionPublicationDepth++;
+    try { return command(); }
+    finally {
+      this.versionPublicationDepth--;
+      if (!this.versionPublicationDepth && this.versionInputsPending) {
+        this.versionInputsPending = false;
+        this.publishVersionInputs();
+      }
+    }
+  }
+
+  subscribeVersionInputs(listener: () => void) {
+    this.versionInputListeners.add(listener);
+    return () => { this.versionInputListeners.delete(listener); };
+  }
+
+  private publishVersionInputs() {
+    if (this.versionPublicationDepth) { this.versionInputsPending = true; return; }
+    for (const listener of this.versionInputListeners) { listener(); }
+  }
 
   // site, branchInfo, and pkgVersionInfoMeta should be set atomically in setSite only
   private _site: IObservableValue<Site>;
@@ -110,7 +135,9 @@ export class DbCtx {
     return this._revisionNum.get();
   }
   set revisionNum(v: number) {
+    if (this._revisionNum.get() === v) { return; }
     this._revisionNum.set(v);
+    this.publishVersionInputs();
   }
   get recorder() {
     return this._recorder;
@@ -136,9 +163,11 @@ export class DbCtx {
       trackComponentRoot(component);
       trackComponentSite(component, site);
     }
+    this.publishVersionInputs();
   }
 
   dispose() {
+    this.versionInputListeners.clear();
     if (this._recorder) {
       this._recorder.dispose();
     }
@@ -146,6 +175,7 @@ export class DbCtx {
 
   setSiteInfo(siteInfo: SiteInfo) {
     this._siteInfo.set(siteInfo);
+    this.publishVersionInputs();
   }
 
   /**

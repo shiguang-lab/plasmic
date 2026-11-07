@@ -1,9 +1,5 @@
 import { CommentsCtx } from "@/wab/client/studio-ctx/comments-ctx";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import {
-  getSetOfPinnedVariantsForViewCtx,
-  ViewCtx,
-} from "@/wab/client/studio-ctx/view-ctx";
 import { ApiCommentThread, ApiUser } from "@/wab/shared/ApiSchema";
 import {
   AnyArena,
@@ -15,9 +11,12 @@ import {
   extractMentionedEmails,
   hasUserParticipatedInThread,
 } from "@/wab/shared/comments-utils";
-import { getOrSetMap, xSymmetricDifference } from "@/wab/shared/common";
+import { getOrSetMap } from "@/wab/shared/common";
 import { allComponentVariants } from "@/wab/shared/core/components";
-import { allGlobalVariants } from "@/wab/shared/core/sites";
+import {
+  allGlobalVariants,
+  isTplAttachedToSite,
+} from "@/wab/shared/core/sites";
 import {
   isTplNamable,
   summarizeTplNamable,
@@ -33,7 +32,6 @@ import {
 } from "@/wab/shared/model/classes";
 import { toVariantComboKey } from "@/wab/shared/Variants";
 import { groupBy, keyBy, sortBy } from "lodash";
-import { toJS } from "mobx";
 
 /**
  * Subject info for a comment thread
@@ -45,6 +43,7 @@ export interface SubjectInfo {
   subject: TplNamable;
   variants: Variant[] | undefined;
   ownerComponent: Component;
+  ownerComponentName: string;
 }
 
 /**
@@ -80,11 +79,14 @@ export function getCommentThreadWithModelMetadata(
   const ownerComponent = isSubjectNamable
     ? tryGetTplOwnerComponent(subject)
     : undefined;
-  const commentThread = toJS(thread); // to ensure MobX observers detect all changes in thread
 
-  if (!ownerComponent || !isSubjectNamable) {
+  if (
+    !ownerComponent ||
+    !isSubjectNamable ||
+    !isTplAttachedToSite(studioCtx.site, subject)
+  ) {
     return {
-      ...commentThread,
+      ...thread,
       subjectInfo: undefined,
       label: "Deleted element",
     };
@@ -118,28 +120,17 @@ export function getCommentThreadWithModelMetadata(
     thread.location.variants.length !== variants.length;
 
   return {
-    ...commentThread,
+    ...thread,
     subjectInfo: {
       subject,
       ownerComponent,
+      ownerComponentName: ownerComponent.name,
       variants: hasDeletedVariants ? undefined : variants,
     },
     label: hasDeletedVariants
       ? "Deleted variant"
       : summarizeTplNamable(subject),
   };
-}
-
-export function getCommentThreadsWithModelMetadata(
-  studioCtx: StudioCtx,
-  bundler: Bundler,
-  threads: ApiCommentThread[],
-): TplCommentThreads {
-  return threads
-    .filter((thread) => hasNonDeletedComments(thread))
-    .map((thread) =>
-      getCommentThreadWithModelMetadata(studioCtx, bundler, thread),
-    );
 }
 
 export function filterCommentThreads(
@@ -309,33 +300,14 @@ export function isElementWithComments(
   if (!isTplNamable(element)) {
     return false;
   }
-  return commentsCtx
-    .computedData()
-    .unresolvedThreads.some(
-      (commentThread) =>
-        commentsCtx.bundler().objByAddr(commentThread.location.subject) ===
-        element,
-    );
+  return commentsCtx.store.getState().commentedSubjectIds.has(element.uuid);
 }
 
-export function isCommentForFrame(
-  viewCtx: ViewCtx,
-  commentThread: TplCommentThread,
-) {
-  const bundler = viewCtx.bundler();
-  if (!commentThread.subjectInfo) {
-    return false;
-  }
-  const { variants, ownerComponent } = commentThread.subjectInfo;
-
-  const isForFrame =
-    viewCtx.component === ownerComponent &&
-    variants &&
-    xSymmetricDifference(
-      variants,
-      getSetOfPinnedVariantsForViewCtx(viewCtx, bundler),
-    ).length === 0;
-  return isForFrame;
+export function getCommentFrameKey(component: Component, variants: Variant[]) {
+  return JSON.stringify([
+    component.uuid,
+    variants.map((variant) => variant.uuid).sort(),
+  ]);
 }
 
 export function makeCommonFields(userId: string): {

@@ -13,13 +13,10 @@ import {
   PlasmicVariantBadge,
 } from "@/wab/client/plasmic/plasmic_kit_variants_bar/PlasmicVariantBadge";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
-import {
-  StyleVariant,
-  isStyleOrCodeComponentVariant,
-} from "@/wab/shared/Variants";
+import { StyleVariant } from "@/wab/shared/Variants";
 import { Component, Variant } from "@/wab/shared/model/classes";
 import { Popover } from "antd";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
 import * as React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 
@@ -31,7 +28,7 @@ interface VariantBadgeProps extends DefaultVariantBadgeProps {
   component: Component;
 }
 
-const VariantBadge = observer(function VariantBadge_({
+function VariantBadge({
   onUnpin,
   onToggle,
   variant,
@@ -40,19 +37,24 @@ const VariantBadge = observer(function VariantBadge_({
   ...props
 }: VariantBadgeProps) {
   const studioCtx = useStudioCtx();
+  const isLatest = useStore(studioCtx.latestVariantCreatedStore, (ref) => ref?.uid === variant.uid);
+  const hasSelectors = useStore(studioCtx.modelSnapshots.field(variant, "selectors"), (selectors) => !!selectors);
+  const hasCodeName = useStore(studioCtx.modelSnapshots.field(variant, "codeComponentName"), (name) => !!name);
+  const hasCodeKeys = useStore(studioCtx.modelSnapshots.field(variant, "codeComponentVariantKeys"), (keys) => !!keys);
+  const editsSelectors = hasSelectors || (hasCodeName && hasCodeKeys);
   const variantLabelRef = useRef<EditableLabelHandles>(null);
   const [showStyleVariantEditor, setShowStyleVariantEditor] = useState(false);
 
   useLayoutEffect(() => {
-    if (studioCtx.latestVariantCreated === variant) {
-      if (isStyleOrCodeComponentVariant(variant)) {
+    if (isLatest) {
+      if (editsSelectors) {
         setShowStyleVariantEditor(true);
       } else {
         variantLabelRef.current?.setEditing(true);
       }
       studioCtx.latestVariantCreated = undefined;
     }
-  }, [studioCtx.latestVariantCreated]);
+  }, [isLatest, editsSelectors, studioCtx]);
 
   return (
     <PlasmicVariantBadge
@@ -72,7 +74,7 @@ const VariantBadge = observer(function VariantBadge_({
               variant,
               component,
               onRequestEditing: () => {
-                if (isStyleOrCodeComponentVariant(variant)) {
+                if (editsSelectors) {
                   setShowStyleVariantEditor(true);
                 } else {
                   variantLabelRef.current?.setEditing(true);
@@ -90,7 +92,7 @@ const VariantBadge = observer(function VariantBadge_({
       }}
     >
       <MaybeWrap
-        cond={isStyleOrCodeComponentVariant(variant)}
+        cond={editsSelectors}
         wrapper={(children) => (
           <Popover
             placement="left"
@@ -118,6 +120,6 @@ const VariantBadge = observer(function VariantBadge_({
       </MaybeWrap>
     </PlasmicVariantBadge>
   );
-});
+}
 
 export default VariantBadge;

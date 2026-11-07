@@ -1,4 +1,4 @@
-import React from "react";
+
 import { Label, LabelProps } from "react-aria-components";
 import { COMMON_STYLES, createAriaLabelProp, createIdProp } from "./common";
 import {

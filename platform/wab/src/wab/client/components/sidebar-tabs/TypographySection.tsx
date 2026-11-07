@@ -1,3 +1,7 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
 import ContextMenuIndicator from "@/wab/client/components/ContextMenuIndicator/ContextMenuIndicator";
 import { DataPickerEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/DataPickerEditor";
 import {
@@ -94,6 +98,7 @@ function TypographySection_(props: {
     props;
 
   const sc = expsProvider.studioCtx;
+  useStudioSelection(sc, (state) => state.view);
   const vc = sc.focusedViewCtx();
   const tpl =
     expsProvider instanceof TplExpsProvider ? expsProvider.tpl : undefined;
@@ -205,7 +210,7 @@ function TypographySection_(props: {
   );
 }
 
-export const TextOnlySection = observer(function TextOnlySection(props: {
+export const TextOnlySection = function TextOnlySection(props: {
   expsProvider: ExpsProvider;
   viewCtx?: ViewCtx;
   title?: React.ReactNode;
@@ -221,7 +226,7 @@ export const TextOnlySection = observer(function TextOnlySection(props: {
       <TextContentRow viewCtx={viewCtx} expsProvider={expsProvider} />
     </SidebarSection>
   );
-});
+};
 
 export const TextContentRow = observer(function TextContentRow(props: {
   viewCtx: ViewCtx;
@@ -229,6 +234,8 @@ export const TextContentRow = observer(function TextContentRow(props: {
 }) {
   const { t: uiT } = useI18n();
   const { expsProvider, viewCtx } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  useViewSelection(viewCtx, (state) => state.context);
   const studioCtx = useStudioCtx();
   const contentRef = React.useRef<HTMLDivElement>(null);
   const [isDataPickerVisible, setIsDataPickerVisible] =
@@ -237,28 +244,31 @@ export const TextContentRow = observer(function TextContentRow(props: {
     null,
   );
   const [showFallback, setShowFallback] = React.useState(false);
-  const dataToken = viewCtx.getTriggerCreatingTextDataToken();
-
+  // Reconnect after each commit so requests use this render's text target and
+  // variant manager, including changes within the same expressions provider.
   React.useEffect(() => {
-    if (viewCtx.triggerEditingTextDataPicker()) {
-      contentRef.current?.scrollIntoView({
-        block: "center",
-      });
-      setIsDataPickerVisible(true);
-      viewCtx.setTriggerEditingTextDataPicker(false);
-    }
+    const consumeRequests = () => {
+      if (viewCtx.triggerEditingTextDataPicker()) {
+        viewCtx.setTriggerEditingTextDataPicker(false);
+        contentRef.current?.scrollIntoView({ block: "center" });
+        setIsDataPickerVisible(true);
+      }
 
-    if (dataToken) {
-      contentRef.current?.scrollIntoView({
-        block: "center",
-      });
-      setEditDataToken(dataToken);
-      switchToDynamicValue(dataToken.name);
-      viewCtx.setTriggerCreatingTextDataToken(null);
-    }
-  }, [viewCtx.triggerEditingTextDataPicker(), dataToken]);
+      const dataToken = viewCtx.getTriggerCreatingTextDataToken();
+      if (dataToken) {
+        viewCtx.setTriggerCreatingTextDataToken(null);
+        contentRef.current?.scrollIntoView({ block: "center" });
+        setEditDataToken(dataToken);
+        switchToDynamicValue(dataToken.name);
+      }
+    };
+    const unsubscribe = viewCtx.textDataRequestsStore.subscribe(consumeRequests);
+    consumeRequests();
+    return unsubscribe;
+  });
 
   const tpl = expsProvider.tpl;
+  const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl);
   const textTpl = isTplTextBlock(tpl)
     ? tpl
     : isPlainTextTplSlot(tpl) && !isCodeComponentSlot(tpl)
@@ -410,7 +420,7 @@ export const TextContentRow = observer(function TextContentRow(props: {
                     );
                   }}
                   disabled={isDisabled}
-                  data={viewCtx.getInspectorCanvasEnvForTpl(tpl)}
+                  data={canvasEnv}
                   schema={viewCtx.customFunctionsSchema()}
                   component={viewCtx.currentComponent()}
                   key={tpl.uid}
@@ -458,7 +468,7 @@ export const TextContentRow = observer(function TextContentRow(props: {
                   setVisible={setIsDataPickerVisible}
                   isDisabled={isDisabled}
                   disabledTooltip={disabledTooltip}
-                  data={viewCtx.getInspectorCanvasEnvForTpl(tpl)}
+                  data={canvasEnv}
                   schema={viewCtx.customFunctionsSchema()}
                   key={tpl.uid}
                   context="The text content to be displayed"

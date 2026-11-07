@@ -406,12 +406,12 @@ const VariableEditingForm = observer(
         isImplicitState={!!state.tplNode}
         withFormButtons={mode === "new"}
         cancelButton={{
-          children: "Cancel",
+          children: uiT("Cancel"),
           onClick: () => onCancel?.(),
         }}
         confirmButton={{
           props: {
-            children: "Confirm",
+            children: uiT("Confirm"),
             "data-test-id": "confirm",
             onClick: () => onConfirm?.(),
           },

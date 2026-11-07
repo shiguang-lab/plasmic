@@ -1,4 +1,4 @@
-import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from "@plasmicapp/host";
+import { PlasmicCanvasProps, usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from "@plasmicapp/host";
 import { ActionProps } from "@plasmicapp/host/registerComponent";
 import { Tabs } from "antd";
 import cls from "classnames";
@@ -26,7 +26,7 @@ function getTabItems(
   items: React.ReactNode,
 ): React.ReactElement<TabItemType>[] {
   return asArray(items).flatMap((item) => {
-    if (!React.isValidElement(item)) {
+    if (!React.isValidElement<{ children?: React.ReactNode }>(item)) {
       return [];
     }
     return (item.type as any)?.name === AntdTabItem.name
@@ -51,7 +51,7 @@ function getTabItemKeys(items: ReactElement): string[] {
 type TabsProps = Omit<
   React.ComponentProps<typeof Tabs>,
   "items" | "animated" | "tabBarExtraContent" | "renderTabBar"
-> & {
+> & PlasmicCanvasProps & {
   items: ReactElement;
   animated?: boolean;
   animateTabBar?: boolean;
@@ -99,6 +99,7 @@ function TabsWithItems(props: TabsProps) {
     tabPlacement,
     tabsScopeClassName,
     tabsDropdownScopeClassName,
+    __canvas: _canvas,
     ...rest
   } = props;
   const animationProp: React.ComponentProps<typeof Tabs>["animated"] = useMemo(
@@ -117,8 +118,9 @@ function TabsWithItems(props: TabsProps) {
     : undefined;
   const items: TabItemType[] = tabItems
     .map((currentItem) => {
+      const { __canvas: _canvas, ...itemProps } = currentItem.props as TabItemType & PlasmicCanvasProps;
       return {
-        ...currentItem.props,
+        ...itemProps,
         key: currentItem.key,
         children: <>{currentItem.props?.children}</>,
       };

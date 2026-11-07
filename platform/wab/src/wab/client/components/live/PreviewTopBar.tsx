@@ -21,8 +21,8 @@ import {
   Tooltip,
 } from "antd";
 import { createStyles } from "antd-style";
-import { observer } from "mobx-react";
 import React, { useState } from "react";
+import { useStore } from "zustand";
 import { MdScreenRotation } from "react-icons/md";
 
 import { BrandLink } from "@/wab/client/components/BrandLink";
@@ -31,7 +31,7 @@ import {
   isViewportDimension,
   PreviewViewportMode,
 } from "@/wab/client/components/live/preview-viewport";
-import { usePreviewCtx } from "@/wab/client/components/live/PreviewCtx";
+import { usePreviewCtx, usePreviewSelector } from "@/wab/client/components/live/PreviewCtx";
 import BranchSwitcher from "@/wab/client/components/top-bar/BranchSwitcher";
 import VariantsComboSelect from "@/wab/client/components/top-bar/VariantsComboSelect";
 import { applicationHeaderLayout } from "@/wab/client/components/ui/layout-styles";
@@ -43,20 +43,7 @@ import { useI18n } from "@/wab/client/i18n";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import { ensure, spawn } from "@/wab/shared/common";
-import {
-  isCodeComponent,
-  isFrameComponent,
-  isPageComponent,
-  isReusableComponent,
-} from "@/wab/shared/core/components";
 import { naturalSort } from "@/wab/shared/sort";
-import {
-  getAllVariantsForTpl,
-  isBaseVariant,
-  isPrivateStyleVariant,
-  isScreenVariant,
-  isStyleOrCodeComponentVariant,
-} from "@/wab/shared/Variants";
 
 const useStyles = createStyles(({ token }) => ({
   topBar: {
@@ -264,7 +251,7 @@ const useStyles = createStyles(({ token }) => ({
   },
 }));
 
-export const PreviewTopBar = observer(function PreviewTopBar({
+export function PreviewTopBar({
   dimensions,
 }: {
   dimensions?: { width: number; height: number };
@@ -312,7 +299,7 @@ export const PreviewTopBar = observer(function PreviewTopBar({
         const bottom = rows[row + 1];
         let left = bounds.left;
         for (const rect of occupied
-          .filter((rect) => rect.top < bottom && rect.bottom > top)
+          .filter((occupiedRect) => occupiedRect.top < bottom && occupiedRect.bottom > top)
           .sort((a, b) => a.left - b.left)) {
           if (rect.left > left) {
             regions.push({ left, top, width: rect.left - left, height: bottom - top });
@@ -334,17 +321,19 @@ export const PreviewTopBar = observer(function PreviewTopBar({
     };
   }, [hasWindowOverlay, isMacDesktop, topFrameApi]);
   const previewCtx = usePreviewCtx();
-  const studioCtx = useStudioCtx();
+  const viewportMode = usePreviewSelector(previewCtx, (state) => state.previewData?.viewport ?? "desktop");
+  const previewWidth = usePreviewSelector(previewCtx, (state) => state.previewData?.width ?? 320);
+  const previewHeight = usePreviewSelector(previewCtx, (state) => state.previewData?.height ?? 480);
+  const componentUuid = usePreviewSelector(previewCtx, (state) => state.componentUuid);
+  const targets = usePreviewSelector(previewCtx, (state) => state.targets);
+  const hasVariants = usePreviewSelector(previewCtx, (state) => state.hasVariants);
+  const canGoBack = usePreviewSelector(previewCtx, (state) => state.isLive && !state.navigating && state.navigationIndex > 0);
+  const canGoForward = usePreviewSelector(previewCtx, (state) => state.isLive && !state.navigating && state.navigationIndex < state.navigationEntries.length - 1);
+  const currentTarget = targets.find((target) => target.uuid === componentUuid);
 
-  const previewPages = previewCtx.studioCtx.site.components.filter((c) =>
-    isPageComponent(c),
-  );
-  const previewComponents = previewCtx.studioCtx.site.components.filter(
-    (c) => isReusableComponent(c) && !isCodeComponent(c),
-  );
-  const previewArtboards = previewCtx.studioCtx.site.components.filter((c) =>
-    isFrameComponent(c),
-  );
+  const previewPages = targets.filter((target) => target.kind === "page");
+  const previewComponents = targets.filter((target) => target.kind === "component");
+  const previewArtboards = targets.filter((target) => target.kind === "artboard");
 
   const [moreOpen, setMoreOpen] = useState(false);
   const [pageMenuOpen, setPageMenuOpen] = useState(false);
@@ -408,35 +397,22 @@ export const PreviewTopBar = observer(function PreviewTopBar({
     },
   ].filter((group) => group.children.length > 0);
 
-  const [customWidth, setCustomWidth] = useState(previewCtx.width);
-  const [customHeight, setCustomHeight] = useState(previewCtx.height);
+  const [customWidth, setCustomWidth] = useState(previewWidth);
+  const [customHeight, setCustomHeight] = useState(previewHeight);
 
-  const hasVariants =
-    !!previewCtx.component &&
-    getAllVariantsForTpl({
-      component: previewCtx.component,
-      tpl: null,
-      site: studioCtx.site,
-    }).some(
-      (v) =>
-        !isStyleOrCodeComponentVariant(v) &&
-        !isScreenVariant(v) &&
-        !isPrivateStyleVariant(v) &&
-        !isBaseVariant(v),
-    );
   const validSize =
     isViewportDimension(customWidth) && isViewportDimension(customHeight);
   const openSizeMenu = (open: boolean) => {
     if (open) {
-      setCustomWidth(dimensions?.width || previewCtx.width);
-      setCustomHeight(dimensions?.height || previewCtx.height);
+      setCustomWidth(dimensions?.width || previewWidth);
+      setCustomHeight(dimensions?.height || previewHeight);
     }
     setSizeMenuOpen(open);
   };
 
   const handleViewportChange = (val: PreviewViewportMode) => {
-    let newWidth = previewCtx.width;
-    let newHeight = previewCtx.height;
+    let newWidth = previewWidth;
+    let newHeight = previewHeight;
     if (val === "phone" || val === "tablet") {
       newWidth = DEVICE_VIEWPORTS[val].width;
       newHeight = DEVICE_VIEWPORTS[val].height;
@@ -464,7 +440,7 @@ export const PreviewTopBar = observer(function PreviewTopBar({
   };
 
   const currentDevice =
-    previewCtx.viewport === "custom" ? "desktop" : previewCtx.viewport;
+    viewportMode === "custom" ? "desktop" : viewportMode;
 
   return (
     <div
@@ -491,18 +467,7 @@ export const PreviewTopBar = observer(function PreviewTopBar({
             isMacDesktop && styles.desktopLeftSection,
           )}
         >
-          <BrandLink
-            brand={
-              studioCtx.getCurrentUiConfig().brand ??
-              studioCtx.appCtx.appConfig.brands?.[
-                studioCtx.siteInfo.teamId ?? ""
-              ] ??
-              studioCtx.appCtx.appConfig.brands?.[""]
-            }
-          />
-          {studioCtx.showBranching() && (
-            <BranchSwitcher className={styles.navigationTrigger} />
-          )}
+          <PreviewBrand className={styles.navigationTrigger} />
           <Dropdown
             trigger={["click"]}
             placement="bottomLeft"
@@ -512,8 +477,8 @@ export const PreviewTopBar = observer(function PreviewTopBar({
             menu={{
               items: pageMenuItems,
               selectable: true,
-              selectedKeys: previewCtx.component
-                ? [previewCtx.component.uuid]
+              selectedKeys: currentTarget
+                ? [currentTarget.uuid]
                 : [],
               onClick: ({ key }) => {
                 setPageMenuOpen(false);
@@ -548,10 +513,10 @@ export const PreviewTopBar = observer(function PreviewTopBar({
               aria-haspopup="menu"
               aria-expanded={pageMenuOpen}
             >
-              {previewCtx.component &&
+              {currentTarget &&
                 renderPageLabel(
-                  previewCtx.component.name || t("Artboards"),
-                  isPageComponent(previewCtx.component)
+                  currentTarget.name || t("Artboards"),
+                  currentTarget.kind === "page"
                     ? PageIcon
                     : ComponentIcon,
                 )}
@@ -593,14 +558,14 @@ export const PreviewTopBar = observer(function PreviewTopBar({
               <Button
                 type="text"
                 block
-                className={`${styles.sizeOption} ${previewCtx.viewport === "desktop" ? styles.selectedSize : ""}`}
+                className={`${styles.sizeOption} ${viewportMode === "desktop" ? styles.selectedSize : ""}`}
                 onClick={() => {
                   handleViewportChange("desktop");
                   setSizeMenuOpen(false);
                 }}
               >
                 <span className={styles.check}>
-                  {previewCtx.viewport === "desktop" && <CheckOutlined />}
+                  {viewportMode === "desktop" && <CheckOutlined />}
                 </span>
                 {t("Auto (Fit to window)")}
               </Button>
@@ -611,9 +576,9 @@ export const PreviewTopBar = observer(function PreviewTopBar({
                 [1920, 1080],
               ].map(([width, height]) => {
                 const selected =
-                  previewCtx.viewport === "custom" &&
-                  previewCtx.width === width &&
-                  previewCtx.height === height;
+                  viewportMode === "custom" &&
+                  previewWidth === width &&
+                  previewHeight === height;
                 return (
                   <Button
                     key={`${width}-${height}`}
@@ -685,23 +650,23 @@ export const PreviewTopBar = observer(function PreviewTopBar({
             aria-label={t("Preview viewport")}
             aria-expanded={sizeMenuOpen}
           >
-            {previewCtx.viewport === "desktop"
+            {viewportMode === "desktop"
               ? t("Auto")
-              : `${previewCtx.width} × ${previewCtx.height}`}
+              : `${previewWidth} × ${previewHeight}`}
             <DownOutlined />
           </Button>
         </Popover>
         {currentDevice !== "desktop" && (
           <Tooltip
             title={t(
-              previewCtx.width > previewCtx.height
+              previewWidth > previewHeight
                 ? "Switch to portrait"
                 : "Switch to landscape",
             )}
           >
             <Button
               aria-label={t(
-                previewCtx.width > previewCtx.height
+                previewWidth > previewHeight
                   ? "Switch to portrait"
                   : "Switch to landscape",
               )}
@@ -711,8 +676,8 @@ export const PreviewTopBar = observer(function PreviewTopBar({
                 spawn(
                   previewCtx.pushViewport({
                     viewport: currentDevice,
-                    width: previewCtx.height,
-                    height: previewCtx.width,
+                    width: previewHeight,
+                    height: previewWidth,
                   }),
                 );
               }}
@@ -725,11 +690,11 @@ export const PreviewTopBar = observer(function PreviewTopBar({
         <div className={cx(styles.section, styles.rightSection)}>
           <Tooltip title={t("Back")}>
             <Button type="text" aria-label={t("Back")} icon={<ArrowLeftOutlined />}
-              disabled={!previewCtx.canGoBack} onClick={() => spawn(previewCtx.goBack())} />
+              disabled={!canGoBack} onClick={() => spawn(previewCtx.goBack())} />
           </Tooltip>
           <Tooltip title={t("Forward")}>
             <Button type="text" aria-label={t("Forward")} icon={<ArrowRightOutlined />}
-              disabled={!previewCtx.canGoForward} onClick={() => spawn(previewCtx.goForward())} />
+              disabled={!canGoForward} onClick={() => spawn(previewCtx.goForward())} />
           </Tooltip>
           <Tooltip title={t("Refresh")}>
             <Button type="text" aria-label={t("Refresh")} icon={<ReloadOutlined />}
@@ -771,4 +736,15 @@ export const PreviewTopBar = observer(function PreviewTopBar({
       </div>
     </div>
   );
-});
+}
+
+
+function PreviewBrand({ className }: { className: string }) {
+  const studioCtx = useStudioCtx();
+  const brand = useStore(studioCtx.uiEnvironment.store, (state) => state.brand);
+  const showBranching = useStore(studioCtx.uiEnvironment.store, (state) => state.showBranching);
+  return <>
+    <BrandLink brand={brand} />
+    {showBranching && <BranchSwitcher className={className} />}
+  </>;
+}

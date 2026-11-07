@@ -1,7 +1,7 @@
 {
   "name": "@plasmicapp/react-web",
-  "version": "1.0.39",
-  "description": "Runtime library for rendering Plasmic-generated React components — variants, slots, overrides, and styling.",
+  "version": "2.0.0",
+  "description": "Runtime library for rendering Plasmic-generated React components \u2014 variants, slots, overrides, and styling.",
   "homepage": "https://www.plasmic.app",
   "repository": {
     "type": "git",
@@ -100,11 +100,11 @@
     "@plasmicapp/prepass": "workspace:*",
     "@plasmicapp/query": "workspace:*",
     "@react-aria/checkbox": "^3.15.5",
-    "@react-aria/focus": "^3.20.3",
+    "@react-aria/focus": "3.20.3",
     "@react-aria/interactions": "^3.25.1",
     "@react-aria/listbox": "^3.14.4",
     "@react-aria/menu": "^3.18.3",
-    "@react-aria/overlays": "^3.27.1",
+    "@react-aria/overlays": "3.27.1",
     "@react-aria/select": "^3.15.5",
     "@react-aria/separator": "^3.4.9",
     "@react-aria/ssr": "^3.9.8",
@@ -120,14 +120,14 @@
     "classnames": "^2.5.1",
     "clone": "^2.1.2",
     "dlv": "^1.1.3",
-    "valtio": "^1.6.4"
+    "valtio": "^2.3.2"
   },
   "devDependencies": {
     "@babel/core": "catalog:",
     "@babel/preset-env": "catalog:",
     "@babel/preset-react": "catalog:",
     "@babel/preset-typescript": "catalog:",
-    "@react-types/overlays": "^3.8.15",
+    "@react-types/overlays": "3.8.15",
     "@react-types/select": "^3.9.2",
     "@react-types/shared": "^3.36.1",
     "@rollup/plugin-commonjs": "^25.0.2",
@@ -146,7 +146,7 @@
     "vitest": "catalog:"
   },
   "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }

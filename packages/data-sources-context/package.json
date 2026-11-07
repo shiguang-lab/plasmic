@@ -1,5 +1,5 @@
 {
-  "version": "0.1.26",
+  "version": "0.2.0",
   "description": "React context that supplies the current user and auth token to Plasmic data source queries.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -36,7 +36,7 @@
     "analyze": "size-limit --why"
   },
   "peerDependencies": {
-    "react": ">=16.8.0"
+    "react": "^19.3.1"
   },
   "name": "@plasmicapp/data-sources-context",
   "author": "Chung Wu",
@@ -49,8 +49,8 @@
   "devDependencies": {
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
   },
   "publishConfig": {
     "access": "public"

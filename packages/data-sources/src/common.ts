@@ -99,8 +99,6 @@ export function mkUndefinedDataProxy(
   ) as any;
 }
 
-const isRSC = (React as any).isRSC;
-const reactMajorVersion = +React.version.split(".")[0];
 const enableLoadingBoundaryKey = "plasmicInternalEnableLoadingBoundary";
 
 /**
@@ -135,9 +133,7 @@ export function usePlasmicFetch<T, R, E = any>(
   }
 ): ClientQueryResult<R> {
   const enableLoadingBoundary = !!ph.useDataEnv?.()?.[enableLoadingBoundaryKey];
-  const { mutate, cache } = isRSC
-    ? ({} as any as Partial<ReturnType<typeof usePlasmicDataConfig>>)
-    : usePlasmicDataConfig();
+  const { mutate, cache } = usePlasmicDataConfig();
   // Cannot perform this operation
   const isNullParams = !resolvedParams;
   // This operation depends on another data query to resolve first
@@ -234,12 +230,11 @@ export function usePlasmicFetch<T, R, E = any>(
       // access will still end up here.  So we look into the SWR cache and
       // return any data that's here.
       const cached = cache?.get(key);
-      if (cached) {
-        return Promise.resolve(cached);
+      if (cached?.error !== undefined) {
+        return Promise.reject(cached.error);
       }
-      const cachedError = cache?.get(`$swr$${key}`);
-      if (cachedError) {
-        return Promise.reject(cachedError.error);
+      if (cached?.data !== undefined) {
+        return Promise.resolve(cached.data);
       }
 
       // Now, upon this proxy.get() miss, we want to kick off the fetch. We can't
@@ -263,26 +258,36 @@ export function usePlasmicFetch<T, R, E = any>(
       // start the fetch outside of React rendering phase.
       const fetcherPromise = new Promise((resolve, reject) => {
         setTimeout(() => {
-          fetcher().then(resolve, reject);
+          // Suspense retries can queue several timers before any request starts.
+          // An earlier timer may already have settled and published its result.
+          const current = cache?.get(key);
+          if (current?.error !== undefined) reject(current.error);
+          else if (current?.data !== undefined) resolve(current.data);
+          else fetcher().then(resolve, reject);
         }, 1);
       });
-      if (!isRSC) {
-        fetcherPromise
+      fetcherPromise
           .then((data) => {
             // Insert the fetched data into the SWR cache
-            mutate?.(key, data);
+            mutate?.(key, data, { revalidate: false });
           })
           .catch((err) => {
             // Cache the error here to avoid infinite loop
-            const keyInfo = key ? "$swr$" + key : "";
-            cache?.set(keyInfo, { ...(cache?.get(keyInfo) ?? {}), error: err });
+            cache?.set(key, {
+              ...cache?.get(key),
+              error: err,
+              isLoading: false,
+              isValidating: false,
+            });
           });
-      }
       return fetcherPromise;
     };
   }, [fetcher, fetchingData, cache, key, dependentKeyDataErrorPromise]);
   const res = useMutablePlasmicQueryData<T, E>(key, fetcher, {
     fallbackData: opts?.fallbackData,
+    // A suspended operation already attempted this request. SWR otherwise
+    // retries a cached error on its first committed mount, despite retry=false.
+    revalidateOnMount: key && cache?.get(key)?.error !== undefined ? false : undefined,
     shouldRetryOnError: false,
 
     // If revalidateIfStale is true, then if there's a cache entry with a key,
@@ -304,7 +309,6 @@ export function usePlasmicFetch<T, R, E = any>(
     const result = resultMapper(res);
     if (
       !opts?.noUndefinedDataProxy &&
-      reactMajorVersion >= 18 &&
       enableLoadingBoundary &&
       (isLoading || isNullParams || isWaitingOnDependentQuery) &&
       undefinedDataProxyFields.every((field) => result[field] === undefined)

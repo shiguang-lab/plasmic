@@ -1,8 +1,9 @@
+import { jsx } from 'react/jsx-runtime';
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
-import { r as renderCanvasSlot, g as getCanvasItems, a as getSelectedCanvasItemKey } from './canvas-overlay-27tNRB55.esm.js';
+import { r as renderCanvasSlot, g as getCanvasItems, a as getSelectedCanvasItemKey } from './canvas-overlay-BZz-_5Mj.esm.js';
 import { Collapse } from 'antd';
 import React from 'react';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -10,18 +11,19 @@ import '@shiguang-lab/plasmic-antd6/thumbnails';
 const collapseComponentName = "plasmic-antd6-collapse";
 const collapsePanelComponentName = "plasmic-antd6-collapse-item";
 function AntdCollapse(props) {
-  return props.items !== void 0 ? /* @__PURE__ */ React.createElement(Collapse, { ...props }) : renderCanvasSlot(props.children, (children) => /* @__PURE__ */ React.createElement(CollapseWithChildren, { ...props, children }));
+  const { __canvas: _canvas, ...nativeProps } = props;
+  return props.items !== void 0 ? /* @__PURE__ */ jsx(Collapse, { ...nativeProps }) : renderCanvasSlot(props.children, (children) => /* @__PURE__ */ jsx(CollapseWithChildren, { ...props, children }));
 }
 function CollapseWithChildren(props) {
-  const { children, activeKey, defaultActiveKey, onChange, accordion, ...rest } = props;
+  const { children, activeKey, defaultActiveKey, onChange, accordion, __canvas: _canvas, ...rest } = props;
   const canvas = usePlasmicCanvasContext();
   const state = usePlasmicCanvasComponentInfo(props)?.states?.activeKey;
-  const panels = getCanvasItems(children, (item) => item.type === AntdCollapsePanel || item.type === Collapse.Panel);
+  const panels = getCanvasItems(children, (item) => item.type === AntdCollapsePanel || item.type === Collapse.Panel).filter(React.isValidElement);
   const selectedKey = canvas && !canvas.interactive ? getSelectedCanvasItemKey(panels) : void 0;
   const businessKeys = activeKey ?? defaultActiveKey ?? [];
   const revealKeys = selectedKey == null ? void 0 : accordion ? String(selectedKey) : Array.from(/* @__PURE__ */ new Set([...Array.isArray(businessKeys) ? businessKeys : [businessKeys], String(selectedKey)]));
   const openKeys = revealKeys === void 0 ? activeKey : state ? state.reveal(revealKeys) : revealKeys;
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Collapse,
     {
       ...rest,
@@ -30,14 +32,14 @@ function CollapseWithChildren(props) {
       defaultActiveKey,
       onChange: state || selectedKey == null ? onChange : void 0,
       items: panels.map((panel, index) => {
-        const { header, __plasmic_selection_prop__: _selection, ...panelProps } = panel.props;
+        const { header, ref: _ref, __canvas: _selection, ...panelProps } = panel.props;
         return { ...panelProps, key: panel.key ?? String(index), label: header };
       })
     }
   );
 }
 function AntdCollapsePanel(props) {
-  return /* @__PURE__ */ React.createElement(Collapse.Panel, { ...props });
+  return /* @__PURE__ */ jsx(Collapse.Panel, { ...props });
 }
 function registerCollapse(loader) {
   registerComponentHelper(loader, AntdCollapse, {

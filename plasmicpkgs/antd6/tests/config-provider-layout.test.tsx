@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { App, theme } from "antd";
-import React from "react";
+
 import { expect, test } from "vitest";
 import { AntdConfigProvider } from "../src/registerConfigProvider";
 

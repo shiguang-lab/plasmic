@@ -49,7 +49,7 @@ function render(ctx: SerializerBaseContext, values = metadata) {
   return { html, document: new DOMParser().parseFromString(html, "text/html") };
 }
 
-for (const platform of ["nextjs", "gatsby"] as const) {
+for (const platform of ["nextjs"] as const) {
   it(`${platform} generated head renders standard and social metadata with current values`, () => {
     const ctx = context(platform);
     const { html, document } = render(ctx);

@@ -28,6 +28,7 @@ const origin = "https://plasmic-studio.shiguanglab.com";
 const canvasOrigin = "https://plasmic-canvas.shiguanglab.com";
 const read = name => JSON.parse(fs.readFileSync(path.join(task, name)));
 const opening = read("project-response.json"), startup = opening.startup;
+if (process.env.PERF_CODE_DISPLAY === "1") startup.appConfig.config.codePreview = true;
 const dataset = fs.existsSync(path.join(task,"dataset.json")) ? read("dataset.json") : {kind:"saved-project",revision:opening.rev.revision};
 const models = { ...read("model-resources.json"), ...read("plume-resources.json") };
 const plume = read("plume-opening.json");
@@ -263,7 +264,7 @@ app.whenReady().then(async () => {
     } else {
       click = await win.webContents.executeJavaScript(`(()=>{performance.clearMarks();const e=[...document.querySelectorAll('[role="link"][aria-label]')].find(e=>e.getAttribute('aria-label').endsWith(${JSON.stringify(": " + opening.project.name)}));if(!e)throw Error('Missing card');const at=performance.timeOrigin+performance.now();e.click();return {at,timeOrigin:performance.timeOrigin}})()`);
     }
-    const frame = await ready();
+    let frame = await ready();
     const detectedReady = now();
     const atFirstReady = await frame.executeJavaScript("({views:studioCtx.viewCtxs.length,initialFrames:studioCtx.loadTimings.snapshot().frameCount,rendered:studioCtx.viewCtxs.filter(v=>v.initialRenderReady).length})");
     if (process.env.PERF_OPEN_INPUT==='1') {
@@ -308,6 +309,14 @@ app.whenReady().then(async () => {
     if (i===opens-1 && process.env.PERF_OPEN_RENDERERS==='1') {
       phase = 'renderer-first-use';
       report.renderers = await require('./lazy-renderers-first-use.cjs').run(frame);
+    }
+    if (i===opens-1 && process.env.PERF_CODE_DISPLAY==='1') {
+      phase='code-display';report.codeDisplay=await require('./code-display.cjs').run(frame);
+    }
+    if (i===opens-1 && process.env.PERF_OPEN_DOCS==='1') {
+      phase='docs-portal';
+      const docs=await require('./docs-portal.cjs').run({frame,win,ready});
+      report.docsPortal=docs.result;frame=docs.frame;
     }
     if (i===opens-1 && process.env.PERF_OPEN_FUNCTIONAL==='1') {
       phase='functional';report.functional=(await require('./open-functional.cjs').run({frame,win,ready,preview:startup.projectId==='tk89W1Akg2HjAjyHAYEro7'})).result;

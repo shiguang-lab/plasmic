@@ -1,9 +1,8 @@
+import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { Select } from "antd";
 import cls from "classnames";
 import React, { ComponentProps } from "react";
 import {
-  CanvasOverlayProps,
-  previewOpenProp,
   useCanvasOverlay,
 } from "./canvas-overlay";
 import {
@@ -24,7 +23,7 @@ export const AntdOptionGroup: typeof Select.OptGroup = Select.OptGroup;
 
 export function AntdSelect(
   props: ComponentProps<typeof Select> &
-    CanvasOverlayProps & {
+    PlasmicCanvasProps & {
       popupScopeClassName?: string;
       popupRootClassName?: string;
       defaultStylesClassName?: string;
@@ -85,7 +84,6 @@ export function registerSelect(loader?: Registerable) {
     canvasOverlay,
     displayName: "Select",
     props: {
-      previewOpen: previewOpenProp,
       options: {
         type: "array",
         hidden: (ps: any) => !!ps.useChildren,
@@ -162,8 +160,15 @@ export function registerSelect(loader?: Registerable) {
       },
       open: {
         type: "boolean",
-        editOnly: true,
-        uncontrolledProp: "defaultOpen",
+        description: "Controlled open state of the option popup. Leave unset for native interaction.",
+      },
+      defaultOpen: {
+        type: "boolean",
+        description: "Initial popup open state when open is not controlled.",
+      },
+      onOpenChange: {
+        type: "eventHandler",
+        argTypes: [{ name: "open", type: "boolean" }],
       },
       value: {
         type: "choice",

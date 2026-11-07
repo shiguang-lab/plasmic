@@ -4,7 +4,7 @@
 
 import { usePlasmicDataConfig } from "@plasmicapp/query";
 import { act, getByText, render, renderHook } from "@testing-library/react";
-import * as React from "react";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   asyncFunc,

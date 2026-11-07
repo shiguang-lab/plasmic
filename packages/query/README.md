@@ -17,5 +17,7 @@ Learn more about how this can be used with Plasmic specifically in the docs: htt
 
 ## Notes
 
+- Version 0.2 targets React 19 and SWR 2. Components that need to detect server prefetching call `usePlasmicPrepass()` unconditionally at the top level. The Hook returns `true` inside `PlasmicPrepassContext` and `false` outside that provider. Non-rendering code receives the prefetching mode explicitly from its caller; the former `isPlasmicPrepass()` export is removed. This avoids accessing React's private dispatcher.
+
 - This library is NOT for React Server Components, only for server rendering environments like Next.js pages router.
 - This library is NOT specific to Plasmic in any way.

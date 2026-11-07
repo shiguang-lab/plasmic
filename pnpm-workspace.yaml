@@ -1,3 +1,5 @@
+minimumReleaseAge: 0
+
 # PNPM workspace for packages/ and plasmicpkgs/
 packages:
   - packages/*
@@ -9,6 +11,9 @@ packages:
   - plasmicpkgs/*
   - plasmicpkgs/commerce-providers/*
   - plasmicpkgs-dev
+  - platform/react-renderer
+  # Vendored UI reference used by the React UI package.
+  - vendor/react-ui
 
 # Shared direct and toolchain dependencies. Keep compatibility ranges in
 # peerDependencies; pnpm replaces catalog references when packing/publishing.
@@ -22,7 +27,6 @@ catalog:
   "@babel/preset-typescript": "^7.28.5"
   "@babel/traverse": "^7.29.8"
   "@babel/types": "^7.29.8"
-  "@react-awesome-query-builder/core": "^6.6.15"
   "@storybook/addon-essentials": "8.5.5"
   "@storybook/addon-interactions": "8.5.5"
   "@storybook/addon-links": "8.5.5"
@@ -44,8 +48,8 @@ catalog:
   "@types/js-cookie": "^3.0.6"
   "@types/lodash": "^4.17.25"
   "@types/minimatch": "3.0.5"
-  "@types/react": "18.3.27"
-  "@types/react-dom": "18.3.7"
+  "@types/react": "19.3.0"
+  "@types/react-dom": "19.3.0"
   "@types/semver": "^7.8.0"
   "@vitest/coverage-v8": "4.1.10"
   dayjs: "1.11.23"
@@ -56,10 +60,10 @@ catalog:
   playwright: "1.60.0"
   playwright-core: "1.60.0"
   prettier: "3.9.9"
-  react: "18.3.1"
-  react-dom: "18.3.1"
-  rollup-plugin-dts: "^5.3.0"
-  rollup-plugin-esbuild: "^5.0.0"
+  react: "19.3.1"
+  react-dom: "19.3.1"
+  rollup-plugin-dts: "^6.5.1"
+  rollup-plugin-esbuild: "^6.2.1"
   rollup-plugin-replace-imports: "^1.0.0"
   rollup-plugin-typescript2: "^0.37.0"
   sha.js: "^2.4.12"
@@ -68,16 +72,9 @@ catalog:
   tslib: "^2.6.2"
   tsup: "^7.2.0"
   tsx: "^4.23.13"
-  typescript: "5.2.2"
+  typescript: "5.9.3"
   vite: "8.1.5"
   vitest: "4.1.10"
-
-# Named catalogs cover the few packages that intentionally need two versions.
-catalogs:
-  antd5:
-    antd: "5.12.8"
-  typescript-json-schema:
-    typescript: "5.9.3"
 
 overrides:
   eslint: "catalog:"
@@ -86,26 +83,15 @@ overrides:
   sha.js: "catalog:"
   "@babel/helpers": "catalog:"
   "@types/minimatch": "catalog:"
-  typescript: "catalog:"
-  # typescript-json-schema bundles its compiler and pins to typescript ~5.9.3.
-  # The repo-wide typescript override above otherwise forces a resolution
-  # outside that range.
-  "typescript-json-schema>typescript": "catalog:typescript-json-schema"
+  "tsdx>rollup-plugin-typescript2": "catalog:"
+  # TSDX loads this plugin in its builds; Jest 29 dedent requires macros 3.
+  "tsdx@0.14.1>babel-plugin-macros": "3.1.0"
+  # Keep TSDX and its Jest transformer on the SDK compiler.
+  "tsdx@0.14.1>typescript": "catalog:"
+  "ts-jest@25.5.1>typescript": "catalog:"
   dayjs: "catalog:"
   "picomatch@2": "catalog:"
-  "antd@5": "catalog:antd5"
   "lottie-web": "catalog:"
-  # storybook-addon-mock@5 declares its @storybook/* shim deps as ^8.0.8, which a
-  # fresh pnpm resolve bumps to 8.6.x while we pin storybook core at 8.5.5. The
-  # 8.6.x shims import "storybook/internal/csf", a subpath storybook@8.5.5 does
-  # not export, breaking the storybook build. Pin the shims to match core.
-  "@storybook/blocks": "catalog:"
-  "@storybook/channels": "catalog:"
-  "@storybook/components": "catalog:"
-  "@storybook/core-events": "catalog:"
-  "@storybook/manager-api": "catalog:"
-  "@storybook/preview-api": "catalog:"
-  "@storybook/theming": "catalog:"
   # Only pulled in transitively (@storybook/test-runner, jest-playwright-preset),
   # both with open ranges, so this would otherwise float to whatever is latest at
   # resolve time. Pin it to the version platform/wab, platform/wab/playwright
@@ -113,8 +99,10 @@ overrides:
   # of browsers (devops/manual/runner-image).
   playwright: "catalog:"
   playwright-core: "catalog:"
-  react: "catalog:"
-  react-dom: "catalog:"
+  "@react-aria/focus": "3.20.3"
+  "@react-aria/overlays": "3.27.1"
+  "@react-types/overlays": "3.8.15"
+  "react-slick": "0.31.0"
 
 allowBuilds:
   "@parcel/watcher": true
@@ -123,14 +111,10 @@ allowBuilds:
   core-js-pure: true
   es5-ext: true
   esbuild: false
-  gatsby: true
-  gatsby-cli: true
   lmdb: true
-  # only used in Gatsby loader, fall back to JS decoder instead of compiling from scratch
-  msgpackr-extract: false
   msw: true
   nx: true
-  # dev-only transitive (gatsby-sharp, next), don't build in CI/CD
+  # dev-only transitive (Next.js), don't build in CI/CD
   sharp: false
   unrs-resolver: true
 
@@ -138,3 +122,9 @@ shamefullyHoist: true
 # Link local workspace packages even when referenced by plain version range.
 linkWorkspacePackages: deep
 preferWorkspacePackages: true
+
+# Preserve controlled canvas behavior in components linked from the platform.
+patchedDependencies:
+  "@react-aria/focus@3.20.3": platform/patches/@react-aria__focus.patch
+  "@react-aria/overlays@3.27.1": platform/patches/@react-aria__overlays.patch
+  "react-slick@0.31.0": platform/patches/react-slick.patch

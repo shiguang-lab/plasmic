@@ -1,7 +1,5 @@
-import { mockDeepAuto } from "@/wab/__testonly__/mock";
-import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { fakeRegistryViewCtx, fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
-import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
   getArenaFrames,
   getFrameHeight,
@@ -13,10 +11,18 @@ async function fixture() {
   const { studioCtx } = fakeStudioCtx();
   const call = async (name: string, input: Record<string, unknown>) =>
     JSON.parse(
-      await ensure(COPILOT_TOOLS[name], "Tool missing").execute(
-        studioCtx,
-        input,
-      ),
+      await ensure(COPILOT_TOOLS[name], "Tool missing").execute(studioCtx, {
+        ...("reviewContext" in
+        ensure(COPILOT_TOOLS[name], "Tool missing").inputSchema.shape
+          ? {
+              reviewContext: {
+                purpose:
+                  "Inspect and temporarily reveal the full height of long pages while preserving the authored page height preference.",
+              },
+            }
+          : {}),
+        ...input,
+      }),
     );
   const created = await call("createComponent", {
     name: "Long list",
@@ -32,11 +38,11 @@ async function fixture() {
     getArenaFrames(studioCtx.currentArena)[0],
     "Frame missing",
   );
-  const vc = mockDeepAuto<ViewCtx>();
+  // Replace the fake environment's canvas, which never finishes rendering.
+  for (const view of studioCtx.viewCtxs) { studioCtx.disposeViewCtx(view); }
+  const { view: vc } = fakeRegistryViewCtx(studioCtx, frame);
   vc.awaitSync.mockResolvedValue(undefined);
   vc.arenaFrame.mockReturnValue(frame);
-  // Replace the fake environment's canvas, which never finishes rendering.
-  studioCtx.viewCtxs.replace([vc]);
   const store = vi.spyOn(studioCtx.appCtx.api, "addStorageItem");
   store.mockResolvedValue(undefined);
   // Other editor preferences (e.g. focus mode) share the same storage API.

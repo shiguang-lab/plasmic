@@ -1,3 +1,7 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import ContextMenuIndicator from "@/wab/client/components/ContextMenuIndicator/ContextMenuIndicator";
 import {
@@ -83,7 +87,10 @@ export const ImageSection = observer(function ImageSection(props: {
 
   const studioCtx = expsProvider.studioCtx;
   const viewCtx = expsProvider.viewCtx;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  useViewSelection(viewCtx, (state) => state.context);
   const tpl = ensureKnownTplTag(expsProvider.tpl);
+  const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl);
   const vtm = viewCtx.variantTplMgr();
   const effectiveVs = vtm.effectiveVariantSetting(tpl);
   const targetVs = vtm.tryGetTargetVariantSetting(tpl);
@@ -305,7 +312,7 @@ export const ImageSection = observer(function ImageSection(props: {
                   }}
                   visible={isDataPickerVisible}
                   setVisible={setIsDataPickerVisible}
-                  data={viewCtx.getInspectorCanvasEnvForTpl(tpl)}
+                  data={canvasEnv}
                   schema={viewCtx.customFunctionsSchema()}
                   key={tpl.uid}
                   context="The image URL"
@@ -776,6 +783,6 @@ const _ImageSectionForCodeComponent = (props: {
   </StylePanelSection>
 );
 
-export const ImageSectionForCodeComponent = observer(
-  _ImageSectionForCodeComponent,
-);
+export const ImageSectionForCodeComponent = 
+  _ImageSectionForCodeComponent
+;

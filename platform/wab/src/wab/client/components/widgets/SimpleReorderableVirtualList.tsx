@@ -7,7 +7,7 @@ import {
   Draggable,
   DraggableProvidedDragHandleProps,
   Droppable,
-} from "react-beautiful-dnd";
+} from "@hello-pangea/dnd";
 import { FixedSizeList, areEqual } from "react-window";
 
 export function SimpleReorderableVirtualList<T>(props: {
@@ -143,7 +143,7 @@ const Row = React.memo(function Row<T>(props: {
             item,
             isDragging: snapshot.isDragging,
             dragHandleProps: customDragHandle
-              ? provided.dragHandleProps
+              ? provided.dragHandleProps ?? undefined
               : undefined,
           })}
         </li>

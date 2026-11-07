@@ -1,12 +1,13 @@
 import {
   usePlasmicCanvasComponentInfo,
   usePlasmicCanvasContext,
+  PlasmicCanvasProps,
 } from "@plasmicapp/host";
 import React, { ReactElement, useEffect, useRef } from "react";
 
 /** Child selection uses the same SDK contract as editing-only overlays. */
 export function getSelectedCanvasItemKey(items: ReactElement[]) {
-  const index = items.findIndex((item) => item.props.__plasmic_selection_prop__?.isSelected);
+  const index = items.findIndex((item) => React.isValidElement<PlasmicCanvasProps>(item) && item.props.__canvas?.selected);
   return index < 0 ? undefined : items[index].key ?? String(index);
 }
 
@@ -22,48 +23,33 @@ export function renderCanvasSlot(children: React.ReactNode, render: (children: R
 export function getCanvasItems(children: React.ReactNode, isItem: (item: ReactElement) => boolean): ReactElement[] {
   const items: ReactElement[] = [];
   React.Children.forEach(children, (child) => {
-    if (!React.isValidElement(child)) {return;}
+    if (!React.isValidElement<{ children?: React.ReactNode }>(child)) {return;}
     if (isItem(child)) {items.push(child);}
     else {items.push(...getCanvasItems(child.props.children, isItem));}
   });
   return items;
 }
 
-export interface CanvasOverlayProps {
-  previewOpen?: boolean;
-  plasmicNotifyAutoOpenedContent?: () => void;
-  __plasmic_selection_prop__?: unknown;
-}
-
-export const previewOpenProp = {
-  type: "boolean" as const,
-  displayName: "Preview open",
-  editOnly: true,
-  description:
-    "Show or hide the overlay on the editing canvas. When unset, follows selection without changing the runtime open state.",
-};
-
 /** Selection controls only the design canvas; preview keeps the native open state. */
 export function useCanvasOverlay<
-  P extends CanvasOverlayProps & { open?: boolean; defaultOpen?: boolean; destroyOnHidden?: boolean },
+  P extends PlasmicCanvasProps & { open?: boolean; defaultOpen?: boolean; destroyOnHidden?: boolean },
 >(props: P, triggerSlotName?: string) {
   const canvas = usePlasmicCanvasContext();
   const selection = usePlasmicCanvasComponentInfo(props);
   const isEditing = !!canvas && !canvas.interactive;
   const {
     open,
-    previewOpen,
-    plasmicNotifyAutoOpenedContent,
-    __plasmic_selection_prop__: _selection,
+    __canvas,
     ...rest
   } = props;
+  const onReveal = __canvas?.onReveal;
   const autoOpen =
     isEditing &&
-    !!selection?.isSelected &&
-    (!triggerSlotName || selection.selectedSlotName !== triggerSlotName);
-  const autoOpened = autoOpen && previewOpen === undefined && !open;
+    !!selection?.selected &&
+    (!triggerSlotName || selection.slot !== triggerSlotName);
   const state = canvas ? selection?.getState?.("open", open, props.defaultOpen) : undefined;
-  const editingOpen = previewOpen ?? (autoOpen || !!open);
+  const autoOpened = autoOpen && !state && !open;
+  const editingOpen = autoOpen || !!open;
   if (state && !selection?.states?.open) {
     const handler = (rest as { onOpenChange?: (...args: any[]) => void }).onOpenChange;
     (rest as { onOpenChange?: (...args: any[]) => void }).onOpenChange = (next: boolean, ...args: any[]) => {
@@ -112,9 +98,9 @@ export function useCanvasOverlay<
 
   useEffect(() => {
     if (autoOpened) {
-      plasmicNotifyAutoOpenedContent?.();
+      onReveal?.();
     }
-  }, [autoOpened, plasmicNotifyAutoOpenedContent]);
+  }, [autoOpened, onReveal]);
 
   return {
     props: rest,

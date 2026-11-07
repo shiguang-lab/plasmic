@@ -23,11 +23,11 @@ import {
 } from "@/wab/shared/core/components";
 import { Component } from "@/wab/shared/model/classes";
 import { Menu, notification } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 
-export const ComponentMetaDataPropsSection = observer(
-  function ComponentMetaDataPropsSection(props: {
+export function ComponentMetaDataPropsSection(props: {
     studioCtx: StudioCtx;
     component: Component;
     justOneSection?: "variants" | "slots" | "meta";
@@ -35,7 +35,10 @@ export const ComponentMetaDataPropsSection = observer(
     const { t: uiT } = useI18n();
     const { studioCtx, component, justOneSection } = props;
     const [showNewParamModal, setShowNewParamModal] = React.useState(false);
-    const metadata = component.metadata;
+    const hasMetadata = useStore(studioCtx.modelSnapshots.field(component, "metadata"), (metadata) => Object.keys(metadata).length > 0);
+    const contentEditorMode = useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
+    const editableByContentEditor = useStore(studioCtx.modelSnapshots.field(component, "editableByContentEditor"));
+    const hiddenFromContentEditor = useStore(studioCtx.modelSnapshots.field(component, "hiddenFromContentEditor"));
     const defaultShown = justOneSection === undefined;
     const shown = {
       variants: defaultShown,
@@ -49,7 +52,7 @@ export const ComponentMetaDataPropsSection = observer(
     return (
       <SidebarSection>
         <div className="vlist-gap-m">
-          {!studioCtx.contentEditorMode ? (
+          {!contentEditorMode ? (
             <>
               <div className="SidebarSectionListItem justify-between">
                 <div className="labeled-item__label">
@@ -65,7 +68,7 @@ export const ComponentMetaDataPropsSection = observer(
                       ),
                     );
                   }}
-                  value={component.editableByContentEditor}
+                  value={editableByContentEditor}
                 />
               </div>
 
@@ -85,13 +88,13 @@ export const ComponentMetaDataPropsSection = observer(
                       ),
                     );
                   }}
-                  value={component.hiddenFromContentEditor}
+                  value={hiddenFromContentEditor}
                 />
               </div>
             </>
           ) : null}
 
-          {Object.keys(metadata).length > 0 && shown.keyValue && (
+          {hasMetadata && shown.keyValue && (
             <MetadataSection
               studioCtx={studioCtx}
               title={uiT("Key-value Metadata")}
@@ -170,8 +173,7 @@ export const ComponentMetaDataPropsSection = observer(
         )}
       </SidebarSection>
     );
-  },
-);
+  }
 
 function MetadataSection(props: {
   studioCtx: StudioCtx;
@@ -179,15 +181,17 @@ function MetadataSection(props: {
   component: Component;
 }) {
   const { studioCtx, component, title } = props;
+  const metadataKeys = useStore(studioCtx.modelSnapshots.field(component, "metadata"), useShallow((metadata) => Object.keys(metadata)));
   return (
     <div>
       <div className="dimfg uppercase strong text-sm">{title}</div>
       <div className="vlist-gap-sm vlist-gray-border">
-        {Object.keys(component.metadata).map((key) => (
+        {metadataKeys.map((key) => (
           <MetadataRow
             studioCtx={studioCtx}
             component={component}
             metadataKey={key}
+            key={key}
           />
         ))}
       </div>
@@ -195,13 +199,14 @@ function MetadataSection(props: {
   );
 }
 
-const MetadataRow = observer(function MetadataRow(props: {
+function MetadataRow(props: {
   studioCtx: StudioCtx;
   component: Component;
   metadataKey: string;
   children?: React.ReactNode;
 }) {
   const { studioCtx, component, metadataKey } = props;
+  const value = useStore(studioCtx.modelSnapshots.field(component, "metadata"), (metadata) => metadata[metadataKey]);
   const overlay = () => makeMetadataMenu(studioCtx, component, metadataKey);
   return (
     <div>
@@ -263,7 +268,7 @@ const MetadataRow = observer(function MetadataRow(props: {
           doubleClickToEdit
         />
         <EditableLabel
-          value={component.metadata[metadataKey]}
+          value={value}
           onEdit={(newValue) => {
             spawn(
               studioCtx.changeUnsafe(() => {
@@ -284,7 +289,7 @@ const MetadataRow = observer(function MetadataRow(props: {
       </WithContextMenu>
     </div>
   );
-});
+}
 
 function makeMetadataMenu(
   studioCtx: StudioCtx,

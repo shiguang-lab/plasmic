@@ -1,9 +1,8 @@
+import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { Tooltip } from "antd";
 import cls from "classnames";
 import React from "react";
 import {
-  CanvasOverlayProps,
-  previewOpenProp,
   useCanvasOverlay,
 } from "./canvas-overlay";
 import { Registerable, registerComponentHelper } from "./utils";
@@ -12,7 +11,7 @@ const canvasOverlay = { triggerSlot: "children" };
 
 export function AntdTooltip(
   props: React.ComponentProps<typeof Tooltip> &
-    CanvasOverlayProps & {
+    PlasmicCanvasProps & {
       titleText?: string;
       popupRootClassName?: string;
     },
@@ -48,7 +47,6 @@ export function registerTooltip(loader?: Registerable) {
     displayName: "Tooltip",
     isAttachment: true,
     props: {
-      previewOpen: previewOpenProp,
       open: {
         type: "boolean",
         description: "Controlled open state of the tooltip.",

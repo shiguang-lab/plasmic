@@ -28,6 +28,7 @@ for (const suffix of ["", "-v2"]) {
       load("sub/public/static/sub/build/client.js");
       delete win.__Sub.Antd6; // Metadata frames use the shared runtime.
       load("canvas-packages/build/client.js");
+      load("canvas-packages/build/antd6-runtime.js");
       load(`canvas-packages/build/overseas${suffix}.js`);
       assert.equal(
         entries().length,

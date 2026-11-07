@@ -1,3 +1,11 @@
+import { useViewEntryForFrame, useViewReady } from "@/wab/client/studio-ctx/arena-state";
+import { useActiveContentEditor, useContentEditor } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { useShallow } from "zustand/react/shallow";
+import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { CanvasFrameHash } from "@/wab/client/components/canvas/canvas-frame-hash-observer";
+import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { CanvasFrameLoad } from "@/wab/client/components/canvas/canvas-frame-load";
 import { DragMoveFrameManager } from "@/wab/client/FreestyleManipulator";
 import { CanvasActions } from "@/wab/client/components/canvas/CanvasActions/CanvasActions";
 import { CanvasArtboardSelectionHandle } from "@/wab/client/components/canvas/CanvasFrame/CanvasArtboardSelectionHandle";
@@ -22,15 +30,8 @@ import {
   XDraggableEvent,
 } from "@/wab/commons/components/XDraggable";
 import { AsyncGeneratorReturnType } from "@/wab/commons/types";
-import { AnyArena, getArenaName, getFrameHeight } from "@/wab/shared/Arenas";
-import { siteToAllGlobalVariants } from "@/wab/shared/cached-selectors";
+import { AnyArena, getArenaName } from "@/wab/shared/Arenas";
 import {
-  toClassName,
-  toJsIdentifier,
-  toVarName,
-} from "@/wab/shared/codegen/util";
-import {
-  assert,
   cx,
   ensure,
   spawn,
@@ -40,14 +41,11 @@ import {
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { Pt } from "@/wab/shared/geom";
 import { ArenaFrame } from "@/wab/shared/model/classes";
-import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
 import { Skeleton } from "antd";
 import $ from "jquery";
-import L from "lodash";
-import { reaction } from "mobx";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useMountedState, useUnmount } from "react-use";
 
 interface CanvasFrameProps {
@@ -66,6 +64,7 @@ export const CanvasFrame = observer(function CanvasFrame({
   studioCtx,
 }: CanvasFrameProps) {
   const { t: studioUiT } = useI18n();
+  const frameHeight = useFrameHeight(studioCtx, arenaFrame);
 
   const [createdVc, setCreatedVc] = useState(false);
   const [iFrameKey, setIFrameKey] = useState(0);
@@ -89,46 +88,80 @@ export const CanvasFrame = observer(function CanvasFrame({
   const [initState, setInitState] = useState<
     AsyncGeneratorReturnType<CanvasCtx["initViewPort"]> | undefined
   >(undefined);
-  const loadedResolveRef = useRef<(() => void) | null>(null);
-  const loadedRejectRef = useRef<((error: unknown) => void) | null>(null);
-  const disposeRef = useRef(() => {});
+  const modelLifetime = React.useMemo(() => studioCtx.arenaState.lifetime(), [studioCtx, arenaFrame]);
+  const loadRef = useRef<CanvasFrameLoad | null>(null);
+  const frameHashRef = useRef<CanvasFrameHash | null>(null);
+  React.useLayoutEffect(() => {
+    if (modelLifetime.aborted || !studioCtx.arenaState.isCurrentLifetime(modelLifetime)) { return; }
+    const hash = new CanvasFrameHash(studioCtx, arenaFrame, modelLifetime, (value) => {
+      const win = iframeRef.current?.contentWindow;
+      if (win && value !== win.location.hash) { win.location.hash = value; }
+    });
+    frameHashRef.current = hash;
+    return () => {
+      hash.dispose();
+      if (frameHashRef.current === hash) { frameHashRef.current = null; }
+    };
+  }, [studioCtx, arenaFrame, modelLifetime, iFrameKey]);
   useEffect(() => {
-    if (loadState === "unloaded") {
-      studioCtx.queueCanvasFrame({
+    const load = new CanvasFrameLoad(modelLifetime, () => isMounted() && studioCtx.arenaState.isCurrentLifetime(modelLifetime));
+    loadRef.current = load;
+    if (load.isActive()) {
+      const hash = ensure(frameHashRef.current, "Active iframe must have its committed URL source");
+      load.own(() => {
+        hash.dispose();
+        if (frameHashRef.current === hash) { frameHashRef.current = null; }
+      });
+      setLoadState("unloaded");
+      setCreatedVc(false);
+      setInitState(undefined);
+    }
+    return () => {
+      load.cancel();
+      if (loadRef.current === load) { loadRef.current = null; }
+    };
+  }, [studioCtx, arenaFrame, modelLifetime, iFrameKey, isMounted]);
+  useEffect(() => {
+    const load = loadRef.current;
+    if (loadState === "unloaded" && load?.isActive()) {
+      const cancelQueued = studioCtx.queueCanvasFrame({
         load: () =>
           new Promise<void>((resolve, reject) => {
-            if (isMounted()) {
+            if (load.begin(resolve, reject)) {
               setLoadState("ready-to-load");
-              // We save the resolve for later, at the end of onLoad()
-              loadedResolveRef.current = resolve;
-              loadedRejectRef.current = reject;
-            } else {
-              // This canvas frame has been unmounted in the mean time,
-              // so just forget about it and resolve immediately.
-              resolve();
             }
           }),
         arena,
         frame: arenaFrame,
         name: canvasName,
       });
+      load.own(cancelQueued);
       setLoadState("queued");
     }
-  }, [loadState, canvasName]);
+  }, [loadState, canvasName, studioCtx, arena, arenaFrame, modelLifetime, iFrameKey]);
 
+  const registeredEntry = useViewEntryForFrame(studioCtx, arenaFrame);
+  const entry = studioCtx.arenaState.isCurrentLifetime(modelLifetime) ? registeredEntry : undefined;
+  const initialRenderReady = useViewReady(entry);
   const maybeViewCtx = useCallback(
-    () => studioCtx.tryGetViewCtxForFrame(arenaFrame),
-    [studioCtx, arenaFrame],
+    () => studioCtx.arenaState.isCurrentLifetime(modelLifetime) ? studioCtx.tryGetViewCtxForFrame(arenaFrame) : undefined,
+    [studioCtx, arenaFrame, modelLifetime],
   );
   const viewCtx = useCallback(
     () => ensure(maybeViewCtx(), () => "Expected viewCtx to exist"),
     [maybeViewCtx],
   );
+  const loadingStore = entry?.view.canvasCtx.registrations.loadingStore;
+  const packagesLoading = useSyncExternalStore(
+    useCallback((listener: () => void) => loadingStore ? loadingStore.subscribe(listener) : () => undefined, [loadingStore]),
+    useCallback(() => loadingStore?.getState() ?? false, [loadingStore]),
+    useCallback(() => false, []),
+  );
 
-  const needsToRecreateVc = createdVc && !maybeViewCtx();
+  const needsToRecreateVc = createdVc && !entry;
 
   useEffect(() => {
-    if (needsToRecreateVc) {
+    if (needsToRecreateVc && studioCtx.arenaState.isCurrentLifetime(modelLifetime)) {
       // force iframe to reload
       setIFrameKey(iFrameKey + 1);
       setCreatedVc(false);
@@ -136,6 +169,7 @@ export const CanvasFrame = observer(function CanvasFrame({
   }, [needsToRecreateVc]);
 
   useUnmount(() => {
+    if (!studioCtx.arenaState.isCurrentLifetime(modelLifetime)) { return; }
     const vc = maybeViewCtx();
     if (vc) {
       studioCtx.disposeViewCtx(vc);
@@ -143,23 +177,28 @@ export const CanvasFrame = observer(function CanvasFrame({
   });
 
   const handleLoad = useCallback(
-    async (viewport: HTMLIFrameElement) => {
-      if (loadState === "unloaded" || loadState === "queued") {
+    async (viewport: HTMLIFrameElement, load: CanvasFrameLoad) => {
+      if (!load.isActive() || loadState === "unloaded" || loadState === "queued") {
         return;
       }
 
       const $viewport = $(viewport);
       const ctx = createCanvasCtx($viewport, canvasName);
+      const releaseContext = load.own(() => ctx.dispose());
       try {
         for await (const initState_ of ctx.initViewPort(
           $viewport,
           arenaFrame,
           studioCtx,
         )) {
+          if (!load.isActive()) { return; }
           setInitState(initState_);
         }
+        if (!load.isActive()) { return; }
       } catch (e: any) {
         ctx.dispose();
+        releaseContext();
+        if (!load.isActive()) { return; }
         if (!toggleTrailingSlash && e?.name === "SecurityError") {
           console.log(
             "SecurityError while accessing artboard. Trying again...",
@@ -167,12 +206,13 @@ export const CanvasFrame = observer(function CanvasFrame({
           setToggleTrailingSlash(true);
           return;
         }
-        loadedRejectRef.current?.(e);
+        load.fail(e);
         studioCtx.reportCanvasLoadError(e);
         return;
       }
 
       const onFocus = () => {
+        if (!load.isActive()) { return; }
         if (
           !viewCtx().viewOps.isEditing() &&
           studioCtx.isDevMode &&
@@ -183,12 +223,13 @@ export const CanvasFrame = observer(function CanvasFrame({
       };
 
       const onWheel = (e: WheelEvent) => {
+        if (!load.isActive()) { return; }
         const [topClientX, topClientY] = getTopClientPt(e);
         studioCtx.handleWheel(e, topClientX, topClientY);
       };
 
       const handleKeyUp = (e: JQuery.KeyUpEvent) => {
-        if (studioCtx.isInteractiveMode) {
+        if (!load.isActive() || studioCtx.isInteractiveMode) {
           return;
         }
         if (!viewCtx().viewOps.isEditing()) {
@@ -200,7 +241,7 @@ export const CanvasFrame = observer(function CanvasFrame({
       };
 
       const handleKeyDown = (e: JQuery.KeyDownEvent) => {
-        if (studioCtx.isInteractiveMode) {
+        if (!load.isActive() || studioCtx.isInteractiveMode) {
           return;
         }
         if (!viewCtx().viewOps.isEditing()) {
@@ -212,7 +253,7 @@ export const CanvasFrame = observer(function CanvasFrame({
       };
 
       const absorbEvent = (e: JQuery.UIEventBase | Event) => {
-        if (!maybeViewCtx()) {
+        if (!load.isActive() || !maybeViewCtx()) {
           return;
         }
 
@@ -221,7 +262,7 @@ export const CanvasFrame = observer(function CanvasFrame({
 
       // Runtime link notifications run after component handlers, in bubble phase.
       const absorbPreviewLink = (event: MouseEvent) => {
-        if (studioCtx.isLiveMode || studioCtx.isInteractiveMode) {
+        if (load.isActive() && (studioCtx.isLiveMode || studioCtx.isInteractiveMode)) {
           absorbLinkClick(event, (href) =>
             showCanvasPageNavigationNotification(studioCtx, href),
           );
@@ -254,6 +295,7 @@ export const CanvasFrame = observer(function CanvasFrame({
         {
           SELECT_ALL: () => {
             if (
+              !load.isActive() ||
               !studioCtx.isDevMode ||
               studioCtx.isInteractiveMode ||
               viewCtx().viewOps.isEditing()
@@ -263,8 +305,10 @@ export const CanvasFrame = observer(function CanvasFrame({
             spawn(studioCtx.changeUnsafe(() => selectAllInCanvas(studioCtx)));
             return true;
           },
-          TOGGLE_INTERACTIVE_MODE: () =>
-            studioCtx.changeUnsafe(() => studioCtx.toggleInteractiveMode()),
+          TOGGLE_INTERACTIVE_MODE: () => {
+            if (load.isActive()) { return studioCtx.changeUnsafe(() => studioCtx.toggleInteractiveMode()); }
+            return undefined;
+          },
         },
       );
 
@@ -278,25 +322,7 @@ export const CanvasFrame = observer(function CanvasFrame({
       // call preventDefault on it.
       ctx.$html().get(0).addEventListener("wheel", onWheel, { passive: false });
 
-      studioCtx.fontManager.installAllUsedFonts([ctx.$head()]);
-      ctx
-        .doc()
-        .documentElement.setAttribute(
-          "data-plasmic-frame-uuid",
-          arenaFrame.uuid,
-        );
-      ctx.doc().documentElement.setAttribute("data-plasmic-component-uuid", arenaFrame.container.component.uuid);
-      onFrameLoad(arenaFrame, ctx);
-
-      setCreatedVc(true);
-      setLoadState("loaded");
-      if (loadedResolveRef.current) {
-        loadedResolveRef.current();
-        loadedResolveRef.current = null;
-      }
-
-      disposeRef.current = () => {
-        console.log("new dispose");
+      load.own(() => {
         ctx.$html().off("keydown", handleKeyDown).off("keyup", handleKeyUp);
         for (const event of absorbedEvents) {
           html.removeEventListener(event, absorbEvent, true);
@@ -305,9 +331,25 @@ export const CanvasFrame = observer(function CanvasFrame({
         unbindShortcutHandlers();
         ctx.$html().get(0).removeEventListener("wheel", onWheel);
         ctx.viewport().removeEventListener("focus", onFocus);
-        ctx.dispose();
-        loadedResolveRef.current?.();
-      };
+      });
+
+      studioCtx.fontManager.installAllUsedFonts([ctx.$head()]);
+      ctx
+        .doc()
+        .documentElement.setAttribute(
+          "data-plasmic-frame-uuid",
+          arenaFrame.uuid,
+        );
+      ctx.doc().documentElement.setAttribute("data-plasmic-component-uuid", arenaFrame.container.component.uuid);
+      if (!load.isActive()) { return; }
+      onFrameLoad(arenaFrame, ctx);
+      if (!load.isActive()) { return; }
+
+      setCreatedVc(true);
+      setLoadState("loaded");
+      load.complete();
+
+
     },
     [
       studioCtx,
@@ -320,11 +362,6 @@ export const CanvasFrame = observer(function CanvasFrame({
     ],
   );
 
-  useEffect(() => {
-    return () => {
-      disposeRef.current();
-    };
-  }, []);
 
   // Get the coordinate of a mouse event (that targeted element inside the frame
   // for vc) in the top most window.
@@ -443,7 +480,8 @@ export const CanvasFrame = observer(function CanvasFrame({
   };
 
   useEffect(() => {
-    if (loadState === "ready-to-load" && iframeRef.current) {
+    const load = loadRef.current;
+    if (load?.isActive() && loadState === "ready-to-load" && iframeRef.current) {
       const viewport = iframeRef.current;
       spawn(
         (async () => {
@@ -452,38 +490,13 @@ export const CanvasFrame = observer(function CanvasFrame({
             arenaFrame.uuid,
           );
           const html = await studioCtx.fetchHostPageHtml();
+          if (!load.isActive()) { return; }
           const doc = ensure(
             viewport.contentDocument,
             () => "Expected contentDocument to exist",
           );
 
-          /*
-            This is a workaround for fixing an issue with gatsby's dev mode error handler.
-            - https://app.shortcut.com/plasmic/story/27150/app-hosting-with-gatsby-is-not-working
 
-            Plasmic's canvas host iframe is a sourceless iframe so it's treated as a sandboxed iframe,
-            the browser throws an error when trying to register or read service workers from it,
-            this error is not handled gracefully by gatsby and it causes the canvas frames to crash
-            and render a blank page.
-
-            We're patching the getRegistrations call to return an empty array so the call
-            doesn't crash the page.
-          */
-          const gatsbyDevModeServiceWorkerFixScript = `
-            (() => {
-              if (!navigator.serviceWorker) return;
-              const original = navigator.serviceWorker.getRegistrations;
-              navigator.serviceWorker.getRegistrations = () => {
-                // Detecting if this is a gatsby site.
-                if (window._gatsbyEvents) {
-                  return Promise.resolve([]);
-                }
-
-                // Otherwise use the original implementation.
-                return original.call(navigator.serviceWorker);
-              };
-            })();
-          `;
 
           // Artboard iframes have no network response, so PerformanceNavigationTiming
           // looks like a bfcache restore. transferSize, responseStart and encodedBodySize
@@ -513,7 +526,7 @@ export const CanvasFrame = observer(function CanvasFrame({
           `;
 
           // Stub dev-server HMR connections to avoid replacing the document written by
-          // Studio. Next 12+ and Turbopack use WebSocket; webpack-hot-middleware (Gatsby)
+          // Studio. Next 12+ and Turbopack use WebSocket; webpack-hot-middleware
           // uses EventSource. Runs before the framework boots.
           //
           // Next 16 uses the React debug channel over its HMR socket, and won't
@@ -561,7 +574,6 @@ export const CanvasFrame = observer(function CanvasFrame({
             <script>
               ${spoofFreshNavigationTimingScript}
               ${disableHmrScript}
-              ${gatsbyDevModeServiceWorkerFixScript}
 
               window.history.replaceState({}, "", "${
                 new URL(studioCtx.getHostUrl()).pathname + `#${makeFrameHash()}`
@@ -574,10 +586,7 @@ export const CanvasFrame = observer(function CanvasFrame({
           `,
           );
           if (html.length === finalHtml.length) {
-            reportError(
-              "Failed to inject Plasmic script into canvas host frame.",
-            );
-            return;
+            throw new Error("Failed to inject Plasmic script into canvas host frame.");
           }
 
           doc.open();
@@ -587,85 +596,40 @@ export const CanvasFrame = observer(function CanvasFrame({
 
           if (doc.readyState === "complete") {
             hostDone();
-            await handleLoad(viewport);
+            await handleLoad(viewport, load);
           } else {
+            let releaseListener: () => void = () => undefined;
             const listener = spawnWrapper(async () => {
               if (doc.readyState === "complete") {
-                hostDone();
-                await handleLoad(viewport);
                 doc.removeEventListener("readystatechange", listener);
+                releaseListener();
+                if (!load.isActive()) { return; }
+                hostDone();
+                await handleLoad(viewport, load);
               }
             });
             doc.addEventListener("readystatechange", listener);
+            releaseListener = load.own(() => doc.removeEventListener("readystatechange", listener));
           }
         })().catch(error => {
-          loadedRejectRef.current?.(error);
+          if (!load.isActive()) { return; }
+          load.fail(error);
           studioCtx.reportCanvasLoadError(error);
         }),
       );
     }
   }, [loadState]);
 
-  const makeFrameHash = React.useCallback(() => {
-    const globalVariantMap = L.keyBy(
-      siteToAllGlobalVariants(studioCtx.site),
-      (v) => v.uuid,
-    );
-    const activeGlobalVariants = Object.fromEntries(
-      L.uniq([
-        ...Object.entries(arenaFrame.pinnedGlobalVariants)
-          .filter(([_, pin]) => pin)
-          .map(([key]) =>
-            ensure(
-              globalVariantMap[key],
-              `Globat variant with uuid ${key} not found.`,
-            ),
-          ),
-        ...arenaFrame.targetGlobalVariants,
-      ]).map((variant) => {
-        assert(
-          variant.parent,
-          "Global variant should belong to a VariantGroup",
-        );
-        const globalVariantGroupName = toJsIdentifier(
-          variant.parent.param.variable.name,
-        );
-        const globalVariantName = toVarName(variant.name);
-        return [globalVariantGroupName, globalVariantName];
-      }),
-    );
-    const hash = new URLSearchParams({
-      canvas: "true",
-      origin: getPublicUrl(),
-      staticBaseUrl: getStaticBaseUrl(),
-      componentName: toClassName(arenaFrame.container.component.name),
-      globalVariants: JSON.stringify(activeGlobalVariants),
-      interactive: `${studioCtx.isInteractiveMode}`,
-    }).toString();
-    return hash;
-  }, [studioCtx, arenaFrame]);
+  const interactive = useStudioRenderPolicy(studioCtx, (policy) => policy.interactive);
+  const commentsOverlay = useStudioOverlayState(studioCtx, (state) => state.commentsOverlay);
+  const makeFrameHash = React.useCallback(
+    () => ensure(frameHashRef.current, "Active iframe must have its committed URL source").getHash(),
+    [studioCtx, arenaFrame, modelLifetime, iFrameKey],
+  );
 
-  useEffect(() => {
-    const dispose = reaction(
-      () => {
-        return makeFrameHash();
-      },
-      (hash) => {
-        if (
-          iframeRef.current?.contentWindow &&
-          hash !== iframeRef.current.contentWindow.location.hash
-        ) {
-          iframeRef.current.contentWindow.location.hash = hash;
-        }
-      },
-    );
-    return () => dispose();
-  }, [makeFrameHash, iframeRef.current]);
-
-  const contentView = studioCtx.viewCtxs.find((vc) => vc.contentEditor.target);
-  const contentSize = maybeViewCtx()?.contentEditor.size.get();
-  const isContentEditing = !!maybeViewCtx()?.contentEditor.target;
-  const contentReady = maybeViewCtx()?.contentEditor.ready.get();
+  const contentView = useActiveContentEditor(studioCtx)?.viewCtx;
+  const [contentSize, isContentEditing, contentReady] = useContentEditor(maybeViewCtx()?.contentEditor,
+    useShallow((state) => [state.size, !!state.target, state.ready] as const));
   return (
     <div className={styles.root} onClick={handleSelectionClick} style={contentView && contentView.arenaFrame() !== arenaFrame ? { visibility: "hidden", pointerEvents: "none" } : undefined}>
       <div
@@ -683,18 +647,18 @@ export const CanvasFrame = observer(function CanvasFrame({
                   () => "Expected arenaFrame.top to exist",
                 ),
                 width: contentSize?.width ?? arenaFrame.width,
-                height: contentSize?.height ?? getFrameHeight(arenaFrame),
+                height: contentSize?.height ?? frameHeight,
               }
             : {
                 width: contentSize?.width ?? arenaFrame.width,
-                height: contentSize?.height ?? getFrameHeight(arenaFrame),
+                height: contentSize?.height ?? frameHeight,
               }),
           boxShadow: isContentEditing ? "none" : undefined,
         }}
         data-frame-id={`${arenaFrame.uid}`}
       >
-        {(!maybeViewCtx()?.initialRenderReady ||
-          maybeViewCtx()?.canvasCtx.isUpdatingCcRegistry()) && (
+        {(!initialRenderReady ||
+          packagesLoading) && (
           <div
             className={styles.loadingOverlay}
             role="status"
@@ -702,7 +666,7 @@ export const CanvasFrame = observer(function CanvasFrame({
             aria-busy="true"
           >
             <Skeleton
-              active={loadState === "ready-to-load" || loadState === "loading" || !!maybeViewCtx()?.canvasCtx.isUpdatingCcRegistry()}
+              active={loadState === "ready-to-load" || loadState === "loading" || packagesLoading}
               paragraph={{ rows: 5 }}
             />
           </div>
@@ -775,9 +739,9 @@ export const CanvasFrame = observer(function CanvasFrame({
             />
           </span>
         </XDraggable>
-        {!studioCtx.isInteractiveMode &&
+        {!interactive &&
           studioCtx.showComments() &&
-          studioCtx.showCommentsOverlay && (
+          commentsOverlay && (
             <CanvasCommentMarkers arena={arena} arenaFrame={arenaFrame} />
           )}
         <CanvasActions arena={arena} arenaFrame={arenaFrame} />

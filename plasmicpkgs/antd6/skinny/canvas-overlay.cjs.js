@@ -8,7 +8,7 @@ function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 var React__default = /*#__PURE__*/_interopDefault(React);
 
 function getSelectedCanvasItemKey(items) {
-  const index = items.findIndex((item) => item.props.__plasmic_selection_prop__?.isSelected);
+  const index = items.findIndex((item) => React__default.default.isValidElement(item) && item.props.__canvas?.selected);
   return index < 0 ? void 0 : items[index].key ?? String(index);
 }
 function renderCanvasSlot(children, render) {
@@ -32,27 +32,20 @@ function getCanvasItems(children, isItem) {
   });
   return items;
 }
-const previewOpenProp = {
-  type: "boolean",
-  displayName: "Preview open",
-  editOnly: true,
-  description: "Show or hide the overlay on the editing canvas. When unset, follows selection without changing the runtime open state."
-};
 function useCanvasOverlay(props, triggerSlotName) {
   const canvas = host.usePlasmicCanvasContext();
   const selection = host.usePlasmicCanvasComponentInfo(props);
   const isEditing = !!canvas && !canvas.interactive;
   const {
     open,
-    previewOpen,
-    plasmicNotifyAutoOpenedContent,
-    __plasmic_selection_prop__: _selection,
+    __canvas,
     ...rest
   } = props;
-  const autoOpen = isEditing && !!selection?.isSelected && (!triggerSlotName || selection.selectedSlotName !== triggerSlotName);
-  const autoOpened = autoOpen && previewOpen === void 0 && !open;
+  const onReveal = __canvas?.onReveal;
+  const autoOpen = isEditing && !!selection?.selected && (!triggerSlotName || selection.slot !== triggerSlotName);
   const state = canvas ? selection?.getState?.("open", open, props.defaultOpen) : void 0;
-  const editingOpen = previewOpen ?? (autoOpen || !!open);
+  const autoOpened = autoOpen && !state && !open;
+  const editingOpen = autoOpen || !!open;
   if (state && !selection?.states?.open) {
     const handler = rest.onOpenChange;
     rest.onOpenChange = (next, ...args) => {
@@ -102,9 +95,9 @@ function useCanvasOverlay(props, triggerSlotName) {
   }
   React.useEffect(() => {
     if (autoOpened) {
-      plasmicNotifyAutoOpenedContent?.();
+      onReveal?.();
     }
-  }, [autoOpened, plasmicNotifyAutoOpenedContent]);
+  }, [autoOpened, onReveal]);
   return {
     props: rest,
     isEditing,
@@ -117,7 +110,6 @@ function useCanvasOverlay(props, triggerSlotName) {
 
 exports.getCanvasItems = getCanvasItems;
 exports.getSelectedCanvasItemKey = getSelectedCanvasItemKey;
-exports.previewOpenProp = previewOpenProp;
 exports.renderCanvasSlot = renderCanvasSlot;
 exports.useCanvasOverlay = useCanvasOverlay;
 //# sourceMappingURL=canvas-overlay.cjs.js.map

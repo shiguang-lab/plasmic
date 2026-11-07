@@ -4,7 +4,6 @@ import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
 import { Textbox } from "@/wab/client/components/widgets/Textbox";
 import { useI18n } from "@/wab/client/i18n";
 import { asValidCssTime } from "@/wab/shared/css";
-import { observer } from "mobx-react";
 import React, { useState } from "react";
 
 interface TransitionPanelProps {
@@ -12,7 +11,7 @@ interface TransitionPanelProps {
   onChange: (newValue: Transition) => void;
 }
 
-export const TransitionPanel = observer(function TransitionPanel(
+export function TransitionPanel(
   props: TransitionPanelProps,
 ) {
   const { t: uiT } = useI18n();
@@ -173,4 +172,4 @@ export const TransitionPanel = observer(function TransitionPanel(
       </LabeledItemRow>
     </>
   );
-});
+}

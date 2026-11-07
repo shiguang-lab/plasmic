@@ -55,7 +55,7 @@ export default [
     input: "./dist/index.d.ts",
     output: [{ file: "dist/all.d.ts", format: "es" }],
     plugins: [dts({ respectExternal: true })],
-    external: ["react"],
+    external: (id) => id === "react" || id.startsWith("react/"),
   },
 
   // We also do a "skinny" build here that bundles each Plume component as a

@@ -1,3 +1,4 @@
+import type * as React from "react";
 export type FiberRoot = { current: Fiber; containerInfo: any };
 
 export type Fiber =
@@ -35,8 +36,8 @@ export interface FiberForComponentClass extends FiberBase {
 }
 
 export interface FiberForInstrinsicElement extends FiberBase {
-  elementType: keyof JSX.IntrinsicElements;
-  type: keyof JSX.IntrinsicElements;
+  elementType: keyof React.JSX.IntrinsicElements;
+  type: keyof React.JSX.IntrinsicElements;
 
   stateNode: HTMLElement;
 }
@@ -80,7 +81,14 @@ type WorkTag =
   | 21
   | 22
   | 23
-  | 24;
+  | 24
+  | 25
+  | 26
+  | 27
+  | 28
+  | 29
+  | 30
+  | 31;
 
 export const FunctionComponent = 0;
 export const ClassComponent = 1;
@@ -106,3 +114,12 @@ export const ScopeComponent = 21;
 export const OffscreenComponent = 22;
 export const LegacyHiddenComponent = 23;
 export const CacheComponent = 24;
+
+// React 19.3.1 ReactWorkTags; keep traversal behavior covered with real DOM roots.
+export const TracingMarkerComponent = 25;
+export const HostHoistable = 26;
+export const HostSingleton = 27;
+export const IncompleteFunctionComponent = 28;
+export const Throw = 29;
+export const ViewTransitionComponent = 30;
+export const ActivityComponent = 31;

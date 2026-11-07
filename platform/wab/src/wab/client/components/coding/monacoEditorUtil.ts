@@ -1,27 +1,27 @@
-import { fixWorkerUrl } from "@/wab/client/monaco-worker-url";
+import { configureMonacoWorkers } from "@/wab/client/monaco-worker-url";
 import { noopFn } from "@/wab/shared/functions";
 import { isValidJavaScriptCode } from "@/wab/shared/parser-utils";
 import * as monaco from "monaco-editor";
 import { useEffect, useState } from "react";
 
-fixWorkerUrl();
+configureMonacoWorkers();
 
-const compilerOptions: monaco.languages.typescript.CompilerOptions = {
+const compilerOptions: monaco.typescript.CompilerOptions = {
   // `moduleResolution` is needed for some import types to work, such as
   // `copy-to-clipboard` and `fast-stringify` libs
-  moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+  moduleResolution: monaco.typescript.ModuleResolutionKind.NodeJs,
   // Setting `lib` to `esnext` breaks types for `isomorphic-fetch` lib
   // lib: ["esnext"],
-  target: monaco.languages.typescript.ScriptTarget.ESNext,
+  target: monaco.typescript.ScriptTarget.ESNext,
   allowNonTsExtensions: true,
   allowJs: true,
   noEmit: true,
 };
 
-monaco.languages.typescript.javascriptDefaults.setCompilerOptions(
+monaco.typescript.javascriptDefaults.setCompilerOptions(
   compilerOptions,
 );
-monaco.languages.typescript.typescriptDefaults.setCompilerOptions(
+monaco.typescript.typescriptDefaults.setCompilerOptions(
   compilerOptions,
 );
 
@@ -437,7 +437,7 @@ export function upsertMonacoModel(
 }
 
 export function upsertMonacoExtraLib(
-  lang: monaco.languages.typescript.LanguageServiceDefaults,
+  lang: monaco.typescript.LanguageServiceDefaults,
   filePath: string,
   content: string,
 ): monaco.IDisposable | null {

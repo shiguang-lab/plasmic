@@ -1,9 +1,10 @@
+import { jsx } from 'react/jsx-runtime';
 import { Dropdown } from 'antd';
-import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
+import { u as useCanvasOverlay } from './canvas-overlay-BZz-_5Mj.esm.js';
 import { AntdMenu, MENU_ITEM_TYPE } from './registerMenu.esm.js';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
+import 'react';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -48,7 +49,7 @@ function AntdDropdown(props) {
     ...rest
   } = canvasProps;
   const keyedMenuItems = addKeysToUnkeyedMenuItems(unkeyedMenuItems);
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Dropdown,
     {
       ...rest,
@@ -59,18 +60,18 @@ function AntdDropdown(props) {
       popupRender: () => {
         const itemsChildren = useMenuItemsSlot ? menuItems?.() ?? [] : void 0;
         const items = useMenuItemsSlot ? void 0 : keyedMenuItems;
-        return /* @__PURE__ */ React.createElement(
+        return /* @__PURE__ */ jsx(
           AntdMenu,
           {
             className: `${dropdownMenuScopeClassName}`,
             onClick: isEditing ? void 0 : (event) => onAction?.(event.key),
-            items
-          },
-          itemsChildren
+            items,
+            children: itemsChildren
+          }
         );
-      }
-    },
-    typeof children === "string" ? /* @__PURE__ */ React.createElement("div", null, children) : children
+      },
+      children: typeof children === "string" ? /* @__PURE__ */ jsx("div", { children }) : children
+    }
   );
 }
 function registerDropdown(loader) {
@@ -82,7 +83,6 @@ function registerDropdown(loader) {
     ],
     displayName: "Dropdown",
     props: {
-      previewOpen: previewOpenProp,
       menuItems: {
         type: "slot",
         displayName: "Menu items",
@@ -160,10 +160,11 @@ function registerDropdown(loader) {
       },
       open: {
         type: "boolean",
-        description: "Toggle visibility of dropdown menu in Plasmic Editor",
-        editOnly: true,
-        uncontrolledProp: "fakeOpen",
-        defaultValueHint: false
+        description: "Controlled open state of the dropdown menu. Leave unset for the native trigger."
+      },
+      onOpenChange: {
+        type: "eventHandler",
+        argTypes: [{ name: "open", type: "boolean" }, { name: "info", type: "object" }]
       },
       disabled: {
         type: "boolean",

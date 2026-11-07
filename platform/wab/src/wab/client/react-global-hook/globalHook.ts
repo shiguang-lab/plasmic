@@ -1,5 +1,6 @@
 import { handleError } from "@/wab/client/ErrorNotifications";
 import { validateCodeComponentParams } from "@/wab/client/react-global-hook/code-components";
+import { FrameVariantInputs } from "@/wab/client/react-global-hook/frame-variant-inputs";
 import { Fiber, FiberRoot } from "@/wab/client/react-global-hook/fiber";
 import { FAKE_NODE_CHILD_PARAM } from "@/wab/client/react-global-hook/globalHookConstants";
 import {
@@ -51,7 +52,9 @@ import {
 } from "@/wab/shared/core/val-nodes";
 import { SlotInfo } from "@/wab/shared/eval/val-state";
 import { isString, omit } from "lodash";
-import { observable, runInAction } from "mobx";
+import { runInAction } from "mobx";
+import { FrameContextData } from "@/wab/client/react-global-hook/frame-context-data";
+import { createStore } from "zustand/vanilla";
 
 const officialHook = (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__ as
   GlobalHook | undefined;
@@ -145,9 +148,11 @@ if (officialHook) {
     const maybeVal = fiberToNonCachedVal.get(node);
     if (maybeVal) {
       // Nothing to unregister from if the frame was already closed
-      officialHook.plasmic.frames
-        .get(maybeVal.frameUid)
-        ?.renderState.unregisterVal(maybeVal);
+      const frame = officialHook.plasmic.frames.get(maybeVal.frameUid);
+      if (frame) {
+        frame.renderState.unregisterVal(maybeVal);
+        frame.variantInputs.invalidate();
+      }
     }
     officialHook.plasmic.fiberToVal.delete(node);
     fiberToNonCachedVal.delete(node);
@@ -298,6 +303,7 @@ if (officialHook) {
       fiberRoot: FiberRoot,
       ...otherArgs: any[]
     ) => {
+      const rootUpdates = new Map<FrameState, ValComponent>();
       // We want to create and update the Val tree every time React commits.
       // We will be traversing the updated portions of the tree, and either
       // creating new val nodes or updating existing ones.
@@ -879,6 +885,7 @@ if (officialHook) {
                 })
                 .result();
               renderState.recomputeCachedVal(cachedVal.fullKey);
+              frameState.variantInputs.invalidate();
 
               // Time to propagate these new val nodes upwards! First, the
               // fiberToValSubtrees. This is so its parent fiber will see that this
@@ -912,10 +919,10 @@ if (officialHook) {
               // set it as the frame ValRoot
               if (
                 tryGetFrameUid(node) &&
-                cachedVal !== frameState.valRoot.get()
+                cachedVal !== (rootUpdates.get(frameState) ?? frameState.valRootStore.getState())
               ) {
                 // Root Node
-                frameState.valRoot.set(ensureInstance(cachedVal, ValComponent));
+                rootUpdates.set(frameState, ensureInstance(cachedVal, ValComponent));
               }
             } catch (err) {
               // Fail to process canvas data - clean up this node so the
@@ -1013,6 +1020,11 @@ if (officialHook) {
       } catch (err) {
         handleError(err);
       }
+      officialHook.plasmic.frames.forEach((frame) => frame.variantInputs.prepareCommit());
+      rootUpdates.forEach((value, frame) => {
+        if (officialHook.plasmic.frames.get(frame.uid) === frame) { frame.valRootStore.setState(value, true); }
+      });
+      officialHook.plasmic.frames.forEach((frame) => frame.variantInputs.publishCommit());
       officialHookProps.onCommitFiberRoot?.(
         rendererID,
         fiberRoot,
@@ -1036,12 +1048,17 @@ function createFrameState(
   const ctx = hook?.plasmic ?? globalHookCtx;
   const frames = ctx.frames;
   let isDisposed = false;
+  const renderState = createRenderState(uid);
   const state: FrameState = {
     uid,
     envIdToFullKey: new Map(),
-    renderState: createRenderState(uid),
-    valRoot: observable.box(null, { deep: false }),
-    contextData: observable.map<string, any>(undefined, { deep: false }),
+    renderState,
+    valRootStore: createStore<ValComponent | null>(() => null),
+    contextData: new FrameContextData(),
+    variantInputs: new FrameVariantInputs((fullKey) => {
+      const value = renderState.fullKey2val(fullKey);
+      return value instanceof ValComponent ? value : undefined;
+    }),
     dispose: () => {
       if (isDisposed) {
         return;
@@ -1068,8 +1085,9 @@ function createFrameState(
       }
       state.envIdToFullKey.clear();
       state.renderState.dispose();
-      state.contextData.clear();
-      state.valRoot.set(null);
+      state.contextData.dispose();
+      state.variantInputs.dispose();
+      state.valRootStore.setState(null, true);
     },
   };
   frames.set(uid, state);

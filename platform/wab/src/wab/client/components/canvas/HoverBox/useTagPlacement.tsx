@@ -4,7 +4,7 @@ import React from "react";
 
 /** Keep canvas labels away from text and controls; crowded labels let clicks pass through. */
 export function useTagPlacement(
-  tagRef: React.RefObject<HTMLElement>,
+  tagRef: React.RefObject<HTMLElement | null>,
   width: number,
   zoom: number,
   viewCtx?: ViewCtx,

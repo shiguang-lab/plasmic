@@ -6,12 +6,11 @@ import {
   DefaultShareButtonProps,
   PlasmicShareButton,
 } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicShareButton";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 type ShareButtonProps = DefaultShareButtonProps;
 
-const ShareButton = observer((props: ShareButtonProps) => {
+const ShareButton = (props: ShareButtonProps) => {
   const { t: uiT } = useI18n();
   const { openShareDialog } = useShareDialog();
 
@@ -25,6 +24,6 @@ const ShareButton = observer((props: ShareButtonProps) => {
       />
     </>
   );
-});
+};
 
 export default ShareButton;

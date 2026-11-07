@@ -14,27 +14,16 @@ export const Route = createRootRoute({
     ],
   }),
   component: () => (
-    <RootDocument>
+    <>
+      <HeadContent />
       <PlasmicRootProvider>
         <Outlet />
         <TanStackRouterDevtools />
       </PlasmicRootProvider>
-    </RootDocument>
+      <Scripts />
+    </>
   ),
 })
 
-function RootDocument({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  )
-}
 `;
 }

@@ -1,3 +1,4 @@
+import { useFocusedViewCtx } from "@/wab/client/studio-ctx/selection-state";
 import { ContextMenuContext } from "@/wab/client/components/ContextMenuIndicator/ContextMenuIndicator";
 import {
   resetNodes as doResetNodes,
@@ -196,7 +197,7 @@ export const TemplatedTextEditor = React.forwardRef<
 
     const [validSqlString, setValidSqlString] = React.useState(true);
     const studioCtx = useStudioCtx();
-    const viewCtx = studioCtx.focusedViewCtx();
+    const viewCtx = useFocusedViewCtx(studioCtx);
 
     const slateContainerRef = React.useRef<HTMLDivElement>(null);
     const ctx = useContext(ContextMenuContext);
@@ -225,7 +226,7 @@ export const TemplatedTextEditor = React.forwardRef<
         projectId: viewCtx?.siteInfo.id,
         inStudio: true,
       }),
-      [component, studioCtx],
+      [component, studioCtx, viewCtx],
     );
 
     const value = React.useMemo(
@@ -911,7 +912,7 @@ function DefaultElement({
 }
 
 interface CustomCaretProps {
-  slateContainerRef: React.RefObject<HTMLDivElement>;
+  slateContainerRef: React.RefObject<HTMLDivElement | null>;
   scrollerContainerClassName?: string;
   onCaretClick: () => void;
 }

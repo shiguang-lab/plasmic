@@ -1,0 +1,214 @@
+{
+  "date": "2026-11-06",
+  "status": "failed regression thresholds; investigation in progress",
+  "scope": "A0 React 18 vs current React 19 checkpoint including component upgrades/retirements and completed Zustand slices. Not an isolated React-version comparison or final Zustand result. Offline immutable real-project replay excludes live API/auth latency. Compiler off.",
+  "method": {
+    "sequence": [
+      "A0",
+      "current",
+      "current",
+      "A0",
+      "A0",
+      "current",
+      "current",
+      "A0"
+    ],
+    "opensPerProcess": 6,
+    "warmupOpens": 2,
+    "timedSamplesPerVariantPerDataset": 16,
+    "processesPerVariantPerDataset": 4,
+    "sameDesktopShell": true,
+    "compilerEnabled": false,
+    "tracingDuringTiming": false,
+    "forcedGcDuringTiming": false
+  },
+  "environment": {
+    "machine": "Mac16,1",
+    "cpu": "Apple M4",
+    "cpuCount": 10
+  },
+  "artifacts": {
+    "A0": {
+      "kind": "local",
+      "revision": "32df7af09a1df7d119143b546f14a81b6d876c83",
+      "dirty": true,
+      "builtAt": "2026-11-05T11:14:27.987Z",
+      "sourceHash": "b6b71b3d2ba562a8b29fb84aa4933a6f90774ea63d695f7334342d3537ea7f20",
+      "rendererHash": "7846e7b84d54af1b08a44674e0e98ba3a90cd3d70778ef8c5aab0b50b5f08b17",
+      "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167"
+    },
+    "current": {
+      "kind": "local",
+      "revision": "32df7af09a1df7d119143b546f14a81b6d876c83",
+      "dirty": true,
+      "builtAt": "2026-11-06T03:00:27.543Z",
+      "sourceHash": "a97630a856dd6b31001f5703e0475234d49c3ad09348bfac0c7e95758b39a220",
+      "reactCompiler": {
+        "enabled": false,
+        "target": "19",
+        "compilationMode": "annotation",
+        "files": [
+          "src/wab/client/components/coding/CodeDisplayContent.tsx"
+        ]
+      },
+      "rendererHash": "9ee36036e5d77191ab34f46d622284b1a342f8e534e96571a0f9856d1dcc7ab5",
+      "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167"
+    }
+  },
+  "metrics": [
+    {
+      "dataset": "gp",
+      "metric": "firstCanvasReadyMs",
+      "A0": {
+        "processes": 4,
+        "samples": 16,
+        "medianMs": 1478.783447265625,
+        "p95Ms": 1595.573486328125,
+        "processMediansMs": [
+          1514.61376953125,
+          1464.440673828125,
+          1475.707275390625,
+          1482.7330322265625
+        ],
+        "medianOfProcessMediansMs": 1479.2201538085938,
+        "minMs": 1448.807373046875,
+        "maxMs": 1595.573486328125
+      },
+      "current": {
+        "processes": 4,
+        "samples": 16,
+        "medianMs": 1930.35009765625,
+        "p95Ms": 2342.582275390625,
+        "processMediansMs": [
+          2003.2225341796875,
+          1911.1903076171875,
+          2000.86962890625,
+          1889.70263671875
+        ],
+        "medianOfProcessMediansMs": 1956.0299682617188,
+        "minMs": 1864.544189453125,
+        "maxMs": 2342.582275390625
+      },
+      "deltaMs": 476.809814453125,
+      "deltaPercent": 32.233864122623544,
+      "regressionThresholdMs": 73.9610076904297,
+      "passesThreshold": false
+    },
+    {
+      "dataset": "gp",
+      "metric": "allFramesRenderedMs",
+      "A0": {
+        "processes": 4,
+        "samples": 16,
+        "medianMs": 1477.39990234375,
+        "p95Ms": 1593.89990234375,
+        "processMediansMs": [
+          1513.150146484375,
+          1463.0,
+          1474.35009765625,
+          1481.25
+        ],
+        "medianOfProcessMediansMs": 1477.800048828125,
+        "minMs": 1447.5,
+        "maxMs": 1593.89990234375
+      },
+      "current": {
+        "processes": 4,
+        "samples": 16,
+        "medianMs": 1868.64990234375,
+        "p95Ms": 2281.30029296875,
+        "processMediansMs": [
+          1935.7000732421875,
+          1850.0,
+          1935.2000732421875,
+          1830.0501708984375
+        ],
+        "medianOfProcessMediansMs": 1892.6000366210938,
+        "minMs": 1806.39990234375,
+        "maxMs": 2281.30029296875
+      },
+      "deltaMs": 414.79998779296875,
+      "deltaPercent": 28.068749092402555,
+      "regressionThresholdMs": 73.89000244140625,
+      "passesThreshold": false
+    },
+    {
+      "dataset": "complex",
+      "metric": "firstCanvasReadyMs",
+      "A0": {
+        "processes": 4,
+        "samples": 16,
+        "medianMs": 1694.9912109375,
+        "p95Ms": 1759.153564453125,
+        "processMediansMs": [
+          1701.8526611328125,
+          1692.8447265625,
+          1526.234375,
+          1697.985107421875
+        ],
+        "medianOfProcessMediansMs": 1695.4149169921875,
+        "minMs": 1338.859130859375,
+        "maxMs": 1759.153564453125
+      },
+      "current": {
+        "processes": 4,
+        "samples": 16,
+        "medianMs": 1905.0938720703125,
+        "p95Ms": 2407.46923828125,
+        "processMediansMs": [
+          1892.1102294921875,
+          1942.3880615234375,
+          2077.3330078125,
+          1803.91650390625
+        ],
+        "medianOfProcessMediansMs": 1917.2491455078125,
+        "minMs": 1734.55615234375,
+        "maxMs": 2407.46923828125
+      },
+      "deltaMs": 221.834228515625,
+      "deltaPercent": 13.08436219902902,
+      "regressionThresholdMs": 84.77074584960938,
+      "passesThreshold": false
+    },
+    {
+      "dataset": "complex",
+      "metric": "allFramesRenderedMs",
+      "A0": {
+        "processes": 4,
+        "samples": 16,
+        "medianMs": 3920.900146484375,
+        "p95Ms": 4119.199951171875,
+        "processMediansMs": [
+          4032.0,
+          3914.25,
+          3892.2498779296875,
+          3979.2000732421875
+        ],
+        "medianOfProcessMediansMs": 3946.7250366210938,
+        "minMs": 3857.099853515625,
+        "maxMs": 4119.199951171875
+      },
+      "current": {
+        "processes": 4,
+        "samples": 16,
+        "medianMs": 4284.699951171875,
+        "p95Ms": 4557.000244140625,
+        "processMediansMs": [
+          4264.949951171875,
+          4291.3499755859375,
+          4336.300048828125,
+          4221.699951171875
+        ],
+        "medianOfProcessMediansMs": 4278.149963378906,
+        "minMs": 4116.800048828125,
+        "maxMs": 4557.000244140625
+      },
+      "deltaMs": 331.4249267578125,
+      "deltaPercent": 8.397466853722225,
+      "regressionThresholdMs": 197.3362518310547,
+      "passesThreshold": false
+    }
+  ],
+  "rawEvidence": "Private u15-performance/timing-results.json and immutable per-process replay reports",
+  "result": "Both first-canvas and all-artboards medians exceed the existing regression threshold in both datasets; these results do not close upgrade performance acceptance."
+}

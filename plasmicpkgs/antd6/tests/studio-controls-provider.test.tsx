@@ -2,7 +2,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import { fireEvent, render, waitFor } from "@testing-library/react";
 import { Checkbox, Input, Select, theme, type ThemeConfig } from "antd";
-import React from "react";
+
 import { expect, test, vi } from "vitest";
 import { StudioControlsProvider } from "../../../platform/sub/src/studio-controls-provider";
 
@@ -75,7 +75,7 @@ test("isolated controls and their open popups follow the supplied Studio theme",
 
 
 test("host trigger resolves HTML and SVG nodes from the Studio document", () => {
-  const subRequire = createRequire(path.resolve("../../platform/sub/package.json"));
+  const subRequire = createRequire(path.resolve(__dirname, "../../../platform/sub/package.json"));
   const antdRequire = createRequire(subRequire.resolve("antd/package.json"));
   const { getDOM, isDOM } = antdRequire("@rc-component/util/lib/Dom/findDOMNode");
   const isVisible = antdRequire("@rc-component/util/lib/Dom/isVisible").default;

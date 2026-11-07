@@ -1,5 +1,5 @@
 import React from "react";
-import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
+import { DragDropContext, Draggable, Droppable } from "@hello-pangea/dnd";
 
 /* react-beautiful-dnd has issues with SSR:
  - https://github.com/atlassian/react-beautiful-dnd/issues/2092#issuecomment-1023169662 */
@@ -41,7 +41,7 @@ export function SimpleReorderableList(props: {
         {...(customDragHandle ? {} : provided.dragHandleProps)}
         style={axisLockedStyle(provided.draggableProps.style)}
       >
-        {React.cloneElement(items[rubric.source.index] as React.ReactElement, {
+        {React.cloneElement(items[rubric.source.index] as React.ReactElement<{ isDragging?: boolean; dragHandleProps?: import("@hello-pangea/dnd").DraggableProvided["dragHandleProps"] }>, {
           ...(customDragHandle
             ? { dragHandleProps: provided.dragHandleProps }
             : {}),

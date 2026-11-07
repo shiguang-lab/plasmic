@@ -1,10 +1,11 @@
+import { jsx, Fragment } from 'react/jsx-runtime';
 import { DatePicker } from 'antd';
 import cls from 'classnames';
 import dayjs from 'dayjs';
-import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
-import { r as registerComponentHelper, c as capitalize } from './utils-U416WEAa.esm.js';
+import { u as useCanvasOverlay } from './canvas-overlay-BZz-_5Mj.esm.js';
+import { r as registerComponentHelper, c as capitalize } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
+import 'react';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -12,7 +13,7 @@ import '@shiguang-lab/plasmic-antd6/thumbnails';
 function AntdDatePicker(props) {
   const { props: canvasProps, open, isEditing } = useCanvasOverlay(props);
   const { picker, popupScopeClassName, classNames, ...rest } = canvasProps;
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(Fragment, { children: /* @__PURE__ */ jsx(
     DatePicker,
     {
       ...rest,
@@ -40,7 +41,7 @@ function AntdDatePicker(props) {
         );
       }
     }
-  ));
+  ) });
 }
 const datePickerComponentName = "plasmic-antd6-date-picker";
 const datePickerHelpers = {
@@ -58,7 +59,6 @@ function registerDatePicker(loader) {
     canvasOverlay: {},
     displayName: "DatePicker",
     props: {
-      previewOpen: previewOpenProp,
       multiple: { type: "boolean", defaultValueHint: false },
       value: {
         type: "object",
@@ -142,7 +142,6 @@ function registerDatePicker(loader) {
         options: ["outlined", "borderless", "filled", "underlined"],
         defaultValueHint: "outlined"
       },
-      // TODO - see how it works with plasmic-rich-components
       // format: {
       //   advanced: true
       // },

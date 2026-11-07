@@ -150,7 +150,7 @@ export function CopilotChatDialog({
   );
   useErrorMessage(error);
   useErrorMessage(session.error);
-  const consumed = React.useRef<CopilotChatOpenOpts>();
+  const consumed = React.useRef<CopilotChatOpenOpts>(undefined);
   React.useEffect(() => {
     if (status) {
       const selected = session.selectedModel;

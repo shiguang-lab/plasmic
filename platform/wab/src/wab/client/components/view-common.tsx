@@ -4,7 +4,6 @@ import {
   check,
   ensure,
   ensureArray,
-  ensureHTMLElt,
   generateWith,
   reSplitAll,
   simpleWords,
@@ -18,7 +17,6 @@ import {
   ReactElement,
   SyntheticEvent,
 } from "react";
-import * as ReactDOM from "react-dom";
 
 type EventBase = JQuery.EventBase;
 
@@ -141,7 +139,7 @@ export class Matcher {
 }
 
 function boldSnippets(text: React.ReactNode, pat: RegExp, className?: string) {
-  if (React.isValidElement(text)) {
+  if (React.isValidElement<{ children?: React.ReactNode }>(text)) {
     if (text.props.children == null) {
       return text;
     }
@@ -254,20 +252,6 @@ export function absorb<T, This>(
     e.stopPropagation();
     return fn.call(this, e);
   };
-}
-
-export function findDOMElt(x: any): Element | null {
-  const res = ReactDOM.findDOMNode(x) as Element | null;
-  check(!res || L.isElement(res));
-  return res;
-}
-
-export function getDOMElt(x: any): Element {
-  return ensure(findDOMElt(x), "Unexpected undefined DOMElt");
-}
-
-export function getHTMLElt(x: any): HTMLElement {
-  return ensureHTMLElt(getDOMElt(x));
 }
 
 /**

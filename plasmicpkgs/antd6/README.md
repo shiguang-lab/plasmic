@@ -1,6 +1,6 @@
 # Ant Design 6 for Plasmic
 
-Registers Ant Design 6.6.5 visual component families and their design-oriented
+Registers Ant Design 6.7.0 visual component families and their design-oriented
 subcomponents. Requires React and React DOM 18 or newer. The implementation uses
 the official Plasmic antd5 registrations as its starting point.
 
@@ -33,7 +33,7 @@ which does not evaluate component registrations or their thumbnail manifest.
 - ConfigProvider and App are supplied by the registered global context. Theme
   tokens use `--antd6-*` CSS variables and `antd6-*` registration names.
 - Set `locale` in Ant Design System Settings to any of the 73 locale identifiers
-  shipped by Ant Design 6.6.5, such as `zh_CN`, `ja_JP` or `fr_FR`. The default is
+  shipped by Ant Design 6.7.0, such as `zh_CN`, `ja_JP` or `fr_FR`. The default is
   `en_US`. Built-in confirmation buttons, pagination and date controls inherit
   this setting, with the corresponding Day.js date locale data included. Custom
   business text such as `okText="确认下线"` takes precedence. Code can also pass a

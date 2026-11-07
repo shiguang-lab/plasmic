@@ -39,18 +39,17 @@ export function CookieConsent(props: CookieConsentProps) {
     onModalHide,
     sections,
     services,
-    plasmicNotifyAutoOpenedContent,
   } = props;
   const inPlasmicCanvas = usePlasmicCanvasContext();
-  const isSelected =
-    usePlasmicCanvasComponentInfo?.(props)?.isSelected ?? false;
+  const { selected = false, onReveal } =
+    usePlasmicCanvasComponentInfo?.(props) ?? {};
 
   React.useEffect(() => {
-    if (!isSelected && inPlasmicCanvas) {
+    if (!selected && inPlasmicCanvas) {
       ConsentApi.reset(true);
       return;
     }
-    plasmicNotifyAutoOpenedContent?.();
+    onReveal?.();
 
     // Parse analytics auto-clear cookies
     const analyticsAutoClearCookiesArray =
@@ -188,8 +187,8 @@ export function CookieConsent(props: CookieConsentProps) {
     sections,
     services,
     inPlasmicCanvas,
-    isSelected,
-    plasmicNotifyAutoOpenedContent,
+    selected,
+    onReveal,
   ]);
 
   return <div id="plasmic-cookie-consent" />;

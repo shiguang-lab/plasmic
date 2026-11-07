@@ -423,7 +423,7 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
                         {t("Push to GitHub")}
                       </Button>
                       <p>
-                        {t("Generate a new Next.js / Gatsby / React repo.")}
+                        {t("Generate a new Next.js / React repo.")}
                       </p>
                     </div>
                   )}

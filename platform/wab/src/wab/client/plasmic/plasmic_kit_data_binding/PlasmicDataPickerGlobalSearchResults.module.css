@@ -4,8 +4,7 @@
   height: 100%;
   max-width: 100%;
   flex-grow: 1;
-  overflow-x: visible;
-  overflow-y: auto;
+  overflow: hidden;
   flex-shrink: 0;
   position: relative;
   flex-direction: column;

@@ -174,9 +174,16 @@ export function walkDependencyTree(
   site: Site,
   scope: DependencyWalkScope,
 ): ProjectDependency[] {
-  const queue: ProjectDependency[] = [...site.projectDependencies];
-  const result: ProjectDependency[] = [];
-  const traverseIds = new Set(queue.map((item) => item.projectId));
+  return walkDependencyInputs(site.projectDependencies, scope,
+    (dependency) => dependency.site.projectDependencies, (dependency) => dependency.projectId);
+}
+
+/** The same ordered traversal over explicit installed dependency inputs. */
+export function walkDependencyInputs<Dependency>(direct: readonly Dependency[], scope: DependencyWalkScope,
+  readNested: (dependency: Dependency) => readonly Dependency[], readProjectId: (dependency: Dependency) => string): Dependency[] {
+  const queue: Dependency[] = [...direct];
+  const result: Dependency[] = [];
+  const traverseIds = new Set(queue.map(readProjectId));
 
   while (queue.length > 0) {
     const curr = ensure(queue.shift(), "Queue should not be empty");
@@ -184,10 +191,10 @@ export function walkDependencyTree(
     // By default only get direct dependencies
     if (scope === "all") {
       // only add those dependencies to the queue which have not already been traversed or queued for traversal
-      curr.site.projectDependencies
-        .filter((pdep) => !traverseIds.has(pdep.projectId))
+      readNested(curr)
+        .filter((pdep) => !traverseIds.has(readProjectId(pdep)))
         .forEach((pdep) => {
-          traverseIds.add(pdep.projectId);
+          traverseIds.add(readProjectId(pdep));
           queue.push(pdep);
         });
     }

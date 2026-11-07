@@ -11,7 +11,7 @@ import PlasmicLeftVersionsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLe
 import { spawn } from "@/wab/shared/common";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Dropdown, Input, Menu, Spin } from "antd";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
 import React from "react";
 
 const FilterValueToLabel = {
@@ -27,7 +27,7 @@ interface VersionsTabProps {
   dismissVersionsCTA: () => void;
 }
 
-export const VersionsTab = observer(function VersionsTab(
+export function VersionsTab(
   props: VersionsTabProps,
 ) {
   const studioCtx = useStudioCtx();
@@ -37,19 +37,22 @@ export const VersionsTab = observer(function VersionsTab(
   const [isPublishing, setIsPublishing] = React.useState<boolean>(false);
   const [filter, setFilter] = React.useState<VersionsFilter>("all");
   const matcher = React.useMemo(() => new Matcher(query), [query]);
-  const readOnly = studioCtx.getLeftTabPermission("versions") === "readable";
+  const readOnly = useStore(studioCtx.versionHistory.store, (state) => state.versionsReadOnly);
 
   async function publishProject() {
     const response = await promptPublishProj({ studioCtx });
 
     if (response && response.confirm) {
       setIsPublishing(true);
-      await studioCtx.publish(
-        response.tags,
-        response.title,
-        studioCtx.dbCtx().branchInfo?.id,
-      );
-      setIsPublishing(false);
+      try {
+        await studioCtx.publish(
+          response.tags,
+          response.title,
+          studioCtx.uiEnvironment.store.getState().branchId ?? undefined,
+        );
+      } finally {
+        setIsPublishing(false);
+      }
     }
   }
 
@@ -164,4 +167,4 @@ export const VersionsTab = observer(function VersionsTab(
       }}
     />
   );
-});
+}

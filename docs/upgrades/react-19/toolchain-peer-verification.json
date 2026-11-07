@@ -1,0 +1,1195 @@
+{
+  "date": "2026-11-06",
+  "status": "complete",
+  "scope": "Root TSDX/dedent Babel macro peer conflict",
+  "workspace": "/Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic",
+  "branch": "codex/react-19-implementation",
+  "environment": {
+    "node": "24.20.0",
+    "pnpm": "11.10.0"
+  },
+  "installedToolVersions": {
+    "tsdx": "0.14.1",
+    "macros": "3.1.0",
+    "jest": "29.7.0",
+    "typescript": "5.9.3",
+    "rollup": "1.32.1",
+    "typescriptPlugin": "0.37.0"
+  },
+  "fix": {
+    "selector": "tsdx@0.14.1>babel-plugin-macros",
+    "version": "3.1.0",
+    "globalMacroOverride": false
+  },
+  "toolchainOnlyLockDelta": {
+    "removedPackages": ["babel-plugin-macros@2.8.0", "cosmiconfig@6.0.0"],
+    "addedPackages": [],
+    "changedOtherPackageRecords": [],
+    "changedImporters": []
+  },
+  "finalSharedFileHashes": {
+    "pnpm-workspace.yaml": "edd32604d8e98027d4350cf4fa7e89f8068bf61f21c6f9182abcfec10e3e648d",
+    "pnpm-lock.yaml": "e841960a590b7506a6c1db5ba55c78f43d0c5e00f1249df231ba0b3991cfeab9"
+  },
+  "commands": [
+    {
+      "command": ["pnpm", "peers", "check"],
+      "cwd": "/Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic",
+      "exitCode": 1,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/before-root-peers.log"
+    },
+    {
+      "command": [
+        "pnpm",
+        "install",
+        "--frozen-lockfile",
+        "--strict-peer-dependencies",
+        "--reporter",
+        "append-only"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/clean-frozen-install.log"
+    },
+    {
+      "command": [
+        "pnpm",
+        "install",
+        "--frozen-lockfile",
+        "--strict-peer-dependencies",
+        "--reporter",
+        "append-only"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/combined-clean-frozen-install.log"
+    },
+    {
+      "command": [
+        "pnpm",
+        "install",
+        "--frozen-lockfile",
+        "--strict-peer-dependencies",
+        "--reporter",
+        "append-only"
+      ],
+      "cwd": "/Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/combined-shared-frozen-install.log"
+    },
+    {
+      "command": ["pnpm", "peers", "check"],
+      "cwd": "/Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/final-root-peers.log"
+    },
+    {
+      "command": ["pnpm", "peers", "check"],
+      "cwd": "/Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic/platform",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/final-platform-peers.log"
+    },
+    {
+      "command": [
+        "node",
+        "/tmp/plasmic-react19-toolchain-20261106/verify-macros.cjs",
+        "/Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic",
+        "shared"
+      ],
+      "cwd": "/Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/macro-shared-verification.log"
+    },
+    {
+      "command": [
+        "node",
+        "/tmp/plasmic-react19-toolchain-20261106/verify-runtime.cjs",
+        "/tmp/plasmic-react19-toolchain-20261106/tarball-consumer",
+        "packed"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/packed-runtime-verification.log"
+    },
+    {
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-basic-components",
+        "exec",
+        "node",
+        "-e",
+        "const {createRequire}=require(\"node:module\");const r=createRequire(require.resolve(\"tsdx/package.json\"));console.log(JSON.stringify({tsdx:r(\"./package.json\").version,macros:r(\"babel-plugin-macros/package.json\").version,jest:r(\"jest/package.json\").version,typescript:r(\"typescript/package.json\").version,rollup:r(\"rollup/package.json\").version,typescriptPlugin:r(\"rollup-plugin-typescript2/package.json\").version}))"
+      ],
+      "cwd": "/Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/final-installed-versions.log"
+    }
+  ],
+  "builds": [
+    {
+      "package": "@plasmicapp/query",
+      "path": "packages/query",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicapp/query",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 2.3,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-packages-query-build.log",
+      "artifactCount": 5
+    },
+    {
+      "package": "@plasmicapp/host",
+      "path": "packages/host",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicapp/host",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 3.6,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-packages-host-build.log",
+      "artifactCount": 35
+    },
+    {
+      "package": "@plasmicpkgs/commerce",
+      "path": "plasmicpkgs/commerce-providers/commerce",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/commerce",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 85.0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-commerce-providers-commerce-build.log",
+      "artifactCount": 68
+    },
+    {
+      "package": "@plasmicpkgs/airtable",
+      "path": "plasmicpkgs/airtable",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/airtable",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 9.0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-airtable-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/commerce-local",
+      "path": "plasmicpkgs/commerce-providers/local",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/commerce-local",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 16.0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-commerce-providers-local-build.log",
+      "artifactCount": 28
+    },
+    {
+      "package": "@plasmicpkgs/commerce-commercetools",
+      "path": "plasmicpkgs/commerce-providers/commercetools",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/commerce-commercetools",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 25.6,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-commerce-providers-commercetools-build.log",
+      "artifactCount": 37
+    },
+    {
+      "package": "@plasmicpkgs/commerce-shopify",
+      "path": "plasmicpkgs/commerce-providers/shopify",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/commerce-shopify",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 29.3,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-commerce-providers-shopify-build.log",
+      "artifactCount": 48
+    },
+    {
+      "package": "@plasmicpkgs/commerce-saleor",
+      "path": "plasmicpkgs/commerce-providers/saleor",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/commerce-saleor",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 30.9,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-commerce-providers-saleor-build.log",
+      "artifactCount": 65
+    },
+    {
+      "package": "@plasmicpkgs/framer-motion",
+      "path": "plasmicpkgs/framer-motion",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/framer-motion",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 8.0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-framer-motion-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-google-maps",
+      "path": "plasmicpkgs/google-maps",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-google-maps",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 15.8,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-google-maps-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-keen-slider",
+      "path": "plasmicpkgs/keen-slider",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-keen-slider",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 7.3,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-keen-slider-build.log",
+      "artifactCount": 8
+    },
+    {
+      "package": "@plasmicpkgs/commerce-swell",
+      "path": "plasmicpkgs/commerce-providers/swell",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/commerce-swell",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 39.0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-commerce-providers-swell-build.log",
+      "artifactCount": 55
+    },
+    {
+      "package": "@plasmicpkgs/lottie-react",
+      "path": "plasmicpkgs/lottie-react",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/lottie-react",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 7.3,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-lottie-react-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-mailchimp",
+      "path": "plasmicpkgs/mailchimp",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-mailchimp",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 6.2,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-mailchimp-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-calendly",
+      "path": "plasmicpkgs/plasmic-calendly",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-calendly",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 7.0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-calendly-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-embed-css",
+      "path": "plasmicpkgs/plasmic-embed-css",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-embed-css",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 4.5,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-embed-css-build.log",
+      "artifactCount": 8
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-eventbrite",
+      "path": "plasmicpkgs/plasmic-eventbrite",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-eventbrite",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 6.5,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-eventbrite-build.log",
+      "artifactCount": 10
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-basic-components",
+      "path": "plasmicpkgs/plasmic-basic-components",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-basic-components",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 29.1,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-basic-components-build.log",
+      "artifactCount": 20
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-giphy",
+      "path": "plasmicpkgs/plasmic-giphy",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-giphy",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 6.4,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-giphy-build.log",
+      "artifactCount": 10
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-graphcms",
+      "path": "plasmicpkgs/plasmic-graphcms",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-graphcms",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 7.3,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-graphcms-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-hubspot",
+      "path": "plasmicpkgs/plasmic-hubspot",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-hubspot",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 6.6,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-hubspot-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-intercom",
+      "path": "plasmicpkgs/plasmic-intercom",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-intercom",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 6.6,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-intercom-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-link-preview",
+      "path": "plasmicpkgs/plasmic-link-preview",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-link-preview",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 11.4,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-link-preview-build.log",
+      "artifactCount": 10
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-nav",
+      "path": "plasmicpkgs/plasmic-nav",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-nav",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 6.6,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-nav-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-pigeon-maps",
+      "path": "plasmicpkgs/plasmic-pigeon-maps",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-pigeon-maps",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 8.3,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-pigeon-maps-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-query",
+      "path": "plasmicpkgs/plasmic-query",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-query",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 7.5,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-query-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-soundcloud",
+      "path": "plasmicpkgs/plasmic-soundcloud",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-soundcloud",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 6.7,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-soundcloud-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-tabs",
+      "path": "plasmicpkgs/plasmic-tabs",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-tabs",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 7.0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-tabs-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-typeform",
+      "path": "plasmicpkgs/plasmic-typeform",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-typeform",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 6.5,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-typeform-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-wordpress-graphql",
+      "path": "plasmicpkgs/plasmic-wordpress-graphql",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-wordpress-graphql",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 7.1,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-wordpress-graphql-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/react-awesome-reveal",
+      "path": "plasmicpkgs/react-awesome-reveal",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/react-awesome-reveal",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 5.8,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-react-awesome-reveal-build.log",
+      "artifactCount": 8
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-yotpo",
+      "path": "plasmicpkgs/plasmic-yotpo",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-yotpo",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 8.0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-plasmic-yotpo-build.log",
+      "artifactCount": 10
+    },
+    {
+      "package": "@plasmicpkgs/react-parallax-tilt",
+      "path": "plasmicpkgs/react-parallax-tilt",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/react-parallax-tilt",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 5.9,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-react-parallax-tilt-build.log",
+      "artifactCount": 8
+    },
+    {
+      "package": "@plasmicpkgs/react-chartjs-2",
+      "path": "plasmicpkgs/react-chartjs-2",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/react-chartjs-2",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 10.8,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-react-chartjs-2-build.log",
+      "artifactCount": 15
+    },
+    {
+      "package": "@plasmicpkgs/react-slick",
+      "path": "plasmicpkgs/react-slick",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/react-slick",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 6.0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-react-slick-build.log",
+      "artifactCount": 8
+    },
+    {
+      "package": "@plasmicpkgs/react-scroll-parallax",
+      "path": "plasmicpkgs/react-scroll-parallax",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/react-scroll-parallax",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 10.7,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-react-scroll-parallax-build.log",
+      "artifactCount": 10
+    },
+    {
+      "package": "@plasmicpkgs/react-twitter-widgets",
+      "path": "plasmicpkgs/react-twitter-widgets",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/react-twitter-widgets",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 8.3,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-react-twitter-widgets-build.log",
+      "artifactCount": 10
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-spotify",
+      "path": "plasmicpkgs/spotify",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-spotify",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "seconds": 8.2,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/after-plasmicpkgs-spotify-build.log",
+      "artifactCount": 9
+    }
+  ],
+  "combinedBuilds": [
+    {
+      "package": "@plasmicpkgs/commerce",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/commerce",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "log": "/tmp/plasmic-react19-toolchain-20261106/combined-@plasmicpkgs-commerce-build.log"
+    },
+    {
+      "package": "@plasmicpkgs/commerce-swell",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/commerce-swell",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "missingArtifacts": [],
+      "log": "/tmp/plasmic-react19-toolchain-20261106/combined-@plasmicpkgs-commerce-swell-build.log"
+    }
+  ],
+  "artifactComparisons": [
+    {
+      "package": "@plasmicapp/query",
+      "artifactCount": 5,
+      "identical": true
+    },
+    {
+      "package": "@plasmicapp/host",
+      "artifactCount": 35,
+      "identical": true
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-basic-components",
+      "artifactCount": 20,
+      "identical": true
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-tabs",
+      "artifactCount": 9,
+      "identical": true
+    },
+    {
+      "package": "@plasmicpkgs/commerce-local",
+      "artifactCount": 28,
+      "identical": true
+    }
+  ],
+  "packs": [
+    {
+      "package": "@plasmicapp/query",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicapp/query",
+        "pack",
+        "--pack-destination",
+        "/tmp/plasmic-react19-toolchain-20261106/tarballs"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "archive": "/tmp/plasmic-react19-toolchain-20261106/tarballs/plasmicapp-query-0.2.0.tgz",
+      "sha256": "7f0fdaa6d6b03a74a2fa8b5ff04cba5a970c5174570c86125beb75cd988886fd",
+      "checks": [
+        "manifest entry points preserved",
+        "entry point files packed",
+        "packed bytes equal built output",
+        "workspace/catalog ranges rewritten"
+      ]
+    },
+    {
+      "package": "@plasmicapp/host",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicapp/host",
+        "pack",
+        "--pack-destination",
+        "/tmp/plasmic-react19-toolchain-20261106/tarballs"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "archive": "/tmp/plasmic-react19-toolchain-20261106/tarballs/plasmicapp-host-3.0.0.tgz",
+      "sha256": "321e5fd52c22d07a7bba8e3a64bf5112721787e53f79b410346165293485cbae",
+      "checks": [
+        "manifest entry points preserved",
+        "entry point files packed",
+        "packed bytes equal built output",
+        "workspace/catalog ranges rewritten"
+      ]
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-basic-components",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-basic-components",
+        "pack",
+        "--pack-destination",
+        "/tmp/plasmic-react19-toolchain-20261106/tarballs"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "archive": "/tmp/plasmic-react19-toolchain-20261106/tarballs/plasmicpkgs-plasmic-basic-components-0.1.0.tgz",
+      "sha256": "dcdc8280303e2be97cacea2749caa7b99ff1666aaf31b38f633090d59cbffd5a",
+      "checks": [
+        "manifest entry points preserved",
+        "entry point files packed",
+        "packed bytes equal built output",
+        "workspace/catalog ranges rewritten"
+      ]
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-tabs",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-tabs",
+        "pack",
+        "--pack-destination",
+        "/tmp/plasmic-react19-toolchain-20261106/tarballs"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "archive": "/tmp/plasmic-react19-toolchain-20261106/tarballs/plasmicpkgs-plasmic-tabs-0.1.0.tgz",
+      "sha256": "e862726400f3e56f08b60e47f05dbac71d41bcaaed8c3b0673a08c66f664c0f9",
+      "checks": [
+        "manifest entry points preserved",
+        "entry point files packed",
+        "packed bytes equal built output",
+        "workspace/catalog ranges rewritten"
+      ]
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-embed-css",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-embed-css",
+        "pack",
+        "--pack-destination",
+        "/tmp/plasmic-react19-toolchain-20261106/tarballs"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "archive": "/tmp/plasmic-react19-toolchain-20261106/tarballs/plasmicpkgs-plasmic-embed-css-0.2.0.tgz",
+      "sha256": "fd185ef6236a7a80b7cd71bd73f541c4377f9aa7f1539594440d64b4946e1538",
+      "checks": [
+        "manifest entry points preserved",
+        "entry point files packed",
+        "packed bytes equal built output",
+        "workspace/catalog ranges rewritten"
+      ]
+    },
+    {
+      "package": "@plasmicpkgs/commerce-local",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/commerce-local",
+        "pack",
+        "--pack-destination",
+        "/tmp/plasmic-react19-toolchain-20261106/tarballs"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "archive": "/tmp/plasmic-react19-toolchain-20261106/tarballs/plasmicpkgs-commerce-local-0.1.0.tgz",
+      "sha256": "e7dfce34423e00f03e3c6229140d151e683ced162de19d2812201cc9812fa64d",
+      "checks": [
+        "manifest entry points preserved",
+        "entry point files packed",
+        "packed bytes equal built output",
+        "workspace/catalog ranges rewritten"
+      ]
+    }
+  ],
+  "tarballConsumer": [
+    {
+      "command": [
+        "pnpm",
+        "install",
+        "--strict-peer-dependencies",
+        "--reporter",
+        "append-only"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/tarball-consumer",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/consumer-tarball-install.log"
+    },
+    {
+      "command": ["pnpm", "peers", "check"],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/tarball-consumer",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/consumer-tarball-peers.log"
+    },
+    {
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "exec",
+        "tsc",
+        "--noEmit"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/tarball-consumer",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/consumer-tarball-types.log"
+    }
+  ],
+  "diagnostics": {
+    "You are using a Rollup version '<2.60.0'. This may result in type-only files being ignored.": [
+      "@plasmicpkgs/airtable",
+      "@plasmicpkgs/commerce",
+      "@plasmicpkgs/commerce-commercetools",
+      "@plasmicpkgs/commerce-local",
+      "@plasmicpkgs/commerce-saleor",
+      "@plasmicpkgs/commerce-shopify",
+      "@plasmicpkgs/commerce-swell",
+      "@plasmicpkgs/framer-motion",
+      "@plasmicpkgs/lottie-react",
+      "@plasmicpkgs/plasmic-basic-components",
+      "@plasmicpkgs/plasmic-calendly",
+      "@plasmicpkgs/plasmic-embed-css",
+      "@plasmicpkgs/plasmic-eventbrite",
+      "@plasmicpkgs/plasmic-giphy",
+      "@plasmicpkgs/plasmic-google-maps",
+      "@plasmicpkgs/plasmic-graphcms",
+      "@plasmicpkgs/plasmic-hubspot",
+      "@plasmicpkgs/plasmic-intercom",
+      "@plasmicpkgs/plasmic-keen-slider",
+      "@plasmicpkgs/plasmic-link-preview",
+      "@plasmicpkgs/plasmic-mailchimp",
+      "@plasmicpkgs/plasmic-nav",
+      "@plasmicpkgs/plasmic-pigeon-maps",
+      "@plasmicpkgs/plasmic-query",
+      "@plasmicpkgs/plasmic-soundcloud",
+      "@plasmicpkgs/plasmic-spotify",
+      "@plasmicpkgs/plasmic-tabs",
+      "@plasmicpkgs/plasmic-typeform",
+      "@plasmicpkgs/plasmic-wordpress-graphql",
+      "@plasmicpkgs/plasmic-yotpo",
+      "@plasmicpkgs/react-awesome-reveal",
+      "@plasmicpkgs/react-chartjs-2",
+      "@plasmicpkgs/react-parallax-tilt",
+      "@plasmicpkgs/react-scroll-parallax",
+      "@plasmicpkgs/react-slick",
+      "@plasmicpkgs/react-twitter-widgets"
+    ],
+    "@rollup/plugin-replace: 'preventAssignment' currently defaults to false. It is recommended to set this option to `true`, as the next major version will default this option to `true`.": [
+      "@plasmicpkgs/airtable",
+      "@plasmicpkgs/commerce",
+      "@plasmicpkgs/commerce-commercetools",
+      "@plasmicpkgs/commerce-local",
+      "@plasmicpkgs/commerce-saleor",
+      "@plasmicpkgs/commerce-shopify",
+      "@plasmicpkgs/commerce-swell",
+      "@plasmicpkgs/framer-motion",
+      "@plasmicpkgs/lottie-react",
+      "@plasmicpkgs/plasmic-basic-components",
+      "@plasmicpkgs/plasmic-calendly",
+      "@plasmicpkgs/plasmic-embed-css",
+      "@plasmicpkgs/plasmic-eventbrite",
+      "@plasmicpkgs/plasmic-giphy",
+      "@plasmicpkgs/plasmic-google-maps",
+      "@plasmicpkgs/plasmic-graphcms",
+      "@plasmicpkgs/plasmic-hubspot",
+      "@plasmicpkgs/plasmic-intercom",
+      "@plasmicpkgs/plasmic-keen-slider",
+      "@plasmicpkgs/plasmic-link-preview",
+      "@plasmicpkgs/plasmic-mailchimp",
+      "@plasmicpkgs/plasmic-nav",
+      "@plasmicpkgs/plasmic-pigeon-maps",
+      "@plasmicpkgs/plasmic-query",
+      "@plasmicpkgs/plasmic-soundcloud",
+      "@plasmicpkgs/plasmic-spotify",
+      "@plasmicpkgs/plasmic-tabs",
+      "@plasmicpkgs/plasmic-typeform",
+      "@plasmicpkgs/plasmic-wordpress-graphql",
+      "@plasmicpkgs/plasmic-yotpo",
+      "@plasmicpkgs/react-awesome-reveal",
+      "@plasmicpkgs/react-chartjs-2",
+      "@plasmicpkgs/react-parallax-tilt",
+      "@plasmicpkgs/react-scroll-parallax",
+      "@plasmicpkgs/react-slick",
+      "@plasmicpkgs/react-twitter-widgets"
+    ],
+    "Circular dependency: src/provider.ts -> src/fetcher.ts -> src/provider.ts": [
+      "@plasmicpkgs/commerce-swell"
+    ]
+  },
+  "evidenceDirectory": "/tmp/plasmic-react19-toolchain-20261106",
+  "fixtureScripts": {
+    "verify-macros.cjs": "357fa7209449ffe54fc2aeb00f9589e17fd83fb174837f03093c1c980bf4f4e7",
+    "build-packages.py": "c43280d7719cbe580f12b606f534a1016d661ac2f32635040650f38dc1d26aed",
+    "verify-packs.py": "99792d5b796ac86752d7d86b33a4f0de2411885e1efcda2e321d5ec73f01613e",
+    "verify-consumer.py": "55faf76a2836e2564deed700aa00697cbeacce551d56ae44130587e811fbf319",
+    "verify-runtime.cjs": "d8980b5f8bbb59b82c32a777ff93e2988b18c8cfdf57beb654f23423a6e1ef10",
+    "verify-combined-builds.py": "c85571ab7a0464bc399c8162ec9ce8fa2f3a8a9f164c0a1ab2054a15a7f90811"
+  },
+  "recordedSetupDiagnostics": [
+    {
+      "log": "/tmp/plasmic-react19-toolchain-20261106/workspace-before-frozen-install.log",
+      "exitCode": 254,
+      "reason": "Initial sandbox omitted required vendor/react-ui; copied the unmodified vendor directory and reran successfully."
+    },
+    {
+      "log": "/tmp/plasmic-react19-toolchain-20261106/consumer-install.log",
+      "exitCode": 1,
+      "reason": "New query 0.2.0 is unpublished; final consumer used an ephemeral loopback registry serving unchanged verified tarballs."
+    },
+    {
+      "log": "/tmp/plasmic-react19-toolchain-20261106/consumer-staged-install.log",
+      "exitCode": 0,
+      "reason": "Discarded intermediate workspace simulation emitted missing dev-bin warnings with --prod; final tarball consumer has no such warnings."
+    },
+    {
+      "log": "/tmp/plasmic-react19-toolchain-20261106/combined-before-install-verify.log",
+      "exitCode": 1,
+      "reason": "Concurrent removal of swell patch made shared installation stale. Waited for shared tests to end, ran frozen install, then dependency verification passed."
+    }
+  ],
+  "beforeBuilds": [
+    {
+      "package": "@plasmicapp/query",
+      "path": "packages/query",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicapp/query",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "seconds": 3.2,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/before-packages-query-build.log",
+      "artifactCount": 5
+    },
+    {
+      "package": "@plasmicapp/host",
+      "path": "packages/host",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicapp/host",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "seconds": 6.2,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/before-packages-host-build.log",
+      "artifactCount": 35
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-basic-components",
+      "path": "plasmicpkgs/plasmic-basic-components",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-basic-components",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "seconds": 35.1,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/before-plasmicpkgs-plasmic-basic-components-build.log",
+      "artifactCount": 20
+    },
+    {
+      "package": "@plasmicpkgs/plasmic-tabs",
+      "path": "plasmicpkgs/plasmic-tabs",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/plasmic-tabs",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "seconds": 3.6,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/before-plasmicpkgs-plasmic-tabs-build.log",
+      "artifactCount": 9
+    },
+    {
+      "package": "@plasmicpkgs/commerce-local",
+      "path": "plasmicpkgs/commerce-providers/local",
+      "command": [
+        "pnpm",
+        "--config.verify-deps-before-run=error",
+        "--filter",
+        "@plasmicpkgs/commerce-local",
+        "build"
+      ],
+      "cwd": "/tmp/plasmic-react19-toolchain-20261106/workspace",
+      "exitCode": 0,
+      "seconds": 14.4,
+      "log": "/tmp/plasmic-react19-toolchain-20261106/before-plasmicpkgs-commerce-providers-local-build.log",
+      "artifactCount": 28
+    }
+  ]
+}

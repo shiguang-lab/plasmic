@@ -1,3 +1,6 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import {
   inferPropTypeFromAttr,
   PropEditorRow,
@@ -187,6 +190,7 @@ export const TplTagSection = observer(TplTagSection_);
 function TplTagSection_(props: { tpl: TplTag; viewCtx: ViewCtx }) {
   const { t: uiT } = useI18n();
   const { viewCtx, tpl } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const vtm = viewCtx.variantTplMgr();
   const baseVs = vtm.ensureBaseVariantSetting(tpl);
 
@@ -304,6 +308,8 @@ export const HTMLAttributesSection = observer(
     expsProvider: TplExpsProvider;
     component: Component;
   }) => {
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  useViewSelection(viewCtx, (state) => state.context);
     const params = isTplTag(tpl)
       ? getEditableTagParams(viewCtx, tpl)
       : tpl.component.params.filter(
@@ -625,6 +631,8 @@ interface HTMLAttributePropEditorProps {
 export const HTMLAttributePropEditor = observer(
   function HTMLAttributePropEditor(props: HTMLAttributePropEditorProps) {
     const { viewCtx, tpl, expsProvider, attr, onChange, about } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  useViewSelection(viewCtx, (state) => state.context);
     const vtm = viewCtx.variantTplMgr();
     const effectiveVs = expsProvider.effectiveVs();
     const baseVs = vtm.tryGetBaseVariantSetting(tpl);

@@ -14,6 +14,8 @@ import Popover from "antd/lib/popover";
 import EmojiPicker, { Emoji } from "emoji-picker-react";
 import { Dictionary } from "lodash";
 import * as React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 
 function ReactionsPopover(props: { commentId: CommentId }) {
   const { commentId } = props;
@@ -76,6 +78,18 @@ export function ReactionsByEmoji(props: {
   const api = appCtx.api;
 
   const commentsCtx = studioCtx.commentsCtx;
+  const users = useStore(
+    commentsCtx.store,
+    useShallow(
+      (state) =>
+        reactionsByEmoji &&
+        Object.values(reactionsByEmoji)
+          .flat()
+          .map((reaction) =>
+            state.usersMap.get(ensure(reaction.createdById, "")),
+          ),
+    ),
+  );
 
   return (
     <>
@@ -90,9 +104,7 @@ export function ReactionsByEmoji(props: {
               .map((r) =>
                 fullName(
                   ensure(
-                    commentsCtx
-                      .computedData()
-                      .usersMap.get(ensure(r.createdById, "")),
+                    users.find((user) => user?.id === r.createdById),
                     "",
                   ),
                 ),

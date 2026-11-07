@@ -47,7 +47,7 @@ Use only exposed picker, showTime, allowClear and format/boundary capabilities. 
 
 ### Values and serialization
 
-Verify initial/cleared values, typing, selection, multiple/range modes, both endpoints, disabled inheritance and day/month/year boundary cases as applicable. Follow [serialization and acceptance](#serialization-and-acceptance) for the declared date-only or instant payload and timezone. Keep temporary previewOpen separate from saved open state and check Form validation and reopening another record.
+Verify initial/cleared values, typing, selection, multiple/range modes, both endpoints, disabled inheritance and day/month/year boundary cases as applicable. Follow [serialization and acceptance](#serialization-and-acceptance) for the declared date-only or instant payload and timezone. Keep temporary canvas reveals in the artboard session, separate from saved open state, and check Form validation and reopening another record.
 
 ### Presets and range ownership
 

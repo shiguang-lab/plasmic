@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/plasmic-strapi",
-  "version": "0.1.222",
+  "version": "0.2.0",
   "description": "Plasmic code components for fetching and rendering Strapi content.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -35,7 +35,7 @@
     "analyze": "size-limit --why"
   },
   "peerDependencies": {
-    "react": ">=16.8.0"
+    "react": "^19.3.1"
   },
   "size-limit": [
     {
@@ -57,8 +57,8 @@
     "@types/dlv": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "typescript": "catalog:"
   }
 }

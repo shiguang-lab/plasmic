@@ -111,7 +111,7 @@ export function reactNodeToString(reactNode: React.ReactNode): string {
     reactNode.forEach(function (child) {
       string += reactNodeToString(child);
     });
-  } else if (isValidElement(reactNode)) {
+  } else if (isValidElement<{ children?: React.ReactNode }>(reactNode)) {
     string += reactNodeToString(reactNode.props.children);
   }
   return string;

@@ -1,4 +1,4 @@
-import React from "react";
+
 import type { TextProps } from "react-aria-components";
 import { Text } from "react-aria-components";
 import { COMMON_STYLES, createIdProp } from "./common";

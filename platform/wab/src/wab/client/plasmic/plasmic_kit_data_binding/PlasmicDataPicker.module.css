@@ -336,9 +336,10 @@
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  width: auto;
+  width: 100%;
   max-width: 100%;
   column-gap: 8px;
+  min-width: 0;
 }
 .freeBoxempty__ruRlY6WvzY {
   display: flex;
@@ -349,6 +350,8 @@
   font-weight: 500;
   position: relative;
   padding-right: 0px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .freeBox__q6R5H {
   display: flex;
@@ -356,7 +359,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  width: 100%;
+  flex: 1;
   height: auto;
   max-width: 100%;
   flex-wrap: wrap;

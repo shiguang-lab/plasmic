@@ -1,6 +1,7 @@
+import { jsxs, Fragment, jsx } from 'react/jsx-runtime';
 import { Upload, Image } from 'antd';
-import React, { useRef, useState, useMemo } from 'react';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { useRef, useState, useMemo } from 'react';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -13,7 +14,7 @@ function getThumbUrl(file) {
 }
 function UploadWrapper(props) {
   const { files, dragAndDropFiles, onFilesChange, maxCount, ...rest } = props;
-  const filesRef = useRef();
+  const filesRef = useRef(void 0);
   filesRef.current = files;
   const changeFiles = (next) => {
     filesRef.current = next;
@@ -93,38 +94,41 @@ function UploadWrapper(props) {
     () => dragAndDropFiles ? Upload.Dragger : Upload,
     [dragAndDropFiles]
   );
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
-    UploadComponent,
-    {
-      ...rest,
-      fileList: files?.map((f) => ({
-        ...f,
-        thumbUrl: getThumbUrl(f)
-      })),
-      onPreview: handlePreview,
-      beforeUpload: () => {
-        return false;
-      },
-      onChange: (info) => {
-        handleChange(info);
-      },
-      onRemove: (file) => {
-        handleRemove(file);
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsx(
+      UploadComponent,
+      {
+        ...rest,
+        fileList: files?.map((f) => ({
+          ...f,
+          thumbUrl: getThumbUrl(f)
+        })),
+        onPreview: handlePreview,
+        beforeUpload: () => {
+          return false;
+        },
+        onChange: (info) => {
+          handleChange(info);
+        },
+        onRemove: (file) => {
+          handleRemove(file);
+        }
       }
-    }
-  ), previewFile && /* @__PURE__ */ React.createElement(
-    Image,
-    {
-      wrapperStyle: { display: "none" },
-      preview: {
-        visible: previewOpen,
-        onVisibleChange: (visible) => setPreviewOpen(visible),
-        afterOpenChange: (visible) => !visible && handleCancel()
-      },
-      alt: previewFile?.name,
-      src: getThumbUrl(previewFile)
-    }
-  ));
+    ),
+    previewFile && /* @__PURE__ */ jsx(
+      Image,
+      {
+        wrapperStyle: { display: "none" },
+        preview: {
+          visible: previewOpen,
+          onVisibleChange: (visible) => setPreviewOpen(visible),
+          afterOpenChange: (visible) => !visible && handleCancel()
+        },
+        alt: previewFile?.name,
+        src: getThumbUrl(previewFile)
+      }
+    )
+  ] });
 }
 UploadWrapper.__plasmicFormFieldMeta = {
   valueProp: "files",

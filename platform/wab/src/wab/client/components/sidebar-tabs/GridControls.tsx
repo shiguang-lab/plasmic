@@ -6,15 +6,15 @@ import {
 } from "@/wab/client/components/sidebar/sidebar-helpers";
 import {
   ExpsProvider,
+  TplExpsProvider,
   useStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
 import { useI18n } from "@/wab/client/i18n";
-import { siteFinalStyleTokensAllDeps } from "@/wab/shared/core/site-style-tokens";
-import { allImageAssets, allMixins } from "@/wab/shared/core/sites";
-import { CssVarResolver } from "@/wab/shared/core/styles";
+import { useStyleCells, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
+import { useGridCssInputs } from "@/wab/client/studio-ctx/grid-css-inputs";
 import {
   LENGTH_PERCENTAGE_FR_UNITS,
   LENGTH_PERCENTAGE_UNITS,
@@ -24,42 +24,38 @@ import {
   GRID_DEFAULT_TEMPLATE,
   isFlexibleSize,
   isTrackTemplate,
-  parseGridCssPropsToSpec,
+  parseGridTemplateCss,
 } from "@/wab/shared/grid-utils";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
 
-export const GridControls = observer(function GridControls(props: {
+export function GridControls(_props: {
   expsProvider: ExpsProvider;
 }) {
   const { t: uiT } = useI18n();
-  const { expsProvider } = props;
   const sc = useStyleComponent();
   const studioCtx = sc.studioCtx();
-  const { site } = studioCtx;
-  const resolver = new CssVarResolver(
-    siteFinalStyleTokensAllDeps(site),
-    allMixins(site, { includeDeps: "all" }),
-    allImageAssets(site, { includeDeps: "all" }),
-    site.activeTheme,
-  );
+  const provider = sc.props.expsProvider;
+  const [display, template] = useStyleCells(provider, ["display", "grid-template-columns"]);
+  const lifetime = provider instanceof TplExpsProvider ? provider.viewCtx.disposeSignal : studioCtx.arenaState.lifetime();
+  const css = useGridCssInputs(provider, { display: display?.value, hasTemplate: template?.has ?? false, template: template?.value }, lifetime);
+  const spec = React.useMemo(() => css.active ? parseGridTemplateCss(css.value) : undefined, [css]);
 
-  const spec = parseGridCssPropsToSpec(sc.exp(), resolver);
-
-  const definedIndicators = sc.definedIndicators(
+  const definedIndicators = useStyleIndicators(provider, [
     "grid-template-rows",
     "grid-template-columns",
     "grid-row-gap",
     "grid-column-gap",
     "grid-auto-rows",
     "grid-auto-columns",
-  );
+  ]);
 
   const { isDisabled } = shouldBeDisabled({
     props: {},
     indicators: definedIndicators,
   });
+
+  if (!spec) { return null; }
 
   const templateColumns = spec.gridTemplateColumns || GRID_DEFAULT_TEMPLATE;
   const isFlexible = isFlexibleSize(templateColumns);
@@ -190,4 +186,4 @@ export const GridControls = observer(function GridControls(props: {
       </FullRow>
     </>
   );
-});
+}

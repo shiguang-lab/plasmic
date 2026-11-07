@@ -57,7 +57,6 @@ export type PlasmicDocsPortalIntro__OverridesType = {
   introText2?: Flex__<"div">;
   introText3?: Flex__<"div">;
   nextConfig?: Flex__<typeof DocsCodeSnippet>;
-  gatsbyConfig?: Flex__<typeof DocsCodeSnippet>;
   syncProjectSnippet?: Flex__<typeof SyncProjectSnippet>;
   loaderv2Config?: Flex__<typeof DocsCodeSnippet>;
 };
@@ -193,9 +192,9 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
           })}
         >
           {hasVariant(globalVariants, "codegenType", "loader2")
-            ? studioUiT("Plasmic generates presentational React code from your designs. You can easily attach event handlers, behavior, state, and additional hooks to these components in code, and still update your components with new designs without losing your changes. The Headless API lets you load these pages and components at build-time and runtime into your React, Next.js and Gatsby applications, without actually needing to store code into your repo/version history. In this way, it lets you integrate Plasmic content in a manner similar to a CMS (but one that offers free-form page-editing capability). You can alternatively generate code into your codebase—[switch to viewing the Codegen API].")
+            ? studioUiT("Plasmic generates presentational React code from your designs. You can easily attach event handlers, behavior, state, and additional hooks to these components in code, and still update your components with new designs without losing your changes. The Headless API lets you load these pages and components at build-time and runtime into your React, Next.js applications, without actually needing to store code into your repo/version history. In this way, it lets you integrate Plasmic content in a manner similar to a CMS (but one that offers free-form page-editing capability). You can alternatively generate code into your codebase—[switch to viewing the Codegen API].")
             : hasVariant(globalVariants, "codegenType", "loader")
-            ? studioUiT("Plasmic generates presentational React code from your designs. You can easily attach event handlers, behavior, state, and additional hooks to these components in code, and still update your components with new designs without losing your changes. PlasmicLoader lets you load these pages and components at build-time into your Next.js and Gatsby applications, without actually needing to store code into your repo/version history. In this way, it lets you integrate Plasmic content in a manner similar to a CMS (but one that offers free-form page-editing capability). You can alternatively generate code into your codebase—[switch to viewing the Codegen API].")
+            ? studioUiT("Plasmic generates presentational React code from your designs. You can easily attach event handlers, behavior, state, and additional hooks to these components in code, and still update your components with new designs without losing your changes. PlasmicLoader lets you load these pages and components at build-time into your Next.js applications, without actually needing to store code into your repo/version history. In this way, it lets you integrate Plasmic content in a manner similar to a CMS (but one that offers free-form page-editing capability). You can alternatively generate code into your codebase—[switch to viewing the Codegen API].")
             : studioUiT("Plasmic generates presentational React components from your designs. You can easily attach event handlers, behavior, state, and additional hooks to these components in code, and still update your components with new designs without losing your changes.")}
         </div>
         {(
@@ -218,9 +217,9 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
             })}
           >
             {hasVariant(globalVariants, "codegenType", "codegen")
-              ? studioUiT("An alternative to codegen is PlasmicLoader, which lets you load pages and components at build-time into your Next.js and Gatsby applications, without actually needing to store code into your repo/version history. [Switch to viewing the PlasmicLoader API].")
+              ? studioUiT("An alternative to codegen is PlasmicLoader, which lets you load pages and components at build-time into your Next.js applications, without actually needing to store code into your repo/version history. [Switch to viewing the PlasmicLoader API].")
               : hasVariant(globalVariants, "codegenType", "loader")
-              ? studioUiT("Plasmic generates presentational React code from your designs. You can easily attach event handlers, behavior, state, and additional hooks to these components in code, and still update your components with new designs without losing your changes. PlasmicLoader lets you load these pages and components at build-time into your Next.js and Gatsby applications, without actually needing to store code into your repo/version history. In this way, it lets you integrate Plasmic content in a manner similar to a CMS (but one that offers free-form page-editing capability). You can alternatively generate code into your codebase—[switch to viewing the Codegen API].")
+              ? studioUiT("Plasmic generates presentational React code from your designs. You can easily attach event handlers, behavior, state, and additional hooks to these components in code, and still update your components with new designs without losing your changes. PlasmicLoader lets you load these pages and components at build-time into your Next.js applications, without actually needing to store code into your repo/version history. In this way, it lets you integrate Plasmic content in a manner similar to a CMS (but one that offers free-form page-editing capability). You can alternatively generate code into your codebase—[switch to viewing the Codegen API].")
               : studioUiT("Plasmic generates presentational React components from your designs. You can easily attach event handlers, behavior, state, and additional hooks to these components in code, and still update your components with new designs without losing your changes.")}
           </div>
         ) : null}
@@ -264,10 +263,10 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
           })}
         >
           {hasVariant(globalVariants, "codegenType", "loader2")
-            ? studioUiT("See the [quickstart docs], which describe how to create a brand-new codebase in Next.js / Gatsby / CRA as well as how to install into an existing codebase. The below is a summary.")
+            ? studioUiT("See the [quickstart docs], which describe how to create a brand-new codebase in Next.js / CRA as well as how to install into an existing codebase. The below is a summary.")
             : hasVariant(globalVariants, "codegenType", "loader")
-            ? studioUiT("See the [quickstart docs], which describe how to create a brand-new codebase in Next.js / Gatsby / CRA as well as how to install into an existing codebase. The below is a summary.")
-            : studioUiT("See the [quickstart docs], which describe how to create a brand-new codebase in Next.js / Gatsby / CRA as well as how to install into an existing codebase. The below is a summary.")}
+            ? studioUiT("See the [quickstart docs], which describe how to create a brand-new codebase in Next.js / CRA as well as how to install into an existing codebase. The below is a summary.")
+            : studioUiT("See the [quickstart docs], which describe how to create a brand-new codebase in Next.js / CRA as well as how to install into an existing codebase. The below is a summary.")}
         </div>
         <h2
           className={classNames(
@@ -310,7 +309,7 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
           language={"bash"}
         >
           {hasVariant(globalVariants, "codegenType", "loader2")
-            ? "yarn add @plasmicapp/loader-react # For React\n# or: npm install @plasmicapp/loader-react\n\nyarn add @plasmicapp/loader-nextjs # For Next.js\n# or: npm install @plasmicapp/loader-nextjs\n\nyarn add @plasmicapp/loader-gatsby # For Gatsby\n# or: npm install @plasmicapp/loader-gatsby"
+            ? "yarn add @plasmicapp/loader-react # For React\n# or: npm install @plasmicapp/loader-react\n\nyarn add @plasmicapp/loader-nextjs # For Next.js\n# or: npm install @plasmicapp/loader-nextjs"
             : hasVariant(globalVariants, "codegenType", "loader")
             ? "yarn add @plasmicapp/loader\n# or: npm install @plasmicapp/loader"
             : "yarn global add @plasmicapp/cli\n# or: npm install -g @plasmicapp/cli"}
@@ -330,7 +329,7 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
           })}
         >
           {hasVariant(globalVariants, "codegenType", "loader")
-            ? studioUiT("Then edit your next.config.js / gatsby-config.js and include loader:")
+            ? studioUiT("Then edit your next.config.js and include loader:")
             : studioUiT("Then, sync your project by running:")}
         </div>
         {(
@@ -354,30 +353,6 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
           >
             {hasVariant(globalVariants, "codegenType", "loader")
               ? '// next.config.js\nconst plasmic = require("@plasmicapp/loader/next");\n\nconst withPlasmic = plasmic({\n  projects: ["projectid"],\n});\n\nmodule.exports = withPlasmic({\n  // Your NextJS config.\n});'
-              : studioUiT("Snippet!")}
-          </DocsCodeSnippet>
-        ) : null}
-        {(
-          hasVariant(globalVariants, "codegenType", "loader") ? true : false
-        ) ? (
-          <DocsCodeSnippet
-            data-plasmic-name={"gatsbyConfig"}
-            data-plasmic-override={overrides.gatsbyConfig}
-            className={classNames("__wab_instance", sty.gatsbyConfig, {
-              [sty.gatsbyConfigglobal_codegenType_loader]: hasVariant(
-                globalVariants,
-                "codegenType",
-                "loader"
-              ),
-            })}
-            language={
-              hasVariant(globalVariants, "codegenType", "loader")
-                ? "js"
-                : undefined
-            }
-          >
-            {hasVariant(globalVariants, "codegenType", "loader")
-              ? '// gatsby-config.js\nmodule.exports = {\n  plugins: [\n    {\n      resolve: `@plasmicapp/loader/gatsby`,\n      options: {\n        projects: ["projectid"],\n      },\n    },\n  ],\n};'
               : studioUiT("Snippet!")}
           </DocsCodeSnippet>
         ) : null}
@@ -435,7 +410,7 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
             })}
           >
             {hasVariant(globalVariants, "codegenType", "loader")
-              ? studioUiT("Plasmic-generated code is hidden from your codebase, kept at the cache location (.next/.plasmic/ or .cache/.plasmic/). Image assets will be synced to your public folder. Pages will be programmatically created (Gatsby) or configured via a catch-all page route (Next.js).")
+              ? studioUiT("Plasmic-generated code is hidden from your codebase, kept at the cache location (.next/.plasmic/). Image assets will be synced to your public folder. Pages are configured via Next.js catchall routes.")
               : studioUiT("For each Plasmic component, Plasmic generates two sets of files:")}
           </div>
         ) : null}
@@ -490,7 +465,7 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
                 language={"bash"}
               >
                 {hasVariant(globalVariants, "codegenType", "loader")
-                  ? '// next.config.js\nconst plasmic = require("@plasmicapp/loader/next");\n\nconst withPlasmic = plasmic({\n  projects: ["projectid"],\n});\n\nmodule.exports = withPlasmic({\n  // Your NextJS config.\n});\n\n// gatsby-config.js\nmodule.exports = {\n  plugins: [\n    {\n      resolve: `@plasmicapp/loader/gatsby`,\n      options: {\n        projects: ["projectid"],\n      },\n    },\n  ],\n};'
+                  ? '// next.config.js\nconst plasmic = require("@plasmicapp/loader/next");\n\nconst withPlasmic = plasmic({\n  projects: ["projectid"],\n});\n\nmodule.exports = withPlasmic({\n  // Your NextJS config.\n});'
                   : "plasmic sync --projects PROJECTID"}
               </DocsCodeSnippet>
             ) : null}
@@ -545,7 +520,7 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
             {hasVariant(globalVariants, "codegenType", "loader2")
               ? studioUiT("The pages created in the studio can be automatically created by the loader with minimum configuration. You can setup the plugins following the docs for Plasmic Loader.")
               : hasVariant(globalVariants, "codegenType", "loader")
-              ? studioUiT("Plasmic components are hidden from your codebase, kept at the cache location (.next/.plasmic/ or .cache/.plasmic/). Image assets will be synced to your public folder.")
+              ? studioUiT("Plasmic components are hidden from your codebase, kept at the cache location (.next/.plasmic/). Image assets will be synced to your public folder.")
               : studioUiT("For each Plasmic component, Plasmic generates two sets of files:")}
           </div>
         ) : null}
@@ -614,68 +589,6 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
         {(
           hasVariant(globalVariants, "codegenType", "loader2") ? true : false
         ) ? (
-          <PlasmicLink__
-            className={classNames("all", "a", "a__dyzP6", sty.link__nkI2J, {
-              [sty.linkglobal_codegenType_loader2__nkI2JZGeqY]: hasVariant(
-                globalVariants,
-                "codegenType",
-                "loader2"
-              ),
-              [sty.linkglobal_codegenType_loader__nkI2JGc32L]: hasVariant(
-                globalVariants,
-                "codegenType",
-                "loader"
-              ),
-            })}
-            href={
-              hasVariant(globalVariants, "codegenType", "loader2")
-                ? "https://docs.plasmic.app/learn/gatsby-quickstart/"
-                : hasVariant(globalVariants, "codegenType", "loader")
-                ? "https://www.plasmic.app/learn/loader-guide/"
-                : "https://www.plasmic.app/learn/blackbox-scheme/"
-            }
-            platform={"react"}
-          >
-            <div
-              className={classNames("all", "__wab_text", sty.text__y5WeE, {
-                [sty.textglobal_codegenType_loader2__y5WeEzGeqY]: hasVariant(
-                  globalVariants,
-                  "codegenType",
-                  "loader2"
-                ),
-                [sty.textglobal_codegenType_loader__y5WeEgc32L]: hasVariant(
-                  globalVariants,
-                  "codegenType",
-                  "loader"
-                ),
-              })}
-            >
-              {hasVariant(globalVariants, "codegenType", "loader2")
-                ? studioUiT("Gatsby setup")
-                : hasVariant(globalVariants, "codegenType", "loader")
-                ? (studioUiT("Learn more about PlasmicLoader") + " ")
-                : (studioUiT("Learn more about code generation") + " ")}
-            </div>
-            <OpenIcon
-              className={classNames("all", sty.svg__jEkUg, {
-                [sty.svgglobal_codegenType_loader2__jEkUgZGeqY]: hasVariant(
-                  globalVariants,
-                  "codegenType",
-                  "loader2"
-                ),
-                [sty.svgglobal_codegenType_loader__jEkUgGc32L]: hasVariant(
-                  globalVariants,
-                  "codegenType",
-                  "loader"
-                ),
-              })}
-              role={"img"}
-            />
-          </PlasmicLink__>
-        ) : null}
-        {(
-          hasVariant(globalVariants, "codegenType", "loader2") ? true : false
-        ) ? (
           <h2
             className={classNames(
               "all",
@@ -720,7 +633,7 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
             {hasVariant(globalVariants, "codegenType", "loader2")
               ? studioUiT("To use a component, simply import PlasmicComponent and pass the name of the component. Here's an example demonstrating data fetching with the loader:")
               : hasVariant(globalVariants, "codegenType", "loader")
-              ? studioUiT("Plasmic components are hidden from your codebase, kept at the cache location (.next/.plasmic/ or .cache/.plasmic/). Image assets will be synced to your public folder.")
+              ? studioUiT("Plasmic components are hidden from your codebase, kept at the cache location (.next/.plasmic/). Image assets will be synced to your public folder.")
               : studioUiT("For each Plasmic component, Plasmic generates two sets of files:")}
           </div>
         ) : null}
@@ -1011,7 +924,7 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
             language={"tsx"}
           >
             {hasVariant(globalVariants, "codegenType", "loader2")
-              ? '// replace it by loader-nextjs or loader-gatsby depending on what you are using\nimport { PlasmicComponent, PlasmicRootProvider, initPlasmicLoader } from \'@plasmicapp/loader-react\';\n\nconst loader = initPlasmicLoader({\n  projects: [\n    {\n      id: "${projectId}",\n      token: "${projectApiToken}",\n    },\n  ],\n});\n\nfunction MyExistingPage() {\n  // Use hooks to fetch data, read from React context, etc.\n  const user = useUser();\n\n  return (\n    <PlasmicRootProvider loader={loader}>\n      <PlasmicComponent\n        component="Header"\n        componentProps={{\n           // Fill slots with the right values\n           userName: user.email,\n           email: user.name,\n\n           // Toggle the variants you want\n           isLogged: !user.isAnonymous,\n\n           // Override the avatar img element with the right src\n           avatar={{\n             src: user.profileImgSrc\n           }}\n\n           // Add onClick handler to the login button\n           login: {\n             onClick: () => navigateToLogin(),\n          }\n      />\n    </PlasmicRootProvider>\n  );\n}'
+              ? '// replace it by loader-nextjs for Next.js\nimport { PlasmicComponent, PlasmicRootProvider, initPlasmicLoader } from \'@plasmicapp/loader-react\';\n\nconst loader = initPlasmicLoader({\n  projects: [\n    {\n      id: "${projectId}",\n      token: "${projectApiToken}",\n    },\n  ],\n});\n\nfunction MyExistingPage() {\n  // Use hooks to fetch data, read from React context, etc.\n  const user = useUser();\n\n  return (\n    <PlasmicRootProvider loader={loader}>\n      <PlasmicComponent\n        component="Header"\n        componentProps={{\n           // Fill slots with the right values\n           userName: user.email,\n           email: user.name,\n\n           // Toggle the variants you want\n           isLogged: !user.isAnonymous,\n\n           // Override the avatar img element with the right src\n           avatar={{\n             src: user.profileImgSrc\n           }}\n\n           // Add onClick handler to the login button\n           login: {\n             onClick: () => navigateToLogin(),\n          }\n      />\n    </PlasmicRootProvider>\n  );\n}'
               : "function ProfileCard(props: ProfileCardProps) {\n  // Use hooks to fetch data, read from React context, etc.\n  const user = useUser(props.userId);\n  const isFollowing = useIsFollowing(props.userId);\n  return (\n    <PlasmicProfileCard\n      // Fill slots with the right values\n      userName={user.name}\n      email={user.email}\n\n      // Toggle the variants you want\n      isFollowing={isFollowing}\n      isExpert={user.isExpert}\n\n      // Override the avatar img element with the right src\n      avatar={{\n        src: user.profileImgSrc\n      }}\n\n      // Add onClick handler to the root element\n      onClick={() => navigateToUserPage(props.userId)}\n    />\n  );\n}"}
           </DocsCodeSnippet>
         ) : null}
@@ -1133,7 +1046,6 @@ const PlasmicDescendants = {
     "introText2",
     "introText3",
     "nextConfig",
-    "gatsbyConfig",
     "syncProjectSnippet",
     "loaderv2Config",
   ],
@@ -1141,7 +1053,6 @@ const PlasmicDescendants = {
   introText2: ["introText2"],
   introText3: ["introText3"],
   nextConfig: ["nextConfig"],
-  gatsbyConfig: ["gatsbyConfig"],
   syncProjectSnippet: ["syncProjectSnippet"],
   loaderv2Config: ["loaderv2Config"],
 } as const;
@@ -1154,7 +1065,6 @@ type NodeDefaultElementType = {
   introText2: "div";
   introText3: "div";
   nextConfig: typeof DocsCodeSnippet;
-  gatsbyConfig: typeof DocsCodeSnippet;
   syncProjectSnippet: typeof SyncProjectSnippet;
   loaderv2Config: typeof DocsCodeSnippet;
 };
@@ -1224,7 +1134,6 @@ export const PlasmicDocsPortalIntro = Object.assign(
     introText2: makeNodeComponent("introText2"),
     introText3: makeNodeComponent("introText3"),
     nextConfig: makeNodeComponent("nextConfig"),
-    gatsbyConfig: makeNodeComponent("gatsbyConfig"),
     syncProjectSnippet: makeNodeComponent("syncProjectSnippet"),
     loaderv2Config: makeNodeComponent("loaderv2Config"),
 

@@ -9,30 +9,37 @@ import {
   DefaultIconTogglesPanelProps,
   PlasmicIconTogglesPanel,
 } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicIconTogglesPanel";
-import { makeAssetClassName } from "@/wab/shared/codegen/image-assets";
+import { useDocsFocusedIconRef } from "@/wab/client/components/docs/DocsModelResources";
+import { DocsPortalCtx } from "@/wab/client/components/docs/DocsPortalCtx";
+import type { ModelRef } from "@/wab/client/studio-ctx/model-snapshots";
+import type { ImageAsset } from "@/wab/shared/model/classes";
 import { LENGTH_PERCENTAGE_UNITS } from "@/wab/shared/css/types";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocalStorage } from "react-use";
+import { useStore } from "zustand";
 
 type IconTogglesPanelProps = DefaultIconTogglesPanelProps;
 
-const IconTogglesPanel = observer(function IconTogglesPanel(
-  props: IconTogglesPanelProps,
-) {
-  const { t: uiT } = useI18n();
+function IconTogglesPanel(props: IconTogglesPanelProps) {
   const docsCtx = useDocsPortalCtx();
-  const icon = docsCtx.tryGetFocusedIcon();
+  const iconRef = useDocsFocusedIconRef(docsCtx);
+  return iconRef ? <FocusedIconTogglesPanel {...props} docsCtx={docsCtx} iconRef={iconRef} /> : null;
+}
+
+function FocusedIconTogglesPanel({ docsCtx, iconRef, ...props }: IconTogglesPanelProps & { docsCtx: DocsPortalCtx; iconRef: ModelRef<ImageAsset> }) {
+  const { t: uiT } = useI18n();
+  const className = useStore(docsCtx.models.getIconModelStore(iconRef), (state) => state.className);
+  const icon = docsCtx.models.snapshots.resolve(iconRef);
+  const toggles = useStore(
+    docsCtx.getIconStore(icon),
+    (state) => state.toggles,
+  );
 
   const [dismissed, setDismissed] = useLocalStorage(
     "IconTogglesPanel--dismissIconInfo",
     false,
   );
-
-  if (!icon) {
-    return null;
-  }
 
   return (
     <PlasmicIconTogglesPanel
@@ -51,12 +58,12 @@ const IconTogglesPanel = observer(function IconTogglesPanel(
           }
         },
       }}
-      header={makeAssetClassName(icon)}
+      header={className}
       title={{
         children: (
           <Textbox
             styleType={"bordered"}
-            value={docsCtx.getIconToggle(icon, "title")}
+            value={toggles.get("title")}
             onChange={(e) =>
               docsCtx.setIconToggle(icon, "title", e.target.value || undefined)
             }
@@ -70,7 +77,7 @@ const IconTogglesPanel = observer(function IconTogglesPanel(
             <ColorButton
               onChange={(val) => docsCtx.setIconToggle(icon, "color", val)}
               sc={docsCtx.studioCtx}
-              color={docsCtx.getIconToggle(icon, "color")}
+              color={toggles.get("color")}
             />
           </SidebarModalProvider>
         ),
@@ -79,7 +86,7 @@ const IconTogglesPanel = observer(function IconTogglesPanel(
         children: (
           <DimTokenSpinner
             min={1}
-            value={docsCtx.getIconToggle(icon, "width") || ""}
+            value={toggles.get("width") || ""}
             onChange={(v) => docsCtx.setIconToggle(icon, "width", v)}
             styleType={["bordered"]}
             placeholder={uiT("Unset")}
@@ -92,7 +99,7 @@ const IconTogglesPanel = observer(function IconTogglesPanel(
         children: (
           <DimTokenSpinner
             min={1}
-            value={docsCtx.getIconToggle(icon, "height") || ""}
+            value={toggles.get("height") || ""}
             onChange={(v) => docsCtx.setIconToggle(icon, "height", v)}
             styleType={["bordered"]}
             placeholder={uiT("Unset")}
@@ -106,7 +113,7 @@ const IconTogglesPanel = observer(function IconTogglesPanel(
       }}
     />
   );
-});
+}
 
 export default IconTogglesPanel;
 

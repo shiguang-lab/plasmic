@@ -1,3 +1,4 @@
+import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
 import {
   isPropShown,
   PropEditorRow,
@@ -133,6 +134,7 @@ interface ValidationRuleBuilderProps {
 
 export function ValidationRuleBuilder(props: ValidationRuleBuilderProps) {
   const { onChange, onDelete, viewCtx, tpl, rule } = props;
+  const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl);
   return (
     <>
       {RULE_EDITORS.map(({ name, type }) => {
@@ -163,7 +165,7 @@ export function ValidationRuleBuilder(props: ValidationRuleBuilderProps) {
             componentPropValues={rule}
             schema={viewCtx.customFunctionsSchema()}
             env={{
-              ...(viewCtx.getInspectorCanvasEnvForTpl(tpl) ?? {}),
+              ...(canvasEnv ?? {}),
               ...(name === "custom"
                 ? {
                     rule: {},

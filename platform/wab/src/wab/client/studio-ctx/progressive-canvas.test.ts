@@ -1,4 +1,4 @@
-import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { fakeRegistryViewCtx, fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { TopFrameApi } from "@/wab/client/frame-ctx/top-frame-api";
 import { requestIdleCallbackAsync } from "@/wab/client/requestidlecallback";
 import { DomActions, ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
@@ -13,8 +13,7 @@ import { ValState } from "@/wab/shared/eval/val-state";
 import { Box, Pt } from "@/wab/shared/geom";
 import { waitFor } from "@testing-library/react";
 import { ok } from "neverthrow";
-import { observable, runInAction } from "mobx";
-import { mock, mockDeep } from "vitest-mock-extended";
+import { mock } from "vitest-mock-extended";
 
 vi.mock("@/wab/client/requestidlecallback", () => ({
   requestIdleCallbackAsync: vi.fn(async (callback) => callback()),
@@ -158,21 +157,20 @@ it.each([
     scroll: { x: savedScroll.x, y: savedScroll.y },
     canvasPadding: { x: savedPadding.x, y: savedPadding.y },
   });
-  const rendered = observable.box(false);
   const { studioCtx } = fakeStudioCtx({
     site,
     topFrameApi: api,
     initialUrl: "/projects/test?arena_type=custom&arena=Overview",
   });
-  const vc = mockDeep<ViewCtx>();
+  const { view: vc, ready: rendered } = fakeRegistryViewCtx(studioCtx, target);
   vc.arenaFrame.mockReturnValue(target);
   vc.isStale.mockReturnValue(true);
   vc.focusedTpls.mockReturnValue([]);
+  vc.focusedSelectables.mockReturnValue([]);
+  vc.focusedCloneKeys.mockReturnValue([]);
+  vc.currentComponentCtx.mockReturnValue(null);
   let finishSync: () => void = () => undefined;
   vc.awaitSync.mockReturnValue(new Promise<void>((resolve) => { finishSync = resolve; }));
-  Object.defineProperty(vc, "isDisposed", { value: false });
-  Object.defineProperty(vc, "component", { value: target.container.component });
-  Object.defineProperty(vc, "initialRenderReady", { get: () => rendered.get() });
   vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockImplementation((frame) =>
     frame === target ? vc : undefined,
   );
@@ -203,7 +201,7 @@ it.each([
     await waitFor(() => expect(viewport.scale()).toBe(0.5));
     expect(studioCtx.initialViewportReady).toBe(false);
     expect(studioCtx.activeCanvasReady).toBe(false);
-    runInAction(() => rendered.set(true));
+    rendered.setState(true, true);
     await waitFor(() => expect(studioCtx.initialViewportReady).toBe(true));
     expect(studioCtx.tryGetViewCtxForFrame(arena.children[0])).toBeUndefined();
     expect(studioCtx.focusedFrame()).toBe(target);
@@ -288,10 +286,7 @@ it("does not use another frame or background context as target readiness; missin
     site,
     initialUrl: "/projects/test?arena_type=custom&arena=Overview",
   });
-  const vc = mock<ViewCtx>();
-  let rendered = false;
-  Object.defineProperty(vc, "initialRenderReady", { get: () => rendered });
-  vc.arenaFrame.mockReturnValue(arena.children[0]);
+  const { view: vc, ready: rendered } = fakeRegistryViewCtx(studioCtx, arena.children[0]);
   try {
     await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
     const focus = vi
@@ -300,14 +295,13 @@ it("does not use another frame or background context as target readiness; missin
     vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockImplementation((frame) =>
       frame === arena.children[0] ? vc : undefined,
     );
-    studioCtx.viewCtxs.push(vc);
     expect(studioCtx.activeCanvasReady).toBe(false);
-    rendered = true;
+    rendered.setState(true, true);
     expect(studioCtx.activeCanvasReady).toBe(false);
     focus.mockRestore();
     expect(studioCtx.activeCanvasFrame).toBe(arena.children[0]);
     expect(studioCtx.activeCanvasReady).toBe(true);
-    rendered = false;
+    rendered.setState(false, true);
     expect(studioCtx.activeCanvasReady).toBe(false);
     arena.children.splice(0);
     expect(studioCtx.activeCanvasReady).toBe(true);
@@ -408,8 +402,8 @@ it("reveals the target before remaining contexts, comparing with the previous al
         load: async () => {
           order.push(frame.uuid);
           await new Promise((resolve) => setTimeout(resolve, 100));
-          const vc = mock<ViewCtx>();
-          Object.defineProperty(vc, "initialRenderReady", { value: true });
+          const { view: vc, ready } = fakeRegistryViewCtx(studioCtx, frame);
+          ready.setState(true, true);
           contexts.set(frame.uuid, vc);
           if (frame === target) {
             expect(studioCtx.activeCanvasReady).toBe(true);
@@ -460,6 +454,9 @@ it("ends canvas initialization on a library failure and stops pending frames ins
 it("times out a host that never finishes initialization instead of waiting indefinitely", async () => {
   const { site, arena } = canvasFixture(1);
   const { studioCtx } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Overview" });
+  // This host has not created a ViewCtx. Keep unrelated fake-canvas evaluation
+  // out of the 180-second loader timeout clock.
+  vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(undefined);
   let finish = () => undefined as void;
   try {
     await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));

@@ -1,12 +1,6 @@
 import { CookieValue, Section, Service } from "vanilla-cookieconsent";
 
-type PlasmicCanvasProps = {
-  plasmicNotifyAutoOpenedContent?: () => void;
-  __plasmic_selection_prop__?: {
-    isSelected: boolean;
-    selectedSlotName?: string;
-  };
-};
+import type { PlasmicCanvasProps } from "@plasmicapp/host";
 
 export interface CookieConsentProps extends PlasmicCanvasProps {
   // Mode and revision

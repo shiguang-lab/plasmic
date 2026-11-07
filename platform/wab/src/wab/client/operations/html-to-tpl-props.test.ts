@@ -6,11 +6,29 @@ import { getComponentArgFromHtmlProp } from "@/wab/client/operations/html-to-tpl
 import { isRecoverableWIError } from "@/wab/client/web-importer/errors";
 import { ensure } from "@/wab/shared/common";
 import { asCode, tryExtractJson } from "@/wab/shared/core/exprs";
-import { mkParam } from "@/wab/shared/core/lang";
+import { mkParam, ParamExportType } from "@/wab/shared/core/lang";
+import { ComponentType } from "@/wab/shared/core/components";
 import * as Tpls from "@/wab/shared/core/tpls";
 import { getProjectFlags } from "@/wab/shared/devflags";
 import { ensureKnownCompositeExpr } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
+
+test.each(["model", "registration"])("external prop writes cannot set editor-only props identified by %s", (source) => {
+  const { site, button } = setupComponentWithInstance();
+  button.type = ComponentType.Code;
+  button.params.push(mkParam({
+    name: "internalReveal", paramType: "prop", type: typeFactory.bool(),
+    exportType: source === "model" ? ParamExportType.ToolsOnly : ParamExportType.External,
+  }));
+  const metadata = source === "registration" ? { type: "boolean", editOnly: true } : undefined;
+  for (const value of [true, false, "{{ $state.visible }}"]) {
+    const result = getComponentArgFromHtmlProp(site, button, button.name, "internalReveal", value, undefined, metadata);
+    const error = ensure(result.isErr() ? result.error : undefined, "Expected rejected internal prop");
+    expect(isRecoverableWIError(error)).toBe(false);
+    expect(error).toMatchObject({ code: "invalid-component-prop", reason: "not available in the public component contract" });
+  }
+  expect(getComponentArgFromHtmlProp(site, button, button.name, "disabled", false).isOk()).toBe(true);
+});
 
 test("only invalid optional literal props can be safely discarded", () => {
   const { site, button } = setupComponentWithInstance();

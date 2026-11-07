@@ -1,3 +1,7 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
+import { useInspectorComponentEvalContext, useInspectorCanvasEnv, useInspectorSelection } from "@/wab/client/studio-ctx/inspector-state";
 import { canEditInspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
 import ContextMenuIndicator from "@/wab/client/components/ContextMenuIndicator/ContextMenuIndicator";
 import { ComponentPropModal } from "@/wab/client/components/modals/ComponentPropModal";
@@ -476,6 +480,8 @@ function PropEditorRowWrapper_(props: {
   expsProvider: TplExpsProvider;
 }) {
   const { viewCtx, param, tpl, expsProvider } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  useViewSelection(viewCtx, useShallow((state) => [state.context, state.highlight]));
 
   const vtm = viewCtx.variantTplMgr();
   const effectiveVs = expsProvider.effectiveVs();
@@ -503,7 +509,7 @@ function PropEditorRowWrapper_(props: {
     param,
   );
   const { componentPropValues, ccContextData, invalidArgs } =
-    viewCtx.getInspectorComponentEvalContext(tpl, param);
+    useInspectorComponentEvalContext(viewCtx, tpl, param);
   const controlExtras: ControlExtras = { path: [param.variable.name] };
   if (
     isPlainObjectPropType(propType) &&
@@ -609,8 +615,8 @@ function PropEditorRowWrapper_(props: {
   );
 }
 
-const isMenuEmpty = (menu: React.ReactElement) => {
-  return filterFalsy(menu.props.children).length === 0;
+const isMenuEmpty = (menu: React.ReactElement<{ children?: React.ReactNode }>) => {
+  return filterFalsy(React.Children.toArray(menu.props.children)).length === 0;
 };
 
 export type HighlightOptions = {
@@ -1775,7 +1781,9 @@ function PropEditorRow_(
   },
 ) {
   const { tpl, viewCtx, ...rest } = props;
-  const selection = viewCtx.studioCtx.inspectorSelection;
+  const selection = useInspectorSelection(viewCtx.studioCtx);
+  const context = useInspectorComponentEvalContext(viewCtx, "componentPropValues" in props || "ccContextData" in props || !!props.invalidArgs ? undefined : tpl);
+  const canvasEnv = useInspectorCanvasEnv(viewCtx, props.env ? undefined : tpl);
   // Model replacement can dispose the canvas before React unmounts its panel.
   if (viewCtx.isDisposed) {
     return null;
@@ -1789,7 +1797,7 @@ function PropEditorRow_(
       return props;
     }
     const { componentPropValues, ccContextData, invalidArgs } =
-      viewCtx.getInspectorComponentEvalContext(tpl);
+      context;
     return {
       componentPropValues,
       ccContextData,
@@ -1798,7 +1806,7 @@ function PropEditorRow_(
   };
   const { componentPropValues, ccContextData, invalidArgs } =
     getCurrentComponentEvalContext();
-  const env = !props.env ? viewCtx.getInspectorCanvasEnvForTpl(tpl) : props.env;
+  const env = !props.env ? canvasEnv : props.env;
   const schema = !props.schema ? viewCtx.customFunctionsSchema() : props.schema;
   const owningComponent = $$$(tpl).tryGetOwningComponent();
 

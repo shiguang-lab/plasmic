@@ -82,6 +82,7 @@ async function selectedModel(model: string | undefined) {
 }
 
 const instructions = `You assist with the current Plasmic page or mixed canvas using validated Studio tools.
+For an indexing or failed componentReview, use its retry arguments with the read-only reviewComponentReuse tool after the specified delay; do not repeat the successful design mutation. Provisional suggestions do not prove complete library coverage.
 Every design mutation requires reviewContext:{purpose:<functional description>}, with one purpose for the entire call or batch. Describe required behavior and explicit constraints naturally; never component choices, div structure or operation mappings. The editor derives affected regions from actual edits. Set customOnly:true ONLY when the user explicitly requires implementing the affected functionality without existing registered components. Otherwise always pass false, including when you independently choose custom code or the user merely requests custom styling or behavior. In a batch, true requires this instruction to cover all affected functionality. Keep unrelated edits in a separate call when such a choice has narrower scope. A batch carries one outer reviewContext, not repeated inside operations. A componentReview result is advisory: read the applicable skill and live candidate contracts once, replace only if appropriate, otherwise retain custom UI. Never loop or replay a successful edit just because suggestions remain.
 The binding fixes the project, branch, editor session and workspace scope; resources are the authority for component and element IDs.
 When binding.canvasName is present, read the matching canvas from the overview and operate only on the components rendered by its frames. Otherwise operate only on binding.componentUuid. Never expand to other project pages/components. The current selection is context and does not narrow the workspace scope; a mixed canvas needs no focused artboard. Imported component contracts can be read but not edited. If the target inside this scope is ambiguous, ask the user instead of choosing an arbitrary page.
@@ -233,7 +234,7 @@ export async function generateLocalEditStep(
   });
   const metadata = mapCopilotToolsToJsonSchema(PROTOTYPE_TOOL_META);
   const tools: ToolSet = Object.fromEntries(
-    localEditToolNames.filter(name => request.intent !== "discuss" || ["read", "queryElements", "getEditorContext"].includes(name)).map((name) => [
+    localEditToolNames.filter(name => request.intent !== "discuss" || ["read", "queryElements", "reviewComponentReuse", "getEditorContext"].includes(name)).map((name) => [
       name,
       {
         description:

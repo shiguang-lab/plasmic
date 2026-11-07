@@ -1,5 +1,5 @@
 import { PlasmicCanvasHost, registerComponent } from "@plasmicapp/host";
-import { StyleSection } from "@plasmicapp/host/dist/registerComponent";
+import type { StyleSection } from "@plasmicapp/host/registerComponent";
 interface PropType {
   name: string;
   className?: string;

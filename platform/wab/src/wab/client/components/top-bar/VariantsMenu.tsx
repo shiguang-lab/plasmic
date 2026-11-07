@@ -1,7 +1,7 @@
 import VariantRow from "@/wab/client/components/canvas/VariantsBar/VariantRow";
 import styles from "@/wab/client/components/canvas/VariantsBar/VariantsDrawer.module.scss";
 import VariantsGroupLabel from "@/wab/client/components/canvas/VariantsBar/VariantsGroupLabel";
-import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
+import { PreviewCtx, usePreviewSelector } from "@/wab/client/components/live/PreviewCtx";
 import { Matcher } from "@/wab/client/components/view-common";
 import { useRefMap } from "@/wab/client/hooks/useRefMap";
 import { useI18n } from "@/wab/client/i18n";
@@ -43,7 +43,7 @@ type VariantGroupData =
     };
 
 interface VariantsMenuProps extends DefaultVariantsMenuProps {
-  searchInputRef?: React.RefObject<HTMLInputElement>;
+  searchInputRef?: React.RefObject<HTMLInputElement | null>;
   targetedVariants: Set<string>;
   variantGroupsData: VariantGroupData[];
   onDismiss: () => void;
@@ -63,6 +63,7 @@ function VariantsMenu_({
   ...props
 }: VariantsMenuProps) {
   const { t } = useI18n();
+  usePreviewSelector(previewCtx, (state) => state.previewData);
   const searchInputRef_ = searchInputRef ?? useRef<HTMLInputElement>(null);
   const variantsListRef = useRef<HTMLDivElement>(null);
 

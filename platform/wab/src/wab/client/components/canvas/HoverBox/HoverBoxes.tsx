@@ -1,3 +1,15 @@
+import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { observeCanvasSelectionDom } from "@/wab/client/components/canvas/HoverBox/canvas-selection-dom-observer";
+import { useStudioArena, useViewRegistry } from "@/wab/client/studio-ctx/arena-state";
+import { useStore } from "zustand";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useFocusedViewSelection, useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
+import { useViewportValue, useCanvasTransforming, useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
+import { useCanvasReveals } from "@/wab/client/studio-ctx/canvas-session-ui";
 import { CanvasOverlayToolbar } from "@/wab/client/components/canvas/CanvasOverlayToolbar";
 import { getActiveCanvasModal } from "@/wab/client/components/canvas/canvas-modal-scope";
 import { EditableNodeLabel } from "@/wab/client/components/canvas/EditableNodeLabel";
@@ -54,6 +66,10 @@ import {
   cssPropsForInvertTransform,
   StudioCtx,
 } from "@/wab/client/studio-ctx/StudioCtx";
+import {
+  selectLeftPaneWidth,
+  selectLeftTabKey,
+} from "@/wab/client/studio-ctx/left-panel-state";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useFrameForceUpdate } from "@/wab/client/useForceUpdate";
 import {
@@ -98,7 +114,6 @@ import {
 } from "@/wab/shared/geom";
 import {
   ArenaFrame,
-  isKnownArena,
   isKnownArenaFrame,
   TplNode,
 } from "@/wab/shared/model/classes";
@@ -113,7 +128,6 @@ import * as React from "react";
 import { memo, useEffect, useRef, useState } from "react";
 import { useLocalStorage } from "react-use";
 import { useHoverIntent } from "react-use-hoverintent";
-import ResizeObserver from "resize-observer-polyfill";
 
 const HoverBoxInner = memo(HoverBoxInner_);
 
@@ -164,11 +178,24 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
   >(undefined);
   const plasmicCtx = usePlasmicCtx();
   const studioCtx = plasmicCtx.studioCtx;
+  const leftTabKey = useStore(studioCtx.leftPanelState.store, selectLeftTabKey);
+  const leftPaneWidth = useStore(
+    studioCtx.leftPanelState.store,
+    selectLeftPaneWidth,
+  );
+  useFocusedViewSelection(studioCtx, useShallow((state) => [state.context, state.targets, state.tpls]));
+  useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view]));
+  const visibleScalerBox = useViewportValue(studioCtx, (state) => state.visibleScalerBox);
+  const viewportZoom = useCanvasZoom(studioCtx);
+  const arenaKind = useStudioArena(studioCtx, (state) => state.kind);
+  const draggingObject = useStore(studioCtx.draggingObjectStore);
   const commentCtx = studioCtx.commentsCtx;
   const viewCtx =
     plasmicCtx.viewCtx && !plasmicCtx.viewCtx.isDisposed
       ? plasmicCtx.viewCtx
       : undefined;
+  useViewSelection(viewCtx, useShallow((state) => [state.doms, state.measure, state.targets]));
+  const revealed = useCanvasReveals(viewCtx);
   const [resizePart, setResizePart] = useState<Side | Corner | undefined>();
   const [manipState, setManipState] = useState<ManipState>();
   const dimsBoxRef = useRef<HTMLDivElement>(null);
@@ -225,8 +252,8 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
         safeTry(function* () {
           setManipState(
             (yield* mkFreestyleManip()).resize(manipState, part, {
-              deltaFrameX: Math.round(e.data.deltaX / studioCtx.zoom),
-              deltaFrameY: Math.round(e.data.deltaY / studioCtx.zoom),
+              deltaFrameX: Math.round(e.data.deltaX / viewportZoom),
+              deltaFrameY: Math.round(e.data.deltaY / viewportZoom),
               shiftKey: e.mouseEvent.shiftKey,
               altKey: e.mouseEvent.altKey,
               metaKey: e.mouseEvent.metaKey,
@@ -388,13 +415,13 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
             state,
             visibleBox,
             clippedSides,
-            studioCtx.zoom,
+            viewportZoom,
           ),
           zIndex,
         }
       : undefined;
 
-  const cssProps = cssPropsForInvertTransform(studioCtx.zoom, visibleBox);
+  const cssProps = cssPropsForInvertTransform(viewportZoom, visibleBox);
 
   useEffect(() => {
     setDimsBoxWidth(dimsBoxRef.current ? dimsBoxRef.current.offsetWidth : 0);
@@ -455,7 +482,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
   const tagPlacement = useTagPlacement(
     hoverTagRef,
     visibleBox?.width || 0,
-    studioCtx.zoom,
+    viewportZoom,
     viewCtx,
   );
 
@@ -468,7 +495,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
   const shouldShowHoverTag =
     !isMultiSelection &&
     (!isKnownArenaFrame(nameableItem) ||
-      isKnownArena(studioCtx.currentArena)) &&
+      arenaKind === "mixed") &&
     !spacingDragState;
   const shouldShowDimBadge = shouldShowHoverTag;
   // The size badge sits centered below the box. When the name tag has to go
@@ -554,7 +581,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                           allowMargin={allowMargin}
                           paddingPx={state?.paddingPx}
                           marginPx={state?.marginPx}
-                          zoom={studioCtx.zoom}
+                          zoom={viewportZoom}
                         />
                       </div>
                     );
@@ -567,6 +594,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                   >
                     <StackOfParents hoverTagRef={hoverTagRef} />
                     <XDraggable
+                      nodeRef={hoverTagRef}
                       onStart={(e) => startMove(e)}
                       onDrag={(e) => dragMove(e)}
                       onStop={async (e) => {
@@ -617,7 +645,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                             `${
                               clippedSides[s]
                                 ? 0
-                                : (state?.marginPx?.[s] ?? 0) * studioCtx.zoom
+                                : (state?.marginPx?.[s] ?? 0) * viewportZoom
                             }px`,
                           ],
                         ),
@@ -719,7 +747,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                               }
                               draggedSide={spacingDragState?.side}
                               draggedEdgeType={spacingDragState?.edgeType}
-                              zoom={studioCtx.zoom}
+                              zoom={viewportZoom}
                               isAutoSized={
                                 sideToOrient(side) === "horiz"
                                   ? state?.autoWidth
@@ -989,7 +1017,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                 )}
                 {state &&
                   shouldShowDimBadge &&
-                  !viewCtx?.hasShownHiddenContent && (
+                  !(viewCtx?.autoOpenedUuid || revealed) && (
                     // Real element size, even when the drawn box is clipped.
                     <div
                       ref={dimsBoxRef}
@@ -1005,13 +1033,13 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                   !isMultiSelection &&
                   !manipState &&
                   !spacingDragState &&
-                  !studioCtx.isDraggingObject() && (
+                  !draggingObject && (
                     <ClippedEdgeIndicators
                       elements={viewCtx.focusedDomElt()?.get() ?? []}
                       geometry={state}
                       visible={visibleBox}
                       clippedSides={clippedSides}
-                      zoom={studioCtx.zoom}
+                      zoom={viewportZoom}
                     />
                   )}
                 {resizePart && (
@@ -1043,11 +1071,11 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                 style={{
                   left: Math.max(
                     -28,
-                    ((studioCtx.viewportCtx?.visibleScalerBox().left() ??
+                    ((visibleScalerBox.left() ??
                       state.visibleBox.left) -
                       state.visibleBox.left) *
-                      studioCtx.zoom +
-                      (studioCtx.leftTabKey ? studioCtx.leftPaneWidth : 0) +
+                      viewportZoom +
+                      (leftTabKey ? leftPaneWidth : 0) +
                       4,
                   ),
                 }}
@@ -1079,10 +1107,16 @@ function HoverBox_({
   viewCtx: ViewCtx;
   target: HoverBoxTarget;
 }) {
-  const forceUpdate = useFrameForceUpdate();
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  useViewSelection(viewCtx, useShallow((state) => [state.part, state.doms, state.context, state.cloneKeys]));
+  useContentEditorScope(viewCtx.studioCtx);
+  const forceUpdate = useFrameForceUpdate(viewCtx.disposeSignal);
 
   const focusedElt = !isKnownArenaFrame(target) ? target.node : undefined;
-  const viewProps = computeHoverBoxViewState(viewCtx, target);
+  const transformingObject = useStore(viewCtx.studioCtx.transformingObjectStore);
+  const draggingObject = useStore(viewCtx.studioCtx.draggingObjectStore);
+  useFrameHeight(viewCtx.studioCtx, isKnownArenaFrame(target) ? target : undefined);
+  const viewProps = computeHoverBoxViewState(viewCtx, target, transformingObject, draggingObject);
   const partElement =
     viewProps.displayProps &&
     "isComponentPart" in viewProps.displayProps &&
@@ -1106,39 +1140,32 @@ function HoverBox_({
       stylesListener.detach();
       framesListener.detach();
     };
-  }, [viewCtx.studioCtx]);
+  }, [viewCtx.studioCtx, forceUpdate]);
 
   React.useEffect(() => {
     if (focusedElt && focusedElt.length > 0) {
-      const focusedEltParentObserver = new ResizeObserver(forceUpdate);
       const elts = partElement ? [partElement] : focusedElt.toArray();
-      elts.forEach((elt) => focusedEltParentObserver.observe(elt));
-
-      // Observes if the element gets disconnected from the DOM
-      const eltsSet = new Set(elts);
-      const parentObs = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-          for (const el of mutation.removedNodes) {
-            if (eltsSet.has(el as any)) {
-              viewCtx?.recomputeFocusedDomElts();
+      const eltsSet = new Set<Node>(elts);
+      return observeCanvasSelectionDom(
+        viewCtx.disposeSignal,
+        elts.flatMap((elt) => elt.parentNode ? [elt.parentNode] : []),
+        { childList: true },
+        (mutations) => {
+          for (const mutation of mutations) {
+            for (const el of mutation.removedNodes) {
+              if (eltsSet.has(el)) {
+                viewCtx.recomputeFocusedDomElts();
+                if (viewCtx.disposeSignal.aborted) { return; }
+              }
             }
           }
-        }
-      });
-      elts.forEach(
-        (elt) =>
-          elt.parentNode &&
-          parentObs.observe(elt.parentNode, { childList: true }),
+        },
+        { targets: elts, onResize: forceUpdate },
       );
-
-      return () => {
-        focusedEltParentObserver.disconnect();
-        parentObs.disconnect();
-      };
     } else {
       return undefined;
     }
-  }, [focusedElt, partElement, viewCtx]);
+  }, [focusedElt, partElement, viewCtx, forceUpdate]);
 
   return <HoverBoxInner viewProps={viewProps} />;
 }
@@ -1146,12 +1173,24 @@ function HoverBox_({
 export const HoverBoxes = observer(HoverBoxes_);
 function HoverBoxes_(props: { studioCtx: StudioCtx }) {
   const { studioCtx } = props;
+  useContentEditorScope(studioCtx);
+  useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view]));
+  useCanvasTransforming(studioCtx);
+  // computeHoverBoxTargets resolves controlled frames through the registry
+  // command index; this subscription keeps that result reactive to a roster
+  // change without making every unrelated model commit clone the roster.
+  useViewRegistry(studioCtx, (entries) => entries);
 
   const viewCtx = studioCtx.focusedViewCtx();
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  useViewSelection(viewCtx, (state) => state.doms);
+  useViewSelection(viewCtx, (state) => state.targets);
 
+  useStudioRenderPolicy(studioCtx, (policy) => policy.devMode);
+  useStudioOverlayState(studioCtx, (state) => state.screenshotting);
   const shouldHideHoverBox = studioCtx.shouldHideUIOverlay(false) || !viewCtx;
 
-  const forceUpdate = useFrameForceUpdate();
+  const forceUpdate = useFrameForceUpdate(viewCtx?.disposeSignal);
 
   // With React 18, sometimes rendering won't be done in time for a newly-inserted
   // tpl to be rendered and its DOM element set. So we need to monitor the
@@ -1166,7 +1205,9 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
     }
 
     let modal = getActiveCanvasModal(canvasBody.ownerDocument);
-    const userBodyObserver = new MutationObserver((mutations) => {
+    return observeCanvasSelectionDom(viewCtx.disposeSignal, [canvasBody], {
+      subtree: true, childList: true, attributes: true, attributeFilter: ["class", "style", "aria-modal"],
+    }, (mutations) => {
       const currentModal = getActiveCanvasModal(canvasBody.ownerDocument);
       if (currentModal === modal && !mutations.some((mutation) => mutation.type === "childList")) {
         return;
@@ -1186,14 +1227,7 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
         forceUpdate();
       }
     });
-    userBodyObserver.observe(canvasBody, {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ["class", "style", "aria-modal"],
-    });
-    return () => userBodyObserver.disconnect();
-  }, [viewCtx, canvasBody]);
+  }, [viewCtx, canvasBody, forceUpdate]);
 
   if (studioCtx.focusedFrames().length > 1) {
     return studioCtx.shouldHideUIOverlay(false) ? null : (

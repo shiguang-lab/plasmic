@@ -1,7 +1,8 @@
+import { jsxs, jsx, Fragment } from 'react/jsx-runtime';
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
 import { Tooltip, Input, Checkbox, Table } from 'antd';
 import React from 'react';
-import { a as asArray, r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { a as asArray, r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -42,51 +43,62 @@ function TablePaginationControl({
     }
     updateValue(result);
   };
-  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" } }, /* @__PURE__ */ React.createElement(
-    Checkbox,
-    {
-      styles: checkboxStyles,
-      checked: value !== false,
-      onChange: (e) => updateValue(e.target.checked ? { ...options } : false)
-    },
-    "Show pagination"
-  ), value !== false && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, "Page size", " ", /* @__PURE__ */ React.createElement(
-    Input,
-    {
-      type: "number",
-      style: inputStyle,
-      "aria-label": "Page size",
-      min: 1,
-      step: 1,
-      value: options.pageSize ?? options.defaultPageSize ?? "",
-      placeholder: "10",
-      onChange: (e) => {
-        if (!e.target.validity.valid) {
-          return;
-        }
-        update(
-          options.pageSize !== void 0 ? "pageSize" : "defaultPageSize",
-          e.target.value === "" ? null : Number(e.target.value)
-        );
+  return /* @__PURE__ */ jsxs("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" }, children: [
+    /* @__PURE__ */ jsx(
+      Checkbox,
+      {
+        styles: checkboxStyles,
+        checked: value !== false,
+        onChange: (e) => updateValue(e.target.checked ? { ...options } : false),
+        children: "Show pagination"
       }
-    }
-  )), /* @__PURE__ */ React.createElement(
-    Checkbox,
-    {
-      styles: checkboxStyles,
-      checked: options.showSizeChanger ?? (options.total ?? componentProps?.data?.data?.length ?? 0) > 50,
-      onChange: (e) => update("showSizeChanger", e.target.checked)
-    },
-    "Show size changer"
-  ), /* @__PURE__ */ React.createElement(
-    Checkbox,
-    {
-      styles: checkboxStyles,
-      checked: options.showQuickJumper ?? false,
-      onChange: (e) => update("showQuickJumper", e.target.checked)
-    },
-    "Show quick jumper"
-  )));
+    ),
+    value !== false && /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsxs("label", { style: rowStyle, children: [
+        "Page size",
+        " ",
+        /* @__PURE__ */ jsx(
+          Input,
+          {
+            type: "number",
+            style: inputStyle,
+            "aria-label": "Page size",
+            min: 1,
+            step: 1,
+            value: options.pageSize ?? options.defaultPageSize ?? "",
+            placeholder: "10",
+            onChange: (e) => {
+              if (!e.target.validity.valid) {
+                return;
+              }
+              update(
+                options.pageSize !== void 0 ? "pageSize" : "defaultPageSize",
+                e.target.value === "" ? null : Number(e.target.value)
+              );
+            }
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsx(
+        Checkbox,
+        {
+          styles: checkboxStyles,
+          checked: options.showSizeChanger ?? (options.total ?? componentProps?.data?.data?.length ?? 0) > 50,
+          onChange: (e) => update("showSizeChanger", e.target.checked),
+          children: "Show size changer"
+        }
+      ),
+      /* @__PURE__ */ jsx(
+        Checkbox,
+        {
+          styles: checkboxStyles,
+          checked: options.showQuickJumper ?? false,
+          onChange: (e) => update("showQuickJumper", e.target.checked),
+          children: "Show quick jumper"
+        }
+      )
+    ] })
+  ] });
 }
 function TableScrollControl({
   value,
@@ -102,37 +114,46 @@ function TableScrollControl({
     }
     updateValue(result);
   };
-  return /* @__PURE__ */ React.createElement("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" } }, /* @__PURE__ */ React.createElement("label", { style: rowStyle }, /* @__PURE__ */ React.createElement(Tooltip, { title: "Horizontal scroll width in pixels, a percentage, or max-content. Leave empty to fit the container without horizontal scrolling." }, /* @__PURE__ */ React.createElement("span", null, "x")), /* @__PURE__ */ React.createElement(
-    Input,
-    {
-      type: "text",
-      style: inputStyle,
-      "aria-label": "scroll.x",
-      value: options.x ?? "",
-      onChange: (e) => {
-        const text = e.target.value.trim();
-        update(
-          "x",
-          text && Number.isFinite(Number(text)) ? Number(text) : text
-        );
-      }
-    }
-  )), /* @__PURE__ */ React.createElement("label", { style: rowStyle }, /* @__PURE__ */ React.createElement(Tooltip, { title: "Table body height in pixels. Leave empty to grow with content." }, /* @__PURE__ */ React.createElement("span", null, "y")), /* @__PURE__ */ React.createElement(
-    Input,
-    {
-      type: "number",
-      style: inputStyle,
-      "aria-label": "scroll.y",
-      min: 1,
-      value: options.y ?? "",
-      onChange: (e) => {
-        if (!e.target.validity.valid) {
-          return;
+  return /* @__PURE__ */ jsxs("div", { style: { display: "flex", flexDirection: "column", gap: 8, width: "100%" }, children: [
+    /* @__PURE__ */ jsxs("label", { style: rowStyle, children: [
+      /* @__PURE__ */ jsx(Tooltip, { title: "Horizontal scroll width in pixels, a percentage, or max-content. Leave empty to fit the container without horizontal scrolling.", children: /* @__PURE__ */ jsx("span", { children: "x" }) }),
+      /* @__PURE__ */ jsx(
+        Input,
+        {
+          type: "text",
+          style: inputStyle,
+          "aria-label": "scroll.x",
+          value: options.x ?? "",
+          onChange: (e) => {
+            const text = e.target.value.trim();
+            update(
+              "x",
+              text && Number.isFinite(Number(text)) ? Number(text) : text
+            );
+          }
         }
-        update("y", e.target.value === "" ? null : Number(e.target.value));
-      }
-    }
-  )));
+      )
+    ] }),
+    /* @__PURE__ */ jsxs("label", { style: rowStyle, children: [
+      /* @__PURE__ */ jsx(Tooltip, { title: "Table body height in pixels. Leave empty to grow with content.", children: /* @__PURE__ */ jsx("span", { children: "y" }) }),
+      /* @__PURE__ */ jsx(
+        Input,
+        {
+          type: "number",
+          style: inputStyle,
+          "aria-label": "scroll.y",
+          min: 1,
+          value: options.y ?? "",
+          onChange: (e) => {
+            if (!e.target.validity.valid) {
+              return;
+            }
+            update("y", e.target.value === "" ? null : Number(e.target.value));
+          }
+        }
+      )
+    ] })
+  ] });
 }
 
 function AntdColumn(props) {
@@ -143,7 +164,7 @@ function AntdColumn(props) {
     return null;
   }
   const isEditing = !!canvas && !canvas.interactive;
-  const isSelected = isEditing && selection?.isSelected;
+  const selected = isEditing && selection?.selected;
   return React.createElement(
     cell.type,
     {
@@ -151,7 +172,7 @@ function AntdColumn(props) {
       className: [cell.props.className, props.className].filter(Boolean).join(" ") || void 0,
       onClick: isEditing ? (event) => event.preventDefault() : cell.props.onClick,
       "data-plasmic-canvas-part": isEditing ? "column" : void 0,
-      "data-plasmic-table-column-selected": isSelected || void 0,
+      "data-plasmic-table-column-selected": selected || void 0,
       style: cell.props.style
     },
     props.children
@@ -159,7 +180,7 @@ function AntdColumn(props) {
 }
 const AntdColumnGroup = Object.assign(
   function AntdColumnGroup2(props) {
-    return /* @__PURE__ */ React.createElement(AntdColumn, { ...props });
+    return /* @__PURE__ */ jsx(AntdColumn, { ...props });
   },
   { __ANT_TABLE_COLUMN_GROUP: true }
 );
@@ -260,15 +281,15 @@ function TableWithColumns({
   ) && typeof children.props.children === "function") {
     const renderChildren = children.props.children;
     return React.cloneElement(children, {
-      children: (...args) => /* @__PURE__ */ React.createElement(
+      children: (...args) => /* @__PURE__ */ jsx(
         TableWithColumns,
         {
           ...props,
           components,
           contentEditing,
-          fullContentView
-        },
-        renderChildren(...args)
+          fullContentView,
+          children: renderChildren(...args)
+        }
       )
     });
   }
@@ -299,7 +320,7 @@ function TableWithColumns({
     return contentEditing ? expandColumns(visible) : visible;
   };
   if (columns !== void 0) {
-    return /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ jsx(
       Table,
       {
         ...props,
@@ -311,29 +332,32 @@ function TableWithColumns({
     );
   }
   const body = typeof components?.body === "object" ? components.body : void 0;
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, canvas && !canvas.interactive && /* @__PURE__ */ React.createElement("style", { "data-plasmic-editor-style": true }, "[data-plasmic-table-column-selected] { outline: 1px solid #1677ff; background: #e6f4ff !important; }"), /* @__PURE__ */ React.createElement(
-    Table,
-    {
-      ...props,
-      pagination,
-      "data-plasmic-canvas-part-scope": canvas && !canvas.interactive ? "true" : void 0,
-      columns: (() => {
-        const resolved = getColumns(
-          children,
-          body?.cell ?? "td",
-          components?.header?.cell ?? "th",
-          !!canvas && !canvas.interactive
-        );
-        return prepareColumns(resolved);
-      })(),
-      ...editingProps,
-      components: {
-        ...components,
-        header: { ...components?.header, cell: TableHeaderCell },
-        body: typeof components?.body === "function" ? components.body : { ...body, cell: TableBodyCell }
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    canvas && !canvas.interactive && /* @__PURE__ */ jsx("style", { "data-plasmic-editor-style": true, children: "[data-plasmic-table-column-selected] { outline: 1px solid #1677ff; background: #e6f4ff !important; }" }),
+    /* @__PURE__ */ jsx(
+      Table,
+      {
+        ...props,
+        pagination,
+        "data-plasmic-canvas-part-scope": canvas && !canvas.interactive ? "true" : void 0,
+        columns: (() => {
+          const resolved = getColumns(
+            children,
+            body?.cell ?? "td",
+            components?.header?.cell ?? "th",
+            !!canvas && !canvas.interactive
+          );
+          return prepareColumns(resolved);
+        })(),
+        ...editingProps,
+        components: {
+          ...components,
+          header: { ...components?.header, cell: TableHeaderCell },
+          body: typeof components?.body === "function" ? components.body : { ...body, cell: TableBodyCell }
+        }
       }
-    }
-  ));
+    )
+  ] });
 }
 const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
   const {
@@ -345,11 +369,11 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
     setControlContextData,
     selectedRowKeys,
     defaultSelectedRowKeys,
-    canvasExpandedRowKeys,
     expandable,
     expandedRowRender,
     onExpand,
     onExpandedRowsChange,
+    __canvas: _canvas,
     ...rest
   } = props;
   const canvas = usePlasmicCanvasContext();
@@ -361,7 +385,7 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
     ...onExpand ? { onExpand } : {},
     ...onExpandedRowsChange ? { onExpandedRowsChange } : {}
   } : void 0;
-  const revealRows = isEditing && canvasExpandedRowKeys === void 0 && !!rowExpansion?.expandedRowRender && (info?.isEditingContents || info?.isSelected && info.selectedSlotName === "expandedRowRender");
+  const revealRows = isEditing && !!rowExpansion?.expandedRowRender && (info?.editing || info?.selected && info.slot === "expandedRowRender");
   const canvasRowKeys = [];
   if (canvas && rowExpansion) {
     const collect = (rows) => rows.forEach((row) => {
@@ -376,7 +400,7 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
     });
     collect(data?.data ?? []);
   }
-  const initialCanvasKeys = canvasExpandedRowKeys?.filter((key) => canvasRowKeys.includes(key)) ?? rowExpansion?.expandedRowKeys ?? rowExpansion?.defaultExpandedRowKeys ?? (rowExpansion?.defaultExpandAllRows ? canvasRowKeys : []);
+  const initialCanvasKeys = rowExpansion?.expandedRowKeys ?? rowExpansion?.defaultExpandedRowKeys ?? (rowExpansion?.defaultExpandAllRows ? canvasRowKeys : []);
   const expansionState = canvas && rowExpansion ? info?.getState?.(
     "expandable.expandedRowKeys",
     rowExpansion.expandedRowKeys,
@@ -461,7 +485,7 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
       isControlled
     ]
   );
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     TableWithColumns,
     {
       loading: data?.isLoading,
@@ -470,9 +494,8 @@ const AntdTable = React.forwardRef(function AntdTable2(props, ref) {
       rowKey,
       ...rest,
       expandable: resolvedExpansion,
-      contentEditing: !!canvas && !canvas.interactive && info?.isEditingContents,
-      fullContentView: !!canvas && !canvas.interactive && // Read from the canvas prop so this works with any @plasmicapp/host.
-      props.__plasmic_selection_prop__?.isFullContentView === true
+      contentEditing: !!canvas && !canvas.interactive && info?.editing,
+      fullContentView: !!canvas && !canvas.interactive && info?.fullContent === true
     }
   );
 });
@@ -500,7 +523,7 @@ function registerTable(loader) {
         displayName: "Expanded row content",
         renderPropParams: ["row", "index", "indent", "expanded"],
         hidePlaceholder: true,
-        description: "Row detail template receiving row, index, indent and expanded. Mapped to native expandable.expandedRowRender; takes precedence over a renderer in expandable. Use row fields in this slot. Configure Canvas expanded rows to show representative detail variants directly on the editing canvas. Selection does not broaden configured samples. When canvas samples are unset, selecting this slot or Edit contents reveals eligible rows without changing runtime expansion. Selecting the Table alone does not reveal rows. The canvas modifier-click gesture changes temporary keys. Requires data and a stable rowKey."
+        description: "Row detail template receiving row, index, indent and expanded. Mapped to native expandable.expandedRowRender; takes precedence over a renderer in expandable. Use row fields in this slot. Selecting this slot or Edit contents reveals eligible rows through the temporary canvas session without changing runtime expansion. Selecting the Table alone does not reveal rows. The canvas modifier-click gesture changes temporary keys. Requires data and a stable rowKey."
       },
       onExpand: {
         type: "eventHandler",
@@ -527,14 +550,6 @@ function registerTable(loader) {
           defaultExpandedRowKeys: { type: "exprEditor", description: "Initial array of stable rowKey values. User clicks own expansion afterward." },
           expandedRowKeys: { type: "exprEditor", description: "Controlled array of rowKey values. Bind state and update it from onExpandedRowsChange. An empty array closes every row; omit for uncontrolled expansion." }
         }
-      },
-      canvasExpandedRowKeys: {
-        type: "choice",
-        displayName: "Canvas expanded rows",
-        multiSelect: true,
-        editOnly: true,
-        description: "Initial rowKey values expanded only on the editing canvas. Select representative loaded rows covering every requirement-defined detail variant (fields, layout, available actions and boundary data); the Table does not infer a status field. An empty array closes all canvas rows; omit to follow native expansion settings. Manual canvas expansion is temporary. Changing this value refreshes the samples. Ignored in Interactive mode, Preview and generated exports. Requires Expanded row content and stable row keys; missing or ineligible rows are ignored.",
-        options: (ps) => (ps.data?.data ?? []).map((row) => row[ps.rowKey ?? "key"]).filter((key) => key != null)
       },
       title: {
         type: "slot",

@@ -1,21 +1,19 @@
-import type {
-  Config,
-  Field,
-  FieldOrGroup,
-} from "@react-awesome-query-builder/core";
+import type { QueryBuilderConfig } from "@plasmicapp/host";
+import type { Field } from "@react-querybuilder/core";
 import type { RulesLogic } from "json-logic-js";
 
 /**
- * Maps Strapi collection fields to react-awesome-query-builder config.
+ * Maps Strapi collection fields to react-querybuilder config.
  *
  * The result will be handled by {@link rulesLogicToStrapiFilters}.
  * Make sure it supports all operators defined here.
  */
 export function strapiFieldsToQueryBuilderConfig(
   fields: string[],
-  sampleData?: any
-): Pick<Config, "fields"> {
-  const qbFields: { [key: string]: FieldOrGroup } = {};
+  sampleData?: any,
+): QueryBuilderConfig {
+  const qbFields: { [key: string]: Omit<Field, "name"> & { label: string } } =
+    {};
   for (const field of fields) {
     // Try to get sample value from sampleData to infer type
     const sampleValue = sampleData?.[field];
@@ -25,7 +23,10 @@ export function strapiFieldsToQueryBuilderConfig(
     }
   }
   return {
-    fields: qbFields,
+    fields: Object.entries(qbFields).map(([name, field]) => ({
+      name,
+      ...field,
+    })),
   };
 }
 
@@ -36,62 +37,57 @@ export function strapiFieldsToQueryBuilderConfig(
  */
 function strapiFieldToQueryBuilderField(
   fieldName: string,
-  sampleValue?: unknown
-): Field | undefined {
+  sampleValue?: unknown,
+): (Omit<Field, "name"> & { label: string }) | undefined {
   const label = fieldName;
 
   // Infer type from sample value if provided
   if (typeof sampleValue === "number") {
     return {
-      type: "number",
+      datatype: "number",
+      inputType: "number",
+      valueEditorType: "text",
       label,
-      operators: [
-        "equal",
-        "not_equal",
-        "less",
-        "less_or_equal",
-        "greater",
-        "greater_or_equal",
-        "is_null",
-        "is_not_null",
-      ],
+      operators: ["=", "!=", "<", "<=", ">", ">=", "null", "notNull"].map(
+        (name) => ({ name, label: name }),
+      ),
     };
   }
   if (typeof sampleValue === "boolean") {
     return {
-      type: "boolean",
+      datatype: "boolean",
+      inputType: "text",
+      valueEditorType: "checkbox",
+      operators: ["=", "!="].map((name) => ({ name, label: name })),
       label,
     };
   }
   if (typeof sampleValue === "string") {
     if (!isNaN(new Date(sampleValue).getTime())) {
       return {
-        type: "datetime",
+        datatype: "datetime",
+        inputType: "datetime-local",
+        valueEditorType: "text",
         label,
-        operators: [
-          "equal",
-          "not_equal",
-          "less",
-          "less_or_equal",
-          "greater",
-          "greater_or_equal",
-          "is_null",
-          "is_not_null",
-        ],
+        operators: ["=", "!=", "<", "<=", ">", ">=", "null", "notNull"].map(
+          (name) => ({ name, label: name }),
+        ),
       };
     }
 
     return {
-      type: "text",
+      datatype: "text",
+      inputType: "text",
+      valueEditorType: "text",
       label,
       operators: [
-        "equal",
-        "not_equal",
-        "like",
-        "not_like",
-        "is_null",
-        "is_not_null",
-      ],
+        "=",
+        "!=",
+        "contains",
+        "doesNotContain",
+        "null",
+        "notNull",
+      ].map((name) => ({ name, label: name })),
     };
   }
 

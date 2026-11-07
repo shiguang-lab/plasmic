@@ -51,7 +51,7 @@ export function checkRootSubHostVersion() {
     !hostVersion ||
     lt(hostVersion, requiredPackageVersions["@plasmicapp/host"])
   ) {
-    // TODO: Detect if the user is using loader-nextjs, loader-gatsby,
+    // TODO: Detect if the user is using loader-nextjs,
     // loader-react or codegen to display a more directed message.
     notification.warning({
       message: translate(getUiLocale(), "Unsupported host app detected"),

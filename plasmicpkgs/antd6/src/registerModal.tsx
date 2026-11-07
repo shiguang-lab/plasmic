@@ -1,3 +1,4 @@
+import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import type { StyleSection } from "@plasmicapp/host/registerComponent";
 import { Modal } from "antd";
 import classNames from "classnames";
@@ -5,8 +6,6 @@ import React, { ReactElement, useMemo } from "react";
 import { omit } from "lodash";
 import { getButtonProps } from "./registerButton";
 import {
-  CanvasOverlayProps,
-  previewOpenProp,
   useCanvasOverlay,
 } from "./canvas-overlay";
 import { Registerable, registerComponentHelper } from "./utils";
@@ -30,7 +29,7 @@ const canvasOverlay = { triggerSlot: "trigger" };
 
 export function AntdModal(
   props: React.ComponentProps<typeof Modal> &
-    CanvasOverlayProps & {
+    PlasmicCanvasProps & {
       onOpenChange?: (open: boolean) => void;
       defaultStylesClassName?: string;
       modalScopeClassName: string;
@@ -143,7 +142,6 @@ export function registerModal(loader?: Registerable) {
     description:
       "Open a dialog over the current page for focused confirmation, information or form editing. Control its open state and OK/cancel events. [See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
     props: {
-      previewOpen: previewOpenProp,
       open: {
         type: "boolean",
       },

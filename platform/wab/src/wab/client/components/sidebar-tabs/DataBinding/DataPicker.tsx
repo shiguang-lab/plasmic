@@ -1,3 +1,5 @@
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useInspectorSelection } from "@/wab/client/studio-ctx/inspector-state";
 import type { FullCodeEditor } from "@/wab/client/components/coding/FullCodeEditor";
 import {
   checkDisallowedStateBindingAssignment,
@@ -29,12 +31,12 @@ import { Matcher } from "@/wab/client/components/view-common";
 import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
 import { TextboxRef } from "@/wab/client/components/widgets/Textbox";
 import { useViewCtxMaybe } from "@/wab/client/contexts/StudioContexts";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultDataPickerProps,
   PlasmicDataPicker,
 } from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDataPicker";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
-import { DATA_QUERY_LOWER, VARIABLE_LOWER } from "@/wab/shared/Labels";
 import { ensure, isPrefixArray, sortBy } from "@/wab/shared/common";
 import { UnwrappedQueryResult } from "@/wab/shared/core/custom-functions";
 import { flattenedKeys } from "@/wab/shared/core/exprs";
@@ -133,6 +135,7 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
     context,
   } = props;
   const viewCtx = useViewCtxMaybe();
+  const componentContext = useViewSelection(viewCtx, (state) => state.context);
 
   // Transform value from storage format to display format for DataPicker UI
   const displayValue = React.useMemo(() => {
@@ -153,6 +156,7 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
     );
   }, [value, viewCtx?.site, viewCtx?.siteInfo]);
 
+  const { t } = useI18n();
   const [codeEditing, setCodeEditing] = React.useState(
     !displayValue
       ? initialMode === "codeEditing"
@@ -166,9 +170,8 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
         ? pathToString(displayValue)
         : undefined,
   );
-  const focusedTpl = viewCtx?.studioCtx.inspectorSelection?.tplCount === 1
-    ? viewCtx.inspectorTpl() ?? undefined
-    : undefined;
+  const selection = useInspectorSelection(viewCtx?.studioCtx);
+  const focusedTpl = selection?.viewCtx === viewCtx && selection?.tplCount === 1 ? selection.tpl ?? undefined : undefined;
   const fixedData = React.useMemo(
     // If schema is given, then include schema, mapped to undefined, in the
     // data env, even if it's not present in `data`
@@ -182,7 +185,7 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
         viewCtx?.currentComponent(),
         focusedTpl,
       ),
-    [data, schema, viewCtx?.currentComponent(), focusedTpl],
+    [data, schema, viewCtx?.currentComponent(), focusedTpl, componentContext],
   );
   // fixedData unwraps `$q` with `unwrapStatefulQueryResult`, but the code
   // editor preview needs real query results so `$q.x.data` throws on error.
@@ -326,7 +329,7 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
       ? {
           withAddQuery,
           addQueryBtn: {
-            children: `Add new ${DATA_QUERY_LOWER}`,
+            children: t("Add new Query"),
             onClick: () => onAddQuery(),
           },
         }
@@ -336,7 +339,7 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
     ? {
         withAddVariable: true,
         addVariableBtn: {
-          children: `Add new ${VARIABLE_LOWER}`,
+          children: t("Add new State Variable"),
           onClick: () => onAddVariableBtnClick(),
         },
       }

@@ -6,14 +6,19 @@ import {
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { DimTokenSpinnerRef } from "@/wab/client/components/widgets/DimTokenSelector";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
-import { makeVariantedStylesHelperFromCurrentCtx } from "@/wab/client/utils/style-utils";
+import { useStyleCells, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
+import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
+import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
+import { UnloggedDragCatcher } from "@/wab/client/components/style-controls/UnloggedDragCatcher";
+import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
+import { useShallow } from "zustand/react/shallow";
 import {
   INTERACT_OUTSIDE_EXCEPTION_SELECTORS,
   OnClickAwayExcept,
 } from "@/wab/commons/components/OnClickAway";
 import { Stated } from "@/wab/commons/components/Stated";
 import { XDraggable } from "@/wab/commons/components/XDraggable";
-import { lazyDerefTokenRefsWithDeps } from "@/wab/commons/StyleToken";
+import { derefTokenRefs } from "@/wab/commons/StyleToken";
 import {
   ensure,
   hackyCast,
@@ -40,7 +45,6 @@ import { Popover, Tooltip } from "antd";
 import { TooltipPlacement } from "antd/lib/tooltip";
 import cn from "classnames";
 import * as Immutable from "immutable";
-import { observer } from "mobx-react";
 import { createRef, default as React, ReactNode } from "react";
 import defer = setTimeout;
 
@@ -54,7 +58,7 @@ interface SpacingControlState {
   showPopover: boolean;
   xThickness?: number;
   yThickness?: number;
-  selection: { sides: Immutable.Set<string> };
+  selection: { sides: Immutable.Set<Side> };
 }
 
 interface SpacingControlProps extends StyleComponentProps {
@@ -68,8 +72,16 @@ interface SpacingControlProps extends StyleComponentProps {
   allowAuto?: boolean;
 }
 
+interface SpacingRenderProps extends SpacingControlProps {
+  readonly values: Readonly<Record<Side, string>>;
+  readonly dragValues: Readonly<Record<Side, string>>;
+  readonly measures: Readonly<Record<Side, string>>;
+  readonly overrides: Readonly<Record<Side, boolean>>;
+  readonly activeVsh: VariantedStylesHelper;
+}
+
 class SpacingControl_ extends StyleComponent<
-  SpacingControlProps,
+  SpacingRenderProps,
   SpacingControlState
 > {
   private toFocus = false;
@@ -89,7 +101,7 @@ class SpacingControl_ extends StyleComponent<
       justDragged: false,
       showPopover: false,
       selection: {
-        sides: Immutable.Set(),
+        sides: Immutable.Set<Side>(),
       },
     };
   }
@@ -122,12 +134,12 @@ class SpacingControl_ extends StyleComponent<
   };
 
   private changeSelectionSingle = (
-    side: /*TWZ*/ string,
+    side: /*TWZ*/ Side,
     { mode }: /*TWZ*/ { mode: string },
   ) => {
     const oldSel = this.state.selection;
     // Toggle selection state
-    const sides: Immutable.Set<string> = (() => {
+    const sides: Immutable.Set<Side> = (() => {
       switch (mode) {
         case "toggle":
           return toggleSet(oldSel.sides, side);
@@ -144,7 +156,7 @@ class SpacingControl_ extends StyleComponent<
     this.changeSelection(sides);
   };
 
-  private changeSelection(sides: Immutable.Set<string>) {
+  private changeSelection(sides: Immutable.Set<Side>) {
     if (sides.size > 0) {
       this.toFocus = true;
     }
@@ -192,8 +204,7 @@ class SpacingControl_ extends StyleComponent<
 
   showSelectedValues() {
     const isAll = this.state.selection.sides.isEmpty();
-    const props = this.selectedStyleProps();
-    const values = props.map((prop) => this.exp().get(prop));
+    const values = this.selectedSides().map((side) => this.props.values[side]);
     if (isAll) {
       return showCssShorthand(values);
     } else if (new Set(values).size === 1) {
@@ -243,9 +254,7 @@ class SpacingControl_ extends StyleComponent<
       subtitle,
     } = this.props;
     const spacingLabel = label || getLabelForStyleName(spacingStyleProp);
-    const vsh =
-      this.props.vsh ??
-      makeVariantedStylesHelperFromCurrentCtx(this.studioCtx());
+    const vsh = this.props.activeVsh;
 
     return (
       <OnClickAwayExcept
@@ -277,7 +286,7 @@ class SpacingControl_ extends StyleComponent<
         }}
         callback={() => {
           if (this.state.selection.sides.size > 0) {
-            this.changeSelection(Immutable.Set());
+            this.changeSelection(Immutable.Set<Side>());
             this.handleSpinnerBlur();
           }
         }}
@@ -360,21 +369,7 @@ class SpacingControl_ extends StyleComponent<
                             return unexpected();
                         }
                       })();
-                      let numericSize = this.exp().get(
-                        `${spacingStyleProp}-${side}`,
-                      );
-                      if (numericSize === "auto") {
-                        numericSize = getCssInitial(
-                          `${spacingStyleProp}-${side}`,
-                          "div",
-                        );
-                      }
-                      const maybeTokenValue = lazyDerefTokenRefsWithDeps(
-                        numericSize,
-                        this.studioCtx().site,
-                        "Spacing",
-                        vsh,
-                      );
+                      const maybeTokenValue = this.props.dragValues[side];
                       const isDraggingDisabled =
                         !isDraggableSize(maybeTokenValue);
                       return (
@@ -391,6 +386,7 @@ class SpacingControl_ extends StyleComponent<
                             >
                               {(initDim, setInitDim) => (
                                 <XDraggable
+                                  nodeRef={side === "top" ? this.topPart : side === "left" ? this.leftPart : undefined}
                                   disabled={isDraggingDisabled}
                                   onStart={() => {
                                     this.studioCtx().startUnlogged();
@@ -490,9 +486,13 @@ class SpacingControl_ extends StyleComponent<
                       }
                     >
                       <div className={"spacing-control__num"}>
-                        {this.measureDisp({
-                          prop: `${spacingStyleProp}-${side}`,
-                        })}
+                        <UnloggedDragCatcher sc={this.studioCtx()}>
+                          <XDraggable onStart={() => undefined}>
+                            <div className={this.props.overrides[side] ? "overriding" : undefined}>
+                              {this.props.measures[side]}
+                            </div>
+                          </XDraggable>
+                        </UnloggedDragCatcher>
                       </div>
                     </div>
                   ))}
@@ -540,4 +540,46 @@ class SpacingControl_ extends StyleComponent<
   }
 }
 
-export const SpacingControl = observer(SpacingControl_);
+export const SpacingControl = React.forwardRef<SpacingControl_, SpacingControlProps>(
+  function SpacingControl(props, ref) {
+    const studio = props.expsProvider.studioCtx;
+    const lifetime = React.useMemo(() => studio.arenaState.lifetime(), [studio, props.expsProvider]);
+    const subscribe = React.useCallback((notify: () => void) => {
+      lifetime.addEventListener("abort", notify);
+      return () => lifetime.removeEventListener("abort", notify);
+    }, [lifetime]);
+    const readActive = React.useCallback(() => !lifetime.aborted, [lifetime]);
+    const active = React.useSyncExternalStore(subscribe, readActive, readActive);
+    return active ? <SpacingInputs {...props} controlRef={ref} /> : null;
+  },
+);
+
+function SpacingInputs(props: SpacingControlProps & { controlRef: React.ForwardedRef<SpacingControl_> }) {
+  const studio = props.expsProvider.studioCtx;
+  const keys = standardSides.map((side) => `${props.spacingStyleProp}-${side}`);
+  const cells = useStyleCells(props.expsProvider, keys);
+  const indicators = useStyleIndicators(props.expsProvider, keys);
+  const currentVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : studio);
+  const vsh = props.vsh ?? currentVsh;
+  const baseVsh = React.useMemo(() => new VariantedStylesHelper(), []);
+  // An initially closed provider has no installed cells. Keep its token
+  // demand empty and do not rematerialize old command inputs in a new world.
+  const installed = keys.map((key) => cells.find((cell) => cell.key === key)?.value).filter((value) => value !== undefined);
+  const complete = installed.length === keys.length;
+  const values = complete ? installed : [];
+  const dragInputs = values.map((value, index) => value === "auto" ? getCssInitial(keys[index], "div") : value);
+  const dragValues = useStyleTokenRefs(studio, dragInputs, vsh, "SpacingOnly", useShallow((state) => state.rows.map((row) => row.resolved?.value ?? derefTokenRefs([], row.input))));
+  // The original measureDisp intentionally uses the base value, while drag
+  // behavior follows the active variant context passed to this control.
+  const measures = useStyleTokenRefs(studio, values, baseVsh, "SpacingOnly", useShallow((state) => state.rows.map((row) => row.resolved?.value ?? derefTokenRefs([], row.input))));
+  const sides = <Value,>(items: readonly Value[]): Readonly<Record<Side, Value>> => ({
+    top: ensure(items[standardSides.indexOf("top")], "Top spacing input"),
+    right: ensure(items[standardSides.indexOf("right")], "Right spacing input"),
+    bottom: ensure(items[standardSides.indexOf("bottom")], "Bottom spacing input"),
+    left: ensure(items[standardSides.indexOf("left")], "Left spacing input"),
+  });
+  if (!complete) { return null; }
+  return <SpacingControl_ {...props} ref={props.controlRef} activeVsh={vsh}
+    values={sides(values)} dragValues={sides(dragValues.selected)} measures={sides(measures.selected)}
+    overrides={sides(indicators.map((indicator) => indicator.source === "set"))} />;
+}

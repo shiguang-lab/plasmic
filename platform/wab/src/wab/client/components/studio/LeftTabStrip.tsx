@@ -25,6 +25,13 @@ import PhotosvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIc
 import SearchSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SearchSvg";
 import SplitSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__SplitSvg";
 import { DefaultLeftTabStripProps } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftTabStrip";
+import {
+  selectIsCopilotChatOpen,
+  selectLeftTabGroup,
+  selectLeftTabKey,
+  selectPanelsHidden,
+  selectShowAddDrawer,
+} from "@/wab/client/studio-ctx/left-panel-state";
 import DiamondsIcon from "@/wab/client/plasmic/plasmic_kit_merge_flow/icons/PlasmicIcon__Diamonds";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { spawn, unexpected } from "@/wab/shared/common";
@@ -38,6 +45,7 @@ import { Popover } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { ReactNode } from "react";
+import { useStore } from "zustand";
 
 interface LeftTabStripProps extends DefaultLeftTabStripProps {
   useVersionsCTA: boolean;
@@ -64,15 +72,72 @@ export interface NavMenuGroup {
   items: Record<string, NavMenuItem>;
 }
 
+// Tool selection updates these buttons independently of the library/menu rail.
+const CanvasTools = React.memo(function CanvasTools() {
+  const studioCtx = useStudioCtx();
+  const { t } = useI18n();
+  const tool = useStore(studioCtx.canvasToolStore, (state) => state);
+  return (
+    <>
+      <LeftTabButton
+        label={t("Select")}
+        tooltip={t("Select")}
+        icon={<EditorToolIcon tool="Select" />}
+        isSelected={tool === "select"}
+        onClick={() => {
+          studioCtx.setCanvasTool("select");
+          spawn(
+            studioCtx.changeUnsafe(() => studioCtx.setShowAddDrawer(false)),
+          );
+        }}
+      />
+      <LeftTabButton
+        label={t("Pan")}
+        tooltip={t("Pan")}
+        icon={<EditorToolIcon tool="Pan" />}
+        isSelected={tool === "pan"}
+        onClick={() => {
+          studioCtx.setCanvasTool("pan");
+          spawn(
+            studioCtx.changeUnsafe(() => studioCtx.setShowAddDrawer(false)),
+          );
+        }}
+      />
+    </>
+  );
+});
+
 const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
   const { t } = useI18n();
   const topFrameApi = useTopFrameApi();
   const { styles: popupStyles } = useEditorPopupStyles();
   const studioCtx = useStudioCtx();
+  const libraryTab = useStore(studioCtx.libraryTabStore);
+  const canViewLibraryImports = useStore(studioCtx.uiEnvironment.store, (state) => state.hasUserInfo && state.leftTabPermissions.imports !== "hidden");
   const figmaFileInput = React.useRef<HTMLInputElement>(null);
   const [importingFigma, setImportingFigma] = React.useState(false);
   const [importingPen, setImportingPen] = React.useState(false);
-  const openGroup = studioCtx.leftTabGroup;
+  const leftTabKey = useStore(
+    studioCtx.leftPanelState.store,
+    selectLeftTabKey,
+  );
+  const leftTabGroup = useStore(
+    studioCtx.leftPanelState.store,
+    selectLeftTabGroup,
+  );
+  const showAddDrawer = useStore(
+    studioCtx.leftPanelState.store,
+    selectShowAddDrawer,
+  );
+  const isCopilotChatOpen = useStore(
+    studioCtx.leftPanelState.store,
+    selectIsCopilotChatOpen,
+  );
+  const panelsHidden = useStore(
+    studioCtx.leftPanelState.store,
+    selectPanelsHidden,
+  );
+  const openGroup = leftTabGroup;
   const setOpenGroup = (group: string | undefined) =>
     studioCtx.setLeftTabGroup(group);
   React.useEffect(() => {
@@ -97,7 +162,10 @@ const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
   const isLoggedIn = studioCtx.appCtx.selfInfo != null;
   const contentEditorMode = studioCtx.contentEditorMode;
   const hasGlobalContexts = studioCtx.site.globalContexts.length > 0;
-  const missingUsedFonts = studioCtx.fontManager.missingUsedFonts();
+  const missingUsedFonts = useStore(
+    studioCtx.fontManager.store,
+    (state) => state.missingUsedFonts,
+  );
 
   const uiConfig = studioCtx.getCurrentUiConfig();
 
@@ -262,7 +330,9 @@ More
           label: t("Import from Pen"),
           cond: canViewTab("pen"),
           onClick: () => {
-            if (importingFigma || importingPen) {return;}
+            if (importingFigma || importingPen) {
+              return;
+            }
             setImportingPen(true);
             spawn(
               (async () => {
@@ -317,9 +387,9 @@ More
     const isSelected =
       item.isSelected ??
       (item.tabKey &&
-        item.tabKey === studioCtx.leftTabKey &&
-        !studioCtx.showAddDrawer() &&
-        !studioCtx.panelsHidden);
+        item.tabKey === leftTabKey &&
+        !showAddDrawer &&
+        !panelsHidden);
     const isSubmenuItem = onClick != null;
     return (
       (item.cond ?? true) && (
@@ -415,12 +485,12 @@ More
                     expanded={openGroup === key}
                     isSelected={
                       openGroup === key ||
-                      (!studioCtx.showAddDrawer() &&
-                        !studioCtx.panelsHidden &&
+                      (!showAddDrawer &&
+                        !panelsHidden &&
                         Object.values(item.items).some(
                           (i) =>
                             i.isSelected ??
-                            (!!i.tabKey && i.tabKey === studioCtx.leftTabKey),
+                            (!!i.tabKey && i.tabKey === leftTabKey),
                         ))
                     }
                   />
@@ -472,35 +542,12 @@ More
             }}
           />
 
-          <LeftTabButton
-            label={t("Select")}
-            tooltip={t("Select")}
-            icon={<EditorToolIcon tool="Select" />}
-            isSelected={studioCtx.canvasTool === "select"}
-            onClick={() => {
-              studioCtx.setCanvasTool("select");
-              spawn(
-                studioCtx.changeUnsafe(() => studioCtx.setShowAddDrawer(false)),
-              );
-            }}
-          />
-          <LeftTabButton
-            label={t("Pan")}
-            tooltip={t("Pan")}
-            icon={<EditorToolIcon tool="Pan" />}
-            isSelected={studioCtx.canvasTool === "pan"}
-            onClick={() => {
-              studioCtx.setCanvasTool("pan");
-              spawn(
-                studioCtx.changeUnsafe(() => studioCtx.setShowAddDrawer(false)),
-              );
-            }}
-          />
+          <CanvasTools />
           <div className="editor-rail-divider" role="separator" />
           <LeftTabButton
             dataTestId="add-button"
-            expanded={studioCtx.showAddDrawer()}
-            isSelected={studioCtx.showAddDrawer()}
+            expanded={showAddDrawer}
+            isSelected={showAddDrawer}
             label={t("Insert")}
             tooltip={t("Insert")}
             icon={<EditorToolIcon tool="Insert" />}
@@ -518,7 +565,7 @@ More
           />
           <LeftTabButton
             isSelected={
-              studioCtx.leftTabKey === "outline" && !studioCtx.showAddDrawer()
+              leftTabKey === "outline" && !showAddDrawer
             }
             label={t("Layers")}
             tooltip={t("Layers")}
@@ -536,15 +583,15 @@ More
           })}
           {canViewTab("libraries") &&
             (() => {
-              const canViewImports = isLoggedIn && canViewTab("imports");
+              const canViewImports = canViewLibraryImports;
               const isLibrariesOpen =
-                studioCtx.leftTabKey === "libraries" &&
-                !studioCtx.showAddDrawer() &&
-                !studioCtx.panelsHidden;
+                leftTabKey === "libraries" &&
+                !showAddDrawer &&
+                !panelsHidden;
               const isImportsActive =
                 isLibrariesOpen &&
                 canViewImports &&
-                studioCtx.libraryTab === "imports";
+                libraryTab === "imports";
               const isStoreActive = isLibrariesOpen && !isImportsActive;
               return renderButtonGroup({
                 libraries: {
@@ -578,7 +625,7 @@ More
             tooltip={t("AI assistant")}
             icon={<EditorToolIcon tool="AI" />}
             disabled={!studioCtx.chatCopilotEnabled()}
-            isSelected={studioCtx.isCopilotChatOpen}
+            isSelected={isCopilotChatOpen}
             onClick={() => {
               if (studioCtx.chatCopilotEnabled()) {
                 setOpenGroup(undefined);

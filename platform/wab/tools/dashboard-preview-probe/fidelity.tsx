@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from "react";
-import ReactDOM from "react-dom";
+import React, { useEffect, useLayoutEffect, useRef } from "react";
+import { createRoot } from "react-dom/client";
 import {
   Area,
   AreaChart,
@@ -50,7 +50,8 @@ function CanvasFixture() {
     />
   );
 }
-function Fixture() {
+function Fixture({ onCommit }: { onCommit: () => void }) {
+  useLayoutEffect(onCommit);
   return (
     <main
       id="fidelity"
@@ -169,13 +170,16 @@ function Fixture() {
 }
 const root = document.createElement("div");
 document.body.append(root);
+const reactRoot = createRoot(root);
 (window as any).renderFidelity = () =>
   new Promise<void>((resolve) =>
-    ReactDOM.render(<Fixture />, root, () =>
-      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    reactRoot.render(
+      <Fixture onCommit={() => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }} />,
     ),
   );
 (window as any).clearFidelity = () => {
-  ReactDOM.unmountComponentAtNode(root);
+  reactRoot.unmount();
   root.remove();
 };

@@ -1,7 +1,9 @@
+import { useActiveContentEditor, useContentEditor } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { useFrameHeights } from "@/wab/client/studio-ctx/frame-heights";
 import { CanvasFrame } from "@/wab/client/components/canvas/CanvasFrame";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { getMixedArenaSize } from "@/wab/shared/Arenas";
+import { getMixedArenaSize, getPositionedArenaFrames } from "@/wab/shared/Arenas";
 import { Arena, ArenaFrame } from "@/wab/shared/model/classes";
 import L from "lodash";
 import { observer } from "mobx-react";
@@ -19,10 +21,11 @@ export const FreeFramesLayout = observer(function FreeFramesLayout(props: {
   // Since mixed arenas have absolutely-positioned frames,
   // the DOM doesn't auto-compute the size.
   // Instead, we compute the size and set it on a container div.
+  useFrameHeights(studioCtx, getPositionedArenaFrames(arena));
   const arenaScalerSize = getMixedArenaSize(arena);
-  const contentView = studioCtx.viewCtxs.find((vc) => vc.contentEditor.target);
-  const contentSize = contentView?.contentEditor.size.get();
-  const contentFrame = contentView?.arenaFrame();
+  const contentEditor = useActiveContentEditor(studioCtx);
+  const contentSize = useContentEditor(contentEditor, (state) => state.size);
+  const contentFrame = contentEditor?.viewCtx.arenaFrame();
 
   // We sort arenaFrames here by their uid as we render, so that
   // if they get re-ordered, we don't re-render a CanvasFrame.  The frame

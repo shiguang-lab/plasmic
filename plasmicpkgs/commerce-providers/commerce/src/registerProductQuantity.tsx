@@ -42,7 +42,7 @@ export function ProductQuantity(props: ProductQuantityProps) {
         defaultValue={1}
         control={form?.control}
         render={({ field }) =>
-          React.isValidElement(children) ? (
+          React.isValidElement<React.InputHTMLAttributes<HTMLInputElement>>(children) ? (
             React.cloneElement(children, {
               ...children.props,
               ...field,

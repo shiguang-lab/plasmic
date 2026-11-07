@@ -1,7 +1,8 @@
 'use strict';
 
 var plasmicOverseas = require('@shiguang-lab/plasmic-overseas');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
+require('react/jsx-runtime');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('react');

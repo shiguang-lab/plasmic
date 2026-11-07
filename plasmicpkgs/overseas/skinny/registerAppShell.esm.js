@@ -1,3 +1,4 @@
+import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { getComponentThumbnail } from '@shiguang-lab/plasmic-overseas/thumbnails';
 import { MenuUnfoldOutlined, MenuFoldOutlined, GlobalOutlined, SwapOutlined, DownOutlined } from '@ant-design/icons';
 import { usePlasmicCanvasContext, usePlasmicLink, useSelector } from '@plasmicapp/host';
@@ -11,9 +12,12 @@ function AppSourceSelect({ options, value, language, onChange }) {
   const title = chinese ? "\u8FD0\u8425 App" : "Operations App";
   const current = chinese ? "\u5F53\u524D" : "Current";
   const hint = chinese ? "\u5207\u6362 App \u4EE5\u67E5\u770B\u5BF9\u5E94\u6570\u636E" : "Switch apps to view their data";
-  const label = (text, active) => /* @__PURE__ */ React.createElement("span", { style: { display: "inline-flex", gap: 10, alignItems: "center", minWidth: 0 } }, /* @__PURE__ */ React.createElement("i", { "aria-hidden": "true", style: { display: "inline-block", width: 8, height: 8, borderRadius: "50%", flexShrink: 0, background: active ? token.colorPrimary : token.colorTextQuaternary } }), /* @__PURE__ */ React.createElement("span", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" } }, text));
+  const label = (text, active) => /* @__PURE__ */ jsxs("span", { style: { display: "inline-flex", gap: 10, alignItems: "center", minWidth: 0 }, children: [
+    /* @__PURE__ */ jsx("i", { "aria-hidden": "true", style: { display: "inline-block", width: 8, height: 8, borderRadius: "50%", flexShrink: 0, background: active ? token.colorPrimary : token.colorTextQuaternary } }),
+    /* @__PURE__ */ jsx("span", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, children: text })
+  ] });
   const hintStyle = { padding: "8px 12px", color: token.colorTextTertiary, fontSize: 12 };
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Select,
     {
       "aria-label": title,
@@ -24,8 +28,15 @@ function AppSourceSelect({ options, value, language, onChange }) {
       onChange: (next) => {
         if (next !== value) onChange(next);
       },
-      optionRender: (option) => /* @__PURE__ */ React.createElement("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, padding: "8px 4px" } }, label(option.data.text, option.value === value), option.value === value && /* @__PURE__ */ React.createElement("span", { style: { color: token.colorPrimary, fontSize: 12, flexShrink: 0 } }, current)),
-      popupRender: (menu) => /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { style: hintStyle }, title), menu, /* @__PURE__ */ React.createElement("div", { style: hintStyle }, hint))
+      optionRender: (option) => /* @__PURE__ */ jsxs("div", { style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, padding: "8px 4px" }, children: [
+        label(option.data.text, option.value === value),
+        option.value === value && /* @__PURE__ */ jsx("span", { style: { color: token.colorPrimary, fontSize: 12, flexShrink: 0 }, children: current })
+      ] }),
+      popupRender: (menu) => /* @__PURE__ */ jsxs(Fragment, { children: [
+        /* @__PURE__ */ jsx("div", { style: hintStyle, children: title }),
+        menu,
+        /* @__PURE__ */ jsx("div", { style: hintStyle, children: hint })
+      ] })
     }
   );
 }
@@ -173,7 +184,7 @@ function AppShell({
   const breadcrumbItems = [
     { title: productName },
     ...menuPath.filter((item) => item.label).map((item) => ({
-      title: item.href && item !== menuPath.at(-1) ? /* @__PURE__ */ React.createElement(PlasmicLink, { href: item.href }, item.label) : item.label
+      title: item.href && item !== menuPath.at(-1) ? /* @__PURE__ */ jsx(PlasmicLink, { href: item.href, children: item.label }) : item.label
     }))
   ];
   const timeParts = Object.fromEntries(
@@ -193,12 +204,12 @@ function AppShell({
     (item) => item && {
       ...item,
       ...item.href ? {
-        label: /* @__PURE__ */ React.createElement(PlasmicLink, { href: item.href }, item.label)
+        label: /* @__PURE__ */ jsx(PlasmicLink, { href: item.href, children: item.label })
       } : {},
       ...item.children ? { children: linkedMenu(item.children) } : {}
     }
   );
-  return /* @__PURE__ */ React.createElement(ConfigProvider, { direction: currentDirection }, /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(ConfigProvider, { direction: currentDirection, children: /* @__PURE__ */ jsx(
     "div",
     {
       className,
@@ -213,222 +224,243 @@ function AppShell({
         minHeight: "var(--viewport-height, 100vh)",
         flexShrink: 0,
         overflow: "hidden"
-      }
-    },
-    /* @__PURE__ */ React.createElement(
-      Layout,
-      {
-        style: {
-          width: "100%",
-          height: "100%",
-          // Fills the viewport when the shell height is `auto`.
-          minHeight: "var(--viewport-height, 100vh)",
-          overflow: "hidden",
-          background: "#f0f2f5"
-        }
       },
-      /* @__PURE__ */ React.createElement(
-        Layout.Sider,
-        {
-          width: 239,
-          collapsedWidth: 80,
-          collapsed: isCollapsed,
-          theme: "light",
-          style: {
-            borderInlineEnd: `1px solid ${token.colorBorderSecondary}`,
-            overflow: "auto"
-          }
-        },
-        /* @__PURE__ */ React.createElement(
-          "div",
-          {
-            style: {
-              height: 64,
-              padding: "0 16px",
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              overflow: "hidden",
-              whiteSpace: "nowrap"
-            }
-          },
-          logoUrl ? /* @__PURE__ */ React.createElement(
-            "img",
-            {
-              src: logoUrl,
-              alt: "",
-              style: {
-                width: 30,
-                height: 30,
-                objectFit: "contain",
-                flexShrink: 0
-              }
-            }
-          ) : /* @__PURE__ */ React.createElement(Avatar, { shape: "square", size: 30, style: { flexShrink: 0 } }, productName.slice(0, 1)),
-          !isCollapsed && /* @__PURE__ */ React.createElement(
-            "strong",
-            {
-              style: { fontSize: 16, color: token.colorText },
-              title: productName
-            },
-            productName
-          )
-        ),
-        /* @__PURE__ */ React.createElement(
-          Menu,
-          {
-            mode: "inline",
-            theme: "light",
-            inlineCollapsed: isCollapsed,
-            items: linkedMenu(visibleMenuItems(menuItems ?? [])),
-            openKeys: isCollapsed ? [] : menuState.openKeys,
-            onOpenChange: (openKeys) => {
-              if (!isCollapsed) setMenuState({ ...menuState, openKeys });
-            },
-            selectedKeys: selectedKey ? [selectedKey] : [],
-            onClick: ({ key }) => {
-              setMenu(key);
-              onMenuSelect?.(key);
-            },
-            style: { borderInlineEnd: 0 }
-          }
-        )
-      ),
-      /* @__PURE__ */ React.createElement(Layout, { style: { minWidth: 0, minHeight: 0 } }, /* @__PURE__ */ React.createElement(
-        Layout.Header,
+      children: /* @__PURE__ */ jsxs(
+        Layout,
         {
           style: {
-            height: 64,
-            padding: "0 24px",
-            background: token.colorBgContainer,
-            borderBottom: `1px solid ${token.colorBorderSecondary}`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 16,
-            lineHeight: "normal"
-          }
-        },
-        /* @__PURE__ */ React.createElement(
-          "div",
-          {
-            style: {
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              minWidth: 0
-            }
+            width: "100%",
+            height: "100%",
+            // Fills the viewport when the shell height is `auto`.
+            minHeight: "var(--viewport-height, 100vh)",
+            overflow: "hidden",
+            background: "#f0f2f5"
           },
-          /* @__PURE__ */ React.createElement(
-            Button,
-            {
-              type: "text",
-              "aria-label": isCollapsed ? "\u5C55\u5F00\u4FA7\u680F" : "\u6298\u53E0\u4FA7\u680F",
-              icon: isCollapsed ? /* @__PURE__ */ React.createElement(MenuUnfoldOutlined, null) : /* @__PURE__ */ React.createElement(MenuFoldOutlined, null),
-              onClick: () => {
-                setCollapsed(!isCollapsed);
-                onCollapsedChange?.(!isCollapsed);
-              }
-            }
-          ),
-          breadcrumbItems.length > 0 && /* @__PURE__ */ React.createElement(Breadcrumb, { items: breadcrumbItems })
-        ),
-        /* @__PURE__ */ React.createElement(
-          "div",
-          {
-            style: {
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              minWidth: 0
-            }
-          },
-          /* @__PURE__ */ React.createElement(
-            "time",
-            {
-              style: {
-                color: token.colorTextSecondary,
-                whiteSpace: "nowrap",
-                fontSize: 14
-              }
-            },
-            "\u5F53\u5730\u65F6\u95F4\uFF1A",
-            clock
-          ),
-          appSources.length > 0 && /* @__PURE__ */ React.createElement(
-            AppSourceSelect,
-            {
-              value: currentSource,
-              options: appSources,
-              language: currentLanguage,
-              onChange: (value) => {
-                setSource(value);
-                onAppSourceChange?.(value);
-              }
-            }
-          ),
-          languages.length > 0 && /* @__PURE__ */ React.createElement(
-            Dropdown,
-            {
-              menu: {
-                items: languages.map(({ value, label }) => ({
-                  key: value,
-                  label
-                })),
-                selectedKeys: [currentLanguage],
-                onClick: ({ key }) => {
-                  setLanguage(key);
-                  onLanguageChange?.(key);
-                }
-              }
-            },
-            /* @__PURE__ */ React.createElement(
-              Button,
+          children: [
+            /* @__PURE__ */ jsxs(
+              Layout.Sider,
               {
-                type: "text",
-                "aria-label": "\u8BED\u8A00",
-                title: languages.find(
-                  (option) => option.value === currentLanguage
-                )?.label,
-                icon: /* @__PURE__ */ React.createElement(GlobalOutlined, null)
+                width: 239,
+                collapsedWidth: 80,
+                collapsed: isCollapsed,
+                theme: "light",
+                style: {
+                  borderInlineEnd: `1px solid ${token.colorBorderSecondary}`,
+                  overflow: "auto"
+                },
+                children: [
+                  /* @__PURE__ */ jsxs(
+                    "div",
+                    {
+                      style: {
+                        height: 64,
+                        padding: "0 16px",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        overflow: "hidden",
+                        whiteSpace: "nowrap"
+                      },
+                      children: [
+                        logoUrl ? /* @__PURE__ */ jsx(
+                          "img",
+                          {
+                            src: logoUrl,
+                            alt: "",
+                            style: {
+                              width: 30,
+                              height: 30,
+                              objectFit: "contain",
+                              flexShrink: 0
+                            }
+                          }
+                        ) : /* @__PURE__ */ jsx(Avatar, { shape: "square", size: 30, style: { flexShrink: 0 }, children: productName.slice(0, 1) }),
+                        !isCollapsed && /* @__PURE__ */ jsx(
+                          "strong",
+                          {
+                            style: { fontSize: 16, color: token.colorText },
+                            title: productName,
+                            children: productName
+                          }
+                        )
+                      ]
+                    }
+                  ),
+                  /* @__PURE__ */ jsx(
+                    Menu,
+                    {
+                      mode: "inline",
+                      theme: "light",
+                      inlineCollapsed: isCollapsed,
+                      items: linkedMenu(visibleMenuItems(menuItems ?? [])),
+                      openKeys: isCollapsed ? [] : menuState.openKeys,
+                      onOpenChange: (openKeys) => {
+                        if (!isCollapsed) setMenuState({ ...menuState, openKeys });
+                      },
+                      selectedKeys: selectedKey ? [selectedKey] : [],
+                      onClick: ({ key }) => {
+                        setMenu(key);
+                        onMenuSelect?.(key);
+                      },
+                      style: { borderInlineEnd: 0 }
+                    }
+                  )
+                ]
               }
-            )
-          ),
-          /* @__PURE__ */ React.createElement(
-            Button,
-            {
-              type: currentDirection === "rtl" ? "primary" : "text",
-              "aria-label": currentDirection === "rtl" ? "\u5207\u6362\u4E3A LTR" : "\u5207\u6362\u4E3A RTL",
-              icon: /* @__PURE__ */ React.createElement(SwapOutlined, null),
-              onClick: () => {
-                const next = currentDirection === "rtl" ? "ltr" : "rtl";
-                setDirection(next);
-                onDirectionChange?.(next);
-              }
-            }
-          ),
-          /* @__PURE__ */ React.createElement(
-            Dropdown,
-            {
-              menu: {
-                items: userMenuItems,
-                onClick: ({ key }) => onUserAction?.(key)
-              }
-            },
-            /* @__PURE__ */ React.createElement(Button, { type: "text", style: { height: 32, paddingInline: 0 } }, /* @__PURE__ */ React.createElement(Avatar, { size: 32 }, userName.slice(0, 1)), /* @__PURE__ */ React.createElement("span", null, userName), /* @__PURE__ */ React.createElement(DownOutlined, null))
-          )
-        )
-      ), /* @__PURE__ */ React.createElement(
-        Layout.Content,
-        {
-          ref: contentRef,
-          onScroll: (event) => onContentScroll?.(event.currentTarget.scrollTop),
-          style: { padding: 16, minHeight: 0, overflow: "auto" }
-        },
-        /* @__PURE__ */ React.createElement("div", { style: { minHeight: "100%" } }, children)
-      ))
-    )
-  ));
+            ),
+            /* @__PURE__ */ jsxs(Layout, { style: { minWidth: 0, minHeight: 0 }, children: [
+              /* @__PURE__ */ jsxs(
+                Layout.Header,
+                {
+                  style: {
+                    height: 64,
+                    padding: "0 24px",
+                    background: token.colorBgContainer,
+                    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 16,
+                    lineHeight: "normal"
+                  },
+                  children: [
+                    /* @__PURE__ */ jsxs(
+                      "div",
+                      {
+                        style: {
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 16,
+                          minWidth: 0
+                        },
+                        children: [
+                          /* @__PURE__ */ jsx(
+                            Button,
+                            {
+                              type: "text",
+                              "aria-label": isCollapsed ? "\u5C55\u5F00\u4FA7\u680F" : "\u6298\u53E0\u4FA7\u680F",
+                              icon: isCollapsed ? /* @__PURE__ */ jsx(MenuUnfoldOutlined, {}) : /* @__PURE__ */ jsx(MenuFoldOutlined, {}),
+                              onClick: () => {
+                                setCollapsed(!isCollapsed);
+                                onCollapsedChange?.(!isCollapsed);
+                              }
+                            }
+                          ),
+                          breadcrumbItems.length > 0 && /* @__PURE__ */ jsx(Breadcrumb, { items: breadcrumbItems })
+                        ]
+                      }
+                    ),
+                    /* @__PURE__ */ jsxs(
+                      "div",
+                      {
+                        style: {
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          minWidth: 0
+                        },
+                        children: [
+                          /* @__PURE__ */ jsxs(
+                            "time",
+                            {
+                              style: {
+                                color: token.colorTextSecondary,
+                                whiteSpace: "nowrap",
+                                fontSize: 14
+                              },
+                              children: [
+                                "\u5F53\u5730\u65F6\u95F4\uFF1A",
+                                clock
+                              ]
+                            }
+                          ),
+                          appSources.length > 0 && /* @__PURE__ */ jsx(
+                            AppSourceSelect,
+                            {
+                              value: currentSource,
+                              options: appSources,
+                              language: currentLanguage,
+                              onChange: (value) => {
+                                setSource(value);
+                                onAppSourceChange?.(value);
+                              }
+                            }
+                          ),
+                          languages.length > 0 && /* @__PURE__ */ jsx(
+                            Dropdown,
+                            {
+                              menu: {
+                                items: languages.map(({ value, label }) => ({
+                                  key: value,
+                                  label
+                                })),
+                                selectedKeys: [currentLanguage],
+                                onClick: ({ key }) => {
+                                  setLanguage(key);
+                                  onLanguageChange?.(key);
+                                }
+                              },
+                              children: /* @__PURE__ */ jsx(
+                                Button,
+                                {
+                                  type: "text",
+                                  "aria-label": "\u8BED\u8A00",
+                                  title: languages.find(
+                                    (option) => option.value === currentLanguage
+                                  )?.label,
+                                  icon: /* @__PURE__ */ jsx(GlobalOutlined, {})
+                                }
+                              )
+                            }
+                          ),
+                          /* @__PURE__ */ jsx(
+                            Button,
+                            {
+                              type: currentDirection === "rtl" ? "primary" : "text",
+                              "aria-label": currentDirection === "rtl" ? "\u5207\u6362\u4E3A LTR" : "\u5207\u6362\u4E3A RTL",
+                              icon: /* @__PURE__ */ jsx(SwapOutlined, {}),
+                              onClick: () => {
+                                const next = currentDirection === "rtl" ? "ltr" : "rtl";
+                                setDirection(next);
+                                onDirectionChange?.(next);
+                              }
+                            }
+                          ),
+                          /* @__PURE__ */ jsx(
+                            Dropdown,
+                            {
+                              menu: {
+                                items: userMenuItems,
+                                onClick: ({ key }) => onUserAction?.(key)
+                              },
+                              children: /* @__PURE__ */ jsxs(Button, { type: "text", style: { height: 32, paddingInline: 0 }, children: [
+                                /* @__PURE__ */ jsx(Avatar, { size: 32, children: userName.slice(0, 1) }),
+                                /* @__PURE__ */ jsx("span", { children: userName }),
+                                /* @__PURE__ */ jsx(DownOutlined, {})
+                              ] })
+                            }
+                          )
+                        ]
+                      }
+                    )
+                  ]
+                }
+              ),
+              /* @__PURE__ */ jsx(
+                Layout.Content,
+                {
+                  ref: contentRef,
+                  onScroll: (event) => onContentScroll?.(event.currentTarget.scrollTop),
+                  style: { padding: 16, minHeight: 0, overflow: "auto" },
+                  children: /* @__PURE__ */ jsx("div", { style: { minHeight: "100%" }, children })
+                }
+              )
+            ] })
+          ]
+        }
+      )
+    }
+  ) });
 }
 const optionType = {
   type: "object",

@@ -1,7 +1,7 @@
 'use strict';
 
 var names = require('./names-DbJduus8.cjs.js');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 var Form = require('./Form.cjs.js');
 var SchemaForm = require('./SchemaForm.cjs.js');
 var Ant = require('antd');
@@ -14,6 +14,7 @@ var registerSelect = require('./registerSelect.cjs.js');
 var FormItem = require('./FormItem.cjs.js');
 var FormGroup = require('./FormGroup.cjs.js');
 var FormList = require('./FormList.cjs.js');
+require('react/jsx-runtime');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
@@ -22,7 +23,7 @@ require('./contexts-DbLDJr3k.cjs.js');
 require('@plasmicapp/data-sources');
 require('classnames');
 require('dayjs');
-require('./canvas-overlay-CK330rTr.cjs.js');
+require('./canvas-overlay-DzKvKC8w.cjs.js');
 require('@plasmicapp/host');
 require('./react-utils-CP3JYj1p.cjs.js');
 

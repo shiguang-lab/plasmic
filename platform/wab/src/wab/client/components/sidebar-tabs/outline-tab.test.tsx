@@ -1,3 +1,8 @@
+import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import { StudioSaveState } from "@/wab/client/studio-ctx/save-state";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { isMixedArena, type AnyArena } from "@/wab/shared/Arenas";
 import { OutlineTab } from "@/wab/client/components/sidebar-tabs/outline-tab";
 import { getArenaFrames, mkArenaFrame } from "@/wab/shared/Arenas";
 import { TplMgr } from "@/wab/shared/TplMgr";
@@ -72,10 +77,21 @@ function setup() {
     mkArenaFrame({ site, component, name, width: 1440, height: 960 }),
   );
   const arena = new Arena({ name: "Customer overview", children: frames });
+  site.arenas.push(arena);
+  const modelSnapshots = new ModelSnapshots();
+  const arenaState = new StudioArenaState({ site, modelSnapshots });
+  arenaState.setCurrent(arena);
+  const saveState = new StudioSaveState();
+  const selection = new StudioSelection(() => modelSnapshots);
   fixture.ctx = observable(
     {
       site,
-      currentArena: arena,
+      modelSnapshots, arenaState, saveState, selectionStore: selection.store,
+      get currentArena() { return arenaState.currentArena(); },
+      set currentArena(value: AnyArena | null) {
+        if (isMixedArena(value) && !site.arenas.includes(value)) { site.arenas.push(value); }
+        arenaState.setCurrent(value);
+      },
       canvasFocusActive: false,
       selectedFrame: undefined as ArenaFrame | undefined,
       currentArenaEmpty: false,
@@ -94,7 +110,8 @@ function setup() {
     {
       selectedFrame: observable.ref,
       site: false,
-      currentArena: observable.ref,
+      currentArena: false,
+      modelSnapshots: false, arenaState: false, saveState: false, selectionStore: false,
       returnToCanvasOverview: false,
       setStudioFocusOnFrame: false,
       changeUnsafe: false,

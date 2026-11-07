@@ -166,7 +166,7 @@ function makeGoogleFontFamilyQuery(
     .sort();
   // encodeURIComponent encodes spaces to %20, which causes issues for
   // importing CSS URLs without quotes delimiters (in particular, breaks
-  // fonts with spaces on Gatsby). That's why we replace "%20" with "+".
+  // fonts containing spaces). That's why we replace "%20" with "+".
   const queryVal = encodeURIComponent(
     `${fontFamily}:ital,wght@${variantStrings.join(";")}`,
   ).replace(/%20/g, "+");

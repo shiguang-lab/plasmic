@@ -1,0 +1,91 @@
+{
+  "milestone": "u39p",
+  "uniqueChangedFiles": 98,
+  "status": "types/build/assets/archive and scoped native passed; full Studio running; user requested pause after this round",
+  "identity": {
+    "sourceHash": "4d5c18c8f3816d43b9b0fa2afba5c21a78560b466fe355e56fa2b6f0b3b3b52b",
+    "rendererHash": "9af98193d1d229b32b917d853e8c79e8db11ce23db954f9d81fecd43b880271f",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 105086731,
+    "studioArtifactHash": "e7c2628cab6dc523782f51fe784d8aae459e64834fb66b5ea0b7f7ed209ebe1a",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "typesBuildAssetsArchive": {
+    "exitCode": 0,
+    "log": "/tmp/plasmic-react19-20261105/u39p-build-pipeline-2.log",
+    "firstTypesRejectedLog": "/tmp/plasmic-react19-20261105/u39p-frozen-types-1.log",
+    "requiredDelta": "/tmp/plasmic-react19-20261105/p-root-uuid-fixture-delta"
+  },
+  "native": {
+    "gp": {
+      "functionalCases": 5,
+      "reopen": true,
+      "viewportChecks": 7,
+      "rendererErrors": 0,
+      "previewErrors": 0,
+      "draftChecks": 3,
+      "docsModes": 2,
+      "docsModelsPerMode": 50,
+      "docsTypeScriptDiagnostics": 0
+    },
+    "complex": {
+      "functionalCases": 6,
+      "reopen": true,
+      "viewportChecks": 7,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    "sourceHash": "4d5c18c8f3816d43b9b0fa2afba5c21a78560b466fe355e56fa2b6f0b3b3b52b"
+  },
+  "narrowTests": {
+    "coreDeltas": {
+      "files": 4,
+      "passed": 44,
+      "failed": 0,
+      "unhandled": 0,
+      "seconds": 27.2,
+      "log": "/tmp/plasmic-react19-20261105/p-core-deltas-tests-1.log"
+    },
+    "registryFinalDeltas": {
+      "files": 5,
+      "passed": 40,
+      "failed": 0,
+      "unhandled": 0,
+      "seconds": 27.83,
+      "log": "/tmp/plasmic-react19-20261105/p-registry-deltas-tests-1.log"
+    },
+    "uuidFixtureFinal": {
+      "files": 1,
+      "passed": 26,
+      "overlap": "26 already counted in registry40, do not add",
+      "failed": 0,
+      "unhandled": 0,
+      "log": "/tmp/plasmic-react19-20261105/p-root-uuid-fixture-tests.log"
+    }
+  },
+  "fullStudio": {
+    "status": "running",
+    "log": "/tmp/plasmic-react19-20261105/u39p-full-studio.log",
+    "command": "/tmp/plasmic-react19-20261105/u39p-full-studio-command.json"
+  },
+  "compilerScope": "ON React19 annotation mode actual10 files",
+  "migration": "incomplete",
+  "pause": "No new tasks; Q19 already LIVE preserved separately with necessary checks pending; external DeepSeek current drafts private only, do not merge into P."
+}

@@ -1,3 +1,5 @@
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { useStore } from "zustand";
 import styles from "@/wab/client/components/sidebar-tabs/ServerQuery/QueryResultPreview.module.scss";
 import { ServerQueryOpPreview } from "@/wab/client/components/sidebar-tabs/ServerQuery/ServerQueryOpPicker";
 import { useServerQueryOp } from "@/wab/client/components/sidebar-tabs/ServerQuery/useServerQueryOp";
@@ -28,7 +30,7 @@ import { smartHumanize } from "@/wab/shared/strs";
 import { Tooltip } from "antd";
 import * as React from "react";
 
-export const CustomFunctionExprPreview = observer(
+export const CustomFunctionExprPreview =
   function CustomFunctionExprPreview(props: {
     expr: CustomFunctionExpr;
     title?: React.ReactNode;
@@ -40,8 +42,8 @@ export const CustomFunctionExprPreview = observer(
       return null;
     }
     return <CustomFunctionExprPreviewInner {...props} env={props.env} />;
-  },
-);
+  }
+;
 
 const CustomFunctionExprPreviewInner = observer(
   function CustomFunctionExprPreviewInner(props: {
@@ -126,7 +128,7 @@ function QueryResultPreview(props: {
   );
 }
 
-export const CustomCodePreview = observer(function CustomCodePreview(props: {
+export const CustomCodePreview = function CustomCodePreview(props: {
   queryUuid: string;
   expr: CustomCode;
   title?: React.ReactNode;
@@ -136,7 +138,7 @@ export const CustomCodePreview = observer(function CustomCodePreview(props: {
     return null;
   }
   return <CustomCodePreviewInner {...props} env={props.env} />;
-});
+};
 
 const CustomCodePreviewInner = observer(function CustomCodePreviewInner(props: {
   queryUuid: string;
@@ -197,17 +199,23 @@ export function CustomFunctionExprPreviewModal(props: {
   );
 }
 
-export const ServerQueryOpSummary = observer(
-  function ServerQueryOpSummary(props: { expr: ServerQueryOp }) {
-    const { t: studioUiT } = useI18n();
+export function ServerQueryOpSummary(props: { expr: ServerQueryOp }) {
+  const { t: studioUiT } = useI18n();
+  const { expr } = props;
+  return (
+    <div className={styles.serverQueryOpSummary}>
+      {isKnownCustomFunctionExpr(expr) ? (
+        <CustomFunctionSummary expr={expr} />
+      ) : studioUiT("Custom code")}
+    </div>
+  );
+}
 
-    const { expr } = props;
-    return (
-      <div className={styles.serverQueryOpSummary}>
-        {isKnownCustomFunctionExpr(expr)
-          ? smartHumanize(customFunctionId(expr.func))
-          : studioUiT("Custom code")}
-      </div>
-    );
-  },
-);
+function CustomFunctionSummary({ expr }: { expr: CustomFunctionExpr }) {
+  const { modelSnapshots } = useStudioCtx();
+  const functionRef = useStore(modelSnapshots.field(expr, "func"));
+  const func = modelSnapshots.resolve(functionRef);
+  const namespace = useStore(modelSnapshots.field(func, "namespace"));
+  const importName = useStore(modelSnapshots.field(func, "importName"));
+  return <>{smartHumanize(customFunctionId({ namespace, importName }))}</>;
+}

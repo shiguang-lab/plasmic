@@ -24,9 +24,9 @@
   ],
   "devDependencies": {},
   "peerDependencies": {
-    "@plasmicapp/host": "^1.0.0",
-    "react": "^0.14.0 || ^15.0.1 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
-    "react-dom": "^0.14.0 || ^15.0.1 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+    "@plasmicapp/host": "^3.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "classnames": "^2.2.5",
     "json2mq": "^0.2.0",
     "lodash.debounce": "^4.0.8",

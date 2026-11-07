@@ -24,7 +24,7 @@ import {
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Dropdown, Layout, Segmented, Skeleton, Tooltip } from "antd";
-import { observer } from "mobx-react";
+     
 import * as React from "react";
 
 export type DefaultLayoutProps = Omit<DefaultDefaultLayoutProps, "navigation"> &
@@ -242,5 +242,5 @@ function DefaultLayout_(
   );
 }
 
-const DefaultLayout = observer(React.forwardRef(DefaultLayout_));
+const DefaultLayout = React.forwardRef(DefaultLayout_);
 export default DefaultLayout;

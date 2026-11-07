@@ -1,3 +1,4 @@
+import { useFocusedViewCtx } from "@/wab/client/studio-ctx/selection-state";
 import { DataPickerEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/DataPickerEditor";
 import styles from "@/wab/client/components/sidebar-tabs/ComponentProps/InvalidationEditor.module.scss";
 import { MultiSelectEnumPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/MultiSelectEnumPropEditor";
@@ -56,6 +57,7 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
 }) {
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
+  const viewCtx = useFocusedViewCtx(studioCtx);
   const firstRenderRef = React.useRef(true);
   React.useLayoutEffect(() => {
     if (!firstRenderRef.current) {
@@ -261,7 +263,7 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
           }
         >
           <DataPickerEditor
-            viewCtx={studioCtx.focusedViewCtx()}
+            viewCtx={viewCtx}
             value={extractValueSavedFromDataPicker(invalidationKeys, {
               projectFlags: studioCtx.projectFlags(),
               component: component ?? null,

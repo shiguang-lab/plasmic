@@ -1,12 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
+
 import { expect, test, vi } from "vitest";
 import { AntdCollapse, AntdCollapsePanel, registerCollapse } from "../src/registerCollapse";
 import { AntdMenu, AntdMenuItem, AntdSubMenu, registerMenu } from "../src/registerMenu";
 import { AntdList, AntdListItem, registerAdditional } from "../src/registerAdditional";
 import type { Registerable } from "../src/utils";
 import { createSessionCanvas } from "./canvas-session";
-const selected = { __plasmic_selection_prop__: { isSelected: true } };
+const selected = { __canvas: { selected: true } };
 const Canvas = createSessionCanvas([registerCollapse, registerMenu]);
 test("selected Collapse content reveals through SDK slot wrappers without changing runtime keys or firing events", () => {
  const onChange = vi.fn();

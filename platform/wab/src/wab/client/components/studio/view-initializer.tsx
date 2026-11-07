@@ -7,7 +7,6 @@ import { ObserverLoadable } from "@/wab/client/components/widgets";
 import { useHostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
 import { ProjectId } from "@/wab/shared/ApiSchema";
-import { observer } from "mobx-react";
 import React from "react";
 
 type ViewInitializerProps = {
@@ -21,7 +20,7 @@ type ViewInitializerProps = {
  * - In the top frame, we render StudioFrame, which includes the iframe for the host window.
  * - In the host frame, we render StudioInitializer, which includes the actual Studio UI code.
  */
-export const ViewInitializer = observer(function ViewInitializer(
+export function ViewInitializer(
   props: ViewInitializerProps,
 ) {
   if (isTopFrame()) {
@@ -29,7 +28,7 @@ export const ViewInitializer = observer(function ViewInitializer(
   } else {
     return <HostFrameViewInitializer {...props} />;
   }
-});
+}
 
 function TopFrameViewInitializer({ projectId }: ViewInitializerProps) {
   const [studioFrameKey, setStudioFrameKey] = React.useState(0);

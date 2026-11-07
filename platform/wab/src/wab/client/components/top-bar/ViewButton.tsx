@@ -1,3 +1,9 @@
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { useShallow } from "zustand/react/shallow";
+import { useStore } from "zustand";
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { EditorViewButton } from "@/wab/client/components/top-bar/EditorActions";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -14,7 +20,6 @@ import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { DefaultViewButtonProps } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicViewButton";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
-import { isDedicatedArena } from "@/wab/shared/Arenas";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import {
   BorderOutlined,
@@ -128,12 +133,28 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
   const { styles } = useStyles();
   const { styles: popupStyles } = useEditorPopupStyles();
   const studioCtx = useStudioCtx();
+  const { kind: arenaKind, focusedMode: isFocusedMode } = useStudioArena(
+    studioCtx, useShallow((state) => ({ kind: state.kind, focusedMode: state.focusedMode })),
+  );
+  const [showSlotPlaceholder, showContainerPlaceholder, fullPageHeight, isAutoOpenMode] =
+    useStudioRenderPolicy(
+      studioCtx,
+      useShallow((state) => [
+        state.showSlotPlaceholder,
+        state.showContainerPlaceholder,
+        state.fullPageHeight,
+        state.autoOpen,
+      ] as const),
+    );
+  const contentEditorMode = useStore(
+    studioCtx.uiEnvironment.store,
+    (state) => state.contentEditorMode,
+  );
+  useStudioSelection(studioCtx, (state) => state.view);
   const vc = studioCtx.focusedViewCtx();
-  const showSlotPlaceholder = studioCtx.showSlotPlaceholder();
-  const showContainerPlaceholder = studioCtx.showContainerPlaceholder();
-  const showMultiplayerSelections = studioCtx.showMultiplayerSelections();
-  const showAncestorsHoverBoxes = studioCtx.showAncestorsHoverBoxes();
-  const fullPageHeight = studioCtx.fullPageHeight;
+  const showMultiplayerSelections = useStudioOverlayState(studioCtx, (state) => state.multiplayerSelections);
+  const showAncestorsHoverBoxes = useStudioOverlayState(studioCtx, (state) => state.ancestorsHoverBoxes);
+  const showCommentsOverlay = useStudioOverlayState(studioCtx, (state) => state.commentsOverlay);
 
   return (
     <IFrameAwareDropdownMenu
@@ -242,8 +263,7 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
           );
         });
         builder.genSection(undefined, (push) => {
-          const isFocusedMode = studioCtx.focusedMode;
-          if (isFocusedMode || isDedicatedArena(studioCtx.currentArena)) {
+          if (isFocusedMode || arenaKind === "component" || arenaKind === "page") {
             push(
               <Menu.Item
                 onClick={async () =>
@@ -265,7 +285,6 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
             );
           }
 
-          const isAutoOpenMode = studioCtx.isAutoOpenMode;
           push(
             <Menu.Item
               onClick={() => studioCtx.toggleAutoOpenMode()}
@@ -281,7 +300,6 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
           );
 
           if (studioCtx.showComments()) {
-            const showCommentsOverlay = studioCtx.showCommentsOverlay;
             push(
               <Menu.Item
                 onClick={() => studioCtx.toggleShowCommentsOverlay()}
@@ -314,7 +332,7 @@ const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
                 <Tooltip zIndex={200000} title={contentCreatorModeHelp}>
                   <TriggerTarget>
                     {t(
-                      studioCtx.contentEditorMode
+                      contentEditorMode
                         ? "Turn off content creator mode"
                         : "Turn on content creator mode",
                     )}

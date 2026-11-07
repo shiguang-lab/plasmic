@@ -1,7 +1,7 @@
 {
   "name": "@plasmicpkgs/react-twitter-widgets",
-  "version": "0.0.260",
-  "description": "Plasmic registration calls for react-twitter-widgets",
+  "version": "0.1.0",
+  "description": "Plasmic components for the official Twitter widgets API",
   "homepage": "https://www.plasmic.app",
   "repository": {
     "type": "git",
@@ -41,12 +41,9 @@
     "tsdx": "catalog:",
     "tslib": "catalog:"
   },
-  "dependencies": {
-    "react-twitter-widgets": "^1.10.0"
-  },
   "peerDependencies": {
-    "@plasmicapp/host": ">=1.0.0",
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "@plasmicapp/host": "^3.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }

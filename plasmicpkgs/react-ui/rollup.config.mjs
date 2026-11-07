@@ -11,7 +11,7 @@ export default [
   {
     input: ["./src/index.ts"],
     external: (id) => {
-      if (id.startsWith("regenerator-runtime") || id.startsWith("tslib")) {
+      if (id === "@react/ui" || id.startsWith("@react/ui/") || id.startsWith("regenerator-runtime") || id.startsWith("tslib")) {
         return false;
       }
       return !id.startsWith(".") && !path.isAbsolute(id);
@@ -26,6 +26,7 @@ export default [
       {
         file: "dist/index.js",
         format: "cjs",
+        paths: (id) => id.replace(/^antd\/es\//, "antd/lib/").replace(/^@ant-design\/icons\/es\//, "@ant-design/icons/lib/"),
         sourcemap: true,
         exports: "named",
         interop: "auto",
@@ -45,7 +46,7 @@ export default [
   {
     input: SKINNY_INPUTS,
     external: (id) => {
-      if (id.startsWith("regenerator-runtime") || id.startsWith("tslib")) {
+      if (id === "@react/ui" || id.startsWith("@react/ui/") || id.startsWith("regenerator-runtime") || id.startsWith("tslib")) {
         return false;
       }
       return !id.startsWith(".") && !path.isAbsolute(id);
@@ -54,6 +55,7 @@ export default [
       {
         dir: "skinny",
         format: "cjs",
+        paths: (id) => id.replace(/^antd\/es\//, "antd/lib/").replace(/^@ant-design\/icons\/es\//, "@ant-design/icons/lib/"),
         sourcemap: true,
         exports: "named",
         interop: "auto",

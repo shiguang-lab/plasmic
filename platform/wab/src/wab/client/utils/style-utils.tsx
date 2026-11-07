@@ -11,13 +11,18 @@ export const isStylePropSet =
       (prop) => expsProvider.definedIndicator(prop).source !== "none",
     );
 
-export const makeVariantedStylesHelperFromCurrentCtx = (
+export const readGlobalStyleContext = (
   studioCtx: StudioCtx,
 ) => {
   const vc = makeVariantsController(studioCtx);
-  return new VariantedStylesHelper(
-    studioCtx.site,
-    vc?.getActiveNonBaseVariants().filter((v) => isGlobalVariant(v)),
-    vc?.getTargetedVariants().filter((v) => isGlobalVariant(v)),
-  );
+  return {
+    active: vc?.getActiveNonBaseVariants().filter((v) => isGlobalVariant(v)),
+    target: vc?.getTargetedVariants().filter((v) => isGlobalVariant(v)),
+    sources: vc?.readSources(),
+  };
+};
+
+export const makeVariantedStylesHelperFromCurrentCtx = (studioCtx: StudioCtx) => {
+  const context = readGlobalStyleContext(studioCtx);
+  return new VariantedStylesHelper(studioCtx.site, context.active, context.target);
 };

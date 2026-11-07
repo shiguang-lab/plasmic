@@ -66,7 +66,7 @@ export type Flex<DefaultElementType extends React.ElementType> =
   // Note: We use React.ReactChild instead of React.ReactNode because we don't want to include
   // React.ReactFragment, which includes {}, which would allow any object to be passed in,
   // defeating any attempt to type-check!
-  | React.ReactChild
+  | React.ReactElement | string | number
 
   // Ignored
   | null

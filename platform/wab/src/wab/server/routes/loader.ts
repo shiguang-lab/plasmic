@@ -82,7 +82,7 @@ function getLoaderOptions(req: Request) {
 
   return {
     platform:
-      req.query.platform === "nextjs" || req.query.platform === "gatsby"
+      req.query.platform === "nextjs"
         ? req.query.platform
         : "react",
     nextjsAppDir: req.query.nextjsAppDir === "true",

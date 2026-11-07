@@ -1,8 +1,22 @@
+import { CanvasFrameInfoOwner } from "@/wab/client/components/canvas/canvas-frame-info";
+import { StudioCtx as ActualStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { ViewCtx as ActualViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { ComponentType, mkComponent } from "@/wab/shared/core/components";
+import { mkArenaFrame } from "@/wab/shared/Arenas";
+import { createSite } from "@/wab/shared/core/sites";
+import { CanvasRenderOwner } from "@/wab/client/components/canvas/canvas-cache";
+import { CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
+import { StudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { AntdConfigProvider, productTheme } from "@/wab/client/antd-theme";
+import { createViewportFixture } from "@/wab/client/__testonly__/viewport";
+import { createStudioModeFixture } from "@/wab/client/__testonly__/studio-mode";
 import { CanvasContentEditorControls } from "@/wab/client/components/canvas/CanvasContentEditorControls";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { getContentEditorTarget } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
+import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
+import { CanvasContentEditor, CanvasContentEditorIndex, type ContentEditorTarget, getContentEditorTarget } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { setAppearancePreference } from "@/wab/client/ui-theme";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import {
@@ -13,15 +27,60 @@ import {
   screen,
 } from "@testing-library/react";
 import { theme } from "antd";
-import { observable } from "mobx";
 import * as React from "react";
 import { vi } from "vitest";
 
-vi.mock("@/wab/client/studio-ctx/canvas-content-editor", () => ({
+vi.mock("@/wab/client/studio-ctx/canvas-content-editor", async (original) => ({
+  ...await original<typeof import("@/wab/client/studio-ctx/canvas-content-editor")>(),
   getContentEditorTarget: vi.fn(),
 }));
+const selectionDisposals: (() => void)[] = [];
+function installSelectionSources(studio: StudioCtx) {
+  const view = studio.focusedViewCtx();
+  const models = new ModelSnapshots(), selection = new ViewSelection(() => models), focused = new StudioSelection(() => models);
+  Object.defineProperties(view, { selection: { value: selection }, selectionStore: { value: selection.store } });
+  Object.defineProperties(studio, { selection: { value: focused }, selectionStore: { value: focused.store }, modelSnapshots: { value: models } });
+  focused.set(view, []);
+  selectionDisposals.push(() => { selection.dispose(); focused.dispose(); models.dispose(); });
+}
+function installContentEditor(studio: StudioCtx, initial?: ContentEditorTarget) {
+  const view = studio.focusedViewCtx();
+  if (!view) { throw new Error("UI editor fixture view"); }
+  const session = new CanvasSessionState(), cache = new CanvasRenderOwner(session);
+  const index = new CanvasContentEditorIndex(() => [view]);
+  Object.defineProperties(studio, { activeContentEditorStore: { value: index.store } });
+  studio.withContentEditorPublication = (command) => index.deferPublication(command);
+  studio.publishContentEditorInputs = (publish) => index.queue(publish);
+  Object.defineProperty(view, "canvasRenderOwner", { value: cache });
+  const editor = new CanvasContentEditor(view);
+  Object.defineProperty(view, "contentEditor", { value: editor });
+  const site = createSite(), component = mkComponent({ name: "Controls", type: ComponentType.Plain, tplTree: mkTplTagX("div") });
+  site.components.push(component);
+  const frame = mkArenaFrame({ site, component, name: "Controls", width: 800, height: 600 });
+  Object.defineProperties(view, {
+    site: { value: site }, arenaFrame: { value: () => frame },
+    _canvasExporting: { value: false, writable: true },
+    canvasExporting: { get: () => Reflect.get(ActualViewCtx.prototype, "canvasExporting", view) },
+  });
+  view.setCanvasExporting = (value) => ActualViewCtx.prototype.setCanvasExporting.call(view, value);
+  studio.hasPendingModelChanges = () => false;
+  studio.subscribeModelChanges = () => () => undefined;
+  Object.defineProperties(studio, { pendingArenaViewDisposals: { value: new Set() }, currentArena: { value: null } });
+  Object.setPrototypeOf(studio, ActualStudioCtx.prototype);
+  const info = new CanvasFrameInfoOwner(view);
+  Object.assign(view.canvasCtx, { frameInfo: () => info.store, prepareFrameInfo: () => info.prepare() });
+  selectionDisposals.unshift(() => info.dispose());
+  const install = (target?: ContentEditorTarget) => editor["commitSession"]({ target, size: undefined, ready: !!target, expandedAncestors: Object.freeze([]) });
+  vi.spyOn(editor, "enter").mockImplementation(async (target) => install(target));
+  vi.spyOn(editor, "exit").mockImplementation(() => install());
+  vi.spyOn(editor, "containsElement").mockImplementation((element) => editor.target?.element.contains(element) ?? false);
+  if (initial) { install(initial); }
+  selectionDisposals.unshift(() => { editor.dispose(); index.dispose(); cache.dispose(); session.dispose(); });
+  return editor;
+}
 afterEach(async () => {
   cleanup();
+  selectionDisposals.splice(0).forEach((dispose) => dispose());
   vi.restoreAllMocks();
   await act(async () => {
     await setLanguagePreference("en");
@@ -45,28 +104,21 @@ test("entry names its owner and keeps a visible generic exit independent of the 
   document.body.append(panel);
   const padding = { left: 80, right: 320, bottom: 80 };
   const target = { tpl, element, fullKey: "feed[0]" };
-  const active = observable.box<typeof target | undefined>();
-  const editor = {
-    ready: observable.box(true),
-    containsElement: (node: Element) => active.get()?.element.contains(node) ?? false,
-    get target() {
-      return active.get();
-    },
-    enter: vi.fn(() => active.set(target)),
-    exit: vi.fn(() => active.set(undefined)),
-  };
-  const vc = {
-    focusedDomElts: () => [], contentEditor: editor, canvasCtx: { viewport: () => element } };
+  const vc = { focusedDomElts: () => [], canvasCtx: { viewport: () => element } };
   const studioCtx = {
     viewCtxs: [vc],
     focusedViewCtx: () => vc,
     zoom: 1,
-    viewportCtx: { scroll: () => ({ x: 0, y: 0 }) },
+    ...createViewportFixture(),
+    ...createStudioModeFixture(),
     canvasZoomPadding: () => padding,
+    renderPolicy: new StudioRenderPolicy({ isLive: () => false, isDragging: () => false }),
     isInteractiveMode: false,
     isLiveMode: false,
   } as unknown as StudioCtx;
   Object.assign(vc, { studioCtx });
+  installSelectionSources(studioCtx);
+  const editor = installContentEditor(studioCtx);
   vi.mocked(getContentEditorTarget).mockReturnValue(target);
   render(
     <div>
@@ -114,6 +166,10 @@ test("entry names its owner and keeps a visible generic exit independent of the 
   fireEvent.click(screen.getByRole("button", { name: /Exit content editing/ }));
   expect(editor.exit).toHaveBeenCalledOnce();
   expect(screen.getByRole("button", { name: "Edit content" })).toBeTruthy();
+  act(() => editor.viewCtx.setCanvasExporting(true));
+  expect(screen.queryByRole("toolbar", { name: "Edit content" })).toBeNull();
+  act(() => editor.viewCtx.setCanvasExporting(false));
+  expect(screen.getByRole("toolbar", { name: "Edit content" })).toBeTruthy();
   element.remove();
   panel.remove();
 });
@@ -132,33 +188,21 @@ test("nested entry switches the single target while exit remains available and n
     element: innerElement,
     fullKey: "panel[0].list[0]",
   };
-  const active = observable.box<typeof outer | undefined>(outer, {
-    deep: false,
-  });
-  const editor = {
-    ready: observable.box(true),
-    containsElement: (node: Element) => active.get()?.element.contains(node) ?? false,
-    get target() {
-      return active.get();
-    },
-    enter: vi.fn((target) => active.set(target)),
-    exit: vi.fn(() => active.set(undefined)),
-  };
-  const vc = {
-    focusedDomElts: () => [],
-    contentEditor: editor,
-    canvasCtx: { viewport: () => outerElement },
-  };
+  const vc = { focusedDomElts: () => [], canvasCtx: { viewport: () => outerElement } };
   const studioCtx = {
     viewCtxs: [vc],
     focusedViewCtx: () => vc,
     zoom: 1,
-    viewportCtx: { scroll: () => ({ x: 0, y: 0 }) },
+    ...createViewportFixture(),
+    ...createStudioModeFixture(),
     canvasZoomPadding: () => ({ left: 20, right: 20, bottom: 80 }),
+    renderPolicy: new StudioRenderPolicy({ isLive: () => false, isDragging: () => false }),
     isInteractiveMode: false,
     isLiveMode: false,
   } as unknown as StudioCtx;
   Object.assign(vc, { studioCtx });
+  installSelectionSources(studioCtx);
+  const editor = installContentEditor(studioCtx, outer);
   vi.mocked(getContentEditorTarget).mockReturnValue(inner);
   render(
     <div>
@@ -201,22 +245,22 @@ test("entry and mode controls follow all Studio languages and live light/dark th
   };
   const vc = {
     focusedDomElts: () => [],
-    contentEditor: {
-      target: current, ready: observable.box(true),
-      containsElement: (node: Element) => element.contains(node),
-    },
     canvasCtx: { viewport: () => element },
   };
   const studioCtx = {
     viewCtxs: [vc],
     focusedViewCtx: () => vc,
     zoom: 1,
-    viewportCtx: { scroll: () => ({ x: 0, y: 0 }) },
+    ...createViewportFixture(),
+    ...createStudioModeFixture(),
     canvasZoomPadding: () => ({ left: 20, right: 20, bottom: 80 }),
+    renderPolicy: new StudioRenderPolicy({ isLive: () => false, isDragging: () => false }),
     isInteractiveMode: false,
     isLiveMode: false,
   } as unknown as StudioCtx;
   Object.assign(vc, { studioCtx });
+  installSelectionSources(studioCtx);
+  installContentEditor(studioCtx, current);
   vi.mocked(getContentEditorTarget).mockReturnValue(candidate);
   render(
     <AntdConfigProvider productUI>

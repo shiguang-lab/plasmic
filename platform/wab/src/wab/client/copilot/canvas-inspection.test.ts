@@ -8,7 +8,6 @@ import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkTplTag } from "@/wab/shared/core/tpls";
 import { ArenaFrame } from "@/wab/shared/model/classes";
-import { observable } from "mobx";
 
 function fixture() {
   const { studioCtx } = fakeStudioCtx();
@@ -18,9 +17,12 @@ function fixture() {
     tplTree: mkTplTag("div"),
   });
   const viewCtx = mockDeepAuto<ViewCtx>();
-  Object.defineProperty(viewCtx, "canvasExporting", {
-    value: observable.box(false),
-  });
+  Object.defineProperty(viewCtx, "studioCtx", { value: studioCtx });
+  Object.defineProperty(viewCtx, "_canvasExporting", { value: false, writable: true });
+  Object.defineProperty(viewCtx, "canvasExporting", { get: () => Reflect.get(ViewCtx.prototype, "canvasExporting", viewCtx) });
+  viewCtx.setCanvasExporting.mockImplementation((value) =>
+    ViewCtx.prototype.setCanvasExporting.call(viewCtx, value),
+  );
   const doc = document.implementation.createHTMLDocument();
   const iframe = doc.documentElement;
   iframe.setAttribute("data-plasmic-canvas-inspection", "original");
@@ -109,11 +111,11 @@ it("exports the requested frame without editing reveals and restores them on rel
     frameUuid: "frame",
     forExport: true,
   });
-  expect(viewCtx.canvasExporting.get()).toBe(true);
+  expect(viewCtx.canvasExporting).toBe(true);
   expect(background.mock.calls[0][2]).toEqual({ frameUuid: "frame", timeoutMs: 600000 });
   expect(navigate).not.toHaveBeenCalled();
   await endCanvasInspection(studioCtx, inspection.inspectionId);
-  expect(viewCtx.canvasExporting.get()).toBe(false);
+  expect(viewCtx.canvasExporting).toBe(false);
 });
 
 it("restores editing reveals even when preparing an export fails", async () => {
@@ -122,7 +124,7 @@ it("restores editing reveals even when preparing an export fails", async () => {
   await expect(
     beginCanvasInspection(studioCtx, component, { forExport: true }),
   ).rejects.toThrow("Render failed");
-  expect(viewCtx.canvasExporting.get()).toBe(false);
+  expect(viewCtx.canvasExporting).toBe(false);
 });
 
 
@@ -131,14 +133,14 @@ it("shows inspection acquisition while pinned and clears it on success or expiry
   try {
     const { studioCtx, component } = fixture();
     const inspection = await beginCanvasInspection(studioCtx, component);
-    expect(studioCtx.copilotActivity.requests[0]).toMatchObject({ kind: "inspection", status: "running" });
+    expect(studioCtx.copilotActivity.store.getState().requests[0]).toMatchObject({ kind: "inspection", status: "running" });
     await endCanvasInspection(studioCtx, inspection.inspectionId);
-    expect(studioCtx.copilotActivity.requests[0].status).toBe("success");
+    expect(studioCtx.copilotActivity.store.getState().requests[0].status).toBe("success");
     await vi.advanceTimersByTimeAsync(2000);
-    expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+    expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
     await beginCanvasInspection(studioCtx, component);
     await vi.advanceTimersByTimeAsync(600000);
-    expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+    expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
   } finally {
     vi.useRealTimers();
   }
@@ -148,5 +150,5 @@ it("clears inspection feedback after a rendering failure", async () => {
   const { studioCtx, component, viewCtx } = fixture();
   viewCtx.awaitSync.mockRejectedValueOnce(new Error("render failed"));
   await expect(beginCanvasInspection(studioCtx, component)).rejects.toThrow("render failed");
-  expect(studioCtx.copilotActivity.requests).toHaveLength(0);
+  expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
 });

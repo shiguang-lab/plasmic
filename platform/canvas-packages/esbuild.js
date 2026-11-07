@@ -59,70 +59,6 @@ const isProd = process.env.NODE_ENV === "production";
 const maybeBuildIndex = parseInt(process.env.BUILD_INDEX);
 const watchMode = !!process.env.ESBUILD_WATCH;
 
-const antdModules = {
-  antd: "__Sub._antd_",
-  "antd/es/anchor/style": "__Sub._antd_es_anchor_style_",
-  "antd/es/avatar/style": "__Sub._antd_es_avatar_style_",
-  "antd/es/badge/style": "__Sub._antd_es_badge_style_",
-  "antd/es/button": "__Sub._antd_es_button_",
-  "antd/es/breadcrumb/style": "__Sub._antd_es_breadcrumb_style_",
-  "antd/es/card/style": "__Sub._antd_es_card_style_",
-  "antd/es/cascader/style": "__Sub._antd_es_cascader_style_",
-  "antd/es/checkbox/style": "__Sub._antd_es_checkbox_style_",
-  "antd/es/date-picker/style": "__Sub._antd_es_date_picker_style_",
-  "antd/es/descriptions/style": "__Sub._antd_es_descriptions_style_",
-  "antd/es/divider/style": "__Sub._antd_es_divider_style_",
-  "antd/es/drawer/style": "__Sub._antd_es_drawer_style_",
-  "antd/es/dropdown": "__Sub._antd_es_dropdown_",
-  "antd/es/dropdown/style": "__Sub._antd_es_dropdown_style_",
-  "antd/es/form/ErrorList": "__Sub._antd_es_form_ErrorList_",
-  "antd/es/form/Form": "__Sub._antd_es_form_Form_",
-  "antd/es/form/context": "__Sub._antd_es_form_context_",
-  "antd/es/form/hooks/useFormInstance":
-    "__Sub._antd_es_form_hooks_useFormInstance_",
-  "antd/es/form/style": "__Sub._antd_es_form_style_",
-  "antd/es/image/style": "__Sub._antd_es_image_style_",
-  "antd/es/input-number/style": "__Sub._antd_es_input_number_style_",
-  "antd/es/input/style": "__Sub._antd_es_input_style_",
-  "antd/es/layout/style": "__Sub._antd_es_layout_style_",
-  "antd/es/list/style": "__Sub._antd_es_list_style_",
-  "antd/es/locale/zh_CN": "__Sub._antd_es_locale_zh_CN_",
-  "antd/es/menu/style": "__Sub._antd_es_menu_style_",
-  "antd/es/message/style": "__Sub._antd_es_message_style_",
-  "antd/es/modal/style": "__Sub._antd_es_modal_style_",
-  "antd/es/popover/style": "__Sub._antd_es_popover_style_",
-  "antd/es/progress/style": "__Sub._antd_es_progress_style_",
-  "antd/es/radio": "__Sub._antd_es_radio_",
-  "antd/es/radio/style": "__Sub._antd_es_radio_style_",
-  "antd/es/rate/style": "__Sub._antd_es_rate_style_",
-  "antd/es/row/style": "__Sub._antd_es_row_style_",
-  "antd/es/segmented/style": "__Sub._antd_es_segmented_style_",
-  "antd/es/select": "__Sub._antd_es_select_",
-  "antd/es/select/style": "__Sub._antd_es_select_style_",
-  "antd/es/skeleton/style": "__Sub._antd_es_skeleton_style_",
-  "antd/es/slider/style": "__Sub._antd_es_slider_style_",
-  "antd/es/space/style": "__Sub._antd_es_space_style_",
-  "antd/es/spin/style": "__Sub._antd_es_spin_style_",
-  "antd/es/statistic/style": "__Sub._antd_es_statistic_style_",
-  "antd/es/steps/style": "__Sub._antd_es_steps_style_",
-  "antd/es/switch/style": "__Sub._antd_es_switch_style_",
-  "antd/es/table/hooks/useLazyKVMap":
-    "__Sub._antd_es_table_hooks_useLazyKVMap_",
-  "antd/es/table/hooks/usePagination":
-    "__Sub._antd_es_table_hooks_usePagination_",
-  "antd/es/table/hooks/useSelection":
-    "__Sub._antd_es_table_hooks_useSelection_",
-  "antd/es/table/style": "__Sub._antd_es_table_style_",
-  "antd/es/tabs/style": "__Sub._antd_es_tabs_style_",
-  "antd/es/theme/interface": "__Sub._antd_es_theme_interface_",
-  "antd/es/theme/internal": "__Sub._antd_es_theme_internal_",
-  "antd/es/theme/themes/default": "__Sub._antd_es_theme_themes_default_",
-  "antd/es/tooltip/style": "__Sub._antd_es_tooltip_style_",
-  "antd/es/tree-select/style": "__Sub._antd_es_tree_select_style_",
-  "antd/es/typography/style": "__Sub._antd_es_typography_style_",
-  "antd/es/upload/style": "__Sub._antd_es_upload_style_",
-};
-
 // @react/ui imports Antd's ESM component entry points. They must use the same
 // ConfigProvider and CSS-in-JS cache as the ordinary `antd` imports.
 const antd6Modules = {
@@ -157,9 +93,7 @@ const antd6Modules = {
 // both approaches so that older versions of @plasmicapp/host can still work with the
 // canvas-packages.
 //
-// The code components from rich-components are the only known ones to require the usage
-// of react/jsx-runtime. But, even then we will still bundle all code components in two
-// versions, so that we can have a single concept of versioning for all canvas-packages.
+// Use the same versioning for every code component bundle.
 const clientEntries = [
   {
     pkg: "index",
@@ -182,32 +116,13 @@ const clientConfigs = clientEntries.map(({ pkg, useSubJSXRuntime }) => ({
     useSubJSXRuntime ? "-v2" : ""
   }.js`,
   plugins: [
-    // Handle newer antd4 whose transpiled code triggers this limitation (so we don't have to somehow pin antd4 version in our monorepo)
-    // https://github.com/evanw/esbuild/issues/1941
-    {
-      name: "antd-fixup",
-      setup(build) {
-        build.onLoad({ filter: /FormItem\.js$/ }, async (args) => {
-          const text = await fs.promises.readFile(args.path, "utf8");
-          return {
-            contents: text.replace(
-              /FormContext, FormItemStatusContext, NoStyleItemContext/,
-              "FormContext, NoStyleItemContext",
-            ),
-          };
-        });
-      },
-    },
     externalGlobalPlugin({
       react: "__Sub.React",
       "react-dom": "__Sub.ReactDOM",
-      ...(["index", "antd6-runtime", "antd6", "overseas", "react-ui"].includes(pkg)
-        ? { "react-dom/client": "__Sub.ReactDOMClient" }
-        : {}),
+      "react-dom/client": "__Sub.ReactDOMClient",
       "@plasmicapp/host": "__Sub",
       "@plasmicapp/query": "__Sub.PlasmicQuery",
-      ...(["antd6", "overseas", "react-ui"].includes(pkg) ? antd6Modules : {}),
-      ...(pkg.includes("plasmic-rich-components") ? antdModules : {}),
+      ...(["antd", "antd5", "antd6", "overseas", "react-ui"].includes(pkg) ? antd6Modules : {}),
       ...(pkg.startsWith("commerce-")
         ? { "@plasmicpkgs/commerce": "__PlasmicCommerceCommon" }
         : {}),
@@ -262,18 +177,13 @@ const clientConfigs = clientEntries.map(({ pkg, useSubJSXRuntime }) => ({
   external: [
     "react",
     "react-dom",
-    ...(["index", "antd6-runtime", "antd6", "overseas", "react-ui"].includes(pkg)
-      ? ["react-dom/client"]
-      : []),
+    "react-dom/client",
     "@plasmicapp/host",
-    ...(["antd6", "overseas", "react-ui"].includes(pkg)
+    ...(["antd", "antd5", "antd6", "overseas", "react-ui"].includes(pkg)
       // The exact root import is provided by externalGlobalPlugin. Marking
       // "antd" external here also excludes every subpath, leaving unmapped
       // locale packs as require() calls in the browser bundle.
       ? Object.keys(antd6Modules).filter((name) => name !== "antd")
-      : []),
-    ...(pkg.includes("plasmic-rich-components")
-      ? Object.keys(antdModules)
       : []),
     ...(pkg.startsWith("commerce-") ? ["@plasmicpkgs/commerce"] : []),
     ...(useSubJSXRuntime ? ["react/jsx-runtime", "react/jsx-dev-runtime"] : []),

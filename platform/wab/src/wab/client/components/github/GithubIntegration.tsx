@@ -21,7 +21,6 @@ import { UiText } from "@/wab/client/i18n/UiText";
 
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import InfoIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Info";
-import GatsbyIcon from "@/wab/commons/images/gatsby.svg";
 import NextjsIcon from "@/wab/commons/images/nextjs.svg";
 import ReactIcon from "@/wab/commons/images/react.svg";
 import {
@@ -260,7 +259,7 @@ function GithubIntegration(props: GithubIntegrationProps) {
 
   React.useEffect(() => {
     if (framework === "react") {
-      // Loader requires Next.js or Gatsby.
+      // Loader requires Next.js.
       setMode("codegen");
     }
   }, [framework]);
@@ -440,9 +439,6 @@ function GithubIntegration(props: GithubIntegrationProps) {
             textValue={uiT("Next.js (recommended)")}
           >
             <img className={styles.icon} src={NextjsIcon} alt="" /> Next.js
-          </Select.Option>,
-          <Select.Option value="gatsby" key="gatsby" textValue="Gatsby">
-            <img className={styles.icon} src={GatsbyIcon} alt="" /> Gatsby
           </Select.Option>,
           <Select.Option
             value="react"

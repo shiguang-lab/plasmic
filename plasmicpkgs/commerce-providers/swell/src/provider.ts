@@ -17,8 +17,6 @@ import { handler as useBrands } from "./site/use-brands";
 import { handler as useCategories } from "./site/use-categories";
 
 export const getSwellProvider = (storeId: string, publicKey: string) => {
-  // swell-js exports `init` as a named function; with esModuleInterop the
-  // default import resolves it as a method on the namespace, so this typechecks.
   swell.init(storeId, publicKey);
 
   return {

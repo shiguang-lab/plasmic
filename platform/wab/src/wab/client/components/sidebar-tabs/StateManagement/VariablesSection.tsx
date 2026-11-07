@@ -1,3 +1,4 @@
+import { useVariableRoster } from "@/wab/client/studio-ctx/state-management-inputs";
 import ImplicitVariablesSection from "@/wab/client/components/sidebar-tabs/StateManagement/ImplicitVariablesSection";
 import { VariableEditingModal } from "@/wab/client/components/sidebar-tabs/StateManagement/VariableEditingModal";
 import VariableRow from "@/wab/client/components/sidebar-tabs/StateManagement/VariableRow";
@@ -16,12 +17,9 @@ import { DefaultVariablesSectionProps } from "@/wab/client/plasmic/plasmic_kit_s
 import { parseUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { VARIABLE_PLURAL_CAP } from "@/wab/shared/Labels";
-import { ensure } from "@/wab/shared/common";
 import { Component } from "@/wab/shared/model/classes";
 import { Button } from "antd";
 import cn from "classnames";
-import { groupBy } from "lodash";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useState } from "react";
 
@@ -39,12 +37,8 @@ function VariablesSection_(props: VariablesSectionProps) {
   const [isExpanded, setExpanded] = useState(false);
   const sectionRef = React.useRef<SidebarSectionHandle>(null);
 
-  const implicitVariableGroups = Object.values(
-    groupBy(
-      component.states.filter((state) => state.tplNode),
-      (state) => state.tplNode?.name,
-    ),
-  );
+  const { snapshot: roster, source } = useVariableRoster(viewCtx, component);
+  const implicitVariableGroups = roster.implicit;
 
   // Implicit states may be collapsed, so listen for UI actions
   // and expand their section if an action is dispatched.
@@ -61,9 +55,7 @@ function VariablesSection_(props: VariablesSectionProps) {
     return dispose;
   }, [studioCtx]);
 
-  const regularVariables = component.states.filter(
-    (state) => state.variableType !== "variant" && !state.tplNode,
-  );
+  const regularVariables = roster.regular;
 
   return (
     <>
@@ -91,8 +83,7 @@ function VariablesSection_(props: VariablesSectionProps) {
         zeroBodyPadding
         fullyCollapsible={!regularVariables.length}
         emptyBody={
-          component.states.filter((state) => state.variableType !== "variant")
-            .length === 0
+          roster.emptyBody
         }
         emptyDescription={uiT("Store data that can change over time.")}
         noBottomPadding={!!implicitVariableGroups.length}
@@ -111,7 +102,7 @@ function VariablesSection_(props: VariablesSectionProps) {
                   {regularVariables.map((state) => (
                     <VariableRow
                       key={state.uid}
-                      state={state}
+                      state={source.resolve(state)}
                       sc={studioCtx}
                       viewCtx={viewCtx}
                       component={component}
@@ -127,13 +118,11 @@ function VariablesSection_(props: VariablesSectionProps) {
                         className="pb-m"
                         data-test-id="implicit-variable-container"
                       >
-                        {implicitVariableGroups.map((states) => (
+                        {implicitVariableGroups.map((tpl) => (
                           <ImplicitVariablesSection
                             component={component}
-                            tpl={ensure(
-                              states[0].tplNode,
-                              "implicit state should have a tpl",
-                            )}
+                            key={tpl.uid}
+                            tpl={source.resolve(tpl)}
                             sc={studioCtx}
                             viewCtx={viewCtx}
                           />
@@ -161,5 +150,5 @@ function VariablesSection_(props: VariablesSectionProps) {
   );
 }
 
-const VariablesSection = observer(VariablesSection_);
+const VariablesSection = VariablesSection_;
 export default VariablesSection;

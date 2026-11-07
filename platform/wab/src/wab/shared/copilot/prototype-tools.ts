@@ -392,8 +392,8 @@ const EDIT_TOOL_META = {
         ...element,
         name: z.string().trim().min(1).optional(),
         text: z.string().max(100000).optional(),
-        props: z.record(jsonValue).optional(),
-        resetProps: z.array(uuid).min(1).optional(),
+        props: z.record(jsonValue).optional().describe("Public runtime props from the component contract. Internal editing controls are not writable; Studio reveals selected content automatically."),
+        resetProps: z.array(uuid).min(1).optional().describe("Public runtime props to reset to their component defaults."),
         styles: z
           .record(z.string().nullable())
           .describe(
@@ -1101,6 +1101,13 @@ function reviewed<T extends { inputSchema: z.AnyZodObject; outputSchema: z.AnyZo
 
 export const PROTOTYPE_TOOL_META = {
   ...EDIT_TOOL_META,
+  reviewComponentReuse: {
+    toolName: "reviewComponentReuse",
+    title: "Review component reuse",
+    description: "Review existing regions against current component contracts without changing or saving the design. Use the retry call from an indexing or failed componentReview result after its delay. Retries runtime initialization and pending indexing; completed advisories remain deduplicated. Never replay a successful design mutation to obtain recommendations.",
+    inputSchema: z.object({ targets: z.array(z.object(element).strict()).min(1).max(5), reviewContext: componentReviewContextSchema }).strict(),
+    outputSchema: componentReviewResultSchema,
+  },
   deleteCanvas: reviewed(EDIT_TOOL_META.deleteCanvas),
   updateCanvas: reviewed(EDIT_TOOL_META.updateCanvas),
   updateArtboard: reviewed(EDIT_TOOL_META.updateArtboard),

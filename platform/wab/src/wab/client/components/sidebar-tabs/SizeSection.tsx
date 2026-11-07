@@ -1,3 +1,7 @@
+import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import S from "@/wab/client/components/sidebar-tabs/SizeSection.module.scss";
 import {
@@ -92,9 +96,21 @@ class SizeSection_ extends StyleComponent<
   }
 
   render() {
+    const { expsProvider, vsh: providedVsh } = this.props;
+    // The collapsible-row callback runs under SidebarSection's own observer.
+    // Capture this class's model inputs during its render, before that boundary.
+    const indicators = {
+      minWidth: this.definedIndicators("min-width"),
+      maxWidth: this.definedIndicators("max-width"),
+      minHeight: this.definedIndicators("min-height"),
+      maxHeight: this.definedIndicators("max-height"),
+      aspectRatio: this.definedIndicators("aspect-ratio"),
+      flexGrowShrink: this.definedIndicators("flex-grow", "flex-shrink"),
+      flexBasis: this.definedIndicators("flex-basis"),
+    };
     const dimOpts = { ...tokenTypeDimOpts("Spacing"), min: 0 };
     const vsh =
-      this.props.vsh ??
+      providedVsh ??
       makeVariantedStylesHelperFromCurrentCtx(this.studioCtx());
 
     const isMinMaxWidthSet = isSetOrInherited(
@@ -106,8 +122,8 @@ class SizeSection_ extends StyleComponent<
     );
 
     const tpl =
-      this.props.expsProvider instanceof TplExpsProvider
-        ? this.props.expsProvider.tpl
+      expsProvider instanceof TplExpsProvider
+        ? expsProvider.tpl
         : undefined;
     const deepLayoutParent = tpl
       ? $$$(tpl).layoutParent({ throughSlot: true }).maybeOneTpl()
@@ -119,7 +135,7 @@ class SizeSection_ extends StyleComponent<
 
     return (
       <StylePanelSection
-        expsProvider={this.props.expsProvider}
+        expsProvider={expsProvider}
         styleProps={sizeSectionProps}
         title={<UiText message={"Size"} />}
         hasMore
@@ -127,7 +143,7 @@ class SizeSection_ extends StyleComponent<
       >
         {(renderMaybeCollapsibleRows) => (
           <div>
-            {isSvg(this.props.expsProvider) && (
+            {isSvg(expsProvider) && (
               <Alert
                 className="mb-sm"
                 type="warning"
@@ -150,7 +166,7 @@ class SizeSection_ extends StyleComponent<
                   <FullRow>
                     <SizeControl
                       prop="width"
-                      expsProvider={this.props.expsProvider}
+                      expsProvider={expsProvider}
                       vsh={vsh}
                       // TODO: experimenting with nested content
                       // layout sections that can be resized
@@ -168,7 +184,7 @@ class SizeSection_ extends StyleComponent<
               },
               {
                 collapsible: !isSetOrInherited(
-                  getValueSetState(...this.definedIndicators("min-width")),
+                  getValueSetState(...indicators.minWidth),
                 ),
                 content: (
                   <FullRow>
@@ -188,7 +204,7 @@ class SizeSection_ extends StyleComponent<
               },
               {
                 collapsible: !isSetOrInherited(
-                  getValueSetState(...this.definedIndicators("max-width")),
+                  getValueSetState(...indicators.maxWidth),
                 ),
                 content: (
                   <FullRow>
@@ -214,7 +230,7 @@ class SizeSection_ extends StyleComponent<
                     <FullRow>
                       <SizeControl
                         prop="height"
-                        expsProvider={this.props.expsProvider}
+                        expsProvider={expsProvider}
                         vsh={vsh}
                       />
                     </FullRow>
@@ -223,7 +239,7 @@ class SizeSection_ extends StyleComponent<
               },
               {
                 collapsible: !isSetOrInherited(
-                  getValueSetState(...this.definedIndicators("min-height")),
+                  getValueSetState(...indicators.minHeight),
                 ),
                 content: (
                   <FullRow>
@@ -243,7 +259,7 @@ class SizeSection_ extends StyleComponent<
               },
               {
                 collapsible: !isSetOrInherited(
-                  getValueSetState(...this.definedIndicators("max-height")),
+                  getValueSetState(...indicators.maxHeight),
                 ),
                 content: (
                   <FullRow>
@@ -263,7 +279,7 @@ class SizeSection_ extends StyleComponent<
               },
               {
                 collapsible: !isSetOrInherited(
-                  getValueSetState(...this.definedIndicators("aspect-ratio")),
+                  getValueSetState(...indicators.aspectRatio),
                 ),
                 content: (
                   <FullRow>
@@ -304,27 +320,27 @@ class SizeSection_ extends StyleComponent<
                 collapsible:
                   !isSetOrInherited(
                     getValueSetState(
-                      ...this.definedIndicators("flex-grow", "flex-shrink"),
+                      ...indicators.flexGrowShrink,
                     ),
                   ) &&
                   !isSetOrInherited(
-                    getValueSetState(...this.definedIndicators("flex-basis")),
+                    getValueSetState(...indicators.flexBasis),
                   ),
                 content: <SectionSeparator className="mv-m" />,
               },
               {
                 collapsible: !isSetOrInherited(
                   getValueSetState(
-                    ...this.definedIndicators("flex-grow", "flex-shrink"),
+                    ...indicators.flexGrowShrink,
                   ),
                 ),
                 content: (
-                  <FlexGrowControls expsProvider={this.props.expsProvider} />
+                  <FlexGrowControls expsProvider={expsProvider} />
                 ),
               },
               {
                 collapsible: !isSetOrInherited(
-                  getValueSetState(...this.definedIndicators("flex-basis")),
+                  getValueSetState(...indicators.flexBasis),
                 ),
                 content: (
                   <LabeledStyleDimItemRow
@@ -336,7 +352,7 @@ class SizeSection_ extends StyleComponent<
                     }}
                     tokenType={"Spacing"}
                     vsh={vsh}
-                    definedIndicator={this.definedIndicators("flex-basis")}
+                    definedIndicator={indicators.flexBasis}
                   />
                 ),
               },
@@ -350,13 +366,14 @@ class SizeSection_ extends StyleComponent<
 
 export const SizeSection = observer(SizeSection_);
 
-export const SizeWidthOnlySection = observer(function SizeWidthOnlySection(
+export const SizeWidthOnlySection = function SizeWidthOnlySection(
   props: StyleComponentProps,
 ) {
   const { t: uiT } = useI18n();
   const { expsProvider } = props;
   const studioCtx = expsProvider.studioCtx;
-  const vsh = props.vsh ?? makeVariantedStylesHelperFromCurrentCtx(studioCtx);
+  const contextVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : studioCtx);
+  const vsh = props.vsh ?? contextVsh;
   return (
     <StylePanelSection
       expsProvider={expsProvider}
@@ -369,7 +386,7 @@ export const SizeWidthOnlySection = observer(function SizeWidthOnlySection(
       </FullRow>
     </StylePanelSection>
   );
-});
+};
 
 const SizeControl = observer(function SizeRow(props: {
   prop: "width" | "height";
@@ -386,6 +403,7 @@ const SizeControl = observer(function SizeRow(props: {
     disabledTooltip,
     vsh = new VariantedStylesHelper(),
   } = props;
+  useViewVariants(expsProvider instanceof TplExpsProvider ? expsProvider.viewCtx : undefined, useShallow((variantState) => [variantState.frames, variantState.global]));
   const value = expsProvider.mergedExp().get(prop);
   const tpl =
     expsProvider instanceof TplExpsProvider ? expsProvider.tpl : undefined;
@@ -769,6 +787,7 @@ export const PageSizePanelSection = observer(
       expsProvider instanceof TplExpsProvider,
       "ExpsProvider should be TplExpsProvider",
     );
+    useViewSelection(expsProvider.viewCtx, (state) => state.context);
     const component = expsProvider.viewCtx.currentComponent();
     const arenaFrame = expsProvider.viewCtx.arenaFrame();
     assert(
@@ -849,7 +868,7 @@ export const PageSizePanelSection = observer(
   },
 );
 
-export const StretchyComponentSizePanelSection = observer(
+export const StretchyComponentSizePanelSection = 
   function StretchyComponentSizePanelSection(props: {
     expsProvider: ExpsProvider;
   }) {
@@ -880,8 +899,8 @@ export const StretchyComponentSizePanelSection = observer(
         </FullRow>
       </SidebarSection>
     );
-  },
-);
+  }
+;
 
 function isSvg(expsProvider: ExpsProvider) {
   const tpl =

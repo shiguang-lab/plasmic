@@ -31,7 +31,6 @@ function fixture() {
     {},
   );
   wrapperComponent.params.push(
-    prop("previewOpen"),
     prop("open"),
     prop("onAction"),
     mkParam({
@@ -46,7 +45,7 @@ function fixture() {
     { name: "Modal", importPath: "overlay-test", props: {} },
     {},
   );
-  modalComponent.params.push(prop("previewOpen"), prop("open"));
+  modalComponent.params.push(prop("open"));
   const modal = mkTplComponent(modalComponent, base, {
     open: customCode("$state.action === 'export'"),
   });
@@ -70,7 +69,7 @@ function fixture() {
     ],
   });
   const context = {
-    getMeta: () => ({
+    getMeta: (tpl: typeof wrapper) => tpl === wrapper || tpl === modal ? ({
       canvasOverlay: { triggerSlot: "children" },
       canvasEventBindings: [
         {
@@ -79,7 +78,7 @@ function fixture() {
           args: { key: { prop: "key" } },
         },
       ],
-    }),
+    }) : undefined,
     getProp: () => undefined,
   };
   return { label, button, wrapper, modal, component, context };
@@ -93,25 +92,25 @@ test("selecting a wrapper child exposes its ancestor overlay without selecting t
 });
 
 test("a button handler exposes a sibling modal without executing the handler or changing open", () => {
-  const { label, button, modal, component } = fixture();
+  const { label, button, modal, component, context } = fixture();
   const open = modal.vsettings[0].args[0].expr;
   ensureVariantSetting(button, [base]).attrs.onClick = customCode(
     "() => { externalSideEffect(); $state.action = 'export'; }",
   );
-  expect(getCanvasOverlayTargets(component, [label, button])).toEqual([modal]);
+  expect(getCanvasOverlayTargets(component, [label, button], context)).toEqual([modal]);
   expect(modal.vsettings[0].args[0].expr).toBe(open);
 });
 
 test("a guarded create action exposes its sibling modal from the button label", () => {
-  const { label, button, modal, component } = fixture();
+  const { label, button, modal, component, context } = fixture();
   ensureVariantSetting(button, [base]).attrs.onClick = customCode(
     "() => { const viewer = readViewer(); if (!viewer.id) return; $state.action = 'export'; }",
   );
-  expect(getCanvasOverlayTargets(component, [label, button])).toEqual([modal]);
+  expect(getCanvasOverlayTargets(component, [label, button], context)).toEqual([modal]);
 });
 
 test("Plasmic updateVariable interactions also expose the related modal", () => {
-  const { button, modal, component } = fixture();
+  const { button, modal, component, context } = fixture();
   const handler = new EventHandler({ interactions: [] });
   handler.interactions.push(
     mkInteraction(handler, "updateVariable", "Open export", {
@@ -120,7 +119,7 @@ test("Plasmic updateVariable interactions also expose the related modal", () => 
     }),
   );
   ensureVariantSetting(button, [base]).attrs.onClick = handler;
-  expect(getCanvasOverlayTargets(component, [button])).toEqual([modal]);
+  expect(getCanvasOverlayTargets(component, [button], context)).toEqual([modal]);
 });
 
 test("reading state in a label does not associate unrelated modals", () => {
@@ -134,19 +133,19 @@ test("a wrapper handler never adds sibling modals to its own controls", () => {
   const { label, button, wrapper, component, context } = fixture();
   wrapper.vsettings[0].args.push(
     new Arg({
-      param: wrapper.component.params[2],
+      param: wrapper.component.params[1],
       expr: customCode("key => { $state.action = key; }"),
     }),
   );
   expect(
     getCanvasOverlayTargets(component, [label, button, wrapper], context),
   ).toEqual([wrapper]);
-  expect(getCanvasOverlayTargets(component, [wrapper])).toEqual([wrapper]);
+  expect(getCanvasOverlayTargets(component, [wrapper], context)).toEqual([wrapper]);
 });
 
 test("nested overlays expose only the closest overlay", () => {
-  const { wrapper, modal, component } = fixture();
-  expect(getCanvasOverlayTargets(component, [modal, wrapper])).toEqual([modal]);
+  const { wrapper, modal, component, context } = fixture();
+  expect(getCanvasOverlayTargets(component, [modal, wrapper], context)).toEqual([modal]);
 });
 
 function delegatedFixture() {
@@ -178,7 +177,7 @@ function delegatedFixture() {
   );
   setup.wrapper.vsettings[0].args.push(
     new Arg({
-      param: setup.wrapper.component.params[2],
+      param: setup.wrapper.component.params[1],
       expr: createExprForDataPickerValue(
         "if(key==='export'){$state.action='export';}",
         null,
@@ -221,7 +220,7 @@ test("ordinary content is not a trigger even without event delegation", () => {
   const { component, item, wrapper, context } = delegatedFixture();
   const withoutDelegation = {
     ...context,
-    getMeta: () => ({ canvasOverlay: { triggerSlot: "children" } }),
+    getMeta: (tpl: typeof wrapper) => context.getMeta(tpl) ? ({ canvasOverlay: { triggerSlot: "children" } }) : undefined,
   };
   expect(
     getCanvasOverlayTargets(component, [item, wrapper], withoutDelegation),

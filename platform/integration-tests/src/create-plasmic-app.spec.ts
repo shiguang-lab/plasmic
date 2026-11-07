@@ -8,7 +8,7 @@ const PLASMIC_PROJECT_API_TOKEN =
 const PROJECT_NAME = "my-app";
 
 interface TestCase {
-  platform: "nextjs" | "gatsby" | "react" | "tanstack";
+  platform: "nextjs" | "react" | "tanstack";
   scheme: "codegen" | "loader";
   ts: boolean;
   appDir?: boolean;
@@ -45,10 +45,6 @@ const cases = (
     { platform: "nextjs", scheme: "loader", ts: false, appDir: true },
     { platform: "nextjs", scheme: "loader", ts: true, appDir: false },
     { platform: "nextjs", scheme: "loader", ts: true, appDir: true },
-    { platform: "gatsby", scheme: "codegen", ts: false },
-    { platform: "gatsby", scheme: "codegen", ts: true },
-    { platform: "gatsby", scheme: "loader", ts: false },
-    { platform: "gatsby", scheme: "loader", ts: true },
     { platform: "react", scheme: "codegen", ts: false },
     { platform: "react", scheme: "codegen", ts: true },
     { platform: "tanstack", scheme: "codegen", ts: true },

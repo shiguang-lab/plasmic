@@ -1,40 +1,81 @@
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import { createViewVariantFixture } from "@/wab/client/__testonly__/view-variants";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
+import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
 import {
-  OutlineCtx,
-  makeNodeKey,
   _testOnlyUtils,
+  makeNodeKey,
+  OutlineCtx,
 } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
-  AnyArena,
   getArenaFrames,
   isDedicatedArena,
   mkArenaFrame,
 } from "@/wab/shared/Arenas";
+import { ensure } from "@/wab/shared/common";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { $$$ } from "@/wab/shared/TplQuery";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkParam } from "@/wab/shared/core/lang";
-import { SlotSelection } from "@/wab/shared/core/slots";
 import { createSite } from "@/wab/shared/core/sites";
+import { SlotSelection } from "@/wab/shared/core/slots";
 import { mkSlot, mkTplComponentX, mkTplTagX } from "@/wab/shared/core/tpls";
-import { Arena, ArenaFrame, CustomCode, ensureKnownSlotParam, TplNode } from "@/wab/shared/model/classes";
+import {
+  Arena,
+  ArenaFrame,
+  CustomCode,
+  ensureKnownSlotParam,
+  TplNode,
+} from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { observable, runInAction } from "mobx";
 import { mock } from "vitest-mock-extended";
+import { createStore } from "zustand/vanilla";
 
-it.each(["null", "$props.content"])("keeps the outline usable for an expression-backed slot: %s", (code) => {
-  const param = ensureKnownSlotParam(mkParam({ name: "children", type: typeFactory.renderable(), paramType: "slot" }));
-  const slot = mkSlot(param);
-  const component = mkComponent({ name: "Overlay", type: ComponentType.Plain, params: [param], tplTree: slot });
-  const instance = mkTplComponentX({ component, baseVariant: component.variants[0], args: { children: new CustomCode({ code, fallback: null }) } });
-  const view = mock<ViewCtx>();
-  const variants = mock<ReturnType<ViewCtx["variantTplMgr"]>>();
-  view.variantTplMgr.mockReturnValue(variants);
-  variants.getEffectiveArgForParam.mockReturnValue(instance.vsettings[0].args[0]);
-  expect(_testOnlyUtils.getTreeNodeChildren(view, new SlotSelection({ tpl: instance, slotParam: param }), 1, instance)).toEqual({ children: [], childrenFrameNum: 1 });
-  expect(_testOnlyUtils.getTreeNodeChildren(view, slot, 1, instance)).toEqual({ children: [], childrenFrameNum: 0 });
-});
+it.each(["null", "$props.content"])(
+  "keeps the outline usable for an expression-backed slot: %s",
+  (code) => {
+    const param = ensureKnownSlotParam(
+      mkParam({
+        name: "children",
+        type: typeFactory.renderable(),
+        paramType: "slot",
+      }),
+    );
+    const slot = mkSlot(param);
+    const component = mkComponent({
+      name: "Overlay",
+      type: ComponentType.Plain,
+      params: [param],
+      tplTree: slot,
+    });
+    const instance = mkTplComponentX({
+      component,
+      baseVariant: component.variants[0],
+      args: { children: new CustomCode({ code, fallback: null }) },
+    });
+    const view = mock<ViewCtx>();
+    const variants = mock<ReturnType<ViewCtx["variantTplMgr"]>>();
+    view.variantTplMgr.mockReturnValue(variants);
+    variants.getEffectiveArgForParam.mockReturnValue(
+      instance.vsettings[0].args[0],
+    );
+    expect(
+      _testOnlyUtils.getTreeNodeChildren(
+        view,
+        new SlotSelection({ tpl: instance, slotParam: param }),
+        1,
+        instance,
+      ),
+    ).toEqual({ children: [], childrenFrameNum: 1 });
+    expect(_testOnlyUtils.getTreeNodeChildren(view, slot, 1, instance)).toEqual(
+      { children: [], childrenFrameNum: 0 },
+    );
+  },
+);
 
 function setup() {
   const site = createSite();
@@ -51,44 +92,66 @@ function setup() {
     mkArenaFrame({ site, component, name, width: 1440, height: 960 }),
   );
   const arena = new Arena({ name: "Overview", children: frames });
-  const activeArena = observable.box<AnyArena | null>(arena, { deep: false });
-  const focus = observable.box<ViewCtx | undefined>(undefined, { deep: false });
-  const selected = observable.box<TplNode | null>(null, { deep: false });
+  site.arenas.push(arena);
+  const models = new ModelSnapshots();
+  const arenaState = new StudioArenaState({ site, modelSnapshots: models });
+  arenaState.setCurrent(arena);
+  const focus = new StudioSelection(() => models);
+  const selectionByView = new Map<ViewCtx, ViewSelection>();
   const views = new Map<ArenaFrame, ViewCtx>();
   for (const frame of frames) {
     const vc = mock<ViewCtx>();
-    Object.defineProperty(vc, "component", { value: component });
+    const selection = new ViewSelection(() => models);
+    const variants = createViewVariantFixture(models, site, frame);
+    selectionByView.set(vc, selection);
+    Object.defineProperties(vc, { component: { value: component }, selectionStore: { value: selection.store }, variantStore: { value: variants.store } });
     vc.arenaFrame.mockReturnValue(frame);
     vc.focusedSelectable.mockReturnValue(null);
-    vc.focusedTpl.mockImplementation(() => selected.get());
+    vc.focusedTpl.mockImplementation(() => selection.tpls()[0] ?? null);
     vc.hoveredSelectable.mockReturnValue(null);
     vc.componentStackFrames.mockReturnValue(observable.array([]));
     views.set(frame, vc);
   }
   const ctx = mock<StudioCtx>();
-  Object.defineProperty(ctx, "currentArena", { get: () => activeArena.get() });
-  ctx.focusedViewCtx.mockImplementation(() => focus.get());
+  Object.defineProperties(ctx, { site: { value: site }, modelSnapshots: { value: models }, arenaState: { value: arenaState }, currentArena: { get: () => arenaState.currentArena() }, selectionStore: { value: focus.store } });
+  ctx.subscribeModelChanges.mockImplementation(() => () => undefined);
+  ctx.focusedViewCtx.mockImplementation(() => focus.current().view);
   ctx.focusedOrFirstViewCtx.mockImplementation(
     () =>
-      focus.get() ??
-      (isDedicatedArena(activeArena.get())
-        ? views.get(getArenaFrames(activeArena.get())[0])
+      focus.current().view ??
+      (isDedicatedArena(arenaState.currentArena())
+        ? views.get(getArenaFrames(arenaState.currentArena())[0])
         : undefined),
   );
   ctx.tryGetViewCtxForFrame.mockImplementation((frame) =>
     frame ? views.get(frame) : undefined,
   );
+  Object.defineProperty(ctx, "commentsCtx", {
+    value: {
+      store: createStore(() => ({ commentedSubjectIds: new Set<string>() })),
+    },
+  });
   const outline = new OutlineCtx(ctx, "");
-  const select = (frame: ArenaFrame, node: TplNode | null) =>
-    runInAction(() => {
-      focus.set(views.get(frame));
-      selected.set(node);
-    });
-  const deselect = () =>
-    runInAction(() => {
-      focus.set(undefined);
-      selected.set(null);
-    });
+  const transact = (command: () => void) => {
+    const selections = [...selectionByView.values()];
+    const run = (index: number): void => {
+      if (index === selections.length) { command(); }
+      else { selections[index].transaction(() => run(index + 1)); }
+    };
+    focus.transaction(() => run(0));
+  };
+  const select = (frame: ArenaFrame, node: TplNode | null) => runInAction(() => transact(() => {
+    const selectedView = ensure(views.get(frame), "Selected artboard");
+    focus.set(selectedView, []);
+    for (const [view, selection] of selectionByView) {
+      selection.setTpls(view === selectedView && node ? [node] : []);
+      selection.setTargets(view === selectedView && node ? [null] : []);
+    }
+  }));
+  const deselect = () => runInAction(() => transact(() => {
+    focus.clear();
+    for (const selection of selectionByView.values()) { selection.clear(); }
+  }));
   return {
     site,
     arena,
@@ -96,7 +159,7 @@ function setup() {
     views,
     ctx,
     outline,
-    activeArena,
+    arenaState,
     select,
     deselect,
     leafA,
@@ -150,11 +213,11 @@ it("does not reuse the retained artboard in another arena or after it is removed
   const f = setup();
   f.select(f.frames[1], f.leafA);
   f.deselect();
-  runInAction(() =>
-    f.activeArena.set(new Arena({ name: "Other", children: [] })),
-  );
+  const other = new Arena({ name: "Other", children: [] });
+  f.site.arenas.push(other);
+  runInAction(() => f.arenaState.setCurrent(other));
   expect(f.outline.viewCtx()).toBeUndefined();
-  runInAction(() => f.activeArena.set(f.arena));
+  runInAction(() => f.arenaState.setCurrent(f.arena));
   expect(f.outline.viewCtx()).toBe(f.views.get(f.frames[1]));
   f.arena.children.splice(1, 1);
   expect(f.outline.viewCtx()).toBeUndefined();
@@ -192,9 +255,9 @@ it("disposes artboard outlines when leaving their arena", () => {
   const f = setup();
   const child = f.outline.getFrameOutline(f.frames[0]);
   const dispose = vi.spyOn(child, "dispose");
-  runInAction(() =>
-    f.activeArena.set(new Arena({ name: "Other", children: [] })),
-  );
+  const other = new Arena({ name: "Other", children: [] });
+  f.site.arenas.push(other);
+  runInAction(() => f.arenaState.setCurrent(other));
   expect(dispose).toHaveBeenCalledOnce();
   f.outline.dispose();
   expect(dispose).toHaveBeenCalledOnce();

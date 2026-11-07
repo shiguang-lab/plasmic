@@ -1,3 +1,4 @@
+import { Api } from "@/wab/client/api";
 import { prepare } from "@/wab/client/components/dashboard/preview/renderer";
 import { getArenaFrames } from "@/wab/shared/Arenas";
 import type { Bundle } from "@/wab/shared/bundler";
@@ -8,7 +9,7 @@ import path from "path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
 
 it.each(["counters-test", "global-variant-test", "style-token-overrides", "imported-project-default-theme-styles"])("builds Dashboard artboards with the real shared compiler: %s", async (name) => {
   const bundles = JSON.parse(fs.readFileSync(path.resolve(__dirname, `../../../../shared/codegen/__testonly__/bundles/${name}.json`), "utf8")) as [string, Bundle][];
@@ -110,4 +111,36 @@ it("rejects stale revisions before unbundling or producing a cover", async () =>
 it("preserves authorization errors without generating a thumbnail", async () => {
   vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, status: 403, json: async () => ({ error: { name: "ForbiddenError", message: "Private project" } }) })));
   await expect(prepare({ projectId: "private", revision: 42, flags: DEVFLAGS, staticBaseUrl: "http://localhost/" })).rejects.toMatchObject({ name: "ForbiddenError" });
+});
+
+
+it("resolves immutable dependency resources before generating Dashboard artboards", async () => {
+  const bundles = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../../../../shared/codegen/__testonly__/bundles/imported-project-default-theme-styles.json"), "utf8")) as [string, Bundle][];
+  const [id, bundle] = bundles[bundles.length - 1];
+  const dependencies = bundles.slice(0, -1);
+  expect(dependencies.length).toBeGreaterThan(0);
+  const resources = new Map(dependencies.map(([depId, model]) => [`/dependency-models/${encodeURIComponent(depId)}`, model]));
+  const read = vi.spyOn(Api.prototype, "get").mockImplementation(async (url) => {
+    if (!resources.has(url)) throw new Error("Unexpected resource URL");
+    return resources.get(url);
+  });
+  vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({
+    project: { id, name: "Resource-backed preview" },
+    rev: { revision: 42, data: JSON.stringify(bundle) },
+    depPkgs: dependencies.map(([depId]) => ({ id: depId, modelResourceId: depId })),
+  }) })));
+  const output = await prepare({ projectId: id, revision: 42, flags: DEVFLAGS, staticBaseUrl: "http://localhost/" });
+  expect(output.pages.length).toBeGreaterThan(0);
+  expect(read).toHaveBeenCalledTimes(dependencies.length);
+  for (const [depId] of dependencies) expect(read).toHaveBeenCalledWith(`/dependency-models/${encodeURIComponent(depId)}`);
+});
+
+it("keeps dependency-resource failures observable instead of rendering incomplete thumbnails", async () => {
+  const failure = new Error("Dependency resource unavailable");
+  vi.spyOn(Api.prototype, "get").mockRejectedValue(failure);
+  vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({
+    rev: { revision: 42, data: "unused until dependency resolves" },
+    depPkgs: [{ id: "dependency", modelResourceId: "resource" }],
+  }) })));
+  await expect(prepare({ projectId: "project", revision: 42, flags: DEVFLAGS, staticBaseUrl: "http://localhost/" })).rejects.toBe(failure);
 });

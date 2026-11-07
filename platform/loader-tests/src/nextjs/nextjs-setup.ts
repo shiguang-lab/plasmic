@@ -4,7 +4,7 @@ import { copySync } from "fs-extra";
 import getPort from "get-port";
 import path from "path";
 import tmp from "tmp";
-import { getEnvVar } from "../env";
+import { getEnvVar, NEXTJS_TEST_VERSIONS, REACT_TYPES_VERSION } from "../env";
 import { NextJsEnv, ProjectContext } from "../playwright-tests/setup-utils";
 import {
   DataSourceReplacement,
@@ -13,6 +13,7 @@ import {
   waitUntilServerDown,
   waitUntilServerUp,
 } from "../utils";
+import { verifyTargetRuntime } from "../verify-runtime";
 
 export interface NextJsContext {
   projectId: string;
@@ -35,7 +36,6 @@ export async function prepareTemplate(opts: {
   projectToken: string;
   authRedirectUri?: string;
   isAppRouter?: boolean;
-  tsConfigOverrides?: Record<string, unknown>;
 }) {
   const {
     templateDir,
@@ -43,12 +43,11 @@ export async function prepareTemplate(opts: {
     removeComponentsPage,
     nextVersion,
     loaderVersion,
-    reactVersion,
+    reactVersion = NEXTJS_TEST_VERSIONS.reactVersion,
     projectId,
     projectToken,
     authRedirectUri,
     isAppRouter,
-    tsConfigOverrides,
   } = opts;
 
   const npmRegistry = getEnvVar("NPM_CONFIG_REGISTRY");
@@ -57,27 +56,14 @@ export async function prepareTemplate(opts: {
 
   copySync(templateDir, tmpdir, { recursive: true });
 
-  if (tsConfigOverrides) {
-    const tsconfigPath = path.join(tmpdir, "tsconfig.json");
-    const tsconfig = JSON.parse(fs.readFileSync(tsconfigPath, "utf8"));
-    tsconfig.compilerOptions = {
-      ...tsconfig.compilerOptions,
-      ...tsConfigOverrides,
-    };
-    fs.writeFileSync(tsconfigPath, JSON.stringify(tsconfig, null, 2));
-  }
-
   if (removeComponentsPage && !isAppRouter) {
     fs.unlinkSync(path.join(tmpdir, "pages/components.tsx"));
   }
 
-  const loaderRegistry =
-    loaderVersion !== "latest" ? "https://registry.npmjs.org" : npmRegistry;
-
   // Write .npmrc to configure registries for pnpm
   const npmrcLines = [
     `registry=${npmRegistry}`,
-    `@plasmicapp:registry=${loaderRegistry}`,
+    `@plasmicapp:registry=${npmRegistry}`,
     `store-dir=${pnpmStoreDir}`,
     `shamefully-hoist=true`,
   ];
@@ -99,11 +85,12 @@ export async function prepareTemplate(opts: {
     updatePackages.push(
       `react@${reactVersion}`,
       `react-dom@${reactVersion}`,
-      `@types/react@${reactVersion}`,
-      `@types/react-dom@${reactVersion}`
+      `@types/react@${REACT_TYPES_VERSION}`,
+      `@types/react-dom@${REACT_TYPES_VERSION}`,
     );
   }
   await runCommand(`pnpm update ${updatePackages.join(" ")}`, pnpmOptions);
+  verifyTargetRuntime(tmpdir, "@plasmicapp/loader-nextjs");
 
   fs.writeFileSync(
     path.join(tmpdir, "config.json"),
@@ -115,7 +102,7 @@ export async function prepareTemplate(opts: {
         },
       ],
       host: codegenHost,
-    })
+    }),
   );
 
   if (isAppRouter) {
@@ -137,7 +124,7 @@ export async function prepareTemplate(opts: {
     if (authRedirectUri) {
       adjustedCatchAllContent = adjustedCatchAllContent.replace(
         "undefined; // __AUTH_REDIRECT_URI__",
-        `"${authRedirectUri}/";`
+        `"${authRedirectUri}/";`,
       );
     }
 
@@ -154,7 +141,6 @@ export async function setupNextJs(opts: {
   loaderVersion?: string;
   nextVersion?: string;
   reactVersion?: string;
-  tsConfigOverrides?: Record<string, unknown>;
   dataSourceReplacement?: DataSourceReplacement;
   env?: Record<string, string>;
 }): Promise<NextJsContext> {
@@ -163,17 +149,16 @@ export async function setupNextJs(opts: {
     projectName,
     removeComponentsPage,
     bundleTransformation,
-    loaderVersion = "latest",
-    nextVersion = "14",
-    reactVersion,
-    tsConfigOverrides,
+    loaderVersion = NEXTJS_TEST_VERSIONS.loaderVersion,
+    nextVersion = NEXTJS_TEST_VERSIONS.nextVersion,
+    reactVersion = NEXTJS_TEST_VERSIONS.reactVersion,
     dataSourceReplacement,
     env,
   } = opts;
   const { projectId, projectToken } = await uploadProject(
     bundleFile,
     projectName,
-    { bundleTransformation, dataSourceReplacement }
+    { bundleTransformation, dataSourceReplacement },
   );
   const { name: tmpdir, removeCallback: tmpdirCleanup } = tmp.dirSync({
     unsafeCleanup: true,
@@ -190,10 +175,9 @@ export async function setupNextJs(opts: {
       reactVersion,
       removeComponentsPage,
       template: opts.template,
-      tsConfigOverrides,
     },
     tmpdir,
-    env
+    env,
   );
 
   return {
@@ -261,7 +245,7 @@ export async function setupNextjsServer(
   project: ProjectContext,
   env: NextJsEnv,
   dir: string,
-  envVars?: Record<string, string>
+  envVars?: Record<string, string>,
 ) {
   const template = env.template ?? "template-pages";
   const templateDir = path.resolve(path.join(__dirname, template));
@@ -277,7 +261,6 @@ export async function setupNextjsServer(
     projectId: project.projectId,
     projectToken: project.projectToken,
     isAppRouter,
-    tsConfigOverrides: env.tsConfigOverrides,
   });
 
   await runCommand(`pnpm run build`, {
@@ -288,7 +271,7 @@ export async function setupNextjsServer(
   const port = await getPort();
   const nextServer = runCommand(
     `./node_modules/.bin/next start --port ${port}`,
-    { dir, output: "inherit", noExit: true, env: envVars }
+    { dir, output: "inherit", noExit: true, env: envVars },
   );
   const host = `http://localhost:${port}`;
   await waitUntilServerUp(host, { process: nextServer });

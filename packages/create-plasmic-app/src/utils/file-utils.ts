@@ -145,7 +145,7 @@ export function generateWelcomePage(
       (c) => c.componentType === "page"
     );
     const dir =
-      config?.nextjsConfig?.pagesDir ?? config?.gatsbyConfig?.pagesDir;
+      config?.nextjsConfig?.pagesDir;
     if (components.length > 0 && dir) {
       pages = {
         components,
@@ -196,7 +196,6 @@ export async function getPlasmicConfig(
   scheme: string
 ): Promise<PlasmicConfig> {
   const isNextjs = platform === "nextjs";
-  const isGatsby = platform === "gatsby";
   const isLoader = scheme === "loader";
   const isCodegen = scheme === "codegen";
   const configPath = ensure(
@@ -204,8 +203,6 @@ export async function getPlasmicConfig(
       ? "plasmic.json"
       : isNextjs && isLoader
       ? ".plasmic/plasmic.json"
-      : isGatsby && isLoader
-      ? ".cache/.plasmic/plasmic.json"
       : undefined,
     "Missing platform or scheme"
   );

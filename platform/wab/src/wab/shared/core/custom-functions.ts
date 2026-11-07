@@ -1,3 +1,4 @@
+import { BoundedCache } from "@/wab/shared/bounded-cache";
 import {
   CustomFunctionParam,
   isFlattenedObjectPropType,
@@ -43,7 +44,6 @@ import {
   throwIfPlasmicUndefinedDataError,
 } from "@plasmicapp/data-sources";
 import { groupBy, pick, pickBy } from "lodash";
-import { computedFn } from "mobx-utils";
 
 export {
   _StatefulQueryResult as StatefulQueryResult,
@@ -120,20 +120,31 @@ export function wrapPlasmicQueryFetch<
 }
 
 // Compiling the factory only depends on the code body and the static key
-// names, not their values, so memoize it. computedFn keeps only the
-// most-recently-observed entry, which is enough since one custom-code query
-// is being edited at a time.
-const getCustomCodeFactory = computedFn(function getCustomCodeFactory(
+// names, not their values, so cache it. The cache is bounded because arbitrary
+// code being edited can produce unbounded distinct bodies.
+const CUSTOM_CODE_FACTORY_CACHE_MAX_SIZE = 100;
+const customCodeFactoryCache = new BoundedCache<Function>(
+  CUSTOM_CODE_FACTORY_CACHE_MAX_SIZE,
+);
+
+const getCustomCodeFactory = function getCustomCodeFactory(
   code: string,
   staticKeysJson: string,
 ): Function {
-  return new Function(
+  const cacheKey = JSON.stringify([code, staticKeysJson]);
+  const cached = customCodeFactoryCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+  const factory = new Function(
     ...(JSON.parse(staticKeysJson) as string[]),
     `return async ({ $ctx, $props, $q, $state } = {}) => {
       return (${convertToFunction(stripParens(code))})();
     }`,
   );
-});
+  customCodeFactoryCache.set(cacheKey, factory);
+  return factory;
+};
 
 function buildCustomCodeFn(
   code: string,

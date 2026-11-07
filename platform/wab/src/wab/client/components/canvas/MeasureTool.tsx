@@ -1,3 +1,7 @@
+import { subscribeContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { subscribeFrameHeights } from "@/wab/client/studio-ctx/frame-heights";
+import { subscribeStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { subscribeFocusedViewSelection, subscribeStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { recomputeBounds } from "@/wab/client/components/canvas/HoverBox";
 import {
   computeElementVisibility,
@@ -11,6 +15,7 @@ import { ensure, maybe } from "@/wab/shared/common";
 import { Box, Pt, Side, horizontalSides } from "@/wab/shared/geom";
 import { reaction } from "mobx";
 import { Observer } from "mobx-react";
+import { subscribeViewport } from "@/wab/client/studio-ctx/viewport-state";
 import * as React from "react";
 import { memo } from "react";
 
@@ -261,18 +266,41 @@ class _MeasureTool extends ViewComponentBase<MeasureToolProps, {}> {
 
   componentDidMount() {
     let doc: Document | undefined;
+    let stopDocument: (() => void) | undefined;
+    let stopHeight: (() => void) | undefined;
     const update = () => this.forceUpdate();
-    const dispose = reaction(
-      () => this.viewCtxMaybe()?.canvasCtx.$doc()[0],
-      (nextDoc) => {
-        doc?.removeEventListener("scroll", update, true);
-        doc = nextDoc;
-        doc?.addEventListener("scroll", update, true);
-      },
-      { fireImmediately: true },
-    );
+    const watchDocument = () => {
+      stopDocument?.(); stopHeight?.();
+      const view = this.viewCtxMaybe();
+      if (view) {
+        let closed = false;
+        let task: number | undefined;
+        const off = subscribeFrameHeights(this.props.studioCtx, [view.arenaFrame()], () => {
+          if (closed || task !== undefined) { return; }
+          task = window.requestAnimationFrame(() => { task = undefined; if (!closed) { update(); } });
+        });
+        stopHeight = () => { closed = true; off(); if (task !== undefined) { window.cancelAnimationFrame(task); task = undefined; } };
+      }
+      stopDocument = reaction(
+        () => view?.canvasCtx.$doc()[0],
+        (nextDoc) => {
+          doc?.removeEventListener("scroll", update, true);
+          doc = nextDoc;
+          doc?.addEventListener("scroll", update, true);
+        },
+        { fireImmediately: true },
+      );
+      update();
+    };
+    const stopOwner = subscribeStudioSelection(this.props.studioCtx, (state) => state.view, watchDocument);
+    const stopDoms = subscribeFocusedViewSelection(this.props.studioCtx, (state) => state.doms, update);
+    const stopMeasure = subscribeFocusedViewSelection(this.props.studioCtx, (state) => state.measure, update);
+    const stopZoom = subscribeViewport(this.props.studioCtx, (state) => state.scale, update);
+    const stopScope = subscribeContentEditorScope(this.props.studioCtx, update);
+    const stopResize = subscribeStudioOverlayState(this.props.studioCtx, (state) => state.resizeDragging, update);
+    watchDocument();
     this.stopWatchingScroll = () => {
-      dispose();
+      stopDocument?.(); stopHeight?.(); stopOwner(); stopDoms(); stopMeasure(); stopZoom(); stopResize(); stopScope();
       doc?.removeEventListener("scroll", update, true);
     };
   }

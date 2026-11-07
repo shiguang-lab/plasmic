@@ -4,7 +4,7 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const os = require("node:os");
 const { EventEmitter } = require("node:events");
-const { ComponentReuse, ComponentVectorCache, hash } = require("../src/component-reuse.cjs");
+const { ComponentReuse, ComponentVectorCache, hash, terms } = require("../src/component-reuse.cjs");
 const { createComponentReuseHandler } = require("../src/component-reuse-handler.cjs");
 const vector = index => Array.from({ length: 768 }, (_, i) => i === index ? 1 : 0);
 const doc = (id, description = "Switch between content panels") => ({ componentUuid: id, name: id, fromProject: "installed-library", version: "1", description, sections: [description], props: ["activeKey"], slots: ["children"], events: ["onChange"] });
@@ -105,4 +105,67 @@ test("a project/branch navigation clears active indexing and query caches", asyn
   f.service.queryCache.set("private intent", vector(0));
   sender.emit("did-navigate-in-page", {}, "https://studio.example/projects/one/-/branch", true);
   assert.equal(f.service.state, null); assert.equal(f.service.queryCache.size, 0);
+});
+
+test("keyword retrieval normalizes inflections without changing Chinese terms", () => {
+  assert.deepEqual(terms("paginated pagination paginate"), ["paginat", "paginat", "paginat"]);
+  assert.deepEqual(terms("sort sorting filter filtering columns"), ["sort", "sort", "filter", "filter", "column"]);
+  assert.deepEqual(terms("客户信息"), ["客户", "信息"]);
+});
+
+test("keyword-only child hits retain their parents within the candidate budget", async t => {
+  const f = await fixture(t); f.service.backgroundDelayMs = 60000;
+  const parent = doc("Table", "Display records");
+  const child = { ...doc("Column", "Sort filter paginated records"), parent: parent.name };
+  await f.service.sync(scope, [parent, child, ...[1, 2, 3, 4].map(i => doc("Other" + i, "Unrelated content"))]);
+  const target = { ...region, intent: "sort filter paginated" };
+  const result = await f.service.review(scope, [target]);
+  assert.equal(result.status, "indexing"); assert.deepEqual(result.issues, ["indexing"]);
+  const candidates = result.suggestions[0].candidates;
+  assert.deepEqual(candidates.map(c => c.name), ["Table", "Column"]);
+  assert.deepEqual(candidates[0].requiredBy, ["Column"]);
+  assert.equal(candidates[1].similarity, null); assert.ok(candidates[1].keywordScore > 0); assert.ok(candidates[1].rankScore > 0);
+  assert.equal("score" in candidates[1], false);
+  assert.deepEqual(f.service.rank(f.service.state, { ...target, ancestorComponentUuids: ["Table"] }, null).map(c => c.name), ["Column"]);
+  await f.service.sync(scope, [child, ...[1, 2, 3, 4].map(i => doc("Other" + i, "Unrelated content"))]);
+  assert.deepEqual(f.service.rank(f.service.state, target, null), []);
+});
+
+test("parent lookup uses library identity and never returns an incomplete cyclic chain", async t => {
+  const f = await fixture(t); f.service.backgroundDelayMs = 60000;
+  const child = { ...doc("Column", "Sort filter records"), parent: "Table" };
+  await f.service.sync(scope, [child, { ...doc("OtherTable"), name: "Table", fromProject: "other-library" }]);
+  assert.deepEqual(f.service.rank(f.service.state, { ...region, intent: "sort filter records" }, null), []);
+  await f.service.sync(scope, [child, { ...doc("Table", "Unrelated content"), parent: "Column" }]);
+  assert.deepEqual(f.service.rank(f.service.state, { ...region, intent: "sort filter records" }, null), []);
+});
+
+test("contract summaries prioritize requested controls and explicitly report truncation", async t => {
+  const f = await fixture(t);
+  const props = ["a", "b", "c", "d", "e", "f", "g", "h", "selectedRowKeys"];
+  await f.service.sync(scope, [{ ...doc("Table", "Select table records"), props }]);
+  await wait(() => f.service.coverage().indexed === 1);
+  const result = await f.service.review(scope, [{ ...region, intent: "Control selected row keys for table records" }]);
+  const contract = result.suggestions[0].candidates[0].contract;
+  assert.equal(contract.props[0], "selectedRowKeys"); assert.equal(contract.truncated, true); assert.equal(contract.props.length, 8);
+});
+
+test("runtime failure is diagnosed and explicit retry resumes unchanged catalogue indexing", async t => {
+  const f = await fixture(t, async () => { throw new Error("missing runtime library"); });
+  await f.service.sync(scope, [doc("Tabs")]); await wait(() => f.service.failure);
+  const failed = await f.service.review(scope, [region]);
+  assert.equal(failed.status, "partial"); assert.deepEqual(failed.issues, ["embedding-failed"]); assert.match(failed.diagnostic, /missing runtime library/);
+  await f.service.sync(scope, [doc("Tabs")]); assert.equal(f.embedding.calls.length, 1);
+  f.embedding.encode = async () => vector(0);
+  await f.service.sync(scope, [doc("Tabs")], 0, true); await wait(() => f.service.coverage().indexed === 1);
+  assert.equal((await f.service.review(scope, [region])).status, "completed");
+});
+
+test("failed runtime verification can be retried after repair", async () => {
+  const { ComponentEmbedding } = require("../src/component-embedding.cjs");
+  const embedding = new ComponentEmbedding("unused"); let attempts = 0;
+  embedding.verify = async () => { if (++attempts === 1) throw new Error("runtime unavailable"); return true; };
+  await assert.rejects(embedding.prepare(), /runtime unavailable/);
+  assert.equal(await embedding.prepare(), true); assert.equal(attempts, 2);
+  await embedding.close();
 });

@@ -8,14 +8,13 @@ import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleCom
 import { useI18n } from "@/wab/client/i18n";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { TplTag } from "@/wab/shared/model/classes";
-import { observer } from "mobx-react";
 import React from "react";
 
 /**
  * Dedicated section for configuring where an `a` tag links to, and what it
  * says. These are hidden from the generic HTML attributes and Text sections.
  */
-export const LinkSection = observer(function LinkSection({
+export function LinkSection({
   viewCtx,
   tpl,
   expsProvider,
@@ -39,4 +38,4 @@ export const LinkSection = observer(function LinkSection({
       ))}
     </SidebarSection>
   );
-});
+}

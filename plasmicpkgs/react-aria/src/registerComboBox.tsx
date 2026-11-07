@@ -80,8 +80,7 @@ export function BaseComboBox(props: BaseComboboxProps) {
     children,
     setControlContextData,
     plasmicUpdateVariant,
-    __plasmic_selection_prop__,
-    plasmicNotifyAutoOpenedContent,
+    __canvas,
     isOpen: _isOpen, // uncontrolled if not selected in canvas/edit mode
     ...rest
   } = props;
@@ -120,10 +119,7 @@ export function BaseComboBox(props: BaseComboboxProps) {
               {/* PlasmicInputContext is used by BaseInput */}
               <PlasmicInputContext.Provider value={{ isUncontrolled: true }}>
                 <ComboboxAutoOpen
-                  __plasmic_selection_prop__={__plasmic_selection_prop__}
-                  plasmicNotifyAutoOpenedContent={
-                    plasmicNotifyAutoOpenedContent
-                  }
+                  __canvas={__canvas}
                 />
                 {children}
               </PlasmicInputContext.Provider>

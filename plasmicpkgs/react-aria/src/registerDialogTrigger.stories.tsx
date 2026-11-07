@@ -1,7 +1,7 @@
 import { PlasmicCanvasContext } from "@plasmicapp/host";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, spyOn, userEvent, waitFor, within } from "@storybook/test";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { BaseButton } from "./registerButton";
 import { BaseDialog } from "./registerDialog";
 import { BaseDialogTrigger } from "./registerDialogTrigger";
@@ -395,7 +395,7 @@ export const SelectedInCanvas: Story = {
   args: {
     dialog: <DefaultPopoverContent isKeyboardDismissDisabled={false} />,
   },
-  render: ({ __plasmic_selection_prop__, ...args }) => {
+  render: ({ __canvas, ...args }) => {
     const [selected, setSelected] = useState(false);
     const [selectedSlotName, setSelectedSlotName] = useState("");
     useEffect(() => {
@@ -418,9 +418,9 @@ export const SelectedInCanvas: Story = {
       >
         <BaseDialogTrigger
           // Simulate node selection in Plasmic canvas
-          __plasmic_selection_prop__={{
-            isSelected: selected,
-            selectedSlotName,
+          __canvas={{
+            selected,
+            slot: selectedSlotName,
           }}
           {...args}
         />

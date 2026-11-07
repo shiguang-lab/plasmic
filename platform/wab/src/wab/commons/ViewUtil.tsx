@@ -35,6 +35,15 @@ export function styleCase(text: string) {
   return L.startCase(text).replace(" ", "");
 }
 
-export function isEmptyReactNode(node: ReactNode) {
-  return !node || (Array.isArray(node) && node.every(isEmptyReactNode));
+export function isEmptyReactNode(node: ReactNode): boolean {
+  if (node == null || typeof node === "boolean" || node === "") {
+    return true;
+  }
+  if (Array.isArray(node)) {
+    return node.every(isEmptyReactNode);
+  }
+  if (React.isValidElement(node) && node.type === React.Fragment) {
+    return isEmptyReactNode((node.props as any)?.children);
+  }
+  return false;
 }

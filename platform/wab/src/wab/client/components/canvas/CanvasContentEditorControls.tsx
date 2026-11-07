@@ -1,3 +1,8 @@
+import { useCanvasExporting } from "@/wab/client/components/canvas/canvas-frame-info";
+import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
+import { useCanvasZoom, useViewportValue } from "@/wab/client/studio-ctx/viewport-state";
 import { getVisibleFrameRect } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { placeContentEditorToolbar } from "@/wab/client/components/canvas/content-editor-toolbar-placement";
 import { frameToClientRect } from "@/wab/client/coords";
@@ -5,6 +10,8 @@ import { useI18n } from "@/wab/client/i18n";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import {
   getContentEditorTarget,
+  useActiveContentEditor,
+  useContentEditor,
   type ContentEditorTarget,
 } from "@/wab/client/studio-ctx/canvas-content-editor";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -67,8 +74,16 @@ export const CanvasContentEditorControls = observer(
   }: {
     studioCtx: StudioCtx;
   }) {
-    const active = studioCtx.viewCtxs.find((vc) => vc.contentEditor.target);
+  useStudioSelection(studioCtx, (state) => state.view);
+  const liveMode = useStudioLiveMode(studioCtx);
+  const interactive = useStudioRenderPolicy(studioCtx, (policy) => policy.interactive);
+    const activeEditor = useActiveContentEditor(studioCtx);
+    useContentEditor(activeEditor, (state) => state.target);
+    const ready = useContentEditor(activeEditor, (state) => state.ready);
+    const active = activeEditor?.viewCtx;
     const vc = active ?? studioCtx.focusedViewCtx();
+    const exporting = useCanvasExporting(vc);
+  useViewSelection(vc, (state) => state.doms);
     const [, refreshGeometry] = React.useReducer(
       (value: number) => value + 1,
       0,
@@ -123,12 +138,12 @@ export const CanvasContentEditorControls = observer(
           vc.contentEditor.containsElement(candidate.element)))
         ? candidate
         : undefined;
-    if (!vc || studioCtx.isInteractiveMode || studioCtx.isLiveMode) {
+    if (!vc || interactive || liveMode || exporting) {
       return null;
     }
     return (
       <>
-        {current && !active?.contentEditor.ready.get() && (
+        {current && !ready && (
           <div
             className={styles.preparing}
             role="status"
@@ -179,8 +194,8 @@ const ContentEditorToolbar = observer(function ContentEditorToolbar({
     maxWidth: 400,
   });
   // Subscribe to camera movement as well as element and viewport resizing.
-  const zoom = studioCtx.zoom;
-  const scroll = studioCtx.viewportCtx?.scroll();
+  const zoom = useCanvasZoom(studioCtx);
+  const scroll = useViewportValue(studioCtx, (state) => state.scroll);
   React.useLayoutEffect(() => {
     if (!target || !vc || !root.current) {
       return;

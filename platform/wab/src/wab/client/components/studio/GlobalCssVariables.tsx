@@ -1,7 +1,6 @@
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { useCurrentRecordingTarget } from "@/wab/client/hooks/useCurrentRecordingTarget";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { switchType } from "@/wab/shared/common";
-import { ComponentArena } from "@/wab/shared/model/classes";
 import * as tokens from "@/wab/styles/_tokens";
 import * as cssVariables from "@/wab/styles/css-variables";
 import { observer } from "mobx-react";
@@ -38,16 +37,15 @@ function useSelectionControlsColor() {
 
 function useGridSpacing() {
   const studioCtx = useStudioCtx();
+  const kind = useStudioArena(studioCtx, (state) => state.kind);
 
   useEffect(() => {
-    if (studioCtx.currentArena) {
-      const spacing = switchType(studioCtx.currentArena)
-        .when(ComponentArena, () => "80px")
-        .elseUnsafe(() => "150px");
+    if (kind !== null) {
+      const spacing = kind === "component" ? "80px" : "150px";
 
       getRootElement().style.setProperty(cssVariables.gridSpacing, spacing);
     }
-  }, [studioCtx.currentArena]);
+  }, [kind]);
 }
 
 export function getGlobalCssVariableValue(variable: string) {

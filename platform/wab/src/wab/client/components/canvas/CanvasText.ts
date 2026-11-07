@@ -28,7 +28,7 @@ import type {
   ViewCtx,
 } from "@/wab/client/studio-ctx/view-ctx";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
-import { cx, ensureInstance, mkShortId, spawn } from "@/wab/shared/common";
+import { assert, cx, ensureInstance, mkShortId, spawn } from "@/wab/shared/common";
 import {
   asCode,
   ExprCtx,
@@ -55,7 +55,6 @@ import {
   TextInlineTag,
   textInlineTags,
 } from "@/wab/shared/html";
-import { ownedComputedFn } from "@/wab/shared/mobx-util";
 import {
   CustomCode,
   ensureKnownRawText,
@@ -294,8 +293,8 @@ export type CustomCssProps = {
   props: CSSProperties;
 };
 
-const mkRichTextShortcuts: (sub: SubDeps) => Shortcut[] = ownedComputedFn(
-  (sub: SubDeps) => [
+function createRichTextShortcuts(sub: SubDeps): Shortcut[] {
+  return [
     {
       action: "CUSTOM_CSS",
       fn: async (editor, opts, sub2, params: CustomCssProps) => {
@@ -393,8 +392,8 @@ const mkRichTextShortcuts: (sub: SubDeps) => Shortcut[] = ownedComputedFn(
         await wrapInInlineTag(tag, sub2)(editor, opts, sub2);
       },
     },
-  ],
-);
+  ];
+}
 
 const MARKDOWN_BLOCKS: Record<string, TagName | Array<TagName>> = {
   "#": "h1",
@@ -892,9 +891,8 @@ function mkExprTextProps(
     : { children: content };
 }
 
-export const mkCanvasText = ownedComputedFn(
-  (react: typeof React) =>
-    function CanvasText({
+function createCanvasText(react: typeof React) {
+  return function CanvasText({
       node,
       onChange,
       onUpdateContext,
@@ -1329,17 +1327,16 @@ export const mkCanvasText = ownedComputedFn(
           }),
         });
       }, `mkCanvasText(${node.uuid})`);
-    },
-);
+    };
+}
 
-const mkTextChild = ownedComputedFn(
-  (vc: ViewCtx) =>
-    ({ node, ctx }: { node: TplNode; ctx: RenderingCtx }) =>
+function createTextChild(vc: ViewCtx) {
+  return ({ node, ctx }: { node: TplNode; ctx: RenderingCtx }) =>
       mkUseCanvasObserver(vc.canvasCtx.Sub, vc)(
         () => renderTplNode(node, ctx),
         `mkTextChild(${node.uuid})`,
-      ),
-);
+      );
+}
 
 // Builds read-only React children for RawText. Unlike codegen, plain-text runs are wrapped
 // in <span> to mirror Slate's renderLeaf shape (Studio hover/click/selection logic relies
@@ -1379,9 +1376,8 @@ function renderRawTextChildren(
 
 // Read-only version of mkCanvasText: renders content as plain React elements.
 // mkRichText uses this when not editing to avoid initializing Slate
-export const mkReadOnlyCanvasText = ownedComputedFn(
-  (react: typeof React) =>
-    function ReadOnlyCanvasText({
+function createReadOnlyCanvasText(react: typeof React) {
+  return function ReadOnlyCanvasText({
       node,
       inline,
       ctx,
@@ -1434,8 +1430,8 @@ export const mkReadOnlyCanvasText = ownedComputedFn(
           ),
         `mkReadOnlyCanvasText(${node.uuid})`,
       );
-    },
-);
+    };
+}
 
 interface SlateChildrenProps {
   node: TplTag;
@@ -1449,9 +1445,8 @@ interface SlateChildrenProps {
 // case we must simply render slate children to avoid having Slate instances
 // inside other Slate instances and to render the children that Slate
 // expects.
-export const mkSlateChildren = ownedComputedFn(
-  (react: typeof React) =>
-    function SlateChildren({
+function createSlateChildren(react: typeof React) {
+  return function SlateChildren({
       node,
       inline,
       slate,
@@ -1505,8 +1500,8 @@ export const mkSlateChildren = ownedComputedFn(
           ),
         `mkSlateChildren(${node.uuid})`,
       );
-    },
-);
+    };
+}
 
 function mkClassName(node: TplTag, inline: boolean): string {
   return cx(
@@ -1684,4 +1679,46 @@ function getDescendentsAndRelativeValKeys(root: TplTag) {
     },
   });
   return result;
+}
+
+
+// These factories capture only the explicit module/command-owner inputs.
+// The returned components keep their genuine per-view model observers.
+const richTextShortcuts = new WeakMap<SubDeps, Shortcut[]>();
+function mkRichTextShortcuts(sub: SubDeps): Shortcut[] {
+  let shortcuts = richTextShortcuts.get(sub);
+  if (!shortcuts) { shortcuts = createRichTextShortcuts(sub); richTextShortcuts.set(sub, shortcuts); }
+  return shortcuts;
+}
+
+const canvasTexts = new WeakMap<typeof React, ReturnType<typeof createCanvasText>>();
+export function mkCanvasText(react: typeof React) {
+  let component = canvasTexts.get(react);
+  if (!component) { component = createCanvasText(react); canvasTexts.set(react, component); }
+  return component;
+}
+
+const textChildren = new WeakMap<ViewCtx, ReturnType<typeof createTextChild>>();
+function mkTextChild(view: ViewCtx) {
+  assert(!view.disposeSignal.aborted, "Cannot create text children for a disposed view");
+  let component = textChildren.get(view);
+  if (!component) {
+    component = createTextChild(view); textChildren.set(view, component);
+    view.disposeSignal.addEventListener("abort", () => textChildren.delete(view), { once: true });
+  }
+  return component;
+}
+
+const readOnlyCanvasTexts = new WeakMap<typeof React, ReturnType<typeof createReadOnlyCanvasText>>();
+export function mkReadOnlyCanvasText(react: typeof React) {
+  let component = readOnlyCanvasTexts.get(react);
+  if (!component) { component = createReadOnlyCanvasText(react); readOnlyCanvasTexts.set(react, component); }
+  return component;
+}
+
+const slateChildren = new WeakMap<typeof React, ReturnType<typeof createSlateChildren>>();
+export function mkSlateChildren(react: typeof React) {
+  let component = slateChildren.get(react);
+  if (!component) { component = createSlateChildren(react); slateChildren.set(react, component); }
+  return component;
 }

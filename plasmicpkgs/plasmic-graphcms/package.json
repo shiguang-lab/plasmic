@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/plasmic-graphcms",
-  "version": "0.0.233",
+  "version": "0.1.0",
   "description": "Plasmic GraphCMS components.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -28,9 +28,9 @@
     "analyze": "size-limit --why"
   },
   "peerDependencies": {
-    "@plasmicapp/host": ">=1.0.0",
-    "@plasmicapp/query": ">=0.1.0",
-    "react": ">=16"
+    "@plasmicapp/host": "^3.0.0",
+    "@plasmicapp/query": "^0.2.0",
+    "react": "^19.3.1"
   },
   "size-limit": [
     {
@@ -48,8 +48,8 @@
     "@types/dlv": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "tsdx": "catalog:",
     "tslib": "catalog:"
   },

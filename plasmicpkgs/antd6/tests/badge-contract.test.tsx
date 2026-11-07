@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { render } from "@testing-library/react";
 import * as Ant from "antd";
-import React from "react";
+
 import { expect, test } from "vitest";
 import { AntdBadge, registerAdditional } from "../src/registerAdditional";
 import type { Registerable } from "../src/utils";

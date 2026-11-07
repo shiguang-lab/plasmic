@@ -18,7 +18,7 @@ import { getPlumeVariantDef } from "@/wab/shared/plume/plume-registry";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
-import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
+import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
 interface StandaloneVariantProps {
   studioCtx: StudioCtx;

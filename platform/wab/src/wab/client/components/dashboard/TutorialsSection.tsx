@@ -9,7 +9,7 @@ import {
 import { getExtraData, updateExtraDataJson } from "@/wab/shared/ApiSchemaUtil";
 import { ensure, spawn } from "@/wab/shared/common";
 import * as React from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 
 export type TutorialsSectionProps = DefaultTutorialsSectionProps &
   PlasmicTutorialsSection__OverridesType;
@@ -27,7 +27,6 @@ export function TutorialsSection({ ...props }: TutorialsSectionProps) {
 
   return (
     <>
-      {/* @ts-expect-error Helmet's props don't declare children */}
       <Helmet>
         <link
           href="https://fonts.googleapis.com/css2?family=Bungee&display=swap"

@@ -1,7 +1,7 @@
 import registerComponent, {
   CodeComponentMeta,
 } from "@plasmicapp/host/registerComponent";
-import React, { ComponentProps } from "react";
+import { ComponentProps } from "react";
 import ReactParallaxTilt from "react-parallax-tilt";
 
 export type TiltProps = ComponentProps<typeof ReactParallaxTilt>;

@@ -19,7 +19,7 @@ import {
 import { spawn } from "@/wab/shared/common";
 import { Button, Tooltip, notification } from "antd";
 import { createPath } from "history";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
 import * as React from "react";
 
 type LivePopOutButtonProps = DefaultLivePopOutButtonProps & {
@@ -27,7 +27,7 @@ type LivePopOutButtonProps = DefaultLivePopOutButtonProps & {
   iconOnly?: boolean;
 };
 
-const LivePopOutButton = observer(function LivePopOutButton(
+function LivePopOutButton(
   props: LivePopOutButtonProps,
 ) {
   const { t: uiT } = useI18n();
@@ -90,7 +90,7 @@ const LivePopOutButton = observer(function LivePopOutButton(
   const label = isDesktop
     ? uiT("Open preview in browser")
     : uiT("Open preview in new tab");
-  const disabled = !studioCtx.currentArena || studioCtx.currentArenaEmpty;
+  const disabled = useStore(studioCtx.uiEnvironment.store, (state) => state.currentArenaEmpty);
 
   React.useEffect(() => {
     if (!iconOnly) {
@@ -173,6 +173,6 @@ const LivePopOutButton = observer(function LivePopOutButton(
       onClick={() => openLivePopup()}
     />
   );
-});
+}
 
 export default LivePopOutButton;

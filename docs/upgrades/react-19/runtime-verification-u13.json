@@ -1,0 +1,70 @@
+{
+  "status": "partial-upgrade; framework/runtime verification only",
+  "nodeHost": "v24.20.0",
+  "react": "19.3.1",
+  "next": "16.4.5",
+  "query": "0.2.0",
+  "renderer": {
+    "imageId": "sha256:ae4a6fea69872c67ce399507d37f64d28731d9a62132366ec3480a2a4bd042a6",
+    "architecture": "arm64",
+    "os": "linux",
+    "log": "u13-renderer-e2e-final.log",
+    "checks": [
+      "single React instance and public query Hook",
+      "sandboxed SSR and escaping",
+      "concurrent prepass isolation",
+      "Chromium hydration with zero refetch and no errors",
+      "SSR suspense fallback and fatal rendering errors",
+      "forbidden getuid fails with SIGSYS",
+      "30-second timeout and no remaining render child"
+    ]
+  },
+  "preview": {
+    "buildLog": "u13-preview-build-latest.log",
+    "browserLog": "u13-preview-browser-e2e-latest.log",
+    "standalone": "platform/preview/server.js",
+    "temporaryDatabaseOnly": true,
+    "realLibraries": {
+      "components": [
+        "Antd 6 / Pro 3 AppShell",
+        "React UI ActionGroup"
+      ],
+      "log": "u13-preview-browser-real-libraries-exact.log",
+      "behavior": [
+        "native action callback",
+        "menu routing",
+        "complete published website regression"
+      ]
+    }
+  },
+  "tests": {
+    "queryPrepass": {
+      "files": 4,
+      "passed": 15,
+      "log": "u13-prepass-tests-final.log"
+    },
+    "loader": {
+      "files": 6,
+      "passed": 14,
+      "log": "u13-loader-tests-final.log"
+    }
+  },
+  "files": {
+    "platform/react-renderer/Dockerfile": "c5e920eec351d5e577950c201bcc5d9980cb1f6c72d2a2707b93d8ba292c00e0",
+    "platform/react-renderer/src/server.ts": "85d8cf82fdcb087c15fea1bdcce7fd637b40ab6408bf770971b480dbd6374efa",
+    "platform/react-renderer/src/renderer.ts": "6cb16586bae7e4c5996ff971de067d1021cbfa7156c60b9a71e99d47caae05bb",
+    "platform/react-renderer/seccomp.cc": "b3f5d88a3a90f015c396bf995b47f0282350fcd4e8e46d090302063e02c7f5c2",
+    "platform/react-renderer/seccomp-bpf.h": "56a427f576ed93131b8c030a5f476970963031e5ca56393512a59ad61c2981b4",
+    "platform/react-renderer/docker-seccomp.json": "8d5cc685cfad6d70f8ecb277290d6a53ae270bd3229ef88d0c0d3a0dc90e6af0",
+    "platform/react-renderer/tests/render.e2e.mjs": "2c3944df860bccd83d261f083bef4d1ca0f08d464af3f38a956cffe5d8d78d0b",
+    "platform/react-renderer/tests/fixture.mjs": "3e6b117d207c8d728452df7353d3954d38a3fb3db1c21e0ec7b0155927db4a3a",
+    "pnpm-lock.yaml": "75048e0252e1c9a6f879ac90e68e06a792eb1eae72ffce0b9b8c1a25f270ef6d",
+    "platform/pnpm-lock.yaml": "ba4e3a9d5f242858602a8299fbddcf82c1ff60bbba361e8a0746d87e039545d4"
+  },
+  "remaining": [
+    "full MobX migration",
+    "all maintained package consumers",
+    "production Studio rebuild of current source",
+    "whole-app performance and memory validation"
+  ]
+}

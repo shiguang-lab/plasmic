@@ -6,33 +6,33 @@
     "version": "source",
     "description": "Shared application shell with route-based navigation and breadcrumbs. Configure the product, user, language, and app source; edit pages in the children slot.",
     "props": [
-      "appSource",
-      "appSources",
-      "collapsed",
-      "currentTime",
       "direction",
-      "initialContentScrollTop",
-      "language",
-      "languages",
-      "logoUrl",
-      "menuItems",
-      "productName",
-      "selectedMenuKey",
       "timeZone",
+      "currentTime",
+      "productName",
+      "logoUrl",
+      "userName",
+      "languages",
+      "language",
+      "appSources",
+      "appSource",
+      "menuItems",
+      "selectedMenuKey",
       "userMenuItems",
-      "userName"
+      "collapsed",
+      "initialContentScrollTop"
     ],
     "slots": [
       "children"
     ],
     "events": [
-      "onAppSourceChange",
-      "onCollapsedChange",
-      "onContentScroll",
       "onDirectionChange",
       "onLanguageChange",
+      "onAppSourceChange",
       "onMenuSelect",
-      "onUserAction"
+      "onUserAction",
+      "onCollapsedChange",
+      "onContentScroll"
     ],
     "sections": [
       "AppShell\nShared application shell with route-based navigation and breadcrumbs. Configure the product, user, language, and app source; edit pages in the children slot.",
@@ -46,8 +46,8 @@
     "version": "source",
     "description": "",
     "props": [
-      "offsetBottom",
-      "offsetTop"
+      "offsetTop",
+      "offsetBottom"
     ],
     "slots": [
       "children"
@@ -67,16 +67,16 @@
     "version": "source",
     "description": "",
     "props": [
-      "banner",
-      "closable",
+      "type",
       "showIcon",
-      "type"
+      "banner",
+      "closable"
     ],
     "slots": [
-      "action",
-      "description",
       "icon",
-      "title"
+      "title",
+      "description",
+      "action"
     ],
     "events": [],
     "sections": [
@@ -91,10 +91,10 @@
     "version": "source",
     "description": "",
     "props": [
-      "affix",
-      "direction",
       "items",
-      "offsetTop"
+      "affix",
+      "offsetTop",
+      "direction"
     ],
     "slots": [],
     "events": [
@@ -112,11 +112,11 @@
     "version": "source",
     "description": "",
     "props": [
-      "allowClear",
-      "disabled",
+      "value",
       "options",
       "placeholder",
-      "value",
+      "disabled",
+      "allowClear",
       "variant"
     ],
     "slots": [],
@@ -136,11 +136,11 @@
     "version": "source",
     "description": "",
     "props": [
-      "color",
       "count",
       "dot",
-      "overflowCount",
       "showZero",
+      "overflowCount",
+      "color",
       "size",
       "status",
       "text"
@@ -200,19 +200,19 @@
     "version": "source",
     "description": "",
     "props": [
-      "classNames",
+      "size",
+      "variant",
       "hoverable",
       "loading",
-      "size",
       "styles",
-      "variant"
+      "classNames"
     ],
     "slots": [
-      "actions",
       "children",
-      "cover",
+      "title",
       "extra",
-      "title"
+      "cover",
+      "actions"
     ],
     "events": [],
     "sections": [
@@ -228,9 +228,9 @@
     "description": "",
     "props": [],
     "slots": [
-      "avatar",
+      "title",
       "description",
-      "title"
+      "avatar"
     ],
     "events": [],
     "parent": "plasmic-antd6-card",
@@ -265,12 +265,12 @@
     "version": "source",
     "description": "",
     "props": [
-      "arrows",
       "autoplay",
-      "dotPlacement",
+      "arrows",
       "dots",
+      "infinite",
       "effect",
-      "infinite"
+      "dotPlacement"
     ],
     "slots": [
       "children"
@@ -290,13 +290,13 @@
     "version": "source",
     "description": "",
     "props": [
-      "allowClear",
-      "disabled",
-      "multiple",
       "options",
-      "placeholder",
-      "showSearch",
       "value",
+      "multiple",
+      "disabled",
+      "placeholder",
+      "allowClear",
+      "showSearch",
       "variant"
     ],
     "slots": [],
@@ -315,10 +315,10 @@
     "version": "source",
     "description": "",
     "props": [
-      "disabled",
-      "multiple",
       "options",
-      "value"
+      "value",
+      "multiple",
+      "disabled"
     ],
     "slots": [],
     "events": [
@@ -337,8 +337,8 @@
     "version": "source",
     "description": "",
     "props": [
-      "align",
       "gutter",
+      "align",
       "justify",
       "wrap"
     ],
@@ -358,15 +358,15 @@
     "version": "source",
     "description": "",
     "props": [
-      "flex",
-      "lg",
-      "md",
+      "span",
       "offset",
       "order",
-      "sm",
-      "span",
-      "xl",
+      "flex",
       "xs",
+      "sm",
+      "md",
+      "lg",
+      "xl",
       "xxl"
     ],
     "slots": [
@@ -385,17 +385,17 @@
     "version": "source",
     "description": "Display grouped read-only label/value fields in details, drawers, confirmations or create/edit summaries. Use alongside Form for mixed read-only and editable content; use Statistic for emphasized metrics.",
     "props": [
-      "bordered",
-      "classNames",
-      "column",
       "items",
+      "column",
       "layout",
+      "bordered",
       "size",
-      "styles"
+      "styles",
+      "classNames"
     ],
     "slots": [
-      "children",
-      "title"
+      "title",
+      "children"
     ],
     "events": [],
     "sections": [
@@ -410,13 +410,13 @@
     "version": "source",
     "description": "Editable label and content for a read-only field. Converted to a native Descriptions items entry at runtime.",
     "props": [
-      "classNames",
       "span",
-      "styles"
+      "styles",
+      "classNames"
     ],
     "slots": [
-      "children",
-      "label"
+      "label",
+      "children"
     ],
     "events": [],
     "parent": "plasmic-antd6-descriptions",
@@ -432,11 +432,11 @@
     "version": "source",
     "description": "",
     "props": [
-      "dashed",
       "orientation",
+      "titlePlacement",
+      "dashed",
       "plain",
-      "size",
-      "titlePlacement"
+      "size"
     ],
     "slots": [
       "children"
@@ -457,8 +457,8 @@
       "image"
     ],
     "slots": [
-      "children",
-      "description"
+      "description",
+      "children"
     ],
     "events": [],
     "sections": [
@@ -473,11 +473,11 @@
     "version": "source",
     "description": "",
     "props": [
-      "align",
-      "gap",
-      "justify",
       "vertical",
-      "wrap"
+      "wrap",
+      "gap",
+      "align",
+      "justify"
     ],
     "slots": [
       "children"
@@ -495,13 +495,13 @@
     "version": "source",
     "description": "",
     "props": [
-      "shape",
       "tooltip",
-      "type"
+      "type",
+      "shape"
     ],
     "slots": [
-      "content",
-      "icon"
+      "icon",
+      "content"
     ],
     "events": [
       "onClick"
@@ -518,9 +518,9 @@
     "version": "source",
     "description": "",
     "props": [
-      "open",
+      "trigger",
       "shape",
-      "trigger"
+      "open"
     ],
     "slots": [
       "children"
@@ -541,8 +541,8 @@
     "version": "source",
     "description": "",
     "props": [
-      "duration",
-      "visibilityHeight"
+      "visibilityHeight",
+      "duration"
     ],
     "slots": [
       "icon"
@@ -561,12 +561,12 @@
     "version": "source",
     "description": "",
     "props": [
+      "src",
       "alt",
-      "fallback",
+      "width",
       "height",
       "preview",
-      "src",
-      "width"
+      "fallback"
     ],
     "slots": [],
     "events": [],
@@ -670,12 +670,12 @@
     "version": "source",
     "description": "",
     "props": [
-      "breakpoint",
+      "width",
       "collapsed",
-      "collapsedWidth",
       "collapsible",
+      "collapsedWidth",
       "theme",
-      "width"
+      "breakpoint"
     ],
     "slots": [
       "children"
@@ -696,17 +696,17 @@
     "version": "source",
     "description": "",
     "props": [
-      "bordered",
       "dataSource",
-      "loading",
       "size",
-      "split"
+      "split",
+      "bordered",
+      "loading"
     ],
     "slots": [
       "children",
-      "footer",
+      "renderItem",
       "header",
-      "renderItem"
+      "footer"
     ],
     "events": [],
     "sections": [
@@ -722,9 +722,9 @@
     "description": "",
     "props": [],
     "slots": [
-      "actions",
       "children",
-      "extra"
+      "extra",
+      "actions"
     ],
     "events": [],
     "parent": "plasmic-antd6-list",
@@ -741,9 +741,9 @@
     "description": "",
     "props": [],
     "slots": [
-      "avatar",
+      "title",
       "description",
-      "title"
+      "avatar"
     ],
     "events": [],
     "parent": "plasmic-antd6-list-item",
@@ -759,10 +759,10 @@
     "version": "source",
     "description": "",
     "props": [
-      "height",
       "items",
-      "sticky",
-      "virtual"
+      "height",
+      "virtual",
+      "sticky"
     ],
     "slots": [],
     "events": [],
@@ -778,9 +778,9 @@
     "version": "source",
     "description": "",
     "props": [
+      "items",
       "columns",
-      "gutter",
-      "items"
+      "gutter"
     ],
     "slots": [],
     "events": [],
@@ -796,11 +796,11 @@
     "version": "source",
     "description": "",
     "props": [
-      "disabled",
+      "value",
       "options",
-      "placeholder",
       "prefix",
-      "value"
+      "placeholder",
+      "disabled"
     ],
     "slots": [],
     "events": [
@@ -818,27 +818,26 @@
     "version": "source",
     "description": "",
     "props": [
-      "cancelText",
-      "disabled",
-      "okButtonProps",
       "okText",
-      "open",
-      "previewOpen"
+      "cancelText",
+      "okButtonProps",
+      "disabled",
+      "open"
     ],
     "slots": [
-      "children",
-      "description",
       "icon",
-      "title"
+      "children",
+      "title",
+      "description"
     ],
     "events": [
-      "onCancel",
+      "onOpenChange",
       "onConfirm",
-      "onOpenChange"
+      "onCancel"
     ],
     "sections": [
       "Popconfirm",
-      "cancelText: string\nchildren: slot\ndescription: slot\ndisabled: boolean\nicon: slot\nokButtonProps: object\nokText: string\nonCancel: eventHandler\nEvent arguments: event: object\nonConfirm: eventHandler\nEvent arguments: event: object\nonOpenChange: eventHandler\nEvent arguments: open: boolean\nopen: boolean — Native controlled open state. Leave unset for the native click trigger; bind it when another action, such as an ActionGroup item, requests confirmation.\npreviewOpen: boolean — Show or hide the overlay on the editing canvas. When unset, follows selection without changing the runtime open state.\ntitle: slot"
+      "cancelText: string\nchildren: slot\ndescription: slot\ndisabled: boolean\nicon: slot\nokButtonProps: object\nokText: string\nonCancel: eventHandler\nEvent arguments: event: object\nonConfirm: eventHandler\nEvent arguments: event: object\nonOpenChange: eventHandler\nEvent arguments: open: boolean\nopen: boolean — Native controlled open state. Leave unset for the native click trigger; bind it when another action, such as an ActionGroup item, requests confirmation.\ntitle: slot"
     ]
   },
   {
@@ -848,13 +847,13 @@
     "version": "source",
     "description": "",
     "props": [
-      "bgColor",
-      "color",
-      "icon",
+      "value",
       "size",
-      "status",
+      "color",
+      "bgColor",
+      "icon",
       "type",
-      "value"
+      "status"
     ],
     "slots": [],
     "events": [],
@@ -873,10 +872,10 @@
       "status"
     ],
     "slots": [
-      "extra",
-      "icon",
+      "title",
       "subTitle",
-      "title"
+      "extra",
+      "icon"
     ],
     "events": [],
     "sections": [
@@ -892,11 +891,11 @@
     "description": "",
     "props": [
       "active",
-      "avatar",
       "loading",
+      "avatar",
+      "title",
       "paragraph",
-      "round",
-      "title"
+      "round"
     ],
     "slots": [
       "children"
@@ -999,10 +998,10 @@
     "version": "source",
     "description": "",
     "props": [
-      "align",
       "orientation",
       "size",
-      "wrap"
+      "wrap",
+      "align"
     ],
     "slots": [
       "children",
@@ -1021,9 +1020,9 @@
     "version": "source",
     "description": "",
     "props": [
-      "block",
       "orientation",
-      "size"
+      "size",
+      "block"
     ],
     "slots": [
       "children"
@@ -1042,15 +1041,15 @@
     "version": "source",
     "description": "",
     "props": [
-      "delay",
+      "spinning",
       "description",
-      "fullscreen",
       "size",
-      "spinning"
+      "delay",
+      "fullscreen"
     ],
     "slots": [
-      "children",
-      "indicator"
+      "indicator",
+      "children"
     ],
     "events": [],
     "sections": [
@@ -1085,11 +1084,11 @@
     "version": "source",
     "description": "",
     "props": [
-      "collapsible",
       "defaultSize",
-      "max",
       "min",
-      "resizable"
+      "max",
+      "resizable",
+      "collapsible"
     ],
     "slots": [
       "children"
@@ -1108,15 +1107,15 @@
     "version": "source",
     "description": "",
     "props": [
-      "loading",
+      "value",
       "precision",
-      "styles",
-      "value"
+      "loading",
+      "styles"
     ],
     "slots": [
+      "title",
       "prefix",
-      "suffix",
-      "title"
+      "suffix"
     ],
     "events": [],
     "sections": [
@@ -1131,9 +1130,9 @@
     "version": "source",
     "description": "",
     "props": [
-      "format",
       "type",
-      "value"
+      "value",
+      "format"
     ],
     "slots": [
       "title"
@@ -1154,13 +1153,13 @@
     "version": "source",
     "description": "",
     "props": [
-      "closable",
       "color",
-      "variant"
+      "variant",
+      "closable"
     ],
     "slots": [
-      "children",
       "closeIcon",
+      "children",
       "icon"
     ],
     "events": [
@@ -1218,10 +1217,10 @@
     "description": "",
     "props": [
       "dataSource",
-      "disabled",
-      "oneWay",
+      "targetKeys",
       "showSearch",
-      "targetKeys"
+      "disabled",
+      "oneWay"
     ],
     "slots": [],
     "events": [
@@ -1239,14 +1238,14 @@
     "version": "source",
     "description": "",
     "props": [
+      "treeData",
+      "value",
+      "multiple",
+      "treeCheckable",
+      "treeDefaultExpandAll",
       "allowClear",
       "disabled",
-      "multiple",
       "placeholder",
-      "treeCheckable",
-      "treeData",
-      "treeDefaultExpandAll",
-      "value",
       "variant"
     ],
     "slots": [],
@@ -1281,16 +1280,16 @@
     "version": "source",
     "description": "",
     "props": [
-      "code",
-      "copyable",
-      "delete",
-      "disabled",
-      "ellipsis",
-      "italic",
-      "mark",
-      "strong",
       "type",
-      "underline"
+      "strong",
+      "italic",
+      "underline",
+      "delete",
+      "code",
+      "mark",
+      "copyable",
+      "ellipsis",
+      "disabled"
     ],
     "slots": [
       "children"
@@ -1309,16 +1308,16 @@
     "version": "source",
     "description": "",
     "props": [
-      "code",
-      "copyable",
-      "delete",
-      "disabled",
-      "ellipsis",
-      "italic",
-      "level",
-      "mark",
       "type",
-      "underline"
+      "italic",
+      "underline",
+      "delete",
+      "code",
+      "mark",
+      "copyable",
+      "ellipsis",
+      "disabled",
+      "level"
     ],
     "slots": [
       "children"
@@ -1337,16 +1336,16 @@
     "version": "source",
     "description": "",
     "props": [
-      "code",
-      "copyable",
-      "delete",
-      "disabled",
-      "ellipsis",
-      "italic",
-      "mark",
-      "strong",
       "type",
-      "underline"
+      "strong",
+      "italic",
+      "underline",
+      "delete",
+      "code",
+      "mark",
+      "copyable",
+      "ellipsis",
+      "disabled"
     ],
     "slots": [
       "children"
@@ -1365,18 +1364,18 @@
     "version": "source",
     "description": "",
     "props": [
-      "code",
-      "copyable",
-      "delete",
-      "disabled",
-      "ellipsis",
-      "href",
-      "italic",
-      "mark",
-      "strong",
-      "target",
       "type",
-      "underline"
+      "strong",
+      "italic",
+      "underline",
+      "delete",
+      "code",
+      "mark",
+      "copyable",
+      "ellipsis",
+      "disabled",
+      "href",
+      "target"
     ],
     "slots": [
       "children"
@@ -1396,10 +1395,10 @@
     "description": "",
     "props": [
       "content",
-      "font",
-      "gap",
       "image",
-      "rotate"
+      "rotate",
+      "font",
+      "gap"
     ],
     "slots": [
       "children"
@@ -1417,11 +1416,11 @@
     "version": "source",
     "description": "",
     "props": [
-      "disabled",
+      "value",
       "length",
+      "disabled",
       "mask",
       "size",
-      "value",
       "variant"
     ],
     "slots": [],
@@ -1442,12 +1441,12 @@
     "version": "source",
     "description": "",
     "props": [
-      "allowClear",
-      "disabled",
+      "value",
+      "placeholder",
       "enterButton",
       "loading",
-      "placeholder",
-      "value"
+      "disabled",
+      "allowClear"
     ],
     "slots": [],
     "events": [
@@ -1467,11 +1466,11 @@
     "version": "source",
     "description": "",
     "props": [
-      "accept",
       "action",
-      "disabled",
+      "name",
       "multiple",
-      "name"
+      "accept",
+      "disabled"
     ],
     "slots": [
       "children"
@@ -1492,9 +1491,9 @@
     "version": "source",
     "description": "",
     "props": [
+      "value",
       "fullscreen",
-      "mode",
-      "value"
+      "mode"
     ],
     "slots": [],
     "events": [
@@ -1513,11 +1512,11 @@
     "version": "source",
     "description": "",
     "props": [
-      "allowClear",
-      "disabled",
+      "value",
       "format",
       "use12Hours",
-      "value",
+      "disabled",
+      "allowClear",
       "variant"
     ],
     "slots": [],
@@ -1536,10 +1535,10 @@
     "version": "source",
     "description": "",
     "props": [
-      "disabled",
+      "value",
       "format",
       "use12Hours",
-      "value",
+      "disabled",
       "variant"
     ],
     "slots": [],
@@ -1559,8 +1558,8 @@
     "version": "source",
     "description": "",
     "props": [
-      "current",
       "open",
+      "current",
       "steps",
       "type"
     ],
@@ -1581,27 +1580,27 @@
     "version": "source",
     "description": "Choose one or multiple values from dropdown options. Supports configured search, clear and selection modes; selecting a value does not switch page content.",
     "props": [
-      "allowClear",
-      "autoFocus",
-      "defaultStylesClassName",
-      "disabled",
-      "maxTagCount",
-      "mode",
-      "open",
-      "optionClassName",
       "options",
-      "placeholderClassName",
-      "popupMatchSelectWidth",
-      "popupRootClassName",
-      "popupScopeClassName",
-      "previewOpen",
-      "showSearch",
-      "size",
-      "status",
-      "triggerClassName",
       "useChildren",
+      "open",
+      "defaultOpen",
       "value",
-      "variant"
+      "mode",
+      "maxTagCount",
+      "size",
+      "disabled",
+      "showSearch",
+      "status",
+      "variant",
+      "autoFocus",
+      "popupMatchSelectWidth",
+      "allowClear",
+      "triggerClassName",
+      "popupScopeClassName",
+      "popupRootClassName",
+      "optionClassName",
+      "placeholderClassName",
+      "defaultStylesClassName"
     ],
     "slots": [
       "children",
@@ -1609,11 +1608,12 @@
       "suffixIcon"
     ],
     "events": [
+      "onOpenChange",
       "onChange"
     ],
     "sections": [
       "Select\nChoose one or multiple values from dropdown options. Supports configured search, clear and selection modes; selecting a value does not switch page content.",
-      "allowClear: boolean\nautoFocus: boolean\nchildren: slot\nAllowed children: plasmic-antd6-option, plasmic-antd6-option-group\ndefaultStylesClassName: themeResetClass\ndisabled: boolean\nmaxTagCount: object — Maximum number of displayed tags, or \"responsive\" to automatically collapse tags to fit the available width.\nmode: choice — Whether to allow single or multiple selection. Tags mode additionally allows selecting options outside the specified set of options.\nonChange: eventHandler\nEvent arguments: value: object, option: object\nopen: boolean\noptionClassName: class\noptions: array\nplaceholder: slot\nplaceholderClassName: class\npopupMatchSelectWidth: boolean\npopupRootClassName: class\npopupScopeClassName: styleScopeClass\npreviewOpen: boolean — Show or hide the overlay on the editing canvas. When unset, follows selection without changing the runtime open state.\nshowSearch: object — Native boolean or search configuration, such as {\"optionFilterProp\":\"label\"}. Unset disables search in single mode and enables it in multiple/tags mode. Ant Design filters by value by default.\nsize: choice\nstatus: choice\nsuffixIcon: slot\ntriggerClassName: class\nuseChildren: boolean — Instead of configuring a list of options, customize the contents of the Select by dragging and dropping options in the outline/canvas, inside the 'children' slot. Lets you use any content or formatting within the Options, and also use Option Groups.\nvalue: choice — Initial selected option\nvariant: choice"
+      "allowClear: boolean\nautoFocus: boolean\nchildren: slot\nAllowed children: plasmic-antd6-option, plasmic-antd6-option-group\ndefaultOpen: boolean — Initial popup open state when open is not controlled.\ndefaultStylesClassName: themeResetClass\ndisabled: boolean\nmaxTagCount: object — Maximum number of displayed tags, or \"responsive\" to automatically collapse tags to fit the available width.\nmode: choice — Whether to allow single or multiple selection. Tags mode additionally allows selecting options outside the specified set of options.\nonChange: eventHandler\nEvent arguments: value: object, option: object\nonOpenChange: eventHandler\nEvent arguments: open: boolean\nopen: boolean — Controlled open state of the option popup. Leave unset for native interaction.\noptionClassName: class\noptions: array\nplaceholder: slot\nplaceholderClassName: class\npopupMatchSelectWidth: boolean\npopupRootClassName: class\npopupScopeClassName: styleScopeClass\nshowSearch: object — Native boolean or search configuration, such as {\"optionFilterProp\":\"label\"}. Unset disables search in single mode and enables it in multiple/tags mode. Ant Design filters by value by default.\nsize: choice\nstatus: choice\nsuffixIcon: slot\ntriggerClassName: class\nuseChildren: boolean — Instead of configuring a list of options, customize the contents of the Select by dragging and dropping options in the outline/canvas, inside the 'children' slot. Lets you use any content or formatting within the Options, and also use Option Groups.\nvalue: choice — Initial selected option\nvariant: choice"
     ]
   },
   {
@@ -1660,16 +1660,15 @@
     "version": "source",
     "description": "Display structured records as rows and columns, with registered controls for sorting, filtering, row selection, pagination and expandable detail content. Configure the relevant data and event props for each behavior.",
     "props": [
-      "bordered",
-      "canvasExpandedRowKeys",
       "data",
       "expandable",
-      "isSelectable",
+      "bordered",
+      "size",
       "pagination",
-      "rowKey",
       "scroll",
-      "selectedRowKeys",
-      "size"
+      "isSelectable",
+      "rowKey",
+      "selectedRowKeys"
     ],
     "slots": [
       "children",
@@ -1677,15 +1676,15 @@
       "title"
     ],
     "events": [
-      "onChange",
       "onExpand",
       "onExpandedRowsChange",
+      "onChange",
       "onSelectedRowKeysChange",
       "onSelectedRowsChange"
     ],
     "sections": [
       "Table\nDisplay structured records as rows and columns, with registered controls for sorting, filtering, row selection, pagination and expandable detail content. Configure the relevant data and event props for each behavior.",
-      "bordered: boolean\ncanvasExpandedRowKeys: choice — Initial rowKey values expanded only on the editing canvas. Select representative loaded rows covering every requirement-defined detail variant (fields, layout, available actions and boundary data); the Table does not infer a status field. An empty array closes all canvas rows; omit to follow native expansion settings. Manual canvas expansion is temporary. Changing this value refreshes the samples. Ignored in Interactive mode, Preview and generated exports. Requires Expanded row content and stable row keys; missing or ineligible rows are ignored.\nchildren: slot\nAllowed children: plasmic-antd6-table-column, plasmic-antd6-table-column-group, plasmic-antd6-table-expand-column\ndata: dataSourceOpData\nexpandable: object — Native Ant Design expandable configuration. Add Expanded row content to enable row details. Insert one Table.ExpandColumn among Columns to choose its position; otherwise Ant Design places it automatically. State remains in this object; bind expandedRowKeys and update it from the top-level onExpandedRowsChange event for controlled expansion. Top-level render and event props take precedence over callbacks supplied in expandable.\nexpandedRowRender: slot — Row detail template receiving row, index, indent and expanded. Mapped to native expandable.expandedRowRender; takes precedence over a renderer in expandable. Use row fields in this slot. Configure Canvas expanded rows to show representative detail variants directly on the editing canvas. Selection does not broaden configured samples. When canvas samples are unset, selecting this slot or Edit contents reveals eligible rows without changing runtime expansion. Selecting the Table alone does not reveal rows. The canvas modifier-click gesture changes temporary keys. Requires data and a stable rowKey.\nisSelectable: choice\nonChange: eventHandler — Receives pagination, filters, sorter and extra. Sorter contains field, columnKey and order (ascend/descend, or undefined when cleared); multiple sorting can return an array. extra.action is paginate, sort or filter. With Column.sorter=true, use these values to request server-sorted data; rows are not reordered locally.\nEvent arguments: pagination: object, filters: object, sorter: object, extra: object\nonExpand: eventHandler — Mapped to native expandable.onExpand(expanded, row). Use MCP createInteraction with eventName onExpand. Top-level handler takes precedence over expandable.onExpand.\nEvent arguments: expanded: boolean, row: object\nonExpandedRowsChange: eventHandler — Mapped to native expandable.onExpandedRowsChange(expandedKeys). Use MCP createInteraction with eventName onExpandedRowsChange to update the state bound to expandable.expandedRowKeys. Top-level handler takes precedence over expandable.onExpandedRowsChange.\nEvent arguments: expandedKeys: object\nonSelectedRowKeysChange: eventHandler\nEvent arguments: keys: object\nonSelectedRowsChange: eventHandler\nEvent arguments: rows: object\npagination: custom — False hides pagination; otherwise use native pagination options: current, pageSize/defaultPageSize, total, pageSizeOptions, showSizeChanger, and showTotal(total, range) returning content. Bind showTotal to display the total before the pager controls; keep paging and total under this one owner.\nrowKey: choice — Choose a unique, stable field to identify rows for selection and expansion.\nscroll: custom — Native Ant Design scroll. Horizontal width accepts pixels, percentages, or max-content; unset keeps the table within its container without horizontal scrolling. The table body grows with content when height is unset.\nselectedRowKeys: choice\nsize: choice\ntitle: slot — Optional content above the column headers. Receives the current page rows as currentPageData; column headings use Column.title."
+      "bordered: boolean\nchildren: slot\nAllowed children: plasmic-antd6-table-column, plasmic-antd6-table-column-group, plasmic-antd6-table-expand-column\ndata: dataSourceOpData\nexpandable: object — Native Ant Design expandable configuration. Add Expanded row content to enable row details. Insert one Table.ExpandColumn among Columns to choose its position; otherwise Ant Design places it automatically. State remains in this object; bind expandedRowKeys and update it from the top-level onExpandedRowsChange event for controlled expansion. Top-level render and event props take precedence over callbacks supplied in expandable.\nexpandedRowRender: slot — Row detail template receiving row, index, indent and expanded. Mapped to native expandable.expandedRowRender; takes precedence over a renderer in expandable. Use row fields in this slot. Selecting this slot or Edit contents reveals eligible rows through the temporary canvas session without changing runtime expansion. Selecting the Table alone does not reveal rows. The canvas modifier-click gesture changes temporary keys. Requires data and a stable rowKey.\nisSelectable: choice\nonChange: eventHandler — Receives pagination, filters, sorter and extra. Sorter contains field, columnKey and order (ascend/descend, or undefined when cleared); multiple sorting can return an array. extra.action is paginate, sort or filter. With Column.sorter=true, use these values to request server-sorted data; rows are not reordered locally.\nEvent arguments: pagination: object, filters: object, sorter: object, extra: object\nonExpand: eventHandler — Mapped to native expandable.onExpand(expanded, row). Use MCP createInteraction with eventName onExpand. Top-level handler takes precedence over expandable.onExpand.\nEvent arguments: expanded: boolean, row: object\nonExpandedRowsChange: eventHandler — Mapped to native expandable.onExpandedRowsChange(expandedKeys). Use MCP createInteraction with eventName onExpandedRowsChange to update the state bound to expandable.expandedRowKeys. Top-level handler takes precedence over expandable.onExpandedRowsChange.\nEvent arguments: expandedKeys: object\nonSelectedRowKeysChange: eventHandler\nEvent arguments: keys: object\nonSelectedRowsChange: eventHandler\nEvent arguments: rows: object\npagination: custom — False hides pagination; otherwise use native pagination options: current, pageSize/defaultPageSize, total, pageSizeOptions, showSizeChanger, and showTotal(total, range) returning content. Bind showTotal to display the total before the pager controls; keep paging and total under this one owner.\nrowKey: choice — Choose a unique, stable field to identify rows for selection and expansion.\nscroll: custom — Native Ant Design scroll. Horizontal width accepts pixels, percentages, or max-content; unset keeps the table within its container without horizontal scrolling. The table body grows with content when height is unset.\nselectedRowKeys: choice\nsize: choice\ntitle: slot — Optional content above the column headers. Receives the current page rows as currentPageData; column headings use Column.title."
     ]
   },
   {
@@ -1695,20 +1694,20 @@
     "version": "source",
     "description": "Define a data or action column inside Table, including its title, data field and cell renderer. Requires the owning Table.",
     "props": [
-      "align",
-      "colSpan",
       "dataIndex",
-      "defaultSortOrder",
-      "ellipsis",
-      "fixed",
-      "sortDirections",
-      "sortOrder",
+      "align",
       "sorter",
-      "width"
+      "defaultSortOrder",
+      "sortOrder",
+      "sortDirections",
+      "fixed",
+      "colSpan",
+      "width",
+      "ellipsis"
     ],
     "slots": [
-      "render",
-      "title"
+      "title",
+      "render"
     ],
     "events": [
       "onCellClick"
@@ -1741,8 +1740,8 @@
     "description": "Group related columns under a shared heading inside Table; contains Column definitions rather than standalone page content.",
     "props": [],
     "slots": [
-      "children",
-      "title"
+      "title",
+      "children"
     ],
     "events": [],
     "parent": "plasmic-antd6-table",
@@ -1758,10 +1757,10 @@
     "version": "source",
     "description": "Toggle a boolean choice such as consent or a single independent option.",
     "props": [
-      "autoFocus",
       "checked",
       "disabled",
-      "indeterminate"
+      "indeterminate",
+      "autoFocus"
     ],
     "slots": [
       "children"
@@ -1781,8 +1780,8 @@
     "version": "source",
     "description": "Choose multiple independent values from a set of options; exposes the selected values as a collection.",
     "props": [
-      "disabled",
-      "value"
+      "value",
+      "disabled"
     ],
     "slots": [
       "children"
@@ -1803,9 +1802,9 @@
     "version": "source",
     "description": "Toggle a boolean setting between on and off, with checked and change-event bindings.",
     "props": [
-      "autoFocus",
       "checked",
-      "disabled"
+      "disabled",
+      "autoFocus"
     ],
     "slots": [],
     "events": [
@@ -1823,9 +1822,9 @@
     "version": "source",
     "description": "One mutually exclusive option, normally inside Radio Group, with a value and label.",
     "props": [
-      "autoFocus",
+      "value",
       "disabled",
-      "value"
+      "autoFocus"
     ],
     "slots": [
       "children"
@@ -1843,9 +1842,9 @@
     "version": "source",
     "description": "One button-styled radio option inside Radio Group; selects a field value rather than a content panel.",
     "props": [
-      "autoFocus",
+      "value",
       "disabled",
-      "value"
+      "autoFocus"
     ],
     "slots": [
       "children"
@@ -1864,11 +1863,11 @@
     "version": "source",
     "description": "Choose exactly one value from mutually exclusive options, using radios or radio buttons. Selection changes a field value rather than navigating content panels.",
     "props": [
-      "disabled",
-      "optionType",
       "options",
-      "useChildren",
-      "value"
+      "optionType",
+      "value",
+      "disabled",
+      "useChildren"
     ],
     "slots": [
       "children"
@@ -1889,39 +1888,38 @@
     "version": "source",
     "description": "Open a dialog over the current page for focused confirmation, information or form editing. Control its open state and OK/cancel events. [See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
     "props": [
-      "cancelButtonProps",
-      "cancelText",
-      "closeButtonClassName",
-      "closeOnOutsideClick",
-      "confirmLoading",
-      "defaultStylesClassName",
-      "destroyOnHidden",
-      "hideFooter",
-      "mask",
-      "modalContentClassName",
-      "modalScopeClassName",
-      "okButtonProps",
-      "okText",
       "open",
-      "previewOpen",
+      "mask",
+      "destroyOnHidden",
       "width",
-      "wrapClassName"
+      "okText",
+      "cancelText",
+      "hideFooter",
+      "confirmLoading",
+      "okButtonProps",
+      "cancelButtonProps",
+      "closeOnOutsideClick",
+      "wrapClassName",
+      "modalScopeClassName",
+      "modalContentClassName",
+      "closeButtonClassName",
+      "defaultStylesClassName"
     ],
     "slots": [
       "children",
-      "closeIcon",
-      "footer",
       "title",
-      "trigger"
+      "footer",
+      "trigger",
+      "closeIcon"
     ],
     "events": [
-      "onCancel",
       "onOk",
+      "onCancel",
       "onOpenChange"
     ],
     "sections": [
       "Modal\nOpen a dialog over the current page for focused confirmation, information or form editing. Control its open state and OK/cancel events. [See tutorial video](https://www.youtube.com/watch?v=TkjxNJIFun8)",
-      "cancelButtonProps: object — Native Button props for the default Cancel button.\ncancelText: string\nchildren: slot\ncloseButtonClassName: class\ncloseIcon: slot\ncloseOnOutsideClick: boolean — Whether to close the modal when user clicks outside the modal\nconfirmLoading: boolean — Show loading on the default OK button while saving.\ndefaultStylesClassName: themeResetClass\ndestroyOnHidden: boolean\nfooter: slot\nhideFooter: boolean — Hide the modal footer slot\nmask: object\nmodalContentClassName: class\nmodalScopeClassName: styleScopeClass\nokButtonProps: object — Native Button props for the default OK button.\nokText: string\nonCancel: eventHandler\nEvent arguments: \nonOk: eventHandler — Validate and save, then explicitly close the modal after success. Clicking OK does not change open automatically.\nEvent arguments: \nonOpenChange: eventHandler\nEvent arguments: open: boolean\nopen: boolean\npreviewOpen: boolean — Show or hide the overlay on the editing canvas. When unset, follows selection without changing the runtime open state.\ntitle: slot\ntrigger: slot — Optional inline opener. Clear this Slot when another business control owns opening the Modal; binding open does not remove the default opener.\nwidth: string — Change the width of the modal\nwrapClassName: class"
+      "cancelButtonProps: object — Native Button props for the default Cancel button.\ncancelText: string\nchildren: slot\ncloseButtonClassName: class\ncloseIcon: slot\ncloseOnOutsideClick: boolean — Whether to close the modal when user clicks outside the modal\nconfirmLoading: boolean — Show loading on the default OK button while saving.\ndefaultStylesClassName: themeResetClass\ndestroyOnHidden: boolean\nfooter: slot\nhideFooter: boolean — Hide the modal footer slot\nmask: object\nmodalContentClassName: class\nmodalScopeClassName: styleScopeClass\nokButtonProps: object — Native Button props for the default OK button.\nokText: string\nonCancel: eventHandler\nEvent arguments: \nonOk: eventHandler — Validate and save, then explicitly close the modal after success. Clicking OK does not change open automatically.\nEvent arguments: \nonOpenChange: eventHandler\nEvent arguments: open: boolean\nopen: boolean\ntitle: slot\ntrigger: slot — Optional inline opener. Clear this Slot when another business control owns opening the Modal; binding open does not remove the default opener.\nwidth: string — Change the width of the modal\nwrapClassName: class"
     ]
   },
   {
@@ -1932,19 +1930,19 @@
     "description": "Trigger a user action such as submit, reset, confirm or open an overlay. Supports text, icons, loading and disabled states; use href for link navigation.",
     "props": [
       "aria-label",
-      "color",
-      "danger",
-      "disabled",
-      "ghost",
-      "href",
-      "iconPlacement",
-      "loading",
-      "shape",
-      "size",
-      "submitsForm",
-      "target",
       "type",
-      "variant"
+      "variant",
+      "color",
+      "iconPlacement",
+      "size",
+      "shape",
+      "disabled",
+      "submitsForm",
+      "ghost",
+      "danger",
+      "loading",
+      "href",
+      "target"
     ],
     "slots": [
       "children",
@@ -1965,16 +1963,16 @@
     "version": "source",
     "description": "",
     "props": [
-      "defaultOpenKeys",
-      "defaultSelectedKeys",
       "mode",
       "multiple",
+      "triggerSubMenuAction",
+      "defaultOpenKeys",
       "openKeys",
-      "triggerSubMenuAction"
+      "defaultSelectedKeys"
     ],
     "slots": [
-      "children",
-      "expandIcon"
+      "expandIcon",
+      "children"
     ],
     "events": [
       "onOpenChange",
@@ -1997,8 +1995,8 @@
       "title"
     ],
     "slots": [
-      "children",
-      "icon"
+      "icon",
+      "children"
     ],
     "events": [
       "onClick"
@@ -2017,8 +2015,8 @@
     "description": "",
     "props": [],
     "slots": [
-      "children",
-      "title"
+      "title",
+      "children"
     ],
     "events": [],
     "parent": "plasmic-antd6-menu",
@@ -2055,9 +2053,9 @@
       "popupClassName"
     ],
     "slots": [
-      "children",
       "icon",
-      "title"
+      "title",
+      "children"
     ],
     "events": [],
     "parent": "plasmic-antd6-menu",
@@ -2073,27 +2071,27 @@
     "version": "source",
     "description": "",
     "props": [
-      "disabled",
+      "menuItemsJson",
       "dropdownMenuScopeClassName",
       "menuClassName",
       "menuItemClassName",
-      "menuItemsJson",
       "open",
+      "disabled",
       "placement",
-      "previewOpen",
       "trigger",
       "useMenuItemsSlot"
     ],
     "slots": [
-      "children",
-      "menuItems"
+      "menuItems",
+      "children"
     ],
     "events": [
+      "onOpenChange",
       "onAction"
     ],
     "sections": [
       "Dropdown",
-      "children: slot\ndisabled: boolean — Whether the dropdown menu is disabled\ndropdownMenuScopeClassName: styleScopeClass\nmenuClassName: class\nmenuItemClassName: class\nmenuItems: slot\nAllowed children: plasmic-antd6-menu-item, plasmic-antd6-menu-item-group, plasmic-antd6-menu-divider, plasmic-antd6-submenu\nmenuItemsJson: array — Menu items with stable keys. onAction receives the clicked item's key, not value or label. Set a unique key for every action, including nested items.\nonAction: eventHandler — Called with the selected Menu item's key. Use explicit stable keys in menuItemsJson or MenuItem instances.\nEvent arguments: key: string\nopen: boolean — Toggle visibility of dropdown menu in Plasmic Editor\nplacement: choice — Placement of popup menu\npreviewOpen: boolean — Show or hide the overlay on the editing canvas. When unset, follows selection without changing the runtime open state.\ntrigger: choice — The trigger mode which executes the dropdown action\nuseMenuItemsSlot: boolean — Instead of configuring a list of menu items, build the menu items using MenuItem elements. This gives you greater control over item styling."
+      "children: slot\ndisabled: boolean — Whether the dropdown menu is disabled\ndropdownMenuScopeClassName: styleScopeClass\nmenuClassName: class\nmenuItemClassName: class\nmenuItems: slot\nAllowed children: plasmic-antd6-menu-item, plasmic-antd6-menu-item-group, plasmic-antd6-menu-divider, plasmic-antd6-submenu\nmenuItemsJson: array — Menu items with stable keys. onAction receives the clicked item's key, not value or label. Set a unique key for every action, including nested items.\nonAction: eventHandler — Called with the selected Menu item's key. Use explicit stable keys in menuItemsJson or MenuItem instances.\nEvent arguments: key: string\nonOpenChange: eventHandler\nEvent arguments: open: boolean, info: object\nopen: boolean — Controlled open state of the dropdown menu. Leave unset for the native trigger.\nplacement: choice — Placement of popup menu\ntrigger: choice — The trigger mode which executes the dropdown action\nuseMenuItemsSlot: boolean — Instead of configuring a list of menu items, build the menu items using MenuItem elements. This gives you greater control over item styling."
     ]
   },
   {
@@ -2103,25 +2101,25 @@
     "version": "source",
     "description": "Collect named input values, validate field rules and submit the complete values through form events. Supports editable Form Field children and repeated field groups. [Learn how to use forms](https://docs.plasmic.app/learn/forms/)",
     "props": [
-      "autoDisableWhileSubmitting",
-      "colon",
-      "data",
-      "dataFormItems",
       "disabled",
+      "mode",
+      "data",
       "formItems",
+      "dataFormItems",
       "initialValues",
+      "layout",
+      "styles",
       "labelAlign",
       "labelCol",
-      "layout",
-      "mode",
+      "wrapperCol",
+      "colon",
       "requiredMark",
-      "styles",
       "validateTrigger",
-      "wrapperCol"
+      "autoDisableWhileSubmitting"
     ],
     "slots": [
-      "children",
-      "submitSlot"
+      "submitSlot",
+      "children"
     ],
     "events": [
       "extendedOnValuesChange",
@@ -2141,29 +2139,29 @@
     "version": "source",
     "description": "",
     "props": [
+      "name",
+      "initialValue",
+      "rules",
+      "validateFirst",
+      "valuePropName",
+      "trigger",
+      "noLabel",
       "alignLabellessWithControls",
       "colon",
-      "customizeProps",
-      "dependencies",
-      "hidden",
-      "hideValidationMessage",
-      "initialValue",
       "labelAlign",
-      "name",
-      "noLabel",
-      "noStyle",
-      "preserve",
-      "rules",
-      "shouldUpdate",
-      "trigger",
-      "validateFirst",
+      "hidden",
       "validateTrigger",
-      "valuePropName"
+      "shouldUpdate",
+      "dependencies",
+      "hideValidationMessage",
+      "customizeProps",
+      "noStyle",
+      "preserve"
     ],
     "slots": [
+      "label",
       "children",
       "description",
-      "label",
       "tooltip"
     ],
     "events": [],
@@ -2199,8 +2197,8 @@
     "version": "source",
     "description": "Manage a repeated array of Form field groups with add, remove and move actions. Requires the owning Form and a list name.",
     "props": [
-      "initialValue",
-      "name"
+      "name",
+      "initialValue"
     ],
     "slots": [
       "children"
@@ -2219,16 +2217,16 @@
     "version": "source",
     "description": "Enter and edit a single-line text value, with value-change events and optional prefix, suffix and clear controls.",
     "props": [
+      "value",
+      "placeholder",
+      "size",
+      "disabled",
+      "type",
+      "maxLength",
+      "variant",
       "allowClear",
       "autoFocus",
-      "disabled",
-      "maxLength",
-      "placeholder",
-      "readOnly",
-      "size",
-      "type",
-      "value",
-      "variant"
+      "readOnly"
     ],
     "slots": [
       "prefix",
@@ -2250,10 +2248,10 @@
     "version": "source",
     "description": "Enter a password as masked text, with the registered visibility control when enabled.",
     "props": [
+      "value",
+      "placeholder",
       "disabled",
       "maxLength",
-      "placeholder",
-      "value",
       "variant"
     ],
     "slots": [],
@@ -2274,13 +2272,13 @@
     "version": "source",
     "description": "Enter and edit a multiline text value, with optional automatic sizing, character count and maximum length.",
     "props": [
-      "autoSize",
+      "value",
+      "placeholder",
       "disabled",
       "maxLength",
-      "placeholder",
       "showCount",
-      "value",
-      "variant"
+      "variant",
+      "autoSize"
     ],
     "slots": [],
     "events": [
@@ -2300,19 +2298,19 @@
     "version": "source",
     "description": "Enter a numeric value with step controls and optional bounds, precision, formatting and parsing.",
     "props": [
-      "autoFocus",
-      "controls",
+      "value",
+      "placeholder",
+      "size",
       "disabled",
       "max",
-      "maxLength",
       "min",
-      "placeholder",
-      "readOnly",
-      "size",
       "step",
+      "controls",
       "type",
-      "value",
-      "variant"
+      "maxLength",
+      "variant",
+      "autoFocus",
+      "readOnly"
     ],
     "slots": [
       "prefix",
@@ -2334,22 +2332,21 @@
     "version": "source",
     "description": "Choose one date or calendar period, with optional time selection and registered date restrictions.",
     "props": [
-      "allowClear",
-      "autoFocus",
-      "disabled",
       "multiple",
+      "value",
+      "disabled",
+      "autoFocus",
       "picker",
+      "popupScopeClassName",
+      "popupRootClassName",
+      "popupHeaderClassName",
       "popupBodyClassName",
       "popupFooterClassName",
-      "popupHeaderClassName",
-      "popupRootClassName",
-      "popupScopeClassName",
-      "previewOpen",
-      "showNow",
       "showTime",
+      "variant",
+      "showNow",
       "showToday",
-      "value",
-      "variant"
+      "allowClear"
     ],
     "slots": [],
     "events": [
@@ -2357,7 +2354,7 @@
     ],
     "sections": [
       "DatePicker\nChoose one date or calendar period, with optional time selection and registered date restrictions.",
-      "allowClear: boolean — Whether to show the clear button\nautoFocus: boolean — Focus when component is rendered\ndisabled: boolean\nmultiple: boolean\nonChange: eventHandler\nEvent arguments: value: object\npicker: choice\npopupBodyClassName: class\npopupFooterClassName: class\npopupHeaderClassName: class\npopupRootClassName: class\npopupScopeClassName: styleScopeClass\npreviewOpen: boolean — Show or hide the overlay on the editing canvas. When unset, follows selection without changing the runtime open state.\nshowNow: boolean — Whether to show the \"Now\" button\nshowTime: boolean — Enable time selection\nshowToday: boolean — Whether to show the \"Today\" button\nvalue: object — The current date/time as an ISO string, Date object, or dayjs object\nvariant: choice"
+      "allowClear: boolean — Whether to show the clear button\nautoFocus: boolean — Focus when component is rendered\ndisabled: boolean\nmultiple: boolean\nonChange: eventHandler\nEvent arguments: value: object\npicker: choice\npopupBodyClassName: class\npopupFooterClassName: class\npopupHeaderClassName: class\npopupRootClassName: class\npopupScopeClassName: styleScopeClass\nshowNow: boolean — Whether to show the \"Now\" button\nshowTime: boolean — Enable time selection\nshowToday: boolean — Whether to show the \"Today\" button\nvalue: object — The current date/time as an ISO string, Date object, or dayjs object\nvariant: choice"
     ]
   },
   {
@@ -2367,32 +2364,31 @@
     "version": "source",
     "description": "Choose the start and end of a date range, with optional time selection and registered date restrictions.",
     "props": [
-      "allowClear",
-      "allowEmpty",
-      "allowEmptyEndDate",
-      "allowEmptyStartDate",
-      "autoFocus",
-      "changeOnBlur",
-      "disableEndDate",
-      "disableStartDate",
-      "disabled",
-      "endDate",
       "inputReadOnly",
+      "startDate",
+      "endDate",
+      "allowClear",
+      "autoFocus",
+      "variant",
+      "changeOnBlur",
+      "disabled",
+      "disableStartDate",
+      "disableEndDate",
       "picker",
       "placeholder",
       "placement",
-      "popupBodyClassName",
-      "popupFooterClassName",
-      "popupHeaderClassName",
-      "popupRootClassName",
-      "popupScopeClassName",
       "presets",
-      "previewOpen",
-      "showTime",
       "size",
-      "startDate",
       "status",
-      "variant"
+      "allowEmpty",
+      "allowEmptyStartDate",
+      "allowEmptyEndDate",
+      "showTime",
+      "popupScopeClassName",
+      "popupRootClassName",
+      "popupHeaderClassName",
+      "popupBodyClassName",
+      "popupFooterClassName"
     ],
     "slots": [
       "renderExtraFooter"
@@ -2403,7 +2399,7 @@
     "parent": "plasmic-antd6-date-picker",
     "sections": [
       "DatePicker.RangePicker\nChoose the start and end of a date range, with optional time selection and registered date restrictions.\nRequires parent: plasmic-antd6-date-picker",
-      "allowClear: boolean — Whether to show the clear button\nallowEmpty: boolean — Allow leaving start or end input empty\nallowEmptyEndDate: boolean — Allow leaving end input empty\nallowEmptyStartDate: boolean — Allow leaving start input empty\nautoFocus: boolean — Focus when component is rendered\nchangeOnBlur: boolean — Trigger change when blur. e.g. datetime picker no need click confirm button\ndisableEndDate: boolean — Disable end date input only\ndisableStartDate: boolean — Disable start date input only\ndisabled: boolean — Disable date range inputs\nendDate: dateString — The default end date as ISO strings\ninputReadOnly: boolean\nonChange: eventHandler\nEvent arguments: value: object\npicker: choice\nplaceholder: string — The placeholders of the start and end date inputs, separated by a comma\nplacement: choice — The position where the selection box pops up\npopupBodyClassName: class\npopupFooterClassName: class\npopupHeaderClassName: class\npopupRootClassName: class\npopupScopeClassName: styleScopeClass\npresets: array — The preset ranges for quick selection\npreviewOpen: boolean — Show or hide the overlay on the editing canvas. When unset, follows selection without changing the runtime open state.\nrenderExtraFooter: slot\nshowTime: boolean — Enable time selection\nsize: choice\nstartDate: dateString — The default start date as ISO strings\nstatus: choice — Set validation status\nvariant: choice"
+      "allowClear: boolean — Whether to show the clear button\nallowEmpty: boolean — Allow leaving start or end input empty\nallowEmptyEndDate: boolean — Allow leaving end input empty\nallowEmptyStartDate: boolean — Allow leaving start input empty\nautoFocus: boolean — Focus when component is rendered\nchangeOnBlur: boolean — Trigger change when blur. e.g. datetime picker no need click confirm button\ndisableEndDate: boolean — Disable end date input only\ndisableStartDate: boolean — Disable start date input only\ndisabled: boolean — Disable date range inputs\nendDate: dateString — The default end date as ISO strings\ninputReadOnly: boolean\nonChange: eventHandler\nEvent arguments: value: object\npicker: choice\nplaceholder: string — The placeholders of the start and end date inputs, separated by a comma\nplacement: choice — The position where the selection box pops up\npopupBodyClassName: class\npopupFooterClassName: class\npopupHeaderClassName: class\npopupRootClassName: class\npopupScopeClassName: styleScopeClass\npresets: array — The preset ranges for quick selection\nrenderExtraFooter: slot\nshowTime: boolean — Enable time selection\nsize: choice\nstartDate: dateString — The default start date as ISO strings\nstatus: choice — Set validation status\nvariant: choice"
     ]
   },
   {
@@ -2414,11 +2410,11 @@
     "description": "Select files and read their contents locally as base64. A done status means local reading is complete; this component does not upload to a server.",
     "props": [
       "accept",
-      "dragAndDropFiles",
-      "files",
       "listType",
-      "maxCount",
+      "dragAndDropFiles",
       "multiple",
+      "files",
+      "maxCount",
       "showUploadList"
     ],
     "slots": [
@@ -2439,12 +2435,12 @@
     "version": "source",
     "description": "",
     "props": [
+      "value",
+      "showTextSwitch",
       "allowClear",
       "disabled",
-      "format",
-      "showTextSwitch",
       "trigger",
-      "value"
+      "format"
     ],
     "slots": [
       "children",
@@ -2465,35 +2461,34 @@
     "version": "source",
     "description": "Reveal supplementary details or an editing form in a panel sliding from a page edge. Control its open state and close behavior without navigating away.",
     "props": [
-      "closeButtonClassName",
-      "defaultStylesClassName",
-      "destroyOnHidden",
-      "drawerBodyClassName",
-      "drawerContentWrapperClassName",
-      "drawerFooterClassName",
-      "drawerHeaderClassName",
-      "drawerMaskClassName",
-      "drawerScopeClassName",
-      "drawerTitleClassName",
-      "forceRender",
-      "mask",
       "open",
+      "size",
+      "mask",
+      "destroyOnHidden",
       "placement",
-      "previewOpen",
-      "size"
+      "drawerScopeClassName",
+      "drawerHeaderClassName",
+      "drawerBodyClassName",
+      "drawerFooterClassName",
+      "drawerTitleClassName",
+      "drawerMaskClassName",
+      "drawerContentWrapperClassName",
+      "closeButtonClassName",
+      "forceRender",
+      "defaultStylesClassName"
     ],
     "slots": [
       "children",
-      "closeIcon",
+      "title",
       "footer",
-      "title"
+      "closeIcon"
     ],
     "events": [
       "onOpenChange"
     ],
     "sections": [
       "Drawer\nReveal supplementary details or an editing form in a panel sliding from a page edge. Control its open state and close behavior without navigating away.",
-      "children: slot\ncloseButtonClassName: class\ncloseIcon: slot\ndefaultStylesClassName: themeResetClass\ndestroyOnHidden: boolean\ndrawerBodyClassName: class\ndrawerContentWrapperClassName: class\ndrawerFooterClassName: class\ndrawerHeaderClassName: class\ndrawerMaskClassName: class\ndrawerScopeClassName: styleScopeClass\ndrawerTitleClassName: class\nfooter: slot\nforceRender: boolean\nmask: object\nonOpenChange: eventHandler\nEvent arguments: open: boolean\nopen: boolean\nplacement: choice\npreviewOpen: boolean — Show or hide the overlay on the editing canvas. When unset, follows selection without changing the runtime open state.\nsize: object — Native size: \"default\", \"large\", a pixel number, or a CSS length such as \"50vw\". Sets width for left/right placement and height for top/bottom. Unset uses \"default\".\ntitle: slot"
+      "children: slot\ncloseButtonClassName: class\ncloseIcon: slot\ndefaultStylesClassName: themeResetClass\ndestroyOnHidden: boolean\ndrawerBodyClassName: class\ndrawerContentWrapperClassName: class\ndrawerFooterClassName: class\ndrawerHeaderClassName: class\ndrawerMaskClassName: class\ndrawerScopeClassName: styleScopeClass\ndrawerTitleClassName: class\nfooter: slot\nforceRender: boolean\nmask: object\nonOpenChange: eventHandler\nEvent arguments: open: boolean\nopen: boolean\nplacement: choice\nsize: object — Native size: \"default\", \"large\", a pixel number, or a CSS length such as \"50vw\". Sets width for left/right placement and height for top/bottom. Unset uses \"default\".\ntitle: slot"
     ]
   },
   {
@@ -2503,14 +2498,14 @@
     "version": "source",
     "description": "Display the current stage and progress through a sequence of steps. Use registered change events when allowing the user to select a stage; the owning page provides step content.",
     "props": [
-      "current",
       "items",
-      "orientation",
-      "percent",
-      "responsive",
+      "current",
       "size",
+      "orientation",
       "status",
-      "type"
+      "type",
+      "percent",
+      "responsive"
     ],
     "slots": [],
     "events": [
@@ -2528,14 +2523,13 @@
     "version": "source",
     "description": "",
     "props": [
-      "color",
-      "defaultOpen",
       "open",
-      "placement",
+      "defaultOpen",
       "popupRootClassName",
-      "previewOpen",
       "titleText",
-      "trigger"
+      "trigger",
+      "color",
+      "placement"
     ],
     "slots": [
       "children",
@@ -2546,7 +2540,7 @@
     ],
     "sections": [
       "Tooltip",
-      "children: slot\ncolor: color — Tooltip fill color\ndefaultOpen: boolean — Initial open state when open is not controlled.\nonOpenChange: eventHandler\nEvent arguments: open: boolean\nopen: boolean — Controlled open state of the tooltip.\nplacement: choice — Default placement of tooltip\npopupRootClassName: class\npreviewOpen: boolean — Show or hide the overlay on the editing canvas. When unset, follows selection without changing the runtime open state.\ntitle: slot\ntitleText: string — What gets shown inside the tooltip on hover\ntrigger: choice — Interactions that reveal the Tooltip."
+      "children: slot\ncolor: color — Tooltip fill color\ndefaultOpen: boolean — Initial open state when open is not controlled.\nonOpenChange: eventHandler\nEvent arguments: open: boolean\nopen: boolean — Controlled open state of the tooltip.\nplacement: choice — Default placement of tooltip\npopupRootClassName: class\ntitle: slot\ntitleText: string — What gets shown inside the tooltip on hover\ntrigger: choice — Interactions that reveal the Tooltip."
     ]
   },
   {
@@ -2556,11 +2550,11 @@
     "version": "source",
     "description": "",
     "props": [
-      "alt",
       "letters",
-      "shape",
+      "src",
+      "alt",
       "size",
-      "src"
+      "shape"
     ],
     "slots": [
       "icon"
@@ -2600,20 +2594,20 @@
     "version": "source",
     "description": "",
     "props": [
-      "autoExpandParent",
+      "treeData",
       "checkable",
-      "checkedKeys",
-      "defaultExpandAll",
-      "defaultExpandParent",
-      "disabled",
-      "expandAction",
-      "expandedKeys",
-      "multiple",
       "selectable",
+      "checkedKeys",
       "selectedKeys",
-      "showIcon",
+      "expandedKeys",
+      "disabled",
       "showLine",
-      "treeData"
+      "defaultExpandAll",
+      "autoExpandParent",
+      "defaultExpandParent",
+      "expandAction",
+      "multiple",
+      "showIcon"
     ],
     "slots": [
       "icon",
@@ -2621,9 +2615,9 @@
       "titleRender"
     ],
     "events": [
+      "onSelect",
       "onCheck",
-      "onExpand",
-      "onSelect"
+      "onExpand"
     ],
     "sections": [
       "Tree",
@@ -2637,20 +2631,20 @@
     "version": "source",
     "description": "",
     "props": [
-      "autoExpandParent",
+      "treeData",
       "checkable",
-      "checkedKeys",
-      "defaultExpandAll",
-      "defaultExpandParent",
-      "disabled",
-      "expandAction",
-      "expandedKeys",
-      "multiple",
       "selectable",
+      "checkedKeys",
       "selectedKeys",
-      "showIcon",
+      "expandedKeys",
+      "disabled",
       "showLine",
-      "treeData"
+      "defaultExpandAll",
+      "autoExpandParent",
+      "defaultExpandParent",
+      "expandAction",
+      "multiple",
+      "showIcon"
     ],
     "slots": [
       "icon",
@@ -2658,9 +2652,9 @@
       "titleRender"
     ],
     "events": [
+      "onSelect",
       "onCheck",
-      "onExpand",
-      "onSelect"
+      "onExpand"
     ],
     "parent": "plasmic-antd6-tree",
     "sections": [
@@ -2676,14 +2670,14 @@
     "description": "Expand or collapse labeled content sections, independently or in accordion mode. Keeps section headers available while their content is hidden.",
     "props": [
       "accordion",
+      "items",
       "activeKey",
       "bordered",
-      "collapsible",
-      "destroyOnHidden",
-      "expandIconPlacement",
       "ghost",
-      "items",
-      "size"
+      "size",
+      "collapsible",
+      "expandIconPlacement",
+      "destroyOnHidden"
     ],
     "slots": [
       "children"
@@ -2703,14 +2697,14 @@
     "version": "source",
     "description": "Header, content, and extra slots for a collapse panel.",
     "props": [
-      "collapsible",
+      "showArrow",
       "forceRender",
-      "showArrow"
+      "collapsible"
     ],
     "slots": [
+      "header",
       "children",
-      "extra",
-      "header"
+      "extra"
     ],
     "events": [],
     "parent": "plasmic-antd6-collapse",
@@ -2726,19 +2720,19 @@
     "version": "source",
     "description": "",
     "props": [
+      "open",
+      "defaultOpen",
       "arrow",
-      "color",
+      "popoverScopeClassName",
+      "popoverContentClassName",
+      "popupRootClassName",
       "contentText",
-      "defaultStylesClassName",
+      "color",
+      "trigger",
+      "placement",
       "mouseEnterDelay",
       "mouseLeaveDelay",
-      "open",
-      "placement",
-      "popoverContentClassName",
-      "popoverScopeClassName",
-      "popupRootClassName",
-      "previewOpen",
-      "trigger"
+      "defaultStylesClassName"
     ],
     "slots": [
       "children",
@@ -2750,7 +2744,7 @@
     ],
     "sections": [
       "Popover",
-      "arrow: boolean\nchildren: slot\ncolor: color — Popover fill color\ncontent: slot\ncontentText: string — What gets shown inside the popover on hover\ndefaultStylesClassName: themeResetClass\nmouseEnterDelay: number — Delay in seconds, before popover is shown on mouse enter\nmouseLeaveDelay: number — Delay in seconds, before popover is hidden on mouse leave\nonOpenChange: eventHandler\nEvent arguments: open: boolean\nopen: boolean — Default open state of the popover\nplacement: choice — Default placement of popover\npopoverContentClassName: class\npopoverScopeClassName: styleScopeClass\npopupRootClassName: class\npreviewOpen: boolean — Show or hide the overlay on the editing canvas. When unset, follows selection without changing the runtime open state.\ntitle: slot\ntrigger: choice"
+      "arrow: boolean\nchildren: slot\ncolor: color — Popover fill color\ncontent: slot\ncontentText: string — What gets shown inside the popover on hover\ndefaultOpen: boolean — Initial open state when open is not controlled.\ndefaultStylesClassName: themeResetClass\nmouseEnterDelay: number — Delay in seconds, before popover is shown on mouse enter\nmouseLeaveDelay: number — Delay in seconds, before popover is hidden on mouse leave\nonOpenChange: eventHandler\nEvent arguments: open: boolean\nopen: boolean — Controlled open state of the popover. Leave unset for the native trigger.\nplacement: choice — Default placement of popover\npopoverContentClassName: class\npopoverScopeClassName: styleScopeClass\npopupRootClassName: class\ntitle: slot\ntrigger: choice"
     ]
   },
   {
@@ -2761,25 +2755,25 @@
     "description": "Switch between named content panels within the same page, keeping the selected tab and visible panel synchronized. Use Tab Item children or configured items; this is content navigation, not selection of a form value.",
     "props": [
       "activeKey",
+      "defaultActiveKey",
+      "animated",
       "animateTabBar",
       "animateTabContent",
-      "animated",
       "centered",
-      "defaultActiveKey",
-      "destroyOnHidden",
+      "type",
       "size",
-      "tabBarClassName",
       "tabBarGutter",
       "tabPlacement",
-      "tabsDropdownClassName",
-      "tabsDropdownScopeClassName",
+      "destroyOnHidden",
       "tabsScopeClassName",
-      "type"
+      "tabBarClassName",
+      "tabsDropdownScopeClassName",
+      "tabsDropdownClassName"
     ],
     "slots": [
       "addIcon",
-      "items",
       "removeIcon",
+      "items",
       "tabBarExtraContentLeft",
       "tabBarExtraContentRight"
     ],
@@ -2804,10 +2798,10 @@
       "forceRender"
     ],
     "slots": [
-      "children",
-      "closeIcon",
       "icon",
-      "label"
+      "closeIcon",
+      "label",
+      "children"
     ],
     "events": [],
     "parent": "plasmic-antd6-tabs",
@@ -2826,19 +2820,19 @@
       "allowClear",
       "allowHalf",
       "autoFocus",
-      "count",
-      "disabled",
       "multiCharacter",
-      "tooltips",
-      "value"
+      "count",
+      "value",
+      "disabled",
+      "tooltips"
     ],
     "slots": [
       "character",
       "symbols"
     ],
     "events": [
-      "onBlur",
       "onChange",
+      "onBlur",
       "onFocus",
       "onHoverChange",
       "onKeyDown"
@@ -2855,20 +2849,20 @@
     "version": "source",
     "description": "",
     "props": [
-      "autoFocus",
+      "range",
+      "value",
+      "min",
+      "max",
+      "step",
+      "marks",
+      "tooltip",
       "disabled",
+      "keyboard",
       "dots",
       "included",
-      "keyboard",
-      "marks",
-      "max",
-      "min",
-      "range",
       "reverse",
-      "step",
-      "tooltip",
-      "value",
-      "vertical"
+      "vertical",
+      "autoFocus"
     ],
     "slots": [],
     "events": [
@@ -2887,13 +2881,13 @@
     "version": "source",
     "description": "Choose one value from a compact horizontal set of labeled or icon options. The owning page decides what the selected value changes; content panels are not provided by this control.",
     "props": [
-      "block",
-      "disabled",
-      "name",
       "options",
-      "size",
       "value",
-      "vertical"
+      "size",
+      "disabled",
+      "block",
+      "vertical",
+      "name"
     ],
     "slots": [],
     "events": [
@@ -2911,22 +2905,22 @@
     "version": "source",
     "description": "",
     "props": [
-      "gapDegree",
-      "gapPlacement",
-      "gradient",
-      "infoFormat",
+      "type",
       "percent",
-      "railColor",
-      "showInfo",
       "size",
+      "showInfo",
       "status",
-      "stepColors",
-      "steps",
       "strokeColor",
       "strokeLinecap",
       "successPercent",
       "successStrokeColor",
-      "type"
+      "railColor",
+      "infoFormat",
+      "steps",
+      "stepColors",
+      "gradient",
+      "gapDegree",
+      "gapPlacement"
     ],
     "slots": [],
     "events": [],
@@ -2943,18 +2937,18 @@
     "description": "Navigate pages of a record collection and change page size. Bind the current page, total and change events to the owning data list.",
     "props": [
       "current",
+      "total",
+      "pageSize",
       "disabled",
       "hideOnSinglePage",
-      "pageSize",
-      "pageSizeOptions",
-      "paginatedUrl",
       "showLessItems",
       "showQuickJumper",
       "showSizeChanger",
       "showTotal",
       "simple",
       "size",
-      "total"
+      "pageSizeOptions",
+      "paginatedUrl"
     ],
     "slots": [],
     "events": [
@@ -3009,33 +3003,33 @@
     "version": "source",
     "description": "Shared application shell with route-based navigation and breadcrumbs. Configure the product, user, language, and app source; edit pages in the children slot.",
     "props": [
-      "appSource",
-      "appSources",
-      "collapsed",
-      "currentTime",
       "direction",
-      "initialContentScrollTop",
-      "language",
-      "languages",
-      "logoUrl",
-      "menuItems",
-      "productName",
-      "selectedMenuKey",
       "timeZone",
+      "currentTime",
+      "productName",
+      "logoUrl",
+      "userName",
+      "languages",
+      "language",
+      "appSources",
+      "appSource",
+      "menuItems",
+      "selectedMenuKey",
       "userMenuItems",
-      "userName"
+      "collapsed",
+      "initialContentScrollTop"
     ],
     "slots": [
       "children"
     ],
     "events": [
-      "onAppSourceChange",
-      "onCollapsedChange",
-      "onContentScroll",
       "onDirectionChange",
       "onLanguageChange",
+      "onAppSourceChange",
       "onMenuSelect",
-      "onUserAction"
+      "onUserAction",
+      "onCollapsedChange",
+      "onContentScroll"
     ],
     "sections": [
       "AppShell\nShared application shell with route-based navigation and breadcrumbs. Configure the product, user, language, and app source; edit pages in the children slot.",
@@ -3049,21 +3043,21 @@
     "version": "source",
     "description": "One editable query field. Use a unique name and exactly one input control in the Control slot; configure the control itself through its own props.",
     "props": [
-      "clearValue",
-      "initialValue",
-      "label",
       "name",
+      "label",
+      "span",
+      "initialValue",
+      "clearValue",
       "required",
       "requiredMessage",
       "rules",
-      "span",
-      "trigger",
-      "valuePropName"
+      "valuePropName",
+      "trigger"
     ],
     "slots": [
+      "labelContent",
       "children",
-      "help",
-      "labelContent"
+      "help"
     ],
     "events": [],
     "parent": "plasmic-overseas-search-form",
@@ -3079,29 +3073,29 @@
     "version": "source",
     "description": "Editable query form. Insert SearchForm.Item nodes in Fields and an Ant Design 6 control in each item's Control slot. Query returns all fields, including collapsed ones; Reset restores defaults and clear values.",
     "props": [
-      "colSpan",
-      "collapseText",
-      "collapsed",
-      "disabled",
-      "embedded",
-      "expandText",
       "initialValues",
-      "labelWidth",
       "loading",
-      "marginBottom",
+      "disabled",
+      "collapsed",
       "minRows",
+      "colSpan",
+      "labelWidth",
+      "searchText",
       "resetText",
-      "searchText"
+      "expandText",
+      "collapseText",
+      "embedded",
+      "marginBottom"
     ],
     "slots": [
       "children",
       "extraActions"
     ],
     "events": [
-      "onCollapsedChange",
-      "onReset",
       "onSearch",
-      "onValuesChange"
+      "onReset",
+      "onValuesChange",
+      "onCollapsedChange"
     ],
     "sections": [
       "SearchForm\nEditable query form. Insert SearchForm.Item nodes in Fields and an Ant Design 6 control in each item's Control slot. Query returns all fields, including collapsed ones; Reset restores defaults and clear values.",

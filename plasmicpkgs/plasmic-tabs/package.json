@@ -1,5 +1,5 @@
 {
-  "version": "0.0.103",
+  "version": "0.1.0",
   "description": "Plasmic code components for building customizable tab interfaces.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -29,7 +29,7 @@
     "analyze": "size-limit --why"
   },
   "peerDependencies": {
-    "react": ">=16"
+    "react": "^19.3.1"
   },
   "prettier": {
     "printWidth": 80,
@@ -53,8 +53,8 @@
   "devDependencies": {
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "tsdx": "catalog:",
     "tslib": "catalog:"
   },

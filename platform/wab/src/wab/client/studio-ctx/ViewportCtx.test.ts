@@ -454,3 +454,23 @@ describe("ViewportCtx", () => {
     expectClientScalerPt({ client: new Pt(100, 100), scaler: new Pt(45, 40) });
   });
 });
+
+it("installs deferred arena geometry, restores failed camera commands and honors the Site reset barrier", () => {
+  const dom = mock<DomActions>();
+  const ctx = new ViewportCtx({ dom, initialArena: null, initialClipperBox: new Box(0, 0, 100, 100), initialClipperScroll: Pt.zero() });
+  const original = ctx.store.getState(); const changed = vi.fn(); const stop = ctx.store.subscribe(changed);
+  dom.updateCanvasPadding.mockClear(); dom.updateArenaSize.mockClear();
+  try {
+    expect(() => ctx.transaction(() => {
+      ctx.setArena(pageArena); ctx.scaleAtMidPt(2);
+      expect(ctx.store.getState().hasFrames).toBe(true); expect(ctx.scale()).toBe(2);
+      expect(changed).not.toHaveBeenCalled(); expect(dom.updateCanvasPadding).not.toHaveBeenCalled(); expect(dom.scaleTo).not.toHaveBeenCalled();
+      throw new Error("aborted camera");
+    })).toThrow("aborted camera");
+    expect(ctx.store.getState()).toBe(original); expect(ctx.arena()).toBeNull(); expect(changed).not.toHaveBeenCalled(); expect(dom.updateCanvasPadding).not.toHaveBeenCalled(); expect(dom.scaleTo).not.toHaveBeenCalled();
+    ctx.transaction(() => { ctx.setArena(pageArena); });
+    expect(ctx.store.getState().hasFrames).toBe(true); expect(changed).toHaveBeenCalledOnce();
+    expect(() => ctx.transaction(() => { ctx.resetArena(); throw new Error("model owner replaced"); })).toThrow("model owner replaced");
+    expect(ctx.arena()).toBeNull(); expect(ctx.store.getState().hasFrames).toBe(false); expect(changed).toHaveBeenCalledTimes(2);
+  } finally { stop(); ctx.dispose(); }
+});

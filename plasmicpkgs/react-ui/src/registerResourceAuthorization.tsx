@@ -7,15 +7,14 @@ import {
   ResourceAuthorizationRecordProps as ReactUIResourceAuthorizationRecordProps,
 } from "@react/ui";
 import { ResourceAuthorizationCanvasContext } from "@react/ui/esm/resource-authorization/canvas-context.js";
+import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import {
-  CanvasOverlayProps,
-  previewOpenProp,
   useCanvasOverlay,
 } from "@shiguang-lab/plasmic-antd6/skinny/canvas-overlay";
 import React from "react";
 import type { Registerable } from "./registerActionGroup";
 
-type OverlayProps = CanvasOverlayProps & {
+type OverlayProps = PlasmicCanvasProps & {
   open?: boolean;
   trigger?: React.ReactNode;
   onClose?: () => void;
@@ -100,7 +99,6 @@ export function ResourceAuthorizationRecord(
 }
 
 const commonProps = {
-  previewOpen: previewOpenProp,
   open: { type: "boolean", defaultValueHint: false },
   trigger: {
     type: "slot",

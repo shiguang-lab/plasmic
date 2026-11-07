@@ -1,0 +1,63 @@
+{
+  "milestone": "u38o",
+  "uniqueChangedFiles": 80,
+  "status": "scoped native and all affected Studio suites accepted; full migration incomplete",
+  "identity": {
+    "sourceHash": "a577fa1020f1e72985d21b5e864c82f4fbdc3353487ad42d25507dc805caae63",
+    "rendererHash": "e65e778004c161fefb0853c52da74c7c8823ac83592e8c927b00388032326e8d",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 105048195,
+    "studioArtifactHash": "a92e8065cb22306ece25c905cb4485b251db2acd78327c79a49b5a66701b2a66",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "typesBuildAssetsArchive": {
+    "exitCode": 0,
+    "log": "/tmp/plasmic-react19-20261105/u38o-build-pipeline-2.log",
+    "firstTypesRejectedLog": "/tmp/plasmic-react19-20261105/u38o-frozen-types-1.log",
+    "requiredImportAndTypeDeltas": [
+      "u38o-root-types-delta",
+      "o79-preview-type-delta"
+    ]
+  },
+  "affectedStudio": {
+    "files": 30,
+    "passed": 315,
+    "failed": 0,
+    "unhandled": 0,
+    "seconds": 94.42,
+    "log": "/tmp/plasmic-react19-20261105/u38o-affected-tests.log"
+  },
+  "native": {
+    "gpCases": 5,
+    "complexCases": 6,
+    "bothReopened": true,
+    "viewportChecksEach": 7,
+    "draftChecks": 3,
+    "docsModes": 2,
+    "dependencyModelsEach": 50,
+    "typeScriptDiagnostics": 0,
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "sourceUnchangedAfterNativeAndAffectedTests": true,
+    "log": "/tmp/plasmic-react19-20261105/u38o-native-pipeline.log"
+  },
+  "compilerScope": "ON React19 annotation mode actual10 files",
+  "fullStudio": "Not rerun at this80-file checkpoint; last full is u36m674files13failed. No all-Studio green claim. Next full at view-registry major integration/final milestone; CMS PostgreSQL requirement remains."
+}

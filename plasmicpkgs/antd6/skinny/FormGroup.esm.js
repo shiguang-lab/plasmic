@@ -1,18 +1,19 @@
+import { jsx } from 'react/jsx-runtime';
 import React from 'react';
 import { P as PathContext } from './contexts-DtHxvgts.esm.js';
 import 'antd';
 
 function FormGroup(props) {
   const pathCtx = React.useContext(PathContext);
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     PathContext.Provider,
     {
       value: {
         relativePath: [...pathCtx.relativePath, props.name],
         fullPath: [...pathCtx.fullPath, props.name]
-      }
-    },
-    props.children
+      },
+      children: props.children
+    }
   );
 }
 

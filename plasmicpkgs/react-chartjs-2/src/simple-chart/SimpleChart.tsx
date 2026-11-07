@@ -1,4 +1,4 @@
-import React, { ReactElement } from "react";
+import { ReactElement } from "react";
 import { SimpleBar, SimpleBarProps } from "../simple-bar/SimpleBar";
 import { SimpleLine, SimpleLineProps } from "../simple-line/SimpleLine";
 import {

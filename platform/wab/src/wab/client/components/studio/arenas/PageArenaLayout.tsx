@@ -1,3 +1,4 @@
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { makeFrameSizeMenu } from "@/wab/client/components/menus/FrameSizeMenu";
 import ExperimentCanvasButton from "@/wab/client/components/splits/ExperimentCanvasButton";
@@ -28,6 +29,7 @@ export const PageArenaLayout = observer(function PageArenaLayout(props: {
 }) {
   const { t: uiT } = useI18n();
   const { studioCtx, arena, onFrameLoad } = props;
+  const viewportZoom = useCanvasZoom(studioCtx);
   const component = arena.component;
 
   const componentVariants = allComponentVariants(component);
@@ -95,7 +97,7 @@ export const PageArenaLayout = observer(function PageArenaLayout(props: {
           <div className="overflow-hidden">
             <hr
               className={sty.customGridDivider}
-              style={{ transform: `scale(${1 / studioCtx.zoom})` }}
+              style={{ transform: `scale(${1 / viewportZoom})` }}
             />
           </div>
           <GridFramesLayout

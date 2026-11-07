@@ -1,3 +1,4 @@
+import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { useSelector, GlobalActionsProvider } from '@plasmicapp/host';
 import registerToken from '@plasmicapp/host/registerToken';
 import { addLoadingStateListener } from '@plasmicapp/query';
@@ -144,7 +145,7 @@ import 'dayjs/locale/vi';
 import 'dayjs/locale/zh-cn';
 import 'dayjs/locale/zh-tw';
 import { u as useIsMounted } from './react-utils-BpvCcwyE.esm.js';
-import { m as makeRegisterGlobalContext } from './utils-U416WEAa.esm.js';
+import { m as makeRegisterGlobalContext } from './utils-DPGVAauG.esm.js';
 import 'classnames';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -278,7 +279,7 @@ function themeToAntdConfig(opts) {
 }
 function AntdConfigProvider(props) {
   const { children, locale, themeStyles, loadingText, removeLoading, ...rest } = props;
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     ConfigProvider,
     {
       locale: typeof locale === "string" ? antdLocales[locale] : locale ?? antdLocales.en_US,
@@ -288,16 +289,16 @@ function AntdConfigProvider(props) {
         fontSize: themeStyles.fontSize ? parseInt(themeStyles.fontSize) : void 0,
         lineHeight: themeStyles.lineHeight ? parseInt(themeStyles.lineHeight) : void 0,
         colorTextBase: themeStyles.color
-      })
-    },
-    /* @__PURE__ */ React.createElement(App, { style: { display: "contents" } }, /* @__PURE__ */ React.createElement(ForkedApp, null, /* @__PURE__ */ React.createElement(
-      InnerConfigProvider,
-      {
-        loadingText,
-        removeLoading
-      },
-      children
-    )))
+      }),
+      children: /* @__PURE__ */ jsx(App, { style: { display: "contents" }, children: /* @__PURE__ */ jsx(ForkedApp, { children: /* @__PURE__ */ jsx(
+        InnerConfigProvider,
+        {
+          loadingText,
+          removeLoading,
+          children
+        }
+      ) }) })
+    }
   );
 }
 function normTokenValue(val) {
@@ -347,18 +348,22 @@ function InnerConfigProvider(props) {
   if (!GlobalActionsProvider) {
     warnOutdatedDeps();
   }
-  let content = GlobalActionsProvider ? /* @__PURE__ */ React.createElement(
+  let content = GlobalActionsProvider ? /* @__PURE__ */ jsx(
     GlobalActionsProvider,
     {
       contextName: "plasmic-antd6-config-provider",
-      actions
-    },
-    children
+      actions,
+      children
+    }
   ) : children;
   if (!removeLoading && enableLoadingBoundary) {
-    content = /* @__PURE__ */ React.createElement(React.Suspense, null, content);
+    content = /* @__PURE__ */ jsx(React.Suspense, { children: content });
   }
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("style", { dangerouslySetInnerHTML: { __html: cssStyles } }), content, !removeLoading && /* @__PURE__ */ React.createElement(GlobalLoadingIndicator, { loadingText }));
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsx("style", { dangerouslySetInnerHTML: { __html: cssStyles } }),
+    content,
+    !removeLoading && /* @__PURE__ */ jsx(GlobalLoadingIndicator, { loadingText })
+  ] });
 }
 let warned = false;
 function warnOutdatedDeps() {
@@ -438,7 +443,11 @@ function ForkedApp(props) {
     }),
     [messageApi, notificationApi]
   );
-  return /* @__PURE__ */ React.createElement(ForkedAppContext.Provider, { value: appContext }, messageContextHolder, notificationContextHolder, props.children);
+  return /* @__PURE__ */ jsxs(ForkedAppContext.Provider, { value: appContext, children: [
+    messageContextHolder,
+    notificationContextHolder,
+    props.children
+  ] });
 }
 function registerTokens(loader) {
   const regs = [];

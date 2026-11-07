@@ -1,34 +1,34 @@
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import { DocsPortalCtx } from "@/wab/client/components/docs/DocsPortalCtx";
-import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
+import { Icon } from "@/wab/client/components/widgets/Icon";
+import { iconForTplType } from "@/wab/client/icons";
+import { DocsElement } from "@/wab/client/components/docs/docs-model-projections";
+import { useDocsFocusedComponentRef } from "@/wab/client/components/docs/DocsModelResources";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicElementProp } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicElementProp";
-import { toClassName } from "@/wab/shared/codegen/util";
-import { isTplComponent, isTplTag, TplNamable } from "@/wab/shared/core/tpls";
-import { TplNode } from "@/wab/shared/model/classes";
+import { ensure } from "@/wab/shared/common";
 import { Dropdown, Menu } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 interface ElementPropProps {
   docsCtx: DocsPortalCtx;
-  node: TplNamable;
-  name: string;
-  isRoot: boolean;
+  node: DocsElement;
 }
 
-const ElementProp = observer(function ElementProp(props: ElementPropProps) {
+function ElementProp(props: ElementPropProps) {
   const { t: studioUiT } = useI18n();
 
-  const { docsCtx, node, name, isRoot } = props;
-  const component = docsCtx.getFocusedComponent();
+  const { docsCtx, node } = props;
+  const { name, isRoot } = node;
+  const componentRef = ensure(useDocsFocusedComponentRef(docsCtx), "Missing focused component");
+  const component = docsCtx.models.snapshots.resolve(componentRef);
 
   const renderElementMenu = () => {
     return (
       <Menu onClick={(e) => e.domEvent.stopPropagation()}>
-        {!isTplComponent(node) && (
+        {!node.isComponent && (
           <Menu.Item
             onClick={() =>
               docsCtx.setComponentOverride(
@@ -45,7 +45,7 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
           </Menu.Item>
         )}
 
-        {!isTplComponent(node) && (
+        {!node.isComponent && (
           <Menu.Item
             onClick={() =>
               docsCtx.setComponentOverride(
@@ -104,7 +104,7 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
           {" "}
           <UiText message={"Replace element"} />{" "}
         </Menu.Item>
-        {!isTplComponent(node) && (
+        {!node.isComponent && (
           <Menu.Item
             onClick={() =>
               docsCtx.setComponentOverride(
@@ -121,7 +121,7 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
           </Menu.Item>
         )}
 
-        {!isTplComponent(node) && (
+        {!node.isComponent && (
           <Menu.Item
             onClick={() =>
               docsCtx.setComponentOverride(
@@ -145,8 +145,8 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
     <WithContextMenu overlay={renderElementMenu}>
       <PlasmicElementProp
         label={name}
-        icon={createNodeIcon(node)}
-        onMouseEnter={() => docsCtx.setFocusedElement(node)}
+        icon={<Icon icon={iconForTplType(node.iconType)} />}
+        onMouseEnter={() => docsCtx.setFocusedElement(docsCtx.models.snapshots.resolve(node.ref))}
         onMouseLeave={() => docsCtx.setFocusedElement(undefined)}
         addButton={{
           props: {
@@ -160,20 +160,10 @@ const ElementProp = observer(function ElementProp(props: ElementPropProps) {
             </Dropdown>
           ),
         }}
-        elementType={`<${getElementType(node)} />`}
+        elementType={`<${node.elementType} />`}
       />
     </WithContextMenu>
   );
-});
+}
 
 export default ElementProp;
-
-function getElementType(node: TplNode) {
-  if (isTplTag(node)) {
-    return node.tag;
-  } else if (isTplComponent(node)) {
-    return toClassName(node.component.name);
-  } else {
-    return null;
-  }
-}

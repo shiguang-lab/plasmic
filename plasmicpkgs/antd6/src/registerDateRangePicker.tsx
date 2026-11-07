@@ -1,10 +1,11 @@
+import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { DatePicker } from "antd";
 import cls from "classnames";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import kebabCase from "lodash/kebabCase";
 import React, { useMemo } from "react";
-import { CanvasOverlayProps, previewOpenProp, useCanvasOverlay } from "./canvas-overlay";
+import { useCanvasOverlay } from "./canvas-overlay";
 import { capitalize, Registerable, registerComponentHelper } from "./utils";
 
 import localeData from "dayjs/plugin/localeData";
@@ -46,7 +47,7 @@ export function AntdDateRangePicker(
     | "renderExtraFooter"
     | "disabled"
     | "allowEmpty"
-  > & CanvasOverlayProps & {
+  > & PlasmicCanvasProps & {
     onChange: (value: [string | undefined, string | undefined]) => void;
     value?: [Dayjs | string | null, Dayjs | string | null] | null;
     // Not sure why this is missing from DatePicker props!
@@ -189,7 +190,6 @@ export function registerDateRangePicker(loader?: Registerable) {
     canvasOverlay: {},
     displayName: "Date Range Picker",
     props: {
-      previewOpen: previewOpenProp,
       inputReadOnly: { type: "boolean", defaultValueHint: false },
       startDate: {
         type: "dateString",

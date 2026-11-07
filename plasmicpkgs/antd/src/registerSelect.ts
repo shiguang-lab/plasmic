@@ -6,7 +6,7 @@ import React from "react";
 import { traverseReactEltTree } from "./customControls";
 import { Registerable } from "./registerable";
 
-export const Select = AntdSelect;
+export const Select: typeof AntdSelect = AntdSelect;
 const Option = Select.Option;
 
 type SelectProps = React.ComponentProps<typeof Select>;

@@ -1,3 +1,4 @@
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useMultiAssetsActions } from "@/wab/client/components/sidebar/MultiAssetsActions";
 import { Matcher } from "@/wab/client/components/view-common";
 import Checkbox from "@/wab/client/components/widgets/Checkbox";
@@ -8,8 +9,8 @@ import { FinalToken, MutableToken } from "@/wab/shared/core/tokens";
 import { getFolderDisplayName } from "@/wab/shared/folders/folders-util";
 import { DataToken } from "@/wab/shared/model/classes";
 import { Tooltip } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
 
 // TODO: Create a data token control component in Plasmic Studio
 interface DataTokenControlProps {
@@ -21,16 +22,18 @@ interface DataTokenControlProps {
   onClick?: () => void;
 }
 
-const GeneralDataTokenControl = observer(function GeneralTokenControl(
+function GeneralDataTokenControl(
   props: DataTokenControlProps,
 ) {
   const { style, token, tokenValue, matcher, menu, onClick } = props;
+  const studioCtx = useStudioCtx();
 
   const multiAssetsActions = useMultiAssetsActions();
 
-  const isSelected = multiAssetsActions.isAssetSelected(token.uuid);
-
-  const tokenName = getFolderDisplayName(token.name);
+  const uuid = useStore(studioCtx.modelSnapshots.field(token.base, "uuid"));
+  const name = useStore(studioCtx.modelSnapshots.field(token.base, "name"));
+  const isSelected = multiAssetsActions.isAssetSelected(uuid);
+  const tokenName = getFolderDisplayName(name);
 
   const displayValue = React.useMemo(() => {
     const type = getDataTokenType(tokenValue);
@@ -75,6 +78,6 @@ const GeneralDataTokenControl = observer(function GeneralTokenControl(
       </TriggerAnchor>
     </Tooltip>
   );
-});
+}
 
 export default GeneralDataTokenControl;

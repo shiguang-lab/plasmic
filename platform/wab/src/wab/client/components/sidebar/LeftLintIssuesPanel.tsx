@@ -1,3 +1,5 @@
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useAppRoles } from "@/wab/client/components/app-auth/app-auth-contexts";
 import {
   ItemOrGroup,
@@ -84,6 +86,9 @@ export default LeftLintIssuesPanel;
 const SiteIssuesList = observer(function SiteIssuesList() {
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
+  useStudioSelection(studioCtx, (state) => state.view);
+  useStudioArena(studioCtx, (state) => state.current);
+  useStudioArena(studioCtx, (state) => state.frames[0]);
   const site = studioCtx.site;
 
   const { roles: appRoles } = useAppRoles(

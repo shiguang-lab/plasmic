@@ -1,5 +1,9 @@
+import { createStore } from "zustand/vanilla";
+import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
+import { createStudioModeFixture } from "@/wab/client/__testonly__/studio-mode";
 import BranchSwitcher from "@/wab/client/components/top-bar/BranchSwitcher";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -11,8 +15,6 @@ import { SWRConfig } from "swr";
 
 const mocks = vi.hoisted(() => ({
   current: undefined as { id: string; name: string } | undefined,
-  live: false,
-  editable: true,
   list: vi.fn(),
   switchBranch: vi.fn(),
   push: vi.fn(),
@@ -23,8 +25,18 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   showPublish: vi.fn(),
 }));
+const mode = createStudioModeFixture();
+const environment = createStudioUiEnvironmentFixture();
+const projectMetadataStore = createStore(() => ({
+  id: "project", name: "Project", appAuthProvider: undefined,
+  projectApiToken: undefined, isMainBranchProtected: false, mentionUsers: Object.freeze([]),
+}));
+
 vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => ({
+    ...mode,
+    ...environment,
+    projectMetadataStore,
     siteInfo: { id: "project" },
     dbCtx: () => ({ branchInfo: mocks.current }),
     appCtx: {
@@ -40,8 +52,7 @@ vi.mock("@/wab/client/contexts/StudioContexts", () => ({
       },
     },
     releases: mocks.releases,
-    canEditProject: () => mocks.editable,
-    isLiveMode: mocks.live,
+    get isLiveMode() { return mode.previewOwnerStore.getState()?.store.getState().isLive ?? false; },
     switchToBranch: mocks.switchBranch,
     branchHasUnpublishedChanges: mocks.unpublished,
   }),
@@ -91,8 +102,8 @@ function mount() {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.current = undefined;
-  mocks.live = false;
-  mocks.editable = true;
+  environment.uiEnvironment.store.setState({ branchName: "main", branchId: null, canEditProject: true });
+  mode.previewOwnerStore.getState()?.store.setState({ isLive: false });
   mocks.releases = [];
   mocks.versionChoice.mockResolvedValue(undefined);
   mocks.promptName.mockResolvedValue("new-branch");
@@ -131,7 +142,7 @@ test("opens on click and switches without waiting for publication checks", async
 });
 
 test("preview switches branch context without changing the business route", async () => {
-  mocks.live = true;
+  mode.previewOwnerStore.getState()?.store.setState({ isLive: true });
   mount();
   fireEvent.click(screen.getByRole("button", { name: "Branches: main" }));
   fireEvent.click(await screen.findByRole("button", { name: "feature" }));
@@ -181,7 +192,7 @@ test("branch actions remain reachable inside the popover", async () => {
 });
 
 test("outside click closes the popover and read-only viewers cannot manage branches", async () => {
-  mocks.editable = false;
+  environment.uiEnvironment.store.setState({ canEditProject: false });
   mount();
   const trigger = screen.getByRole("button", { name: "Branches: main" });
   fireEvent.click(trigger);
@@ -272,4 +283,13 @@ test("explicitly choosing the saved version continues branch creation", async ()
     }),
   );
   expect(mocks.showPublish).not.toHaveBeenCalled();
+});
+
+
+test("updates its branch label from the native owner while mounted", () => {
+  mount();
+  expect(screen.getByRole("button", { name: "Branches: main" })).toBeTruthy();
+  act(() => { environment.uiEnvironment.store.setState({ branchName: "Renamed branch" }); });
+  expect(screen.getByRole("button", { name: "Branches: Renamed branch" })).toBeTruthy();
+  expect(screen.queryByRole("button", { name: "Branches: main" })).toBeNull();
 });

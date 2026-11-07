@@ -136,11 +136,11 @@
 .collapsingToggle {
   display: flex;
   justify-content: center;
+  align-items: center;
   position: relative;
-  opacity: 0.7;
   transition: opacity 150ms;
-  margin-bottom: -18px;
   margin-top: 8px;
+  margin-bottom: 4px;
 
   &[data-show-extra-content="true"] {
     opacity: 1 !important;
@@ -152,34 +152,45 @@
 }
 
 .collapsingToggle.fullyCollapsedBody {
-  margin-top: -12px;
+  margin-top: 4px;
+  margin-bottom: 4px;
 }
 
 .root .collapsingToggle {
-  margin-bottom: -17px;
+  margin-bottom: 4px;
 }
 
 .bodyScrollable .collapsingToggle {
-  margin-bottom: 0;
+  margin-bottom: 4px;
 }
 
 .collapsingToggleLabel {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   cursor: pointer;
 
-  height: 12px;
-  width: 100px;
+  height: 22px;
+  width: auto;
+  padding: 0 10px;
+
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ui-muted, #{$sand11});
 
   background: var(--ui-hover, #{$sand5});
-  border-radius: 6px 6px 0 0;
+  border: 1px solid var(--ui-border-subtle, transparent);
+  border-radius: 9999px;
   position: relative;
   z-index: 1;
+  transition: all 150ms ease;
+  font-family: inherit;
 
   & svg {
-    width: 16px !important;
-    height: 16px !important;
+    width: 12px !important;
+    height: 12px !important;
   }
 
   &:hover {
@@ -190,11 +201,16 @@
 
   &:focus {
     box-shadow: 0 0 0 2px var(--ui-accent, #{$focus-color});
+    outline: none;
   }
 }
 
+.collapsingToggleText {
+  white-space: nowrap;
+}
+
 .collapsingToggleLabel_expanded {
-  margin-top: 10px;
+  margin-top: 0;
 }
 
 .hiddenChevronIcon {

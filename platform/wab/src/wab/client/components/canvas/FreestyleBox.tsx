@@ -1,3 +1,4 @@
+import { useCanvasGeometry } from "@/wab/client/studio-ctx/viewport-state";
 import { NodeTargeter } from "@/wab/client/Dnd";
 import { resizeRect } from "@/wab/client/FreestyleManipulator";
 import { clientToFramePt, clientToFrameRect } from "@/wab/client/coords";
@@ -28,6 +29,7 @@ import React, { useState } from "react";
 export function _FreestyleBox() {
   const [targeter, setTargeter] = useState<NodeTargeter | undefined>(undefined);
   const studioCtx = useStudioCtx();
+  const { scale: viewportZoom } = useCanvasGeometry(studioCtx);
   const freestyleState = studioCtx.freestyleState();
   if (!freestyleState) {
     return null;
@@ -44,7 +46,7 @@ export function _FreestyleBox() {
     );
   }
 
-  const findTargetVc = (e: React.MouseEvent) => {
+  const findTargetVc = (e: Pick<React.MouseEvent, "clientX" | "clientY">) => {
     for (const vc of studioCtx.viewCtxs) {
       const rect = vc.canvasCtx.viewportContainer().getBoundingClientRect();
       if (Box.fromRect(rect).contains(new Pt(e.clientX, e.clientY))) {
@@ -61,7 +63,7 @@ export function _FreestyleBox() {
       .viewportCtx!.clientToScaler(Box.fromRect(drawnClientRect))
       .rect();
     const invertTransformStyle = cssPropsForInvertTransform(
-      studioCtx.zoom,
+      viewportZoom,
       drawnScalerRect,
     );
     return {
@@ -88,7 +90,7 @@ export function _FreestyleBox() {
             const newTargeter = new NodeTargeter(targetViewCtx);
             setTargeter(newTargeter);
           },
-          { event: e.mouseEvent },
+          { event: "nativeEvent" in e.mouseEvent ? e.mouseEvent : undefined },
         )
       }
       onDrag={async (e) =>
@@ -108,7 +110,7 @@ export function _FreestyleBox() {
             );
             targeter.vc.setHighlightedAdoptees(adoptees);
           },
-          { event: e.mouseEvent },
+          { event: "nativeEvent" in e.mouseEvent ? e.mouseEvent : undefined },
         )
       }
       onStop={async (e) =>
@@ -131,7 +133,7 @@ export function _FreestyleBox() {
             }
             setTargeter(undefined);
           },
-          { event: e.mouseEvent },
+          { event: "nativeEvent" in e.mouseEvent ? e.mouseEvent : undefined },
         )
       }
       render={(e) => (
@@ -179,7 +181,7 @@ function insertFreestyleAsDrawn(
   viewCtx: ViewCtx,
   targeter: NodeTargeter,
   clientRect: Rect,
-  e: React.MouseEvent,
+  e: Pick<React.MouseEvent, "ctrlKey" | "metaKey">,
 ) {
   const studioCtx = viewCtx.studioCtx;
   const freestyleState = ensure(

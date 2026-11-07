@@ -1,0 +1,121 @@
+{
+  "status": "native-rejected",
+  "scope": "F:74 frozen Arena A/B/C and text/comment prerequisite files on verified E base; excludes subsequent save cohort and queue cancellation fix",
+  "source": {
+    "revision": "32df7af09a1df7d119143b546f14a81b6d876c83",
+    "dirty": true,
+    "sourceHash": "c5205a7f3a89f97657e301933b7b9bed32e4089d089c73c73520d764d2561701"
+  },
+  "artifact": {
+    "sourceHash": "c5205a7f3a89f97657e301933b7b9bed32e4089d089c73c73520d764d2561701",
+    "rendererHash": "7c454a43ed3d5376a1754f5d323b8d054ee854bb2aa07564ee516dd2a51f6a18",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 104898342,
+    "studioArtifactHash": "aab9c22a7558e5d5daca5dce57e867650ac2383ee05008d87fdc7782f4106461",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "checks": {
+    "typecheck": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u29f-isolated-typecheck-1.log"
+    },
+    "focusedIntegration": {
+      "filesPassed": 4,
+      "testsPassed": 19,
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u29f-critical-integration.log"
+    },
+    "productionBuild": {
+      "exitCode": 0
+    },
+    "assets": {
+      "exitCode": 0
+    },
+    "archive": {
+      "exitCode": 0
+    }
+  },
+  "nativeGP": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/gp/list-open-u29f-gp-native.json",
+    "reportSha256": "d9239d0ea9a682945eab5f4597ca488c65a42b39f696aeed208993fa66279c97",
+    "functionalCases": 5,
+    "functionalPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "draftDialog": {
+      "enabled": true,
+      "opened": true,
+      "remoteActionClosed": true
+    },
+    "rendererErrors": 2,
+    "previewErrors": 0,
+    "error": true,
+    "failureClass": "Canvas queue cancellation removed an already-dequeued request; actual queue producer idempotency delta tested separately",
+    "docs": {
+      "codegen": {
+        "dependencyModelsValidated": 50,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      },
+      "loader": {
+        "dependencyModelsValidated": 50,
+        "previewUpdated": true,
+        "restored": true,
+        "typeScriptWorkerDiagnostics": 0
+      }
+    }
+  },
+  "nativeComplex": {
+    "run": false,
+    "reason": "GP renderer error must be corrected before further native acceptance"
+  },
+  "fullStudioSuite": {
+    "status": "failed",
+    "exitCode": 1,
+    "filesPassed": 636,
+    "filesFailed": 13,
+    "filesTotal": 649,
+    "testsPassed": 4889,
+    "testsFailed": 60,
+    "testsSkipped": 4,
+    "testsTotal": 4953,
+    "unhandledErrors": 9,
+    "durationSeconds": 1556.16,
+    "log": "/tmp/plasmic-react19-20261105/u29f-full-studio.log",
+    "failureScope": "Native Arena cutover fixture coverage and queued cancellation/geometry lifecycle; failed suites being corrected in grouped targeted runs; not a full-suite pass"
+  },
+  "nextDelta": {
+    "artifact": "/tmp/plasmic-react19-20261105/canvas-agent/u47-canvas-queue-cancellation-delta",
+    "testsPassed": 5,
+    "filesPassed": 2,
+    "lintErrors": 0,
+    "acceptedNative": false
+  },
+  "fullMigration": false
+}

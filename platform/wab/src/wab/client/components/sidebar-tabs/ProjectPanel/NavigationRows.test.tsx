@@ -1,3 +1,5 @@
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import {
   RenderElementProps,
   VirtualTree,
@@ -13,8 +15,9 @@ import { TplMgr } from "@/wab/shared/TplMgr";
 import { ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
+import { createStore } from "zustand/vanilla";
 
 const fixture = vi.hoisted(() => ({ studioCtx: {} as any }));
 vi.mock("@/wab/client/contexts/StudioContexts", () => ({
@@ -47,7 +50,8 @@ vi.mock("@/wab/client/components/widgets/VirtualListScrollbar", async () => {
     >((props, ref) => <div {...props} ref={ref} />),
   };
 });
-afterEach(cleanup);
+const disposals = new Set<() => void>();
+afterEach(() => { cleanup(); for (const dispose of disposals) { dispose(); } disposals.clear(); });
 
 it("opens another page's settings without invoking row navigation or changing the current arena", () => {
   const site = createSite();
@@ -69,14 +73,20 @@ it("opens another page's settings without invoking row navigation or changing th
     "Target page arena",
   );
   const navigate = vi.fn();
+  const modelSnapshots = new ModelSnapshots();
+  const arenaState = new StudioArenaState({ site, modelSnapshots });
+  arenaState.setCurrent(currentArena);
+  disposals.add(() => { arenaState.dispose(); modelSnapshots.dispose(); });
   fixture.studioCtx = {
-    currentArena,
+    arenaState,
+    modelSnapshots,
+    get currentArena() { return arenaState.currentArena(); },
     commentsCtx: {
-      computedData: () => ({ commentStatsByComponent: new Map() }),
+      store: createStore(() => ({ commentStatsByComponent: new Map() })),
     },
     changeUnsafe: (fn: () => void) => fn(),
   };
-  render(
+  const { container } = render(
     <NavigationDropdownContext.Provider value={{ onClose: vi.fn() }}>
       <NavigationArenaRow
         arena={targetArena}
@@ -90,6 +100,14 @@ it("opens another page's settings without invoking row navigation or changing th
   fireEvent.click(screen.getByRole("button", { name: "Page settings" }));
   expect(fixture.studioCtx.pageSettingsPage).toBe(targetPage);
   expect(fixture.studioCtx.pageSettingsOpen).toBe(true);
+  expect(fixture.studioCtx.currentArena).toBe(currentArena);
+  expect(navigate).not.toHaveBeenCalled();
+  expect(container.querySelector(".editor-navigation-current")).toBeNull();
+  act(() => { arenaState.setCurrent(targetArena); });
+  expect(container.querySelector(".editor-navigation-current")?.textContent).toContain("Page2");
+  expect(fixture.studioCtx.currentArena).toBe(targetArena);
+  act(() => { arenaState.setCurrent(currentArena); });
+  expect(container.querySelector(".editor-navigation-current")).toBeNull();
   expect(fixture.studioCtx.currentArena).toBe(currentArena);
   expect(navigate).not.toHaveBeenCalled();
 });

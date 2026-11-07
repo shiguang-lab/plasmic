@@ -11,7 +11,7 @@ import {
   uploadProject,
   waitUntilServerUp,
 } from "../../utils";
-export type CodegenPlatform = "nextjs" | "react" | "tanstack" | "gatsby";
+export type CodegenPlatform = "nextjs" | "react" | "tanstack";
 
 export interface CodegenTestContext {
   projectId: string;
@@ -174,9 +174,6 @@ function getStartCommand(platform: CodegenPlatform, port: number): string {
     case "nextjs":
       npmScriptName = "start";
       break;
-    case "gatsby":
-      npmScriptName = "serve";
-      break;
     case "react":
     case "tanstack":
       npmScriptName = "preview";
@@ -203,7 +200,7 @@ function patchLoaderHost(
           path.join(projectDir, `plasmic-init.${ext}`),
           path.join(projectDir, "app", `sitemap.${ext}`),
         ]
-      : [path.join(projectDir, `gatsby-config.${ext}`)];
+      : [];
 
   for (const filePath of filePaths.filter((p) => fs.existsSync(p))) {
     const content = fs.readFileSync(filePath, "utf-8");

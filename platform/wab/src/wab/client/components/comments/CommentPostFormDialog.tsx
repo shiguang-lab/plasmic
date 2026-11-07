@@ -1,10 +1,11 @@
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import CommentPostForm from "@/wab/client/components/comments/CommentPostForm";
 import { FloatingWindow } from "@/wab/client/components/widgets/FloatingWindow";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   DefaultCommentPostFormDialogProps,
   PlasmicCommentPostFormDialog,
 } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicCommentPostFormDialog";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { OpenedNewThread } from "@/wab/client/studio-ctx/comments-ctx";
 import { getSetOfPinnedVariantsForViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
@@ -22,22 +23,24 @@ export const CommentPostFormDialog = observer(function CommentPostFormDialog({
   ...props
 }: CommentPostFormDialogProps) {
   const studioCtx = useStudioCtx();
+  const current = useStudioArena(studioCtx, (state) => state.current);
+  const focusedMode = useStudioArena(studioCtx, (state) => state.focusedMode);
 
   const commentsCtx = studioCtx.commentsCtx;
 
   const handleClickOutside = () => {
-    if (!openedNewThread.interacted) {
+    if (!commentsCtx.hasDialogInteraction(openedNewThread)) {
       commentsCtx.closeNewThreadDialog();
     }
   };
 
   const markThreadAsInteracted = () => {
-    openedNewThread.interacted = true;
+    commentsCtx.markDialogInteracted(openedNewThread);
   };
-  const currentArena = ensure(
-    studioCtx.currentArena,
-    "Current arena should exist",
-  );
+  const currentArena = studioCtx.currentArena;
+  if (!current || !currentArena) {
+    return null;
+  }
 
   const threadSubject = openedNewThread.tpl;
 
@@ -45,7 +48,7 @@ export const CommentPostFormDialog = observer(function CommentPostFormDialog({
     <OnClickAway onDone={handleClickOutside}>
       <FloatingWindow
         handleSelector=".CommentDialogDragHandle"
-        focusedMode={studioCtx.focusedMode}
+        focusedMode={focusedMode}
         initialAnchor={openedNewThread.anchor}
         initialWidth={300}
         disableHeightResize

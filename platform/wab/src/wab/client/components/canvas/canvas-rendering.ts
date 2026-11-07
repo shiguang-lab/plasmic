@@ -1,3 +1,4 @@
+import { useCanvasRenderPolicy } from "@/wab/client/components/canvas/canvas-render-policy";
 import {
   SlateRenderNodeOpts,
   mkCanvasText,
@@ -33,11 +34,11 @@ import {
 } from "@/wab/client/components/canvas/studio-canvas-util";
 import { getRealClassNames } from "@/wab/client/components/canvas/styles-name";
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
-import { buildViewCtxPinMaps } from "@/wab/client/cseval";
+import type { CanvasVariantInputs } from "@/wab/client/components/canvas/canvas-variant-inputs";
 import { globalHookCtx } from "@/wab/client/react-global-hook/globalHook";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { EditingTextContext, ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { computeDataTokens } from "@/wab/commons/DataToken";
+import { evaluateDataTokenDefinitions } from "@/wab/commons/DataToken";
 import { mkTokenRef } from "@/wab/commons/StyleToken";
 import { DeepReadonly } from "@/wab/commons/types";
 import {
@@ -68,7 +69,7 @@ import {
   computedProjectFlags,
 } from "@/wab/shared/cached-selectors";
 import {
-  INTERNAL_CC_CANVAS_SELECTION_PROP,
+  INTERNAL_CC_CANVAS_PROP,
   classNameProp,
   dataCanvasEnvsProp,
   frameUidProp,
@@ -124,22 +125,20 @@ import {
 } from "@/wab/shared/codegen/util";
 import {
   assert,
+  arrayEq,
   cx,
   ensure,
   ensureArray,
   ensureInstance,
   ensureType,
-  mapEquals,
   maybe,
   notNil,
-  setEquals,
   switchType,
   tuple,
   unexpected,
   withDefaultFunc,
   withoutNils,
 } from "@/wab/shared/common";
-import { supportsCanvasOverlay } from "@/wab/shared/core/canvas-overlays";
 import {
   allComponentVariants,
   getComponentDisplayName,
@@ -174,7 +173,6 @@ import {
 } from "@/wab/shared/core/query-ids";
 import { makeSelectableKey } from "@/wab/shared/core/selection";
 import { makeTokenValueResolver } from "@/wab/shared/core/site-style-tokens";
-import { isSlotSelection } from "@/wab/shared/core/slots";
 import {
   StateVariableType,
   getComponentStateOnChangePropNames,
@@ -206,7 +204,6 @@ import {
   RawTextLike,
   TplTextTag,
   ancestorsUp,
-  computeAncestorsValKey,
   getNumberOfRepeatingAncestors,
   getOwnerSite,
   isExprText,
@@ -323,14 +320,12 @@ import {
   zipObject,
 } from "lodash";
 import {
-  IObservableValue,
-  comparer,
   computed,
   observable,
-  reaction,
 } from "mobx";
 import { computedFn } from "mobx-utils";
 import type React from "react";
+import type { ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
 import { maybeMakePlasmicImgSrc } from "src/wab/shared/codegen/react-p/image";
 import defer = setTimeout;
 
@@ -361,11 +356,6 @@ export interface RenderingCtx {
   wrappingEnv: CanvasEnv;
   viewCtx: ViewCtx;
   forceValComponentKeysWithDefaultSlotContents?: Set<string>;
-  visibilityOptions: {
-    showSlotPlaceholders: boolean;
-    showContainersPlaceholders: boolean;
-  };
-  isDraggingObject: boolean;
 
   // $state is part of the tpl evaluation environment, which we use to
   // determine if we can cache a rendered tpl node. Since all elements
@@ -389,6 +379,10 @@ export interface RenderingCtx {
   // This is used to enable code components variants in the canvas
   $ccVariants: Record<string, boolean>;
   updateVariant: (changes: Record<string, boolean>) => void;
+  /** Explicit existing React boundary to refresh when a rendered input changes. */
+  onRenderInvalidated?: () => void;
+  /** Immutable token definitions; each component evaluates its own runtime values. */
+  dataTokenDefinitions?: import("@/wab/commons/DataToken").DataTokenDefinitions;
 }
 
 interface CanvasComponentProps extends Partial<
@@ -420,13 +414,18 @@ export const createCanvasComponent = ownedComputedFn(
     const CanvasComponent: React.ComponentType<CanvasComponentProps> = (
       originalProps,
     ) => {
+      const forceUpdate = useCanvasForceUpdate(sub);
+      const onRenderInvalidated = sub.React.useCallback(
+        () => viewCtx.addRerenderObserver(forceUpdate),
+        [viewCtx, forceUpdate],
+      );
       return mkUseCanvasObserver(sub, viewCtx)(() => {
-        const ctx = useCtxFromInternalComponentProps(
+        const ctx = { ...useCtxFromInternalComponentProps(
           originalProps,
           viewCtx,
           component,
           getArgsAndVariants,
-        );
+        ), onRenderInvalidated };
 
         return sub.React.createElement(
           mkTriggers(sub, viewCtx, reactHookSpecsToKey(ctx.reactHookSpecs)),
@@ -733,7 +732,7 @@ const mkTriggers = ownedComputedFn(function mkTriggers(
       sub,
       viewCtx,
     )(() => {
-      const isInteractive = ctx.viewCtx.studioCtx.isInteractiveMode;
+      const isInteractive = useCanvasRenderPolicy(sub, viewCtx, "interactive");
 
       // triggers map is empty in non-interactive mode
       const { triggers, triggerProps } = useTriggers(
@@ -834,6 +833,9 @@ function useCtxFromInternalComponentProps(
 ) {
   const canvasCtx = viewCtx.canvasCtx;
   const sub = canvasCtx.Sub;
+  const functions = viewCtx.canvasRenderOwner.functionInputs(viewCtx).store;
+  const functionEnvironment = sub.React.useSyncExternalStore(functions.subscribe, functions.getState, functions.getInitialState);
+  useServerQueryRegistrations(sub, viewCtx, component);
 
   const viewState = ensure(
     sub.React.useContext(createViewStateContext(viewCtx)),
@@ -897,12 +899,22 @@ function useCtxFromInternalComponentProps(
     triggerProps: {},
     plasmicInvalidate,
   };
+  const ownerPinsStore = viewState.ownerStore(renderingCtx.valKey);
+  const ownerPins = sub.React.useSyncExternalStore(ownerPinsStore.subscribe, ownerPinsStore.getState, ownerPinsStore.getInitialState);
+  const globals = sub.React.useSyncExternalStore(viewState.globalStore.subscribe, viewState.globalStore.getState, viewState.globalStore.getInitialState);
+  const slotStore = viewState.slotStore(renderingCtx.valKey);
+  const forceDefaultSlot = sub.React.useSyncExternalStore(slotStore.subscribe, slotStore.getState, slotStore.getInitialState);
+  const models = viewCtx.studioCtx.modelSnapshots;
+  const pinMap: PinMap = sub.React.useMemo(() => new Map(ownerPins ? [[ownerPins.key,
+    new Map(ownerPins.pins.map((pin) => [models.resolve(pin.variant), pin.active]))]] : []), [ownerPins, models]);
+  const globalPins = sub.React.useMemo(() => new Map(globals.map((pin) => [models.resolve(pin.variant), pin.active])), [globals, models]);
+  const forceDefaultKeys = sub.React.useMemo(() => new Set(forceDefaultSlot ? [renderingCtx.valKey] : []), [forceDefaultSlot, renderingCtx.valKey]);
 
   const initialActiveVariants = deriveActiveVariants(
     component,
     variants,
-    viewState.pinMap,
-    viewState.globalPins,
+    pinMap,
+    globalPins,
     renderingCtx,
   );
 
@@ -959,25 +971,21 @@ function useCtxFromInternalComponentProps(
   );
 
   const $globalActions = sub.useGlobalActions?.();
-  const [evaluatedDataTokens, setEvaluatedDataTokens] = sub.React.useState(
-    computeDataTokens(viewCtx.site, viewCtx.studioCtx.siteInfo.id, {}),
-  );
+  const { definitions: dataTokenDefinitions, evaluated: evaluatedDataTokens } = useCanvasDataTokens(sub, viewCtx);
+  const interactive = useCanvasRenderPolicy(sub, viewCtx, "interactive");
 
-  sub.React.useEffect(() => {
-    const dispose = reaction(
-      () => computeDataTokens(viewCtx.site, viewCtx.studioCtx.siteInfo.id, {}),
-      (computedDataTokens) => {
-        setEvaluatedDataTokens(computedDataTokens);
-      },
-    );
-    return () => dispose();
-  }, [viewCtx.site]);
+  const currentAppUserStore = viewCtx.studioCtx.currentAppUserStore;
+  const currentAppUser = sub.React.useSyncExternalStore(
+    currentAppUserStore.subscribe,
+    () => currentAppUserStore.getState().appUser,
+    () => currentAppUserStore.getInitialState().appUser,
+  );
 
   const env = {
     $props,
     $ctx,
     $refs,
-    $$: viewCtx.customFunctions,
+    $$: functionEnvironment,
     dataSourcesCtx,
     $globalActions,
     $queries,
@@ -985,7 +993,7 @@ function useCtxFromInternalComponentProps(
     ...evaluatedDataTokens?.$dataTokens,
     dataTokensEnv: evaluatedDataTokens?.pickerEnv,
     ...(viewCtx.studioCtx.siteInfo.hasAppAuth
-      ? { currentUser: viewCtx.studioCtx.currentAppUser }
+      ? { currentUser: currentAppUser }
       : {}),
   };
 
@@ -1040,11 +1048,11 @@ function useCtxFromInternalComponentProps(
   const activeVariants = deriveActiveVariants(
     component,
     $state,
-    viewState.pinMap,
-    viewState.globalPins,
+    pinMap,
+    globalPins,
     renderingCtx,
   );
-  if (viewCtx.studioCtx.isInteractiveMode && viewCtx.component === component) {
+  if (interactive && viewCtx.component === component) {
     viewCtx.change(() => {
       viewCtx.syncInteractiveVariants($state);
     });
@@ -1062,15 +1070,38 @@ function useCtxFromInternalComponentProps(
     ownerKey: renderingCtx.valKey,
     ownersStack: [...renderingCtx.ownersStack, renderingCtx.valKey],
     $stateSnapshot: cloneDeep($state),
+    dataTokenDefinitions,
     forceValComponentKeysWithDefaultSlotContents:
-      viewState.forceValComponentKeysWithDefaultSlotContents,
+      forceDefaultKeys,
     setDollarQueries,
     setDollarQ,
     stateSpecs,
     $ccVariants,
     updateVariant: updateVariant,
   };
+  useCanvasDataTokenLease(sub, viewCtx, ctx);
   return ctx;
+}
+
+/** Subscribe at the existing component boundary; evaluated results remain
+ * local to this React instance, including mutable arrays and command handles. */
+export function useCanvasDataTokens(sub: SubDeps, view: ViewCtx) {
+  const owner = view.canvasRenderOwner;
+  const source = owner.dataTokenInputs(view).store;
+  const definitions = sub.React.useSyncExternalStore(source.subscribe, source.getState, source.getInitialState);
+  const evaluated = sub.React.useMemo(() => evaluateDataTokenDefinitions(definitions, {}), [definitions]);
+  return { definitions, evaluated };
+}
+
+export function useCanvasDataTokenLease(sub: SubDeps, view: ViewCtx, ctx: RenderingCtx): void {
+  const owner = view.canvasRenderOwner, fullKey = computeFullKey(ctx), slot = ctx.renderSlotInstance;
+  const lifetime = view.disposeSignal;
+  sub.React.useLayoutEffect(() => {
+    if (lifetime.aborted) { return; }
+    const release = owner.retainDataTokenConsumer(fullKey, slot);
+    lifetime.addEventListener("abort", release, { once: true });
+    return () => { lifetime.removeEventListener("abort", release); release(); };
+  }, [owner, fullKey, slot, lifetime]);
 }
 
 function deriveActiveVariants(
@@ -1124,43 +1155,10 @@ function variantsToProps(
   return props;
 }
 
-function buildForceValComponentKeyWithDefaultSlotContents(vc: ViewCtx) {
-  const keys = new Set<string>();
-  if (vc.showDefaultSlotContents()) {
-    // We need to tell the evaluator which ValComponents should be rendered with
-    // default slot contents instead of args.  This should be the current spotlit
-    // ValComponent, plus all ValComponents up the componentStackFrames.
-    const valComp = vc.currentComponentCtx()?.valComponent();
-    if (valComp) {
-      keys.add(valComp.key);
-      // The componentStackFrames() don't track ValComponent, only TplComponent,
-      // so we walk up the valComp owners and cross reference them with TplComponents
-      // in the componentStackFrames().
-      const contextTplComponents = new Set(
-        vc.componentStackFrames().map((f) => f.tplComponent),
-      );
-      let owner = valComp.valOwner;
-      while (owner) {
-        if (contextTplComponents.has(owner.tpl)) {
-          keys.add(owner.key);
-        }
-        owner = owner.valOwner;
-      }
-    }
-  }
-  return keys;
-}
-
-interface ViewState {
-  globalPins: Map<Variant, boolean>;
-  pinMap: PinMap;
-  forceValComponentKeysWithDefaultSlotContents: Set<string>;
-}
-
 const createViewStateContext = ownedComputedFn(
   (viewCtx: ViewCtx) => {
     const sub = viewCtx.canvasCtx.Sub;
-    return sub.React.createContext<ViewState | undefined>(undefined);
+    return sub.React.createContext<CanvasVariantInputs | undefined>(undefined);
   },
   {
     name: "createViewStateProvider",
@@ -1173,32 +1171,14 @@ export function useRenderedFrameRoot(
 ): React.ReactElement {
   const sub = viewCtx.canvasCtx.Sub;
   const ViewStateContext = createViewStateContext(viewCtx);
-  const { globalPins, pinMap } = computed(() => buildViewCtxPinMaps(viewCtx), {
-    equals: (a, b) => {
-      // Building the pin map
-      return (
-        mapEquals(a.globalPins, b.globalPins) &&
-        pinMapEquals(a.pinMap, b.pinMap)
-      );
-    },
-    name: `renderFrameRoot.buildViewCtxPinMaps[${root.uuid}]`,
-  }).get();
-  const forceValComponentKeysWithDefaultSlotContents = computed(
-    () => buildForceValComponentKeyWithDefaultSlotContents(viewCtx),
-    {
-      equals: (a, b) => setEquals(a, b),
-      name: `renderFrameRoot.buildForceValComponentKeyWithDefaultSlotContents`,
-    },
-  ).get();
-
-  const viewState = sub.React.useMemo(
-    () => ({
-      globalPins,
-      pinMap,
-      forceValComponentKeysWithDefaultSlotContents,
-    }),
-    [globalPins, pinMap, forceValComponentKeysWithDefaultSlotContents],
+  const forceUpdate = useCanvasForceUpdate(sub);
+  const onRenderInvalidated = sub.React.useCallback(
+    () => viewCtx.addRerenderObserver(forceUpdate),
+    [viewCtx, forceUpdate],
   );
+  const viewState = viewCtx.canvasRenderOwner.variantInputs(viewCtx);
+  const globals = sub.React.useSyncExternalStore(viewState.globalStore.subscribe, viewState.globalStore.getState, viewState.globalStore.getInitialState);
+  const globalPins = sub.React.useMemo(() => new Map(globals.map((pin) => [viewCtx.studioCtx.modelSnapshots.resolve(pin.variant), pin.active])), [globals, viewCtx]);
 
   const r = sub.React.createElement;
 
@@ -1207,6 +1187,7 @@ export function useRenderedFrameRoot(
     { value: viewState },
     renderTplNode(root, {
       ...makeEmptyRenderingCtx(viewCtx, root.uuid),
+      onRenderInvalidated,
       activeVariants: new Set([
         viewCtx.site.globalVariant,
         ...[...globalPins.entries()].filter(([_, b]) => !!b).map(([v]) => v),
@@ -1275,11 +1256,6 @@ function makeEmptyRenderingCtx(viewCtx: ViewCtx, valKey: string): RenderingCtx {
     sub: viewCtx.canvasCtx.Sub,
     valKey: valKey,
     viewCtx,
-    visibilityOptions: {
-      showSlotPlaceholders: viewCtx.studioCtx.showSlotPlaceholder(),
-      showContainersPlaceholders: viewCtx.studioCtx.showContainerPlaceholder(),
-    },
-    isDraggingObject: viewCtx.studioCtx.isDraggingObject(),
     $stateSnapshot: {},
     setDollarQueries: () => {},
     setDollarQ: () => {},
@@ -1304,70 +1280,11 @@ export function renderTplNode(node: TplNode, ctx: RenderingCtx) {
   );
 }
 
-const autoOpenSelectionInfo = ownedComputedFn(
-  (viewCtx: ViewCtx, node: TplNode, valKey: string) => computed(
-    () => {
-      // Ensuring that the depencies are tracked
-      const isInteractive = viewCtx.studioCtx.isInteractiveMode;
-      const isAutoOpenMode = viewCtx.studioCtx.isAutoOpenMode;
-      const disabledAutoOpenUuid = viewCtx.disabledAutoOpenUuid;
-      // The reason why we are using the focusedTplDeepAncestorPath is because
-      // we can't rely on ValNodes or the dom to determine if a node is selected
-      // or not. Since code components are able to conditonally render content
-      // without our knowledge, even us being the ones that provide the content
-      // for the slot, we can't be sure wether the content is attached to the
-      // React tree. Our option is to rely on the model and based on the tpl nodes
-      // stretch the focused elements to include all the tpls that we are able to find.
-      //
-      // The reason for streching the selection is because code components can
-      // have the slot being proxied by a plasmic component, so we need to make sure
-      // that the selection is also handled through it.
-      const path = viewCtx.focusedTplAncestorsThroughComponents();
-      const nodeIdx = path?.findIndex((s) => s.node === node) ?? -1;
-
-      if (
-        isInteractive ||
-        viewCtx.canvasExporting.get() ||
-        !isAutoOpenMode ||
-        disabledAutoOpenUuid ||
-        !path ||
-        nodeIdx === -1
-      ) {
-        return {
-          id: node.uuid,
-          isSelected: false,
-          selectedSlotName: null,
-        };
-      }
-
-      const nodeAncestors = path.slice(nodeIdx);
-      const ancestorsKeyPath = computeAncestorsValKey(nodeAncestors);
-
-      // If it's truly selected, we should have the ancestors key as a suffix, since there is
-      // a prefix containing the current component instance and global contexts and that is not
-      // explicitly part of the model, but only how the rendering is done.
-      const isSelected = valKey.endsWith(ancestorsKeyPath);
-
-      const descendant = nodeIdx > 0 ? path[nodeIdx - 1].node : null;
-
-      return {
-        id: node.uuid,
-        isSelected,
-        selectedSlotName:
-          isSelected && isSlotSelection(descendant)
-            ? descendant?.slotParam?.variable.name
-            : null,
-      };
-    },
-    {
-      name: "getAutoOpenSelectionInfo",
-      equals: comparer.structural,
-    },
-  ),
-);
-
 function getAutoOpenSelectionInfo(ctx: RenderingCtx, node: TplNode) {
-  return autoOpenSelectionInfo(ctx.viewCtx, node, ctx.valKey).get();
+  const info = ctx.viewCtx.canvasRenderOwner.selectionInput(ctx.viewCtx, node, ctx.valKey).getState();
+  return ctx.viewCtx.studioCtx.renderPolicy.store.getState().interactive || ctx.viewCtx.canvasCtx.frameInfo(ctx.viewCtx).getState().exporting || !ctx.viewCtx.studioCtx.renderPolicy.store.getState().autoOpen
+    ? { id: node.uuid, isSelected: false, selectedSlotName: null }
+    : info;
 }
 
 function renderReppable(tplNode: TplNode, ctx: RenderingCtx) {
@@ -1588,7 +1505,7 @@ function renderTplComponent(
               param,
             );
             if (
-              !ctx.viewCtx.studioCtx.showSlotPlaceholder() ||
+              !ctx.viewCtx.studioCtx.renderPolicy.store.getState().showSlotPlaceholder ||
               // We don't show placeholder unless we're currently
               // editing the owner component
               !(ctx.ownerKey && isKeyInEditableStack(ctx, ctx.ownerKey)) ||
@@ -1823,47 +1740,47 @@ function renderTplComponent(
 
   if (isCodeComponent(node.component)) {
     const codeComponentSelectionInfo = getAutoOpenSelectionInfo(ctx, node);
-    props[INTERNAL_CC_CANVAS_SELECTION_PROP] = {
-      ...codeComponentSelectionInfo,
-      isEditingContents:
-        !ctx.viewCtx.studioCtx.isInteractiveMode &&
-        !ctx.viewCtx.canvasExporting.get() &&
+    props[INTERNAL_CC_CANVAS_PROP] = {
+      selected: codeComponentSelectionInfo.isSelected,
+      slot: codeComponentSelectionInfo.selectedSlotName,
+      editing:
+        !ctx.viewCtx.studioCtx.renderPolicy.store.getState().interactive &&
+        !ctx.viewCtx.canvasCtx.frameInfo(ctx.viewCtx).getState().exporting &&
         ctx.viewCtx.contentEditor.isExpanded(computeFullKey(ctx)),
       // The artboard shows its full page height; components with internal
       // vertical scroll viewports may render all of their content instead.
-      isFullContentView: ctx.viewCtx.isFullContentView(),
+      fullContent: ctx.viewCtx.canvasCtx.frameInfo(ctx.viewCtx).getState().fullPageHeight,
     };
-    if (supportsCanvasOverlay(node) && ctx.viewCtx.canvasExporting.get()) {
-      props.previewOpen = undefined;
-    } else if (
-      supportsCanvasOverlay(node) &&
-      !ctx.viewCtx.studioCtx.isInteractiveMode
+    if (
+      meta?.meta.canvasOverlay &&
+      !ctx.viewCtx.canvasCtx.frameInfo(ctx.viewCtx).getState().exporting &&
+      !ctx.viewCtx.studioCtx.renderPolicy.store.getState().interactive
     ) {
       const autoOpen =
         codeComponentSelectionInfo.isSelected &&
         (!meta?.meta.canvasOverlay?.triggerSlot || codeComponentSelectionInfo.selectedSlotName !==
           meta.meta.canvasOverlay.triggerSlot);
       const sessionSourceProps = ctx.renderSlotInstance ? sourceProps : props;
-      props.previewOpen = ctx.viewCtx.syncCanvasOverlayState(
+      ctx.viewCtx.syncCanvasOverlayState(
         computeCanvasSessionKey(ctx),
-        props.previewOpen ?? (autoOpen || !!sessionSourceProps.open),
+        autoOpen || !!sessionSourceProps.open,
         sessionSourceProps.open,
         sessionSourceProps.defaultOpen,
       );
     }
-    props["plasmicNotifyAutoOpenedContent"] = () => {
+    props[INTERNAL_CC_CANVAS_PROP].onReveal = () => {
       ctx.viewCtx.autoOpenedUuid =
         node.component.params.find(
           (p) =>
             p.variable.name === codeComponentSelectionInfo.selectedSlotName,
         )?.uuid ?? node.uuid;
     };
-    if (!ctx.viewCtx.canvasExporting.get()) {
-      props[INTERNAL_CC_CANVAS_SELECTION_PROP].states = applyCanvasSessionState(
+    if (!ctx.viewCtx.canvasCtx.frameInfo(ctx.viewCtx).getState().exporting) {
+      props[INTERNAL_CC_CANVAS_PROP].states = applyCanvasSessionState(
         ctx.viewCtx.canvasSessionState, computeCanvasSessionKey(ctx), props, canvasStateSpecs,
-        ctx.viewCtx.studioCtx.isInteractiveMode,
+        ctx.viewCtx.studioCtx.renderPolicy.store.getState().interactive,
         () => ctx.viewCtx.scheduleSync({ eval: true, styles: false, asap: true }),
-        supportsCanvasOverlay(node),
+        !!meta?.meta.canvasOverlay,
         ctx.renderSlotInstance ? sourceProps : undefined,
       );
     }
@@ -1900,8 +1817,9 @@ function maybeUnwrapFragments(
   child: React.ReactElement | undefined | null,
 ) {
   if (
-    child?.type === sub.React.Fragment &&
-    (child.key || child.props.key)?.startsWith(repFragmentKey)
+    sub.React.isValidElement<{ children?: React.ReactNode }>(child) &&
+    child.type === sub.React.Fragment &&
+    child.key?.startsWith(repFragmentKey)
   ) {
     return child.props.children;
   }
@@ -1942,7 +1860,7 @@ function computeRenderedArg(
         return maybeUnwrapFragments(ctx.sub, elt);
       })
       .map((v) => {
-        if (!v) {
+        if (!ctx.sub.React.isValidElement<Record<string, unknown>>(v)) {
           return v;
         }
         let attrs: Record<string, string> = {
@@ -1950,7 +1868,7 @@ function computeRenderedArg(
           [slotArgParamProp]: param.uuid,
         };
         if (v.type === ctx.sub.React.Fragment) {
-          const existingKey = v.key || v.props.key;
+          const existingKey = v.key;
           if (
             isString(existingKey) &&
             existingKey.startsWith(slotFragmentKey)
@@ -2000,72 +1918,58 @@ function computeTplComponentArgs(
           // Explicit null expressions still override it.
           return ofCodeComponent ? undefined : null;
         } else {
-          const contents = (envOverrides: Partial<CanvasEnv>) => {
-            if (isRenderFuncType(param.type)) {
-              const paramType = param.type;
-              return (...args: any[]) => {
-                return ctx.sub.React.createElement(
-                  mkCanvasObserver(ctx.sub, ctx.viewCtx),
-                  {
-                    children: () => {
-                      const instance = ctx.sub.React.useId();
-                      return ctx.sub.React.createElement(
-                        ctx.sub.React.Fragment,
-                        {},
-                        computeRenderedArg(param, _expr.tpl, {
-                          ...ctx,
-                          renderSlotInstance: JSON.stringify([ctx.renderSlotInstance, param.uuid, instance]),
-                        }, {
-                          ...envOverrides,
-                          ...zipObject(
-                            paramType.params.map((p) => p.argName),
-                            args,
-                          ),
-                        }),
-                      );
-                    },
-                  },
-                );
-              };
-            } else {
-              return computeRenderedArg(param, _expr.tpl, ctx, envOverrides);
-            }
-          };
-          if (shouldWrapSlotContentInDataCtxReader(tpl.component, param)) {
-            return wrapInDataCtxReader(
-              ctx,
-              ($newCtx) =>
-                withErrorDisplayFallback(
-                  ctx.sub.React,
-                  ctx,
-                  tpl,
-                  () =>
-                    ctx.sub.React.createElement(mkCanvasWrapper(ctx.sub), {
-                      // Whenever we read the data ctx for a slot, we provide
-                      // the updated canvas env to the React tree so we can use
-                      // these values in the data picker in case the descendent
-                      // nodes end up not being rendered.
-                      [slotExtraCanvasEnvProp]:
-                        ensureType<ExtraSlotCanvasEnvData>({
-                          env: {
-                            ...ctx.env,
-                            $ctx: { ...$newCtx },
-                          },
+          const renderContents = (renderCtx: RenderingCtx, envOverrides: Partial<CanvasEnv>) => {
+            const contents = (extraEnv: Partial<CanvasEnv>) =>
+              computeRenderedArg(param, _expr.tpl, renderCtx, { ...extraEnv, ...envOverrides });
+            if (shouldWrapSlotContentInDataCtxReader(tpl.component, param)) {
+              return wrapInDataCtxReader(
+                renderCtx,
+                ($newCtx) =>
+                  withErrorDisplayFallback(
+                    renderCtx.sub.React,
+                    renderCtx,
+                    tpl,
+                    () =>
+                      renderCtx.sub.React.createElement(mkCanvasWrapper(renderCtx.sub), {
+                        // Expose the slot's data context even when descendants do not render.
+                        [slotExtraCanvasEnvProp]: ensureType<ExtraSlotCanvasEnvData>({
+                          env: { ...renderCtx.env, ...envOverrides, $ctx: { ...$newCtx } },
                           slotPropUuid: param.uuid,
-                          tplComponentValKey: ctx.valKey,
+                          tplComponentValKey: renderCtx.valKey,
                         }),
-                      children: contents({ $ctx: $newCtx }),
-                    }),
-                  {
-                    hasLoadingBoundary:
-                      $newCtx?.[hasLoadingBoundaryKey] ||
-                      ctx.env.$ctx?.[hasLoadingBoundaryKey],
-                  },
-                ),
-              `DataCtxReaderChildren(${tpl.uuid}.${param.variable.name})`,
+                        children: contents({ $ctx: $newCtx }),
+                      }),
+                    {
+                      hasLoadingBoundary:
+                        $newCtx?.[hasLoadingBoundaryKey] ||
+                        renderCtx.env.$ctx?.[hasLoadingBoundaryKey],
+                    },
+                  ),
+                `DataCtxReaderChildren(${tpl.uuid}.${param.variable.name})`,
+              );
+            }
+            return contents({});
+          };
+          if (isRenderFuncType(param.type)) {
+            const paramType = param.type;
+            return (...args: any[]) => ctx.sub.React.createElement(
+              mkCanvasObserver(ctx.sub, ctx.viewCtx),
+              {
+                children: () => {
+                  const instance = ctx.sub.React.useId();
+                  return ctx.sub.React.createElement(
+                    ctx.sub.React.Fragment,
+                    {},
+                    renderContents(
+                      { ...ctx, renderSlotInstance: JSON.stringify([ctx.renderSlotInstance, param.uuid, instance]) },
+                      zipObject(paramType.params.map((p) => p.argName), args),
+                    ),
+                  );
+                },
+              },
             );
           }
-          return contents({});
+          return renderContents(ctx, {});
         }
       })
       .when(CustomCode, (_expr) => {
@@ -2223,7 +2127,7 @@ function computeTplComponentArgs(
     // Keep click handlers available for explicit modifier clicks. Other events
     // remain absent in edit mode, including mount/onChange callbacks.
     if (
-      !ctx.viewCtx.studioCtx.isInteractiveMode &&
+      !ctx.viewCtx.studioCtx.renderPolicy.store.getState().interactive &&
       isKnownEventHandler(arg.expr) &&
       canvasParamToVarName(tpl.component, arg.param) !== "onClick"
     ) {
@@ -2234,7 +2138,7 @@ function computeTplComponentArgs(
 
   for (const [name, expr] of Object.entries(effectiveVs.attrs)) {
     if (
-      ctx.viewCtx.studioCtx.isInteractiveMode ||
+      ctx.viewCtx.studioCtx.renderPolicy.store.getState().interactive ||
       (name === "onClick" && isKnownEventHandler(expr))
     ) {
       const tempParam = mkParam({
@@ -2278,7 +2182,7 @@ function computeTplComponentArgs(
       // using pin manager and $state.
       continue;
     } else if (
-      ctx.viewCtx.studioCtx.isInteractiveMode &&
+      ctx.viewCtx.studioCtx.renderPolicy.store.getState().interactive &&
       maybePropMeta &&
       isPlainObjectPropType(maybePropMeta) &&
       (maybePropMeta as any).editOnly
@@ -2613,7 +2517,7 @@ function computeActiveVariantsForMaybeDisabledTag(
   const evaledAttrs = Object.fromEntries(
     Object.entries(effectiveVs.attrs).map(([attr, expr]) => {
       if (
-        !ctx.viewCtx.studioCtx.isInteractiveMode &&
+        !ctx.viewCtx.studioCtx.renderPolicy.store.getState().interactive &&
         isKnownEventHandler(expr) &&
         attr !== "onClick"
       ) {
@@ -2881,17 +2785,21 @@ function determineAutoOpenState(
   const hiddenByDisplay = visibility === TplVisibility.DisplayNone || display === "none";
   const nativeVisible = !hiddenByDisplay && (visibility === TplVisibility.Visible ||
     evalDataCondExpr(ctx, effectiveVs));
+  // This decision is the only export-sensitive part of native node visibility.
+  // Record its actual dependency without evaluating the visibility policy twice.
+  const visibilityUsesExport = !nativeVisible || ctx.viewCtx.canvasSessionState.has(computeCanvasSessionKey(ctx), "$visibility");
+  ctx.viewCtx.canvasRenderOwner.setExportVisibilityInput(ctx, visibilityUsesExport);
   let visible = nativeVisible;
-  if (!ctx.viewCtx.canvasExporting.get()) {
+  if (visibilityUsesExport && !ctx.viewCtx.canvasCtx.frameInfo(ctx.viewCtx).getState().exporting) {
     const session = ctx.viewCtx.canvasSessionState;
-    const instance = computeFullKey(ctx);
+    const instance = computeCanvasSessionKey(ctx);
     if (!nativeVisible || session.has(instance, "$visibility")) {
       visible = !!session.resolve(instance, "$visibility", nativeVisible, [
       visibility, hiddenByDisplay, effectiveVs.dataCond ? hashExpr(ctx.site, effectiveVs.dataCond, {
         component: ctx.ownerComponent ?? null, projectFlags: ctx.projectFlags, inStudio: true,
       }) : undefined,
       ]);
-      if (!ctx.viewCtx.studioCtx.isInteractiveMode && !nativeVisible) {
+      if (!ctx.viewCtx.studioCtx.renderPolicy.store.getState().interactive && !nativeVisible) {
         visible = !!session.reveal(instance, "$visibility", getAutoOpenSelectionInfo(ctx, node).isSelected);
       }
     }
@@ -2993,7 +2901,7 @@ function supressContainerPlaceholder(
   ctx: RenderingCtx,
   effectiveVs: EffectiveVariantSetting,
 ) {
-  if (!ctx.viewCtx.studioCtx.showContainerPlaceholder()) {
+  if (!ctx.viewCtx.studioCtx.renderPolicy.store.getState().showContainerPlaceholder) {
     return true;
   }
   if (!(ctx.ownerKey && isKeyInEditableStack(ctx, ctx.ownerKey))) {
@@ -3029,7 +2937,7 @@ const mkEmptyContainerPlaceholder = ownedComputedFn(
             ctx,
             node,
             () => {
-              const domRef = sub.React.useRef<HTMLDivElement>();
+              const domRef = sub.React.useRef<HTMLDivElement | null>(null);
 
               sub.React.useEffect(() => {
                 if (!domRef.current) {
@@ -3146,7 +3054,8 @@ const mkRichText = ownedComputedFn((react: typeof React) =>
             const [isEditing, setEditing] = react.useState(() => false);
 
             // Use a computed() here so we don't re-render when the valRoot is set
-            const isTextEditable = computed(() => isEditable(node, ctx), {
+            const devMode = useCanvasRenderPolicy(ctx.sub, ctx.viewCtx, "devMode");
+            const isTextEditable = computed(() => devMode && isEditable(node, ctx), {
               name: `isRichTextEditable`,
             }).get();
 
@@ -3260,7 +3169,7 @@ const mkRichText = ownedComputedFn((react: typeof React) =>
 );
 
 function isEditable(node: TplNode, ctx: RenderingCtx) {
-  if (!ctx.viewCtx.studioCtx.isDevMode) {
+  if (!ctx.viewCtx.studioCtx.renderPolicy.store.getState().devMode) {
     return false;
   }
 
@@ -3383,10 +3292,10 @@ function renderTplSlot(
 }
 
 function supressSlotPlaceholder(node: TplSlot, ctx: RenderingCtx) {
-  if (!ctx.viewCtx.studioCtx.showSlotPlaceholder()) {
+  if (!ctx.viewCtx.studioCtx.renderPolicy.store.getState().showSlotPlaceholder) {
     return true;
   }
-  if (!ctx.viewCtx.studioCtx.showContainerPlaceholder()) {
+  if (!ctx.viewCtx.studioCtx.renderPolicy.store.getState().showContainerPlaceholder) {
     return true;
   }
   return !(
@@ -3554,96 +3463,101 @@ export interface CanvasFrameInfo {
   isHeightAutoDerived: boolean;
   /** Studio view preference to show the full content height of the page. */
   fullPageHeight: boolean;
+  readonly exporting: boolean;
   bgColor: string | undefined;
   pageSizeType?: PageSizeType;
   containerType?: ContainerType;
   defaultInitialPageFrameSize?: number;
 }
 
-export const mkCanvas = ownedComputedFn(
-  (sub: SubDeps, vc: ViewCtx) =>
-    (props: {
-      children?: React.ReactNode;
-      frameInfo: IObservableValue<CanvasFrameInfo>;
-    }) => {
-      const forceUpdate = useCanvasForceUpdate(sub);
+export interface CanvasFrameProps {
+  children?: React.ReactNode;
+  frameInfo: ModelFieldStore<CanvasFrameInfo>;
+}
 
-      return mkUseCanvasObserver(sub, vc)(
-        () => {
-          const { children, frameInfo } = props;
-          const {
-            viewMode,
-            height,
-            isHeightAutoDerived,
-            fullPageHeight,
-            bgColor,
-          } = frameInfo.get();
-          const showFullHeight = isHeightAutoDerived && fullPageHeight;
+export function mkCanvas(sub: SubDeps, vc: ViewCtx) {
+  return function CanvasFrame(props: CanvasFrameProps) {
+    const { children, frameInfo } = props;
+    const {
+      viewMode,
+      height,
+      isHeightAutoDerived,
+      fullPageHeight,
+      bgColor,
+    } = sub.React.useSyncExternalStore(
+      frameInfo.subscribe, frameInfo.getState, frameInfo.getInitialState,
+    );
+    const showFullHeight = isHeightAutoDerived && fullPageHeight;
 
-          const appUserCtx = vc.studioCtx.currentAppUserCtx;
+    const userStore = vc.studioCtx.currentAppUserStore;
+    const appUserCtx = sub.React.useSyncExternalStore(
+      userStore.subscribe, userStore.getState, userStore.getInitialState,
+    );
 
-          sub.React.useEffect(() => {
-            vc.canvasCtx.doc().body.style.backgroundColor = bgColor || "unset";
-          }, [bgColor]);
+    sub.React.useEffect(() => {
+      if (!vc.isDisposed) {
+        vc.canvasCtx.doc().body.style.backgroundColor = bgColor || "unset";
+      }
+    }, [bgColor]);
 
-          let wrapped: React.ReactElement = sub.React.createElement(
-            "div",
-            {
-              className: cx({
-                __wab_root: true,
-                "__wab_root--stretch": viewMode === "stretch",
-                "__wab_root--centered": viewMode === "centered",
-                "__wab_root--checkerboard": viewMode === "centered" && !bgColor,
-                "__wab_root--page-stretch": isHeightAutoDerived,
-                "__wab_root--full-height": showFullHeight,
-              }),
-              style: {
-                minHeight: `${height}px`,
-                "--viewport-height": `${height}px`,
-                // Layout components opt in by reading this variable, e.g.
-                // `height: var(--canvas-content-height, <viewport height>)`.
-                // It is only defined on the canvas, never in previews/exports.
-                ...(showFullHeight
-                  ? { "--canvas-content-height": "auto" }
-                  : {}),
-              },
-            },
-            children,
-          );
+    if (vc.isDisposed) {
+      return null;
+    }
 
-          if (sub.dataSourcesContext?.PlasmicDataSourceContextProvider) {
-            wrapped = sub.React.createElement(
-              sub.dataSourcesContext.PlasmicDataSourceContextProvider,
-              {
-                value: {
-                  user: {
-                    email: appUserCtx.appUser.email,
-                    roleId: appUserCtx.appUser.roleId,
-                    roleName: appUserCtx.appUser.roleName,
-                    roleIds: appUserCtx.appUser.roleIds?.map(
-                      (roleId) => roleId,
-                    ),
-                    roleNames: appUserCtx.appUser.roleNames?.map(
-                      (roleName) => roleName,
-                    ),
-                    isLoggedIn: appUserCtx.appUser.isLoggedIn,
-                  } as any,
-                  userAuthToken: appUserCtx.fakeAuthToken,
-                },
-              },
-              wrapped,
-            );
-          }
-
-          return wrapped;
+    let wrapped: React.ReactElement = sub.React.createElement(
+      "div",
+      {
+        className: cx({
+          __wab_root: true,
+          "__wab_root--stretch": viewMode === "stretch",
+          "__wab_root--centered": viewMode === "centered",
+          "__wab_root--checkerboard": viewMode === "centered" && !bgColor,
+          "__wab_root--page-stretch": isHeightAutoDerived,
+          "__wab_root--full-height": showFullHeight,
+        }),
+        style: {
+          minHeight: `${height}px`,
+          "--viewport-height": `${height}px`,
+          // Layout components opt in by reading this variable, e.g.
+          // `height: var(--canvas-content-height, <viewport height>)`.
+          // It is only defined on the canvas, never in previews/exports.
+          ...(showFullHeight
+            ? { "--canvas-content-height": "auto" }
+            : {}),
         },
-        "mkCanvas",
-        forceUpdate,
-      );
-    },
-);
+      },
+      children,
+    );
 
-function computeFullKey(ctx: RenderingCtx) {
+    if (sub.dataSourcesContext?.PlasmicDataSourceContextProvider) {
+      wrapped = sub.React.createElement(
+        sub.dataSourcesContext.PlasmicDataSourceContextProvider,
+        {
+          value: {
+            user: {
+              email: appUserCtx.appUser.email,
+              roleId: appUserCtx.appUser.roleId,
+              roleName: appUserCtx.appUser.roleName,
+              roleIds: appUserCtx.appUser.roleIds?.map(
+                (roleId) => roleId,
+              ),
+              roleNames: appUserCtx.appUser.roleNames?.map(
+                (roleName) => roleName,
+              ),
+              isLoggedIn: appUserCtx.appUser.isLoggedIn,
+            } as any,
+            userAuthToken: appUserCtx.fakeAuthToken,
+          },
+        },
+        wrapped,
+      );
+    }
+
+    return wrapped;
+  };
+}
+
+export function computeFullKey(ctx: RenderingCtx) {
   const parts = ctx.valKey.split(".");
   return parts
     .map((uuid) => {
@@ -3652,7 +3566,7 @@ function computeFullKey(ctx: RenderingCtx) {
     .join(".");
 }
 
-function computeCanvasSessionKey(ctx: RenderingCtx) {
+export function computeCanvasSessionKey(ctx: RenderingCtx) {
   return canvasSessionInstanceKey(computeFullKey(ctx), ctx.renderSlotInstance);
 }
 
@@ -3806,6 +3720,32 @@ function getServerQueryFuncReg(ctx: RenderingCtx, op: CustomFunctionExpr) {
     .get(customFunctionId(op.func));
 }
 
+/** One React subscription to this component's explicitly named query functions. */
+function useServerQueryRegistrations(sub: SubDeps, view: ViewCtx, component: Component) {
+  const registry = view.canvasCtx.registrations;
+  const idsKey = JSON.stringify(component.serverQueries.filter(isServerQueryWithOperation)
+    .flatMap((query) => isKnownCustomCode(query.op) ? [] : [customFunctionId(query.op.func)]));
+  const input = sub.React.useMemo(() => {
+    const ids = new Set(component.serverQueries.filter(isServerQueryWithOperation)
+      .flatMap((query) => isKnownCustomCode(query.op) ? [] : [customFunctionId(query.op.func)]));
+    const stores = [...ids].map((id) => registry.function(id));
+    let current = Object.freeze(stores.map((store) => store.getState()));
+    const getSnapshot = () => {
+      const next = stores.map((store) => store.getState());
+      if (!arrayEq(current, next)) { current = Object.freeze(next); }
+      return current;
+    };
+    return {
+      getSnapshot,
+      subscribe: (listener: () => void) => {
+        const stops = stores.map((store) => store.subscribe(listener));
+        return () => stops.forEach((stop) => stop());
+      },
+    };
+  }, [registry, component, idsKey]);
+  return sub.React.useSyncExternalStore(input.subscribe, input.getSnapshot, input.getSnapshot);
+}
+
 /**
  * Number of server queries that can currently execute, i.e. that get an entry
  * in the query tree. Queries with unregistered custom functions are dropped.
@@ -3845,6 +3785,7 @@ function useComponentLevelQueries(
   ctx: RenderingCtx,
   component: Component,
 ) {
+  const registrations = useServerQueryRegistrations(sub, ctx.viewCtx, component);
   // Rebuild the tree when any query's id, name, or op changes (e.g. on rename)
   // otherwise `usePlasmicQueries` returns results keyed by stale names.
   const serverQueriesByKey = component.serverQueries
@@ -3945,6 +3886,7 @@ function useComponentLevelQueries(
       component,
       ctx.viewCtx.canvasCtx,
       serverQueriesByKey.map((q) => q.key).join("|"),
+      registrations,
     ],
   );
   const new$Q =
@@ -4066,23 +4008,6 @@ function wrapInComponentDataQueries(ctx: RenderingCtx, component: Component) {
   );
 }
 
-function pinMapEquals(map1: PinMap, map2: PinMap) {
-  if (map1.size !== map2.size) {
-    return false;
-  }
-  for (const key of map1.keys()) {
-    if (!map2.has(key)) {
-      return false;
-    }
-    const sub1 = map1.get(key);
-    const sub2 = map2.get(key);
-    if (!(sub1 && sub2) || !mapEquals(sub1, sub2)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 export const _testOnlyUtils = {
   mkRichText,
   computeCanvasSessionKey,
@@ -4093,4 +4018,5 @@ export const _testOnlyUtils = {
   determineAutoOpenState,
   getQueryFetcherHookCounts,
   useComponentLevelQueries,
+  useServerQueryRegistrations,
 };

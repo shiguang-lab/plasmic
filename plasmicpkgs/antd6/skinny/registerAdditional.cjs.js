@@ -1,11 +1,12 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var host = require('@plasmicapp/host');
 var Ant = require('antd');
 var dayjs = require('dayjs');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-CK330rTr.cjs.js');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-DzKvKC8w.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
@@ -53,7 +54,7 @@ function AntdCard({
   actions,
   ...rest
 }) {
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.Card,
     {
       ...rest,
@@ -70,17 +71,17 @@ const AntdCol = Ant__namespace.Col;
 const AntdDescriptionsItem = Ant__namespace.Descriptions.Item;
 const AntdDescriptions = React__default.default.forwardRef((props, ref) => {
   if (props.items != null) {
-    return /* @__PURE__ */ React__default.default.createElement(Ant__namespace.Descriptions, { ...props, ref });
+    return /* @__PURE__ */ jsxRuntime.jsx(Ant__namespace.Descriptions, { ...props, ref });
   }
-  return canvasOverlay$1.renderCanvasSlot(props.children, (children) => /* @__PURE__ */ React__default.default.createElement(
+  return canvasOverlay$1.renderCanvasSlot(props.children, (children) => /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.Descriptions,
     {
       ...props,
       ref,
       children: void 0,
-      items: canvasOverlay$1.getCanvasItems(children, (item) => item.type === AntdDescriptionsItem).map(
+      items: canvasOverlay$1.getCanvasItems(children, (item) => item.type === AntdDescriptionsItem).filter(React__default.default.isValidElement).map(
         (item, index) => {
-          const { __plasmic_selection_prop__: _selection, ...itemProps } = item.props;
+          const { __canvas: _selection, ...itemProps } = item.props;
           return { ...itemProps, key: item.key ?? String(index) };
         }
       )
@@ -95,7 +96,7 @@ const AntdFloatButtonGroup = Ant__namespace.FloatButton.Group;
 const AntdBackTop = Ant__namespace.FloatButton.BackTop;
 function AntdImage(props) {
   const canvas = host.usePlasmicCanvasContext();
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.Image,
     {
       ...props,
@@ -105,7 +106,7 @@ function AntdImage(props) {
 }
 function AntdImagePreviewGroup(props) {
   const canvas = host.usePlasmicCanvasContext();
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.Image.PreviewGroup,
     {
       ...props,
@@ -126,7 +127,7 @@ function AntdPopconfirm(props) {
     isEditing,
     destroyOnHidden
   } = canvasOverlay$1.useCanvasOverlay(props, canvasOverlay.triggerSlot);
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.Popconfirm,
     {
       ...rest,
@@ -170,7 +171,7 @@ function AntdInputSearch({
   onChange,
   ...rest
 }) {
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.Input.Search,
     {
       ...rest,
@@ -185,7 +186,7 @@ function AntdCalendar({
   onSelect,
   ...rest
 }) {
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.Calendar,
     {
       ...rest,
@@ -196,7 +197,7 @@ function AntdCalendar({
   );
 }
 function AntdTimePicker({ value, onChange, ...rest }) {
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.TimePicker,
     {
       ...rest,
@@ -210,7 +211,7 @@ function AntdTimeRangePicker({
   onChange,
   ...rest
 }) {
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.TimePicker.RangePicker,
     {
       ...rest,
@@ -225,7 +226,7 @@ function AntdTimeRangePicker({
   );
 }
 function AntdList(props) {
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.List,
     {
       ...props,
@@ -237,7 +238,7 @@ function AntdListItem({
   actions,
   ...rest
 }) {
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.List.Item,
     {
       ...rest,
@@ -247,26 +248,26 @@ function AntdListItem({
 }
 const AntdListItemMeta = Ant__namespace.List.Item.Meta;
 function AntdListy(props) {
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.Listy,
     {
       ...props,
       rowKey: "key",
-      itemRender: (item) => /* @__PURE__ */ React__default.default.createElement("div", null, item.content)
+      itemRender: (item) => /* @__PURE__ */ jsxRuntime.jsx("div", { children: item.content })
     }
   );
 }
 function AntdMasonry(props) {
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.Masonry,
     {
       ...props,
-      itemRender: (item) => /* @__PURE__ */ React__default.default.createElement("div", null, item.data?.content)
+      itemRender: (item) => /* @__PURE__ */ jsxRuntime.jsx("div", { children: item.data?.content })
     }
   );
 }
 function AntdTransfer(props) {
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.Transfer,
     {
       ...props,
@@ -275,7 +276,7 @@ function AntdTransfer(props) {
   );
 }
 function AntdTour(props) {
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant__namespace.Tour,
     {
       ...props,
@@ -559,8 +560,8 @@ function registerAdditional(loader) {
         name: "plasmic-antd6-descriptions-item",
         props: {
           key: "name",
-          label: [{ type: "text", value: "Name" }],
-          children: [{ type: "text", value: "Example" }]
+          label: "Name",
+          children: "Example"
         }
       }]
     },
@@ -573,8 +574,8 @@ function registerAdditional(loader) {
   }, { description: "Display grouped read-only label/value fields in details, drawers, confirmations or create/edit summaries. Use alongside Form for mixed read-only and editable content; use Statistic for emphasized metrics." });
   register(loader, AntdDescriptionsItem, "descriptions-item", "AntdDescriptionsItem", {
     key: { type: "string", description: "A stable field key within this Descriptions." },
-    label: { ...slot("Label"), hidePlaceholder: true },
-    children: { ...slot("Value"), displayName: "Content", hidePlaceholder: true },
+    label: { ...slot("Label"), hidePlaceholder: true, mergeWithParent: true },
+    children: { ...slot("Value"), displayName: "Content", hidePlaceholder: true, mergeWithParent: true },
     span: { type: "number", min: 1, defaultValueHint: 1, description: "Columns occupied by this field." },
     ...descriptionsItemAppearance
   }, { description: "Editable label and content for a read-only field. Converted to a native Descriptions items entry at runtime." });
@@ -770,7 +771,6 @@ function registerAdditional(loader) {
     "popconfirm",
     "AntdPopconfirm",
     {
-      previewOpen: canvasOverlay$1.previewOpenProp,
       icon: { type: "slot", hidePlaceholder: true },
       children: slot("Delete"),
       title: { ...slot("Delete this item?"), hidePlaceholder: true },

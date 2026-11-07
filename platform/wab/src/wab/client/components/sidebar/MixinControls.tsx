@@ -1,3 +1,4 @@
+import { useStore } from "zustand";
 import ListItem from "@/wab/client/components/ListItem";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/EffectsSection";
@@ -77,7 +78,7 @@ import cn from "classnames";
 import L from "lodash";
 import { observer } from "mobx-react";
 import React from "react";
-import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
+import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
 function _MixinPreview(props: {
   sc: StudioCtx;
@@ -273,6 +274,9 @@ export const MixinFormContent = observer(function MixinFormContent(props: {
     rsh,
     studioCtx,
     /*unremovableProps=*/ [],
+    themeTag !== undefined
+      ? { kind: "mixin", site: studioCtx.site, mixin, activeGlobalVariants: targetGlobalVariants ?? [], forTag: themeTag }
+      : { kind: "ruleSet", rs: mixin.rs, forTag: "div" },
     themeTag,
   );
 
@@ -569,7 +573,7 @@ function _MixinsPanel() {
 
 export const MixinsPanel = observer(_MixinsPanel);
 
-const MixinRow = observer(function MixinRow(props: {
+export const MixinRow = function MixinRow(props: {
   mixin: Mixin;
   sc: StudioCtx;
   onDuplicate?: () => void;
@@ -583,6 +587,7 @@ const MixinRow = observer(function MixinRow(props: {
 }) {
   const { mixin, matcher, readOnly, onClick, isDragging, dragHandleProps } =
     props;
+  const name = useStore(props.sc.modelSnapshots.field(mixin, "name"));
 
   const renderMenu = () => {
     const builder = new MenuBuilder();
@@ -630,12 +635,12 @@ const MixinRow = observer(function MixinRow(props: {
       isDraggable={!readOnly}
       icon={<Icon icon={MixinIcon} />}
     >
-      {matcher.boldSnippets(mixin.name)}
+      {matcher.boldSnippets(name)}
     </ListItem>
   );
-});
+};
 
-export const EditMixinButton = observer(function EditMixinButton(props: {
+export const EditMixinButton = function EditMixinButton(props: {
   mixin: Mixin;
   themeTag: ThemableTag | undefined;
   className?: string;
@@ -671,7 +676,7 @@ export const EditMixinButton = observer(function EditMixinButton(props: {
       )}
     </>
   );
-});
+};
 
 function defaultPreviewText(tag: TagName) {
   return /^h[1-6]$/.test(tag)

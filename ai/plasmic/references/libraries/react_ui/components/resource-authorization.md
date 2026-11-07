@@ -42,7 +42,7 @@ footer slots. Keep prop names and metadata in English.
 provide that authenticated request instance. The component manages resource
 actions, users, departments, policies and permission requests itself.
 
-Selection or `previewOpen` reveals the drawer only on the noninteractive canvas,
+Selection reveals the drawer only on the noninteractive canvas,
 without changing persisted `open` or issuing requests. Preview follows `open` and
 uses real APIs or the omitted-open trigger state. Selecting the `trigger` slot
 does not automatically reveal the drawer. Verify creation, validation, close,
@@ -64,7 +64,7 @@ When generating native `@react/ui` code:
   state remains owned by that page; connect opening to the trigger click and
   closing to the native `onClose`. Preserve event binding effects and callback
   order; `preventDefault()` or a disabled trigger still blocks opening.
-- Pass only real native props. Remove `trigger`, `onOpenChange`, `previewOpen`,
+- Pass only real native props. Remove `trigger`, `onOpenChange`,
   selection and canvas notification props from the native component. Translate
   runtime `onOpenChange` effects into the React handlers before removing the prop.
   Record does not take `resourceName` either. Keep native `onSuccess` unchanged.

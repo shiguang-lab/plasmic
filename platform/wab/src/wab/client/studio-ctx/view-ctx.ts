@@ -1,3 +1,14 @@
+import { ViewStyleInputs } from "@/wab/client/studio-ctx/style-inputs";
+import { subscribeStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { subscribeStudioSelection } from "@/wab/client/studio-ctx/selection-state";
+import { subscribeStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
+import type { ModelFieldStore, ModelRef } from "@/wab/client/studio-ctx/model-snapshots";
+import { createStore } from "zustand/vanilla";
+import { ViewVariantState } from "@/wab/client/studio-ctx/view-variant-state";
+import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
+import { InspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
+import type { ModelChange } from "@/wab/shared/core/observable-model";
+import { CanvasRenderOwner } from "@/wab/client/components/canvas/canvas-cache";
 import { CanvasContentEditor } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
 import {
@@ -11,7 +22,6 @@ import "@/wab/client/components/canvas/slate";
 import { ViewOps } from "@/wab/client/components/canvas/view-ops";
 import {
   ClientPinManager,
-  makeClientPinManager,
   makeVariantEvalState,
 } from "@/wab/client/components/variants/ClientPinManager";
 import { DevCliSvrEvaluator } from "@/wab/client/cseval";
@@ -30,6 +40,7 @@ import {
   StudioCtx,
 } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
+import { subscribeViewport } from "@/wab/client/studio-ctx/viewport-state";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { trackEvent } from "@/wab/client/tracking";
 import { ViewStateSnapshot } from "@/wab/client/undo-log";
@@ -42,10 +53,8 @@ import { getAncestorSlotArg } from "@/wab/shared/SlotUtils";
 import { $$$ } from "@/wab/shared/TplQuery";
 import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
-import { isBaseVariant } from "@/wab/shared/Variants";
 import { FastBundler } from "@/wab/shared/bundler";
 import {
-  allCustomFunctions,
   getLinkedCodeProps,
 } from "@/wab/shared/cached-selectors";
 import {
@@ -72,11 +81,9 @@ import {
 import {
   CodeComponent,
   isCodeComponent,
-  isFrameComponent,
 } from "@/wab/shared/core/components";
 import { getRawCode } from "@/wab/shared/core/exprs";
 import { metaSvc } from "@/wab/shared/core/metas";
-import { customFunctionId } from "@/wab/shared/core/query-ids";
 import { SQ, Selectable } from "@/wab/shared/core/selection";
 import {
   makeTokenRefResolver,
@@ -115,7 +122,6 @@ import { disposeOwnedComputedFns } from "@/wab/shared/mobx-util";
 import {
   ArenaFrame,
   Component,
-  CustomFunction,
   DataToken,
   Param,
   RawText,
@@ -142,10 +148,9 @@ import {
 } from "@plasmicapp/react-web";
 import asynclib from "async";
 import $ from "jquery";
-import L, { defer, groupBy, head, isEqual, sortBy } from "lodash";
+import L, { defer, head, isEqual, sortBy } from "lodash";
 import * as mobx from "mobx";
-import { comparer, computed, observable } from "mobx";
-import { computedFn } from "mobx-utils";
+import { computed, observable, runInAction } from "mobx";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { CSSProperties } from "react";
@@ -207,15 +212,28 @@ export class ViewCtx extends WithDbCtx {
   }
 
   private disposals: (() => void)[] = [];
-  private _initialRenderReady = observable.box(false);
-  private canvasDomRevision = observable.box(0);
-  get canvasDomVersion() { return this.canvasDomRevision.get(); }
+  private readonly _initialRenderReady = createStore<boolean>(() => false);
+  private readonly readySubscriptions = new Set<() => void>();
+  readonly initialRenderReadyStore: ModelFieldStore<boolean> = {
+    getState: () => this._initialRenderReady.getState(),
+    getInitialState: () => false,
+    subscribe: (listener) => {
+      if (this.isDisposed) { return () => undefined; }
+      const off = this._initialRenderReady.subscribe(listener);
+      const stop = () => { off(); this.readySubscriptions.delete(stop); };
+      this.readySubscriptions.add(stop);
+      return stop;
+    },
+  };
+  readonly modelLifetime: AbortSignal;
   private _canvasMirrorTarget = observable.box<string | undefined>(undefined);
   get initialRenderReady() {
-    return this._initialRenderReady.get();
+    return this.initialRenderReadyStore.getState();
   }
 
   private _isDisposed = false;
+  private readonly viewLifetimeController = new AbortController();
+  readonly disposeSignal = this.viewLifetimeController.signal;
   private _editingTextResizeObserver: ResizeObserver | undefined;
 
   private _nextFocusedTpl: TplNode | undefined;
@@ -223,17 +241,9 @@ export class ViewCtx extends WithDbCtx {
     return this._nextFocusedTpl;
   }
 
-  private _highlightParams = observable.box<
-    | {
-        params: Param[];
-        tpl: TplComponent;
-      }
-    | undefined
-  >(undefined);
-  private _focusedComponentPart = observable.box<CanvasComponentPart | undefined>(undefined, { deep: false });
   editingComponentPartText?: CanvasPartTextEditor;
   get focusedComponentPart() {
-    const part = this._focusedComponentPart.get();
+    const part = this.selection.part();
     if (!part || this.focusedTpl() !== part.tpl) {
       return undefined;
     }
@@ -244,21 +254,22 @@ export class ViewCtx extends WithDbCtx {
   }
   setFocusedComponentPart(part: CanvasComponentPart | undefined) {
     this.editingComponentPartText?.finish();
-    this._focusedComponentPart.set(part);
+    this.selection.setPart(part);
+    this.publishEditorFocus();
   }
   private _highlightParamsDispose: (() => void) | undefined;
   get highlightParams() {
-    return this._highlightParams.get();
+    return this.selection.highlight();
   }
   set highlightParams(val: { params: Param[]; tpl: TplComponent } | undefined) {
     this._highlightParamsDispose?.();
 
-    this._highlightParams.set(val);
+    this.selection.setHighlight(val);
 
     if (val) {
       const timer = setTimeout(() => {
         this._highlightParamsDispose = undefined;
-        mobx.runInAction(() => this._highlightParams.set(undefined));
+        this.selection.setHighlight(undefined);
       }, 2000);
       this._highlightParamsDispose = () => {
         clearTimeout(timer);
@@ -267,74 +278,23 @@ export class ViewCtx extends WithDbCtx {
     }
   }
 
-  _triggerEditingTextDataPicker = observable.box<boolean | null>(null);
-  _triggerCreatingTextDataToken = observable.box<DataToken | null>(null);
+  readonly textDataRequestsStore = createStore<Readonly<{
+    editing: boolean | null;
+    creating: ModelRef<DataToken> | null;
+  }>>(() => Object.freeze({ editing: null, creating: null }));
   _editingTextContext = observable.box<EditingTextContext | null>(null);
 
-  private _xFocusedDomElts = observable.box<(JQuery | null)[]>([], {
-    name: "ViewCtx.focusedDomElts",
-  });
-  private get _focusedDomElts() {
-    return this._xFocusedDomElts.get();
-  }
-  private set _focusedDomElts(domElt: (JQuery | null)[]) {
-    const curRealElt = this._xFocusedDomElts.get();
-    const newRealElt = domElt;
-    if (curRealElt.length !== newRealElt.length) {
-      this._xFocusedDomElts.set(domElt);
-      return;
-    }
-    for (let i = 0; i < curRealElt.length; i++) {
-      const a = curRealElt[i];
-      const b = newRealElt[i];
-      if (!!a !== !!b) {
-        this._xFocusedDomElts.set(domElt);
-        return;
-      }
-      if (a && b && !arrayEq(a.get(), b.get())) {
-        this._xFocusedDomElts.set(domElt);
-        return;
-      }
-    }
-  }
+  readonly selection = new ViewSelection(() => this.studioCtx.modelSnapshots);
+  get selectionStore() { return this.selection.store; }
 
-  private _$hoveredDomElt = observable.box<JQuery | null | undefined>(null, {
-    name: "ViewCtx.hoveredDomElt",
-  });
-  $hoveredDomElt() {
-    return this._$hoveredDomElt.get();
-  }
-  private setHoveredDomElt($domElt: JQuery | null | undefined) {
-    const current = this._$hoveredDomElt.get();
-    if (current && $domElt && arrayEq(current.get(), $domElt.get())) {
-      return;
-    }
-    this._$hoveredDomElt.set($domElt);
-  }
-
-  private _hoveredSelectable = observable.box<Selectable | null | undefined>(
-    null,
-    {
-      name: "ViewCtx.hoveredSelectable",
-    },
-  );
-  hoveredSelectable() {
-    return this._hoveredSelectable.get();
-  }
-  private setHoveredSelectable(selectable: Selectable | null | undefined) {
-    this._hoveredSelectable.set(selectable);
-  }
-
-  private _xFocusedCloneKeys = observable.box<(string | undefined)[]>([], {
-    name: "ViewCtx.focusedCloneKeys",
-  });
-  private get _focusedCloneKeys() {
-    return this._xFocusedCloneKeys.get();
-  }
-  private set _focusedCloneKeys(cloneKeys: (string | undefined)[]) {
-    if (!arrayEq(this._xFocusedCloneKeys.get(), cloneKeys)) {
-      this._xFocusedCloneKeys.set(cloneKeys);
-    }
+  private get _focusedDomElts() { return this.selection.doms(); }
+  private set _focusedDomElts(doms: readonly (JQuery | null)[]) { this.selection.setDoms(doms); }
+  $hoveredDomElt() { return this.selection.hoverDom(); }
+  hoveredSelectable() { return this.selection.hover(); }
+  private get _focusedCloneKeys() { return this.selection.current().cloneKeys; }
+  private set _focusedCloneKeys(keys: readonly (string | undefined)[]) {
+    this.selection.setCloneKeys(keys);
+    this.publishEditorFocus();
   }
   /**
    * @deprecated Use {@link focusedCloneKeys} to handle multi-selection.
@@ -343,56 +303,21 @@ export class ViewCtx extends WithDbCtx {
     return head(this._focusedCloneKeys);
   }
 
-  inspectorCloneKey() {
+  private standaloneInspectorReads?: InspectorSelection;
+  getInspectorReadOwner() {
     const selection = this.studioCtx.inspectorSelection;
-    return selection?.viewCtx === this ? selection.cloneKey : undefined;
+    return selection?.viewCtx === this ? selection : (this.standaloneInspectorReads ??= new InspectorSelection(this, 0));
+  }
+  syncInspectorModel(changes: readonly ModelChange[]) {
+    this.standaloneInspectorReads?.syncModel(changes);
   }
 
-  inspectorTpl(includeSlots = false): TplNode | null {
-    const selection = this.studioCtx.inspectorSelection;
-    return selection?.viewCtx === this ? (includeSlots ? selection.slotTpl : selection.tpl) : null;
-  }
-
-  inspectorSelectable() {
-    const selection = this.studioCtx.inspectorSelection;
-    return selection?.viewCtx === this ? selection.selectable : undefined;
-  }
-
-  inspectorComponentPart() {
-    const selection = this.studioCtx.inspectorSelection;
-    return selection?.viewCtx === this ? selection.componentPart : undefined;
-  }
-
-  inspectorDomElt() {
-    const selection = this.studioCtx.inspectorSelection;
-    return selection?.viewCtx === this ? selection.dom : null;
-  }
-
-  getInspectorComponentEvalContext(tpl: TplTag | TplComponent, param?: Param) {
-    const selection = this.studioCtx.inspectorSelection;
-    return selection?.viewCtx === this ? selection.getComponentEvalContext(tpl, param) : this.getComponentEvalContext(tpl, param);
-  }
-
-  getInspectorCanvasEnvForTpl(tpl: TplNode, options?: { forDataRepCollection?: boolean; keep$StateRef?: boolean }) {
-    const selection = this.studioCtx.inspectorSelection;
-    return selection?.viewCtx === this ? selection.getCanvasEnvForTpl(tpl, options) : this.getCanvasEnvForTpl(tpl, options);
-  }
   focusedCloneKeys() {
     return this._focusedCloneKeys;
   }
 
-  private _$measureToolDomElt = observable.box<JQuery | null | undefined | Pt>(
-    null,
-    {
-      name: "ViewCtx.measureToolDomElt",
-    },
-  );
-  $measureToolDomElt() {
-    return this._$measureToolDomElt.get();
-  }
-  setMeasureToolDomElt($domElt: JQuery | null | undefined | Pt) {
-    this._$measureToolDomElt.set($domElt);
-  }
+  $measureToolDomElt() { return this.selection.measure(); }
+  setMeasureToolDomElt(target: JQuery | null | undefined | Pt) { this.selection.setMeasure(target); }
 
   private _arenaFrame: ArenaFrame;
 
@@ -414,7 +339,7 @@ export class ViewCtx extends WithDbCtx {
       this.studioCtx.fullPageHeight &&
       isHeightAutoDerived(this.arenaFrame()) &&
       !this.studioCtx.isInteractiveMode &&
-      !this.canvasExporting.get()
+      !this.canvasExporting
     );
   }
 
@@ -422,22 +347,37 @@ export class ViewCtx extends WithDbCtx {
     if (!isCodeComponent(val.tpl.component)) {
       return null;
     }
-    return this.frameState.contextData.get(val.key) ?? null;
+    return this.frameState.contextData.getStore(val.key).getState() ?? null;
   }
 
   getContextDataByValKey(valKey: string) {
-    return this.frameState.contextData.get(valKey);
+    return this.frameState.contextData.getStore(valKey).getState();
   }
 
-  createSetContextDataFn = computedFn((valKey: string) => {
-    return (value: any) => {
-      const oldValue = this.frameState.contextData.get(valKey);
+  private readonly contextDataSetters = new Map<string, (value: unknown) => void>();
+  createSetContextDataFn(valKey: string) {
+    const existing = this.contextDataSetters.get(valKey);
+    if (existing) {
+      return existing;
+    }
+    const update = (value: unknown) => {
+      if (this.isDisposed) {
+        return;
+      }
+      const oldValue = this.frameState.contextData.getStore(valKey).getState();
       if (isEqual(oldValue, value)) {
         return;
       }
       this.frameState.contextData.set(valKey, value);
+      const selection = this.studioCtx.inspectorSelection;
+      if (selection?.viewCtx === this) {
+        selection.syncContextData(valKey);
+      }
+      this.standaloneInspectorReads?.syncContextData(valKey);
     };
-  });
+    this.contextDataSetters.set(valKey, update);
+    return update;
+  }
 
   pointerState() {
     return this.studioCtx.pointerState();
@@ -482,29 +422,16 @@ export class ViewCtx extends WithDbCtx {
 
   // focusedTpl: TplNode | null;
   // focusedObject: SlotSelection | ValNode | null | undefined;
-  private _xFocusedTpls = observable.box<(TplNode | null)[]>([], {
-    name: "ViewCtx.focusedTpls",
-  });
-  get _focusedTpls() {
-    return this._xFocusedTpls.get();
-  }
-  set _focusedTpls(tpls: (TplNode | null)[]) {
-    const current = this._xFocusedTpls.get();
-    if (!arrayEq(current, tpls)) {
-      // switch away from the private variant, which belongs to the previous
-      // tpl.
-      const frame = this.currentComponentStackFrame();
-
-      if (frame.hasPrivateVariants()) {
-        this.change(() => frame.clearPrivateVariants());
-      }
-
-      this._xFocusedTpls.set(tpls);
+  get _focusedTpls() { return this.selection.tpls(); }
+  set _focusedTpls(tpls: readonly (TplNode | null)[]) {
+    if (!arrayEq(this.selection.tpls(), tpls)) {
+      this.selection.setTpls(tpls);
+      this.enforcePastingAsSibling = false;
+      this.publishEditorFocus();
     }
   }
 
-  focusedTplAncestorsThroughComponents = computedFn(
-    () => {
+  focusedTplAncestorsThroughComponents() {
       const node = (() => {
         const selectables = withoutNils(this.focusedSelectables());
         if (selectables.length === 1) {
@@ -528,20 +455,26 @@ export class ViewCtx extends WithDbCtx {
             includeTplComponentRoot: true,
           })
         : [];
-    },
-    {
-      name: "ViewCtx.focusedTplAncestorsThroughComponents",
-      equals: comparer.structural,
-    },
-  );
+  }
 
   private _autoOpenedUuid = observable.box<string | undefined>();
   private _autoOpenTransitioning = false;
 
-  readonly canvasExporting = observable.box(false);
+  private _canvasExporting = false;
+  get canvasExporting() { return this._canvasExporting; }
+  setCanvasExporting(value: boolean) {
+    this.studioCtx.renderPolicy.deferPublication(() => runInAction(() => {
+      this._canvasExporting = value;
+      this.studioCtx.prepareRenderPolicyInputs();
+    }));
+  }
   readonly contentEditor = new CanvasContentEditor(this);
 
   readonly canvasSessionState = new CanvasSessionState();
+  readonly canvasRenderOwner = new CanvasRenderOwner(this.canvasSessionState);
+  private publishEditorFocus() {
+    this.studioCtx.notifyInspectorFocusChanged();
+  }
 
   canvasOverlayOpen(fullKey: string) {
     return !!this.canvasSessionState.get(fullKey, "open");
@@ -604,14 +537,13 @@ export class ViewCtx extends WithDbCtx {
    * Disables auto-open behaviour for a specific uuid.
    * This can be used to temporarily disable auto-open behaviour, even when the auto open mode is enabled.
    */
-  private _disabledAutoOpenUuid = observable.box<string | undefined>(undefined);
-
   get disabledAutoOpenUuid() {
-    return this._disabledAutoOpenUuid.get();
+    return this.selection.current().disabledAutoOpenUuid;
   }
 
   set disabledAutoOpenUuid(val: string | undefined) {
-    this._disabledAutoOpenUuid.set(val);
+    this.selection.setDisabledAutoOpen(val);
+    this.publishEditorFocus();
   }
 
   maybeClearAutoOpenedContentOnSelectionChange(
@@ -691,15 +623,12 @@ export class ViewCtx extends WithDbCtx {
     }
   }
 
-  private _xFocusedSelectables = observable.box<(Selectable | null)[]>([], {
-    name: "ViewCtx.focusedSelectables",
-  });
-  get _focusedSelectables(): (Selectable | null)[] {
-    return this._xFocusedSelectables.get();
+  get _focusedSelectables(): readonly (Selectable | null)[] {
+    return this.selection.targets();
   }
-  set _focusedSelectables(objs: (Selectable | null)[]) {
-    const current = this._xFocusedSelectables.get();
-    // We need the comparator, because current is a proxy array, whereas objs is not.
+  set _focusedSelectables(objs: readonly (Selectable | null)[]) {
+    const current = this.selection.targets();
+    this.selection.setTargets(objs);
     if (
       !arrayEq(objs, current, (a, b) => {
         if (a instanceof SlotSelection && b instanceof SlotSelection) {
@@ -710,7 +639,7 @@ export class ViewCtx extends WithDbCtx {
         return a === b;
       })
     ) {
-      this._xFocusedSelectables.set(objs);
+      this.publishEditorFocus();
       this.tryBlurEditingText();
 
       // When using multi-selection, we only apply auto-open behavior to the first selected item, hence the use of 0 index.
@@ -728,31 +657,39 @@ export class ViewCtx extends WithDbCtx {
     this._xHighlightedAdoptees.set(adoptees);
   }
 
-  private _xCurrentComponentCtx = observable.box<ComponentCtx | null>(null, {
-    name: "ViewCtx.currentComponentCtx",
-  });
-  get _currentComponentCtx() {
-    return this._xCurrentComponentCtx.get();
-  }
-  set _currentComponentCtx(ctx: ComponentCtx | null) {
-    this._xCurrentComponentCtx.set(ctx);
+  get _currentComponentCtx() { return this.selection.context(); }
+  set _currentComponentCtx(context: ComponentCtx | null) {
+    this.selection.setContext(context);
+    this.publishEditorFocus();
   }
 
-  private _xShowDefaultSlotContents = observable.box<boolean>(false, {
-    name: "ViewCtx.showDefaultSlotContents",
-  });
-  get _showDefaultSlotContents() {
-    return this._xShowDefaultSlotContents.get();
+  readonly variants = new ViewVariantState(
+    () => this.studioCtx.modelSnapshots,
+    () => this.arenaFrame(),
+    () => this.site,
+    () => this.studioCtx.hasPendingModelChanges(),
+    () => !!this.frameState.valRootStore.getState(),
+  );
+  get variantStore() { return this.variants.store; }
+  styleInputs = new ViewStyleInputs(() => this.studioCtx.modelSnapshots, this.disposeSignal);
+  resetStyleInputs() {
+    if (!this._isDisposed) { this.styleInputs = new ViewStyleInputs(() => this.studioCtx.modelSnapshots, this.disposeSignal); }
   }
-  set _showDefaultSlotContents(show: boolean) {
-    this._xShowDefaultSlotContents.set(show);
+
+
+  /** Install selection and variant snapshots before notifying either owner. */
+  transactionSelectionInputs<Result>(command: () => Result): Result {
+    return this.styleInputs.deferPublication(() => this.selection.deferPublication(() => this.variants.deferPublication(() => {
+      const result = this.selection.transaction(() => this.variants.transaction(command));
+      if (!this.studioCtx.hasPendingModelChanges()) { this.styleInputs.prepareCommit(); }
+      return result;
+    })));
   }
 
   _viewState: { viewingCode?: boolean };
   readonly canvasCtx: CanvasCtx;
   readonly frameState: FrameState;
   readonly viewOps: ViewOps;
-  _componentStackFrames = observable.array<ComponentVariantFrame>([]);
 
   getViewOps() {
     return ensure(this.viewOps, "Unexpected nullish viewOps");
@@ -781,34 +718,29 @@ export class ViewCtx extends WithDbCtx {
   constructor(args: ViewCtxArgs) {
     super();
 
-    mobx.makeObservable(this, {
-      hasValState: computed,
-      customFunctions: computed,
-    });
-
     ({
       studioCtx: this.studioCtx,
       viewportCtx: this.viewportCtx,
       canvasCtx: this.canvasCtx,
       arenaFrame: this._arenaFrame,
     } = args);
+    this.modelLifetime = this.studioCtx.arenaState.lifetime();
     this.frameState = this.canvasCtx.frameState;
     this.viewOps = new ViewOps({ viewCtx: this });
     this.csEvaluator = new DevCliSvrEvaluator({
       viewCtx: this,
       frameState: this.frameState,
     });
-    this._componentStackFrames.replace([
-      new RootComponentVariantFrame(this.arenaFrame()),
-    ]);
-    this._globalFrame.set(new GlobalVariantFrame(this.site, this.arenaFrame()));
+    this.variants.transaction(() => {
+      this.variants.replaceFrames([new RootComponentVariantFrame(this.arenaFrame())]);
+      this.variants.setGlobal(new GlobalVariantFrame(this.site, this.arenaFrame()));
+    });
     this.setEditingTextContext(null);
     this._focusedDomElts = [];
-    this.setHoveredDomElt(null);
     this._focusedTpls = [];
     // Either ValNode or SlotSelection
     this._focusedSelectables = [];
-    this.setHoveredSelectable(null);
+    this.selection.setHover(null, null);
     this._currentComponentCtx = null;
     this._viewState = {};
 
@@ -822,29 +754,47 @@ export class ViewCtx extends WithDbCtx {
     this.disposals.push(() => mirrorObserver.disconnect());
 
     // An overview needs every current artboard, independently of viewport clipping.
+    const updateViewportVisibility = () => {
+      if (this.isDisposed) { return; }
+      if (!this.studioCtx.isTransforming() && this.isRenderActive()) {
+        this.syncQueue.resume();
+      } else {
+        this.syncQueue.pause();
+      }
+    };
+    const visibilityFrame = this.studioCtx.modelSnapshots.ref(this.arenaFrame());
     this.disposals.push(
+      this.frameState.valRootStore.subscribe(() => this.variants.syncRuntime()),
+      this.variants.subscribePrepared(() => this.styleInputs.prepareCommit()),
+      this.variantStore.subscribe(() => this.styleInputs.publishCommit()),
+      this.frameState.valRootStore.subscribe(() => { this.styleInputs.prepareCommit(); this.styleInputs.publishCommit(); }),
+      this.csEvaluator.renderStatusStore.subscribe(() => { this.styleInputs.prepareCommit(); this.styleInputs.publishCommit(); }),
+      this.selectionStore.subscribe((state, previous) => {
+        const focusChanged = state.tpls !== previous.tpls || state.targets !== previous.targets || state.cloneKeys !== previous.cloneKeys || state.context !== previous.context || state.disabledAutoOpenUuid !== previous.disabledAutoOpenUuid;
+        if (!this.isDisposed && state.tpls !== previous.tpls) {
+          const frame = this.currentComponentStackFrame();
+          if (frame.hasPrivateVariants()) { this.change(() => frame.clearPrivateVariants()); }
+        }
+        if (state.hoverDom !== previous.hoverDom) { this.studioCtx.syncHoveredViewCtx(); }
+        if (focusChanged) {
+          this.standaloneInspectorReads?.dispose();
+          this.standaloneInspectorReads = undefined;
+        }
+        if (focusChanged || state.part !== previous.part || state.doms !== previous.doms) {
+          this.publishEditorFocus();
+        }
+      }),
+      subscribeViewport(this.studioCtx, (state) => state.visibleScalerBox, updateViewportVisibility),
+      subscribeViewport(this.studioCtx, (state) => state.isTransforming, updateViewportVisibility),
+      subscribeStudioArena(this.studioCtx, (state) => state.frames.includes(visibilityFrame), updateViewportVisibility),
+      subscribeStudioLiveMode(this.studioCtx, updateViewportVisibility),
+      subscribeStudioSelection(this.studioCtx, (state) => state.view === this, updateViewportVisibility),
       mobx.reaction(
-        () => !this.studioCtx.isTransforming() && this.isRenderActive(),
-        (visible) => {
-          if (visible) {
-            this.syncQueue.resume();
-          } else {
-            this.syncQueue.pause();
-          }
-        },
-        {
-          fireImmediately: true,
-        },
+        () => ({ mirror: this._canvasMirrorTarget.get(), geometry: this.studioCtx.getArenaFrameScalerRect(this.arenaFrame()) }),
+        updateViewportVisibility,
+        { fireImmediately: true },
       ),
-      mobx.reaction(
-        () => this._focusedTpls,
-        () => {
-          // When selection changes, we can stop to enforce pasting as sibling,
-          // unless the new selection is the new pasted node, but in that case
-          // the "paste" method sets this flag after selecting the new node
-          this.enforcePastingAsSibling = false;
-        },
-      ),
+
     );
   }
 
@@ -881,12 +831,21 @@ export class ViewCtx extends WithDbCtx {
    */
   dispose() {
     this.editingComponentPartText?.finish(true);
-    this.contentEditor.exit(false);
+    this.contentEditor.dispose();
     if (this._isDisposed) {
       return;
     }
     this._isDisposed = true;
-    this.canvasSessionState.clear();
+    this.viewLifetimeController.abort();
+    for (const stop of this.readySubscriptions) { stop(); }
+    this.styleInputs.dispose();
+    this.textDataRequestsStore.setState(Object.freeze({ editing: null, creating: null }), true);
+    this.selection.dispose();
+    this.contextDataSetters.clear();
+    this.standaloneInspectorReads?.dispose();
+    this.variants.dispose();
+    this.canvasRenderOwner.dispose();
+    this.canvasSessionState.dispose();
     if (this.canvasRerenderFrame !== undefined) {
       cancelAnimationFrame(this.canvasRerenderFrame);
     }
@@ -911,32 +870,9 @@ export class ViewCtx extends WithDbCtx {
     return this._isDisposed;
   }
 
-  _globalFrame = observable.box<GlobalVariantFrame>(undefined, {
-    name: "ViewCtx.globalFrame",
-  });
-  get globalFrame() {
-    return ensure(this._globalFrame.get(), `globalFrame must already be set`);
-  }
+  get globalFrame() { return this.variants.global(); }
 
-  private _isEditingNonBaseVariant = computed(() => {
-    if (!this.valState().maybeValSysRoot()) {
-      return false;
-    }
-
-    const component = this.currentComponent();
-
-    if (isFrameComponent(component)) {
-      return false;
-    }
-
-    const pinManager = makeClientPinManager(this);
-
-    return !isBaseVariant(pinManager.selectedVariants());
-  });
-
-  get isEditingNonBaseVariant() {
-    return this._isEditingNonBaseVariant.get();
-  }
+  get isEditingNonBaseVariant() { return this.variants.isEditingNonBaseVariant(); }
 
   valComponentStack() {
     const currentValComponent = maybe(this.currentComponentCtx(), (cc) =>
@@ -989,6 +925,7 @@ export class ViewCtx extends WithDbCtx {
       noRestoreRightTab?: boolean;
     } = {},
   ) {
+    return this.transactionSelectionInputs(() => {
     this.setFocusedComponentPart(undefined);
     opts.appendToMultiSelection = !!opts.appendToMultiSelection;
 
@@ -1010,10 +947,10 @@ export class ViewCtx extends WithDbCtx {
           }
 
           if (maybeIdxToDelete) {
-            this._focusedTpls.splice(maybeIdxToDelete, 1);
-            this._focusedSelectables.splice(maybeIdxToDelete, 1);
-            this._focusedDomElts.splice(maybeIdxToDelete, 1);
-            this._focusedCloneKeys.splice(maybeIdxToDelete, 1);
+            this._focusedTpls = this._focusedTpls.filter((_value, index) => index !== maybeIdxToDelete);
+            this._focusedSelectables = this._focusedSelectables.filter((_value, index) => index !== maybeIdxToDelete);
+            this._focusedDomElts = this._focusedDomElts.filter((_value, index) => index !== maybeIdxToDelete);
+            this._focusedCloneKeys = this._focusedCloneKeys.filter((_value, index) => index !== maybeIdxToDelete);
           } else {
             this._focusedTpls = [...this._focusedTpls, x];
             this._focusedSelectables = [...this._focusedSelectables, valNode];
@@ -1046,6 +983,7 @@ export class ViewCtx extends WithDbCtx {
         this._focusedCloneKeys = [];
       }
     });
+    });
   }
 
   maybeDomsForTpl = (
@@ -1073,7 +1011,9 @@ export class ViewCtx extends WithDbCtx {
       ignoreFocusedCloneKey?: boolean;
     },
   ) {
-    if (!this.valState().maybeValSysRoot()) {
+    // Controls may finish rendering while their frame is being detached.
+    // A disposed frame has no rendered values and has released its evaluator.
+    if (this.isDisposed || !this.valState().maybeValSysRoot()) {
       return [];
     }
     const vals = withoutNils([
@@ -1152,15 +1092,17 @@ export class ViewCtx extends WithDbCtx {
     if (x) {
       this.studioCtx.switchRightTab(RightTabKey.style);
     }
-    this._triggerEditingTextDataPicker.set(x);
+    this.textDataRequestsStore.setState((state) => state.editing === x ? state : Object.freeze({ ...state, editing: x }), true);
   }
 
   setTriggerCreatingTextDataToken(x: DataToken | null) {
-    this._triggerCreatingTextDataToken.set(x);
+    const creating = x ? this.studioCtx.modelSnapshots.ref(x) : null;
+    this.textDataRequestsStore.setState((state) => state.creating === creating ? state : Object.freeze({ ...state, creating }), true);
   }
 
   getTriggerCreatingTextDataToken() {
-    return this._triggerCreatingTextDataToken.get();
+    const creating = this.textDataRequestsStore.getState().creating;
+    return creating ? this.studioCtx.modelSnapshots.resolve(creating) : null;
   }
 
   setEditingTextContext(x: EditingTextContext | null) {
@@ -1283,6 +1225,7 @@ export class ViewCtx extends WithDbCtx {
    * for you) or you have to do it yourself.
    */
   restoreViewState(view: ViewStateSnapshot) {
+    return this.transactionSelectionInputs(() => {
     assert(
       view.focusedFrame === this.arenaFrame(),
       () => `Should only restore view state of focused frame`,
@@ -1296,7 +1239,7 @@ export class ViewCtx extends WithDbCtx {
           `View must have component stack if view included a focused view ctx`,
       ),
     );
-    this._showDefaultSlotContents = view.vcShowDefaultSlotContents ?? false;
+    this.variants.setShowDefaultSlots(view.vcShowDefaultSlotContents ?? false);
     if (!view.focusedOnFrame) {
       if (
         view.focusedSelectable &&
@@ -1316,6 +1259,7 @@ export class ViewCtx extends WithDbCtx {
       }
       this.studioCtx.setStudioFocusOnViewCtxContent(this);
     }
+    });
   }
 
   /**
@@ -1341,7 +1285,7 @@ export class ViewCtx extends WithDbCtx {
       isTplAttachedToSite(this.site, f.tplComponent),
     );
     if (newStackFrames.length !== this.componentStackFrames().length) {
-      this._componentStackFrames.replace(newStackFrames);
+      this.variants.replaceFrames(newStackFrames);
     }
   }
 
@@ -1349,12 +1293,13 @@ export class ViewCtx extends WithDbCtx {
     val: Selectable | null | undefined,
     anchorCloneKey?: string,
   ) {
+    return this.transactionSelectionInputs(() => {
     if (val && !this.contentEditor.contains(val)) {
       val = null;
     }
-    this.setHoveredSelectable(val);
     const { focusedDom } = this.computeFocus(val, anchorCloneKey);
-    this.setHoveredDomElt(focusedDom);
+    this.selection.setHover(val, focusedDom);
+    });
   }
 
   private setViewCtxFocusBySelectable(
@@ -1365,6 +1310,7 @@ export class ViewCtx extends WithDbCtx {
       noRestoreRightTab?: boolean;
     } = {},
   ) {
+    return this.transactionSelectionInputs(() => {
     if (!val || tplFromSelectable(val) !== this.focusedTpl() ||
         anchorCloneKey !== this.focusedCloneKey() || opts.appendToMultiSelection) {
       this.setFocusedComponentPart(undefined);
@@ -1384,13 +1330,13 @@ export class ViewCtx extends WithDbCtx {
           if (this._focusedSelectables.includes(finalVal)) {
             // Removing of multi selection
             const idx = this._focusedSelectables.indexOf(finalVal);
-            this._focusedSelectables.splice(idx, 1);
+            this._focusedSelectables = this._focusedSelectables.filter((_value, index) => index !== idx);
             if (idx === 0) {
               this.resetAutoOpenState();
             }
-            this._focusedTpls.splice(idx, 1);
-            this._focusedDomElts.splice(idx, 1);
-            this._focusedCloneKeys.splice(idx, 1);
+            this._focusedTpls = this._focusedTpls.filter((_value, index) => index !== idx);
+            this._focusedDomElts = this._focusedDomElts.filter((_value, index) => index !== idx);
+            this._focusedCloneKeys = this._focusedCloneKeys.filter((_value, index) => index !== idx);
           } else {
             // Adding to multi selection
             this._focusedSelectables = [...this._focusedSelectables, finalVal];
@@ -1423,12 +1369,15 @@ export class ViewCtx extends WithDbCtx {
         }
       }
     });
+    });
   }
   clearViewCtxFocus() {
+    return this.transactionSelectionInputs(() => {
     // Clear any drilled context on the viewCtx we're defocusing.
     this.setCurrentComponentCtxQuietly(null);
     this.setViewCtxFocusByTpl(null);
     this.setViewCtxHoverBySelectable(null);
+    });
   }
   /**
    * @deprecated Use {@link focusedSelectables} to handle multi-selection.
@@ -1436,7 +1385,7 @@ export class ViewCtx extends WithDbCtx {
   focusedSelectable(): Selectable | null | undefined {
     return head(this._focusedSelectables);
   }
-  focusedSelectables(): (Selectable | null)[] {
+  focusedSelectables(): readonly (Selectable | null)[] {
     return this._focusedSelectables;
   }
 
@@ -1524,10 +1473,16 @@ export class ViewCtx extends WithDbCtx {
           "frame-first-render",
           this.arenaFrame().uuid,
         );
+        const registration = this.studioCtx.arenaState.viewRegistry.forFrame(this.arenaFrame());
+        let completedFirstRender = false;
         this._evalInProgress = true;
         this.refreshRenderReadyAttr();
         try {
         await this.canvasCtx.hostLessPkgsLock;
+        if (this.isDisposed) {
+          return;
+        }
+        this.canvasCtx.syncFrameInfo(this);
         await this.csEvaluator.evalAsync();
         this.flushRerenderQueue();
         const runPostEvalTasks = new Promise<void>((resolve) => {
@@ -1555,13 +1510,22 @@ export class ViewCtx extends WithDbCtx {
           !this.initialRenderReady &&
           this.valState().maybeValSysRoot()
         ) {
-          renderDone();
-          mobx.runInAction(() => this._initialRenderReady.set(true));
-          this.studioCtx.recordCanvasFrameRendered(this.arenaFrame());
+          completedFirstRender = true;
         }
         } finally {
           this._evalInProgress = false;
-          this.refreshRenderReadyAttr();
+          const registry = this.studioCtx.arenaState.viewRegistry;
+          if (completedFirstRender && !this.isDisposed &&
+              this.studioCtx.arenaState.isCurrentLifetime(this.modelLifetime) &&
+              registration?.view === this && registry.forFrame(this.arenaFrame()) === registration) {
+            // Marker, native inputs and timing effects precede the first ready notification.
+            this.refreshRenderReadyAttr(true);
+            renderDone();
+            this.studioCtx.recordCanvasFrameRendered(this.arenaFrame());
+            this._initialRenderReady.setState(true, true);
+          } else {
+            this.refreshRenderReadyAttr();
+          }
         }
       }
     };
@@ -1635,11 +1599,11 @@ export class ViewCtx extends WithDbCtx {
    * queue length; the cargo worker running doEval is covered by
    * _evalInProgress, so this is safe to call from inside the worker.
    */
-  private refreshRenderReadyAttr() {
+  private refreshRenderReadyAttr(initialRenderReady = this.initialRenderReady) {
     setRenderReadyAttr(
       this.maybeCanvasDoc(),
       isRenderReady({
-        initialRenderReady: this.initialRenderReady,
+        initialRenderReady,
         evalInProgress: this._evalInProgress,
         pendingSyncs: this.syncQueue.length(),
       })
@@ -1647,7 +1611,7 @@ export class ViewCtx extends WithDbCtx {
   }
 
   triggerEditingTextDataPicker() {
-    return this._triggerEditingTextDataPicker.get();
+    return this.textDataRequestsStore.getState().editing;
   }
 
   editingTextContext() {
@@ -1928,7 +1892,7 @@ export class ViewCtx extends WithDbCtx {
       return head(this._focusedTpls) ?? null;
     }
   }
-  focusedTpls(): (TplNode | null)[] {
+  focusedTpls(): readonly (TplNode | null)[] {
     return this._focusedTpls;
   }
   isFocusedViewCtx() {
@@ -1958,6 +1922,7 @@ export class ViewCtx extends WithDbCtx {
     return this._currentComponentCtx;
   }
   private setCurrentComponentCtxQuietly(ctx: ComponentCtx | null) {
+    return this.transactionSelectionInputs(() => {
     if (
       ctx === this._currentComponentCtx ||
       (!!ctx &&
@@ -1969,7 +1934,7 @@ export class ViewCtx extends WithDbCtx {
 
     if (this._currentComponentCtx && !ctx) {
       // Always reset showDefaultSlotContents to false when we exit component ctx
-      this._showDefaultSlotContents = false;
+      this.variants.setShowDefaultSlots(false);
     }
     this._currentComponentCtx = ctx;
 
@@ -1977,38 +1942,38 @@ export class ViewCtx extends WithDbCtx {
     // Now auto-maintain the component stack
     //
     if (ctx) {
-      const existingIndex = this._componentStackFrames.findIndex(
+      const existingIndex = this.componentStackFrames().findIndex(
         (f) => f.tplComponent === ctx.tplComponent(),
       );
       if (existingIndex >= 0) {
         // We're going up the stack
-        this._componentStackFrames.replace(
-          this._componentStackFrames.slice(0, existingIndex + 1),
+        this.variants.replaceFrames(
+          this.componentStackFrames().slice(0, existingIndex + 1),
         );
         this.setViewCtxHoverBySelectable(null);
       } else {
         // We're adding a new component to the stack
-        this._componentStackFrames.push(
-          new TransientComponentVariantFrame(ctx.tplComponent()),
-        );
+        this.variants.replaceFrames([...this.componentStackFrames(), new TransientComponentVariantFrame(ctx.tplComponent())]);
       }
     } else {
       // We're exiting spotlight mode, so only the root should be on the stack
-      this._componentStackFrames.replace([this._componentStackFrames[0]]);
+      this.variants.replaceFrames([this.componentStackFrames()[0]]);
       this.setViewCtxHoverBySelectable(null);
     }
+    });
   }
   restoreCurrentComponentCtxAndStack(
     ctx: ComponentCtx | undefined,
     stack: ComponentVariantFrame[],
   ) {
-    this.setCurrentComponentCtxQuietly(ctx || null);
-
-    this._componentStackFrames.replace([...stack.map((f) => f.clone())]);
-
-    this._globalFrame.set(new GlobalVariantFrame(this.site, this.arenaFrame()));
+    return this.transactionSelectionInputs(() => {
+      this.setCurrentComponentCtxQuietly(ctx || null);
+      this.variants.replaceFrames(stack.map((frame) => frame.clone()));
+      this.variants.setGlobal(new GlobalVariantFrame(this.site, this.arenaFrame()));
+    });
   }
   setCurrentComponentCtx(ctx: ComponentCtx | null) {
+    return this.transactionSelectionInputs(() => {
     if (
       ctx === this._currentComponentCtx ||
       (!!ctx &&
@@ -2025,14 +1990,15 @@ export class ViewCtx extends WithDbCtx {
 
       this.setCurrentComponentCtxQuietly(ctx);
     });
+    });
   }
 
   showDefaultSlotContents() {
-    return this._showDefaultSlotContents;
+    return this.variants.showDefaultSlots();
   }
   setShowDefaultSlotContents(show: boolean) {
     this.change(() => {
-      this._showDefaultSlotContents = show;
+      this.variants.setShowDefaultSlots(show);
     });
   }
   /**
@@ -2102,7 +2068,7 @@ export class ViewCtx extends WithDbCtx {
   }
 
   componentStackFrames() {
-    return this._componentStackFrames;
+    return this.variants.frames();
   }
 
   currentComponentStackFrame() {
@@ -2111,15 +2077,16 @@ export class ViewCtx extends WithDbCtx {
 
   /** Keep each artboard's interactive variants in its canvas-only root frame. */
   syncInteractiveVariants($state: $State) {
+    return this.variants.transaction(() => {
     if (!this.component.variantGroups.some((group) => group.linkedState)) {
       return;
     }
-    let root = this._componentStackFrames[0];
+    let root = this.componentStackFrames()[0];
     if (root instanceof RootComponentVariantFrame) {
       const transient = new TransientComponentVariantFrame(root.tplComponent);
       transient.setTargetVariants(root.getTargetVariants());
-      transient.setPinnedVariants(new Map(root.getPinnedVariants()));
-      this._componentStackFrames.splice(0, 1, transient);
+      transient.setPinnedVariants(root.getPinnedVariants());
+      this.variants.replaceFrames([transient, ...this.componentStackFrames().slice(1)]);
       root = transient;
     }
     const valRoot = this.valState().maybeValSysRoot();
@@ -2128,6 +2095,7 @@ export class ViewCtx extends WithDbCtx {
       this.globalFrame,
       valRoot ? makeVariantEvalState(this, valRoot) : new Map(),
     ).setVariantsFrom$State($state);
+    });
   }
 
   currentComponent() {
@@ -2556,7 +2524,8 @@ export class ViewCtx extends WithDbCtx {
    * stage, the valState() has the new valnodes.
    */
   updateCtxPostChange() {
-    this.canvasDomRevision.set(this.canvasDomRevision.get() + 1);
+    return this.transactionSelectionInputs(() => {
+    try {
     // Helper function that tries to return the new ValNode with the argument key
     const getMatchingValInUpdatedTree = <T extends ValNode>(
       valNode: T,
@@ -2695,6 +2664,13 @@ export class ViewCtx extends WithDbCtx {
         this.setEditingTextContext(null);
       }
     }
+    } finally {
+      this.publishEditorFocus();
+      const selection = this.studioCtx.inspectorSelection;
+      if (selection?.viewCtx === this) {selection.syncCanvas();}
+      this.standaloneInspectorReads?.syncCanvas();
+    }
+    });
   }
 
   /**
@@ -2785,54 +2761,7 @@ export class ViewCtx extends WithDbCtx {
   }
 
   get customFunctions() {
-    const getFunctionImplementation = (customFunction: CustomFunction) =>
-      this.canvasCtx
-        .getRegisteredFunctionsMap()
-        .get(customFunctionId(customFunction))?.function;
-    // Subscribe to changes to the registered hostless libs
-    this.canvasCtx.installedHostLessPkgs.size;
-    this.canvasCtx.installedHostLessPkgs.forEach(() => {
-      /* empty */
-    });
-    return Object.fromEntries<Function | { [key: string]: Function }>(
-      withoutNils([
-        ...[
-          ...allCustomFunctions(this.site)
-            .map(({ customFunction }) => customFunction)
-            .filter((f) => !f.namespace),
-          ...Object.values(
-            groupBy(
-              allCustomFunctions(this.site)
-                .map(({ customFunction }) => customFunction)
-                .filter((f) => !!f.namespace),
-              (f) => f.namespace,
-            ),
-          ),
-        ].map((functionOrGroup) =>
-          !Array.isArray(functionOrGroup)
-            ? maybe(
-                getFunctionImplementation(functionOrGroup),
-                (impl) => [functionOrGroup.importName, impl] as const,
-              )
-            : ([
-                functionOrGroup[0].namespace!,
-                Object.fromEntries<Function>(
-                  withoutNils(
-                    functionOrGroup.map((customFunction) =>
-                      maybe(
-                        getFunctionImplementation(customFunction),
-                        (impl) => [customFunction.importName, impl] as const,
-                      ),
-                    ),
-                  ),
-                ),
-              ] as const),
-        ),
-        ...this.canvasCtx
-          .getRegisteredLibraries()
-          .map((lib) => [lib.meta.jsIdentifier, lib.lib] as const),
-      ]),
-    );
+    return this.canvasRenderOwner.functionInputs(this).store.getState();
   }
 
   // Fiber Related methods
@@ -3127,9 +3056,8 @@ export function getSetOfPinnedVariantsForViewCtx(
 }
 
 // Unrendered tpls (e.g. Show is false) have no props, so evaluate the model args instead;
-// linked props read the wrapper's args. Memoized because every prop row calls this.
-const evalUnrenderedCodeProps = computedFn(
-  (viewCtx: ViewCtx, tpl: TplComponent, actualTpl: TplComponent, anchorCloneKey?: string, ignoreFocusedCloneKey = false) => {
+// linked props read the wrapper's args. InspectorSelection owns shared evaluation reads.
+function evalUnrenderedCodeProps(viewCtx: ViewCtx, tpl: TplComponent, actualTpl: TplComponent, anchorCloneKey?: string, ignoreFocusedCloneKey = false) {
     const componentPropValues: Record<string, any> = {};
     const owner = $$$(tpl).tryGetOwningComponent();
     if (
@@ -3189,7 +3117,6 @@ const evalUnrenderedCodeProps = computedFn(
         );
     }
     return componentPropValues;
-  },
-);
+}
 import type { CanvasComponentPart } from "@/wab/client/components/canvas/canvas-component-parts";
 import type { CanvasPartTextEditor } from "@/wab/client/components/canvas/canvas-part-text-editor";

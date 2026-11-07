@@ -9,17 +9,19 @@ import {
 } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicDocsPortalBranches";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import * as React from "react";
+import { useStore } from "zustand";
 
 type DocsPortalBranchesProps = DefaultDocsPortalBranchesProps;
 
 function DocsPortalBranches(props: DocsPortalBranchesProps) {
   const docsCtx = useDocsPortalCtx();
   const { styles } = useDocsLayoutStyles();
-  const projectId = docsCtx.studioCtx.siteInfo.id;
+  const projectId = useStore(docsCtx.studioCtx.projectMetadataStore, (state) => state.id);
+  const projectName = useStore(docsCtx.studioCtx.projectMetadataStore, (state) => state.name);
   return (
     <PlasmicDocsPortalBranches
       {...props}
-      docsPortalHeader={{ projectName: docsCtx.studioCtx.siteInfo.name }}
+      docsPortalHeader={{ projectName }}
       codegenBranch={{
         destination: APP_ROUTES.projectDocsCodegenType.fill({
           projectId,

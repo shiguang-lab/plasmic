@@ -1,6 +1,43 @@
+// @vitest-environment jsdom
+
+import { PlasmicCanvasContext, PlasmicCanvasProps } from "@plasmicapp/host";
+import { cleanup, renderHook } from "@testing-library/react";
 import React from "react";
-import { describe, expect, it } from "vitest";
-import { flattenChildren } from "./utils";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { flattenChildren, useAutoOpen, useIsOpen } from "./utils";
+
+afterEach(cleanup);
+
+function Canvas({ children }: { children: React.ReactNode }) {
+  return <PlasmicCanvasContext.Provider value={{ componentName: "Test", globalVariants: {}, interactive: false }}>{children}</PlasmicCanvasContext.Provider>;
+}
+
+it("reveals overlay content through __canvas and keeps its trigger and standalone runtime closed", () => {
+  const onReveal = vi.fn();
+  const props: PlasmicCanvasProps = { __canvas: { selected: true, slot: "content", onReveal } };
+  const { result, rerender, unmount } = renderHook((input: PlasmicCanvasProps) => useIsOpen({ props: input, isOpen: false, triggerSlotName: "trigger" }), { initialProps: props, wrapper: Canvas });
+  expect(result.current).toBe(true);
+  expect(onReveal).toHaveBeenCalledOnce();
+  rerender({ __canvas: { ...props.__canvas, slot: "trigger" } });
+  expect(result.current).toBe(false);
+  expect(onReveal).toHaveBeenCalledOnce();
+  unmount();
+  const runtime = renderHook(() => useIsOpen({ props, isOpen: false }));
+  expect(runtime.result.current).toBe(false);
+  expect(onReveal).toHaveBeenCalledOnce();
+});
+
+it("forwards nested reveal notifications while opening and closing native overlay state", () => {
+  const open = vi.fn(), close = vi.fn(), onReveal = vi.fn();
+  const { rerender } = renderHook((props: PlasmicCanvasProps) => useAutoOpen({ props, open, close }), {
+    initialProps: { __canvas: { selected: true, onReveal } }, wrapper: Canvas,
+  });
+  expect(open).toHaveBeenCalledOnce();
+  expect(onReveal).toHaveBeenCalledOnce();
+  rerender({ __canvas: { selected: false, onReveal } });
+  expect(close).toHaveBeenCalledOnce();
+  expect(onReveal).toHaveBeenCalledOnce();
+});
 
 function getKeys(nodes: React.ReactNode[]): (string | null)[] {
   return nodes.map((node) =>

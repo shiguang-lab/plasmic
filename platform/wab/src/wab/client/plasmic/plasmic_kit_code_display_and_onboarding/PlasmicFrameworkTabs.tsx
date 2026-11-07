@@ -34,7 +34,6 @@ import GraphqlIcon from "./icons/PlasmicIcon__Graphql"; // plasmic-import: tVE40
 import NextjsIcon from "./icons/PlasmicIcon__Nextjs"; // plasmic-import: XYB65iJ0Dd/icon
 import ReactIcon from "./icons/PlasmicIcon__React"; // plasmic-import: iHJMrwqTt/icon
 import RestIcon from "./icons/PlasmicIcon__Rest"; // plasmic-import: 0QyD0vO4WB/icon
-import gatsbyHfAyqV1Qc2 from "./images/gatsby.svg"; // plasmic-import: HFAyqV1qc2/picture
 import hydrogenGyWGjPYh from "./images/hydrogen.png"; // plasmic-import: gyW-GjPYh/picture
 import javascriptGlPcV90N from "./images/javascript.svg"; // plasmic-import: GLPcV-_90n/picture
 import phpSk5QCRrjj2 from "./images/php.svg"; // plasmic-import: Sk5qCRrjj2/picture
@@ -52,7 +51,6 @@ export type PlasmicFrameworkTabs__ArgsType = {
   openInNewTab?: string;
   reactHref?: string;
   nextjsHref?: string;
-  gatsbyHref?: string;
   hydrogenHref?: string;
   remixHref?: string;
   tanstackHref?: string;
@@ -66,7 +64,6 @@ export const PlasmicFrameworkTabs__ArgProps = new Array<ArgPropType>(
   "openInNewTab",
   "reactHref",
   "nextjsHref",
-  "gatsbyHref",
   "hydrogenHref",
   "remixHref",
   "tanstackHref",
@@ -80,7 +77,6 @@ export type PlasmicFrameworkTabs__OverridesType = {
   root?: Flex__<"div">;
   react?: Flex__<typeof FrameworkTab>;
   nextjs?: Flex__<typeof FrameworkTab>;
-  gatsby?: Flex__<typeof FrameworkTab>;
   hydrogen?: Flex__<typeof FrameworkTab>;
   remix?: Flex__<typeof FrameworkTab>;
   tanstack?: Flex__<typeof FrameworkTab>;
@@ -94,7 +90,6 @@ export interface DefaultFrameworkTabsProps {
   openInNewTab?: string;
   reactHref?: string;
   nextjsHref?: string;
-  gatsbyHref?: string;
   hydrogenHref?: string;
   remixHref?: string;
   tanstackHref?: string;
@@ -182,21 +177,6 @@ function PlasmicFrameworkTabs__RenderFunc(props: {
         openInNewTab={args.openInNewTab}
       />
 
-      <FrameworkTab
-        data-plasmic-name={"gatsby"}
-        data-plasmic-override={overrides.gatsby}
-        className={classNames("__wab_instance", sty.gatsby)}
-        destination={args.gatsbyHref}
-        logo={
-          <img
-            alt={""}
-            className={classNames("all", "img", "img__pTmuh", sty.img__i3ZU)}
-            src={gatsbyHfAyqV1Qc2}
-          />
-        }
-        name={"Gatsby"}
-        openInNewTab={args.openInNewTab}
-      />
 
       <FrameworkTab
         data-plasmic-name={"hydrogen"}
@@ -313,7 +293,6 @@ const PlasmicDescendants = {
     "root",
     "react",
     "nextjs",
-    "gatsby",
     "hydrogen",
     "remix",
     "tanstack",
@@ -324,7 +303,6 @@ const PlasmicDescendants = {
   ],
   react: ["react"],
   nextjs: ["nextjs"],
-  gatsby: ["gatsby"],
   hydrogen: ["hydrogen"],
   remix: ["remix"],
   tanstack: ["tanstack"],
@@ -340,7 +318,6 @@ type NodeDefaultElementType = {
   root: "div";
   react: typeof FrameworkTab;
   nextjs: typeof FrameworkTab;
-  gatsby: typeof FrameworkTab;
   hydrogen: typeof FrameworkTab;
   remix: typeof FrameworkTab;
   tanstack: typeof FrameworkTab;
@@ -413,7 +390,6 @@ export const PlasmicFrameworkTabs = Object.assign(
     // Helper components rendering sub-elements
     react: makeNodeComponent("react"),
     nextjs: makeNodeComponent("nextjs"),
-    gatsby: makeNodeComponent("gatsby"),
     hydrogen: makeNodeComponent("hydrogen"),
     remix: makeNodeComponent("remix"),
     tanstack: makeNodeComponent("tanstack"),

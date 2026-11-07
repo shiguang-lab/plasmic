@@ -1,3 +1,7 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
 import { isTplCodeComponentStyleable } from "@/wab/client/code-components/code-components";
 import ContextMenuIndicator from "@/wab/client/components/ContextMenuIndicator/ContextMenuIndicator";
 import { useAppRoles } from "@/wab/client/components/app-auth/app-auth-contexts";
@@ -74,6 +78,9 @@ function VisibilitySection_(props: {
 }) {
   const { t: uiT } = useI18n();
   const { viewCtx, tpl, expsProvider } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  useViewSelection(viewCtx, (state) => state.context);
+  const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl, { forDataRepCollection: true });
 
   const noStyles =
     isTplCodeComponent(tpl) &&
@@ -369,9 +376,7 @@ function VisibilitySection_(props: {
                   _setTplVisibility(TplVisibility.NotRendered);
                 }
               }}
-              data={viewCtx.getInspectorCanvasEnvForTpl(tpl, {
-                forDataRepCollection: true,
-              })}
+              data={canvasEnv}
               schema={viewCtx.customFunctionsSchema()}
               key={tpl.uid}
               visible={isDataPickerVisible}

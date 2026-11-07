@@ -6,36 +6,27 @@ import type { SliderRangeProps, SliderSingleProps } from "antd/es/slider";
 import React from "react";
 import { Registerable } from "./registerable";
 
-type SliderProps = Omit<
-  SliderSingleProps | SliderRangeProps,
-  "value" | "defaultValue" | "onChange"
-> & {
+type SliderProps = (
+  Omit<SliderSingleProps, "value" | "defaultValue" | "onChange"> |
+  Omit<SliderRangeProps, "value" | "defaultValue" | "onChange">
+) & {
   value: number;
   value2: number;
   onChange: (val: number) => void;
   onChange2: (val: number) => void;
 };
 
-export const Slider = React.forwardRef<unknown, SliderProps>(function Slider(
+export const Slider = React.forwardRef<React.ComponentRef<typeof AntdSlider>, SliderProps>(function Slider(
   { value, value2, onChange, onChange2, ...props },
   ref
 ) {
-  const newProps = { ...props } as SliderSingleProps | SliderRangeProps;
   if (props.range) {
-    if (typeof value === "number" || typeof value2 === "number") {
-      newProps.value = [value ?? 0, value2 ?? 0];
-    }
-    newProps.onChange = (values: [number, number]) => {
-      onChange(values[0]);
-      onChange2(values[1]);
-    };
-  } else {
-    if (typeof value === "number") {
-      newProps.value = value;
-    }
-    newProps.onChange = onChange;
+    return <AntdSlider {...props} ref={ref}
+      value={typeof value === "number" || typeof value2 === "number" ? [value ?? 0, value2 ?? 0] : undefined}
+      onChange={(values: number[]) => { onChange(values[0]); onChange2(values[1]); }}
+    />;
   }
-  return <AntdSlider {...newProps} ref={ref} />;
+  return <AntdSlider {...props} ref={ref} value={typeof value === "number" ? value : undefined} onChange={onChange} />;
 });
 
 export const sliderMeta: CodeComponentMeta<SliderProps> = {

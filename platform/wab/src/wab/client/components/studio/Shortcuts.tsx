@@ -21,7 +21,7 @@ import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Input, Tag } from "antd";
 import cn from "classnames";
 import L from "lodash";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
 import React, { useState } from "react";
 import {
   FaArrowDown,
@@ -31,11 +31,10 @@ import {
   FaRegHandRock,
 } from "react-icons/fa";
 
-export const ShortcutsModal = observer(
-  ({ children }: { children: React.ReactNode }) => {
+export function ShortcutsModal({ children }: { children: React.ReactNode }) {
     const { t: uiT } = useI18n();
     const studioCtx = useStudioCtx();
-    const open = studioCtx.isShortcutsModalOpen();
+    const open = useStore(studioCtx.shortcutsModalStore);
     const [searchQuery, setSearchQuery] = useState("");
 
     return (
@@ -66,8 +65,7 @@ export const ShortcutsModal = observer(
         </Modal>
       </>
     );
-  },
-);
+}
 
 interface ShortcutSection {
   title: string;

@@ -7,7 +7,7 @@ interface ResizingState {
 }
 
 export function useResizableHandle(opts: {
-  panelRef: React.RefObject<HTMLElement>;
+  panelRef: React.RefObject<HTMLElement | null>;
   onChange?: (width: number) => void;
 }) {
   const { panelRef, onChange } = opts;

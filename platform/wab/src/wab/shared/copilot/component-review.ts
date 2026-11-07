@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isEditorOnlyRegistration } from "@/wab/shared/copilot/model-read";
 
 export const componentReviewContextSchema = z.object({
   purpose: z.string().min(1).max(500).regex(/\S/).describe("The user-facing purpose of this entire edit or batch, including required behavior and explicit constraints in natural language. Prefer concise English functional wording for retrieval against English component contracts; preserve UI labels and user quotes. Good: 'Switch customer information panels on the same page, keeping selection and content synchronized without route navigation'. Bad: 'Update UI', 'Add divs', 'Use Tabs'. For visual-only edits, describe the existing region and visual change. Do not invent requirements or provide code, IDs, operation mappings or reasoning."),
@@ -10,16 +11,25 @@ export const componentSuggestionSchema = z.object({
   componentUuid: z.string(), elementUuid: z.string(), intent: z.string(),
   candidates: z.array(z.object({
     componentUuid: z.string(), name: z.string(), fromProject: z.string(), version: z.string(),
-    description: z.string(), score: z.number(), matchedBy: z.array(z.enum(["keyword", "embedding"])),
+    description: z.string(), similarity: z.number().nullable(), keywordScore: z.number(), rankScore: z.number(), matchedBy: z.array(z.enum(["keyword", "embedding"])),
     keywordCoverage: z.number().min(0).max(1), matchedTerms: z.array(z.string()).max(10),
-    contract: z.object({ props: z.array(z.string()), slots: z.array(z.string()), events: z.array(z.string()), parent: z.string().optional() }),
+    contract: z.object({ props: z.array(z.string()), slots: z.array(z.string()), events: z.array(z.string()), parent: z.string().optional(), truncated: z.boolean() }),
+    requiredBy: z.array(z.string()).optional().describe("Candidate UUIDs that require this parent. Keep these candidates together unless the target already has the required ancestor."),
     unknowns: z.array(z.string()),
   })).min(1).max(3),
   guidance: z.string(),
 });
 export const componentReviewResultSchema = z.object({
-  status: z.enum(["completed", "partial", "timeout", "unavailable", "skipped", "cancelled"]),
-  indexed: z.number().int().nonnegative(), total: z.number().int().nonnegative(), elapsedMs: z.number().nonnegative(),
+  status: z.enum(["completed", "indexing", "partial", "timeout", "unavailable", "skipped", "cancelled"]),
+  indexed: z.number().int().nonnegative().nullable(), total: z.number().int().nonnegative().nullable(), elapsedMs: z.number().nonnegative(),
+  issues: z.array(z.enum(["indexing", "embedding-failed", "registrations-unavailable", "catalogue-changed", "output-truncated", "regions-truncated"])).optional(),
+  diagnostic: z.string().optional(),
+  guidance: z.string().optional(),
+  retry: z.object({
+    tool: z.literal("execute"),
+    arguments: z.object({ name: z.literal("reviewComponentReuse"), input: z.object({ targets: z.array(z.object({ componentUuid: z.string(), elementUuid: z.string() })).min(1).max(5), reviewContext: componentReviewContextSchema }) }),
+    afterMs: z.number().int().nonnegative(),
+  }).optional().describe("Read-only MCP recovery call. Local agents call arguments.name with arguments.input directly. Never replay the successful design mutation to retry component review."),
   suggestions: z.array(componentSuggestionSchema).max(5),
   skippedRegions: z.array(z.object({ componentUuid: z.string().optional(), elementUuid: z.string().optional(), reason: z.enum(["user-choice-agent-reported", "component-owned-or-presentation", "already-reviewed", "target-unresolved"]) })).max(5).optional(),
 });
@@ -37,6 +47,7 @@ export function describeReviewRegistration(meta: { name: string; displayName?: s
   for (const name of Object.keys(meta.props).sort()) {
     if (["className", "style", "ref", "key"].includes(name)) continue;
     const value = meta.props[name];
+    if (isEditorOnlyRegistration(value)) { continue; }
     const control = value && typeof value === "object" ? value as Record<string, unknown> : {};
     const kind = typeof value === "string" ? value : typeof control.type === "string" ? control.type : "prop";
     (kind === "slot" ? slots : kind === "eventHandler" ? events : props).push(name);
@@ -44,18 +55,22 @@ export function describeReviewRegistration(meta: { name: string; displayName?: s
     if (Array.isArray(control.argTypes)) lines.push("Event arguments: " + control.argTypes.map(arg => `${arg.name}: ${typeof arg.type === "string" ? arg.type : arg.type?.type ?? "value"}`).join(", "));
     if (Array.isArray(control.allowedComponents)) lines.push("Allowed children: " + control.allowedComponents.filter(item => typeof item === "string").join(", "));
   }
+  // Registration order puts primary inputs before advanced/appearance options.
+  // Keep retrieval text sorted independently so this summary change preserves vectors.
+  const order = Object.keys(meta.props);
+  for (const names of [props, slots, events]) { names.sort((a, b) => order.indexOf(a) - order.indexOf(b)); }
   return { description: meta.description ?? "", props, slots, events,
     ...(meta.parentComponentName ? { parent: meta.parentComponentName } : {}),
     sections: [[meta.displayName ?? meta.name, meta.description, meta.parentComponentName ? "Requires parent: " + meta.parentComponentName : ""].filter(Boolean).join("\n"), lines.join("\n")].filter(Boolean) };
 }
 export interface ReviewRegion {
   componentUuid: string; elementUuid: string; intent: string;
-  usedComponentUuids: string[]; facts: string[];
+  usedComponentUuids: string[]; ancestorComponentUuids?: string[]; facts: string[];
 }
 
 export type ComponentReuseCommand =
   | { command: "status" }
-  | { command: "sync"; projectId: string; documents: ReviewComponentDocument[]; unavailable: number }
+  | { command: "sync"; projectId: string; documents: ReviewComponentDocument[]; unavailable: number; retry?: boolean }
   | { command: "review"; projectId: string; id: string; regions: ReviewRegion[] }
   | { command: "cancel"; id: string }
   | { command: "activity" }

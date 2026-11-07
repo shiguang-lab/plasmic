@@ -5,10 +5,15 @@ const { MODEL, normalize } = require("./component-embedding.cjs");
 const hash = value => createHash("sha256").update(value).digest("hex");
 const segmenter = new Intl.Segmenter("zh", { granularity: "word" });
 const stopWords = new Set(["the", "and", "or", "an", "in", "on", "of", "for", "to", "by", "as", "is", "are", "be", "with", "from", "this", "that", "it", "its", "at"]);
+function stem(term) {
+  if (!/^[a-z]{4,}$/.test(term)) return term;
+  return term.replace(/ies$/, "y").replace(/(ches|shes|xes|zes|sses)$/, value => value.slice(0, -2))
+    .replace(/(ation|ated|ating|ate)$/, "at").replace(/(?:ing|ed|able)$/, "").replace(/([^s])s$/, "$1");
+}
 function terms(text) {
   const expanded = text.replace(/([a-z\d])([A-Z])/g, "$1 $2").toLowerCase();
   const result = [];
-  for (const item of segmenter.segment(expanded)) if (item.isWordLike && item.segment.length > 1 && !stopWords.has(item.segment)) result.push(item.segment);
+  for (const item of segmenter.segment(expanded)) if (item.isWordLike && item.segment.length > 1 && !stopWords.has(item.segment)) result.push(stem(item.segment));
   return result;
 }
 function fragments(doc) {
@@ -78,11 +83,14 @@ class ComponentReuse {
     this.stats = { cacheHits: 0, documentEmbeddings: 0, queryEmbeddings: 0, queryCacheHits: 0 };
   }
   activity() { this.pausedUntil = Date.now() + this.idlePauseMs; }
-  async sync(scope, documents, unavailable = 0) {
+  async sync(scope, documents, unavailable = 0, retry = false) {
     if (this.closed) throw new Error("Component reuse closed");
     if (this.state && (this.state.scope.account !== scope.account || this.state.scope.project !== scope.project)) this.reset();
     const fingerprint = hash(JSON.stringify([scope, documents, unavailable]));
-    if (this.state?.fingerprint === fingerprint) return this.coverage();
+    if (this.state?.fingerprint === fingerprint) {
+      if (retry && this.failure) { this.failure = null; this.pump(); }
+      return this.coverage();
+    }
     const previous = new Map(this.state?.documents.map(doc => [doc.lexicalKey, doc]) ?? []);
     const generation = ++this.generation; this.pending.clear(); this.failure = null;
     const state = this.state = { scope, fingerprint, generation, unavailable, documents: documents.map(doc => {
@@ -171,12 +179,38 @@ class ComponentReuse {
     const used = rows.filter(row => region.usedComponentUuids.includes(row.doc.componentUuid) && eligible(row));
     const candidates = rows.filter(row => !region.usedComponentUuids.includes(row.doc.componentUuid) && row.doc.componentUuid !== region.componentUuid && eligible(row)).sort((a, b) => b.fusion - a.fusion);
     if (used.some(row => candidates[0] && (row.similarity ?? 0) >= (candidates[0].similarity ?? 0) - 0.01 && row.keyword >= candidates[0].keyword)) return [];
-    return candidates.slice(0, 3).map(({ doc, keyword, similarity, keywordCoverage, matchedTerms }) => ({
+    // A child is never an independently insertable alternative. Reserve room
+    // for its complete parent chain before applying the candidate budget.
+    const selected = new Map(); const requiredBy = new Map();
+    for (const candidate of candidates) {
+      const chain = []; const visited = new Set(); let row = candidate; let valid = true;
+      while (row) {
+        if (visited.has(row.doc.componentUuid) || row.doc.componentUuid === region.componentUuid) { valid = false; break; }
+        visited.add(row.doc.componentUuid); chain.unshift(row);
+        if (!row.doc.parent) break;
+        const parent = rows.find(item => item.doc.name === row.doc.parent && item.doc.fromProject === row.doc.fromProject && item.doc.version === row.doc.version);
+        if (!parent) { valid = false; break; }
+        if (region.ancestorComponentUuids?.includes(parent.doc.componentUuid)) break;
+        row = parent;
+      }
+      if (!valid || new Set([...selected.keys(), ...chain.map(item => item.doc.componentUuid)]).size > 3) continue;
+      for (const [index, item] of chain.entries()) {
+        selected.set(item.doc.componentUuid, item);
+        if (index + 1 < chain.length) {
+          const children = requiredBy.get(item.doc.componentUuid) ?? new Set();
+          children.add(chain[index + 1].doc.componentUuid); requiredBy.set(item.doc.componentUuid, children);
+        }
+      }
+    }
+    const summarize = (names, limit) => names.map((name, index) => ({ name, index, relevance: terms(name).filter(term => query.includes(term)).length }))
+      .sort((a, b) => b.relevance - a.relevance || a.index - b.index).slice(0, limit).map(item => item.name);
+    return [...selected.values()].map(({ doc, keyword, similarity, keywordCoverage, matchedTerms, fusion }) => ({
       componentUuid: doc.componentUuid, name: doc.name, fromProject: doc.fromProject, version: doc.version,
-      description: doc.description.slice(0, 220), score: similarity ?? keyword,
+      description: doc.description.slice(0, 220), similarity, keywordScore: keyword, rankScore: fusion,
       keywordCoverage, matchedTerms: matchedTerms.slice(0, 10),
       matchedBy: [...(keyword ? ["keyword"] : []), ...(similarity !== null ? ["embedding"] : [])],
-      contract: { props: doc.props.slice(0, 8), slots: doc.slots.slice(0, 5), events: doc.events.slice(0, 5), ...(doc.parent ? { parent: doc.parent } : {}) },
+      ...(requiredBy.has(doc.componentUuid) ? { requiredBy: [...requiredBy.get(doc.componentUuid)] } : {}),
+      contract: { props: summarize(doc.props, 8), slots: summarize(doc.slots, 5), events: summarize(doc.events, 5), truncated: doc.props.length > 8 || doc.slots.length > 5 || doc.events.length > 5, ...(doc.parent ? { parent: doc.parent } : {}) },
       unknowns: ["Relevance is not behavioral equivalence. Read the current full contract and verify data, events, accessibility and any parent requirements before replacing."],
     }));
   }
@@ -189,7 +223,7 @@ class ComponentReuse {
     this.activity();
     try {
       for (const region of regions) {
-        combined.throwIfAborted(); if (this.state !== state) { result.status = "partial"; break; }
+        combined.throwIfAborted(); if (this.state !== state) break;
         let vector;
         if (this.queryCache.has(region.intent)) { vector = this.queryCache.get(region.intent); this.stats.queryCacheHits++; }
         else if (!this.failure && this.coverage(state).indexed) {
@@ -202,16 +236,25 @@ class ComponentReuse {
             }
           } catch (error) { if (combined.aborted) throw error; this.failure = error; }
         }
-        if (this.state !== state) { result.status = "partial"; result.suggestions = []; break; }
+        if (this.state !== state) { result.suggestions = []; break; }
         const candidates = this.rank(state, region, vector);
         if (candidates.length) result.suggestions.push({ componentUuid: region.componentUuid, elementUuid: region.elementUuid, intent: region.intent, candidates,
-          guidance: "Reassess this region once using the applicable Plasmic rules (external MCP clients: top-level read_skill). Read each candidate's current contract with read view:contract, fromProject and componentUuids. Replace only if it satisfies the requirement; keep justified custom UI. Do not repeat a successful edit or loop merely because this advisory exists." });
+          guidance: "Reassess this region once using the applicable Plasmic rules (external MCP clients: top-level read_skill). Read each candidate's current contract with read view:contract, fromProject and componentUuids. Candidates with requiredBy are required parents, not alternatives; keep the composition together unless the target already has that ancestor. Replace only if it satisfies the requirement; keep justified custom UI. Do not repeat a successful edit or loop merely because this advisory exists." });
       }
-      result.status = this.state === state && !this.failure && this.coverage(state).indexed === this.coverage(state).total ? "completed" : "partial";
+      const issues = [];
+      if (this.state !== state) { issues.push("catalogue-changed"); result.suggestions = []; }
+      if (this.failure) { issues.push("embedding-failed"); result.diagnostic = String(this.failure.message ?? this.failure).slice(-800); }
+      if (state.unavailable) issues.push("registrations-unavailable");
+      if (!this.failure && this.coverage(state).indexed < state.documents.length) issues.push("indexing");
+      result.status = !issues.length ? "completed" : issues.every(issue => issue === "indexing" || issue === "registrations-unavailable") && issues.includes("indexing") ? "indexing" : "partial";
+      if (issues.length) { result.issues = issues; result.guidance = "These results are provisional. Do not treat missing suggestions as proof that no reusable component exists. Retry review without replaying the design edit after indexing or runtime recovery; missing registrations require loading their current contracts."; }
     } catch { result.status = signal?.aborted ? "cancelled" : controller.signal.aborted ? "timeout" : "unavailable"; result.suggestions = []; }
     finally { clearTimeout(deadline); }
     Object.assign(result, this.coverage(state), { elapsedMs: performance.now() - started });
-    while (Buffer.byteLength(JSON.stringify(result)) > 5120 && result.suggestions.length) { result.suggestions.pop(); if (result.status === "completed") result.status = "partial"; }
+    while (Buffer.byteLength(JSON.stringify(result)) > 5120 && result.suggestions.length) {
+      result.suggestions.pop(); if (result.status === "completed") result.status = "partial";
+      result.issues = [...new Set([...(result.issues ?? []), "output-truncated"])];
+    }
     return result;
   }
   reset() {

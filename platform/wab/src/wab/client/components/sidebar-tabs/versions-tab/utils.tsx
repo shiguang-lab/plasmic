@@ -186,8 +186,8 @@ const RevertConfirmModal = ({
 
 export const promptVersionRevert = async (
   release: PkgVersionInfoMeta,
-  releases: PkgVersionInfoMeta[],
-  revisions: MinimalRevisionInfo[],
+  releases: readonly PkgVersionInfoMeta[],
+  revisions: readonly MinimalRevisionInfo[],
   studioCtx: StudioCtx,
   user?: ApiUser | null,
 ) => {

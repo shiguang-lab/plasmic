@@ -1,3 +1,4 @@
+import { useFocusedViewCtx } from "@/wab/client/studio-ctx/selection-state";
 import { getComponentPresets } from "@/wab/client/code-components/code-presets";
 import { InsertRelLoc } from "@/wab/client/components/canvas/view-ops";
 import { ResourceAssetActions } from "@/wab/client/components/insert-panel/ResourceAssetActions";
@@ -308,7 +309,7 @@ function AddItemRow(props: AddDrawerItemProps) {
   );
 }
 
-const InsertActions = observer(function InsertActions(props: {
+export const InsertActions = observer(function InsertActions(props: {
   studioCtx: StudioCtx;
   item: AddTplItem;
   onInserted?: (tplNode: TplNode | null) => void;
@@ -316,6 +317,7 @@ const InsertActions = observer(function InsertActions(props: {
 }) {
   const { t: uiT } = useI18n();
   const { studioCtx, item, onInserted, validTplLocs } = props;
+  const vc = useFocusedViewCtx(studioCtx);
 
   let preset: React.ReactElement | null = null;
   if (item.component && isCodeComponent(item.component)) {
@@ -340,7 +342,6 @@ const InsertActions = observer(function InsertActions(props: {
     }
   }
 
-  const vc = studioCtx.focusedViewCtx();
   if (!vc || !validTplLocs) {
     return preset;
   }

@@ -1,23 +1,25 @@
-import { activateTheme } from "@/wab/client/activate-theme";
+import { useThemeSelection } from "@/wab/client/components/sidebar/theme-selection-state";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { useI18n } from "@/wab/client/i18n";
 import PlasmicLeftThemesPanel from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicLeftThemesPanel";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { ensure } from "@/wab/shared/common";
-import { getSelectableThemes } from "@/wab/shared/core/theme-styles";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const DefaultStylesPanel = observer(function DefaultStylesPanel() {
+export const DefaultStylesPanel = function DefaultStylesPanel() {
   const { t } = useI18n();
   const studioCtx = useStudioCtx();
-  const site = studioCtx.site;
-  const activeTheme = site.activeTheme;
-  const themes = getSelectableThemes(site).map((st) => st.theme);
+  const { selection, activate } = useThemeSelection(studioCtx, (state) => state);
+  const options = selection.options.map((option) => ({
+    value: option.value,
+    label:
+      option.ownerProjectName === undefined
+        ? t("This project's theme")
+        : t("Theme from {project}", { project: option.ownerProjectName }),
+  }));
 
   return (
     <PlasmicLeftThemesPanel
-      noThemePicker={themes.length <= 1}
+      noThemePicker={options.length <= 1}
       hiliteTabs={{
         tabs: [
           { tabKey: "styles", content: <UiText message="Typography" /> },
@@ -27,29 +29,21 @@ export const DefaultStylesPanel = observer(function DefaultStylesPanel() {
       }}
       themeSelector={{
         props: {
-          options: themes.map((theme) => ({
-            value: theme.defaultStyle.uuid,
-            label: studioCtx.tplMgr().isOwnedBySite(theme)
-              ? t("This project's theme")
-              : t("Theme from {project}", { project: ensure(
-                    studioCtx.projectDependencyManager.getOwnerDep(theme),
-                    "Could not find owner dep for theme",
-                  ).name }),
-          })),
-          value: activeTheme ? activeTheme.defaultStyle.uuid : undefined,
+          options,
+          value: selection.activeThemeValue,
           onChange: async (newVal) => {
-            const theme = themes.find((th) => th.defaultStyle.uuid === newVal);
-            if (theme && theme !== activeTheme) {
-              await studioCtx.changeUnsafe(() => {
-                activateTheme(studioCtx, theme);
-              });
+            const option = selection.options.find(
+              (candidate) => candidate.value === newVal,
+            );
+            if (option) {
+              await activate(option.ref);
             }
           },
         },
       }}
-      notOwnedBySite={!!activeTheme && !site.themes.includes(activeTheme)}
+      notOwnedBySite={selection.notOwnedBySite}
     />
   );
-});
+};
 
 export default DefaultStylesPanel;

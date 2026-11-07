@@ -9,29 +9,53 @@ import { safeCallbackify } from "@/wab/commons/control";
 import { ensure, spawn } from "@/wab/shared/common";
 import type { WindowWithLiveFrame } from "@/wab/shared/live-frame-types";
 import * as asynclib from "async";
-import { IAutorunOptions, autorun } from "mobx";
 
 export function syncPreview(
   win: Window,
   build: () => PreviewUpdate | undefined,
   onDone: (error?: unknown) => void,
-  options?: IAutorunOptions,
+  options?: {
+    name?: string;
+    scheduler?: (run: () => void) => void;
+    subscribe?: (invalidate: () => void) => () => void;
+  },
 ) {
   const queue = makeRenderQueue(win, onDone);
-  const dispose = autorun(() => {
+  let disposed = false;
+  let scheduled = false;
+  const buildAndQueue = () => {
     try {
       const update = build();
       if (update) {
         queue.push(update);
       }
     } catch (error) {
-      // Serialize preparation failures with renders so an older in-flight
-      // commit cannot overwrite the failure, and a later valid build can recover.
+      // Keep preparation failures ordered with in-flight commits and recovery.
       queue.push({ error });
     }
-  }, options);
+  };
+  const invalidate = () => {
+    if (disposed || scheduled) {
+      return;
+    }
+    scheduled = true;
+    const run = () => {
+      scheduled = false;
+      if (!disposed) {
+        buildAndQueue();
+      }
+    };
+    (options?.scheduler ?? queueMicrotask)(run);
+  };
+  const unsubscribe = options?.subscribe?.(invalidate);
+  if (options?.scheduler) {
+    invalidate();
+  } else {
+    buildAndQueue();
+  }
   return () => {
-    dispose();
+    disposed = true;
+    unsubscribe?.();
     queue.dispose();
   };
 }
@@ -56,8 +80,12 @@ export async function showPreviewLoadError(win: Window, error: unknown) {
   failure.setAttribute("data-plasmic-preview-error", "true");
   const value = error as Error | undefined;
   failure.textContent = String(value?.message ?? error);
-  if (value?.name) { failure.setAttribute("data-plasmic-error-name", value.name); }
-  if (value?.stack) { failure.setAttribute("data-plasmic-error-stack", value.stack); }
+  if (value?.name) {
+    failure.setAttribute("data-plasmic-error-name", value.name);
+  }
+  if (value?.stack) {
+    failure.setAttribute("data-plasmic-error-stack", value.stack);
+  }
   win.document.body.replaceChildren(failure);
 }
 
@@ -99,11 +127,10 @@ function makeRenderQueue(win: Window, onDone: (error?: unknown) => void) {
       let updating = false;
       let render: PreviewUpdate["render"];
       try {
-        const task = ensure(
-          tasks[tasks.length - 1],
-          "cargo has tasks",
-        );
-        if ("error" in task) { throw task.error; }
+        const task = ensure(tasks[tasks.length - 1], "cargo has tasks");
+        if ("error" in task) {
+          throw task.error;
+        }
         const { modules } = task;
         render = task.render;
         const compiled = await Promise.all(modules.map(transpile));
@@ -117,7 +144,11 @@ function makeRenderQueue(win: Window, onDone: (error?: unknown) => void) {
       } catch (error) {
         if (!disposed) {
           if (!updating) {
-            liveFrame(win).beginRender(render && "componentUuid" in render ? render.componentUuid : undefined);
+            liveFrame(win).beginRender(
+              render && "componentUuid" in render
+                ? render.componentUuid
+                : undefined,
+            );
           }
           // Compilation fails in Studio and evaluation in the frame. Both must
           // replace stale content with the same visible error.

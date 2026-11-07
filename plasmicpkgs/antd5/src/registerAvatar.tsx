@@ -80,12 +80,12 @@ export function registerAvatarGroup(loader?: Registerable) {
       children: {
         type: "slot",
         defaultValue: [1, 2, 3, 4].map((user) => ({
-          type: "component",
+          type: "component" as const,
           name: "plasmic-antd5-tooltip",
           props: {
             titleText: "User " + user,
             children: {
-              type: "component",
+              type: "component" as const,
               name: "plasmic-antd5-avatar",
               props: {
                 letters: `U${user}`,

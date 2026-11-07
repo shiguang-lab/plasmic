@@ -42,10 +42,10 @@ export function beginCanvasInspection(
       studio.withBackgroundViewCtxForComponent(
         target,
         async (viewCtx) => {
-          const previousExporting = viewCtx.canvasExporting.get();
+          const previousExporting = viewCtx.canvasExporting;
           try {
             if (options.forExport) {
-              viewCtx.canvasExporting.set(true);
+              viewCtx.setCanvasExporting(true);
               viewCtx.scheduleSync({ eval: true, styles: false, asap: true });
             }
             await viewCtx.awaitSync();
@@ -85,7 +85,7 @@ export function beginCanvasInspection(
             return true;
           } finally {
             if (options.forExport) {
-              viewCtx.canvasExporting.set(previousExporting);
+              viewCtx.setCanvasExporting(previousExporting);
               viewCtx.scheduleSync({ eval: true, styles: false, asap: true });
               await viewCtx.awaitSync();
             }

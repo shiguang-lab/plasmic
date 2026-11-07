@@ -8,6 +8,7 @@ import {
   TplExpsProvider,
   useStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -22,10 +23,9 @@ import {
   ContainerLayoutType,
   ensureContainerType,
   getContainerTypeName,
-  getRshContainerType,
+  getContainerLayoutType,
 } from "@/wab/shared/layoututils";
 import { Menu } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
 
 type LayoutSectionProps = {
@@ -34,13 +34,16 @@ type LayoutSectionProps = {
   isCodeComponentTpl?: boolean;
   allowConvert?: boolean;
 };
-export const LayoutSection = observer(function LayoutSection_(
+export function LayoutSection(
   props: LayoutSectionProps,
 ) {
   const { t: uiT } = useI18n();
   const styling = useStyleComponent();
-  const hasDisplay = styling.exp().has("display");
-  const containerType = getRshContainerType(styling.exp());
+  const [displayCell, directionCell] = useStyleCells(styling.props.expsProvider, [
+    "display", "flex-direction",
+  ]);
+  const hasDisplay = !!displayCell?.has;
+  const containerType = getContainerLayoutType(displayCell?.value ?? "", directionCell?.value ?? "");
   const makeMenu =
     props.allowConvert && props.expsProvider instanceof TplExpsProvider
       ? (builder: MenuBuilder) => {
@@ -201,4 +204,4 @@ export const LayoutSection = observer(function LayoutSection_(
       }
     </StylePanelSection>
   );
-});
+}

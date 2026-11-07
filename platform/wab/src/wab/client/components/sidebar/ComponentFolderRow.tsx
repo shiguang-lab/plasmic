@@ -4,7 +4,6 @@ import { Matcher } from "@/wab/client/components/view-common";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { Component } from "@/wab/shared/model/classes";
 import cn from "classnames";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 export interface ComponentFolder {
@@ -49,7 +48,7 @@ interface ComponentFolderRowProps {
   toggleExpand: () => void;
 }
 
-export const ComponentFolderRow = observer(function ComponentFolderRow(
+export function ComponentFolderRow(
   props: ComponentFolderRowProps,
 ) {
   const { folder, matcher, indentMultiplier, isOpen, toggleExpand } = props;
@@ -102,4 +101,4 @@ export const ComponentFolderRow = observer(function ComponentFolderRow(
       </EditableLabel>
     </RowGroup>
   );
-});
+}

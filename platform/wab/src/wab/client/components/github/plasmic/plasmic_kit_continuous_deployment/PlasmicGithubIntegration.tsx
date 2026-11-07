@@ -1768,7 +1768,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                       </span>
                       <React.Fragment>
                         {
-                          <UiText message={"Page routes are auto-mounted only for Next.js/Gatsby projects. Proceed with plain React only if you know you want to manually add code to explicitly render pages using a framework like react-router."} />
+                          <UiText message={"Page routes are auto-mounted only for Next.js projects. Proceed with plain React only if you know you want to manually add code to explicitly render pages using a framework like react-router."} />
                         }
                       </React.Fragment>
                     </React.Fragment>

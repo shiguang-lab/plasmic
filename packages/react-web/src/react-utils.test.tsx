@@ -1,6 +1,8 @@
+// @vitest-environment jsdom
+import { render } from "@testing-library/react";
 import * as React from "react";
 import { describe, expect, it, vi } from "vitest";
-import { NONE, mergeProps } from "./react-utils";
+import { NONE, mergeProps, mergeRefs } from "./react-utils";
 
 describe("mergeProps", () => {
   it("works for refs", () => {
@@ -96,5 +98,66 @@ describe("mergeProps", () => {
       onClick: null,
       style: null,
     });
+  });
+});
+
+describe("React 19 merged ref lifecycles", () => {
+  it("preserves cleanup functions alongside callback and object refs", () => {
+    const cleanup = vi.fn();
+    const callback = vi.fn(() => cleanup);
+    const legacy = vi.fn();
+    const object = React.createRef<HTMLButtonElement>();
+    const props = mergeProps({ ref: callback }, { ref: legacy }, { ref: object });
+    const view = render(<button {...props} />);
+    const node = view.getByRole("button");
+    expect(callback).toHaveBeenCalledWith(node);
+    expect(object.current).toBe(node);
+    view.unmount();
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(callback).toHaveBeenCalledTimes(1);
+    expect(legacy.mock.calls).toEqual([[node], [null]]);
+    expect(object.current).toBeNull();
+  });
+
+  it("cleans the previous refs before attaching replacement refs", () => {
+    const firstCleanup = vi.fn();
+    const secondCleanup = vi.fn();
+    const first = vi.fn(() => firstCleanup);
+    const second = vi.fn(() => secondCleanup);
+    const object = React.createRef<HTMLButtonElement>();
+    const firstMerged = mergeRefs(first, object);
+    const secondMerged = mergeRefs(second, object);
+    const view = render(<button ref={firstMerged} />);
+    const node = object.current;
+    view.rerender(<button ref={firstMerged} title="unchanged ref" />);
+    expect(first).toHaveBeenCalledTimes(1);
+    expect(firstCleanup).not.toHaveBeenCalled();
+    view.rerender(<button ref={secondMerged} />);
+    expect(firstCleanup).toHaveBeenCalledTimes(1);
+    expect(second).toHaveBeenCalledWith(node);
+    expect(object.current).toBe(node);
+    view.unmount();
+    expect(secondCleanup).toHaveBeenCalledTimes(1);
+    expect(object.current).toBeNull();
+  });
+
+  it("leaves no subscriptions after StrictMode ref replay and unmount", () => {
+    const subscriptions = new Set<HTMLElement>();
+    const cleanup = vi.fn((node: HTMLElement) => subscriptions.delete(node));
+    const callback = vi.fn((node: HTMLElement | null) => {
+      if (node) {
+        subscriptions.add(node);
+        return () => { cleanup(node); };
+      }
+    });
+    const object = React.createRef<HTMLButtonElement>();
+    const view = render(<React.StrictMode><button ref={mergeRefs(callback, object)} /></React.StrictMode>);
+    expect(callback).toHaveBeenCalledTimes(2);
+    expect(cleanup).toHaveBeenCalledTimes(1);
+    expect(subscriptions.size).toBe(1);
+    view.unmount();
+    expect(cleanup).toHaveBeenCalledTimes(2);
+    expect(subscriptions.size).toBe(0);
+    expect(object.current).toBeNull();
   });
 });

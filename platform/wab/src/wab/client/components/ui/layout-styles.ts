@@ -633,15 +633,30 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     "& .canvas-editor__right-pane .SidebarSection__Body:not(.SidebarSection__Body__NoBottomPadding):not(.SidebarSection__Body__EmptyBody)":
       { paddingBottom: 12 },
     [`& .canvas-editor__right-pane .SidebarSection__Body:not(.SidebarSection__Body__NoBottomPadding):not(.SidebarSection__Body__EmptyBody) > .${sidebarSection.collapsingToggle}:not(.${sidebarSection.collapsingToggle_sticky})`]: {
-      marginBottom: -12,
+      marginBottom: 0,
     },
     [`& .canvas-editor__right-pane .${sidebarSection.headerTitle}`]: {
       color: token.colorText,
     },
     "& .canvas-editor__right-pane .SidebarSection__Container:not(.SidebarSection__Container--NoBorder)":
       { borderColor: token.colorBorderSecondary },
-    [`& .canvas-editor__right-pane .${labeledListItem.actionsContainer}`]: {
+    [`& .canvas-editor__right-pane .${labeledListItem.root}`]: {
+      position: "relative",
+    },
+    [`& .canvas-editor__right-pane .${labeledListItem.actionsContainer}:not(.${labeledListItem.actionsContainerlayout_vertical})`]: {
+      position: "absolute",
+      right: 2,
+      top: "50%",
+      transform: "translateY(-50%)",
       marginRight: 0,
+      zIndex: 2,
+      pointerEvents: "none",
+    },
+    [`& .canvas-editor__right-pane .${labeledListItem.root}:hover .${labeledListItem.actionsContainer}, & .canvas-editor__right-pane .${labeledListItem.root}:focus-within .${labeledListItem.actionsContainer}`]: {
+      pointerEvents: "auto",
+    },
+    [`& .canvas-editor__right-pane .${labeledListItem.rootpadding_noHorizontal} > .${labeledListItem.actionsContainer}:not(.${labeledListItem.actionsContainerlayout_vertical})`]: {
+      right: -18,
     },
     "& .canvas-editor__left-pane .right-panel-input-background__no-height, & .canvas-editor__left-pane .dropdown-container":
       {
@@ -1033,7 +1048,7 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       color: token.colorPrimary,
       borderColor: token.colorPrimary,
     },
-    "& .canvas-editor__right-pane, & .canvas-editor__right-stack-pane, & .canvas-editor__right-float-pane":
+    "& .canvas-editor__right-pane, & .canvas-editor__right-float-pane":
       {
         background: token.colorBgContainer,
         borderColor: token.colorBorder,

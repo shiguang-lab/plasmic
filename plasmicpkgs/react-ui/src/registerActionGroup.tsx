@@ -6,7 +6,7 @@ import {
   ActionGroup as ReactUIActionGroup,
   ActionGroupProps as ReactUIActionGroupProps,
 } from "@react/ui";
-import React from "react";
+
 export type Registerable = { registerComponent: typeof registerComponent };
 
 export interface ActionGroupProps extends Omit<

@@ -21,7 +21,9 @@ test("Descriptions registers editable Item slots as the default composition", ()
   expect(item.displayName).toBe("Descriptions.Item");
   expect(item.parentComponentName).toBe(descriptions.name);
   expect(item.props.label.type).toBe("slot");
+  expect(item.props.label.mergeWithParent).toBe(true);
   expect(item.props.children.type).toBe("slot");
+  expect(item.props.children.mergeWithParent).toBe(true);
   expect(item.props.span.defaultValueHint).toBe(1);
   expect(descriptions.props.children.allowedComponents).toEqual([item.name]);
   expect(descriptions.props.items.defaultValue).toBeUndefined();
@@ -37,10 +39,8 @@ test("Descriptions registers editable Item slots as the default composition", ()
   expect(descriptions.props.children.hidden({ items: [] })).toBe(true);
   expect(descriptions.props.children.hidden({})).toBe(false);
   const defaultItem = descriptions.props.children.defaultValue[0];
-  expect(defaultItem.props.label).toEqual([{ type: "text", value: "Name" }]);
-  expect(defaultItem.props.children).toEqual([
-    { type: "text", value: "Example" },
-  ]);
+  expect(defaultItem.props.label).toBe("Name");
+  expect(defaultItem.props.children).toBe("Example");
 });
 
 test.each(["items", "slots"])("%s passes native cell width and semantic appearance to separate DOM targets", (source) => {
@@ -201,4 +201,18 @@ test("Descriptions retains its native ref for both editing slots and data-bound 
     />,
   );
   expect(ref.current?.nativeElement).toBe(view.container.firstElementChild);
+});
+
+test("Descriptions.Item slots support primitive string inputs without extra span wrappers", () => {
+  const view = render(
+    <AntdDescriptions>
+      <AntdDescriptionsItem label="账号状态">ACTIVE</AntdDescriptionsItem>
+    </AntdDescriptions>,
+  );
+  const label = view.container.querySelector(".ant-descriptions-item-label");
+  const content = view.container.querySelector(".ant-descriptions-item-content");
+  expect(label?.textContent).toContain("账号状态");
+  expect(content?.textContent).toBe("ACTIVE");
+  expect(label?.querySelector("span")).toBeNull();
+  expect(content?.querySelector("span")).toBeNull();
 });

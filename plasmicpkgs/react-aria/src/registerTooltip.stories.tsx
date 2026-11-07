@@ -1,7 +1,7 @@
 import { PlasmicCanvasContext } from "@plasmicapp/host";
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, waitFor, within } from "@storybook/test";
-import React, { useState } from "react";
+import { useState } from "react";
 import { BaseButton } from "./registerButton";
 import { BaseTooltip } from "./registerTooltip";
 
@@ -425,7 +425,7 @@ export const AriaButtonTrigger: Story = {
 };
 
 export const SelectedInCanvas: Story = {
-  render: ({ __plasmic_selection_prop__, ...args }) => {
+  render: ({ __canvas, ...args }) => {
     const [selected, setSelected] = useState(false);
     const [selectedSlotName, setSelectedSlotName] = useState("");
 
@@ -449,9 +449,9 @@ export const SelectedInCanvas: Story = {
         <BaseTooltip
           {...args}
           // Simulate node selection in Plasmic canvas
-          __plasmic_selection_prop__={{
-            isSelected: selected,
-            selectedSlotName,
+          __canvas={{
+            selected,
+            slot: selectedSlotName,
           }}
           className="trigger"
         />
@@ -553,8 +553,8 @@ export const TooltipPositionInCanvas: Story = {
           <BaseTooltip
             {...args}
             className={className}
-            __plasmic_selection_prop__={{
-              isSelected: selected,
+            __canvas={{
+              selected,
             }}
           />
         </PlasmicCanvasContext.Provider>

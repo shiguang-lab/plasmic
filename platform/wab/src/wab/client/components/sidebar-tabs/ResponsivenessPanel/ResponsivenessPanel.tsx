@@ -47,7 +47,7 @@ import React, { useState } from "react";
 
 export const ResponsivenessPanel = observer(ResponsivenessPanel_);
 
-const MissingFrameWarning = observer(MissingFrameWarning_);
+const MissingFrameWarning = MissingFrameWarning_;
 function MissingFrameWarning_({
   variant,
   iconClassName,

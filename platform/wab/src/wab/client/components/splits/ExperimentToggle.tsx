@@ -9,9 +9,9 @@ import { spawn } from "@/wab/shared/common";
 import { SplitStatus } from "@/wab/shared/core/splits";
 import { Split } from "@/wab/shared/model/classes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
+import { useStore } from "zustand";
 
 // Your component props start with props for variants and slots you defined
 // in Plasmic, but you can add more here, like event handlers that you can
@@ -36,11 +36,12 @@ function ExperimentToggle_(
 ) {
   const { split } = props;
   const studioCtx = useStudioCtx();
+  const status = useStore(studioCtx.modelSnapshots.field(split, "status"));
 
   return (
     <PlasmicExperimentToggle
       root={{ ref }}
-      checked={split.status === SplitStatus.Running}
+      checked={status === SplitStatus.Running}
       onClick={() => {
         spawn(
           studioCtx.change(() => {
@@ -57,5 +58,5 @@ function ExperimentToggle_(
   );
 }
 
-const ExperimentToggle = observer(React.forwardRef(ExperimentToggle_));
+const ExperimentToggle = React.forwardRef(ExperimentToggle_);
 export default ExperimentToggle;

@@ -8,6 +8,8 @@ import * as semver from "semver";
 import updateNotifier from "update-notifier";
 import { PackageManagerType } from "./types";
 
+export const REACT_DEPENDENCIES = "react@19.3.1 react-dom@19.3.1";
+
 /**
  * Call this to check if there's an update available
  * and display to the user

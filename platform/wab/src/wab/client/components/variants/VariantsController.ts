@@ -48,6 +48,8 @@ import {
 import { isArray } from "lodash";
 
 export interface VariantsController {
+  /** Canonical inputs used by this controller, without duplicating factory selection. */
+  readSources(): { view: ViewCtx | undefined; frame: ArenaFrame | undefined };
   onClearVariants: () => void;
   onAddedVariant: (
     variant: Variant,
@@ -107,6 +109,7 @@ export function makeVariantsController(
 }
 
 export class CustomVariantsController implements VariantsController {
+  readSources() { return { view: this.viewCtx, frame: this.viewCtx.arenaFrame() }; }
   constructor(private viewCtx: ViewCtx) {}
 
   canChangeActiveVariants() {
@@ -214,6 +217,7 @@ export class CustomVariantsController implements VariantsController {
 }
 
 export class ComponentArenaVariantsController implements VariantsController {
+  readSources() { const frame = this.currentFrame; return { frame, view: frame ? this.studioCtx.tryGetViewCtxForFrame(frame) : undefined }; }
   constructor(private studioCtx: StudioCtx) {
     const focusedVc = studioCtx.focusedViewCtx();
     assert(
@@ -450,6 +454,7 @@ export class ComponentArenaVariantsController implements VariantsController {
 }
 
 export class PageArenaVariantsController implements VariantsController {
+  readSources() { const frame = this.currentFrame; return { frame, view: frame ? this.studioCtx.tryGetViewCtxForFrame(frame) : undefined }; }
   constructor(private studioCtx: StudioCtx) {
     const focusedVc = studioCtx.focusedViewCtx();
     assert(

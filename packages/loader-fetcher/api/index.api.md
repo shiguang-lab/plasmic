@@ -19,7 +19,7 @@ export class Api {
     });
     // (undocumented)
     fetchLoaderData(projectIds: string[], opts: {
-        platform?: "react" | "nextjs" | "gatsby";
+        platform?: "react" | "nextjs";
         platformOptions?: {
             nextjs?: {
                 appDir: boolean;
@@ -114,7 +114,7 @@ export interface FetcherOptions {
     // @deprecated (undocumented)
     nativeFetch?: boolean;
     // (undocumented)
-    platform?: "react" | "nextjs" | "gatsby";
+    platform?: "react" | "nextjs";
     // (undocumented)
     platformOptions?: {
         nextjs?: {

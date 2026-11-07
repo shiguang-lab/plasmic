@@ -6,37 +6,60 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { VERT_MENU_ICON } from "@/wab/client/icons";
 import PlasmicLeftFontsPanel from "@/wab/client/plasmic/plasmic_kit/PlasmicLeftFontsPanel";
 import AlertIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WarningTriangleSvg";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { swallowClick } from "@/wab/commons/components/ReactUtil";
 import { arrayRemove } from "@/wab/shared/collections";
+import { isFontFamilyKeyword } from "@/wab/shared/css";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Menu, Tooltip, notification } from "antd";
-import * as _ from "lodash";
-import { observer } from "mobx-react";
 import React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 
 const helpSuffix =
   "[Learn how to add custom fonts](https://docs.plasmic.app/learn/custom-fonts).";
 
-function _UserManagedFontsPanel(props: {}) {
+export function UserManagedFontsPanel() {
   const { t: uiT } = useI18n();
   const sc = useStudioCtx();
-  const missingUsedFonts = sc.fontManager.missingUsedFonts();
+  const [
+    missingUsedFonts,
+    localFonts,
+    hostFonts,
+    ownUserManagedFonts,
+    importedUserManagedFonts,
+  ] = useStore(
+    sc.fontManager.store,
+    useShallow(
+      (state) =>
+        [
+          state.missingUsedFonts,
+          state.localFonts,
+          state.hostFonts,
+          state.ownUserManagedFonts,
+          state.importedUserManagedFonts,
+        ] as const,
+    ),
+  );
+  const fontsAccess = useStore(
+    sc.uiEnvironment.store,
+    (state) => state.leftTabPermissions.fonts,
+  );
   const [query, setQuery] = React.useState("");
   const matcher = new Matcher(query);
-  const readOnly = sc.getLeftTabPermission("fonts") === "readable";
+  const readOnly = fontsAccess === "readable";
   const renderFonts = () => {
-    const fonts = sc.site.userManagedFonts.filter((font) =>
+    const fonts = ownUserManagedFonts.filter((font) =>
       matcher.matches(font),
     );
 
-    const importedFonts = _.uniq(
-      sc.site.projectDependencies.flatMap((p) => p.site.userManagedFonts),
-    ).filter((font) => matcher.matches(font) && !fonts.includes(font));
+    const importedFonts = importedUserManagedFonts.filter((font) =>
+      matcher.matches(font),
+    );
 
     const makeOverlay = (font: string) => {
       const builder = new MenuBuilder();
@@ -66,7 +89,11 @@ function _UserManagedFontsPanel(props: {}) {
       <div className={"SidebarSectionListItem hover-outline"} key={font}>
         <div className={"flex-fill"}>
           <label style={{ marginRight: 3 }}>{font}</label>
-          {!sc.fontManager.isUserManagedFontInstalled(font) && (
+          {!(
+            isFontFamilyKeyword(font) ||
+            localFonts.has(font) ||
+            hostFonts.has(font)
+          ) && (
             <Tooltip
               title={uiT("This font is not available on this computer.")}
             >
@@ -169,5 +196,3 @@ function _UserManagedFontsPanel(props: {}) {
     />
   );
 }
-
-export const UserManagedFontsPanel = observer(_UserManagedFontsPanel);

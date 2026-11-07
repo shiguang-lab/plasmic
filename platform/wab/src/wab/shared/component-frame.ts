@@ -21,15 +21,28 @@ import {
   Variant,
   VariantGroup,
 } from "@/wab/shared/model/classes";
-import L from "lodash";
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { computed, observable } from "mobx";
+import { createStore } from "zustand/vanilla";
 
 /**
  * A class that tracks the targeted variants as well as
- * visibility pins for each variant in mobx observables.
+ * visibility pins for each variant. Persistent frame fields belong to the model;
+ * transient targets and pins have one native owner.
  */
+interface TransientVariantInputs {
+  readonly targets: readonly Variant[];
+  readonly pins: readonly (readonly [Variant, boolean])[];
+}
+const emptyTransientInputs: TransientVariantInputs = Object.freeze({ targets: Object.freeze([]), pins: Object.freeze([]) });
+
 export abstract class VariantFrame {
+  private readonly inputListeners = new Set<() => void>();
+  subscribeInputs(listener: () => void): () => void {
+    this.inputListeners.add(listener);
+    return () => this.inputListeners.delete(listener);
+  }
+  private publishInputs() {
+    for (const listener of this.inputListeners) { listener(); }
+  }
   abstract getTargetVariants(): Variant[];
   abstract getPinnedVariants(): Map<Variant, boolean>;
   protected abstract _setTargetVariants(variants: Variant[]): void;
@@ -38,12 +51,14 @@ export abstract class VariantFrame {
   setTargetVariants(variants: Variant[]) {
     if (!arrayEqIgnoreOrder(variants, this.getTargetVariants())) {
       this._setTargetVariants(variants);
+      this.publishInputs();
     }
   }
 
   setPinnedVariants(pins: Map<Variant, boolean>) {
     if (!mapsEq(pins, this.getPinnedVariants())) {
       this._setPinnedVariants(pins);
+      this.publishInputs();
     }
   }
 
@@ -137,18 +152,12 @@ export class GlobalVariantFrame extends VariantFrame {
   }
 
   private getVariant(id: string): Variant | undefined {
-    return this.allGlobalVariantsMap.get()[id];
+    return allGlobalVariants(this.site, {
+      includeDeps: "direct",
+      excludeInactiveScreenVariants: true,
+    }).find((variant) => variant.uuid === id);
   }
 
-  private allGlobalVariantsMap = computed(() => {
-    return L.keyBy(
-      allGlobalVariants(this.site, {
-        includeDeps: "direct",
-        excludeInactiveScreenVariants: true,
-      }),
-      (v) => v.uuid,
-    );
-  });
 
   clone() {
     return new GlobalVariantFrame(this.site, this.frame);
@@ -196,33 +205,31 @@ export abstract class ComponentVariantFrame extends VariantFrame {
  * are used in spotlight mode, where you are drilling into a component.
  */
 export class TransientComponentVariantFrame extends ComponentVariantFrame {
-  private _targetVariants = observable.array<Variant>();
-  private _pinnedVariants = observable.map<Variant, boolean>();
+  private readonly inputs = createStore<TransientVariantInputs>(() => emptyTransientInputs);
 
   constructor(public tplComponent: TplComponent) {
     super();
   }
 
   getTargetVariants(): Variant[] {
-    return ensureValidCombo(this.component, this._targetVariants);
+    return ensureValidCombo(this.component, [...this.inputs.getState().targets]);
   }
 
   getPinnedVariants(): Map<Variant, boolean> {
-    return this._pinnedVariants;
+    return new Map(this.inputs.getState().pins);
   }
 
   protected _setTargetVariants(variants: Variant[]): void {
-    this._targetVariants.replace(variants);
+    this.inputs.setState({ targets: Object.freeze(variants.slice()) });
   }
 
   protected _setPinnedVariants(pins: Map<Variant, boolean>): void {
-    this._pinnedVariants.replace(pins);
+    this.inputs.setState({ pins: Object.freeze([...pins].map(([variant, pin]) => Object.freeze([variant, pin] as const))) });
   }
 
   clone() {
     const frame = new TransientComponentVariantFrame(this.tplComponent);
-    frame._targetVariants.replace([...this._targetVariants]);
-    frame._pinnedVariants.replace(this._pinnedVariants);
+    frame.inputs.setState(this.inputs.getState(), true);
     return frame;
   }
 }
@@ -234,8 +241,7 @@ export class TransientComponentVariantFrame extends ComponentVariantFrame {
  * should not be persisted.
  */
 export class RootComponentVariantFrame extends ComponentVariantFrame {
-  private _privateTargetVariants = observable.array<Variant>();
-  private _privatePinnedVariants = observable.map<Variant, boolean>();
+  private readonly inputs = createStore<TransientVariantInputs>(() => emptyTransientInputs);
   constructor(private frame: ArenaFrame) {
     super();
   }
@@ -249,7 +255,7 @@ export class RootComponentVariantFrame extends ComponentVariantFrame {
   }
 
   getTargetVariants(): Variant[] {
-    return [...this.frame.targetVariants, ...this._privateTargetVariants];
+    return [...this.frame.targetVariants, ...this.inputs.getState().targets];
   }
   getPinnedVariants(): Map<Variant, boolean> {
     return mergeMaps(
@@ -260,32 +266,26 @@ export class RootComponentVariantFrame extends ComponentVariantFrame {
           ),
         ),
       ),
-      this._privatePinnedVariants,
+      new Map(this.inputs.getState().pins),
     );
   }
   protected _setTargetVariants(variants: Variant[]): void {
     const [privates, nonprivates] = partitions(variants, [
       isPrivateStyleVariant,
     ]);
-    this._privateTargetVariants.replace(privates);
+    this.inputs.setState({ targets: Object.freeze(privates.slice()) });
     replaceAll(this.frame.targetVariants, nonprivates);
   }
   protected _setPinnedVariants(pins: Map<Variant, boolean>): void {
     const [privates, nonprivates] = partitionMap(pins, [isPrivateStyleVariant]);
-    this._privatePinnedVariants.replace(privates);
+    this.inputs.setState({ pins: Object.freeze([...privates].map(([variant, pin]) => Object.freeze([variant, pin] as const))) });
     replaceObj(this.frame.pinnedVariants, makePlainPins(nonprivates));
   }
 
-  private allComponentVariants = computed(() =>
-    L.keyBy(
-      allComponentVariants(this.frame.container.component, {
-        includeSuperVariants: true,
-      }),
-      (v) => v.uuid,
-    ),
-  );
   private getVariant(id: string): Variant | undefined {
-    return this.allComponentVariants.get()[id];
+    return allComponentVariants(this.frame.container.component, {
+      includeSuperVariants: true,
+    }).find((variant) => variant.uuid === id);
   }
 
   clone() {
@@ -294,8 +294,7 @@ export class RootComponentVariantFrame extends ComponentVariantFrame {
     // this.frame also activated.  But we don't store private style
     // variant states in this.frame, so we manually clone this
     // transient state here.
-    frame._privatePinnedVariants.replace(this._privatePinnedVariants);
-    frame._privateTargetVariants.replace(this._privateTargetVariants);
+    frame.inputs.setState(this.inputs.getState(), true);
     return frame;
   }
 }

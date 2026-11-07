@@ -4,17 +4,17 @@ import { useI18n } from "@/wab/client/i18n";
 import TriangleBottomIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__TriangleBottom";
 import { useUndo } from "@/wab/client/shortcuts/studio/useUndo";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { derefToken, mkTokenRef } from "@/wab/commons/StyleToken";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { cx, withoutNils } from "@/wab/shared/common";
-import { siteFinalStyleTokensOfType } from "@/wab/shared/core/site-style-tokens";
 import { Select } from "antd";
-import { observer } from "mobx-react";
+     
+import { useFontFamilyTokenInputs } from "@/wab/client/studio-ctx/font-family-token-inputs";
 import * as React from "react";
+import { useStore } from "zustand";
 
 const CSS_VAR_REGEX = /^var\(--(.*)\)$/;
 
-export const FontFamilySelector = observer(function FontFamilySelector(props: {
+export const FontFamilySelector = function FontFamilySelector(props: {
   studioCtx: StudioCtx;
   selectOpts: {
     value?: string;
@@ -28,16 +28,16 @@ export const FontFamilySelector = observer(function FontFamilySelector(props: {
   const { t: uiT } = useI18n();
   const { selectOpts, studioCtx } = props;
 
-  const tokens = siteFinalStyleTokensOfType(studioCtx.site, "FontFamily", {
-    includeDeps: "direct",
-  });
+  const fontTokens = useFontFamilyTokenInputs(studioCtx, selectOpts.vsh);
+  const tokens = fontTokens.choices;
 
   const disabled = selectOpts.disabled ?? false;
   const textboxUnset = selectOpts.textboxUnset ?? false;
-  const vsh = selectOpts.vsh;
 
-  const userManagedFonts = studioCtx.fontManager
-    .userManagedFonts()
+  const userManagedFonts = useStore(
+    studioCtx.fontManager.store,
+    (state) => state.userManagedFonts,
+  )
     .map((fontFamily) => {
       // We allow a hack where users can add a custom font with a CSS variable.
       // See https://docs.plasmic.app/learn/custom-fonts/#example-with-nextjs-and-nextfontlocal.
@@ -51,8 +51,10 @@ export const FontFamilySelector = observer(function FontFamilySelector(props: {
       };
     })
     .sort((a, b) => a.label.localeCompare(b.label));
-  const plasmicManagedFonts = studioCtx.fontManager
-    .plasmicManagedFonts()
+  const plasmicManagedFonts = useStore(
+    studioCtx.fontManager.store,
+    (state) => state.managedFonts,
+  )
     .map((spec) => ({
       label: spec.fontFamily,
       fontFamily: spec.fontFamily,
@@ -60,6 +62,8 @@ export const FontFamilySelector = observer(function FontFamilySelector(props: {
     .sort((a, b) => a.fontFamily.localeCompare(b.fontFamily));
 
   const searchUndo = useUndo("");
+
+  if (!fontTokens.active) { return null; }
 
   return (
     <Select
@@ -100,15 +104,11 @@ export const FontFamilySelector = observer(function FontFamilySelector(props: {
           : {
               label: uiT("Style Tokens"),
               options: tokens.map((token) => ({
-                value: mkTokenRef(token.base),
+                value: token.value,
                 label: (
                   <Chip
                     key={token.uuid}
-                    tooltip={`${token.name} (${derefToken(
-                      tokens,
-                      token,
-                      vsh,
-                    )})`}
+                    tooltip={`${token.name} (${token.resolvedValue})`}
                   >
                     {token.name}
                   </Chip>
@@ -134,4 +134,4 @@ export const FontFamilySelector = observer(function FontFamilySelector(props: {
       ])}
     />
   );
-});
+};

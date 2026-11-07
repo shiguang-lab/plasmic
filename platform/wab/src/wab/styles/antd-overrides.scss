@@ -49,21 +49,22 @@
   }
 }
 
-.ant-input:focus {
+// QueryBuilder controls use Antd tokens and native focus/disabled states.
+.ant-input:not(:where(.query-builder *)):focus {
   box-shadow: none;
 }
 
-.ant-input-number-focused {
+.ant-input-number-focused:not(:where(.query-builder *)) {
   box-shadow: none;
 }
 
-.tag-select .ant-select.textboxlike .ant-select-selector,
-.labeled-item .ant-select.textboxlike .ant-select-selector,
-[data-plasmic-role="labeled-item"] .ant-select.textboxlike .ant-select-selector,
-.labeled-item .ant-input-number,
-[data-plasmic-role="labeled-item"] .ant-input-number,
-.labeled-item .ant-input,
-[data-plasmic-role="labeled-item"] .ant-input {
+.tag-select .ant-select.textboxlike .ant-select-selector:not(:where(.query-builder *)),
+.labeled-item .ant-select.textboxlike .ant-select-selector:not(:where(.query-builder *)),
+[data-plasmic-role="labeled-item"] .ant-select.textboxlike .ant-select-selector:not(:where(.query-builder *)),
+.labeled-item .ant-input-number:not(:where(.query-builder *)),
+[data-plasmic-role="labeled-item"] .ant-input-number:not(:where(.query-builder *)),
+.labeled-item .ant-input:not(:where(.query-builder *)),
+[data-plasmic-role="labeled-item"] .ant-input:not(:where(.query-builder *)) {
   box-shadow: none !important;
   outline: none !important;
   border: none !important;
@@ -87,33 +88,33 @@
   }
 }
 
-:where(.labeled-item .ant-input-number-input)::placeholder,
-:where([data-plasmic-role="labeled-item"] .ant-input-number-input)::placeholder,
-:where(.labeled-item .ant-input)::placeholder,
-:where([data-plasmic-role="labeled-item"] .ant-input)::placeholder {
+:where(.labeled-item .ant-input-number-input:not(:where(.query-builder *)))::placeholder,
+:where([data-plasmic-role="labeled-item"] .ant-input-number-input:not(:where(.query-builder *)))::placeholder,
+:where(.labeled-item .ant-input:not(:where(.query-builder *)))::placeholder,
+:where([data-plasmic-role="labeled-item"] .ant-input:not(:where(.query-builder *)))::placeholder {
   color: #90908c;
   opacity: 1;
 }
 
-.tag-select .ant-select.textboxlike .ant-select-selector,
-.labeled-item .ant-select.textboxlike .ant-select-selector,
+.tag-select .ant-select.textboxlike .ant-select-selector:not(:where(.query-builder *)),
+.labeled-item .ant-select.textboxlike .ant-select-selector:not(:where(.query-builder *)),
 [data-plasmic-role="labeled-item"]
   .ant-select.textboxlike
-  .ant-select-selector {
+  .ant-select-selector:not(:where(.query-builder *)) {
   min-height: 32px;
   height: 32px;
 }
 
-.labeled-item input,
-[data-plasmic-role="labeled-item"] input,
-.labeled-item textarea,
-[data-plasmic-role="labeled-item"] textarea {
+.labeled-item input:not(:where(.query-builder *)),
+[data-plasmic-role="labeled-item"] input:not(:where(.query-builder *)),
+.labeled-item textarea:not(:where(.query-builder *)),
+[data-plasmic-role="labeled-item"] textarea:not(:where(.query-builder *)) {
   font-family: Inter, Helvetica, Arial, sans-serif !important;
   padding-right: 0 !important;
 }
 
-.labeled-item .ant-input-number-sm input,
-[data-plasmic-role="labeled-item"] .ant-input-number-sm input {
+.labeled-item .ant-input-number-sm input:not(:where(.query-builder *)),
+[data-plasmic-role="labeled-item"] .ant-input-number-sm input:not(:where(.query-builder *)) {
   height: 18px;
   padding: 0px;
 }

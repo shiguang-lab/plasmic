@@ -105,7 +105,7 @@ test("Pagination mount emits no business change; clicking a new page emits one",
     />,
   );
   expect(onChange).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByTitle("2"));
+  fireEvent.click(screen.getByRole("button", { name: "Page 2", exact: true }));
   expect(onChange).toHaveBeenCalledExactlyOnceWith(2, 10);
 });
 

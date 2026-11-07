@@ -37,7 +37,7 @@ export function useDataTokenSuggestionsMenu(
   const matcher = React.useMemo(() => new Matcher(queryText), [queryText]);
   const items = suggestDataTokens?.(queryText) ?? [];
 
-  const openTimer = React.useRef<ReturnType<typeof setTimeout>>();
+  const openTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined);
   const cancelPendingOpen = () => clearTimeout(openTimer.current);
   React.useEffect(() => cancelPendingOpen, []);
 

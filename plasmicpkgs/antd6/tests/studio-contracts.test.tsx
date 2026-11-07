@@ -18,7 +18,7 @@ function metadata(register: (loader: Registerable) => void) {
 const Canvas = createSessionCanvas([registerTabs, registerCollapse, registerTree, registerDirectoryTree, registerDatePicker, registerDateRangePicker]);
 const tabs = (selected: boolean) => <>
   <AntdTabItem key="first" label="First">First content</AntdTabItem>
-  <AntdTabItem key="second" label="Second" {...{ __plasmic_selection_prop__: { isSelected: selected } }}>Second content</AntdTabItem>
+  <AntdTabItem key="second" label="Second" {...{ __canvas: { selected: selected } }}>Second content</AntdTabItem>
 </>;
 
 test("Tabs exposes independent native controlled and initial keys", () => {
@@ -173,11 +173,10 @@ for (const [name, Picker, register] of [
 ] as const) {
   test(`${name} editing calendar selection does not emit business events`, async () => {
     const meta = metadata(register).get(`plasmic-antd6-${name}`);
-    expect(meta.props.previewOpen.editOnly).toBe(true);
-    expect(meta.props.previewOpen.uncontrolledProp).toBeUndefined();
+    expect(meta.props).not.toHaveProperty("previewOpen");
     expect(meta.canvasOverlay).toEqual({});
     const onChange = vi.fn(), onCalendarChange = vi.fn();
-    const props = { open: false, onChange, onCalendarChange, __plasmic_selection_prop__: { isSelected: true } };
+    const props = { open: false, onChange, onCalendarChange, __canvas: { selected: true } };
     render(<Canvas><Picker {...props as any} /></Canvas>);
     await waitFor(() => expect(document.querySelector(".ant-picker-dropdown:not(.ant-picker-dropdown-hidden)")).toBeTruthy());
     fireEvent.click(document.querySelector(".ant-picker-cell-in-view .ant-picker-cell-inner")!);
@@ -190,7 +189,7 @@ for (const [name, Picker, register] of [
     const onChange = vi.fn(), onCalendarChange = vi.fn();
     const dates = name === "date-picker" ? { defaultValue: "2026-11-01" }
       : { defaultStartDate: "2026-11-01", defaultEndDate: "2026-11-05" };
-    const props = { ...dates, open: false, onChange, onCalendarChange, __plasmic_selection_prop__: { isSelected: true } };
+    const props = { ...dates, open: false, onChange, onCalendarChange, __canvas: { selected: true } };
     const page = (interactive: boolean) => <Canvas interactive={interactive}>
       <ConfigProvider theme={{ token: { motion: false } }}><Picker {...props as any} /></ConfigProvider>
     </Canvas>;

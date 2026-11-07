@@ -1,4 +1,4 @@
-import React from "react";
+
 import type { HeadingProps } from "react-aria-components";
 import { Heading } from "react-aria-components";
 import { COMMON_STYLES, createIdProp } from "./common";

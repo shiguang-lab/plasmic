@@ -1,8 +1,8 @@
 import registerComponent, {
   CodeComponentMeta,
 } from "@plasmicapp/host/registerComponent";
-import React, { ComponentProps } from "react";
-import { Follow, Timeline, Tweet } from "react-twitter-widgets";
+import { ComponentProps } from "react";
+import { TwitterWidget } from "./native-widgets";
 
 //
 // This module registers Timeline, Tweet, and Follow, but not yet the Hashtag /
@@ -30,14 +30,7 @@ export function TimelineWrapper({
   }
   return (
     <div className={className}>
-      <Timeline
-        dataSource={{ sourceType: "url", url }}
-        options={{
-          tweetLimit: tweetLimit,
-          chrome: chrome,
-          theme: theme,
-        }}
-      />
+      <TwitterWidget kind="timeline" identifier={url} tweetLimit={tweetLimit} chrome={chrome} theme={theme} />
     </div>
   );
 }
@@ -120,7 +113,7 @@ export function TweetWrapper({
   }
   return (
     <div className={className}>
-      <Tweet tweetId={tweetId} options={{ theme: theme }} />
+      <TwitterWidget kind="tweet" identifier={tweetId} theme={theme} />
     </div>
   );
 }
@@ -177,10 +170,7 @@ export function FollowWrapper({
   }
   return (
     <div className={className}>
-      <Follow
-        username={username}
-        options={{ size: large ? "large" : undefined }}
-      />
+      <TwitterWidget kind="follow" identifier={username} large={large} />
     </div>
   );
 }

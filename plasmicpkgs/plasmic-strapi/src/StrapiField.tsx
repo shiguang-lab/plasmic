@@ -8,7 +8,7 @@ import {
   _isStrapiItem,
   _isStrapiPrimitive,
 } from "@plasmicpkgs/strapi";
-import React from "react";
+
 import { modulePath } from "./utils";
 
 interface StrapiFieldProps {

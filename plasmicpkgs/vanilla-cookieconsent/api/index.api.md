@@ -5,6 +5,7 @@
 ```ts
 
 import { CookieValue } from 'vanilla-cookieconsent';
+import type { PlasmicCanvasProps } from '@plasmicapp/host';
 import { default as React_2 } from 'react';
 import registerComponent from '@plasmicapp/host/registerComponent';
 import registerToken from '@plasmicapp/host/registerToken';

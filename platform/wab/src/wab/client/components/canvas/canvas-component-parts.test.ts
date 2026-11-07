@@ -1,9 +1,10 @@
 import { findCanvasComponentPart } from "@/wab/client/components/canvas/canvas-component-parts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
 import { mkBaseVariant } from "@/wab/shared/Variants";
 import { mkTplComponent } from "@/wab/shared/core/tpls";
-import { observable } from "mobx";
 import $ from "jquery";
 
 const parts = { confirm: { selector: '[data-part="confirm"]', displayName: "Confirm", props: ["okText", "onOk"] } };
@@ -29,8 +30,11 @@ it("resolves replaced DOM inside the selected instance and drops stale selection
   owner.innerHTML = '<button data-part="confirm">Next</button>';
   const part = findCanvasComponentPart(owner.firstElementChild!, owner, tpl, parts);
   let selected = tpl;
+  const models = new ModelSnapshots();
+  const selection = new ViewSelection(() => models);
   const view = Object.assign(Object.create(ViewCtx.prototype), {
-    _focusedComponentPart: observable.box(undefined, { deep: false }),
+    selection,
+    studioCtx: { notifyInspectorFocusChanged: vi.fn() },
     focusedTpl: () => selected,
     focusedDomElt: () => $(owner),
   }) as ViewCtx;
@@ -44,4 +48,5 @@ it("resolves replaced DOM inside the selected instance and drops stale selection
   selected = tpl;
   owner.remove();
   expect(view.focusedComponentPart).toBeUndefined();
+  selection.dispose(); models.dispose();
 });

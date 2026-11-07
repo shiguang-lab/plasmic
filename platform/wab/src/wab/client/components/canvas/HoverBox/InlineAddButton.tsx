@@ -1,3 +1,5 @@
+import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import styles from "@/wab/client/components/canvas/HoverBox/InlineAddButton.module.scss";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
@@ -30,8 +32,11 @@ function _InlineAddButton({
   dimensionsBoxWidth?: number;
 }) {
   const studioCtx = useStudioCtx();
+  useStudioSelection(studioCtx, (state) => state.view);
+  const viewportZoom = useCanvasZoom(studioCtx);
 
   const viewCtx = studioCtx.focusedViewCtx();
+  useViewSelection(viewCtx, (state) => state.targets);
   const focusedNode = viewCtx?.focusedTplOrSlotSelection();
   const shouldShowButton =
     !viewCtx?.editingTextContext() &&
@@ -52,8 +57,8 @@ function _InlineAddButton({
     getContainerType(focusedNode.parent, viewCtx);
   const parentIsFlexRow = parentContainerType === ContainerLayoutType.flexRow;
 
-  const visibleWidth = elementWidth * studioCtx.zoom;
-  const visibleHeight = elementHeight * studioCtx.zoom;
+  const visibleWidth = elementWidth * viewportZoom;
+  const visibleHeight = elementHeight * viewportZoom;
 
   // Enough space depends on where it'll be rendered
   const hasEnoughSpace =

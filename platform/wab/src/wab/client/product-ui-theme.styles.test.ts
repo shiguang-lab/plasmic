@@ -8,10 +8,12 @@ it("themes antd inputs rendered inside property rows", () => {
   });
   const palette = productPalette(token) as Record<string, any>;
   const entry = (selectorPart: string, pseudo = "") =>
-    Object.entries(palette).find(
-      ([key]) =>
-        key.includes(`& .labeled-item ${selectorPart}${pseudo}`) &&
-        (pseudo || !key.includes(":")),
+    Object.entries(palette).find(([key]) =>
+      key
+        .split(", ")
+        .includes(
+          `& .labeled-item ${selectorPart}:not(:where(.query-builder *))${pseudo}`,
+        ),
     )?.[1];
 
   // Host custom controls (table Pagination/Scroll) use plain antd inputs that

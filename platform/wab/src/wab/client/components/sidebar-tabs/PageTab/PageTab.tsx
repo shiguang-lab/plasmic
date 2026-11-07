@@ -2,29 +2,30 @@
 
 import S from "@/wab/client/components/sidebar-tabs/ComponentTab/ComponentTab.module.scss";
 import PageMetaPanel from "@/wab/client/components/sidebar-tabs/PageMetaPanel";
+import { ModelNameHeader } from "@/wab/client/components/sidebar-tabs/ModelNameHeader";
 import { PageMinRoleSection } from "@/wab/client/components/sidebar-tabs/PageMinRoleSection";
 import { PageURLParametersSection } from "@/wab/client/components/sidebar-tabs/PageURLParametersSection";
 import VariablesSection from "@/wab/client/components/sidebar-tabs/StateManagement/VariablesSection";
 import { ComponentDataQueriesSection } from "@/wab/client/components/sidebar-tabs/component-data-queries-section";
 import { ServerQueriesSection } from "@/wab/client/components/sidebar-tabs/server-queries-section";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
-import { NamedPanelHeader } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { VariantsPanel } from "@/wab/client/components/variants/VariantsPanel";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { useI18n } from "@/wab/client/i18n";
 import GearIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Gear";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useFocusedViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { PublicStyleSection } from "@/wab/shared/ApiSchema";
 import { PageComponent } from "@/wab/shared/core/components";
-import { canEditStyleSection } from "@/wab/shared/ui-config-utils";
+import { useStore } from "zustand";
 import { Button, Tooltip } from "antd";
-import { observer } from "mobx-react";
+     
 import React from "react";
 import { useLocalStorage } from "react-use";
 
-export const PageTab = observer(function PageTab(props: {
+export const PageTab = function PageTab(props: {
   viewCtx: ViewCtx;
   studioCtx: StudioCtx;
   page: PageComponent;
@@ -32,27 +33,22 @@ export const PageTab = observer(function PageTab(props: {
 }) {
   const { t: uiT } = useI18n();
   const { studioCtx, page, viewCtx, isHalf = false } = props;
+  const hasFocusedTpl = useFocusedViewSelection(studioCtx, (state) => state.tpls[0] != null);
 
-  const appConfig = studioCtx.appCtx.appConfig;
+  const permissions = useStore(studioCtx.uiEnvironment.store, (state) => state.componentSectionPermissions);
+  const enableDataQueries = useStore(studioCtx.uiEnvironment.store, (state) => state.enableDataQueries);
   const [isExpanded, setExpanded] = useLocalStorage(
     "PageTab.isExpanded",
     false,
   );
 
-  const uiConfig = studioCtx.getCurrentUiConfig();
 
-  const canEdit = (section: PublicStyleSection) => {
-    return canEditStyleSection(uiConfig, section, {
-      isContentCreator: studioCtx.contentEditorMode,
-      defaultContentEditorVisible: false,
-    });
-  };
 
   const headerTitle = React.useMemo(
     () => (
-      <NamedPanelHeader
+      <ModelNameHeader
         icon={<Icon icon={PageIcon} className="component-fg" />}
-        value={page.name}
+        nameStore={studioCtx.modelSnapshots.field(page, "name")}
         onChange={(name) =>
           studioCtx.changeUnsafe(() =>
             studioCtx.siteOps().tryRenameComponent(page, name),
@@ -61,12 +57,12 @@ export const PageTab = observer(function PageTab(props: {
         placeholder={uiT("(unnamed page)")}
       />
     ),
-    [page, page.name, uiT],
+    [page, studioCtx, uiT],
   );
 
   const headerControls = React.useMemo(
     () =>
-      canEdit(PublicStyleSection.PageMeta) && (
+      permissions[PublicStyleSection.PageMeta] && (
         <Tooltip title={uiT("Page settings")}>
           <Button
             type="text"
@@ -83,7 +79,7 @@ export const PageTab = observer(function PageTab(props: {
           />
         </Tooltip>
       ),
-    [uiT, studioCtx, page],
+    [uiT, studioCtx, page, permissions[PublicStyleSection.PageMeta]],
   );
 
   return (
@@ -104,7 +100,7 @@ export const PageTab = observer(function PageTab(props: {
               {renderMaybeCollapsibleRows([
                 {
                   collapsible:
-                    isHalf && !!studioCtx.focusedViewCtx()?.focusedTpl(),
+                    isHalf && hasFocusedTpl,
                   content: (
                     <>
                       <SidebarSection>
@@ -113,20 +109,20 @@ export const PageTab = observer(function PageTab(props: {
                           {headerControls}
                         </div>
                       </SidebarSection>
-                      {canEdit(PublicStyleSection.PageMeta) && (
+                      {permissions[PublicStyleSection.PageMeta] && (
                         <>
                           <PageMetaPanel page={page} viewCtx={viewCtx} />
                           <PageURLParametersSection page={page} />
                           <PageMinRoleSection page={page} />
                         </>
                       )}
-                      {canEdit(PublicStyleSection.DataQueries) && (
+                      {permissions[PublicStyleSection.DataQueries] && (
                         <>
                           <ServerQueriesSection
                             component={page}
                             viewCtx={viewCtx}
                           />
-                          {appConfig.enableDataQueries && (
+                          {enableDataQueries && (
                             <ComponentDataQueriesSection
                               component={page}
                               viewCtx={viewCtx}
@@ -136,10 +132,10 @@ export const PageTab = observer(function PageTab(props: {
                         </>
                       )}
 
-                      {canEdit(PublicStyleSection.States) && (
+                      {permissions[PublicStyleSection.States] && (
                         <VariablesSection component={page} viewCtx={viewCtx} />
                       )}
-                      {canEdit(PublicStyleSection.ComponentVariants) && (
+                      {permissions[PublicStyleSection.ComponentVariants] && (
                         <VariantsPanel
                           component={page}
                           studioCtx={studioCtx}
@@ -156,4 +152,4 @@ export const PageTab = observer(function PageTab(props: {
       </SidebarSection>
     </>
   );
-});
+};

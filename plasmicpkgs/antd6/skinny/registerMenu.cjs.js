@@ -1,10 +1,11 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var host = require('@plasmicapp/host');
-var canvasOverlay = require('./canvas-overlay-CK330rTr.cjs.js');
+var canvasOverlay = require('./canvas-overlay-DzKvKC8w.cjs.js');
 var React = require('react');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
@@ -14,16 +15,16 @@ function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 var React__default = /*#__PURE__*/_interopDefault(React);
 
 function AntdMenuItem(props) {
-  return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, props.children);
+  return /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children: props.children });
 }
 function AntdMenuDivider(_props) {
   return null;
 }
 function AntdMenuItemGroup(props) {
-  return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, props.children);
+  return /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children: props.children });
 }
 function AntdSubMenu(props) {
-  return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, props.children);
+  return /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children: props.children });
 }
 function menuChildrenToItems(children) {
   const result = [];
@@ -53,10 +54,11 @@ function menuChildrenToItems(children) {
   return result;
 }
 function AntdMenu(props) {
-  return props.items !== void 0 ? /* @__PURE__ */ React__default.default.createElement(Ant.Menu, { ...props }) : canvasOverlay.renderCanvasSlot(props.children, (children) => /* @__PURE__ */ React__default.default.createElement(MenuWithChildren, { ...props, children }));
+  const { __canvas: _canvas, ...nativeProps } = props;
+  return props.items !== void 0 ? /* @__PURE__ */ jsxRuntime.jsx(Ant.Menu, { ...nativeProps }) : canvasOverlay.renderCanvasSlot(props.children, (children) => /* @__PURE__ */ jsxRuntime.jsx(MenuWithChildren, { ...props, children }));
 }
 function MenuWithChildren(props) {
-  const { children, openKeys, defaultOpenKeys, onOpenChange, ...rest } = props;
+  const { children, openKeys, defaultOpenKeys, onOpenChange, __canvas: _canvas, ...rest } = props;
   const canvas = host.usePlasmicCanvasContext();
   const info = host.usePlasmicCanvasComponentInfo(props);
   const state = canvas ? info?.getState?.("openKeys", openKeys, defaultOpenKeys) : void 0;
@@ -68,7 +70,7 @@ function MenuWithChildren(props) {
     }
     const data = item;
     const path = data.children && data.type !== "group" ? [...ancestors, String(data.key)] : ancestors;
-    if (data.__plasmic_selection_prop__?.isSelected) {
+    if (data.__canvas?.selected) {
       selectedKeys.push(...path);
     }
     if (data.children) {
@@ -81,7 +83,7 @@ function MenuWithChildren(props) {
   const reveal = selectedKeys.length > 0;
   const revealedKeys = Array.from(/* @__PURE__ */ new Set([...openKeys ?? defaultOpenKeys ?? [], ...selectedKeys]));
   const keys = reveal ? state ? state.reveal(revealedKeys) : revealedKeys : state ? state.value : openKeys;
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant.Menu,
     {
       ...rest,

@@ -8,6 +8,7 @@ import { macSigningCertificate, verifyMacSignature } from "./local-signing.mjs";
 import runtimeSecurity from "../src/runtime-security.cjs";
 import { buildMcp } from "./build-mcp.mjs";
 import { prepareComponentReuse } from "./prepare-component-reuse.mjs";
+import { verifyComponentReuseRuntime } from "./component-reuse-runtime.mjs";
 import { buildBlockMap } from "app-builder-lib/out/targets/blockmap/blockmap.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -94,6 +95,7 @@ const outputs = await build({
     afterSign: async (context) => {
       if (platform !== "darwin" || process.platform !== "darwin") return;
       verifyMacSignature(path.join(context.appOutDir, "Plasmic.app"), signingCertificate);
+      if (arch === process.arch) await verifyComponentReuseRuntime(path.join(context.appOutDir, "Plasmic.app/Contents/Resources/component-reuse"));
     },
     artifactName: "Plasmic-${version}-${os}-${arch}.${ext}",
     protocols: [{ name: "Plasmic login", schemes: ["plasmic-desktop"] }],

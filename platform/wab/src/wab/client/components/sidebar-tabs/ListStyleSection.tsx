@@ -10,10 +10,10 @@ import {
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { listStyleCssProps } from "@/wab/shared/core/style-props";
-import { observer } from "mobx-react";
+     
 import * as React from "react";
 
-export const ListStyleSection = observer(ListStyleSection_);
+export const ListStyleSection = ListStyleSection_;
 
 function ListStyleSection_(props: { expsProvider: ExpsProvider }) {
   const { t: uiT } = useI18n();

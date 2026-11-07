@@ -1,10 +1,11 @@
+import { jsx, Fragment } from 'react/jsx-runtime';
 import { DatePicker } from 'antd';
 import cls from 'classnames';
 import dayjs from 'dayjs';
 import kebabCase from 'lodash/kebabCase';
-import React, { useMemo } from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
-import { r as registerComponentHelper, c as capitalize } from './utils-U416WEAa.esm.js';
+import { useMemo } from 'react';
+import { u as useCanvasOverlay } from './canvas-overlay-BZz-_5Mj.esm.js';
+import { r as registerComponentHelper, c as capitalize } from './utils-DPGVAauG.esm.js';
 import localeData from 'dayjs/plugin/localeData';
 import weekday from 'dayjs/plugin/weekday';
 import '@plasmicapp/host';
@@ -55,7 +56,7 @@ function AntdDateRangePicker(props) {
     () => presets?.map((p) => ({ ...p, value: getDayjsRange([p.startDate, p.endDate]) })).filter((p) => p.value[0]?.isValid() && p.value[1]?.isValid()),
     [presets]
   );
-  return /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(Fragment, { children: /* @__PURE__ */ jsx(
     RangePicker,
     {
       ...rest,
@@ -87,7 +88,7 @@ function AntdDateRangePicker(props) {
         onChange?.(getStrRange(values) || [null, null]);
       }
     }
-  ));
+  ) });
 }
 const dateRangePickerComponentName = "plasmic-antd6-date-range-picker";
 const dateRangePickerHelpers = {
@@ -109,7 +110,6 @@ function registerDateRangePicker(loader) {
     canvasOverlay: {},
     displayName: "Date Range Picker",
     props: {
-      previewOpen: previewOpenProp,
       inputReadOnly: { type: "boolean", defaultValueHint: false },
       startDate: {
         type: "dateString",

@@ -1,7 +1,8 @@
+import { jsx } from 'react/jsx-runtime';
 import { Button } from 'antd';
 import React from 'react';
 import { d as buttonComponentName } from './names-DQIzgrvq.esm.js';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -10,7 +11,7 @@ const AntdButton = React.forwardRef(
   function AntdButton2(props, ref) {
     const { submitsForm = false, ...rest } = props;
     const target = props.target === true ? "_blank" : props.target === false ? void 0 : props.target;
-    return /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ jsx(
       Button,
       {
         ...rest,

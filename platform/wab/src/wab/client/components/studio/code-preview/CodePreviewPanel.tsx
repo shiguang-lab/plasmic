@@ -1,3 +1,4 @@
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { CodeDisplay } from "@/wab/client/components/coding/CodeDisplay";
 import sty from "@/wab/client/components/studio/code-preview/CodePreviewPanel.module.css";
 import { ObserverLoadable } from "@/wab/client/components/widgets";
@@ -10,6 +11,7 @@ export const CodePreviewPanel = observer(function CodePreviewPanel(props: {
   studioCtx: StudioCtx;
 }) {
   const { studioCtx } = props;
+  useStudioSelection(studioCtx, (state) => state.view);
   const vc = studioCtx.focusedViewCtx();
   if (!vc) {
     return null;

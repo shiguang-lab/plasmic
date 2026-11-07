@@ -32,13 +32,42 @@ const { chromium } = require(path.join(wab, "node_modules/playwright"));
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     browser = await chromium.launch({ headless: true });
     const results = [];
-    for (const widget of ["tabs", "modal", "drawer", "collapse", "menu", "table", "picker", "tooltip", "table-tooltip", "table-popover", "table-popconfirm", "table-dropdown", "table-popover-click", "table-dropdown-click"]) {
+    for (const widget of ["pagination", "tabs", "modal", "drawer", "collapse", "menu", "table", "picker", "tooltip", "table-tooltip", "table-popover", "table-popconfirm", "table-dropdown", "table-popover-click", "table-dropdown-click"]) {
       const page = await browser.newPage({ viewport: { width: 1500, height: 1000 } });
       const errors = [];
       page.on("pageerror", (error) => errors.push(error.message));
       await page.goto(`http://127.0.0.1:${server.address().port}/?widget=${widget}`);
       const frame = page.frames().find((candidate) => candidate.url().includes("/frame?"));
       assert(frame, "The canvas iframe must exist");
+      if (widget === "pagination") {
+        await page.locator("#mode").click();
+        await frame.locator('[data-mode="interactive"]').waitFor();
+        assert.deepEqual(await frame.evaluate(() => window.sessionCheck.calls), []);
+        const origin = frame.url();
+        const second = frame.getByRole("link", { name: "Page 2", exact: true });
+        assert.equal(await second.getAttribute("href"), "/records?page=2&size=10");
+        assert.equal(await second.getAttribute("rel"), "next");
+        await second.click();
+        await frame.locator('[aria-label="Page 2"][aria-current="page"]').waitFor();
+        assert.equal(await frame.getByLabel("Current page").textContent(), "2");
+        assert.equal(frame.url(), origin, "SEO pagination must not navigate the iframe");
+        await frame.getByRole("link", { name: "Page 3", exact: true }).press("Enter");
+        await frame.locator('[aria-label="Page 3"][aria-current="page"]').waitFor();
+        assert.equal(await frame.getByLabel("Current page").textContent(), "3");
+        assert.equal(frame.url(), origin);
+        const expected = ["page:2:10", "page:3:10"];
+        assert.deepEqual(await frame.evaluate(() => window.sessionCheck.calls), expected);
+        await page.locator("#mode").click();
+        await frame.locator('[data-mode="editing"]').waitFor();
+        await page.locator("#mode").click();
+        await frame.locator('[data-mode="interactive"]').waitFor();
+        assert.deepEqual(await frame.evaluate(() => window.sessionCheck.calls), expected);
+        assert.equal(await frame.getByLabel("Current page").textContent(), "3");
+        assert.deepEqual(errors, []);
+        results.push({ widget, passed: true, pointerAndKeyboard: true, iframeNavigation: false, businessEventsAtModeChanges: 0 });
+        await page.close();
+        continue;
+      }
       if (widget.startsWith("table-")) {
         const kind = widget.split("-")[1];
         const click = kind === "popconfirm" || widget.endsWith("-click");

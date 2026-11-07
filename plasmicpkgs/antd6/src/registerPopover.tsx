@@ -1,9 +1,8 @@
+import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { Popover } from "antd";
 import cls from "classnames";
 import React from "react";
 import {
-  CanvasOverlayProps,
-  previewOpenProp,
   useCanvasOverlay,
 } from "./canvas-overlay";
 import { Registerable, registerComponentHelper } from "./utils";
@@ -12,7 +11,7 @@ const canvasOverlay = { triggerSlot: "children" };
 
 export function AntdPopover(
   props: React.ComponentProps<typeof Popover> &
-    CanvasOverlayProps & {
+    PlasmicCanvasProps & {
       popupRootClassName?: string;
       popoverScopeClassName?: string;
       contentText?: string;
@@ -66,12 +65,13 @@ export function registerPopover(loader?: Registerable) {
     displayName: "Popover",
     isAttachment: true,
     props: {
-      previewOpen: previewOpenProp,
       open: {
         type: "boolean",
-        editOnly: true,
-        uncontrolledProp: "defaultOpen",
-        description: "Default open state of the popover",
+        description: "Controlled open state of the popover. Leave unset for the native trigger.",
+      },
+      defaultOpen: {
+        type: "boolean",
+        description: "Initial open state when open is not controlled.",
       },
       arrow: {
         type: "boolean",
@@ -181,6 +181,7 @@ export function registerPopover(loader?: Registerable) {
       open: {
         type: "writable",
         valueProp: "open",
+        initialValueProp: "defaultOpen",
         onChangeProp: "onOpenChange",
         variableType: "boolean",
       },

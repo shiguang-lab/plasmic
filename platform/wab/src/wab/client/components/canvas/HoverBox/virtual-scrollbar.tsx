@@ -57,6 +57,7 @@ export function VirtualScrollBar(props: {
       ref={trackRef}
     >
       <XDraggable
+        nodeRef={thumbRef}
         onDrag={(e) => {
           if (trackRef.current) {
             const maxStart =

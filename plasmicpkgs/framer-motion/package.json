@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/framer-motion",
-  "version": "0.0.260",
+  "version": "0.1.0",
   "description": "Plasmic registration call for Framer Motion",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -42,11 +42,11 @@
     "tslib": "catalog:"
   },
   "dependencies": {
-    "framer-motion": "^5.3.0"
+    "framer-motion": "11.18.2"
   },
   "peerDependencies": {
-    "@plasmicapp/host": ">=1.0.0",
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "@plasmicapp/host": "^3.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }

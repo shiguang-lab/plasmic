@@ -14,6 +14,7 @@ import {
 } from "@/wab/shared/copilot/dynamic-value-input";
 import {
   isPageComponent,
+  isCodeComponent,
   tryGetVariantGroupValueFromArg,
 } from "@/wab/shared/core/components";
 import {
@@ -21,7 +22,7 @@ import {
   stripParens,
   tryExtractJson,
 } from "@/wab/shared/core/exprs";
-import { JsonValue } from "@/wab/shared/core/lang";
+import { JsonValue, ParamExportType } from "@/wab/shared/core/lang";
 import { customFunctionId } from "@/wab/shared/core/query-ids";
 import { renderRichTextChildren } from "@/wab/shared/core/rich-text-util";
 import {
@@ -479,6 +480,9 @@ function buildTplComponent(tpl: TplComponent, site: Site, depth: number): XmlEle
   if (vs.args) {
     for (const arg of vs.args) {
       const param = arg.param;
+      if (isCodeComponent(component) && param.exportType === ParamExportType.ToolsOnly) {
+        continue;
+      }
       if (isSlot(param) && isKnownRenderExpr(arg.expr)) {
         continue;
       }
@@ -627,6 +631,7 @@ function buildComponentProps(component: Component): PropJson[] {
   return component.params
     .filter(
       (param) =>
+        (!isCodeComponent(component) || param.exportType !== ParamExportType.ToolsOnly) &&
         (isKnownPropParam(param) ||
           isSlot(param) ||
           ((isKnownStateParam(param) ||

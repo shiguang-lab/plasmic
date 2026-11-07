@@ -1,3 +1,7 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useCurrentAppUserToken } from "@/wab/client/studio-ctx/studio-mode-state";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import {
   DataSourceOpExprSummary,
@@ -56,10 +60,10 @@ import {
 } from "@/wab/shared/refactoring";
 import { PlasmicDataSourceContextProvider } from "@plasmicapp/react-web";
 import { Button, Menu, Tooltip } from "antd";
-import { autorun } from "mobx";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
+import { useStore } from "zustand";
 
 // Opens Chat Copilot and sends the migration prompt right away.
 function startQueryMigrationChat(studioCtx: StudioCtx, prompt: string) {
@@ -78,9 +82,12 @@ const DataQueryRow = observer(
     viewCtx: ViewCtx;
     isDeprecated: boolean;
   }) => {
+  useViewSelection(viewCtx, (state) => state.context);
     const { t: uiT } = useI18n();
 
     const studioCtx = viewCtx.studioCtx;
+    const isNewlyAdded = useStore(studioCtx.newlyAddedQueryStore, (ref) => ref?.uid === query.uid);
+    const userAuthToken = useCurrentAppUserToken(studioCtx);
     const showMigrateItem =
       isDeprecated && studioCtx.queryMigrationCopilotEnabled();
     // The integration is only needed for the migrate menu item; don't fetch
@@ -194,14 +201,11 @@ const DataQueryRow = observer(
     const schema = viewCtx.customFunctionsSchema();
 
     React.useEffect(() => {
-      const dispose = autorun(() => {
-        if (studioCtx.newlyAddedQuery === query) {
-          studioCtx.newlyAddedQuery = undefined;
-          openDataSourceModal();
-        }
-      });
-      return () => dispose();
-    }, [query]);
+      if (studioCtx.newlyAddedQuery === query) {
+        studioCtx.newlyAddedQuery = undefined;
+        openDataSourceModal();
+      }
+    }, [studioCtx, query, isNewlyAdded, openDataSourceModal]);
 
     return (
       <WithContextMenu overlay={menu}>
@@ -215,7 +219,7 @@ const DataQueryRow = observer(
             <div className="flex flex-col fill-width">
               <PlasmicDataSourceContextProvider
                 value={{
-                  userAuthToken: studioCtx.currentAppUserCtx.fakeAuthToken,
+                  userAuthToken,
                 }}
               >
                 <DataSourceOpExprSummary expr={query.op} />
@@ -350,6 +354,7 @@ const TplFetcherRow = observer(function TplFetcherRow(props: {
   const { t: uiT } = useI18n();
 
   const { tpl, viewCtx } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const component = tryGetTplOwnerComponent(tpl) ?? null;
   const exprCtx: ExprCtx = {
     projectFlags: viewCtx.projectFlags(),

@@ -15,7 +15,8 @@ import {
 import { getExportedComponentName } from "@/wab/shared/codegen/react-p/serialize-utils";
 import { getComponentDisplayName } from "@/wab/shared/core/components";
 import { summarizeTpl } from "@/wab/shared/core/tpls";
-import { ownedComputedFn } from "@/wab/shared/mobx-util";
+import { assert } from "@/wab/shared/common";
+import type { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import {
   Component,
   isKnownComponent,
@@ -36,15 +37,13 @@ interface CanvasErrorBoundaryState {
   error?: Error | null;
 }
 
-export const mkCanvasErrorBoundary = ownedComputedFn(
-  // Owned by the ViewCtx rather than React, so it's released with the ViewCtx
-  (viewCtx: ViewCtx, react: typeof React) => {
+function createCanvasErrorBoundary(viewCtx: ViewCtx, react: typeof React, dataContext: SubDeps["DataContext"]) {
     const ReactComponent = react.Component;
     return class CanvasErrorBoundary extends ReactComponent<
       CanvasErrorBoundaryProps,
       CanvasErrorBoundaryState
     > {
-      static contextType = viewCtx.canvasCtx.Sub.DataContext;
+      static contextType = dataContext;
 
       constructor(props) {
         super(props);
@@ -56,6 +55,7 @@ export const mkCanvasErrorBoundary = ownedComputedFn(
       }
 
       componentDidMount() {
+        viewCtx.disposeSignal.addEventListener("abort", this.stopWatchingOwner, { once: true });
         this.componentDidMountOrUpdate();
       }
 
@@ -66,10 +66,18 @@ export const mkCanvasErrorBoundary = ownedComputedFn(
       private stopWatching?: () => void;
 
       private resetError = () => {
-        this.setState({ error: null });
+        if (this.stopWatching && !viewCtx.disposeSignal.aborted) {
+          this.setState({ error: null });
+        }
+      };
+
+      private stopWatchingOwner = () => {
+        this.stopWatching?.();
+        this.stopWatching = undefined;
       };
 
       private componentDidMountOrUpdate() {
+        if (viewCtx.disposeSignal.aborted) { return; }
         if (this.state.error && !isPlasmicUndefinedDataErrorPromise(this.state.error)) {
           // Subscribe without scheduling work: a persistent error must not
           // drive its own retry loop. Model/dependency evaluation flushes this.
@@ -81,7 +89,8 @@ export const mkCanvasErrorBoundary = ownedComputedFn(
       }
 
       componentWillUnmount() {
-        this.stopWatching?.();
+        this.stopWatchingOwner();
+        viewCtx.disposeSignal.removeEventListener("abort", this.stopWatchingOwner);
       }
 
       render() {
@@ -121,8 +130,7 @@ export const mkCanvasErrorBoundary = ownedComputedFn(
         }
       }
     };
-  },
-);
+  }
 
 interface CanvasErrorDisplayProps {
   ctx: RenderingCtx;
@@ -176,7 +184,7 @@ export function withErrorDisplayFallback<T>(
   }
 }
 
-const mkCanvasErrorDisplay = ownedComputedFn((react: typeof React) => {
+function createCanvasErrorDisplay(react: typeof React) {
   const ReactComponent = react.Component;
   return class CanvasErrorDisplay extends ReactComponent<CanvasErrorDisplayProps> {
     render() {
@@ -205,7 +213,33 @@ const mkCanvasErrorDisplay = ownedComputedFn((react: typeof React) => {
       );
     }
   };
-});
+}
+
+type BoundaryType = ReturnType<typeof createCanvasErrorBoundary>;
+const boundaryTypes = new WeakMap<ViewCtx, WeakMap<typeof React, WeakMap<SubDeps["DataContext"], BoundaryType>>>();
+
+/** Boundary types capture one view and one iframe module graph. */
+export function mkCanvasErrorBoundary(view: ViewCtx, react: typeof React) {
+  assert(!view.disposeSignal.aborted, "Cannot create a canvas error boundary for a disposed view");
+  let byReact = boundaryTypes.get(view);
+  if (!byReact) {
+    byReact = new WeakMap(); boundaryTypes.set(view, byReact);
+    view.disposeSignal.addEventListener("abort", () => boundaryTypes.delete(view), { once: true });
+  }
+  let byContext = byReact.get(react);
+  if (!byContext) { byContext = new WeakMap(); byReact.set(react, byContext); }
+  const context = view.canvasCtx.Sub.DataContext;
+  let boundary = byContext.get(context);
+  if (!boundary) { boundary = createCanvasErrorBoundary(view, react, context); byContext.set(context, boundary); }
+  return boundary;
+}
+
+const errorDisplays = new WeakMap<typeof React, ReturnType<typeof createCanvasErrorDisplay>>();
+function mkCanvasErrorDisplay(react: typeof React) {
+  let display = errorDisplays.get(react);
+  if (!display) { display = createCanvasErrorDisplay(react); errorDisplays.set(react, display); }
+  return display;
+}
 
 function deriveOffendingElement(error: Error | null | undefined) {
   if (!error) {

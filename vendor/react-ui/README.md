@@ -22,8 +22,8 @@ trapping during noninteractive Studio editing. Preview uses the real component
 behavior and API endpoints. Canvas state is not part of the business props.
 The local manifest lists the public dependencies required by these modules.
 
-The independent React UI registration package references this source with
-`file:../../vendor/react-ui`. NAS distributes its hostless runtime and registration
-package; do not publish this partial `@react/ui` package to npm. When the private
-registry is available, replace the file dependency with the private package
-version and verify its build/style entry.
+The independent React UI registration package uses this source as a development
+input and bundles the maintained modules and declarations into its own artifact.
+The distributed package declares its public runtime dependencies and does not
+require this checkout or a private registry. Do not publish this partial
+`@react/ui` package under the original package name.

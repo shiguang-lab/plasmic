@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { reactCompilerBuildInfo } from "../platform/wab/tools/react-compiler.mjs";
 import { hashFiles, sourceIdentity } from "./build-identity.mjs";
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -29,6 +30,7 @@ await writeFile(
   JSON.stringify(
     {
       ...identity,
+      reactCompiler: reactCompilerBuildInfo(),
       builtAt: new Date().toISOString(),
       artifactHash: await hashFiles(output, ["."], ["studio-build.json"]),
     },

@@ -8,57 +8,40 @@ import VariantProp from "@/wab/client/components/docs/VariantProp";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { PlasmicComponentTogglesPanel } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicComponentTogglesPanel";
-import { getTplSlots } from "@/wab/shared/SlotUtils";
-import { makeNodeNamer } from "@/wab/shared/codegen/react-p";
-import {
-  getExportedComponentName,
-  makePlasmicComponentName,
-} from "@/wab/shared/codegen/react-p/serialize-utils";
-import { ensure } from "@/wab/shared/common";
-import {
-  TplNamable,
-  flattenTplsWithoutThrowawayNodes,
-  isTplTagOrComponent,
-} from "@/wab/shared/core/tpls";
-import { Component } from "@/wab/shared/model/classes";
+import { DocsComponentModel } from "@/wab/client/components/docs/docs-model-projections";
+import { useDocsFocusedComponentRef } from "@/wab/client/components/docs/DocsModelResources";
+import type { ModelRef } from "@/wab/client/studio-ctx/model-snapshots";
+import type { Component } from "@/wab/shared/model/classes";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocalStorage } from "react-use";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 
 interface ComponentTogglesPanelProps {}
 
-const ComponentTogglesPanel = observer(function ComponentTogglesPanel(
-  props: ComponentTogglesPanelProps,
-) {
+function ComponentTogglesPanel(_props: ComponentTogglesPanelProps) {
   const docsCtx = useDocsPortalCtx();
-  const component = docsCtx.tryGetFocusedComponent();
+  const ref = useDocsFocusedComponentRef(docsCtx);
+  return ref ? <FocusedComponentTogglesPanel docsCtx={docsCtx} componentRef={ref} /> : null;
+}
+
+function FocusedComponentTogglesPanel({ docsCtx, componentRef }: { docsCtx: ReturnType<typeof useDocsPortalCtx>; componentRef: ModelRef<Component> }) {
+  const component = useStore(docsCtx.models.getComponentStore(componentRef), useShallow((state) => ({ variantGroups: state.variantGroups, slots: state.slots, linkedProps: state.linkedProps, elements: state.elements, exportedName: state.exportedName, plasmicName: state.plasmicName })));
+  const useLoader = useStore(
+    docsCtx.store,
+    (state) => state.codegenType === "loader",
+  );
 
   const [dismissed, setDismissed] = useLocalStorage(
     "ComponentTogglesPanel--dismissComponentInfo",
     false,
   );
 
-  if (!component) {
-    return null;
-  }
-
-  const variantGroups = component.variantGroups.filter(
-    (vg) => vg.variants.length > 0,
-  );
-
-  const slots = getTplSlots(component);
-
-  const otherProps = component.params.filter(
-    (p) =>
-      !slots.some((s) => s.param === p) &&
-      !component.variantGroups.some((g) => g.param === p),
-  );
-
-  const nodeNamer = makeNodeNamer(component);
-  const namedNodes = flattenTplsWithoutThrowawayNodes(component).filter(
-    (n) => !!nodeNamer(n) && isTplTagOrComponent(n),
-  );
+  const variantGroups = component.variantGroups;
+  const slots = component.slots;
+  const otherProps = component.linkedProps;
+  const namedNodes = component.elements;
 
   return (
     <SidebarModalProvider>
@@ -71,7 +54,7 @@ const ComponentTogglesPanel = observer(function ComponentTogglesPanel(
         explanation={{
           defaultExpanded: !dismissed,
           children: (isExpanded) =>
-            docsCtx.useLoader() ? (
+            useLoader ? (
               <CmsComponentMessage
                 component={component}
                 isExpanded={isExpanded}
@@ -90,9 +73,9 @@ const ComponentTogglesPanel = observer(function ComponentTogglesPanel(
           },
         }}
         header={
-          docsCtx.useLoader()
-            ? getExportedComponentName(component)
-            : makePlasmicComponentName(component)
+          useLoader
+            ? component.exportedName
+            : component.plasmicName
         }
         variantsHeader={
           variantGroups.length === 0
@@ -110,7 +93,7 @@ const ComponentTogglesPanel = observer(function ComponentTogglesPanel(
           ...(variantGroups.length === 0 && { render: () => null }),
         }}
         variantProps={variantGroups.map((group) => (
-          <VariantProp key={group.uid} docsCtx={docsCtx} group={group} />
+          <VariantProp key={group.ref.uid} docsCtx={docsCtx} group={group} />
         ))}
         slotPropsHeader={
           slots.length === 0
@@ -128,7 +111,7 @@ const ComponentTogglesPanel = observer(function ComponentTogglesPanel(
           ...(slots.length === 0 && { render: () => null }),
         }}
         slotProps={slots.map((slot) => (
-          <SlotProp key={slot.uid} docsCtx={docsCtx} slot={slot} />
+          <SlotProp key={slot.ref.uid} docsCtx={docsCtx} slot={slot} />
         ))}
         linkedPropsHeader={{
           ...(otherProps.length === 0 && { render: () => null }),
@@ -137,7 +120,7 @@ const ComponentTogglesPanel = observer(function ComponentTogglesPanel(
           ...(otherProps.length === 0 && { render: () => null }),
         }}
         linkedProps={otherProps.map((prop) => (
-          <LinkedProp key={prop.uid} docsCtx={docsCtx} param={prop} />
+          <LinkedProp key={prop.param.uid} docsCtx={docsCtx} param={prop} />
         ))}
         elementPropsHeader={
           namedNodes.length === 0
@@ -158,26 +141,24 @@ const ComponentTogglesPanel = observer(function ComponentTogglesPanel(
           <ElementProp
             key={node.uuid}
             docsCtx={docsCtx}
-            node={node as TplNamable}
-            name={ensure(nodeNamer(node))}
-            isRoot={node === component.tplTree}
+            node={node}
           />
         ))}
         resetButton={{
-          onClick: () => docsCtx.resetComponentToggles(component),
+          onClick: () => docsCtx.resetComponentToggles(docsCtx.models.snapshots.resolve(componentRef)),
         }}
       />
     </SidebarModalProvider>
   );
-});
+}
 
 export default ComponentTogglesPanel;
 
-const CmsComponentMessage = observer(function CmsComponentMessage(props: {
-  component: Component;
+function CmsComponentMessage(props: {
+  component: Pick<DocsComponentModel, "exportedName" | "plasmicName">;
   isExpanded: boolean;
 }) {
-  const componentName = getExportedComponentName(props.component);
+  const componentName = props.component.exportedName;
   if (!props.isExpanded) {
     return (
       <span>
@@ -201,10 +182,9 @@ const CmsComponentMessage = observer(function CmsComponentMessage(props: {
       />{" "}
     </div>
   );
-});
-const BlackboxComponentMessage = observer(
-  function BlackboxComponentMessage(props: {
-    component: Component;
+}
+function BlackboxComponentMessage(props: {
+    component: Pick<DocsComponentModel, "exportedName" | "plasmicName">;
     isExpanded: boolean;
   }) {
     const { component, isExpanded } = props;
@@ -213,7 +193,7 @@ const BlackboxComponentMessage = observer(
         {" "}
         <UiText message={"For"} />{" "}
         <strong>
-          <code>{getExportedComponentName(component)}</code>
+          <code>{component.exportedName}</code>
         </strong>{" "}
         <UiText message={", Plasmic generates two React components:"} />{" "}
       </>
@@ -228,7 +208,7 @@ const BlackboxComponentMessage = observer(
           <ul className="disc-list">
             <li>
               <strong>
-                <code>{makePlasmicComponentName(component)}</code>
+                <code>{component.plasmicName}</code>
               </strong>{" "}
               <UiText
                 message={
@@ -238,14 +218,14 @@ const BlackboxComponentMessage = observer(
             </li>
             <li>
               <strong>
-                <code>{getExportedComponentName(component)}</code>
+                <code>{component.exportedName}</code>
               </strong>{" "}
               <UiText
                 message={
                   ": a wrapper component, owned by you, where you instantiate"
                 }
               />{" "}
-              <code>{makePlasmicComponentName(component)}</code>{" "}
+              <code>{component.plasmicName}</code>{" "}
               <UiText message={"and attach state, data, and behavior."} />{" "}
             </li>
           </ul>
@@ -254,7 +234,7 @@ const BlackboxComponentMessage = observer(
             <UiText
               message={"Try the different props and overrides you can pass to"}
             />{" "}
-            <code>{getExportedComponentName(component)}</code>{" "}
+            <code>{component.exportedName}</code>{" "}
             <UiText message={"component below."} />{" "}
             <a
               href="https://www.plasmic.app/learn/codegen-guide/"
@@ -268,8 +248,7 @@ const BlackboxComponentMessage = observer(
         </div>
       );
     }
-  },
-);
+  }
 
 function VariantPropsTooltip() {
   return (

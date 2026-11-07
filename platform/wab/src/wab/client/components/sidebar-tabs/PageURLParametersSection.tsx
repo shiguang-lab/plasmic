@@ -19,29 +19,16 @@ import { mkSectionUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { valueAsString } from "@/wab/commons/values";
 import { DELETE_ACTION } from "@/wab/shared/Labels";
 import {
-  ensure,
-  maybe,
-  maybeFirst,
-  swallow,
   unexpected,
 } from "@/wab/shared/common";
-import {
-  getSingleDynExprFromTemplatedString,
-  tryCoerceString,
-} from "@/wab/shared/core/exprs";
 import { getDataSourceMeta } from "@/wab/shared/data-sources-meta/data-source-registry";
 import {
   ensureDataSourceStandardQuery,
-  extractFiltersFromDefaultDataSourceQueries,
 } from "@/wab/shared/data-sources-meta/data-sources";
 import {
   Component,
-  ComponentDataQuery,
-  isKnownObjectPath,
-  isKnownTemplatedString,
 } from "@/wab/shared/model/classes";
 import {
-  extractParamsFromPagePath,
   extractPathParamMetas,
   extractQueryParamMetas,
 } from "@/wab/shared/utils/url-utils";
@@ -53,8 +40,10 @@ import {
   Popover,
   Tooltip,
 } from "antd";
-import { defer, isEqual, size } from "lodash";
-import { observer } from "mobx-react";
+import { defer } from "lodash";
+import { useStore } from "zustand";
+import { usePageMetadata } from "@/wab/client/components/sidebar-tabs/page-metadata-state";
+import { usePageDetailsSpec } from "@/wab/client/components/sidebar-tabs/page-details-state";
 import { ok } from "neverthrow";
 import React from "react";
 
@@ -169,92 +158,22 @@ function URLParameterRow(props: {
   );
 }
 
-interface DetailsSpec {
-  sourceId: string;
-  tableId: string;
-  pathParams: string[];
-  query: ComponentDataQuery;
-}
-
-export const PageURLParametersSection = observer(
-  function PageQueryPanel(props: { page: Component }) {
+export function PageURLParametersSection(props: { page: Component }) {
     const { t: uiT } = useI18n();
     const { page } = props;
     const sc = useStudioCtx();
 
-    const pageMeta = ensure(
-      page.pageMeta,
-      "Page components are expected to have pageMeta",
-    );
-
+    const pageMeta = usePageMetadata(page);
+    const path = useStore(sc.modelSnapshots.field(pageMeta, "path"));
+    const params = useStore(sc.modelSnapshots.field(pageMeta, "params"));
+    const query = useStore(sc.modelSnapshots.field(pageMeta, "query"));
+    const uuid = useStore(sc.modelSnapshots.field(page, "uuid"));
     const paramMetas = [
-      ...extractPathParamMetas(pageMeta),
-      ...extractQueryParamMetas(pageMeta),
+      ...extractPathParamMetas({ path, params }),
+      ...extractQueryParamMetas({ query }),
     ];
 
-    const mainDetailsSpec: DetailsSpec | undefined = maybeFirst(
-      page.dataQueries.flatMap((query) => {
-        const params = extractParamsFromPagePath(pageMeta.path);
-        if (!(
-          query.op &&
-          ["getMany", "getList"].includes(query.op.opName) &&
-          params.length > 0 &&
-          query.op.templates.filters
-        )) {
-          return [];
-        }
-
-        const filtersValue = query.op.templates.filters.value;
-        const filtersBindings = query.op.templates.filters.bindings;
-        const tableId = maybe(
-          tryCoerceString(query.op.templates.resource.value),
-          JSON.parse,
-        );
-        if (!(
-          tableId &&
-          filtersBindings &&
-          filtersValue &&
-          size(filtersBindings) === size(params)
-        )) {
-          return [];
-        }
-        const filters = extractFiltersFromDefaultDataSourceQueries(query.op);
-        if (!filters) {
-          return [];
-        }
-        const bindingKeys: string[] = [];
-        for (const pathParam of params) {
-          const pathParamBinding = Object.keys(filtersBindings).find(
-            (bindingKey) => {
-              const binding = filtersBindings[bindingKey];
-              const dynExpr = swallow(() =>
-                isKnownObjectPath(binding)
-                  ? binding
-                  : isKnownTemplatedString(binding)
-                    ? getSingleDynExprFromTemplatedString(binding)
-                    : undefined,
-              );
-              return (
-                dynExpr &&
-                isKnownObjectPath(dynExpr) &&
-                isEqual(dynExpr.path, ["$ctx", "params", pathParam])
-              );
-            },
-          );
-          if (!pathParamBinding || filters[pathParam] !== pathParamBinding) {
-            return [];
-          }
-          bindingKeys.push(pathParamBinding);
-        }
-
-        return {
-          sourceId: query.op.sourceId,
-          tableId,
-          pathParams: params,
-          query,
-        };
-      }),
-    );
+    const mainDetailsSpec = usePageDetailsSpec(sc, page);
 
     const { data: source } = useSource(sc, mainDetailsSpec?.sourceId);
     const sourceMeta = React.useMemo(
@@ -263,8 +182,8 @@ export const PageURLParametersSection = observer(
     );
 
     const queryKey = React.useMemo(
-      () => `view-record-${page.uuid}`,
-      [page.uuid],
+      () => `view-record-${uuid}`,
+      [uuid],
     );
     const { open, close } = useDataSourceOpExprBottomModal(queryKey);
 
@@ -327,7 +246,7 @@ export const PageURLParametersSection = observer(
                       selectedRowKey: mainDetailsSpec.pathParams
                         .map((p) => pageMeta.params[p])
                         .join("#"),
-                      rowKey: mainDetailsSpec.pathParams,
+                      rowKey: [...mainDetailsSpec.pathParams],
                       exprCtx: {
                         projectFlags: sc.projectFlags(),
                         component: page,
@@ -370,8 +289,7 @@ export const PageURLParametersSection = observer(
         <UiActionsOverlay uiId={mkSectionUiId("PageMetaUrlParams")} />
       </SidebarSection>
     );
-  },
-);
+}
 
 interface AddQueryParamButtonProps {
   children: React.ReactNode;

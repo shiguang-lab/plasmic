@@ -10,14 +10,14 @@ function uuidv4() {
     (
       c ^
       (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))
-    ).toString(16)
+    ).toString(16),
   );
 }
 
 async function triggerLogin(
   appId: string,
   authorizeEndpoint: string,
-  redirectUri?: string
+  redirectUri?: string,
 ) {
   async function sha256(text: string) {
     const encoder = new TextEncoder();
@@ -72,6 +72,7 @@ export function PlasmicPageGuard(props: PlasmicPageGuardProps) {
   } = props;
 
   const dataSourceCtxValue = usePlasmicDataSourceContext();
+  const isPrepass = plasmicQuery.usePlasmicPrepass();
 
   React.useEffect(() => {
     if (canTriggerLogin) {
@@ -85,7 +86,7 @@ export function PlasmicPageGuard(props: PlasmicPageGuardProps) {
         triggerLogin(
           appId,
           authorizeEndpoint,
-          dataSourceCtxValue.authRedirectUri
+          dataSourceCtxValue.authRedirectUri,
         );
       }
     }
@@ -113,7 +114,7 @@ export function PlasmicPageGuard(props: PlasmicPageGuardProps) {
   // If we are in prepass, PlasmicPageGuard should not render anything
   // it's expected that pages are only equipped with PlasmicPageGuard
   // when it's known that it will disable prepass/prefetching
-  if (plasmicQuery.isPlasmicPrepass?.()) {
+  if (isPrepass) {
     return null;
   }
 
@@ -147,7 +148,7 @@ export function PlasmicPageGuard(props: PlasmicPageGuardProps) {
 
 export function withPlasmicPageGuard<P extends object>(
   WrappedComponent: React.ComponentType<P>,
-  options: Omit<PlasmicPageGuardProps, "children">
+  options: Omit<PlasmicPageGuardProps, "children">,
 ) {
   const PageGuard: React.FC<P> = (props) => (
     <PlasmicPageGuard {...options}>

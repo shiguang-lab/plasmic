@@ -3065,7 +3065,7 @@ export function sortByTreeOrder<T extends TplNode>(tpls: T[]): T[] {
 }
 
 export function prepareFocusedTpls<T extends TplNode>(
-  tpls: (T | SlotSelection | null)[],
+  tpls: readonly (T | SlotSelection | null)[],
   opts?: { allowNodesWithAncestors: boolean },
 ): T[] {
   const filtered = tpls.filter((cur) => {

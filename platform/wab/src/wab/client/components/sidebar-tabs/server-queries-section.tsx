@@ -1,3 +1,4 @@
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import {
   CustomCodePreview,
@@ -58,6 +59,7 @@ const ServerQueryRow = observer(
     const { t: studioUiT } = useI18n();
 
     const { component, query, viewCtx } = props;
+  useViewSelection(viewCtx, (state) => state.context);
     const studioCtx = viewCtx.studioCtx;
     const projectFlags = studioCtx.projectFlags();
     // Identity-stable for useServerQueryOp's memo deps.

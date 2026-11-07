@@ -1,0 +1,95 @@
+{
+  "stage": "U19 model snapshots and native viewport",
+  "artifact": {
+    "sourceHash": "2862b4839ba3fef9c0dd7647a0363ae7ee94652f641f89e39e743802701f64ee",
+    "rendererHash": "2c90f86d673476662e27f69072ee44c8dda73c42e74e5555c22464ab0e2e0b3c",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 837,
+    "bytes": 105466690,
+    "studioArtifactHash": "66b012c162ed371c552a6c140c29c1f41c7a3583b0972d371e3f7813e7d09e96",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx"
+      ]
+    }
+  },
+  "validation": {
+    "typecheck": "passed, nonincremental full WAB",
+    "compilerTests": 10,
+    "fullStudio": {
+      "filesPassed": 552,
+      "filesFailed": 7,
+      "testsPassed": 4589,
+      "testsFailed": 2,
+      "testsSkipped": 4,
+      "frozenSource": false,
+      "note": "Independent QueryBuilder dependency/source synchronization overlapped this run. Exact failure log retained; regression fixes included in U20."
+    }
+  },
+  "nativeReplay": {
+    "gp": {
+      "viewportAcceptance": {
+        "equalScrollRetainsSnapshot": true,
+        "inputPreserved": true,
+        "modelUnchanged": true,
+        "nativeStores": true,
+        "restored": true,
+        "zoomInputUpdatedStore": true,
+        "zoomLabelUpdated": true
+      },
+      "functionalCaseCount": 5,
+      "reopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0,
+      "draftDialog": {
+        "enabled": true,
+        "opened": true,
+        "remoteActionClosed": true
+      },
+      "docsPortal": {
+        "codegen": {
+          "dependencyModelsValidated": 50,
+          "editReachedSelectedStore": true,
+          "monacoMounted": true,
+          "persistedModelUnchanged": true,
+          "previewUpdated": true,
+          "restored": true,
+          "typeScriptWorkerDiagnostics": 0
+        },
+        "loader": {
+          "dependencyModelsValidated": 50,
+          "editReachedSelectedStore": true,
+          "monacoMounted": true,
+          "persistedModelUnchanged": true,
+          "previewUpdated": true,
+          "restored": true,
+          "typeScriptWorkerDiagnostics": 0
+        }
+      }
+    },
+    "complex": {
+      "viewportAcceptance": {
+        "equalScrollRetainsSnapshot": true,
+        "inputPreserved": true,
+        "modelUnchanged": true,
+        "nativeStores": true,
+        "restored": true,
+        "zoomInputUpdatedStore": true,
+        "zoomLabelUpdated": true
+      },
+      "functionalCaseCount": 8,
+      "reopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    }
+  }
+}

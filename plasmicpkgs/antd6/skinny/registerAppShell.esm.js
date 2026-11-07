@@ -1,6 +1,7 @@
 import { appShellMeta, AppShell } from '@shiguang-lab/plasmic-overseas';
 export { AppShell } from '@shiguang-lab/plasmic-overseas';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
+import 'react/jsx-runtime';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import 'react';

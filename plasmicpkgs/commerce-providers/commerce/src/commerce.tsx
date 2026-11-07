@@ -2,14 +2,11 @@
   Forked from https://github.com/vercel/commerce/tree/main/packages/commerce/src
   Changes: Removed authentication, customer and wishlist hooks
 */
-import React, {
-  ReactNode,
-  MutableRefObject,
-  createContext,
-  useContext,
-  useMemo,
-  useRef,
-} from 'react';
+/*
+  Forked from https://github.com/vercel/commerce/tree/main/packages/commerce/src
+  Changes: Removed authentication, customer and wishlist hooks
+*/
+import { ReactNode, MutableRefObject, createContext, useContext, useMemo, useRef, } from 'react';
 import type {
   Product,
   Cart,

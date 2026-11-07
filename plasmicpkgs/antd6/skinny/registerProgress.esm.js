@@ -1,6 +1,7 @@
+import { jsx } from 'react/jsx-runtime';
 import { Progress } from 'antd';
-import React, { useMemo } from 'react';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { useMemo } from 'react';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -41,7 +42,7 @@ function AntdProgress(props) {
     }
     return strokeColor;
   }, [gradient, props.steps, props.type, stepColors, strokeColor]);
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Progress,
     {
       strokeColor: strokeColorProp,

@@ -1,11 +1,19 @@
+import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
+import { DocsPreviewCanvas } from "@/wab/client/components/docs/DocsPreviewCanvas";
+import { createDocsModelFixture } from "@/wab/client/components/docs/__testonly__/model-fixture";
+import { TplMgr } from "@/wab/shared/TplMgr";
+import { ComponentType } from "@/wab/shared/core/components";
+import { createSite } from "@/wab/shared/core/sites";
+import React from "react";
 import { trapInteractionError } from "@/wab/client/components/canvas/studio-canvas-util";
-import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
-import { useLivePreview } from "@/wab/client/components/live/PreviewFrame";
-import { act, cleanup, renderHook } from "@testing-library/react";
-import { observable, runInAction } from "mobx";
+import { PreviewCtx, PreviewState } from "@/wab/client/components/live/PreviewCtx";
+import { PreviewFrame, useLivePreview } from "@/wab/client/components/live/PreviewFrame";
+import { act, cleanup, render, renderHook } from "@testing-library/react";
+import { createStore } from "zustand/vanilla";
 import { mock } from "vitest-mock-extended";
 
 const mocks = vi.hoisted(() => ({
+  modelListeners: new Set<(event: any) => void>(),
   api: { setStudioReady: vi.fn().mockResolvedValue(undefined) },
   packages: [] as object[],
   dispose: vi.fn(),
@@ -33,7 +41,8 @@ vi.mock("@/wab/client/components/live/live-syncer", () => ({
 vi.mock("@/wab/client/components/canvas/studio-canvas-util", () => ({
   trapInteractionError: vi.fn(),
 }));
-vi.mock("@/wab/shared/cached-selectors", () => ({
+vi.mock("@/wab/shared/cached-selectors", async (original) => ({
+  ...(await original<typeof import("@/wab/shared/cached-selectors")>()),
   usedHostLessPkgs: () => mocks.packages,
 }));
 vi.mock("@/wab/client/components/studio/studio-bundles", () => ({
@@ -43,19 +52,36 @@ vi.mock("@/wab/client/components/studio/studio-bundles", () => ({
 }));
 vi.mock("@/wab/client/script-exec", () => ({ scriptExec: mocks.exec }));
 
+function mockPreview(options: Partial<PreviewCtx>): PreviewCtx {
+  const store = createStore<PreviewState>(() => ({
+    previewData: mock<NonNullable<PreviewState["previewData"]>>({ full: options.full, pageHash: options.pageHash ?? "", width: 1440, height: 900, viewport: "desktop" }),
+    isLive: options.isLive ?? false,
+    refreshKey: 0,
+    navigationEntries: [],
+    navigationIndex: -1,
+    navigating: false,
+    targets: [],
+    hasVariants: false,
+  }));
+  const preview = mock<PreviewCtx>();
+  Object.assign(preview, options, { store, studioCtx: { ...options.studioCtx, subscribeModelChanges: (listener: (event: any) => void) => { mocks.modelListeners.add(listener); return () => { mocks.modelListeners.delete(listener); }; } } });
+  return preview;
+}
+
 beforeEach(() => {
   (window as any).__plasmicLive = { setErrorTitle: vi.fn(), reportError: vi.fn(), beginRender: vi.fn(), showError: vi.fn().mockResolvedValue(undefined), getDiagnostics: () => ({ generation: 1 }) };
   vi.clearAllMocks();
   mocks.committed = undefined;
   mocks.packages = [];
+  mocks.modelListeners.clear();
   mocks.load.mockResolvedValue(undefined);
 });
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 it("reports runtime bootstrap failure and releases the startup overlay", async () => {
   const error = new Error("Runtime download failed");
   mocks.load.mockRejectedValueOnce(error);
-  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any, full: true, isLive: false, pageHash: "" });
+  const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any, full: true, isLive: false, pageHash: "" });
   const hook = renderHook(() => useLivePreview(previewCtx));
   hook.result.current.frameRef.current = window;
   await act(async () => hook.result.current.onLoad());
@@ -68,7 +94,7 @@ it("reports package loading failure once and can load again after reset", async 
   mocks.packages = [{ id: "components" }];
   const error = new Error("Component package download failed");
   mocks.sortedPackages.mockRejectedValueOnce(error).mockResolvedValueOnce([["components", "package"]]);
-  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any, full: true, isLive: false, pageHash: "" });
+  const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any, full: true, isLive: false, pageHash: "" });
   const hook = renderHook(() => useLivePreview(previewCtx));
   hook.result.current.frameRef.current = window;
   await act(async () => hook.result.current.onLoad());
@@ -87,7 +113,7 @@ it("ignores package failures from a disposed preview", async () => {
   mocks.packages = [{ id: "components" }];
   const pending = Promise.withResolvers<[string, string][]>();
   mocks.sortedPackages.mockReturnValueOnce(pending.promise);
-  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any, full: true, isLive: false, pageHash: "" });
+  const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any, full: true, isLive: false, pageHash: "" });
   const hook = renderHook(() => useLivePreview(previewCtx));
   hook.result.current.frameRef.current = window;
   await act(async () => hook.result.current.onLoad());
@@ -98,15 +124,11 @@ it("ignores package failures from a disposed preview", async () => {
 });
 
 it("clears SPA navigation feedback and removes the cursor layer on reset and close", async () => {
-  const data = observable.box<PreviewCtx["previewData"]>(undefined, {
-    deep: false,
-  });
-  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any,
+  const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any,
     full: false,
     isLive: false,
     pageHash: "",
   });
-  Object.defineProperty(previewCtx, "previewData", { get: () => data.get() });
   const hook = renderHook(() => useLivePreview(previewCtx));
   hook.result.current.frameRef.current = window;
   await act(async () => hook.result.current.onLoad());
@@ -118,15 +140,7 @@ it("clears SPA navigation feedback and removes the cursor layer on reset and clo
     events.push((event as CustomEvent).detail.action);
   window.addEventListener("plasmic-agent-cursor", listen);
   try {
-    act(() =>
-      runInAction(() =>
-        data.set(
-          mock<NonNullable<PreviewCtx["previewData"]>>({
-            previewPath: "/next",
-          }),
-        ),
-      ),
-    );
+    act(() => previewCtx.store.setState({ previewData: mock<NonNullable<PreviewState["previewData"]>>({ previewPath: "/next" }) }));
     expect(events).toEqual(["clear"]);
     act(() => hook.result.current.reset());
     expect(document.querySelector("[data-plasmic-agent-cursor]")).toBeNull();
@@ -143,7 +157,7 @@ it("clears SPA navigation feedback and removes the cursor layer on reset and clo
 });
 
 async function setup(full: boolean) {
-  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any,
+  const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any,
     full,
     isLive: false,
     pageHash: "",
@@ -225,7 +239,7 @@ it("does not activate a delayed host after reset", async () => {
         finish = resolve;
       }),
   );
-  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any,
+  const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any,
     full: true,
     isLive: false,
     pageHash: "",
@@ -254,7 +268,7 @@ it("does not activate an earlier load after reset even when the WindowProxy is r
         finish = resolve;
       }),
   );
-  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any,
+  const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any,
     full: true,
     isLive: false,
     pageHash: "",
@@ -293,7 +307,7 @@ it.each([true, false])(
             finishNew = resolve;
           }),
       );
-    const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any,
+    const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any,
       full: true,
       isLive: false,
       pageHash: "",
@@ -350,7 +364,7 @@ it.each([null, undefined, "", "   "])(
 );
 
 it("routes anchor actions through business history like page actions", async () => {
-  const previewCtx = mock<PreviewCtx>({ studioCtx: { appCtx: { api: {} } } as any,
+  const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any,
     full: false,
     isLive: false,
     pageHash: "",
@@ -380,14 +394,37 @@ it("reloads the original library version in Preview after an update is undone", 
       return [id, id];
     }),
   );
-  const hook = await setup(false);
+  await setup(false);
   mocks.packages = [{ id: "icons@2.0.0" }];
-  await act(async () => hook.rerender());
+  await act(async () => { mocks.modelListeners.forEach((listener) => listener({ type: "commit", summary: { changes: [{ changeNode: { field: "projectDependencies" } }] } })); });
   mocks.packages = [{ id: "icons@1.0.0" }];
-  await act(async () => hook.rerender());
+  await act(async () => { mocks.modelListeners.forEach((listener) => listener({ type: "commit", summary: { changes: [{ changeNode: { field: "projectDependencies" } }] } })); });
   expect(mocks.exec.mock.calls.map(([, source]) => source)).toEqual([
     "icons@1.0.0",
     "icons@2.0.0",
     "icons@1.0.0",
   ]);
+});
+
+
+it.each(["live", "docs"] as const)("updates the actual %s iframe host from the native environment", (mode) => {
+  const environment = createStudioUiEnvironmentFixture({ hostUrl: "https://first.example/host" });
+  const fixture = createDocsModelFixture(createSite());
+  const component = new TplMgr({ site: fixture.studio.site }).addComponent({ name: "Preview", type: ComponentType.Plain });
+  Object.assign(fixture.studio, environment);
+  fixture.ctx.setFocusedComponent(component);
+  const preview = mockPreview({ studioCtx: fixture.studio, full: true, isLive: false, component: undefined });
+  const view = render(mode === "live" ? <PreviewFrame previewCtx={preview} /> : <DocsPreviewCanvas docsCtx={fixture.ctx} />);
+  const iframe = view.container.querySelector("iframe");
+  expect(iframe?.getAttribute("src")).toContain("https://first.example/host#live=true");
+  act(() => { environment.uiEnvironment.store.setState({ hostUrl: "https://second.example/host" }); });
+  expect(view.container.querySelector("iframe")).toBe(iframe);
+  expect(iframe?.getAttribute("src")).toContain("https://second.example/host#live=true");
+  act(() => { environment.uiEnvironment.store.setState({ brand: { logoTooltip: "Unrelated brand" } }); });
+  expect(view.container.querySelector("iframe")).toBe(iframe);
+  expect(iframe?.getAttribute("src")).toContain("https://second.example/host#live=true");
+  view.unmount();
+  expect(mocks.modelListeners.size).toBe(0);
+  expect(fixture.listeners.size).toBe(0);
+  fixture.ctx.dispose();
 });

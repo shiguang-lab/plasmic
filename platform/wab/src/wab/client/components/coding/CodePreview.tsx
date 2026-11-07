@@ -5,11 +5,16 @@ import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import L, { debounce } from "lodash";
 import React, { useCallback, useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import {
-  InspectorNodeRenderer,
-  ObjectInspector,
-  ObjectInspectorProps,
-} from "react-inspector";
+import { ObjectInspector } from "react-inspector";
+
+export interface InspectorNodeProps {
+  depth: number;
+  name?: string | number;
+  data: unknown;
+  isNonenumerable?: boolean;
+  path?: string;
+  expanded: boolean;
+}
 
 const BASE_FONT_FAMILY = '"Roboto Mono", Consolas, Menlo, monospace';
 const BASE_FONT_SIZE = 12;
@@ -136,7 +141,7 @@ export function renderInspector(
   opts?: {
     expandLevel?: number;
     expandPaths?: string[];
-    nodeRenderer?: InspectorNodeRenderer;
+    nodeRenderer?: (props: InspectorNodeProps) => React.ReactNode;
   },
 ) {
   return (
@@ -149,7 +154,7 @@ export function renderInspector(
   );
 }
 
-function ThemedObjectInspector(props: ObjectInspectorProps) {
+function ThemedObjectInspector(props: React.ComponentProps<typeof ObjectInspector>) {
   const inspectorTheme = useInspectorTheme();
   return (
     <ObjectInspector

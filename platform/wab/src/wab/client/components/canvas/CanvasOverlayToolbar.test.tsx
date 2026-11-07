@@ -1,7 +1,14 @@
+import { StudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { CanvasOverlayToolbar } from "@/wab/client/components/canvas/CanvasOverlayToolbar";
 import { CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
+import { ViewVariantState } from "@/wab/client/studio-ctx/view-variant-state";
+import { mkArenaFrame } from "@/wab/shared/Arenas";
+import { GlobalVariantFrame, RootComponentVariantFrame } from "@/wab/shared/component-frame";
+import { createSite } from "@/wab/shared/core/sites";
 import { mkBaseVariant } from "@/wab/shared/Variants";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
@@ -40,11 +47,6 @@ test("one icon toggles effective auto-open state per instance without writing co
       paramType: "slot",
       type: typeFactory.renderable(),
     }),
-    mkParam({
-      name: "previewOpen",
-      paramType: "prop",
-      type: typeFactory.any(),
-    }),
   );
   const wrapper = mkTplComponent(wrapperComponent, base, {}, [label]);
   const component = mkComponent({
@@ -52,10 +54,17 @@ test("one icon toggles effective auto-open state per instance without writing co
     tplTree: mkTplTagX("div", { baseVariant: base }, [wrapper]),
   });
   const savedArgs = wrapper.vsettings[0].args.slice();
+  const site = createSite(), models = new ModelSnapshots(), selection = new ViewSelection(() => models);
+  const frame = mkArenaFrame({ site, component, width: 800, height: 600, name: "Overlay" });
+  const variants = new ViewVariantState(() => models, () => frame, () => site, () => false, () => false);
+  variants.replaceFrames([new RootComponentVariantFrame(frame)]); variants.setGlobal(new GlobalVariantFrame(site, frame));
+  selection.setTpls([label]);
   const selectedKey = observable.box("wrapper[0]");
-  const studioCtx = observable({ isInteractiveMode: false });
+  const renderPolicy = new StudioRenderPolicy({ isLive: () => false, isDragging: () => false });
+  const studioCtx = { renderPolicy };
   const dom = observable.box(true);
   const viewCtx = Object.assign(Object.create(ViewCtx.prototype), {
+    selection, variants,
     canvasSessionState: new CanvasSessionState(),
     _autoOpenedUuid: observable.box<string | undefined>(),
     scheduleSync: vi.fn(),
@@ -73,8 +82,10 @@ test("one icon toggles effective auto-open state per instance without writing co
       { node: wrapper },
     ],
     maybeTpl2ValsInContext: () => [
-      Object.assign(Object.create(ValComponent.prototype), {
-        fullKey: selectedKey.get(),
+      new ValComponent({
+        tpl: wrapper, fullKey: selectedKey.get(), key: wrapper.uuid,
+        valOwner: undefined, frameUid: 0, fibers: [], parent: undefined,
+        className: "", slotInfo: undefined, slotArgs: new Map(), slotCanvasEnvs: new Map(),
       }),
     ],
   }) as ViewCtx;
@@ -93,8 +104,7 @@ test("one icon toggles effective auto-open state per instance without writing co
   selectedKey.set("wrapper[1]");
   view.rerender(<CanvasOverlayToolbar viewCtx={viewCtx} />);
   expect(screen.getByRole("button").getAttribute("aria-pressed")).toBe("false");
-  viewCtx.syncCanvasOverlayState("wrapper[1]", true, true);
-  view.rerender(<CanvasOverlayToolbar viewCtx={viewCtx} />);
+  act(() => { viewCtx.syncCanvasOverlayState("wrapper[1]", true, true); });
   expect(screen.getByRole("button").getAttribute("aria-pressed")).toBe("true");
   fireEvent.click(screen.getByRole("button", { name: "收起 Dropdown 内容" }));
   expect(viewCtx.canvasOverlayOpen("wrapper[1]")).toBe(false);
@@ -106,7 +116,8 @@ test("one icon toggles effective auto-open state per instance without writing co
   dom.set(false);
   view.rerender(<CanvasOverlayToolbar viewCtx={viewCtx} fallback />);
   expect(screen.getByRole("toolbar")).toBeTruthy();
-  studioCtx.isInteractiveMode = true;
+  act(() => { renderPolicy.interactive = true; renderPolicy.prepareInputs(); renderPolicy.publishCommit(); });
   view.rerender(<CanvasOverlayToolbar viewCtx={viewCtx} fallback />);
   expect(screen.queryByRole("toolbar")).toBeNull();
+  view.unmount(); viewCtx.canvasSessionState.dispose(); renderPolicy.dispose(); variants.dispose(); selection.dispose(); models.dispose();
 });

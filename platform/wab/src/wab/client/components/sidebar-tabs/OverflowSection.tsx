@@ -8,6 +8,7 @@ import {
 } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import { Icon } from "@/wab/client/components/widgets/Icon";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import OverflowHiddenIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__OverflowHidden";
@@ -16,19 +17,24 @@ import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { spawn } from "@/wab/shared/common";
 import { getCssInitial } from "@/wab/shared/css";
 import { Menu } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const OverflowSection = observer(OverflowSection_);
-
-function OverflowSection_({ expsProvider }: { expsProvider: ExpsProvider }) {
+export function OverflowSection({
+  expsProvider,
+}: {
+  expsProvider: ExpsProvider;
+}) {
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
-  const exp = expsProvider.mergedExp();
-  const currentOverflow = exp.getRaw("overflow");
-  const currentOverflowX = exp.getRaw("overflow-x") ?? currentOverflow;
-  const currentOverflowY = exp.getRaw("overflow-y") ?? currentOverflow;
-  const isSplit = exp.has("overflow-x") || exp.has("overflow-y");
+  const [overflowCell, overflowXCell, overflowYCell] = useStyleCells(
+    expsProvider,
+    ["overflow", "overflow-x", "overflow-y"],
+  );
+
+  const currentOverflow = overflowCell?.raw;
+  const currentOverflowX = overflowXCell?.raw ?? currentOverflow;
+  const currentOverflowY = overflowYCell?.raw ?? currentOverflow;
+  const isSplit = !!overflowXCell?.has || !!overflowYCell?.has;
 
   return (
     <StylePanelSection

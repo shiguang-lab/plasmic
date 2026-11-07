@@ -1,3 +1,4 @@
+import { useFocusedViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { PlumeMissingIngredientsPanel } from "@/wab/client/components/plume/PlumeComponentPanel";
 import { ComponentPropsDefinitionSection } from "@/wab/client/components/sidebar-tabs/ComponentPropsDefinitionSection";
 import S from "@/wab/client/components/sidebar-tabs/ComponentTab/ComponentTab.module.scss";
@@ -24,13 +25,13 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { PublicStyleSection } from "@/wab/shared/ApiSchema";
 import { Component } from "@/wab/shared/model/classes";
-import { getPlumeEditorPlugin } from "@/wab/shared/plume/plume-registry";
-import { canEditStyleSection } from "@/wab/shared/ui-config-utils";
-import { observer } from "mobx-react";
+import { getPlumeEditorPluginByType } from "@/wab/shared/plume/plume-registry";
+import { useStore } from "zustand";
+     
 import React from "react";
 import { useLocalStorage } from "react-use";
 
-export const ComponentTab = observer(function ComponentTab(props: {
+export const ComponentTab = function ComponentTab(props: {
   component: Component;
   studioCtx: StudioCtx;
   viewCtx: ViewCtx;
@@ -38,9 +39,21 @@ export const ComponentTab = observer(function ComponentTab(props: {
 }) {
   const { t: uiT } = useI18n();
   const { component, studioCtx, viewCtx, isHalf = false } = props;
-  const appConfig = studioCtx.appCtx.appConfig;
+  const hasFocusedTpl = useFocusedViewSelection(studioCtx, (state) => state.tpls[0] != null);
+  const permissions = useStore(studioCtx.uiEnvironment.store, (state) => state.componentSectionPermissions);
+  const enableDataQueries = useStore(studioCtx.uiEnvironment.store, (state) => state.enableDataQueries);
 
-  const plugin = getPlumeEditorPlugin(component);
+  const models = studioCtx.modelSnapshots;
+  const nameStore = React.useMemo(() => models.field(component, "name"), [models, component]);
+  const name = useStore(nameStore);
+  const plumeStore = React.useMemo(() => models.field(component, "plumeInfo"), [models, component]);
+  const plumeRef = useStore(plumeStore);
+  const plumeTypeStore = React.useMemo(() => plumeRef ? models.field(models.resolve(plumeRef), "type") : undefined, [models, plumeRef]);
+  const subscribePlumeType = React.useCallback((listener: () => void) => plumeTypeStore ? plumeTypeStore.subscribe(listener) : () => undefined, [plumeTypeStore]);
+  const readPlumeType = React.useCallback(() => plumeTypeStore?.getState(), [plumeTypeStore]);
+  const plumeType = React.useSyncExternalStore(subscribePlumeType, readPlumeType, readPlumeType);
+  const plugin = plumeType ? getPlumeEditorPluginByType(plumeType) : undefined;
+  const contentEditorMode = useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
   const variantsPanelRef = React.useRef<VariantsPanelHandle>(null);
   const [isExpanded, setExpanded] = useLocalStorage(
     "ComponentTab.isExpanded",
@@ -48,14 +61,7 @@ export const ComponentTab = observer(function ComponentTab(props: {
   );
   const [showSettings, setShowSettings] = React.useState(false);
 
-  const uiConfig = studioCtx.getCurrentUiConfig();
 
-  const canEdit = (section: PublicStyleSection) => {
-    return canEditStyleSection(uiConfig, section, {
-      isContentCreator: studioCtx.contentEditorMode,
-      defaultContentEditorVisible: false,
-    });
-  };
 
   return (
     <>
@@ -63,7 +69,7 @@ export const ComponentTab = observer(function ComponentTab(props: {
         <SidebarModal
           show
           title={uiT("{part1} Settings", {
-            part1: String(component.name),
+            part1: String(name),
           })}
           onClose={() => setShowSettings(false)}
           persistOnInteractOutside
@@ -84,7 +90,7 @@ export const ComponentTab = observer(function ComponentTab(props: {
         onExtraContentExpanded={() => setExpanded(true)}
         data-test-id="component-panel"
       >
-        {!studioCtx.contentEditorMode &&
+        {!contentEditorMode &&
           ((renderMaybeCollapsibleRows) => (
             <>
               <SidebarSection>
@@ -93,10 +99,10 @@ export const ComponentTab = observer(function ComponentTab(props: {
                     icon={
                       <Icon icon={ComponentIcon} className="component-fg" />
                     }
-                    value={component.name}
-                    onChange={async (name) =>
+                    value={name}
+                    onChange={async (nextName) =>
                       studioCtx.changeUnsafe(() =>
-                        studioCtx.siteOps().tryRenameComponent(component, name),
+                        studioCtx.siteOps().tryRenameComponent(component, nextName),
                       )
                     }
                     placeholder={uiT("(unnamed component)")}
@@ -114,7 +120,7 @@ export const ComponentTab = observer(function ComponentTab(props: {
                       ) : undefined
                     }
                   />
-                  {canEdit(PublicStyleSection.ComponentProps) && (
+                  {permissions[PublicStyleSection.ComponentProps] && (
                     <IconButton
                       tooltip={uiT("Component settings")}
                       onClick={() => setShowSettings(true)}
@@ -128,24 +134,24 @@ export const ComponentTab = observer(function ComponentTab(props: {
               {renderMaybeCollapsibleRows([
                 {
                   collapsible:
-                    isHalf && !!studioCtx.focusedViewCtx()?.focusedTpl(),
+                    isHalf && hasFocusedTpl,
                   content: (
                     <>
                       <PlumeMissingIngredientsPanel component={component} />
-                      {canEdit(PublicStyleSection.ComponentProps) && (
+                      {permissions[PublicStyleSection.ComponentProps] && (
                         <ComponentPropsDefinitionSection
                           studioCtx={studioCtx}
                           component={component}
                           viewCtx={viewCtx}
                         />
                       )}
-                      {canEdit(PublicStyleSection.DataQueries) && (
+                      {permissions[PublicStyleSection.DataQueries] && (
                         <>
                           <ServerQueriesSection
                             component={component}
                             viewCtx={viewCtx}
                           />
-                          {appConfig.enableDataQueries && (
+                          {enableDataQueries && (
                             <ComponentDataQueriesSection
                               component={component}
                               viewCtx={viewCtx}
@@ -154,13 +160,13 @@ export const ComponentTab = observer(function ComponentTab(props: {
                           )}
                         </>
                       )}
-                      {canEdit(PublicStyleSection.States) && (
+                      {permissions[PublicStyleSection.States] && (
                         <VariablesSection
                           component={component}
                           viewCtx={viewCtx}
                         />
                       )}
-                      {canEdit(PublicStyleSection.ComponentVariants) && (
+                      {permissions[PublicStyleSection.ComponentVariants] && (
                         <VariantsPanel
                           studioCtx={studioCtx}
                           viewCtx={viewCtx}
@@ -177,4 +183,4 @@ export const ComponentTab = observer(function ComponentTab(props: {
       </SidebarSection>
     </>
   );
-});
+};

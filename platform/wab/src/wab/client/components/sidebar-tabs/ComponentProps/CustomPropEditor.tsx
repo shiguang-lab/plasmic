@@ -1,3 +1,5 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { useStudioOps } from "@/wab/client/components/sidebar-tabs/ComponentActionsSection";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
@@ -46,6 +48,7 @@ function InnerCustomPropEditorWithViewCtx({
   ccContextData,
   propName,
 }: CustomPropEditorProps & { viewCtx: ViewCtx }) {
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const actionRef = React.useRef<HTMLDivElement>(null);
   const propRef = React.useRef<HTMLDivElement>(null);
   const expsProvider = new TplExpsProvider(viewCtx, tpl);
@@ -145,7 +148,7 @@ export const _testonly = { makeValueEcho };
 
 function useCustomPropEditor(
   sub: SubDeps,
-  containerRef: React.RefObject<HTMLDivElement>,
+  containerRef: React.RefObject<HTMLDivElement | null>,
   studioOps: StudioOps | null,
   value: any,
   onChange: (v: any) => void,
@@ -188,8 +191,6 @@ function useCustomPropEditor(
       if (root.current) {
         root.current.unmount();
         root.current = null;
-      } else if (containerRef.current && sub.ReactDOM.unmountComponentAtNode) {
-        sub.ReactDOM.unmountComponentAtNode(containerRef.current);
       }
     };
   }, []);
@@ -198,7 +199,7 @@ function useCustomPropEditor(
     if (!containerRef.current) {
       return;
     }
-    if (sub.ReactDOMClient && !root.current) {
+    if (!root.current) {
       root.current = sub.ReactDOMClient.createRoot(containerRef.current);
     }
     const renderElement = sub.React.createElement(
@@ -223,11 +224,7 @@ function useCustomPropEditor(
         },
       })),
     );
-    if (root.current) {
-      root.current.render(renderElement);
-    } else {
-      sub.ReactDOM.render(renderElement, containerRef.current);
-    }
+    root.current.render(renderElement);
   }, [
     containerRef.current,
     value,

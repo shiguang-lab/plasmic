@@ -1,3 +1,4 @@
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import sty from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerColumn.module.scss";
 import DataPickerColumnItem from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerColumnItem";
 import {
@@ -31,12 +32,13 @@ import { pathToString } from "@/wab/shared/eval/expression-parser";
 import { ensureKnownInteraction } from "@/wab/shared/model/classes";
 import { mkMetaName } from "@plasmicapp/host";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { notification } from "antd";
 import { observer } from "mobx-react";
 import * as React from "react";
 
 export interface DataPickerColumnProps extends DefaultDataPickerColumnProps {
-  data: Record<string, any>;
+  data: Record<string, any> | undefined;
   columnIndex: number;
   selectedItem: number | undefined;
   isActiveColumn: boolean;
@@ -64,10 +66,13 @@ function ColumnErrorNotice(props: { columnIndex: number; message: string }) {
   );
 }
 
-function DataPickerColumn_(
-  props: DataPickerColumnProps,
-  ref: HTMLElementRefOf<"div">,
-) {
+function DataPickerColumn_(props: DataPickerColumnProps, ref: HTMLElementRefOf<"div">) {
+  return props.data
+    ? <DataPickerColumnContent {...props} data={props.data} rootRef={ref} />
+    : <PlasmicDataPickerColumn root={{ ref }} children={undefined} />;
+}
+
+const DataPickerColumnContent = observer(function DataPickerColumnContent({ rootRef: ref, ...props }: Omit<DataPickerColumnProps, "data"> & { data: Record<string, any>; rootRef: HTMLElementRefOf<"div"> }) {
   const {
     data,
     columnIndex,
@@ -80,12 +85,9 @@ function DataPickerColumn_(
     errorMessage,
     ...rest
   } = props;
-  if (!data) {
-    return <PlasmicDataPickerColumn root={{ ref }} children={undefined} />;
-  }
-
   const studioCtx = useStudioCtx();
   const viewCtx = useViewCtxMaybe();
+  useViewSelection(viewCtx, (state) => state.context);
   const getInteraction = React.useCallback(
     (key: string) => {
       return data["$steps"]?.[mkMetaName(key)]?.interaction;
@@ -110,6 +112,19 @@ function DataPickerColumn_(
       root={{ ref, id: `data-picker-column-${columnIndex}` }}
       {...rest}
       previewSteps={enabledPreviewSteps && isStepsColumn}
+      freeBox={{
+        as: Scrollbar,
+        style: {
+          flex: 1,
+          minHeight: 0,
+          height: "100%",
+          width: "100%",
+          overflow: "hidden",
+        },
+        props: {
+          scrollX: false,
+        },
+      }}
       children={
         errorMessage != null ? (
           <ColumnErrorNotice columnIndex={columnIndex} message={errorMessage} />
@@ -218,7 +233,7 @@ function DataPickerColumn_(
       }}
     />
   );
-}
+});
 
-const DataPickerColumn = observer(React.forwardRef(DataPickerColumn_));
+const DataPickerColumn = React.forwardRef(DataPickerColumn_);
 export default DataPickerColumn;

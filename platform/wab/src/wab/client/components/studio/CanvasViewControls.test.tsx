@@ -1,11 +1,20 @@
+import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { CanvasContentEditorIndex, type CanvasContentEditor, type ContentEditorTarget } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { StudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
+import { createStudioSelectionFixture } from "@/wab/client/__testonly__/studio-selection";
 import { CanvasViewControls } from "@/wab/client/components/studio/CanvasViewControls";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { getArenaFrames } from "@/wab/shared/Arenas";
+import { getArenaFrames, mkArenaFrame, type AnyArena } from "@/wab/shared/Arenas";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import { ChangeRecorder } from "@/wab/shared/core/observable-model";
+import { instUtil } from "@/wab/shared/model/InstUtil";
+import { ensure } from "@/wab/shared/common";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { ComponentType } from "@/wab/shared/core/components";
 import { createSite, getDedicatedArena } from "@/wab/shared/core/sites";
-import { Arena, ArenaFrame } from "@/wab/shared/model/classes";
+import { Arena, type Site } from "@/wab/shared/model/classes";
 import {
   act,
   cleanup,
@@ -20,18 +29,54 @@ import { mock } from "vitest-mock-extended";
 vi.mock("@/wab/client/components/top-bar/ZoomButton", () => ({
   ZoomButton: () => <button>Zoom</button>,
 }));
-afterEach(cleanup);
+const disposals = new Set<() => void>();
+const recorded = new WeakMap<StudioCtx, ChangeRecorder>();
+afterEach(() => { cleanup(); for (const dispose of disposals) { dispose(); } disposals.clear(); });
+
+function scene(count = 1) {
+  const site = createSite();
+  const component = new TplMgr({ site }).addComponent({ name: "Canvas", type: ComponentType.Plain });
+  const frames = Array.from({ length: count }, (_, index) => mkArenaFrame({ site, component, name: `Canvas ${index}`, width: 100, height: 100 }));
+  const arena = new Arena({ name: "Pages", children: frames });
+  site.arenas.push(arena);
+  return { site, arena, frames };
+}
+
+// Existing command mock fixture with a real native arena owner, not an actual StudioCtx.
+function createContext(input: { site: Site; arena: AnyArena } = scene()) {
+  const ctx = mock<StudioCtx>();
+  const modelSnapshots = new ModelSnapshots();
+  const contentEditors = new CanvasContentEditorIndex(() => ctx.viewCtxs);
+  Object.defineProperty(ctx, "activeContentEditorStore", { value: contentEditors.store, configurable: true });
+  disposals.add(() => contentEditors.dispose());
+  const arenaState = new StudioArenaState({ site: input.site, modelSnapshots });
+  arenaState.setCurrent(input.arena);
+  const renderPolicy = new StudioRenderPolicy({ isLive: () => false, isDragging: () => false });
+  const recorder = new ChangeRecorder({ inst: input.site, _instUtil: instUtil });
+  recorded.set(ctx, recorder);
+  Object.defineProperties(ctx, Object.getOwnPropertyDescriptors(createStudioSelectionFixture()));
+  Object.defineProperties(ctx, { arenaState: { value: arenaState }, modelSnapshots: { value: modelSnapshots }, site: { value: input.site }, renderPolicy: { value: renderPolicy } });
+  disposals.add(() => { recorder.dispose(); renderPolicy.dispose(); arenaState.dispose(); modelSnapshots.dispose(); });
+  return ctx;
+}
+function commitArena(ctx: StudioCtx, command: () => void) {
+  const changes = ensure(recorded.get(ctx), "Arena fixture recorder").withRecording(command).changes;
+  ctx.arenaState.deferPublication(() => ctx.modelSnapshots.sync(changes, () => ctx.arenaState.prepareModelCommit(changes)));
+}
 
 it("toggles canvas interaction and reflects changes from other entry points", async () => {
-  const state = observable({ focused: true, interactive: false });
-  const ctx = mock<StudioCtx>();
+  const state = observable({ focused: true });
+  const ctx = createContext();
   Object.defineProperties(ctx, {
     viewCtxs: { value: [] },
     focusedMode: { get: () => state.focused },
-    currentArenaEmpty: { value: false },
     isInteractiveMode: {
-      get: () => state.interactive,
-      set: (value: boolean) => { state.interactive = value; },
+      get: () => ctx.renderPolicy.interactive,
+      set: (value: boolean) => {
+        ctx.renderPolicy.interactive = value;
+        ctx.renderPolicy.prepareInputs();
+        ctx.renderPolicy.publishCommit();
+      },
     },
   });
   ctx.change.mockImplementation(async (fn) => runInAction(fn));
@@ -53,7 +98,7 @@ it("toggles canvas interaction and reflects changes from other entry points", as
   expect(ctx.isInteractiveMode).toBe(false);
   expect(ctx.change).toHaveBeenCalledTimes(2);
 
-  await act(() => runInAction(() => { state.interactive = true; }));
+  await act(() => { ctx.isInteractiveMode = true; });
   expect(toggle.getAttribute("aria-pressed")).toBe("true");
   expect(ctx.refreshFocusedFrameArena).not.toHaveBeenCalled();
   expect(ctx.toggleFocusedMode).not.toHaveBeenCalled();
@@ -71,12 +116,8 @@ it("keeps canvas interaction visible and disabled while the editor is loading", 
 });
 
 it("keeps canvas interaction visible and disabled in an empty artboard group", () => {
-  const ctx = mock<StudioCtx>();
-  Object.defineProperties(ctx, {
-    viewCtxs: { value: [] },
-    currentArena: { value: new Arena({ name: "Empty", children: [] }) },
-    currentArenaEmpty: { value: true },
-  });
+  const ctx = createContext(scene(0));
+  Object.defineProperty(ctx, "viewCtxs", { value: [] });
   render(<AntdConfigProvider productUI><CanvasViewControls studioCtx={ctx} /></AntdConfigProvider>);
   const toggle = screen.getByRole("button", { name: "Interactive" });
   expect(toggle.hasAttribute("disabled")).toBe(true);
@@ -85,16 +126,14 @@ it("keeps canvas interaction visible and disabled in an empty artboard group", (
 });
 
 it("locates the current artboard repeatedly without toggling modes or selection", async () => {
-  const state = observable({ focused: false, empty: false });
-  const ctx = mock<StudioCtx>();
+  const state = observable({ focused: false });
+  const input = scene();
+  const ctx = createContext(input);
   Object.defineProperty(ctx, "viewCtxs", { value: [] });
-  const frame = mock<ArenaFrame>();
-  const arena = new Arena({ name: "Pages", children: [frame] });
+  const frame = ensure(input.frames[0], "First canvas");
   Object.defineProperties(ctx, {
-    currentArena: { value: arena },
     canvasFocusActive: { get: () => state.focused },
     focusedMode: { get: () => state.focused },
-    currentArenaEmpty: { get: () => state.empty },
   });
   render(
     <AntdConfigProvider productUI>
@@ -126,11 +165,7 @@ it("locates the current artboard repeatedly without toggling modes or selection"
   expect(ctx.returnToCanvasOverview).toHaveBeenCalledTimes(1);
   expect(ctx.turnFocusedModeOff).toHaveBeenCalledTimes(1);
   expect(ctx.tryZoomToFitArena).toHaveBeenCalledTimes(1);
-  await act(() =>
-    runInAction(() => {
-      state.empty = true;
-    }),
-  );
+  await act(() => commitArena(ctx, () => { input.arena.children.splice(0); }));
   expect(
     screen
       .getByRole("button", { name: "Locate current canvas" })
@@ -144,17 +179,15 @@ it("locates the current artboard repeatedly without toggling modes or selection"
 });
 
 it("locates a standalone page without changing its focus mode", () => {
-  const ctx = mock<StudioCtx>();
-  Object.defineProperty(ctx, "viewCtxs", { value: [] });
   const site = createSite();
   const page = new TplMgr({ site }).addComponent({
     name: "Customers",
     type: ComponentType.Page,
   });
-  const arena = getDedicatedArena(site, page);
+  const arena = ensure(getDedicatedArena(site, page), "Page arena");
+  const ctx = createContext({ site, arena });
+  Object.defineProperty(ctx, "viewCtxs", { value: [] });
   Object.defineProperties(ctx, {
-    currentArena: { value: arena },
-    currentArenaEmpty: { value: false },
     focusedMode: { value: false },
     canvasFocusActive: { value: false },
   });
@@ -175,16 +208,10 @@ it("locates a standalone page without changing its focus mode", () => {
 });
 
 it("locates the active canvas instead of the first canvas in the arena", () => {
-  const ctx = mock<StudioCtx>();
+  const input = scene(2);
+  const ctx = createContext(input);
   Object.defineProperty(ctx, "viewCtxs", { value: [] });
-  const first = mock<ArenaFrame>();
-  const active = mock<ArenaFrame>();
-  Object.defineProperties(ctx, {
-    currentArena: {
-      value: new Arena({ name: "Pages", children: [first, active] }),
-    },
-    currentArenaEmpty: { value: false },
-  });
+  const active = ensure(input.frames[1], "Active canvas");
   ctx.focusedContentFrame.mockReturnValue(active);
   render(
     <AntdConfigProvider productUI>
@@ -198,14 +225,15 @@ it("locates the active canvas instead of the first canvas in the arena", () => {
 });
 
 it("uses content navigation without leaving the active editing scope", () => {
-  const ctx = mock<StudioCtx>();
-  const frame = mock<ArenaFrame>();
+  const ctx = createContext();
   const locate = vi.fn();
-  Object.defineProperties(ctx, {
-    viewCtxs: { value: [{ contentEditor: { target: {}, locate } }] },
-    currentArena: { value: new Arena({ name: "Pages", children: [frame] }) },
-    currentArenaEmpty: { value: false },
-  });
+  const view = mock<ViewCtx>(), editor = mock<CanvasContentEditor>();
+  Object.defineProperties(editor, { target: { value: mock<ContentEditorTarget>() }, viewCtx: { value: view } });
+  editor.locate.mockImplementation(locate);
+  Object.defineProperty(view, "contentEditor", { value: editor });
+  const index = new CanvasContentEditorIndex(() => [view]); index.sync();
+  Object.defineProperties(ctx, { viewCtxs: { value: [view] }, activeContentEditorStore: { value: index.store, configurable: true } });
+  disposals.add(() => index.dispose());
   render(<AntdConfigProvider productUI><CanvasViewControls studioCtx={ctx} /></AntdConfigProvider>);
   fireEvent.click(screen.getByRole("button", { name: "Locate current canvas" }));
   expect(locate).toHaveBeenCalledWith();
@@ -216,20 +244,16 @@ it("uses content navigation without leaving the active editing scope", () => {
 });
 
 it("toggles the full page height view and reflects its pressed state", async () => {
-  const state = observable({ full: false });
-  const ctx = mock<StudioCtx>();
-  const frame = mock<ArenaFrame>();
+  const ctx = createContext();
   Object.defineProperties(ctx, {
     viewCtxs: { value: [] },
-    currentArena: { value: new Arena({ name: "Pages", children: [frame] }) },
-    currentArenaEmpty: { value: false },
-    fullPageHeight: { get: () => state.full },
+    fullPageHeight: { get: () => ctx.renderPolicy.fullPageHeight },
   });
-  ctx.toggleFullPageHeight.mockImplementation(() =>
-    runInAction(() => {
-      state.full = !state.full;
-    }),
-  );
+  ctx.toggleFullPageHeight.mockImplementation(() => {
+    ctx.renderPolicy.toggleFullPageHeight();
+    ctx.renderPolicy.prepareInputs();
+    ctx.renderPolicy.publishCommit();
+  });
   render(
     <AntdConfigProvider productUI>
       <CanvasViewControls studioCtx={ctx} />

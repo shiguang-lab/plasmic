@@ -1,64 +1,81 @@
 import { AnonymousAvatar, Avatar } from "@/wab/client/components/studio/Avatar";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { PlayerData } from "@/wab/client/studio-ctx/multiplayer-ctx";
+import { ensure } from "@/wab/shared/common";
 import { Popover } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 
-export const OnlineCollaborators = observer(
-  ({ studioCtx }: { studioCtx: StudioCtx }) => {
-    const allPlayers = studioCtx.multiplayerCtx.getAllPlayerData();
-    if (allPlayers.length === 0) {
-      return null;
-    }
-    // Keep overflow collaborators reachable without extending the toolbar.
-    const players = allPlayers.slice(0, 3);
-    const extraPlayers = allPlayers.slice(3);
-    const playerAvatar = ([playerId, playerData]: [number, PlayerData]) => {
-      // TODO: https://app.shortcut.com/plasmic/story/37322
-      const canBeFollowed = !playerData.viewInfo?.arenaInfo?.focused;
-      const styleOverrides = {
-        className: "AvatarPlayer",
-        style: {
-          borderColor: canBeFollowed ? playerData.color : undefined,
-        } as React.CSSProperties,
-        tooltipPlacement: "bottom" as const,
-      };
-      const onClick = canBeFollowed
-        ? () => studioCtx.setWatchPlayerId(playerId)
-        : undefined;
-      return playerData.type === "AnonUser" ? (
-        <AnonymousAvatar {...styleOverrides} key={playerId} onClick={onClick} />
-      ) : (
-        <Avatar
-          user={playerData.user}
-          {...styleOverrides}
-          key={playerId}
-          onClick={onClick}
-        />
-      );
-    };
-    return (
-      <div
-        style={{ display: "flex", alignItems: "center", gap: 4 }}
-        data-test-id="editor-collaborators"
-      >
-        {players.map(playerAvatar)}
-        {extraPlayers.length > 0 && (
-          <Popover
-            placement="bottomRight"
-            content={
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {extraPlayers.map(playerAvatar)}
-              </div>
-            }
-          >
-            <div className="Avatar AvatarPlayerSize">
-              +{extraPlayers.length}
+const PlayerAvatar = React.memo(function PlayerAvatar({
+  studioCtx,
+  playerId,
+}: {
+  studioCtx: StudioCtx;
+  playerId: number;
+}) {
+  const [type, user, color, focused] = useStore(
+    studioCtx.multiplayerCtx.store,
+    useShallow((state) => {
+      const player = state.players.get(playerId);
+      return [
+        player?.type,
+        player?.user,
+        player?.color,
+        player?.viewInfo?.arenaInfo?.focused,
+      ] as const;
+    }),
+  );
+  if (!type) {
+    return null;
+  }
+  const canBeFollowed = !focused;
+  const props = {
+    className: "AvatarPlayer",
+    style: {
+      borderColor: canBeFollowed ? color : undefined,
+    } as React.CSSProperties,
+    tooltipPlacement: "bottom" as const,
+    onClick: canBeFollowed
+      ? () => studioCtx.setWatchPlayerId(playerId)
+      : undefined,
+  };
+  return type === "AnonUser" ? (
+    <AnonymousAvatar {...props} />
+  ) : (
+    <Avatar user={ensure(user, "Missing collaborator user")} {...props} />
+  );
+});
+
+export function OnlineCollaborators({ studioCtx }: { studioCtx: StudioCtx }) {
+  const playerIds = useStore(
+    studioCtx.multiplayerCtx.store,
+    (state) => state.playerIds,
+  );
+  if (!playerIds.length) {
+    return null;
+  }
+  const avatars = (ids: readonly number[]) =>
+    ids.map((playerId) => (
+      <PlayerAvatar studioCtx={studioCtx} playerId={playerId} key={playerId} />
+    ));
+  return (
+    <div
+      style={{ display: "flex", alignItems: "center", gap: 4 }}
+      data-test-id="editor-collaborators"
+    >
+      {avatars(playerIds.slice(0, 3))}
+      {playerIds.length > 3 && (
+        <Popover
+          placement="bottomRight"
+          content={
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {avatars(playerIds.slice(3))}
             </div>
-          </Popover>
-        )}
-      </div>
-    );
-  },
-);
+          }
+        >
+          <div className="Avatar AvatarPlayerSize">+{playerIds.length - 3}</div>
+        </Popover>
+      )}
+    </div>
+  );
+}

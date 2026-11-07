@@ -54,6 +54,7 @@ function ChevronToggle(props: {
   const { t: uiT } = useI18n();
   const token = useTheme();
   const { expanded, onClick, sticky, noBorder, fullyCollapsedBody } = props;
+  const labelText = expanded ? uiT("Show less") : uiT("More options");
   return (
     <div
       data-show-extra-content={String(expanded)}
@@ -75,9 +76,10 @@ function ChevronToggle(props: {
         })}
         onClick={onClick}
         data-test-id="collapse"
-        aria-label={expanded ? uiT("Show less") : uiT("Show more")}
+        aria-label={labelText}
         aria-expanded={expanded}
       >
+        <span className={styles.collapsingToggleText}>{labelText}</span>
         <Icon icon={expanded ? ChevronUpsvgIcon : ChevronDownsvgIcon} />
       </button>
     </div>
@@ -117,13 +119,15 @@ export function useMaybeCollapsibleRows({
       _rows: (MaybeCollapsibleRow | undefined | null | false)[],
       opts?: CollapsingOptions,
     ) => {
-      const rows = _rows.filter((x) => !!x) as MaybeCollapsibleRow[];
+      const rows = _rows.filter(
+        (x): x is MaybeCollapsibleRow => !!x && !isEmptyReactNode(x.content),
+      );
       const showExpansionHandle = rows.some(
-        (it) => it.content && it.collapsible,
+        (it) => it.collapsible && !isEmptyReactNode(it.content),
       );
 
       const renderableRows = rows.filter(
-        (it) => it.content && (showMore || !it.collapsible),
+        (it) => !isEmptyReactNode(it.content) && (showMore || !it.collapsible),
       );
 
       if (!showMore && renderableRows.length === 0) {
@@ -136,7 +140,11 @@ export function useMaybeCollapsibleRows({
 
       return [
         ...renderableRows.map((it, i) =>
-          React.cloneElement(it.content as ReactElement, { key: i }),
+          React.isValidElement(it.content)
+            ? React.cloneElement(it.content, { key: i })
+            : (
+                <React.Fragment key={i}>{it.content}</React.Fragment>
+              ),
         ),
         showExpansionHandle && (
           <React.Fragment key="showMore">
@@ -200,7 +208,7 @@ interface SidebarSectionProps extends Omit<
   isHeaderActive?: boolean;
   defaultExtraContentExpanded?: boolean;
   oneLiner?: boolean;
-  makeHeaderMenu?: () => React.ReactElement;
+  makeHeaderMenu?: () => React.ReactElement<import("antd").MenuProps>;
 }
 
 export type SidebarSectionHandle = {
@@ -246,17 +254,6 @@ export function SidebarSection_(
 ) {
   const hasHeader = title || controls;
   const [expanded, setExpanded] = React.useState(defaultExpanded ?? true);
-  const showEmptyDescription =
-    emptyBody && !isEmptyReactNode(emptyDescription as any);
-  const hasBodyContent =
-    showEmptyDescription || (!isEmptyReactNode(children as any) && !emptyBody);
-  const showBodyContent = expanded && hasBodyContent;
-
-  useEffect(() => {
-    // Re-open when the first item replaces the empty description, and keep the
-    // section visibility in sync when all body content disappears.
-    setExpanded(hasBodyContent);
-  }, [hasBodyContent, emptyBody]);
 
   const {
     isFullyCollapsed,
@@ -275,6 +272,35 @@ export function SidebarSection_(
     noBorder: true,
   });
 
+  const renderableChildren =
+    typeof children === "function"
+      ? children(renderMaybeCollapsibleRows)
+      : children;
+
+  const isBodyEmpty = emptyBody || isEmptyReactNode(renderableChildren as any);
+  const showEmptyDescription =
+    isBodyEmpty && !isEmptyReactNode(emptyDescription as any);
+  const hasBodyContent =
+    showEmptyDescription || !isBodyEmpty;
+  const showBodyContent = expanded && hasBodyContent;
+
+  const isFirstMount = React.useRef(true);
+  const prevHasBodyContent = React.useRef(hasBodyContent);
+
+  useEffect(() => {
+    // On initial mount, preserve caller's explicit defaultExpanded choice.
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    // Re-open when the first item replaces the empty description, and keep the
+    // section visibility in sync when all body content disappears.
+    if (prevHasBodyContent.current !== hasBodyContent) {
+      prevHasBodyContent.current = hasBodyContent;
+      setExpanded(hasBodyContent);
+    }
+  }, [hasBodyContent]);
+
   useImperativeHandle(
     ref,
     () => ({
@@ -289,11 +315,6 @@ export function SidebarSection_(
     }),
     [],
   );
-
-  const renderableChildren =
-    typeof children === "function"
-      ? children(renderMaybeCollapsibleRows)
-      : children;
 
   const scrollableBody = scrollable || maxHeight !== undefined;
   const Body = scrollableBody ? Scrollbar : "div";

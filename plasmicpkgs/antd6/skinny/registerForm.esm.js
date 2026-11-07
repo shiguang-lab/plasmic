@@ -1,5 +1,5 @@
 import { d as buttonComponentName, j as formComponentName } from './names-DQIzgrvq.esm.js';
-import { b as arrayEq, r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { b as arrayEq, r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import { InputType, formHelpers } from './Form.esm.js';
 import { FormWrapper as SchemaForm } from './SchemaForm.esm.js';
 import { Input, InputNumber, Radio } from 'antd';
@@ -13,6 +13,7 @@ import { formRuleTypes } from './FormItem.esm.js';
 export { FormItemWrapper } from './FormItem.esm.js';
 export { FormGroup } from './FormGroup.esm.js';
 export { FormListWrapper } from './FormList.esm.js';
+import 'react/jsx-runtime';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -21,7 +22,7 @@ import './contexts-DtHxvgts.esm.js';
 import '@plasmicapp/data-sources';
 import 'classnames';
 import 'dayjs';
-import './canvas-overlay-27tNRB55.esm.js';
+import './canvas-overlay-BZz-_5Mj.esm.js';
 import '@plasmicapp/host';
 import './react-utils-BpvCcwyE.esm.js';
 

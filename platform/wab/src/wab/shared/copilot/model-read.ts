@@ -13,7 +13,7 @@ const fullReadFields = [
 ] as const;
 export const readFields = z.enum([...fullReadFields, "tree", "children", "slots", "editable", "source", "properties", "styles", "attributes", "text"]);
 export const modelReadOptions = {
-  view: z.enum(["tree", "properties", "contract", "context", "full"]).default("tree"),
+  view: z.enum(["tree", "properties", "contract", "context", "full"]).default("tree").describe("Code-component properties expose the public runtime contract; internal editing controls are omitted in every view."),
   depth: z.union([z.number().int().nonnegative(), z.literal("all")]).optional(),
   fields: z.array(readFields).min(1).optional(),
   propNames: z.array(z.string().min(1)).min(1).optional().describe("Instance property names to read; requires view:properties. Omitted properties are not empty."),
@@ -96,8 +96,15 @@ export function registrationContract(value: unknown, seen = new Set<object>()): 
   return result;
 }
 
+export function isEditorOnlyRegistration(value: unknown) {
+  if (!value || typeof value !== "object") { return false; }
+  const meta = value as Record<string, unknown>;
+  return meta.editOnly === true && !meta.uncontrolledProp;
+}
+
 export function withRegisteredContracts(props: Record<string, unknown>[], metadata: Record<string, unknown>) {
-  return props.map((prop) => {
+  return props.flatMap((prop) => {
+    if (isEditorOnlyRegistration(metadata[String(prop.name)])) { return []; }
     prop = { ...prop };
     const registration = registrationContract(metadata[String(prop.name)]);
     if (registration) {
@@ -110,7 +117,7 @@ export function withRegisteredContracts(props: Record<string, unknown>[], metada
       if (prop.options !== undefined && registration.options !== undefined) { delete registration.options; }
       if (registration.defaultValue !== undefined && JSON.stringify(registration.defaultValue) === JSON.stringify(prop.default)) { delete registration.defaultValue; }
     }
-    return registration ? { ...prop, registration } : prop;
+    return [registration ? { ...prop, registration } : prop];
   });
 }
 

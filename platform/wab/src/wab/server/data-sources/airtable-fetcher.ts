@@ -1,6 +1,6 @@
+import { queryToJsonLogic } from "@/wab/shared/query-builder";
 import {
   JSON_LOGIC_REVERSE_OPERATORS,
-  toJsonLogicFormat,
 } from "@/wab/server/data-sources/data-source-utils";
 import { getDefaultConnection } from "@/wab/server/db/DbCon";
 import { DbMgr, SUPER_USER } from "@/wab/server/db/DbMgr";
@@ -15,7 +15,6 @@ import {
   AirtableDataSource,
   FAKE_AIRTABLE_FIELD,
 } from "@/wab/shared/data-sources-meta/airtable-meta";
-import { DATA_SOURCE_QUERY_BUILDER_CONFIG } from "@/wab/shared/data-sources-meta/data-source-registry";
 import {
   DataSourceError,
   Filters,
@@ -24,8 +23,7 @@ import {
   RawPagination,
   fillPagination,
 } from "@/wab/shared/data-sources-meta/data-sources";
-import { buildQueryBuilderConfig } from "@/wab/shared/data-sources/to-sql";
-import { CrudSorting } from "@pankod/refine-core";
+import type { DataSourceSorting } from "@/wab/shared/data-sources-meta/data-sources";
 import {
   DataSourceSchema,
   ManyRowsResult,
@@ -105,6 +103,10 @@ function logicToFormula(logic: FiltersLogic, dateFields: Set<string>): Formula {
   } else if ("!!" in logic) {
     return ["NOT", ["NOT", logicToFormula(logic["!!"], dateFields)]];
   } else if ("in" in logic) {
+    const [operand, values] = logic.in;
+    if (operand !== null && typeof operand === "object" && "var" in operand && Array.isArray(values)) {
+      return ["OR", ...values.map((value) => ["=", processField(operand.var), processFieldValue({field: operand.var, value})] as Formula)];
+    }
     const value = processFieldValue({
       field: logic.in[1]?.["var"],
       value: logic.in[0],
@@ -166,17 +168,11 @@ function logicToFormula(logic: FiltersLogic, dateFields: Set<string>): Formula {
   }
 }
 
-function filtersToAirtableFormula(filters?: Filters) {
+export function filtersToAirtableFormula(filters?: Filters) {
   let logic: FiltersLogic | undefined = undefined;
   const fields = filters?.fields;
   if (filters) {
-    const builderConfig = buildQueryBuilderConfig(
-      DATA_SOURCE_QUERY_BUILDER_CONFIG.airtable,
-      filters.fields,
-    );
-    logic = filters.tree
-      ? toJsonLogicFormat(filters.tree, builderConfig)
-      : filters.logic;
+    logic = filters.tree.rules.length ? queryToJsonLogic(filters.tree, filters.fields) as FiltersLogic : undefined;
   }
   if (!logic || !fields) {
     return undefined;
@@ -184,9 +180,7 @@ function filtersToAirtableFormula(filters?: Filters) {
   const formula = logicToFormula(
     logic,
     new Set(
-      Object.keys(fields).filter((field) => {
-        return fields[field].type === "date";
-      }),
+      fields.filter((field) => field.datatype === "date").map((field) => field.name),
     ),
   );
 
@@ -295,7 +289,7 @@ export class AirtableFetcher {
   async getList(opts: {
     resource: string;
     pagination?: Pagination;
-    sort?: CrudSorting;
+    sort?: DataSourceSorting;
     filters?: Filters;
   }) {
     if (!opts.resource) {

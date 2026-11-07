@@ -7,7 +7,7 @@ import {
 } from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicRowGroup";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import * as React from "react";
-import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
+import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
 export interface RowGroupProps extends Omit<DefaultRowGroupProps, "hasMenu"> {
   style?: React.CSSProperties;

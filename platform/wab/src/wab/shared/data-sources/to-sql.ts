@@ -1,28 +1,15 @@
-import { assert, ensure, substringOccurrencesCount } from "@/wab/shared/common";
-import {
-  DATA_SOURCE_QUERY_BUILDER_CONFIG,
-  GenericDataSource,
-} from "@/wab/shared/data-sources-meta/data-source-registry";
+import { assert, substringOccurrencesCount } from "@/wab/shared/common";
+import { GenericDataSource } from "@/wab/shared/data-sources-meta/data-source-registry";
 import { Filters } from "@/wab/shared/data-sources-meta/data-sources";
 import {
   getDynamicStringSegments,
   isDynamicValue,
 } from "@/wab/shared/dynamic-bindings";
-import {
-  AntdConfig,
-  Utils as QbUtils,
-} from "@react-awesome-query-builder/antd";
-import { merge } from "lodash";
-
-export function buildQueryBuilderConfig(config: any, fields: any) {
-  return {
-    ...merge({}, AntdConfig, config),
-    fields: fields,
-  };
-}
+import { isQueryComplete } from "@/wab/shared/query-builder";
+import { defaultRuleProcessorSQL, formatQuery } from "@react-querybuilder/core";
 
 export function buildSqlStringForFilterTemplateArg(
-  source: GenericDataSource,
+  _source: GenericDataSource,
   template: string,
 ) {
   // We need to temporarily replace the dynamic expressions in order to parse
@@ -50,42 +37,24 @@ export function buildSqlStringForFilterTemplateArg(
     substitutedTemplate = substitutedTemplate.replace(binding, bindingCode);
     return bindingCode;
   });
-  // Fix types from our custom types to normal types
-  substitutedTemplate = substitutedTemplate.replace(
-    /"valueType":\["(boolean|number|datetime|select|date)-custom"\]/g,
-    '"valueType":["$1"]',
+  const filters = JSON.parse(substitutedTemplate) as Filters;
+  if (!filters.tree.rules.length) {
+    return undefined;
+  }
+  assert(
+    isQueryComplete(filters.tree, filters.fields),
+    "Cannot execute an incomplete filter query",
   );
-  const unquotedFilter = JSON.parse(substitutedTemplate) as Filters;
-  // Add quotes for columns in filter to fix upper cases
-  let treeTemplate = JSON.stringify(unquotedFilter.tree);
-  const quotedFields = Object.entries(unquotedFilter.fields).reduce(
-    (quotedKeysObj, [key, value]) => {
-      const quotedKey = `"${key}"`;
-      const regex = new RegExp(`"field":"(${key})"`, "g");
-      treeTemplate = treeTemplate.replace(regex, `"field":"\\"$1\\""`);
-      quotedKeysObj[quotedKey] = value;
-      return quotedKeysObj;
-    },
-    {},
-  );
-  const builderConfig = buildQueryBuilderConfig(
-    DATA_SOURCE_QUERY_BUILDER_CONFIG[source.source],
-    quotedFields,
-  );
-  const tree = JSON.parse(treeTemplate);
-  let sql = tree
-    ? // We don't do `QbUtils.checkTree` because it may remove the dynamic
-      // expressions!
-      QbUtils.sqlFormat(QbUtils.loadTree(tree), builderConfig)
-    : unquotedFilter
-      ? QbUtils.sqlFormat(
-          ensure(
-            QbUtils.loadFromJsonLogic(unquotedFilter, builderConfig),
-            () => `Failed to parse JSON Logic`,
-          ),
-          builderConfig,
-        )
-      : undefined;
+  let sql = formatQuery(filters.tree, {
+    format: "sql",
+    fields: filters.fields,
+    quoteFieldNamesWith: '"',
+    ruleProcessor: (rule, options) =>
+      defaultRuleProcessorSQL(rule, {
+        ...options,
+        parseNumbers: options?.fieldData?.datatype === "number",
+      }),
+  });
   bindingCodes.forEach((bindingCode, i) => {
     if (sql) {
       assert(

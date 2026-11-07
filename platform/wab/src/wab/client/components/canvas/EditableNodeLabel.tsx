@@ -16,11 +16,11 @@ import {
   isKnownArenaFrame,
 } from "@/wab/shared/model/classes";
 import { Tooltip } from "antd";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
 import * as React from "react";
 import { useEffect } from "react";
 
-export const EditableNodeLabel = observer(function EditableNodeLabel_(props: {
+export function EditableNodeLabel(props: {
   studioCtx: StudioCtx;
   viewCtx?: ViewCtx;
   className?: string;
@@ -41,7 +41,7 @@ export const EditableNodeLabel = observer(function EditableNodeLabel_(props: {
     nameable,
   } = props;
 
-  const isRenamingFocused = studioCtx.renamingFocused();
+  const isRenamingFocused = useStore(studioCtx.renamingFocusedStore);
   const textRef = React.useRef<HTMLSpanElement>(null);
   const [editWidth, setEditWidth] = React.useState(75);
 
@@ -69,7 +69,8 @@ export const EditableNodeLabel = observer(function EditableNodeLabel_(props: {
             {nameable && (
               <OnClickAway onDone={onDone}>
                 <div>
-                  <Textbox
+                  <RenameTextbox
+                    nameable={nameable}
                     // We specify a key here to re-mount the Textbox when we
                     // switch to a different node. That makes sure that our
                     // onEdit handler will fire, and the current node is renamed.
@@ -77,13 +78,6 @@ export const EditableNodeLabel = observer(function EditableNodeLabel_(props: {
                     styleType={["seamless", "inverted", "autoheight"]}
                     noOutline
                     style={{ font: "inherit" }}
-                    defaultValue={
-                      isTplSlot(nameable)
-                        ? nameable.param.variable.name
-                        : isKnownArenaFrame(nameable)
-                          ? nameable.container.component.name
-                          : nameable.name || ""
-                    }
                     wrapperProps={{
                       style: {
                         width: editWidth,
@@ -143,4 +137,38 @@ export const EditableNodeLabel = observer(function EditableNodeLabel_(props: {
       }}
     />
   );
-});
+}
+
+/** Capture the input default once for each editing target; drafts own subsequent text. */
+function RenameTextbox({
+  nameable,
+  ...props
+}: React.ComponentProps<typeof Textbox> & {
+  nameable: ArenaFrame | Tpls.TplNamable | TplSlot;
+}) {
+  const [initialName] = React.useState(() =>
+    isTplSlot(nameable)
+      ? nameable.param.variable.name
+      : isKnownArenaFrame(nameable)
+        ? nameable.container.component.name
+        : nameable.name || "",
+  );
+  const finished = React.useRef(false);
+  return (
+    <Textbox
+      {...props}
+      defaultValue={initialName}
+      onEscape={(value) => {
+        finished.current = true;
+        props.onEscape?.(value);
+      }}
+      onEdit={(value) => {
+        // Textbox also commits edited inputs during its unmount cleanup.
+        if (!finished.current) {
+          finished.current = true;
+          props.onEdit?.(value);
+        }
+      }}
+    />
+  );
+}

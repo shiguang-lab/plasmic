@@ -1,3 +1,9 @@
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { useViewEntryForFrame } from "@/wab/client/studio-ctx/arena-state";
+import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { useStore } from "zustand";
+import { createStore } from "zustand/vanilla";
+import { useCanvasTransforming } from "@/wab/client/studio-ctx/viewport-state";
 import { CanvasTransformedBox } from "@/wab/client/components/canvas/CanvasTransformedBox";
 import { useRerenderOnUserBodyChange } from "@/wab/client/components/canvas/UserBodyObserver";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -152,14 +158,19 @@ function _CanvasAction(props: {
   );
 }
 
+const emptyValRootStore = createStore<ValComponent | null>(() => null);
+
 export const CanvasActions = observer(CanvasActions_);
 function CanvasActions_(props: { arena: AnyArena; arenaFrame: ArenaFrame }) {
   const studioCtx = useStudioCtx();
-  const viewCtx = studioCtx.tryGetViewCtxForFrame(props.arenaFrame);
+  useCanvasTransforming(studioCtx);
+  useStudioRenderPolicy(studioCtx, (policy) => policy.devMode);
+  const viewCtx = useViewEntryForFrame(studioCtx, props.arenaFrame)?.view;
 
   useRerenderOnUserBodyChange(studioCtx, viewCtx);
 
-  const valRoot = viewCtx?.frameState.valRoot.get();
+  const valRoot = useStore(viewCtx?.frameState.valRootStore ?? emptyValRootStore);
+  useStudioOverlayState(studioCtx, (state) => state.screenshotting || state.resizeDragging);
   if (!viewCtx || !valRoot || studioCtx.shouldHideUIOverlay()) {
     return null;
   }

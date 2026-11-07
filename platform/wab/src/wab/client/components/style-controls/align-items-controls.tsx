@@ -16,11 +16,9 @@ import RowAlignCenterIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Ro
 import RowAlignEndIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__RowAlignEnd";
 import RowAlignStartIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__RowAlignStart";
 import RowAlignStretchIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__RowAlignStretch";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const AlignItemsControls = observer(
-  class extends StyleComponent<
+export class AlignItemsControls extends StyleComponent<
     StyleComponentProps & {
       prop: "align-items" | "align-self" | "justify-self" | "justify-items";
       dir: string;
@@ -30,7 +28,7 @@ export const AlignItemsControls = observer(
     }
   > {
     render() {
-      const { prop, dir, includeAuto, label, isFlex } = this.props;
+      const { prop, dir, includeAuto, label } = this.props;
       const options = [
         ...(includeAuto ? ["auto"] : []),
         "flex-start",
@@ -53,8 +51,7 @@ export const AlignItemsControls = observer(
         </LabeledToggleButtonGroupItemRow>
       );
     }
-  },
-);
+}
 
 // TODO fix icons when introducing grid
 export const alignItemsIcons = {

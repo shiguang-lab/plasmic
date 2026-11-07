@@ -97,6 +97,13 @@ test("library discovery remains read-only in Preview while installation and upgr
   assert.equal(context.mode, "preview");
 });
 
+test("component review recovery is a model read and does not require edit permission", async t => {
+  const { controller, calls } = fixture(t, "preview");
+  const input = { targets: [{ componentUuid: "page", elementUuid: "region" }], reviewContext: { purpose: "Display records" } };
+  await controller.dispatch("execute", { name: "reviewComponentReuse", input });
+  assert.equal(calls[0].name, "reviewComponentReuse");
+});
+
 test("legacy local workflow state cannot affect status or block an ordinary edit", async (t) => {
   const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-legacy-state-"));
   t.after(() => fs.rm(profile, { recursive: true, force: true }));

@@ -9,8 +9,9 @@ export function createSessionCanvas(registers: ((loader: Registerable) => void)[
   for (const register of registers) {
     register({ registerComponent: (component, meta) => registry.set(component, meta) } as Registerable);
   }
-  return function Canvas({ children, interactive = false }: { children: React.ReactNode; interactive?: boolean }) {
-    const [session] = React.useState(() => new CanvasSessionState());
+  return function Canvas({ children, interactive = false, session: suppliedSession }: { children: React.ReactNode; interactive?: boolean; session?: CanvasSessionState }) {
+    const [ownSession] = React.useState(() => new CanvasSessionState());
+    const session = suppliedSession ?? ownSession;
     const [, redraw] = React.useReducer((version) => version + 1, 0);
     const bind = (nodes: React.ReactNode, parent: string): React.ReactNode => React.Children.map(nodes, (node, index) => {
       if (!React.isValidElement(node)) {return node;}
@@ -24,12 +25,12 @@ export function createSessionCanvas(registers: ((loader: Registerable) => void)[
           controlled: props[state.valueProp] !== undefined && !meta.props[state.valueProp]?.editOnly,
         }));
         if (meta.canvasOverlay && !interactive) {
-          const selection = props.__plasmic_selection_prop__;
+          const selection = props.__canvas;
           session.resolve(instance, "open", props.open, props.defaultOpen);
-          props.previewOpen = session.reveal(instance, "open", props.previewOpen ?? (!!props.open || !!selection?.isSelected && (!meta.canvasOverlay.triggerSlot || selection.selectedSlotName !== meta.canvasOverlay.triggerSlot)));
+          session.reveal(instance, "open", !!props.open || !!selection?.selected && (!meta.canvasOverlay.triggerSlot || selection.slot !== meta.canvasOverlay.triggerSlot));
         }
         const states = applyCanvasSessionState(session, instance, props, specs, interactive, redraw, !!meta.canvasOverlay);
-        props.__plasmic_selection_prop__ = { ...props.__plasmic_selection_prop__, states };
+        props.__canvas = { ...props.__canvas, states };
       } else if (props.children && typeof props.children !== "function") {
         props.children = bind(props.children, instance);
       }

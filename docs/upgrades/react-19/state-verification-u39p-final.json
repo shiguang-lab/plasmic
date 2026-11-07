@@ -1,0 +1,114 @@
+{
+  "milestone": "u39p-final",
+  "status": "all previous failures fixed and targeted passed; final full Studio running; pause only after all gates pass",
+  "roundUniqueChangedFiles": 118,
+  "deltaFilesFromFirstP": 25,
+  "identity": {
+    "sourceHash": "f5ee2c2814a399f884abf7e660baecfeade257bf3c1289bd45be0bdc8d8695a9",
+    "rendererHash": "c8ef5e05304301a9edc728057c920953d2a909e07260650a1c50b1801d801701",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 105092992,
+    "studioArtifactHash": "d8033054c91b73f29ab163f2b30961e6165ae7dcc2c19a648f694b3f9614d718",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "typesBuildAssetsArchive": {
+    "exitCode": 0,
+    "log": "/tmp/plasmic-react19-20261105/u39p-final-build-pipeline-1.log"
+  },
+  "native": {
+    "gp": {
+      "cases": 5,
+      "reopen": true,
+      "viewportChecks": 7,
+      "rendererErrors": 0,
+      "previewErrors": 0,
+      "draftChecks": 3,
+      "docsModes": 2,
+      "docsModelsPerMode": 50,
+      "typeScriptDiagnostics": 0
+    },
+    "complex": {
+      "cases": 6,
+      "reopen": true,
+      "viewportChecks": 7,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    "sourceHash": "f5ee2c2814a399f884abf7e660baecfeade257bf3c1289bd45be0bdc8d8695a9"
+  },
+  "targetedRepairs": {
+    "cms": {
+      "passed": 1,
+      "log": "/tmp/plasmic-react19-20261105/p-cms-db-env-recheck.log",
+      "database": "existing owned PostgreSQL127.0.0.1:55436"
+    },
+    "pRemainingSixSuites": {
+      "files": 6,
+      "passed": 37,
+      "log": "/tmp/plasmic-react19-20261105/p-all-failures-recheck-1.log",
+      "note": "same run QTabs2 initiallyfailed, fixed separately; do not claim whole7 runpassed"
+    },
+    "qTabs": {
+      "distinctPassed": 2,
+      "logs": [
+        "/tmp/plasmic-react19-20261105/q-component-tabs-final-tests.log",
+        "/tmp/plasmic-react19-20261105/q-component-name-final-tests.log"
+      ],
+      "note": "PageSettings passed in first and name/permission passed final filtered run; no added skip in final full command"
+    },
+    "lint": {
+      "initial25": "2shadowerrors fixed, original9warnings retained",
+      "final2": "exit0/0errors/0warnings",
+      "logs": [
+        "/tmp/plasmic-react19-20261105/round-final-lint.log",
+        "/tmp/plasmic-react19-20261105/round-final-lint-delta.log"
+      ]
+    }
+  },
+  "firstFullStudio": {
+    "sourceHash": "4d5c18c8f3816d43b9b0fa2afba5c21a78560b466fe355e56fa2b6f0b3b3b52b",
+    "exitCode": 1,
+    "seconds": 1357.42,
+    "summary": [
+      "Test Files  7 failed | 705 passed (712)",
+      "Tests  22 failed | 5241 passed | 4 skipped (5267)",
+      "Duration  1349.90s (transform 107.36s, setup 514.53s, import 1297.86s, tests 671.06s, environment 145.25s)"
+    ],
+    "failedSuites": [
+      "src/wab/client/components/canvas/canvas-cache.test.ts",
+      "src/wab/client/components/canvas/canvas-lifecycle.test.ts",
+      "src/wab/client/components/cms/CmsEntryDetails.integration.test.tsx",
+      "src/wab/client/components/sidebar-tabs/ProjectPanel/ProjectPanelTop.test.tsx",
+      "src/wab/client/components/sidebar-tabs/SimplifiedCodeComponentModeSection.test.tsx",
+      "src/wab/client/components/variants/SuperComponentVariantsSection.test.tsx",
+      "src/wab/client/studio-ctx/varianted-style-context.test.tsx"
+    ],
+    "sourceUnchanged": true
+  },
+  "fullStudio": {
+    "status": "running",
+    "command": "/tmp/plasmic-react19-20261105/u39p-final-full-studio-command.json",
+    "log": "/tmp/plasmic-react19-20261105/u39p-final-full-studio.log",
+    "databaseEnv": "existing owned55436; no new environment"
+  },
+  "pause": "Requested only when all current work checks pass; no new migration batches",
+  "migration": "incomplete; remaining raw count must be rescanned after final checks",
+  "privateDrafts": "lint11 and frame6 held and unintegrated; not counted as completed"
+}

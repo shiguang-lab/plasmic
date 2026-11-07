@@ -262,7 +262,6 @@ const $$ = {};
 
 
 
-
     function PlasmicHomepage__RenderFunc(
       props: {
         variants: PlasmicHomepage__VariantsArgs,
@@ -539,7 +538,8 @@ declare module '*.module.css' {
 }
       
       :where(.root_reset_1234567890) {
-      font-family: var(--mixin-Gu10NrJLTV7X_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-Gu10NrJLTV7X_font-family);
 font-size: var(--mixin-Gu10NrJLTV7X_font-size);
 font-weight: var(--mixin-Gu10NrJLTV7X_font-weight);
 font-style: var(--mixin-Gu10NrJLTV7X_font-style);
@@ -693,6 +693,7 @@ line-height: var(--mixin-x7ipGuQGGI-a_line-height);
   
 --- plasmic__default_style.css ---
 
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.plasmic_default__all) {   display: block;
   white-space: inherit;
   grid-row: auto;
@@ -1263,7 +1264,6 @@ const $$ = {};
 
 
 
-
     function PlasmicHomepage__RenderFunc(
       props: {
         variants: PlasmicHomepage__VariantsArgs,
@@ -1539,6 +1539,7 @@ declare module '*.module.css' {
   }
 }
       
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.all) {   display: block;
   white-space: inherit;
   grid-row: auto;
@@ -1829,7 +1830,8 @@ declare module '*.module.css' {
 .plasmic_page_wrapper > * { height: auto !important; }
 .__wab_expr_html_text { white-space: normal; }
       :where(.root_reset_1234567890) {
-      font-family: var(--mixin-Gu10NrJLTV7X_font-family);
+      box-sizing: border-box;
+font-family: var(--mixin-Gu10NrJLTV7X_font-family);
 font-size: var(--mixin-Gu10NrJLTV7X_font-size);
 font-weight: var(--mixin-Gu10NrJLTV7X_font-weight);
 font-style: var(--mixin-Gu10NrJLTV7X_font-style);
@@ -1983,6 +1985,7 @@ line-height: var(--mixin-x7ipGuQGGI-a_line-height);
   
 --- plasmic__default_style.css ---
 
+        :where(*, *::before, *::after) { box-sizing: border-box; }
         :where(.all) {   display: block;
   white-space: inherit;
   grid-row: auto;

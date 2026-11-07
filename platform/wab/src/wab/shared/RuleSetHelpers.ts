@@ -3,11 +3,12 @@ import { isKnownTplTag, TplNode } from "@/wab/shared/model/classes";
 import { DeepReadonly } from "@/wab/commons/types";
 import { assert } from "@/wab/shared/common";
 import {
+  CONTENT_LAYOUT_DEFAULTS,
   getAllDefinedStyles,
   typographyCssProps,
 } from "@/wab/shared/core/style-props";
 import * as css from "@/wab/shared/css";
-import { Mixin, RuleSet } from "@/wab/shared/model/classes";
+import { Mixin, RuleSet, Theme, ThemeLayoutSettings } from "@/wab/shared/model/classes";
 import {
   makeReadonlySizeAwareExpProxy,
   makeSizeAwareExpProxy,
@@ -44,6 +45,16 @@ export type ReadonlyIRuleSetHelpersX = Pick<
   "has" | "get" | "getRaw" | "props"
 >;
 
+/** Raw lookup shared by live helpers and finite installed model snapshots. */
+export function getRuleSetRawValue(values: Readonly<RuleSet["values"]>, prop: string): string | undefined {
+  return values[css.normProp(prop)];
+}
+
+/** The original truthy raw value or normalized CSS initial for a real tag. */
+export function getRuleSetValueOrInitial(raw: string | undefined, prop: string, forTag: string): string {
+  return raw || css.getCssInitial(css.normProp(prop), forTag);
+}
+
 export class RuleSetHelpers implements IRuleSetHelpersX {
   constructor(
     private readonly _rs: RuleSet,
@@ -57,15 +68,11 @@ export class RuleSetHelpers implements IRuleSetHelpersX {
   }
 
   getRaw(prop: /*TWZ*/ string): string | undefined {
-    return this._rs.values[css.normProp(prop)];
+    return getRuleSetRawValue(this._rs.values, prop);
   }
 
   get(prop: /*TWZ*/ string): string {
-    return this.getRaw(prop) || this.getCssInitial(prop);
-  }
-
-  private getCssInitial(prop: string) {
-    return css.getCssInitial(css.normProp(prop), this._forTag);
+    return getRuleSetValueOrInitial(this.getRaw(prop), prop, this._forTag);
   }
 
   props() {
@@ -145,6 +152,20 @@ export function extractStyles(
         fromExp.clear(sn);
       }
     }
+  }
+}
+
+/** Existing document-layout defaults over its actual materialized ruleset. */
+export class ThemeLayoutRuleSetHelpers extends RuleSetHelpers {
+  constructor(private readonly layout: ThemeLayoutSettings, private readonly theme?: Theme | null) {
+    super(layout.rs, "div");
+  }
+  set(prop: string, value: string) {
+    if (this.theme && !this.theme.layout) { this.theme.layout = this.layout; }
+    super.set(prop, value);
+  }
+  get(prop: string): string {
+    return this.getRaw(prop) ?? CONTENT_LAYOUT_DEFAULTS[prop];
   }
 }
 

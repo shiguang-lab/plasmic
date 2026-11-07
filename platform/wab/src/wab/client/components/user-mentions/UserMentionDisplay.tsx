@@ -3,7 +3,7 @@ import {
   PlasmicUserMentionDisplay,
 } from "@/wab/client/plasmic/plasmic_kit_user_mentions/PlasmicUserMentionDisplay";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { getUniqueUsersFromApiPermissions } from "@/wab/shared/perms";
+import { useStore } from "zustand";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import * as React from "react";
 
@@ -19,11 +19,7 @@ function UserMentionDisplay_(
   const { email, defaultEmailDisplay, ...plasmicProps } = props;
 
   const studioCtx = useStudioCtx();
-  const users = React.useMemo(
-    () => getUniqueUsersFromApiPermissions(studioCtx.siteInfo.perms),
-    [studioCtx.siteInfo.perms],
-  );
-  const mentionedUser = users.find((user) => user.email === email);
+  const mentionedUser = useStore(studioCtx.projectMetadataStore, (state) => state.mentionUsers.find((user) => user.email === email));
 
   if (!mentionedUser) {
     return defaultEmailDisplay;

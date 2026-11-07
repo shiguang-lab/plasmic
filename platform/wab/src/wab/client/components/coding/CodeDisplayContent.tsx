@@ -9,6 +9,7 @@ import darkTheme from "prism-react-renderer/themes/vsDark";
 import React from "react";
 
 export function CodeDisplayContent(props: CodeDisplayProps) {
+  "use memo";
   const { children, language } = props;
   const { appearance } = useUiAppearance();
   return (
@@ -24,13 +25,15 @@ export function CodeDisplayContent(props: CodeDisplayProps) {
           style={{ ...style, ...props.style }}
         >
           <pre className={className} style={style}>
-            {tokens.map((line, i) => (
-              <div {...getLineProps({ line, key: i })}>
-                {line.map((token, key) => (
-                  <span {...getTokenProps({ token, key })} />
-                ))}
-              </div>
-            ))}
+            {tokens.map((line, i) => {
+              const { key: lineKey, ...lineProps } = getLineProps({ line, key: i });
+              return <div key={lineKey} {...lineProps}>
+                {line.map((token, key) => {
+                  const { key: tokenKey, ...tokenProps } = getTokenProps({ token, key });
+                  return <span key={tokenKey} {...tokenProps} />;
+                })}
+              </div>;
+            })}
           </pre>
         </Scrollbar>
       )}

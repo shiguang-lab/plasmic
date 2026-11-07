@@ -36,7 +36,7 @@ import {
 } from "antd";
 import { createStyles } from "antd-style";
 import { union, uniqBy } from "lodash";
-import { observer } from "mobx-react";
+     
 import * as React from "react";
 
 interface NewProjectModalProps {
@@ -59,7 +59,7 @@ const useStyles = createStyles(({ token }) => ({
   },
 }));
 
-const NewProjectModal = observer(function NewProjectModal({
+const NewProjectModal = function NewProjectModal({
   workspaceId,
   onCancel,
 }: NewProjectModalProps) {
@@ -375,6 +375,6 @@ const NewProjectModal = observer(function NewProjectModal({
       </Scrollbar>
     </Drawer>
   );
-});
+};
 
 export default NewProjectModal;

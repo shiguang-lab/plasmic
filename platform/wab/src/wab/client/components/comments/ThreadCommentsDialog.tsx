@@ -1,16 +1,18 @@
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import CommentPostForm from "@/wab/client/components/comments/CommentPostForm";
 import { FloatingWindow } from "@/wab/client/components/widgets/FloatingWindow";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   DefaultThreadCommentsDialogProps,
   PlasmicThreadCommentsDialog,
 } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicThreadCommentsDialog";
-import { canUpdateHistory } from "@/wab/client/studio-ctx/StudioCtx";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { OpenedThread } from "@/wab/client/studio-ctx/comments-ctx";
+import { canUpdateHistory } from "@/wab/client/studio-ctx/StudioCtx";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
 import { summarizeTpl } from "@/wab/shared/core/tpls";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
 
 export type ThreadCommentsDialogProps = DefaultThreadCommentsDialogProps & {
   openedThread: OpenedThread;
@@ -21,29 +23,34 @@ export const ThreadCommentsDialog = observer(function ThreadCommentsDialog({
   ...props
 }: ThreadCommentsDialogProps) {
   const studioCtx = useStudioCtx();
+  const focusedMode = useStudioArena(studioCtx, (state) => state.focusedMode);
   const commentsCtx = studioCtx.commentsCtx;
 
-  const selectedThread = React.useMemo(
-    () =>
-      commentsCtx
-        .computedData()
-        .allThreads.find((t) => t.id === openedThread.threadId),
-    [commentsCtx.computedData().allThreads, openedThread.threadId],
+  const selectedThread = useStore(commentsCtx.store, (state) =>
+    state.threadsById.get(openedThread.threadId),
   );
+  const hasLoaded = useStore(
+    commentsCtx.requestStore,
+    (state) => state.hasLoaded,
+  );
+  React.useEffect(() => {
+    if (hasLoaded && !selectedThread) {
+      commentsCtx.closeCommentThreadDialog();
+    }
+  }, [commentsCtx, hasLoaded, selectedThread]);
   if (!selectedThread) {
-    commentsCtx.closeCommentThreadDialog();
     return null;
   }
   const subjectInfo = selectedThread.subjectInfo;
 
   const handleClickOutside = () => {
-    if (!openedThread.interacted) {
+    if (!commentsCtx.hasDialogInteraction(openedThread)) {
       commentsCtx.closeCommentThreadDialog();
     }
   };
 
   const markThreadAsInteracted = () => {
-    openedThread.interacted = true;
+    commentsCtx.markDialogInteracted(openedThread);
   };
 
   const canUpdateThreadHistory = canUpdateHistory(studioCtx, selectedThread);
@@ -52,7 +59,7 @@ export const ThreadCommentsDialog = observer(function ThreadCommentsDialog({
     <OnClickAway onDone={handleClickOutside}>
       <FloatingWindow
         handleSelector=".CommentDialogDragHandle"
-        focusedMode={studioCtx.focusedMode}
+        focusedMode={focusedMode}
         initialWidth={300}
         onClick={markThreadAsInteracted}
         onKeyDown={markThreadAsInteracted}

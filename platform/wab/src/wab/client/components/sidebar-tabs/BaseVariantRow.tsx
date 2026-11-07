@@ -1,3 +1,5 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
 import { VariantAnimations } from "@/wab/client/components/sidebar-tabs/VariantAnimations";
 import { SelectorTags } from "@/wab/client/components/sidebar/RuleSetControls";
 import VariantRow from "@/wab/client/components/variants/VariantRow";
@@ -21,6 +23,7 @@ export const BaseVariantRow = observer(function BaseVariantRow(
   props: BaseVariantRowProps,
 ) {
   const { tpl, studioCtx, viewCtx, pinState, onClick } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
 
   // Get the target RuleSet for the non-private variant combo
   const vtm = viewCtx.variantTplMgr();

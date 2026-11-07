@@ -1,8 +1,7 @@
+import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { Dropdown } from "antd";
 import React from "react";
 import {
-  CanvasOverlayProps,
-  previewOpenProp,
   useCanvasOverlay,
 } from "./canvas-overlay";
 import { AntdMenu as Menu, MENU_ITEM_TYPE } from "./registerMenu";
@@ -39,7 +38,7 @@ const canvasOverlay = { triggerSlot: "children" };
 
 export function AntdDropdown(
   props: Omit<React.ComponentProps<typeof Dropdown>, "menu" | "overlay"> &
-    CanvasOverlayProps & {
+    PlasmicCanvasProps & {
       onAction?: (key: string) => void;
       menuItems?: () => React.ReactNode;
       useMenuItemsSlot?: boolean;
@@ -104,7 +103,6 @@ export function registerDropdown(loader?: Registerable) {
     ],
     displayName: "Dropdown",
     props: {
-      previewOpen: previewOpenProp,
       menuItems: {
         type: "slot",
         displayName: "Menu items",
@@ -183,10 +181,11 @@ export function registerDropdown(loader?: Registerable) {
       },
       open: {
         type: "boolean",
-        description: "Toggle visibility of dropdown menu in Plasmic Editor",
-        editOnly: true,
-        uncontrolledProp: "fakeOpen",
-        defaultValueHint: false,
+        description: "Controlled open state of the dropdown menu. Leave unset for the native trigger.",
+      },
+      onOpenChange: {
+        type: "eventHandler",
+        argTypes: [{ name: "open", type: "boolean" }, { name: "info", type: "object" }],
       },
       disabled: {
         type: "boolean",

@@ -163,7 +163,7 @@ it("uses a discovered provider ID to install the library, then exposes its proje
   });
   const registry = vi.spyOn(studioCtx, "updateCcRegistry").mockResolvedValue(undefined);
   const match = (await call("searchLibraryComponents", { query: "AccountBook" })).components[0];
-  expect(await call("installLibrary", { projectId: match.projectId })).toEqual({ projectId: icons.projectId, version: icons.version, installed: true, componentReview: { status: "unavailable", indexed: 0, total: 0, elapsedMs: 0, suggestions: [] } });
+  expect(await call("installLibrary", { projectId: match.projectId })).toEqual({ projectId: icons.projectId, version: icons.version, installed: true, componentReview: { status: "unavailable", indexed: null, total: null, elapsedMs: 0, suggestions: [] } });
   expect(add).toHaveBeenCalledWith(icons.projectId);
   expect(registry).toHaveBeenCalledWith(["antd-icons"]);
   expect((await call("listLibraries", { installed: true })).libraries[0].installedProjects[0].version).toBe(icons.version);

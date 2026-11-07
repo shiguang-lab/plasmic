@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/plasmic-keen-slider",
-  "version": "0.0.105",
+  "version": "0.1.0",
   "description": "Plasmic Keen slider components.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -28,7 +28,7 @@
     "analyze": "size-limit --why"
   },
   "peerDependencies": {
-    "react": ">=16"
+    "react": "^19.3.1"
   },
   "size-limit": [
     {
@@ -45,14 +45,14 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@types/resize-observer-browser": "^0.1.7",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "tsdx": "catalog:",
     "tslib": "catalog:"
   },
   "dependencies": {
     "@seznam/compose-react-refs": "^1.0.6",
-    "antd": "^5.8.4",
+    "antd": "6.7.0",
     "keen-slider": "^6.8.6"
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/plasmic-mailchimp",
-  "version": "0.0.39",
+  "version": "0.1.0",
   "description": "Plasmic Mailchimp components.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -28,7 +28,7 @@
     "analyze": "size-limit --why"
   },
   "peerDependencies": {
-    "react": ">=16"
+    "react": "^19.3.1"
   },
   "size-limit": [
     {
@@ -44,8 +44,8 @@
     "@plasmicapp/host": "workspace:*",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "tsdx": "catalog:",
     "tslib": "catalog:"
   }

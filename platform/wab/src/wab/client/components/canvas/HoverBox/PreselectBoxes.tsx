@@ -1,3 +1,11 @@
+import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { useStore } from "zustand";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useHoveredViewCtx, useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
+import { useCanvasTransforming } from "@/wab/client/studio-ctx/viewport-state";
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { EditableNodeLabel } from "@/wab/client/components/canvas/EditableNodeLabel";
 import { getActiveCanvasModal, getCanvasModalSelectionRoot } from "@/wab/client/components/canvas/canvas-modal-scope";
 import styles from "@/wab/client/components/canvas/HoverBox/HoverBox.module.scss";
@@ -17,7 +25,6 @@ import {
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { summarizeFocusObj } from "@/wab/client/utils/tpl-client-utils";
-import { getArenaFrames } from "@/wab/shared/Arenas";
 import { ensure } from "@/wab/shared/common";
 import {
   SQ,
@@ -33,15 +40,13 @@ import React from "react";
 export const PreselectBoxes = observer(PreselectBoxes_);
 function PreselectBoxes_() {
   const studioCtx = useStudioCtx();
+  useContentEditorScope(studioCtx);
+  const transforming = useCanvasTransforming(studioCtx);
+  const ancestorsHoverBoxes = useStudioOverlayState(studioCtx, (state) => state.ancestorsHoverBoxes);
   const forceUpdate = useForceUpdate();
 
-  const viewCtx = studioCtx.viewCtxs
-    // read through all ViewCtx's hovered dom element so that we are
-    // subscribed to any hover change.
-    .filter((vc) => !!vc.$hoveredDomElt())
-    .find((vc) =>
-      getArenaFrames(studioCtx.currentArena).includes(vc.arenaFrame()),
-    );
+  const viewCtx = useHoveredViewCtx(studioCtx);
+  useViewSelection(viewCtx, useShallow((state) => [state.hover, state.hoverDom]));
   const doc = viewCtx?.canvasCtx.$doc()[0];
   React.useEffect(() => {
     if (!doc?.body) {
@@ -64,7 +69,7 @@ function PreselectBoxes_() {
     return () => modalObserver.disconnect();
   }, [doc, forceUpdate]);
 
-  if (studioCtx.isTransforming()) {
+  if (transforming) {
     return null;
   }
   const modal = getActiveCanvasModal(doc);
@@ -81,7 +86,7 @@ function PreselectBoxes_() {
     (selectable) => viewCtx?.contentEditor.contains(selectable),
   );
 
-  const preselectBoxes = studioCtx.showAncestorsHoverBoxes()
+  const preselectBoxes = ancestorsHoverBoxes
     ? ancestorsSelectables.map((selectable) => (
         <PreselectBox
           key={makeSelectableFullKey(selectable)}
@@ -116,6 +121,13 @@ function PreselectBox_(props: {
   modal?: HTMLElement;
 }) {
   const { selectable, cloneKey, studioCtx, viewCtx, isHoveredElt } = props;
+  useContentEditorScope(studioCtx);
+  const draggingObject = useStore(studioCtx.draggingObjectStore);
+  useStudioOverlayState(studioCtx, (state) => state.screenshotting);
+  const stackOfParents = useStudioOverlayState(studioCtx, (state) => state.stackOfParents);
+  useStudioSelection(studioCtx, (state) => state.view);
+  useViewVariants(viewCtx, useShallow((state) => [state.frames, state.global]));
+  useViewSelection(viewCtx, useShallow((state) => [state.doms, state.hoverDom]));
 
   const $selection = viewCtx?.selectionDom(selectable, cloneKey) ?? undefined;
   const $hovered = viewCtx?.$hoveredDomElt();
@@ -140,11 +152,12 @@ function PreselectBox_(props: {
   const shouldShow =
     viewCtx &&
     viewCtx.contentEditor.contains(selectable) &&
+    !draggingObject &&
     !studioCtx.shouldHidePreselectBox() &&
     $element?.length &&
     $element?.get(0).isConnected &&
     $element?.toArray().filter(hasLayoutBox)?.length > 0 &&
-    (studioCtx.showStackOfParents || !$focused || !$element.is($focused));
+    (stackOfParents || !$focused || !$element.is($focused));
 
   if (!shouldShow) {
     return null;
@@ -172,6 +185,8 @@ function PreselectBoxInner(props: {
 }) {
   const { selectable, studioCtx, viewCtx, isHoveredElt, $element, $focused } =
     props;
+  const viewportZoom = useCanvasZoom(studioCtx);
+  const stackOfParents = useStudioOverlayState(studioCtx, (state) => state.stackOfParents);
 
   const hoverTagRef = React.useRef<HTMLDivElement>(null);
   const forceUpdate = useForceUpdate();
@@ -191,12 +206,12 @@ function PreselectBoxInner(props: {
     ensure($element, "PreselectBoxInner requires a hovered element"),
     viewCtx,
   );
-  const cssProps = cssPropsForInvertTransform(studioCtx.zoom, scalerRect);
+  const cssProps = cssPropsForInvertTransform(viewportZoom, scalerRect);
 
   const tagPlacement = useTagPlacement(
     hoverTagRef,
     scalerRect?.width ?? 0,
-    studioCtx.zoom,
+    viewportZoom,
     viewCtx,
   );
 
@@ -221,7 +236,7 @@ function PreselectBoxInner(props: {
   return (
     <div
       className={cn("PreselectBox", {
-        [styles.hoveringParentStack]: studioCtx.showStackOfParents,
+        [styles.hoveringParentStack]: stackOfParents,
       })}
       data-original-width={scalerRect.width}
       data-original-height={scalerRect.height}

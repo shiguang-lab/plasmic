@@ -1,6 +1,6 @@
 {
   "name": "@plasmicapp/loader-react",
-  "version": "2.0.23",
+  "version": "3.0.0",
   "description": "Plasmic loader SDK for React",
   "homepage": "https://www.plasmic.app",
   "license": "MIT",
@@ -43,7 +43,7 @@
     "react-server-conditional.d.ts"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=20.9.0"
   },
   "scripts": {
     "build": "pnpm build:types && pnpm build:index && pnpm build:react-server",
@@ -81,8 +81,8 @@
     "vitest": "catalog:"
   },
   "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "size-limit": [
     {

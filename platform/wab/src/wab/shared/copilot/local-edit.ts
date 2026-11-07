@@ -109,6 +109,7 @@ export type LocalEditBinding = z.infer<typeof localEditBindingSchema>;
 export const localEditToolNames = [
   "read",
   "queryElements",
+  "reviewComponentReuse",
   "getEditorContext",
   "navigate",
   "selectElement",

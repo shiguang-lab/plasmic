@@ -13,6 +13,7 @@ import TokenIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Token";
 import PlasmicFindReferencesModal from "@/wab/client/plasmic/plasmic_kit_find_references_modal/PlasmicFindReferencesModal";
 import { DefaultReferenceItemProps } from "@/wab/client/plasmic/plasmic_kit_find_references_modal/PlasmicReferenceItem";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { FRAME_LOWER } from "@/wab/shared/Labels";
 import { assert, ensure, spawn, unexpected } from "@/wab/shared/common";
 import {
@@ -113,7 +114,7 @@ export const FindReferencesModal = observer(
     onClose: () => void;
   }) {
     const { usageSummary, studioCtx, icon, displayName } = props;
-    const currentArena = studioCtx.currentArena;
+    const currentArenaRef = useStudioArena(studioCtx, (state) => state.current);
 
     const [editToken, setEditToken] = React.useState<
       MutableToken<StyleToken> | OverrideableToken<StyleToken> | undefined
@@ -143,7 +144,7 @@ export const FindReferencesModal = observer(
                 return ok();
               }),
             ),
-          isSelected: arena === currentArena,
+          isSelected: currentArenaRef !== null && arena?.uid === currentArenaRef.uid,
           getUsageSummary:
             type === "component"
               ? () => extractComponentUsages(studioCtx.site, component)
@@ -162,7 +163,7 @@ export const FindReferencesModal = observer(
                 return ok();
               }),
             ),
-          isSelected: arena === currentArena,
+          isSelected: currentArenaRef !== null && arena?.uid === currentArenaRef.uid,
         };
       } else if (type === "token") {
         const token = isKnownStyleToken(item)

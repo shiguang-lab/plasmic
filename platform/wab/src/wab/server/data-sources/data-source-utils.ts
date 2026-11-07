@@ -29,7 +29,6 @@ import {
   ArgMeta,
   DataSourceError,
   DataSourceMeta,
-  FiltersLogic,
   OperationMeta,
   OperationTemplate,
   RawPagination,
@@ -53,11 +52,6 @@ import {
 } from "@/wab/shared/dynamic-bindings";
 import { stampIgnoreError } from "@/wab/shared/error-handling";
 import { DataSourceOpExpr, Site } from "@/wab/shared/model/classes";
-import {
-  Config,
-  JsonTree,
-  Utils as QbUtils,
-} from "@react-awesome-query-builder/antd";
 import { isUUID } from "class-validator";
 import { isArray, isNil, isString, mapValues } from "lodash";
 import { astMapper, parse, toSql } from "pgsql-ast-parser";
@@ -323,17 +317,6 @@ export const JSON_LOGIC_REVERSE_OPERATORS = {
   "<": ">",
 } as const;
 
-export function toJsonLogicFormat(
-  tree: JsonTree,
-  config: Config,
-): FiltersLogic | undefined {
-  const res = QbUtils.jsonLogicFormat(QbUtils.loadTree(tree), config);
-  assert(
-    !res.errors?.length,
-    () => `Failed to convert to JsonLogic: ${(res.errors ?? []).join("; ")}`,
-  );
-  return res.logic as FiltersLogic | undefined;
-}
 
 async function updateDataSourceExprSourceId(
   dbMgr: DbMgr,
@@ -544,7 +527,7 @@ function normTemplate(argMeta: ArgMeta | undefined, template: any) {
             if (Array.isArray(node)) {
               node.forEach((x) => visit(x));
             } else if (isLiteralObject(node)) {
-              if ("type" in node && "id" in node) {
+              if (("rules" in node || "field" in node) && "id" in node) {
                 node.id = mapId(node.id);
               }
               for (const val of Object.values(node)) {

@@ -13,6 +13,7 @@ import { AntdOption, AntdSelect, registerSelect } from "../src/registerSelect";
 import { AntdTooltip, registerTooltip } from "../src/registerTooltip";
 import type { Registerable } from "../src/utils";
 import { createSessionCanvas } from "./canvas-session";
+import { CanvasSessionState } from "../../../platform/wab/src/wab/client/components/canvas/canvas-session-state";
 
 function Canvas({
   children,
@@ -52,7 +53,7 @@ test("Tooltip editing reveals stay out of interactive mode, and repeated native 
         {[0, 1].map((row) => (
           <AntdTooltip key={row} title={`Full text ${row}`} mouseEnterDelay={0} mouseLeaveDelay={0}
             onOpenChange={onOpenChange} afterOpenChange={afterOpenChange}
-            __plasmic_selection_prop__={{ isSelected: true, selectedSlotName: "title" }}>
+            __canvas={{ selected: true, slot: "title" }}>
             <button>{`Row ${row}`}</button>
           </AntdTooltip>
         ))}
@@ -126,9 +127,9 @@ test.each([false, true])(
         <AntdDropdown
           open={interactive || undefined}
           onAction={action}
-          __plasmic_selection_prop__={{
-            isSelected: true,
-            selectedSlotName: null,
+          __canvas={{
+            selected: true,
+            slot: null,
           }}
           useMenuItemsSlot
           menuItems={() => (
@@ -164,10 +165,10 @@ test("selecting Dropdown itself auto-opens its menu and reports the hidden-conte
       <AntdDropdown
         open={false}
         menuItemsJson={[{ key: "item", label: "Dropdown content" }]}
-        plasmicNotifyAutoOpenedContent={notify}
-        __plasmic_selection_prop__={{
-          isSelected: true,
-          selectedSlotName: null,
+        __canvas={{
+          onReveal: notify,
+          selected: true,
+          slot: null,
         }}
       >
         {trigger}
@@ -256,23 +257,21 @@ for (const { name, Component, props, slot, triggerSlot, selector } of cases) {
     const notify = vi.fn(),
       onOpenChange = vi.fn();
     const element = (
-      selectedSlotName?: string,
-      isSelected = true,
-      previewOpen?: boolean,
+      slot?: string,
+      selected = true,
     ) => (
       <Canvas>
         <Overlay
           {...props}
           open={false}
-          previewOpen={previewOpen}
           {...(name === "Select" ? {} : { destroyOnHidden: true })}
-          plasmicNotifyAutoOpenedContent={notify}
           onOpenChange={onOpenChange}
-          __plasmic_selection_prop__={{ isSelected, selectedSlotName }}
+          __canvas={{ selected, slot, onReveal: notify }}
         />
       </Canvas>
     );
     const view = render(element(slot));
+    expect(document.querySelector("[__canvas]")).toBeNull();
     await waitFor(() => expect(document.querySelector(selector)).toBeTruthy());
     const node = screen.getByTestId("content");
     expect(view.container.contains(node)).toBe(false);
@@ -282,13 +281,11 @@ for (const { name, Component, props, slot, triggerSlot, selector } of cases) {
     expect(onOpenChange).not.toHaveBeenCalled();
     view.rerender(element(undefined, false));
     await waitFor(() => expect(document.querySelector(selector)).toBeFalsy());
-    view.rerender(element(slot, true, false));
-    expect(document.querySelector(selector)).toBeFalsy();
     if (triggerSlot) {
       view.rerender(element(triggerSlot));
       expect(document.querySelector(selector)).toBeFalsy();
     }
-    view.rerender(element(undefined, false, true));
+    view.rerender(element(slot));
     await waitFor(() => expect(document.querySelector(selector)).toBeTruthy());
     expect(onOpenChange).not.toHaveBeenCalled();
   });
@@ -299,11 +296,10 @@ for (const { name, Component, props, slot, triggerSlot, selector } of cases) {
       <Overlay
         {...props}
         open={false}
-        previewOpen
-        plasmicNotifyAutoOpenedContent={notify}
-        __plasmic_selection_prop__={{
-          isSelected: true,
-          selectedSlotName: slot,
+        __canvas={{
+          onReveal: notify,
+          selected: true,
+          slot: slot,
         }}
       />
     );
@@ -311,9 +307,39 @@ for (const { name, Component, props, slot, triggerSlot, selector } of cases) {
     expect(document.querySelector(selector)).toBeFalsy();
     view.rerender(element);
     expect(document.querySelector(selector)).toBeFalsy();
-    view.rerender(<Overlay {...props} open previewOpen={false} />);
+    view.rerender(<Overlay {...props} open />);
     await waitFor(() => expect(document.querySelector(selector)).toBeTruthy());
     expect(notify).not.toHaveBeenCalled();
+  });
+
+  test(`${name}: editor operations control a session without adding design props`, async () => {
+    const SessionCanvas = createSessionCanvas([registerTooltip, registerPopover, registerAdditional, registerModal, registerDrawer, registerDropdown, registerSelect]);
+    const session = new CanvasSessionState();
+    const businessProps = Object.freeze({ ...props, open: false });
+    const element = (interactive = false) => (
+      <ConfigProvider theme={{ token: { motion: false } }}>
+        <SessionCanvas session={session} interactive={interactive}>
+          <Overlay key="overlay" {...businessProps} />
+        </SessionCanvas>
+      </ConfigProvider>
+    );
+    const view = render(element());
+    expect(document.querySelector(selector)).toBeFalsy();
+    session.set("root/overlay", "open", true, true);
+    view.rerender(element());
+    await waitFor(() => expect(document.querySelector(selector)).toBeTruthy());
+    view.rerender(element(true));
+    await waitFor(() => expect(document.querySelector(selector)).toBeFalsy());
+    view.rerender(element());
+    await waitFor(() => expect(document.querySelector(selector)).toBeTruthy());
+    session.set("root/overlay", "open", false, true);
+    view.rerender(element());
+    await waitFor(() => expect(document.querySelector(selector)).toBeFalsy());
+    expect(businessProps.open).toBe(false);
+    expect(businessProps).not.toHaveProperty("previewOpen");
+    view.unmount();
+    render(<Overlay {...businessProps} />);
+    expect(document.querySelector(selector)).toBeFalsy();
   });
 }
 
@@ -328,7 +354,7 @@ test.each(
     const afterOpenChange = vi.fn();
     const view = render(
       <Canvas>
-        <Overlay {...props} previewOpen afterOpenChange={afterOpenChange} />
+        <Overlay {...props} __canvas={{ selected: true }} afterOpenChange={afterOpenChange} />
       </Canvas>,
     );
     await waitFor(() => expect(document.querySelector(selector)).toBeTruthy());
@@ -350,17 +376,17 @@ test("nested Modal and Select content stays open while selecting the inner optio
         open={false}
         modalScopeClassName=""
         wrapClassName=""
-        __plasmic_selection_prop__={{
-          isSelected: true,
-          selectedSlotName: "children",
+        __canvas={{
+          selected: true,
+          slot: "children",
         }}
       >
         <AntdSelect
           open={false}
           useChildren
-          __plasmic_selection_prop__={{
-            isSelected: true,
-            selectedSlotName: "children",
+          __canvas={{
+            selected: true,
+            slot: "children",
           }}
         >
           <AntdOption value="item">{content}</AntdOption>
@@ -379,7 +405,7 @@ test.each(["Modal", "Drawer", "Tooltip", "Popover", "Popconfirm", "Dropdown"])(
     const Overlay = entry.Component as React.ComponentType<any>;
     const child = (
       <AntdSelect
-        previewOpen
+        __canvas={{ selected: true }}
         options={[{ value: "inner", label: "Nested option" }]}
       />
     );
@@ -397,14 +423,14 @@ test.each(["Modal", "Drawer", "Tooltip", "Popover", "Popconfirm", "Dropdown"])(
                   ),
                 }
               : { children: child };
-    const element = (isSelected: boolean) => (
+    const element = (selected: boolean) => (
       <Canvas>
         <Overlay
           {...entry.props}
           {...childProps}
-          __plasmic_selection_prop__={{
-            isSelected,
-            selectedSlotName: entry.slot,
+          __canvas={{
+            selected,
+            slot: entry.slot,
           }}
         />
       </Canvas>
@@ -440,7 +466,7 @@ test("editing Modal, Drawer, Popconfirm and Dropdown cannot run close or busines
   const view = render(
     <Canvas>
       <AntdModal
-        previewOpen
+        __canvas={{ selected: true }}
         onOpenChange={action}
         onOk={action}
         onCancel={action}
@@ -457,7 +483,7 @@ test("editing Modal, Drawer, Popconfirm and Dropdown cannot run close or busines
   view.rerender(
     <Canvas>
       <AntdDrawer
-        previewOpen
+        __canvas={{ selected: true }}
         onOpenChange={action}
         onClose={action}
         afterOpenChange={action}
@@ -469,7 +495,7 @@ test("editing Modal, Drawer, Popconfirm and Dropdown cannot run close or busines
   view.rerender(
     <Canvas>
       <AntdPopconfirm
-        previewOpen
+        __canvas={{ selected: true }}
         title="Confirm"
         onConfirm={action}
         onCancel={action}
@@ -485,7 +511,7 @@ test("editing Modal, Drawer, Popconfirm and Dropdown cannot run close or busines
   view.rerender(
     <Canvas>
       <AntdDropdown
-        previewOpen
+        __canvas={{ selected: true }}
         onAction={action}
         onOpenChange={action}
         menuItemsJson={[{ key: "item", label: "Item" }]}
@@ -504,7 +530,7 @@ test("uncontrolled Select preserves native defaultOpen and emits changes only in
   const view = render(
     <Canvas>
       <AntdSelect
-        previewOpen
+        __canvas={{ selected: true }}
         defaultOpen
         options={[{ value: "item", label: "Item" }]}
         onChange={onChange}
@@ -555,9 +581,7 @@ test("all editing overrides are pruned from generated code rather than mapped to
     "dropdown",
     "select",
   ]) {
-    const prop = metas.get(`plasmic-antd6-${name}`).props.previewOpen;
-    expect(prop.editOnly).toBe(true);
-    expect(prop.uncontrolledProp).toBeUndefined();
+    expect(metas.get(`plasmic-antd6-${name}`).props).not.toHaveProperty("previewOpen");
     const triggerSlot =
       name === "modal"
         ? "trigger"
@@ -567,7 +591,16 @@ test("all editing overrides are pruned from generated code rather than mapped to
     expect(metas.get(`plasmic-antd6-${name}`).canvasOverlay).toEqual(
       triggerSlot ? { triggerSlot } : {},
     );
+    const open = metas.get(`plasmic-antd6-${name}`).props.open;
+    expect(open.editOnly, `${name}.open is a real runtime prop`).toBeUndefined();
+    expect(open.uncontrolledProp, `${name}.open keeps its native name`).toBeUndefined();
   }
+  for (const name of ["tooltip", "popover", "select"]) {
+    expect(metas.get(`plasmic-antd6-${name}`).props.defaultOpen.type).toBe("boolean");
+  }
+  expect(metas.get("plasmic-antd6-popover").states.open.initialValueProp).toBe("defaultOpen");
+  expect(metas.get("plasmic-antd6-dropdown").props.onOpenChange.argTypes.map((arg: any) => arg.name)).toEqual(["open", "info"]);
+  expect(metas.get("plasmic-antd6-select").props.onOpenChange.argTypes).toEqual([{ name: "open", type: "boolean" }]);
   expect(metas.get("plasmic-antd6-dropdown").canvasEventBindings).toEqual([
     { slot: "menuItems", event: "onAction", args: { key: { prop: "key" } } },
   ]);

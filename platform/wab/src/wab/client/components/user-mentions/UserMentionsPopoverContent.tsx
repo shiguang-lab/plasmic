@@ -5,14 +5,14 @@ import {
   DefaultUserMentionsPopoverContentProps,
   PlasmicUserMentionsPopoverContent,
 } from "@/wab/client/plasmic/plasmic_kit_user_mentions/PlasmicUserMentionsPopoverContent";
-import { ApiUser } from "@/wab/shared/ApiSchema";
+import type { ProjectMentionUser } from "@/wab/client/studio-ctx/StudioCtx";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import * as React from "react";
 
 export interface UserMentionsPopoverContentProps extends DefaultUserMentionsPopoverContentProps {
-  users: ApiUser[];
+  users: readonly ProjectMentionUser[];
   highlightIndex: number;
-  onSelectUser: (user: ApiUser) => void;
+  onSelectUser: (user: ProjectMentionUser) => void;
 }
 
 function UserMentionsPopoverContent_(

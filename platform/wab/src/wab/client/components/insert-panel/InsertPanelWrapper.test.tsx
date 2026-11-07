@@ -1,7 +1,9 @@
 import InsertPanelWrapper from "@/wab/client/components/insert-panel/InsertPanelWrapper";
 import { Modal } from "@/wab/client/components/widgets/Modal";
+import { StudioLeftPanelState } from "@/wab/client/studio-ctx/left-panel-state";
 import "@testing-library/jest-dom/vitest";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -11,13 +13,9 @@ import {
 import React from "react";
 
 const close = vi.hoisted(() => vi.fn());
+const fixture = vi.hoisted(() => ({ ctx: undefined as any }));
 vi.mock("@/wab/client/contexts/StudioContexts", () => ({
-  useStudioCtx: () => ({
-    showAddDrawer: () => true,
-    leftPaneWidth: 427,
-    changeUnsafe: async (fn: () => void) => fn(),
-    setShowAddDrawer: close,
-  }),
+  useStudioCtx: () => fixture.ctx,
 }));
 vi.mock("@/wab/client/components/insert-panel/InsertPanel", () => ({
   default: function Panel() {
@@ -34,6 +32,22 @@ vi.mock("@/wab/client/components/insert-panel/InsertPanel", () => ({
     );
   },
 }));
+beforeEach(() => {
+  const leftPanelState = new StudioLeftPanelState();
+  leftPanelState.setPanel({ type: "insert", inline: false });
+  fixture.ctx = {
+    leftPanelState,
+    get leftTabGroup() { return leftPanelState.leftTabGroup; },
+    leftPaneWidth: 427,
+    changeUnsafe: async (fn: () => void) => fn(),
+    setShowAddDrawer: (show: boolean) => {
+      close(show);
+      leftPanelState.setPanel(
+        show ? { type: "insert", inline: false } : undefined,
+      );
+    },
+  };
+});
 afterEach(() => {
   cleanup();
   close.mockClear();
@@ -75,6 +89,40 @@ it("leaves dismissal to the rail action so switching tools does not also toggle 
   expect(close).not.toHaveBeenCalled();
 });
 
+it("tracks the canonical native drawer state for outside dismissal", async () => {
+  render(
+    <>
+      <button>Outside resource panel</button>
+      <InsertPanelWrapper />
+    </>,
+  );
+  await act(() => fixture.ctx.leftPanelState.setPanel(undefined));
+  fireEvent.mouseDown(
+    screen.getByRole("button", { name: "Outside resource panel" }),
+  );
+  expect(close).not.toHaveBeenCalled();
+});
+
+it("uses native tab-group state when deciding outside dismissal", async () => {
+  render(
+    <>
+      <button>Outside resource panel</button>
+      <InsertPanelWrapper />
+    </>,
+  );
+  await act(() => fixture.ctx.leftPanelState.setLeftTabGroup("more"));
+  fireEvent.mouseDown(
+    screen.getByRole("button", { name: "Outside resource panel" }),
+  );
+  expect(close).not.toHaveBeenCalled();
+
+  await act(() => fixture.ctx.leftPanelState.setLeftTabGroup(undefined));
+  fireEvent.mouseDown(
+    screen.getByRole("button", { name: "Outside resource panel" }),
+  );
+  expect(close).toHaveBeenCalledWith(false);
+});
+
 it("does not dismiss when a submenu overlays the insert content", () => {
   render(
     <>
@@ -85,5 +133,15 @@ it("does not dismiss when a submenu overlays the insert content", () => {
     </>,
   );
   fireEvent.mouseDown(screen.getByRole("button", { name: "Images" }));
+  expect(close).not.toHaveBeenCalled();
+});
+
+it("reads the current tab group before the dismiss event's React commit", async () => {
+  render(<><button>Outside command boundary</button><InsertPanelWrapper /></>);
+  const outside = screen.getByRole("button", { name: "Outside command boundary" });
+  await act(() => {
+    fixture.ctx.leftPanelState.setLeftTabGroup("more");
+    outside.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+  });
   expect(close).not.toHaveBeenCalled();
 });

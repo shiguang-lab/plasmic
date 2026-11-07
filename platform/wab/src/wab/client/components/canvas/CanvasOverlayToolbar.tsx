@@ -1,3 +1,7 @@
+import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
 import styles from "@/wab/client/components/canvas/CanvasOverlayToolbar.module.scss";
 import { useI18n } from "@/wab/client/i18n";
 import EyeIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Eye";
@@ -9,6 +13,7 @@ import { isCodeComponent } from "@/wab/shared/core/components";
 import { isSlotSelection } from "@/wab/shared/core/slots";
 import { isValComponent } from "@/wab/shared/core/val-nodes";
 import { observer } from "mobx-react";
+import { useStore } from "zustand";
 import * as React from "react";
 
 export const CanvasOverlayToolbar = observer(function CanvasOverlayToolbar({
@@ -18,9 +23,12 @@ export const CanvasOverlayToolbar = observer(function CanvasOverlayToolbar({
   viewCtx: ViewCtx;
   fallback?: boolean;
 }) {
+  useViewVariants(viewCtx, useShallow((variantState) => variantState.frames.map((frame) => frame.component)));
+  useViewSelection(viewCtx, useShallow((state) => [state.context, state.doms, state.targets, state.tpls]));
   const { t: uiT } = useI18n();
+  const interactive = useStudioRenderPolicy(viewCtx.studioCtx, (policy) => policy.interactive);
   if (
-    viewCtx.studioCtx.isInteractiveMode ||
+    interactive ||
     viewCtx.focusedTpls().filter(Boolean).length !== 1 ||
     (fallback && viewCtx.focusedDomElts().some((elt) => !!elt?.length))
   ) {
@@ -68,7 +76,7 @@ export const CanvasOverlayToolbar = observer(function CanvasOverlayToolbar({
       .map((val) => ({
         tpl,
         fullKey: val.fullKey,
-        sessionInstance: val.codeComponentProps?.__plasmic_selection_prop__?.sessionInstance ?? val.fullKey,
+        instance: val.codeComponentProps?.__canvas?.instance ?? val.fullKey,
       })),
   );
   if (!overlays.length) {
@@ -87,28 +95,21 @@ export const CanvasOverlayToolbar = observer(function CanvasOverlayToolbar({
         event.stopPropagation();
       }}
     >
-      {overlays.map(({ tpl, fullKey, sessionInstance }) => {
+      {overlays.map(({ tpl, fullKey, instance }) => {
         const label =
           tpl.name || tpl.component.name.replace("plasmic-antd6-", "");
-        const open = viewCtx.canvasOverlayOpen(sessionInstance);
-        const action = uiT(
-          open ? "Hide {name} content" : "Show {name} content",
-          { name: label },
-        );
-        return (
-          <button
-            className={styles.toggle}
-            key={fullKey}
-            type="button"
-            title={action}
-            aria-label={action}
-            aria-pressed={open}
-            onClick={() => viewCtx.setCanvasOverlayOpen(sessionInstance, !open)}
-          >
-            <EyeIcon aria-hidden="true" />
-          </button>
-        );
+        return <CanvasOverlayToggle key={fullKey} viewCtx={viewCtx} instance={instance} label={label} />;
       })}
     </div>
   );
 });
+
+function CanvasOverlayToggle({ viewCtx, instance, label }: { viewCtx: ViewCtx; instance: string; label: string }) {
+  const { t: uiT } = useI18n();
+  const open = useStore(viewCtx.canvasSessionState.instanceStore(instance), (state) => !!state.open?.value);
+  const action = uiT(open ? "Hide {name} content" : "Show {name} content", { name: label });
+  return <button className={styles.toggle} type="button" title={action} aria-label={action}
+    aria-pressed={open} onClick={() => viewCtx.setCanvasOverlayOpen(instance, !open)}>
+    <EyeIcon aria-hidden="true" />
+  </button>;
+}

@@ -1,0 +1,662 @@
+{
+  "date": "2026-11-06",
+  "worktree": "/Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic",
+  "branch": "codex/react-19-implementation",
+  "status": "passed-under-user-revised-acceptance",
+  "acceptance": {
+    "strict": true,
+    "skipLibCheck": true,
+    "strictPeerDependencies": true,
+    "userInstruction": "skipLibCheck 可以设置为 true，依赖的不需要去检查",
+    "thirdPartyDeclarationsFullyVerified": false
+  },
+  "tools": {
+    "node": "24.20.0",
+    "pnpm": "11.10.0",
+    "buildTypeScript": "5.9.3",
+    "consumerTypeScript": "7.0.2",
+    "react": "19.3.1",
+    "reactDOM": "19.3.1",
+    "reactTypes": "19.3.0",
+    "vite": "8.3.6"
+  },
+  "changes": {
+    "commerce": {
+      "removed": "@vercel/fetch ^6.2.0 (resolved 6.2.0)",
+      "nodeFetch": "2.7.0",
+      "nodeFetchTypes": "2.6.13",
+      "asyncRetryTypes": "1.4.9",
+      "runtimeChanged": false,
+      "fetchOptions": "Exact RequestInit & { agent?: http.Agent; retry?: asyncRetry.Options & { maxRetryAfter?: number } }"
+    },
+    "swell": {
+      "from": "3.24.5",
+      "to": "5.9.3",
+      "removedPatch": "platform/patches/swell-js.patch",
+      "businessCodeChanged": false
+    }
+  },
+  "knownDependencyDiagnostic": {
+    "package": "@rc-component/image",
+    "version": "1.10.0",
+    "code": "TS2430",
+    "file": "es/PreviewGroup.d.ts:6",
+    "count": 1,
+    "notFixed": true,
+    "excludedByUserAcceptedSkipLibCheck": true
+  },
+  "packageCount": 68,
+  "browserResult": {
+    "packages": 59,
+    "actionGroup": "detail",
+    "swell": {
+      "product": "Coffee",
+      "total": 24,
+      "operations": [
+        {
+          "path": "/api/products",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/api/cart",
+          "method": "GET",
+          "body": null
+        },
+        {
+          "path": "/api/cart/items",
+          "method": "POST",
+          "body": {
+            "product_id": "p1",
+            "quantity": 2,
+            "variant_id": "v1"
+          },
+          "session": "fixture-browser-session"
+        }
+      ]
+    },
+    "errors": []
+  },
+  "artifacts": [
+    {
+      "name": "@plasmicapp/auth-api",
+      "version": "0.0.21",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicapp-auth-api-0.0.21.tgz",
+      "sha256": "2fa4188f03d7055c1354024fd2a2cb7523799757fe3a45582651be626876ffcb"
+    },
+    {
+      "name": "@plasmicapp/auth-react",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicapp-auth-react-0.1.0.tgz",
+      "sha256": "b4484c0d9d194fb30a646685472083949c27d599ff6018276440cc5645b5ccb3"
+    },
+    {
+      "name": "@plasmicapp/data-sources",
+      "version": "2.0.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicapp-data-sources-2.0.0.tgz",
+      "sha256": "7a8fb6f5db8134443c0501c5c6709ec3bf79ee28ab9800a2c285536b2e9aa1f9"
+    },
+    {
+      "name": "@plasmicapp/data-sources-context",
+      "version": "0.2.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicapp-data-sources-context-0.2.0.tgz",
+      "sha256": "9d26f197dd49f55821ab281a7227feec13198e736bae0dde14dc3067dc5aa81f"
+    },
+    {
+      "name": "@plasmicapp/host",
+      "version": "3.0.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicapp-host-3.0.0.tgz",
+      "sha256": "dc2da90e0bfd9235597defc062ac48232835f3c4a9eecdec49d3707b0d1b79cd"
+    },
+    {
+      "name": "@plasmicapp/loader-splits",
+      "version": "1.0.81",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicapp-loader-splits-1.0.81.tgz",
+      "sha256": "636f63c66465a4dd029a07ec16516fe91787e445c10bbfe43ddd4dc1a24ea9f9"
+    },
+    {
+      "name": "@plasmicapp/prepass",
+      "version": "2.0.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicapp-prepass-2.0.0.tgz",
+      "sha256": "50ccea8abbd3e0fbac9160f8b0a07d54503e3eb851b6d96dbb135b089b33b3e2"
+    },
+    {
+      "name": "@plasmicapp/query",
+      "version": "0.2.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicapp-query-0.2.0.tgz",
+      "sha256": "7f0fdaa6d6b03a74a2fa8b5ff04cba5a970c5174570c86125beb75cd988886fd"
+    },
+    {
+      "name": "@plasmicapp/react-web",
+      "version": "2.0.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicapp-react-web-2.0.0.tgz",
+      "sha256": "bad8e19617a0084e4c2297a51cb9c394ac9fba24ebfab021b04392dd6b2b37d5"
+    },
+    {
+      "name": "@plasmicapp/react-web-runtime",
+      "version": "2.0.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicapp-react-web-runtime-2.0.0.tgz",
+      "sha256": "4b6839e806094607611fe4c1f6fe89023b8e3092631b78d08f7532730dac9f78"
+    },
+    {
+      "name": "@plasmicpkgs/airtable",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-airtable-0.1.0.tgz",
+      "sha256": "28b1019384539f10524cf0f66e1cdae2723cd4aba9f339da5b0d90e5c4f78ea6"
+    },
+    {
+      "name": "@plasmicpkgs/antd",
+      "version": "3.0.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-antd-3.0.0.tgz",
+      "sha256": "af4e0f458478323643e279b041e844f41c5ff87967199608e5ddcfb7b1458288"
+    },
+    {
+      "name": "@plasmicpkgs/antd5",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-antd5-0.1.0.tgz",
+      "sha256": "83f541d77b01da15fa8394f1c757365a66eaf4f4aabafb4fe72b865ddc255c4c"
+    },
+    {
+      "name": "@plasmicpkgs/cms",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-cms-0.1.0.tgz",
+      "sha256": "118e2b4e9fedfca8b31d65d5628798f5f2cf956c8ccc84a236ffb59d0972cf07"
+    },
+    {
+      "name": "@plasmicpkgs/commerce",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-commerce-0.1.0.tgz",
+      "sha256": "80f055d5f528f0a78cb3c6f8fad7fc25a593a50df0455eba72400773c58b1727"
+    },
+    {
+      "name": "@plasmicpkgs/commerce-commercetools",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-commerce-commercetools-0.1.0.tgz",
+      "sha256": "55f865336348cf9c9d40f6f932bfc03ef78b0ab237c57143124046aa71e62c2b"
+    },
+    {
+      "name": "@plasmicpkgs/commerce-local",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-commerce-local-0.1.0.tgz",
+      "sha256": "848eda3a856dc1ed2f234603cb148f405a4b4b8e86047560ba83cdd8434f14e9"
+    },
+    {
+      "name": "@plasmicpkgs/commerce-saleor",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-commerce-saleor-0.1.0.tgz",
+      "sha256": "61d39dcffde36d7e1ff37df66cd57c3aead2fe0907caa797910bcd6e86b85ec0"
+    },
+    {
+      "name": "@plasmicpkgs/commerce-shopify",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-commerce-shopify-0.1.0.tgz",
+      "sha256": "a733130ff95563b494c5e22f94afc5bd1ab46a8ca78a4a76a549148be030f51d"
+    },
+    {
+      "name": "@plasmicpkgs/commerce-swell",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-commerce-swell-0.1.0.tgz",
+      "sha256": "a5c80b425b1b5707b3b23890cd4e45370526366938057bb81b168450f5d48899"
+    },
+    {
+      "name": "@plasmicpkgs/contentful",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-contentful-0.1.0.tgz",
+      "sha256": "7fad7a15e1721fb157e8c3db3b3309ec5da2db586bef3bf2dbc7602044666239"
+    },
+    {
+      "name": "@plasmicpkgs/fetch",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-fetch-0.1.0.tgz",
+      "sha256": "f87f5deb85dad412ca962d061fd17b32cdbc337d6e1617121b9e8781368ed02b"
+    },
+    {
+      "name": "@plasmicpkgs/framer-motion",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-framer-motion-0.1.0.tgz",
+      "sha256": "73e6c29075b805c6b5f7791bb4c86bf28ab3fff98dbf280568eebf6b15e657fe"
+    },
+    {
+      "name": "@plasmicpkgs/graphql",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-graphql-0.1.0.tgz",
+      "sha256": "b9a474c5843a46d4162486830cd43dc4f300e6453409c7eb72adfcc96da127df"
+    },
+    {
+      "name": "@plasmicpkgs/lottie-react",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-lottie-react-0.1.0.tgz",
+      "sha256": "849c220f9056eb11f59484be961fd8481e6485c64fab92c6b0059b5686bf21fa"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-basic-components",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-basic-components-0.1.0.tgz",
+      "sha256": "e8de129d176d533eee54a5b8816d6b45478d70a8b1cf8ccbb37678c97d3254f5"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-calendly",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-calendly-0.1.0.tgz",
+      "sha256": "a7ac11446dd36feffa819fa28f8ad72c71b3be34af8a91cd828910a4ebc4327d"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-cms",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-cms-0.1.0.tgz",
+      "sha256": "b82fa99c316b271ce3ed321902ee4fe3db8564529c9ccaedd09c14afca402638"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-content-stack",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-content-stack-0.1.0.tgz",
+      "sha256": "ffc27635453e90dc7ac7037779a6c41b3836c59f062c7e349e46a69bcfe57de6"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-contentful",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-contentful-0.1.0.tgz",
+      "sha256": "d88906174ed6b6b9b6b4732bf3881ef13bb325e6b7d29a21c09072ba12141904"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-embed-css",
+      "version": "0.2.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-embed-css-0.2.0.tgz",
+      "sha256": "488ef237fcbb21406384eeef6031cb14e8b5f5eb20fe106e19928888fd0fc66d"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-eventbrite",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-eventbrite-0.1.0.tgz",
+      "sha256": "3556072fe097581a662d227fac52cfa24d004154e460fc1b7990e9ec00b1358c"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-giphy",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-giphy-0.1.0.tgz",
+      "sha256": "f4a2695a50513f0731a96cb5d4178d4a324a506611a0faf723aa79dccf76e0ce"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-google-maps",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-google-maps-0.1.0.tgz",
+      "sha256": "ca5b41b135efc650edfe568379268e37ffa880a76dcbc53d182c3ef690e2aabd"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-graphcms",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-graphcms-0.1.0.tgz",
+      "sha256": "dfb66c4a1ae45225d98ff28d5e75aa4d8d64cd83cbd7b5634d6f51eb6ae6e73c"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-hubspot",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-hubspot-0.1.0.tgz",
+      "sha256": "ae2b9377fb29f178d4bb97d5757813615913fe5243fc6bb9031b712a73299a3b"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-intercom",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-intercom-0.1.0.tgz",
+      "sha256": "03ca139d770da62103c4497e17e7e502d1743acbb72da18b88723ae13561602e"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-keen-slider",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-keen-slider-0.1.0.tgz",
+      "sha256": "eadeabd21041ecc5a903743f67d8d0884280f1125241c45de9156bd1bee1d7b2"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-link-preview",
+      "version": "2.0.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-link-preview-2.0.0.tgz",
+      "sha256": "9afa5fffd2c39b94d74d81be5ee8785ad4ee8f8bfe6b0cf55ae20da551b7d7ea"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-mailchimp",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-mailchimp-0.1.0.tgz",
+      "sha256": "b8111f3829765b28052d1fc2fcf8e901f3932b98a650af50cb7a1981567dbd33"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-nav",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-nav-0.1.0.tgz",
+      "sha256": "1093428b3b7d5a24c9a76f8c3d81384ad51ae19415e80c322339b4a812e5ccc2"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-pigeon-maps",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-pigeon-maps-0.1.0.tgz",
+      "sha256": "c5d9e1eb32a45b33b901b433827159914aafb19aeb3db95b0abf4776afb4fe26"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-query",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-query-0.1.0.tgz",
+      "sha256": "16541a56fdd0df1f90d448db1fd7d2f65d8e1ea81760a9ef3179680b2a88cdd3"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-sanity-io",
+      "version": "2.0.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-sanity-io-2.0.0.tgz",
+      "sha256": "c7978c136560fb3f19d001c3b352046d6edcd1244a6e5dadd4c2916a80f7b706"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-soundcloud",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-soundcloud-0.1.0.tgz",
+      "sha256": "07dea81851d3cbdce289aaebe11a8a9e94d10d2b930c7201d3343bf58d607261"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-spotify",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-spotify-0.1.0.tgz",
+      "sha256": "666e4fdd9fbd65f368629b8f97553024176929a7f87dd9fa17df3e7146a61c13"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-strapi",
+      "version": "0.2.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-strapi-0.2.0.tgz",
+      "sha256": "db20294f416af0deaef618d86a4d8caf9270b594f4de7a743daca810fe468353"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-tabs",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-tabs-0.1.0.tgz",
+      "sha256": "e862726400f3e56f08b60e47f05dbac71d41bcaaed8c3b0673a08c66f664c0f9"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-typeform",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-typeform-0.1.0.tgz",
+      "sha256": "6292cfa529615759509d88db8119fe38a90d1041d39ab10651ea45cf3fc54e09"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-wordpress",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-wordpress-0.1.0.tgz",
+      "sha256": "7d66c933fc9c84b54b525172d59de736be2820b8050ffd4229f331d0171915af"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-wordpress-graphql",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-wordpress-graphql-0.1.0.tgz",
+      "sha256": "924f09b784496ecd02807a71e2adafe95207f950984bf5282cfe4177a73cf85a"
+    },
+    {
+      "name": "@plasmicpkgs/plasmic-yotpo",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-plasmic-yotpo-0.1.0.tgz",
+      "sha256": "2387eb69b1582c63c7642e46c9ca451ea8f73e873bbeb15c1c2a42872ef7df76"
+    },
+    {
+      "name": "@plasmicpkgs/radix-ui",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-radix-ui-0.1.0.tgz",
+      "sha256": "bb9f581e7970fd02141d8e8885ca7fe654c349d9c10ce568a53858823a5cc1f9"
+    },
+    {
+      "name": "@plasmicpkgs/react-aria",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-react-aria-0.1.0.tgz",
+      "sha256": "9fe0e0f06eb07baa9329f4829d56fd2c3b91153f371032edf3894548ca87546e"
+    },
+    {
+      "name": "@plasmicpkgs/react-audio-player",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-react-audio-player-0.1.0.tgz",
+      "sha256": "627c19376078879a03e2da82f7e363fc0cbc5bf55c2826720747858c1a82a733"
+    },
+    {
+      "name": "@plasmicpkgs/react-awesome-reveal",
+      "version": "4.0.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-react-awesome-reveal-4.0.0.tgz",
+      "sha256": "c199c7dfbcd03a1309eed05cdaf3794b5734573e091c1d20a975391472268304"
+    },
+    {
+      "name": "@plasmicpkgs/react-chartjs-2",
+      "version": "2.0.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-react-chartjs-2-2.0.0.tgz",
+      "sha256": "4128e532de69886630e5f77d33e4780218f221aa1768e35f2bfa239cc1db4a9f"
+    },
+    {
+      "name": "@plasmicpkgs/react-parallax-tilt",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-react-parallax-tilt-0.1.0.tgz",
+      "sha256": "36039c7ac927095181d09f783468226954f1c292e0809750d79bfca763834ac8"
+    },
+    {
+      "name": "@plasmicpkgs/react-scroll-parallax",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-react-scroll-parallax-0.1.0.tgz",
+      "sha256": "d2dee57eac078ec46d6be6d9659bf08ab85e4ce8d62cad3d6cdf4e8350a1caa0"
+    },
+    {
+      "name": "@plasmicpkgs/react-slick",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-react-slick-0.1.0.tgz",
+      "sha256": "a11048d2ffcf1bd83e343c3da549df8fc99f757dea7903b70b50737425d0da7f"
+    },
+    {
+      "name": "@plasmicpkgs/react-twitter-widgets",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-react-twitter-widgets-0.1.0.tgz",
+      "sha256": "caaddf79ae028b9a04903987e07480080dd5bab7256322844bd26b7e25f79825"
+    },
+    {
+      "name": "@plasmicpkgs/strapi",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-strapi-0.1.0.tgz",
+      "sha256": "9dac53fd63a2a81bc9943f2f78147ab5a2509ea39a7f838af650903667dfedcd"
+    },
+    {
+      "name": "@plasmicpkgs/tiptap",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-tiptap-0.1.0.tgz",
+      "sha256": "83c37742798298486904b9ebf4c5c269044dacd76e99958c52d6bd75a96fe21f"
+    },
+    {
+      "name": "@plasmicpkgs/vanilla-cookieconsent",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-vanilla-cookieconsent-0.1.0.tgz",
+      "sha256": "e027913aaaa80baa883fc88fdd1ad031ae33a4d93bcd07e13816af3bed95a587"
+    },
+    {
+      "name": "@plasmicpkgs/wordpress",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/plasmicpkgs-wordpress-0.1.0.tgz",
+      "sha256": "9bf72ac60febeaf918f16ff49ceddc571907fccb1ba2a0e9f50a7a933bb3529c"
+    },
+    {
+      "name": "@shiguang-lab/plasmic-antd6",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/shiguang-lab-plasmic-antd6-0.1.0.tgz",
+      "sha256": "eb98ffa4ec30503b1d7c53abb94708bd33a48a8702176bd2cd9f29442eaea77f"
+    },
+    {
+      "name": "@shiguang-lab/plasmic-overseas",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/shiguang-lab-plasmic-overseas-0.1.0.tgz",
+      "sha256": "8589abe8543216a7e8f1550b2df3c9b932fb4546f130b5516fd87c8dd2656d86"
+    },
+    {
+      "name": "@shiguang-lab/plasmic-react-ui",
+      "version": "0.1.0",
+      "path": "/tmp/plasmic-public-types-20261106/tarballs/shiguang-lab-plasmic-react-ui-0.1.0.tgz",
+      "sha256": "f0ffb83bcd8beaf4cc9bb3ad8107419581fc84105f04c27d887840e0c0a38bb9"
+    }
+  ],
+  "checks": [
+    {
+      "name": "commerce-build",
+      "cwd": "/tmp/plasmic-public-types-20261106/stage",
+      "command": "pnpm --filter @plasmicpkgs/commerce build",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-public-types-20261106/commerce-sandbox-build-next.log",
+      "logSha256": "4300ef7b50677a54b76e92c54c4f09db6d9113d234ec4d7c521fdc17f115b0a7"
+    },
+    {
+      "name": "swell-build",
+      "cwd": "/tmp/plasmic-public-types-20261106/stage",
+      "command": "pnpm --filter @plasmicpkgs/commerce-swell build",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-public-types-20261106/swell-sandbox-build.log",
+      "logSha256": "277b89ac002a7f45670b9f77ddd4b773e552d2cd8833f08858ce8361f11c1ee4"
+    },
+    {
+      "name": "workspace-lock",
+      "cwd": "/Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic",
+      "command": "pnpm install --lockfile-only --ignore-scripts",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-public-types-20261106/workspace-lockfile.log",
+      "logSha256": "1418df2e1717d83dc663f9ff9144f43c96e9608da9a73c27aaa4536b18ec6aee"
+    },
+    {
+      "name": "pack",
+      "cwd": "/Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic",
+      "command": "python3 /tmp/plasmic-public-types-20261106/pack-current.py",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-public-types-20261106/pack-current.log",
+      "logSha256": "25730dd98135d201f23f82ab702c2443c5d04d1deae49576df041fc50123064b"
+    },
+    {
+      "name": "install-all",
+      "cwd": "/tmp/plasmic-public-types-20261106/consumer-all",
+      "command": "pnpm install --frozen-lockfile --strict-peer-dependencies",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-public-types-20261106/consumer-all-install-frozen.log",
+      "logSha256": "ec18ba9f7b63ea602e938ee2c4f10fbee53aa3f045af54c445d162e9902538ac"
+    },
+    {
+      "name": "install-affected",
+      "cwd": "/tmp/plasmic-public-types-20261106/consumer-affected",
+      "command": "pnpm install --frozen-lockfile --strict-peer-dependencies",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-public-types-20261106/consumer-affected-install-frozen.log",
+      "logSha256": "5c3530b338806c6e26fd0ef9468617702afd5139420e294dcb9b86ca9559c57a"
+    },
+    {
+      "name": "affected-full-declaration-check",
+      "cwd": "/tmp/plasmic-public-types-20261106/consumer-affected",
+      "command": "pnpm exec tsc --noEmit",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-public-types-20261106/consumer-affected-types-final.log",
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "all-full-declaration-diagnostic",
+      "cwd": "/tmp/plasmic-public-types-20261106/consumer-all",
+      "command": "pnpm exec tsc --noEmit (skipLibCheck:false diagnostic run)",
+      "exitCode": 1,
+      "log": "/tmp/plasmic-public-types-20261106/consumer-all-types-final.log",
+      "logSha256": "9c4be20634b0f7ee2ab28ad1fea885d4d6be087efbb197323f822c60b5b209ea"
+    },
+    {
+      "name": "all-accepted-build",
+      "cwd": "/tmp/plasmic-public-types-20261106/consumer-all",
+      "command": "pnpm run build (tsc --noEmit && vite build; skipLibCheck:true)",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-public-types-20261106/consumer-all-accepted-build.log",
+      "logSha256": "7068591ab5747ca61a2b27d862300fb2efe66eba0c029590d8b88484d4e6e714"
+    },
+    {
+      "name": "swell-baseline-behavior",
+      "cwd": "/tmp",
+      "command": "CONSUMER_DIR=/tmp/plasmic-react19-20261105/u15-component-consumer-final node --test /tmp/plasmic-public-types-20261106/tests/swell-provider.cjs",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-public-types-20261106/swell-baseline-final.log",
+      "logSha256": "2438210f6711c6f8006c7bcbed91fc81e83b82147a2c99080a8cdf8087a6c16d"
+    },
+    {
+      "name": "swell-packed-behavior",
+      "cwd": "/tmp/plasmic-public-types-20261106/consumer-all",
+      "command": "CONSUMER_DIR=/tmp/plasmic-public-types-20261106/consumer-all node --test /Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic/plasmicpkgs/commerce-providers/swell/tests/provider.cjs",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-public-types-20261106/swell-packed-behavior-final.log",
+      "logSha256": "55c60cf01ef1309f8e8a62c8667e75330b5bc5054c7ab59f8a1c99008ff589c2"
+    },
+    {
+      "name": "browser",
+      "cwd": "/tmp",
+      "command": "node /tmp/plasmic-public-types-20261106/browser.mjs",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-public-types-20261106/browser-accepted.log",
+      "logSha256": "02133d6ff2aab740b4a5626bf96a7fe27ba71f5366714096b02e8a62480b8638"
+    }
+  ],
+  "consumerLocks": {
+    "consumer-all": {
+      "path": "/tmp/plasmic-public-types-20261106/consumer-all/pnpm-lock.yaml",
+      "sha256": "9ab7be18cdc99bc74bd3b925a358ca08c36340e695d1113599ca6219a537b7ff"
+    },
+    "consumer-affected": {
+      "path": "/tmp/plasmic-public-types-20261106/consumer-affected/pnpm-lock.yaml",
+      "sha256": "3852eef922b1a20546b6cc1f630af6b699f413e455cd59c5c9c46352c96d4c2f"
+    }
+  },
+  "acceptedConsumerConfig": {
+    "compilerOptions": {
+      "target": "ES2022",
+      "lib": [
+        "DOM",
+        "DOM.Iterable",
+        "ESNext"
+      ],
+      "module": "ESNext",
+      "moduleResolution": "bundler",
+      "jsx": "react-jsx",
+      "strict": true,
+      "skipLibCheck": true,
+      "noEmit": true,
+      "allowSyntheticDefaultImports": true,
+      "esModuleInterop": true,
+      "types": [
+        "node"
+      ]
+    },
+    "include": [
+      "src"
+    ]
+  },
+  "sourceIdentities": [
+    {
+      "path": "plasmicpkgs/commerce-providers/commerce/package.json",
+      "sha256": "078b9b749f6fb829fadece0071e604aafe4a4117f74a3cc5247ed1b4c6f87c95"
+    },
+    {
+      "path": "plasmicpkgs/commerce-providers/commerce/src/api/index.ts",
+      "sha256": "0b2644e6717504a74b3b7df5c2e4cc74b617ad8c993001a3cf04f254b145c713"
+    },
+    {
+      "path": "plasmicpkgs/commerce-providers/commerce/src/api/fetch-options.ts",
+      "sha256": "159bd0540358996e0347ea88300a661052d609f902a642e08353286302989c67"
+    },
+    {
+      "path": "plasmicpkgs/commerce-providers/commerce/tests/fetch-options.ts",
+      "sha256": "a035b8fa3a1c88eb01af7ce0cfd4de71dabccfeeda564f8ade9fa954f011d4e4"
+    },
+    {
+      "path": "plasmicpkgs/commerce-providers/swell/package.json",
+      "sha256": "7d4f71cb2e99385944483989579d4d915083ccca3025ff6e105507628612559a"
+    },
+    {
+      "path": "plasmicpkgs/commerce-providers/swell/tests/provider.cjs",
+      "sha256": "034dd08a1af3f11a875a03c5ff640148c3dbb969df147b757ed6948cb9998f42"
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "sha256": "edd32604d8e98027d4350cf4fa7e89f8068bf61f21c6f9182abcfec10e3e648d"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "sha256": "e841960a590b7506a6c1db5ba55c78f43d0c5e00f1249df231ba0b3991cfeab9"
+    }
+  ],
+  "limitations": [
+    "Only Commerce and Swell were rebuilt in this task; the other existing build outputs were freshly packed and exercised as part of this consumer snapshot.",
+    "Full consumer uses the preceding verified dependency lock as the resolution baseline, updated for all current local tarballs; final install began with no node_modules and used frozen-lockfile. Local-product overrides are in pnpm-workspace.yaml; no third-party version or peer overrides are used.",
+    "SDK transport tests use fixture responses, not a live paid Swell store.",
+    "No external publication, original-workspace changes, Studio suite, or shared node_modules reinstall was performed."
+  ]
+}

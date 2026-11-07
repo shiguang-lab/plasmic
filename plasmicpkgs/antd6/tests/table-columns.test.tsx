@@ -158,7 +158,7 @@ test.each([false, true])(
           <AntdColumn
             title="Status"
             dataIndex="status"
-            __plasmic_selection_prop__={{ isSelected: true }}
+            __canvas={{ selected: true }}
           />
         </AntdTable>
       </Canvas>,

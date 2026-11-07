@@ -2,7 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { banner } from "../lib";
 import { spawnOrFail } from "../utils/cmd-utils";
-import { installUpgrade, packageManagerExec } from "../utils/npm-utils";
+import { installUpgrade, packageManagerExec, REACT_DEPENDENCIES } from "../utils/npm-utils";
 import { PackageManagerType } from "../utils/types";
 
 export async function installCodegenDeps(opts: {
@@ -11,7 +11,7 @@ export async function installCodegenDeps(opts: {
 }) {
   const { projectPath, packageManager } = opts;
   // Generated pages import @plasmicapp/host directly
-  return await installUpgrade("@plasmicapp/cli @plasmicapp/host", {
+  return await installUpgrade(`@plasmicapp/cli @plasmicapp/host ${REACT_DEPENDENCIES}`, {
     workingDir: projectPath,
     packageManager,
   });

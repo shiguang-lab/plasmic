@@ -1,4 +1,5 @@
 import {
+  PlasmicCanvasProps,
   usePlasmicCanvasComponentInfo,
   usePlasmicCanvasContext,
 } from "@plasmicapp/host";
@@ -17,13 +18,7 @@ export const useIsomorphicLayoutEffect = isBrowser
   ? React.useLayoutEffect
   : React.useEffect;
 
-export type PlasmicCanvasProps = {
-  plasmicNotifyAutoOpenedContent?: () => void;
-  __plasmic_selection_prop__?: {
-    isSelected: boolean;
-    selectedSlotName?: string;
-  };
-};
+export type { PlasmicCanvasProps } from "@plasmicapp/host";
 
 export type ControlContextData = {
   isDisabled?: boolean;
@@ -71,10 +66,10 @@ export function useIsOpen({
   isOpen?: boolean;
   props: PlasmicCanvasProps;
 }) {
-  const { __plasmic_selection_prop__, plasmicNotifyAutoOpenedContent } = props;
+  const { __canvas } = props;
   const canvasContext = usePlasmicCanvasContext();
-  const { isSelected, selectedSlotName } =
-    usePlasmicCanvasComponentInfo?.({ __plasmic_selection_prop__ }) ?? {};
+  const { selected, slot, onReveal } =
+    usePlasmicCanvasComponentInfo?.({ __canvas }) ?? {};
 
   // In preview, just use the isOpen prop as is.
   if (!canvasContext) {
@@ -83,12 +78,12 @@ export function useIsOpen({
 
   // In canvas, override the isOpen prop if the element is selected.
   const isTriggerSlotSelected =
-    isDefined(selectedSlotName) && selectedSlotName === triggerSlotName;
+    isDefined(slot) && slot === triggerSlotName;
 
-  const isAutoOpenedBySelection = isSelected && !isTriggerSlotSelected;
+  const isAutoOpenedBySelection = selected && !isTriggerSlotSelected;
 
   if (isAutoOpenedBySelection && !isOpen) {
-    plasmicNotifyAutoOpenedContent?.();
+    onReveal?.();
   }
   // Component should always be controlled in canvas
   return Boolean(isAutoOpenedBySelection || isOpen);
@@ -109,25 +104,24 @@ export function useAutoOpen({
   close?: () => void;
 }) {
   const inPlasmicCanvas = !!usePlasmicCanvasContext();
-  const isSelected =
-    usePlasmicCanvasComponentInfo?.(props)?.isSelected ?? false;
-  const { plasmicNotifyAutoOpenedContent } = props;
+  const { selected = false, onReveal } =
+    usePlasmicCanvasComponentInfo?.(props) ?? {};
 
   useEffect(() => {
     // selection in outline tab only matters in canvas
     if (!inPlasmicCanvas) {
       return;
     }
-    if (isSelected) {
+    if (selected) {
       open?.();
-      plasmicNotifyAutoOpenedContent?.();
+      onReveal?.();
     } else {
       close?.();
     }
   }, [
-    isSelected,
+    selected,
     inPlasmicCanvas,
-    plasmicNotifyAutoOpenedContent,
+    onReveal,
     open,
     close,
   ]);
@@ -136,7 +130,7 @@ export function useAutoOpen({
 export function registerComponentHelper<T extends React.ComponentType<any>>(
   loader: Registerable | undefined,
   component: T,
-  meta: CodeComponentMeta<React.ComponentProps<T>>,
+  meta: NoInfer<CodeComponentMeta<React.ComponentProps<T>>>,
   overrides?: CodeComponentMetaOverrides<T>
 ) {
   if (overrides) {

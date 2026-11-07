@@ -6,22 +6,21 @@ import {
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { ColorPicker } from "@/wab/client/components/widgets/ColorPicker";
-import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
+import { useClientTokenValue } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import { useI18n } from "@/wab/client/i18n";
 
 import PlasmicColorButton from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicColorButton";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { isTokenRef, tryParseTokenRef } from "@/wab/commons/StyleToken";
+import { isTokenRef } from "@/wab/commons/StyleToken";
 
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { zeroWidthSpace } from "@/wab/shared/common";
-import { siteFinalColorTokens } from "@/wab/shared/core/site-style-tokens";
+import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
 import { FinalToken } from "@/wab/shared/core/tokens";
 import { StyleToken } from "@/wab/shared/model/classes";
 import Chroma from "@/wab/shared/utils/color-utils";
 import { Tooltip } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useCallback, useRef, useState } from "react";
 
@@ -71,15 +70,18 @@ function _ColorButton(props: ColorButtonProps) {
   const usePopoverFrame = valuePath && popoverFrameContext?.state.stack.length;
 
   const tokenRef = !!color && isTokenRef(color);
-  const appliedToken = color
-    ? tryParseTokenRef(
-        color,
-        siteFinalColorTokens(sc.site, { includeDeps: "all" }),
-      )
-    : null;
-
-  const resolver = useClientTokenResolver();
-  const realColor = appliedToken ? resolver(appliedToken, vsh) : (color ?? "");
+  const defaultVsh = React.useMemo(() => new VariantedStylesHelper(sc.site), [sc, sc.site]);
+  const { selected, lifetime } = useStyleTokenRefs(sc, [color ?? ""], vsh ?? defaultVsh, "Color", (snapshot) => snapshot.rows[0]);
+  const resolved = selected?.resolved;
+  const clientValue = useClientTokenValue(resolved?.value, resolved, lifetime);
+  const appliedToken = selected?.applied;
+  const realColor = appliedToken ? (clientValue ?? "") : (color ?? "");
+  React.useEffect(() => {
+    const closeScope = () => setShow(false);
+    if (lifetime.aborted) { closeScope(); return; }
+    lifetime.addEventListener("abort", closeScope, { once: true });
+    return () => lifetime.removeEventListener("abort", closeScope);
+  }, [lifetime]);
 
   const handleClose = useCallback(() => {
     setShow(false);
@@ -172,9 +174,9 @@ function _ColorButton(props: ColorButtonProps) {
   );
 }
 
-export const ColorButton = observer(_ColorButton);
+export const ColorButton = _ColorButton;
 
-export const ColorSidebarPopup = observer(function ColorSidebarPopup(props: {
+export const ColorSidebarPopup = function ColorSidebarPopup(props: {
   color?: string;
   onChange: (colorOrToken: string) => any;
   show: boolean;
@@ -220,4 +222,4 @@ export const ColorSidebarPopup = observer(function ColorSidebarPopup(props: {
       </div>
     </SidebarModal>
   );
-});
+};

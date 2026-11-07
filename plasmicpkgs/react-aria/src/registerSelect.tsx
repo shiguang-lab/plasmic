@@ -99,8 +99,7 @@ export function BaseSelect(props: BaseSelectProps) {
     className,
     plasmicUpdateVariant,
     setControlContextData,
-    plasmicNotifyAutoOpenedContent,
-    __plasmic_selection_prop__,
+    __canvas,
     defaultSelectedKey,
     "aria-label": ariaLabel,
   } = props;
@@ -145,8 +144,7 @@ export function BaseSelect(props: BaseSelectProps) {
             updateVariant={plasmicUpdateVariant}
           />
           <SelectAutoOpen
-            __plasmic_selection_prop__={__plasmic_selection_prop__}
-            plasmicNotifyAutoOpenedContent={plasmicNotifyAutoOpenedContent}
+            __canvas={__canvas}
           />
           {/* PlasmicPopoverTriggerContext is used by BasePopover */}
           <PlasmicPopoverTriggerContext.Provider value={true}>

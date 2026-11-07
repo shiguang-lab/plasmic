@@ -1,9 +1,25 @@
 // @vitest-environment jsdom
 
-import { act, cleanup, render } from "@testing-library/react";
+import { act, cleanup, render, renderHook } from "@testing-library/react";
 import React from "react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { PlasmicCanvasHost } from "./canvas-host";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { PlasmicCanvasHost, PlasmicCanvasProps, usePlasmicCanvasComponentInfo } from "./canvas-host";
+
+it("keeps canvas selection, reveal callbacks and session bindings behind one internal entry", () => {
+  const state = { value: false, reveal: vi.fn(), set: vi.fn() };
+  const canvas = { selected: true, editing: true, slot: "body", fullContent: true,
+    instance: "row-a", states: { open: state }, getState: vi.fn(() => state), onReveal: vi.fn() };
+  const { result, rerender, unmount } = renderHook((props: PlasmicCanvasProps) => usePlasmicCanvasComponentInfo(props), {
+    initialProps: { __canvas: canvas },
+  });
+  expect(result.current).toBe(canvas);
+  result.current?.onReveal?.();
+  expect(canvas.onReveal).toHaveBeenCalledOnce();
+  expect(result.current?.getState?.("open", false)).toBe(state);
+  rerender({});
+  expect(result.current).toBeNull();
+  unmount();
+});
 
 function studioScripts() {
   return Array.from(document.querySelectorAll("script")).filter((s) =>

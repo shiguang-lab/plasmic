@@ -27,7 +27,7 @@ const createPlasmicAppVersion = updateNotify();
 const argv = yargs
   .command(
     "$0 [projectName]",
-    "Create a Plasmic app with Next.js, Gatsby, or React (Vite)",
+    "Create a Plasmic app with Next.js, TanStack Start, or React (Vite)",
     (yargs2) => {
       yargs2
         .usage("Usage: $0 [projectName] [options]")
@@ -39,7 +39,7 @@ const argv = yargs
   )
   .option("platform", {
     describe: "Target platform",
-    choices: ["", "nextjs", "gatsby", "react", "tanstack"],
+    choices: ["", "nextjs", "react", "tanstack"],
   })
   .option("scheme", {
     describe: "Plasmic integration scheme",
@@ -75,9 +75,9 @@ const argv = yargs
   .check((argv2) => {
     if (
       argv2.scheme === "loader" &&
-      !(argv2.platform === "nextjs" || argv2.platform === "gatsby")
+      !(argv2.platform === "nextjs")
     ) {
-      throw new Error(`Loader scheme may only be used with Next.js or Gatsby`);
+      throw new Error(`Loader scheme may only be used with Next.js`);
     }
 
     return true;
@@ -151,10 +151,6 @@ async function run(): Promise<void> {
         value: "nextjs",
       },
       {
-        name: "Gatsby",
-        value: "gatsby",
-      },
-      {
         name: "TanStack Start",
         short: "TanStack Start",
         value: "tanstack",
@@ -192,9 +188,9 @@ async function run(): Promise<void> {
       : "js";
 
   // Scheme to use for Plasmic integration
-  // - loader only available for gatsby/next.js
+  // - loader only available for Next.js
   const scheme: SchemeType =
-    platform === "nextjs" || platform === "gatsby"
+    platform === "nextjs"
       ? await maybePrompt({
           name: "scheme",
           message: "Which scheme do you want to use to integrate Plasmic?",

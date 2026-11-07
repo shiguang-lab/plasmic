@@ -3,7 +3,7 @@ import * as antd from "antd";
 import assert from "node:assert/strict";
 import { readdirSync } from "node:fs";
 import { dirname } from "node:path";
-import { test } from "node:test";
+import { test } from "vitest";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { componentChildren } from "./componentSections";
@@ -173,7 +173,7 @@ test("table title is an optional native render slot with current page data", () 
   }
 });
 
-// The non-deprecated top-level visual components exported by antd 6.6.5.
+// The non-deprecated top-level visual components exported by antd 6.7.0.
 const families = [
   "affix",
   "alert",
@@ -651,7 +651,7 @@ test("content editing expands native and virtual table viewports only in Studio,
       scroll: { x: 1200, y: 240 },
       virtual: true,
       pagination: { defaultPageSize: 20 },
-      __plasmic_selection_prop__: { isEditingContents: true },
+      __canvas: { editing: true },
       ...(nativeColumns
         ? {
             columns: [
@@ -704,7 +704,7 @@ test("full page height view renders every row in Studio, keeping horizontal scro
     scroll: { x: 1200, y: 240 },
     virtual: true,
     pagination: false,
-    __plasmic_selection_prop__: { isFullContentView: true },
+    __canvas: { fullContent: true },
   };
   const savedScroll = { ...props.scroll };
   const render = (interactive: boolean, extra: object = {}) =>
@@ -724,7 +724,7 @@ test("full page height view renders every row in Studio, keeping horizontal scro
   // Interactive mode and the ordinary viewport view keep the runtime behavior.
   assert.match(render(true), /ant-table-tbody-virtual/);
   assert.match(
-    render(false, { __plasmic_selection_prop__: { isFullContentView: false } }),
+    render(false, { __canvas: { fullContent: false } }),
     /ant-table-tbody-virtual/,
   );
   assert.deepEqual(props.scroll, savedScroll);

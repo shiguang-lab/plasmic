@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/commerce-commercetools",
-  "version": "0.0.213",
+  "version": "0.1.0",
   "description": "commercetools provider for Plasmic commerce components.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -31,14 +31,14 @@
     "@types/js-cookie": "catalog:",
     "@types/node": "^14.18.63",
     "@types/react": "catalog:",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "tsdx": "catalog:"
   },
   "peerDependencies": {
-    "@plasmicapp/host": ">=1.0.0",
-    "@plasmicapp/query": ">=0.1.0",
-    "react": ">=16.8.0"
+    "@plasmicapp/host": "^3.0.0",
+    "@plasmicapp/query": "^0.2.0",
+    "react": "^19.3.1"
   },
   "dependencies": {
     "@commercetools/platform-sdk": "^2.8.0",

@@ -5,6 +5,7 @@ import { expect, test, vi } from "vitest";
 import { AntdColumn, AntdExpandColumn, AntdTable, registerTable } from "../src/registerTable";
 import type { Registerable } from "../src/utils";
 import { createSessionCanvas } from "./canvas-session";
+import { CanvasSessionState } from "../../../platform/wab/src/wab/client/components/canvas/canvas-session-state";
 
 const Canvas = createSessionCanvas([registerTable]);
 
@@ -14,11 +15,11 @@ const detail: NonNullable<Props["expandedRowRender"]> = (row, index, indent, exp
 const eligible = (row: any) => !!row.detail;
 const visibleDetails = (container: HTMLElement) => Array.from(container.querySelectorAll<HTMLElement>(".ant-table-expanded-row"))
   .filter((row) => row.style.display !== "none").map((row) => row.textContent);
-function table(props: Partial<Props> = {}, mode: "runtime" | "canvas" | "interactive" = "runtime") {
-  const element = <AntdTable data={data} rowKey="id" pagination={false} expandedRowRender={detail} {...props}>
+function table(props: Partial<Props> = {}, mode: "runtime" | "canvas" | "interactive" = "runtime", session?: CanvasSessionState) {
+  const element = <AntdTable key="table" data={data} rowKey="id" pagination={false} expandedRowRender={detail} {...props}>
     {props.children ?? <><AntdColumn title="Name" dataIndex="name" /><AntdExpandColumn /></>}
   </AntdTable>;
-  return mode === "runtime" ? element : <Canvas interactive={mode === "interactive"}>{element}</Canvas>;
+  return mode === "runtime" ? element : <Canvas session={session} interactive={mode === "interactive"}>{element}</Canvas>;
 }
 
 test("registration exposes the native expandable fields, typed events, editable row scope and position marker", () => {
@@ -32,9 +33,7 @@ test("registration exposes the native expandable fields, typed events, editable 
   expect(meta.props.onExpand.argTypes).toEqual([{ name: "expanded", type: "boolean" }, { name: "row", type: "object" }]);
   expect(meta.props.onExpandedRowsChange.argTypes).toEqual([{ name: "expandedKeys", type: "object" }]);
   expect(meta.props.rowKey.hidden).toBeUndefined();
-  expect(meta.props.canvasExpandedRowKeys).toMatchObject({ type: "choice", multiSelect: true, editOnly: true });
-  expect(meta.props.canvasExpandedRowKeys).not.toHaveProperty("uncontrolledProp");
-  expect(meta.props.canvasExpandedRowKeys.options({ data, rowKey: "id" })).toEqual(["a", "b", "c"]);
+  expect(meta.props).not.toHaveProperty("canvasExpandedRowKeys");
   expect(meta.props.children.allowedComponents).toContain("plasmic-antd6-table-expand-column");
   expect(metas.get("plasmic-antd6-table-expand-column")).toMatchObject({ parentComponentName: "plasmic-antd6-table", importName: "AntdExpandColumn" });
   expect(metas.get("plasmic-antd6-table-column-group").props.children.allowedComponents).not.toContain("plasmic-antd6-table-expand-column");
@@ -73,10 +72,10 @@ test("hidden explicit expansion column still permits row click expansion", () =>
 });
 
 test("marker position survives content editing and works with native selection and explicit columns", () => {
-  const { rerender } = render(table({ isSelectable: "multiple", expandable: { columnTitle: "Details", fixed: "right" }, __plasmic_selection_prop__: { isEditingContents: true } }, "canvas"));
+  const { rerender } = render(table({ isSelectable: "multiple", expandable: { columnTitle: "Details", fixed: "right" }, __canvas: { editing: true } }, "canvas"));
   expect(screen.getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["", "Name", "Details"]);
   expect(screen.getByRole("columnheader", { name: "Details" }).className).not.toContain("cell-fix");
-  rerender(table({ columns: [Table.EXPAND_COLUMN, { title: "Name", dataIndex: "name" }], isSelectable: "multiple", expandable: { columnTitle: "Details" }, __plasmic_selection_prop__: { isEditingContents: true } }, "canvas"));
+  rerender(table({ columns: [Table.EXPAND_COLUMN, { title: "Name", dataIndex: "name" }], isSelectable: "multiple", expandable: { columnTitle: "Details" }, __canvas: { editing: true } }, "canvas"));
   expect(screen.getAllByRole("columnheader").map((cell) => cell.textContent)).toEqual(["Details", "", "Name"]);
 });
 
@@ -102,18 +101,18 @@ test("uncontrolled defaults initialize once and allow user changes", () => {
   expect(visibleDetails(container)).toEqual([]);
 });
 
-test.each([{ isSelected: true, selectedSlotName: "expandedRowRender" }, { isEditingContents: true }])("canvas reveals editable row content without callbacks or changing saved state: %j", (selection) => {
+test.each([{ selected: true, slot: "expandedRowRender" }, { editing: true }])("canvas reveals editable row content without callbacks or changing saved state: %j", (selection) => {
   const onExpand = vi.fn(), onExpandedRowsChange = vi.fn();
   const expandable = Object.freeze({ expandedRowKeys: Object.freeze([]), rowExpandable: eligible, onExpand, onExpandedRowsChange });
-  const { container, rerender } = render(table({ expandable, onExpand, onExpandedRowsChange, __plasmic_selection_prop__: selection }, "canvas"));
+  const { container, rerender } = render(table({ expandable, onExpand, onExpandedRowsChange, __canvas: selection }, "canvas"));
   expect(visibleDetails(container)).toEqual(["First detail:0:1:true", "Second detail:1:1:true"]);
   fireEvent.click(screen.getAllByRole("button", { name: "Collapse row" })[0]);
   expect(visibleDetails(container)).toHaveLength(2);
   expect(onExpand).not.toHaveBeenCalled();
   expect(onExpandedRowsChange).not.toHaveBeenCalled();
-  rerender(table({ expandable, onExpand, onExpandedRowsChange, __plasmic_selection_prop__: { isSelected: false } }, "canvas"));
+  rerender(table({ expandable, onExpand, onExpandedRowsChange, __canvas: { selected: false } }, "canvas"));
   expect(visibleDetails(container)).toEqual([]);
-  rerender(table({ expandable, onExpand, onExpandedRowsChange, __plasmic_selection_prop__: selection }, "interactive"));
+  rerender(table({ expandable, onExpand, onExpandedRowsChange, __canvas: selection }, "interactive"));
   expect(visibleDetails(container)).toEqual([]);
   expect(expandable.expandedRowKeys).toEqual([]);
 });
@@ -123,11 +122,11 @@ test("canvas default edits refresh immediately, ordinary selection does not reve
   expect(visibleDetails(container)).toEqual(["First detail:0:1:true"]);
   rerender(table({ expandable: { defaultExpandedRowKeys: ["b"] } }, "canvas"));
   expect(visibleDetails(container)).toEqual(["Second detail:1:1:true"]);
-  for (const selectedSlotName of [undefined, "children", "title"]) {
-    rerender(table({ __plasmic_selection_prop__: { isSelected: true, selectedSlotName } }, "canvas"));
+  for (const slot of [undefined, "children", "title"]) {
+    rerender(table({ __canvas: { selected: true, slot } }, "canvas"));
     expect(visibleDetails(container)).toEqual([]);
   }
-  rerender(table({ expandable: { expandedRowKeys: ["a"] }, __plasmic_selection_prop__: { isSelected: true } }, "canvas"));
+  rerender(table({ expandable: { expandedRowKeys: ["a"] }, __canvas: { selected: true } }, "canvas"));
   expect(visibleDetails(container)).toEqual(["First detail:0:1:true"]);
   rerender(table({ expandable: { defaultExpandAllRows: true, rowExpandable: eligible } }, "canvas"));
   expect(visibleDetails(container)).toHaveLength(2);
@@ -144,48 +143,45 @@ test("native renderer passthrough and top-level slot precedence remain explicit"
   expect(visibleDetails(container)).toEqual(["Second detail:1:1:true"]);
 });
 
-test("canvas sample keys survive canvas mode changes without changing standalone controlled expansion", () => {
+test("editing row choices live only in the canvas session and are absent after reopening", () => {
+  const session = new CanvasSessionState();
   const onExpand = vi.fn(), onExpandedRowsChange = vi.fn();
   const expandable = Object.freeze({ expandedRowKeys: Object.freeze([]), rowExpandable: eligible });
-  const ps = { expandable, canvasExpandedRowKeys: Object.freeze(["a", "b", "c", "missing"]), onExpand, onExpandedRowsChange };
-  const { container, rerender } = render(table(ps, "canvas"));
-  expect(visibleDetails(container)).toEqual(["First detail:0:1:true", "Second detail:1:1:true"]);
+  const ps = Object.freeze({ expandable, onExpand, onExpandedRowsChange });
+  const view = render(table(ps, "canvas", session));
+  expect(document.querySelector("[__canvas]")).toBeNull();
+  expect(visibleDetails(view.container)).toEqual([]);
+  session.set("root/table", "expandable.expandedRowKeys", ["a", "b"], true);
+  view.rerender(table(ps, "canvas", session));
+  expect(visibleDetails(view.container)).toEqual(["First detail:0:1:true", "Second detail:1:1:true"]);
+  view.rerender(table(ps, "interactive", session));
+  expect(visibleDetails(view.container)).toEqual([]);
+  view.rerender(table(ps, "canvas", session));
+  expect(visibleDetails(view.container)).toHaveLength(2);
+  expect(expandable.expandedRowKeys).toEqual([]);
+  expect(ps).not.toHaveProperty("canvasExpandedRowKeys");
   expect(onExpand).not.toHaveBeenCalled();
   expect(onExpandedRowsChange).not.toHaveBeenCalled();
-  rerender(table(ps, "interactive"));
-  expect(visibleDetails(container)).toHaveLength(2);
-  rerender(table(ps));
-  expect(visibleDetails(container)).toEqual([]);
-  expect(expandable.expandedRowKeys).toEqual([]);
+  view.unmount();
+  const reopened = render(table(ps, "canvas", new CanvasSessionState()));
+  expect(visibleDetails(reopened.container)).toEqual([]);
+  reopened.unmount();
+  expect(visibleDetails(render(table(ps)).container)).toEqual([]);
 });
 
-test("canvas samples preserve numeric key types and do not replace native runtime defaults", () => {
+test("session row choices preserve key types without replacing native runtime defaults", () => {
+  const session = new CanvasSessionState();
   const numeric = { data: data.data.map((row, index) => ({ ...row, id: index + 1 })) };
-  const ps = { data: numeric, canvasExpandedRowKeys: [1, "2", 3], expandable: { defaultExpandedRowKeys: [2], rowExpandable: eligible } };
-  const { container, rerender } = render(table(ps, "canvas"));
-  expect(visibleDetails(container)).toEqual(["First detail:0:1:true"]);
-  rerender(table(ps));
-  expect(visibleDetails(container)).toEqual(["Second detail:1:1:true"]);
-  rerender(table({ ...ps, canvasExpandedRowKeys: [] }, "canvas"));
-  expect(visibleDetails(container)).toEqual([]);
-});
-
-test("explicit canvas samples retain manual changes and selection does not force additional rows open", () => {
-  const onExpandedRowsChange = vi.fn();
-  const ps = { canvasExpandedRowKeys: ["a"], onExpandedRowsChange, expandable: { expandedRowKeys: [], rowExpandable: eligible } };
-  const { container, rerender } = render(table(ps, "canvas"));
-  expect(visibleDetails(container)).toEqual(["First detail:0:1:true"]);
-  rerender(table({ ...ps, __plasmic_selection_prop__: { isSelected: true, selectedSlotName: "expandedRowRender" } }, "canvas"));
-  expect(visibleDetails(container)).toEqual(["First detail:0:1:true"]);
-  fireEvent.click(screen.getByRole("button", { name: "Expand row" }));
-  expect(visibleDetails(container)).toHaveLength(2);
-  fireEvent.click(screen.getAllByRole("button", { name: "Collapse row" })[0]);
-  expect(visibleDetails(container)).toEqual(["Second detail:1:1:true"]);
-  rerender(table({ ...ps, __plasmic_selection_prop__: { isSelected: true } }, "canvas"));
-  expect(visibleDetails(container)).toEqual(["Second detail:1:1:true"]);
-  rerender(table({ ...ps, canvasExpandedRowKeys: [] }, "canvas"));
-  expect(visibleDetails(container)).toEqual([]);
-  expect(onExpandedRowsChange).not.toHaveBeenCalled();
+  const ps = { data: numeric, expandable: { defaultExpandedRowKeys: [2], rowExpandable: eligible } };
+  const view = render(table(ps, "canvas", session));
+  session.set("root/table", "expandable.expandedRowKeys", [1, "2", 3, "missing"], true);
+  view.rerender(table(ps, "canvas", session));
+  expect(visibleDetails(view.container)).toEqual(["First detail:0:1:true"]);
+  session.set("root/table", "expandable.expandedRowKeys", [], true);
+  view.rerender(table(ps, "canvas", session));
+  expect(visibleDetails(view.container)).toEqual([]);
+  view.rerender(table(ps));
+  expect(visibleDetails(view.container)).toEqual(["Second detail:1:1:true"]);
 });
 
 test("native canvas expansion survives mode changes and resets on source edits or standalone Preview", () => {
@@ -197,13 +193,13 @@ test("native canvas expansion survives mode changes and resets on source edits o
   // Table only receives the native event; it has no modifier-key special case.
   fireEvent.click(screen.getAllByRole("button", { name: "Expand row" })[0]);
   expect(visibleDetails(container)).toEqual(["First detail:0:1:true"]);
-  rerender(table({ ...ps, __plasmic_selection_prop__: { isSelected: true } }, "canvas"));
+  rerender(table({ ...ps, __canvas: { selected: true } }, "canvas"));
   expect(visibleDetails(container)).toEqual(["First detail:0:1:true"]);
   fireEvent.click(screen.getByRole("button", { name: "Expand row" }));
   expect(visibleDetails(container)).toHaveLength(2);
   fireEvent.click(screen.getAllByRole("button", { name: "Collapse row" })[0]);
   expect(visibleDetails(container)).toEqual(["Second detail:1:1:true"]);
-  rerender(table({ ...ps, __plasmic_selection_prop__: { isSelected: true, selectedSlotName: "expandedRowRender" } }, "canvas"));
+  rerender(table({ ...ps, __canvas: { selected: true, slot: "expandedRowRender" } }, "canvas"));
   expect(visibleDetails(container)).toHaveLength(2);
   rerender(table(ps, "canvas"));
   expect(visibleDetails(container)).toEqual(["Second detail:1:1:true"]);

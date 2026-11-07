@@ -18,7 +18,7 @@ This repo contains:
 - the Plasmic Studio platform itself (under the `platform/` dir)
 - code for all Plasmic component store packages (`@plasmicpkgs/*`)
 - client libraries/SDKs (`@plasmicapp/*`)
-- examples (under the `examples/` dir)
+- project generators and maintained output fixtures (`packages/create-plasmic-app/`)
 
 For hacking on code components or `plasmicpkgs`, see specific additional instructions further down.
 
@@ -174,7 +174,7 @@ rm -rf node_modules package-lock.json yarn.lock &&
 
 # Or, to be more surgical: you can delete anything that pulls in any @plasmicapp/@plasmicpkgs packages.
 # In this case, we want to remove anything that depends on the @plasmicapp/host package we updated.
-# npm un @plasmicapp/loader-nextjs @plasmicpkgs/plasmic-rich-components
+# npm un @plasmicapp/loader-nextjs @shiguang-lab/plasmic-antd6
 
 # Step 5.
 # Delete any framework-specific caches, such as these for Next.js and Gatsby.
@@ -185,7 +185,7 @@ rm -rf .next/ .cache/ &&
 # (Re-)install the necessary packages, from your local verdaccio.
 # These will pull in the changes you made to @plasmicapp/host.
 # Note: this proxies to npmjs.org for packages that aren't published locally to verdaccio.
-npm i @plasmicapp/loader-nextjs @plasmicpkgs/plasmic-rich-components --registry=http://localhost:4873
+npm i @plasmicapp/loader-nextjs @shiguang-lab/plasmic-antd6 --registry=http://localhost:4873
 ```
 
 Check that the versions in your package.json are also not holding back any plasmicpkgs and plasmicapp versions!

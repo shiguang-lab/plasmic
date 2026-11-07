@@ -1,7 +1,7 @@
 import { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 
 import { Widget } from "@typeform/embed-react";
-import React from "react";
+
 export function ensure<T>(x: T | null | undefined): T {
   if (x === null || x === undefined) {
     debugger;

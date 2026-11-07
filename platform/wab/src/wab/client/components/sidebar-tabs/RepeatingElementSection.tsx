@@ -1,3 +1,4 @@
+import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
 import { DataPickerEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/DataPickerEditor";
 import { StringPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/StringPropEditor";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
@@ -32,6 +33,7 @@ export const RepeatingElementSection = observer(function (props: {
 }) {
   const { t: uiT } = useI18n();
   const { tpl, viewCtx } = props;
+  const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl, { forDataRepCollection: true });
   const ownerComponent = tryGetTplOwnerComponent(tpl);
   const [isDataPickerVisible, setIsDataPickerVisible] =
     React.useState<boolean>(false);
@@ -120,9 +122,7 @@ export const RepeatingElementSection = observer(function (props: {
               }}
               visible={isDataPickerVisible}
               setVisible={setIsDataPickerVisible}
-              data={viewCtx.getInspectorCanvasEnvForTpl(tpl, {
-                forDataRepCollection: true,
-              })}
+              data={canvasEnv}
               schema={viewCtx.customFunctionsSchema()}
               key={tpl.uid}
               context="Array of elements to then be iterated"

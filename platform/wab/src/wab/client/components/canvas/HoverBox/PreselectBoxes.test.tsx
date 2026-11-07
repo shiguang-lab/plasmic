@@ -1,12 +1,28 @@
+import { CanvasContentEditorIndex } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { ensure } from "@/wab/shared/common";
+import { StackOfParents } from "@/wab/client/components/canvas/HoverBox/StackOfParents";
+import { mock } from "vitest-mock-extended";
+import { StudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { createViewVariantFixture } from "@/wab/client/__testonly__/view-variants";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
+import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
+import { mkArenaFrame } from "@/wab/shared/Arenas";
+import { ComponentType, mkComponent } from "@/wab/shared/core/components";
+import { createSite } from "@/wab/shared/core/sites";
+import { ValTag } from "@/wab/shared/core/val-nodes";
+import { createStore } from "zustand/vanilla";
+import { createViewportFixture } from "@/wab/client/__testonly__/viewport";
 import { PreselectBox, PreselectBoxes } from "@/wab/client/components/canvas/HoverBox/PreselectBoxes";
 import { computeScalerVisibility } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
-import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { SQ, type Selectable } from "@/wab/shared/core/selection";
-import { Arena, type ArenaFrame } from "@/wab/shared/model/classes";
+import { SQ } from "@/wab/shared/core/selection";
+import { Arena } from "@/wab/shared/model/classes";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
-import { cleanup, render, waitFor } from "@testing-library/react";
+import { act, cleanup, render, waitFor } from "@testing-library/react";
 import $ from "jquery";
 import React from "react";
 
@@ -36,8 +52,15 @@ vi.mock("@/wab/client/components/canvas/HoverBox/visible-bounds", () => ({
   })),
 }));
 
+const disposeFixtures: (() => void)[] = [];
+function installContentScope(studio: StudioCtx) {
+  const index = new CanvasContentEditorIndex(() => []);
+  Object.defineProperty(studio, "activeContentEditorStore", { value: index.store });
+  disposeFixtures.push(() => index.dispose());
+}
 afterEach(() => {
   cleanup();
+  disposeFixtures.splice(0).forEach((dispose) => dispose());
   document.body.innerHTML = "";
   vi.clearAllMocks();
 });
@@ -50,11 +73,27 @@ function element(parent = document.body) {
   return node;
 }
 
-function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = false, live = false) {
+function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = false, live = false, dragging = createStore<boolean>(() => false), overlayState = new StudioOverlayState()) {
+  overlayState.ancestorsHoverBoxes = false;
+  const site = createSite();
+  const tpl = mkTplTagX("div");
+  const component = mkComponent({ name: "Hover", type: ComponentType.Plain, tplTree: tpl });
+  site.components.push(component);
+  const frame = mkArenaFrame({ site, component, name: "Hover", width: 100, height: 100 });
+  const models = new ModelSnapshots();
+  const arenaState = new StudioArenaState({ site, modelSnapshots: models });
+  const selection = new ViewSelection(() => models);
+  const studioSelection = new StudioSelection(() => models);
+  const variants = createViewVariantFixture(models, site, frame);
+  const selectable = new ValTag({ tpl, children: [], className: "", key: "hover", fullKey: "hover", frameUid: frame.uid, fibers: [], parent: undefined, valOwner: undefined, slotInfo: undefined });
+  selection.setHover(selectable, $(hovered));
+  disposeFixtures.push(() => { arenaState.dispose(); overlayState.dispose(); studioSelection.dispose(); selection.dispose(); variants.dispose(); models.dispose(); });
   const viewCtx = {
+    selectionStore: selection.store,
+    variantStore: variants.store,
     dom2focusObj: () => undefined,
     selectionDom: () => $(roots),
-    $hoveredDomElt: () => $(hovered),
+    $hoveredDomElt: () => selection.hoverDom(),
     contentEditor: { contains: () => true },
     canvasCtx: { $doc: () => $(document) },
     hoverVariantTplMgr: () => ({
@@ -63,26 +102,36 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
     }),
   } as unknown as ViewCtx;
   const studioCtx = {
-    focusedViewCtx: () => undefined,
-    shouldHidePreselectBox: () => false,
-    showStackOfParents: false,
+    selectionStore: studioSelection.store, overlayState, arenaState,
+    draggingObjectStore: dragging,
+    hoveredViewStore: createStore<ViewCtx | undefined>(() => live ? viewCtx : undefined),
+    focusedViewCtx: () => studioSelection.current().view,
+    shouldHidePreselectBox: StudioCtx.prototype.shouldHidePreselectBox,
+    isDraggingObject: () => dragging.getState(),
+    get screenshotting() { return overlayState.screenshotting; },
+    get showStackOfParents() { return overlayState.stackOfParents; },
     zoom: 1,
+    ...createViewportFixture(),
   } as unknown as StudioCtx;
-  const selectable = { tpl: mkTplTagX("div") } as Selectable;
+  installContentScope(studioCtx);
   if (live) {
-    const frame = {} as ArenaFrame;
     Object.assign(viewCtx, {
       arenaFrame: () => frame,
-      hoveredSelectable: () => selectable,
+      component: frame.container.component,
+      studioCtx,
+      modelLifetime: arenaState.lifetime(),
+      isDisposed: false,
+      initialRenderReadyStore: createStore<boolean>(() => false),
+      hoveredSelectable: () => selection.hover(),
       sel2cloneKey: () => undefined,
       valState: () => undefined,
     });
     Object.assign(studioCtx, {
       isTransforming: () => false,
-      viewCtxs: [viewCtx],
       currentArena: new Arena({ name: "Page", children: [frame] }),
-      showAncestorsHoverBoxes: () => false,
+      showAncestorsHoverBoxes: () => overlayState.ancestorsHoverBoxes,
     });
+    arenaState.viewRegistry.register(viewCtx);
     vi.mocked(SQ).mockReturnValue({
       ancestors: () => ({ toArray: () => [selectable] }),
     } as unknown as ReturnType<typeof SQ>);
@@ -185,4 +234,87 @@ it("updates stale hover when a modal opens and closes without another mousemove"
   await waitFor(() => expect(container.querySelector(".PreselectBox")).toBeNull());
   modal.remove();
   await waitFor(() => expect(container.querySelector(".PreselectBox")).not.toBeNull());
+});
+
+it("hides the existing preselect outline when native dragging changes through its derived read boundary", () => {
+  const section = element(), field = element(section);
+  const dragging = createStore<boolean>(() => false);
+  const { container } = outline([section], field, false, false, dragging);
+  expect(container.querySelector(".PreselectBox")).not.toBeNull();
+  act(() => dragging.setState(true, true));
+  expect(container.querySelector(".PreselectBox")).toBeNull();
+  act(() => dragging.setState(false, true));
+  expect(container.querySelector(".PreselectBox")).not.toBeNull();
+});
+
+
+it("hides and restores an existing outline through the real native screenshot helper read", () => {
+  const section = element(), field = element(section);
+  const overlayState = new StudioOverlayState();
+  const { container } = outline([section], field, false, false, createStore<boolean>(() => false), overlayState);
+  expect(container.querySelector(".PreselectBox")).not.toBeNull();
+  act(() => { overlayState.screenshotting = true; });
+  expect(container.querySelector(".PreselectBox")).toBeNull();
+  act(() => { overlayState.screenshotting = false; });
+  expect(container.querySelector(".PreselectBox")).not.toBeNull();
+});
+
+
+it("cancels the actual parent-stack auto-hide producer when its view boundary unmounts", () => {
+  vi.useFakeTimers();
+  const models = new ModelSnapshots(), selection = new StudioSelection(() => models);
+  const overlayState = new StudioOverlayState(), studio = mock<StudioCtx>();
+  Object.defineProperties(studio, {
+    overlayState: { value: overlayState }, selectionStore: { value: selection.store },
+    showStackOfParents: ensure(Object.getOwnPropertyDescriptor(StudioCtx.prototype, "showStackOfParents"), "Actual Studio parent-stack command"),
+  });
+  installContentScope(studio);
+  studio.focusedViewCtx.mockReturnValue(undefined);
+  vi.mocked(useStudioCtx).mockReturnValue(studio);
+  const command = vi.spyOn(overlayState, "stackOfParents", "set");
+  const mounted = render(<StackOfParents hoverTagRef={React.createRef<HTMLDivElement>()} />);
+  try {
+    const before = vi.getTimerCount();
+    act(() => { overlayState.stackOfParents = true; });
+    expect(vi.getTimerCount()).toBe(before + 1);
+    mounted.unmount(); command.mockClear();
+    act(() => { vi.runAllTimers(); });
+    expect(command).not.toHaveBeenCalled();
+  } finally {
+    mounted.unmount(); command.mockRestore(); overlayState.dispose(); selection.dispose(); models.dispose(); vi.useRealTimers();
+  }
+});
+
+
+it("rebinds parent-stack timers and hover listeners to a replacement Studio owner", async () => {
+  const contexts = await vi.importActual<typeof import("@/wab/client/contexts/StudioContexts")>("@/wab/client/contexts/StudioContexts");
+  vi.mocked(useStudioCtx).mockImplementation(contexts.useStudioCtx);
+  vi.useFakeTimers();
+  const models = new ModelSnapshots(), selection = new StudioSelection(() => models);
+  const previous = new StudioOverlayState(), next = new StudioOverlayState();
+  const studioFor = (overlayState: StudioOverlayState) => {
+    const studio = mock<StudioCtx>();
+    Object.defineProperties(studio, {
+      overlayState: { value: overlayState }, selectionStore: { value: selection.store },
+      showStackOfParents: ensure(Object.getOwnPropertyDescriptor(StudioCtx.prototype, "showStackOfParents"), "Actual Studio parent-stack command"),
+    });
+    installContentScope(studio);
+  studio.focusedViewCtx.mockReturnValue(undefined);
+    return studio;
+  };
+  previous.stackOfParents = true; next.stackOfParents = true;
+  const oldCommand = vi.spyOn(previous, "stackOfParents", "set"), nextCommand = vi.spyOn(next, "stackOfParents", "set");
+  const tag = element(), hoverTagRef = { current: tag };
+  const mounted = render(<contexts.StudioCtxContext.Provider value={studioFor(previous)}><StackOfParents hoverTagRef={hoverTagRef} /></contexts.StudioCtxContext.Provider>);
+  try {
+    mounted.rerender(<contexts.StudioCtxContext.Provider value={studioFor(next)}><StackOfParents hoverTagRef={hoverTagRef} /></contexts.StudioCtxContext.Provider>);
+    oldCommand.mockClear(); nextCommand.mockClear();
+    tag.dispatchEvent(new MouseEvent("mouseenter"));
+    tag.dispatchEvent(new MouseEvent("mouseleave"));
+    act(() => { vi.advanceTimersByTime(2000); });
+    expect(oldCommand).not.toHaveBeenCalled();
+    expect(nextCommand).toHaveBeenCalledExactlyOnceWith(false);
+  } finally {
+    mounted.unmount(); oldCommand.mockRestore(); nextCommand.mockRestore(); previous.dispose(); next.dispose(); selection.dispose(); models.dispose(); vi.useRealTimers(); vi.mocked(useStudioCtx).mockReset();
+  }
 });

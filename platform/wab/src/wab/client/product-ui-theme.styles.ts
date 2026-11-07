@@ -44,19 +44,20 @@ import type { GlobalToken } from "antd";
 import { createStyles, type CSSObject } from "antd-style";
 
 const labeledItemRoots = [".labeled-item", '[data-plasmic-role="labeled-item"]'];
+// Native QueryBuilder controls retain Antd component state styles inside rows.
 const labeledItemAntdInputs = labeledItemRoots
   .flatMap((root) => [
-    `& ${root} .ant-input`,
-    `& ${root} .ant-input-number-input`,
+    `& ${root} .ant-input:not(:where(.query-builder *))`,
+    `& ${root} .ant-input-number-input:not(:where(.query-builder *))`,
   ])
   .join(", ");
 const labeledItemAntdFields = [
   ...labeledItemRoots.flatMap((root) => [
-    `& ${root} .ant-input`,
-    `& ${root} .ant-input-number`,
-    `& ${root} .ant-select.textboxlike .ant-select-selector`,
+    `& ${root} .ant-input:not(:where(.query-builder *))`,
+    `& ${root} .ant-input-number:not(:where(.query-builder *))`,
+    `& ${root} .ant-select.textboxlike .ant-select-selector:not(:where(.query-builder *))`,
   ]),
-  "& .tag-select .ant-select.textboxlike .ant-select-selector",
+  "& .tag-select .ant-select.textboxlike .ant-select-selector:not(:where(.query-builder *))",
 ].join(", ");
 const hoverOf = (selectors: string) =>
   selectors
@@ -242,7 +243,7 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
     background: token.colorBgElevated,
     color: token.colorText,
   },
-  "& .modal, & .code-preview-inner, & .canvas-editor__right-stack-pane, & .canvas-editor__right-float-pane, & .sidebar-header-section__content, & .vertical-fill-table .ant-table-tbody":
+  "& .modal, & .code-preview-inner, & .canvas-editor__right-float-pane, & .sidebar-header-section__content, & .vertical-fill-table .ant-table-tbody":
     {
       background: token.colorBgContainer,
       color: token.colorText,

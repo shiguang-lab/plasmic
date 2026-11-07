@@ -1,3 +1,7 @@
+import { createViewVariantFixture } from "@/wab/client/__testonly__/view-variants";
+import { mkArenaFrame } from "@/wab/shared/Arenas";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
 import {
   buildValTree,
   TEST_GLOBAL_VARIANT,
@@ -8,6 +12,7 @@ import { CanvasContentEditor } from "@/wab/client/studio-ctx/canvas-content-edit
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkStyleToken, mkTokenRef } from "@/wab/commons/StyleToken";
+import { TplMgr } from "@/wab/shared/TplMgr";
 import { createTplMgr } from "@/wab/shared/__testonly__/site-tests-utils";
 import { ensure, ensureInstance } from "@/wab/shared/common";
 import { TransientComponentVariantFrame } from "@/wab/shared/component-frame";
@@ -67,10 +72,17 @@ test("canvas overview renders offscreen artboards only in the current arena with
 });
 
 function overlayViewCtx() {
+  const models = new ModelSnapshots();
+  const site = createSite();
+  const component = new TplMgr({ site }).addComponent();
+  const frame = mkArenaFrame({ site, component, name: "Overlay", width: 100, height: 100 });
+  const variants = createViewVariantFixture(models, site, frame);
   return Object.assign(Object.create(ViewCtx.prototype), {
+    variants,
     canvasSessionState: new CanvasSessionState(),
+    studioCtx: { notifyInspectorFocusChanged: vi.fn() },
+    selection: new ViewSelection(() => models),
     _autoOpenedUuid: observable.box<string | undefined>(),
-    _disabledAutoOpenUuid: observable.box<string | undefined>(),
     scheduleSync: vi.fn(),
   }) as ViewCtx;
 }
@@ -132,17 +144,17 @@ test("selection updates close auto-opened content and business-open content need
 
 test("runtime open changes take over a temporary closed overlay without changing its saved preview prop", () => {
   const viewCtx = overlayViewCtx();
-  const savedPreviewOpen = false;
-  expect(viewCtx.syncCanvasOverlayState("modal", savedPreviewOpen, false)).toBe(false);
+  const selectionOpen = false;
+  expect(viewCtx.syncCanvasOverlayState("modal", selectionOpen, false)).toBe(false);
   viewCtx.setCanvasOverlayOpen("modal", false);
-  expect(viewCtx.syncCanvasOverlayState("modal", savedPreviewOpen, true)).toBe(true);
-  expect(viewCtx.syncCanvasOverlayState("modal", savedPreviewOpen, true)).toBe(true);
+  expect(viewCtx.syncCanvasOverlayState("modal", selectionOpen, true)).toBe(true);
+  expect(viewCtx.syncCanvasOverlayState("modal", selectionOpen, true)).toBe(true);
   expect(viewCtx.hasShownHiddenContent).toBe(false);
   // The eye can still hide runtime-open content until the next runtime change.
   viewCtx.setCanvasOverlayOpen("modal", false);
-  expect(viewCtx.syncCanvasOverlayState("modal", savedPreviewOpen, true)).toBe(false);
-  expect(viewCtx.syncCanvasOverlayState("modal", savedPreviewOpen, false)).toBe(false);
-  expect(viewCtx.syncCanvasOverlayState("modal", savedPreviewOpen, true)).toBe(true);
+  expect(viewCtx.syncCanvasOverlayState("modal", selectionOpen, true)).toBe(false);
+  expect(viewCtx.syncCanvasOverlayState("modal", selectionOpen, false)).toBe(false);
+  expect(viewCtx.syncCanvasOverlayState("modal", selectionOpen, true)).toBe(true);
 });
 
 function setup() {
@@ -346,7 +358,7 @@ test("deep hover leaves the editing stack unchanged and direct selection creates
   const valState = new ValState({ sysRoot: root, globalRoot: root });
   const viewCtx = Object.assign(Object.create(ViewCtx.prototype), {
     canvasCtx: { doc: () => document },
-    _globalFrame: observable.box(new TransientComponentVariantFrame(root.tpl)),
+    variants: createViewVariantFixture(new ModelSnapshots(), site, mkArenaFrame({ site, component: page, name: "Hover", width: 100, height: 100 })),
     studioCtx: { dbCtx: () => ({ site }), canEditComponent: vi.fn(() => true) },
     tplMgr: () => tplMgr,
     componentStackFrames: () => frames,

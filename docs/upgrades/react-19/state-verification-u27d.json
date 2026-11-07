@@ -1,0 +1,132 @@
+{
+  "status": "native-milestone-passed-full-suite-has-unhandled-error",
+  "scope": "C plus one generic panel ownership fix; newer live migration batches excluded",
+  "source": {
+    "revision": "32df7af09a1df7d119143b546f14a81b6d876c83",
+    "dirty": true,
+    "sourceHash": "8fc0ab2eb09f7d46f22662e8f0b27bb7e103b373239e07cd9220dda574f71fe0"
+  },
+  "artifact": {
+    "sourceHash": "8fc0ab2eb09f7d46f22662e8f0b27bb7e103b373239e07cd9220dda574f71fe0",
+    "rendererHash": "2cb7eb87aeedb2e2d2a49b019fca063bfd001f9ac21b01c780bc8ddb2c082917",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 104867591,
+    "studioArtifactHash": "46fe5ad6ca32424ae6832e5dbc67eee0e057dd0903fd2586e8305b6d654689c8",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "checks": {
+    "typecheck": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u27d-isolated-typecheck.log"
+    },
+    "compiler": {
+      "testsPassed": 13,
+      "reusedFrom": "u26c-isolated-compiler.log",
+      "reason": "Compiler test/config/annotated inputs unchanged; production artifact confirms enabled target19 annotations"
+    },
+    "panelOwnerRegression": {
+      "filesPassed": 2,
+      "testsPassed": 6,
+      "log": "/tmp/plasmic-react19-20261105/panel-owner-lifecycle-green.log",
+      "realShell": true
+    },
+    "build": {
+      "exitCode": 0
+    },
+    "prepareAssets": {
+      "exitCode": 0
+    },
+    "archive": {
+      "exitCode": 0
+    }
+  },
+  "nativeGP": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/gp/list-open-u27d-gp-native.json",
+    "sha256": "2104b3eaa8848589ada9b4d45d7706b99eadc71678113f81b60c03a491258c45",
+    "functionalCases": 5,
+    "functionalPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "error": false,
+    "draftDialog": {
+      "enabled": true,
+      "opened": true,
+      "remoteActionClosed": true
+    },
+    "docs": {
+      "codegen": {
+        "dependencyModelsValidated": 50,
+        "typeScriptWorkerDiagnostics": 0,
+        "previewUpdated": true,
+        "restored": true
+      },
+      "loader": {
+        "dependencyModelsValidated": 50,
+        "typeScriptWorkerDiagnostics": 0,
+        "previewUpdated": true,
+        "restored": true
+      }
+    }
+  },
+  "nativeComplex": {
+    "report": "/tmp/plasmic-react19-20261105/fixtures/complex/list-open-u27d-complex.json",
+    "sha256": "f90bb2f80d7d373b7f90a6d5760d3b923ab2dbb344fa579676e9e506abed474a",
+    "functionalCases": 6,
+    "functionalPassed": true,
+    "reopen": true,
+    "viewport": {
+      "equalScrollRetainsSnapshot": true,
+      "inputPreserved": true,
+      "modelUnchanged": true,
+      "nativeStores": true,
+      "restored": true,
+      "zoomInputUpdatedStore": true,
+      "zoomLabelUpdated": true
+    },
+    "rendererErrors": 0,
+    "previewErrors": 0,
+    "error": false
+  },
+  "fullStudioSuite": {
+    "status": "failed-unhandled-error",
+    "exitCode": 1,
+    "filesPassed": 631,
+    "testsPassed": 4867,
+    "skipped": 4,
+    "unhandledErrors": 1,
+    "unhandledClass": "ReferenceError: window is not defined; pending React scheduler work at environment teardown",
+    "attributedFile": "src/wab/client/components/widgets/plasmic/ShareDialogContent.test.tsx",
+    "log": "/tmp/plasmic-react19-20261105/u27d-full-studio.log"
+  },
+  "doesNotEstablish": [
+    "complete MobX migration",
+    "full SDK/CLI/backend/deployment checks"
+  ]
+}

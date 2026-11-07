@@ -1,15 +1,12 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var React = require('react');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
-
-function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
-
-var React__default = /*#__PURE__*/_interopDefault(React);
 
 function getThumbUrl(file) {
   if (!file?.type?.startsWith("image")) {
@@ -19,7 +16,7 @@ function getThumbUrl(file) {
 }
 function UploadWrapper(props) {
   const { files, dragAndDropFiles, onFilesChange, maxCount, ...rest } = props;
-  const filesRef = React.useRef();
+  const filesRef = React.useRef(void 0);
   filesRef.current = files;
   const changeFiles = (next) => {
     filesRef.current = next;
@@ -99,38 +96,41 @@ function UploadWrapper(props) {
     () => dragAndDropFiles ? Ant.Upload.Dragger : Ant.Upload,
     [dragAndDropFiles]
   );
-  return /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, /* @__PURE__ */ React__default.default.createElement(
-    UploadComponent,
-    {
-      ...rest,
-      fileList: files?.map((f) => ({
-        ...f,
-        thumbUrl: getThumbUrl(f)
-      })),
-      onPreview: handlePreview,
-      beforeUpload: () => {
-        return false;
-      },
-      onChange: (info) => {
-        handleChange(info);
-      },
-      onRemove: (file) => {
-        handleRemove(file);
+  return /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
+    /* @__PURE__ */ jsxRuntime.jsx(
+      UploadComponent,
+      {
+        ...rest,
+        fileList: files?.map((f) => ({
+          ...f,
+          thumbUrl: getThumbUrl(f)
+        })),
+        onPreview: handlePreview,
+        beforeUpload: () => {
+          return false;
+        },
+        onChange: (info) => {
+          handleChange(info);
+        },
+        onRemove: (file) => {
+          handleRemove(file);
+        }
       }
-    }
-  ), previewFile && /* @__PURE__ */ React__default.default.createElement(
-    Ant.Image,
-    {
-      wrapperStyle: { display: "none" },
-      preview: {
-        visible: previewOpen,
-        onVisibleChange: (visible) => setPreviewOpen(visible),
-        afterOpenChange: (visible) => !visible && handleCancel()
-      },
-      alt: previewFile?.name,
-      src: getThumbUrl(previewFile)
-    }
-  ));
+    ),
+    previewFile && /* @__PURE__ */ jsxRuntime.jsx(
+      Ant.Image,
+      {
+        wrapperStyle: { display: "none" },
+        preview: {
+          visible: previewOpen,
+          onVisibleChange: (visible) => setPreviewOpen(visible),
+          afterOpenChange: (visible) => !visible && handleCancel()
+        },
+        alt: previewFile?.name,
+        src: getThumbUrl(previewFile)
+      }
+    )
+  ] });
 }
 UploadWrapper.__plasmicFormFieldMeta = {
   valueProp: "files",

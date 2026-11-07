@@ -1,0 +1,129 @@
+{
+  "status": "cohort-native-accepted; full Studio failed; live fixture followups in progress",
+  "scope": "M: L plus51 unique reviewed implementation/test files. Later height, VSH, native token, ImageSelector, GridChild/Layout and further consumer groups excluded.",
+  "source": {
+    "revision": "32df7af09a1df7d119143b546f14a81b6d876c83",
+    "dirty": true,
+    "sourceHash": "46d7f52ca9c3f351090c3a6c5228a0381f3043b0bb61e612df02c1ba94c8123a"
+  },
+  "artifact": {
+    "sourceHash": "46d7f52ca9c3f351090c3a6c5228a0381f3043b0bb61e612df02c1ba94c8123a",
+    "rendererHash": "04c04dd440fddf31a1485db18a2f042f3983cc62ea50d8b2c5cdf4b05d910fe3",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 104961636,
+    "studioArtifactHash": "9b1d89660fdba7ed16006c41d6c2cf0f3e68943ddf62e8cc7b61a383d9d458ec",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "checks": {
+    "typecheck": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u36m-frozen-types-2.log",
+      "firstAttempt": "class-only HOC type mismatch corrected; failed log retained"
+    },
+    "build": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u36m-studio-build.log"
+    },
+    "assets": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u36m-studio-assets.log"
+    },
+    "archive": {
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/u36m-studio-archive.log"
+    },
+    "nativeGp": {
+      "functionalCasesPassed": 5,
+      "savedAndReopened": true,
+      "viewport": {
+        "equalScrollRetainsSnapshot": true,
+        "inputPreserved": true,
+        "modelUnchanged": true,
+        "nativeStores": true,
+        "restored": true,
+        "zoomInputUpdatedStore": true,
+        "zoomLabelUpdated": true
+      },
+      "rendererErrors": 0,
+      "previewErrors": 0,
+      "report": "/tmp/plasmic-react19-20261105/fixtures/gp/list-open-u36m-gp-native.json",
+      "draftDialog": {
+        "enabled": true,
+        "opened": true,
+        "remoteActionClosed": true
+      },
+      "docs": {
+        "codegen": {
+          "dependencyModelsValidated": 50,
+          "editReachedSelectedStore": true,
+          "monacoMounted": true,
+          "persistedModelUnchanged": true,
+          "previewUpdated": true,
+          "restored": true,
+          "typeScriptWorkerDiagnostics": 0
+        },
+        "loader": {
+          "dependencyModelsValidated": 50,
+          "editReachedSelectedStore": true,
+          "monacoMounted": true,
+          "persistedModelUnchanged": true,
+          "previewUpdated": true,
+          "restored": true,
+          "typeScriptWorkerDiagnostics": 0
+        }
+      }
+    },
+    "nativeComplex": {
+      "functionalCasesPassed": 6,
+      "savedAndReopened": true,
+      "viewport": {
+        "equalScrollRetainsSnapshot": true,
+        "inputPreserved": true,
+        "modelUnchanged": true,
+        "nativeStores": true,
+        "restored": true,
+        "zoomInputUpdatedStore": true,
+        "zoomLabelUpdated": true
+      },
+      "rendererErrors": 0,
+      "previewErrors": 0,
+      "report": "/tmp/plasmic-react19-20261105/fixtures/complex/list-open-u36m-complex.json"
+    },
+    "sourceUnchangedAfterNative": true
+  },
+  "fullStudio": {
+    "status": "failed",
+    "filesTotal": 674,
+    "filesPassed": 661,
+    "filesFailed": 13,
+    "testsTotal": 5072,
+    "testsPassed": 5014,
+    "testsFailed": 54,
+    "testsSkipped": 4,
+    "unhandledErrors": 3,
+    "durationSeconds": 1306.35,
+    "log": "/tmp/plasmic-react19-20261105/u36m-full-studio.log",
+    "frozenSourceHash": "46d7f52ca9c3f351090c3a6c5228a0381f3043b0bb61e612df02c1ba94c8123a",
+    "fullPassClaimed": false
+  },
+  "followups": "Original18 fixture cases and content-editor26 repaired/pass Live; remaining8 grouped52cases now49pass/3 Preview fixture failures being corrected. CMS integration blocked by unavailable PostgreSQL5432. M production artifact immutable and native accepted; no fullgreen claim.",
+  "migrationComplete": false,
+  "performanceComparison": "paused; replay is functional verification only"
+}

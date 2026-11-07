@@ -9,20 +9,32 @@ export function useForceUpdate(react = React) {
 }
 
 /** Coalesce DOM observer notifications into one geometry refresh per frame. */
-export function useFrameForceUpdate() {
+export function useFrameForceUpdate(lifetime?: AbortSignal) {
   const update = useForceUpdate();
-  const frame = React.useRef<number>();
-  React.useEffect(() => () => {
-    if (frame.current !== undefined) {
-      cancelAnimationFrame(frame.current);
-    }
-  }, []);
+  const pending = React.useMemo<{ frame: number | undefined; active: boolean }>(
+    () => ({ frame: undefined, active: !lifetime?.aborted }), [lifetime],
+  );
+  React.useEffect(() => {
+    pending.active = !lifetime?.aborted;
+    const cancel = () => {
+      pending.active = false;
+      if (pending.frame !== undefined) {
+        cancelAnimationFrame(pending.frame);
+        pending.frame = undefined;
+      }
+    };
+    lifetime?.addEventListener("abort", cancel, { once: true });
+    return () => { lifetime?.removeEventListener("abort", cancel); cancel(); };
+  }, [lifetime, pending]);
   return React.useCallback(() => {
-    if (frame.current === undefined) {
-      frame.current = requestAnimationFrame(() => {
-        frame.current = undefined;
-        update();
+    if (!pending.active || lifetime?.aborted) { return; }
+    if (pending.frame === undefined) {
+      const frame = requestAnimationFrame(() => {
+        if (pending.frame !== frame) { return; }
+        pending.frame = undefined;
+        if (pending.active && !lifetime?.aborted) { update(); }
       });
+      pending.frame = frame;
     }
-  }, [update]);
+  }, [update, lifetime, pending]);
 }

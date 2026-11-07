@@ -27,7 +27,7 @@ import { DEFAULT_STYLE_TOKENS_PROVIDER_NAME } from "./sync-style-tokens-provider
 
 export interface ExportArgs extends CommonArgs {
   projects: readonly string[];
-  platform: "" | "react" | "nextjs" | "gatsby" | "tanstack";
+  platform: "" | "react" | "nextjs" | "tanstack";
   codeLang: "" | "ts" | "js";
   styleScheme: "" | "css" | "css-modules";
   imagesScheme: "" | "inlined" | "files";

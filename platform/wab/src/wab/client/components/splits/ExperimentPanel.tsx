@@ -8,19 +8,20 @@ import EditOverrideToggleButton from "@/wab/client/components/splits/EditOverrid
 import SliceControls from "@/wab/client/components/splits/SliceControls";
 import { makeVariantsController } from "@/wab/client/components/variants/VariantsController";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
-import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import {
   DefaultExperimentPanelProps,
   PlasmicExperimentPanel,
 } from "@/wab/client/plasmic/plasmic_kit_optimize/PlasmicExperimentPanel";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { spawn } from "@/wab/shared/common";
+import { ensure, spawn } from "@/wab/shared/common";
 import { SplitStatus, SplitType } from "@/wab/shared/core/splits";
 import { PERCENTAGE_UNITS } from "@/wab/shared/css/types";
 import { Split, Variant } from "@/wab/shared/model/classes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { message } from "antd";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
+import { createStore } from "zustand/vanilla";
+import type { ModelRef } from "@/wab/client/studio-ctx/model-snapshots";
 import * as React from "react";
 
 // Your component props start with props for variants and slots you defined
@@ -43,9 +44,9 @@ export interface ExperimentPanelProps extends DefaultExperimentPanelProps {
   changeValues: (_: any[]) => void;
 }
 
-const getExperimentPanelSplitType = (split: Split) => {
+const getExperimentPanelSplitType = (splitType: Split["splitType"]) => {
   // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
-  switch (split.splitType) {
+  switch (splitType) {
     case SplitType.Experiment:
       return undefined;
     case SplitType.Schedule:
@@ -56,36 +57,8 @@ const getExperimentPanelSplitType = (split: Split) => {
   return undefined;
 };
 
-const EditableVariantName = observer(function EditableVariantName(props: {
-  variant?: Variant;
-}) {
-  const { variant } = props;
-  const [editing, setEditing] = React.useState(false);
-  const studioCtx = useStudioCtx();
-  return (
-    <EditableLabel
-      value={variant?.name ?? "variation"}
-      editing={editing}
-      onAbort={() => setEditing?.(false)}
-      disabled={!variant}
-      onEdit={(newName: string) => {
-        if (variant) {
-          if (newName && newName !== variant?.name) {
-            spawn(
-              studioCtx.change(() => {
-                variant.name = newName;
-                return ok();
-              }),
-            );
-          }
-        }
-        setEditing(false);
-      }}
-    >
-      {variant?.name}
-    </EditableLabel>
-  );
-});
+const noVariant = createStore<ModelRef<Variant> | undefined>(() => undefined);
+const noName = createStore(() => "variation");
 
 function ExperimentPanel_(
   props: ExperimentPanelProps,
@@ -96,16 +69,21 @@ function ExperimentPanel_(
   const { split, idx, values, changeValues } = props;
 
   const studioCtx = useStudioCtx();
-  const vcontroller = makeVariantsController(studioCtx);
-
-  const content = split.slices[1].contents[0];
-  const testVariant = isKnownGlobalVariantSplitContent(content)
-    ? content.variant
-    : undefined;
-  const [isTargeting, setIsTargeting] = React.useState(
-    testVariant && vcontroller?.isTargeted(testVariant),
+  const models = studioCtx.modelSnapshots;
+  const splitType = useStore(models.field(split, "splitType"));
+  const slices = useStore(models.field(split, "slices"));
+  const variantSlice = models.resolve(ensure(slices[1], "Expected a split variation"));
+  const contents = useStore(models.field(variantSlice, "contents"));
+  const content = contents[0] && models.resolve(contents[0]);
+  const variantRef = useStore(isKnownGlobalVariantSplitContent(content)
+    ? models.field(content, "variant") : noVariant);
+  const testVariant = variantRef && models.resolve(variantRef);
+  const variantName = useStore(testVariant ? models.field(testVariant, "name") : noName);
+  // Targeting is this panel's edit draft; controllers are command owners, not render inputs.
+  const [isTargeting, setIsTargeting] = React.useState(() =>
+    testVariant && makeVariantsController(studioCtx)?.isTargeted(testVariant),
   );
-  const slice = split.slices[idx];
+  const slice = models.resolve(ensure(slices[idx], "Expected the selected split slice"));
   const isBase = idx === 0;
 
   const promote = (variant: Variant) => {
@@ -129,7 +107,7 @@ function ExperimentPanel_(
     );
   };
 
-  if (split.splitType !== SplitType.Experiment) {
+  if (splitType !== SplitType.Experiment) {
     return <EditOverrideToggleButton slice={slice} />;
   }
 
@@ -137,12 +115,12 @@ function ExperimentPanel_(
     <PlasmicExperimentPanel
       root={{ ref }}
       versionName={
-        split.splitType === SplitType.Experiment && idx === 1
+        splitType === SplitType.Experiment && idx === 1
           ? "Version B"
           : undefined
       }
       variantName={{
-        value: testVariant?.name ?? "variation",
+        value: variantName,
         onChange: (e) => {
           e.persist();
           spawn(
@@ -156,7 +134,7 @@ function ExperimentPanel_(
         },
       }}
       isBase={isBase}
-      type={getExperimentPanelSplitType(split)}
+      type={getExperimentPanelSplitType(splitType)}
       percentage={{
         render: () => (
           <div
@@ -191,6 +169,7 @@ function ExperimentPanel_(
                 const _content = slice.contents[0];
                 if (isKnownGlobalVariantSplitContent(_content)) {
                   const variant = _content.variant;
+                  const vcontroller = makeVariantsController(studioCtx);
                   if (isTargeting) {
                     vcontroller?.onClearVariants();
                   } else {
@@ -223,5 +202,5 @@ function ExperimentPanel_(
   );
 }
 
-const ExperimentPanel = observer(React.forwardRef(ExperimentPanel_));
+const ExperimentPanel = React.forwardRef(ExperimentPanel_);
 export default ExperimentPanel;

@@ -1,3 +1,6 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { reportError } from "@/wab/client/ErrorNotifications";
 import S from "@/wab/client/components/sidebar-tabs/ColumnsSection.module.scss";
 import { FlexContainerControls } from "@/wab/client/components/sidebar-tabs/FlexContainerControls";
@@ -56,10 +59,13 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
   const { tpl, expsProvider } = props;
   const childrenLength = props.tpl.children.length;
   const studioCtx = props.studioCtx;
+  useStudioSelection(studioCtx, (state) => state.view);
   const viewCtx = ensure(
     studioCtx.focusedViewCtx(),
     "must have focused viewctx",
   );
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  useViewSelection(viewCtx, (state) => state.context);
   const effectiveVs = viewCtx.effectiveCurrentVariantSetting(tpl);
 
   if (!effectiveVs.columnsConfig) {
@@ -218,7 +224,7 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
               tpl={tpl}
               expsProvider={expsProvider}
               viewCtx={viewCtx}
-              config={columnsConfig}
+              config={effectiveVs.columnsConfig}
               isDisabled={isDisabled}
             />
           )}
@@ -240,7 +246,7 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
   );
 });
 
-export const ColumnsStyleOnlySection = observer(
+export const ColumnsStyleOnlySection = 
   function ColumnsStyleOnlySection(props: { expsProvider: ExpsProvider }) {
     const { t: uiT } = useI18n();
     const { expsProvider } = props;
@@ -254,18 +260,17 @@ export const ColumnsStyleOnlySection = observer(
         />
       </SidebarSection>
     );
-  },
-);
+  }
+;
 
-export const ColumnsGapControls = observer(function ColumnsGapControls(props: {
+export const ColumnsGapControls = function ColumnsGapControls(props: {
   expsProvider: ExpsProvider;
   studioCtx: StudioCtx;
   isDisabled?: boolean;
   includeRowGap?: boolean;
 }) {
   const { t: uiT } = useI18n();
-  const { expsProvider, studioCtx, isDisabled, includeRowGap } = props;
-  const exp = expsProvider.mergedExp();
+  const { expsProvider, isDisabled, includeRowGap } = props;
 
   return (
     <LabeledStyleItemRow
@@ -300,9 +305,9 @@ export const ColumnsGapControls = observer(function ColumnsGapControls(props: {
       </FullRow>
     </LabeledStyleItemRow>
   );
-});
+};
 
-export const ColumnSection = observer(function ColumnSection(props: {
+export const ColumnSection = function ColumnSection(props: {
   viewCtx: ViewCtx;
   expsProvider: ExpsProvider;
   tpl: TplColumnTag;
@@ -331,4 +336,4 @@ export const ColumnSection = observer(function ColumnSection(props: {
       )}
     </StylePanelSection>
   );
-});
+};

@@ -26,20 +26,26 @@ import {
   TemplatedString,
   TplTag,
 } from "@/wab/shared/model/classes";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
+import { usePageMetadata } from "@/wab/client/components/sidebar-tabs/page-metadata-state";
 import React from "react";
 
-const PageMetaPanel = observer(function PageMetaPanel(props: {
+function PageMetaPanel(props: {
   viewCtx: ViewCtx;
   page: PageComponent;
 }) {
+  "use memo";
   const { t: uiT } = useI18n();
   const { page, viewCtx } = props;
   const sc = useStudioCtx();
 
+  const meta = usePageMetadata(page);
+  const title = useStore(sc.modelSnapshots.field(meta, "title"));
+  const path = useStore(sc.modelSnapshots.field(meta, "path"));
+  const root = useStore(sc.modelSnapshots.field(page, "tplTree"));
   const titleExpr = React.useMemo(
-    () => convertPageMetaStringToExpr(page.pageMeta?.title),
-    [page.pageMeta?.title],
+    () => convertPageMetaStringToExpr(title && typeof title === "object" ? sc.modelSnapshots.resolve(title) : title),
+    [sc.modelSnapshots, title],
   );
 
   return (
@@ -53,7 +59,7 @@ const PageMetaPanel = observer(function PageMetaPanel(props: {
           disabled={false}
           leftAligned={true}
           onChange={(v) => sc.tryChangePath(page, v)}
-          value={page.pageMeta?.path || ""}
+          value={path || ""}
         />
       </LabeledItemRow>
       <PropEditorRow
@@ -66,12 +72,12 @@ const PageMetaPanel = observer(function PageMetaPanel(props: {
           spawn(sc.tryChangePageMeta(page, "title", newTitle));
         }}
         viewCtx={viewCtx}
-        tpl={page.tplTree as TplTag}
+        tpl={sc.modelSnapshots.resolve(root) as TplTag}
         disableLinkToProp={true}
       />
     </SidebarSection>
   );
-});
+}
 
 export default PageMetaPanel;
 

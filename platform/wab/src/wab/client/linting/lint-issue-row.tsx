@@ -1,3 +1,4 @@
+import { useStore } from "zustand";
 import ListItem from "@/wab/client/components/ListItem";
 import { DataSourceOpExprSummary } from "@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -10,7 +11,7 @@ import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { joinReactNodes } from "@/wab/commons/components/ReactUtil";
 import { makeVariantName } from "@/wab/shared/Variants";
 import { spawn } from "@/wab/shared/common";
-import { isPageComponent } from "@/wab/shared/core/components";
+import { ComponentType } from "@/wab/shared/core/components";
 import { isTplNamable, isTplSlot, summarizeTpl } from "@/wab/shared/core/tpls";
 import {
   ChoicePropValuesLintIssue,
@@ -85,7 +86,7 @@ export function getLintIssueTypeName(type: LintIssueType) {
 }
 
 function renderIssueListItem(
-  content: JSX.Element,
+  content: React.JSX.Element,
   elaboration: ReactNode = "hello",
 ) {
   return (
@@ -256,7 +257,7 @@ const ScreenVariantOverrideLintIssueRow = observer(
   },
 );
 
-const InvalidDomNestingLintIssueRow = observer(
+const InvalidDomNestingLintIssueRow = 
   function InvalidDomNestingLintIssueRow(props: {
     issue: InvalidDomNestingLintIssue | InvalidTplNestingLintIssue;
   }) {
@@ -290,10 +291,10 @@ const InvalidDomNestingLintIssueRow = observer(
         {INVALID_DOM_NESTING_INSTRUCTIONS}
       </>,
     );
-  },
-);
+  }
+;
 
-const InvisibleElementLintIssueRow = observer(
+const InvisibleElementLintIssueRow = 
   function InvisibleElementLintIssueRow(props: {
     issue: InvisibleElementLintIssue;
   }) {
@@ -313,10 +314,10 @@ const InvisibleElementLintIssueRow = observer(
         {INVISIBLE_ELEMENT_INSTRUCTIONS}
       </>,
     );
-  },
-);
+  }
+;
 
-const ChoicePropValuesLintIssueRow = observer(
+const ChoicePropValuesLintIssueRow = 
   function ChoicePropValuesLintIssueRow(props: {
     issue: ChoicePropValuesLintIssue;
   }) {
@@ -346,10 +347,10 @@ const ChoicePropValuesLintIssueRow = observer(
         {PROP_ALLOWED_VALUES_INSTRUCTIONS}
       </>,
     );
-  },
-);
+  }
+;
 
-const LinkedPropDriftLintIssueRow = observer(
+const LinkedPropDriftLintIssueRow = 
   function LinkedPropDriftLintIssueRow(props: {
     issue: LinkedPropDriftLintIssue;
   }) {
@@ -370,10 +371,10 @@ const LinkedPropDriftLintIssueRow = observer(
         {LINKED_PROP_DRIFT_INSTRUCTIONS}
       </>,
     );
-  },
-);
+  }
+;
 
-const UnprotectedDataQuerytLintIssueRow = observer(
+const UnprotectedDataQuerytLintIssueRow = 
   function UnprotectedDataQuerytLintIssueRow(props: {
     issue: UnprotectedDataQueryLintIssue;
   }) {
@@ -406,8 +407,8 @@ const UnprotectedDataQuerytLintIssueRow = observer(
         />
       </>,
     );
-  },
-);
+  }
+;
 
 const TplLink = observer(function TplLink(props: {
   component: Component;
@@ -444,23 +445,25 @@ const TplLink = observer(function TplLink(props: {
   );
 });
 
-const ComponentLink = observer(function ComponentLink(props: {
+export const ComponentLink = function ComponentLink(props: {
   component: Component;
 }) {
   const { component } = props;
   const studioCtx = useStudioCtx();
+  const name = useStore(studioCtx.modelSnapshots.field(component, "name"));
+  const type = useStore(studioCtx.modelSnapshots.field(component, "type"));
   return (
     <a
       onClick={() => {
         spawn(studioCtx.setStudioFocusOnTpl(component, component.tplTree));
       }}
     >
-      {isPageComponent(component) ? (
+      {type === ComponentType.Page ? (
         <UiText message={"Page"} />
       ) : (
         <UiText message={"Component"} />
       )}{" "}
-      {component.name}
+      {name}
     </a>
   );
-});
+};

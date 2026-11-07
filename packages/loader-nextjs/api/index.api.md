@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="node" />
-
 import { CodeComponentMeta } from '@plasmicapp/loader-react';
 import { ComponentLookupSpec } from '@plasmicapp/loader-react';
 import { ComponentMeta } from '@plasmicapp/loader-react/react-server-conditional';

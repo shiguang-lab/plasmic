@@ -1,3 +1,4 @@
+import { createStore } from "zustand/vanilla";
 import {
   fakeAppCtx,
   fakeStudioCtx,
@@ -55,6 +56,7 @@ vi.mock("@/wab/client/route/Switch", () => ({
 }));
 vi.mock("@/wab/client/components/live/PreviewCtx", () => ({
   PreviewCtx: class {
+    store = createStore(() => ({ isLive: false, previewData: undefined }));
     full = false;
     isLive = false;
     dispose() {}

@@ -22,7 +22,6 @@ import {
 } from "@/wab/shared/collections";
 import { ensure, uncheckedCast } from "@/wab/shared/common";
 import { PropType } from "@plasmicapp/host";
-import { observer } from "mobx-react";
 import React, { useState } from "react";
 
 interface ArrayPropEditorProps<Value extends object> {
@@ -41,7 +40,7 @@ interface ArrayPropEditorProps<Value extends object> {
   disabled?: boolean;
 }
 
-export const ArrayPropEditor = observer(function ArrayPropEditor<
+export function ArrayPropEditor<
   Value extends object,
 >({
   onChange,
@@ -184,4 +183,4 @@ export const ArrayPropEditor = observer(function ArrayPropEditor<
       </ListBox>
     </>
   );
-});
+}

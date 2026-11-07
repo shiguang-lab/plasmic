@@ -27,6 +27,8 @@ export { default as useRemoveItem } from "./cart/use-remove-item";
 export * from "./cart/use-update-item";
 export { default as useUpdateItem } from "./cart/use-update-item";
 export * from "./commerce";
+export * from "./product/use-price";
+export { default as usePrice } from "./product/use-price";
 export * from "./product/use-product";
 export { default as useProduct } from "./product/use-product";
 export * from "./product/use-search";

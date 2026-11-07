@@ -896,7 +896,7 @@ components, canvases, pageFrames and devicePresets, while preserving complete Pa
 and layouts in evidence files.
 
 `execute` supports `identify`, `read`, `listLibraries`, `getLibrary`,
-`searchLibraryComponents`, `installLibrary`, `upgradeLibrary`, `createComponent`, `insertHtml`,
+`searchLibraryComponents`, `reviewComponentReuse`, `installLibrary`, `upgradeLibrary`, `createComponent`, `insertHtml`,
 `changeElement`, `deleteElement`, `createState`, `createInteraction`,
 `createStyleToken`, `copyElement`, `moveElement`, `queryElements`,
 `updateState`, `deleteState`, `updateStyleToken`, `deleteStyleToken`,
@@ -920,6 +920,24 @@ availability, and `upgradeLibrary` for installed projects. Queries use authentic
 reads in an isolated bundler, honor hidden catalog entries and do not install or
 execute library code. Installation loads registrations; save explicitly and read
 the installed `fromProject` component contracts before composition.
+
+Component reuse advisories report `indexing` while vectors are being prepared;
+their results are provisional. `issues` distinguishes runtime failure, missing
+registrations, stale model reads and output/region limits. A returned `retry`
+contains a read-only MCP call and delay: execute it instead of repeating the
+successful design mutation. `reviewComponentReuse` reads up to five current
+component/element targets, retries failed runtime preparation, and preserves
+completed-advisory deduplication. Skipped checks report the last known index
+coverage, or `null` when it has not been measured.
+
+Candidates expose separate `similarity`, `keywordScore` and fused `rankScore`;
+these are retrieval signals, not probabilities of behavioral equivalence.
+Required parent candidates are retained within the three-candidate budget and
+identified by `requiredBy`; an existing matching ancestor satisfies that dependency.
+Contract summaries prioritize requested fields and registration order, report
+`truncated`, and never replace reading the full live contract before composition.
+macOS native runtimes use loader-relative paths. Preparation and final signed
+packaging both verify an actual embedding request.
 
 Installation and upgrades wait for registrations to load. Failed downloads and
 registration loads reject without blocking the next retry. A version change

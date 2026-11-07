@@ -6,6 +6,7 @@ const EDITOR_METHODS = [
   "listLibraries",
   "getLibrary",
   "searchLibraryComponents",
+  "reviewComponentReuse",
   "upgradeLibrary",
   "installLibrary",
   "queryElements",

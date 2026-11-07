@@ -1,6 +1,7 @@
 import {
   usePlasmicCanvasComponentInfo,
   usePlasmicCanvasContext,
+  PlasmicCanvasProps,
 } from "@plasmicapp/host";
 import { Table } from "antd";
 import type {
@@ -12,11 +13,10 @@ import React from "react";
 import { TablePaginationControl, TableScrollControl } from "./table-controls";
 import { Registerable, asArray, registerComponentHelper } from "./utils";
 
-export type AntdColumnProps = ColumnType<any> & {
+export type AntdColumnProps = ColumnType<any> & PlasmicCanvasProps & {
   onCellClick?: (cell: unknown, row: any, index: number) => void;
   children?: React.ReactNode;
   className?: string;
-  __plasmic_selection_prop__?: unknown;
   __plasmic_cell__?: {
     type: React.ElementType;
     props: React.HTMLAttributes<HTMLElement>;
@@ -32,7 +32,7 @@ export function AntdColumn(props: AntdColumnProps) {
     return null;
   }
   const isEditing = !!canvas && !canvas.interactive;
-  const isSelected = isEditing && selection?.isSelected;
+  const selected = isEditing && selection?.selected;
   return React.createElement(
     cell.type,
     {
@@ -44,7 +44,7 @@ export function AntdColumn(props: AntdColumnProps) {
         ? (event: React.MouseEvent) => event.preventDefault()
         : cell.props.onClick,
       "data-plasmic-canvas-part": isEditing ? "column" : undefined,
-      "data-plasmic-table-column-selected": isSelected || undefined,
+      "data-plasmic-table-column-selected": selected || undefined,
       style: cell.props.style,
     },
     props.children,
@@ -324,11 +324,10 @@ export const AntdTable = React.forwardRef(function AntdTable(
     isSelectable?: undefined | "single" | "multiple";
     selectedRowKeys?: string[];
     defaultSelectedRowKeys?: string[];
-    canvasExpandedRowKeys?: readonly React.Key[];
     onSelectedRowKeysChange?: (keys: string[]) => void;
     onSelectedRowsChange?: (rows: any[]) => void;
     setControlContextData?: (ctx: any) => void;
-    __plasmic_selection_prop__?: unknown;
+    __canvas?: PlasmicCanvasProps["__canvas"];
   },
   ref: React.Ref<TableRef>,
 ) {
@@ -341,11 +340,11 @@ export const AntdTable = React.forwardRef(function AntdTable(
     setControlContextData,
     selectedRowKeys,
     defaultSelectedRowKeys,
-    canvasExpandedRowKeys,
     expandable,
     expandedRowRender,
     onExpand,
     onExpandedRowsChange,
+    __canvas: _canvas,
     ...rest
   } = props;
   const canvas = usePlasmicCanvasContext();
@@ -361,9 +360,9 @@ export const AntdTable = React.forwardRef(function AntdTable(
         ...(onExpandedRowsChange ? { onExpandedRowsChange } : {}),
       }
     : undefined;
-  const revealRows = isEditing && canvasExpandedRowKeys === undefined && !!rowExpansion?.expandedRowRender &&
-    (info?.isEditingContents || (info?.isSelected &&
-      info.selectedSlotName === "expandedRowRender"));
+  const revealRows = isEditing && !!rowExpansion?.expandedRowRender &&
+    (info?.editing || (info?.selected &&
+      info.slot === "expandedRowRender"));
   const canvasRowKeys: React.Key[] = [];
   if (canvas && rowExpansion) {
     const collect = (rows: any[]) => rows.forEach((row) => {
@@ -376,8 +375,7 @@ export const AntdTable = React.forwardRef(function AntdTable(
     });
     collect(data?.data ?? []);
   }
-  const initialCanvasKeys = canvasExpandedRowKeys?.filter(key => canvasRowKeys.includes(key)) ??
-    rowExpansion?.expandedRowKeys ??
+  const initialCanvasKeys = rowExpansion?.expandedRowKeys ??
     rowExpansion?.defaultExpandedRowKeys ??
     (rowExpansion?.defaultExpandAllRows ? canvasRowKeys : []);
   const expansionState = canvas && rowExpansion ? info?.getState?.(
@@ -482,17 +480,12 @@ export const AntdTable = React.forwardRef(function AntdTable(
       {...rest}
       expandable={resolvedExpansion}
       contentEditing={
-        !!canvas && !canvas.interactive && info?.isEditingContents
+        !!canvas && !canvas.interactive && info?.editing
       }
       fullContentView={
         !!canvas &&
         !canvas.interactive &&
-        // Read from the canvas prop so this works with any @plasmicapp/host.
-        (
-          props.__plasmic_selection_prop__ as
-            | { isFullContentView?: boolean }
-            | undefined
-        )?.isFullContentView === true
+        info?.fullContent === true
       }
     />
   );
@@ -523,7 +516,7 @@ export function registerTable(loader?: Registerable) {
         renderPropParams: ["row", "index", "indent", "expanded"],
         hidePlaceholder: true,
         description:
-          "Row detail template receiving row, index, indent and expanded. Mapped to native expandable.expandedRowRender; takes precedence over a renderer in expandable. Use row fields in this slot. Configure Canvas expanded rows to show representative detail variants directly on the editing canvas. Selection does not broaden configured samples. When canvas samples are unset, selecting this slot or Edit contents reveals eligible rows without changing runtime expansion. Selecting the Table alone does not reveal rows. The canvas modifier-click gesture changes temporary keys. Requires data and a stable rowKey.",
+          "Row detail template receiving row, index, indent and expanded. Mapped to native expandable.expandedRowRender; takes precedence over a renderer in expandable. Use row fields in this slot. Selecting this slot or Edit contents reveals eligible rows through the temporary canvas session without changing runtime expansion. Selecting the Table alone does not reveal rows. The canvas modifier-click gesture changes temporary keys. Requires data and a stable rowKey.",
       },
       onExpand: {
         type: "eventHandler",
@@ -551,17 +544,6 @@ export function registerTable(loader?: Registerable) {
           defaultExpandedRowKeys: { type: "exprEditor", description: "Initial array of stable rowKey values. User clicks own expansion afterward." },
           expandedRowKeys: { type: "exprEditor", description: "Controlled array of rowKey values. Bind state and update it from onExpandedRowsChange. An empty array closes every row; omit for uncontrolled expansion." },
         },
-      },
-      canvasExpandedRowKeys: {
-        type: "choice",
-        displayName: "Canvas expanded rows",
-        multiSelect: true,
-        editOnly: true,
-        description:
-          "Initial rowKey values expanded only on the editing canvas. Select representative loaded rows covering every requirement-defined detail variant (fields, layout, available actions and boundary data); the Table does not infer a status field. An empty array closes all canvas rows; omit to follow native expansion settings. Manual canvas expansion is temporary. Changing this value refreshes the samples. Ignored in Interactive mode, Preview and generated exports. Requires Expanded row content and stable row keys; missing or ineligible rows are ignored.",
-        options: (ps: any) => (ps.data?.data ?? [])
-          .map((row: any) => row[ps.rowKey ?? "key"])
-          .filter((key: React.Key | null | undefined) => key != null),
       },
       title: {
         type: "slot",

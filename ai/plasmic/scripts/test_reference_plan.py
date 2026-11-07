@@ -156,7 +156,7 @@ class ReadCoverageTests(unittest.TestCase):
 
     def test_expansion_features_reach_compose_and_accept(self):
         variants = []
-        for name, value in [('expandable', {}), ('canvasExpandedRowKeys', []), ('onExpand', '__DECIDE__')]:
+        for name, value in [('expandable', {}), ('onExpand', '__DECIDE__')]:
             plan = table_plan()
             plan['components'][0]['props'][name] = value
             variants.append(plan)

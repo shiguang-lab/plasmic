@@ -1,12 +1,12 @@
 import { resolveBatchInput, type MutationReceipt, type MutationIdentity } from "@/wab/shared/copilot/mutation-receipt";
 import { flushSync } from "react-dom";
-import { readDepth, selectedReadFields, projectReadFields, registrationContract, withRegisteredContracts, type ModelReadOptions } from "@/wab/shared/copilot/model-read";
+import { readDepth, selectedReadFields, projectReadFields, registrationContract, withRegisteredContracts, isEditorOnlyRegistration, type ModelReadOptions } from "@/wab/shared/copilot/model-read";
 import {
   getCanvasElementVisibility,
   revealCanvasElement,
 } from "@/wab/client/components/canvas/canvas-scroll";
 import { activityTargets } from "@/wab/client/copilot/activity";
-import { reviewInput, reviewComponents } from "@/wab/client/copilot/component-reuse";
+import { reviewInput, reviewComponents, reviewComponentReuse } from "@/wab/client/copilot/component-reuse";
 import { presentToolTarget } from "@/wab/client/copilot/present-target";
 import { getLibrary, listLibraries, searchLibraryComponents } from "@/wab/client/copilot/libraries";
 import {
@@ -101,6 +101,7 @@ import {
   mkComponent,
 } from "@/wab/shared/core/components";
 import { codeLit } from "@/wab/shared/core/exprs";
+import { ParamExportType } from "@/wab/shared/core/lang";
 import { getOnlyAssetRef } from "@/wab/shared/core/image-assets";
 import { walkDependencyTree } from "@/wab/shared/core/project-deps";
 import {
@@ -139,7 +140,6 @@ import {
   isKnownRenderExpr,
   isKnownTplComponent,
   isKnownTplTag,
-  isKnownVirtualRenderExpr,
 } from "@/wab/shared/model/classes";
 import { frameSizeGroups } from "@/wab/shared/responsiveness";
 import { ensurePageOverviewArena } from "@/wab/shared/page-overview";
@@ -1247,13 +1247,16 @@ function planMutation(studio: StudioCtx, operation: PrototypeMutation, assets: M
               messages.push(`Ignored reset of unknown component prop "${name}".`);
               continue;
             }
+            assert(
+              !isCodeComponent(tpl.component) ||
+                (param.exportType !== ParamExportType.ToolsOnly &&
+                  !isEditorOnlyRegistration(studio.getCodeComponentMeta(tpl.component)?.props[param.variable.name])),
+              `Prop "${name}" is not available in the public component contract`,
+            );
             const arg = setting.args.find((a) => a.param === param);
             assert(
               !arg ||
-                !(
-                  isKnownRenderExpr(arg.expr) ||
-                  isKnownVirtualRenderExpr(arg.expr)
-                ) ||
+                !isKnownRenderExpr(arg.expr) ||
                 arg.expr.tpl.length === 0,
               `Remove nonempty slot content before resetting ${name}`,
             );
@@ -1625,6 +1628,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         ![
           "read",
           "queryElements",
+          "reviewComponentReuse",
           "getEditorContext",
           "selectElement",
           "scrollElementIntoView",
@@ -1780,6 +1784,9 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           for (const target of parsed.elements ?? []) {
             inScope(target.componentUuid, target.elementUuid);
           }
+        } else if (input.name === "reviewComponentReuse") {
+          const parsed = meta.reviewComponentReuse.inputSchema.parse(input.input);
+          for (const target of parsed.targets) inScope(target.componentUuid, target.elementUuid);
         } else if (input.name === "queryElements") {
           const parsed = meta.queryElements.inputSchema.parse(input.input);
           inScope(parsed.componentUuid, parsed.elementUuid);
@@ -1838,6 +1845,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           [
             "read",
             "queryElements",
+            "reviewComponentReuse",
             "getEditorContext",
             "selectElement",
             "scrollElementIntoView",
@@ -2128,6 +2136,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   listLibraries: defineCopilotTool(meta.listLibraries, listLibraries),
   getLibrary: defineCopilotTool(meta.getLibrary, getLibrary),
   searchLibraryComponents: defineCopilotTool(meta.searchLibraryComponents, searchLibraryComponents),
+  reviewComponentReuse: defineCopilotTool(meta.reviewComponentReuse, (studio, input, caller, signal) => reviewComponentReuse(studio, input, caller?.id, signal)),
   installLibrary: defineCopilotTool(
     meta.installLibrary,
     async (studio, input) => {
@@ -2514,7 +2523,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         components: studio.site.components.filter((component) => !isPageComponent(component) && !isCodeComponent(component) && !isFrameComponent(component)).length,
       },
       saveStatus: studio.saveStatus,
-      desktopDraftStatus: studio.desktopDraft?.status ?? null,
+      desktopDraftStatus: studio.desktopDraft?.store.getState().status ?? null,
       canvasName: studio.currentArena ? getArenaName(studio.currentArena) : null,
       projectId: studio.siteInfo.id,
       branchId: studio.dbCtx().branchInfo?.id ?? null,

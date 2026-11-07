@@ -12,16 +12,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@plasmicapp/cli": "^0.1.372",
-    "@plasmicapp/host": "^2.0.17",
-    "@plasmicapp/react-web": "^1.0.32",
+    "@plasmicapp/cli": "^0.2.0",
+    "@plasmicapp/host": "^3.0.0",
+    "@plasmicapp/react-web": "^2.0.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "latest",
     "@tanstack/react-query": "^5.101.4",
     "@tanstack/react-router": "latest",
     "@tanstack/react-router-devtools": "latest",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
@@ -29,16 +29,11 @@
     "@tanstack/router-cli": "^1.132.0",
     "@tanstack/router-plugin": "latest",
     "@types/node": "^22.10.2",
-    "@types/react": "^19.2.0",
-    "@types/react-dom": "^19.2.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "^6.0.1",
     "typescript": "^6.0.2",
     "vite": "^8.0.0"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "lightningcss"
-    ]
-  }
+  "packageManager": "pnpm@11.10.0"
 }

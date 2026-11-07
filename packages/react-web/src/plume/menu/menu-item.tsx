@@ -68,7 +68,7 @@ export function useMenuItem<
   const ref = React.useRef<HTMLLIElement>(null);
 
   const { menuItemProps, labelProps } = useAriaMenuItem(
-    mergeProps(
+    { ...mergeProps(
       {
         // We need to merge both the onAction on MenuItem and the onAction
         // on Menu
@@ -85,7 +85,7 @@ export function useMenuItem<
         isVirtualized: false,
         closeOnSelect: true,
       }
-    ),
+    ), key: node.key },
     state,
     ref
   );

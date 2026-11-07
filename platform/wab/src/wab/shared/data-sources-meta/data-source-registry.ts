@@ -2,13 +2,11 @@ import { ensure } from "@/wab/shared/common";
 import {
   AIRTABLE_META,
   AirtableDataSource,
-  QueryBuilderAirtableConfig,
 } from "@/wab/shared/data-sources-meta/airtable-meta";
 import { DataSourceMeta } from "@/wab/shared/data-sources-meta/data-sources";
 import {
   FAKE_META,
   FakeDataSource,
-  QueryBuilderFakeConfig,
 } from "@/wab/shared/data-sources-meta/fake-meta";
 import {
   GRAPHQL_META,
@@ -21,7 +19,6 @@ import {
 import {
   POSTGRES_META,
   PostgresDataSource,
-  QueryBuilderPostgresConfig,
 } from "@/wab/shared/data-sources-meta/postgres-meta";
 import {
   SUPABASE_META,
@@ -33,7 +30,9 @@ import {
 } from "@/wab/shared/data-sources-meta/zapier-meta";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { DATA_SOURCE_LOWER } from "@/wab/shared/Labels";
-import { Config } from "@react-awesome-query-builder/antd";
+import type { QueryBuilderConfig } from "@plasmicapp/host";
+import type { Fields } from "@/wab/shared/data-sources-meta/data-sources";
+import { dataSourceQueryFields, getFieldOperators } from "@/wab/shared/query-builder";
 
 export type GenericDataSource =
   | AirtableDataSource
@@ -82,15 +81,8 @@ export function getAllDataSourceTypes() {
   return getAllDataSourceMetas().map((s) => s.id);
 }
 
-export const DATA_SOURCE_QUERY_BUILDER_CONFIG = {
-  postgres: QueryBuilderPostgresConfig,
-  airtable: QueryBuilderAirtableConfig,
-  fake: QueryBuilderFakeConfig,
-};
-
-export function getDataSourceQueryBuilderConfig(type: string): Config {
-  return ensure(
-    DATA_SOURCE_QUERY_BUILDER_CONFIG[type],
-    () => `Unexpected ${DATA_SOURCE_LOWER} type ${type}`,
-  );
+export function getDataSourceQueryBuilderConfig(type: string, fields: Fields): QueryBuilderConfig {
+  return { fields: dataSourceQueryFields(fields).map((field) => ({ ...field, operators: getFieldOperators(field).filter((operator) =>
+    operator.name !== "regex" && (type !== "airtable" || field.datatype === "number" || !["null", "notNull"].includes(operator.name)),
+  ) })) };
 }

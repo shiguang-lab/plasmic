@@ -1,8 +1,12 @@
+import { useActiveContentEditor } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
 import { ZoomButton } from "@/wab/client/components/top-bar/ZoomButton";
 import { editorCanvasControlsLayout } from "@/wab/client/components/ui/layout-styles";
 import { useI18n } from "@/wab/client/i18n";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { getArenaFrames } from "@/wab/shared/Arenas";
 import { Button, Tooltip } from "antd";
 import { createStyles } from "antd-style";
 import { observer } from "mobx-react";
@@ -75,13 +79,25 @@ export const CanvasViewControls = observer(function CanvasViewControls({
 }: {
   studioCtx?: StudioCtx;
 }) {
+  useStudioSelection(
+    studioCtx,
+    useShallow((state) => [state.frames, state.view]),
+  );
+  const current = useStudioArena(studioCtx, (state) => state.current);
+  const firstFrame = useStudioArena(studioCtx, (state) => state.frames[0]);
+  const arenaEmpty = useStudioArena(
+    studioCtx,
+    (state) => state.frames.length === 0,
+  );
   const { t } = useI18n();
   const { styles, cx } = useStyles();
-  const fullPageHeight = !!studioCtx?.fullPageHeight;
-  const contentView = studioCtx?.viewCtxs.find((vc) => vc.contentEditor.target);
-  const frame =
-    studioCtx?.focusedContentFrame() ??
-    getArenaFrames(studioCtx?.currentArena)[0];
+  const [interactive, fullPageHeight] = useStudioRenderPolicy(
+    studioCtx,
+    useShallow((state) => [state.interactive, state.fullPageHeight] as const),
+  );
+  const contentView = useActiveContentEditor(studioCtx)?.viewCtx;
+  const focusedFrame = studioCtx?.focusedContentFrame();
+  const hasFrame = !!focusedFrame || (current !== null && !!firstFrame);
   return (
     <div
       className={styles.root}
@@ -89,14 +105,14 @@ export const CanvasViewControls = observer(function CanvasViewControls({
       data-test-id="canvas-view-controls"
       aria-label={t("Canvas view")}
     >
-      <Tooltip title={`${t(studioCtx?.isInteractiveMode ? "Turn off interactive mode" : "Turn on interactive mode")} (Shift + I)`}>
+      <Tooltip title={`${t(interactive ? "Turn off interactive mode" : "Turn on interactive mode")} (Shift + I)`}>
         <Button
           type="text"
           id="interactive-canvas-switch"
-          className={cx(styles.action, studioCtx?.isInteractiveMode && styles.pressed)}
+          className={cx(styles.action, interactive && styles.pressed)}
           aria-label={t("Interactive")}
-          aria-pressed={!!studioCtx?.isInteractiveMode}
-          disabled={!studioCtx || studioCtx.currentArenaEmpty}
+          aria-pressed={!!interactive}
+          disabled={!studioCtx || arenaEmpty}
           data-test-id="interactive-switch"
           icon={
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -141,7 +157,7 @@ export const CanvasViewControls = observer(function CanvasViewControls({
           type="text"
           className={styles.action}
           aria-label={t("Locate current canvas")}
-          disabled={!studioCtx || studioCtx.currentArenaEmpty || !frame}
+          disabled={!studioCtx || arenaEmpty || !hasFrame}
           icon={
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M8 3H5a2 2 0 0 0-2 2v3 M16 3h3a2 2 0 0 1 2 2v3 M21 16v3a2 2 0 0 1-2 2h-3 M8 21H5a2 2 0 0 1-2-2v-3" />
@@ -149,9 +165,14 @@ export const CanvasViewControls = observer(function CanvasViewControls({
             </svg>
           }
           onClick={() => {
-            if (studioCtx && frame) {
-              if (contentView) { contentView.contentEditor.locate(); }
-              else { studioCtx.tryZoomToFitFrame(frame, 1); }
+            if (studioCtx) {
+              const first = studioCtx.arenaState.store.getState().frames[0];
+              const frame = studioCtx.focusedContentFrame() ??
+                (first ? studioCtx.modelSnapshots.resolve(first) : undefined);
+              if (frame) {
+                if (contentView) { contentView.contentEditor.locate(); }
+                else { studioCtx.tryZoomToFitFrame(frame, 1); }
+              }
             }
           }}
         />
@@ -175,7 +196,7 @@ export const CanvasViewControls = observer(function CanvasViewControls({
           type="text"
           className={styles.action}
           aria-label={t("Zoom to fit all")}
-          disabled={!studioCtx || studioCtx.currentArenaEmpty}
+          disabled={!studioCtx || arenaEmpty}
           icon={
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M8 3H5a2 2 0 0 0-2 2v3 M16 3h3a2 2 0 0 1 2 2v3 M21 16v3a2 2 0 0 1-2 2h-3 M8 21H5a2 2 0 0 1-2-2v-3" />

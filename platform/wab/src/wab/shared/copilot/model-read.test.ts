@@ -12,8 +12,8 @@ test("dynamic choices expose metadata without a fake static enum or callback eva
 test("multi-select contracts expose and validate arrays without evaluating dynamic choices", () => {
   const options = vi.fn(() => ["o1", "o2"]);
   const metadata = { type: "choice", multiSelect: true, editOnly: true, options };
-  const [prop] = withRegisteredContracts([{ name: "canvasExpandedRowKeys", type: "any" }], { canvasExpandedRowKeys: metadata });
-  expect(prop.registration).toEqual({ type: "choice", multiSelect: true, editOnly: true, optionsDynamic: true });
+  expect(withRegisteredContracts([{ name: "canvasExpandedRowKeys", type: "any" }], { canvasExpandedRowKeys: metadata })).toEqual([]);
+  expect(registrationContract(metadata)).toEqual({ type: "choice", multiSelect: true, editOnly: true, optionsDynamic: true });
   expect(validateRegisteredValue(["o1", "o2"], metadata, "keys")).toBeUndefined();
   expect(validateRegisteredValue([], metadata, "keys")).toBeUndefined();
   expect(validateRegisteredValue("o1", metadata, "keys")).toBe("keys expects an array");
@@ -23,6 +23,19 @@ test("multi-select contracts expose and validate arrays without evaluating dynam
   expect(validateRegisteredValue([1, 2], staticChoice, "keys")).toBeUndefined();
   expect(validateRegisteredValue([3], staticChoice, "keys")).toContain("keys must be one of");
   expect(validateRegisteredValue(["1"], staticChoice, "keys")).toContain("keys must be one of");
+});
+
+test("MCP contracts hide editor-only props and retain real controlled and initial props", () => {
+  const props = [{ name: "previewOpen" }, { name: "open" }, { name: "value" }];
+  expect(withRegisteredContracts(props, {
+    previewOpen: { type: "boolean", editOnly: true },
+    open: { type: "boolean" },
+    value: { type: "string", editOnly: true, uncontrolledProp: "defaultValue" },
+  })).toEqual([
+    { name: "open", registration: { type: "boolean" } },
+    { name: "value", registration: { type: "string", editOnly: true, uncontrolledProp: "defaultValue" } },
+  ]);
+  expect(props).toHaveLength(3);
 });
 
 test("contract descriptions use the current registration over stale imported help text", () => {

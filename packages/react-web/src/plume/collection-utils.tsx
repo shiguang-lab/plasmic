@@ -245,7 +245,7 @@ export function deriveItemsFromChildren<T extends React.ReactElement>(
   let itemCount = 0;
   let sectionCount = 0;
 
-  const ensureValue = (element: React.ReactElement) => {
+  const ensureValue = (element: React.ReactElement<LoaderAwareItemLikeProps | LoaderAwareSectionLikeProps>) => {
     if (!propInChild(element, "value")) {
       if (opts.requireItemValue && PLUME_STRICT_MODE) {
         throw new Error(
@@ -268,7 +268,7 @@ export function deriveItemsFromChildren<T extends React.ReactElement>(
     children: React.ReactNode
   ): React.ReactElement[] => {
     return toChildArray(children).flatMap((child) => {
-      if (React.isValidElement(child)) {
+      if (React.isValidElement<LoaderAwareItemLikeProps | LoaderAwareSectionLikeProps>(child)) {
         if (child.type === React.Fragment) {
           return flattenedChildren(
             (child as React.ReactElement<{ children: React.ReactNode }>).props
@@ -277,12 +277,12 @@ export function deriveItemsFromChildren<T extends React.ReactElement>(
         }
         const type = getPlumeType(child);
         if (type === itemPlumeType) {
-          child = ensureValue(child);
-          const childKey = getItemLikeKey(child);
-          if (getChildProp(child, "isDisabled") && !!childKey) {
+          const item = ensureValue(child);
+          const childKey = getItemLikeKey(item);
+          if (getChildProp(item, "isDisabled") && !!childKey) {
             disabledKeys.push(childKey);
           }
-          return [child];
+          return [item];
         }
         if (type === sectionPlumeType) {
           return [
@@ -459,48 +459,43 @@ export function renderAsCollectionChild<
         // We are flattening and deriving the descendant Options as items here.
         // group.props.children should've already been cleaned up by
         // deriveItemsFromChildren()
-        items={getChildProp(group, "children") as React.ReactElement[]}
+        items={getChildProp(group, "children") as React.ReactElement<LoaderAwareItemLikeProps | LoaderAwareSectionLikeProps>[]}
       >
         {
           // We use the same render function to turn descendent Options into Items
         }
-        {(c: React.ReactElement) => renderAsCollectionChild(c, opts)}
+        {(c: React.ReactElement<LoaderAwareItemLikeProps | LoaderAwareSectionLikeProps>) => renderAsCollectionChild(c, opts)}
       </Section>
     );
   }
 }
 
-function getItemLikeKey(element: React.ReactElement<LoaderAwareItemLikeProps>) {
+function getItemLikeKey(element: React.ReactElement<LoaderAwareItemLikeProps | LoaderAwareSectionLikeProps>) {
   return getChildProp(element, "value") ?? element.key;
 }
 
 // PlasmicLoader-aware function to get prop from child.
 export function getChildProp(child: React.ReactElement, prop: string) {
-  return "componentProps" in child.props
-    ? child.props.componentProps[prop]
-    : child.props[prop];
+  const props = child.props as Record<string, any>;
+  return "componentProps" in props ? props.componentProps[prop] : props[prop];
 }
 
 // PlasmicLoader-aware function to check `if (prop in element.props)`.
 function propInChild(child: React.ReactElement, prop: string): boolean {
-  return "componentProps" in child.props
-    ? prop in child.props.componentProps
-    : prop in child.props;
+  const props = child.props as Record<string, any>;
+  return "componentProps" in props ? prop in props.componentProps : prop in props;
 }
 
 // PlasmicLoader-aware function to clone React element.
-function cloneChild(child: React.ReactElement, props: Record<string, any>) {
+function cloneChild<P>(child: React.ReactElement<P>, props: Record<string, any>): React.ReactElement<P> {
   if ((child.type as any).getPlumeType) {
-    // If React element has getPlumeType(), assume that it is PlasmicLoader,
-    // so add nodeProps to componentProps instead of element props.
-    return React.cloneElement(child, {
-      componentProps: {
-        ...child.props.componentProps,
-        ...props,
-      },
+    // A loader wrapper owns componentProps; keep its existing props when cloning.
+    const loaderChild = child as React.ReactElement<P & { componentProps: Record<string, unknown> }>;
+    return React.cloneElement(loaderChild, {
+      componentProps: { ...loaderChild.props.componentProps, ...props },
       ...(props.key ? { key: props.key } : {}),
-    });
+    } as Partial<P & { componentProps: Record<string, unknown> }>);
+  } else {
+    return React.cloneElement(child, props as Partial<P> & React.Attributes);
   }
-
-  return React.cloneElement(child, props);
 }

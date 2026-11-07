@@ -1,5 +1,6 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var dataSources = require('@plasmicapp/data-sources');
 var Ant = require('antd');
 var React = require('react');
@@ -7,13 +8,13 @@ var registerCheckbox = require('./registerCheckbox.cjs.js');
 var registerDatePicker = require('./registerDatePicker.cjs.js');
 var registerRadio = require('./registerRadio.cjs.js');
 var registerSelect = require('./registerSelect.cjs.js');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 var Form = require('./Form.cjs.js');
 var FormItem = require('./FormItem.cjs.js');
 require('./names-DbJduus8.cjs.js');
 require('classnames');
 require('dayjs');
-require('./canvas-overlay-CK330rTr.cjs.js');
+require('./canvas-overlay-DzKvKC8w.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -89,67 +90,75 @@ const SchemaForm = React__default.default.forwardRef(
       }
     }, [rawData, actualFormItems]);
     if (props.mode === "simplified" && rawData && "error" in rawData) {
-      return /* @__PURE__ */ React__default.default.createElement("div", null, "Error when fetching data: ", rawData.error.message);
+      return /* @__PURE__ */ jsxRuntime.jsxs("div", { children: [
+        "Error when fetching data: ",
+        rawData.error.message
+      ] });
     }
-    const childrenNode = props.mode === "simplified" ? /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, (actualFormItems ?? []).map((formItem) => /* @__PURE__ */ React__default.default.createElement(
-      utils.ErrorBoundary,
-      {
-        canvasEnvId: props["data-plasmic-canvas-envs"],
-        message: `Error rendering input for ${formItem.label ?? formItem.name ?? "undefined"}`
-      },
-      /* @__PURE__ */ React__default.default.createElement(
-        FormItem.FormItemWrapper,
+    const childrenNode = props.mode === "simplified" ? /* @__PURE__ */ jsxRuntime.jsxs(jsxRuntime.Fragment, { children: [
+      (actualFormItems ?? []).map((formItem) => /* @__PURE__ */ jsxRuntime.jsx(
+        utils.ErrorBoundary,
         {
-          ...utils.omit(formItem, "key"),
-          noLabel: formItem.inputType === Form.InputType.Checkbox || formItem.noLabel,
-          valuePropName: formItem.valuePropName ?? (formItem.inputType === Form.InputType.Checkbox ? "checked" : void 0)
-        },
-        formItem.inputType === Form.InputType.Text ? /* @__PURE__ */ React__default.default.createElement(Ant.Input, null) : formItem.inputType === Form.InputType.Password ? /* @__PURE__ */ React__default.default.createElement(Ant.Input.Password, null) : formItem.inputType === Form.InputType.TextArea ? /* @__PURE__ */ React__default.default.createElement(Ant.Input.TextArea, null) : formItem.inputType === Form.InputType.Number ? /* @__PURE__ */ React__default.default.createElement(Ant.InputNumber, null) : formItem.inputType === Form.InputType.Checkbox ? /* @__PURE__ */ React__default.default.createElement(registerCheckbox.AntdCheckbox, null, formItem.label) : formItem.inputType === Form.InputType.Select ? /* @__PURE__ */ React__default.default.createElement(registerSelect.AntdSelect, { options: formItem.options }) : formItem.inputType === Form.InputType.DatePicker ? /* @__PURE__ */ React__default.default.createElement(registerDatePicker.AntdDatePicker, { showTime: formItem.showTime }) : formItem.inputType === Form.InputType.RadioGroup ? /* @__PURE__ */ React__default.default.createElement(
-          registerRadio.AntdRadioGroup,
-          {
-            options: formItem.options,
-            optionType: formItem.optionType
-          }
-        ) : null
-      )
-    )), props.submitSlot) : props.children;
+          canvasEnvId: props["data-plasmic-canvas-envs"],
+          message: `Error rendering input for ${formItem.label ?? formItem.name ?? "undefined"}`,
+          children: /* @__PURE__ */ jsxRuntime.jsx(
+            FormItem.FormItemWrapper,
+            {
+              ...utils.omit(formItem, "key"),
+              noLabel: formItem.inputType === Form.InputType.Checkbox || formItem.noLabel,
+              valuePropName: formItem.valuePropName ?? (formItem.inputType === Form.InputType.Checkbox ? "checked" : void 0),
+              children: formItem.inputType === Form.InputType.Text ? /* @__PURE__ */ jsxRuntime.jsx(Ant.Input, {}) : formItem.inputType === Form.InputType.Password ? /* @__PURE__ */ jsxRuntime.jsx(Ant.Input.Password, {}) : formItem.inputType === Form.InputType.TextArea ? /* @__PURE__ */ jsxRuntime.jsx(Ant.Input.TextArea, {}) : formItem.inputType === Form.InputType.Number ? /* @__PURE__ */ jsxRuntime.jsx(Ant.InputNumber, {}) : formItem.inputType === Form.InputType.Checkbox ? /* @__PURE__ */ jsxRuntime.jsx(registerCheckbox.AntdCheckbox, { children: formItem.label }) : formItem.inputType === Form.InputType.Select ? /* @__PURE__ */ jsxRuntime.jsx(registerSelect.AntdSelect, { options: formItem.options }) : formItem.inputType === Form.InputType.DatePicker ? /* @__PURE__ */ jsxRuntime.jsx(registerDatePicker.AntdDatePicker, { showTime: formItem.showTime }) : formItem.inputType === Form.InputType.RadioGroup ? /* @__PURE__ */ jsxRuntime.jsx(
+                registerRadio.AntdRadioGroup,
+                {
+                  options: formItem.options,
+                  optionType: formItem.optionType
+                }
+              ) : null
+            }
+          )
+        }
+      )),
+      props.submitSlot
+    ] }) : props.children;
     const isSchemaForm = props.mode === "simplified" && !!props.data;
     const isLoadingData = rawData?.isLoading;
-    return /* @__PURE__ */ React__default.default.createElement(
+    return /* @__PURE__ */ jsxRuntime.jsxs(
       Form.SchemaFormContext.Provider,
       {
         value: {
           mergedFields: formItemDefinitions?.mergedFields,
           minimalFullLengthFields: formItemDefinitions?.mergedFields,
           schema: rawData?.schema
-        }
-      },
-      /* @__PURE__ */ React__default.default.createElement(
-        Form.FormWrapper,
-        {
-          key: remountKey,
-          ...rest,
-          children: childrenNode,
-          formItems: rawData && rawData.isLoading ? previousFormItems.current : actualFormItems,
-          ref,
-          style: isSchemaForm && isLoadingData ? {
-            ...props.style,
-            opacity: 0.5,
-            transitionDelay: "250ms",
-            transition: "1s"
-          } : props.style
-        }
-      ),
-      isSchemaForm && isLoadingData && /* @__PURE__ */ React__default.default.createElement(
-        "div",
-        {
-          style: {
-            position: "absolute",
-            width: "100%",
-            height: "100%"
-          }
-        }
-      )
+        },
+        children: [
+          /* @__PURE__ */ jsxRuntime.jsx(
+            Form.FormWrapper,
+            {
+              ...rest,
+              children: childrenNode,
+              formItems: rawData && rawData.isLoading ? previousFormItems.current : actualFormItems,
+              ref,
+              style: isSchemaForm && isLoadingData ? {
+                ...props.style,
+                opacity: 0.5,
+                transitionDelay: "250ms",
+                transition: "1s"
+              } : props.style
+            },
+            remountKey
+          ),
+          isSchemaForm && isLoadingData && /* @__PURE__ */ jsxRuntime.jsx(
+            "div",
+            {
+              style: {
+                position: "absolute",
+                width: "100%",
+                height: "100%"
+              }
+            }
+          )
+        ]
+      }
     );
   }
 );

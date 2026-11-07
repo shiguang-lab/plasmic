@@ -4,20 +4,19 @@ import {
 } from "@/wab/client/frame-ctx/frame-interactions";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
-import type { Site } from "@/wab/shared/model/classes";
 /// <reference types="@types/resize-observer-browser" />
 import { handleError, normalizeError } from "@/wab/client/ErrorNotifications";
 import { isCanvasOverlay } from "@/wab/client/components/canvas/CanvasFrame";
-import {
-  CanvasFrameInfo,
-  mkCanvas,
-} from "@/wab/client/components/canvas/canvas-rendering";
+import { mkCanvas } from "@/wab/client/components/canvas/canvas-rendering";
+import { CanvasFrameInfoOwner } from "@/wab/client/components/canvas/canvas-frame-info";
+import { CanvasRegistrations } from "@/wab/client/components/canvas/canvas-registrations";
+import { CanvasHostlessInputs } from "@/wab/client/components/canvas/canvas-hostless-inputs";
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import {
   ensureCanvasRuntime,
-  getHostLessPkgIdentity,
+  HostLessPackageRequest,
   getReactWebBundle,
-  getSortedHostLessPkgs,
+  loadHostLessPackages,
   getVersionForCanvasPackages,
 } from "@/wab/client/components/studio/studio-bundles";
 import * as domMod from "@/wab/client/dom";
@@ -35,16 +34,15 @@ import {
   isHeightAutoDerived,
   updateAutoDerivedFrameHeight,
 } from "@/wab/shared/Arenas";
-import { usedHostLessPkgs } from "@/wab/shared/cached-selectors";
 import { getBuiltinComponentRegistrations } from "@/wab/shared/code-components/builtin-code-components";
 import { CodeComponentsRegistry } from "@/wab/shared/code-components/code-components";
 import {
   ensure,
+  assert,
   ensureInstance,
   spawn,
   withTimeout,
 } from "@/wab/shared/common";
-import { makeTokenRefResolver } from "@/wab/shared/core/site-style-tokens";
 import { Box } from "@/wab/shared/geom";
 import { disposeOwnedComputedFns } from "@/wab/shared/mobx-util";
 import { ArenaFrame } from "@/wab/shared/model/classes";
@@ -57,7 +55,6 @@ import {
 import { notification } from "antd";
 import $ from "jquery";
 import L from "lodash";
-import { Lambda, autorun, observable, runInAction } from "mobx";
 import React from "react";
 
 let gCanvasCtxIndex = 0;
@@ -89,13 +86,13 @@ export class CanvasCtx {
 
   Sub: SubDeps;
 
-  private _resizeObserver: ResizeObserver;
-  private _resizeFrame: number | undefined;
-  private _mutationObserver: MutationObserver;
-  private disposals: Lambda[] = [];
+  private bodySizeCleanup: (() => void) | undefined;
+  private readonly pendingBodyWaits = new Set<() => void>();
+  private disposals: (() => void)[] = [];
 
-  installedHostLessPkgs = observable.set<string>();
-  private usedPkgsDispose: Lambda;
+  readonly registrations = new CanvasRegistrations();
+  installedHostLessPkgs = new Set<string>();
+  private usedPackages: CanvasHostlessInputs | undefined;
   private _hostLessPkgsLock = Promise.resolve();
 
   get hostLessPkgsLock() {
@@ -114,43 +111,29 @@ export class CanvasCtx {
     this._keyAdjustment = null;
   }
 
-  private _updatingCcRegistryCount = observable.box(0);
-  set updatingCcRegistryCount(v: number) {
-    this._updatingCcRegistryCount.set(v);
-  }
-  get updatingCcRegistryCount() {
-    return this._updatingCcRegistryCount.get();
-  }
-
-  private async updateCcRegistry(pkgs: string[], site: Site, sc: StudioCtx) {
+  private async updateCcRegistry(requests: readonly HostLessPackageRequest[], sc: StudioCtx) {
+    if (this._isDisposed) { return; }
     const previousFetch = this._hostLessPkgsLock;
-    runInAction(() => { this.updatingCcRegistryCount++; });
+    this.registrations.begin();
     this._hostLessPkgsLock = previousFetch
       .catch(() => undefined)
       .then(async () => {
-        const currentPackages = new Set(
-          pkgs.map((pkg) => getHostLessPkgIdentity(pkg, site)),
-        );
-        const pkgsData = await getSortedHostLessPkgs(
+        if (this._isDisposed) { return; }
+        const currentPackages = new Set(requests.map((request) => request.identity));
+        const pkgsData = await loadHostLessPackages(
           this._win,
           sc.appCtx.api,
-          pkgs.filter(
-            (pkg) =>
-              site.hostLessPackageInfo?.name === pkg ||
-              !this.installedHostLessPkgs.has(getHostLessPkgIdentity(pkg, site)),
+          requests.filter(
+            (request) => request.authoring || !this.installedHostLessPkgs.has(request.identity),
           ),
           getVersionForCanvasPackages(this._win),
-          site,
         );
-        runInAction(() => {
+        if (this._isDisposed) { return; }
           for (const pkg of this.installedHostLessPkgs) {
             if (!currentPackages.has(pkg)) {
               this.installedHostLessPkgs.delete(pkg);
             }
           }
-          // We run in action because `installedHostLessPkgs` is observable
-          // so we want computed values to re-compute only after all packages
-          // have been installed and the `ccRegistry` is cleared
           for (const [pkg, pkgModule] of pkgsData) {
             if (!this.installedHostLessPkgs.has(pkg)) {
               scriptExec(this._win, pkgModule);
@@ -159,26 +142,21 @@ export class CanvasCtx {
           }
           // Clear the memoized map
           this.ccRegistry?.clear();
-        });
+          this.registrations.refresh();
       })
       .finally(() => {
-        runInAction(() => { this.updatingCcRegistryCount--; });
+        this.registrations.end();
       });
     await this._hostLessPkgsLock;
   }
 
   isUpdatingCcRegistry() {
-    return this.updatingCcRegistryCount !== 0;
+    return this.registrations.loadingStore.getState();
   }
 
-  private updatePkgsList(pkgs: string[], site: Site, sc: StudioCtx) {
-    if (
-      pkgs.some(
-        (pkg) =>
-          !this.installedHostLessPkgs.has(getHostLessPkgIdentity(pkg, site)),
-      )
-    ) {
-      spawn(this.updateCcRegistry(pkgs, site, sc));
+  private updatePkgsList(requests: readonly HostLessPackageRequest[], sc: StudioCtx) {
+    if (requests.length || this.installedHostLessPkgs.size) {
+      spawn(this.updateCcRegistry(requests, sc));
     }
   }
 
@@ -245,6 +223,7 @@ export class CanvasCtx {
     arenaFrame: ArenaFrame,
     sc: StudioCtx,
   ) {
+    if (this._isDisposed) { return; }
     this._$viewport = $viewport;
     this._win = ensure(
       $viewport.get(0).contentWindow as typeof window,
@@ -254,13 +233,19 @@ export class CanvasCtx {
       uid: arenaFrame.uid,
       objectPrototype: this._win.Object.prototype,
     });
-    this._win.addEventListener("error", (e: ErrorEvent) =>
-      handleCanvasError(e.error),
-    );
-    this._win.addEventListener(
-      "unhandledrejection",
-      (e: PromiseRejectionEvent) => handleCanvasError(e.reason),
-    );
+    const runtimeWindow = this._win;
+    const onError = (event: ErrorEvent) => {
+      if (!this._isDisposed) { handleCanvasError(event.error); }
+    };
+    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
+      if (!this._isDisposed) { handleCanvasError(event.reason); }
+    };
+    runtimeWindow.addEventListener("error", onError);
+    runtimeWindow.addEventListener("unhandledrejection", onUnhandledRejection);
+    this.disposals.push(() => {
+      runtimeWindow.removeEventListener("error", onError);
+      runtimeWindow.removeEventListener("unhandledrejection", onUnhandledRejection);
+    });
     const doc = this._win.document;
     const $doc = (this._$doc = $(doc) as JQuery<HTMLDocument>);
     // This document can end before the owning Studio editor unmounts.
@@ -301,11 +286,14 @@ export class CanvasCtx {
       arenaFrame.uuid,
     );
     yield "user-body-wait";
-    this._$userBody = await withTimeout(
+    if (this._isDisposed) { return; }
+    const userBody = await withTimeout(
       this.waitForUserBody(),
       "Couldn't get userBody",
       CANVAS_CTX_TIMEOUT_PERIOD,
     );
+    if (this._isDisposed || !userBody) { return; }
+    this._$userBody = userBody;
     hostReadyDone();
     // We reinsert things because some frameworks (Remix Hydrogen dev server) blow away the entire document.
     // We also do it earlier so that we can intercept clicks as much as possible, rather than waiting for __wab_user_body first.
@@ -336,15 +324,16 @@ export class CanvasCtx {
     }
     const scriptsDone = sc.loadTimings.begin("frame-runtime", arenaFrame.uuid);
     yield "script-wait";
+    if (this._isDisposed) { return; }
     await ensureCanvasRuntime(this._win);
-    scriptExec(
-      this._win,
-      await withTimeout(
-        getReactWebBundle(),
-        "Couldn't get reactWebBundle.",
-        CANVAS_CTX_TIMEOUT_PERIOD,
-      ),
+    if (this._isDisposed) { return; }
+    const reactWebBundle = await withTimeout(
+      getReactWebBundle(),
+      "Couldn't get reactWebBundle.",
+      CANVAS_CTX_TIMEOUT_PERIOD,
     );
+    if (this._isDisposed) { return; }
+    scriptExec(this._win, reactWebBundle);
 
     scriptsDone();
     (this._win as any).__PLASMIC__ = {
@@ -360,23 +349,21 @@ export class CanvasCtx {
     (this._win as any).__PLASMIC_GET_ALL_CACHE_KEYS = sc.getAllDataOpCacheKeys;
     (this._win as any).__PLASMIC_STUDIO_PATH = sc.getCurrentPathName;
 
-    if (this.usedPkgsDispose) {
-      this.usedPkgsDispose();
-    }
-    this.usedPkgsDispose = autorun(() =>
-      this.updatePkgsList(usedHostLessPkgs(sc.site), sc.site, sc),
-    );
+    this.usedPackages?.dispose();
+    this.usedPackages = new CanvasHostlessInputs(sc, (requests) => this.updatePkgsList(requests, sc));
     const hostlessDone = sc.loadTimings.begin(
       "frame-component-packages",
       arenaFrame.uuid,
     );
     yield "hostless-wait";
+    if (this._isDisposed) { return; }
     await withTimeout(
       this.hostLessPkgsLock,
       "Couldn't acquire hostLessPkgsLock.",
       CANVAS_CTX_TIMEOUT_PERIOD,
     );
 
+    if (this._isDisposed) { return; }
     hostlessDone();
     let dataSources: SubDeps["dataSources"] = (this._win as any)
       .__PlasmicDataSourcesBundle;
@@ -407,10 +394,11 @@ export class CanvasCtx {
       this._win,
       getBuiltinComponentRegistrations(this.Sub),
     );
+    this.registrations.install(this.ccRegistry);
 
     spawn(
       this.waitForUserBody().then(($userBody) => {
-        if (!this._isDisposed) {
+        if (!this._isDisposed && $userBody) {
           this.observeUserBodySize(sc, arenaFrame, $userBody[0]);
         }
       }),
@@ -424,25 +412,26 @@ export class CanvasCtx {
     arenaFrame: ArenaFrame,
     userBody: HTMLElement,
   ) {
-    this._resizeObserver?.disconnect();
-    if (this._resizeFrame !== undefined) {
-      window.cancelAnimationFrame(this._resizeFrame);
-      this._resizeFrame = undefined;
-    }
+    this.bodySizeCleanup?.();
+    if (this._isDisposed) { return; }
+    let closed = false;
+    let pendingFrame: number | undefined;
     const MAX_RESIZES_WITHOUT_USER_EDIT = 16;
     let resizeObserverLastChangeCounter = sc._changeCounter;
     let resizeObserverResizeCounter = 0;
     let resizeObserverLastFullPageHeight = sc.fullPageHeight;
     let height = 0;
-    this._resizeObserver = new ResizeObserver(([entry]: ResizeObserverEntry[]) => {
+    const observer = new ResizeObserver(([entry]: ResizeObserverEntry[]) => {
+      if (closed) { return; }
       height = Math.round(entry.contentRect.height);
-      if (this._resizeFrame !== undefined) {
+      if (pendingFrame !== undefined) {
         return;
       }
       // Coalesce measurements into the next paint without waiting for content
       // to stop resizing, so height toggles update promptly.
-      this._resizeFrame = window.requestAnimationFrame(() => {
-        this._resizeFrame = undefined;
+      pendingFrame = window.requestAnimationFrame(() => {
+        if (closed) { return; }
+        pendingFrame = undefined;
         if (isHeightAutoDerived(arenaFrame)) {
           const frameHeight = getFrameHeight(arenaFrame);
           if (height && height !== frameHeight) {
@@ -487,10 +476,19 @@ export class CanvasCtx {
         }
       });
     });
-    this._resizeObserver.observe(userBody);
+    const dispose = () => {
+      if (closed) { return; }
+      closed = true;
+      observer.disconnect();
+      if (pendingFrame !== undefined) { window.cancelAnimationFrame(pendingFrame); pendingFrame = undefined; }
+      if (this.bodySizeCleanup === dispose) { this.bodySizeCleanup = undefined; }
+    };
+    this.bodySizeCleanup = dispose;
+    observer.observe(userBody);
   }
 
-  private async waitForUserBody(): Promise<JQuery<HTMLElement>> {
+  private async waitForUserBody(): Promise<JQuery<HTMLElement> | undefined> {
+    if (this._isDisposed) { return undefined; }
     const getBody = () => {
       // Some frameworks or dev servers (Remix Hydrogen on Oxygen local dev server) can end up blowing away the entire document, so _$html would be an old unmounted handle.
       this._$html = this._$doc.find("html");
@@ -508,32 +506,25 @@ export class CanvasCtx {
     }
 
     return new Promise((resolve) => {
-      // We install a mutation observer to wait for when the wab is added.
-      // Note that we may end up waiting for a long time, potentially forever,
-      // because this iframe may be paused if it is invisible.
+      let finished = false;
+      const finish = ($userBody: JQuery<HTMLElement> | undefined) => {
+        if (finished) { return; }
+        finished = true;
+        observer.disconnect();
+        window.clearInterval(intervalId);
+        this.pendingBodyWaits.delete(cancel);
+        resolve($userBody);
+      };
+      const cancel = () => finish(undefined);
       const check = () => {
         const $userBody = getBody();
-        if ($userBody) {
-          // We found it!
-          observer.disconnect();
-          window.clearInterval(intervalId);
-          resolve($userBody);
-        }
+        if ($userBody) { finish($userBody); }
       };
-
-      const observer = (this._mutationObserver = new MutationObserver(() => {
-        check();
-      }));
-      observer.observe(this._$body.get(0), {
-        childList: true,
-        subtree: true,
-      });
-
-      // Sometimes MutationObserver stops working in Chrome, so we fallback to
-      // using window.setInterval as well :-/
-      const intervalId = window.setInterval(() => {
-        check();
-      }, 500);
+      const observer = new MutationObserver(check);
+      observer.observe(this._$body.get(0), { childList: true, subtree: true });
+      // Some hosts do not deliver mutation records while an iframe is hidden.
+      const intervalId = window.setInterval(check, 500);
+      this.pendingBodyWaits.add(cancel);
     });
   }
 
@@ -748,37 +739,40 @@ export class CanvasCtx {
     return this._outlineModeRules.length > 0;
   }
 
-  private bridgeDispose: () => void | undefined;
-  rerender(children: React.ReactNode, viewCtx: ViewCtx) {
-    const frame = viewCtx.arenaFrame();
+  private frameInfoOwner: CanvasFrameInfoOwner | undefined;
+  private canvasFrameComponent: ReturnType<typeof mkCanvas> | undefined;
 
-    const makeFrameInfo = (): CanvasFrameInfo => ({
-      viewMode: frame.viewMode as CanvasFrameInfo["viewMode"],
-      height: frame.height,
-      isHeightAutoDerived: isHeightAutoDerived(frame),
-      fullPageHeight: viewCtx.isFullContentView(),
-      bgColor: frame.bgColor
-        ? (makeTokenRefResolver(viewCtx.site)(frame.bgColor) ?? frame.bgColor)
-        : undefined,
-    });
-
-    const frameInfo = observable.box<CanvasFrameInfo>(makeFrameInfo());
-    if (this.bridgeDispose) {
-      this.bridgeDispose();
+  syncFrameInfo(viewCtx: ViewCtx) {
+    if (this._isDisposed || !this.frameInfoOwner) {
+      return;
     }
-    // Set up a reaction that reacts to changes in top-level frame object
-    // and copies it into sub observable
-    this.bridgeDispose = autorun(
-      () => {
-        frameInfo.set(makeFrameInfo());
-      },
-      { name: "autorun(CanvasCtx.frameInfo)" },
-    );
+    assert(this.frameInfoOwner.viewCtx === viewCtx, "Canvas frame belongs to another view");
+    this.frameInfoOwner.sync();
+  }
+
+  /** Prepare only an established frame; an unevaluated frame has no consumers. */
+  prepareFrameInfo(viewCtx: ViewCtx): () => void {
+    if (this._isDisposed || !this.frameInfoOwner) { return () => undefined; }
+    assert(this.frameInfoOwner.viewCtx === viewCtx, "Canvas frame belongs to another view");
+    return this.frameInfoOwner.prepare();
+  }
+
+  frameInfo(viewCtx: ViewCtx) {
+    assert(!this._isDisposed, "Cannot read frame inputs for a disposed canvas");
+    this.frameInfoOwner ??= new CanvasFrameInfoOwner(viewCtx);
+    assert(this.frameInfoOwner.viewCtx === viewCtx, "Canvas frame belongs to another view");
+    return this.frameInfoOwner.store;
+  }
+
+  rerender(children: React.ReactNode, viewCtx: ViewCtx) {
+    const frameInfo = this.frameInfo(viewCtx);
+    this.canvasFrameComponent ??= mkCanvas(this.Sub, viewCtx);
+    this.syncFrameInfo(viewCtx);
 
     const r = this.Sub.React.createElement;
 
     const node = r(
-      mkCanvas(this.Sub, viewCtx),
+      this.canvasFrameComponent,
       {
         frameInfo,
       },
@@ -794,6 +788,7 @@ export class CanvasCtx {
       return;
     }
     this._isDisposed = true;
+    this.bodySizeCleanup?.();
 
     if (this.Sub) {
       // Unmount the canvas tree so the effects inside it are cleaned up, since
@@ -811,21 +806,15 @@ export class CanvasCtx {
     }
     this._frameState?.dispose();
     this._frameState = undefined;
-    this._resizeObserver?.disconnect();
-    if (this._resizeFrame !== undefined) {
-      window.cancelAnimationFrame(this._resizeFrame);
-      this._resizeFrame = undefined;
-    }
-    if (this.bridgeDispose) {
-      this.bridgeDispose();
-    }
-    if (this.usedPkgsDispose) {
-      this.usedPkgsDispose();
-    }
+    this.frameInfoOwner?.dispose();
+    this.frameInfoOwner = undefined;
+    this.canvasFrameComponent = undefined;
+    this.usedPackages?.dispose(); this.usedPackages = undefined;
+    this.registrations.dispose();
     for (const dispose of this.disposals) {
       dispose();
     }
-    this._mutationObserver?.disconnect();
+    for (const cancel of this.pendingBodyWaits) { cancel(); }
   }
 }
 

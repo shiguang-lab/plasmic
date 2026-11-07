@@ -4,6 +4,7 @@ import {
   confirm,
   hardConfirm,
   reactPrompt,
+  showTemporaryPrompt,
 } from "@/wab/client/components/quick-modals";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -13,6 +14,28 @@ import { mkTplTagX } from "@/wab/shared/core/tpls";
 import "@testing-library/jest-dom/vitest";
 import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import React from "react";
+
+it("cleans the temporary root and its effects after submit, cancel and reopening", async () => {
+  const cleanup = vi.fn();
+  function Prompt({ finish }: { finish: () => void }) {
+    React.useEffect(() => cleanup, []);
+    return <button onClick={finish}>Finish prompt</button>;
+  }
+  const original = document.body.children.length;
+  for (const submit of [true, false, true]) {
+    let result: Promise<string | undefined> | undefined;
+    act(() => {
+      result = showTemporaryPrompt<string>((onSubmit, onCancel) => (
+        <Prompt finish={submit ? () => onSubmit("answer") : onCancel} />
+      ));
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Finish prompt" }));
+    await expect(ensure(result)).resolves.toBe(submit ? "answer" : undefined);
+    expect(screen.queryByRole("button", { name: "Finish prompt" })).toBeNull();
+    expect(document.body.children.length).toBe(original);
+  }
+  expect(cleanup).toHaveBeenCalledTimes(3);
+});
 
 vi.mock("@/wab/client/components/widgets/Textbox", () => ({
   default: ({

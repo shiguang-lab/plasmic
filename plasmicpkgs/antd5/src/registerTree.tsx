@@ -1,6 +1,6 @@
 import { Tree } from "antd";
 import type { TreeDataNode, TreeProps } from "antd";
-import React, { Key, useState } from "react";
+import { Key, useState } from "react";
 import { Registerable, registerComponentHelper } from "./utils";
 import type { DirectoryTreeProps } from "antd/es/tree";
 

@@ -47,7 +47,7 @@ for (const [name, Component, selector] of [
 ] as const) {
   test(`${name} keeps editing reveals out of runtime while retaining inner inputs without events`, async () => {
     const afterOpenChange = vi.fn(), onOpenChange = vi.fn();
-    const props = { open: false, onOpenChange, afterOpenChange, __plasmic_selection_prop__: { isSelected: true, selectedSlotName: "children" } };
+    const props = { open: false, onOpenChange, afterOpenChange, __canvas: { selected: true, slot: "children" } };
     const Overlay = Component as React.ComponentType<any>;
     // CSS motion runs in the browser regression; jsdom exercises state and callbacks.
     const motionProps = name === "Modal" ? { transitionName: "", maskTransitionName: "" } : {};
@@ -78,7 +78,7 @@ test("Collapse retains revealed panels and their DOM while switching modes", () 
   const page = (interactive: boolean) => <Canvas interactive={interactive}>
     <AntdCollapse onChange={onChange}>
       <AntdCollapsePanel key="a" header="Alpha">Alpha content</AntdCollapsePanel>
-      <AntdCollapsePanel key="b" header="Beta" {...{ __plasmic_selection_prop__: { isSelected: true } }}><input aria-label="Panel draft" /></AntdCollapsePanel>
+      <AntdCollapsePanel key="b" header="Beta" {...{ __canvas: { selected: true } }}><input aria-label="Panel draft" /></AntdCollapsePanel>
     </AntdCollapse>
   </Canvas>;
   const view = render(page(false));

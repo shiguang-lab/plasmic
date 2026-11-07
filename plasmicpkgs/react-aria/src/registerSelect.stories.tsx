@@ -265,7 +265,7 @@ export const SelectedInCanvas: Story = {
       </BoilerplateSelect>
     ),
   },
-  render: ({ __plasmic_selection_prop__, ...args }) => {
+  render: ({ __canvas, ...args }) => {
     const [selected, setSelected] = useState(false);
     useEffect(() => {
       setTimeout(() => {
@@ -283,8 +283,8 @@ export const SelectedInCanvas: Story = {
       >
         <BaseSelect
           // Simulate node selection in Plasmic canvas
-          __plasmic_selection_prop__={{
-            isSelected: selected,
+          __canvas={{
+            selected,
           }}
           {...args}
         />

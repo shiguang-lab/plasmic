@@ -1,10 +1,11 @@
+import { useStore } from "zustand";
+import { useCurrentAppUserToken } from "@/wab/client/studio-ctx/studio-mode-state";
 
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { translateUiLabel } from "@/wab/client/i18n/locales";
 import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
-import "@graphiql/plugin-explorer/dist/style.css";
-import type { CrudSorting } from "@pankod/refine-core";
+import type { DataSourceSorting } from "@/wab/shared/data-sources-meta/data-sources";
 import {
   DataSourceSchema,
   executePlasmicDataOp,
@@ -16,8 +17,8 @@ import {
   usePlasmicDataOp,
 } from "@plasmicapp/react-web/lib/data-sources";
 import { Input, Menu, notification, Tooltip } from "antd";
-import { GraphiQLProvider } from "graphiql";
-import "graphiql/graphiql.css";
+
+import "graphiql/style.css";
 import { isArray, isNil, isString, mapValues, omit } from "lodash";
 import { observer } from "mobx-react";
 import React, {
@@ -43,7 +44,8 @@ import {
   DynamicValueWidget,
   mkUndefinedObjectPath,
 } from "@/wab/client/components/QueryBuilder/Components/DataPickerWidgetFactory";
-import { QueryBuilderConfig } from "@/wab/client/components/QueryBuilder/QueryBuilderConfig";
+import { NativeValueEditor } from "@/wab/client/components/QueryBuilder/Components/NativeValueEditor";
+import { dataSourceQueryFields } from "@/wab/shared/query-builder";
 import { DataPickerEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/DataPickerEditor";
 import { EnumPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/EnumPropEditor";
 import { InvalidationEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/InvalidationEditor";
@@ -185,12 +187,17 @@ import {
 } from "@/wab/shared/model/classes";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { smartHumanize } from "@/wab/shared/strs";
-import { explorerPlugin } from "@graphiql/plugin-explorer";
+import { QUERY_BUILDER_PLUGIN } from "@graphiql/plugin-query-builder";
+import { DOC_EXPLORER_PLUGIN } from "@graphiql/plugin-doc-explorer";
+import "@graphiql/plugin-query-builder/style.css";
+import "@graphiql/plugin-doc-explorer/style.css";
+import { configureMonacoWorkers } from "@/wab/client/monaco-worker-url";
 import {
   PrettifyIcon,
+  GraphiQLProvider,
   QueryEditor,
-  usePrettifyEditors,
-  useTheme,
+  useGraphiQL,
+  useGraphiQLActions,
 } from "@graphiql/react";
 import { Fetcher } from "@graphiql/toolkit";
 import { PlasmicDataSourceContextProvider } from "@plasmicapp/react-web";
@@ -480,6 +487,7 @@ const DataSourceOpExprBottomModalContent = observer(
     ...rest
   }: DataSourceOpExprBottomModalContentProps) {
     const studioCtx = useStudioCtx();
+    const userAuthToken = useCurrentAppUserToken(studioCtx);
     const wrappedOnSave = React.useCallback(
       (newExpr: DataSourceOpExpr, opExprName?: string) => {
         if (hasUnsafeCurrentUserBinding(newExpr, exprCtx)) {
@@ -501,7 +509,7 @@ const DataSourceOpExprBottomModalContent = observer(
 
     return (
       <PlasmicDataSourceContextProvider
-        value={{ userAuthToken: studioCtx.currentAppUserCtx.fakeAuthToken }}
+        value={{ userAuthToken }}
       >
         <DataSourceOpPickerProvider
           {...{
@@ -533,13 +541,14 @@ const DataSourceOpExprBottomModalContent = observer(
   },
 );
 
-export const DataSourceOpExprSummary = observer(
+export const DataSourceOpExprSummary =
   function DataSourceOpExprSummary(props: { expr: DataSourceOpExpr }) {
     const { t: studioUiT } = useI18n();
 
     const { expr } = props;
-    const sourceId = expr.sourceId;
-    const opName = expr.opName;
+    const studioCtx = useStudioCtx();
+    const sourceId = useStore(studioCtx.modelSnapshots.field(expr, "sourceId"));
+    const opName = useStore(studioCtx.modelSnapshots.field(expr, "opName"));
     const { source, opMeta, sourceError } = useSourceOp(sourceId, opName);
     if (sourceError) {
       return <ValuePreview err={sourceError} />;
@@ -558,8 +567,8 @@ export const DataSourceOpExprSummary = observer(
           : `${source.name}: ${opMeta.label ?? opMeta.name}`}
       </div>
     );
-  },
-);
+  }
+;
 
 export async function getOpIdForDataSourceOpExpr(
   api: AppCtx["api"],
@@ -2364,17 +2373,15 @@ export const FilterPropEditor = (props: {
       data={data}
       schema={schema}
       bindings={bindings}
-      logic={value?.logic}
       tree={value?.tree}
       saveTree={(newVal, binds) => onChange(newVal, binds)}
-      fields={fields}
-      dataSourceConfig={getDataSourceQueryBuilderConfig(source)}
+      dataSourceConfig={getDataSourceQueryBuilderConfig(source, fields)}
       exprCtx={exprCtx}
     />
   ) : null;
 };
 
-const PaginationEditor = observer(function PaginationEditor({
+const PaginationEditor = function PaginationEditor({
   onChange,
   bindings,
   value,
@@ -2460,15 +2467,15 @@ const PaginationEditor = observer(function PaginationEditor({
       </div>
     </div>
   );
-});
+};
 
-export const SortEditor = observer(function SortEditor({
+export const SortEditor = function SortEditor({
   fields,
   onChange,
   value,
 }: {
-  value?: CrudSorting;
-  onChange: (value: CrudSorting) => void;
+  value?: DataSourceSorting;
+  onChange: (value: DataSourceSorting) => void;
   fields: Fields;
 }) {
   const { t: uiT } = useI18n();
@@ -2527,9 +2534,8 @@ export const SortEditor = observer(function SortEditor({
       />
     </div>
   );
-});
+};
 
-const configWidgets = QueryBuilderConfig.widgets;
 
 export function clearUnusedBindings(
   bindings: React.MutableRefObject<
@@ -2549,7 +2555,7 @@ export function mkBindingId() {
   return `{{${randUint16().toString()}}}`;
 }
 
-const StringDictPropEditor = observer(function StringDictPropEditor({
+const StringDictPropEditor = function StringDictPropEditor({
   onChange,
   value,
   bindings: defaultBindings,
@@ -2678,7 +2684,7 @@ const StringDictPropEditor = observer(function StringDictPropEditor({
       </div>
     </div>
   );
-});
+};
 
 const INPUT_TOGGLE_OPTIONS = [
   {
@@ -2799,7 +2805,6 @@ export const JsonWithSchemaEditor = observer(function JsonWithSchemaEditor({
         <ListBox>
           {[...Object.entries(fields)].map(([fieldName, field], idx) => {
             const val = value?.[fieldName] ?? undefined;
-            const fieldSettings = field.fieldSettings ?? {};
             const fieldType = field.type === "enum" ? "select" : field.type;
             const setValue = (
               newVal: string | number | boolean | undefined,
@@ -2980,18 +2985,11 @@ export const JsonWithSchemaEditor = observer(function JsonWithSchemaEditor({
                                 }}
                                 className="qb-custom-widget"
                               >
-                                {configWidgets[fieldType].factory(
-                                  {
-                                    config: { ...QueryBuilderConfig },
-                                    setValue: setExprValue,
-                                    value: val,
-                                    customProps: {
-                                      "data-plasmic-prop": fieldName,
-                                    },
-                                    ...field.fieldSettings,
-                                  } as any,
-                                  QueryBuilderConfig.ctx,
-                                )}
+                                <NativeValueEditor
+                                  field={ensure(dataSourceQueryFields({ [fieldName]: field })[0], "Unsupported field editor")}
+                                  operator="=" value={val} setValue={setExprValue}
+                                  data-plasmic-prop={fieldName}
+                                />
                               </ContextMenuIndicator>
                             );
                           }
@@ -3028,7 +3026,7 @@ export const JsonWithSchemaEditor = observer(function JsonWithSchemaEditor({
   );
 });
 
-const JsonArrayWithSchemaEditor = observer(function JsonArrayWithSchemaEditor({
+const JsonArrayWithSchemaEditor = function JsonArrayWithSchemaEditor({
   onChange,
   value: initValue,
   bindings: defaultBindings,
@@ -3188,7 +3186,7 @@ const JsonArrayWithSchemaEditor = observer(function JsonArrayWithSchemaEditor({
       )}
     </MaybeWrap>
   );
-});
+};
 
 function deserializeHttpBody(val?: TemplatedString | string) {
   if (isNil(val)) {
@@ -3355,7 +3353,7 @@ const HttpBodyEditor = observer(function HttpBodyEditor({
   );
 });
 
-const InputToggleWrapper = observer(function InputToggleWrapper({
+const InputToggleWrapper = function InputToggleWrapper({
   value,
   onChange,
   options,
@@ -3391,7 +3389,7 @@ const InputToggleWrapper = observer(function InputToggleWrapper({
       {children}
     </div>
   );
-});
+};
 
 export const DataSourceOpValuePreview = observer(
   function DataSourceOpValuePreview(props: {
@@ -3696,8 +3694,7 @@ function GraphqlQueryFieldInner(props: {
 
   // We need GraphqlQueryFieldInner because @graphiql/react hooks
   // need to be in a component inside <GraphiQLProvider/>
-  const { theme } = useTheme("light");
-  const prettify = usePrettifyEditors();
+  const { prettifyEditors: prettify } = useGraphiQLActions();
 
   return (
     <Stated defaultValue={true}>
@@ -3771,25 +3768,24 @@ function GraphqlQueryFieldInner(props: {
   );
 }
 
+function GqlQuerySync({ query }: { query: string }) {
+  const editor = useGraphiQL((state) => state.queryEditor);
+  React.useEffect(() => {
+    if (editor && editor.getValue() !== query) {editor.setValue(query);}
+  }, [editor, query]);
+  return null;
+}
+
 function GqlProvider(props: {
   sourceId: string | undefined;
   children?: React.ReactNode;
   exprCtx: ExprCtx;
   query: string;
 }) {
+  configureMonacoWorkers();
   const studioCtx = useStudioCtx();
   const { sourceId, children, exprCtx, query } = props;
   const { sourceMeta } = useContext(DataSourceDraftContext);
-
-  // pass the explorer props here if you want
-  const explorer = useMemo(
-    () =>
-      explorerPlugin({
-        showAttribution: false,
-        explorerIsOpen: true,
-      }),
-    [],
-  );
 
   const gqlFetcher: Fetcher = useMemo(
     () => async (graphqlParams) => {
@@ -3823,7 +3819,8 @@ function GqlProvider(props: {
     [sourceId],
   );
   return (
-    <GraphiQLProvider fetcher={gqlFetcher} plugins={[explorer]} query={query}>
+    <GraphiQLProvider fetcher={gqlFetcher} plugins={[QUERY_BUILDER_PLUGIN]} referencePlugin={DOC_EXPLORER_PLUGIN} initialQuery={query} defaultTheme="light">
+      <GqlQuerySync query={query} />
       {children}
     </GraphiQLProvider>
   );

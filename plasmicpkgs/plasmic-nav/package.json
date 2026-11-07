@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/plasmic-nav",
-  "version": "0.0.232",
+  "version": "0.1.0",
   "description": "Plasmic mobile navigation menu and registration calls",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -42,9 +42,9 @@
     "tslib": "catalog:"
   },
   "peerDependencies": {
-    "@plasmicapp/host": ">=1.0.0",
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "@plasmicapp/host": "^3.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "publishConfig": {
     "access": "public"

@@ -1283,7 +1283,7 @@
           "styleSections": null,
           "helpers": null,
           "defaultSlotContents": {
-            "overlay": [{ "type": "component", "name": "AntdMenu" }],
+            "popupRender": [{ "type": "component", "name": "AntdMenu" }],
             "children": [{ "type": "text", "value": "Dropdown" }]
           },
           "variants": {},
@@ -1530,7 +1530,7 @@
           "styleSections": null,
           "helpers": null,
           "defaultSlotContents": {
-            "overlay": [{ "type": "component", "name": "AntdMenu" }],
+            "popupRender": [{ "type": "component", "name": "AntdMenu" }],
             "children": [{ "type": "text", "value": "Dropdown" }]
           },
           "variants": {},
@@ -1549,7 +1549,7 @@
         },
         "14719038": { "name": "bool", "__type": "BoolType" },
         "14719039": {
-          "name": "overlay",
+          "name": "popupRender",
           "uuid": "COt2fmXwdS",
           "__type": "Var"
         },
@@ -1562,10 +1562,10 @@
           "name": "choice",
           "options": [
             "bottomLeft",
-            "bottomCenter",
+            "bottom",
             "bottomRight",
             "topLeft",
-            "topCenter",
+            "top",
             "topRight"
           ],
           "__type": "Choice"
@@ -1576,12 +1576,16 @@
           "__type": "Var"
         },
         "14719044": {
-          "name": "choice",
-          "options": ["click", "hover", "contextMenu"],
-          "__type": "Choice"
+          "name": "multiChoice",
+          "options": [
+            "click",
+            "hover",
+            "contextMenu"
+          ],
+          "__type": "MultiChoice"
         },
         "14719045": {
-          "name": "visible",
+          "name": "open",
           "uuid": "pfP9hPThpfa",
           "__type": "Var"
         },
@@ -1633,7 +1637,7 @@
           "__type": "RenderableType"
         },
         "14719057": {
-          "name": "overlay",
+          "name": "popupRender",
           "uuid": "RAHJQAeXY0R",
           "__type": "Var"
         },
@@ -1646,10 +1650,10 @@
           "name": "choice",
           "options": [
             "bottomLeft",
-            "bottomCenter",
+            "bottom",
             "bottomRight",
             "topLeft",
-            "topCenter",
+            "top",
             "topRight"
           ],
           "__type": "Choice"
@@ -1657,7 +1661,11 @@
         "14719061": { "name": "size", "uuid": "PR455HM0Ecp", "__type": "Var" },
         "14719062": {
           "name": "choice",
-          "options": ["small", "medium", "large"],
+          "options": [
+            "small",
+            "middle",
+            "large"
+          ],
           "__type": "Choice"
         },
         "14719063": {
@@ -1666,18 +1674,28 @@
           "__type": "Var"
         },
         "14719064": {
-          "name": "choice",
-          "options": ["click", "hover", "contextMenu"],
-          "__type": "Choice"
+          "name": "multiChoice",
+          "options": [
+            "click",
+            "hover",
+            "contextMenu"
+          ],
+          "__type": "MultiChoice"
         },
         "14719065": { "name": "type", "uuid": "Slkks83QoaU", "__type": "Var" },
         "14719066": {
           "name": "choice",
-          "options": ["default", "primary", "ghost", "dashed", "link", "text"],
+          "options": [
+            "default",
+            "primary",
+            "dashed",
+            "link",
+            "text"
+          ],
           "__type": "Choice"
         },
         "14719067": {
-          "name": "visible",
+          "name": "open",
           "uuid": "s4yDAO48Cyn",
           "__type": "Var"
         },
@@ -11208,11 +11226,38 @@
           "allowRootWrapper": null,
           "__type": "RenderableType"
         },
+        "dropdown-popup-argument-1": {
+          "name": "arg",
+          "argName": "menus",
+          "displayName": null,
+          "type": {
+            "__ref": "2137064"
+          },
+          "__type": "ArgType"
+        },
+        "dropdown-popup-argument-2": {
+          "name": "arg",
+          "argName": "menus",
+          "displayName": null,
+          "type": {
+            "__ref": "2137064"
+          },
+          "__type": "ArgType"
+        },
         "61025116": {
-          "name": "renderable",
-          "params": [{ "__ref": "61025117" }],
+          "name": "renderFunc",
+          "params": [
+            {
+              "__ref": "dropdown-popup-argument-1"
+            }
+          ],
+          "allowed": [
+            {
+              "__ref": "61025117"
+            }
+          ],
           "allowRootWrapper": null,
-          "__type": "RenderableType"
+          "__type": "RenderFuncType"
         },
         "61025117": {
           "name": "instance",
@@ -11220,10 +11265,19 @@
           "__type": "ComponentInstance"
         },
         "61025123": {
-          "name": "renderable",
-          "params": [{ "__ref": "61025124" }],
+          "name": "renderFunc",
+          "params": [
+            {
+              "__ref": "dropdown-popup-argument-2"
+            }
+          ],
+          "allowed": [
+            {
+              "__ref": "61025124"
+            }
+          ],
           "allowRootWrapper": null,
-          "__type": "RenderableType"
+          "__type": "RenderFuncType"
         },
         "61025124": {
           "name": "instance",

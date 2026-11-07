@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/plasmic-embed-css",
-  "version": "0.1.246",
+  "version": "0.2.0",
   "description": "Plasmic embed css code components",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -42,8 +42,8 @@
     "tslib": "catalog:"
   },
   "peerDependencies": {
-    "@plasmicapp/host": ">=1.0.0",
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "@plasmicapp/host": "^3.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   }
 }

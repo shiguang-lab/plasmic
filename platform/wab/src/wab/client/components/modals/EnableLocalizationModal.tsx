@@ -18,7 +18,6 @@ import { SELF_HOSTED } from "@/wab/shared/deployment";
 import { LocalizationConfig } from "@/wab/shared/localization";
 
 import { Form, message } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
 
 export interface EnableLocalizationModalProps {
@@ -28,13 +27,12 @@ export interface EnableLocalizationModalProps {
   project: ApiProject;
 }
 
-export const EnableLocalizationModal = observer(
-  function EnableLocalizationModal({
-    isLocalizationEnabled,
-    localizationScheme,
-    project,
-    onDone,
-  }: EnableLocalizationModalProps) {
+export function EnableLocalizationModal({
+  isLocalizationEnabled,
+  localizationScheme,
+  project,
+  onDone,
+}: EnableLocalizationModalProps) {
     const { t: uiT } = useI18n();
     const [form] = Form.useForm();
     const formId = React.useId();
@@ -130,8 +128,7 @@ export const EnableLocalizationModal = observer(
         </>
       </Modal>
     );
-  },
-);
+}
 
 async function canEnableLocalization(appCtx: AppCtx, project: ApiProject) {
   if (SELF_HOSTED) {

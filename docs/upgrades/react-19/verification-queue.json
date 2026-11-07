@@ -1,0 +1,174 @@
+{
+  "status": "paused-at-user-request-after-all-current-round-checks-passed",
+  "baseline": "u39p-final2",
+  "baselineSourceHash": "62d42981a97bfba93d2a36a0d86b996ea6a6cfe33ebeb0d6754f85352da929a5",
+  "policy": {
+    "heavyChecksAtUniqueChangedFiles": [
+      50,
+      100
+    ],
+    "heavyChecks": [
+      "production build",
+      "native GP/Complex replay",
+      "full Studio at major integration/final milestone"
+    ],
+    "immediateChecks": [
+      "exact changed-file lint",
+      "necessary core state/lifecycle narrow tests"
+    ],
+    "typecheckWindow": [
+      20,
+      50
+    ],
+    "doNotCount": [
+      "private draft files",
+      "reports",
+      "repeated edits of same file"
+    ]
+  },
+  "packages": [],
+  "heavyChecksSinceBaseline": 0,
+  "uniqueChangedImplementationFiles": 0,
+  "typecheckWindows": [
+    {
+      "uniqueIntegratedFiles": 34,
+      "command": "pnpm --dir platform/wab --config.verify-deps-before-run=error exec tsc --noEmit --incremental false --noErrorTruncation false",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-react19-20261105/resumed-32files-types.log",
+      "scope": "Original physical project; Style core lifecycle fix included; later concurrent consumer changes require milestone check"
+    },
+    {
+      "name": "post-u36m-public-core-1",
+      "exitCode": 1,
+      "diagnostics": 4,
+      "log": "/tmp/plasmic-react19-20261105/post-u36m-core-types-1.log",
+      "scope": "newheight/VSH/consumer/rootGridLayout core window; Token5 not yet applied",
+      "causes": [
+        "heightfixture enum string (agentfixed)",
+        "DSH ongoing KeyFrameStops test Element/HTMLElement scaffolding, to correct before acceptance"
+      ]
+    },
+    {
+      "name": "p-live-types-1",
+      "exitCode": 1,
+      "log": "/tmp/plasmic-react19-20261105/p-live-types-1.log",
+      "scope": "P coherent live core+UI window before final fixture/readonly generics corrections; final frozen typecheck still required",
+      "followups": [
+        "Canvas real getter/HTMLElement fixtures corrected",
+        "Grid readonly signatures and actual generics corrected",
+        "custom query fixture uses real pending Promise"
+      ]
+    }
+  ],
+  "latestWorkingInventory": {
+    "remainingFiles": 221,
+    "byKind": {
+      "source": 178,
+      "test": 42,
+      "tooling": 1
+    }
+  },
+  "milestones": [],
+  "completedMilestones": [
+    {
+      "name": "u36m",
+      "uniqueChangedFiles": 51,
+      "sourceHash": "46d7f52ca9c3f351090c3a6c5228a0381f3043b0bb61e612df02c1ba94c8123a",
+      "nativeAccepted": true,
+      "typeBuildAssetsArchivePassed": true,
+      "fullStudio": {
+        "filesPassed": 661,
+        "filesFailed": 13,
+        "testsPassed": 5014,
+        "testsFailed": 54,
+        "skipped": 4,
+        "unhandled": 3,
+        "status": "failed; Live101targeted fixture cases repaired, CMS PostgreSQL absent"
+      },
+      "verification": "docs/upgrades/react-19/state-verification-u36m.json",
+      "queueHistory": "/tmp/plasmic-react19-20261105/u36m-queue-history.json"
+    },
+    {
+      "name": "u37n",
+      "uniqueChangedFiles": 95,
+      "sourceHash": "ff6309432e6809f4370af16dccb272752446ef1c68382bc6be5aaeddd48b9009",
+      "nativeAccepted": true,
+      "typeBuildAssetsArchivePassed": true,
+      "affectedStudio": {
+        "files": 36,
+        "filesPassed": 34,
+        "filesFailed": 2,
+        "tests": 253,
+        "passed": 233,
+        "failed": 20,
+        "unhandled": 3,
+        "seconds": 121.37,
+        "log": "/tmp/plasmic-react19-20261105/u37n-affected-tests.log",
+        "failedSuites": [
+          "progressive-canvas.test.ts: missing fake ViewCtx contentEditor.exit",
+          "PreviewCtx.test.ts: fake Studio missing prepareContentEditorOwnership"
+        ],
+        "followup": "repair actual lifecycle fixtures in live next batch; preserve original frozen failure result"
+      },
+      "verification": "docs/upgrades/react-19/state-verification-u37n.json",
+      "queueHistory": "/tmp/plasmic-react19-20261105/u37n-queue-history.json"
+    },
+    {
+      "name": "u38o",
+      "uniqueChangedFiles": 80,
+      "sourceHash": "a577fa1020f1e72985d21b5e864c82f4fbdc3353487ad42d25507dc805caae63",
+      "nativeAccepted": true,
+      "typeBuildAssetsArchivePassed": true,
+      "affectedStudio": {
+        "files": 30,
+        "passed": 315,
+        "failed": 0,
+        "unhandled": 0,
+        "seconds": 94.42,
+        "log": "/tmp/plasmic-react19-20261105/u38o-affected-tests.log"
+      },
+      "verification": "docs/upgrades/react-19/state-verification-u38o.json",
+      "queueHistory": "/tmp/plasmic-react19-20261105/u38o-queue-history.json"
+    },
+    {
+      "name": "u39p-final2",
+      "uniqueChangedFiles": 118,
+      "sourceHash": "62d42981a97bfba93d2a36a0d86b996ea6a6cfe33ebeb0d6754f85352da929a5",
+      "nativeAccepted": true,
+      "typeBuildAssetsArchivePassed": true,
+      "fullStudio": {
+        "files": 716,
+        "passedFiles": 716,
+        "failedFiles": 0,
+        "passedTests": 5273,
+        "failedTests": 0,
+        "skipped": 4,
+        "unhandled": 0,
+        "log": "/tmp/plasmic-react19-20261105/u39p-final2-full-studio.log"
+      },
+      "verification": "docs/upgrades/react-19/state-verification-u39p-final2.json",
+      "roundPin": "/tmp/plasmic-react19-20261105/round-final-live-source.json"
+    }
+  ],
+  "pauseRequested": true,
+  "resumeRequiresExplicitUserInstruction": true,
+  "heldPrivateDrafts": [
+    {
+      "artifact": "/tmp/plasmic-react19-20261105/lint-domain-native-private",
+      "files": 11,
+      "applied": false,
+      "runtimeVerified": false,
+      "boundary": "runtime FrameContextData-only producer not yet closed; do not apply as ready"
+    },
+    {
+      "artifact": "/tmp/plasmic-react19-20261105/frame-layout-native-private",
+      "files": 6,
+      "applied": false,
+      "runtimeVerified": false,
+      "boundary": "runtime validation pending; outer GridFramesLayout observer correctly retained"
+    }
+  ],
+  "currentWorkingBranch": "codex/react-19-upgrade",
+  "currentWorkingDirectory": "/Users/yanxianliang/shiguang/plasmic",
+  "integrationVerification": "docs/upgrades/react-19/branch-integration-verification.json"
+}

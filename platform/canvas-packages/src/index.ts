@@ -39,7 +39,7 @@ interface CanvasPkgs {
   localElement?: typeof Element;
   createModal: (
     props: Pick<ModalProps, InternalModalProps>,
-  ) => (restProps: Omit<ModalProps, InternalModalProps>) => JSX.Element;
+  ) => (restProps: Omit<ModalProps, InternalModalProps>) => React.JSX.Element;
   createThumbnail: (
     element: HTMLElement,
     opts?: {

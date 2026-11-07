@@ -141,7 +141,7 @@ export const ImperativeControl: Story = {
 };
 
 export const SelectedInCanvas: Story = {
-  render: ({ __plasmic_selection_prop__, ...args }) => {
+  render: ({ __canvas, ...args }) => {
     const [selected, setSelected] = useState(false);
     useEffect(() => {
       setTimeout(() => {
@@ -159,8 +159,8 @@ export const SelectedInCanvas: Story = {
       >
         <BaseModal
           // Simulate node selection in Plasmic canvas
-          __plasmic_selection_prop__={{
-            isSelected: selected,
+          __canvas={{
+            selected,
           }}
           {...args}
         />

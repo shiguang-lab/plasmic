@@ -1,3 +1,5 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
 import { XMultiSelect } from "@/wab/client/components/XMultiSelect";
 import { MixinPopup } from "@/wab/client/components/sidebar/MixinControls";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
@@ -35,6 +37,7 @@ export const MixinsSection = observer(function (props: {
   viewCtx: ViewCtx;
 }) {
   const { tpl, viewCtx } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
 
   const vtm = viewCtx.variantTplMgr();
   const activeVariants = [...vtm.getActivatedVariantsForNode(tpl)];

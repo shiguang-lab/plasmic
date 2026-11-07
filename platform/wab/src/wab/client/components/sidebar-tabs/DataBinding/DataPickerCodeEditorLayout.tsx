@@ -1,3 +1,4 @@
+import { useFocusedViewCtx } from "@/wab/client/studio-ctx/selection-state";
 import {
   CodePreview,
   renderInspector,
@@ -24,7 +25,7 @@ export interface DataPickerCodeEditorLayoutProps extends Omit<
   DefaultDataPickerCodeEditorLayoutProps,
   "envPanel"
 > {
-  editorRef: React.RefObject<FullCodeEditor>;
+  editorRef: React.RefObject<FullCodeEditor | null>;
   data: object;
   /** Env for code preview, with real`$q` query results so access throws on error. */
   previewData: object | undefined;
@@ -54,6 +55,7 @@ function DataPickerCodeEditorLayout_(
   const [codeEditorKey, setCodeEditorKey] = React.useState(0);
   const [showEnv, setShowEnv] = React.useState(false);
   const studioCtx = useStudioCtx();
+  const viewCtx = useFocusedViewCtx(studioCtx);
   const runCodeContext = React.useContext(DataPickerRunCodeActionContext);
 
   const completionData = React.useMemo(() => cleanDataForPreview(data), [data]);
@@ -99,7 +101,7 @@ function DataPickerCodeEditorLayout_(
       codePreview={
         !runCodeContext ? (
           <CodePreview
-            viewCtx={studioCtx.focusedViewCtx()}
+            viewCtx={viewCtx}
             value={`(${currentValue})`}
             data={previewData ?? data}
           />

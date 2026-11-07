@@ -7,7 +7,7 @@ export interface FetcherOptions {
     token: string;
   }[];
   cache?: LoaderBundleCache;
-  platform?: "react" | "nextjs" | "gatsby";
+  platform?: "react" | "nextjs";
   platformOptions?: {
     nextjs?: {
       appDir: boolean;

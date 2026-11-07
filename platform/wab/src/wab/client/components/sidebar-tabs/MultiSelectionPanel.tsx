@@ -1,3 +1,5 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
 import { useSelectionBounds } from "@/wab/client/components/canvas/selection-bounds";
 import { getNodeSummary } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
 import {
@@ -12,6 +14,7 @@ import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarMod
 import { ColorButton } from "@/wab/client/components/style-controls/ColorButton";
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { useI18n } from "@/wab/client/i18n";
+import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { isTokenRef, tokenTypeDimOpts } from "@/wab/commons/StyleToken";
 import { spawn } from "@/wab/shared/common";
@@ -23,6 +26,7 @@ import { Button, Typography } from "antd";
 import { createStyles } from "antd-style";
 import { observer } from "mobx-react";
 import React from "react";
+import { useStore } from "zustand";
 
 export const useMultiSelectionStyles = createStyles(({ token }) => ({
   root: { flex: 1, minHeight: 0, color: token.colorText },
@@ -59,16 +63,26 @@ export const MultiSelectionPanel = observer(function MultiSelectionPanel({
 }: {
   viewCtx: ViewCtx;
 }) {
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const { t } = useI18n();
   const panelId = React.useId();
   const { styles } = useMultiSelectionStyles();
   const bounds = useSelectionBounds(viewCtx);
+  const canEditProject = useStore(
+    viewCtx.studioCtx.uiEnvironment.store,
+    (state) => state.canEditProject,
+  );
+  const canEditBranch = useStudioSaveState(
+    viewCtx.studioCtx,
+    (state) => state.canEditBranch,
+  );
+  const editAccess = { canEditProject, canEditBranch };
   const providers = getMultiSelectionProviders(viewCtx);
   const fieldStates = (
     Object.keys(multiSelectionFields) as MultiSelectionProp[]
   ).map((prop) => ({
     prop,
-    ...getMultiSelectionFieldState(viewCtx, providers, prop),
+    ...getMultiSelectionFieldState(viewCtx, providers, prop, editAccess),
   }));
   const renderFields = (props: MultiSelectionProp[]) =>
     fieldStates

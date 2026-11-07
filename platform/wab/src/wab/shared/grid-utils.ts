@@ -40,40 +40,38 @@ export function parseGridCssPropsToSpec(
   rsh: ReadonlyIRuleSetHelpers,
   resolver: CssVarResolver,
 ): GridSpec {
-  const parseProp = (prop: string, startRule: string) => {
-    if (!rsh.has(prop)) {
-      return undefined;
-    }
-    const value = resolver.tryResolveTokenOrMixinRef(rsh.get(prop));
-    return GridStyleParser.parse(value, {
-      startRule,
-    });
-  };
   ensure(
     rsh.get("display") === "grid",
     "Grid element is expected to have display:grid",
   );
-  return {
-    gridTemplateColumns: parseProp("grid-template-columns", "axisTemplate"),
-  };
+  return parseGridTemplateCss(rsh.has("grid-template-columns")
+    ? resolver.tryResolveTokenOrMixinRef(rsh.get("grid-template-columns")) : undefined);
 }
 
-export function parseGridChildCssProps(rsh: ReadonlyIRuleSetHelpers) {
+/** Parse the original optional, already-resolved grid template string. */
+export function parseGridTemplateCss(value: string | undefined): GridSpec {
+  return { gridTemplateColumns: value === undefined ? undefined : GridStyleParser.parse(value, { startRule: "axisTemplate" }) };
+}
+
+export function parseGridChildCssProps(values: {
+  readonly rowStart?: string;
+  readonly rowEnd?: string;
+  readonly columnStart?: string;
+  readonly columnEnd?: string;
+}) {
   // start: X
   // end: span Y
   return {
     row: {
-      start: rsh.has("grid-row-start") ? rsh.get("grid-row-start") : undefined,
-      span: rsh.has("grid-row-end")
-        ? last(rsh.get("grid-row-end").split(" "))
+      start: values.rowStart,
+      span: values.rowEnd !== undefined
+        ? last(values.rowEnd.split(" "))
         : undefined,
     },
     column: {
-      start: rsh.has("grid-column-start")
-        ? rsh.get("grid-column-start")
-        : undefined,
-      span: rsh.has("grid-column-end")
-        ? last(rsh.get("grid-column-end").split(" "))
+      start: values.columnStart,
+      span: values.columnEnd !== undefined
+        ? last(values.columnEnd.split(" "))
         : undefined,
     },
   };

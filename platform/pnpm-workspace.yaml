@@ -1,24 +1,23 @@
+minimumReleaseAge: 0
+
+# SDK and component packages are installed by the root workspace.
 packages:
   - shared/*
   - analytics-rproxy
   - mini-cache
   - wab
   - preview
-  - ../plasmicpkgs/overseas
-  - ../plasmicpkgs/react-ui
   - canvas-packages
   - loader-bundle-env
   - loader-bundle-env/internal_pkgs/*
   - loader-html-hydrate
 
 injectWorkspacePackages: true
-
-minimumReleaseAge: 4320
-minimumReleaseAgeExclude:
-  - "@plasmicapp/*"
-  - "@plasmicpkgs/*"
+syncInjectedDepsAfterScripts:
+  - build
 
 catalog:
+  rollup-plugin-dts: ^6.5.1
   "@godaddy/terminus": 4.12.1
   "@hono/node-server": ^1.14.0
   "@nats-io/jetstream": 3.3.1
@@ -36,12 +35,7 @@ catalog:
   vite: 6.4.2
   vitest: 4.1.10
 
-# Merged from the per-package "resolutions" of wab, canvas-packages and
-# loader-bundle-env. pnpm overrides are workspace-global, so where
-# canvas-packages and loader-bundle-env disagreed on the legacy antd v4 pin
-# (4.19.5 vs 4.19.3) we unify on the newer 4.19.5. The trailing block pins the
-# packages that carry version-specific patches (see patchedDependencies) so a
-# fresh resolve can't drift off the patched version and silently drop the fix.
+# Workspace-global overrides also pin packages with version-specific patches.
 #
 # NB: the @react-aria/focus and @react-aria/overlays pins unify canvas-packages
 # DOWN from 3.21.5/3.31.2 (a routine bump in #2660) to the versions wab's
@@ -50,9 +44,6 @@ catalog:
 # same pins so the manifest matches what actually installs. If these are ever
 # upgraded, rebase patches/@react-aria__*.patch onto the new dist output.
 overrides:
-  # Antd6 is built with local Host contracts in the root workspace.
-  "@shiguang-lab/plasmic-react-ui>@shiguang-lab/plasmic-antd6": "file:../plasmicpkgs/antd6"
-  "@shiguang-lab/plasmic-react-ui>@plasmicapp/host": "link:../packages/host"
   playwright: "catalog:"
   playwright-core: "catalog:"
   "vitest>vite": "catalog:"
@@ -60,16 +51,6 @@ overrides:
 
   react-aria-components: 1.9.0
   sha.js: ^2.4.12
-  "@plasmicpkgs/antd>antd": 4.19.5
-  "@plasmicpkgs/react-slick>antd": 4.19.5
-  "@plasmicpkgs/antd5>antd": 5.12.8
-  "@ant-design/pro-components>antd": 5.12.8
-  "@ant-design/pro-table>antd": 5.12.8
-  "@ant-design/pro-list>antd": 5.12.8
-  # antd 5 was frozen at 5.12.5 (loader-bundle-env) / 5.12.8 (canvas-packages);
-  # a fresh resolve floats to 5.29.x whose Table renders an extra leading
-  # column, breaking RichTable. Also pins wab's ^5.12.7 to the same copy.
-  "antd@^5": 5.12.8
   rc-util: ^5.44.4
   lottie-web: ">=5.13.0"
   passport-oauth2: 1.8.0
@@ -87,12 +68,14 @@ overrides:
   "@react-types/overlays": 3.8.15
   "@react-types/shared": 3.32.1
   "@types/underscore": 1.10.24
+  react: 19.3.1
+  react-dom: 19.3.1
   # Match the root SDK workspace's React types for shared host contexts.
   # One @types/react identity across the graph. Transitives declaring
   # @types/react@* would otherwise resolve a second, newer copy, and every
   # JSX prop bag crossing the two copies fails to typecheck.
-  "@types/react@^18": 18.3.27
-  "@types/react-dom@^18": 18.3.5
+  "@types/react": 19.3.0
+  "@types/react-dom": 19.3.0
   # @jest/core declares a broad @types/node dependency and otherwise floats to
   # a newer patch than wab's direct pin. jest-config also treats @types/node as
   # an optional peer, so the mismatch creates duplicate jest-config snapshots.
@@ -247,6 +230,8 @@ overrides:
   "@react-types/tooltip": 3.4.17
 
 patchedDependencies:
+  # The inspector accepts object themes at runtime; its built-in declarations only list strings.
+  react-inspector@9.0.0: patches/react-inspector.patch
   # Reset iframe selector state without registering the deprecated unload event.
   jquery@3.5.1: patches/jquery.patch
   # Versionless key on purpose: apply to ANY resolved teeny-request version so a
@@ -263,7 +248,6 @@ patchedDependencies:
   "@octokit/webhooks-methods@6.0.0": patches/@octokit__webhooks-methods.patch
   "@react-aria/focus@3.20.3": patches/@react-aria__focus.patch
   "@react-aria/overlays@3.27.1": patches/@react-aria__overlays.patch
-  react-slick@0.31.0: patches/react-slick.patch
   # Version-pinned to wab's exact "history" dependency. Not added to overrides:
   # other importers may resolve history@4 transitively and must stay untouched.
   history@5.3.0: patches/history.patch
@@ -284,7 +268,6 @@ allowBuilds:
   "@fortawesome/fontawesome-svg-core": false
   "@fortawesome/free-regular-svg-icons": false
   "@fortawesome/free-solid-svg-icons": false
-  "@pankod/refine-core": false
   aws-sdk: false
   core-js: false
   core-js-pure: false

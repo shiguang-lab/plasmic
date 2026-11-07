@@ -15,12 +15,13 @@ import { AntdTooltip, registerTooltip } from "../src/registerTooltip";
 import { AntdPopover, registerPopover } from "../src/registerPopover";
 import { AntdDropdown, registerDropdown } from "../src/registerDropdown";
 import { AntdPopconfirm, registerAdditional } from "../src/registerAdditional";
+import { AntdPagination } from "../src/registerPagination";
 import type { Registerable } from "../src/utils";
 
 const Canvas = createSessionCanvas([registerTabs, registerModal, registerDrawer, registerCollapse, registerMenu, registerDatePicker, registerTable, registerTooltip]);
 const calls: string[] = [];
 const changed = () => { calls.push("business event"); };
-const selected = { __plasmic_selection_prop__: { isSelected: true, selectedSlotName: "children" } };
+const selected = { __canvas: { selected: true, slot: "children" } };
 const initial = Object.freeze({ activeKey: undefined, defaultActiveKey: "first", open: false });
 (window as any).sessionCheck = { calls, initial };
 function Field() { return <input aria-label="Session draft" defaultValue="" />; }
@@ -50,7 +51,7 @@ function DeviceCell({ kind, click, text, index, session, interactive, standalone
     // Every row evaluates one Studio render slot. Its generated implicit value
     // is shared, while mounted instance state and authored props stay separate.
     const sourceProps = { ...props };
-    props.__plasmic_selection_prop__ = { isSelected: index === 4, selectedSlotName: kind === "tooltip" ? "title" : kind === "popover" ? "content" : kind === "popconfirm" ? "description" : "menuItems" };
+    props.__canvas = { selected: index === 4, slot: kind === "tooltip" ? "title" : kind === "popover" ? "content" : kind === "popconfirm" ? "description" : "menuItems" };
     const specs = Object.values<any>(meta.states ?? {}).filter((state) => state.type === "writable").map((state) => ({
       ...state,
       initialValueProp: state.initialValueProp ?? meta.props[state.valueProp]?.uncontrolledProp,
@@ -59,9 +60,9 @@ function DeviceCell({ kind, click, text, index, session, interactive, standalone
     if (specs.some((spec) => spec.valueProp === "open")) { props.open = implicitOpen; }
     if (!interactive) {
       session.resolve(instance, "open", undefined);
-      props.previewOpen = session.reveal(instance, "open", index === 4);
+      session.reveal(instance, "open", index === 4);
     }
-    props.__plasmic_selection_prop__.states = applyCanvasSessionState(session, instance, props,
+    props.__canvas.states = applyCanvasSessionState(session, instance, props,
       specs, interactive, redraw, !!meta.canvasOverlay, sourceProps);
   }
   const trigger = <span className="__wab_text" data-row={index}><span className="__wab_rich_text">{text}</span></span>;
@@ -88,6 +89,19 @@ function TableOverlays({ kind, click, interactive, standalone }: { kind: Overlay
   return standalone ? content : <PlasmicCanvasContext.Provider value={{ componentName: "table-test", globalVariants: {}, interactive }}>{content}</PlasmicCanvasContext.Provider>;
 }
 
+function SeoPagination() {
+  const [page, setPage] = React.useState(1);
+  return <>
+    <AntdPagination current={page} pageSize={10} total={30}
+      paginatedUrl={(number, size) => `/records?page=${number}&size=${size}`}
+      onChange={(number, size) => {
+        calls.push(`page:${number}:${size}`);
+        setPage(number);
+      }} />
+    <output aria-label="Current page">{page}</output>
+  </>;
+}
+
 function App() {
   const [mode, setMode] = React.useState({ interactive: false, standalone: false });
   React.useEffect(() => {
@@ -100,6 +114,9 @@ function App() {
   const widget = new URLSearchParams(location.search).get("widget");
   let content: React.ReactElement;
   switch (widget) {
+    case "pagination":
+      content = <SeoPagination />;
+      break;
     case "table-tooltip":
     case "table-popover":
     case "table-popconfirm":
@@ -112,7 +129,7 @@ function App() {
       content = <>{[0, 1].map((row) => <AntdTooltip key={row} title={`Full text ${row}`}
         onOpenChange={(open) => calls.push(`tooltip:${open}`)}
         afterOpenChange={(open) => calls.push(`after:${open}`)}
-        __plasmic_selection_prop__={{ isSelected: true, selectedSlotName: "title" }}>
+        __canvas={{ selected: true, slot: "title" }}>
         {row === 0 ? <input aria-label="Session draft" defaultValue="" /> : <button>Second tooltip</button>}
       </AntdTooltip>)}</>;
       break;
@@ -131,7 +148,7 @@ function App() {
     case "table":
       content = <AntdTable data={{ data: [{ id: "a", title: "Alpha" }] }} rowKey="id" pagination={false}
         expandable={{ expandedRowKeys: [] }} expandedRowRender={() => <Field />} onExpandedRowsChange={changed}
-        {...{ __plasmic_selection_prop__: { isSelected: true, selectedSlotName: "expandedRowRender" } }}>
+        {...{ __canvas: { selected: true, slot: "expandedRowRender" } }}>
         <AntdColumn title="Title" dataIndex="title" />
       </AntdTable>;
       break;

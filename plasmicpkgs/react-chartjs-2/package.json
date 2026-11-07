@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/react-chartjs-2",
-  "version": "1.0.172",
+  "version": "2.0.0",
   "description": "Plasmic code components for rendering Chart.js charts via react-chartjs-2.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -44,11 +44,11 @@
     "tslib": "catalog:"
   },
   "peerDependencies": {
-    "@plasmicapp/host": ">=1.0.0",
+    "@plasmicapp/host": "^3.0.0",
     "chart.js": ">=4.2.1",
-    "react": ">=16.8.0",
+    "react": "^19.3.1",
     "react-chartjs-2": ">=5.2.0",
-    "react-dom": ">=16.8.0"
+    "react-dom": "^19.3.1"
   },
   "publishConfig": {
     "access": "public"

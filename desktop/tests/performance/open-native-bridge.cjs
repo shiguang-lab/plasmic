@@ -71,8 +71,8 @@ exports.install = async ({ task, mode, origin, startup, ipcMain, getWindow, repo
         await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
       })()`);
       const state = await frame.executeJavaScript(`(()=>{
-        const s=studioCtx,d=s.desktopDraft,v=s.getCurrentStudioViewportSnapshot(),a=s.currentArena;
-        if(!d?.enabled||d.initializing||d.error)throw Error('Native drafts did not initialize');
+        const s=studioCtx,d=s.desktopDraft?.store.getState(),v=s.getCurrentStudioViewportSnapshot(),a=s.currentArena;
+        if(!d?.enabled||d.initializing||d.status?.error)throw Error('Native drafts did not initialize');
         return {name:s.site.pageArenas[0].component.name,drafts:d.drafts.length,dialogOpen:d.dialogOpen,viewportCommitted:s.loadTimings.has('initial-viewport-commit'),
           view:{arenaId:a.name,arenaType:'custom',frameUuid:s.activeCanvasFrame?.uuid,scale:v.scale,scroll:{x:v.scroll.x,y:v.scroll.y},canvasPadding:{x:v.canvasPadding.x,y:v.canvasPadding.y}}};
       })()`);
@@ -103,7 +103,7 @@ exports.install = async ({ task, mode, origin, startup, ipcMain, getWindow, repo
         const delta = Math.max(Math.abs(state.view.scale - savedView.scale), ...['x','y'].map(axis => Math.abs((state.view.scroll[axis] - state.view.canvasPadding[axis]) - (savedView.scroll[axis] - savedView.canvasPadding[axis]))));
         if (delta > 1) throw Error("Saved native viewport was not restored");
         metrics.checks.push({ iteration, recovered: state.name === expected, conflict: state.drafts === 1, viewportDelta: delta });
-        if (metrics.scenario === "conflict") await frame.executeJavaScript("studioCtx.desktopDraft.dialogOpen=false");
+        if (metrics.scenario === "conflict") await frame.executeJavaScript("studioCtx.desktopDraft.setDialogOpen(false)");
       }
     },
   };

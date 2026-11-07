@@ -1,9 +1,10 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var React = require('react');
 var names = require('./names-DbJduus8.cjs.js');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
@@ -15,7 +16,7 @@ var React__default = /*#__PURE__*/_interopDefault(React);
 const AntdInput = Ant.Input;
 const AntdTextArea = React__default.default.forwardRef(function AntdTextArea2({ showCount, ...props }, ref) {
   const template = showCount?.formatter;
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant.Input.TextArea,
     {
       ...props,

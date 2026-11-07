@@ -1,3 +1,4 @@
+import { DocsModelResources } from "@/wab/client/components/docs/DocsModelResources";
 import { codegenTypeKey } from "@/wab/client/LocalStorageKey";
 import {
   formatDocsCode,
@@ -8,7 +9,7 @@ import {
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { withProvider } from "@/wab/commons/components/ContextUtil";
 import { toClassName, toVarName } from "@/wab/shared/codegen/util";
-import { ensure, spawn } from "@/wab/shared/common";
+import { ensure, spawn, switchType } from "@/wab/shared/common";
 import {
   isCodeComponent,
   isFrameComponent,
@@ -19,75 +20,163 @@ import { TplNamable } from "@/wab/shared/core/tpls";
 import { Component, ImageAsset, Param } from "@/wab/shared/model/classes";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { History } from "history";
-import { action, makeObservable, observable } from "mobx";
 import React from "react";
+import { shallow } from "zustand/shallow";
+import { createStore, StoreApi } from "zustand/vanilla";
 
 export type DocsTabKey = "intro" | "components" | "images";
 
 export type IconToggleProp = "title" | "color" | "width" | "height";
 
+export interface DocsNavigationState {
+  readonly focusedComponent: Component | undefined;
+  readonly focusedElement: TplNamable | undefined;
+  readonly focusedIcon: ImageAsset | undefined;
+  readonly tab: DocsTabKey | undefined;
+  readonly codegenType: "loader" | "codegen";
+}
+export interface ComponentDocsState {
+  readonly code: string | undefined;
+  readonly toggles: ReadonlyMap<Param, any>;
+}
+export interface IconDocsState {
+  readonly code: string | undefined;
+  readonly toggles: ReadonlyMap<IconToggleProp, string>;
+}
+type ReadonlyStore<T> = Pick<
+  StoreApi<T>,
+  "getState" | "getInitialState" | "subscribe"
+>;
+
 export class DocsPortalCtx {
-  private focusedComponent = observable.box<Component | undefined>(undefined);
-  private componentToCode = observable.map<Component, string>();
-  private componentToToggles = observable.map<Component, Map<Param, any>>();
-  private focusedElement = observable.box<TplNamable | undefined>(undefined);
-
-  private focusedIcon = observable.box<ImageAsset | undefined>(undefined);
-  private iconToCode = observable.map<ImageAsset, string>();
-  private iconToToggles = observable.map<
-    ImageAsset,
-    Map<IconToggleProp, string>
+  private readonly navigation = createStore<DocsNavigationState>(() => ({
+    focusedComponent: undefined,
+    focusedElement: undefined,
+    focusedIcon: undefined,
+    tab: undefined,
+    codegenType: "loader",
+  }));
+  readonly store: ReadonlyStore<DocsNavigationState> = this.navigation;
+  private readonly components = new Map<
+    Component,
+    StoreApi<ComponentDocsState>
   >();
+  private readonly icons = new Map<ImageAsset, StoreApi<IconDocsState>>();
+  private readonly inactiveIcon = createStore<IconDocsState>(() => ({
+    code: undefined,
+    toggles: new Map(),
+  }));
+  private persistedCodegenType = false;
+  private modelResources: DocsModelResources | undefined;
+  private disposed = false;
+  get models() { return this.modelResources ??= new DocsModelResources(this); }
+  retainModelResources() {
+    this.disposed = false;
+    const release = this.models.retain();
+    return () => {
+      this.disposed = true;
+      release();
+    };
+  }
+  dispose() {
+    this.disposed = true;
+    this.modelResources?.dispose();
+    this.modelResources = undefined;
+    this.components.clear();
+    this.icons.clear();
+  }
+  constructor(public studioCtx: StudioCtx) {}
 
-  private _xDocsTabKey = observable.box<DocsTabKey | undefined>();
+  private updateNavigation(patch: Partial<DocsNavigationState>) {
+    this.navigation.setState((previous) => {
+      const next = { ...previous, ...patch };
+      return shallow(previous, next) ? previous : next;
+    }, true);
+  }
+  private componentState(component: Component) {
+    let store = this.components.get(component);
+    if (!store) {
+      store = createStore<ComponentDocsState>(() => ({
+        code: undefined,
+        toggles: new Map(),
+      }));
+      this.components.set(component, store);
+    }
+    return store;
+  }
+  private iconState(icon: ImageAsset) {
+    let store = this.icons.get(icon);
+    if (!store) {
+      store = createStore<IconDocsState>(() => ({
+        code: undefined,
+        toggles: new Map(),
+      }));
+      this.icons.set(icon, store);
+    }
+    return store;
+  }
+  getComponentStore(component: Component): ReadonlyStore<ComponentDocsState> {
+    return this.componentState(component);
+  }
+  getIconStore(icon: ImageAsset | undefined): ReadonlyStore<IconDocsState> {
+    return icon ? this.iconState(icon) : this.inactiveIcon;
+  }
 
-  private codegenType = observable.box<"loader" | "codegen">("loader");
-
-  constructor(public studioCtx: StudioCtx) {
-    makeObservable(this, {
-      setFocusedComponent: action,
-      setFocusedElement: action,
-      setComponentToggle: action,
-      setComponentCustomCode: action,
-      setCodegenType: action,
-      setFocusedIcon: action,
-      setIconToggle: action,
-      setIconCustomCode: action,
-      setComponentOverride: action,
-      updateComponentCustomCode: action,
-      updateStateFromRoute: action,
-      resetFocus: action,
-      resetComponentToggles: action,
-      resetIconToggles: action,
+  // Consumers bind to their selected resource, so editing one example never
+  // rebuilds other resources or responds to hover-only navigation updates.
+  subscribePreviewInputs(
+    resource: Component | ImageAsset | undefined,
+    listener: () => void,
+  ) {
+    const disposeMode = this.store.subscribe((next, previous) => {
+      if (next.codegenType !== previous.codegenType) {
+        listener();
+      }
     });
+    const disposeResource =
+      resource &&
+      switchType(resource)
+        .when(Component, (component) =>
+          this.componentState(component).subscribe(listener),
+        )
+        .when(ImageAsset, (icon) => this.iconState(icon).subscribe(listener))
+        .result();
+    return () => {
+      disposeMode();
+      disposeResource?.();
+    };
   }
 
   tryGetFocusedComponent() {
-    return this.focusedComponent.get();
+    return this.store.getState().focusedComponent;
   }
-
   getFocusedComponent() {
-    return ensure(this.focusedComponent.get(), "missing focusedComponent");
+    return ensure(this.tryGetFocusedComponent(), "missing focusedComponent");
   }
-
   getCodegenType() {
-    return this.codegenType.get();
+    return this.store.getState().codegenType;
   }
-
-  setCodegenType(type: "loader" | "codegen") {
-    this.codegenType.set(type);
-    spawn(this.studioCtx.appCtx.api.addStorageItem(codegenTypeKey, type));
-    this.resetComponentCustomCode();
-  }
-
   useLoader() {
     return this.getCodegenType() === "loader";
   }
-
+  setCodegenType(type: "loader" | "codegen") {
+    const changed = type !== this.getCodegenType();
+    if (!changed && this.persistedCodegenType) {
+      return;
+    }
+    this.persistedCodegenType = true;
+    if (changed) {
+      this.updateNavigation({ codegenType: type });
+      this.resetComponentCustomCode();
+    }
+    spawn(this.studioCtx.appCtx.api.addStorageItem(codegenTypeKey, type));
+  }
   setFocusedComponent(component: Component) {
-    this.focusedComponent.set(component);
-    this.focusedElement.set(undefined);
-    this.focusedIcon.set(undefined);
+    this.updateNavigation({
+      focusedComponent: component,
+      focusedElement: undefined,
+      focusedIcon: undefined,
+    });
     if (!this.getComponentCustomCode(component)) {
       this.setComponentCustomCode(
         component,
@@ -101,65 +190,111 @@ export class DocsPortalCtx {
       );
     }
   }
-
   getFocusedNode() {
-    return this.focusedElement.get();
+    return this.store.getState().focusedElement;
   }
-
   setFocusedElement(node: TplNamable | undefined) {
-    this.focusedElement.set(node);
+    this.updateNavigation({ focusedElement: node });
   }
-
   getComponentCustomCode(component: Component) {
-    return this.componentToCode.get(component);
+    return this.componentState(component).getState().code;
   }
 
+  private formatComponentCode(
+    store: StoreApi<ComponentDocsState>,
+    code: string,
+  ) {
+    spawn(
+      formatDocsCode(code).then((formatted) => {
+        if (this.disposed) { return; }
+        // Preserve user edits and resets made while formatting was running.
+        store.setState(
+          (previous) =>
+            previous.code !== code || previous.code === formatted
+              ? previous
+              : { ...previous, code: formatted },
+          true,
+        );
+      }),
+    );
+  }
   setComponentCustomCode(
     component: Component,
     code: string | null,
     format = false,
   ) {
-    if (code == null) {
-      this.componentToCode.delete(component);
-    } else {
-      this.componentToCode.set(component, code);
-      if (format) {
-        spawn(
-          formatDocsCode(code).then((formatted) => {
-            // Do not overwrite an edit made while Prettier was running.
-            if (this.getComponentCustomCode(component) === code) {
-              this.setComponentCustomCode(component, formatted);
-            }
-          }),
-        );
-      }
+    const store = this.componentState(component);
+    const value = code ?? undefined;
+    if (store.getState().code === value) {
+      return;
+    }
+    store.setState((previous) => ({ ...previous, code: value }), true);
+    if (format && value !== undefined) {
+      this.formatComponentCode(store, value);
     }
   }
-
   resetComponentCustomCode() {
-    this.componentToCode.forEach((_, key) => this.componentToCode.delete(key));
-  }
-
-  setComponentToggle(component: Component, param: Param, value: any) {
-    if (value == null) {
-      this.getComponentToggles(component).delete(param);
-    } else {
-      this.getComponentToggles(component).set(param, value);
-    }
-    const isVariant = !!component.variantGroups.find((g) => g.param === param);
-    this.updateComponentCustomCode(
-      component,
-      resolveCollisionsForComponentProp(
-        component,
-        toVarName(param.variable.name),
-        isVariant ? "variant" : "arg",
+    this.components.forEach((store) =>
+      store.setState(
+        (previous) =>
+          previous.code === undefined
+            ? previous
+            : { ...previous, code: undefined },
+        true,
       ),
-      value,
-      false,
-      param,
     );
   }
-
+  setComponentToggle(component: Component, param: Param, value: any) {
+    const store = this.componentState(component);
+    const previous = store.getState();
+    const unchangedToggle =
+      value == null
+        ? !previous.toggles.has(param)
+        : Object.is(previous.toggles.get(param), value) ||
+          (Array.isArray(value) &&
+            Array.isArray(previous.toggles.get(param)) &&
+            shallow(previous.toggles.get(param), value));
+    let toggles = previous.toggles;
+    if (!unchangedToggle) {
+      const updated = new Map(previous.toggles);
+      // Own the selected array; callers must not mutate an existing snapshot.
+      if (value == null) {
+        updated.delete(param);
+      } else {
+        updated.set(param, Array.isArray(value) ? value.slice() : value);
+      }
+      toggles = updated;
+    }
+    const isVariant = !!component.variantGroups.find(
+      (group) => group.param === param,
+    );
+    const code =
+      updateComponentCode(
+        {
+          component,
+          code: previous.code,
+          toggles,
+          useLoader: this.useLoader(),
+        },
+        resolveCollisionsForComponentProp(
+          component,
+          toVarName(param.variable.name),
+          isVariant ? "variant" : "arg",
+        ),
+        value,
+        false,
+        param,
+      ) ?? undefined;
+    // An equal control can still repair a manually edited code argument.
+    // Compare both outputs before publishing, retaining the Map on code-only edits.
+    if (unchangedToggle && code === previous.code) {
+      return;
+    }
+    store.setState({ toggles, code }, true);
+    if (code !== undefined && code !== previous.code) {
+      this.formatComponentCode(store, code);
+    }
+  }
   setComponentOverride(
     component: Component,
     key: string,
@@ -181,7 +316,6 @@ export class DocsPortalCtx {
       true,
     );
   }
-
   updateComponentCustomCode(
     component: Component,
     path: string[],
@@ -189,8 +323,14 @@ export class DocsPortalCtx {
     isValueSerialized: boolean,
     param?: Param,
   ) {
+    const previous = this.componentState(component).getState();
     const code = updateComponentCode(
-      this,
+      {
+        component,
+        code: previous.code,
+        toggles: previous.toggles,
+        useLoader: this.useLoader(),
+      },
       path,
       value,
       isValueSerialized,
@@ -198,88 +338,89 @@ export class DocsPortalCtx {
     );
     this.setComponentCustomCode(component, code, true);
   }
-
   getComponentToggles(component: Component) {
-    if (!this.componentToToggles.has(component)) {
-      this.componentToToggles.set(component, observable.map());
-    }
-    return ensure(
-      this.componentToToggles.get(component),
-      `missing ${component} in componentToToggles`,
-    );
+    return this.componentState(component).getState().toggles;
   }
-
   getComponentToggle(component: Component, param: Param) {
     return this.getComponentToggles(component).get(param);
   }
-
   resetComponentToggles(component: Component) {
-    this.componentToToggles.delete(component);
-    this.componentToCode.delete(component);
-  }
-
-  tryGetFocusedIcon() {
-    return this.focusedIcon.get();
-  }
-
-  getFocusedIcon() {
-    return ensure(this.focusedIcon.get(), "missing focusedIcon");
-  }
-
-  setFocusedIcon(icon: ImageAsset) {
-    this.focusedIcon.set(icon);
-    this.focusedElement.set(undefined);
-    this.focusedComponent.set(undefined);
-  }
-
-  resetFocus() {
-    this.focusedComponent.set(undefined);
-    this.focusedElement.set(undefined);
-    this.focusedIcon.set(undefined);
-  }
-
-  getIconToggles(icon: ImageAsset) {
-    if (!this.iconToToggles.has(icon)) {
-      this.iconToToggles.set(icon, observable.map());
-    }
-    return ensure(
-      this.iconToToggles.get(icon),
-      `missing ${icon} in iconToToggles`,
+    this.componentState(component).setState(
+      (previous) =>
+        !previous.toggles.size && previous.code === undefined
+          ? previous
+          : { code: undefined, toggles: new Map() },
+      true,
     );
   }
-
+  tryGetFocusedIcon() {
+    return this.store.getState().focusedIcon;
+  }
+  getFocusedIcon() {
+    return ensure(this.tryGetFocusedIcon(), "missing focusedIcon");
+  }
+  setFocusedIcon(icon: ImageAsset) {
+    this.updateNavigation({
+      focusedIcon: icon,
+      focusedElement: undefined,
+      focusedComponent: undefined,
+    });
+  }
+  resetFocus() {
+    this.updateNavigation({
+      focusedComponent: undefined,
+      focusedElement: undefined,
+      focusedIcon: undefined,
+    });
+  }
+  getIconToggles(icon: ImageAsset) {
+    return this.iconState(icon).getState().toggles;
+  }
   getIconToggle(icon: ImageAsset, prop: IconToggleProp) {
     return this.getIconToggles(icon).get(prop);
   }
-
   setIconToggle(
     icon: ImageAsset,
     prop: IconToggleProp,
     value: string | null | undefined,
   ) {
+    const store = this.iconState(icon),
+      previous = store.getState();
+    if (
+      value == null
+        ? !previous.toggles.has(prop)
+        : previous.toggles.get(prop) === value
+    ) {
+      return;
+    }
+    const toggles = new Map(previous.toggles);
     if (value == null) {
-      this.getIconToggles(icon).delete(prop);
+      toggles.delete(prop);
     } else {
-      this.getIconToggles(icon).set(prop, value);
+      toggles.set(prop, value);
     }
-    this.iconToCode.delete(icon);
+    store.setState({ code: undefined, toggles }, true);
   }
-
   resetIconToggles(icon: ImageAsset) {
-    this.iconToToggles.delete(icon);
-    this.iconToCode.delete(icon);
+    this.iconState(icon).setState(
+      (previous) =>
+        !previous.toggles.size && previous.code === undefined
+          ? previous
+          : { code: undefined, toggles: new Map() },
+      true,
+    );
   }
-
   getIconCustomCode(icon: ImageAsset) {
-    return this.iconToCode.get(icon);
+    return this.iconState(icon).getState().code;
   }
-
   setIconCustomCode(icon: ImageAsset, code: string | null) {
-    if (code == null) {
-      this.iconToCode.delete(icon);
-    } else {
-      this.iconToCode.set(icon, code);
-    }
+    this.iconState(icon).setState(
+      (previous) =>
+        previous.code === (code ?? undefined)
+          ? previous
+          : { ...previous, code: code ?? undefined },
+      true,
+    );
   }
 
   updateStateFromRoute(history: History, path: string) {
@@ -311,7 +452,7 @@ export class DocsPortalCtx {
 
     // No codegen type selected, show the intro tab.
     if (!codegenType) {
-      this._xDocsTabKey.set("intro");
+      this.updateNavigation({ tab: "intro" });
       this.resetFocus();
       return;
     }
@@ -335,7 +476,7 @@ export class DocsPortalCtx {
         );
       } else {
         if (matchComponents) {
-          this._xDocsTabKey.set("components");
+          this.updateNavigation({ tab: "components" });
           this.resetFocus();
         } else {
           // Redirects to docs/components
@@ -360,7 +501,7 @@ export class DocsPortalCtx {
         );
       } else {
         if (matchIcons) {
-          this._xDocsTabKey.set("images");
+          this.updateNavigation({ tab: "images" });
           this.resetFocus();
         } else {
           // Redirects to docs/icons
@@ -385,7 +526,7 @@ export class DocsPortalCtx {
         accessComponents();
       } else {
         this.setFocusedComponent(component);
-        this._xDocsTabKey.set("components");
+        this.updateNavigation({ tab: "components" });
       }
     } else if (matchIcon) {
       const iconIdOrClassName = matchIcon.iconIdOrClassName;
@@ -402,7 +543,7 @@ export class DocsPortalCtx {
         );
       } else {
         this.setFocusedIcon(icon);
-        this._xDocsTabKey.set("images");
+        this.updateNavigation({ tab: "images" });
       }
     } else if (matchComponents) {
       // docs/components -> docs/component/firstComponent
@@ -417,11 +558,11 @@ export class DocsPortalCtx {
   }
 
   get docsTabKey() {
-    return this._xDocsTabKey.get();
+    return this.store.getState().tab;
   }
 
   set docsTabKey(key: DocsTabKey | undefined) {
-    this._xDocsTabKey.set(key);
+    this.updateNavigation({ tab: key });
   }
 }
 

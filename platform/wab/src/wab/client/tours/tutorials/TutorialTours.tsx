@@ -1,3 +1,4 @@
+import { useStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
 import { reportError } from "@/wab/client/ErrorNotifications";
 import { tourSeenForProjectKey } from "@/wab/client/LocalStorageKey";
 import { AppCtx } from "@/wab/client/app-ctx";
@@ -12,6 +13,8 @@ import { useI18n } from "@/wab/client/i18n";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import HelpIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Help";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { selectOnboardingTourState } from "@/wab/client/studio-ctx/left-panel-state";
+import { useTourStepTargetVisibility } from "@/wab/client/tours/useTourStepTargetVisibility";
 import { TutorialHighlightEffect } from "@/wab/client/tours/tutorials/TutorialHighlightEffect";
 import { TutorialEvent } from "@/wab/client/tours/tutorials/tutorials-events";
 import { waitElementToBeVisible } from "@/wab/client/tours/tutorials/tutorials-helpers";
@@ -31,10 +34,11 @@ import { notification } from "antd";
 import { observer } from "mobx-react";
 import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { useStore } from "zustand";
 import type { Step } from "react-joyride";
 import { useMountedState } from "react-use";
 
-const LazyJoyRide = React.lazy(() => import("react-joyride"));
+const LazyJoyRide = React.lazy(() => import("react-joyride").then(({ Joyride }) => ({ default: Joyride })));
 
 interface StepContentPopupProps {
   /** Identifier of current step */
@@ -136,9 +140,9 @@ function StepContentPopup(props: StepContentPopupProps) {
 }
 
 const STEP_SETTINGS: Partial<Step> = {
-  spotlightClicks: true,
-  disableBeacon: true,
-  hideFooter: true,
+  blockTargetInteraction: false,
+  skipBeacon: true,
+  buttons: [],
 };
 
 interface TourStepMeta {
@@ -161,53 +165,21 @@ function trackTourEvent(meta: TourStepMeta) {
   trackEvent("studio-tour", meta);
 }
 
-const TOUR_STEP_VISIBILITY_CHECK_INTERVAL = 1500; // 1.5 seconds
 const USER_CHANGE_CHECK_INTERVAL = 250; // 0.25 seconds
 const USER_CHANGE_MAX_WAIT = 1000 * 60 * 45; // 45 minutes
-
-// This is hoook is intended to be used in a tour step to check if the target element is visible
-// in case it's not visible we will hide the tour step, and show it again when it becomes visible.
-// This is useful to avoid "isSameNode" errors triggered by joy-ride and to hide bad placements
-// of elements in the screen.
-const useTourStepTargetVisibility = (
-  isTourRunning: boolean,
-  target?: string,
-  onVisibilityChange?: (isVisible: boolean) => void,
-) => {
-  const [isTargetVisible, setIsTargetVisible] = React.useState(false);
-
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      if (!isTourRunning || !target) {
-        return;
-      }
-
-      const element = document.querySelector(target);
-
-      const isVisible = !!element;
-
-      if (isVisible !== isTargetVisible) {
-        onVisibilityChange?.(isVisible);
-        setIsTargetVisible(isVisible);
-      }
-    }, TOUR_STEP_VISIBILITY_CHECK_INTERVAL);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [isTourRunning, target, onVisibilityChange, isTargetVisible]);
-
-  return { isTargetVisible };
-};
 
 export const StudioTutorialTours = observer(function _StudioTutorialTours() {
   const { t: studioUiT } = useI18n();
 
   const studioCtx = useStudioCtx();
+  const liveMode = useStudioLiveMode(studioCtx);
   const api = useApi();
   const topFrameApi = useTopFrameApi();
 
-  const tourState = studioCtx.onboardingTourState;
+  const tourState = useStore(
+    studioCtx.leftPanelState.store,
+    selectOnboardingTourState,
+  );
   const currentTutorial = STUDIO_ONBOARDING_TUTORIALS[tourState.tour];
   const currentStep = currentTutorial?.[tourState.stepIndex];
 
@@ -460,7 +432,7 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
     !tourState.run ||
     !currentTutorial ||
     !isTargetVisible ||
-    studioCtx.isLiveMode
+    liveMode
   ) {
     return null;
   }
@@ -485,7 +457,7 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
       ),
       ...STEP_SETTINGS,
       placement: step.placement,
-      disableOverlay: !step.overlay,
+      hideOverlay: !step.overlay,
     };
   });
 
@@ -518,16 +490,9 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
         {!currentStep?.hidden && (
           <LazyJoyRide
             continuous
-            hideCloseButton
-            hideBackButton
-            disableOverlayClose
-            disableScrolling
-            disableScrollParentFix
-            {...tourState}
+                              {...tourState}
+            options={{ zIndex: zIndex.tour, buttons: [], overlayClickAction: false, skipScroll: true, targetWaitTimeout: 0 }}
             styles={{
-              options: {
-                zIndex: zIndex.tour,
-              },
               tooltip: {
                 color: undefined,
                 fontSize: undefined,
@@ -705,7 +670,7 @@ export function TopFrameTours(props: {
       ),
       ...STEP_SETTINGS,
       placement: step.placement,
-      disableOverlay: !step.overlay,
+      hideOverlay: !step.overlay,
     };
   });
 
@@ -720,16 +685,9 @@ export function TopFrameTours(props: {
       )}
       <LazyJoyRide
         continuous
-        hideCloseButton
-        hideBackButton
-        disableOverlayClose
-        disableScrolling
-        disableScrollParentFix
-        {...tourState}
+          {...tourState}
+        options={{ zIndex: zIndex.tour, buttons: [], overlayClickAction: false, skipScroll: true, targetWaitTimeout: 0 }}
         styles={{
-          options: {
-            zIndex: zIndex.tour,
-          },
           tooltip: {
             color: undefined,
             fontSize: undefined,

@@ -1,9 +1,10 @@
+import { jsx } from 'react/jsx-runtime';
 import { Popover } from 'antd';
 import cls from 'classnames';
-import React from 'react';
-import { u as useCanvasOverlay, p as previewOpenProp } from './canvas-overlay-27tNRB55.esm.js';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { u as useCanvasOverlay } from './canvas-overlay-BZz-_5Mj.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
+import 'react';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -25,7 +26,7 @@ function AntdPopover(props) {
     classNames,
     ...rest
   } = canvasProps;
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Popover,
     {
       content: content === void 0 ? contentText : content,
@@ -56,12 +57,13 @@ function registerPopover(loader) {
     displayName: "Popover",
     isAttachment: true,
     props: {
-      previewOpen: previewOpenProp,
       open: {
         type: "boolean",
-        editOnly: true,
-        uncontrolledProp: "defaultOpen",
-        description: "Default open state of the popover"
+        description: "Controlled open state of the popover. Leave unset for the native trigger."
+      },
+      defaultOpen: {
+        type: "boolean",
+        description: "Initial open state when open is not controlled."
       },
       arrow: {
         type: "boolean",
@@ -170,6 +172,7 @@ function registerPopover(loader) {
       open: {
         type: "writable",
         valueProp: "open",
+        initialValueProp: "defaultOpen",
         onChangeProp: "onOpenChange",
         variableType: "boolean"
       }

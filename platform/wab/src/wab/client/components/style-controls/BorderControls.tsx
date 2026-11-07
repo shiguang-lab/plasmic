@@ -1,3 +1,4 @@
+import { useInspectorSelection } from "@/wab/client/studio-ctx/inspector-state";
 import {
   LabeledStyleColorItemRow,
   LabeledStyleDimItem,
@@ -10,6 +11,7 @@ import {
   StylePanelSection,
   TplExpsProvider,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
 import { IconLinkButton } from "@/wab/client/components/widgets";
 import { DimTokenSpinnerRef } from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -23,9 +25,9 @@ import BorderSideIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Border
 import MinusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Minus";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { makeVariantedStylesHelperFromCurrentCtx } from "@/wab/client/utils/style-utils";
+import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
-import { ensure, spawn, unanimousVal } from "@/wab/shared/common";
+import { assert, ensure, spawn, unanimousVal } from "@/wab/shared/common";
 import { parseCssShorthand, showCssShorthand } from "@/wab/shared/css";
 import { LENGTH_PERCENTAGE_UNITS } from "@/wab/shared/css/types";
 import {
@@ -34,9 +36,10 @@ import {
   standardCorners,
   standardSides,
 } from "@/wab/shared/geom";
-import { TplNode, isKnownTplTag } from "@/wab/shared/model/classes";
+import { isKnownTplTag } from "@/wab/shared/model/classes";
+import { isTplAttachedToSite } from "@/wab/shared/core/sites";
+import type { StyleCell } from "@/wab/client/studio-ctx/style-inputs";
 import cn from "classnames";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useEffect, useRef } from "react";
 
@@ -55,16 +58,42 @@ export const borderRadiusStyleProps = standardCorners.map(
   (corner) => `border-${corner}-radius`,
 );
 
-const isTplWithDefaultBorder = (tpl: TplNode | null | undefined) => {
-  return (
-    tpl &&
-    isKnownTplTag(tpl) &&
-    ["button", "textarea", "input"].includes(tpl.tag)
-  );
-};
+const noDefaultBorder = { getSnapshot: () => false, subscribe: (_listener: () => void) => () => undefined };
 
-export const BorderPanelSection = observer(BorderPanelSection_);
-function BorderPanelSection_(props: {
+/** One primitive field from the provider's captured View/model world. It is a
+ * read lease, not a second border preference or a widget disposal fallback. */
+function useHasDefaultBorder(expsProvider: ExpsProvider) {
+  const source = React.useMemo(() => {
+    if (!(expsProvider instanceof TplExpsProvider) || !isKnownTplTag(expsProvider.tpl)) { return noDefaultBorder; }
+    const { viewCtx, tpl, studioCtx } = expsProvider;
+    const native = expsProvider.getNativeStyleSource();
+    assert(native.kind === "tpl", "Tpl border provider must own a tpl style source");
+    if (native.inputs.isDisposed || viewCtx.disposeSignal.aborted || native.source.site !== studioCtx.site) { return noDefaultBorder; }
+    assert(isTplAttachedToSite(native.source.site, tpl), "Border element belongs to another model world");
+    const models = studioCtx.modelSnapshots, field = models.field(tpl, "tag");
+    let cached = false;
+    const isClosed = () => native.inputs.isDisposed || viewCtx.disposeSignal.aborted || studioCtx.modelSnapshots !== models;
+    const getSnapshot = () => {
+      if (!isClosed()) { cached = ["button", "textarea", "input"].includes(field.getState()); }
+      return cached;
+    };
+    const subscribe = (listener: () => void) => {
+      if (isClosed()) { return () => undefined; }
+      const stopField = field.subscribe(listener);
+      let stopped = false;
+      const stop = () => {
+        if (stopped) { return; } stopped = true; stopField();
+        viewCtx.disposeSignal.removeEventListener("abort", stop);
+      };
+      viewCtx.disposeSignal.addEventListener("abort", stop, { once: true });
+      return stop;
+    };
+    return { getSnapshot, subscribe };
+  }, [expsProvider]);
+  return React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
+}
+
+export function BorderPanelSection(props: {
   expsProvider: ExpsProvider;
   vsh?: VariantedStylesHelper;
 }) {
@@ -72,25 +101,22 @@ function BorderPanelSection_(props: {
   const { expsProvider } = props;
   const studioCtx = useStudioCtx();
 
-  const exp = expsProvider.mergedExp();
-  const targetExp = expsProvider.maybeTargetExp();
+  const hasDefaultBorder = useHasDefaultBorder(expsProvider);
+  const borderStyleCells = useStyleCells(expsProvider, borderStyleProps);
   const [open, setOpen] = React.useState(false);
 
-  const tpl =
-    expsProvider instanceof TplExpsProvider ? expsProvider.tpl : undefined;
-
   const hasBorderProps =
-    borderStyleProps.some((prop) => exp.has(prop)) ||
-    isTplWithDefaultBorder(tpl);
-  const hasBorderTargetProps = borderStyleProps.some((prop) =>
-    targetExp?.has(prop),
-  );
+    borderStyleCells.some((cell) => cell.has) ||
+    hasDefaultBorder;
+  const hasBorderTargetProps = borderStyleCells.some((cell) => cell.targetHas);
 
-  const vsh = props.vsh ?? makeVariantedStylesHelperFromCurrentCtx(studioCtx);
+  const currentVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : studioCtx);
+  const vsh = props.vsh ?? currentVsh;
 
   const clickOpenCloseButton = async () => {
     if (open || hasBorderTargetProps) {
       await studioCtx.changeUnsafe(() => {
+        const exp = expsProvider.mergedExp();
         for (const prop of borderStyleProps) {
           if (exp.has(prop)) {
             exp.clear(prop);
@@ -133,8 +159,7 @@ function BorderPanelSection_(props: {
   );
 }
 
-export const BorderRadiusSection = observer(BorderRadiusSection_);
-function BorderRadiusSection_(props: {
+export function BorderRadiusSection(props: {
   expsProvider: ExpsProvider;
   vsh?: VariantedStylesHelper;
 }) {
@@ -142,24 +167,24 @@ function BorderRadiusSection_(props: {
   const { expsProvider } = props;
   const studioCtx = useStudioCtx();
   const inputRef = useRef<DimTokenSpinnerRef>(null);
+  const selection = useInspectorSelection(studioCtx);
 
-  const exp = expsProvider.mergedExp();
-  const targetExp = expsProvider.maybeTargetExp();
+  const borderRadiusCells = useStyleCells(expsProvider, borderRadiusStyleProps);
   const [open, setOpen] = React.useState(false);
   useAutoFocus(open && inputRef);
 
-  const hasBorderRadiusProps = borderRadiusStyleProps.some((prop) =>
-    exp.has(prop),
-  );
-  const hasBorderRadiusTargetProps = borderRadiusStyleProps.some((prop) =>
-    targetExp?.has(prop),
+  const hasBorderRadiusProps = borderRadiusCells.some((cell) => cell.has);
+  const hasBorderRadiusTargetProps = borderRadiusCells.some(
+    (cell) => cell.targetHas,
   );
 
-  const vsh = props.vsh ?? makeVariantedStylesHelperFromCurrentCtx(studioCtx);
+  const currentVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : studioCtx);
+  const vsh = props.vsh ?? currentVsh;
 
   const clickOpenCloseButton = async () => {
     if (open || hasBorderRadiusTargetProps) {
       await studioCtx.changeUnsafe(() => {
+        const exp = expsProvider.mergedExp();
         for (const prop of borderRadiusStyleProps) {
           if (exp.has(prop)) {
             exp.clear(prop);
@@ -174,7 +199,7 @@ function BorderRadiusSection_(props: {
 
   useEffect(() => {
     setOpen(false);
-  }, [studioCtx.inspectorSelection?.selectable]);
+  }, [selection?.selectable]);
 
   const showHeaderControls =
     hasBorderRadiusTargetProps || !hasBorderRadiusProps;
@@ -213,70 +238,39 @@ function BorderRadiusSection_(props: {
   );
 }
 
-function getInitialBorderPositions(
-  expsProvider: ExpsProvider,
+function getInitialBorderPositions<Position extends Side | Corner>(
+  cells: readonly StyleCell[],
   borderStyles: ReadonlyArray<string>,
-  standardPositions: readonly Side[] | readonly Corner[],
-) {
-  const selectedPositions: string[] = [];
-
-  standardPositions.forEach((position) => {
-    if (
-      borderStyles.some((style) => {
-        return expsProvider.mergedExp().has(`border-${position}-${style}`);
-      })
-    ) {
-      selectedPositions.push(position);
-    }
-  });
-  return selectedPositions.length !== standardPositions.length
-    ? selectedPositions
-    : [];
+  standardPositions: readonly Position[],
+): Position[] {
+  const selectedPositions = standardPositions.filter((position) => borderStyles.some((style) =>
+    cells.some((cell) => cell.key === `border-${position}-${style}` && cell.has),
+  ));
+  return selectedPositions.length !== standardPositions.length ? selectedPositions : [];
 }
 
-export const BorderControlsWrapper = observer(
-  function BorderControlsWrapper(props: {
-    expsProvider: ExpsProvider;
-    borderType: BorderType;
-    inputRef?: React.Ref<DimTokenSpinnerRef>;
-    vsh: VariantedStylesHelper;
-  }) {
-    const { expsProvider, borderType, inputRef, vsh } = props;
+export function BorderControlsWrapper(props: {
+  expsProvider: ExpsProvider;
+  borderType: BorderType;
+  inputRef?: React.Ref<DimTokenSpinnerRef>;
+  vsh: VariantedStylesHelper;
+}) {
+  const { expsProvider, borderType, inputRef, vsh } = props;
+  const cells = useStyleCells(expsProvider, borderType === BorderType.Line ? borderStyleProps : borderRadiusStyleProps);
+  // These identities are fixed on each provider; they are not mutable reads.
+  const key = JSON.stringify(expsProvider instanceof TplExpsProvider
+    ? [expsProvider.tpl.uuid, ...expsProvider.targetVariantCombo.map((variant) => variant.uuid)]
+    : expsProvider.targetRs().uid);
+  return borderType === BorderType.Line ? (
+    <BorderLineControls expsProvider={expsProvider}
+      initialBorderPositions={getInitialBorderPositions(cells, borderLineStyles, standardSides)} key={key} vsh={vsh} />
+  ) : (
+    <BorderRadiusControls expsProvider={expsProvider} inputRef={inputRef}
+      initialBorderPositions={getInitialBorderPositions(cells, borderRadiusStyles, standardCorners)} key={key} vsh={vsh} />
+  );
+}
 
-    const initial = getInitialBorderPositions(
-      props.expsProvider,
-      borderType === BorderType.Line ? borderLineStyles : borderRadiusStyles,
-      borderType === BorderType.Line ? standardSides : standardCorners,
-    );
-    const key = JSON.stringify(
-      expsProvider instanceof TplExpsProvider
-        ? [
-            expsProvider.tpl.uuid,
-            ...expsProvider.targetVariantCombo.map((v) => v.uuid),
-          ]
-        : expsProvider.targetRs().uid,
-    );
-
-    return props.borderType === BorderType.Line ? (
-      <BorderLineControls
-        expsProvider={expsProvider}
-        initialBorderPositions={initial as Side[]}
-        key={key}
-        vsh={vsh}
-      />
-    ) : (
-      <BorderRadiusControls
-        expsProvider={expsProvider}
-        inputRef={inputRef}
-        initialBorderPositions={initial as Corner[]}
-        key={key}
-        vsh={vsh}
-      />
-    );
-  },
-);
-
-const BorderLineControls = observer(function BorderLineControls(props: {
+function BorderLineControls(props: {
   expsProvider: ExpsProvider;
   initialBorderPositions: Side[];
   vsh: VariantedStylesHelper;
@@ -284,6 +278,7 @@ const BorderLineControls = observer(function BorderLineControls(props: {
   const { t: uiT } = useI18n();
   const { expsProvider, initialBorderPositions, vsh } = props;
   const studioCtx = expsProvider.studioCtx;
+  const cells = useStyleCells(expsProvider, borderStyleProps);
   const [selectedSides, setSelectedSides] = React.useState<Side[]>(
     initialBorderPositions,
   );
@@ -295,7 +290,7 @@ const BorderLineControls = observer(function BorderLineControls(props: {
     selectedSides.length > 0 ? selectedSides : standardSides;
 
   const getSideProp = (side: Side, prop: string) => {
-    return expsProvider.mergedExp().get(`border-${side}-${prop}`);
+    return cells.find((cell) => cell.key === `border-${side}-${prop}`)?.value ?? "";
   };
 
   const getUnanimousSelectedSidesProp = (prop: string) => {
@@ -461,9 +456,9 @@ const BorderLineControls = observer(function BorderLineControls(props: {
       </div>
     </div>
   );
-});
+}
 
-const BorderRadiusControls = observer(function BorderRadiusControls(props: {
+function BorderRadiusControls(props: {
   expsProvider: ExpsProvider;
   initialBorderPositions: Corner[];
   inputRef?: React.Ref<DimTokenSpinnerRef>;
@@ -472,6 +467,7 @@ const BorderRadiusControls = observer(function BorderRadiusControls(props: {
   const { t: uiT } = useI18n();
   const { expsProvider, initialBorderPositions } = props;
   const studioCtx = expsProvider.studioCtx;
+  const cells = useStyleCells(expsProvider, borderRadiusStyleProps);
   const [selectedCorners, setSelectedCorners] = React.useState<Corner[]>(
     initialBorderPositions,
   );
@@ -483,7 +479,7 @@ const BorderRadiusControls = observer(function BorderRadiusControls(props: {
   const effectiveCorners = () => (isAll ? standardCorners : selectedCorners);
 
   const getCornerRadius = (corner: Corner) => {
-    return expsProvider.mergedExp().get(`border-${corner}-radius`);
+    return cells.find((cell) => cell.key === `border-${corner}-radius`)?.value ?? "";
   };
 
   const getSelectedCornerRadius = () => {
@@ -620,4 +616,4 @@ const BorderRadiusControls = observer(function BorderRadiusControls(props: {
       </div>
     </div>
   );
-});
+}

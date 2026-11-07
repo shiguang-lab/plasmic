@@ -1,4 +1,5 @@
 import registerComponent from '@plasmicapp/host/registerComponent';
+import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { DownOutlined } from '@ant-design/icons';
 import { usePlasmicCanvasContext } from '@plasmicapp/host';
 import { Form, theme, Row, Col, Space, Button, Typography } from 'antd';
@@ -11,7 +12,7 @@ function FieldControl({
 }) {
   const child = React.Children.toArray(control)[0];
   if (!React.isValidElement(child)) {
-    return /* @__PURE__ */ React.createElement(React.Fragment, null, control);
+    return /* @__PURE__ */ jsx(Fragment, { children: control });
   }
   const ownHandler = child.props[trigger];
   const formHandler = binding[trigger];
@@ -19,7 +20,7 @@ function FieldControl({
     ...binding,
     [trigger]: (...args) => {
       formHandler?.(...args);
-      ownHandler?.(...args);
+      if (typeof ownHandler === "function") ownHandler(...args);
     }
   });
 }
@@ -39,7 +40,7 @@ function SearchFormItem({
   const child = React.Children.toArray(children)[0];
   const controlMeta = React.isValidElement(child) ? child.type.__plasmicFormFieldMeta : void 0;
   const changeEvent = trigger ?? controlMeta?.onChangeProp ?? "onChange";
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Form.Item,
     {
       className,
@@ -57,9 +58,9 @@ function SearchFormItem({
           }
         ] : [],
         ...rules ?? []
-      ]
-    },
-    /* @__PURE__ */ React.createElement(FieldControl, { control: children, trigger: changeEvent })
+      ],
+      children: /* @__PURE__ */ jsx(FieldControl, { control: children, trigger: changeEvent })
+    }
   );
 }
 function collectSearchItems(children) {
@@ -227,7 +228,7 @@ const SearchForm = React.forwardRef(
         notify();
       }
     }));
-    return /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ jsx(
       "div",
       {
         className,
@@ -237,98 +238,105 @@ const SearchForm = React.forwardRef(
           borderRadius: 8,
           border: `1px solid ${token.colorBorderSecondary}`,
           marginBottom
-        }
-      },
-      /* @__PURE__ */ React.createElement(
-        Form,
-        {
-          form,
-          initialValues: defaults.initialValues,
-          disabled,
-          preserve: true,
-          layout: "horizontal",
-          labelCol: labelWidth === void 0 ? void 0 : { flex: `${labelWidth}px` },
-          wrapperCol: { flex: "1", style: { minWidth: 0 } },
-          onFinish: onSearch,
-          onFinishFailed: ({ errorFields }) => {
-            if (isCollapsed && errorFields.some(
-              (error) => items.slice(layout.visibleCount).some((item) => item.props.name === error.name[0])
-            )) {
-              changeCollapsed(false);
-            }
-          },
-          onValuesChange: (changedValues) => {
-            const restored = {};
-            for (const [name, clearValue] of Object.entries(
-              defaults.clearValues
-            )) {
-              if (name in changedValues && (changedValues[name] === void 0 || changedValues[name] === null)) {
-                restored[name] = clearValue;
-              }
-            }
-            form.setFieldsValue(restored);
-            notify();
-          }
         },
-        /* @__PURE__ */ React.createElement(Row, { gutter: 24 }, items.map((item, index) => /* @__PURE__ */ React.createElement(
-          Col,
+        children: /* @__PURE__ */ jsx(
+          Form,
           {
-            key: item.key ?? item.props.name ?? index,
-            span: normalizedSpan(item.props.span ?? colSpan),
-            xs: 24,
-            sm: 12,
-            md: normalizedSpan(item.props.span ?? colSpan),
-            style: {
-              display: index < layout.visibleCount ? void 0 : "none"
-            }
-          },
-          item
-        )), /* @__PURE__ */ React.createElement(
-          Col,
-          {
-            span: layout.actionSpan,
-            xs: 24,
-            sm: layout.actionSpan,
-            md: layout.actionSpan,
-            style: { textAlign: "right" }
-          },
-          /* @__PURE__ */ React.createElement(Form.Item, { style: { marginBottom: 16 } }, /* @__PURE__ */ React.createElement(
-            Space,
-            {
-              size: "small",
-              wrap: true,
-              style: { justifyContent: "flex-end", width: "100%" }
+            form,
+            initialValues: defaults.initialValues,
+            disabled,
+            preserve: true,
+            layout: "horizontal",
+            labelCol: labelWidth === void 0 ? void 0 : { flex: `${labelWidth}px` },
+            wrapperCol: { flex: "1", style: { minWidth: 0 } },
+            onFinish: onSearch,
+            onFinishFailed: ({ errorFields }) => {
+              if (isCollapsed && errorFields.some(
+                (error) => items.slice(layout.visibleCount).some((item) => item.props.name === error.name[0])
+              )) {
+                changeCollapsed(false);
+              }
             },
-            /* @__PURE__ */ React.createElement(Button, { type: "primary", htmlType: "submit", loading }, searchText),
-            /* @__PURE__ */ React.createElement(Button, { onClick: reset }, resetText),
-            extraActions,
-            layout.showExpand && /* @__PURE__ */ React.createElement(
-              Typography.Link,
-              {
-                "aria-expanded": !displayCollapsed,
-                onClick: () => {
-                  changeCollapsed(!isCollapsed);
-                },
-                style: {
-                  fontSize: 12,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                  userSelect: "none"
+            onValuesChange: (changedValues) => {
+              const restored = {};
+              for (const [name, clearValue] of Object.entries(
+                defaults.clearValues
+              )) {
+                if (name in changedValues && (changedValues[name] === void 0 || changedValues[name] === null)) {
+                  restored[name] = clearValue;
                 }
-              },
-              /* @__PURE__ */ React.createElement(
-                DownOutlined,
+              }
+              form.setFieldsValue(restored);
+              notify();
+            },
+            children: /* @__PURE__ */ jsxs(Row, { gutter: 24, children: [
+              items.map((item, index) => /* @__PURE__ */ jsx(
+                Col,
                 {
-                  rotate: displayCollapsed ? 0 : 180,
-                  style: { transition: "transform 0.24s" }
+                  span: normalizedSpan(item.props.span ?? colSpan),
+                  xs: 24,
+                  sm: 12,
+                  md: normalizedSpan(item.props.span ?? colSpan),
+                  style: {
+                    display: index < layout.visibleCount ? void 0 : "none"
+                  },
+                  children: item
+                },
+                item.key ?? item.props.name ?? index
+              )),
+              /* @__PURE__ */ jsx(
+                Col,
+                {
+                  span: layout.actionSpan,
+                  xs: 24,
+                  sm: layout.actionSpan,
+                  md: layout.actionSpan,
+                  style: { textAlign: "right" },
+                  children: /* @__PURE__ */ jsx(Form.Item, { style: { marginBottom: 16 }, children: /* @__PURE__ */ jsxs(
+                    Space,
+                    {
+                      size: "small",
+                      wrap: true,
+                      style: { justifyContent: "flex-end", width: "100%" },
+                      children: [
+                        /* @__PURE__ */ jsx(Button, { type: "primary", htmlType: "submit", loading, children: searchText }),
+                        /* @__PURE__ */ jsx(Button, { onClick: reset, children: resetText }),
+                        extraActions,
+                        layout.showExpand && /* @__PURE__ */ jsxs(
+                          Typography.Link,
+                          {
+                            "aria-expanded": !displayCollapsed,
+                            onClick: () => {
+                              changeCollapsed(!isCollapsed);
+                            },
+                            style: {
+                              fontSize: 12,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 4,
+                              userSelect: "none"
+                            },
+                            children: [
+                              /* @__PURE__ */ jsx(
+                                DownOutlined,
+                                {
+                                  rotate: displayCollapsed ? 0 : 180,
+                                  style: { transition: "transform 0.24s" }
+                                }
+                              ),
+                              displayCollapsed ? expandText : collapseText
+                            ]
+                          }
+                        )
+                      ]
+                    }
+                  ) })
                 }
-              ),
-              displayCollapsed ? expandText : collapseText
-            )
-          ))
-        ))
-      )
+              )
+            ] })
+          }
+        )
+      }
     );
   }
 );

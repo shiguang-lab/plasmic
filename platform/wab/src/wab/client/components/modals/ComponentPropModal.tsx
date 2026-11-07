@@ -152,8 +152,12 @@ export function ComponentPropModal(props: ComponentPropModalProps) {
       : false,
   );
 
-  const [choices, setChoices] = React.useState<ChoiceOptions>(
-    type && isOptionsType(type) ? (type.options as ChoiceOptions) : [],
+  const [choices, setChoices] = React.useState<ChoiceOptions>(() =>
+    type && isOptionsType(type)
+      ? (type.options as ChoiceOptions).map((option) =>
+          typeof option === "object" ? { ...option } : option,
+        )
+      : [],
   );
 
   const [advanced, setAdvanced] = React.useState(

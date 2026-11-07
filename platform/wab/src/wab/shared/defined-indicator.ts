@@ -1,3 +1,4 @@
+import type { ReadonlyIRuleSetHelpersX } from "@/wab/shared/RuleSetHelpers";
 import { VariantCombo } from "@/wab/shared/Variants";
 import { arrayEqIgnoreOrder, ensure } from "@/wab/shared/common";
 import { ThemableTag } from "@/wab/shared/html";
@@ -193,6 +194,19 @@ export function isIndicatorExplicitlySet(indicator: DefinedIndicatorType) {
   return ["set", "setNonVariable"].includes(indicator.source);
 }
 
+/** Single-ruleset controls use the same indicator formula for persisted and
+ * materialized read helpers; this never ensures a target ruleset. */
+export function computeSingleRsDefinedIndicator(
+  rsh: Pick<ReadonlyIRuleSetHelpersX, "has" | "getRaw">,
+  prop: string,
+  themeTag?: ThemableTag,
+): DefinedIndicatorType {
+  return rsh.has(prop) ? {
+    source: "setNonVariable", prop,
+    value: ensure(rsh.getRaw(prop), "value should be set"), themeTag,
+  } : { source: "none" };
+}
+
 export const computeDefinedIndicator = (
   site: Site,
   component: Component,
@@ -275,7 +289,7 @@ export function isTargetOverwritten(types: DefinedIndicatorType[]) {
  * Returns true if some DefinedIndicatorType states that the source of the
  * value is from some other variant that is blocking the target variant
  */
-export function getTargetBlockingCombo(types: DefinedIndicatorType[]) {
+export function getTargetBlockingCombo(types: readonly DefinedIndicatorType[]) {
   const blocking = types.find(
     (type) => type.source === "otherVariants" && !type.targetHasHighestPriority,
   );

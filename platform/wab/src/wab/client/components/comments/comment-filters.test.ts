@@ -59,7 +59,12 @@ function thread(
     location: { subject: { iid: "node", uuid: "project" }, variants: [] },
     subjectInfo:
       owner && subject
-        ? { ownerComponent: owner, subject, variants: [] }
+        ? {
+            ownerComponent: owner,
+            ownerComponentName: owner.name,
+            subject,
+            variants: [],
+          }
         : undefined,
     comments: [comment],
     commentThreadHistories: [],

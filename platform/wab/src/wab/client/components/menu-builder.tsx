@@ -249,10 +249,10 @@ function normalizeCombo(combo: string, variant?: "tooltip") {
 
 export function menuSection(
   sectionName: string,
-  ...items: (JSX.Element | undefined | false | null)[]
-): JSX.Element[] {
+  ...items: (React.JSX.Element | undefined | false | null)[]
+): React.JSX.Element[] {
   const filteredItems = items.filter(
-    (it): it is JSX.Element => !!it && !it.props.hidden,
+    (it): it is React.JSX.Element => !!it && !it.props.hidden,
   );
   if (filteredItems.length === 0) {
     return [];

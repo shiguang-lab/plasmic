@@ -34,4 +34,7 @@ test("external MCP validates structured review before dispatch and transports it
   const custom = { ...context, customOnly: true };
   assert.equal((await client.callTool({ name: "execute_batch", arguments: { operations, reviewContext: custom } })).isError, false);
   assert.equal(calls[2].input.reviewContext.customOnly, true);
+  const retry = { name: "reviewComponentReuse", input: { targets: [{ componentUuid: "page", elementUuid: "region" }], reviewContext: context } };
+  assert.equal((await client.callTool({ name: "execute", arguments: retry })).isError, false);
+  assert.deepEqual(calls[3], { method: "execute", input: retry });
 });

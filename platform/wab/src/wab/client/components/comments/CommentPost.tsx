@@ -3,13 +3,13 @@ import { ReactionsByEmoji } from "@/wab/client/components/comments/ReactionsByEm
 import { TplCommentThread } from "@/wab/client/components/comments/utils";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
 import { ClickStopper } from "@/wab/client/components/widgets";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
   DefaultCommentPostProps,
   PlasmicCommentPost,
 } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicCommentPost";
 import { canUpdateHistory } from "@/wab/client/studio-ctx/StudioCtx";
-import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { ApiComment } from "@/wab/shared/ApiSchema";
 import { fullName } from "@/wab/shared/ApiSchemaUtil";
@@ -20,6 +20,7 @@ import copy from "copy-to-clipboard";
 import { groupBy } from "lodash";
 import moment from "moment";
 import * as React from "react";
+import { useStore } from "zustand";
 
 export interface CommentPostProps extends DefaultCommentPostProps {
   comment: ApiComment;
@@ -47,13 +48,17 @@ function CommentPost_(props: CommentPostProps, ref: HTMLElementRefOf<"div">) {
   const appCtx = studioCtx.appCtx;
 
   const author = ensure(
-    commentsCtx.computedData().usersMap.get(ensureString(comment.createdById)),
+    useStore(commentsCtx.store, (state) =>
+      state.usersMap.get(ensureString(comment.createdById)),
+    ),
     `Author of comment ${comment.createdById} should be present in usersMap`,
   );
 
   const reactionsByEmoji =
     maybe(
-      commentsCtx.computedData().reactionsByCommentId.get(comment.id),
+      useStore(commentsCtx.store, (state) =>
+        state.reactionsByCommentId.get(comment.id),
+      ),
       (xs) => groupBy(xs, (x) => x.data.emojiName),
     ) ?? {};
 

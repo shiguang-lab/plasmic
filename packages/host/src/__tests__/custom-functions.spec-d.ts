@@ -17,6 +17,7 @@ import type {
   PlainBooleanType,
   PlainNumberType,
   PlainStringType,
+  QueryBuilderType,
   RequiredParam,
   SingleChoiceType,
   StringType,
@@ -804,5 +805,14 @@ describe("hidden callback receives function params", () => {
       },
     };
     expect<GenericType<Params, SecondParam>>().type.toBeAssignableWith(field);
+  });
+});
+
+describe("native QueryBuilder contract", () => {
+  it("uses native field arrays in dependent configurations", () => {
+    const dependent: QueryBuilderType<[string]> = {type: "queryBuilder", config: ([kind = "age"]) => ({fields: [{name: kind, label: kind}], showAddGroupAction: false})};
+    expect(dependent).type.toBeAssignableTo<QueryBuilderType<[string]>>();
+    expect<QueryBuilderType<[]>>().type.toBeAssignableWith({type: "queryBuilder" as const, config: () => ({fields: [{name: "age", label: "Age", datatype: "number", inputType: "number" as const, operators: [{name: "=", label: "Equals"}]}]})});
+    expect<QueryBuilderType<[]>>().type.not.toBeAssignableWith({type: "queryBuilder" as const, config: () => ({fields: {age: {type: "number"}}})});
   });
 });

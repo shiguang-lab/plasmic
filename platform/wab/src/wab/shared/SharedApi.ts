@@ -372,7 +372,7 @@ export abstract class SharedApi {
     return this.get(`/projects/${projectId}`, { includeStartup: true, branchName });
   }
 
-  resolveProjectModel(opening: ProjectOpeningResponse): Promise<GetProjectResponse> {
+  resolveProjectModel(opening: Omit<ProjectOpeningResponse, "startup"> & { startup?: ProjectOpeningResponse["startup"] }): Promise<GetProjectResponse> {
     const { startup: _startup, ...model } = opening;
     return this.hydrateModelResponse(model);
   }

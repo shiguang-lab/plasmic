@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="react" />
-
 import { AssetModule } from '@plasmicapp/loader-core';
 import type { CodeComponentMeta as CodeComponentMeta_2 } from '@plasmicapp/host/registerComponent';
 import { CodeModule } from '@plasmicapp/loader-fetcher';
@@ -81,7 +79,7 @@ export interface InitOptions {
     // (undocumented)
     onClientSideFetch?: "warn" | "error";
     // (undocumented)
-    platform?: "react" | "nextjs" | "gatsby";
+    platform?: "react" | "nextjs";
     // (undocumented)
     platformOptions?: {
         nextjs?: {
@@ -102,11 +100,9 @@ export interface InitOptions {
 // @public (undocumented)
 export function initPlasmicLoader(opts: InitOptions): PlasmicComponentLoader;
 
-// @public (undocumented)
+// @public
 export class InternalPlasmicComponentLoader extends BaseInternalPlasmicComponentLoader {
     constructor(opts: InitOptions);
-    // (undocumented)
-    refreshRegistry(): void;
     // (undocumented)
     registerComponent<T extends React_3.ComponentType<any>>(component: T, meta: CodeComponentMeta<React_3.ComponentProps<T>>): void;
     // (undocumented)
@@ -114,9 +110,9 @@ export class InternalPlasmicComponentLoader extends BaseInternalPlasmicComponent
     // (undocumented)
     registerGlobalContext<T extends React_3.ComponentType<any>>(context: T, meta: GlobalContextMeta<React_3.ComponentProps<T>>): void;
     // (undocumented)
-    registerToken: (token: TokenRegistration) => void;
+    registerToken(_token: TokenRegistration): void;
     // (undocumented)
-    registerTrait: (trait: string, meta: TraitMeta) => void;
+    registerTrait(_trait: string, _meta: TraitMeta): void;
 }
 
 // @public

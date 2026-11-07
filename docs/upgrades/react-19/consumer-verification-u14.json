@@ -1,0 +1,775 @@
+{
+  "date": "2026-11-06",
+  "status": "partial",
+  "releaseAgePolicy": {
+    "minimumReleaseAge": 0,
+    "requires72Hours": false,
+    "installationRoots": 19
+  },
+  "versions": {
+    "react": "19.3.1",
+    "next": "16.4.5",
+    "host": "3.0.0",
+    "loaderReact": "3.0.0",
+    "loaderNextjs": "3.0.0",
+    "reactWeb": "2.0.0",
+    "query": "0.2.0",
+    "valtio": "2.3.2",
+    "pnpm": "11.10.0"
+  },
+  "existingCpaOutputConsumers": {
+    "scope": "Existing maintained CPA output fixtures, fresh strict SDK installs and production builds",
+    "results": [
+      {
+        "name": "nextjs-app-codegen-ts",
+        "sourceFixture": "packages/create-plasmic-app/cpa-out/nextjs-app-codegen-ts",
+        "status": "passed",
+        "browserReact": "19.3.0-canary-278794d7-20261002",
+        "host": "3.0.0",
+        "lockfileSha256": "d3e88593fd130a90e7a157a566ef8573da17c052edc37881cd1516a785e3f01c"
+      },
+      {
+        "name": "nextjs-app-codegen-js",
+        "sourceFixture": "packages/create-plasmic-app/cpa-out/nextjs-app-codegen-js",
+        "status": "passed",
+        "browserReact": "19.3.0-canary-278794d7-20261002",
+        "host": "3.0.0",
+        "lockfileSha256": "54746127f04ad8019a92ade3ca52c79de628b857cee5b7ca7626aab3643ef2ca"
+      },
+      {
+        "name": "nextjs-app-loader-js",
+        "sourceFixture": "packages/create-plasmic-app/cpa-out/nextjs-app-loader-js",
+        "status": "passed",
+        "browserReact": "19.3.0-canary-278794d7-20261002",
+        "host": "3.0.0",
+        "lockfileSha256": "71ba27d142225c8cdd78651e132dd2dd10d4200069b8c5099cbc6f9c535baf77"
+      },
+      {
+        "name": "nextjs-app-loader-ts",
+        "sourceFixture": "packages/create-plasmic-app/cpa-out/nextjs-app-loader-ts",
+        "status": "passed",
+        "browserReact": "19.3.0-canary-278794d7-20261002",
+        "host": "3.0.0",
+        "lockfileSha256": "a5d7735d93bebc653799db67443d45e523f15ae591d9defdbd172959b9f47f1a"
+      },
+      {
+        "name": "nextjs-pages-codegen-js",
+        "sourceFixture": "packages/create-plasmic-app/cpa-out/nextjs-pages-codegen-js",
+        "status": "passed",
+        "browserReact": "19.3.1",
+        "host": "3.0.0",
+        "lockfileSha256": "54746127f04ad8019a92ade3ca52c79de628b857cee5b7ca7626aab3643ef2ca"
+      },
+      {
+        "name": "nextjs-pages-loader-js",
+        "sourceFixture": "packages/create-plasmic-app/cpa-out/nextjs-pages-loader-js",
+        "status": "passed",
+        "browserReact": "19.3.1",
+        "host": "3.0.0",
+        "lockfileSha256": "71ba27d142225c8cdd78651e132dd2dd10d4200069b8c5099cbc6f9c535baf77"
+      },
+      {
+        "name": "nextjs-pages-codegen-ts",
+        "sourceFixture": "packages/create-plasmic-app/cpa-out/nextjs-pages-codegen-ts",
+        "status": "passed",
+        "browserReact": "19.3.1",
+        "host": "3.0.0",
+        "lockfileSha256": "d3e88593fd130a90e7a157a566ef8573da17c052edc37881cd1516a785e3f01c"
+      },
+      {
+        "name": "react-codegen-js",
+        "sourceFixture": "packages/create-plasmic-app/cpa-out/react-codegen-js",
+        "status": "passed",
+        "host": "3.0.0",
+        "lockfileSha256": "a8005986571d7f573a673911ff92728efb7baea3d467b009e5169b506935d2e7"
+      },
+      {
+        "name": "nextjs-pages-loader-ts",
+        "sourceFixture": "packages/create-plasmic-app/cpa-out/nextjs-pages-loader-ts",
+        "status": "passed",
+        "browserReact": "19.3.1",
+        "host": "3.0.0",
+        "lockfileSha256": "a5d7735d93bebc653799db67443d45e523f15ae591d9defdbd172959b9f47f1a"
+      },
+      {
+        "name": "react-codegen-ts",
+        "sourceFixture": "packages/create-plasmic-app/cpa-out/react-codegen-ts",
+        "status": "passed",
+        "host": "3.0.0",
+        "lockfileSha256": "bc99d21a27196fc6e1fe6d50921dd087e2153f160dc3cbb0bb2e0188c4c4abd0"
+      },
+      {
+        "name": "tanstack-codegen-ts",
+        "sourceFixture": "packages/create-plasmic-app/cpa-out/tanstack-codegen-ts",
+        "status": "passed",
+        "host": "3.0.0",
+        "lockfileSha256": "662c90a48d9dde4e660106c6fb0b4d4b30d82b925e96c2fa221dbb0a9970cff6"
+      }
+    ],
+    "log": "u14-cpa-complete-regression.log",
+    "assertions": [
+      "Fresh independent strict peer install",
+      "Production build and real Chromium rendering",
+      "Falsy query values and zero hydration refetch",
+      "Native RSC exports and React.cache shared across metadata and page",
+      "Dynamic params, real SHA-256 query, client navigation and back",
+      "No browser or hydration errors"
+    ]
+  },
+  "hostConsumer": {
+    "routes": 3,
+    "status": "passed",
+    "logs": [
+      "u14-host3-install.log",
+      "u14-host3-lint.log",
+      "u14-host3-build.log",
+      "u14-host3-browser.log"
+    ]
+  },
+  "unitTests": {
+    "files": 21,
+    "passed": 177,
+    "log": "u14-sdk-combined-tests.log",
+    "serverCodegenQueries": {
+      "files": 3,
+      "passed": 45,
+      "log": "u14-codegen-server-queries-tests.log"
+    }
+  },
+  "loaderFixtures": {
+    "reactVite": {
+      "strictInstalls": 2,
+      "productionBuilds": 2,
+      "lint": 2
+    },
+    "next": {
+      "strictInstalls": 6,
+      "typechecks": 6
+    }
+  },
+  "wabTypecheck": {
+    "status": "passed",
+    "log": "u14-final-wab-typecheck.log"
+  },
+  "sourceFileSha256": {
+    "platform/loader-tests/scripts/verify-cpa-outputs.mjs": "c8098a8cacfc78355961b7d9dae082523ce8b295f5b520740212a8cde5747246",
+    "platform/loader-tests/scripts/consumer-fixture.mjs": "28da05b3b93b4bdcd5cee0f74a28edecf57641a5427c386395ac2f09f073171f",
+    "packages/react-web/src/states/valtio.tsx": "a4a1e75ccb2a12b0017e3b9c03b00eb3b53a130ee0a3cadec9e4d3c9b12066b7",
+    "packages/react-web/src/states/valtio.spec.tsx": "3c4d4e9c5d7c2204fe6b42e0e0ee86b50dd0b1a1ce71bfaef6edfd2936ced02f",
+    "platform/host-test/tests/consumer.e2e.mjs": "97509e409345a6727b4d079454d4cb0472ef56e1a0a4d2ae00b2ea2e4726bfa9",
+    "platform/react-renderer/Dockerfile": "c5e920eec351d5e577950c201bcc5d9980cb1f6c72d2a2707b93d8ba292c00e0",
+    "platform/react-renderer/src/server.ts": "85d8cf82fdcb087c15fea1bdcce7fd637b40ab6408bf770971b480dbd6374efa",
+    "platform/react-renderer/seccomp.cc": "f6d1f52a9c957d21f67e32b831ccc2ea1e524469a6256c4a8bf32415e46cf2e3",
+    "platform/react-renderer/docker-seccomp.json": "8d5cc685cfad6d70f8ecb277290d6a53ae270bd3229ef88d0c0d3a0dc90e6af0",
+    "platform/react-renderer/tests/render.e2e.mjs": "2dceffa9fabc6a9306ec6f9f082df9196e24ed8232103e5a003246a9172edbc6",
+    "platform/react-renderer/tests/fixture.mjs": "8ebcfa720e28d43cf1506b967eb5f217bc06996288cb8e79ecd13e5d9ba509d3",
+    "pnpm-lock.yaml": "824e380108f0ce1fa637d0735bd00480ff1b7dd597c1dcf91447e81f71b25fbf",
+    "platform/pnpm-lock.yaml": "5b6d3b64922aa284e5b9b56b9e98c2444ab7474f726171fa8fae27782d118375"
+  },
+  "remaining": [
+    "React 19 declaration fixes or supported replacements for remaining upstream packages",
+    "Fresh codegen scaffolding and real CLI/backend protocol",
+    "Full MobX migration",
+    "Whole-app performance and memory validation",
+    "Full per-family component interaction regression beyond module evaluation"
+  ],
+  "renderer": {
+    "status": "passed",
+    "platform": "linux/arm64",
+    "imageId": "sha256:3f334d1af4ada3971c6ce78badd267f7256b4b62fec1d6f35b94bbe58c86fa95",
+    "log": "u14-renderer-http2-e2e.log",
+    "hydration": {
+      "inputHash": "6a49e00d5caa0c8ff901f42bbe485d82ee230345fd3aa8790654de6d87c07bee",
+      "script": "loader-hydrate.e86cfed6.js",
+      "artifactHash": "5cbc11e701c76ccbb2008b7022f1fa6322e9db568df199022541aa9f3d0faf62"
+    },
+    "assertions": [
+      "One deployed native React 19 and SDK 3 closure",
+      "Native prepass with real HTTP inside bubblewrap and seccomp",
+      "Concurrent request isolation",
+      "Unmodified embedded script loading the production hydration artifact",
+      "Zero browser refetch and hydration errors; click behavior",
+      "Forbidden getuid syscall kills only render child",
+      "Thirty-second timeout kills and reaps child"
+    ],
+    "scope": "Native ARM64 Linux; native AMD64 security regression remains to run"
+  },
+  "freshCpaLoaderConsumers": {
+    "scope": "Fresh CPA scaffolds, strict SDK installs and production builds",
+    "results": [
+      {
+        "name": "nextjs-app-loader-js",
+        "sourceFixture": "../../../../../../tmp/plasmic-react19-20261105/u14-fresh-cpa-v2/scaffolds/nextjs-app-loader-js",
+        "status": "passed",
+        "browserReact": "19.3.0-canary-278794d7-20261002",
+        "host": "3.0.0",
+        "lockfileSha256": "71ba27d142225c8cdd78651e132dd2dd10d4200069b8c5099cbc6f9c535baf77"
+      },
+      {
+        "name": "nextjs-app-loader-ts",
+        "sourceFixture": "../../../../../../tmp/plasmic-react19-20261105/u14-fresh-cpa-v2/scaffolds/nextjs-app-loader-ts",
+        "status": "passed",
+        "browserReact": "19.3.0-canary-278794d7-20261002",
+        "host": "3.0.0",
+        "lockfileSha256": "04cecb8853e2478614a4fbbafa62b71feb45fe7c9295f18c8c1db08bf225c00f"
+      },
+      {
+        "name": "nextjs-pages-loader-ts",
+        "sourceFixture": "../../../../../../tmp/plasmic-react19-20261105/u14-fresh-cpa-v2/scaffolds/nextjs-pages-loader-ts",
+        "status": "passed",
+        "browserReact": "19.3.1",
+        "host": "3.0.0",
+        "lockfileSha256": "04cecb8853e2478614a4fbbafa62b71feb45fe7c9295f18c8c1db08bf225c00f"
+      },
+      {
+        "name": "nextjs-pages-loader-js",
+        "sourceFixture": "../../../../../../tmp/plasmic-react19-20261105/u14-fresh-cpa-v2/scaffolds/nextjs-pages-loader-js",
+        "status": "passed",
+        "browserReact": "19.3.1",
+        "host": "3.0.0",
+        "lockfileSha256": "71ba27d142225c8cdd78651e132dd2dd10d4200069b8c5099cbc6f9c535baf77"
+      }
+    ],
+    "log": "u14-fresh-cpa-v2-consumers.log",
+    "generator": "create-plasmic-app@0.1.0 packed from this checkout",
+    "frameworkScaffolder": "create-next-app@16.4.5"
+  },
+  "workspaceUnitTests": {
+    "files": 95,
+    "passed": 734,
+    "log": "u14-workspace-post-package-fixes.log"
+  },
+  "nativeNodeTests": {
+    "passed": 48,
+    "logs": [
+      "u14-native-node-tests.log"
+    ],
+    "additionalPythonReleaseFixtureTests": 585
+  },
+  "packageBuild": {
+    "packages": 85,
+    "passed": true,
+    "log": "u14-all-packages-build.log",
+    "scope": "Root workspace JavaScript builds; native renderer excluded and tested separately in Linux"
+  },
+  "publicPackageCorrections": {
+    "packages": [
+      {
+        "name": "@plasmicapp/react-web-runtime",
+        "version": "2.0.0",
+        "sha256": "d232144ccdee6b0a4edb23942aec2199d23ac05167acf88885fc198968616825",
+        "dependencies": {},
+        "peerDependencies": {
+          "@plasmicapp/react-web": "^2.0.0",
+          "react": "^19.3.1"
+        }
+      },
+      {
+        "name": "@plasmicpkgs/antd",
+        "version": "3.0.0",
+        "sha256": "53a98d495538773e9d221e7d09299b0a0152b81aac44c7789fa24398983a35a7",
+        "dependencies": {
+          "antd": "6.6.5"
+        },
+        "peerDependencies": {
+          "@plasmicapp/host": "^3.0.0",
+          "react": "^19.3.1"
+        }
+      },
+      {
+        "name": "@plasmicpkgs/cms",
+        "version": "0.1.0",
+        "sha256": "894e3514f1b3236d679821d3209f2d9df8f9669ade230c2295ea26461ab6f091",
+        "dependencies": {
+          "@types/json-logic-js": "^2.0.8"
+        },
+        "peerDependencies": {
+          "@plasmicapp/host": "^3.0.0"
+        }
+      },
+      {
+        "name": "@plasmicpkgs/commerce",
+        "version": "0.1.0",
+        "sha256": "934b02532d2b4b0b7f1686bee1d91345f80454e7299df6597bf752eee77cb6e5",
+        "dependencies": {
+          "@vercel/fetch": "^6.2.0",
+          "debounce": "^1.2.1",
+          "js-cookie": "^3.0.1",
+          "lodash.debounce": "^4.0.8",
+          "react-hook-form": "^7.89.0",
+          "swr": "2.5.1",
+          "node-fetch": "^2.7.0"
+        },
+        "peerDependencies": {
+          "@plasmicapp/host": "^3.0.0",
+          "@plasmicapp/query": "^0.2.0",
+          "react": "^19.3.1"
+        }
+      },
+      {
+        "name": "@plasmicpkgs/commerce-local",
+        "version": "0.1.0",
+        "sha256": "353fd0468296e1be2b0434522ff45c90853d8348f652d0d70bda63d4f289b63a",
+        "dependencies": {
+          "@plasmicpkgs/commerce": "0.1.0"
+        },
+        "peerDependencies": {
+          "@plasmicapp/host": "^3.0.0",
+          "react": "^19.3.1"
+        }
+      },
+      {
+        "name": "@plasmicpkgs/commerce-saleor",
+        "version": "0.1.0",
+        "sha256": "bf1b0c0f4f99393ab38b99397e8a988ce176c5d64287700891fcd3f867261c49",
+        "dependencies": {
+          "debounce": "^1.2.1",
+          "js-cookie": "^3.0.5",
+          "@plasmicpkgs/commerce": "0.1.0"
+        },
+        "peerDependencies": {
+          "next": "^16.4.5",
+          "react": "^19.3.1"
+        }
+      },
+      {
+        "name": "@plasmicpkgs/commerce-shopify",
+        "version": "0.1.0",
+        "sha256": "5bf1d418108329478c6f98b86426996b5e09d515dcb9df68825388b2fc5c8987",
+        "dependencies": {
+          "debounce": "^1.2.1",
+          "js-cookie": "^3.0.5",
+          "@graphql-typed-document-node/core": "^3.2.0",
+          "graphql": "^16.14.2",
+          "@plasmicpkgs/commerce": "0.1.0"
+        },
+        "peerDependencies": {
+          "@plasmicapp/host": "^3.0.0",
+          "react": "^19.3.1"
+        }
+      },
+      {
+        "name": "@plasmicpkgs/contentful",
+        "version": "0.1.0",
+        "sha256": "8cd6a9ec214aafbce8e1be9a1d68f9744c57becffb55ccca07ff673af0f57f5e",
+        "dependencies": {
+          "@types/json-logic-js": "^2.0.8"
+        },
+        "peerDependencies": {
+          "@plasmicapp/host": "^3.0.0"
+        }
+      },
+      {
+        "name": "@plasmicpkgs/radix-ui",
+        "version": "0.1.0",
+        "sha256": "bd72bf2a4fde0f24ddd6c5ca6e9e740d17ce16219569ed11804f155fce974c61",
+        "dependencies": {
+          "@radix-ui/react-context-menu": "^2.3.7",
+          "@radix-ui/react-dialog": "^1.1.23",
+          "@radix-ui/react-dropdown-menu": "^2.1.24",
+          "@radix-ui/react-popover": "^1.1.23",
+          "@radix-ui/react-slot": "^1.3.3",
+          "@radix-ui/react-tooltip": "^1.2.16",
+          "class-variance-authority": "^0.7.0",
+          "clsx": "^2.0.0",
+          "lucide-react": "1.69.0",
+          "remeda": "^1.27.0"
+        },
+        "peerDependencies": {
+          "@plasmicapp/host": "^3.0.0",
+          "react": "^19.3.1",
+          "react-dom": "^19.3.1"
+        }
+      },
+      {
+        "name": "@plasmicpkgs/react-chartjs-2",
+        "version": "2.0.0",
+        "sha256": "af08ea8aedd3099bbdb5309eedf17b882d2bfb2f45e26c6ae0b35770bcdc59f1",
+        "dependencies": {
+          "deepmerge": "^4.3.1"
+        },
+        "peerDependencies": {
+          "@plasmicapp/host": "^3.0.0",
+          "chart.js": ">=4.2.1",
+          "react": "^19.3.1",
+          "react-chartjs-2": ">=5.2.0",
+          "react-dom": "^19.3.1"
+        }
+      },
+      {
+        "name": "@plasmicpkgs/react-slick",
+        "version": "0.1.0",
+        "sha256": "1c8d1e5a5f79ed7ef970a8f117e0eb98b556068e87da81ef5932d1f5919badfb",
+        "dependencies": {
+          "@seznam/compose-react-refs": "^1.0.6",
+          "react-slick": "^0.31.0",
+          "slick-carousel": "^1.8.1",
+          "@types/react-slick": "^0.23.7"
+        },
+        "peerDependencies": {
+          "@plasmicapp/host": "^3.0.0",
+          "react": "^19.3.1",
+          "react-dom": "^19.3.1"
+        }
+      },
+      {
+        "name": "@plasmicpkgs/react-youtube",
+        "version": "8.0.0",
+        "sha256": "b6be2198ef8657efcefbed4ad97befad10d5ddea76ff9a96afedb0561ff3987a",
+        "dependencies": {
+          "react-youtube": "10.1.0",
+          "@types/youtube-player": "^5.5.6"
+        },
+        "peerDependencies": {
+          "@plasmicapp/host": "^3.0.0",
+          "react": "^19.3.1",
+          "react-dom": "^19.3.1"
+        }
+      },
+      {
+        "name": "@plasmicpkgs/strapi",
+        "version": "0.1.0",
+        "sha256": "e9aecdc6864dfa204b03813824d1c1807ee2fac056c98e717ce620094dc20d52",
+        "dependencies": {
+          "qs": "^6.16.0",
+          "@types/json-logic-js": "^2.0.8"
+        },
+        "peerDependencies": {
+          "@plasmicapp/host": "^3.0.0"
+        }
+      },
+      {
+        "name": "@plasmicpkgs/wordpress",
+        "version": "0.1.0",
+        "sha256": "2f7eebdc66ec840ebc949b25dd9066afc74aa91248b729243570c3744c8383d6",
+        "dependencies": {
+          "@types/json-logic-js": "^2.0.8"
+        },
+        "peerDependencies": {
+          "@plasmicapp/host": "^3.0.0"
+        }
+      }
+    ],
+    "build": "u14-public-types-build.log",
+    "jsxRuntimeBuild": "u14-jsx-runtime-build.log",
+    "jsxRuntimeTests": {
+      "files": 1,
+      "passed": 7,
+      "log": "u14-jsx-runtime-tests.log"
+    },
+    "integrationTests": {
+      "files": 4,
+      "passed": 39,
+      "log": "u14-public-types-regressions-2.log"
+    },
+    "wabTypecheck": {
+      "status": "passed",
+      "log": "u14-public-fixes-wab-typecheck.log"
+    }
+  },
+  "componentConsumer": {
+    "packages": 65,
+    "scope": "Fresh isolated registry install, all namespace exports retained and evaluated in a real production Chromium page; ActionGroup click behavior",
+    "strictPeerInstall": {
+      "status": "passed",
+      "log": "u14-all-component-v3-install.log"
+    },
+    "tarballIntegrity": [
+      {
+        "name": "@plasmicapp/react-web-runtime",
+        "version": "2.0.0",
+        "sha256": "d232144ccdee6b0a4edb23942aec2199d23ac05167acf88885fc198968616825",
+        "integrity": "sha512-U1m9NsAJvf/r3OWyX1MD28DmSEfsdQgmHmKKEg69AqyvKnLIeXsHZQOCYqsWgBfLfDENeK2NE7dP6gUQY4ekPQ=="
+      },
+      {
+        "name": "@plasmicpkgs/antd",
+        "version": "3.0.0",
+        "sha256": "53a98d495538773e9d221e7d09299b0a0152b81aac44c7789fa24398983a35a7",
+        "integrity": "sha512-YFk7CQu4ENeI/uMw6KHnEA0dHfaoRZlKO0Z01OWlan8GLtWku5HAeW06pR79cDDSwEgW1ctp7LjWpa3INqtnmA=="
+      },
+      {
+        "name": "@plasmicpkgs/cms",
+        "version": "0.1.0",
+        "sha256": "894e3514f1b3236d679821d3209f2d9df8f9669ade230c2295ea26461ab6f091",
+        "integrity": "sha512-ZhV3JwGlM5XK2NvFd815YN/RfiuCIRtFTQa+gFxmpwlszlJTtAgHIbUlN6WPO4ylZ6t23TPy9Kt9JD6K4Cmv+A=="
+      },
+      {
+        "name": "@plasmicpkgs/commerce",
+        "version": "0.1.0",
+        "sha256": "934b02532d2b4b0b7f1686bee1d91345f80454e7299df6597bf752eee77cb6e5",
+        "integrity": "sha512-00L4qMik2Fw/OcUvyeMTrw2j0Kl0pHgiCzxtgZdjkK+LKhqsn6QVMgYMPTcni463jw+QpNNKpcG2wNNAGNHSEA=="
+      },
+      {
+        "name": "@plasmicpkgs/commerce-local",
+        "version": "0.1.0",
+        "sha256": "353fd0468296e1be2b0434522ff45c90853d8348f652d0d70bda63d4f289b63a",
+        "integrity": "sha512-UqA1x1WYAixxpjdC0wttikNWpj4+nHRBY+VoEOFOyBefIxe9BMHTL6AzGnaCingfckZW4fZSW752t+CAOsbmGA=="
+      },
+      {
+        "name": "@plasmicpkgs/commerce-saleor",
+        "version": "0.1.0",
+        "sha256": "bf1b0c0f4f99393ab38b99397e8a988ce176c5d64287700891fcd3f867261c49",
+        "integrity": "sha512-56VJYqNOgJilWOySmHmXbU+g4bFnTRr1x/bQaHtCeUkFNlSfZgbbsX5J9g4oKTj0ixPg8fqQG694HmHr4WKdaQ=="
+      },
+      {
+        "name": "@plasmicpkgs/commerce-shopify",
+        "version": "0.1.0",
+        "sha256": "5bf1d418108329478c6f98b86426996b5e09d515dcb9df68825388b2fc5c8987",
+        "integrity": "sha512-fg56znTdGBeHdbB3iWSRWYxW6Zis4pHeEd7OoN13NBoqPO0RZTkwy/fc+SJY0yCMnHlbg1WAv7vyOcM1Jbx4hg=="
+      },
+      {
+        "name": "@plasmicpkgs/contentful",
+        "version": "0.1.0",
+        "sha256": "8cd6a9ec214aafbce8e1be9a1d68f9744c57becffb55ccca07ff673af0f57f5e",
+        "integrity": "sha512-c0hWjaKTOqpP3iEBTdZfcZZE043XWkjxogrZmdKLHKQUU/OmA2NuVbEqL8fQDQkUsBE4cOU7+wjXTmje64Ae3g=="
+      },
+      {
+        "name": "@plasmicpkgs/radix-ui",
+        "version": "0.1.0",
+        "sha256": "bd72bf2a4fde0f24ddd6c5ca6e9e740d17ce16219569ed11804f155fce974c61",
+        "integrity": "sha512-dTI74c0rk1XJJD133YgeJ0MjIs0ezbMykqTsFplrLiZrxw2bnx8aFAoQ3Cni9Ko6vGUCRaa+TS4PclgvM54Vaw=="
+      },
+      {
+        "name": "@plasmicpkgs/react-chartjs-2",
+        "version": "2.0.0",
+        "sha256": "af08ea8aedd3099bbdb5309eedf17b882d2bfb2f45e26c6ae0b35770bcdc59f1",
+        "integrity": "sha512-mpJB0ovyqemS4+g+0h4wb1zEM/mExi35jzRmxVqCcqrmP4r5dYuxdW8xtUd/grtke8NNDfbS+5QKoGL5pnoDCA=="
+      },
+      {
+        "name": "@plasmicpkgs/react-slick",
+        "version": "0.1.0",
+        "sha256": "1c8d1e5a5f79ed7ef970a8f117e0eb98b556068e87da81ef5932d1f5919badfb",
+        "integrity": "sha512-4LLJV67D1NK8woomzXzV2/Nmo9SpSGi5gVYzKS3RJtGfpxloK7qV4fHBLwoEqSkr2ZmtX4KtJ9G6o9vIYmY+hQ=="
+      },
+      {
+        "name": "@plasmicpkgs/react-youtube",
+        "version": "8.0.0",
+        "sha256": "b6be2198ef8657efcefbed4ad97befad10d5ddea76ff9a96afedb0561ff3987a",
+        "integrity": "sha512-suDOhvbc2onD+mi9YrWIEezEUtu9J5kLIU0mofoqJB+PykGuazVe7OrxYYLqKzMIr7qUrEbGonrn+4vfRKZ4BQ=="
+      },
+      {
+        "name": "@plasmicpkgs/strapi",
+        "version": "0.1.0",
+        "sha256": "e9aecdc6864dfa204b03813824d1c1807ee2fac056c98e717ce620094dc20d52",
+        "integrity": "sha512-s0/9+dGFDMfzjqKI3ih3PzCC/x0w8bTvvVfQCz4JXbBcuUNUwduPTurA1CyYYUyJDfYJBncrH2aBYvDMV+0H5Q=="
+      },
+      {
+        "name": "@plasmicpkgs/wordpress",
+        "version": "0.1.0",
+        "sha256": "2f7eebdc66ec840ebc949b25dd9066afc74aa91248b729243570c3744c8383d6",
+        "integrity": "sha512-h1i8wL/uMUJ4KPDm3uAo+qWOyJ87en7oTPPuQIeczd6lihTTt+cIxj53fdLtyQbJ8aOu4C4xLB2TRp7yWm/ZCw=="
+      }
+    ],
+    "runtimeBuild": {
+      "status": "passed",
+      "log": "u14-all-component-v3-runtime-build.log"
+    },
+    "browser": {
+      "status": "passed",
+      "log": "u14-component-v3-browser.log"
+    },
+    "strictDeclarations": {
+      "status": "failed",
+      "errors": 59,
+      "byPackage": {
+        "@ant-design/pro-components": 10,
+        "@chakra-ui/react": 6,
+        "@chakra-ui/theme": 26,
+        "@chakra-ui/utils": 2,
+        "@dnd-kit/core": 6,
+        "@dnd-kit/sortable": 1,
+        "@rc-component/image": 1,
+        "@rc-component/picker": 1,
+        "@rive-app/react-canvas": 1,
+        "@types/node-fetch": 1,
+        "react-quill-new": 1,
+        "prop-types": 1,
+        "react-youtube": 1,
+        "swell-js": 1
+      },
+      "ownedPackageErrors": 0,
+      "log": "u14-all-component-v3-build.log",
+      "classification": "Upstream declarations require individual React 19 versus general TypeScript classification; not waived by runtime checks"
+    },
+    "limitations": [
+      "Module evaluation is not a full interactive regression of all 65 packages",
+      "Existing Chakra 2 integration still awaits approved Chakra 3 migration",
+      "No full-app performance claim"
+    ],
+    "phase": "Before the later user-authorized Chakra retirement"
+  },
+  "rendererTls": {
+    "status": "passed",
+    "platform": "linux/arm64",
+    "imageId": "sha256:a95d3d0b0ba70478ae139b893f2774a1348635d05b052ca2bdc4a3ffeb0c88eb",
+    "log": "u14-renderer-tls-e2e.log",
+    "hydration": {
+      "inputHash": "093ba4295951895787385bbc93424ec98149230a1cc8a92d5f9e05ac19b518ce",
+      "script": "loader-hydrate.e86cfed6.js",
+      "artifactHash": "5cbc11e701c76ccbb2008b7022f1fa6322e9db568df199022541aa9f3d0faf62"
+    },
+    "assertions": [
+      "Native prepass real HTTP GET",
+      "Concurrent sandboxed real HTTPS POST with task certificate trusted through NODE_EXTRA_CA_CERTS",
+      "TLS verification enabled",
+      "Unmodified embedded production hydration script; zero browser refetch; click interaction",
+      "Forbidden getuid kills only render child",
+      "Infinite rendering killed and reaped after thirty seconds"
+    ],
+    "scope": "Artifact built before later public type and JSX runtime corrections; native AMD64 security regression remains to run"
+  },
+  "chakraRetirement": {
+    "status": "passed",
+    "reason": "User confirmed no consumers and explicitly requested complete retirement",
+    "package": "@plasmicpkgs/plasmic-chakra-ui",
+    "removedPackageSourceFiles": 39,
+    "removedCanvasEntry": true,
+    "activeReleasePlanPackages": 64,
+    "rootAndPlatformLocksContainChakra": false,
+    "obsoleteCanvasArtifacts": 0,
+    "rootInstall": "u14-chakra-retirement-root-install.log",
+    "platformInstall": "u14-chakra-retirement-platform-install.log",
+    "canvasBuild": {
+      "status": "passed",
+      "log": "u14-chakra-retirement-canvas-build.log"
+    },
+    "subBuild": {
+      "status": "passed",
+      "log": "u14-chakra-retirement-sub-build.log"
+    },
+    "wabTypecheck": {
+      "status": "passed",
+      "log": "u14-chakra-retirement-wab-typecheck.log"
+    },
+    "platformPeers": {
+      "status": "passed",
+      "log": "u14-chakra-retirement-platform-peers.log"
+    },
+    "workspaceUnitTests": {
+      "files": 95,
+      "passed": 734,
+      "log": "u14-chakra-retirement-workspace-tests.log"
+    },
+    "packageTypesTests": {
+      "passed": 3,
+      "log": "u14-chakra-retirement-package-types-tests.log"
+    },
+    "canvasRuntimeTests": {
+      "passed": 9,
+      "log": "u14-chakra-retirement-canvas-runtime-2.log",
+      "testSetupCorrection": "Load the native Antd 6 runtime before library bundles, matching studio-bundles production initialization; initial missing-runtime failure retained in the first log"
+    },
+    "runtimeLoadingOrderTests": {
+      "files": 2,
+      "passed": 39,
+      "log": "u14-chakra-retirement-loader-order-tests.log"
+    },
+    "consumer": {
+      "packages": 64,
+      "strictPeerInstall": "passed",
+      "runtimeBuild": "passed",
+      "productionBrowser": "passed",
+      "browserErrors": 0,
+      "logs": [
+        "u14-component-retired-install.log",
+        "u14-component-retired-runtime-build.log",
+        "u14-component-retired-browser.log"
+      ],
+      "strictDeclarations": {
+        "status": "failed",
+        "errors": 25,
+        "byPackage": {
+          "@ant-design/pro-components": 10,
+          "@dnd-kit/core": 6,
+          "@dnd-kit/sortable": 1,
+          "@rc-component/image": 1,
+          "@rc-component/picker": 1,
+          "@rive-app/react-canvas": 1,
+          "@vercel/fetch": 1,
+          "react-quill-new": 1,
+          "react-youtube": 2,
+          "swell-js": 1
+        },
+        "log": "u14-component-retired-types.log"
+      }
+    },
+    "preserved": "Historical bundle migrations and unrelated font metadata"
+  },
+  "studioNativeRegression": {
+    "status": "passed",
+    "evidence": "runtime-verification-u14.json",
+    "sourceHash": "6211fdc0ddcb3b3f729baa102dad29791eaf369403e60ce2de94e7d3fe38644e",
+    "rendererHash": "1b09d01f9ab78bc85d24c6d4442ac0f7e7fb6607caaa45a428a81403760e6138",
+    "gpCases": 5,
+    "complexCases": 8,
+    "saveAndReopen": true,
+    "docsCodegenAndLoader": true
+  },
+  "examplesRetirement": {
+    "status": "passed",
+    "reason": "User confirmed no consumers and requested complete retirement of examples directory",
+    "removedStandaloneManifests": 34,
+    "removedDirectlyRelatedManifests": 33,
+    "removedConfigurationFiles": 37,
+    "currentInventory": {
+      "manifests": 144,
+      "directlyRelated": 98,
+      "configurationFiles": 38
+    },
+    "activeAdminTemplateAssets": "ai/plasmic/admin-templates",
+    "movedAssetCount": 10,
+    "sdkAndCpaOutputsRetained": true,
+    "scope": "Historical application examples retired; current admin-template generation and evidence relocated. Evidence bytes preserved; nonsemantic generator lint corrections produce identical template/page outputs.",
+    "verification": [
+      "Syntax and zero-warning lint checks for repository lint configuration and moved template generator",
+      "All five moved relative documentation links resolve",
+      "Ten current template verifier tests pass",
+      "All six template and four page outputs match the former generator",
+      "No active local references to removed example applications"
+    ],
+    "lint": {
+      "status": "passed",
+      "log": "u14-examples-retirement-lint-2.log"
+    },
+    "templateVerifier": {
+      "passed": 10,
+      "log": "u14-template-relocation-tests.log"
+    },
+    "templateGeneratorEquivalence": {
+      "beforeSha256": "39a15825ec46d3df1b50a496a9ebdf4db47acfa85fe54f442855cb203fce1d3b",
+      "afterSha256": "0070091cdfd7e7578000f5d72953b5c9ec866d499b687bdfad60f96e6d03b01c",
+      "outputSha256": "b848917aafbf5b93c99c11150e4e6ee0cab8560d996ad22e222e4183c12fadb5",
+      "templateCount": 6,
+      "pageCount": 4,
+      "outputsUnchanged": true,
+      "scope": "One-off equivalence check with a shared fixture component index; not a current library-contract validation"
+    }
+  },
+  "declarationDiagnostic": {
+    "scope": "Type-only diagnostic on the same locally packed Antd 6.6.5 consumer; runtime stays React 19.3.1. This is not a React 18 runtime baseline. Extra errors when React 18 types lack React 19 APIs are expected.",
+    "reactTypes": {
+      "control": "18.3.31",
+      "target": "19.3.0"
+    },
+    "total": 25,
+    "alsoSeenWithReact18Types": 7,
+    "onlySeenWithReact19Types": 18,
+    "byPackage": {
+      "@ant-design/pro-components": 10,
+      "@dnd-kit/core": 6,
+      "@dnd-kit/sortable": 1,
+      "@rc-component/image": 1,
+      "@rc-component/picker": 1,
+      "@rive-app/react-canvas": 1,
+      "@vercel/fetch": 1,
+      "react-quill-new": 1,
+      "react-youtube": 2,
+      "swell-js": 1
+    },
+    "logs": [
+      "u14-react18-type-probe-install.log",
+      "u14-react18-type-probe-types.log",
+      "u14-component-retired-types.log"
+    ]
+  }
+}

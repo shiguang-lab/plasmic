@@ -48,7 +48,7 @@ import {
 import { spawn, waitUntil } from "@/wab/shared/common";
 import { message } from "antd";
 import L from "lodash";
-import { observer } from "mobx-react";
+     
 import * as React from "react";
 import { useInterval } from "react-use";
 import useSWR from "swr";
@@ -128,7 +128,7 @@ interface PublishFlowDialogWrapperProps {
   setShowPublishModal: (val: boolean) => Promise<void>;
 }
 
-export const PublishFlowDialogWrapper = observer(
+export const PublishFlowDialogWrapper = 
   function PublishFlowDialogWrapper({
     project,
     refreshProjectAndPerms,
@@ -790,7 +790,7 @@ export const PublishFlowDialogWrapper = observer(
         )}
       </>
     );
-  },
-);
+  }
+;
 
 export default PublishFlowDialogWrapper;

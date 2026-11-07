@@ -47,8 +47,8 @@ export class BoundedCache<V> {
     this.map.clear();
   }
 
-  keys(): string[] {
-    return Array.from(this.map.keys());
+  keys(): IterableIterator<string> {
+    return this.map.keys();
   }
 
   get size(): number {

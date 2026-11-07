@@ -1,6 +1,6 @@
 import type { Meta } from "@storybook/react";
 import { fn } from "@storybook/test";
-import React from "react";
+
 import { BaseInput } from "./registerInput";
 import { BaseLabel } from "./registerLabel";
 import { BaseTextField } from "./registerTextField";

@@ -139,7 +139,7 @@ type StylePropOpts = { forVisibility?: boolean; excludeBase?: boolean };
  */
 export class VariantTplMgr {
   constructor(
-    private stack: ComponentVariantFrame[],
+    private stack: readonly ComponentVariantFrame[],
     private site: Site,
     private tplMgr: TplMgr,
     private globalFrame: GlobalVariantFrame,

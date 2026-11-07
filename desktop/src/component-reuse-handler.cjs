@@ -16,8 +16,8 @@ function documents(input) {
 function regions(input) {
   if (!Array.isArray(input) || input.length < 1 || input.length > 5) throw new Error("Invalid component review regions");
   return input.map(region => {
-    if (!region || ![region.componentUuid, region.elementUuid].every(value => text(value)) || !text(region.intent, 600) || !strings(region.usedComponentUuids, 500) || !strings(region.facts, 100)) throw new Error("Invalid component review region");
-    return { componentUuid: region.componentUuid, elementUuid: region.elementUuid, intent: region.intent, usedComponentUuids: region.usedComponentUuids, facts: region.facts };
+    if (!region || ![region.componentUuid, region.elementUuid].every(value => text(value)) || !text(region.intent, 600) || !strings(region.usedComponentUuids, 500) || region.ancestorComponentUuids !== undefined && !strings(region.ancestorComponentUuids, 500) || !strings(region.facts, 100)) throw new Error("Invalid component review region");
+    return { componentUuid: region.componentUuid, elementUuid: region.elementUuid, intent: region.intent, usedComponentUuids: region.usedComponentUuids, ancestorComponentUuids: region.ancestorComponentUuids ?? [], facts: region.facts };
   });
 }
 
@@ -56,7 +56,8 @@ function createComponentReuseHandler({ service, origin, trustedSender, projectId
         frame = event.senderFrame;
         owner = event.sender;
         location = event.senderFrame.url;
-        return service.sync(scope, docs, input.unavailable);
+        if (input.retry !== undefined && typeof input.retry !== "boolean") throw new Error("Invalid component review retry");
+        return service.sync(scope, docs, input.unavailable, input.retry === true);
       }
       if (command !== "review" || !text(input.id, 100) || requests.has(input.id) || requests.size >= 8) throw new Error("Invalid component review request");
       const targets = regions(input.regions); const controller = new AbortController();

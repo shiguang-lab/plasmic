@@ -1,15 +1,16 @@
+import { jsx } from 'react/jsx-runtime';
 import { Tree } from 'antd';
-import React from 'react';
-import { r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
+import 'react';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
 
 function AntdTree(props) {
-  return /* @__PURE__ */ React.createElement(Tree, { ...props });
+  return /* @__PURE__ */ jsx(Tree, { ...props });
 }
 function AntdDirectoryTree(props) {
-  return /* @__PURE__ */ React.createElement(Tree.DirectoryTree, { ...props });
+  return /* @__PURE__ */ jsx(Tree.DirectoryTree, { ...props });
 }
 const treeHelpers_ = {
   states: {

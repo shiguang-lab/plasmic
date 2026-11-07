@@ -102,10 +102,12 @@ import {
  * Contains all fields from ParentTplStyleSource except type, prop, and value,
  * plus a styleValues record containing all inheritable CSS properties.
  */
-type ParentTplStyleData = (
+export type ParentStyleContext = (
   | Omit<ParentTplStyleSource, "prop" | "value">
   | Omit<SlotSource, "prop" | "value">
-) & {
+);
+
+type ParentTplStyleData = ParentStyleContext & {
   styleValues: Record<string, string>;
 };
 
@@ -159,6 +161,7 @@ export class EffectiveVariantSetting {
         parentSlotVs: computed,
         themeRsh: computed,
         potentialPropSources: computed,
+        parentStyleContexts: computed,
         parentStyleValues: computed,
       });
     }
@@ -464,107 +467,40 @@ export class EffectiveVariantSetting {
    * This is a MobX computed property, so the parent traversal and style computation
    * is cached and only re-computed when the parent tree or activeVariants change.
    */
-  get parentStyleValues(): ParentTplStyleData[] {
-    const result: ParentTplStyleData[] = [];
-
-    /**
-     * Queue item representing a traversal context.
-     * Each item tracks:
-     * - tpl: The node whose parent hierarchy we're exploring
-     * - activeVariants: The variants active in this context (changes across slot boundaries)
-     * - tplComponent: The TplComponent context when traversing through external component's tpls via slots
-     */
-    interface QueueItem {
-      tpl: TplNode;
-      activeVariants: Variant[];
-      tplComponent?: TplComponent;
-    }
-
-    const queue: QueueItem[] = [
-      {
-        tpl: this.tpl,
-        activeVariants: this.activeVariants,
-      },
-    ];
-
+  /** The existing inheritance topology, including currently empty contributors.
+   * Both value resolution and explicit native field declarations use this path. */
+  get parentStyleContexts(): ParentStyleContext[] {
+    const result: ParentStyleContext[] = [];
+    interface QueueItem { tpl: TplNode; activeVariants: Variant[]; tplComponent?: TplComponent; }
+    const queue: QueueItem[] = [{ tpl: this.tpl, activeVariants: this.activeVariants }];
     while (queue.length > 0) {
-      const item = queue.shift()!;
-
-      // Traverse up the direct parent chain collecting inheritable styles from each ancestor.
-      // Stop at TplComponent boundaries since components encapsulate their internal styles and apply root resets.
+      const item = ensure(queue.shift(), "Inheritance context queue");
       let parent = item.tpl.parent;
       while (parent && !isTplComponent(parent)) {
-        const effectiveVs = getEffectiveVariantSetting(
-          parent,
-          item.activeVariants,
-        );
-
-        if (isTplSlot(parent)) {
-          // If this tpl is a descendant of a TplSlot (which means it is a
-          // default content), then it may also inherit css styles from the
-          // TplSlot.
-          const slotRsh = effectiveVs.rsh();
-          const inheritableValues = getInheritableStyles(slotRsh);
-          if (Object.keys(inheritableValues).length > 0) {
-            result.push({
-              type: "slot",
-              parentTpl: parent,
-              styleValues: inheritableValues,
-              activeVariants: item.activeVariants,
-              param: parent.param,
-            });
-          }
-        } else {
-          const rsh = effectiveVs.rshWithTheme();
-          const inheritableValues = getInheritableStyles(rsh);
-
-          if (Object.keys(inheritableValues).length > 0) {
-            result.push({
-              type: "parentTplStyle",
-              parentTpl: parent,
-              styleValues: inheritableValues,
-              activeVariants: item.activeVariants,
-              tplComponent: item.tplComponent,
-            });
-          }
-        }
-
+        result.push(isTplSlot(parent)
+          ? { type: "slot", parentTpl: parent, activeVariants: item.activeVariants, param: parent.param }
+          : { type: "parentTplStyle", parentTpl: parent, activeVariants: item.activeVariants, tplComponent: item.tplComponent });
         parent = parent.parent;
       }
-
-      // Check if this tpl is used as slot content (passed into a component's instance slot).
-      // If so, it should inherit styles from the TplSlot or its parent hierarchy.
       const parentArgSlotVs = getParentArgSlotVs(item.tpl, item.activeVariants);
       if (parentArgSlotVs) {
-        // Collect styles directly set on the TplSlot element itself. These styles apply to all content passed into this slot.
-        const slotEffectiveVs = getEffectiveVariantSetting(
-          parentArgSlotVs.slot,
-          parentArgSlotVs.slotVs.activeVariants,
-        );
-        const slotRsh = slotEffectiveVs.rsh();
-        const slotInheritableValues = getInheritableStyles(slotRsh);
-
-        if (Object.keys(slotInheritableValues).length > 0) {
-          result.push({
-            type: "slot",
-            parentTpl: parentArgSlotVs.slot,
-            styleValues: slotInheritableValues,
-            activeVariants: parentArgSlotVs.slotVs.activeVariants,
-            tplComponent: parentArgSlotVs.tplComponent,
-            param: parentArgSlotVs.arg.param,
-          });
-        }
-
-        // Continue inheritance traversal from the TplSlot's context.
-        // This also handles nested slots (when a slot is itself inside another component's slot).
-        queue.push({
-          tpl: parentArgSlotVs.slot,
-          activeVariants: parentArgSlotVs.slotVs.activeVariants,
-          tplComponent: parentArgSlotVs.tplComponent,
-        });
+        const activeVariants = parentArgSlotVs.slotVs.activeVariants;
+        result.push({ type: "slot", parentTpl: parentArgSlotVs.slot, activeVariants,
+          tplComponent: parentArgSlotVs.tplComponent, param: parentArgSlotVs.arg.param });
+        queue.push({ tpl: parentArgSlotVs.slot, activeVariants, tplComponent: parentArgSlotVs.tplComponent });
       }
     }
+    return result;
+  }
 
+  get parentStyleValues(): ParentTplStyleData[] {
+    const result: ParentTplStyleData[] = [];
+    for (const context of this.parentStyleContexts) {
+      const effectiveVs = getEffectiveVariantSetting(context.parentTpl, context.activeVariants);
+      const rsh = context.type === "slot" ? effectiveVs.rsh() : effectiveVs.rshWithTheme();
+      const styleValues = getInheritableStyles(rsh);
+      if (Object.keys(styleValues).length > 0) { result.push({ ...context, styleValues }); }
+    }
     return result;
   }
 

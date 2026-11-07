@@ -19,7 +19,7 @@ export {
 // import { PlasmicLink } from "./PlasmicLink";
 
 export interface PlasmicRootContextValue {
-  platform?: "nextjs" | "gatsby";
+  platform?: "nextjs";
 }
 
 const PlasmicRootContext = React.createContext<
@@ -28,7 +28,7 @@ const PlasmicRootContext = React.createContext<
 
 export interface PlasmicRootProviderProps
   extends PlasmicDataSourceContextValue {
-  platform?: "nextjs" | "gatsby";
+  platform?: "nextjs";
   children?: React.ReactNode;
   i18n?: PlasmicI18NContextValue;
   Head?: React.ComponentType<any>;

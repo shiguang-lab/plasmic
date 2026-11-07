@@ -83,7 +83,7 @@ export const GraphQLEditor = (props: {
                   onSave={(query, variables) => {
                     onChange?.({
                       query,
-                      variables: tryJsonParse<JsonObject>(variables),
+                      variables: tryJsonParse<JsonObject>(variables ?? ""),
                     });
                     setShow(false);
                   }}

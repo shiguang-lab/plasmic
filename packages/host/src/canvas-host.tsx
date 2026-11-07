@@ -269,7 +269,28 @@ function deriveCanvasContextValue(): PlasmicCanvasContextValue | false {
   return false;
 }
 
-const INTERNAL_CC_CANVAS_SELECTION_PROP = "__plasmic_selection_prop__";
+const INTERNAL_CC_CANVAS_PROP = "__canvas";
+
+/** Studio-only injection. Never register this field as a component prop. */
+export interface PlasmicCanvasProps {
+  __canvas?: {
+    selected?: boolean;
+    editing?: boolean;
+    slot?: string | null;
+    fullContent?: boolean;
+    instance?: string;
+    onReveal?: () => void;
+    states?: Record<string, {
+      readonly value: unknown;
+      reveal: (value: unknown) => unknown;
+    }>;
+    getState?: (name: string, nativeValue: unknown, initialValue?: unknown) => {
+      readonly value: unknown;
+      reveal: (value: unknown) => unknown;
+      set: (value: unknown) => void;
+    };
+  };
+}
 
 export function usePlasmicCanvasComponentInfo(props: any) {
   return React.useMemo(() => {
@@ -279,25 +300,6 @@ export function usePlasmicCanvasComponentInfo(props: any) {
     // changing the behavior of the code component when it is selected, making
     // it easier to interact with code components and slots that aren't always
     // visible in the canvas. (e.g. automatically opening a modal when it's selected)
-    const selectionInfo = props?.[INTERNAL_CC_CANVAS_SELECTION_PROP];
-    if (selectionInfo) {
-      return {
-        isSelected: selectionInfo.isSelected as boolean,
-        isEditingContents: selectionInfo.isEditingContents === true,
-        selectedSlotName: selectionInfo.selectedSlotName as string | undefined,
-        /** Transient, instance-scoped bindings supplied only by the editing canvas. */
-        states: selectionInfo.states as Record<string, {
-          value: unknown;
-          reveal: (value: unknown) => unknown;
-        }> | undefined,
-        /** Explicit access for native nested/private state that has no writable prop. */
-        getState: selectionInfo.getState as ((name: string, nativeValue: unknown, initialValue?: unknown) => {
-          readonly value: unknown;
-          reveal: (value: unknown) => unknown;
-          set: (value: unknown) => void;
-        }) | undefined,
-      };
-    }
-    return null;
+    return (props?.[INTERNAL_CC_CANVAS_PROP] as PlasmicCanvasProps["__canvas"]) ?? null;
   }, [props]);
 }

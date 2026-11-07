@@ -35,10 +35,18 @@ function fixture() {
   studioCtx.createViewStateUndoRecord();
   const call = async (name: string, input: Record<string, unknown> = {}) =>
     JSON.parse(
-      await ensure(COPILOT_TOOLS[name], "Tool missing").execute(
-        studioCtx,
-        input,
-      ),
+      await ensure(COPILOT_TOOLS[name], "Tool missing").execute(studioCtx, {
+        ...("reviewContext" in
+        ensure(COPILOT_TOOLS[name], "Tool missing").inputSchema.shape
+          ? {
+              reviewContext: {
+                purpose:
+                  "Import captured web content as editable artboards, preserving layout, source relationships and undo/redo.",
+              },
+            }
+          : {}),
+        ...input,
+      }),
     );
   return {
     studioCtx,
@@ -121,7 +129,10 @@ describe("captured browser imports", () => {
       studioCtx.site.components.find((c) => c.name === "ExistingPage"),
       "Source page missing",
     );
-    const canvas = studioCtx.site.arenas[0];
+    const canvas = ensure(
+      studioCtx.site.arenas.find((arena) => arena.name === "Workspace"),
+      "Workspace missing",
+    );
     studioCtx.currentArena = canvas;
     const result = await importPage({ html: "<section>Independent</section>" });
     expect(result.canvasName).toBe("Workspace");
@@ -133,6 +144,10 @@ describe("captured browser imports", () => {
   it("creates and reuses a free canvas with a reference to the source page", async () => {
     const { studioCtx, call, importPage } = fixture();
     await call("createComponent", { name: "ExistingPage", type: "page" });
+    for (const arena of [...studioCtx.site.arenas]) {
+      await call("deleteCanvas", { canvasName: arena.name });
+    }
+    expect(studioCtx.site.arenas).toHaveLength(0);
     const pageArena = studioCtx.site.pageArenas[0];
     studioCtx.currentArena = pageArena;
     const result = await importPage({ html: "<section>Independent</section>" });
@@ -165,6 +180,9 @@ describe("captured browser imports", () => {
   it("uses an associated canvas from page detail without adding another page reference", async () => {
     const { studioCtx, call, importPage } = fixture();
     await call("createComponent", { name: "ExistingPage", type: "page" });
+    for (const arena of [...studioCtx.site.arenas]) {
+      await call("deleteCanvas", { canvasName: arena.name });
+    }
     await call("createCanvas", { name: "Workspace" });
     const page = studioCtx.site.pageArenas[0].component;
     await call("createArtboard", {

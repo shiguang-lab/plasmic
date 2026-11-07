@@ -1,3 +1,4 @@
+import { isReadonlyArray } from "@/wab/shared/collections";
 import { getArenaFrames } from "@/wab/shared/Arenas";
 import {
   ensure,
@@ -311,9 +312,9 @@ export function hasAssetRefs(str: string) {
 
 export const resolveAllAssetRefs = (
   str: string,
-  assets: ImageAsset[] | Map<string, ImageAsset>,
+  assets: ReadonlyArray<Pick<ImageAsset, "uuid" | "dataUri">> | ReadonlyMap<string, Pick<ImageAsset, "uuid" | "dataUri">>,
 ) => {
-  const finder = Array.isArray(assets)
+  const finder = isReadonlyArray(assets)
     ? (assetId: string) => assets.find((t) => t.uuid === assetId)
     : (assetId: string) => assets.get(assetId);
   return replaceAllAssetRefs(str, (assetId) => {

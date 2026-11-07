@@ -42,18 +42,24 @@ export function StudioStartupBoundary({
   const location = useLocation();
   const projectLocation = parseProjectLocation(location);
   const projectId = projectLocation?.projectId;
+  const presentation = APP_ROUTES.projectPresentation.parse(location.pathname);
+  const isPreview = !!presentation || !!projectLocation?.isPreview;
+  const startupKey = presentation ? location.pathname : projectId;
   const [startupLoading] = React.useState(() =>
     document.getElementById("studio-startup-loading"),
   );
+  const [previewStartupLoading] = React.useState(() =>
+    document.getElementById("preview-startup-loading"),
+  );
   const [state, setState] = React.useState<
-    StudioStartupState & { projectId?: string }
+    StudioStartupState & { startupKey?: string }
   >({
-    projectId,
+    startupKey,
     ready: false,
     hidden: false,
   });
-  if (state.projectId !== projectId) {
-    setState({ projectId, ready: false, hidden: false });
+  if (state.startupKey !== startupKey) {
+    setState({ startupKey, ready: false, hidden: false });
   }
   const update = React.useCallback((patch: Partial<StudioStartupState>) => {
     setState((prev) => ({ ...prev, ...patch }));
@@ -61,21 +67,23 @@ export function StudioStartupBoundary({
   React.useLayoutEffect(() => {
     // Keep the HTML logo in place so React taking over does not restart it.
     const visible =
-      !!projectId &&
-      !projectLocation?.isPreview &&
+      !!startupKey &&
       !state.ready &&
       !state.hidden &&
       !state.failure;
     startupLoading?.classList.add("studio-loading--managed", "visible");
-    startupLoading?.classList.toggle("fadeOut", !visible);
-    document
-      .getElementById("preview-startup-loading")
-      ?.classList.add("fadeOut");
-    return () => startupLoading?.classList.add("fadeOut");
+    startupLoading?.classList.toggle("fadeOut", !visible || isPreview);
+    previewStartupLoading?.classList.add("visible");
+    previewStartupLoading?.classList.toggle("fadeOut", !visible || !isPreview);
+    return () => {
+      startupLoading?.classList.add("fadeOut");
+      previewStartupLoading?.classList.add("fadeOut");
+    };
   }, [
     startupLoading,
-    projectId,
-    projectLocation?.isPreview,
+    previewStartupLoading,
+    startupKey,
+    isPreview,
     state.ready,
     state.hidden,
     state.failure,
@@ -85,7 +93,7 @@ export function StudioStartupBoundary({
       <StudioStartupContext.Provider value={update}>
         {children}
       </StudioStartupContext.Provider>
-      {projectId && !state.ready && (
+      {startupKey && !state.ready && (
         <div
           style={{
             position: "fixed",
@@ -97,14 +105,14 @@ export function StudioStartupBoundary({
           {/* Failures render here, outside the route boundary that reported
               them, and can themselves suspend while sign-in loads. */}
           <React.Suspense
-            fallback={projectLocation?.isPreview ? (
-              <PreviewLoading />
+            fallback={isPreview ? (
+              <PreviewLoading loading={!previewStartupLoading} />
             ) : (
               <StudioChromeContent projectName={state.projectName} />
             )}
           >
-            {projectLocation?.isPreview ? (
-              <PreviewLoading>{state.failure}</PreviewLoading>
+            {isPreview ? (
+              <PreviewLoading loading={!previewStartupLoading}>{state.failure}</PreviewLoading>
             ) : (
               <StudioChromeContent
                 projectName={state.projectName}
@@ -116,7 +124,7 @@ export function StudioStartupBoundary({
           </React.Suspense>
         </div>
       )}
-      {projectId && !projectLocation?.isPreview &&
+      {projectId && !isPreview &&
         !APP_ROUTES.projectDocs.parse(location.pathname, false) &&
         state.composer?.visible !== false && (
           <CanvasAiComposer
@@ -141,7 +149,8 @@ export function StudioChrome({
 }) {
   const update = React.useContext(StudioStartupContext);
   const location = useLocation();
-  const isPreview = parseProjectLocation(location)?.isPreview;
+  const isPreview = !!APP_ROUTES.projectPresentation.parse(location.pathname) ||
+    parseProjectLocation(location)?.isPreview;
   React.useLayoutEffect(() => {
     if (update && children) {
       update({ failure: children });

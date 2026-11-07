@@ -11,8 +11,9 @@ import {
   joinVariantVals,
 } from "@/wab/shared/codegen/react-p/utils";
 import { jsLiteral, toVarName } from "@/wab/shared/codegen/util";
-import { arrayEq } from "@/wab/shared/common";
+import { arrayEq, ensure } from "@/wab/shared/common";
 import { getRawCode } from "@/wab/shared/core/exprs";
+import { isSlotSelection } from "@/wab/shared/core/slots";
 import { ParamExportType } from "@/wab/shared/core/lang";
 import {
   getStateOnChangePropName,
@@ -21,20 +22,51 @@ import {
   getVirtualWritableStateInitialValue,
   isReadonlyState,
   isWritableState,
+  isStateUsedInExpr,
 } from "@/wab/shared/core/states";
 import {
   ancestorsUp,
+  ancestorsUpWithSlotSelections,
+  findExprsInComponent,
   isTplCodeComponent,
   isTplComponent,
   isTplRepeated,
   isTplTag,
   tplHasRef,
 } from "@/wab/shared/core/tpls";
+import { parseExpr } from "@/wab/shared/eval/expression-parser";
 import {
   Component,
   State,
   ensureKnownNamedState,
+  isKnownRenderFuncType,
 } from "@/wab/shared/model/classes";
+
+export function shouldSerializeState(component: Component, state: State) {
+  if (
+    !state.tplNode ||
+    !state.implicitState ||
+    !isWritableState(state.implicitState) ||
+    !isTplCodeComponent(state.tplNode) ||
+    !ancestorsUpWithSlotSelections(state.tplNode).some(
+      (ancestor) => isSlotSelection(ancestor) && isKnownRenderFuncType(ancestor.slotParam.type),
+    )
+  ) {
+    return true;
+  }
+
+  // Native render callbacks can create many instances of one template. An
+  // unused implicit binding would feed one instance's event back into them all.
+  // Keep native instance state unless authored expressions access that state.
+  const root = toVarName(ensure(state.tplNode.name, "Implicit state node must be named"));
+  return findExprsInComponent(component).some(({ expr }) => {
+    const info = parseExpr(expr);
+    return isStateUsedInExpr(state, expr) || info.usesUnknownDollarVarKeys.$state ||
+      [...info.usedDollarVarKeys.$state].some((key) =>
+        key === root || key.startsWith(`${root}.`) || key.startsWith(`${root}[`),
+      );
+  });
+}
 
 export function serializeInitFunc(
   state: State,
@@ -207,7 +239,7 @@ export function serializeStateSpecs(
   };
 
   return `[${component.states
-    .filter((state) => !state.tplNode || !ctx.fakeTpls.includes(state.tplNode))
+    .filter((state) => (!state.tplNode || !ctx.fakeTpls.includes(state.tplNode)) && shouldSerializeState(component, state))
     .map((state) => serializeState(state))
     .join(",")}]`;
 }

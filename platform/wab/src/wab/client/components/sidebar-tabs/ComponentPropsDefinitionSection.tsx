@@ -47,19 +47,20 @@ import {
   parseFolderSegments,
   renameFolderLeaf,
 } from "@/wab/shared/folders/folders-util";
+import type { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import {
-  PropFolderNode,
-  PropTreeNode,
-  buildPropTree,
-  collectParams,
-  reorderLevel,
-} from "@/wab/shared/folders/prop-tree";
+  collectPropTreeParams,
+  type PropTreeFolderInput,
+  type PropTreeInputNode,
+  usePropTreeInputs,
+} from "@/wab/client/studio-ctx/prop-tree-inputs";
+import { reorderLevelWithParams } from "@/wab/shared/folders/prop-tree";
 import { Component, Param, isKnownPropParam } from "@/wab/shared/model/classes";
 import { Menu, Tooltip } from "antd";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
-import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
+import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 import { FaCheck } from "react-icons/fa";
 
 type PropsTreeCtxValue = {
@@ -186,7 +187,7 @@ export const ComponentPropsDefinitionSection = observer(
 /**
  * Renders the props section content.
  */
-const PropsDefinitionSection = observer(function PropsDefinitionSection(props: {
+function PropsDefinitionSection(props: {
   studioCtx: StudioCtx;
   component: Component;
   viewCtx: ViewCtx;
@@ -194,7 +195,7 @@ const PropsDefinitionSection = observer(function PropsDefinitionSection(props: {
   draggable?: boolean;
 }) {
   const { studioCtx, component, viewCtx, params, draggable } = props;
-  const tree = buildPropTree(component, params);
+  const { models, tree } = usePropTreeInputs(studioCtx, component, params);
   return (
     <div className="mb-xlg">
       <PropsLevel
@@ -202,28 +203,39 @@ const PropsDefinitionSection = observer(function PropsDefinitionSection(props: {
         component={component}
         viewCtx={viewCtx}
         siblings={tree}
+        models={models}
         draggable={draggable}
       />
     </div>
   );
-});
+}
 
 /**
  * Renders one level (siblings) of the folder tree as a reorderable list.
  */
-const PropsLevel = observer(function PropsLevel(props: {
+const PropsLevel = function PropsLevel(props: {
   studioCtx: StudioCtx;
   component: Component;
   viewCtx: ViewCtx;
-  siblings: PropTreeNode[];
+  siblings: readonly PropTreeInputNode[];
+  models: ModelSnapshots;
   draggable?: boolean;
 }) {
-  const { studioCtx, component, viewCtx, siblings, draggable } = props;
+  const { studioCtx, component, viewCtx, siblings, models, draggable } = props;
   return (
     <SimpleReorderableList
       onReordered={(fromIndex, toIndex) =>
         studioCtx.change(() => {
-          reorderLevel(component, siblings, fromIndex, toIndex);
+          reorderLevelWithParams(
+            component,
+            siblings,
+            (node) =>
+              collectPropTreeParams(node).map((param) =>
+                models.resolve(param),
+              ),
+            fromIndex,
+            toIndex,
+          );
           return ok();
         })
       }
@@ -236,7 +248,7 @@ const PropsLevel = observer(function PropsLevel(props: {
             studioCtx={studioCtx}
             component={component}
             viewCtx={viewCtx}
-            param={node.param}
+            param={models.resolve(node.param)}
             draggable={draggable}
           />
         ) : (
@@ -246,33 +258,42 @@ const PropsLevel = observer(function PropsLevel(props: {
             component={component}
             viewCtx={viewCtx}
             node={node}
+            models={models}
             draggable={draggable}
           />
         ),
       )}
     </SimpleReorderableList>
   );
-});
+};
 
 /**
  * Renders a prop folder, i.e. the folder header, and its children (delegated to `PropsLevel`)
  */
-const PropFolderRow = observer(function PropFolderRow(props: {
+const PropFolderRow = function PropFolderRow(props: {
   studioCtx: StudioCtx;
   component: Component;
   viewCtx: ViewCtx;
-  node: PropFolderNode;
+  node: PropTreeFolderInput;
+  models: ModelSnapshots;
   draggable?: boolean;
   dragHandleProps?: DraggableProvidedDragHandleProps;
 }) {
   const { t: uiT } = useI18n();
 
-  const { studioCtx, component, viewCtx, node, draggable, dragHandleProps } =
-    props;
+  const {
+    studioCtx,
+    component,
+    viewCtx,
+    node,
+    models,
+    draggable,
+    dragHandleProps,
+  } = props;
   const { openNewPropModal, expandedFolders, toggleFolderExpanded } =
     usePropsTreeCtx();
   const isOpen = expandedFolders.has(node.path);
-  const leafCount = collectParams(node).length;
+  const leafCount = collectPropTreeParams(node).length;
   return (
     <>
       <RowGroup
@@ -311,13 +332,14 @@ const PropFolderRow = observer(function PropFolderRow(props: {
             component={component}
             viewCtx={viewCtx}
             siblings={node.children}
+            models={models}
             draggable={draggable}
           />
         </div>
       )}
     </>
   );
-});
+};
 
 /**
  * A leaf prop row

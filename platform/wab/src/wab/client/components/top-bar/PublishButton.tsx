@@ -12,18 +12,18 @@ import {
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { MainBranchId } from "@/wab/shared/ApiSchema";
-import { spawn, spawnWrapper } from "@/wab/shared/common";
+import { spawnWrapper } from "@/wab/shared/common";
 import { PlasmicIcon } from "@plasmicapp/react-web";
 import { Menu, Tooltip } from "antd";
-import L from "lodash";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
+import { useLatestPublishedRevisionNumber } from "@/wab/client/components/sidebar-tabs/versions-tab/useLatestPublishedRevisionNumber";
 import * as React from "react";
 
 interface PublishButtonProps extends DefaultPublishButtonProps {
   enable?: boolean;
 }
 
-export const PublishButton = observer(function PublishButton(
+export function PublishButton(
   props: PublishButtonProps,
 ) {
   const { t } = useI18n();
@@ -31,47 +31,27 @@ export const PublishButton = observer(function PublishButton(
   const appCtx = useAppCtx();
   const topFrameApi = useTopFrameApi();
 
-  // revision number of latest published version
-  const [latestPublishedRevNum, setLatestPublishedRevNum] =
-    React.useState<number>();
-
-  const latestPublishedVersion = L.head(studioCtx.releases);
-
-  React.useEffect(() => {
-    spawn(
-      (async () => {
-        const { rev: latestPublishedRev } = latestPublishedVersion
-          ? await appCtx.api.getProjectRevWithoutData(
-              studioCtx.siteInfo.id,
-              latestPublishedVersion.revisionId,
-              latestPublishedVersion.branchId ?? undefined,
-            )
-          : { rev: null };
-        setLatestPublishedRevNum(latestPublishedRev?.revision);
-      })(),
-    );
-  }, [appCtx, latestPublishedVersion]);
-
-  const redCircle =
-    studioCtx.releases.length > 0 &&
-    !!latestPublishedRevNum &&
-    latestPublishedRevNum < studioCtx.dbCtx().revisionNum;
+  const latestPublishedRevNum = useLatestPublishedRevisionNumber(studioCtx);
+  const hasReleases = useStore(studioCtx.versionHistory.store, (state) => state.releases.length > 0);
+  const currentRevisionNum = useStore(studioCtx.versionHistory.store, (state) => state.currentRevisionNum);
+  const projectName = useStore(studioCtx.projectMetadataStore, (state) => state.name);
+  const branchId = useStore(studioCtx.uiEnvironment.store, (state) => state.branchId);
+  const redCircle = hasReleases && !!latestPublishedRevNum && latestPublishedRevNum < currentRevisionNum;
 
   if (!props.enable) {
     return null;
   }
 
   const isPlasmicLevels =
-    studioCtx.siteInfo.name.includes("Plasmic Levels") &&
-    !studioCtx.siteInfo.name.endsWith("Primary Copy");
+    projectName.includes("Plasmic Levels") &&
+    !projectName.endsWith("Primary Copy");
 
-  const branchInfo = studioCtx.dbCtx().branchInfo;
 
   return (
     <>
       <PlasmicPublishButton
         menuButton={
-          !branchInfo
+          branchId === null
             ? { "aria-label": t("Publish menu") }
             : {
                 style: {
@@ -81,7 +61,7 @@ export const PublishButton = observer(function PublishButton(
                   return topFrameApi.setMergeModalContext({
                     subject: {
                       toBranchId: MainBranchId,
-                      fromBranchId: branchInfo.id,
+                      fromBranchId: branchId,
                     },
                   });
                 },
@@ -95,7 +75,7 @@ export const PublishButton = observer(function PublishButton(
                           await topFrameApi.setMergeModalContext({
                             subject: {
                               toBranchId: MainBranchId,
-                              fromBranchId: branchInfo.id,
+                              fromBranchId: branchId,
                             },
                           });
                         }}
@@ -107,7 +87,7 @@ export const PublishButton = observer(function PublishButton(
                         onClick={async () => {
                           await topFrameApi.setMergeModalContext({
                             subject: {
-                              toBranchId: branchInfo.id,
+                              toBranchId: branchId,
                               fromBranchId: MainBranchId,
                             },
                           });
@@ -143,7 +123,7 @@ export const PublishButton = observer(function PublishButton(
               }
         }
         button={
-          branchInfo
+          branchId !== null
             ? {
                 style: { display: "none" },
               }
@@ -196,6 +176,6 @@ export const PublishButton = observer(function PublishButton(
       )}
     </>
   );
-});
+}
 
 export default PublishButton;

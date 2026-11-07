@@ -5,10 +5,10 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { MutableToken, OverrideableToken } from "@/wab/shared/core/tokens";
 import { StyleToken } from "@/wab/shared/model/classes";
-import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
 
-export const TokenEditModal = observer(function TokenEditModal(props: {
+export const TokenEditModal = function TokenEditModal(props: {
   studioCtx: StudioCtx;
   token: MutableToken<StyleToken> | OverrideableToken<StyleToken>;
   onClose: () => void;
@@ -16,10 +16,11 @@ export const TokenEditModal = observer(function TokenEditModal(props: {
   vsh?: VariantedStylesHelper;
 }) {
   const { studioCtx, token, onClose, autoFocusName, vsh } = props;
+  const type = useStore(studioCtx.modelSnapshots.field(token.base, "type"));
 
   return (
     <>
-      {token.type === "Color" && (
+      {type === "Color" && (
         <ColorTokenPopup
           studioCtx={studioCtx}
           token={token}
@@ -30,7 +31,7 @@ export const TokenEditModal = observer(function TokenEditModal(props: {
         />
       )}
 
-      {token.type === "FontFamily" && (
+      {type === "FontFamily" && (
         <FontFamilyTokenEditModal
           studioCtx={studioCtx}
           token={token}
@@ -40,7 +41,7 @@ export const TokenEditModal = observer(function TokenEditModal(props: {
         />
       )}
 
-      {token.type !== "Color" && token.type !== "FontFamily" && (
+      {type !== "Color" && type !== "FontFamily" && (
         <GeneralTokenEditModal
           studioCtx={studioCtx}
           token={token}
@@ -51,4 +52,4 @@ export const TokenEditModal = observer(function TokenEditModal(props: {
       )}
     </>
   );
-});
+};

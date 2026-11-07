@@ -2,7 +2,7 @@ import { usePlasmicCanvasContext } from "@plasmicapp/host";
 import registerComponent, {
   CodeComponentMeta,
 } from "@plasmicapp/host/registerComponent";
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { ensure, useFirstRender, useId } from "./common";
 
 export interface EmbedProps {

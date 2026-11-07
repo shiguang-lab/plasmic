@@ -1,11 +1,12 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var host = require('@plasmicapp/host');
 var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
-var canvasOverlay = require('./canvas-overlay-CK330rTr.cjs.js');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var canvasOverlay = require('./canvas-overlay-DzKvKC8w.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
@@ -18,7 +19,7 @@ var React__default = /*#__PURE__*/_interopDefault(React);
 const tabsComponentName = "plasmic-antd6-tabs";
 const tabItemComponentName = "plasmic-antd6-tab-item";
 const AntdTabItem = ({ children }) => {
-  return /* @__PURE__ */ React__default.default.createElement("div", null, children);
+  return /* @__PURE__ */ jsxRuntime.jsx("div", { children });
 };
 function getTabItems(items) {
   return utils.asArray(items).flatMap((item) => {
@@ -44,7 +45,7 @@ function AntdTabs(props) {
     const observer = props.items;
     const renderItems = observer.props.children;
     return React__default.default.cloneElement(observer, {
-      children: (...args) => /* @__PURE__ */ React__default.default.createElement(
+      children: (...args) => /* @__PURE__ */ jsxRuntime.jsx(
         TabsWithItems,
         {
           ...props,
@@ -53,7 +54,7 @@ function AntdTabs(props) {
       )
     });
   }
-  return /* @__PURE__ */ React__default.default.createElement(TabsWithItems, { ...props });
+  return /* @__PURE__ */ jsxRuntime.jsx(TabsWithItems, { ...props });
 }
 function TabsWithItems(props) {
   const canvas = host.usePlasmicCanvasContext();
@@ -71,6 +72,7 @@ function TabsWithItems(props) {
     tabPlacement,
     tabsScopeClassName,
     tabsDropdownScopeClassName,
+    __canvas: _canvas,
     ...rest
   } = props;
   const animationProp = React.useMemo(
@@ -83,15 +85,16 @@ function TabsWithItems(props) {
   const tabItems = getTabItems(itemsRaw);
   const selectedKey = isEditing ? canvasOverlay.getSelectedCanvasItemKey(tabItems) : void 0;
   const items = tabItems.map((currentItem) => {
+    const { __canvas: _canvas2, ...itemProps } = currentItem.props;
     return {
-      ...currentItem.props,
+      ...itemProps,
       key: currentItem.key,
-      children: /* @__PURE__ */ React__default.default.createElement(React__default.default.Fragment, null, currentItem.props?.children)
+      children: /* @__PURE__ */ jsxRuntime.jsx(jsxRuntime.Fragment, { children: currentItem.props?.children })
     };
   }).filter((i) => i != null);
   const initialActiveKey = rest.activeKey ?? rest.defaultActiveKey;
   const activeKey = selectedKey !== void 0 && state ? state.reveal(String(selectedKey)) : rest.activeKey;
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant.Tabs,
     {
       className: cls__default.default(className, tabsScopeClassName),
@@ -121,7 +124,7 @@ function TabsWithItems(props) {
   );
 }
 function OutlineMessage() {
-  return /* @__PURE__ */ React__default.default.createElement("div", null, "Drag tabs in the outline to reorder them");
+  return /* @__PURE__ */ jsxRuntime.jsx("div", { children: "Drag tabs in the outline to reorder them" });
 }
 function registerTabs(loader) {
   utils.registerComponentHelper(loader, AntdTabs, {

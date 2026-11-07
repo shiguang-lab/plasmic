@@ -5,6 +5,7 @@ import {
   PlasmicDataPickerGlobalSearchResults,
 } from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDataPickerGlobalSearchResults";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import * as React from "react";
 
 // Your component props start with props for variants and slots you defined
@@ -42,7 +43,17 @@ function DataPickerGlobalSearchResults_(
   // By default, we are just piping all DataPickerGlobalSearchResultsProps here, but feel free
   // to do whatever works for you.
 
-  return <PlasmicDataPickerGlobalSearchResults root={{ ref }} {...props} />;
+  return (
+    <PlasmicDataPickerGlobalSearchResults
+      root={{
+        as: Scrollbar,
+        ref,
+        style: { overflow: "hidden", minHeight: 0 },
+        props: { scrollX: false },
+      }}
+      {...props}
+    />
+  );
 }
 
 const DataPickerGlobalSearchResults = React.forwardRef(

@@ -6,19 +6,14 @@ import {
   DefaultComponentsPanelProps,
   PlasmicComponentsPanel,
 } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicComponentsPanel";
-import {
-  isCodeComponent,
-  isFrameComponent,
-  isSubComponent,
-} from "@/wab/shared/core/components";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert } from "antd";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
 import * as React from "react";
 
 type ComponentsPanelProps = DefaultComponentsPanelProps;
 
-const ComponentsPanel = observer(function ComponentsPanel(
+function ComponentsPanel(
   props: ComponentsPanelProps,
 ) {
   const { t: studioUiT } = useI18n();
@@ -26,13 +21,8 @@ const ComponentsPanel = observer(function ComponentsPanel(
   const docsCtx = useDocsPortalCtx();
   const [query, setQuery] = React.useState("");
   const matcher = new Matcher(query);
-  const components = docsCtx.studioCtx.site.components.filter(
-    (c) =>
-      !isFrameComponent(c) &&
-      !isCodeComponent(c) &&
-      !isSubComponent(c) &&
-      matcher.matches(c.name),
-  );
+  const componentRows = useStore(docsCtx.models.getDirectoryStore(), (state) => state.components);
+  const components = componentRows.filter((component) => matcher.matches(component.name));
 
   return (
     <PlasmicComponentsPanel
@@ -51,7 +41,7 @@ const ComponentsPanel = observer(function ComponentsPanel(
       <>
         {components.map((comp) => (
           <ComponentListItem
-            key={comp.uid}
+            key={comp.ref.uid}
             component={comp}
             docsCtx={docsCtx}
           />
@@ -69,6 +59,6 @@ const ComponentsPanel = observer(function ComponentsPanel(
       </>
     </PlasmicComponentsPanel>
   );
-});
+}
 
 export default ComponentsPanel;

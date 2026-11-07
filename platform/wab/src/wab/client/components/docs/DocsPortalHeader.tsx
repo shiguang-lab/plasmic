@@ -10,8 +10,8 @@ import {
 import { useHistory } from "@/wab/client/route/HistoryProvider";
 import { asOne } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
-import { Observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
 
 type DocsPortalHeaderProps = DefaultDocsPortalHeaderProps;
 
@@ -28,18 +28,20 @@ function DocsPortalHeader(props: DocsPortalHeaderProps) {
   const { t: uiT } = useI18n();
   const history = useHistory();
   const docsCtx = useDocsPortalCtx();
+  const projectId = useStore(docsCtx.studioCtx.projectMetadataStore, (state) => state.id);
+  const codegenType = useStore(docsCtx.store, (state) => state.codegenType);
   return (
     <>
       <PlasmicDocsPortalHeader
         {...props}
         studioButton={{
           render: (ps) => {
-            const { ref, children, ...rest } = ps;
+            const { ref: _ref, children, ...rest } = ps;
             return (
               <PublicLink
                 {...rest}
                 href={APP_ROUTES.project.fill({
-                  projectId: docsCtx.studioCtx.siteInfo.id,
+                  projectId,
                 })}
                 children={asOne(children)}
               />
@@ -47,43 +49,31 @@ function DocsPortalHeader(props: DocsPortalHeaderProps) {
           },
         }}
         projectTokenButton={{
-          render: (ps, Comp) => (
-            <Observer>
-              {() => {
-                const codegenType = docsCtx.getCodegenType();
-                if (codegenType !== "loader") {
-                  return null;
-                }
-                return (
-                  <Comp
-                    {...ps}
-                    onClick={async () => {
-                      await showTemporaryInfo({
-                        title: uiT("Project token"),
-                        content: (
-                          <code>
-                            {docsCtx.studioCtx.siteInfo.projectApiToken}
-                          </code>
-                        ),
-                      });
-                    }}
-                  />
-                );
-              }}
-            </Observer>
-          ),
+          render: (ps, Comp) =>
+            codegenType === "loader" ? (
+              <Comp
+                {...ps}
+                onClick={async () => {
+                  await showTemporaryInfo({
+                    title: uiT("Project token"),
+                    content: (
+                      <code>{docsCtx.studioCtx.siteInfo.projectApiToken}</code>
+                    ),
+                  });
+                }}
+              />
+            ) : null,
         }}
         codegenType={{
           "aria-label": uiT("Codegen Type"),
-          value: docsCtx.getCodegenType(),
+          value: codegenType,
           onChange(newCodegenType) {
             if (newCodegenType !== "codegen" && newCodegenType !== "loader") {
               return;
             }
 
             const location = history.location;
-            const projectId = docsCtx.studioCtx.siteInfo.id;
-            const oldCodegenType = docsCtx.getCodegenType();
+                      const oldCodegenType = docsCtx.getCodegenType();
             const newPathname = location.pathname.replace(
               APP_ROUTES.projectDocsCodegenType.fill({
                 projectId,

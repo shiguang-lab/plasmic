@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/commerce-local",
-  "version": "0.0.264",
+  "version": "0.1.0",
   "description": "Local mock data provider for Plasmic commerce components.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -16,7 +16,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsdx build",
+    "build": "tsdx build && cp src/data.json dist/data.json",
     "start": "tsdx watch",
     "test": "tsdx test",
     "lint": "tsdx lint",
@@ -33,12 +33,12 @@
     "@types/node": "^14.18.63",
     "@types/react": "catalog:",
     "js-cookie": "^3.0.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "tsdx": "catalog:"
   },
   "peerDependencies": {
-    "@plasmicapp/host": ">=1.0.0",
-    "react": ">=16.8.0"
+    "@plasmicapp/host": "^3.0.0",
+    "react": "^19.3.1"
   }
 }

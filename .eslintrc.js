@@ -154,9 +154,6 @@ module.exports = {
     "plasmicpkgs/react-ui/skinny/",
     "vendor/react-ui/esm/",
 
-    // Examples lint themselves via their own `next lint`; also skipped in
-    // .lintstagedrc.js since eslint resolves `extends` before ignores.
-    "examples/",
     "internal/",
     "packages/host/src/type-utils.ts",
     "platform/canvas-packages/internal_pkgs/",
@@ -287,6 +284,11 @@ module.exports = {
   },
   parser: "@typescript-eslint/parser",
   overrides: [
+    {
+      files: ["platform/wab/src/wab/client/components/coding/CodeDisplayContent.tsx"],
+      plugins: ["react-hooks"],
+      rules: require("eslint-plugin-react-hooks").configs.recommended.rules,
+    },
     {
       // These packages register Antd for user projects; they cannot use Studio's Modal.
       files: [

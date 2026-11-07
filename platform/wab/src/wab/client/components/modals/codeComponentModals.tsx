@@ -712,7 +712,7 @@ function HostLessPackageForm({
         >
           <Textbox
             name="input"
-            placeholder="react-youtube"
+            placeholder="react-chartjs-2"
             data-test-id="hostless-name"
             styleType={["bordered"]}
             autoFocus
@@ -726,7 +726,7 @@ function HostLessPackageForm({
                 <div style={{ display: "flex", flexDirection: "row" }}>
                   <Form.Item name={field.name} style={{ width: "100%" }}>
                     <Textbox
-                      placeholder="@plasmicpkgs/react-youtube"
+                      placeholder="@plasmicpkgs/react-chartjs-2"
                       styleType={["bordered"]}
                       data-test-id="hostless-npm-pkg"
                     />

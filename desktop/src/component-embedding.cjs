@@ -51,7 +51,7 @@ class ComponentEmbedding {
     if (!manifest.files.some(entry => entry.name === MODEL.file && entry.sha256 === MODEL.sha256) || !manifest.files.some(entry => entry.name === (process.platform === "win32" ? "llama-server.exe" : "llama-server"))) throw new Error("Incomplete component embedding runtime");
     return true;
   }
-  prepare() { return this.verified ??= this.verify(); }
+  prepare() { return this.verified ??= this.verify().catch(error => { this.verified = null; throw error; }); }
   async start(signal) {
     if (this.closed) throw new Error("Component embeddings closed");
     signal.throwIfAborted(); clearTimeout(this.timer);
@@ -68,8 +68,9 @@ class ComponentEmbedding {
       "--ctx-size", "512", "--batch-size", "512", "--ubatch-size", "512", "--parallel", "1",
       "--threads", "2", "--threads-batch", "2", "--threads-http", "1", "--gpu-layers", "0", "--no-warmup",
       "--host", "127.0.0.1", "--port", String(port), "--api-key", this.key,
-    ], { cwd: this.directory, stdio: "ignore", windowsHide: true, env: { ...process.env, VECLIB_MAXIMUM_THREADS: "2" } });
-    let failure;
+    ], { cwd: this.directory, stdio: ["ignore", "ignore", "pipe"], windowsHide: true, env: { ...process.env, VECLIB_MAXIMUM_THREADS: "2" } });
+    let failure; let diagnostics = "";
+    child.stderr?.on("data", data => { diagnostics = (diagnostics + data.toString()).slice(-2000); });
     child.once("error", error => { failure = error; });
     child.once("exit", () => { if (this.child === child) this.child = null; });
     try {
@@ -82,7 +83,7 @@ class ComponentEmbedding {
         } catch (error) { if (signal.aborted) throw error; }
         await new Promise(resolve => setTimeout(resolve, 20));
       }
-      throw failure ?? new Error("Component model exited during startup");
+      throw failure ?? new Error("Component model exited during startup" + (diagnostics ? ": " + diagnostics.trim() : ""));
     } catch (error) { await this.stop(); throw error; }
   }
   async encode(text, { signal = AbortSignal.timeout(5000) } = {}) {

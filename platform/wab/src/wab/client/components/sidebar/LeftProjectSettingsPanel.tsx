@@ -55,11 +55,11 @@ import { isRenderFuncParam, isSlot } from "@/wab/shared/SlotUtils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Menu, notification, Tooltip } from "antd";
 import L from "lodash";
-import { autorun } from "mobx";
 import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
-import { DraggableProvidedDragHandleProps } from "react-beautiful-dnd";
+import { useStore } from "zustand";
+import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
 type ContextRowData = {
   tpl: TplComponent;
@@ -198,8 +198,9 @@ const ContextRow = observer(function ContextRow_(props: {
     ).length > 0;
   const componentName = getComponentDisplayName(context.component);
 
+  const targetComponent = useStore(studioCtx.modelSnapshots.field(tplComponent, "component"));
   React.useEffect(() => {
-    const dispose = autorun(() => {
+    const consumeRequest = () => {
       const forceOpenProp = studioCtx.forceOpenProp;
       if (forceOpenProp) {
         const [c] = forceOpenProp;
@@ -207,9 +208,11 @@ const ContextRow = observer(function ContextRow_(props: {
           setIsVisible(true);
         }
       }
-    });
+    };
+    const dispose = studioCtx.forceOpenPropStore.subscribe(consumeRequest);
+    consumeRequest();
     return dispose;
-  }, [studioCtx]);
+  }, [studioCtx, tplComponent, targetComponent]);
 
   const menu =
     context.projectDependency && !readOnly ? (

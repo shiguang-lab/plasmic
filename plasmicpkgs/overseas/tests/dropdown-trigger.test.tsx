@@ -6,7 +6,7 @@ import {
   screen,
   within,
 } from "@testing-library/react";
-import React from "react";
+
 import { afterEach, beforeAll, expect, test, vi } from "vitest";
 import { AntdDropdown } from "../../antd6/src/registerDropdown";
 import { ActionGroup } from "../../react-ui/src/registerActionGroup";
@@ -80,13 +80,13 @@ test("显式 click 的 Dropdown 仅在点击后打开", async () => {
   expect(await screen.findByRole("menuitem", { name: "复制" })).toBeTruthy();
 });
 
-test("ActionGroup 从触发器移入菜单保持打开，移出后关闭", async () => {
+test("ActionGroup 显式 hover 时从触发器移入菜单保持打开，移出后关闭", async () => {
   const onAction = vi.fn();
   const onOpenChange = vi.fn();
   render(
     <ActionGroup
       onAction={onAction}
-      dropdownProps={{ onOpenChange }}
+      dropdownProps={{ trigger: ["hover"], onOpenChange }}
       items={[
         { key: "detail", label: "详情" },
         { key: "edit", label: "编辑" },
@@ -110,10 +110,9 @@ test("ActionGroup 从触发器移入菜单保持打开，移出后关闭", async
   );
 });
 
-test("ActionGroup 允许需求明确指定 click", async () => {
+test("ActionGroup 默认仅在 click 时打开", async () => {
   render(
     <ActionGroup
-      dropdownProps={{ trigger: ["click"] }}
       max={1}
       items={[
         { key: "copy", label: "复制" },

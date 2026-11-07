@@ -1,12 +1,11 @@
+import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { PropType, usePlasmicCanvasContext } from "@plasmicapp/host";
 import { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 import * as Ant from "antd";
 import dayjs from "dayjs";
 import React from "react";
 import {
-  CanvasOverlayProps,
   getCanvasItems,
-  previewOpenProp,
   renderCanvasSlot,
   useCanvasOverlay,
 } from "./canvas-overlay";
@@ -63,9 +62,10 @@ export const AntdDescriptions = React.forwardRef<
       {...props}
       ref={ref}
       children={undefined}
-      items={getCanvasItems(children, (item) => item.type === AntdDescriptionsItem).map(
+      items={getCanvasItems(children, (item) => item.type === AntdDescriptionsItem)
+        .filter(React.isValidElement<React.ComponentProps<typeof AntdDescriptionsItem> & PlasmicCanvasProps>).map(
         (item, index) => {
-          const { __plasmic_selection_prop__: _selection, ...itemProps } = item.props;
+          const { __canvas: _selection, ...itemProps } = item.props;
           return { ...itemProps, key: item.key ?? String(index) };
         }
       )}
@@ -107,7 +107,7 @@ export const AntdLayoutContent: typeof Ant.Layout.Content = Ant.Layout.Content;
 export const AntdLayoutSider: typeof Ant.Layout.Sider = Ant.Layout.Sider;
 export const AntdMentions: typeof Ant.Mentions = Ant.Mentions;
 export function AntdPopconfirm(
-  props: React.ComponentProps<typeof Ant.Popconfirm> & CanvasOverlayProps,
+  props: React.ComponentProps<typeof Ant.Popconfirm> & PlasmicCanvasProps,
 ) {
   const {
     props: rest,
@@ -625,8 +625,8 @@ export function registerAdditional(loader?: Registerable) {
         name: "plasmic-antd6-descriptions-item",
         props: {
           key: "name",
-          label: [{ type: "text", value: "Name" }],
-          children: [{ type: "text", value: "Example" }],
+          label: "Name",
+          children: "Example",
         },
       }],
     },
@@ -639,8 +639,8 @@ export function registerAdditional(loader?: Registerable) {
   }, { description: "Display grouped read-only label/value fields in details, drawers, confirmations or create/edit summaries. Use alongside Form for mixed read-only and editable content; use Statistic for emphasized metrics." });
   register(loader, AntdDescriptionsItem, "descriptions-item", "AntdDescriptionsItem", {
     key: { type: "string", description: "A stable field key within this Descriptions." },
-    label: { ...slot("Label"), hidePlaceholder: true },
-    children: { ...slot("Value"), displayName: "Content", hidePlaceholder: true },
+    label: { ...slot("Label"), hidePlaceholder: true, mergeWithParent: true },
+    children: { ...slot("Value"), displayName: "Content", hidePlaceholder: true, mergeWithParent: true },
     span: { type: "number", min: 1, defaultValueHint: 1, description: "Columns occupied by this field." },
     ...descriptionsItemAppearance,
   }, { description: "Editable label and content for a read-only field. Converted to a native Descriptions items entry at runtime." });
@@ -833,7 +833,6 @@ export function registerAdditional(loader?: Registerable) {
     "popconfirm",
     "AntdPopconfirm",
     {
-      previewOpen: previewOpenProp,
       icon: { type: "slot", hidePlaceholder: true },
       children: slot("Delete"),
       title: { ...slot("Delete this item?"), hidePlaceholder: true },

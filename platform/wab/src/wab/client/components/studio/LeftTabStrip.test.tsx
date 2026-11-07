@@ -2,6 +2,7 @@ import LeftTabStrip from "@/wab/client/components/studio/LeftTabStrip";
 import "@testing-library/jest-dom/vitest";
 import {
   cleanup,
+  act,
   fireEvent,
   render,
   screen,
@@ -9,9 +10,13 @@ import {
 } from "@testing-library/react";
 import { observable } from "mobx";
 import React from "react";
+import { createStore } from "zustand/vanilla";
+import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
+import { StudioLeftPanelState } from "@/wab/client/studio-ctx/left-panel-state";
 const mocks = vi.hoisted(() => ({
   ctx: undefined as any,
   toggleAi: vi.fn().mockResolvedValue(undefined),
+  getUiConfig: vi.fn(),
   importFigmaFile: vi.fn().mockResolvedValue(undefined),
   importPenFile: vi.fn().mockResolvedValue(undefined),
 }));
@@ -60,50 +65,103 @@ vi.mock("@/wab/client/components/studio/LeftTabButton", () => ({
 }));
 beforeEach(() => {
   mocks.toggleAi.mockClear();
+  mocks.getUiConfig.mockClear().mockImplementation(() => mocks.ctx.config);
   mocks.importFigmaFile.mockClear();
   mocks.importPenFile.mockClear();
-  mocks.ctx = observable({
-    appCtx: { selfInfo: {} },
-    site: { globalContexts: [] },
-    fontManager: { missingUsedFonts: () => [] },
-    contentEditorMode: false,
-    leftTabKey: undefined as string | undefined,
-    libraryTab: "imports",
-    setLibraryTab(tab: string) {
-      this.libraryTab = tab;
+  const tools = createStore<"select" | "pan">(() => "select");
+  const tabs = createStore<"store" | "imports">(() => "imports");
+  const leftPanelState = new StudioLeftPanelState();
+  leftPanelState.setPanel({ type: "insert", inline: false });
+  mocks.ctx = observable(
+    {
+      ...createStudioUiEnvironmentFixture({ hasUserInfo: true }),
+      appCtx: { selfInfo: {} },
+      site: { globalContexts: [] },
+      fontManager: { store: createStore(() => ({ missingUsedFonts: [] })) },
+      contentEditorMode: false,
+      leftPanelState,
+      get leftTabKey() {
+        return leftPanelState.leftTabKey;
+      },
+      set leftTabKey(tab: string | undefined) {
+        leftPanelState.setPanel(
+          tab ? { type: "tab", tab: tab as any } : undefined,
+        );
+      },
+      libraryTabStore: tabs,
+      get libraryTab() {
+        return tabs.getState();
+      },
+      setLibraryTab(tab: "store" | "imports") {
+        tabs.setState(tab, true);
+      },
+      get leftTabGroup() {
+        return leftPanelState.leftTabGroup;
+      },
+      set leftTabGroup(group: string | undefined) {
+        leftPanelState.setLeftTabGroup(group);
+      },
+      setLeftTabGroup(group: string | undefined) {
+        leftPanelState.setLeftTabGroup(group);
+      },
+      get panelsHidden() {
+        return leftPanelState.panelsHidden;
+      },
+      set panelsHidden(hidden: boolean) {
+        leftPanelState.setPanelsHidden(hidden);
+      },
+      get drawer() {
+        return leftPanelState.showAddDrawer();
+      },
+      set drawer(show: boolean) {
+        if (show) {
+          leftPanelState.setPanel({ type: "insert", inline: false });
+        } else if (leftPanelState.showAddDrawer()) {
+          leftPanelState.setPanel(undefined);
+        }
+      },
+      canvasToolStore: tools,
+      setCanvasTool(tool: "select" | "pan") {
+        tools.setState(tool, true);
+      },
+      get isCopilotChatOpen() {
+        return leftPanelState.isCopilotChatOpen;
+      },
+      set isCopilotChatOpen(open: boolean) {
+        if (open) {
+          leftPanelState.setPanel({ type: "ai" });
+        } else if (leftPanelState.isCopilotChatOpen) {
+          leftPanelState.setPanel(undefined);
+        }
+      },
+      config: {} as any,
+      getCurrentUiConfig: mocks.getUiConfig,
+      showAddDrawer() {
+        return leftPanelState.showAddDrawer();
+      },
+      setShowAddDrawer(show: boolean) {
+        if (show) {
+          leftPanelState.setPanel({ type: "insert", inline: false });
+        } else if (leftPanelState.showAddDrawer()) {
+          leftPanelState.setPanel(undefined);
+        }
+      },
+      changeUnsafe: async (fn: () => any) => fn(),
+      switchLeftTab(tab: string | undefined) {
+        if (tab) {
+          leftPanelState.setPanel({ type: "tab", tab: tab as any });
+        } else if (leftPanelState.leftTabKey) {
+          leftPanelState.setPanel(undefined);
+        }
+      },
+      togglePanels() {
+        leftPanelState.togglePanels();
+      },
+      toggleCopilotChat: mocks.toggleAi,
+      chatCopilotEnabled: () => false,
     },
-    leftTabGroup: undefined as string | undefined,
-    setLeftTabGroup(group: string | undefined) {
-      this.leftTabGroup = group;
-    },
-    panelsHidden: false,
-    drawer: true,
-    canvasTool: "select",
-    isCopilotChatOpen: false,
-    config: {} as any,
-    getCurrentUiConfig() {
-      return this.config;
-    },
-    showAddDrawer() {
-      return this.drawer;
-    },
-    setShowAddDrawer(show: boolean) {
-      this.drawer = show;
-    },
-    changeUnsafe: async (fn: () => any) => fn(),
-    switchLeftTab(tab: string | undefined) {
-      this.leftTabKey = tab;
-      if (tab) {
-        this.leftTabGroup = undefined;
-        this.isCopilotChatOpen = false;
-      }
-    },
-    togglePanels() {
-      this.panelsHidden = !this.panelsHidden;
-    },
-    toggleCopilotChat: mocks.toggleAi,
-    chatCopilotEnabled: () => false,
-  });
+    { leftPanelState: observable.ref },
+  );
 });
 afterEach(cleanup);
 it.each([false, true])(
@@ -248,15 +306,22 @@ it("places Libraries after Assets and opens its two secondary choices", async ()
   expect(mocks.ctx.leftTabGroup).toBeUndefined();
   expect(entry).not.toHaveAttribute("aria-current");
 });
-it("does not highlight Libraries when its panel is hidden or covered by Insert", () => {
-  mocks.ctx.leftTabKey = "libraries";
+it("does not highlight Libraries when its panel is hidden or covered by the tour Insert panel", () => {
+  mocks.ctx.leftPanelState.setPanel({ type: "tab", tab: "libraries" });
+  mocks.ctx.panelsHidden = true;
   const { unmount } = render(<LeftTabStrip useVersionsCTA={false} />);
   expect(screen.getByRole("button", { name: "Libraries" })).not.toHaveAttribute(
     "aria-current",
   );
   unmount();
-  mocks.ctx.drawer = false;
-  mocks.ctx.panelsHidden = true;
+  mocks.ctx.panelsHidden = false;
+  mocks.ctx.leftPanelState.setOnboardingTourState({
+    run: true,
+    stepIndex: 0,
+    tour: "",
+    triggers: [],
+    flags: { forceAddDrawerOpen: true },
+  });
   render(<LeftTabStrip useVersionsCTA={false} />);
   expect(screen.getByRole("button", { name: "Libraries" })).not.toHaveAttribute(
     "aria-current",
@@ -305,8 +370,11 @@ it.each(["hidden", "anonymous"])(
   async (access) => {
     if (access === "hidden") {
       mocks.ctx.config = { leftTabs: { imports: "hidden" } };
+      const state = mocks.ctx.uiEnvironment.store.getState();
+      mocks.ctx.uiEnvironment.store.setState({ leftTabPermissions: Object.freeze({ ...state.leftTabPermissions, imports: "hidden" }) });
     } else {
       mocks.ctx.appCtx.selfInfo = null;
+      mocks.ctx.uiEnvironment.store.setState({ hasUserInfo: false });
     }
     render(<LeftTabStrip useVersionsCTA={false} />);
     fireEvent.click(screen.getByRole("button", { name: "Libraries" }));
@@ -353,7 +421,7 @@ it.each([
   "highlights only %s when Libraries is open with that active tab",
   async (tab, activeLabel, inactiveLabel) => {
     mocks.ctx.leftTabKey = "libraries";
-    mocks.ctx.libraryTab = tab;
+    mocks.ctx.setLibraryTab(tab);
     mocks.ctx.drawer = false;
     mocks.ctx.leftTabGroup = "libraries";
     render(<LeftTabStrip useVersionsCTA={false} />);
@@ -366,7 +434,7 @@ it.each([
 
 it("switches library destination without closing panel when another choice is selected", async () => {
   mocks.ctx.leftTabKey = "libraries";
-  mocks.ctx.libraryTab = "store";
+  mocks.ctx.setLibraryTab("store");
   mocks.ctx.drawer = false;
   mocks.ctx.leftTabGroup = "libraries";
   render(<LeftTabStrip useVersionsCTA={false} />);
@@ -377,9 +445,26 @@ it("switches library destination without closing panel when another choice is se
   expect(mocks.ctx.leftTabKey).toBe("libraries");
 });
 
+it("tracks a library tab command while the menu remains open and every legacy field is unchanged", async () => {
+  mocks.ctx.leftTabKey = "libraries";
+  mocks.ctx.setLibraryTab("imports");
+  mocks.ctx.drawer = false;
+  mocks.ctx.leftTabGroup = "libraries";
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  const imported = await screen.findByRole("button", { name: "Imported projects" });
+  const store = screen.getByRole("button", { name: "Component store" });
+  expect(imported).toHaveAttribute("aria-current", "true");
+  act(() => { mocks.ctx.setLibraryTab("store"); });
+  expect(store).toHaveAttribute("aria-current", "true");
+  expect(imported).not.toHaveAttribute("aria-current");
+  act(() => { mocks.ctx.uiEnvironment.store.setState({ hasUserInfo: false }); });
+  expect(screen.queryByRole("button", { name: "Imported projects" })).toBeNull();
+  expect(store).toHaveAttribute("aria-current", "true");
+});
+
 it("keeps panel open when currently active library choice is clicked again", async () => {
   mocks.ctx.leftTabKey = "libraries";
-  mocks.ctx.libraryTab = "store";
+  mocks.ctx.setLibraryTab("store");
   mocks.ctx.drawer = false;
   mocks.ctx.leftTabGroup = "libraries";
   render(<LeftTabStrip useVersionsCTA={false} />);
@@ -395,15 +480,11 @@ it("switches destination in Assets menu and clicking active item keeps panel ope
   mocks.ctx.drawer = false;
   mocks.ctx.leftTabGroup = "assets";
   render(<LeftTabStrip useVersionsCTA={false} />);
-  fireEvent.click(
-    await screen.findByRole("button", { name: "Components" }),
-  );
+  fireEvent.click(await screen.findByRole("button", { name: "Components" }));
   expect(mocks.ctx.leftTabKey).toBe("components");
 
   mocks.ctx.leftTabGroup = "assets";
-  fireEvent.click(
-    await screen.findByRole("button", { name: "Components" }),
-  );
+  fireEvent.click(await screen.findByRole("button", { name: "Components" }));
   expect(mocks.ctx.leftTabKey).toBe("components");
 });
 
@@ -416,3 +497,21 @@ it("toggles panel closed only when rail button is clicked directly", async () =>
   expect(mocks.ctx.leftTabKey).toBeUndefined();
 });
 
+it("updates the native tool buttons without recomputing the menu rail", () => {
+  const getConfig = mocks.getUiConfig;
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  const count = getConfig.mock.calls.length;
+  const select = screen.getByRole("button", { name: "Select" });
+  const pan = screen.getByRole("button", { name: "Pan" });
+  expect(select.getAttribute("aria-current")).toBe("true");
+  fireEvent.click(pan);
+  expect(pan.getAttribute("aria-current")).toBe("true");
+  expect(select.getAttribute("aria-current")).toBeNull();
+  // Closing the initially-open Insert drawer is an existing menu update.
+  const afterDrawer = getConfig.mock.calls.length;
+  expect(afterDrawer).toBeGreaterThanOrEqual(count);
+  fireEvent.click(select);
+  expect(select.getAttribute("aria-current")).toBe("true");
+  expect(pan.getAttribute("aria-current")).toBeNull();
+  expect(getConfig).toHaveBeenCalledTimes(afterDrawer);
+});

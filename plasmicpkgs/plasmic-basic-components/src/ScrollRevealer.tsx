@@ -1,20 +1,14 @@
 import registerComponent, {
   CodeComponentMeta,
 } from "@plasmicapp/host/registerComponent";
-import React, {
-  ReactNode,
-  RefObject,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { ReactNode, RefObject, useEffect, useRef, useState, } from "react";
 
 export function useDirectionalIntersection({
   ref,
   scrollDownThreshold = 0.5,
   scrollUpThreshold = 0,
 }: {
-  ref: RefObject<HTMLElement>;
+  ref: RefObject<HTMLElement | null>;
   scrollDownThreshold?: number;
   scrollUpThreshold?: number;
 }) {

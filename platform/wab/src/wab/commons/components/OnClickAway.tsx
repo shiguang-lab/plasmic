@@ -5,7 +5,7 @@ import { useEvent } from "react-use";
 
 export interface OnClickAwayProps {
   onDone: () => void;
-  children: ReactElement;
+  children: ReactElement<{ onPointerDown?: React.PointerEventHandler }>;
 }
 
 export function OnClickAway({ onDone, children }: OnClickAwayProps) {

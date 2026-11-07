@@ -177,6 +177,7 @@ import { makeSplitsProviderBundle } from "@/wab/shared/codegen/react-p/splits";
 import {
   serializeInitFunc,
   serializeStateSpecs,
+  shouldSerializeState,
 } from "@/wab/shared/codegen/react-p/states";
 import { makeStyleTokensProviderBundle } from "@/wab/shared/codegen/react-p/style-tokens-provider";
 import {
@@ -1093,17 +1094,6 @@ ${
     : serializeRootServerQueryTree(ctx)
 }
 
-${
-  isPage && ctx.exportOpts.platform === "gatsby"
-    ? `export function Head() {
-      return (
-        <>
-          ${renderPageHead(ctx, component)}
-        </>
-      );
-    }`
-    : ""
-}
 
 ${
   // We wrap Next.js useRouter() in a try...catch to avoid "next router
@@ -1298,7 +1288,6 @@ export function nodeJsName(component: Component, node: TplNode) {
 
 function renderFullViewportStyle(ctx: SerializerBaseContext): string {
   if (
-    ctx.exportOpts.platform === "gatsby" ||
     isPlatformNextJs(ctx) ||
     ctx.exportOpts.platform === "tanstack"
   ) {
@@ -1890,7 +1879,7 @@ function serializeTplTag(ctx: SerializerBaseContext, node: TplTag) {
 
 export function makeComponentAliases(
   referencedComps: Component[],
-  platform: "react" | "nextjs" | "gatsby" | "tanstack",
+  platform: "react" | "nextjs" | "tanstack",
 ) {
   const aliases = new Map<Component, string>();
   const usedNames = new Set<string>(getPlatformImportComponents(platform));
@@ -1989,7 +1978,8 @@ function makeCreatePlasmicElement(
   const statesUsingCtx = ctx.component.states.filter((state) => {
     if (
       state.tplNode !== node ||
-      (state.implicitState && isReadonlyState(state.implicitState))
+      (state.implicitState && isReadonlyState(state.implicitState)) ||
+      !shouldSerializeState(ctx.component, state)
     ) {
       return false;
     }
@@ -2023,7 +2013,7 @@ function makeCreatePlasmicElement(
       : "undefined";
   const codeComponentStates = isTplCodeComponent(node)
     ? ctx.component.states.filter(
-        (state) => state.implicitState && state.tplNode === node,
+        (state) => state.implicitState && state.tplNode === node && shouldSerializeState(ctx.component, state),
       )
     : [];
   return `(() => {
@@ -2170,7 +2160,7 @@ export function serializeTplComponentBase(
   if (!isFakeTpl) {
     const builtinEventHandlers: Record<string, string[]> = {};
     ctx.component.states
-      .filter((state) => state.tplNode === node)
+      .filter((state) => state.tplNode === node && shouldSerializeState(ctx.component, state))
       .forEach((state) => {
         assert(
           !!state.implicitState,
@@ -2827,16 +2817,6 @@ function serializePageAwareSkeletonWrapperTs(
         </PageParamsProvider__>
       </PlasmicQueryDataProvider>`;
     }
-  } else if (opts.platform === "gatsby") {
-    plasmicModuleImports.push("Head");
-    componentPropsSig = `{ location, path, params }: PageProps`;
-    content = `<PageParamsProvider__
-      route={path}
-      params={params}
-      query={Object.fromEntries(new URLSearchParams(location.search))}
-    >
-      ${content}
-    </PageParamsProvider__>`;
   } else if (opts.platform === "tanstack") {
     const headOptionsImport = `${nodeComponentNameImport}__HeadOptions`;
     plasmicModuleImports.push(headOptionsImport);
@@ -2906,10 +2886,7 @@ function serializePageAwareSkeletonWrapperTs(
       isNextJs
         ? `// Next.js Custom App component
            // (https://nextjs.org/docs/advanced-features/custom-app).`
-        : opts.platform === "gatsby"
-          ? `// Gatsby "wrapRootElement" function
-           // (https://www.gatsbyjs.com/docs/reference/config-files/gatsby-ssr#wrapRootElement).`
-          : opts.platform === "tanstack"
+        : opts.platform === "tanstack"
             ? `// TanStack Router __root Route
            // (https://tanstack.com/router/latest/docs/framework/react/guide/tanstack-start#the-root-of-your-application).`
             : `// a component that wraps all page components of your application.`
@@ -2954,10 +2931,7 @@ function serializePageAwareSkeletonWrapperTs(
         ? ctx.useRSC
           ? getAppRouterSkeletonImports(ctx)
           : getPageRouterSkeletonImports(ctx, isDynamicRoute)
-        : isPageComponent(component) && opts.platform === "gatsby"
-          ? `import type { PageProps } from "gatsby";
-        export { Head };`
-          : isPageComponent(component) && opts.platform === "tanstack"
+        : isPageComponent(component) && opts.platform === "tanstack"
             ? getTanStackSkeletonImports(ctx)
             : ""
     }
@@ -3301,15 +3275,18 @@ function conditionalComponentArgs(
 ) {
   const component = node.component;
   const param2variant: Record<string, [Expr, VariantCombo][]> = {};
+  const passedToCodeComponent = isCodeComponent(component);
 
   const params = [
     ...getRealParams(component),
     ...getVariantParams(component),
   ].filter(
     (p) =>
-      ctx.exportOpts.forceAllProps || p.exportType === ParamExportType.External,
+      // Preview needs internal design props, but editor-only code-component
+      // props must never reach the real runtime component.
+      (!passedToCodeComponent || p.exportType !== ParamExportType.ToolsOnly) &&
+      (ctx.exportOpts.forceAllProps || p.exportType === ParamExportType.External),
   );
-  const passedToCodeComponent = isCodeComponent(component);
   const variantArgNames = new Set<string>();
   for (const vs of getOrderedExplicitVSettings(ctx, node)) {
     for (const attrName of L.keys(vs.attrs)) {

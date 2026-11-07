@@ -1,9 +1,8 @@
+import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { Drawer } from "antd";
 import classNames from "classnames";
 import React from "react";
 import {
-  CanvasOverlayProps,
-  previewOpenProp,
   useCanvasOverlay,
 } from "./canvas-overlay";
 import { Registerable, registerComponentHelper } from "./utils";
@@ -12,7 +11,7 @@ const canvasOverlay = {};
 
 export function AntdDrawer(
   props: React.ComponentProps<typeof Drawer> &
-    CanvasOverlayProps & {
+    PlasmicCanvasProps & {
       onOpenChange?: (open: boolean) => void;
       defaultStylesClassName?: string;
       drawerScopeClassName?: string;
@@ -70,7 +69,6 @@ export function registerDrawer(loader?: Registerable) {
     canvasOverlay,
     displayName: "Drawer",
     props: {
-      previewOpen: previewOpenProp,
       open: {
         type: "boolean",
       },

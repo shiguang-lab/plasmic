@@ -1,0 +1,118 @@
+{
+  "milestone": "u39p-final2",
+  "roundUniqueChangedFiles": 118,
+  "status": "all current-round gates passed; paused at explicit user request",
+  "identity": {
+    "sourceHash": "62d42981a97bfba93d2a36a0d86b996ea6a6cfe33ebeb0d6754f85352da929a5",
+    "rendererHash": "d5b15c86b816507330a9fba99a1355e43a5cb40e3f5d1b92b992d33796db1eeb",
+    "desktopHash": "41f350907824d9a2275ab1dabaedb277a6848f4f5f0571601e0fbdec46fe0167",
+    "files": 834,
+    "bytes": 105092946,
+    "studioArtifactHash": "e4c1c528dfbe1c00fc425a06d392e719970e5ca75d75021ffc56540e2672445d",
+    "reactCompiler": {
+      "enabled": true,
+      "target": "19",
+      "compilationMode": "annotation",
+      "files": [
+        "src/wab/client/components/coding/CodeDisplayContent.tsx",
+        "src/wab/client/components/top-bar/DesktopDraftDialog.tsx",
+        "src/wab/client/components/canvas/Multiplayer/FollowingPlayer.tsx",
+        "src/wab/client/components/dashboard/SettingsPage.tsx",
+        "src/wab/client/components/comments/CommentsDialogs.tsx",
+        "src/wab/client/components/comments/RootComment.tsx",
+        "src/wab/client/components/sidebar-tabs/ModelNameHeader.tsx",
+        "src/wab/client/components/sidebar-tabs/PageMetaPanel.tsx",
+        "src/wab/client/components/sidebar-tabs/PageParamsPanel.tsx",
+        "src/wab/client/components/live/Preview.tsx"
+      ]
+    }
+  },
+  "native": {
+    "gp": {
+      "cases": 5,
+      "reopen": true,
+      "viewportChecks": 7,
+      "rendererErrors": 0,
+      "previewErrors": 0,
+      "draftChecks": 3,
+      "docsModes": 2,
+      "docsModelsPerMode": 50,
+      "typeScriptDiagnostics": 0
+    },
+    "complex": {
+      "cases": 6,
+      "reopen": true,
+      "viewportChecks": 7,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    "sourceHash": "62d42981a97bfba93d2a36a0d86b996ea6a6cfe33ebeb0d6754f85352da929a5"
+  },
+  "typesBuildAssetsArchive": {
+    "exitCode": 0,
+    "log": "/tmp/plasmic-react19-20261105/u39p-final2-build-pipeline-1.log"
+  },
+  "finalCorrection": {
+    "reason": "Synthetic flex-reverse indicator key was incorrectly passed to full CSS cell initial lookup; retain original genuine Switch observer until complete native indicator-only contract",
+    "productionDelta": "/tmp/plasmic-react19-20261105/q-switch-indicator-revert-delta",
+    "testDelta": "/tmp/plasmic-react19-20261105/round-switch-test-scope-delta",
+    "originalEditAssertionsPreserved": true,
+    "nativeCheckboxToggleFallbackGuard": "still throws; original Switch calls actual original indicator with explicit assertion",
+    "tests": {
+      "files": 2,
+      "passed": 3,
+      "failed": 0,
+      "unhandled": 0,
+      "log": "/tmp/plasmic-react19-20261105/round-switch-final-tests.log"
+    },
+    "typedLint": {
+      "files": 2,
+      "errors": 0,
+      "warnings": 1,
+      "log": "/tmp/plasmic-react19-20261105/round-switch-final-lint.log"
+    }
+  },
+  "fullStudio": {
+    "sourceHash": "62d42981a97bfba93d2a36a0d86b996ea6a6cfe33ebeb0d6754f85352da929a5",
+    "exitCode": 0,
+    "seconds": 1376.54,
+    "summary": [
+      "Test Files  716 passed (716)",
+      "Tests  5273 passed | 4 skipped (5277)",
+      "Duration  1372.70s (transform 82.71s, setup 525.54s, import 1353.99s, tests 648.74s, environment 147.03s)"
+    ],
+    "failedSuites": [],
+    "sourceUnchanged": true,
+    "files": 716,
+    "filesPassed": 716,
+    "filesFailed": 0,
+    "tests": 5277,
+    "passed": 5273,
+    "failed": 0,
+    "skipped": 4,
+    "unhandled": 0,
+    "existingSkipsOnly": true,
+    "log": "/tmp/plasmic-react19-20261105/u39p-final2-full-studio.log"
+  },
+  "priorFailedProofPreserved": [
+    "u39p-full-studio-result.json",
+    "u39p-final-interrupted-for-regression.json"
+  ],
+  "compilerScope": "ON target19 annotation10files",
+  "migration": "incomplete",
+  "pause": "effective after full green; subagents and DeepSeek all completed; no new migrations running",
+  "unappliedDrafts": [
+    "lint-domain-native-private11",
+    "frame-layout-native-private6"
+  ],
+  "sourceUnchangedAfterNativeAndFull": true,
+  "live118FilesMatchFrozenExactly": true,
+  "rawRemainingInventory": {
+    "remainingFiles": 221,
+    "byKind": {
+      "source": 178,
+      "test": 42,
+      "tooling": 1
+    }
+  }
+}

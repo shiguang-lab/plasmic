@@ -2,7 +2,7 @@ import { PlasmicCanvasHost } from "@plasmicapp/host";
 import * as Antd6 from "antd";
 import localeEnUS from "antd/es/locale/en_US";
 import localeZhCN from "antd/es/locale/zh_CN";
-import * as React from "react";
+
 import { createRoot } from "react-dom/client";
 import { StudioControlsProvider } from "./studio-controls-provider";
 

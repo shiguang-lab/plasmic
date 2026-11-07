@@ -833,7 +833,7 @@ type DistributedKeyOf<T> = T extends any ? keyof T : never;
 
 interface SiteCtx {
   projectId: string;
-  platform: "nextjs" | "gatsby" | "react" | "tanstack";
+  platform: "nextjs" | "react" | "tanstack";
   projectFlags: DevFlagsType;
   inStudio: boolean;
 }
@@ -1296,9 +1296,7 @@ export const initBuiltinActions = (siteCtx: SiteCtx) =>
           ${
             siteCtx.platform === "nextjs"
               ? "__nextRouter?.push"
-              : siteCtx.platform === "gatsby"
-                ? "__gatsbyNavigate"
-                : "location.assign"
+              : "location.assign"
           }(destination);
         }
       }`,

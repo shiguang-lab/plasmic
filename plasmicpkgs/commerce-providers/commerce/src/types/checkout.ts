@@ -2,7 +2,7 @@
   Forked from https://github.com/vercel/commerce/tree/main/packages/commerce/src
   Changes: None
 */
-import type { UseSubmitCheckout } from '../checkout/use-submit-checkout'
+import type { MutationHook } from '../utils/types'
 import type { Address, AddressFields } from './customer/address'
 import type { Card, CardFields } from './customer/card'
 
@@ -30,7 +30,7 @@ export type GetCheckoutHook<T extends CheckoutTypes = CheckoutTypes> = {
   input: {}
   fetcherInput: { cartId?: string }
   swrState: { isEmpty: boolean }
-  mutations: { submit: UseSubmitCheckout }
+  mutations: { submit: ReturnType<MutationHook<SubmitCheckoutHook>['useHook']> }
 }
 
 export type CheckoutHooks<T extends CheckoutTypes = CheckoutTypes> = {

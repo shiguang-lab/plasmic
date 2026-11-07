@@ -1,3 +1,4 @@
+import type { MockInstance } from "vitest";
 import { message } from "antd";
 import { mock } from "vitest-mock-extended";
 import { showError } from "@/wab/client/ErrorNotifications";
@@ -5,7 +6,9 @@ vi.mock("@/wab/client/ErrorNotifications", async (original) => ({
   ...(await original<typeof import("@/wab/client/ErrorNotifications")>()),
   showError: vi.fn(),
 }));
-import { AppCtx } from "@/wab/client/app-ctx";
+import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { deepMerged } from "@/wab/commons/collections";
+import type { GetProjectResponse } from "@/wab/shared/ApiSchema";
 import { SiteOps } from "@/wab/client/components/canvas/site-ops";
 import { ResourceUpload } from "@/wab/client/components/insert-panel/ResourceUpload";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -20,44 +23,32 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { observable } from "mobx";
-import { Result } from "neverthrow";
 import React from "react";
 const mocks = vi.hoisted(() => ({
   read: vi.fn(),
   upload: vi.fn(),
   create: vi.fn(),
-  changed: vi.fn(),
   uploaded: vi.fn(),
 }));
-vi.mock("@/wab/client/dom-utils", () => ({
+vi.mock("@/wab/client/dom-utils", async (original) => ({
+  ...(await original<typeof import("@/wab/client/dom-utils")>()),
   readAndSanitizeFileAsImage: mocks.read,
   maybeUploadImage: mocks.upload,
 }));
-vi.mock("@/wab/client/i18n", () => ({
+vi.mock("@/wab/client/i18n", async (original) => ({
+  ...(await original<typeof import("@/wab/client/i18n")>()),
   useI18n: () => ({ t: (value: string) => value }),
 }));
-const state = observable({
-  editable: true,
-  permission: "writable" as UiAccess,
-});
-const siteOpsFixture: Pick<SiteOps, "createImageAsset"> = {
-  createImageAsset: mocks.create,
-};
-const studioFixture: Pick<
-  StudioCtx,
-  "appCtx" | "canSave" | "getLeftTabPermission" | "change" | "siteOps"
-> = {
-  appCtx: {} as AppCtx,
-  canSave: () => state.editable,
-  getLeftTabPermission: () => state.permission,
-  change: async <E, T>(fn: () => Result<T, E>) => {
-    mocks.changed();
-    return fn();
-  },
-  siteOps: () => siteOpsFixture as SiteOps,
-};
-const studioCtx = studioFixture as StudioCtx;
+let studioCtx: StudioCtx;
+let api: ReturnType<typeof fakeStudioCtx>["api"];
+let changed: MockInstance<StudioCtx["change"]>;
+async function setPermission(permission: UiAccess) {
+  api.getSiteInfo.mockResolvedValueOnce(Object.assign(mock<GetProjectResponse>(), {
+    project: { ...studioCtx.siteInfo, uiConfig: deepMerged(studioCtx.getCurrentUiConfig(), { leftTabs: { images: permission, imagesSection: permission, iconsSection: permission } }) },
+    perms: [], owner: undefined, latestRevisionSynced: 0, hasAppAuth: false, appAuthProvider: undefined, isMainBranchProtected: false,
+  }));
+  await act(async () => { await studioCtx.refreshSiteInfo(); });
+}
 const file = new File(["fixture"], "Hero.png", { type: "image/png" });
 function chooseFile(container: HTMLElement) {
   const input = container.querySelector('input[type="file"]');
@@ -67,19 +58,21 @@ function chooseFile(container: HTMLElement) {
   }
   fireEvent.change(input, { target: { files: [file] } });
 }
-beforeEach(() => {
+beforeEach(async () => {
   vi.clearAllMocks();
   vi.spyOn(message, "success").mockReturnValue(mock());
   vi.spyOn(message, "error").mockReturnValue(mock());
-  state.editable = true;
-  state.permission = "writable";
+  ({studioCtx, api} = fakeStudioCtx({devFlagOverrides:{ccStubs:true}}));
+  await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+  changed = vi.spyOn(studioCtx, "change");
+  vi.spyOn(SiteOps.prototype, "createImageAsset").mockImplementation(mocks.create);
   mocks.read.mockResolvedValue({ image: "sanitized" });
   mocks.upload.mockResolvedValue({
     imageResult: { uri: "saved" },
     opts: { name: "Hero.png", type: ImageAssetType.Picture },
   });
 });
-afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+afterEach(async () => { cleanup(); await studioCtx.awaitEval(); studioCtx.dispose(); message.destroy(); vi.restoreAllMocks(); });
 it("shows progress on the selected icon upload and locks the image action until it finishes", async () => {
   let finish: (() => void) | undefined;
   mocks.read.mockImplementationOnce(
@@ -134,7 +127,7 @@ it("creates the asset through the saved model only after a successful upload", a
     ImageAssetType.Picture,
     file,
   );
-  expect(mocks.changed).toHaveBeenCalledOnce();
+  expect(changed).toHaveBeenCalledOnce();
   expect(mocks.create).toHaveBeenCalledWith(
     { uri: "saved" },
     { name: "Hero.png", type: ImageAssetType.Picture },
@@ -164,7 +157,7 @@ it("rejects invalid image data before upload and hides actions from read-only us
   expect(container.querySelector(".ant-alert")).toBeNull();
   expect(mocks.upload).not.toHaveBeenCalled();
   act(() => {
-    state.editable = false;
+    studioCtx.editMode = false;
   });
   rerender(
     <ResourceUpload studioCtx={studioCtx} onUploaded={mocks.uploaded} />,
@@ -198,12 +191,10 @@ it("locks upload controls and does not modify the model if edit permission is re
   chooseFile(container);
   await waitFor(() => expect(mocks.upload).toHaveBeenCalledOnce());
   expect(screen.getByRole("button", { name: "Upload icon" })).toBeDisabled();
-  act(() => {
-    state.permission = "readable";
-  });
+  await setPermission("readable");
   await act(async () => {
     finish?.({ imageResult: {}, opts: {} });
   });
-  expect(mocks.changed).not.toHaveBeenCalled();
+  expect(changed).not.toHaveBeenCalled();
   expect(mocks.uploaded).not.toHaveBeenCalled();
 });

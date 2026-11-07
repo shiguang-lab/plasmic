@@ -603,7 +603,7 @@ export function lastWhere<T>(
   return tuple(null, -1);
 }
 
-export const withoutNils = <T>(xs: Array<T | undefined | null>): T[] =>
+export const withoutNils = <T>(xs: ReadonlyArray<T | undefined | null>): T[] =>
   xs.filter((x): x is T => x != null);
 
 export const withoutFalsy = <T>(xs: Array<T | Falsy>): T[] =>
@@ -1499,7 +1499,7 @@ export async function asyncFilter<T>(
 }
 
 export function filterMapTruthy<T, U>(
-  xs: T[],
+  xs: readonly T[],
   f: (x: T, i: number) => U | Falsy,
 ): U[] {
   return xs.map(f).filter((x) => x) as U[];

@@ -1,5 +1,7 @@
 import { UiText } from "@/wab/client/i18n/UiText";
 import {
+  RandomSplitSlice,
+  SegmentSplitSlice,
   isKnownRandomSplitSlice,
   isKnownSegmentSplitSlice,
 } from "@/wab/shared/model/classes";
@@ -14,23 +16,52 @@ import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import Select from "@/wab/client/components/widgets/Select";
 import PlasmicExperimentModal from "@/wab/client/plasmic/plasmic_kit_optimize/PlasmicExperimentModal";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { spawn } from "@/wab/shared/common";
+import { arrayEq, ensure, spawn, switchType } from "@/wab/shared/common";
 import { SplitType } from "@/wab/shared/core/splits";
 import { Split, SplitSlice } from "@/wab/shared/model/classes";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
+import type { ModelRef, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import * as React from "react";
 
-function extractValue(slice: SplitSlice) {
-  if (isKnownRandomSplitSlice(slice)) {
-    return slice.prob;
-  }
-  if (isKnownSegmentSplitSlice(slice)) {
-    return slice.cond;
-  }
-  throw new Error("Unsupported");
+interface SliceInput {
+  readonly value: string | number;
+  readonly externalId: string | undefined;
 }
 
-export const ExperimentModal = observer(function ExperimentModal(props: {
+function useSliceInputs(models: ModelSnapshots, slices: readonly ModelRef<SplitSlice>[]) {
+  const source = React.useMemo(() => {
+    const fields = slices.map((ref) => {
+      const slice = models.resolve(ref);
+      return {
+        value: switchType(slice)
+          .when(RandomSplitSlice, (random) => models.field(random, "prob"))
+          .when(SegmentSplitSlice, (segment) => models.field(segment, "cond"))
+          .result(),
+        externalId: models.field(slice, "externalId"),
+      };
+    });
+    let current: readonly SliceInput[] = Object.freeze([]);
+    const getSnapshot = () => {
+      const next = fields.map((field, index) => {
+        const value = field.value.getState();
+        const externalId = field.externalId.getState() ?? undefined;
+        const before = current[index];
+        return before?.value === value && before.externalId === externalId
+          ? before : Object.freeze({ value, externalId });
+      });
+      if (!arrayEq(current, next)) { current = Object.freeze(next); }
+      return current;
+    };
+    const subscribe = (listener: () => void) => {
+      const stops = fields.flatMap((field) => [field.value.subscribe(listener), field.externalId.subscribe(listener)]);
+      return () => stops.forEach((stop) => stop());
+    };
+    return { getSnapshot, subscribe };
+  }, [models, slices]);
+  return React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
+}
+
+export function ExperimentModal(props: {
   split: Split;
   onClose: () => void;
 }) {
@@ -38,7 +69,16 @@ export const ExperimentModal = observer(function ExperimentModal(props: {
   const studioCtx = useStudioCtx();
   const tplMgr = studioCtx.tplMgr();
 
-  const slicesValues = split.slices.map(extractValue);
+  const models = studioCtx.modelSnapshots;
+  const name = useStore(models.field(split, "name"));
+  const description = useStore(models.field(split, "description"));
+  const splitType = useStore(models.field(split, "splitType"));
+  const status = useStore(models.field(split, "status"));
+  const targetEvents = useStore(models.field(split, "targetEvents"));
+  const externalId = useStore(models.field(split, "externalId"));
+  const slices = useStore(models.field(split, "slices"));
+  const sliceInputs = useSliceInputs(models, slices);
+  const slicesValues = sliceInputs.map((input) => input.value);
 
   const changeSlicesValues = (newVals: any[]) => {
     spawn(
@@ -61,7 +101,7 @@ export const ExperimentModal = observer(function ExperimentModal(props: {
       children={
         <EditableLabel
           labelFactory={(_props) => <span {..._props} className="strong" />}
-          value={split.name}
+          value={name}
           onEdit={(newName: string) => {
             if (newName && newName !== split.name) {
               spawn(
@@ -77,7 +117,7 @@ export const ExperimentModal = observer(function ExperimentModal(props: {
             }
           }}
         >
-          {split.name}
+          {name}
         </EditableLabel>
       }
     />
@@ -86,7 +126,7 @@ export const ExperimentModal = observer(function ExperimentModal(props: {
   return (
     <PlasmicExperimentModal
       descriptionInput={{
-        value: split.description ?? "",
+        value: description ?? "",
         onChange: (e) => {
           e.persist();
           spawn(
@@ -102,14 +142,14 @@ export const ExperimentModal = observer(function ExperimentModal(props: {
           return ExperimentEditableTitle;
         },
       }}
-      type={split.splitType}
+      type={splitType}
       closeButton={{
         onClick: onClose,
       }}
       versions={
         <>
-          {split.slices.map((_, idx) => {
-            if (idx === 0 && split.splitType !== SplitType.Experiment) {
+          {slices.map((_, idx) => {
+            if (idx === 0 && splitType !== SplitType.Experiment) {
               return null;
             }
             return (
@@ -126,7 +166,7 @@ export const ExperimentModal = observer(function ExperimentModal(props: {
       }
       experimentEvents={{
         props: {
-          events: split.targetEvents,
+          events: targetEvents,
           changeEvents: (newEvents: string[]) => {
             spawn(
               studioCtx.change(() => {
@@ -139,11 +179,11 @@ export const ExperimentModal = observer(function ExperimentModal(props: {
       }}
       experimentEternalIds={{
         props: {
-          split,
+          splitType,
           meta: {
-            externalId: split.externalId ?? undefined,
-            aExternalId: split.slices[0].externalId ?? undefined,
-            bExternalId: split.slices[1].externalId ?? undefined,
+            externalId: externalId ?? undefined,
+            aExternalId: ensure(sliceInputs[0], "Expected the base slice").externalId,
+            bExternalId: ensure(sliceInputs[1], "Expected the variation slice").externalId,
           },
           onChange: (label: string, value: string) => {
             spawn(
@@ -169,7 +209,7 @@ export const ExperimentModal = observer(function ExperimentModal(props: {
       statusSelect={{
         props: {
           name: "status",
-          value: split.status,
+          value: status,
           onChange: (value) => {
             if (value) {
               spawn(
@@ -191,8 +231,8 @@ export const ExperimentModal = observer(function ExperimentModal(props: {
         },
       }}
       splitControls={
-        (split.splitType === SplitType.Schedule ||
-          split.splitType === SplitType.Segment) && (
+        (splitType === SplitType.Schedule ||
+          splitType === SplitType.Segment) && (
           <SliceControls
             split={split}
             idx={1}
@@ -203,4 +243,4 @@ export const ExperimentModal = observer(function ExperimentModal(props: {
       }
     />
   );
-});
+}

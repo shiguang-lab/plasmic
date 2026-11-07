@@ -1,11 +1,11 @@
+import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { FontManager } from "@/wab/client/fonts";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ensure } from "@/wab/shared/common";
 import { createSite } from "@/wab/shared/core/sites";
+import { ProjectDependency, Site } from "@/wab/shared/model/classes";
 import { notification } from "antd";
 import $ from "jquery";
-import { observable } from "mobx";
 import { mock } from "vitest-mock-extended";
 
 beforeEach(() => {
@@ -54,7 +54,7 @@ it("does not warn when switching to a generic family after opening", async () =>
   await Promise.resolve();
   const warn = vi.spyOn(notification, "warning");
   const studioCtx = mock<StudioCtx>({ site });
-  studioCtx.viewCtxs = observable.array<ViewCtx>();
+  Object.defineProperty(studioCtx, "viewCtxs", { value: [] });
 
   manager.useFont(studioCtx, "ui-monospace");
   manager.installAllUsedFonts([]);
@@ -113,7 +113,7 @@ it.each([true, false])(
     await Promise.resolve();
     const warn = vi.spyOn(notification, "warning");
     const studioCtx = mock<StudioCtx>({ site });
-    studioCtx.viewCtxs = observable.array<ViewCtx>();
+    Object.defineProperty(studioCtx, "viewCtxs", { value: [] });
 
     manager.useFont(studioCtx, "Menlo");
     manager.installAllUsedFonts([]);
@@ -133,3 +133,134 @@ it.each([true, false])(
     }
   },
 );
+
+function mkDependency(site: Site, suffix: string) {
+  return new ProjectDependency({
+    name: `Dependency ${suffix}`,
+    pkgId: `pkg-${suffix}`,
+    projectId: `project-${suffix}`,
+    version: "0.0.1",
+    uuid: `dep-${suffix}`,
+    site,
+  });
+}
+
+it("derives immutable own and imported font lists with noop structural sharing", async () => {
+  const importedSite = createSite({
+    userManagedFonts: ["Imported B", "Own A", "Imported A", "Imported B"],
+  });
+  const site = createSite({
+    userManagedFonts: ["Own A", "Own B", "Own A"],
+    projectDependencies: [mkDependency(importedSite, "initial")],
+  });
+  const manager = new FontManager(site);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  const initial = manager.store.getState();
+
+  expect(initial.ownUserManagedFonts).toEqual(["Own A", "Own B", "Own A"]);
+  expect(initial.importedUserManagedFonts).toEqual([
+    "Imported B",
+    "Imported A",
+  ]);
+  expect(initial.userManagedFonts).toEqual([
+    "Own A",
+    "Own B",
+    "Imported B",
+    "Imported A",
+  ]);
+  expect(Object.isFrozen(initial.ownUserManagedFonts)).toBe(true);
+  expect(Object.isFrozen(initial.importedUserManagedFonts)).toBe(true);
+  expect(Object.isFrozen(initial.userManagedFonts)).toBe(true);
+
+  const publish = vi.fn();
+  const stop = manager.store.subscribe(publish);
+  manager.syncSite(site);
+  expect(manager.store.getState()).toBe(initial);
+  expect(publish).not.toHaveBeenCalled();
+
+  manager.dispose();
+  manager.syncSite(site);
+  expect(manager.store.getState()).toBe(initial);
+  expect(publish).not.toHaveBeenCalled();
+  stop();
+});
+
+it("tracks committed same-length font edits and ignores unrelated sources", async () => {
+  const importedSite = createSite({
+    userManagedFonts: ["Imported A", "Own A"],
+  });
+  const site = createSite({
+    userManagedFonts: ["Own A"],
+    projectDependencies: [mkDependency(importedSite, "initial")],
+  });
+  const { studioCtx } = fakeStudioCtx({ site });
+  await vi.waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+  const manager = studioCtx.fontManager;
+  const publish = vi.fn();
+  const stop = manager.store.subscribe(publish);
+
+  expect(manager.store.getState().ownUserManagedFonts).toEqual(["Own A"]);
+  expect(manager.store.getState().importedUserManagedFonts).toEqual([
+    "Imported A",
+  ]);
+
+  await studioCtx.changeUnsafe(() => {
+    site.userManagedFonts.splice(0, 1, "Own B");
+  });
+  expect(manager.store.getState().ownUserManagedFonts).toEqual(["Own B"]);
+  expect(manager.store.getState().importedUserManagedFonts).toEqual([
+    "Imported A",
+    "Own A",
+  ]);
+  expect(manager.store.getState().userManagedFonts).toEqual([
+    "Own B",
+    "Imported A",
+    "Own A",
+  ]);
+
+  const settled = manager.store.getState();
+  publish.mockClear();
+  await studioCtx.changeUnsafe(() => {
+    site.flags = { ...site.flags, fontStateUnrelated: true };
+  });
+  expect(manager.store.getState()).toBe(settled);
+  expect(publish).not.toHaveBeenCalled();
+  stop();
+});
+
+it("refreshes imported fonts when direct dependencies are replaced or removed", async () => {
+  const initialDep = mkDependency(
+    createSite({ userManagedFonts: ["Imported A", "Own A"] }),
+    "initial",
+  );
+  const site = createSite({
+    userManagedFonts: ["Own A"],
+    projectDependencies: [initialDep],
+  });
+  const manager = new FontManager(site);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  expect(manager.store.getState().ownUserManagedFonts).toEqual(["Own A"]);
+  expect(manager.store.getState().importedUserManagedFonts).toEqual([
+    "Imported A",
+  ]);
+
+  site.projectDependencies = [
+    mkDependency(
+      createSite({
+        userManagedFonts: ["Imported B", "Own A", "Imported B"],
+      }),
+      "replacement",
+    ),
+  ];
+  manager.syncSite(site);
+  expect(manager.store.getState().ownUserManagedFonts).toEqual(["Own A"]);
+  expect(manager.store.getState().importedUserManagedFonts).toEqual([
+    "Imported B",
+  ]);
+
+  site.projectDependencies = [];
+  manager.syncSite(site);
+  expect(manager.store.getState().importedUserManagedFonts).toEqual([]);
+  manager.dispose();
+});

@@ -236,7 +236,7 @@ export const queryWordpressMeta: CustomFunctionMeta<typeof queryWordpress> = {
           config: (_: any, ctx: any) => {
             const { queryType, categories, tags } = ctx;
             if (!queryType) {
-              return { fields: {} };
+              return { fields: [] };
             }
 
             return buildWordPressConfig(queryType, categories, tags);

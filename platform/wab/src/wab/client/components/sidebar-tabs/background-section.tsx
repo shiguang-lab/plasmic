@@ -1,5 +1,7 @@
 import { EllipseControl } from "@/wab/client/components/EllipseControl";
-import { resolvedBackgroundImageCss } from "@/wab/client/components/sidebar-tabs/background-utils";
+import { useBackgroundInputs } from "@/wab/client/studio-ctx/background-inputs";
+import { useImageAssetList } from "@/wab/client/studio-ctx/image-asset-inputs";
+import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import {
@@ -16,8 +18,8 @@ import {
   ExpsProvider,
   StylePanelSection,
   TabbedStylePanelSection,
-  useStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
+import { useStyleCells, useStyleIndicator } from "@/wab/client/studio-ctx/style-inputs-react";
 import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
@@ -25,7 +27,6 @@ import { StyleWrapper } from "@/wab/client/components/style-controls/StyleWrappe
 import { UnloggedDragCatcher } from "@/wab/client/components/style-controls/UnloggedDragCatcher";
 import * as widgets from "@/wab/client/components/widgets";
 import { ColorPicker } from "@/wab/client/components/widgets/ColorPicker";
-import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
@@ -41,8 +42,6 @@ import RadialIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Radial";
 import RepeatGridIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__RepeatGrid";
 import RepeatHIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__RepeatH";
 import PaintBucketFillIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__PaintBucketFill";
-import { makeVariantedStylesHelperFromCurrentCtx } from "@/wab/client/utils/style-utils";
-import { isTokenRef, tryParseTokenRef } from "@/wab/commons/StyleToken";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { arrayMoveIndex } from "@/wab/shared/collections";
 import {
@@ -69,9 +68,8 @@ import {
 import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
 import {
   mkImageAssetRef,
-  tryParseImageAssetRef,
+  extractAllAssetRefs,
 } from "@/wab/shared/core/image-assets";
-import { siteFinalColorTokens } from "@/wab/shared/core/site-style-tokens";
 import * as css from "@/wab/shared/css";
 import { parseCss } from "@/wab/shared/css";
 import {
@@ -81,10 +79,7 @@ import {
 import { isStandardSide, oppSides } from "@/wab/shared/geom";
 import { isKnownImageAsset } from "@/wab/shared/model/classes";
 import { userImgUrl } from "@/wab/shared/urls";
-import Chroma from "@/wab/shared/utils/color-utils";
 import { Tooltip } from "antd";
-import { observer } from "mobx-react";
-import { basename } from "path";
 import React, { useState } from "react";
 
 function mkEmptyLayer() {
@@ -97,23 +92,23 @@ interface BackgroundProps {
   animatableOnly?: boolean;
 }
 
-export const BackgroundSection = observer(function BackgroundSection(
+export const BackgroundSection = function BackgroundSection(
   props: BackgroundProps,
 ) {
   const { t: uiT } = useI18n();
   const { expsProvider, animatableOnly } = props;
   const { studioCtx } = expsProvider;
-  const exp = expsProvider.mergedExp();
-  const bg = parseCss(exp.getRaw("background") ?? "", {
+  const [backgroundCell] = useStyleCells(expsProvider, ["background"]);
+  const bg = parseCss(backgroundCell?.raw ?? "", {
     startRule: "background",
   });
   bg.filterNoneLayers(); // Case of `background: none`
 
   const [inspected, setInspected] = useState<number>();
-  const sc = useStyleComponent();
-  const clientTokenResolver = useClientTokenResolver();
-
-  const vsh = props.vsh ?? makeVariantedStylesHelperFromCurrentCtx(studioCtx);
+  const currentVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : studioCtx);
+  const vsh = props.vsh ?? currentVsh;
+  const backgroundIndicator = useStyleIndicator(expsProvider, "background");
+  const { labels, thumbnails } = useBackgroundInputs(studioCtx, bg.layers, vsh);
 
   const updateLayers = () => {
     assert(
@@ -122,6 +117,7 @@ export const BackgroundSection = observer(function BackgroundSection(
     );
     spawn(
       studioCtx.changeUnsafe(() => {
+        const exp = expsProvider.mergedExp();
         if (bg.layers.length > 0) {
           exp.set("background", bg.showCss());
         } else {
@@ -167,7 +163,7 @@ export const BackgroundSection = observer(function BackgroundSection(
 
   const { isDisabled } = shouldBeDisabled({
     props: {},
-    indicators: sc.definedIndicators("background"),
+    indicators: [backgroundIndicator],
   });
 
   const isSet = bg.layers.length > 0;
@@ -250,34 +246,7 @@ export const BackgroundSection = observer(function BackgroundSection(
               >
                 {bg.layers.map(
                   (layer: BackgroundLayer, index: /*TWZ*/ number) => {
-                    const mainContentText = switchType(layer.image)
-                      .when(ImageBackground, (img: ImageBackground) => {
-                        const asset = tryParseImageAssetRef(
-                          img.url,
-                          studioCtx.site.imageAssets,
-                        );
-                        if (asset) {
-                          return asset.name;
-                        } else if (img.url.startsWith("data:")) {
-                          return "Uploaded file";
-                        } else {
-                          return basename(img.url);
-                        }
-                      })
-                      .when(ColorFill, (fill: ColorFill) =>
-                        isTokenRef(fill.color)
-                          ? tryParseTokenRef(
-                              fill.color,
-                              siteFinalColorTokens(studioCtx.site, {
-                                includeDeps: "all",
-                              }),
-                            )?.name || "Color token"
-                          : Chroma.stringify(fill.color),
-                      )
-                      .when(LinearGradient, () => "Linear gradient")
-                      .when(RadialGradient, () => "Radial gradient")
-                      .when(NoneBackground, () => "Invalid layer")
-                      .result();
+                    const mainContentText = labels[index];
                     return (
                       <widgets.ListBoxItem
                         index={index}
@@ -293,12 +262,7 @@ export const BackgroundSection = observer(function BackgroundSection(
                             <div
                               className={"img-thumb img-thumb-border"}
                               style={{
-                                backgroundImage: resolvedBackgroundImageCss(
-                                  layer.image,
-                                  clientTokenResolver,
-                                  studioCtx.site,
-                                  vsh,
-                                ),
+                                backgroundImage: thumbnails[index],
                               }}
                             />
                           </div>
@@ -325,7 +289,7 @@ export const BackgroundSection = observer(function BackgroundSection(
       )}
     </StylePanelSection>
   );
-});
+};
 
 interface BackgroundLayerPanelProps {
   layer: BackgroundLayer;
@@ -335,7 +299,7 @@ interface BackgroundLayerPanelProps {
   animatableOnly?: boolean;
 }
 
-const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
+const BackgroundLayerPanel = function BackgroundLayerPanel({
   expsProvider,
   layer,
   onUpdated,
@@ -344,6 +308,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
 }: BackgroundLayerPanelProps) {
   const { t: uiT } = useI18n();
   const { studioCtx } = expsProvider;
+  const imageAssets = useImageAssetList(studioCtx);
   const [cachedValuesByBgType] = React.useState({});
 
   /**
@@ -374,15 +339,14 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
 
   const imageBackgroundPanel = (img: /*TWZ*/ ImageBackground) => {
     // Can only use picture type for background-image
-    const imageAssets = studioCtx.site.imageAssets.filter(
-      (x) => x.type === ImageAssetType.Picture,
-    );
+    const id = extractAllAssetRefs(img.url)[0];
+    const asset = imageAssets.rows.find((candidate) => candidate.uuid === id && candidate.type === ImageAssetType.Picture);
 
     return (
       <SidebarSection title={uiT("Image")}>
         <ImageAssetPreviewAndPicker
           className="flex-fill flex-col"
-          value={tryParseImageAssetRef(img.url, imageAssets) || img.url}
+          value={asset ? imageAssets.resolve(asset.ref) : img.url}
           onPicked={(picked) => {
             const newUrl = isKnownImageAsset(picked)
               ? mkImageAssetRef(picked)
@@ -875,7 +839,7 @@ const BackgroundLayerPanel = observer(function BackgroundLayerPanel({
       )}
     </div>
   );
-});
+};
 
 const defaultValuesByBgType = {
   image: `url("${userImgUrl()}")`,

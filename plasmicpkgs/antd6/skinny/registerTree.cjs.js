@@ -1,21 +1,18 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
-var React = require('react');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
+require('react');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
 
-function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
-
-var React__default = /*#__PURE__*/_interopDefault(React);
-
 function AntdTree(props) {
-  return /* @__PURE__ */ React__default.default.createElement(Ant.Tree, { ...props });
+  return /* @__PURE__ */ jsxRuntime.jsx(Ant.Tree, { ...props });
 }
 function AntdDirectoryTree(props) {
-  return /* @__PURE__ */ React__default.default.createElement(Ant.Tree.DirectoryTree, { ...props });
+  return /* @__PURE__ */ jsxRuntime.jsx(Ant.Tree.DirectoryTree, { ...props });
 }
 const treeHelpers_ = {
   states: {

@@ -42,10 +42,11 @@
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  overflow-x: visible;
-  overflow-y: auto;
+  overflow: hidden;
   width: 100%;
   min-width: 0;
+  flex: 1;
+  min-height: 0;
 }
 .dataPickerColumnItem__mnPLv:global(.__wab_instance) {
   position: relative;

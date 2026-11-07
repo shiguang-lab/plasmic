@@ -122,8 +122,11 @@ export enum PositionLayoutType {
 export function getRshContainerType(
   rsh: ReadonlyIRuleSetHelpersX,
 ): ContainerLayoutType {
-  const display = rsh.get("display");
-  const axis = flexDirToArrangement(rsh.get("flex-direction"));
+  return getContainerLayoutType(rsh.get("display"), rsh.get("flex-direction"));
+}
+
+export function getContainerLayoutType(display: string, flexDirection: string): ContainerLayoutType {
+  const axis = flexDirToArrangement(flexDirection);
   if (display === "flex") {
     return axis === "column"
       ? ContainerLayoutType.flexColumn

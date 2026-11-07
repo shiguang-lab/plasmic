@@ -6,7 +6,6 @@ import {
   TokenType,
   TokenValue,
   getLeftPadding,
-  isTokenPanelReadOnly,
 } from "@/wab/client/components/sidebar/token-utils";
 import { Matcher } from "@/wab/client/components/view-common";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
@@ -15,8 +14,8 @@ import { DataTokenType, DataTokenValue } from "@/wab/commons/DataToken";
 import { StyleTokenType, StyleTokenValue } from "@/wab/commons/StyleToken";
 import { DataToken, StyleToken, Token } from "@/wab/shared/model/classes";
 import cn from "classnames";
-import { observer } from "mobx-react";
 import React from "react";
+import { useStore } from "zustand";
 
 interface TokenFolderRowProps<
   TToken extends Token,
@@ -30,7 +29,7 @@ interface TokenFolderRowProps<
   toggleExpand: () => void;
 }
 
-function _TokenFolderRow<
+function TokenFolderRow<
   TToken extends Token,
   TType extends TokenType,
   TValue extends TokenValue,
@@ -38,9 +37,10 @@ function _TokenFolderRow<
   const { folder, matcher, indentMultiplier, isOpen, toggleExpand } = props;
   const { onAddToken, onDeleteFolder, onFolderRenamed } = folder.actions ?? {};
   const studioCtx = useStudioCtx();
+  const readOnly = useStore(studioCtx.uiEnvironment.store, (state) => state.tokenPanelReadOnly);
   const [renaming, setRenaming] = React.useState(false);
 
-  const hasMenu = folder.actions && !isTokenPanelReadOnly(studioCtx);
+  const hasMenu = folder.actions && !readOnly;
 
   return (
     <RowGroup
@@ -90,8 +90,6 @@ function _TokenFolderRow<
     </RowGroup>
   );
 }
-
-const TokenFolderRow = observer(_TokenFolderRow);
 
 export const DataTokenFolderRow = TokenFolderRow<
   DataToken,

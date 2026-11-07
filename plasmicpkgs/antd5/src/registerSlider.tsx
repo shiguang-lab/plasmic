@@ -36,7 +36,7 @@ export type AntdSliderBaseProps = Omit<
   | "onChangeComplete"
 > &
   SliderTooltip & {
-    stylableMarks?: ReactElement;
+    stylableMarks?: ReactElement<{ children?: ReactElement<StylableMark>[] }>;
     marks?: SimpleMark[];
     sliderScopeClassName?: string;
   };
@@ -63,7 +63,7 @@ export function useMarks({
   stylableMarks,
 }: {
   simpleMarks?: SimpleMark[];
-  stylableMarks?: ReactElement;
+  stylableMarks?: ReactElement<{ children?: ReactElement<StylableMark>[] }>;
 }): Record<number, React.ReactNode | { label: string }> {
   const marks: Record<number, React.ReactNode | { label: string }> =
     useMemo(() => {
@@ -75,8 +75,8 @@ export function useMarks({
 
       stylableMarksList
         ?.filter(
-          (c: any) =>
-            React.isValidElement(c) &&
+          (c): c is ReactElement<StylableMark> =>
+            React.isValidElement<StylableMark>(c) &&
             (c.type as any)?.name === AntdSliderMark.name
         )
         .forEach((c: ReactElement<StylableMark>) => {

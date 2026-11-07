@@ -1,19 +1,16 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
-var React = require('react');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
+require('react');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
-
-function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
-
-var React__default = /*#__PURE__*/_interopDefault(React);
 
 const segmentedComponentName = "plasmic-antd6-segmented";
 function AntdSegmented(props) {
-  return /* @__PURE__ */ React__default.default.createElement(Ant.Segmented, { ...props });
+  return /* @__PURE__ */ jsxRuntime.jsx(Ant.Segmented, { ...props });
 }
 function registerSegmented(loader) {
   utils.registerComponentHelper(loader, AntdSegmented, {

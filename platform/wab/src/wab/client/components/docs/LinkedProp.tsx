@@ -1,27 +1,30 @@
 import { DocsPortalCtx } from "@/wab/client/components/docs/DocsPortalCtx";
 import { PropValueEditor } from "@/wab/client/components/sidebar-tabs/PropValueEditor";
 import { PlasmicLinkedProp } from "@/wab/client/plasmic/plasmic_kit_docs_portal/PlasmicLinkedProp";
-import { wabTypeToPropType } from "@/wab/shared/code-components/code-components";
-import { toVarName } from "@/wab/shared/codegen/util";
-import { Param } from "@/wab/shared/model/classes";
-import { wabToTsType } from "@/wab/shared/model/model-util";
+import { ensure } from "@/wab/shared/common";
+import { DocsLinkedProp } from "@/wab/client/components/docs/docs-model-projections";
+import { useDocsFocusedComponentRef } from "@/wab/client/components/docs/DocsModelResources";
 import { Tooltip } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
 
 interface LinkedPropProps {
   docsCtx: DocsPortalCtx;
-  param: Param;
+  param: DocsLinkedProp;
 }
 
-const LinkedProp = observer(function LinkedProp(props: LinkedPropProps) {
-  const { docsCtx, param } = props;
-  const component = docsCtx.getFocusedComponent();
-  const value = docsCtx.getComponentToggle(component, param);
-  const tsType = wabToTsType(param.type, true);
+function LinkedProp(props: LinkedPropProps) {
+  const { docsCtx, param: property } = props;
+  const componentRef = ensure(useDocsFocusedComponentRef(docsCtx), "Missing focused component");
+  const component = docsCtx.models.snapshots.resolve(componentRef);
+  const param = docsCtx.models.snapshots.resolve(property.param);
+  const value = useStore(docsCtx.getComponentStore(component), (state) =>
+    state.toggles.get(param),
+  );
+  const tsType = property.type;
   return (
     <PlasmicLinkedProp
-      label={toVarName(param.variable.name)}
+      label={property.varName}
       type={
         <Tooltip title={<code>{tsType}</code>}>
           <span>{tsType}</span>
@@ -29,9 +32,9 @@ const LinkedProp = observer(function LinkedProp(props: LinkedPropProps) {
       }
       children={
         <PropValueEditor
-          label={param.variable.name}
-          attr={param.variable.name}
-          propType={wabTypeToPropType(param.type)}
+          label={property.name}
+          attr={property.name}
+          propType={property.propType}
           value={value}
           disabled={false}
           onChange={(newVal) =>
@@ -41,6 +44,6 @@ const LinkedProp = observer(function LinkedProp(props: LinkedPropProps) {
       }
     />
   );
-});
+}
 
 export default LinkedProp;

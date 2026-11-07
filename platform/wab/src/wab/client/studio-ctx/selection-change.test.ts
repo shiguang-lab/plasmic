@@ -1,6 +1,8 @@
 import { createCanvasPartTextEditor } from "@/wab/client/components/canvas/canvas-part-text-editor";
 import { getContentEditorTarget } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
+import { TransientComponentVariantFrame } from "@/wab/shared/component-frame";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { canEditInspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
@@ -8,12 +10,12 @@ import { mkBaseVariant } from "@/wab/shared/Variants";
 import { ensure, ensureInstance } from "@/wab/shared/common";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
-import { mkTplTagX } from "@/wab/shared/core/tpls";
-import { ValTag } from "@/wab/shared/core/val-nodes";
+import { mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
+import { ValComponent, ValTag } from "@/wab/shared/core/val-nodes";
 import { TplTag, ensureKnownTplTag } from "@/wab/shared/model/classes";
 import { waitFor } from "@testing-library/react";
 import $ from "jquery";
-import { autorun, runInAction } from "mobx";
+import { runInAction } from "mobx";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -82,11 +84,11 @@ it("publishes inspector focus after canvas focus paints and commits only the lat
   const { sc, vc } = await setup();
   vi.useFakeTimers();
   const inspect = vi.fn();
-  const stop = autorun(() => inspect(vc.inspectorTpl(), vc.inspectorCloneKey()));
+  const stop = sc.inspectorStore.subscribe((state, previous) => { if (state.selection !== previous.selection) { inspect((sc.inspectorSelection?.tpl ?? null), sc.inspectorSelection?.cloneKey); } });
   try {
     sc.changeSelection(() => vc.setStudioFocusByTpl(vc.component.tplTree, "first"));
     expect(vc.focusedTpl()).toBe(vc.component.tplTree);
-    expect(vc.inspectorTpl()).toBeNull();
+    expect((sc.inspectorSelection?.tpl ?? null)).toBeNull();
     await vi.advanceTimersByTimeAsync(100);
     const first = sc.inspectorSelection;
     expect(first?.cloneKey).toBe("first");
@@ -95,7 +97,7 @@ it("publishes inspector focus after canvas focus paints and commits only the lat
     sc.changeSelection(() => vc.setStudioFocusByTpl(vc.component.tplTree, "second"));
     sc.changeSelection(() => vc.setStudioFocusByTpl(vc.component.tplTree, "latest"));
     expect(vc.focusedCloneKey()).toBe("latest");
-    expect(vc.inspectorCloneKey()).toBe("first");
+    expect(sc.inspectorSelection?.cloneKey).toBe("first");
     expect(inspect).not.toHaveBeenCalled();
     expect(canEditInspectorSelection(sc, first)).toBe(false);
     await vi.advanceTimersByTimeAsync(100);
@@ -116,9 +118,9 @@ it("commits focus set by model or navigation paths without a pure selection tran
   try {
     runInAction(() => vc.setStudioFocusByTpl(vc.component.tplTree, "model-edit"));
     expect(sc.isSelectionPending).toBe(true);
-    expect(vc.inspectorTpl()).toBeNull();
+    expect((sc.inspectorSelection?.tpl ?? null)).toBeNull();
     await vi.advanceTimersByTimeAsync(100);
-    expect(vc.inspectorCloneKey()).toBe("model-edit");
+    expect(sc.inspectorSelection?.cloneKey).toBe("model-edit");
   } finally {
     sc.dispose();
     vi.useRealTimers();
@@ -150,9 +152,9 @@ it("keeps real edits undoable across transient selection changes and preserves r
 it("does not refresh the inspector or restart a pending paint for repeated node selection", async () => {
   const { sc, vc, sync } = await setup();
   const inspector = vi.fn();
-  const disposeInspector = autorun(() => {
-    inspector(sc.isSelectionPending, sc.focusedFrame(), vc.focusedTpls());
-  });
+  const readInspector = () => inspector(sc.isSelectionPending, sc.focusedFrame(), vc.focusedTpls());
+  const stops = [sc.inspectorStore.subscribe(readInspector), sc.selectionStore.subscribe(readInspector), vc.selectionStore.subscribe(readInspector)];
+  const disposeInspector = () => stops.forEach((stop) => stop());
   vi.useFakeTimers();
   try {
     const select = () => sc.changeSelection(() => vc.setStudioFocusByTpl(vc.component.tplTree));
@@ -188,9 +190,9 @@ it.each(["canvas", "artboard"])(
     const { sc, vc, sync } = await setup();
     vi.useFakeTimers();
     const inspector = vi.fn();
-    const disposeInspector = autorun(() => {
-      inspector(sc.isSelectionPending, sc.focusedFrames(), vc.focusedTpls());
-    });
+    const readInspector = () => inspector(sc.isSelectionPending, sc.focusedFrames(), vc.focusedTpls());
+    const stops = [sc.inspectorStore.subscribe(readInspector), sc.selectionStore.subscribe(readInspector), vc.selectionStore.subscribe(readInspector)];
+    const disposeInspector = () => stops.forEach((stop) => stop());
     try {
       const clear = () => sc.changeSelection(() => sc.setStudioFocusOnFrame({
         frame: background === "artboard" ? vc.arenaFrame() : undefined,
@@ -385,7 +387,11 @@ it("deduplicates hover DOM notifications while keeping clone, target and DOM cha
   );
   vi.spyOn(vc, "sel2cloneKey").mockReturnValue("root");
   const update = vi.fn();
-  const disposeObserver = autorun(() => update(vc.hoveredSelectable(), vc.$hoveredDomElt()));
+  const disposeObserver = vc.selectionStore.subscribe((state, previous) => {
+    if (state.hover !== previous.hover || state.hoverDom !== previous.hoverDom) {
+      update(vc.hoveredSelectable(), vc.$hoveredDomElt());
+    }
+  });
   try {
     runInAction(() => vc.setViewCtxHoverBySelectable(val, "first"));
     const doms = vc.$hoveredDomElt();
@@ -419,13 +425,14 @@ it.each(["frame", "studio"])(
     const { sc, vc } = await setup();
     sc.changeSelection(() => vc.setStudioFocusByTpl(vc.component.tplTree));
     const errors: unknown[] = [];
-    const stop = autorun(() => {
-      sc.viewCtxs.slice();
-      const focused = sc.focusedViewCtx();
-      if (focused) {
-        getContentEditorTarget(focused);
-      }
-    }, { onError: (error) => errors.push(error) });
+    const observe = () => {
+      try {
+        const focused = sc.focusedViewCtx();
+        if (focused) { getContentEditorTarget(focused); }
+      } catch (error) { errors.push(error); }
+    };
+    observe();
+    const stop = sc.selectionStore.subscribe((state, previous) => { if (state.view !== previous.view) { observe(); } });
     try {
       if (scope === "frame") {
         sc.disposeViewCtx(vc);
@@ -468,5 +475,145 @@ it("Studio teardown cancels an unfinished part-text draft without committing a m
     editor.finish(true);
     button.remove();
     sc.dispose();
+  }
+});
+
+
+it.each([false, true])("rolls back a failed selection command while previous pending is %s", async (pending) => {
+  const { sc, vc } = await setup();
+  vi.useFakeTimers();
+  const stops: (() => void)[] = [];
+  try {
+    const tpl = ensureKnownTplTag(vc.component.tplTree);
+    sc.changeSelection(() => vc.setStudioFocusByTpl(tpl, "committed"));
+    await vi.advanceTimersByTimeAsync(100);
+    const committedInspector = sc.inspectorSelection;
+    if (pending) {
+      sc.changeSelection(() => vc.setStudioFocusByTpl(tpl, "pending"));
+    }
+    const studio = sc.selectionStore.getState();
+    const view = vc.selectionStore.getState();
+    const targets = vc.focusedSelectables();
+    const doms = vc.focusedDomElts();
+    const publish = vi.fn();
+    stops.push(sc.selectionStore.subscribe(publish), vc.selectionStore.subscribe(publish));
+    const undo = vi.spyOn(sc, "createViewStateUndoRecord");
+    expect(() => sc.changeSelection(() => {
+      sc.setStudioFocusOnFrame({ frame: undefined, autoZoom: false });
+      vc.selection.setTpls([mkTplTagX("span")]);
+      vc.selection.setTargets([]);
+      vc.selection.setCloneKeys(["failed"]);
+      vc.selection.setDoms([$(document.createElement("div"))]);
+      throw new Error("failed focus command");
+    })).toThrow("failed focus command");
+    expect(sc.selectionStore.getState()).toBe(studio);
+    expect(vc.selectionStore.getState()).toBe(view);
+    expect(vc.focusedSelectables()).toBe(targets);
+    expect(vc.focusedDomElts()).toBe(doms);
+    expect(publish).not.toHaveBeenCalled();
+    expect(undo).not.toHaveBeenCalled();
+    expect(sc.isSelectionPending).toBe(pending);
+    expect(canEditInspectorSelection(sc, committedInspector)).toBe(!pending);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(sc.inspectorSelection?.cloneKey).toBe(pending ? "pending" : "committed");
+    expect(sc.isSelectionPending).toBe(false);
+    expect(canEditInspectorSelection(sc, sc.inspectorSelection)).toBe(true);
+  } finally {
+    stops.forEach((stop) => stop());
+    sc.dispose();
+    vi.useRealTimers();
+  }
+});
+
+it("keeps a caught nested selection failure inside its outer complete selection", async () => {
+  const { sc, vc } = await setup();
+  vi.useFakeTimers();
+  try {
+    const tpl = vc.component.tplTree;
+    sc.changeSelection(() => vc.setStudioFocusByTpl(tpl, "original"));
+    await vi.advanceTimersByTimeAsync(100);
+    const publish = vi.fn();
+    const stop = vc.selectionStore.subscribe(publish);
+    try {
+      sc.changeSelection(() => {
+        vc.setStudioFocusByTpl(tpl, "outer");
+        try {
+          sc.changeSelection(() => {
+            vc.selection.setTpls([]);
+            vc.selection.setTargets([]);
+            throw new Error("nested selection failure");
+          });
+        } catch {
+          expect(vc.focusedTpl()).toBe(tpl);
+          expect(vc.focusedCloneKey()).toBe("outer");
+        }
+      });
+      expect(publish).toHaveBeenCalledTimes(1);
+      expect(vc.focusedTpls()).toEqual([tpl]);
+      expect(vc.focusedCloneKeys()).toEqual(["outer"]);
+      expect(vc.focusedSelectables()).toHaveLength(1);
+      expect(vc.focusedDomElts()).toHaveLength(1);
+      await vi.advanceTimersByTimeAsync(100);
+      expect(sc.inspectorSelection?.cloneKey).toBe("outer");
+    } finally {
+      stop();
+    }
+  } finally {
+    sc.dispose();
+    vi.useRealTimers();
+  }
+});
+
+
+it("rolls back component stack, context and default slots with a failed or caught nested selection", async () => {
+  const { sc, vc } = await setup();
+  const child = mkComponent({ name: "Child", type: ComponentType.Plain, tplTree: (baseVariant) => mkTplTagX("div", { baseVariant }) });
+  const tpl = mkTplComponent(child, vc.component.variants[0]);
+  await sc.changeUnsafe(() => {
+    sc.site.components.push(child);
+    const root = ensureKnownTplTag(vc.component.tplTree);
+    root.children.push(tpl);
+    tpl.parent = root;
+  });
+  const val = new ValComponent({ tpl, key: "child", fullKey: "child", frameUid: 1, valOwner: undefined, parent: undefined, fibers: [], className: "", slotInfo: undefined, slotArgs: new Map(), slotCanvasEnvs: new Map() });
+  const context = new ComponentCtx({ valComponent: val });
+  vi.useFakeTimers();
+  const stops: (() => void)[] = [];
+  try {
+    sc.changeSelection(() => vc.setStudioFocusByTpl(vc.component.tplTree, "original"));
+    await vi.advanceTimersByTimeAsync(100);
+    const before = vc.variantStore.getState();
+    const selected = vc.selectionStore.getState();
+    const frames = vc.componentStackFrames();
+    const global = vc.globalFrame;
+    const publish = vi.fn();
+    stops.push(vc.variantStore.subscribe(publish));
+    const enter = () => {
+      vc.restoreCurrentComponentCtxAndStack(context, [...frames, new TransientComponentVariantFrame(tpl)]);
+      vc.variants.setShowDefaultSlots(true);
+      throw new Error("failed drill");
+    };
+    expect(() => sc.changeSelection(enter)).toThrow("failed drill");
+    expect(vc.variantStore.getState()).toBe(before);
+    expect(vc.selectionStore.getState()).toBe(selected);
+    expect(vc.componentStackFrames()).toBe(frames);
+    expect(vc.globalFrame).toBe(global);
+    expect(vc.currentComponentCtx()).toBeNull();
+    expect(vc.showDefaultSlotContents()).toBe(false);
+    expect(publish).not.toHaveBeenCalled();
+    expect(canEditInspectorSelection(sc, sc.inspectorSelection)).toBe(true);
+    sc.changeSelection(() => {
+      vc.setStudioFocusByTpl(vc.component.tplTree, "outer");
+      try { sc.changeSelection(enter); } catch { expect(vc.currentComponentCtx()).toBeNull(); }
+    });
+    expect(vc.variantStore.getState()).toBe(before);
+    expect(publish).not.toHaveBeenCalled();
+    expect(vc.componentStackFrames()).toBe(frames);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(sc.inspectorSelection?.cloneKey).toBe("outer");
+  } finally {
+    stops.forEach((stop) => stop());
+    sc.dispose();
+    vi.useRealTimers();
   }
 });

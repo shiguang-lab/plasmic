@@ -1,6 +1,7 @@
+import { jsx, Fragment } from 'react/jsx-runtime';
 import { Breadcrumb } from 'antd';
 import React from 'react';
-import { a as asArray, r as registerComponentHelper } from './utils-U416WEAa.esm.js';
+import { a as asArray, r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
 import '@shiguang-lab/plasmic-antd6/thumbnails';
@@ -13,13 +14,14 @@ function AntdBreadcrumb(props) {
   const items = React.useMemo(() => {
     const children = React.isValidElement(itemsRaw) && itemsRaw.type !== AntdBreadcrumbItem ? itemsRaw.props.children : itemsRaw;
     return asArray(children).flat(1).filter(React.isValidElement).map((currentItem) => {
+      const { children: _children, ...itemProps } = currentItem.props;
       return {
-        ...currentItem.props,
-        title: React.cloneElement(/* @__PURE__ */ React.createElement(React.Fragment, null, currentItem))
+        ...itemProps,
+        title: React.cloneElement(/* @__PURE__ */ jsx(Fragment, { children: currentItem }))
       };
     });
   }, [itemsRaw]);
-  return /* @__PURE__ */ React.createElement(
+  return /* @__PURE__ */ jsx(
     Breadcrumb,
     {
       ...rest,

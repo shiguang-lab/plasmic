@@ -25,10 +25,10 @@ export interface _Entry {
 }
 
 // @public
-export function queryContentful({ space, accessToken, environment, contentType, filterLogic, }: QueryContentfulOpts): Promise<any>;
+export function queryContentful(input: QueryContentfulOpts): Promise<any>;
 
 // @public @deprecated
-export function _queryContentful({ space, accessToken, environment, contentType, filterLogic, filterField, searchParameter, filterValue, order, reverseOrder, limit, skip, include, select, }: QueryContentfulOpts & QueryContentfulOldFilterProps): Promise<any>;
+export function _queryContentful(input: QueryContentfulOpts & QueryContentfulOldFilterProps): Promise<any>;
 
 // @public (undocumented)
 export function registerContentful(loader?: {
@@ -36,7 +36,7 @@ export function registerContentful(loader?: {
 }): void;
 
 // @public (undocumented)
-export const _uniq: <T>(xs: T[]) => T[];
+export const _uniq: <T>(xs: Array<T>) => T[];
 
 // (No @packageDocumentation comment for this package)
 

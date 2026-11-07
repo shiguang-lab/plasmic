@@ -1,5 +1,5 @@
 import { showError } from "@/wab/client/ErrorNotifications";
-import { AppCtx } from "@/wab/client/app-ctx";
+import { AppCtx, AppOps } from "@/wab/client/app-ctx";
 import { AddTrustedHostModal } from "@/wab/client/components/AddTrustedHostModal";
 import dashboard from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
@@ -15,19 +15,25 @@ import { ApiTrustedHost } from "@/wab/shared/ApiSchema";
 import { ensure } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import copy from "copy-to-clipboard";
-import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
 
 interface SettingsPageProps extends DefaultSettingsPageProps {
   appCtx: AppCtx;
 }
 
-function SettingsPage_(props: SettingsPageProps, ref: HTMLElementRefOf<"div">) {
-  const { appCtx, ...rest } = props;
+interface SettingsContentProps extends SettingsPageProps {
+  displayName: string;
+  email: string;
+  ops: AppOps;
+  rootRef: HTMLElementRefOf<"div">;
+}
+
+function SettingsPageContent(props: SettingsContentProps) {
+  "use memo";
+  const { appCtx, displayName, email, ops, rootRef, ...rest } = props;
   const { t } = useI18n();
-  const user = ensure(appCtx.selfInfo, "Unexpected null selfInfo");
   const tokensState = usePersonalApiTokens();
-  const ops = ensure(appCtx.ops, "Unexpected null AppOps");
   const [copiedToken, setCopiedToken] = React.useState("");
   const [hostsState, setHostsState] = React.useState<
     "loading" | "error" | ApiTrustedHost[]
@@ -52,7 +58,7 @@ function SettingsPage_(props: SettingsPageProps, ref: HTMLElementRefOf<"div">) {
     <>
       {documentTitle(t("Settings"))}
       <PlasmicSettingsPage
-        root={{ ref, className: dashboard.dashboardContent }}
+        root={{ ref: rootRef, className: dashboard.dashboardContent }}
         {...rest}
         defaultLayout={{
           render: () => (
@@ -68,8 +74,8 @@ function SettingsPage_(props: SettingsPageProps, ref: HTMLElementRefOf<"div">) {
                 />
               )}
               <SettingsContainer
-                name={user.displayName}
-                email={user.email}
+                name={displayName}
+                email={email}
                 tokensState={tokensState}
                 hostsState={hostsState}
                 onRetryTrustedHosts={updateHostList}
@@ -99,13 +105,13 @@ function SettingsPage_(props: SettingsPageProps, ref: HTMLElementRefOf<"div">) {
 
 function usePersonalApiTokens() {
   const appCtx = useAppCtx();
-  const tokens = appCtx.personalApiTokens;
+  const tokens = useStore(appCtx.personalApiTokensStore, (state) => state);
   const api = appCtx.api;
 
   return useAsyncStrict(async () => {
     if (tokens === null) {
       const fetched = await api.listPersonalApiTokens();
-      appCtx.personalApiTokens = fetched;
+      appCtx.setPersonalApiTokens(fetched);
       return fetched;
     } else {
       return tokens;
@@ -113,5 +119,18 @@ function usePersonalApiTokens() {
   }, [api, tokens, appCtx]);
 }
 
-const SettingsPage = observer(React.forwardRef(SettingsPage_));
+function SettingsPage_(props: SettingsPageProps, ref: HTMLElementRefOf<"div">) {
+  const user = ensure(props.appCtx.selfInfo, "Unexpected null selfInfo");
+  return (
+    <SettingsPageContent
+      {...props}
+      displayName={user.displayName}
+      email={user.email}
+      ops={ensure(props.appCtx.ops, "Unexpected null AppOps")}
+      rootRef={ref}
+    />
+  );
+}
+
+const SettingsPage = React.forwardRef(SettingsPage_);
 export default SettingsPage;

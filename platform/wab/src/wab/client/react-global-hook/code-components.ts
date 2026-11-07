@@ -27,7 +27,7 @@ export function validateCodeComponentParams(opts: {
   ) {
     const meta = tplNode.component._meta;
     const ccContextData = frameUid
-      ? globalHookCtx.frames.get(frameUid)?.contextData.get(instanceKey)
+      ? globalHookCtx.frames.get(frameUid)?.contextData.getStore(instanceKey).getState()
       : undefined;
     const invalidArgs: InvalidArgMeta[] = withoutNils(
       tplNode.component.params.map((p) => {

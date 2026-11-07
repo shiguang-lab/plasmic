@@ -98,7 +98,7 @@ test("registerAll exposes both real drawer contracts with independent runtime op
   for (const meta of [resourceAuthorizationMeta, resourceAuthorizationRecordMeta]) {
     expect(meta.canvasOverlay).toEqual({ triggerSlot: "trigger" });
     expect(meta.props.trigger).toMatchObject({ type: "slot", hidePlaceholder: true });
-    expect((meta.props.previewOpen as any).editOnly).toBe(true);
+    expect(meta.props).not.toHaveProperty("previewOpen");
     expect(meta.states?.open).toMatchObject({ valueProp: "open", onChangeProp: "onOpenChange" });
     expect((meta.props.onClose as any).argTypes).toEqual([]);
     expect((meta.props.onSuccess as any).argTypes).toEqual([]);
@@ -165,15 +165,15 @@ test.each(drawers)("$name disabled or cancelled trigger cannot open", async ({ C
 test.each(drawers)("$name selecting or clicking the trigger on the editing canvas does not reveal or change runtime open", async ({ Component }) => {
   const onOpenChange = vi.fn();
   const notify = vi.fn();
-  const props = { ...resource, apiSources, onOpenChange, plasmicNotifyAutoOpenedContent: notify,
+  const props = { ...resource, apiSources, onOpenChange,
     trigger: <button>画布触发器</button>,
-    __plasmic_selection_prop__: { isSelected: true, selectedSlotName: "trigger" } };
+    __canvas: { selected: true, slot: "trigger", onReveal: notify } };
   const { rerender } = render(<Environment editing><Component {...props} /></Environment>);
   fireEvent.click(screen.getByRole("button", { name: "画布触发器" }));
   expect(screen.queryByRole("dialog")).toBeNull();
   expect(onOpenChange).not.toHaveBeenCalled();
   expect(notify).not.toHaveBeenCalled();
-  rerender(<Environment editing><Component {...props} __plasmic_selection_prop__={{ isSelected: true }} /></Environment>);
+  rerender(<Environment editing><Component {...props} __canvas={{ selected: true, onReveal: notify }} /></Environment>);
   expect(await screen.findByRole("dialog")).toBeTruthy();
   expect(notify).toHaveBeenCalledOnce();
   rerender(<Environment editing interactive><Component {...props} /></Environment>);
@@ -226,14 +226,14 @@ test.each([false, true])("native generation preserves disabled and cancelled tri
 });
 
 test.each(drawers)(
-  "$name opens on selection without requests or business callbacks, and explicit canvas close wins",
+  "$name opens on selection without requests or business callbacks, and releasing selection closes the editing reveal",
   async ({ Component }) => {
     const onClose = vi.fn();
     const onOpenChange = vi.fn();
     const onSuccess = vi.fn();
     const notify = vi.fn();
     const props = { ...resource, open: false, apiSources, onClose, onOpenChange, onSuccess,
-      plasmicNotifyAutoOpenedContent: notify, __plasmic_selection_prop__: { isSelected: true } };
+      __canvas: { selected: true, onReveal: notify } };
     const { rerender } = render(<Environment editing><Component {...props} /></Environment>);
     const drawer = await screen.findByRole("dialog");
     expect(notify).toHaveBeenCalledOnce();
@@ -244,22 +244,22 @@ test.each(drawers)(
     expect(onClose).not.toHaveBeenCalled();
     expect(onOpenChange).not.toHaveBeenCalled();
     expect(onSuccess).not.toHaveBeenCalled();
-    rerender(<Environment editing><Component {...props} previewOpen={false} /></Environment>);
+    rerender(<Environment editing><Component {...props} __canvas={{ selected: false }} /></Environment>);
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   },
 );
 
 test.each(drawers)(
-  "$name ignores canvas previewOpen and selection in Preview, then closes with the native callback",
+  "$name ignores canvas selection in Preview, then closes with the native callback",
   async ({ Component }) => {
     const onClose = vi.fn();
     const onOpenChange = vi.fn();
     const props = { ...resource, open: false, apiSources, onClose, onOpenChange,
-      previewOpen: true, __plasmic_selection_prop__: { isSelected: true } };
+      __canvas: { selected: true } };
     const { rerender } = render(<Environment editing interactive><Component {...props} /></Environment>);
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(get).not.toHaveBeenCalled();
-    rerender(<Environment editing interactive><Component {...props} open previewOpen={false} /></Environment>);
+    rerender(<Environment editing interactive><Component {...props} open /></Environment>);
     const drawer = await screen.findByRole("dialog");
     await waitFor(() => expect(get).toHaveBeenCalled());
     fireEvent.click(within(drawer).getByRole("button", { name: /close/i }));

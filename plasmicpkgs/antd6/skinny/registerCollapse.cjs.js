@@ -1,10 +1,11 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var host = require('@plasmicapp/host');
-var canvasOverlay = require('./canvas-overlay-CK330rTr.cjs.js');
+var canvasOverlay = require('./canvas-overlay-DzKvKC8w.cjs.js');
 var Ant = require('antd');
 var React = require('react');
-var utils = require('./utils-Diqr9Iet.cjs.js');
+var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
 require('@shiguang-lab/plasmic-antd6/thumbnails');
@@ -16,18 +17,19 @@ var React__default = /*#__PURE__*/_interopDefault(React);
 const collapseComponentName = "plasmic-antd6-collapse";
 const collapsePanelComponentName = "plasmic-antd6-collapse-item";
 function AntdCollapse(props) {
-  return props.items !== void 0 ? /* @__PURE__ */ React__default.default.createElement(Ant.Collapse, { ...props }) : canvasOverlay.renderCanvasSlot(props.children, (children) => /* @__PURE__ */ React__default.default.createElement(CollapseWithChildren, { ...props, children }));
+  const { __canvas: _canvas, ...nativeProps } = props;
+  return props.items !== void 0 ? /* @__PURE__ */ jsxRuntime.jsx(Ant.Collapse, { ...nativeProps }) : canvasOverlay.renderCanvasSlot(props.children, (children) => /* @__PURE__ */ jsxRuntime.jsx(CollapseWithChildren, { ...props, children }));
 }
 function CollapseWithChildren(props) {
-  const { children, activeKey, defaultActiveKey, onChange, accordion, ...rest } = props;
+  const { children, activeKey, defaultActiveKey, onChange, accordion, __canvas: _canvas, ...rest } = props;
   const canvas = host.usePlasmicCanvasContext();
   const state = host.usePlasmicCanvasComponentInfo(props)?.states?.activeKey;
-  const panels = canvasOverlay.getCanvasItems(children, (item) => item.type === AntdCollapsePanel || item.type === Ant.Collapse.Panel);
+  const panels = canvasOverlay.getCanvasItems(children, (item) => item.type === AntdCollapsePanel || item.type === Ant.Collapse.Panel).filter(React__default.default.isValidElement);
   const selectedKey = canvas && !canvas.interactive ? canvasOverlay.getSelectedCanvasItemKey(panels) : void 0;
   const businessKeys = activeKey ?? defaultActiveKey ?? [];
   const revealKeys = selectedKey == null ? void 0 : accordion ? String(selectedKey) : Array.from(/* @__PURE__ */ new Set([...Array.isArray(businessKeys) ? businessKeys : [businessKeys], String(selectedKey)]));
   const openKeys = revealKeys === void 0 ? activeKey : state ? state.reveal(revealKeys) : revealKeys;
-  return /* @__PURE__ */ React__default.default.createElement(
+  return /* @__PURE__ */ jsxRuntime.jsx(
     Ant.Collapse,
     {
       ...rest,
@@ -36,14 +38,14 @@ function CollapseWithChildren(props) {
       defaultActiveKey,
       onChange: state || selectedKey == null ? onChange : void 0,
       items: panels.map((panel, index) => {
-        const { header, __plasmic_selection_prop__: _selection, ...panelProps } = panel.props;
+        const { header, ref: _ref, __canvas: _selection, ...panelProps } = panel.props;
         return { ...panelProps, key: panel.key ?? String(index), label: header };
       })
     }
   );
 }
 function AntdCollapsePanel(props) {
-  return /* @__PURE__ */ React__default.default.createElement(Ant.Collapse.Panel, { ...props });
+  return /* @__PURE__ */ jsxRuntime.jsx(Ant.Collapse.Panel, { ...props });
 }
 function registerCollapse(loader) {
   utils.registerComponentHelper(loader, AntdCollapse, {

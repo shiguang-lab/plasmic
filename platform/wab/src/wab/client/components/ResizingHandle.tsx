@@ -3,7 +3,6 @@ import { plasmicCanvasTransformEvent } from "@/wab/client/definitions/events";
 import { requestIdleCallback } from "@/wab/client/requestidlecallback";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { XDraggable } from "@/wab/commons/components/XDraggable";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
@@ -16,7 +15,7 @@ export enum HandlePosition {
 
 const resizingHandleDragEvent = "plasmicResizingHandleDragEvent";
 
-export const ResizingHandle = observer(function ResizingHandle({
+export function ResizingHandle({
   position,
   zoom,
   size = 80,
@@ -137,6 +136,7 @@ export const ResizingHandle = observer(function ResizingHandle({
 
   return (
     <XDraggable
+      nodeRef={rootRef}
       onDrag={_onDrag}
       onStop={onStopDragging}
       onStart={onStartDragging}
@@ -157,4 +157,4 @@ export const ResizingHandle = observer(function ResizingHandle({
       </div>
     </XDraggable>
   );
-});
+}

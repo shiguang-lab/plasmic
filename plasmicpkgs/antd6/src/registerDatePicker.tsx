@@ -1,8 +1,9 @@
+import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { DatePicker } from "antd";
 import cls from "classnames";
 import dayjs, { Dayjs } from "dayjs";
 import React from "react";
-import { CanvasOverlayProps, previewOpenProp, useCanvasOverlay } from "./canvas-overlay";
+import { useCanvasOverlay } from "./canvas-overlay";
 import { capitalize, Registerable, registerComponentHelper } from "./utils";
 
 /**
@@ -13,7 +14,7 @@ export function AntdDatePicker(
   props: Omit<
     React.ComponentProps<typeof DatePicker>,
     "value" | "onChange" | "defaultValue"
-  > & CanvasOverlayProps & {
+  > & PlasmicCanvasProps & {
     onChange?: (value: string | string[] | null) => void;
     value?: Dayjs | string | (Dayjs | string)[] | null;
     defaultValue?: string | string[];
@@ -94,7 +95,6 @@ export function registerDatePicker(loader?: Registerable) {
     canvasOverlay: {},
     displayName: "DatePicker",
     props: {
-      previewOpen: previewOpenProp,
       multiple: { type: "boolean", defaultValueHint: false },
       value: {
         type: "object",
@@ -179,7 +179,6 @@ export function registerDatePicker(loader?: Registerable) {
         options: ["outlined", "borderless", "filled", "underlined"],
         defaultValueHint: "outlined",
       },
-      // TODO - see how it works with plasmic-rich-components
       // format: {
       //   advanced: true
       // },

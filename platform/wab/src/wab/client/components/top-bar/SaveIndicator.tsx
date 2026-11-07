@@ -1,6 +1,13 @@
-import { useI18n } from "@/wab/client/i18n";
+import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 import { DesktopDraftDialog } from "@/wab/client/components/top-bar/DesktopDraftDialog";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { useI18n } from "@/wab/client/i18n";
+import {
+  useDesktopDraftController,
+  useDesktopDraftSelector,
+} from "@/wab/client/studio-ctx/desktop-drafts-react";
 import {
   ClockCircleOutlined,
   ExclamationCircleOutlined,
@@ -9,7 +16,6 @@ import {
 } from "@ant-design/icons";
 import { Button, Tooltip } from "antd";
 import { createStyles } from "antd-style";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 export interface SaveIndicatorProps {
@@ -38,7 +44,9 @@ const useStyles = createStyles(({ token }) => ({
       background: "currentColor",
     },
     "&[data-save-state='saving']": { color: token.colorPrimary },
-    "&[data-save-state='local'], &[data-save-state='conflict']": { color: token.colorWarning },
+    "&[data-save-state='local'], &[data-save-state='conflict']": {
+      color: token.colorWarning,
+    },
     "&[data-save-state='synced']": { color: token.colorSuccess },
     "& .save-indicator-content": {
       display: "inline-flex",
@@ -58,15 +66,16 @@ const useStyles = createStyles(({ token }) => ({
   },
 }));
 
-const SaveIndicator = observer(
-  React.forwardRef<HTMLDivElement, SaveIndicatorProps>(
+const SaveIndicator = React.forwardRef<HTMLDivElement, SaveIndicatorProps>(
     function SaveIndicator(props, ref) {
       const { t, locale } = useI18n();
       const { styles, cx } = useStyles();
       const studioCtx = useStudioCtx();
-      const status = studioCtx.canEditProject()
-        ? studioCtx.saveStatus
-        : "readonly";
+      const [saveStatus, canSave] = useStudioSaveState(studioCtx,
+        useShallow((state) => [state.saveStatus, state.canSave] as const));
+      const canEditProject = useStore(studioCtx.uiEnvironment.store,
+        (state) => state.canEditProject);
+      const status = canEditProject ? saveStatus : "readonly";
       const labels = {
         saved: t("Saved"),
         pending: t("Pending changes"),
@@ -85,67 +94,115 @@ const SaveIndicator = observer(
         unlogged: <ClockCircleOutlined />,
         readonly: <EyeOutlined />,
       };
-      const draft = studioCtx.desktopDraft?.status;
+      const controller = useDesktopDraftController(studioCtx);
+      const draft = useDesktopDraftSelector(
+        controller,
+        (state) => state.status,
+      );
       const draftState = draft?.state;
-      const localLabel = draftState === "conflict" ? t("Drafts need attention") :
-        status === "saved" && draft ? t("Synced") :
-        draftState === "local" ? status === "saving" ? t("Syncing…") : t("Saved on this device") :
-        draftState === "error" && status !== "readonly" ? t("Edits are not saved") : undefined;
-      const description = draftState === "conflict" ? t("Local drafts are preserved on this device. Click to review them without replacing the remote project.") :
-        status === "saved" && draft ? t("All edits have been saved to the server.") :
-        draftState === "local" ? t("Your edits are backed up on this device but have not synced to the server. They can be recovered on this device.") :
-        draftState === "error" ? t("Local backup failed and your latest edits have not synced. Keep the editor open and retry.") : labels[status];
-      const tooltip = <>
-        <div>{description}</div>
-        {draft?.savedAt && <div>{t("Last local backup: {time}", { time: new Date(draft.savedAt).toLocaleString(locale) })}</div>}
-        {draft?.error && <div>{draft.error}</div>}
-      </>;
+      const localLabel =
+        draftState === "conflict"
+          ? t("Drafts need attention")
+          : status === "saved" && draft
+            ? t("Synced")
+            : draftState === "local"
+              ? status === "saving"
+                ? t("Syncing…")
+                : t("Saved on this device")
+              : draftState === "error" && status !== "readonly"
+                ? t("Edits are not saved")
+                : undefined;
+      const description =
+        draftState === "conflict"
+          ? t(
+              "Local drafts are preserved on this device. Click to review them without replacing the remote project.",
+            )
+          : status === "saved" && draft
+            ? t("All edits have been saved to the server.")
+            : draftState === "local"
+              ? t(
+                  "Your edits are backed up on this device but have not synced to the server. They can be recovered on this device.",
+                )
+              : draftState === "error"
+                ? t(
+                    "Local backup failed and your latest edits have not synced. Keep the editor open and retry.",
+                  )
+                : labels[status];
+      const tooltip = (
+        <>
+          <div>{description}</div>
+          {draft?.savedAt && (
+            <div>
+              {t("Last local backup: {time}", {
+                time: new Date(draft.savedAt).toLocaleString(locale),
+              })}
+            </div>
+          )}
+          {draft?.error && <div>{draft.error}</div>}
+        </>
+      );
       const label = localLabel ?? labels[status];
-      const displayState = draftState === "conflict" ? "conflict" :
-        localLabel && status === "saved" ? "synced" :
-        localLabel && draftState === "local" ? status === "saving" ? "saving" : "local" :
-        localLabel && draftState === "error" ? "error" : status;
-      const canRetry = (status === "error" && studioCtx.canSave()) ||
-        (draftState === "error" && studioCtx.canEditProject()) || draftState === "conflict";
+      const displayState =
+        draftState === "conflict"
+          ? "conflict"
+          : localLabel && status === "saved"
+            ? "synced"
+            : localLabel && draftState === "local"
+              ? status === "saving"
+                ? "saving"
+                : "local"
+              : localLabel && draftState === "error"
+                ? "error"
+                : status;
+      const canRetry =
+        (status === "error" && canSave) ||
+        (draftState === "error" && canEditProject) ||
+        draftState === "conflict";
       const content = (
         <span className="save-indicator-content">
-          {displayState === "conflict" || displayState === "error" ? <ExclamationCircleOutlined /> : icons[status]}
+          {displayState === "conflict" || displayState === "error" ? (
+            <ExclamationCircleOutlined />
+          ) : (
+            icons[status]
+          )}
           <span className="save-indicator-label">{label}</span>
         </span>
       );
       return (
         <>
-        <Tooltip title={tooltip}>
-          <div
-            ref={ref}
-            className={cx(props.className, styles.root)}
-            role="status"
-            aria-label={label}
-            aria-live="polite"
-            data-save-state={displayState}
-          >
-            {canRetry ? (
-              <Button
-                type="text"
-                size="small"
-                aria-label={label}
-                onClick={() => {
-                  if (draftState === "conflict" && studioCtx.desktopDraft) {studioCtx.desktopDraft.dialogOpen = true;}
-                  else { void studioCtx.save(); }
-                }}
-              >
-                {content}
-              </Button>
-            ) : (
-              content
-            )}
-          </div>
-        </Tooltip>
-        <DesktopDraftDialog studioCtx={studioCtx} />
+          <Tooltip title={tooltip}>
+            <div
+              ref={ref}
+              className={cx(props.className, styles.root)}
+              role="status"
+              aria-label={label}
+              aria-live="polite"
+              data-save-state={displayState}
+            >
+              {canRetry ? (
+                <Button
+                  type="text"
+                  size="small"
+                  aria-label={label}
+                  onClick={() => {
+                    if (draftState === "conflict" && controller) {
+                      controller.setDialogOpen(true);
+                    } else {
+                      void studioCtx.save();
+                    }
+                  }}
+                >
+                  {content}
+                </Button>
+              ) : (
+                content
+              )}
+            </div>
+          </Tooltip>
+          <DesktopDraftDialog studioCtx={studioCtx} />
         </>
       );
     },
-  ),
 );
 
 export default SaveIndicator;

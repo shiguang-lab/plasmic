@@ -1,3 +1,12 @@
+minimumReleaseAge: 0
+
 # Own pnpm root, so `pnpm install` here does not walk up to
 # platform/pnpm-workspace.yaml and install the wab workspace instead.
 packages: []
+
+# Match the controlled Studio SDK and React runtime.
+overrides:
+  react: 19.3.1
+  react-dom: 19.3.1
+  "@types/react": 19.3.0
+  "@types/react-dom": 19.3.0

@@ -12,7 +12,6 @@ import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { zIndex } from "@/wab/client/z-index";
 import { ApiAppRole } from "@/wab/shared/ApiSchema";
 import { findAllDataSourceOpExprForComponent } from "@/wab/shared/cached-selectors";
-import { ensure } from "@/wab/shared/common";
 import {
   dataSourceTemplateToString,
   getTemplateFieldType,
@@ -21,7 +20,8 @@ import {
 import { Component, DataSourceOpExpr } from "@/wab/shared/model/classes";
 import { Select as AntSelect, Form, notification } from "antd";
 import { Dictionary, keyBy, mapValues } from "lodash";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
+import { usePageMetadata } from "@/wab/client/components/sidebar-tabs/page-metadata-state";
 import { ok } from "neverthrow";
 import React from "react";
 
@@ -34,14 +34,16 @@ const MIN_ROLE_TOOLTIP =
 function PageMinRoleSection_({ page }: { page: Component }) {
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
-  const appId = studioCtx.siteInfo.id;
+  const appId = useStore(studioCtx.projectMetadataStore, (state) => state.id);
+  const authProvider = useStore(studioCtx.projectMetadataStore, (state) => state.appAuthProvider);
   const appCtx = studioCtx.appCtx;
 
-  const pageMeta = ensure(page.pageMeta, "Page component without pageMeta");
+  const pageMeta = usePageMetadata(page);
+  const roleId = useStore(studioCtx.modelSnapshots.field(pageMeta, "roleId"));
 
   const { roles } = useAppRoles(appCtx, appId);
 
-  if (!studioCtx.siteInfo.appAuthProvider) {
+  if (!authProvider) {
     return null;
   }
 
@@ -153,7 +155,7 @@ function PageMinRoleSection_({ page }: { page: Component }) {
           className="form-control textboxlike"
           style={{ width: "100%" }}
           suffixIcon={<Icon icon={TriangleBottomIcon} />}
-          value={pageMeta.roleId ?? "anon"}
+          value={roleId ?? "anon"}
           onChange={async (newId) => {
             const allOperations = allDataOperationsInPage();
             const changingOperations = getOperationsToBeUpdated(
@@ -275,4 +277,4 @@ function PageMinRoleSection_({ page }: { page: Component }) {
   );
 }
 
-export const PageMinRoleSection = observer(PageMinRoleSection_);
+export const PageMinRoleSection = PageMinRoleSection_;

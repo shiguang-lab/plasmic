@@ -4,11 +4,18 @@ import { componentReviewContextSchema, componentReviewResultSchema, describeRevi
 import type { MutationReceipt } from "@/wab/shared/copilot/mutation-receipt";
 import { getRealParams, isCodeComponent, isContextCodeComponent, isFrameComponent, isPageComponent } from "@/wab/shared/core/components";
 import { walkDependencyTree } from "@/wab/shared/core/project-deps";
+import { tryExtractJson } from "@/wab/shared/core/exprs";
 import { ancestorsUp, flattenTpls } from "@/wab/shared/core/tpls";
 import { isKnownEventHandler, isKnownFunctionType, isKnownSlotParam, isKnownTplComponent, isKnownTplTag, type Component, type TplNode } from "@/wab/shared/model/classes";
 import { comparer, reaction } from "mobx";
 
 type Operation = { name: string; input: Record<string, unknown> };
+const coverageSnapshots = new WeakMap<StudioCtx, Pick<ComponentReviewResult, "indexed" | "total">>();
+function rememberCoverage(studio: StudioCtx, value: unknown) {
+  if (value && typeof value === "object" && "indexed" in value && "total" in value && typeof value.indexed === "number" && typeof value.total === "number") {
+    coverageSnapshots.set(studio, { indexed: value.indexed, total: value.total });
+  }
+}
 export function reviewInput(name: string, input: Record<string, unknown>) {
   try {
     const context = componentReviewContextSchema.parse(input.reviewContext);
@@ -33,7 +40,7 @@ export function componentDocuments(studio: StudioCtx) {
       continue;
     }
     const props: string[] = []; const slots: string[] = []; const events: string[] = []; const lines: string[] = [];
-    for (const param of [...getRealParams(component, { includeSlots: true })].sort((a, b) => a.variable.name.localeCompare(b.variable.name))) {
+    for (const param of getRealParams(component, { includeSlots: true })) {
       const name = param.variable.name;
       if (["className", "style", "ref", "key"].includes(name)) continue;
       const kind = isKnownSlotParam(param) ? "slot" : isKnownFunctionType(param.type) ? "eventHandler" : "prop";
@@ -61,7 +68,7 @@ export function startComponentReuse(studio: StudioCtx) {
   void api.componentReuse({ command: "status" }).then(status => {
     if (closed || !(status && typeof status === "object" && "available" in status && status.available === true)) return;
     dispose = reaction(() => componentDocuments(studio), catalogue => {
-      if (!closed) void api.componentReuse({ command: "sync", projectId: studio.siteInfo.id, ...catalogue }).catch(() => {});
+      if (!closed) { void api.componentReuse({ command: "sync", projectId: studio.siteInfo.id, ...catalogue }).then(value => { if (!closed) { rememberCoverage(studio, value); } }).catch(() => {}); }
     }, { fireImmediately: true, equals: comparer.structural, delay: 250 });
     events.forEach(name => window.addEventListener(name, activity, { passive: true }));
   }).catch(() => {});
@@ -86,23 +93,32 @@ function hasNativeWidget(node: TplNode) {
     Object.entries(setting.attrs).some(([name, value]) => /^on[A-Z]/.test(name) && isKnownEventHandler(value))));
 }
 export function shouldReviewRegion(operations: Operation[], root: TplNode) {
+  if (operations.some(op => op.name === "reviewComponentReuse")) { return true; }
   const relevant = operations.filter(op => ["insertHtml", "copyElement", "createComponent", "createInteraction", "updateInteraction"].includes(op.name) ||
     op.name === "changeElement" && ["props", "resetProps", "visibleIf", "repeat"].some(key => key in op.input));
-  if (!relevant.length || isKnownTplComponent(root) && isCodeComponent(root.component)) return false;
-  const { nodes, used } = nodesAndUsed(root);
+  if (!relevant.length) { return false; }
+  const { nodes } = nodesAndUsed(root);
   if (nodes.some(hasNativeWidget)) return true;
-  // Registered widgets and their text/layout Slots already carry the functionality.
-  if (used.size) return false;
-  // Standalone copy and simple layout are not a functional custom widget.
+  // Registered components do not establish that adjacent or Slot content is
+  // covered. Inspect the authored custom structure, including inside Card Slots.
   const native = nodes.filter(isKnownTplTag);
+  const widgetRoles = new Set(["table", "grid", "row", "tablist", "tab", "tabpanel", "listbox", "tree", "menu"]);
+  if (native.some(node => node.vsettings.some(setting => setting.attrs.role && widgetRoles.has(String(tryExtractJson(setting.attrs.role)))))) { return true; }
   const hasText = (node: TplNode) => isKnownTplTag(node) && node.vsettings.some(setting => !!setting.text);
   const fieldPairs = native.filter(node => node.children.length === 2 && node.children.every(hasText));
-  return native.some(node => ["dl", "dt", "dd", "ul", "ol"].includes(node.tag)) || fieldPairs.length >= 2;
+  const hasContent = (node: TplNode) => flattenTpls(node).some(child => hasText(child) || isKnownTplComponent(child));
+  const repeatedRows = native.some(node => {
+    const rows = node.children.filter(isKnownTplTag);
+    if (rows.length < 3 || rows.length !== node.children.length) { return false; }
+    const width = rows[0].children.length;
+    return width >= 2 && rows.every(row => row.children.length === width && row.children.every(hasContent));
+  });
+  return repeatedRows || native.some(node => ["dl", "dt", "dd", "ul", "ol"].includes(node.tag)) || fieldPairs.length >= 2;
 }
 
 const prompted = new WeakMap<StudioCtx, Map<string, { regions: Set<string>; candidates: Set<string> }>>();
-export async function reviewComponents(studio: StudioCtx, operations: Operation[], receipts: MutationReceipt[], context: ComponentReviewContext, callerId = "local", signal?: AbortSignal): Promise<ComponentReviewResult> {
-  const skipped: ComponentReviewResult = { status: "skipped", indexed: 0, total: 0, elapsedMs: 0, suggestions: [] };
+export async function reviewComponents(studio: StudioCtx, operations: Operation[], receipts: MutationReceipt[], context: ComponentReviewContext, callerId = "local", signal?: AbortSignal, retry = false): Promise<ComponentReviewResult> {
+  const skipped: ComponentReviewResult = { status: "skipped", indexed: null, total: null, ...coverageSnapshots.get(studio), elapsedMs: 0, suggestions: [] };
   const api = studio.appCtx.topFrameApi;
   if (!studio.appCtx.appConfig.enableComponentReuseAdvisory || !api) return { ...skipped, status: "unavailable" };
   let sessions = prompted.get(studio); if (!sessions) { sessions = new Map(); prompted.set(studio, sessions); }
@@ -145,12 +161,13 @@ export async function reviewComponents(studio: StudioCtx, operations: Operation[
     if (regions.length === 5) { truncated = true; continue; }
     const { nodes, used } = nodesAndUsed(node);
     snapshots.add(component.uuid + ":" + node.uuid);
-    regions.push({ componentUuid: component.uuid, elementUuid: node.uuid, intent: context.purpose, usedComponentUuids: [...used], facts: [...new Set(nodes.filter(isKnownTplTag).map(item => item.tag))] });
+    regions.push({ componentUuid: component.uuid, elementUuid: node.uuid, intent: context.purpose, usedComponentUuids: [...used], ancestorComponentUuids: ancestorsUp(node).filter(isKnownTplComponent).map(ancestor => ancestor.component.uuid), facts: [...new Set(nodes.filter(isKnownTplTag).map(item => item.tag))] });
   }
   if (!regions.length) return { ...skipped, skippedRegions };
   const started = performance.now(); const id = crypto.randomUUID(); const counter = studio._changeCounter;
   let ended = false; let interrupted: (result: ComponentReviewResult) => void = () => {};
-  const stop = (status: "cancelled" | "timeout") => { ended = true; void api.componentReuse({ command: "cancel", id }).catch(() => {}); interrupted({ ...skipped, status, skippedRegions, elapsedMs: performance.now() - started }); };
+  const retryCall = (afterMs: number) => ({ tool: "execute" as const, arguments: { name: "reviewComponentReuse" as const, input: { targets: regions.map(({ componentUuid, elementUuid }) => ({ componentUuid, elementUuid })), reviewContext: context } }, afterMs });
+  const stop = (status: "cancelled" | "timeout") => { ended = true; void api.componentReuse({ command: "cancel", id }).catch(() => {}); interrupted({ ...skipped, ...coverageSnapshots.get(studio), status, skippedRegions, ...(status === "timeout" ? { retry: retryCall(1000) } : {}), elapsedMs: performance.now() - started }); };
   const cancel = () => stop("cancelled"); signal?.addEventListener("abort", cancel, { once: true });
   const timeout = new Promise<ComponentReviewResult>(resolve => { interrupted = resolve; });
   const timer = setTimeout(() => stop("timeout"), 5000);
@@ -161,23 +178,49 @@ export async function reviewComponents(studio: StudioCtx, operations: Operation[
       if (ended) return { ...skipped, status: "timeout" };
       if (!(status && typeof status === "object" && "available" in status && status.available === true)) return { ...skipped, status: "unavailable" };
       const catalogue = componentDocuments(studio);
-      await api.componentReuse({ command: "sync", projectId: studio.siteInfo.id, ...catalogue });
+      rememberCoverage(studio, await api.componentReuse({ command: "sync", projectId: studio.siteInfo.id, ...catalogue, ...(retry ? { retry: true } : {}) }));
       if (ended) return { ...skipped, status: "timeout" };
       const result = componentReviewResultSchema.parse(await api.componentReuse({ command: "review", projectId: studio.siteInfo.id, id, regions }));
+      rememberCoverage(studio, result);
       if (ended || signal?.aborted) return { ...skipped, status: "cancelled", elapsedMs: performance.now() - started };
-      if (studio._changeCounter !== counter || JSON.stringify(componentDocuments(studio)) !== JSON.stringify(catalogue)) return { ...result, status: "partial", suggestions: [], skippedRegions };
+      if (studio._changeCounter !== counter || JSON.stringify(componentDocuments(studio)) !== JSON.stringify(catalogue)) return { ...result, status: "partial", issues: ["catalogue-changed"], suggestions: [], skippedRegions, retry: retryCall(0) };
       const suggestions = result.suggestions.flatMap(suggestion => {
         const key = suggestion.componentUuid + ":" + suggestion.elementUuid;
-        assert(snapshots.has(key), "Unexpected component advisory target"); sent.add(key);
+        assert(snapshots.has(key), "Unexpected component advisory target");
         // A delete-and-insert edit has no replacement identity. Repeating the
         // same candidate in this definition must still not restart the advice loop.
-        const candidates = suggestion.candidates.filter(candidate => !offered.has(suggestion.componentUuid + ":" + candidate.componentUuid));
-        for (const candidate of candidates) offered.add(suggestion.componentUuid + ":" + candidate.componentUuid);
+        const fresh = new Set(suggestion.candidates.filter(candidate => !offered.has(suggestion.componentUuid + ":" + candidate.componentUuid)).map(candidate => candidate.componentUuid));
+        // Retain dependencies even when their own advisory was offered before.
+        for (let i = 0; i < suggestion.candidates.length; i++) {
+          for (const candidate of suggestion.candidates) {
+            if (candidate.requiredBy?.some(uuid => fresh.has(uuid))) { fresh.add(candidate.componentUuid); }
+          }
+        }
+        const candidates = suggestion.candidates.filter(candidate => fresh.has(candidate.componentUuid));
         return candidates.length ? [{ ...suggestion, candidates }] : [];
       });
-      return { ...result, suggestions, ...(truncated ? { status: "partial" as const } : {}), skippedRegions, elapsedMs: performance.now() - started };
+      const response: ComponentReviewResult = { ...result, suggestions, ...(truncated ? { status: "partial" as const, issues: [...(result.issues ?? []), "regions-truncated" as const] } : {}),
+        ...(result.status === "indexing" || result.status === "timeout" || result.issues?.some(issue => ["embedding-failed", "catalogue-changed"].includes(issue)) ? { retry: retryCall(result.status === "indexing" || result.status === "timeout" ? 1000 : 0) } : {}), skippedRegions, elapsedMs: performance.now() - started };
+      // Recovery metadata shares the wire budget with suggestions. Drop entire
+      // compositions so truncation cannot strand a child without its parent.
+      while (new TextEncoder().encode(JSON.stringify(response)).length > 6144 && response.suggestions.length) {
+        response.suggestions.pop(); if (response.status === "completed") { response.status = "partial"; }
+        response.issues = [...new Set([...(response.issues ?? []), "output-truncated" as const])];
+      }
+      if (response.status === "completed") {
+        for (const suggestion of response.suggestions) {
+          sent.add(suggestion.componentUuid + ":" + suggestion.elementUuid);
+          for (const candidate of suggestion.candidates) { offered.add(suggestion.componentUuid + ":" + candidate.componentUuid); }
+        }
+      }
+      return response;
     })();
     return await Promise.race([work, timeout]);
   } catch { return { ...skipped, status: signal?.aborted ? "cancelled" : "unavailable", elapsedMs: performance.now() - started }; }
   finally { clearTimeout(timer); signal?.removeEventListener("abort", cancel); }
+}
+
+/** Explicit recovery uses the current model and never performs a design mutation. */
+export function reviewComponentReuse(studio: StudioCtx, input: { targets: { componentUuid: string; elementUuid: string }[]; reviewContext: ComponentReviewContext }, callerId?: string, signal?: AbortSignal) {
+  return reviewComponents(studio, input.targets.map(target => ({ name: "reviewComponentReuse", input: target })), [], input.reviewContext, callerId, signal, true);
 }

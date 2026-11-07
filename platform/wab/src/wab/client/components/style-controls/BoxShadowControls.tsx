@@ -16,7 +16,6 @@ import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { ensure } from "@/wab/shared/common";
 import { BoxShadow, Dim } from "@/wab/shared/core/bg-styles";
 import { LENGTH_UNITS } from "@/wab/shared/css/types";
-import { observer } from "mobx-react";
 import React from "react";
 import defer = setTimeout;
 
@@ -26,7 +25,7 @@ interface BoxShadowPanelProps extends StyleComponentProps {
   vsh: VariantedStylesHelper;
 }
 class _BoxShadowPanel extends StyleComponent<BoxShadowPanelProps> {
-  private readonly firstInputRef: React.RefObject<HTMLInputElement>;
+  private readonly firstInputRef: React.RefObject<HTMLInputElement | null>;
 
   constructor(props) {
     super(props);
@@ -161,4 +160,4 @@ class _BoxShadowPanel extends StyleComponent<BoxShadowPanelProps> {
     );
   }
 }
-export const BoxShadowPanel = observer(_BoxShadowPanel);
+export const BoxShadowPanel = _BoxShadowPanel;

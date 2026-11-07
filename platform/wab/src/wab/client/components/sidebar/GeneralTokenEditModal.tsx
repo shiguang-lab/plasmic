@@ -1,6 +1,6 @@
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { newTokenValueAllowed } from "@/wab/client/components/sidebar/token-utils";
-import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
+import { useClientTokenValue } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { SimpleTextbox } from "@/wab/client/components/widgets/SimpleTextbox";
@@ -12,11 +12,11 @@ import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { assert, ensure } from "@/wab/shared/common";
 import { MutableToken, OverrideableToken } from "@/wab/shared/core/tokens";
 import { StyleToken } from "@/wab/shared/model/classes";
-import { observer } from "mobx-react";
+import { useStyleTokenInputs } from "@/wab/client/studio-ctx/style-token-inputs";
+import { useShallow } from "zustand/react/shallow";
 import * as React from "react";
 
-export const GeneralTokenEditModal = observer(
-  function GeneralTokenModal(props: {
+export const GeneralTokenEditModal = function GeneralTokenModal(props: {
     token: MutableToken<StyleToken> | OverrideableToken<StyleToken>;
     studioCtx: StudioCtx;
     defaultEditingName?: boolean;
@@ -28,15 +28,24 @@ export const GeneralTokenEditModal = observer(
       token,
       studioCtx,
       defaultEditingName,
-      vsh = new VariantedStylesHelper(props.studioCtx.site),
+      vsh: suppliedVsh,
     } = props;
+    const defaultVsh = React.useMemo(() => new VariantedStylesHelper(studioCtx.site), [studioCtx]);
+    const vsh = suppliedVsh ?? defaultVsh;
+    const lifetime = React.useMemo(() => studioCtx.arenaState.lifetime(), [studioCtx, token]);
 
-    const resolver = useClientTokenResolver();
-    const activeTokenValue = vsh.getActiveTokenValue(token);
+    const snapshot = useStyleTokenInputs(studioCtx, token, vsh, useShallow((state) => state && [state.name, state.type, state.activeValue, state.isRegistered, state.regKey] as const));
+    const clientValue = useClientTokenValue(
+      snapshot && !isTokenRef(snapshot[2]) ? snapshot[2] : undefined,
+      snapshot && { isRegistered: snapshot[3], regKey: snapshot[4] },
+      lifetime,
+    );
+    if (!snapshot) { return null; }
+    const [tokenName, type, activeTokenValue] = snapshot;
     // Resolve CSS variable refs only
     const tokenRefOrRealColor = isTokenRef(activeTokenValue)
       ? activeTokenValue
-      : resolver(token, vsh);
+      : ensure(clientValue, "Resolved native token value must exist");
 
     const onChange = async (val: string | undefined) => {
       assert(val !== undefined);
@@ -57,7 +66,7 @@ export const GeneralTokenEditModal = observer(
               className="token-fg custom-svg-icon--lg monochrome-exempt"
             />
             <SimpleTextbox
-              defaultValue={token.name}
+              defaultValue={tokenName}
               onValueChange={(name) =>
                 studioCtx.changeUnsafe(() => {
                   studioCtx.tplMgr().renameStyleToken(token.base, name);
@@ -80,13 +89,12 @@ export const GeneralTokenEditModal = observer(
             onChange={(val) => onChange(ensure(val, "new value is undefined"))}
             noClear
             studioCtx={studioCtx}
-            tokenType={token.type}
+            tokenType={type}
             autoFocus={!defaultEditingName}
-            {...tokenTypeDimOpts(token.type)}
+            {...tokenTypeDimOpts(type)}
             vsh={vsh}
           />
         </div>
       </SidebarModal>
     );
-  },
-);
+};

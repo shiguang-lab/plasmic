@@ -3,6 +3,7 @@ import { PopoverFrameProvider } from "@/wab/client/components/sidebar/PopoverFra
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { useViewEntryForComponent } from "@/wab/client/studio-ctx/arena-state";
 import { PageComponent } from "@/wab/shared/core/components";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Typography } from "antd";
@@ -20,7 +21,7 @@ export const PageSettingsDialog = observer(function PageSettingsDialog({
 }) {
   const { t } = useI18n();
   const studioCtx = useStudioCtx();
-  const viewCtx = studioCtx.viewCtxs.find((vc) => vc.component === page);
+  const viewCtx = useViewEntryForComponent(studioCtx, page)?.view;
   return (
     <Modal
       open={open}

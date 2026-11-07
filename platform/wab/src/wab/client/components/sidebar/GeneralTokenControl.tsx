@@ -12,8 +12,8 @@ import { FinalToken, MutableToken } from "@/wab/shared/core/tokens";
 import { getFolderDisplayName } from "@/wab/shared/folders/folders-util";
 import { StyleToken } from "@/wab/shared/model/classes";
 import { Tooltip } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
 
 interface GeneralTokenControlProps {
   style?: React.CSSProperties;
@@ -26,7 +26,7 @@ interface GeneralTokenControlProps {
   indicatorType?: TokenIndicatorType;
 }
 
-const GeneralTokenControl = observer(function GeneralTokenControl(
+function GeneralTokenControl(
   props: GeneralTokenControlProps,
 ) {
   const {
@@ -43,9 +43,10 @@ const GeneralTokenControl = observer(function GeneralTokenControl(
 
   const multiAssetsActions = useMultiAssetsActions();
 
-  const isSelected = multiAssetsActions.isAssetSelected(token.uuid);
-
-  const tokenName = getFolderDisplayName(token.name);
+  const uuid = useStore(studioCtx.modelSnapshots.field(token.base, "uuid"));
+  const name = useStore(studioCtx.modelSnapshots.field(token.base, "name"));
+  const isSelected = multiAssetsActions.isAssetSelected(uuid);
+  const tokenName = getFolderDisplayName(name);
 
   return (
     <Tooltip title={tokenName} mouseEnterDelay={0.5}>
@@ -83,6 +84,6 @@ const GeneralTokenControl = observer(function GeneralTokenControl(
       </TriggerAnchor>
     </Tooltip>
   );
-});
+}
 
 export default GeneralTokenControl;

@@ -15,12 +15,16 @@ import RowJustifySpaceBetweenIcon from "@/wab/client/plasmic/plasmic_kit/Plasmic
 import RowJustifyStartIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__RowJustifyStart";
 import ColumnJustifySpaceEvenlyIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__ColumnJustifySpaceEvenly";
 import RowJustifySpaceEvenlyIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIcon__RowJustifySpaceEvenly";
-import { observer } from "mobx-react";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
 import React from "react";
 
-class JustifyContentControls_ extends StyleComponent<StyleComponentProps> {
+interface JustifyContentRenderProps extends StyleComponentProps {
+  readonly flexDirection: string;
+}
+
+class JustifyContentControls_ extends StyleComponent<JustifyContentRenderProps> {
   render() {
-    const flexDir = this.exp().get("flexDirection");
+    const flexDir = this.props.flexDirection;
     const options = [
       "flex-start",
       "center",
@@ -40,7 +44,14 @@ class JustifyContentControls_ extends StyleComponent<StyleComponentProps> {
   }
 }
 
-export const JustifyControls = observer(JustifyContentControls_);
+export const JustifyControls = React.forwardRef<JustifyContentControls_, StyleComponentProps>(
+  function JustifyControls(props, ref) {
+    const cells = useStyleCells(props.expsProvider, ["flex-direction"]);
+    const flexDirection = cells.find((cell) => cell.key === "flex-direction")?.value;
+    if (flexDirection === undefined) { return null; }
+    return <JustifyContentControls_ {...props} ref={ref} flexDirection={flexDirection} />;
+  },
+);
 
 export const JustifyContentIcons = {
   row: {

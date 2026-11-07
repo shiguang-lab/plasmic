@@ -5,7 +5,7 @@ against the hosted Plasmic service. Each case scaffolds an app in a temporary
 directory and runs its production build. No local development server is required.
 
 The 15 cases cover Next.js (Pages and App Router, codegen and loader, JavaScript
-and TypeScript), Gatsby (codegen and loader, JavaScript and TypeScript), React/Vite
+and TypeScript), React/Vite
 (codegen, JavaScript and TypeScript), and TanStack (codegen, TypeScript).
 
 ## Running locally

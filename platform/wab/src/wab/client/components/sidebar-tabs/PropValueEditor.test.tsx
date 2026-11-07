@@ -1,3 +1,6 @@
+import { InspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
+import { emptyViewSelection } from "@/wab/client/studio-ctx/view-selection";
+import { createStore } from "zustand/vanilla";
 import {
   PropEditorRow,
   PropValueEditorContext,
@@ -9,7 +12,6 @@ import { FunctionArgumentsPropType } from "@/wab/shared/code-components/code-com
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { act, cleanup, render, screen } from "@testing-library/react";
-import { observable, runInAction } from "mobx";
 import React from "react";
 import { vi } from "vitest";
 
@@ -44,6 +46,24 @@ vi.mock("mobx-react", async (importOriginal) => {
 
 afterEach(cleanup);
 
+function nativeView(getComponentEvalContext: (...args: any[]) => any) {
+  const view: any = {
+    selectionStore: createStore(() => emptyViewSelection),
+    studioCtx: { inspectorStore: createStore(() => ({ selection: undefined, pending: false })) },
+    getComponentEvalContext,
+    getCanvasEnvForTpl: () => ({}),
+    customFunctionsSchema: () => ({}),
+    currentComponentCtx: () => null,
+    focusedTpl: () => null,
+    focusedTpls: () => [],
+    focusedSelectable: () => null,
+    focusedCloneKey: () => "committed-clone",
+  };
+  const reads = new InspectorSelection(view, 1);
+  view.getInspectorReadOwner = () => reads;
+  return { view, reads };
+}
+
 function setup(contextName = "HelloGlobalContext") {
   const selected = mkTplTagX("div");
   const hello = { name: "hello canvas clone" };
@@ -52,7 +72,7 @@ function setup(contextName = "HelloGlobalContext") {
     ["HelloGlobalContext", hello],
     ["OtherGlobalContext", other],
   ]);
-  const data = observable.map<any, any>([
+  const data = new Map<any, any>([
     [selected, { names: ["selected element data"] }],
     [hello, { names: ["a", "b", "c"] }],
     [other, { names: ["other"] }],
@@ -74,6 +94,7 @@ function setup(contextName = "HelloGlobalContext") {
         : { provider: tpl.name },
     ccContextData: data.get(tpl),
   }));
+  const { view, reads } = nativeView(getComponentEvalContext);
   const context = {
     paramOwnerNames: [],
     tpl: selected,
@@ -86,7 +107,7 @@ function setup(contextName = "HelloGlobalContext") {
         },
       },
     },
-    viewCtx: { getInspectorComponentEvalContext: getComponentEvalContext, customFunctionsSchema: () => ({}), inspectorCloneKey: () => "committed-clone", studioCtx: { inspectorSelection: undefined } },
+    viewCtx: view,
     env: {},
   };
   const rendered = render(
@@ -100,12 +121,12 @@ function setup(contextName = "HelloGlobalContext") {
       />
     </PropValueEditorContext.Provider>,
   );
-  return { ...rendered, data, hello, other, options, getComponentEvalContext };
+  return { ...rendered, data, hello, other, options, getComponentEvalContext, reads };
 }
 
 it("passes the invoked provider's props and context to argument options", () => {
   const { options, hello, getComponentEvalContext } = setup();
-  expect(getComponentEvalContext).toHaveBeenCalledWith(hello);
+  expect(getComponentEvalContext).toHaveBeenCalledWith(hello, undefined, { anchorCloneKey: "committed-clone", ignoreFocusedCloneKey: true });
   expect(options).toHaveBeenLastCalledWith(
     { provider: "hello canvas clone" },
     { names: ["a", "b", "c"] },
@@ -120,7 +141,7 @@ it("passes the invoked provider's props and context to argument options", () => 
 it("isolates the invoked provider from the selection and other providers", () => {
   const { options, other, getComponentEvalContext } =
     setup("OtherGlobalContext");
-  expect(getComponentEvalContext).toHaveBeenCalledWith(other);
+  expect(getComponentEvalContext).toHaveBeenCalledWith(other, undefined, { anchorCloneKey: "committed-clone", ignoreFocusedCloneKey: true });
   expect(options).toHaveBeenLastCalledWith(
     { provider: "other canvas clone" },
     { names: ["other"] },
@@ -128,12 +149,12 @@ it("isolates the invoked provider from the selection and other providers", () =>
 });
 
 it("reacts to provider data changes and preserves absent-context fallback", async () => {
-  const { data, hello, options } = setup();
-  await act(() => runInAction(() => data.set(hello, { names: ["updated"] })));
+  const { data, hello, options, reads } = setup();
+  await act(() => { data.set(hello, { names: ["updated"] }); reads.syncCanvas(); });
   expect(screen.getAllByRole("option").map((el) => el.textContent)).toEqual([
     "updated",
   ]);
-  await act(() => runInAction(() => data.delete(hello)));
+  await act(() => { data.delete(hello); reads.syncCanvas(); });
   expect(options).toHaveBeenLastCalledWith(
     { provider: "hello canvas clone" },
     undefined,
@@ -164,7 +185,7 @@ it("uses the selected component context when overrides are omitted", () => {
     <PropEditorRow
       tpl={tpl}
       expr={undefined}
-      viewCtx={{ getInspectorComponentEvalContext: getComponentEvalContext, inspectorCloneKey: () => "committed-clone", studioCtx: { inspectorSelection: undefined } } as any}
+      viewCtx={nativeView(getComponentEvalContext).view}
       env={{}}
       schema={{}}
       attr="name"
@@ -173,6 +194,6 @@ it("uses the selected component context when overrides are omitted", () => {
       onChange={vi.fn()}
     />,
   );
-  expect(getComponentEvalContext).toHaveBeenCalledWith(tpl);
+  expect(getComponentEvalContext).toHaveBeenCalledWith(tpl, undefined, { anchorCloneKey: "committed-clone", ignoreFocusedCloneKey: true });
   expect(options).toHaveBeenLastCalledWith(componentPropValues, ccContextData);
 });

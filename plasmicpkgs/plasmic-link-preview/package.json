@@ -1,6 +1,6 @@
 {
   "name": "@plasmicpkgs/plasmic-link-preview",
-  "version": "1.0.173",
+  "version": "2.0.0",
   "description": "A React component that renders beautiful, fully-customizable link previews.",
   "homepage": "https://www.plasmic.app",
   "repository": {
@@ -43,10 +43,10 @@
     "tslib": "catalog:"
   },
   "peerDependencies": {
-    "@plasmicapp/data-sources": ">=0.1.52",
-    "@plasmicapp/host": ">=1.0.0",
-    "react": ">=16.8.0",
-    "react-dom": ">=16.8.0"
+    "@plasmicapp/data-sources": "^2.0.0",
+    "@plasmicapp/host": "^3.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "publishConfig": {
     "access": "public"

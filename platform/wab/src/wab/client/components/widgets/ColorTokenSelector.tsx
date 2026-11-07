@@ -8,41 +8,37 @@ import { useToggleDisplayed } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
 import { PlusIcon } from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import SearchIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Search";
-import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
-import { cx } from "@/wab/shared/common";
-import { TokenValueResolver } from "@/wab/shared/core/site-style-tokens";
-import { FinalToken } from "@/wab/shared/core/tokens";
-import { StyleToken } from "@/wab/shared/model/classes";
+import { cx, spawn } from "@/wab/shared/common";
 import Chroma from "@/wab/shared/utils/color-utils";
 import { Tooltip } from "antd";
 import Downshift from "downshift";
-import { observer } from "mobx-react";
+     
 import React from "react";
 import { FixedSizeList } from "react-window";
 
 const GRID_SIZE = 32;
 const ROW_SIZE = 32;
 
-export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
-  tokens: FinalToken<StyleToken>[];
-  onSelect: (token: FinalToken<StyleToken>) => void;
-  selectedToken?: FinalToken<StyleToken>;
-  onAddToken: () => void;
-  resolver: TokenValueResolver;
+export interface ColorTokenSelectorRow {
+  readonly id: string;
+  readonly name: string;
+  readonly color: string;
+  readonly selected: boolean;
+  readonly onSelect: () => void;
+}
+
+export const ColorTokenSelector = function ColorTokenSelector(props: {
+  rows: readonly ColorTokenSelectorRow[];
+  onAddToken: () => void | Promise<void>;
   className?: string;
   autoFocusSearch?: boolean;
   maxRows?: number;
-  vsh?: VariantedStylesHelper;
   hideAddToken?: boolean;
 }) {
   const { t: uiT } = useI18n();
   const {
-    tokens,
-    onSelect,
-    selectedToken,
+    rows,
     onAddToken,
-    resolver,
-    vsh,
     hideAddToken,
   } = props;
   const maxRows = props.maxRows ?? 5;
@@ -52,19 +48,19 @@ export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
   const matcher = new Matcher(hasQuery ? query : "", {
     matchMiddleOfWord: true,
   });
-  const matchedTokens = hasQuery
-    ? tokens.filter(
+  const matchedRows = hasQuery
+    ? rows.filter(
         (t) =>
           matcher.matches(t.name) ||
-          matcher.matches(Chroma.stringify(resolver(t, vsh))),
+          matcher.matches(Chroma.stringify(t.color)),
       )
-    : tokens;
+    : rows;
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   // TODO: measure actual width available to us
   const width = 240;
   const numCols = Math.ceil(width / GRID_SIZE) - 1;
-  const numRows = Math.ceil(tokens.length / numCols);
+  const numRows = Math.ceil(rows.length / numCols);
 
   useToggleDisplayed(inputRef, () => {
     if (props.autoFocusSearch && inputRef.current) {
@@ -72,27 +68,28 @@ export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
     }
   });
 
+  const selectedId = rows.find((row) => row.selected)?.id;
   React.useEffect(() => {
     if (listRef.current) {
-      if (!hasQuery && selectedToken) {
-        const index = tokens.indexOf(selectedToken);
+      if (!hasQuery && selectedId !== undefined) {
+        const index = rows.findIndex((row) => row.id === selectedId);
         if (index >= 0) {
           const rowIndex = Math.ceil(index / numCols);
           listRef.current.scrollToItem(rowIndex, "smart");
         }
       }
     }
-  }, [selectedToken]);
+  }, [selectedId]);
 
   return (
-    <Downshift<FinalToken<StyleToken>>
+    <Downshift<ColorTokenSelectorRow>
       selectedItem={null}
       defaultHighlightedIndex={0}
-      itemToString={(t) => ""}
+      itemToString={() => ""}
       isOpen={true}
-      onSelect={(item, downshift) => {
+      onSelect={(item) => {
         if (item) {
-          onSelect(item);
+          item.onSelect();
           setQuery("");
         }
       }}
@@ -103,11 +100,11 @@ export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
           }
         }
       }}
-      itemCount={hasQuery ? matchedTokens.length : undefined}
+      itemCount={hasQuery ? matchedRows.length : undefined}
     >
       {(downshift) => {
         const height = hasQuery
-          ? Math.min(maxRows, matchedTokens.length) * ROW_SIZE
+          ? Math.min(maxRows, matchedRows.length) * ROW_SIZE
           : Math.min(maxRows, numRows) * GRID_SIZE;
         return (
           <div className={props.className}>
@@ -133,7 +130,7 @@ export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
               />
               {hideAddToken ? null : (
                 <Tooltip title={uiT("Create a new color token")}>
-                  <IconButton onClick={() => onAddToken()} type="round">
+                  <IconButton onClick={() => spawn(onAddToken())} type="round">
                     <Icon icon={PlusIcon} />
                   </IconButton>
                 </Tooltip>
@@ -145,47 +142,47 @@ export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
                 width={"100%"}
                 height={height + 5}
                 itemSize={hasQuery ? ROW_SIZE : GRID_SIZE}
-                itemCount={hasQuery ? matchedTokens.length : numRows}
+                itemCount={hasQuery ? matchedRows.length : numRows}
                 ref={listRef}
                 overscanCount={5}
               >
                 {({ index, style }) => {
                   if (hasQuery) {
-                    const token = matchedTokens[index];
+                    const token = matchedRows[index];
                     if (!token) {
                       return null;
                     }
                     return (
                       <Tooltip
-                        key={`tooltip-${token.uuid}`}
+                        key={`tooltip-${token.id}`}
                         title={`${token.name} (${Chroma.stringify(
-                          resolver(token, vsh),
+                          token.color,
                         )})`}
                       >
                         <div
                           {...downshift.getItemProps({
                             item: token,
-                            key: token.uuid,
+                            key: token.id,
                             style: style,
                             index,
-                            onMouseDown: () => onSelect(token),
+                            onMouseDown: () => token.onSelect(),
                             className: cx({
                               NamedSwatch: true,
                               "NamedSwatch--highlighted":
                                 downshift.highlightedIndex === index,
-                              "NamedSwatch--selected": token === selectedToken,
+                              "NamedSwatch--selected": token.selected,
                               "pl-m": true,
                             }),
                           })}
                         >
                           <ColorSwatch
-                            color={resolver(token, vsh)}
-                            isSelected={token === selectedToken}
+                            color={token.color}
+                            isSelected={token.selected}
                           />
                           <div className="text-ellipsis ml-m">
                             {matcher.boldSnippets(token.name)} (
                             {matcher.boldSnippets(
-                              Chroma.stringify(resolver(token, vsh)),
+                              Chroma.stringify(token.color),
                             )}
                             )
                           </div>
@@ -193,7 +190,7 @@ export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
                       </Tooltip>
                     );
                   } else {
-                    const rowTokens = tokens.slice(
+                    const rowItems = rows.slice(
                       numCols * index,
                       numCols * index + numCols,
                     );
@@ -202,16 +199,16 @@ export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
                         className="flex flex-vcenter flex-hcenter"
                         style={style}
                       >
-                        {rowTokens.map((token) => (
+                        {rowItems.map((token) => (
                           <Tooltip
-                            key={token.uuid}
+                            key={token.id}
                             title={`${token.name} (${Chroma.stringify(
-                              resolver(token, vsh),
+                              token.color,
                             )})`}
                           >
                             <PlainLinkButton
-                              key={token.uuid}
-                              onMouseDown={() => onSelect(token)}
+                              key={token.id}
+                              onMouseDown={() => token.onSelect()}
                               className="flex flex-vcenter flex-hcenter SwatchButton"
                               style={{
                                 width: GRID_SIZE,
@@ -219,8 +216,8 @@ export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
                               }}
                             >
                               <ColorSwatch
-                                color={resolver(token, vsh)}
-                                isSelected={token === selectedToken}
+                                color={token.color}
+                                isSelected={token.selected}
                               />
                             </PlainLinkButton>
                           </Tooltip>
@@ -236,4 +233,4 @@ export const ColorTokenSelector = observer(function ColorTokenSelector(props: {
       }}
     </Downshift>
   );
-});
+};

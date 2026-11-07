@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { expect, fn, userEvent, within } from "@storybook/test";
-import React from "react";
+
 import { BaseLabel } from "./registerLabel";
 import { BaseSlider } from "./registerSlider";
 import { BaseSliderOutput } from "./registerSliderOutput";

@@ -1,4 +1,5 @@
 import { StructurePanel } from "@/wab/client/components/studio/StructurePanel";
+import { StudioLeftPanelState } from "@/wab/client/studio-ctx/left-panel-state";
 import { ensure } from "@/wab/shared/common";
 import "@testing-library/jest-dom/vitest";
 import {
@@ -10,6 +11,7 @@ import {
 } from "@testing-library/react";
 import { observable, runInAction } from "mobx";
 import * as React from "react";
+import { createStore } from "zustand/vanilla";
 
 const fixture = vi.hoisted(() => ({
   ctx: undefined as any,
@@ -96,20 +98,26 @@ beforeAll(() => {
 afterAll(() => vi.unstubAllGlobals());
 
 beforeEach(() => {
+  const navigationPanelStore = createStore<"pages" | "outline">(
+    () => "outline",
+  );
+  const leftPanelState = new StudioLeftPanelState();
+  leftPanelState.setPanel({ type: "tab", tab: "outline" });
   fixture.ctx = observable(
     {
-      navigationPanel: "outline",
-      leftTabKey: "outline",
+      navigationPanelStore,
+      leftPanelState,
       currentArena: "Artboard group",
       projectSearchInputRef: React.createRef<HTMLInputElement>(),
-      setNavigationPanel(panel: string) {
-        this.navigationPanel = panel;
+      setNavigationPanel(panel: "pages" | "outline") {
+        navigationPanelStore.setState(panel, true);
       },
       focusOnProjectSearchInput: vi.fn(() =>
         fixture.ctx.projectSearchInputRef.current?.focus(),
       ),
     },
     {
+      leftPanelState: observable.ref,
       projectSearchInputRef: observable.ref,
       focusOnProjectSearchInput: false,
     },
@@ -137,6 +145,20 @@ it("keeps the directory and layer editor mounted when opening groups, pages and 
     expect(layerSearch).toHaveValue("AppShell");
   }
   expect(fixture.ctx.focusOnProjectSearchInput).not.toHaveBeenCalled();
+});
+
+it("reacts to native left-tab changes by focusing project search on outline", async () => {
+  render(<StructurePanel />);
+  act(() => {
+    fixture.ctx.leftPanelState.setPanel({ type: "tab", tab: "components" });
+    fixture.ctx.setNavigationPanel("pages");
+  });
+  expect(fixture.ctx.focusOnProjectSearchInput).not.toHaveBeenCalled();
+
+  act(() => {
+    fixture.ctx.leftPanelState.setPanel({ type: "tab", tab: "outline" });
+  });
+  expect(fixture.ctx.focusOnProjectSearchInput).toHaveBeenCalled();
 });
 
 it("restores the resized directory after title collapse and reopens it for project search", async () => {
@@ -177,8 +199,9 @@ it("restores the resized directory after title collapse and reopens it for proje
   fireEvent.click(screen.getByRole("button", { name: "Project directory" }));
 
   act(() => {
-    runInAction(() => fixture.ctx.setNavigationPanel("pages"));
+    fixture.ctx.setNavigationPanel("pages");
   });
+  expect(fixture.ctx.navigationPanelStore.getState()).toBe("pages");
   expect(Number.parseFloat(directory.style.flexBasis)).toBeCloseTo(342);
   expect(screen.getByRole("textbox", { name: "Project search" })).toHaveFocus();
   expect(screen.getByRole("textbox", { name: "Layer search" })).toBeVisible();

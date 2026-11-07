@@ -24,23 +24,27 @@ import { RuleSet } from "@/wab/shared/model/classes";
 import { RuleSetHelpers } from "@/wab/shared/RuleSetHelpers";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { kebabCase, mapKeys } from "lodash";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
+import { useThemeSelection } from "@/wab/client/components/sidebar/theme-selection-state";
+import type { ModelRef } from "@/wab/client/studio-ctx/model-snapshots";
+import type { Theme } from "@/wab/shared/model/classes";
 import * as React from "react";
 
 export type ThemeInitialStylesPanelProps = DefaultThemeInitialStylesPanelProps;
 
-const InitialsForm = observer(function InitialsForm(props: {
+const InitialsForm = function InitialsForm(props: {
   studioCtx: StudioCtx;
   rs: RuleSet;
   addItemKey: AddItemKey;
 }) {
   const { studioCtx, rs, addItemKey } = props;
-  const expsProvider = new SingleRsExpsProvider(
+  const expsProvider = React.useMemo(() => new SingleRsExpsProvider(
     rs,
     new RuleSetHelpers(rs, "div"),
     studioCtx,
     ["display", "flex-direction"],
-  );
+    { kind: "ruleSet", rs, forTag: "div" },
+  ), [rs, studioCtx]);
   return providesStyleComponent(
     mkStyleComponent({ expsProvider }),
     `${rs.uid}`,
@@ -55,24 +59,29 @@ const InitialsForm = observer(function InitialsForm(props: {
       <SpacingSection expsProvider={expsProvider} />
     </>,
   );
-});
+};
 
-const ThemeInitialStylesPanel = observer(
-  React.forwardRef(function ThemeInitialStylesPanel_(
+const ThemeInitialStylesPanel = React.forwardRef(function ThemeInitialStylesPanel_(
     props: ThemeInitialStylesPanelProps,
     ref: HTMLElementRefOf<"div">,
   ) {
-    const { t: uiT } = useI18n();
     const studioCtx = useStudioCtx();
-    const [addItemKey, setAddItemKey] = React.useState<AddItemKey | undefined>(
-      undefined,
-    );
-    if (!studioCtx.site.activeTheme) {
-      return null;
-    }
-    const rs = addItemKey
-      ? studioCtx.site.activeTheme.addItemPrefs[addItemKey]
-      : undefined;
+    const { selection: theme } = useThemeSelection(studioCtx, (state) => state.activeThemeRef);
+    const [addItemKey, setAddItemKey] = React.useState<AddItemKey | undefined>(undefined);
+    return theme ? <ThemeInitialStylesFields key={theme.uid} studio={studioCtx} themeRef={theme} panelProps={props} panelRef={ref} addItemKey={addItemKey} setAddItemKey={setAddItemKey} /> : null;
+  });
+
+function ThemeInitialStylesFields({ studio: studioCtx, themeRef, panelProps: props, panelRef: ref, addItemKey, setAddItemKey }: {
+  studio: StudioCtx; themeRef: ModelRef<Theme>; panelProps: ThemeInitialStylesPanelProps; panelRef: HTMLElementRefOf<"div">;
+  addItemKey: AddItemKey | undefined; setAddItemKey: (key: AddItemKey | undefined) => void;
+}) {
+    const { t: uiT } = useI18n();
+    const models = studioCtx.modelSnapshots;
+    const theme = React.useMemo(() => models.resolve(themeRef), [models, themeRef]);
+    const prefsStore = React.useMemo(() => models.field(theme, "addItemPrefs"), [models, theme]);
+    const prefs = useStore(prefsStore);
+    const rsRef = addItemKey ? prefs[addItemKey] : undefined;
+    const rs = React.useMemo(() => rsRef ? models.resolve(rsRef) : undefined, [models, rsRef]);
     return (
       <PlasmicThemeInitialStylesPanel
         root={{ ref }}
@@ -132,7 +141,6 @@ const ThemeInitialStylesPanel = observer(
         }}
       />
     );
-  }),
-);
+}
 
 export default ThemeInitialStylesPanel;

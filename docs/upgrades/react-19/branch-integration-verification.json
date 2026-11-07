@@ -1,0 +1,119 @@
+{
+  "status": "combined source merged, builds/types/targeted checks passed",
+  "sourceCommit": "4ca3eae7808b82bf73ef96a8d011e80c3b5b6313",
+  "targetBranch": "codex/react-19-upgrade",
+  "sourceWorkspace": "/Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic",
+  "targetWorkspace": "/Users/yanxianliang/shiguang/plasmic",
+  "originalTargetBackupRef": "refs/codex/backups/react19-target-premerge",
+  "originalTargetStash": "255d106ff51d3b6c293065265080ef0cf87f39e9",
+  "mergePlan": "/tmp/plasmic-react19-20261105/branch-integration/plan.json",
+  "validatedCombinedTreeManifest": "/tmp/plasmic-react19-20261105/branch-integration/final-tree.json",
+  "validatedCombinedTreeManifestSha256": "08ce4bb3774b1a7fb21fb23e0edfa8b4deb7bf0e874a03d854c16e143311e939",
+  "builds": {
+    "host": "passed",
+    "antd6JsSkinnyDeclarations": "passed"
+  },
+  "checks": [
+    {
+      "name": "types",
+      "command": [
+        "pnpm",
+        "--dir",
+        "platform/wab",
+        "--config.verify-deps-before-run=error",
+        "exec",
+        "tsc",
+        "--noEmit",
+        "--incremental",
+        "false",
+        "--noErrorTruncation",
+        "false"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "studio-targeted",
+      "command": [
+        "pnpm",
+        "--dir",
+        "platform/wab",
+        "--config.verify-deps-before-run=error",
+        "exec",
+        "vitest",
+        "run",
+        "--project",
+        "studio",
+        "src/wab/client/components/Shell.test.tsx",
+        "src/wab/client/components/studio/StudioChrome.test.tsx",
+        "src/wab/client/components/canvas/CanvasOverlayToolbar.test.tsx",
+        "src/wab/client/components/canvas/canvas-lifecycle.test.ts",
+        "src/wab/client/components/canvas/canvas-recovery.test.tsx",
+        "src/wab/client/components/canvas/canvas-cache.test.ts",
+        "src/wab/client/components/style-controls/KeyFrameStops.test.tsx",
+        "src/wab/client/components/sidebar/LeftProjectSettingsPanel.test.tsx",
+        "src/wab/client/components/sidebar/LeftSplitsPanel.test.tsx",
+        "src/wab/client/components/widgets/SimpleReorderableList.test.tsx",
+        "src/wab/client/operations/table-expansion-contract.test.ts",
+        "src/wab/client/copilot/scroll-element.test.ts",
+        "src/wab/commons/components/XDraggable.test.tsx",
+        "src/wab/server/data-sources/airtable-fetcher.test.ts",
+        "src/wab/shared/query-builder.test.ts",
+        "--maxWorkers=2"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "host",
+      "command": [
+        "pnpm",
+        "--dir",
+        "packages/host",
+        "--config.verify-deps-before-run=error",
+        "exec",
+        "vitest",
+        "run",
+        "src/canvas-host.test.tsx",
+        "--maxWorkers=2"
+      ],
+      "exitCode": 0
+    },
+    {
+      "name": "antd6",
+      "command": [
+        "pnpm",
+        "--dir",
+        "plasmicpkgs/antd6",
+        "--config.verify-deps-before-run=error",
+        "exec",
+        "vitest",
+        "run",
+        "--maxWorkers=2"
+      ],
+      "exitCode": 0
+    }
+  ],
+  "studio": {
+    "files": 14,
+    "passed": 109,
+    "failed": 0
+  },
+  "host": {
+    "files": 1,
+    "passed": 4,
+    "failed": 0
+  },
+  "antd6": {
+    "files": 29,
+    "passed": 296,
+    "failed": 0
+  },
+  "previousFullMigrationCheckpoint": "state-verification-u39p-final2.json;716files5273pass4existingSkipped before current branch integration",
+  "remainingMobx": {
+    "remainingFiles": 221,
+    "source": 178,
+    "test": 42,
+    "tooling": 1
+  },
+  "dependencyInstall": "No installation/reinstallation; target node_modules remains React18.3.1; validation uses existing React19 implementation dependencies",
+  "scope": "All implementation changes plus preexisting target changes preserved; no push, no further migration"
+}

@@ -7,7 +7,7 @@ import esbuild from "rollup-plugin-esbuild";
 
 const SKINNY_INPUTS = glob
   .sync("./src/register*.ts*")
-  .filter((file) => !file.includes("stories"));
+  .filter((file) => !file.includes("stories") && !/\.(?:test|spec)\.[jt]sx?$/.test(file));
 
 export default [
   {

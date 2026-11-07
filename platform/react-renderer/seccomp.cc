@@ -118,27 +118,46 @@ static int install_syscall_filter(void)
         ALLOW_SYSCALL(exit_group),
         ALLOW_SYSCALL(fcntl),
         ALLOW_SYSCALL(fstat),
+        ALLOW_SYSCALL(statx),
         ALLOW_SYSCALL(futex),
         ALLOW_SYSCALL(getpid),
+        ALLOW_SYSCALL(gettid),
+        ALLOW_SYSCALL(getsockname),
         ALLOW_SYSCALL(getsockopt),
         ALLOW_SYSCALL(ioctl),
         ALLOW_SYSCALL(madvise),
         ALLOW_SYSCALL(mmap),
         ALLOW_SYSCALL(mprotect),
         ALLOW_SYSCALL(munmap),
+#ifdef __NR_open
         ALLOW_SYSCALL(open),
+#endif
+        ALLOW_SYSCALL(openat),
         ALLOW_SYSCALL(prlimit64),
         ALLOW_SYSCALL(read),
+        ALLOW_SYSCALL(pread64),
+#ifdef __NR_readlink
+        ALLOW_SYSCALL(readlink),
+#endif
+        ALLOW_SYSCALL(readlinkat),
         ALLOW_SYSCALL(rt_sigaction),
         ALLOW_SYSCALL(rt_sigprocmask),
         ALLOW_SYSCALL(setsockopt),
         ALLOW_SYSCALL(socket),
         ALLOW_SYSCALL(write),
 
+#ifdef __NR_poll
         ALLOW_SYSCALL(poll),
+#endif
+        ALLOW_SYSCALL(ppoll),
         ALLOW_SYSCALL(bind),
         ALLOW_SYSCALL(sendto),
         ALLOW_SYSCALL(recvfrom),
+        // Native fetch queries platform and worker scheduling information.
+        ALLOW_SYSCALL(uname),
+        ALLOW_SYSCALL(sched_getaffinity),
+        ALLOW_SYSCALL(sched_getparam),
+        ALLOW_SYSCALL(sched_getscheduler),
 
 		/* Add more syscalls here. */
 		KILL_PROCESS,
@@ -204,7 +223,7 @@ NodeSeccomp::NodeSeccomp(scmp_filter_ctx ctx) : _ctx(ctx) {
 }
 
 NodeSeccomp::~NodeSeccomp() {
-  seccomp_release(_ctx);
+  if (_ctx) seccomp_release(_ctx);
 }
 
 void NodeSeccomp::Init(Local<Object> exports) {
@@ -227,7 +246,7 @@ void NodeSeccomp::Init(Local<Object> exports) {
 void NodeSeccomp::New(const FunctionCallbackInfo<Value>& args) {
   Isolate* isolate = args.GetIsolate();
   Local<Context> context = isolate->GetCurrentContext();
-  scmp_filter_ctx ctx;
+  scmp_filter_ctx ctx = nullptr;
 
   if (args.IsConstructCall()) {
     NodeSeccomp* obj = new NodeSeccomp(ctx);
@@ -242,9 +261,10 @@ void NodeSeccomp::New(const FunctionCallbackInfo<Value>& args) {
 }
 
 void NodeSeccomp::SeccompLoad(const v8::FunctionCallbackInfo<v8::Value>& args) {
-  // Node 22 dropped FunctionCallbackInfo::Holder(); This() is its replacement.
-  NodeSeccomp* obj = ObjectWrap::Unwrap<NodeSeccomp>(args.This());
-  setup();
+  if (setup() != 0) {
+    args.GetIsolate()->ThrowException(v8::Exception::Error(
+      String::NewFromUtf8(args.GetIsolate(), "Cannot install seccomp policy").ToLocalChecked()));
+  }
 }
 
 }  // namespace seccomp

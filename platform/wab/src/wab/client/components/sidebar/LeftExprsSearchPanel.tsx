@@ -170,7 +170,7 @@ function buildLocationPath(
   return parts.join(" › ");
 }
 
-const ExpressionListItem = observer(function ExpressionListItem({
+const ExpressionListItem = function ExpressionListItem({
   item,
   studioCtx,
   matcher,
@@ -240,7 +240,7 @@ const ExpressionListItem = observer(function ExpressionListItem({
       </div>
     </ListItem>
   );
-});
+};
 
 function pushValidExpr(
   exprs: ExpressionItem[],

@@ -1,10 +1,11 @@
-import { CodePreviewCtx } from "@/wab/client/components/docs/CodePreviewSnippet";
-import {
+import type { CodePreviewCtx } from "@/wab/client/components/docs/CodePreviewCtx";
+import type {
   DocsPortalCtx,
   IconToggleProp,
 } from "@/wab/client/components/docs/DocsPortalCtx";
-import { buildDocsPreviewModules } from "@/wab/client/components/live/preview-codegen";
+import { buildDocsPreviewModules, subscribePreviewCodegen } from "@/wab/client/components/live/preview-codegen";
 import { syncPreview } from "@/wab/client/components/live/preview-sync";
+import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isStandaloneVariantGroup } from "@/wab/shared/Variants";
 import { componentToDeepReferenced } from "@/wab/shared/cached-selectors";
 import {
@@ -69,7 +70,24 @@ export function syncDocsPreview(
     ensure(doc.defaultView, "docs preview frame has a window"),
     () => buildDocsPreviewUpdate(docsCtx, codePreviewCtx),
     (error) => (error ? onError?.(error as Error) : onRendered()),
-    { name: "DocsPreviewCanvas.syncPreview" },
+    {
+      name: "DocsPreviewCanvas.syncPreview",
+      subscribe: (invalidate) => {
+        const disposeResource = docsCtx.subscribePreviewInputs(
+          codePreviewCtx
+            ? undefined
+            : (docsCtx.tryGetFocusedComponent() ?? docsCtx.tryGetFocusedIcon()),
+          invalidate,
+        );
+        const disposeExample = codePreviewCtx?.store.subscribe(invalidate);
+        const disposeModel = subscribePreviewCodegen(docsCtx.studioCtx, () => docsCtx.tryGetFocusedComponent(), invalidate);
+        return () => {
+          disposeResource();
+          disposeExample?.();
+          disposeModel();
+        };
+      },
+    },
   );
 }
 
@@ -81,7 +99,10 @@ export function buildDocsPreviewUpdate(
     return undefined;
   }
   const { modules, globalGroups, depsProjectConfigs } =
-    serializeDependentModules(docsCtx);
+    serializeDependentModules(
+      docsCtx.studioCtx,
+      docsCtx.tryGetFocusedComponent(),
+    );
   const entry = createPreviewModule(
     docsCtx,
     globalGroups,
@@ -92,11 +113,14 @@ export function buildDocsPreviewUpdate(
   return { modules, render: { run: entry.name } };
 }
 
-export function serializeDependentModules(docsCtx: DocsPortalCtx) {
+export function serializeDependentModules(
+  studioCtx: StudioCtx,
+  component: Component | undefined,
+) {
   return buildDocsPreviewModules(
-    docsCtx.studioCtx,
-    docsCtx.tryGetFocusedComponent(),
-    docsCtx.studioCtx.appCtx.appConfig.usePlasmicImg,
+    studioCtx,
+    component,
+    studioCtx.appCtx.appConfig.usePlasmicImg,
   );
 }
 
@@ -268,7 +292,6 @@ function createPreviewModule(
     lang: "tsx",
     source: `
 import React from "react";
-import ReactDOM from "react-dom";
 ${depCssImports}
 import ${className} from "./${importedFileName}";
 ${component ? makePlumeDepsImports(docsCtx.studioCtx.site, component) : ""}
@@ -288,12 +311,6 @@ PlasmicComponent.getPlumeType = function({ component }) {
 }
 
 export function __run() {
-  try {
-    ReactDOM.unmountComponentAtNode(document.getElementById("plasmic-app"));
-  } catch {
-    // Swallow errors when unmounting
-  }
-
   document.body.style.overflow = "auto";
 
   ${before}
@@ -505,13 +522,18 @@ function recursiveUpdateNode(
 }
 
 export function updateComponentCode(
-  docsCtx: DocsPortalCtx,
+  state: {
+    component: Component;
+    code: string | undefined;
+    toggles: ReadonlyMap<Param, any>;
+    useLoader: boolean;
+  },
   path: string[],
   value: any,
   isValueSerialized: boolean,
   param: Param | undefined,
 ) {
-  const component = docsCtx.getFocusedComponent();
+  const component = state.component;
   const tryParseAndUpdateCode = (code: string | undefined) => {
     try {
       const file = parser.parse(ensure(code, "must have code"), {
@@ -532,7 +554,8 @@ export function updateComponentCode(
         return null;
       }
 
-      expression.openingElement.name.name = docsCtx.useLoader()
+      const before = generate(file as any).code;
+      expression.openingElement.name.name = state.useLoader
         ? "PlasmicComponent"
         : isPlumeComponent(component)
           ? getExportedComponentName(component)
@@ -540,12 +563,12 @@ export function updateComponentCode(
 
       let pathToUse = path;
 
-      if (docsCtx.useLoader() && path[0] !== "componentProps") {
+      if (state.useLoader && path[0] !== "componentProps") {
         pathToUse = ["componentProps", ...path];
       }
       const serializedValue = isValueSerialized
         ? (value as string)
-        : value
+        : value != null
           ? serializeToggleValue(component, value, param)
           : undefined;
       recursiveUpdateNode(
@@ -554,27 +577,25 @@ export function updateComponentCode(
         serializedValue,
       );
       const newCode = generate(file as any).code;
-      return newCode.trim().replace(/;$/, "");
+      // Preserve the original formatting and skip async formatting for an
+      // equivalent AST, including a control reapplying its existing argument.
+      return (newCode === before ? code : newCode).trim().replace(/;$/, "");
     } catch {
       return null;
     }
   };
   return (
-    tryParseAndUpdateCode(docsCtx.getComponentCustomCode(component)) ||
+    tryParseAndUpdateCode(state.code) ||
     tryParseAndUpdateCode(
       "// Try directly editing this code to pass in different props and overrides\n" +
-        serializeToggledComponent(
-          component,
-          docsCtx.getComponentToggles(component),
-          docsCtx.useLoader(),
-        ),
+        serializeToggledComponent(component, state.toggles, state.useLoader),
     )
   );
 }
 
 function togglesToProps(
   component: Component,
-  toggles: Map<Param, any>,
+  toggles: ReadonlyMap<Param, any>,
 ): Record<string, string> {
   return Object.fromEntries(
     [...toggles.entries()].map(([param, value]) => [
@@ -631,8 +652,8 @@ export function serializeComponent(
   return code.trim();
 }
 
-// Keep serialization synchronous and only format after storing, so MobX tracks
-// model reads and rapid prop edits build on the latest code.
+// Read the current model synchronously; asynchronous formatting must not make
+// rapid prop edits build on stale code.
 export async function formatDocsCode(code: string) {
   return (
     await Prettier.format(code, {
@@ -647,7 +668,7 @@ export async function formatDocsCode(code: string) {
 
 export function serializeToggledComponent(
   component: Component,
-  toggles: Map<Param, any>,
+  toggles: ReadonlyMap<Param, any>,
   useLoader: boolean,
 ) {
   const props = togglesToProps(component, toggles);
@@ -661,7 +682,7 @@ export function serializeToggledComponent(
 
 export function serializeToggledIcon(
   icon: ImageAsset,
-  toggles: Map<IconToggleProp, string>,
+  toggles: ReadonlyMap<IconToggleProp, string>,
   useLoader: boolean,
 ) {
   const iconName = makeAssetClassName(icon);
@@ -701,6 +722,8 @@ function serializeToggleValue(
       return jsLiteral(toVarName((value as Variant).name));
     }
   } else {
-    return jsLiteral(null);
+    return jsLiteral(
+      typeof value === "number" || typeof value === "boolean" ? value : null,
+    );
   }
 }

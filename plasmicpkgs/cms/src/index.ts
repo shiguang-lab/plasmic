@@ -121,7 +121,7 @@ const whereLogicParam = {
     if (table) {
       return cmsTableToQueryBuilderConfig(table);
     } else {
-      return { fields: {} };
+      return { fields: [] };
     }
   },
 } as const;

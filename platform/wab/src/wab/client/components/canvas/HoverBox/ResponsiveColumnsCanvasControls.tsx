@@ -1,3 +1,7 @@
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
+import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { ColumnSizeControlDraggables } from "@/wab/client/components/sidebar-tabs/ResponsiveColumns/ColumnsSizeControls";
 import { shouldBeDisabled } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { getContentOnlyRect } from "@/wab/client/dom";
@@ -18,6 +22,9 @@ export const ResponsiveColumnsCanvasControls = observer(
     tpl: TplColumnsTag;
   }) {
     const { viewCtx, tpl } = props;
+  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  useViewSelection(viewCtx, useShallow((state) => [state.context, state.doms]));
+    const zoom = useCanvasZoom(viewCtx.studioCtx);
     const [dragState, setDragState] = React.useState<
       | {
           index: number;
@@ -45,8 +52,6 @@ export const ResponsiveColumnsCanvasControls = observer(
     if (!isTplColumns(tpl)) {
       return null;
     }
-
-    const zoom = viewCtx.studioCtx.zoom;
 
     const elt = viewCtx.focusedDomElt();
     const rect = getElementBounds(ensure(elt));

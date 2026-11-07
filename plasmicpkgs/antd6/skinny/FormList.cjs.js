@@ -1,5 +1,6 @@
 'use strict';
 
+var jsxRuntime = require('react/jsx-runtime');
 var host = require('@plasmicapp/host');
 var Ant = require('antd');
 var React = require('react');
@@ -59,20 +60,20 @@ const FormListWrapper = React__default.default.forwardRef(function FormListWrapp
       }
     }, [JSON.stringify(props.initialValue), JSON.stringify(fullFormItemName)]);
   }
-  return /* @__PURE__ */ React__default.default.createElement(FormList, { ...props, name: relativeFormItemName ?? [] }, (...args) => {
+  return /* @__PURE__ */ jsxRuntime.jsx(FormList, { ...props, name: relativeFormItemName ?? [], children: (...args) => {
     operationsRef.current = args;
-    return args[0].map((field, index) => /* @__PURE__ */ React__default.default.createElement(
+    return args[0].map((field, index) => /* @__PURE__ */ jsxRuntime.jsx(
       contexts.PathContext.Provider,
       {
-        key: field.key,
         value: {
           relativePath: [field.name],
           fullPath: [...fullFormItemName ?? [], field.name]
-        }
+        },
+        children: /* @__PURE__ */ jsxRuntime.jsx(host.DataProvider, { name: "currentField", data: field, children: /* @__PURE__ */ jsxRuntime.jsx(host.DataProvider, { name: "currentFieldIndex", data: index, children: host.repeatedElement(index, props.children) }) })
       },
-      /* @__PURE__ */ React__default.default.createElement(host.DataProvider, { name: "currentField", data: field }, /* @__PURE__ */ React__default.default.createElement(host.DataProvider, { name: "currentFieldIndex", data: index }, host.repeatedElement(index, props.children)))
+      field.key
     ));
-  });
+  } });
 });
 
 exports.FormListWrapper = FormListWrapper;

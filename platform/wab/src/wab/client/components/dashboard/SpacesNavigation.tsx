@@ -9,10 +9,11 @@ import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import type { TreeDataNode } from "antd";
 import { Tag, Tree } from "antd";
 import { sortBy } from "lodash";
-import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 
-export const SpacesNavigation = observer(function SpacesNavigation({
+export function SpacesNavigation({
   team,
   workspace,
 }: {
@@ -20,13 +21,14 @@ export const SpacesNavigation = observer(function SpacesNavigation({
   workspace?: ApiWorkspace;
 }) {
   const appCtx = useAppCtx();
+  const [teams, workspaces] = useStore(appCtx.navigationStore, useShallow((state) => [state.teams, state.workspaces]));
   const { t } = useI18n();
   const history = useHistory();
   const teamKey = team ? APP_ROUTES.org.fill({ teamId: team.id }) : undefined;
   const workspaceKey = workspace
     ? APP_ROUTES.workspace.fill({ workspaceId: workspace.id })
     : undefined;
-  const treeData: TreeDataNode[] = appCtx.getAllTeams().map((item) => ({
+  const treeData: TreeDataNode[] = teams.map((item) => ({
     key: APP_ROUTES.org.fill({ teamId: item.id }),
     className: styles.spaceOrganizationNode,
     title: (
@@ -37,7 +39,7 @@ export const SpacesNavigation = observer(function SpacesNavigation({
     ),
     icon: <TeamOutlined aria-hidden />,
     children: sortBy(
-      appCtx.workspaces.filter((space) => space.team.id === item.id),
+      workspaces.filter((space) => space.teamId === item.id),
       (space) => space.name,
     ).map((space) => ({
       key: APP_ROUTES.workspace.fill({ workspaceId: space.id }),
@@ -71,4 +73,4 @@ export const SpacesNavigation = observer(function SpacesNavigation({
       />
     </Scrollbar>
   );
-});
+}

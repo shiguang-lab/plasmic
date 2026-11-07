@@ -2576,12 +2576,22 @@ export function getRepetitionIndexName(dataRep: Rep) {
   return dataRep.index ? toVarName(dataRep.index.name) : "__index";
 }
 
-export function getParamDisplayName(component: Component, param: Param) {
+export function formatParamDisplayName(
+  displayName: string | null | undefined,
+  variableName: string,
+  hasCodeComponentMeta: boolean,
+) {
   return (
-    param.displayName ??
-    (component.codeComponentMeta
-      ? smartHumanize(param.variable.name)
-      : param.variable.name)
+    displayName ??
+    (hasCodeComponentMeta ? smartHumanize(variableName) : variableName)
+  );
+}
+
+export function getParamDisplayName(component: Component, param: Param) {
+  return formatParamDisplayName(
+    param.displayName,
+    param.variable.name,
+    !!component.codeComponentMeta,
   );
 }
 

@@ -1,7 +1,7 @@
 import { GiphyFetch } from "@giphy/js-fetch-api";
 import { IGif } from "@giphy/js-types";
 import { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useFetch } from "./hooks/useFetch";
 
 export function ensure<T>(x: T | null | undefined): T {

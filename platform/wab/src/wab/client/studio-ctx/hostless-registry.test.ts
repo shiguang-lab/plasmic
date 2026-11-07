@@ -1,7 +1,6 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import * as studioBundles from "@/wab/client/components/studio/studio-bundles";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
-import { createSite } from "@/wab/shared/core/sites";
 import $ from "jquery";
 
 it("rejects a failed registration load and allows the queued retry to finish", async () => {
@@ -49,9 +48,10 @@ it("releases the canvas loading count after a failed registration and allows the
   const canvas = new CanvasCtx({ $viewport: $(document.createElement("iframe")), name: "Audit" });
   canvas._win = window;
   const failure = new Error("Canvas registration unavailable");
-  vi.spyOn(studioBundles, "getSortedHostLessPkgs").mockRejectedValueOnce(failure).mockResolvedValueOnce([]);
-  await expect(canvas["updateCcRegistry"](["react-ui"], createSite(), studioCtx)).rejects.toBe(failure);
+  vi.spyOn(studioBundles, "loadHostLessPackages").mockRejectedValueOnce(failure).mockResolvedValueOnce([]);
+  const requests = [{ name: "react-ui", identity: "react-ui" }];
+  await expect(canvas["updateCcRegistry"](requests, studioCtx)).rejects.toBe(failure);
   expect(canvas.isUpdatingCcRegistry()).toBe(false);
-  await expect(canvas["updateCcRegistry"](["react-ui"], createSite(), studioCtx)).resolves.toBeUndefined();
+  await expect(canvas["updateCcRegistry"](requests, studioCtx)).resolves.toBeUndefined();
   expect(canvas.isUpdatingCcRegistry()).toBe(false);
 });

@@ -14,6 +14,7 @@ import { FormListWrapper } from "../form/FormList";
 import { formHelpers } from "../form/registerForm";
 import { AntdCheckbox } from "../registerCheckbox";
 import { fakeInitDatabase, fakeSchema } from "./fake-data-source";
+import { formDataHandlers } from "./form-data-handlers";
 
 export default {
   title: "Form",
@@ -786,29 +787,6 @@ const _SchemaForms: StoryFn = () => {
   );
 };
 
-const mockedData = [
-  {
-    url: "https://data.plasmic.app/api/v1/server-data/sources/:id/execute",
-    method: "POST",
-    status: 200,
-    response: (request: any) => {
-      const body = JSON.parse(request.body);
-      const { opName, id } = body.userArgs;
-      const table = body.userArgs.table;
-      return {
-        data:
-          opName === "getRow"
-            ? fakeInitDatabase[table].find((row: any) => row.id === id)
-            : [],
-        schema: {
-          id: table,
-          fields: fakeSchema[table],
-        },
-      };
-    },
-  },
-];
-
 const genExpectedFormItemsFromSchema = (
   table: keyof typeof fakeSchema,
   formType: "new" | "update",
@@ -840,7 +818,7 @@ export const SchemaForms = _SchemaForms.bind({});
 SchemaForms.tags = ["skip-test"]; // simplified forms broken?
 SchemaForms.args = {};
 SchemaForms.parameters = {
-  mockData: mockedData,
+  msw: { handlers: formDataHandlers },
 };
 SchemaForms.play = async ({ canvasElement }) => {
   const canvas = within(canvasElement);
@@ -1699,7 +1677,7 @@ export const CanModifyPropsInCanvasForSchema =
 CanModifyPropsInCanvasForSchema.tags = ["skip-test"]; // simplified forms broken?
 CanModifyPropsInCanvasForSchema.args = {};
 CanModifyPropsInCanvasForSchema.parameters = {
-  mockData: mockedData,
+  msw: { handlers: formDataHandlers },
 };
 CanModifyPropsInCanvasForSchema.play = async ({ canvasElement }) => {
   const canvas = within(canvasElement);
