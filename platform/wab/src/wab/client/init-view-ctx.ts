@@ -70,5 +70,6 @@ export async function initStudioCtx(
     loadTimings,
   });
   await studioCtx.initializeDesktopDrafts();
+  studioCtx.startInitialRoute();
   return studioCtx;
 }

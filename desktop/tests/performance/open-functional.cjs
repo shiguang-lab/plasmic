@@ -23,6 +23,24 @@ exports.run = async ({frame,win,ready,preview}) => {
     await s.undo();await sync();cases.push({case:'rename-undo-redo',passed:true});
     const f=frames[0];s.changeSelection(()=>s.setStudioFocusOnFrame({frame:f,autoZoom:true}));await sync();
     let vc=s.tryGetViewCtxForFrame(f);const root=f.container.component.tplTree,vs=root.vsettings[0];
+    // Observe actual outline DOM after a command, rather than only the model.
+    const outlineContains=label=>[...document.querySelectorAll('.tpltree__label')].some(e=>e.textContent.includes(label));
+    const waitForOutline=async(label,present)=>{
+      for(let i=0;i<150&&outlineContains(label)!==present;i++)await new Promise(r=>setTimeout(r,20));
+      assert(outlineContains(label)===present,'Outline did not reflect element rename: '+label);
+    };
+    s.changeSelection(()=>vc.setStudioFocusByTpl(root));await sync();
+    if(s.leftTabKey!=='outline'||s.navigationPanel!=='outline'||s.panelsHidden){s.showLayersPanel();await sync()}
+    for(let i=0;i<150&&!document.querySelector('.tpltree__label');i++)await new Promise(r=>setTimeout(r,20));
+    assert(document.querySelector('.tpltree__label'),'Outline panel did not open');
+    const rootName=root.name,probeName='MigrationAuditRoot';
+    assert(!outlineContains(probeName),'Outline probe name already exists');
+    await s.changeUnsafe(()=>vc.getViewOps().renameTpl(probeName,root));await sync();
+    assert(root.name===probeName,'Element rename failed');await waitForOutline(probeName,true);
+    await s.undo();await sync();assert(root.name===rootName,'Element rename undo failed');await waitForOutline(probeName,false);
+    await s.redo();await sync();await waitForOutline(probeName,true);
+    await s.undo();await sync();assert(root.name===rootName,'Element name not restored');await waitForOutline(probeName,false);
+    cases.push({case:'outline-dom-rename-undo-redo',passed:true});
     const original=vs.rs.values.opacity;
     const opacity=()=>{const val=vc.renderState.tpl2bestVal(root);const dom=val&&vc.renderState.sel2dom(val,vc.canvasCtx);assert(dom?.length,'Root DOM missing');return vc.canvasCtx.win().getComputedStyle(dom[0]).opacity};
     const prior=opacity();

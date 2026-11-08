@@ -862,9 +862,6 @@ export class StudioCtx extends WithDbCtx {
       this._serverUpdatesSummary,
     );
 
-    // handleInitialRoute will create the first undo record
-    spawn(this.handleInitialRoute());
-
     this.projectDependencyManager = new ProjectDependencyManager(this);
 
     // styleMgr must be instantiated after ProjectDependencyManager, as
@@ -2767,6 +2764,11 @@ export class StudioCtx extends WithDbCtx {
     } else {
       this.appCtx.history.push(location);
     }
+  }
+
+  /** Start routing after local draft recovery has installed the startup model. */
+  startInitialRoute() {
+    spawn(this.handleInitialRoute());
   }
 
   private async handleInitialRoute() {

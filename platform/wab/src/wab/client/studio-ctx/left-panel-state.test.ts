@@ -146,6 +146,7 @@ it("keeps left panel changes in the current session and ignores old stored state
     );
     api.getStorageItem.mockClear();
     reopened = new StudioCtx({ dbCtx, autoSave: false });
+    reopened.startInitialRoute();
     const reopenedStudio = reopened;
     await waitFor(() => expect(reopenedStudio.initialRouteReady).toBe(true));
     expect(reopened.leftTabKey).toBeUndefined();
@@ -194,6 +195,7 @@ it("does not restore the AI panel on reentry, even with an old URL flag", async 
       search: "?copilot_chat=true",
     });
     reopened = new StudioCtx({ dbCtx, autoSave: false });
+    reopened.startInitialRoute();
     const reopenedStudio = reopened;
     await waitFor(() => expect(reopenedStudio.initialRouteReady).toBe(true));
     expect(reopened.isCopilotChatOpen).toBe(false);

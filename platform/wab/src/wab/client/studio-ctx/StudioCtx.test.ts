@@ -397,11 +397,12 @@ it("cancels the actual pending initial-route producer when its Studio is dispose
   let reopened: StudioCtx | undefined;
   try {
     reopened = new StudioCtx({ dbCtx: fixture.dbCtx, autoSave: false });
+    reopened.startInitialRoute();
     const change = vi.spyOn(reopened, "change");
     const snapshots = reopened.modelSnapshots;
     reopened.dispose();
     resolvePreferences("true");
-    await ensure(routeTask, "The constructor must start its actual initial route task");
+    await ensure(routeTask, "Initial routing must start its actual route task");
     expect(change).not.toHaveBeenCalled();
     expect(reopened.initialRouteReady).toBe(false);
     expect(reopened.focusedViewCtx()).toBeUndefined();

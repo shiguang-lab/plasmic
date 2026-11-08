@@ -54,7 +54,9 @@ exports.install = async ({ task, mode, origin, startup, ipcMain, getWindow, repo
   });
   ipcMain.handle("desktop:saved-editor-view", (event, projectId) => {
     if (event.senderFrame !== getWindow().webContents.mainFrame || workspace.projectId(event.senderFrame.url) !== projectId) throw Error("Invalid Studio project");
-    return workspace.savedEditorView(event.senderFrame.url);
+    const view=workspace.savedEditorView(event.senderFrame.url);
+    (metrics.viewportReads??=[]).push({projectId,url:event.senderFrame.url,view});
+    return view;
   });
   return {
     reload: metrics.scenario !== "empty",
@@ -76,6 +78,7 @@ exports.install = async ({ task, mode, origin, startup, ipcMain, getWindow, repo
         return {name:s.site.pageArenas[0].component.name,drafts:d.drafts.length,dialogOpen:d.dialogOpen,viewportCommitted:s.loadTimings.has('initial-viewport-commit'),
           view:{arenaId:a.name,arenaType:'custom',frameUuid:s.activeCanvasFrame?.uuid,scale:v.scale,scroll:{x:v.scroll.x,y:v.scroll.y},canvasPadding:{x:v.canvasPadding.x,y:v.canvasPadding.y}}};
       })()`);
+      (metrics.openStates??=[]).push({iteration,...state});
       if (iteration === 0) {
         originalName = state.name;
         savedView = state.view;

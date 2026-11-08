@@ -155,6 +155,7 @@ export function fakeStudioCtx(opts?: {
     // Tests never persist anything, the timer would just poll the mocked api.
     autoSave: false,
   });
+  studioCtx.startInitialRoute();
   undisposedStudioCtxs.push(studioCtx);
 
   studioCtx.tryGetViewCtxForFrame = (frame: ArenaFrame | undefined) => {

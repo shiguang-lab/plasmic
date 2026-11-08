@@ -29,6 +29,8 @@ const canvasOrigin = "https://plasmic-canvas.shiguanglab.com";
 const read = name => JSON.parse(fs.readFileSync(path.join(task, name)));
 const opening = read("project-response.json"), startup = opening.startup;
 if (process.env.PERF_CODE_DISPLAY === "1") startup.appConfig.config.codePreview = true;
+// Native draft recovery deliberately keeps the remote fixture revision unchanged.
+if (process.env.PERF_OPEN_NATIVE) startup.appConfig.config.autoSave = false;
 const dataset = fs.existsSync(path.join(task,"dataset.json")) ? read("dataset.json") : {kind:"saved-project",revision:opening.rev.revision};
 const models = { ...read("model-resources.json"), ...read("plume-resources.json") };
 const plume = read("plume-opening.json");
@@ -268,10 +270,36 @@ app.whenReady().then(async () => {
     const detectedReady = now();
     const atFirstReady = await frame.executeJavaScript("({views:studioCtx.viewCtxs.length,initialFrames:studioCtx.loadTimings.snapshot().frameCount,rendered:studioCtx.viewCtxs.filter(v=>v.initialRenderReady).length})");
     if (process.env.PERF_OPEN_INPUT==='1') {
+      // Handle the first-use tour in the same browser task as the hit test,
+      // since its lazy-loaded content can appear between input samples.
       report.inputProbes=[];
       for(let n=0;n<8;n++) {
         const start=now();
-        const result=await frame.executeJavaScript(`(async()=>{const s=studioCtx,button=document.querySelector('button[aria-label="Layers"],button[aria-label="图层"]');if(!button)throw Error('Layers control missing');const r=button.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);if(hit!==button&&!button.contains(hit))throw Error('Layers control is covered');const before=s.leftTabKey,counter=s._changeCounter;button.click();await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));if(s._changeCounter!==counter)throw Error('Panel interaction changed persisted model');return {before,after:s.leftTabKey,rendered:s.viewCtxs.filter(v=>v.initialRenderReady).length}})()`);
+        const result=await frame.executeJavaScript(`(async()=>{let tourDismissed=false;
+        const findTour=()=>[...document.querySelectorAll('h4')].find(e=>['Project navigation has moved!','项目导航已移动！'].includes(e.textContent.trim()));
+        // Joyride mounts the overlay before positioning the tooltip content.
+        for(let i=0;i<120&&document.querySelector('.react-joyride__overlay')&&!findTour();i++)await new Promise(requestAnimationFrame);
+        const title=findTour();
+        if(title){
+        const button=[...title.parentElement.querySelectorAll('button')].find(e=>['Got it','知道了'].includes(e.textContent.trim()));
+        if(!button)throw Error('Navigation tour dismissal missing');
+        const r=button.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+        if(hit!==button&&!button.contains(hit))throw Error('Navigation tour dismissal is covered');
+        const counter=studioCtx._changeCounter;button.click();
+        for(let i=0;i<120&&title.isConnected;i++)await new Promise(requestAnimationFrame);
+        if(title.isConnected)throw Error('Navigation tour did not close');
+        // Joyride can keep its overlay during the exit animation.
+        for(let i=0;i<120;i++){
+          const layer=document.querySelector('button[aria-label="Layers"],button[aria-label="图层"]');
+          if(!layer)throw Error('Layers control missing after tour');
+          const r=layer.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+          if(hit===layer||layer.contains(hit))break;
+          await new Promise(requestAnimationFrame);
+        }
+        if(studioCtx._changeCounter!==counter)throw Error('Dismissing navigation tour changed persisted model');
+        tourDismissed=true;
+        }
+        const s=studioCtx,button=document.querySelector('button[aria-label="Layers"],button[aria-label="图层"]');if(!button)throw Error('Layers control missing');const r=button.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);if(hit!==button&&!button.contains(hit))throw Error('Layers control is covered');const before=s.leftTabKey,counter=s._changeCounter;button.click();await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));if(s._changeCounter!==counter)throw Error('Panel interaction changed persisted model');return {tourDismissed,before,after:s.leftTabKey,rendered:s.viewCtxs.filter(v=>v.initialRenderReady).length}})()`);
         report.inputProbes.push({durationMs:now()-start,...result});await sleep(60);
       }
     }
