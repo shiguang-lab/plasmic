@@ -276,9 +276,6 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
     },
     "& .tpltree__label:hover": { background: token.colorFillTertiary },
     "& .tpltree__label--hovered": { boxShadow: "none" },
-    "& .tpltree__label--focused-descendant": {
-      background: token.colorFillQuaternary,
-    },
     "& .tpltree__label--drilled-descendant": {
       background: token.colorPrimaryBg,
     },

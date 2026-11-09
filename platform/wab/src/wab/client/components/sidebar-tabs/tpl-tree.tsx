@@ -330,12 +330,6 @@ const TplTreeNodeContent = React.memo(function TplTreeNodeContent(props: {
   const defaultEditing = useStore(viewCtx.studioCtx.renamingOnPanelStore, (renaming) => renaming && isFocused);
   const focusedMode = useStudioArena(viewCtx.studioCtx, (state) => state.focusedMode);
   const isHovered = useViewSelection(viewCtx, (state) => matchesSelectionTarget(state.hover, itemIdentity));
-  const parents = $$$(item).parentsWithSlotSelections().toArray().map((node) => node instanceof SlotSelection ? { tplUid: node.getTpl().uid, paramUid: node.slotParam.uid } : { tplUid: node.uid, paramUid: undefined });
-  const isStrictDescendantOfFocus = useViewSelection(viewCtx, (state) => {
-    const first = state.targets[0];
-    if (isFocused || !first) { return false; }
-    return parents.some((parent) => parent.paramUid === undefined ? first.kind === "value" && first.tpl.uid === parent.tplUid : first.kind === "slot" && first.tpl.uid === parent.tplUid && first.slotParam?.uid === parent.paramUid);
-  });
   const focusedElsewhere = useStudioSelection(viewCtx.studioCtx, (state) => !!state.view && state.view !== viewCtx);
   const focusedContext = useFocusedViewSelection(viewCtx.studioCtx, (state) => !!state.context);
   const localOutOfContext = useViewSelection(viewCtx, (state) => !!state.context && state.context.component.uid !== component.uid);
@@ -673,7 +667,6 @@ const TplTreeNodeContent = React.memo(function TplTreeNodeContent(props: {
         "tpltree__label--hidden": isHidden || props.ancestorHidden,
         "tpltree__label--drilled": isDrilled,
         "tpltree__label--drilled-descendant": isDrilledDescendant,
-        "tpltree__label--focused-descendant": isStrictDescendantOfFocus,
         "tpltree__label--hovered": isHovered && !isDropParent,
       })}
       data-test-id={`tpltree-${id}`}

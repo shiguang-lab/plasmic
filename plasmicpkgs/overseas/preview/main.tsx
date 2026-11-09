@@ -1,9 +1,15 @@
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { PlasmicCanvasHost, registerComponent } from "@plasmicapp/host";
-import { Button, ConfigProvider, Tag, Typography } from "antd";
+import { Button, ConfigProvider, Input, Tag, Typography } from "antd";
 import { AppShell, appShellMeta, registerAppShell } from "../src/registerAppShell";
-import { registerSearchForm } from "../src/registerSearchForm";
+import {
+  registerSearchForm,
+  SearchForm,
+  SearchFormItem,
+  searchFormMeta,
+  searchFormItemMeta,
+} from "../src/registerSearchForm";
 import { SearchFormPreview } from "./SearchFormPreview";
 import { Registerable } from "../src/registerAppShell";
 
@@ -14,6 +20,35 @@ if (localHost) {
     ...appShellMeta,
     name: "local-overseas-app-shell",
     displayName: "AppShell (local development)",
+  });
+  registerComponent(SearchFormItem, {
+    ...searchFormItemMeta,
+    name: "local-overseas-search-form-item",
+    parentComponentName: "local-overseas-search-form",
+  });
+  registerComponent(SearchForm, {
+    ...searchFormMeta,
+    name: "local-overseas-search-form",
+    props: {
+      ...searchFormMeta.props,
+      children: {
+        type: "slot",
+        displayName: "Fields",
+        allowedComponents: ["local-overseas-search-form-item"],
+        defaultValue: {
+          type: "component",
+          name: "local-overseas-search-form-item",
+        },
+      },
+    },
+  });
+  registerComponent(Input, {
+    name: "local-search-input",
+    displayName: "Input (local development)",
+    importPath: "antd",
+    importName: "Input",
+    props: { placeholder: "string" },
+    defaultStyles: { width: "stretch" },
   });
 } else {
   registerAppShell();

@@ -129,6 +129,8 @@ Read the actual registered child contract before editing a query field. The owni
 
 Each Item's `name` is its unique field key; `label`, `span`, `initialValue`, `clearValue`, `required`, `requiredMessage`, `rules`, `valuePropName` and `trigger` are editable and bindable. `name` is a single string key; dotted paths are not interpreted. `rules` is an Ant Design Form.Item rule array.
 
+The visible text label supports direct canvas editing: double-click it to edit the same `label` string prop shown in the Item property panel. It is a native component part, not a separate text node or Slot; edits use the normal undo/save flow. A configured Custom label Slot owns its own content instead.
+
 The Item's Control (`children`) Slot holds one value control, such as Antd6 Input, Select, DatePicker, Checkbox or a custom component. Edit the control's placeholder, options, mode, format and disabled state on the control; configure initial values on the Item/Form and do not also bind an independent controlled value. Binding defaults to `value` / `onChange`; registered controls' `__plasmicFormFieldMeta.valueProp` (`checked` for Checkbox/Switch) and Item-specified prop/event names are supported. The control's own event handlers still run.
 
 Custom label (labelContent) and help are real editable Slots. Custom label overrides the text label; help supplies supporting text or validation feedback.

@@ -52,7 +52,7 @@ function SearchFormItem({
     {
       className,
       name,
-      label: labelContent ?? label,
+      label: labelContent ?? (label == null || label === "" ? label : /* @__PURE__ */ jsxRuntime.jsx("span", { "data-search-form-label": "", children: label })),
       help,
       style: { marginBottom: 16 },
       valuePropName: valuePropName ?? controlMeta?.valueProp ?? "value",
@@ -463,6 +463,14 @@ const searchFormItemMeta = {
   description: "One editable query field. Use a unique name and exactly one input control in the Control slot; configure the control itself through its own props.",
   importPath,
   importName: "SearchFormItem",
+  canvasParts: {
+    label: {
+      selector: "[data-search-form-label]",
+      displayName: "Label",
+      props: ["label"],
+      text: { prop: "label", selector: "[data-search-form-label]" }
+    }
+  },
   props: {
     name: {
       type: "string",

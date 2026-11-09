@@ -75,7 +75,7 @@ export function SearchFormItem({
     <Form.Item
       className={className}
       name={name}
-      label={labelContent ?? label}
+      label={labelContent ?? (label == null || label === "" ? label : <span data-search-form-label="">{label}</span>)}
       help={help}
       style={{ marginBottom: 16 }}
       valuePropName={valuePropName ?? controlMeta?.valueProp ?? "value"}

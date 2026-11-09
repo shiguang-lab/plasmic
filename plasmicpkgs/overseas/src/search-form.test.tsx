@@ -29,6 +29,8 @@ test("Overseas registers an editable field tree, slots, events and actions", () 
     item.meta.name,
   ]);
   assert.equal(item.meta.parentComponentName, form.meta.name);
+  assert.equal(item.meta.props.label.type, "string");
+  assert.equal(item.meta.canvasParts.label.text.prop, "label");
   for (const slot of ["children", "labelContent", "help"]) {
     assert.equal(item.meta.props[slot].type, "slot");
   }
@@ -192,6 +194,7 @@ test("collapsed fields stay mounted, and custom labels/actions remain real slot 
   }
   assert.match(html, /display:none/);
   assert.match(html, /Custom label/);
+  assert.match(html, /data-search-form-label=""/);
   assert.match(html, /Export/);
   assert.match(html, /aria-expanded="false"/);
 });

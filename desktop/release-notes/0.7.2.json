@@ -1,0 +1,7 @@
+{
+  "en": "- Highlight only explicitly selected layers; keep child layers unhighlighted when selecting a parent.\n- Edit SearchForm.Item label directly on the canvas while keeping it synchronized with the label string property.",
+  "zh-CN": "- 仅高亮明确选中的图层，选中父节点时不再给子节点添加选中底色。\n- SearchForm.Item 标签支持画布直接编辑，并与 label 字符串属性双向同步。",
+  "zh-TW": "- 僅醒目顯示明確選取的圖層，選取父節點時不再為子節點加入選取底色。\n- SearchForm.Item 標籤支援直接在畫布編輯，並與 label 字串屬性雙向同步。",
+  "ja": "- 選択したレイヤーだけを強調表示し、親を選択しても子レイヤーの背景を変更しないようにしました。\n- SearchForm.Item のラベルをキャンバス上で直接編集し、label 文字列プロパティと同期できるようにしました。",
+  "ko": "- 직접 선택한 레이어만 강조하고 부모 선택 시 하위 레이어에 선택 배경을 표시하지 않습니다.\n- SearchForm.Item 레이블을 캔버스에서 직접 편집하고 label 문자열 속성과 양방향으로 동기화합니다."
+}
