@@ -1,6 +1,6 @@
 import { jsx } from 'react/jsx-runtime';
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
-import { r as renderCanvasSlot, g as getCanvasItems, a as getSelectedCanvasItemKey } from './canvas-overlay-BZz-_5Mj.esm.js';
+import { r as renderCanvasSlot, g as getCanvasItems, a as getSelectedCanvasItemKey } from './canvas-overlay-BS6_0gNM.esm.js';
 import { Collapse } from 'antd';
 import React from 'react';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
@@ -19,7 +19,7 @@ function CollapseWithChildren(props) {
   const canvas = usePlasmicCanvasContext();
   const state = usePlasmicCanvasComponentInfo(props)?.states?.activeKey;
   const panels = getCanvasItems(children, (item) => item.type === AntdCollapsePanel || item.type === Collapse.Panel).filter(React.isValidElement);
-  const selectedKey = canvas && !canvas.interactive ? getSelectedCanvasItemKey(panels) : void 0;
+  const selectedKey = canvas ? getSelectedCanvasItemKey(panels) : void 0;
   const businessKeys = activeKey ?? defaultActiveKey ?? [];
   const revealKeys = selectedKey == null ? void 0 : accordion ? String(selectedKey) : Array.from(/* @__PURE__ */ new Set([...Array.isArray(businessKeys) ? businessKeys : [businessKeys], String(selectedKey)]));
   const openKeys = revealKeys === void 0 ? activeKey : state ? state.reveal(revealKeys) : revealKeys;

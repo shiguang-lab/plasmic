@@ -14,7 +14,7 @@ var FormItem = require('./FormItem.cjs.js');
 require('./names-DbJduus8.cjs.js');
 require('classnames');
 require('dayjs');
-require('./canvas-overlay-DzKvKC8w.cjs.js');
+require('./canvas-overlay-D2jWZ-TY.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');

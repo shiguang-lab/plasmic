@@ -3,7 +3,7 @@
 var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var host = require('@plasmicapp/host');
-var canvasOverlay = require('./canvas-overlay-DzKvKC8w.cjs.js');
+var canvasOverlay = require('./canvas-overlay-D2jWZ-TY.cjs.js');
 var React = require('react');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
@@ -77,7 +77,7 @@ function MenuWithChildren(props) {
       visit(data.children, path);
     }
   });
-  if (canvas && !canvas.interactive) {
+  if (canvas) {
     visit(items, []);
   }
   const reveal = selectedKeys.length > 0;

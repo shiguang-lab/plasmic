@@ -2,7 +2,7 @@
 
 var jsxRuntime = require('react/jsx-runtime');
 var host = require('@plasmicapp/host');
-var canvasOverlay = require('./canvas-overlay-DzKvKC8w.cjs.js');
+var canvasOverlay = require('./canvas-overlay-D2jWZ-TY.cjs.js');
 var Ant = require('antd');
 var React = require('react');
 var utils = require('./utils-B1jTF3MA.cjs.js');
@@ -25,7 +25,7 @@ function CollapseWithChildren(props) {
   const canvas = host.usePlasmicCanvasContext();
   const state = host.usePlasmicCanvasComponentInfo(props)?.states?.activeKey;
   const panels = canvasOverlay.getCanvasItems(children, (item) => item.type === AntdCollapsePanel || item.type === Ant.Collapse.Panel).filter(React__default.default.isValidElement);
-  const selectedKey = canvas && !canvas.interactive ? canvasOverlay.getSelectedCanvasItemKey(panels) : void 0;
+  const selectedKey = canvas ? canvasOverlay.getSelectedCanvasItemKey(panels) : void 0;
   const businessKeys = activeKey ?? defaultActiveKey ?? [];
   const revealKeys = selectedKey == null ? void 0 : accordion ? String(selectedKey) : Array.from(/* @__PURE__ */ new Set([...Array.isArray(businessKeys) ? businessKeys : [businessKeys], String(selectedKey)]));
   const openKeys = revealKeys === void 0 ? activeKey : state ? state.reveal(revealKeys) : revealKeys;

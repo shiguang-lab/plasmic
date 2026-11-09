@@ -3,7 +3,7 @@ import { usePlasmicCanvasContext } from '@plasmicapp/host';
 import * as Ant from 'antd';
 import dayjs from 'dayjs';
 import React from 'react';
-import { r as renderCanvasSlot, g as getCanvasItems, u as useCanvasOverlay } from './canvas-overlay-BZz-_5Mj.esm.js';
+import { r as renderCanvasSlot, g as getCanvasItems, u as useCanvasOverlay } from './canvas-overlay-BS6_0gNM.esm.js';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';

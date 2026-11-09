@@ -29,24 +29,20 @@ RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
     --mount=type=secret,id=build-ca \
     if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
     pnpm run setup
+RUN pnpm setup:canvas-packages
 RUN --mount=type=secret,id=build-ca \
     if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
     node scripts/deploy-loader-sdk.mjs /opt/plasmic-loader-react \
     && pnpm install --frozen-lockfile --ignore-scripts --prefer-offline --prod=false
-RUN pnpm --filter @plasmicapp/host pack --out /tmp/plasmic-host.tgz && mkdir /opt/plasmic-host && tar -xzf /tmp/plasmic-host.tgz --strip-components=1 -C /opt/plasmic-host
 RUN mkdir -p platform/wab/public/static/packages && cd plasmicpkgs/antd6 && pnpm pack --pack-destination ../../platform/wab/public/static/packages
 RUN cd plasmicpkgs/overseas && pnpm pack --pack-destination ../../platform/wab/public/static/packages
 RUN cd plasmicpkgs/react-ui && pnpm pack --pack-destination ../../platform/wab/public/static/packages
-RUN cd platform/canvas-packages && pnpm exec esbuild src/overseas.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/overseas.js
-RUN cd platform/canvas-packages && pnpm exec esbuild src/antd6.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/antd6.js
-RUN cd platform/canvas-packages && pnpm exec esbuild src/antd-icons.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/antd-icons.js
-RUN cd platform/canvas-packages && pnpm exec esbuild src/react-ui.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/react-ui.js
-RUN cd platform/canvas-packages && pnpm exec esbuild src/antd5.ts --bundle --platform=node --format=cjs --minify --outfile=build-server/antd5.js
 
 FROM node:24.16.0-bookworm-slim AS server
 RUN apt-get update && apt-get install -y --no-install-recommends bash git ca-certificates libssl3 && rm -rf /var/lib/apt/lists/* && corepack enable
 WORKDIR /plasmic/platform/wab
-COPY --from=builder --chown=node:node /opt/plasmic-host /plasmic/packages/host
+COPY --from=builder --chown=node:node /plasmic/node_modules /plasmic/node_modules
+COPY --from=builder --chown=node:node /plasmic/packages /plasmic/packages
 COPY --from=builder --chown=node:node /opt/plasmic-loader-react /plasmic/packages/loader-react
 COPY --from=builder --chown=node:node /plasmic/platform/node_modules /plasmic/platform/node_modules
 COPY --from=builder --chown=node:node /plasmic/platform/package.json /plasmic/platform/pnpm-lock.yaml /plasmic/platform/pnpm-workspace.yaml /plasmic/platform/
@@ -68,12 +64,12 @@ COPY deploy/server-entrypoint.sh /usr/local/bin/plasmic-server
 RUN chmod +x /usr/local/bin/plasmic-server
 USER node
 ENV NODE_ENV=development PLASMIC_SELF_HOSTED=1 MAX_HEAP_SIZE=1536 NODE_PATH=/plasmic/platform/wab/node_modules
+RUN node -r ./tools/backend-register.cjs -e 'for (const name of ["@plasmicapp/host", "@plasmicapp/query", "@plasmicapp/data-sources", "@plasmicapp/data-sources-context", "@plasmicapp/react-web", "@plasmicapp/loader-react"]) { require(name); console.log("Loaded " + name); }'
 EXPOSE 3004
 ENTRYPOINT ["plasmic-server"]
 CMD ["src/wab/server/main.ts"]
 
 FROM builder AS web-build
-RUN pnpm setup:canvas-packages
 ARG PLASMIC_COMMIT
 ENV PLASMIC_COMMIT=$PLASMIC_COMMIT
 WORKDIR /plasmic/platform/wab

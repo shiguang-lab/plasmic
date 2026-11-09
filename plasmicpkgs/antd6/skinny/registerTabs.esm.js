@@ -3,7 +3,7 @@ import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmic
 import { Tabs } from 'antd';
 import cls from 'classnames';
 import React, { useMemo } from 'react';
-import { a as getSelectedCanvasItemKey } from './canvas-overlay-BZz-_5Mj.esm.js';
+import { a as getSelectedCanvasItemKey } from './canvas-overlay-BS6_0gNM.esm.js';
 import { r as registerComponentHelper, a as asArray, t as traverseReactEltTree } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';
@@ -76,7 +76,7 @@ function TabsWithItems(props) {
     [animateTabBar, animateTabContent, animated]
   );
   const tabItems = getTabItems(itemsRaw);
-  const selectedKey = isEditing ? getSelectedCanvasItemKey(tabItems) : void 0;
+  const selectedKey = canvas ? getSelectedCanvasItemKey(tabItems) : void 0;
   const items = tabItems.map((currentItem) => {
     const { __canvas: _canvas2, ...itemProps } = currentItem.props;
     return {
@@ -86,7 +86,7 @@ function TabsWithItems(props) {
     };
   }).filter((i) => i != null);
   const initialActiveKey = rest.activeKey ?? rest.defaultActiveKey;
-  const activeKey = selectedKey !== void 0 && state ? state.reveal(String(selectedKey)) : rest.activeKey;
+  const activeKey = selectedKey !== void 0 ? state ? state.reveal(String(selectedKey)) : String(selectedKey) : rest.activeKey;
   return /* @__PURE__ */ jsx(
     Tabs,
     {

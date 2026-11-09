@@ -36,24 +36,26 @@ const FormListWrapper = React.forwardRef(function FormListWrapper2(props, ref) {
     [operationsRef]
   );
   const inCanvas = !!usePlasmicCanvasContext();
-  if (inCanvas) {
-    const form = useFormInstanceMaybe();
-    const prevPropValues = React.useRef({
-      initialValue: props.initialValue,
-      name: props.name
-    });
-    const { fireOnValuesChange, forceRemount } = React.useContext(InternalFormInstanceContext) ?? {};
-    React.useEffect(() => {
-      if (prevPropValues.current.name !== props.name) {
-        forceRemount?.();
-      }
-      if (fullFormItemName) {
-        form?.setFieldValue(fullFormItemName, props.initialValue);
-        prevPropValues.current.initialValue = props.initialValue;
-        fireOnValuesChange?.();
-      }
-    }, [JSON.stringify(props.initialValue), JSON.stringify(fullFormItemName)]);
-  }
+  const form = useFormInstanceMaybe();
+  const nameKey = JSON.stringify(props.name);
+  const prevPropValues = React.useRef({ nameKey });
+  const { fireOnValuesChange, forceRemount } = React.useContext(InternalFormInstanceContext) ?? {};
+  const fullNameKey = JSON.stringify(fullFormItemName);
+  React.useEffect(() => {
+    if (!inCanvas) {
+      return;
+    }
+    const nameChanged = prevPropValues.current.nameKey !== nameKey;
+    prevPropValues.current = { nameKey };
+    if (nameChanged) {
+      forceRemount?.();
+    }
+    if (fullNameKey !== void 0) {
+      const fullName = JSON.parse(fullNameKey);
+      form?.setFieldValue(fullName, props.initialValue);
+      fireOnValuesChange?.();
+    }
+  }, [inCanvas, form, nameKey, props.initialValue, fullNameKey, fireOnValuesChange, forceRemount]);
   return /* @__PURE__ */ jsx(FormList, { ...props, name: relativeFormItemName ?? [], children: (...args) => {
     operationsRef.current = args;
     return args[0].map((field, index) => /* @__PURE__ */ jsx(

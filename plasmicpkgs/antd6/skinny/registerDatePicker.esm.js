@@ -2,7 +2,7 @@ import { jsx, Fragment } from 'react/jsx-runtime';
 import { DatePicker } from 'antd';
 import cls from 'classnames';
 import dayjs from 'dayjs';
-import { u as useCanvasOverlay } from './canvas-overlay-BZz-_5Mj.esm.js';
+import { u as useCanvasOverlay } from './canvas-overlay-BS6_0gNM.esm.js';
 import { r as registerComponentHelper, c as capitalize } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
 import 'react';

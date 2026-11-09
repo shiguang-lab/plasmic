@@ -5,7 +5,7 @@ var host = require('@plasmicapp/host');
 var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
-var canvasOverlay = require('./canvas-overlay-DzKvKC8w.cjs.js');
+var canvasOverlay = require('./canvas-overlay-D2jWZ-TY.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host/registerComponent');
 require('@plasmicapp/host/registerGlobalContext');
@@ -83,7 +83,7 @@ function TabsWithItems(props) {
     [animateTabBar, animateTabContent, animated]
   );
   const tabItems = getTabItems(itemsRaw);
-  const selectedKey = isEditing ? canvasOverlay.getSelectedCanvasItemKey(tabItems) : void 0;
+  const selectedKey = canvas ? canvasOverlay.getSelectedCanvasItemKey(tabItems) : void 0;
   const items = tabItems.map((currentItem) => {
     const { __canvas: _canvas2, ...itemProps } = currentItem.props;
     return {
@@ -93,7 +93,7 @@ function TabsWithItems(props) {
     };
   }).filter((i) => i != null);
   const initialActiveKey = rest.activeKey ?? rest.defaultActiveKey;
-  const activeKey = selectedKey !== void 0 && state ? state.reveal(String(selectedKey)) : rest.activeKey;
+  const activeKey = selectedKey !== void 0 ? state ? state.reveal(String(selectedKey)) : String(selectedKey) : rest.activeKey;
   return /* @__PURE__ */ jsxRuntime.jsx(
     Ant.Tabs,
     {

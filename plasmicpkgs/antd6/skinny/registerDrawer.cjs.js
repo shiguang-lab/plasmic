@@ -4,7 +4,7 @@ var jsxRuntime = require('react/jsx-runtime');
 var Ant = require('antd');
 var cls = require('classnames');
 var React = require('react');
-var canvasOverlay$1 = require('./canvas-overlay-DzKvKC8w.cjs.js');
+var canvasOverlay$1 = require('./canvas-overlay-D2jWZ-TY.cjs.js');
 var utils = require('./utils-B1jTF3MA.cjs.js');
 require('@plasmicapp/host');
 require('@plasmicapp/host/registerComponent');

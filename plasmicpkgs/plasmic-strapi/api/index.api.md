@@ -19,7 +19,7 @@ export function registerAll(loader?: {
 }): void;
 
 // @public (undocumented)
-export function StrapiCollection(input: StrapiCollectionProps): JSX.Element;
+export function StrapiCollection(props: StrapiCollectionProps): JSX.Element;
 
 // @public (undocumented)
 export const strapiCollectionMeta: CodeComponentMeta<StrapiCollectionProps>;

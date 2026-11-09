@@ -22,7 +22,7 @@ import './contexts-DtHxvgts.esm.js';
 import '@plasmicapp/data-sources';
 import 'classnames';
 import 'dayjs';
-import './canvas-overlay-BZz-_5Mj.esm.js';
+import './canvas-overlay-BS6_0gNM.esm.js';
 import '@plasmicapp/host';
 import './react-utils-BpvCcwyE.esm.js';
 

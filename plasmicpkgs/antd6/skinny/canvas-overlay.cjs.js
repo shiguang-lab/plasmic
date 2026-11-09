@@ -42,7 +42,7 @@ function useCanvasOverlay(props, triggerSlotName) {
     ...rest
   } = props;
   const onReveal = __canvas?.onReveal;
-  const autoOpen = isEditing && !!selection?.selected && (!triggerSlotName || selection.slot !== triggerSlotName);
+  const autoOpen = !!canvas && !!selection?.selected && (!triggerSlotName || selection.slot !== triggerSlotName);
   const state = canvas ? selection?.getState?.("open", open, props.defaultOpen) : void 0;
   const autoOpened = autoOpen && !state && !open;
   const editingOpen = autoOpen || !!open;
@@ -55,9 +55,11 @@ function useCanvasOverlay(props, triggerSlotName) {
       }
     };
   }
-  const resolvedOpen = state ? !!state.value : isEditing ? editingOpen : open;
-  const previous = React.useRef({ isEditing, open: resolvedOpen });
-  const silentTransition = React.useRef(false);
+  const resolvedOpen = state ? !!state.value : canvas ? editingOpen : open;
+  const revealed = state?.revealed ?? autoOpened;
+  const previous = React.useRef({ isEditing, open: resolvedOpen, revealed });
+  const silentTransition = React.useRef(revealed);
+  const nativeTransition = React.useRef(false);
   const destroyEditingContent = React.useRef(false);
   if (!isEditing || resolvedOpen) {
     destroyEditingContent.current = false;
@@ -65,9 +67,10 @@ function useCanvasOverlay(props, triggerSlotName) {
     destroyEditingContent.current = true;
   }
   if (previous.current.open !== resolvedOpen) {
-    silentTransition.current = previous.current.isEditing !== isEditing;
+    silentTransition.current = !nativeTransition.current && (previous.current.isEditing !== isEditing || revealed || previous.current.revealed);
+    nativeTransition.current = false;
   }
-  previous.current = { isEditing, open: resolvedOpen };
+  previous.current = { isEditing, open: resolvedOpen, revealed };
   const lifecycleProps = rest;
   const { onOpenChange, afterOpenChange, afterClose } = lifecycleProps;
   lifecycleProps.onOpenChange = (next, ...args) => {
@@ -76,6 +79,7 @@ function useCanvasOverlay(props, triggerSlotName) {
     }
     if (!isEditing) {
       silentTransition.current = false;
+      nativeTransition.current = true;
     }
     return onOpenChange?.(next, ...args);
   };

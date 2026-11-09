@@ -1,7 +1,7 @@
 import { jsx, Fragment } from 'react/jsx-runtime';
 import { Menu } from 'antd';
 import { usePlasmicCanvasContext, usePlasmicCanvasComponentInfo } from '@plasmicapp/host';
-import { r as renderCanvasSlot } from './canvas-overlay-BZz-_5Mj.esm.js';
+import { r as renderCanvasSlot } from './canvas-overlay-BS6_0gNM.esm.js';
 import React from 'react';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host/registerComponent';
@@ -71,7 +71,7 @@ function MenuWithChildren(props) {
       visit(data.children, path);
     }
   });
-  if (canvas && !canvas.interactive) {
+  if (canvas) {
     visit(items, []);
   }
   const reveal = selectedKeys.length > 0;

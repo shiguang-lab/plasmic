@@ -42,24 +42,26 @@ const FormListWrapper = React__default.default.forwardRef(function FormListWrapp
     [operationsRef]
   );
   const inCanvas = !!host.usePlasmicCanvasContext();
-  if (inCanvas) {
-    const form = contexts.useFormInstanceMaybe();
-    const prevPropValues = React__default.default.useRef({
-      initialValue: props.initialValue,
-      name: props.name
-    });
-    const { fireOnValuesChange, forceRemount } = React__default.default.useContext(contexts.InternalFormInstanceContext) ?? {};
-    React__default.default.useEffect(() => {
-      if (prevPropValues.current.name !== props.name) {
-        forceRemount?.();
-      }
-      if (fullFormItemName) {
-        form?.setFieldValue(fullFormItemName, props.initialValue);
-        prevPropValues.current.initialValue = props.initialValue;
-        fireOnValuesChange?.();
-      }
-    }, [JSON.stringify(props.initialValue), JSON.stringify(fullFormItemName)]);
-  }
+  const form = contexts.useFormInstanceMaybe();
+  const nameKey = JSON.stringify(props.name);
+  const prevPropValues = React__default.default.useRef({ nameKey });
+  const { fireOnValuesChange, forceRemount } = React__default.default.useContext(contexts.InternalFormInstanceContext) ?? {};
+  const fullNameKey = JSON.stringify(fullFormItemName);
+  React__default.default.useEffect(() => {
+    if (!inCanvas) {
+      return;
+    }
+    const nameChanged = prevPropValues.current.nameKey !== nameKey;
+    prevPropValues.current = { nameKey };
+    if (nameChanged) {
+      forceRemount?.();
+    }
+    if (fullNameKey !== void 0) {
+      const fullName = JSON.parse(fullNameKey);
+      form?.setFieldValue(fullName, props.initialValue);
+      fireOnValuesChange?.();
+    }
+  }, [inCanvas, form, nameKey, props.initialValue, fullNameKey, fireOnValuesChange, forceRemount]);
   return /* @__PURE__ */ jsxRuntime.jsx(FormList, { ...props, name: relativeFormItemName ?? [], children: (...args) => {
     operationsRef.current = args;
     return args[0].map((field, index) => /* @__PURE__ */ jsxRuntime.jsx(

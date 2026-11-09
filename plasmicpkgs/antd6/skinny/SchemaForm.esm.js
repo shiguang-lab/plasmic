@@ -12,7 +12,7 @@ import { FormItemWrapper } from './FormItem.esm.js';
 import './names-DQIzgrvq.esm.js';
 import 'classnames';
 import 'dayjs';
-import './canvas-overlay-BZz-_5Mj.esm.js';
+import './canvas-overlay-BS6_0gNM.esm.js';
 import '@plasmicapp/host';
 import '@plasmicapp/host/registerComponent';
 import '@plasmicapp/host/registerGlobalContext';

@@ -1,7 +1,7 @@
 import { jsx } from 'react/jsx-runtime';
 import { Tooltip } from 'antd';
 import cls from 'classnames';
-import { u as useCanvasOverlay } from './canvas-overlay-BZz-_5Mj.esm.js';
+import { u as useCanvasOverlay } from './canvas-overlay-BS6_0gNM.esm.js';
 import { r as registerComponentHelper } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
 import 'react';

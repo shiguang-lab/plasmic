@@ -4,7 +4,7 @@ import cls from 'classnames';
 import dayjs from 'dayjs';
 import kebabCase from 'lodash/kebabCase';
 import { useMemo } from 'react';
-import { u as useCanvasOverlay } from './canvas-overlay-BZz-_5Mj.esm.js';
+import { u as useCanvasOverlay } from './canvas-overlay-BS6_0gNM.esm.js';
 import { r as registerComponentHelper, c as capitalize } from './utils-DPGVAauG.esm.js';
 import localeData from 'dayjs/plugin/localeData';
 import weekday from 'dayjs/plugin/weekday';

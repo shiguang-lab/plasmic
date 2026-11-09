@@ -391,7 +391,7 @@ const AntdTable = React__default.default.forwardRef(function AntdTable2(props, r
     ...onExpand ? { onExpand } : {},
     ...onExpandedRowsChange ? { onExpandedRowsChange } : {}
   } : void 0;
-  const revealRows = isEditing && !!rowExpansion?.expandedRowRender && (info?.editing || info?.selected && info.slot === "expandedRowRender");
+  const revealRows = !!canvas && !!rowExpansion?.expandedRowRender && (info?.editing || info?.selected && info.slot === "expandedRowRender");
   const canvasRowKeys = [];
   if (canvas && rowExpansion) {
     const collect = (rows) => rows.forEach((row) => {
@@ -412,7 +412,7 @@ const AntdTable = React__default.default.forwardRef(function AntdTable2(props, r
     rowExpansion.expandedRowKeys,
     rowExpansion.defaultExpandedRowKeys ?? (rowExpansion.defaultExpandAllRows ? canvasRowKeys : [])
   ) : void 0;
-  if (isEditing && expansionState) {
+  if (expansionState) {
     expansionState.reveal(revealRows ? canvasRowKeys : initialCanvasKeys);
   }
   const resolvedExpansion = canvas && rowExpansion ? {

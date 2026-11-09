@@ -55,10 +55,14 @@ const Internal = React__default.default.forwardRef(
       ...rest
     } = props;
     const childrenNode = typeof props.children === "function" ? props.children(formValues, form) : props.children;
+    const onValuesChangeRef = React__default.default.useRef(extendedOnValuesChange);
+    React__default.default.useLayoutEffect(() => {
+      onValuesChangeRef.current = extendedOnValuesChange;
+    }, [extendedOnValuesChange]);
     const fireOnValuesChange = React__default.default.useCallback(() => {
       const values = form.getFieldsValue(true);
       if (!equal__default.default(values, lastValue.current)) {
-        extendedOnValuesChange?.(values);
+        onValuesChangeRef.current?.(values);
         lastValue.current = values;
       }
     }, [form, lastValue]);

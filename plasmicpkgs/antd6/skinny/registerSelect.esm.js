@@ -1,7 +1,7 @@
 import { jsx } from 'react/jsx-runtime';
 import { Select } from 'antd';
 import cls from 'classnames';
-import { u as useCanvasOverlay } from './canvas-overlay-BZz-_5Mj.esm.js';
+import { u as useCanvasOverlay } from './canvas-overlay-BS6_0gNM.esm.js';
 import { o as optionComponentName, g as optionGroupComponentName, s as selectComponentName } from './names-DQIzgrvq.esm.js';
 import { r as registerComponentHelper, t as traverseReactEltTree } from './utils-DPGVAauG.esm.js';
 import '@plasmicapp/host';
