@@ -42,7 +42,7 @@
     "typecheck": "cd platform/wab && pnpm ts-watch",
     "upgrade-internal": "bash scripts/upgrade-internal.bash",
     "msw:update": "msw init ./msw --save=false",
-    "test:node": "pnpm --filter @plasmickit/cli test && pnpm --filter @shiguang-lab/plasmic-antd-icons test",
+    "test:node": "node --test scripts/react19-lint.test.cjs && pnpm --filter @plasmickit/cli test && pnpm --filter @shiguang-lab/plasmic-antd-icons test",
     "test:all": "pnpm test && pnpm test:node"
   },
   "packageManager": "pnpm@11.10.0",

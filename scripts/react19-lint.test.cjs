@@ -3,7 +3,7 @@ const path = require("node:path");
 const { test } = require("node:test");
 const { ESLint } = require("eslint");
 
-const repo = path.resolve(__dirname, "../..");
+const repo = path.resolve(__dirname, "..");
 test("maintained Studio, Host and component sources enforce Hook ordering and dependencies", async () => {
   const eslint = new ESLint({ cwd: repo });
   for (const file of [
@@ -23,7 +23,7 @@ test("maintained Studio, Host and component sources enforce Hook ordering and de
 });
 
 test("render API guards reject React 19 removals and allow current roots", async () => {
-  const config = require("../../.eslintrc.js");
+  const config = require("../.eslintrc.js");
   const eslint = new ESLint({
     cwd: repo, useEslintrc: false,
     baseConfig: {

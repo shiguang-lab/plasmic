@@ -3,6 +3,8 @@ name: Check Plasmic resource gates
 on:
   pull_request:
     paths:
+      - '.eslintrc.js'
+      - 'scripts/react19-lint.test.cjs'
       - 'ai/plasmic/**'
       - 'scripts/build-plasmic-resources.mjs'
       - 'scripts/validate-plasmic-*.mjs'
@@ -22,6 +24,8 @@ on:
   push:
     branches: [master, main]
     paths:
+      - '.eslintrc.js'
+      - 'scripts/react19-lint.test.cjs'
       - 'ai/plasmic/**'
       - 'scripts/build-plasmic-resources.mjs'
       - 'scripts/validate-plasmic-*.mjs'
@@ -79,6 +83,8 @@ jobs:
         run: |
           npm install --global pnpm@11.10.0
           pnpm install --frozen-lockfile
+      - name: Verify React lint rules with repository dependencies
+        run: node --test scripts/react19-lint.test.cjs
       - name: Build component dependencies
         run: pnpm --filter '@plasmicpkgs/antd5^...' --filter '@shiguang-lab/plasmic-react-ui^...' -r run build
       - name: Verify live source registrations against references
