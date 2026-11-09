@@ -106,6 +106,9 @@ jobs:
           go-version-file: desktop/mcp/go.mod
           cache-dependency-path: desktop/mcp/go.sum
       - run: tar -xzf renderer.tar.gz -C desktop
+      - name: Use Electron package checksums for packaging
+        run: |
+          node -e 'require("node:fs").writeFileSync("desktop/electron-builder.json", JSON.stringify({ electronDownload: { force: false, checksums: require("./desktop/node_modules/electron/checksums.json") } }))'
       - name: Test Desktop on macOS
         if: matrix.platform == 'darwin' && matrix.arch == 'x64'
         run: npm test --prefix desktop
