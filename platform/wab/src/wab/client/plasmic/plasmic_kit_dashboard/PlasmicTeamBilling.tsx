@@ -28,7 +28,8 @@ import {
   generateStateValueProp,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -36,8 +37,8 @@ import FreeTrial from "../../components/FreeTrial"; // plasmic-import: p3GgKAlaQ
 import PriceTierPicker from "../../components/pricing/PriceTierPicker"; // plasmic-import: Xx_WsdQKli-S/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Switch from "../../components/widgets/Switch"; // plasmic-import: b35JDgXpbiF/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -130,11 +131,10 @@ function PlasmicTeamBilling__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showBillingError",
@@ -156,20 +156,22 @@ function PlasmicTeamBilling__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => "isChecked",
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -321,9 +323,9 @@ function PlasmicTeamBilling__RenderFunc(props: {
               "isChecked",
             ]) ?? false
           }
-          onChange={async (...eventArgs: any) => {
+          onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
             ((...eventArgs) => {
-              generateStateOnChangeProp($state, [
+              generateStateOnChangeProp($stateCommands, [
                 "billingFrequencyToggle",
                 "isChecked",
               ])(eventArgs[0]);
@@ -336,7 +338,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
             ) {
               return;
             }
-          }}
+          })); })}
         >
           <div className={classNames("all", "__wab_text", sty.text___0IM)}>
             <React.Fragment>
@@ -408,9 +410,7 @@ function PlasmicTeamBilling__RenderFunc(props: {
                     sty.billingEmail
                   )}
                   placeholder={uiT("Enter…")}
-                  ref={(ref) => {
-                    $refs["billingEmail"] = ref;
-                  }}
+                  ref={registerRef("billingEmail")}
                   size={1}
                   type={"email"}
                   value={""}
@@ -619,12 +619,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -634,37 +630,109 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTeamBilling__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTeamBilling";
-  } else {
-    func.displayName = `PlasmicTeamBilling.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTeamBilling__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTeamBilling__root<T extends PlasmicTeamBilling__rootProps>(props: T & StrictProps<T, PlasmicTeamBilling__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTeamBilling__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTeamBilling__root.displayName = "PlasmicTeamBilling";
+
+type PlasmicTeamBilling__learnMoreProps = NodeComponentProps<"learnMore"> & {key?: React.Key};
+function PlasmicTeamBilling__learnMore<T extends PlasmicTeamBilling__learnMoreProps>(props: T & StrictProps<T, PlasmicTeamBilling__learnMoreProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("learnMore", props);
+  return <PlasmicTeamBilling__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"learnMore"} />;
+}
+PlasmicTeamBilling__learnMore.displayName = "PlasmicTeamBilling.learnMore";
+
+type PlasmicTeamBilling__freeTrialProps = NodeComponentProps<"freeTrial"> & {key?: React.Key};
+function PlasmicTeamBilling__freeTrial<T extends PlasmicTeamBilling__freeTrialProps>(props: T & StrictProps<T, PlasmicTeamBilling__freeTrialProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeTrial", props);
+  return <PlasmicTeamBilling__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeTrial"} />;
+}
+PlasmicTeamBilling__freeTrial.displayName = "PlasmicTeamBilling.freeTrial";
+
+type PlasmicTeamBilling__billingFrequencyToggleProps = NodeComponentProps<"billingFrequencyToggle"> & {key?: React.Key};
+function PlasmicTeamBilling__billingFrequencyToggle<T extends PlasmicTeamBilling__billingFrequencyToggleProps>(props: T & StrictProps<T, PlasmicTeamBilling__billingFrequencyToggleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("billingFrequencyToggle", props);
+  return <PlasmicTeamBilling__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"billingFrequencyToggle"} />;
+}
+PlasmicTeamBilling__billingFrequencyToggle.displayName = "PlasmicTeamBilling.billingFrequencyToggle";
+
+type PlasmicTeamBilling__priceTierPickerProps = NodeComponentProps<"priceTierPicker"> & {key?: React.Key};
+function PlasmicTeamBilling__priceTierPicker<T extends PlasmicTeamBilling__priceTierPickerProps>(props: T & StrictProps<T, PlasmicTeamBilling__priceTierPickerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("priceTierPicker", props);
+  return <PlasmicTeamBilling__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"priceTierPicker"} />;
+}
+PlasmicTeamBilling__priceTierPicker.displayName = "PlasmicTeamBilling.priceTierPicker";
+
+type PlasmicTeamBilling__premiumSectionsProps = NodeComponentProps<"premiumSections"> & {key?: React.Key};
+function PlasmicTeamBilling__premiumSections<T extends PlasmicTeamBilling__premiumSectionsProps>(props: T & StrictProps<T, PlasmicTeamBilling__premiumSectionsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("premiumSections", props);
+  return <PlasmicTeamBilling__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"premiumSections"} />;
+}
+PlasmicTeamBilling__premiumSections.displayName = "PlasmicTeamBilling.premiumSections";
+
+type PlasmicTeamBilling__h4Props = NodeComponentProps<"h4"> & {key?: React.Key};
+function PlasmicTeamBilling__h4<T extends PlasmicTeamBilling__h4Props>(props: T & StrictProps<T, PlasmicTeamBilling__h4Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("h4", props);
+  return <PlasmicTeamBilling__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"h4"} />;
+}
+PlasmicTeamBilling__h4.displayName = "PlasmicTeamBilling.h4";
+
+type PlasmicTeamBilling__billingEmailProps = NodeComponentProps<"billingEmail"> & {key?: React.Key};
+function PlasmicTeamBilling__billingEmail<T extends PlasmicTeamBilling__billingEmailProps>(props: T & StrictProps<T, PlasmicTeamBilling__billingEmailProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("billingEmail", props);
+  return <PlasmicTeamBilling__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"billingEmail"} />;
+}
+PlasmicTeamBilling__billingEmail.displayName = "PlasmicTeamBilling.billingEmail";
+
+type PlasmicTeamBilling__updateBillingEmailButtonProps = NodeComponentProps<"updateBillingEmailButton"> & {key?: React.Key};
+function PlasmicTeamBilling__updateBillingEmailButton<T extends PlasmicTeamBilling__updateBillingEmailButtonProps>(props: T & StrictProps<T, PlasmicTeamBilling__updateBillingEmailButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("updateBillingEmailButton", props);
+  return <PlasmicTeamBilling__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"updateBillingEmailButton"} />;
+}
+PlasmicTeamBilling__updateBillingEmailButton.displayName = "PlasmicTeamBilling.updateBillingEmailButton";
+
+type PlasmicTeamBilling__changeCreditCardButtonProps = NodeComponentProps<"changeCreditCardButton"> & {key?: React.Key};
+function PlasmicTeamBilling__changeCreditCardButton<T extends PlasmicTeamBilling__changeCreditCardButtonProps>(props: T & StrictProps<T, PlasmicTeamBilling__changeCreditCardButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("changeCreditCardButton", props);
+  return <PlasmicTeamBilling__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"changeCreditCardButton"} />;
+}
+PlasmicTeamBilling__changeCreditCardButton.displayName = "PlasmicTeamBilling.changeCreditCardButton";
+
+type PlasmicTeamBilling__manageBillingProps = NodeComponentProps<"manageBilling"> & {key?: React.Key};
+function PlasmicTeamBilling__manageBilling<T extends PlasmicTeamBilling__manageBillingProps>(props: T & StrictProps<T, PlasmicTeamBilling__manageBillingProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("manageBilling", props);
+  return <PlasmicTeamBilling__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"manageBilling"} />;
+}
+PlasmicTeamBilling__manageBilling.displayName = "PlasmicTeamBilling.manageBilling";
+
+type PlasmicTeamBilling__cancelSubscriptionButtonProps = NodeComponentProps<"cancelSubscriptionButton"> & {key?: React.Key};
+function PlasmicTeamBilling__cancelSubscriptionButton<T extends PlasmicTeamBilling__cancelSubscriptionButtonProps>(props: T & StrictProps<T, PlasmicTeamBilling__cancelSubscriptionButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelSubscriptionButton", props);
+  return <PlasmicTeamBilling__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelSubscriptionButton"} />;
+}
+PlasmicTeamBilling__cancelSubscriptionButton.displayName = "PlasmicTeamBilling.cancelSubscriptionButton";
+
 
 export const PlasmicTeamBilling = Object.assign(
   // Top-level PlasmicTeamBilling renders the root element
-  makeNodeComponent("root"),
+  PlasmicTeamBilling__root,
   {
     // Helper components rendering sub-elements
-    learnMore: makeNodeComponent("learnMore"),
-    freeTrial: makeNodeComponent("freeTrial"),
-    billingFrequencyToggle: makeNodeComponent("billingFrequencyToggle"),
-    priceTierPicker: makeNodeComponent("priceTierPicker"),
-    premiumSections: makeNodeComponent("premiumSections"),
-    h4: makeNodeComponent("h4"),
-    billingEmail: makeNodeComponent("billingEmail"),
-    updateBillingEmailButton: makeNodeComponent("updateBillingEmailButton"),
-    changeCreditCardButton: makeNodeComponent("changeCreditCardButton"),
-    manageBilling: makeNodeComponent("manageBilling"),
-    cancelSubscriptionButton: makeNodeComponent("cancelSubscriptionButton"),
+    learnMore: PlasmicTeamBilling__learnMore,
+    freeTrial: PlasmicTeamBilling__freeTrial,
+    billingFrequencyToggle: PlasmicTeamBilling__billingFrequencyToggle,
+    priceTierPicker: PlasmicTeamBilling__priceTierPicker,
+    premiumSections: PlasmicTeamBilling__premiumSections,
+    h4: PlasmicTeamBilling__h4,
+    billingEmail: PlasmicTeamBilling__billingEmail,
+    updateBillingEmailButton: PlasmicTeamBilling__updateBillingEmailButton,
+    changeCreditCardButton: PlasmicTeamBilling__changeCreditCardButton,
+    manageBilling: PlasmicTeamBilling__manageBilling,
+    cancelSubscriptionButton: PlasmicTeamBilling__cancelSubscriptionButton,
 
     // Metadata about props expected for PlasmicTeamBilling
     internalVariantProps: PlasmicTeamBilling__VariantProps,

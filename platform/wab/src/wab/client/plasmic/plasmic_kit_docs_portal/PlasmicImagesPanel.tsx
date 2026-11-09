@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,7 +26,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ImageListItem from "../../components/docs/ImageListItem"; // plasmic-import: tnA9SknzQ5/component
 import Searchbox from "../../components/widgets/Searchbox"; // plasmic-import: po7gr0PX4_gWo/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -86,11 +86,10 @@ function PlasmicImagesPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -218,12 +217,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -233,29 +228,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicImagesPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicImagesPanel";
-  } else {
-    func.displayName = `PlasmicImagesPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicImagesPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicImagesPanel__root<T extends PlasmicImagesPanel__rootProps>(props: T & StrictProps<T, PlasmicImagesPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicImagesPanel__root.displayName = "PlasmicImagesPanel";
+
+type PlasmicImagesPanel__searchContainerProps = NodeComponentProps<"searchContainer"> & {key?: React.Key};
+function PlasmicImagesPanel__searchContainer<T extends PlasmicImagesPanel__searchContainerProps>(props: T & StrictProps<T, PlasmicImagesPanel__searchContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchContainer", props);
+  return <PlasmicImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchContainer"} />;
+}
+PlasmicImagesPanel__searchContainer.displayName = "PlasmicImagesPanel.searchContainer";
+
+type PlasmicImagesPanel__searchboxProps = NodeComponentProps<"searchbox"> & {key?: React.Key};
+function PlasmicImagesPanel__searchbox<T extends PlasmicImagesPanel__searchboxProps>(props: T & StrictProps<T, PlasmicImagesPanel__searchboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchbox", props);
+  return <PlasmicImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchbox"} />;
+}
+PlasmicImagesPanel__searchbox.displayName = "PlasmicImagesPanel.searchbox";
+
+type PlasmicImagesPanel__componentsContainerProps = NodeComponentProps<"componentsContainer"> & {key?: React.Key};
+function PlasmicImagesPanel__componentsContainer<T extends PlasmicImagesPanel__componentsContainerProps>(props: T & StrictProps<T, PlasmicImagesPanel__componentsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("componentsContainer", props);
+  return <PlasmicImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"componentsContainer"} />;
+}
+PlasmicImagesPanel__componentsContainer.displayName = "PlasmicImagesPanel.componentsContainer";
+
 
 export const PlasmicImagesPanel = Object.assign(
   // Top-level PlasmicImagesPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicImagesPanel__root,
   {
     // Helper components rendering sub-elements
-    searchContainer: makeNodeComponent("searchContainer"),
-    searchbox: makeNodeComponent("searchbox"),
-    componentsContainer: makeNodeComponent("componentsContainer"),
+    searchContainer: PlasmicImagesPanel__searchContainer,
+    searchbox: PlasmicImagesPanel__searchbox,
+    componentsContainer: PlasmicImagesPanel__componentsContainer,
 
     // Metadata about props expected for PlasmicImagesPanel
     internalVariantProps: PlasmicImagesPanel__VariantProps,

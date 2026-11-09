@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,13 +23,13 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { Tooltip } from "../../components/plexus/Tooltip"; // plasmic-import: EBbuUzYSewBk/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -105,11 +105,10 @@ function PlasmicHoverableIcon__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "above",
@@ -124,20 +123,22 @@ function PlasmicHoverableIcon__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.white,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <Tooltip
@@ -205,12 +206,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -220,27 +217,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicHoverableIcon__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicHoverableIcon";
-  } else {
-    func.displayName = `PlasmicHoverableIcon.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicHoverableIcon__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicHoverableIcon__root<T extends PlasmicHoverableIcon__rootProps>(props: T & StrictProps<T, PlasmicHoverableIcon__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicHoverableIcon__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicHoverableIcon__root.displayName = "PlasmicHoverableIcon";
+
+type PlasmicHoverableIcon__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicHoverableIcon__svg<T extends PlasmicHoverableIcon__svgProps>(props: T & StrictProps<T, PlasmicHoverableIcon__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicHoverableIcon__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicHoverableIcon__svg.displayName = "PlasmicHoverableIcon.svg";
+
 
 export const PlasmicHoverableIcon = Object.assign(
   // Top-level PlasmicHoverableIcon renders the root element
-  makeNodeComponent("root"),
+  PlasmicHoverableIcon__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
+    svg: PlasmicHoverableIcon__svg,
 
     // Metadata about props expected for PlasmicHoverableIcon
     internalVariantProps: PlasmicHoverableIcon__VariantProps,

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -88,11 +88,10 @@ function PlasmicMarkdownHintRow__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -118,19 +117,8 @@ function PlasmicMarkdownHintRow__RenderFunc(props: {
       </div>
       <div className={classNames("all", sty.freeBox___1Swij)}>
         {((_par) => (!_par ? [] : Array.isArray(_par) ? _par : [_par]))(
-          (() => {
-            try {
-              return $props.rules;
-            } catch (e) {
-              if (
-                e instanceof TypeError ||
-                e?.plasmicType === "PlasmicUndefinedDataError"
-              ) {
-                return [];
-              }
-              throw e;
-            }
-          })()
+          ((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.rules), () => ([]))
         ).map((__plasmic_item_0, __plasmic_idx_0) => {
           const currentRule = __plasmic_item_0;
           const currentRuleIndex = __plasmic_idx_0;
@@ -142,19 +130,8 @@ function PlasmicMarkdownHintRow__RenderFunc(props: {
               key={currentRuleIndex}
             >
               <React.Fragment>
-                {(() => {
-                  try {
-                    return currentRule;
-                  } catch (e) {
-                    if (
-                      e instanceof TypeError ||
-                      e?.plasmicType === "PlasmicUndefinedDataError"
-                    ) {
-                      return "# H1";
-                    }
-                    throw e;
-                  }
-                })()}
+                {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                      e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => (currentRule), () => ("# H1"))}
               </React.Fragment>
             </div>
           );
@@ -202,12 +179,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -217,27 +190,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicMarkdownHintRow__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicMarkdownHintRow";
-  } else {
-    func.displayName = `PlasmicMarkdownHintRow.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicMarkdownHintRow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicMarkdownHintRow__root<T extends PlasmicMarkdownHintRow__rootProps>(props: T & StrictProps<T, PlasmicMarkdownHintRow__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicMarkdownHintRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicMarkdownHintRow__root.displayName = "PlasmicMarkdownHintRow";
+
+type PlasmicMarkdownHintRow__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicMarkdownHintRow__text<T extends PlasmicMarkdownHintRow__textProps>(props: T & StrictProps<T, PlasmicMarkdownHintRow__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicMarkdownHintRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicMarkdownHintRow__text.displayName = "PlasmicMarkdownHintRow.text";
+
 
 export const PlasmicMarkdownHintRow = Object.assign(
   // Top-level PlasmicMarkdownHintRow renders the root element
-  makeNodeComponent("root"),
+  PlasmicMarkdownHintRow__root,
   {
     // Helper components rendering sub-elements
-    text: makeNodeComponent("text"),
+    text: PlasmicMarkdownHintRow__text,
 
     // Metadata about props expected for PlasmicMarkdownHintRow
     internalVariantProps: PlasmicMarkdownHintRow__VariantProps,

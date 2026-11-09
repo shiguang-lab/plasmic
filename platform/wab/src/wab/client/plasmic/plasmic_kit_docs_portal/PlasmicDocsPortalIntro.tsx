@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -28,8 +28,8 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import DocsCodeSnippet from "../../components/docs/DocsCodeSnippet"; // plasmic-import: P6rYMyYSiZ/component
 import SyncProjectSnippet from "../../components/docs/SyncProjectSnippet"; // plasmic-import: 7KLBF1De9n/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -93,13 +93,12 @@ function PlasmicDocsPortalIntro__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -1095,12 +1094,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1110,32 +1105,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDocsPortalIntro__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDocsPortalIntro";
-  } else {
-    func.displayName = `PlasmicDocsPortalIntro.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDocsPortalIntro__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDocsPortalIntro__root<T extends PlasmicDocsPortalIntro__rootProps>(props: T & StrictProps<T, PlasmicDocsPortalIntro__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDocsPortalIntro__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDocsPortalIntro__root.displayName = "PlasmicDocsPortalIntro";
+
+type PlasmicDocsPortalIntro__introTextProps = NodeComponentProps<"introText"> & {key?: React.Key};
+function PlasmicDocsPortalIntro__introText<T extends PlasmicDocsPortalIntro__introTextProps>(props: T & StrictProps<T, PlasmicDocsPortalIntro__introTextProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("introText", props);
+  return <PlasmicDocsPortalIntro__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"introText"} />;
+}
+PlasmicDocsPortalIntro__introText.displayName = "PlasmicDocsPortalIntro.introText";
+
+type PlasmicDocsPortalIntro__introText2Props = NodeComponentProps<"introText2"> & {key?: React.Key};
+function PlasmicDocsPortalIntro__introText2<T extends PlasmicDocsPortalIntro__introText2Props>(props: T & StrictProps<T, PlasmicDocsPortalIntro__introText2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("introText2", props);
+  return <PlasmicDocsPortalIntro__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"introText2"} />;
+}
+PlasmicDocsPortalIntro__introText2.displayName = "PlasmicDocsPortalIntro.introText2";
+
+type PlasmicDocsPortalIntro__introText3Props = NodeComponentProps<"introText3"> & {key?: React.Key};
+function PlasmicDocsPortalIntro__introText3<T extends PlasmicDocsPortalIntro__introText3Props>(props: T & StrictProps<T, PlasmicDocsPortalIntro__introText3Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("introText3", props);
+  return <PlasmicDocsPortalIntro__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"introText3"} />;
+}
+PlasmicDocsPortalIntro__introText3.displayName = "PlasmicDocsPortalIntro.introText3";
+
+type PlasmicDocsPortalIntro__nextConfigProps = NodeComponentProps<"nextConfig"> & {key?: React.Key};
+function PlasmicDocsPortalIntro__nextConfig<T extends PlasmicDocsPortalIntro__nextConfigProps>(props: T & StrictProps<T, PlasmicDocsPortalIntro__nextConfigProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("nextConfig", props);
+  return <PlasmicDocsPortalIntro__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"nextConfig"} />;
+}
+PlasmicDocsPortalIntro__nextConfig.displayName = "PlasmicDocsPortalIntro.nextConfig";
+
+type PlasmicDocsPortalIntro__syncProjectSnippetProps = NodeComponentProps<"syncProjectSnippet"> & {key?: React.Key};
+function PlasmicDocsPortalIntro__syncProjectSnippet<T extends PlasmicDocsPortalIntro__syncProjectSnippetProps>(props: T & StrictProps<T, PlasmicDocsPortalIntro__syncProjectSnippetProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("syncProjectSnippet", props);
+  return <PlasmicDocsPortalIntro__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"syncProjectSnippet"} />;
+}
+PlasmicDocsPortalIntro__syncProjectSnippet.displayName = "PlasmicDocsPortalIntro.syncProjectSnippet";
+
+type PlasmicDocsPortalIntro__loaderv2ConfigProps = NodeComponentProps<"loaderv2Config"> & {key?: React.Key};
+function PlasmicDocsPortalIntro__loaderv2Config<T extends PlasmicDocsPortalIntro__loaderv2ConfigProps>(props: T & StrictProps<T, PlasmicDocsPortalIntro__loaderv2ConfigProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("loaderv2Config", props);
+  return <PlasmicDocsPortalIntro__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"loaderv2Config"} />;
+}
+PlasmicDocsPortalIntro__loaderv2Config.displayName = "PlasmicDocsPortalIntro.loaderv2Config";
+
 
 export const PlasmicDocsPortalIntro = Object.assign(
   // Top-level PlasmicDocsPortalIntro renders the root element
-  makeNodeComponent("root"),
+  PlasmicDocsPortalIntro__root,
   {
     // Helper components rendering sub-elements
-    introText: makeNodeComponent("introText"),
-    introText2: makeNodeComponent("introText2"),
-    introText3: makeNodeComponent("introText3"),
-    nextConfig: makeNodeComponent("nextConfig"),
-    syncProjectSnippet: makeNodeComponent("syncProjectSnippet"),
-    loaderv2Config: makeNodeComponent("loaderv2Config"),
+    introText: PlasmicDocsPortalIntro__introText,
+    introText2: PlasmicDocsPortalIntro__introText2,
+    introText3: PlasmicDocsPortalIntro__introText3,
+    nextConfig: PlasmicDocsPortalIntro__nextConfig,
+    syncProjectSnippet: PlasmicDocsPortalIntro__syncProjectSnippet,
+    loaderv2Config: PlasmicDocsPortalIntro__loaderv2Config,
 
     // Metadata about props expected for PlasmicDocsPortalIntro
     internalVariantProps: PlasmicDocsPortalIntro__VariantProps,

@@ -127,10 +127,12 @@ const Internal = React.forwardRef(
         ? props.children(formValues, form)
         : props.children;
 
+    const onValuesChangeRef = React.useRef(extendedOnValuesChange);
+    React.useLayoutEffect(() => { onValuesChangeRef.current = extendedOnValuesChange; }, [extendedOnValuesChange]);
     const fireOnValuesChange = React.useCallback(() => {
       const values = form.getFieldsValue(true);
       if (!equal(values, lastValue.current)) {
-        extendedOnValuesChange?.(values);
+        onValuesChangeRef.current?.(values);
         lastValue.current = values;
       }
     }, [form, lastValue]);

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,13 +23,13 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -115,11 +115,10 @@ function PlasmicInlineEditable__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "editing",
@@ -140,23 +139,25 @@ function PlasmicInlineEditable__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.medium,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -298,12 +299,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -313,27 +310,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicInlineEditable__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicInlineEditable";
-  } else {
-    func.displayName = `PlasmicInlineEditable.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicInlineEditable__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicInlineEditable__root<T extends PlasmicInlineEditable__rootProps>(props: T & StrictProps<T, PlasmicInlineEditable__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicInlineEditable__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicInlineEditable__root.displayName = "PlasmicInlineEditable";
+
+type PlasmicInlineEditable__textboxProps = NodeComponentProps<"textbox"> & {key?: React.Key};
+function PlasmicInlineEditable__textbox<T extends PlasmicInlineEditable__textboxProps>(props: T & StrictProps<T, PlasmicInlineEditable__textboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("textbox", props);
+  return <PlasmicInlineEditable__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"textbox"} />;
+}
+PlasmicInlineEditable__textbox.displayName = "PlasmicInlineEditable.textbox";
+
 
 export const PlasmicInlineEditable = Object.assign(
   // Top-level PlasmicInlineEditable renders the root element
-  makeNodeComponent("root"),
+  PlasmicInlineEditable__root,
   {
     // Helper components rendering sub-elements
-    textbox: makeNodeComponent("textbox"),
+    textbox: PlasmicInlineEditable__textbox,
 
     // Metadata about props expected for PlasmicInlineEditable
     internalVariantProps: PlasmicInlineEditable__VariantProps,

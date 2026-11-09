@@ -1,3 +1,4 @@
+import type { EffectiveVariantSetting } from "@/wab/shared/effective-variant-setting";
 import { useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
 import type { NativeStyleSource, SingleRsReadRecipe } from "@/wab/client/studio-ctx/style-inputs";
 import { computeSingleRsDefinedIndicator } from "@/wab/shared/defined-indicator";
@@ -19,7 +20,6 @@ import {
 } from "@/wab/client/components/sidebar/SidebarSection";
 import { ColorSwatch } from "@/wab/client/components/style-controls/ColorSwatch";
 import { DefinedIndicator } from "@/wab/client/components/style-controls/DefinedIndicator";
-import { UnloggedDragCatcher } from "@/wab/client/components/style-controls/UnloggedDragCatcher";
 import { Tab, Tabs } from "@/wab/client/components/widgets";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { getUiLocale } from "@/wab/client/i18n";
@@ -28,14 +28,11 @@ import { StudioChangeOpts, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { canEditInspectorSelection, InspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
 import {
-  withConsumer,
   withProvider,
 } from "@/wab/commons/components/ContextUtil";
-import { XDraggable } from "@/wab/commons/components/XDraggable";
 import {
   derefTokenRefs,
   isTokenRef,
-  lazyDerefTokenRefsWithDeps,
   mkTokenRef,
   StyleTokenType,
   tokenTypeLabel,
@@ -73,7 +70,7 @@ import {
   getPropAndValueFromIndicator,
   isIndicatorExplicitlySet,
 } from "@/wab/shared/defined-indicator";
-import { makeExpProxy, makeMergedExpProxy } from "@/wab/shared/exprs";
+import { makeMergedExpProxy } from "@/wab/shared/exprs";
 import { ThemableTag } from "@/wab/shared/html";
 import {
   MIXIN_CAP,
@@ -100,6 +97,7 @@ import {
   RuleSet,
   StyleToken,
   TplComponent,
+  TplNode,
   TplSlot,
   TplTag,
   Variant,
@@ -123,8 +121,7 @@ import { Menu, Tooltip } from "antd";
 import SubMenu from "antd/lib/menu/SubMenu";
 import classNames from "classnames";
 import L from "lodash";
-import { observer } from "mobx-react";
-import { computedFn } from "mobx-utils";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import * as React from "react";
 import { forwardRef, MouseEventHandler, ReactNode, useContext } from "react";
 
@@ -134,18 +131,21 @@ export interface StyleComponentProps {
   readOnly?: boolean;
 }
 
-export class StyleComponent<
-  P extends StyleComponentProps = StyleComponentProps,
-  S = {},
-> extends React.Component<P, S> {
-  studioCtx = () => this.props.expsProvider.studioCtx;
-  change(f: () => void, opts?: StudioChangeOpts) {
-    const provider = this.props.expsProvider;
-    this.studioCtx().changeSpawn(() => {
-      if (!(provider instanceof TplExpsProvider) || provider.canEdit()) {
+export function changeStyle(provider: ExpsProvider, f: () => void, opts?: StudioChangeOpts) {
+    const owner = provider.getNativeStyleSource().inputs;
+    if (owner.isDisposed || (provider instanceof TplExpsProvider && !provider.canEdit())) { return; }
+    provider.studioCtx.changeSpawn(() => {
+      if (!owner.isDisposed && (!(provider instanceof TplExpsProvider) || provider.canEdit())) {
         f();
       }
     }, opts);
+}
+
+export class StyleTarget {
+  constructor(readonly props: StyleComponentProps) {}
+  studioCtx = () => this.props.expsProvider.studioCtx;
+  change(f: () => void, opts?: StudioChangeOpts) {
+    changeStyle(this.props.expsProvider, f, opts);
   }
   app() {
     return this.studioCtx().app;
@@ -193,31 +193,6 @@ export class StyleComponent<
 
   exp = () => this.props.expsProvider.mergedExp();
 
-  measureDisp(obj: { exp?: IRuleSetHelpers; prop: string }) {
-    const { prop } = obj,
-      val = obj.exp,
-      exp = val != null ? val : this.exp();
-    return (
-      <UnloggedDragCatcher sc={this.studioCtx()}>
-        <XDraggable onStart={() => {}}>
-          <div
-            className={
-              this.definedIndicator(prop).source === "set"
-                ? "overriding"
-                : undefined
-            }
-          >
-            {lazyDerefTokenRefsWithDeps(
-              exp.get(prop),
-              this.studioCtx().site,
-              "Spacing",
-            )}
-          </div>
-        </XDraggable>
-      </UnloggedDragCatcher>
-    );
-  }
-
   showStyleContextMenu = (
     event: React.MouseEvent<unknown>,
     styleName: string,
@@ -225,29 +200,25 @@ export class StyleComponent<
   ) => {
     maybeShowContextMenu(
       event.nativeEvent,
-      createStyleContextMenu(this, [styleName], {
+      createStyleContextMenu(this.props.expsProvider, [styleName], {
         initialMenuContent,
       }),
     );
   };
 }
 
-export function mkStyleComponent(props: StyleComponentProps) {
-  return new StyleComponent(props);
+export function createStyleTarget(props: StyleComponentProps) {
+  return new StyleTarget(props);
 }
 
-export const StyleComponentContext = React.createContext<
-  StyleComponent | undefined
+export const StyleTargetContext = React.createContext<
+  StyleTarget | undefined
 >(undefined);
-export const withStyleComponent = withConsumer(
-  StyleComponentContext.Consumer,
-  "sc",
+export const providesStyleTarget = withProvider(
+  StyleTargetContext.Provider,
 );
-export const providesStyleComponent = withProvider(
-  StyleComponentContext.Provider,
-);
-export const useStyleComponent = () =>
-  ensure(useContext(StyleComponentContext), "StyleComponentContext must exist");
+export const useStyleTarget = () =>
+  ensure(useContext(StyleTargetContext), "StyleTargetContext must exist");
 
 export interface SidebarPopupSetting {
   left: boolean;
@@ -259,10 +230,6 @@ export const SidebarPopupSettingContext = React.createContext<
 >(undefined);
 export const providesSidebarPopupSetting = withProvider(
   SidebarPopupSettingContext.Provider,
-);
-export const withSidebarPopupSetting = withConsumer(
-  SidebarPopupSettingContext.Consumer,
-  "sidebarPopupSetting",
 );
 export function useSidebarPopupSetting() {
   const context = React.useContext(SidebarPopupSettingContext);
@@ -287,7 +254,7 @@ interface WithStyleContextMenuProps {
   className?: string;
   initialMenuContent?: ReactNode | (() => ReactNode);
   children: ReactNode;
-  sc: StyleComponent;
+  sc: StyleTarget;
 }
 
 export function WithStyleContextMenu(props: WithStyleContextMenuProps) {
@@ -300,7 +267,7 @@ export function WithStyleContextMenu(props: WithStyleContextMenuProps) {
         const menuContent = L.isFunction(initialMenuContent)
           ? initialMenuContent()
           : initialMenuContent;
-        return createStyleContextMenu(sc, styleNames, {
+        return createStyleContextMenu(sc.props.expsProvider, styleNames, {
           displayStyleName,
           initialMenuContent: menuContent,
         });
@@ -320,7 +287,7 @@ export function WithStyleContextMenu(props: WithStyleContextMenuProps) {
  *   "border-left-style", "border-left-width", "border-left-color".
  */
 export function createStyleContextMenu(
-  sc: StyleComponent,
+  expsProvider: ExpsProvider,
   styleNames: string[],
   opts: {
     displayStyleName?: string;
@@ -328,12 +295,11 @@ export function createStyleContextMenu(
     noExtract?: boolean;
   } = {},
 ) {
-  const expsProvider = sc.props.expsProvider;
   const exp = expsProvider.targetExp();
   const resetStyles = (names: string[]) => {
-    sc.change(() => {
+    changeStyle(expsProvider, () => {
       for (const sn of names) {
-        sc.exp().clear(sn);
+        expsProvider.mergedExp().clear(sn);
       }
     });
   };
@@ -349,20 +315,20 @@ export function createStyleContextMenu(
   };
 
   const shownStyleNames = styleNames.filter((styleName) => {
-    const defined = sc.hasTargetProp(styleName);
-    const removable = sc.props.expsProvider.isPropRemovable(styleName);
+    const defined = expsProvider.maybeTargetExp()?.has(styleName);
+    const removable = expsProvider.isPropRemovable(styleName);
     const disabled = !defined || !removable;
     return !disabled;
   });
 
-  const viewCtx = sc.studioCtx().focusedViewCtx();
+  const viewCtx = expsProvider.studioCtx.focusedViewCtx();
   let extractToVariantsMenuItems: ReactNode[] = [];
   if (viewCtx && expsProvider instanceof TplExpsProvider) {
     const vc = viewCtx;
     const tpl = expsProvider.tpl;
     const extractToVariantHelper = (variant: Variant, names: string[]) => {
-      sc.change(() => {
-        sc.studioCtx().tplMgr().extractToVariant(tpl, variant, names, sc.exp());
+      changeStyle(expsProvider, () => {
+        expsProvider.studioCtx.tplMgr().extractToVariant(tpl, variant, names, expsProvider.mergedExp());
       });
     };
     const extractToVariant = (styleName: string, variant: Variant) => {
@@ -495,13 +461,13 @@ export function createStyleContextMenu(
 
   if (!opts?.noExtract) {
     buildExtractToTokens(
-      sc.studioCtx(),
+      expsProvider.studioCtx,
       builder,
       shownStyleNames,
       expsProvider,
     );
     buildExtractToMixins(
-      sc.studioCtx(),
+      expsProvider.studioCtx,
       builder,
       shownStyleNames,
       expsProvider,
@@ -806,7 +772,7 @@ function StylePanelSection_(
     styleProps,
     collapsableIndicatorNames = [],
     ignorableStyleProps = [],
-    defaultStyleProps = new Map(),
+    defaultStyleProps: _defaultStylePropsInput,
     defaultHeaderAction,
     expsProvider,
     unremovableStyleProps,
@@ -814,6 +780,7 @@ function StylePanelSection_(
     extraMenuItems,
     ...otherProps
   } = props;
+  const defaultStyleProps = _defaultStylePropsInput === undefined ? (new Map()) : _defaultStylePropsInput;
   const studioCtx = expsProvider.studioCtx;
   useStudioSelection(studioCtx, (state) => state.view);
   const isEditingNonBaseVariant = useFocusedViewVariants(studioCtx, (variantState) => variantState.isEditingNonBaseVariant);
@@ -968,24 +935,23 @@ export interface TabbedStylePanelSectionProps extends StyleComponentProps {
   unremovableStyleProps?: string[];
 }
 
-export const TabbedStylePanelSection = observer(
-  class extends StyleComponent<TabbedStylePanelSectionProps> {
-    render() {
+export const TabbedStylePanelSection = React.memo(function TabbedStylePanelSection(props: TabbedStylePanelSectionProps) {
       const {
         title,
         styleProps,
         tabs,
         children,
         onSwitch,
-        activeKey = tabs[0].key,
+        activeKey: _activeKeyInput,
         emptyBody = false,
-      } = this.props;
+      } = props;
+  const activeKey = _activeKeyInput === undefined ? (tabs[0].key) : _activeKeyInput;
       return (
         <StylePanelSection
-          expsProvider={this.props.expsProvider}
+          expsProvider={props.expsProvider}
           title={title}
           styleProps={styleProps}
-          unremovableStyleProps={this.props.unremovableStyleProps}
+          unremovableStyleProps={props.unremovableStyleProps}
           emptyBody={emptyBody}
           controls={
             <Tabs
@@ -1029,9 +995,7 @@ export const TabbedStylePanelSection = observer(
           {children}
         </StylePanelSection>
       );
-    }
-  },
-);
+});
 
 /**
  * Unified interface for accessing target/merged rulesets.
@@ -1159,13 +1123,14 @@ export class SingleRsExpsProvider implements ExpsProvider {
   mergedExp = () => this.rsh;
   forDom = () => undefined;
   onContainerTypeChange = async (val: ContainerType) => {
-    return this.studioCtx.changeUnsafe(() =>
-      convertSelfContainerType(this.targetExp(), val),
-    );
+    return this.studioCtx.changeUnsafe(() => {
+      if (!this.nativeStyleInputs.isDisposed) { convertSelfContainerType(this.targetExp(), val); }
+    });
   };
 
   onPositionChange = async (val: string) => {
     await this.studioCtx.changeUnsafe(() => {
+      if (this.nativeStyleInputs.isDisposed) { return; }
       if (val === "relative") {
         // When position is set to relative, then also make sure top/bottom/left/right
         // are set to auto, so we can make sure applying this mixin means the element
@@ -1199,9 +1164,9 @@ export class TplExpsProvider implements ExpsProvider {
   private readonly nativeStyleSite: Site;
   private readonly nativeStyleComponent: Component;
   private readonly nativeContextKey: string;
-  targetVariantCombo: VariantCombo;
-  activeVariantCombo: VariantCombo;
-  targetIndicatorCombo: VariantCombo;
+  get targetVariantCombo(): VariantCombo { return this.vtm.getTargetVariantComboForNode(this.tpl); }
+  get activeVariantCombo(): VariantCombo { return this.vtm.getEffectiveVariantComboForNode(this.tpl); }
+  get targetIndicatorCombo(): VariantCombo { return this.vtm.getTargetIndicatorComboForNode(this.tpl); }
   readonly studioCtx: StudioCtx;
 
   constructor(
@@ -1217,24 +1182,15 @@ export class TplExpsProvider implements ExpsProvider {
     // We request a fixed componentStackFrame so that we don't use stale
     // inconsistent ComponentStackFrames for tpl.
     this.vtm = this.viewCtx.variantTplMgr(true);
+    // Preserve admission before a native field reader can receive this template.
+    this.vtm.getTargetVariantComboForNode(this.tpl);
 
-    this.targetVariantCombo = this.vtm.getTargetVariantComboForNode(this.tpl);
-    this.activeVariantCombo = this.vtm.getEffectiveVariantComboForNode(
-      this.tpl,
-    );
-    this.targetIndicatorCombo = this.vtm.getTargetIndicatorComboForNode(
-      this.tpl,
-    );
+
   }
-  effectiveVs = computedFn(
-    () => {
-      return this.vtm.effectiveVariantSetting(
-        this.tpl,
-        this.activeVariantCombo,
-      );
-    },
-    { name: "effectiveVs" },
-  );
+  private readonly effectiveQuery = memoizeModelQuery((tpl: TplNode, combo: VariantCombo) => this.vtm.effectiveVariantSetting(tpl, combo), {
+    keyFn: (_tpl, combo) => combo.map((variant) => variant.uid).join("."),
+  });
+  effectiveVs = (): EffectiveVariantSetting => this.effectiveQuery(this.tpl, this.activeVariantCombo);
   maybeTargetVs = () => {
     return tryGetVariantSetting(this.tpl, this.targetVariantCombo);
   };
@@ -1243,17 +1199,15 @@ export class TplExpsProvider implements ExpsProvider {
     return vs ? RSH(vs.rs, this.tpl) : undefined;
   };
   targetExp = () => RSH(this.targetRs(), this.tpl);
-  targetRs = () =>
-    this.vtm.ensureVariantSetting(this.tpl, this.targetVariantCombo).rs;
-  mergedExp = computedFn(
-    () => {
-      const effectiveExp = this.effectiveVs().rshWithThemeAndParentStyle();
-      const getTargetExp = this.targetExp;
-      const mergedExp = makeMergedExpProxy(effectiveExp, getTargetExp);
-      return makeMobxExpProxy(mergedExp);
-    },
-    { name: "mergedExp" },
-  );
+  targetRs = () => {
+    assert(this.isCurrentOwner(), "Style provider belongs to a retired model or component context");
+    return this.vtm.ensureVariantSetting(this.tpl, this.targetVariantCombo).rs;
+  };
+  private readonly mergedQuery = memoizeModelQuery((_tpl: TplNode, _active: VariantCombo, _target: VariantCombo) =>
+    makeMergedExpProxy(this.effectiveVs().rshWithThemeAndParentStyle(), this.targetExp), {
+    keyFn: (_tpl, active, target) => JSON.stringify([active.map((variant) => variant.uid), target.map((variant) => variant.uid)]),
+  });
+  mergedExp = (): IRuleSetHelpersX => this.mergedQuery(this.tpl, this.activeVariantCombo, this.targetVariantCombo);
 
   onContainerTypeChange = (val: ContainerType) => {
     // The `display` style is special because we want to force
@@ -1280,7 +1234,10 @@ export class TplExpsProvider implements ExpsProvider {
 
   forDom = () => this.selection ? this.selection.domStore().getState() : this.viewCtx.focusedDomElt();
 
-  canEdit = () => canEditInspectorSelection(this.studioCtx, this.selection);
+  private isCurrentOwner = () => !this.nativeStyleInputs.isDisposed && !this.viewCtx.disposeSignal.aborted &&
+    this.studioCtx.site === this.nativeStyleSite && this.viewCtx.currentComponent() === this.nativeStyleComponent &&
+    this.nativeContextKey === this.viewCtx.componentStackFrames().map((frame) => frame.tplComponent.uid).join(".") + ":" + (this.viewCtx.selectionStore.getState().context?.valFullKey ?? "");
+  canEdit = () => this.isCurrentOwner() && canEditInspectorSelection(this.studioCtx, this.selection);
 
   onPositionChange = (val) => {
     this.viewCtx.change(() => {
@@ -1356,19 +1313,4 @@ export class TplExpsProvider implements ExpsProvider {
       } },
   });
 
-}
-
-export function makeMobxExpProxy(exp: IRuleSetHelpersX) {
-  return makeExpProxy(exp, {
-    has: computedFn((prop: string) => exp.has(prop), {
-      name: "MobxExpProxy.has",
-    }),
-    get: computedFn((prop: string) => exp.get(prop), {
-      name: "MobxExpProxy.get",
-    }),
-    getRaw: computedFn((prop: string) => exp.getRaw(prop), {
-      name: "MobxExpProxy.getRaw",
-    }),
-    props: computedFn(() => exp.props(), { name: "MobxExpProxy.props" }),
-  });
 }

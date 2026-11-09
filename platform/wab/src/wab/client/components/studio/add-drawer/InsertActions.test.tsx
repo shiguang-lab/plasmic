@@ -1,3 +1,6 @@
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import { createSite } from "@/wab/shared/core/sites";
+import { ModelRevisions } from "@/wab/shared/model-revisions";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
 import { InsertActions } from "@/wab/client/components/studio/add-drawer/AddDrawerItem";
@@ -31,9 +34,13 @@ afterEach(cleanup);
 
 it("rebinds insert actions when native selection focus changes", () => {
   const models = new ModelSnapshots();
+  const site = createSite();
+  const arenaState = new StudioArenaState({ site, modelSnapshots: models });
   const selection = new StudioSelection(() => models);
   selection.set(mock<ViewCtx>(), []);
-  const studioCtx = mock<StudioCtx>({ selectionStore: selection.store });
+  const revisions = new ModelRevisions();
+  const studioCtx = mock<StudioCtx>({ selectionStore: selection.store, getCodeRegistrationRevision: () => "0:0", subscribeCodeRegistrations: () => () => undefined });
+  Object.defineProperties(studioCtx, { modelRevisions: { value: revisions }, modelSnapshots: { value: models }, site: { value: site }, arenaState: { value: arenaState } });
   const item: AddTplItem = {
     type: AddItemType.tpl,
     key: "tpl-text",
@@ -43,7 +50,7 @@ it("rebinds insert actions when native selection focus changes", () => {
     canWrap: true,
   };
 
-  render(
+  const mounted = render(
     <InsertActions
       studioCtx={studioCtx}
       item={item}
@@ -59,6 +66,9 @@ it("rebinds insert actions when native selection focus changes", () => {
   expect(
     screen.queryByRole("button", { name: /Wrap current selection/ }),
   ).toBeNull();
+  mounted.unmount();
+  arenaState.dispose();
+  revisions.dispose();
   selection.dispose();
   models.dispose();
 });

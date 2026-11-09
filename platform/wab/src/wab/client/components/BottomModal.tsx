@@ -164,7 +164,7 @@ export function BottomModal(props: BottomModalProps & { modalKey: string }) {
   }, [modalKey, children, title, onEscape, buttonsTunnel, dataTestId]);
   React.useEffect(() => {
     return () => dispatch({ type: "pop", id: modalKey });
-  }, []);
+  }, [modalKey]);
   return null;
 }
 

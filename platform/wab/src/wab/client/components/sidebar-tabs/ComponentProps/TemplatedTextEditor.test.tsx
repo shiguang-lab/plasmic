@@ -10,18 +10,20 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from "@testing-library/react";
 import * as React from "react";
 import { ReactEditor } from "slate-react";
 import { createStore } from "zustand/vanilla";
 
-vi.mock("@/wab/client/contexts/StudioContexts", () => ({
-  useStudioCtx: () => ({
+vi.mock("@/wab/client/contexts/StudioContexts", () => {
+  let studio: object | undefined;
+  return { useStudioCtx: () => studio ??= {
     selectionStore: createStore(() => ({ view: undefined, frames: Object.freeze([]) })),
     focusedViewCtx: () => undefined,
     projectFlags: () => getProjectFlags(createSite()),
-  }),
-}));
+  } };
+});
 
 vi.mock(
   "@/wab/client/components/sidebar-tabs/DataBinding/useDataTokenSuggestionsMenu",
@@ -87,4 +89,16 @@ it("restores focus once after closing and does not steal it from a reopened pick
   });
   expect(screen.getByText("Cancel expression")).toBeTruthy();
   expect(focus).toHaveBeenCalledOnce();
+});
+
+
+it("preserves controlled text when a mode change creates a new Slate editor", async () => {
+  const value = new TemplatedString({ text: ["Retained content"] });
+  const onChange = vi.fn();
+  const exprCtx = { component: null, inStudio: true, projectFlags: getProjectFlags(createSite()) };
+  const field = (multiLine: "allowed" | "always") => <TemplatedTextEditor value={value} onChange={onChange} multiLine={multiLine} exprCtx={exprCtx} />;
+  const view = render(field("allowed"));
+  expect(view.container.querySelector("[data-slate-editor]")?.textContent).toContain("Retained content");
+  view.rerender(field("always"));
+  await waitFor(() => expect(view.container.querySelector("[data-slate-editor]")?.textContent).toContain("Retained content"));
 });

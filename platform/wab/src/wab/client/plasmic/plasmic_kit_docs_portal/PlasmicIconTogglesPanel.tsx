@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -30,7 +30,7 @@ import LabeledProp from "../../components/docs/LabeledProp"; // plasmic-import: 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -105,11 +105,10 @@ function PlasmicIconTogglesPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -377,12 +376,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -392,36 +387,101 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicIconTogglesPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicIconTogglesPanel";
-  } else {
-    func.displayName = `PlasmicIconTogglesPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicIconTogglesPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicIconTogglesPanel__root<T extends PlasmicIconTogglesPanel__rootProps>(props: T & StrictProps<T, PlasmicIconTogglesPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicIconTogglesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicIconTogglesPanel__root.displayName = "PlasmicIconTogglesPanel";
+
+type PlasmicIconTogglesPanel__explanationProps = NodeComponentProps<"explanation"> & {key?: React.Key};
+function PlasmicIconTogglesPanel__explanation<T extends PlasmicIconTogglesPanel__explanationProps>(props: T & StrictProps<T, PlasmicIconTogglesPanel__explanationProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("explanation", props);
+  return <PlasmicIconTogglesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"explanation"} />;
+}
+PlasmicIconTogglesPanel__explanation.displayName = "PlasmicIconTogglesPanel.explanation";
+
+type PlasmicIconTogglesPanel__headerContainerProps = NodeComponentProps<"headerContainer"> & {key?: React.Key};
+function PlasmicIconTogglesPanel__headerContainer<T extends PlasmicIconTogglesPanel__headerContainerProps>(props: T & StrictProps<T, PlasmicIconTogglesPanel__headerContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("headerContainer", props);
+  return <PlasmicIconTogglesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"headerContainer"} />;
+}
+PlasmicIconTogglesPanel__headerContainer.displayName = "PlasmicIconTogglesPanel.headerContainer";
+
+type PlasmicIconTogglesPanel__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicIconTogglesPanel__freeBox<T extends PlasmicIconTogglesPanel__freeBoxProps>(props: T & StrictProps<T, PlasmicIconTogglesPanel__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicIconTogglesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicIconTogglesPanel__freeBox.displayName = "PlasmicIconTogglesPanel.freeBox";
+
+type PlasmicIconTogglesPanel__resetButtonProps = NodeComponentProps<"resetButton"> & {key?: React.Key};
+function PlasmicIconTogglesPanel__resetButton<T extends PlasmicIconTogglesPanel__resetButtonProps>(props: T & StrictProps<T, PlasmicIconTogglesPanel__resetButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("resetButton", props);
+  return <PlasmicIconTogglesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"resetButton"} />;
+}
+PlasmicIconTogglesPanel__resetButton.displayName = "PlasmicIconTogglesPanel.resetButton";
+
+type PlasmicIconTogglesPanel__bodyProps = NodeComponentProps<"body"> & {key?: React.Key};
+function PlasmicIconTogglesPanel__body<T extends PlasmicIconTogglesPanel__bodyProps>(props: T & StrictProps<T, PlasmicIconTogglesPanel__bodyProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("body", props);
+  return <PlasmicIconTogglesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"body"} />;
+}
+PlasmicIconTogglesPanel__body.displayName = "PlasmicIconTogglesPanel.body";
+
+type PlasmicIconTogglesPanel__titleProps = NodeComponentProps<"title"> & {key?: React.Key};
+function PlasmicIconTogglesPanel__title<T extends PlasmicIconTogglesPanel__titleProps>(props: T & StrictProps<T, PlasmicIconTogglesPanel__titleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("title", props);
+  return <PlasmicIconTogglesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"title"} />;
+}
+PlasmicIconTogglesPanel__title.displayName = "PlasmicIconTogglesPanel.title";
+
+type PlasmicIconTogglesPanel__colorProps = NodeComponentProps<"color"> & {key?: React.Key};
+function PlasmicIconTogglesPanel__color<T extends PlasmicIconTogglesPanel__colorProps>(props: T & StrictProps<T, PlasmicIconTogglesPanel__colorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("color", props);
+  return <PlasmicIconTogglesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"color"} />;
+}
+PlasmicIconTogglesPanel__color.displayName = "PlasmicIconTogglesPanel.color";
+
+type PlasmicIconTogglesPanel__iconButtonProps = NodeComponentProps<"iconButton"> & {key?: React.Key};
+function PlasmicIconTogglesPanel__iconButton<T extends PlasmicIconTogglesPanel__iconButtonProps>(props: T & StrictProps<T, PlasmicIconTogglesPanel__iconButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconButton", props);
+  return <PlasmicIconTogglesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconButton"} />;
+}
+PlasmicIconTogglesPanel__iconButton.displayName = "PlasmicIconTogglesPanel.iconButton";
+
+type PlasmicIconTogglesPanel__widthProps = NodeComponentProps<"width"> & {key?: React.Key};
+function PlasmicIconTogglesPanel__width<T extends PlasmicIconTogglesPanel__widthProps>(props: T & StrictProps<T, PlasmicIconTogglesPanel__widthProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("width", props);
+  return <PlasmicIconTogglesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"width"} />;
+}
+PlasmicIconTogglesPanel__width.displayName = "PlasmicIconTogglesPanel.width";
+
+type PlasmicIconTogglesPanel__heightProps = NodeComponentProps<"height"> & {key?: React.Key};
+function PlasmicIconTogglesPanel__height<T extends PlasmicIconTogglesPanel__heightProps>(props: T & StrictProps<T, PlasmicIconTogglesPanel__heightProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("height", props);
+  return <PlasmicIconTogglesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"height"} />;
+}
+PlasmicIconTogglesPanel__height.displayName = "PlasmicIconTogglesPanel.height";
+
 
 export const PlasmicIconTogglesPanel = Object.assign(
   // Top-level PlasmicIconTogglesPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicIconTogglesPanel__root,
   {
     // Helper components rendering sub-elements
-    explanation: makeNodeComponent("explanation"),
-    headerContainer: makeNodeComponent("headerContainer"),
-    freeBox: makeNodeComponent("freeBox"),
-    resetButton: makeNodeComponent("resetButton"),
-    body: makeNodeComponent("body"),
-    title: makeNodeComponent("title"),
-    color: makeNodeComponent("color"),
-    iconButton: makeNodeComponent("iconButton"),
-    width: makeNodeComponent("width"),
-    height: makeNodeComponent("height"),
+    explanation: PlasmicIconTogglesPanel__explanation,
+    headerContainer: PlasmicIconTogglesPanel__headerContainer,
+    freeBox: PlasmicIconTogglesPanel__freeBox,
+    resetButton: PlasmicIconTogglesPanel__resetButton,
+    body: PlasmicIconTogglesPanel__body,
+    title: PlasmicIconTogglesPanel__title,
+    color: PlasmicIconTogglesPanel__color,
+    iconButton: PlasmicIconTogglesPanel__iconButton,
+    width: PlasmicIconTogglesPanel__width,
+    height: PlasmicIconTogglesPanel__height,
 
     // Metadata about props expected for PlasmicIconTogglesPanel
     internalVariantProps: PlasmicIconTogglesPanel__VariantProps,

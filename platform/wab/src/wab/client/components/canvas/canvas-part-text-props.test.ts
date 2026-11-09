@@ -1,3 +1,4 @@
+import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { ViewOps } from "@/wab/client/components/canvas/view-ops";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -76,6 +77,9 @@ it("keeps a dynamic text binding and directs editing to its existing property co
   const { studioCtx } = fakeStudioCtx();
   const vc = mock<ViewCtx>();
   const vtm = mock<VariantTplMgr>();
+  const selection = new ViewSelection(() => studioCtx.modelSnapshots);
+  Object.defineProperty(vc, "highlightParams", { get: () => selection.highlight() });
+  vc.setHighlightParams.mockImplementation((value) => selection.setHighlight(value));
   const component = mkCodeComponent("Dialog", { name: "Dialog", importPath: "./Dialog", props: {} }, {});
   const param = mkParam({ name: "okText", paramType: "prop", type: typeFactory.text() });
   component.params.push(param);
@@ -96,7 +100,7 @@ it("keeps a dynamic text binding and directs editing to its existing property co
     expect(vtm.setArg).not.toHaveBeenCalled();
     expect(vc.highlightParams).toEqual({ tpl, params: [param] });
     expect(expr.code).toBe("$state.label");
-  } finally { studioCtx.dispose(); }
+  } finally { selection.dispose(); studioCtx.dispose(); }
 });
 
 it("edits primitive slot content on its component and leaves a structured slot intact", () => {

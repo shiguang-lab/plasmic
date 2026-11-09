@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,14 +22,14 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import VariableType from "../../components/sidebar-tabs/StateManagement/VariableType"; // plasmic-import: sHz-uchOcJ/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -117,11 +117,10 @@ function PlasmicVariableRow__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isExternal",
@@ -142,23 +141,25 @@ function PlasmicVariableRow__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.hideMenu,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -178,25 +179,14 @@ function PlasmicVariableRow__RenderFunc(props: {
           [sty.rootisExternal]: hasVariant($state, "isExternal", "isExternal"),
         }
       )}
-      style={(() => {
-        try {
-          return {
+      style={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+            e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ({
             ...($props.leftPadding
               ? {
                   "padding-left": $props.leftPadding,
                 }
               : {}),
-          };
-        } catch (e) {
-          if (
-            e instanceof TypeError ||
-            e?.plasmicType === "PlasmicUndefinedDataError"
-          ) {
-            return undefined;
-          }
-          throw e;
-        }
-      })()}
+          }), () => (undefined))}
       data-plasmic-trigger-props={[triggerRootHoverProps]}
     >
       <VariableType
@@ -336,12 +326,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -351,29 +337,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVariableRow__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicVariableRow";
-  } else {
-    func.displayName = `PlasmicVariableRow.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVariableRow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicVariableRow__root<T extends PlasmicVariableRow__rootProps>(props: T & StrictProps<T, PlasmicVariableRow__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicVariableRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicVariableRow__root.displayName = "PlasmicVariableRow";
+
+type PlasmicVariableRow__variableTypeProps = NodeComponentProps<"variableType"> & {key?: React.Key};
+function PlasmicVariableRow__variableType<T extends PlasmicVariableRow__variableTypeProps>(props: T & StrictProps<T, PlasmicVariableRow__variableTypeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("variableType", props);
+  return <PlasmicVariableRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"variableType"} />;
+}
+PlasmicVariableRow__variableType.displayName = "PlasmicVariableRow.variableType";
+
+type PlasmicVariableRow__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicVariableRow__svg<T extends PlasmicVariableRow__svgProps>(props: T & StrictProps<T, PlasmicVariableRow__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicVariableRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicVariableRow__svg.displayName = "PlasmicVariableRow.svg";
+
+type PlasmicVariableRow__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicVariableRow__menuButton<T extends PlasmicVariableRow__menuButtonProps>(props: T & StrictProps<T, PlasmicVariableRow__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicVariableRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicVariableRow__menuButton.displayName = "PlasmicVariableRow.menuButton";
+
 
 export const PlasmicVariableRow = Object.assign(
   // Top-level PlasmicVariableRow renders the root element
-  makeNodeComponent("root"),
+  PlasmicVariableRow__root,
   {
     // Helper components rendering sub-elements
-    variableType: makeNodeComponent("variableType"),
-    svg: makeNodeComponent("svg"),
-    menuButton: makeNodeComponent("menuButton"),
+    variableType: PlasmicVariableRow__variableType,
+    svg: PlasmicVariableRow__svg,
+    menuButton: PlasmicVariableRow__menuButton,
 
     // Metadata about props expected for PlasmicVariableRow
     internalVariantProps: PlasmicVariableRow__VariantProps,

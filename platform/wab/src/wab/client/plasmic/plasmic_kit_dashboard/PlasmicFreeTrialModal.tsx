@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,8 +24,8 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -90,13 +90,12 @@ function PlasmicFreeTrialModal__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -206,12 +205,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -221,30 +216,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicFreeTrialModal__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicFreeTrialModal";
-  } else {
-    func.displayName = `PlasmicFreeTrialModal.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicFreeTrialModal__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicFreeTrialModal__root<T extends PlasmicFreeTrialModal__rootProps>(props: T & StrictProps<T, PlasmicFreeTrialModal__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicFreeTrialModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicFreeTrialModal__root.displayName = "PlasmicFreeTrialModal";
+
+type PlasmicFreeTrialModal__h3Props = NodeComponentProps<"h3"> & {key?: React.Key};
+function PlasmicFreeTrialModal__h3<T extends PlasmicFreeTrialModal__h3Props>(props: T & StrictProps<T, PlasmicFreeTrialModal__h3Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("h3", props);
+  return <PlasmicFreeTrialModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"h3"} />;
+}
+PlasmicFreeTrialModal__h3.displayName = "PlasmicFreeTrialModal.h3";
+
+type PlasmicFreeTrialModal__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicFreeTrialModal__text<T extends PlasmicFreeTrialModal__textProps>(props: T & StrictProps<T, PlasmicFreeTrialModal__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicFreeTrialModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicFreeTrialModal__text.displayName = "PlasmicFreeTrialModal.text";
+
+type PlasmicFreeTrialModal__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicFreeTrialModal__freeBox<T extends PlasmicFreeTrialModal__freeBoxProps>(props: T & StrictProps<T, PlasmicFreeTrialModal__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicFreeTrialModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicFreeTrialModal__freeBox.displayName = "PlasmicFreeTrialModal.freeBox";
+
+type PlasmicFreeTrialModal__confirmButtonProps = NodeComponentProps<"confirmButton"> & {key?: React.Key};
+function PlasmicFreeTrialModal__confirmButton<T extends PlasmicFreeTrialModal__confirmButtonProps>(props: T & StrictProps<T, PlasmicFreeTrialModal__confirmButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("confirmButton", props);
+  return <PlasmicFreeTrialModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"confirmButton"} />;
+}
+PlasmicFreeTrialModal__confirmButton.displayName = "PlasmicFreeTrialModal.confirmButton";
+
 
 export const PlasmicFreeTrialModal = Object.assign(
   // Top-level PlasmicFreeTrialModal renders the root element
-  makeNodeComponent("root"),
+  PlasmicFreeTrialModal__root,
   {
     // Helper components rendering sub-elements
-    h3: makeNodeComponent("h3"),
-    text: makeNodeComponent("text"),
-    freeBox: makeNodeComponent("freeBox"),
-    confirmButton: makeNodeComponent("confirmButton"),
+    h3: PlasmicFreeTrialModal__h3,
+    text: PlasmicFreeTrialModal__text,
+    freeBox: PlasmicFreeTrialModal__freeBox,
+    confirmButton: PlasmicFreeTrialModal__confirmButton,
 
     // Metadata about props expected for PlasmicFreeTrialModal
     internalVariantProps: PlasmicFreeTrialModal__VariantProps,

@@ -27,7 +27,6 @@ import {
   trackComponentRoot,
 } from "@/wab/shared/core/tpls";
 import { ImageAsset, RawText, TplNode } from "@/wab/shared/model/classes";
-import { runInAction } from "mobx";
 import { ok } from "neverthrow";
 
 export type PenUploads = Map<
@@ -164,13 +163,13 @@ export async function insertPenDesign(
       rootStyle.set("width", "stretch");
       rootStyle.set("height", "stretch");
       extractUsedFontsFromComponents(studioCtx.site, [component]).forEach(
-        (font) => studioCtx.fontManager.useFont(studioCtx, font.fontFamily),
+        (font) => studioCtx.fontManager.loadFont(studioCtx, font.fontFamily),
       );
       return ok({ arena, frame });
     }),
   );
-  runInAction(() => {
+  (() => {
     studioCtx.switchToArena(inserted.arena);
     studioCtx.setStudioFocusOnFrame({ frame: inserted.frame, autoZoom: true });
-  });
+  })();
 }

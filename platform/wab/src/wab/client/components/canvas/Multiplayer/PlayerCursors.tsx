@@ -8,7 +8,6 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { getArenaType, getArenaUuidOrName } from "@/wab/shared/Arenas";
 import { Pt } from "@/wab/shared/geom";
-import { observer } from "mobx-react";
 import { PerfectCursor } from "perfect-cursors";
 import * as React from "react";
 import { useStore } from "zustand";
@@ -52,7 +51,7 @@ interface PlayerCursorProps {
   playerId: number;
 }
 
-const PlayerCursor = observer(function PlayerCursor({
+const PlayerCursor = React.memo(function PlayerCursor({
   studioCtx,
   viewportCtx,
   playerId,
@@ -79,6 +78,7 @@ const PlayerCursor = observer(function PlayerCursor({
   useStudioArena(studioCtx, (state) => state.name);
   const focusedMode = useStudioArena(studioCtx, (state) => state.focusedMode);
   const activeArena = studioCtx.currentArena;
+  const currentBranchId = useStore(studioCtx.uiEnvironment.store, (state) => state.branchId);
   if (!knowsSelf || !cursorData || !color || !activeArena) {
     return null;
   }
@@ -86,10 +86,9 @@ const PlayerCursor = observer(function PlayerCursor({
   const arenaType = getArenaType(activeArena);
   const arenaUuidOrName = getArenaUuidOrName(activeArena);
   const clipper = studioCtx.maybeCanvasClipper();
-  const branch = studioCtx.branchInfo();
 
   if (
-    branchId !== branch?.id ||
+    branchId !== (currentBranchId ?? undefined) ||
     arenaInfo?.type !== arenaType ||
     arenaInfo.uuidOrName !== arenaUuidOrName ||
     !clipper

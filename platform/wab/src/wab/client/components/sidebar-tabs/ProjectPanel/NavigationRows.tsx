@@ -21,7 +21,6 @@ import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { ArenaType } from "@/wab/shared/ApiSchema";
 import {
   AnyArena,
-  getArenaName,
   isComponentArena,
   isPageArena,
 } from "@/wab/shared/Arenas";
@@ -48,25 +47,10 @@ export interface Header {
   onAdd: () => Promise<void>;
 }
 
-export interface PageArenaData {
-  type: "page";
-  key: string;
-  arena: PageArena;
-}
-
-export interface CustomArenaData {
-  type: "custom";
-  key: string;
-  arena: Arena;
-}
-
-export interface ComponentArenaData {
-  type: "component";
-  key: string;
-  arena: ComponentArena;
-}
-
-export type ArenaData = ComponentArenaData | CustomArenaData | PageArenaData;
+export type ArenaData = import("@/wab/client/components/sidebar-tabs/ProjectPanel/navigation-catalog-inputs").NavigationArenaInput;
+export type PageArenaData = Extract<ArenaData, { type: "page" }>;
+export type CustomArenaData = Extract<ArenaData, { type: "custom" }>;
+export type ComponentArenaData = Extract<ArenaData, { type: "component" }>;
 
 export type ArenaPanelRow = Header | FolderElement | ArenaData;
 
@@ -210,6 +194,9 @@ export function NavigationFolderRow({
 
 export interface NavigationArenaRowProps {
   arena: AnyArena;
+  name: string;
+  pathName: string | undefined;
+  componentId: string | undefined;
   matcher: Matcher;
   indentMultiplier: number;
   isSelected?: boolean;
@@ -218,6 +205,9 @@ export interface NavigationArenaRowProps {
 
 export function NavigationArenaRow({
   arena,
+  name: fullArenaName,
+  pathName,
+  componentId,
   matcher,
   indentMultiplier,
   isSelected,
@@ -230,10 +220,6 @@ export function NavigationArenaRow({
     studioCtx,
     (state) => state.current?.uid === arena.uid,
   );
-  const componentId =
-    isPageArena(arena) || isComponentArena(arena)
-      ? arena.component.uuid
-      : undefined;
   const commentsStats = useStore(studioCtx.commentsCtx.store, (state) =>
     componentId ? state.commentStatsByComponent.get(componentId) : undefined,
   );
@@ -241,11 +227,9 @@ export function NavigationArenaRow({
     React.useContext(NavigationDropdownContext),
     "Expected NavigationDropdownContext",
   );
-  const fullArenaName = getArenaName(arena);
   const displayName = getFolderDisplayName(fullArenaName);
   const { styles } = useStructurePanelStyles();
   const isPage = isPageArena(arena);
-  const pathName = isPage ? arena.component.pageMeta?.path : undefined;
 
   const pageRowProps = isPage
     ? {

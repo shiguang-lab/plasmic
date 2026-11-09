@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,12 +22,12 @@ import {
   PlasmicIcon as PlasmicIcon__,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: wT5BWZPEc2fYxyqbTLXMt2/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: wT5BWZPEc2fYxyqbTLXMt2/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -96,11 +96,10 @@ function PlasmicVariantPinButton__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "pinState",
@@ -109,18 +108,20 @@ function PlasmicVariantPinButton__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.pinState,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <IconButton
@@ -221,12 +222,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -236,27 +233,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVariantPinButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicVariantPinButton";
-  } else {
-    func.displayName = `PlasmicVariantPinButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVariantPinButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicVariantPinButton__root<T extends PlasmicVariantPinButton__rootProps>(props: T & StrictProps<T, PlasmicVariantPinButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicVariantPinButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicVariantPinButton__root.displayName = "PlasmicVariantPinButton";
+
+type PlasmicVariantPinButton__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicVariantPinButton__svg<T extends PlasmicVariantPinButton__svgProps>(props: T & StrictProps<T, PlasmicVariantPinButton__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicVariantPinButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicVariantPinButton__svg.displayName = "PlasmicVariantPinButton.svg";
+
 
 export const PlasmicVariantPinButton = Object.assign(
   // Top-level PlasmicVariantPinButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicVariantPinButton__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
+    svg: PlasmicVariantPinButton__svg,
 
     // Metadata about props expected for PlasmicVariantPinButton
     internalVariantProps: PlasmicVariantPinButton__VariantProps,

@@ -1,3 +1,6 @@
+import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
+import { useTargetedStylePanelValue } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
+import { useStyleCells, useStyleIndicator } from "@/wab/client/studio-ctx/style-inputs-react";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useShallow } from "zustand/react/shallow";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
@@ -19,7 +22,7 @@ import {
 } from "@/wab/client/components/sidebar/sidebar-helpers";
 import {
   TplExpsProvider,
-  useStyleComponent,
+  useStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
@@ -28,7 +31,6 @@ import { UiLabel, UiText } from "@/wab/client/i18n/UiText";
 import { getVisibilityIcon } from "@/wab/client/icons";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
-  isStylePropSet,
   makeVariantedStylesHelperFromCurrentCtx,
 } from "@/wab/client/utils/style-utils";
 import { getVisibilityChoicesForTpl } from "@/wab/client/utils/tpl-client-utils";
@@ -56,6 +58,8 @@ import {
   ObjectPath,
   TplNode,
   ensureKnownCustomCode,
+  isKnownCustomCode,
+  isKnownObjectPath,
 } from "@/wab/shared/model/classes";
 import {
   TplVisibility,
@@ -66,59 +70,59 @@ import {
 } from "@/wab/shared/visibility-utils";
 import { Menu } from "antd";
 import cn from "classnames";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const VisibilitySection = observer(VisibilitySection_);
+function readVisibility(view: ViewCtx, tpl: TplNode, expsProvider: TplExpsProvider) {
+  const vtm = view.variantTplMgr();
+  const targetCombo = vtm.getTargetVariantComboForNode(tpl, { forVisibility: true });
+  const target = tryGetVariantSetting(tpl, targetCombo);
+  const effective = expsProvider.effectiveVs();
+  const visibility = effective.getVisibility();
+  const condition = visibility === TplVisibility.CustomExpr ? effective.dataCond : undefined;
+  return Object.freeze({
+    noStyles: isTplCodeComponent(tpl) && !isTplCodeComponentStyleable(view.studioCtx.codeComponentsRegistry, tpl),
+    targetCombo: Object.freeze([...targetCombo]),
+    targetHasVisibility: !!target && hasVisibilitySetting(target),
+    privateVariant: targetCombo.some(isPrivateStyleVariant),
+    indicator: computeDefinedIndicator(view.site, view.currentComponent(), effective.getVisibilitySource(), vtm.getTargetIndicatorComboForNode(tpl, { forVisibility: true })),
+    choices: Object.freeze(getVisibilityChoicesForTpl(view, tpl)), visibility,
+    condition: condition && (isKnownCustomCode(condition) || isKnownObjectPath(condition)) ? clone(condition) : undefined,
+  });
+}
+
+export const VisibilitySection = React.memo(function VisibilitySection(props: {
+  tpl: TplNode; viewCtx: ViewCtx; expsProvider: TplExpsProvider;
+}) {
+  const select = React.useCallback(() => readVisibility(props.viewCtx, props.tpl, props.expsProvider), [props.viewCtx, props.tpl, props.expsProvider]);
+  const source = useTargetedStylePanelValue(props.viewCtx.studioCtx, { kind: "visibility", view: props.viewCtx, tpl: props.tpl }, select);
+  return source.active && source.value ? <VisibilitySection_ {...props} visibilityInput={source.value} /> : null;
+});
 
 function VisibilitySection_(props: {
   tpl: TplNode;
   viewCtx: ViewCtx;
   expsProvider: TplExpsProvider;
+  visibilityInput: ReturnType<typeof readVisibility>;
 }) {
   const { t: uiT } = useI18n();
   const { viewCtx, tpl, expsProvider } = props;
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   useViewSelection(viewCtx, (state) => state.context);
   const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl, { forDataRepCollection: true });
+  const functionsSchema = useCustomFunctionsSchema(viewCtx.studioCtx);
 
-  const noStyles =
-    isTplCodeComponent(tpl) &&
-    !isTplCodeComponentStyleable(viewCtx.studioCtx.codeComponentsRegistry, tpl);
-
+  const { noStyles, targetCombo: targetVisibilityCombo,
+    targetHasVisibility, privateVariant: hasPrivateStyleVariant, indicator: visibilityDefinedIndicator,
+    choices: visibilityChoices, visibility: currentVisibility, condition: customCode } = props.visibilityInput;
   const [isDataPickerVisible, setIsDataPickerVisible] =
     React.useState<boolean>(false);
 
-  const styling = useStyleComponent();
+  const styling = useStyleTarget();
 
   const { roles } = useAppRoles(
     viewCtx.studioCtx.appCtx,
     viewCtx.studioCtx.siteInfo.id,
     true,
-  );
-
-  const vtm = viewCtx.variantTplMgr();
-
-  const forVisibility = {
-    forVisibility: true,
-  };
-
-  const targetVisibilityCombo = vtm.getTargetVariantComboForNode(
-    tpl,
-    forVisibility,
-  );
-  const targetVisibilityVs = tryGetVariantSetting(tpl, targetVisibilityCombo);
-  const effectiveVs = expsProvider.effectiveVs();
-  const sources = effectiveVs.getVisibilitySource();
-
-  const hasPrivateStyleVariant = targetVisibilityCombo.some((v) =>
-    isPrivateStyleVariant(v),
-  );
-  const visibilityDefinedIndicator = computeDefinedIndicator(
-    viewCtx.site,
-    viewCtx.currentComponent(),
-    sources,
-    vtm.getTargetIndicatorComboForNode(tpl, forVisibility),
   );
 
   const vsh = makeVariantedStylesHelperFromCurrentCtx(viewCtx.studioCtx);
@@ -129,19 +133,16 @@ function VisibilitySection_(props: {
     indicators: [visibilityDefinedIndicator],
   });
 
-  const visibilityChoices = getVisibilityChoicesForTpl(viewCtx, tpl);
-
-  const opacity = effectiveVs.rsh().get("opacity");
+  const [opacityCell] = useStyleCells(expsProvider, ["opacity"]);
+  const opacity = opacityCell?.value ?? "1";
   const formattedOpacity = isTokenRef(opacity)
     ? opacity
     : `${Math.round(parseFloat(opacity) * 100)}%`;
 
-  const opacityDefinedIndicator = expsProvider.definedIndicator("opacity");
-
-  const isSet = isStylePropSet(styling.props.expsProvider);
+  const opacityDefinedIndicator = useStyleIndicator(expsProvider, "opacity");
 
   const handleUnsetVisibility = () =>
-    viewCtx.change(() => clearTplVisibility(tpl, targetVisibilityCombo));
+    viewCtx.change(() => clearTplVisibility(tpl, [...targetVisibilityCombo]));
 
   const handleOpacityChange = (val?: string) => {
     const newVal = val?.includes("%")
@@ -167,11 +168,11 @@ function VisibilitySection_(props: {
   const visibilityMenu = () => {
     const builder = new MenuBuilder();
     builder.genSection(undefined, (push) => {
-      if (targetVisibilityVs && hasVisibilitySetting(targetVisibilityVs)) {
+      if (targetHasVisibility) {
         push(
           <Menu.Item
             hidden={
-              !targetVisibilityVs || !hasVisibilitySetting(targetVisibilityVs)
+              !targetHasVisibility
             }
             onClick={handleUnsetVisibility}
           >
@@ -251,22 +252,16 @@ function VisibilitySection_(props: {
     });
   };
 
-  const currentVisibility = effectiveVs.getVisibility();
   const showSimpleControls =
     visibilityChoices.length === 4 &&
     currentVisibility !== TplVisibility.NotRendered &&
     currentVisibility !== TplVisibility.CustomExpr;
-  const customCode =
-    currentVisibility === TplVisibility.CustomExpr
-      ? (effectiveVs.dataCond as CustomCode | ObjectPath)
-      : undefined;
   return (
     <SidebarSection
       title={uiT("Visibility")}
       {...(!customCode && { emptyBody: true })}
       isHeaderActive={
-        (targetVisibilityVs && hasVisibilitySetting(targetVisibilityVs)) ||
-        isSet("opacity")
+        targetHasVisibility || opacityCell?.targetHas
       }
       controls={
         <div className={S.controlsContainer}>
@@ -377,7 +372,7 @@ function VisibilitySection_(props: {
                 }
               }}
               data={canvasEnv}
-              schema={viewCtx.customFunctionsSchema()}
+              schema={functionsSchema}
               key={tpl.uid}
               visible={isDataPickerVisible}
               setVisible={setIsDataPickerVisible}

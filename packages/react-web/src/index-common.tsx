@@ -13,6 +13,7 @@ export { PlasmicImg } from "./render/PlasmicImg";
 export { PlasmicLink } from "./render/PlasmicLink";
 export { PlasmicSlot, renderPlasmicSlot } from "./render/PlasmicSlot";
 export { Stack } from "./render/Stack";
+export { usePlasmicRefs } from "./render/refs";
 export {
   Flex,
   MultiChoiceArg,
@@ -26,10 +27,9 @@ export {
   wrapWithClassName,
 } from "./render/elements";
 export {
-  createUseGlobalVariants,
   ensureGlobalVariants,
 } from "./render/global-variants";
-export { createUseScreenVariants } from "./render/screen-variants";
+export { createScreenVariantStore, useScreenVariants } from "./render/screen-variants";
 export {
   PlasmicDataSourceContextProvider,
   PlasmicRootProvider,
@@ -37,15 +37,18 @@ export {
   useIsSSR,
 } from "./render/ssr";
 export {
-  createStyleTokensProvider,
-  createUseStyleTokens,
+  StyleTokensProvider,
+  useStyleTokens,
 } from "./render/style-tokens";
 export {
   Trans,
   genTranslatableString,
   usePlasmicTranslator,
 } from "./render/translation";
-export { useTrigger } from "./render/triggers";
+export { useHover, usePressed, useFocused, useFocusVisible, useFocusedWithin, useFocusVisibleWithin } from "./render/triggers";
+export { getDefaultPlasmicProps } from "./plume/props-utils";
+export { PLUME_STRICT_MODE } from "./plume/plume-utils";
+export type { PlasmicClassMetadata } from "./plume/plume-utils";
 export * from "./states";
 // Using any while classnames package is not updated to have the correct types exported
 export const classNames: any = _classNames;

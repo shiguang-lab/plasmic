@@ -3,7 +3,7 @@ import { TokenIndicatorType } from "@/wab/client/components/sidebar/token-utils"
 import { TokenDefinedIndicator } from "@/wab/client/components/style-controls/TokenDefinedIndicator";
 import { Matcher } from "@/wab/client/components/view-common";
 import Checkbox from "@/wab/client/components/widgets/Checkbox";
-import { TriggerAnchor } from "@/wab/client/components/widgets/TriggerAnchor";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import PlasmicGeneralTokenControl from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicGeneralTokenControl";
 import { StyleTokenValue } from "@/wab/commons/StyleToken";
@@ -50,38 +50,18 @@ function GeneralTokenControl(
 
   return (
     <Tooltip title={tokenName} mouseEnterDelay={0.5}>
-      <TriggerAnchor>
-        {(ref, triggerProps) => (
-          <PlasmicGeneralTokenControl
-            {...triggerProps}
-            root={{ ref }}
-            value={matcher.boldSnippets(tokenValue)}
-            rowItem={{
-              style,
-              menu,
-              onClick,
-              icon: (
-                <>
-                  {multiAssetsActions.isSelecting &&
-                  token instanceof MutableToken ? (
-                    <Checkbox isChecked={isSelected}> </Checkbox>
-                  ) : (
-                    <TokenDefinedIndicator
-                      token={token}
-                      vsh={vsh}
-                      studioCtx={studioCtx}
-                      indicatorType={indicatorType}
-                    />
-                  )}
+      <TriggerTarget>
+<PlasmicGeneralTokenControl value={matcher.boldSnippets(tokenValue)} rowItem={{
+  style,
+  menu,
+  onClick,
+  icon: <>
+                  {multiAssetsActions.isSelecting && token instanceof MutableToken ? <Checkbox isChecked={isSelected}> </Checkbox> : <TokenDefinedIndicator token={token} vsh={vsh} studioCtx={studioCtx} indicatorType={indicatorType} />}
                 </>
-              ),
-            }}
-            showIcon
-          >
+}} showIcon>
             {matcher.boldSnippets(tokenName)}
           </PlasmicGeneralTokenControl>
-        )}
-      </TriggerAnchor>
+</TriggerTarget>
     </Tooltip>
   );
 }

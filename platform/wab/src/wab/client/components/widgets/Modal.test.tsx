@@ -4,7 +4,7 @@ import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
 import { setAppearancePreference } from "@/wab/client/ui-theme";
 import { ensure } from "@/wab/shared/common";
 import { act, cleanup, render, screen } from "@testing-library/react";
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 import React from "react";
 
 afterEach(() => {
@@ -21,29 +21,25 @@ it.each([false, true])("preserves theme corners with full-bleed content (custom 
         footer={null}
         className="caller-class"
         styles={{ container: { padding: 0 } }}
-        modalRender={customRender ? () => <div className="ant-modal-content">{content}</div> : undefined}
+        modalRender={customRender ? (node) => <div data-test-id="custom-modal-wrapper">{node}</div> : undefined}
       >
         {content}
       </Modal>
     </AntdConfigProvider>,
   );
-  const surface = ensure(screen.getByText("Dialog content").closest(customRender ? ".ant-modal-content" : ".ant-modal-container"), "Expected modal surface");
+  const surface = ensure(screen.getByText("Dialog content").closest(".ant-modal-container"), "Expected modal surface");
   expect(surface.closest(".caller-class")).toBeTruthy();
   for (const appearance of ["dark", "light"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
-    if (customRender) {
-      expect(getComputedStyle(surface).borderRadius).toBe(`${token.borderRadiusLG}px`);
-    } else {
-      // jsdom does not resolve CSS variables used by Ant Design's native surface.
-      expect(getComputedStyle(surface).borderRadius).toBe("var(--ant-border-radius-lg)");
-      expect(Array.from(document.querySelectorAll("style")).some((style) => style.textContent?.includes(`--ant-border-radius-lg:${token.borderRadiusLG}px`))).toBe(true);
-    }
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
+    // jsdom does not resolve CSS variables used by Ant Design's native surface.
+    expect(getComputedStyle(surface).borderRadius).toBe("var(--ant-border-radius-lg)");
+    expect(Array.from(document.querySelectorAll("style")).some((style) => style.textContent?.includes(`--ant-border-radius-lg:${token.borderRadiusLG}px`))).toBe(true);
+    expect(getComputedStyle(surface).pointerEvents).toBe("auto");
     expect(getComputedStyle(surface).overflow).toBe("hidden");
   }
-  if (!customRender) {
-    expect((surface as HTMLElement).style.padding).toBe("0px");
-  }
+  expect((surface as HTMLElement).style.padding).toBe("0px");
+  if (customRender) { expect(surface.closest('[data-test-id="custom-modal-wrapper"]')).toBeTruthy(); }
 });
 
 it("does not automatically focus modal actions", async () => {

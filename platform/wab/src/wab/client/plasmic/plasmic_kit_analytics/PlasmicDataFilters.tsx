@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -27,7 +27,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import LabeledSelect from "../../components/analytics/LabeledSelect"; // plasmic-import: bQ74QBVIbHI/component
 import PeriodPicker from "../../components/analytics/PeriodPicker"; // plasmic-import: Jt0CZzY1xy/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -87,11 +87,10 @@ function PlasmicDataFilters__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -222,12 +221,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -237,33 +232,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDataFilters__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDataFilters";
-  } else {
-    func.displayName = `PlasmicDataFilters.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDataFilters__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDataFilters__root<T extends PlasmicDataFilters__rootProps>(props: T & StrictProps<T, PlasmicDataFilters__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDataFilters__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDataFilters__root.displayName = "PlasmicDataFilters";
+
+type PlasmicDataFilters__timeRangeFilterProps = NodeComponentProps<"timeRangeFilter"> & {key?: React.Key};
+function PlasmicDataFilters__timeRangeFilter<T extends PlasmicDataFilters__timeRangeFilterProps>(props: T & StrictProps<T, PlasmicDataFilters__timeRangeFilterProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("timeRangeFilter", props);
+  return <PlasmicDataFilters__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"timeRangeFilter"} />;
+}
+PlasmicDataFilters__timeRangeFilter.displayName = "PlasmicDataFilters.timeRangeFilter";
+
+type PlasmicDataFilters__eventFilterProps = NodeComponentProps<"eventFilter"> & {key?: React.Key};
+function PlasmicDataFilters__eventFilter<T extends PlasmicDataFilters__eventFilterProps>(props: T & StrictProps<T, PlasmicDataFilters__eventFilterProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("eventFilter", props);
+  return <PlasmicDataFilters__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"eventFilter"} />;
+}
+PlasmicDataFilters__eventFilter.displayName = "PlasmicDataFilters.eventFilter";
+
+type PlasmicDataFilters__periodPickerProps = NodeComponentProps<"periodPicker"> & {key?: React.Key};
+function PlasmicDataFilters__periodPicker<T extends PlasmicDataFilters__periodPickerProps>(props: T & StrictProps<T, PlasmicDataFilters__periodPickerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("periodPicker", props);
+  return <PlasmicDataFilters__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"periodPicker"} />;
+}
+PlasmicDataFilters__periodPicker.displayName = "PlasmicDataFilters.periodPicker";
+
+type PlasmicDataFilters__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicDataFilters__freeBox<T extends PlasmicDataFilters__freeBoxProps>(props: T & StrictProps<T, PlasmicDataFilters__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicDataFilters__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicDataFilters__freeBox.displayName = "PlasmicDataFilters.freeBox";
+
+type PlasmicDataFilters__exportBtnProps = NodeComponentProps<"exportBtn"> & {key?: React.Key};
+function PlasmicDataFilters__exportBtn<T extends PlasmicDataFilters__exportBtnProps>(props: T & StrictProps<T, PlasmicDataFilters__exportBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("exportBtn", props);
+  return <PlasmicDataFilters__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"exportBtn"} />;
+}
+PlasmicDataFilters__exportBtn.displayName = "PlasmicDataFilters.exportBtn";
+
+type PlasmicDataFilters__shareBtnProps = NodeComponentProps<"shareBtn"> & {key?: React.Key};
+function PlasmicDataFilters__shareBtn<T extends PlasmicDataFilters__shareBtnProps>(props: T & StrictProps<T, PlasmicDataFilters__shareBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("shareBtn", props);
+  return <PlasmicDataFilters__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"shareBtn"} />;
+}
+PlasmicDataFilters__shareBtn.displayName = "PlasmicDataFilters.shareBtn";
+
+type PlasmicDataFilters__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicDataFilters__text<T extends PlasmicDataFilters__textProps>(props: T & StrictProps<T, PlasmicDataFilters__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicDataFilters__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicDataFilters__text.displayName = "PlasmicDataFilters.text";
+
 
 export const PlasmicDataFilters = Object.assign(
   // Top-level PlasmicDataFilters renders the root element
-  makeNodeComponent("root"),
+  PlasmicDataFilters__root,
   {
     // Helper components rendering sub-elements
-    timeRangeFilter: makeNodeComponent("timeRangeFilter"),
-    eventFilter: makeNodeComponent("eventFilter"),
-    periodPicker: makeNodeComponent("periodPicker"),
-    freeBox: makeNodeComponent("freeBox"),
-    exportBtn: makeNodeComponent("exportBtn"),
-    shareBtn: makeNodeComponent("shareBtn"),
-    text: makeNodeComponent("text"),
+    timeRangeFilter: PlasmicDataFilters__timeRangeFilter,
+    eventFilter: PlasmicDataFilters__eventFilter,
+    periodPicker: PlasmicDataFilters__periodPicker,
+    freeBox: PlasmicDataFilters__freeBox,
+    exportBtn: PlasmicDataFilters__exportBtn,
+    shareBtn: PlasmicDataFilters__shareBtn,
+    text: PlasmicDataFilters__text,
 
     // Metadata about props expected for PlasmicDataFilters
     internalVariantProps: PlasmicDataFilters__VariantProps,

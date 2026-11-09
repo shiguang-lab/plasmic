@@ -3,7 +3,7 @@ import UpsellCreditCard from "@/wab/client/components/modals/UpsellCreditCard";
 import { setAppearancePreference } from "@/wab/client/ui-theme";
 import type { StripeCardElementOptions } from "@stripe/stripe-js";
 import { act, cleanup, render, screen } from "@testing-library/react";
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 import * as React from "react";
 
 vi.mock("@stripe/react-stripe-js", () => ({
@@ -22,7 +22,7 @@ it("passes updated theme colors to the isolated credit card field", () => {
   );
   for (const appearance of ["dark", "light"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const options = JSON.parse(
       screen.getByTestId("stripe-options").textContent ?? "null",
     );

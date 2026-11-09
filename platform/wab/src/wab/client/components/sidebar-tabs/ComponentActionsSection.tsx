@@ -14,6 +14,7 @@ import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleCom
 import Button from "@/wab/client/components/widgets/Button";
 import { htmlToTpl } from "@/wab/client/operations/html-to-tpl";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { useProjectData } from "@/wab/client/studio-ctx/project-data-react";
 import { formatWIError } from "@/wab/client/web-importer/errors";
 import { ensureOk } from "@/wab/commons/neverthrow-utils";
 import { BadRequestError } from "@/wab/shared/ApiErrors/errors";
@@ -207,7 +208,7 @@ export function useStudioOps(
         viewCtx.setStudioFocusByTpl(tplComp);
       });
     },
-    [viewCtx],
+    [viewCtx, tplComp],
   );
 
   const removeFromSlotAt = React.useCallback(
@@ -234,7 +235,7 @@ export function useStudioOps(
         }
       });
     },
-    [viewCtx],
+    [viewCtx, tplComp],
   );
 
   const replaceSlotContent = React.useCallback<
@@ -413,14 +414,14 @@ function ButtonAction<P>({
   expsProvider: TplExpsProvider;
   tplComp: TplComponent;
 }) {
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [container, setContainer] = React.useState<HTMLDivElement | null>(null);
   const studioOps = useStudioOps(
     viewCtx,
-    containerRef.current,
+    container,
     tplComp,
     expsProvider,
   );
-  const projectData = viewCtx.studioCtx.getProjectData();
+  const projectData = useProjectData(viewCtx.studioCtx);
 
   return (
     <>
@@ -449,7 +450,7 @@ function ButtonAction<P>({
       >
         {label}
       </Button>
-      <div ref={containerRef} style={{ display: "contents" }} />
+      <div ref={setContainer} style={{ display: "contents" }} />
     </>
   );
 }
@@ -471,16 +472,16 @@ function CustomAction<P>({
 }) {
   const sub = viewCtx.canvasCtx.Sub;
   const { theme } = React.useContext(ConfigProvider.ConfigContext);
-  const actionContainerRef = React.useRef<HTMLDivElement>(null);
+  const [actionContainer, setActionContainer] = React.useState<HTMLDivElement | null>(null);
   const actionRoot = React.useRef<Root | null>(null);
-  const modalContainerRef = React.useRef<HTMLDivElement>(null);
+  const [modalContainer, setModalContainer] = React.useState<HTMLDivElement | null>(null);
   const studioOps = useStudioOps(
     viewCtx,
-    modalContainerRef.current,
+    modalContainer,
     tplComp,
     expsProvider,
   );
-  const projectData = viewCtx.studioCtx.getProjectData();
+  const projectData = useProjectData(viewCtx.studioCtx);
 
   React.useEffect(() => () => {
     actionRoot.current?.unmount();
@@ -488,7 +489,7 @@ function CustomAction<P>({
   }, []);
 
   React.useEffect(() => {
-    const node = actionContainerRef.current;
+    const node = actionContainer;
     if (!node) {
       return;
     }
@@ -514,18 +515,20 @@ function CustomAction<P>({
     );
     actionRoot.current.render(renderElement);
   }, [
-    actionContainerRef.current,
+    actionContainer,
     componentPropValues,
     ccContextData,
     studioOps,
     sub,
     theme,
+    control,
+    projectData,
   ]);
 
   return (
     <>
-      <div ref={actionContainerRef} style={{ display: "contents" }} />
-      <div ref={modalContainerRef} style={{ display: "contents" }} />
+      <div ref={setActionContainer} style={{ display: "contents" }} />
+      <div ref={setModalContainer} style={{ display: "contents" }} />
     </>
   );
 }

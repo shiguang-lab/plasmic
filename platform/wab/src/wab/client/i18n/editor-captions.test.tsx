@@ -1,3 +1,5 @@
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import { mock } from "vitest-mock-extended";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
@@ -114,9 +116,25 @@ vi.mock(
   }),
 );
 
+const nativeOwners: Array<() => void> = [];
+function nativeStudio(site = createSite()) {
+  const models = new ModelSnapshots(), selection = new StudioSelection(() => models);
+  const arenaState = new StudioArenaState({ site, modelSnapshots: models });
+  const studio = mock<StudioCtx>();
+  Object.defineProperties(studio, {
+    site: { value: site }, modelSnapshots: { value: models },
+    arenaState: { value: arenaState }, selectionStore: { value: selection.store },
+  });
+  studio.focusedViewCtx.mockReturnValue(undefined);
+  nativeOwners.push(() => { arenaState.dispose(); selection.dispose(); models.dispose(); });
+  fixture.ctx = studio;
+  return studio;
+}
+
 beforeEach(async () => await setLanguagePreference("en"));
 afterEach(async () => {
   cleanup();
+  nativeOwners.splice(0).forEach((dispose) => dispose());
   await act(async () => await setLanguagePreference("en"));
 });
 
@@ -163,9 +181,8 @@ it("translates imported variant captions inside placeholders without changing ed
   const group = tplMgr.createVariantGroup({ component, name: "Settings" });
   group.param.variable.name = "Settings";
   const onEdit = vi.fn();
-  const models = new ModelSnapshots();
-  const selection = new StudioSelection(() => models);
-  fixture.ctx = { site, modelSnapshots: models, focusedViewCtx: () => undefined, selectionStore: selection.store };
+  component.variants.push(variant);
+  nativeStudio(site);
   render(
     <>
       <VariantLabel variant={variant} />
@@ -194,7 +211,10 @@ it("updates variant actions in every language without changing their handlers or
   const toggle = vi.fn();
   const target = vi.fn();
   const variant = mkVariant({ name: "BusinessVariant" });
-  const ctx = {} as StudioCtx;
+  const site = createSite();
+  const component = new TplMgr({ site }).addComponent({ name: "Variant actions", type: ComponentType.Plain });
+  component.variants.push(variant);
+  const ctx = nativeStudio(site);
   const view = render(
     <>
       <VariantPinButton onToggle={toggle} />

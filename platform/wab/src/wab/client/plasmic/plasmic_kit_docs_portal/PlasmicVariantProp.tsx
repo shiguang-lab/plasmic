@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,14 +22,14 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import LabeledProp from "../../components/docs/LabeledProp"; // plasmic-import: 95ed9ODv12/component
 import Switch from "../../components/widgets/Switch"; // plasmic-import: b35JDgXpbiF/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -106,11 +106,10 @@ function PlasmicVariantProp__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isToggle",
@@ -119,18 +118,20 @@ function PlasmicVariantProp__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.isToggle,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -262,12 +263,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -277,29 +274,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVariantProp__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicVariantProp";
-  } else {
-    func.displayName = `PlasmicVariantProp.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVariantProp__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicVariantProp__root<T extends PlasmicVariantProp__rootProps>(props: T & StrictProps<T, PlasmicVariantProp__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicVariantProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicVariantProp__root.displayName = "PlasmicVariantProp";
+
+type PlasmicVariantProp__labeledPropProps = NodeComponentProps<"labeledProp"> & {key?: React.Key};
+function PlasmicVariantProp__labeledProp<T extends PlasmicVariantProp__labeledPropProps>(props: T & StrictProps<T, PlasmicVariantProp__labeledPropProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labeledProp", props);
+  return <PlasmicVariantProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labeledProp"} />;
+}
+PlasmicVariantProp__labeledProp.displayName = "PlasmicVariantProp.labeledProp";
+
+type PlasmicVariantProp__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicVariantProp__svg<T extends PlasmicVariantProp__svgProps>(props: T & StrictProps<T, PlasmicVariantProp__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicVariantProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicVariantProp__svg.displayName = "PlasmicVariantProp.svg";
+
+type PlasmicVariantProp__toggleProps = NodeComponentProps<"toggle"> & {key?: React.Key};
+function PlasmicVariantProp__toggle<T extends PlasmicVariantProp__toggleProps>(props: T & StrictProps<T, PlasmicVariantProp__toggleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("toggle", props);
+  return <PlasmicVariantProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"toggle"} />;
+}
+PlasmicVariantProp__toggle.displayName = "PlasmicVariantProp.toggle";
+
 
 export const PlasmicVariantProp = Object.assign(
   // Top-level PlasmicVariantProp renders the root element
-  makeNodeComponent("root"),
+  PlasmicVariantProp__root,
   {
     // Helper components rendering sub-elements
-    labeledProp: makeNodeComponent("labeledProp"),
-    svg: makeNodeComponent("svg"),
-    toggle: makeNodeComponent("toggle"),
+    labeledProp: PlasmicVariantProp__labeledProp,
+    svg: PlasmicVariantProp__svg,
+    toggle: PlasmicVariantProp__toggle,
 
     // Metadata about props expected for PlasmicVariantProp
     internalVariantProps: PlasmicVariantProp__VariantProps,

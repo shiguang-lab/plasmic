@@ -29,6 +29,7 @@ test('geometry follows visible model nodes and native Preview refs without mutat
   button.hidden=true;assert.deepEqual(inspect([{componentUuid:'p',elementUuid:'e'}]),[]);button.hidden=false;
   parent.className='live-root-container';parent.setAttribute('data-plasmic-preview-component','p');
   w.__plasmicRuntimeInspection={id:'doc',nodes:new Map([['doc:1',button]])};
+  assert.equal(inspect([{ref:'doc:1'}],'edit').length,1);
   assert.equal(inspect([{ref:'doc:1'}],'preview','p').length,1);
   assert.deepEqual(inspect([{ref:'old:1'}],'preview','p'),[]);
   assert.deepEqual(inspect([{ref:'doc:1'}],'preview','next'),[]);
@@ -45,4 +46,8 @@ test('feedback is clipped to the captured pixels and invalidated by page/view ch
   for(const patch of [{phase:'failed'},{phase:'queued'},{kind:'save'},{sessionId:'next'},{arenaId:'other'},{mode:'preview'},{url:'next'}]) assert.equal(feedbackOperation({...op,...patch},context,'url'),null);
   assert.equal(feedbackOperation({...op,phase:'completed',finishedAt:100},context,'url',1700),null);
   assert.ok(feedbackOperation({...op,phase:'completed',finishedAt:100},context,'url',1000));
+  const interactive={...context,mode:'preview',previewKind:'interactive'};
+  const interactiveRead={...op,...interactive};
+  assert.equal(feedbackOperation(interactiveRead,interactive,'url'),interactiveRead);
+  assert.equal(feedbackOperation(interactiveRead,{...interactive,previewKind:'in-app'},'url'),null);
 });

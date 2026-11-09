@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,8 +24,8 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import DefaultLayout from "../../components/dashboard/DefaultLayout"; // plasmic-import: nSkQWLjK-B/component
 import NavTeamSection from "../../components/dashboard/NavTeamSection"; // plasmic-import: VqaN_WL-stA/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -110,13 +110,12 @@ function PlasmicSettingsPage__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <React.Fragment>
@@ -195,12 +194,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -210,28 +205,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSettingsPage__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSettingsPage";
-  } else {
-    func.displayName = `PlasmicSettingsPage.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSettingsPage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSettingsPage__root<T extends PlasmicSettingsPage__rootProps>(props: T & StrictProps<T, PlasmicSettingsPage__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSettingsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSettingsPage__root.displayName = "PlasmicSettingsPage";
+
+type PlasmicSettingsPage__defaultLayoutProps = NodeComponentProps<"defaultLayout"> & {key?: React.Key};
+function PlasmicSettingsPage__defaultLayout<T extends PlasmicSettingsPage__defaultLayoutProps>(props: T & StrictProps<T, PlasmicSettingsPage__defaultLayoutProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("defaultLayout", props);
+  return <PlasmicSettingsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"defaultLayout"} />;
+}
+PlasmicSettingsPage__defaultLayout.displayName = "PlasmicSettingsPage.defaultLayout";
+
+type PlasmicSettingsPage__navTeamSectionProps = NodeComponentProps<"navTeamSection"> & {key?: React.Key};
+function PlasmicSettingsPage__navTeamSection<T extends PlasmicSettingsPage__navTeamSectionProps>(props: T & StrictProps<T, PlasmicSettingsPage__navTeamSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("navTeamSection", props);
+  return <PlasmicSettingsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"navTeamSection"} />;
+}
+PlasmicSettingsPage__navTeamSection.displayName = "PlasmicSettingsPage.navTeamSection";
+
 
 export const PlasmicSettingsPage = Object.assign(
   // Top-level PlasmicSettingsPage renders the root element
-  makeNodeComponent("root"),
+  PlasmicSettingsPage__root,
   {
     // Helper components rendering sub-elements
-    defaultLayout: makeNodeComponent("defaultLayout"),
-    navTeamSection: makeNodeComponent("navTeamSection"),
+    defaultLayout: PlasmicSettingsPage__defaultLayout,
+    navTeamSection: PlasmicSettingsPage__navTeamSection,
 
     // Metadata about props expected for PlasmicSettingsPage
     internalVariantProps: PlasmicSettingsPage__VariantProps,

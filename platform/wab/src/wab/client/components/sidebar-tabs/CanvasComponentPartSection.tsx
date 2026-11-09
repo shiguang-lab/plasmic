@@ -43,12 +43,7 @@ type ParamRefsSnapshot = readonly (ModelRef<Param> | undefined)[];
  * a row without a component.params change. The imperative bindings rebind when
  * a parameter's variable identity changes, even when the selected refs do not.
  */
-function useComponentPartParamRefs(
-  models: ModelSnapshots,
-  component: Component,
-  part: CanvasComponentPart,
-): ParamRefsSnapshot {
-  const source = React.useMemo(() => {
+function createComponentPartParamSource(models: ModelSnapshots, component: Component, part: CanvasComponentPart) {
     const propNames = part.props;
     const paramsStore = models.field(component, "params");
     let snapshot: ParamRefsSnapshot = Object.freeze(
@@ -137,7 +132,15 @@ function useComponentPartParamRefs(
     };
 
     return { getSnapshot, subscribe };
-  }, [models, component, part]);
+
+}
+
+function useComponentPartParamRefs(
+  models: ModelSnapshots,
+  component: Component,
+  part: CanvasComponentPart,
+): ParamRefsSnapshot {
+  const source = React.useMemo(() => createComponentPartParamSource(models, component, part), [models, component, part]);
 
   return React.useSyncExternalStore(
     source.subscribe,

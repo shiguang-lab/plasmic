@@ -6,7 +6,7 @@
 "use client";
 
 import * as React from "react";
-import { createUseScreenVariants } from "@plasmicapp/react-web";
+import { createScreenVariantStore, useScreenVariants as useProjectScreenVariants } from "@plasmicapp/react-web";
 
 export type ScreenValue = "desktopOnly";
 export const ScreenContext = React.createContext<ScreenValue[] | undefined>(
@@ -22,9 +22,10 @@ export function ScreenContextProvider(
   );
 }
 
-export const useScreenVariants = createUseScreenVariants(true, {
+const screenVariantStore = createScreenVariantStore({
   desktopOnly: "(min-width:768px)"
 });
+export function useScreenVariants() { return useProjectScreenVariants(screenVariantStore, true); }
 
 export default ScreenContext;
 /* prettier-ignore-end */

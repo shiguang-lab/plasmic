@@ -1,6 +1,7 @@
 import { createViewVariantFixture } from "@/wab/client/__testonly__/view-variants";
 import { mkArenaFrame } from "@/wab/shared/Arenas";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { createAutoOpenStore } from "@/wab/client/studio-ctx/auto-open-state";
 import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
 import {
   buildValTree,
@@ -42,31 +43,32 @@ import {
   mkVariant,
   mkVariantSetting,
 } from "@/wab/shared/Variants";
-import { observable } from "mobx";
+import { createCanvasMirrorStore } from "@/wab/client/studio-ctx/canvas-mirror-state";
 import { vi } from "vitest";
 
 test("canvas overview renders offscreen artboards only in the current arena without changing visibility", () => {
   const frame = { uuid: "frame" } as ArenaFrame;
   const arena = Object.assign(Object.create(Arena.prototype), { children: [frame] });
-  const active = observable.box<string | undefined>(undefined);
   const studioCtx = { currentArena: arena };
   const viewCtx = Object.assign(Object.create(ViewCtx.prototype), {
     studioCtx,
     _arenaFrame: frame,
-    _canvasMirrorTarget: active,
+    canvasMirrorStore: createCanvasMirrorStore(),
     isVisible: vi.fn(() => false),
   }) as ViewCtx;
+  const setMirror = (target: string | undefined) =>
+    viewCtx.canvasMirrorStore.setState({ target });
   expect(viewCtx.isRenderActive()).toBe(false);
-  active.set("all");
+  setMirror("all");
   expect(viewCtx.isRenderActive()).toBe(true);
   expect(viewCtx.isVisible()).toBe(false);
-  active.set("other-frame");
+  setMirror("other-frame");
   expect(viewCtx.isRenderActive()).toBe(false);
-  active.set("frame");
+  setMirror("frame");
   expect(viewCtx.isRenderActive()).toBe(true);
   studioCtx.currentArena = null;
   expect(viewCtx.isRenderActive()).toBe(false);
-  active.set(undefined);
+  setMirror(undefined);
   studioCtx.currentArena = arena;
   expect(viewCtx.isRenderActive()).toBe(false);
 });
@@ -82,7 +84,7 @@ function overlayViewCtx() {
     canvasSessionState: new CanvasSessionState(),
     studioCtx: { notifyInspectorFocusChanged: vi.fn() },
     selection: new ViewSelection(() => models),
-    _autoOpenedUuid: observable.box<string | undefined>(),
+    autoOpenStore: createAutoOpenStore(),
     scheduleSync: vi.fn(),
   }) as ViewCtx;
 }

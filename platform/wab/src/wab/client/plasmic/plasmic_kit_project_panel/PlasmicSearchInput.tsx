@@ -22,12 +22,13 @@ import {
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useFocusVisibleWithin,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../plasmic_kit_project_panel/PlasmicStyleTokensProvider"; // plasmic-import: m8VxGcigeLAEXFe8c12w5Q/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_project_panel/PlasmicStyleTokensProvider"; // plasmic-import: m8VxGcigeLAEXFe8c12w5Q/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -99,11 +100,10 @@ function PlasmicSearchInput__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "collapsed",
@@ -119,21 +119,23 @@ function PlasmicSearchInput__RenderFunc(props: {
           $props.withShortcut,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
   const [
     isSearchInputContainerFocusVisibleWithin,
     triggerSearchInputContainerFocusVisibleWithinProps,
-  ] = useTrigger("useFocusVisibleWithin", {
+  ] = useFocusVisibleWithin({
     isTextInput: true,
   });
   const triggers = {
@@ -141,7 +143,7 @@ function PlasmicSearchInput__RenderFunc(props: {
       isSearchInputContainerFocusVisibleWithin,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -212,9 +214,7 @@ function PlasmicSearchInput__RenderFunc(props: {
             }
           )}
           placeholder={uiT("Search…")}
-          ref={(ref) => {
-            $refs["searchInput"] = ref;
-          }}
+          ref={registerRef("searchInput")}
           size={1}
           type={"text"}
           value={""}
@@ -313,12 +313,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -328,31 +324,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSearchInput__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "searchInputContainer") {
-    func.displayName = "PlasmicSearchInput";
-  } else {
-    func.displayName = `PlasmicSearchInput.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSearchInput__searchInputContainerProps = NodeComponentProps<"searchInputContainer"> & {key?: React.Key};
+function PlasmicSearchInput__searchInputContainer<T extends PlasmicSearchInput__searchInputContainerProps>(props: T & StrictProps<T, PlasmicSearchInput__searchInputContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchInputContainer", props);
+  return <PlasmicSearchInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchInputContainer"} />;
+}
+PlasmicSearchInput__searchInputContainer.displayName = "PlasmicSearchInput";
+
+type PlasmicSearchInput__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicSearchInput__svg<T extends PlasmicSearchInput__svgProps>(props: T & StrictProps<T, PlasmicSearchInput__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicSearchInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicSearchInput__svg.displayName = "PlasmicSearchInput.svg";
+
+type PlasmicSearchInput__searchInputProps = NodeComponentProps<"searchInput"> & {key?: React.Key};
+function PlasmicSearchInput__searchInput<T extends PlasmicSearchInput__searchInputProps>(props: T & StrictProps<T, PlasmicSearchInput__searchInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchInput", props);
+  return <PlasmicSearchInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchInput"} />;
+}
+PlasmicSearchInput__searchInput.displayName = "PlasmicSearchInput.searchInput";
+
+type PlasmicSearchInput__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicSearchInput__freeBox<T extends PlasmicSearchInput__freeBoxProps>(props: T & StrictProps<T, PlasmicSearchInput__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicSearchInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicSearchInput__freeBox.displayName = "PlasmicSearchInput.freeBox";
+
+type PlasmicSearchInput__clearFieldIconProps = NodeComponentProps<"clearFieldIcon"> & {key?: React.Key};
+function PlasmicSearchInput__clearFieldIcon<T extends PlasmicSearchInput__clearFieldIconProps>(props: T & StrictProps<T, PlasmicSearchInput__clearFieldIconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("clearFieldIcon", props);
+  return <PlasmicSearchInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"clearFieldIcon"} />;
+}
+PlasmicSearchInput__clearFieldIcon.displayName = "PlasmicSearchInput.clearFieldIcon";
+
+type PlasmicSearchInput__shortcutProps = NodeComponentProps<"shortcut"> & {key?: React.Key};
+function PlasmicSearchInput__shortcut<T extends PlasmicSearchInput__shortcutProps>(props: T & StrictProps<T, PlasmicSearchInput__shortcutProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("shortcut", props);
+  return <PlasmicSearchInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"shortcut"} />;
+}
+PlasmicSearchInput__shortcut.displayName = "PlasmicSearchInput.shortcut";
+
 
 export const PlasmicSearchInput = Object.assign(
   // Top-level PlasmicSearchInput renders the root element
-  makeNodeComponent("searchInputContainer"),
+  PlasmicSearchInput__searchInputContainer,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
-    searchInput: makeNodeComponent("searchInput"),
-    freeBox: makeNodeComponent("freeBox"),
-    clearFieldIcon: makeNodeComponent("clearFieldIcon"),
-    shortcut: makeNodeComponent("shortcut"),
+    svg: PlasmicSearchInput__svg,
+    searchInput: PlasmicSearchInput__searchInput,
+    freeBox: PlasmicSearchInput__freeBox,
+    clearFieldIcon: PlasmicSearchInput__clearFieldIcon,
+    shortcut: PlasmicSearchInput__shortcut,
 
     // Metadata about props expected for PlasmicSearchInput
     internalVariantProps: PlasmicSearchInput__VariantProps,

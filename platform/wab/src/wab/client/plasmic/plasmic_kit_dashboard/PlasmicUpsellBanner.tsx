@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,8 +23,8 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -79,13 +79,12 @@ function PlasmicUpsellBanner__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -159,12 +158,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -174,27 +169,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicUpsellBanner__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicUpsellBanner";
-  } else {
-    func.displayName = `PlasmicUpsellBanner.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicUpsellBanner__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicUpsellBanner__root<T extends PlasmicUpsellBanner__rootProps>(props: T & StrictProps<T, PlasmicUpsellBanner__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicUpsellBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicUpsellBanner__root.displayName = "PlasmicUpsellBanner";
+
+type PlasmicUpsellBanner__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicUpsellBanner__svg<T extends PlasmicUpsellBanner__svgProps>(props: T & StrictProps<T, PlasmicUpsellBanner__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicUpsellBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicUpsellBanner__svg.displayName = "PlasmicUpsellBanner.svg";
+
 
 export const PlasmicUpsellBanner = Object.assign(
   // Top-level PlasmicUpsellBanner renders the root element
-  makeNodeComponent("root"),
+  PlasmicUpsellBanner__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
+    svg: PlasmicUpsellBanner__svg,
 
     // Metadata about props expected for PlasmicUpsellBanner
     internalVariantProps: PlasmicUpsellBanner__VariantProps,

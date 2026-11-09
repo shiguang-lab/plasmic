@@ -14,6 +14,7 @@
 import * as React from "react";
 
 import {
+  usePlasmicRefs,
   Flex as Flex__,
   StrictProps,
   classNames,
@@ -79,9 +80,8 @@ function PlasmicLayout__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
   return (
     <EmailContainer
@@ -179,12 +179,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -194,29 +190,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLayout__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLayout";
-  } else {
-    func.displayName = `PlasmicLayout.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLayout__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLayout__root<T extends PlasmicLayout__rootProps>(props: T & StrictProps<T, PlasmicLayout__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLayout__root.displayName = "PlasmicLayout";
+
+type PlasmicLayout__emailLinkProps = NodeComponentProps<"emailLink"> & {key?: React.Key};
+function PlasmicLayout__emailLink<T extends PlasmicLayout__emailLinkProps>(props: T & StrictProps<T, PlasmicLayout__emailLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emailLink", props);
+  return <PlasmicLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emailLink"} />;
+}
+PlasmicLayout__emailLink.displayName = "PlasmicLayout.emailLink";
+
+type PlasmicLayout__emailImageProps = NodeComponentProps<"emailImage"> & {key?: React.Key};
+function PlasmicLayout__emailImage<T extends PlasmicLayout__emailImageProps>(props: T & StrictProps<T, PlasmicLayout__emailImageProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emailImage", props);
+  return <PlasmicLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emailImage"} />;
+}
+PlasmicLayout__emailImage.displayName = "PlasmicLayout.emailImage";
+
+type PlasmicLayout__footerProps = NodeComponentProps<"footer"> & {key?: React.Key};
+function PlasmicLayout__footer<T extends PlasmicLayout__footerProps>(props: T & StrictProps<T, PlasmicLayout__footerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("footer", props);
+  return <PlasmicLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"footer"} />;
+}
+PlasmicLayout__footer.displayName = "PlasmicLayout.footer";
+
 
 export const PlasmicLayout = Object.assign(
   // Top-level PlasmicLayout renders the root element
-  makeNodeComponent("root"),
+  PlasmicLayout__root,
   {
     // Helper components rendering sub-elements
-    emailLink: makeNodeComponent("emailLink"),
-    emailImage: makeNodeComponent("emailImage"),
-    footer: makeNodeComponent("footer"),
+    emailLink: PlasmicLayout__emailLink,
+    emailImage: PlasmicLayout__emailImage,
+    footer: PlasmicLayout__footer,
 
     // Metadata about props expected for PlasmicLayout
     internalVariantProps: PlasmicLayout__VariantProps,

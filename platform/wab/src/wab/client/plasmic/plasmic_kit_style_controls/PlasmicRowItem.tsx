@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,14 +23,14 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -127,11 +127,10 @@ function PlasmicRowItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showAddendum",
@@ -166,23 +165,25 @@ function PlasmicRowItem__RenderFunc(props: {
           $props.showActions,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -405,12 +406,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -420,32 +417,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicRowItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicRowItem";
-  } else {
-    func.displayName = `PlasmicRowItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicRowItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicRowItem__root<T extends PlasmicRowItem__rootProps>(props: T & StrictProps<T, PlasmicRowItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicRowItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicRowItem__root.displayName = "PlasmicRowItem";
+
+type PlasmicRowItem__iconContainerProps = NodeComponentProps<"iconContainer"> & {key?: React.Key};
+function PlasmicRowItem__iconContainer<T extends PlasmicRowItem__iconContainerProps>(props: T & StrictProps<T, PlasmicRowItem__iconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconContainer", props);
+  return <PlasmicRowItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconContainer"} />;
+}
+PlasmicRowItem__iconContainer.displayName = "PlasmicRowItem.iconContainer";
+
+type PlasmicRowItem__labelContainerProps = NodeComponentProps<"labelContainer"> & {key?: React.Key};
+function PlasmicRowItem__labelContainer<T extends PlasmicRowItem__labelContainerProps>(props: T & StrictProps<T, PlasmicRowItem__labelContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelContainer", props);
+  return <PlasmicRowItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelContainer"} />;
+}
+PlasmicRowItem__labelContainer.displayName = "PlasmicRowItem.labelContainer";
+
+type PlasmicRowItem__addendumContainerProps = NodeComponentProps<"addendumContainer"> & {key?: React.Key};
+function PlasmicRowItem__addendumContainer<T extends PlasmicRowItem__addendumContainerProps>(props: T & StrictProps<T, PlasmicRowItem__addendumContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addendumContainer", props);
+  return <PlasmicRowItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addendumContainer"} />;
+}
+PlasmicRowItem__addendumContainer.displayName = "PlasmicRowItem.addendumContainer";
+
+type PlasmicRowItem__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicRowItem__freeBox<T extends PlasmicRowItem__freeBoxProps>(props: T & StrictProps<T, PlasmicRowItem__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicRowItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicRowItem__freeBox.displayName = "PlasmicRowItem.freeBox";
+
+type PlasmicRowItem__actionsContainerProps = NodeComponentProps<"actionsContainer"> & {key?: React.Key};
+function PlasmicRowItem__actionsContainer<T extends PlasmicRowItem__actionsContainerProps>(props: T & StrictProps<T, PlasmicRowItem__actionsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionsContainer", props);
+  return <PlasmicRowItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionsContainer"} />;
+}
+PlasmicRowItem__actionsContainer.displayName = "PlasmicRowItem.actionsContainer";
+
+type PlasmicRowItem__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicRowItem__menuButton<T extends PlasmicRowItem__menuButtonProps>(props: T & StrictProps<T, PlasmicRowItem__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicRowItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicRowItem__menuButton.displayName = "PlasmicRowItem.menuButton";
+
 
 export const PlasmicRowItem = Object.assign(
   // Top-level PlasmicRowItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicRowItem__root,
   {
     // Helper components rendering sub-elements
-    iconContainer: makeNodeComponent("iconContainer"),
-    labelContainer: makeNodeComponent("labelContainer"),
-    addendumContainer: makeNodeComponent("addendumContainer"),
-    freeBox: makeNodeComponent("freeBox"),
-    actionsContainer: makeNodeComponent("actionsContainer"),
-    menuButton: makeNodeComponent("menuButton"),
+    iconContainer: PlasmicRowItem__iconContainer,
+    labelContainer: PlasmicRowItem__labelContainer,
+    addendumContainer: PlasmicRowItem__addendumContainer,
+    freeBox: PlasmicRowItem__freeBox,
+    actionsContainer: PlasmicRowItem__actionsContainer,
+    menuButton: PlasmicRowItem__menuButton,
 
     // Metadata about props expected for PlasmicRowItem
     internalVariantProps: PlasmicRowItem__VariantProps,

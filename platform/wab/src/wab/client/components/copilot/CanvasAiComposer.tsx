@@ -1,3 +1,4 @@
+import { useAiSessionSnapshot } from "@/wab/client/copilot/ai-session-view";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { useAiAttachments } from "@/wab/client/components/copilot/AiAttachments";
 import { AiComposer } from "@/wab/client/components/copilot/AiComposer";
@@ -81,23 +82,23 @@ export function CanvasAiComposer({
     () => getLocalEditSession(projectId),
     [projectId],
   );
-  React.useSyncExternalStore(session.subscribe, session.snapshot);
-  useErrorMessage(session.error);
+  const view = useAiSessionSnapshot(session);
+  useErrorMessage(view.error);
   const enabled = appCtx?.appConfig.enableLocalAiEditing ?? true;
   // Authentication initializes the session while the shell is already editable.
   // Keep early input outside that reset, then adopt it in the ready session.
   const [pendingDraft, setPendingDraft] = React.useState<LocalAiDraft>();
-  const draft = pendingDraft ?? session.draft;
+  const draft = pendingDraft ?? view.draft;
   const setDraft = (next: LocalAiDraft) => {
     if (loading) {
       setPendingDraft(next);
     } else {
-      session.draft = next;
+      session.setThreadDraft(view.activeThreadId, next);
     }
   };
   React.useLayoutEffect(() => {
     if (!loading && pendingDraft) {
-      session.draft = pendingDraft;
+      session.setThreadDraft(session.activeThreadId, pendingDraft);
       setPendingDraft(undefined);
     }
   }, [loading, pendingDraft, session]);
@@ -111,9 +112,9 @@ export function CanvasAiComposer({
   // Metadata uses the existing login cookie; the server checks the AI flag and
   // project permissions without waiting for application or canvas readiness.
   const { data: status, refreshModels } = useLocalAiStatus(projectId, enabled);
-  const activeTask = session.activeRun;
-  const archived = !!session.activeThread?.archivedAt;
-  const threadId = session.activeThreadId;
+  const activeTask = view.activeRun;
+  const archived = !!view.activeThread?.archivedAt;
+  const threadId = view.activeThreadId;
   const attachmentState = useAiAttachments(
     draft.attachments,
     (attachments) => {
@@ -183,25 +184,25 @@ export function CanvasAiComposer({
           attachmentState={attachmentState}
           scope={context?.scope ?? t("Current canvas")}
           models={status?.models}
-          model={session.selectedModel ?? status?.model}
+          model={view.selectedModel ?? status?.model}
           onModelMenuOpen={refreshModels}
           onModelChange={(model) => {
-            session.selectedModel = model;
+            session.setSelectedModel(model);
           }}
           disabled={!enabled || archived}
           running={
-            !!activeTask && activeTask.threadId === session.activeThreadId
+            !!activeTask && activeTask.threadId === view.activeThreadId
           }
           onStop={() => session.stop()}
-          stopDisabled={!activeTask || !session.canStop(activeTask)}
+          stopDisabled={!activeTask || !view.stoppable.includes(activeTask.id)}
           canSubmit={
             !loading &&
             enabled &&
             !!context?.binding &&
             !!status?.configured &&
-            !session.running &&
-            !session.historyLoading &&
-            !session.syncError &&
+            !view.running &&
+            !view.historyLoading &&
+            !view.syncError &&
             !archived
           }
           placeholder={t(
@@ -222,10 +223,10 @@ export function CanvasAiComposer({
                   ? t(
                       "Configure the AI service on the server to start editing.",
                     )
-                  : session.blockingTask?.needsReconciliation
+                  : view.blockingTask?.needsReconciliation
                     ? t("Verify saved design")
-                    : session.running &&
-                        activeTask?.threadId !== session.activeThreadId
+                    : view.running &&
+                        activeTask?.threadId !== view.activeThreadId
                       ? t("A task is running in another conversation.")
                       : !context?.binding
                         ? t("Open a page or canvas before using AI.")

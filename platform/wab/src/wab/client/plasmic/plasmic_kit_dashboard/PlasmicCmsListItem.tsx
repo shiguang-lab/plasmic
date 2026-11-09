@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   MultiChoiceArg,
   PlasmicLink as PlasmicLink__,
   SingleBooleanChoiceArg,
@@ -26,8 +26,8 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useFocusVisible, useFocusVisibleWithin, useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -36,8 +36,8 @@ import EditableResourceName from "../../components/EditableResourceName"; // pla
 import PanelDivider from "../../components/PanelDivider"; // plasmic-import: 0NaTcyuAGK2dN/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -119,11 +119,10 @@ function PlasmicCmsListItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "explorations",
@@ -147,37 +146,37 @@ function PlasmicCmsListItem__RenderFunc(props: {
           $props.isFirstItem,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootFocusVisible, triggerRootFocusVisibleProps] = useTrigger(
-    "useFocusVisible",
-    {
+  const [isRootFocusVisible, triggerRootFocusVisibleProps] = useFocusVisible({
       isTextInput: false,
     }
   );
   const [isRootFocusVisibleWithin, triggerRootFocusVisibleWithinProps] =
-    useTrigger("useFocusVisibleWithin", {
+    useFocusVisibleWithin({
       isTextInput: false,
     });
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     focusVisible_root: isRootFocusVisible,
     focusVisibleWithin_root: isRootFocusVisibleWithin,
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <PlasmicLink__
@@ -493,12 +492,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -508,35 +503,93 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCmsListItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCmsListItem";
-  } else {
-    func.displayName = `PlasmicCmsListItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCmsListItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCmsListItem__root<T extends PlasmicCmsListItem__rootProps>(props: T & StrictProps<T, PlasmicCmsListItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCmsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCmsListItem__root.displayName = "PlasmicCmsListItem";
+
+type PlasmicCmsListItem__leftProps = NodeComponentProps<"left"> & {key?: React.Key};
+function PlasmicCmsListItem__left<T extends PlasmicCmsListItem__leftProps>(props: T & StrictProps<T, PlasmicCmsListItem__leftProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("left", props);
+  return <PlasmicCmsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"left"} />;
+}
+PlasmicCmsListItem__left.displayName = "PlasmicCmsListItem.left";
+
+type PlasmicCmsListItem__editableNameProps = NodeComponentProps<"editableName"> & {key?: React.Key};
+function PlasmicCmsListItem__editableName<T extends PlasmicCmsListItem__editableNameProps>(props: T & StrictProps<T, PlasmicCmsListItem__editableNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("editableName", props);
+  return <PlasmicCmsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"editableName"} />;
+}
+PlasmicCmsListItem__editableName.displayName = "PlasmicCmsListItem.editableName";
+
+type PlasmicCmsListItem__panelDividerProps = NodeComponentProps<"panelDivider"> & {key?: React.Key};
+function PlasmicCmsListItem__panelDivider<T extends PlasmicCmsListItem__panelDividerProps>(props: T & StrictProps<T, PlasmicCmsListItem__panelDividerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("panelDivider", props);
+  return <PlasmicCmsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"panelDivider"} />;
+}
+PlasmicCmsListItem__panelDivider.displayName = "PlasmicCmsListItem.panelDivider";
+
+type PlasmicCmsListItem__workspaceProps = NodeComponentProps<"workspace"> & {key?: React.Key};
+function PlasmicCmsListItem__workspace<T extends PlasmicCmsListItem__workspaceProps>(props: T & StrictProps<T, PlasmicCmsListItem__workspaceProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("workspace", props);
+  return <PlasmicCmsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"workspace"} />;
+}
+PlasmicCmsListItem__workspace.displayName = "PlasmicCmsListItem.workspace";
+
+type PlasmicCmsListItem__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicCmsListItem__text<T extends PlasmicCmsListItem__textProps>(props: T & StrictProps<T, PlasmicCmsListItem__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicCmsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicCmsListItem__text.displayName = "PlasmicCmsListItem.text";
+
+type PlasmicCmsListItem__projectIdCopyButtonProps = NodeComponentProps<"projectIdCopyButton"> & {key?: React.Key};
+function PlasmicCmsListItem__projectIdCopyButton<T extends PlasmicCmsListItem__projectIdCopyButtonProps>(props: T & StrictProps<T, PlasmicCmsListItem__projectIdCopyButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("projectIdCopyButton", props);
+  return <PlasmicCmsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"projectIdCopyButton"} />;
+}
+PlasmicCmsListItem__projectIdCopyButton.displayName = "PlasmicCmsListItem.projectIdCopyButton";
+
+type PlasmicCmsListItem__rightProps = NodeComponentProps<"right"> & {key?: React.Key};
+function PlasmicCmsListItem__right<T extends PlasmicCmsListItem__rightProps>(props: T & StrictProps<T, PlasmicCmsListItem__rightProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("right", props);
+  return <PlasmicCmsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"right"} />;
+}
+PlasmicCmsListItem__right.displayName = "PlasmicCmsListItem.right";
+
+type PlasmicCmsListItem__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicCmsListItem__menuButton<T extends PlasmicCmsListItem__menuButtonProps>(props: T & StrictProps<T, PlasmicCmsListItem__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicCmsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicCmsListItem__menuButton.displayName = "PlasmicCmsListItem.menuButton";
+
+type PlasmicCmsListItem__updatedJustNowProps = NodeComponentProps<"updatedJustNow"> & {key?: React.Key};
+function PlasmicCmsListItem__updatedJustNow<T extends PlasmicCmsListItem__updatedJustNowProps>(props: T & StrictProps<T, PlasmicCmsListItem__updatedJustNowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("updatedJustNow", props);
+  return <PlasmicCmsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"updatedJustNow"} />;
+}
+PlasmicCmsListItem__updatedJustNow.displayName = "PlasmicCmsListItem.updatedJustNow";
+
 
 export const PlasmicCmsListItem = Object.assign(
   // Top-level PlasmicCmsListItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicCmsListItem__root,
   {
     // Helper components rendering sub-elements
-    left: makeNodeComponent("left"),
-    editableName: makeNodeComponent("editableName"),
-    panelDivider: makeNodeComponent("panelDivider"),
-    workspace: makeNodeComponent("workspace"),
-    text: makeNodeComponent("text"),
-    projectIdCopyButton: makeNodeComponent("projectIdCopyButton"),
-    right: makeNodeComponent("right"),
-    menuButton: makeNodeComponent("menuButton"),
-    updatedJustNow: makeNodeComponent("updatedJustNow"),
+    left: PlasmicCmsListItem__left,
+    editableName: PlasmicCmsListItem__editableName,
+    panelDivider: PlasmicCmsListItem__panelDivider,
+    workspace: PlasmicCmsListItem__workspace,
+    text: PlasmicCmsListItem__text,
+    projectIdCopyButton: PlasmicCmsListItem__projectIdCopyButton,
+    right: PlasmicCmsListItem__right,
+    menuButton: PlasmicCmsListItem__menuButton,
+    updatedJustNow: PlasmicCmsListItem__updatedJustNow,
 
     // Metadata about props expected for PlasmicCmsListItem
     internalVariantProps: PlasmicCmsListItem__VariantProps,

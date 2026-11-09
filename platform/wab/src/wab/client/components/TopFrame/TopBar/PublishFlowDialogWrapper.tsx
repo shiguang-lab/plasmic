@@ -162,6 +162,9 @@ export const PublishFlowDialogWrapper =
     const [previewEntryPath, setPreviewEntryPath] = React.useState("");
     const [previewBusy, setPreviewBusy] = React.useState(false);
     const [previewError, setPreviewError] = React.useState<unknown>();
+    const [statusSaveVersion, setStatusSaveVersion] = React.useState<
+      StatusSaveVersion | undefined
+    >(undefined);
     React.useEffect(() => {
       if (!publishingRef.current) {
         setPreviewSucceeded(false);
@@ -207,7 +210,7 @@ export const PublishFlowDialogWrapper =
     );
     const publishWebsite = async () => {
       setPreviewBusy(true);
-      try {
+      return await (async () => {
         const result = await appCtx.api.publishPreviewPublication(
           projectId,
           previewEntryPath || undefined,
@@ -215,9 +218,9 @@ export const PublishFlowDialogWrapper =
         await refreshPreview(result, false);
         setPreviewSucceeded(true);
         refreshProjectAndPerms();
-      } finally {
+      })().finally(() => {
         setPreviewBusy(false);
-      }
+      });
     };
     const unpublishWebsite = async () => {
       if (publishingRef.current || unpublishing || !editorPerm) {
@@ -230,16 +233,16 @@ export const PublishFlowDialogWrapper =
       setStatusPushDeploy(undefined);
       setStatusWebhooks(undefined);
       setDelay(DELAY_PAUSED);
-      try {
+      return await (async () => {
         await appCtx.api.unpublishPreviewPublication(projectId);
         await refreshPreview();
         refreshProjectAndPerms();
         void message.success({ content: studioUiT("Website unpublished") });
-      } catch (error) {
+      })().catch(async (error) => {
         setPreviewError(error);
-      } finally {
+      }).finally(() => {
         setUnpublishing(false);
-      }
+      });
     };
 
     const [view, setView] = React.useState<
@@ -263,9 +266,6 @@ export const PublishFlowDialogWrapper =
       });
     const [versionTags, setVersionTags] = React.useState([] as string[]);
     const [versionDescription, setVersionDescription] = React.useState("");
-    const [statusSaveVersion, setStatusSaveVersion] = React.useState<
-      StatusSaveVersion | undefined
-    >(undefined);
     // Plasmic hosting
     const [vebPlasmicHosting, setVEBPlasmicHosting] =
       React.useState<VisibleEnableBlockReadOnly>({
@@ -497,7 +497,6 @@ export const PublishFlowDialogWrapper =
       setPreviewError(undefined);
       spawn(
         (async () => {
-          try {
             topFrameTourSignals?.dispatch({
               type: TutorialEventsType.PublishModalButtonClicked,
             });
@@ -549,34 +548,30 @@ export const PublishFlowDialogWrapper =
             setStatusWebhooks({ ..._statusWebhooks });
 
             if (_statusSaveVersion.enabled) {
-              let publishResult: Awaited<
-                ReturnType<typeof hostFrameApi.publishVersion>
-              >;
-              try {
-                publishResult = await hostFrameApi.publishVersion(
-                  versionTags,
-                  versionDescription,
-                  activatedBranch?.id,
-                );
-              } catch (error) {
+              const publishResult = await hostFrameApi.publishVersion(
+                versionTags,
+                versionDescription,
+                activatedBranch?.id,
+              ).catch((error) => {
                 setStatusSaveVersion({
                   ..._statusSaveVersion,
                   result: "UnknownError",
                 });
                 throw error;
-              }
+              });
               _statusSaveVersion.result = publishResult;
               setVersionTags([] as string[]);
               setVersionDescription("");
               setStatusSaveVersion({ ..._statusSaveVersion });
 
-              try {
+              if (previewAvailable) {
                 ensureWebsiteVersionSaved(publishResult);
-              } catch (error) {
-                if (previewAvailable) {
-                  throw error;
+              } else {
+                try {
+                  ensureWebsiteVersionSaved(publishResult);
+                } catch {
+                  return;
                 }
-                return;
               }
 
               const versionId =
@@ -654,13 +649,12 @@ export const PublishFlowDialogWrapper =
                 setStatusWebhooks({ ..._statusWebhooks });
               }
             }
-          } catch (error) {
+          })().catch(async (error) => {
             setPreviewError(error);
-          } finally {
+          }).finally(() => {
             publishingRef.current = false;
             setPublishing(false);
-          }
-        })(),
+          }),
       );
     };
 

@@ -1,0 +1,50 @@
+import { DedicatedArenaInputs } from "@/wab/client/components/studio/arenas/dedicated-arena-inputs";
+import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { TplMgr, VariantOptionsType } from "@/wab/shared/TplMgr";
+import { ensure } from "@/wab/shared/common";
+import { ComponentType } from "@/wab/shared/core/components";
+import { ChangeRecorder } from "@/wab/shared/core/observable-model";
+import { mkGlobalVariantSplit, SplitStatus, SplitType } from "@/wab/shared/core/splits";
+import { createSite } from "@/wab/shared/core/sites";
+import { ensureKnownTplTag } from "@/wab/shared/model/classes";
+import { instUtil } from "@/wab/shared/model/InstUtil";
+
+it("publishes group labels, catalog membership and first-frame width without unrelated document edits", () => {
+  const site = createSite(), mgr = new TplMgr({ site });
+  const component = mgr.addComponent({ type: ComponentType.Plain, name: "Variants" });
+  const group = mgr.createVariantGroup({ component, optionsType: VariantOptionsType.singleChoice });
+  const global = mgr.createGlobalVariantGroup("Theme");
+  const dark = mgr.createGlobalVariant(global, "Dark");
+  const arena = ensure(site.componentArenas[0], "Component arena");
+  const frame = ensure(arena.matrix.rows[0]?.cols[0], "Base cell").frame;
+  const models = new ModelSnapshots(), lifetime = new AbortController();
+  const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
+  const studio = { site, modelSnapshots: models, arenaState: { lifetime: () => lifetime.signal } } as unknown as StudioCtx;
+  const source = new DedicatedArenaInputs(studio, arena), notify = vi.fn();
+  const stop = source.subscribe(notify);
+  try {
+    models.sync(recorder.withRecording(() => { group.param.variable.name = "ChangedGroup"; }).changes);
+    expect(notify).toHaveBeenCalledOnce();
+    notify.mockClear();
+    models.sync(recorder.withRecording(() => { ensureKnownTplTag(component.tplTree).name = "Unrelated tree label"; }).changes);
+    expect(notify).not.toHaveBeenCalled();
+    models.sync(recorder.withRecording(() => { frame.width += 30; }).changes);
+    expect(notify).toHaveBeenCalledOnce();
+    notify.mockClear();
+    models.sync(recorder.withRecording(() => { mgr.createVariantGroup({ component, optionsType: VariantOptionsType.multiChoice }); }).changes);
+    expect(notify).toHaveBeenCalled();
+    notify.mockClear();
+    models.sync(recorder.withRecording(() => { site.splits.push(mkGlobalVariantSplit({ group: global, variant: dark, type: SplitType.Experiment, status: SplitStatus.Running })); }).changes);
+    expect(notify).toHaveBeenCalled();
+    notify.mockClear();
+    models.sync(recorder.withRecording(() => { dark.mediaQuery = "(max-width: 700px)"; }).changes);
+    expect(notify).toHaveBeenCalledOnce();
+    lifetime.abort();
+    expect(source.getSnapshot()).toEqual([]);
+    expect(source.isCurrent()).toBe(false);
+    notify.mockClear();
+    models.sync(recorder.withRecording(() => { group.param.variable.name = "Retired"; }).changes);
+    expect(notify).not.toHaveBeenCalled();
+  } finally { stop(); recorder.dispose(); models.dispose(); }
+});

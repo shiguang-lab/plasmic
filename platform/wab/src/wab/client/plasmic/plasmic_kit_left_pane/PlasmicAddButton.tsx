@@ -14,19 +14,19 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useFocusVisible,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -90,11 +90,10 @@ function PlasmicAddButton__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isActive",
@@ -103,20 +102,20 @@ function PlasmicAddButton__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.isActive,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootFocusVisible, triggerRootFocusVisibleProps] = useTrigger(
-    "useFocusVisible",
-    {
+  const [isRootFocusVisible, triggerRootFocusVisibleProps] = useFocusVisible({
       isTextInput: false,
     }
   );
@@ -124,7 +123,7 @@ function PlasmicAddButton__RenderFunc(props: {
     focusVisible_root: isRootFocusVisible,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <button
@@ -212,12 +211,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -227,28 +222,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicAddButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicAddButton";
-  } else {
-    func.displayName = `PlasmicAddButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicAddButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicAddButton__root<T extends PlasmicAddButton__rootProps>(props: T & StrictProps<T, PlasmicAddButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicAddButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicAddButton__root.displayName = "PlasmicAddButton";
+
+type PlasmicAddButton__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicAddButton__svg<T extends PlasmicAddButton__svgProps>(props: T & StrictProps<T, PlasmicAddButton__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicAddButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicAddButton__svg.displayName = "PlasmicAddButton.svg";
+
+type PlasmicAddButton__focusRingProps = NodeComponentProps<"focusRing"> & {key?: React.Key};
+function PlasmicAddButton__focusRing<T extends PlasmicAddButton__focusRingProps>(props: T & StrictProps<T, PlasmicAddButton__focusRingProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("focusRing", props);
+  return <PlasmicAddButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"focusRing"} />;
+}
+PlasmicAddButton__focusRing.displayName = "PlasmicAddButton.focusRing";
+
 
 export const PlasmicAddButton = Object.assign(
   // Top-level PlasmicAddButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicAddButton__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
-    focusRing: makeNodeComponent("focusRing"),
+    svg: PlasmicAddButton__svg,
+    focusRing: PlasmicAddButton__focusRing,
 
     // Metadata about props expected for PlasmicAddButton
     internalVariantProps: PlasmicAddButton__VariantProps,

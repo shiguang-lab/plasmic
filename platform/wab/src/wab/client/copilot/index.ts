@@ -7,7 +7,7 @@ import {
 } from "@/wab/client/components/canvas/canvas-scroll";
 import { activityTargets } from "@/wab/client/copilot/activity";
 import { reviewInput, reviewComponents, reviewComponentReuse } from "@/wab/client/copilot/component-reuse";
-import { presentToolTarget } from "@/wab/client/copilot/present-target";
+import { requestToolTarget } from "@/wab/client/copilot/present-target";
 import { getLibrary, listLibraries, searchLibraryComponents } from "@/wab/client/copilot/libraries";
 import {
   browserImportCanvas,
@@ -174,7 +174,8 @@ const previewEditorViews = new WeakMap<StudioCtx, ReturnType<typeof meta.restore
 
 const presentedTools = new Set([...editTools, "read", "queryElements"]);
 
-async function presentOperationTarget(studio: StudioCtx, name: string, input: Record<string, any>, output?: any, signal?: AbortSignal) {
+function presentOperationTarget(studio: StudioCtx, name: string, input: Record<string, any>, output?: any, signal?: AbortSignal) {
+  try {
   if (!studio.studioIsVisible || !presentedTools.has(name) || input.fromProject && input.fromProject !== studio.siteInfo.id || input.view === "contract") { return undefined; }
   const receipt = name === "executeBatch" ? output?.operations?.at(-1) : output;
   const created = receipt?.created?.find((item: MutationIdentity) => item.kind === "Element") ?? receipt?.created?.find((item: MutationIdentity) => item.kind === "Component");
@@ -186,7 +187,11 @@ async function presentOperationTarget(studio: StudioCtx, name: string, input: Re
   if (name === "queryElements" && !match) { return undefined; }
   const elementUuid = (created?.kind === "Element" ? created.uuid : undefined) ?? match?.uuid ?? receipt?.elementUuid ?? input.elements?.[0]?.elementUuid ?? input.elementUuid;
   const tpl = elementUuid ? flattenTpls(component.tplTree).find(node => node.uuid === elementUuid) : component.tplTree;
-  return tpl ? presentToolTarget(studio, component, tpl, signal) : undefined;
+  return tpl ? requestToolTarget(studio, component, tpl, signal) : undefined;
+  } catch {
+    // Target discovery is optional presentation, not model validation.
+    return undefined;
+  }
 }
 
 const canvasVisibilityGuidance: Record<ReturnType<typeof getCanvasElementVisibility>["reason"], string> = {
@@ -214,7 +219,7 @@ function editorView(studio: StudioCtx) {
 }
 
 async function restoreEditorView(studio: StudioCtx, input: ReturnType<typeof meta.restoreEditorView.inputSchema.parse>) {
-  assert(!studio.isLiveMode && !studio.isInteractiveMode, "Return to edit mode before restoring a view");
+  assert(!studio.isLiveMode, "Close native Preview before restoring a view");
   const arena = getArenaByNameOrUuidOrPath(studio.site, input.arenaId, input.arenaType);
   assert(arena, "Saved arena no longer exists");
   const frame = input.frameUuid
@@ -239,7 +244,7 @@ const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
     signal?.throwIfAborted();
     if (!editTools.has(toolMeta.toolName)) {
       const output = await execute(studio, input, caller, signal);
-      const presentation = await presentOperationTarget(studio, toolMeta.toolName, input, output, signal);
+      const presentation = presentOperationTarget(studio, toolMeta.toolName, input, output, signal);
       return presentation ? { ...output, presentation: { ...presentation, phase: "after" } } : output;
     }
     const { context: reviewContext, operations: reviewOperations } = reviewInput(toolMeta.toolName, input);
@@ -270,9 +275,9 @@ const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
     const finish = studio.copilotActivity.begin(targets, "edit", caller, signal);
     try {
       const beforeDelete = ["deleteElement", "deleteComponent"].includes(toolMeta.toolName);
-      const before = await presentOperationTarget(studio, toolMeta.toolName, input, undefined, signal);
+      const before = presentOperationTarget(studio, toolMeta.toolName, input, undefined, signal);
       const output = await execute(studio, nativeInput as typeof input, caller, signal);
-      const presentation = beforeDelete ? before : await presentOperationTarget(studio, toolMeta.toolName, input, output, signal);
+      const presentation = beforeDelete ? before : presentOperationTarget(studio, toolMeta.toolName, input, output, signal);
       const componentReview = await reviewComponents(studio, reviewOperations, toolMeta.toolName === "executeBatch" ? output.operations : [output], reviewContext, caller?.id, signal);
       finish("success");
       return { ...output, componentReview, ...(presentation ? { presentation: { ...presentation, phase: beforeDelete ? "before" : "after" } } : {}) };
@@ -459,7 +464,6 @@ export function assertCanEditPrototype(studio: StudioCtx) {
     studio.canEditProject() &&
       studio.editMode &&
       !studio.isLiveMode &&
-      !studio.isInteractiveMode &&
       studio.isAtTip &&
       !studio.blockChanges,
     "Project is read-only, blocked, or not at its latest revision. Open an editable current revision.",
@@ -1980,7 +1984,6 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         studio.canEditProject() &&
         studio.editMode &&
         !studio.isLiveMode &&
-        !studio.isInteractiveMode &&
         studio.isAtTip &&
         !studio.blockChanges &&
         (!studio.siteInfo.isMainBranchProtected ||
@@ -2580,7 +2583,6 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         studio.canEditProject() &&
         studio.editMode &&
         !studio.isLiveMode &&
-        !studio.isInteractiveMode &&
         studio.isAtTip &&
         !studio.blockChanges &&
         (!studio.siteInfo.isMainBranchProtected ||
@@ -2672,8 +2674,8 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
     meta.selectElement,
     async (studio, input) => {
       assert(
-        !studio.isLiveMode && !studio.isInteractiveMode,
-        "Return to edit mode before selecting an element",
+        !studio.isLiveMode,
+        "Close native Preview before selecting an element",
       );
       let component = findComponent(studio, input.componentUuid);
       let tpl = flattenTpls(component.tplTree).find((t) => t.uuid === input.elementUuid);

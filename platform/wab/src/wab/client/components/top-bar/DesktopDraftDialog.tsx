@@ -66,7 +66,6 @@ async function performDraftAction(
 }
 
 export function DesktopDraftDialog({ studioCtx }: { studioCtx: StudioCtx }) {
-  "use memo";
   const { t, locale } = useI18n();
   const controller = useDesktopDraftController(studioCtx);
   const [busy, setBusy] = React.useState<string>();

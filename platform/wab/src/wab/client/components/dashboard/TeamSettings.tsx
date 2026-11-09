@@ -137,11 +137,11 @@ function TeamSettings_(props: TeamSettingsProps, ref: HTMLElementRefOf<"div">) {
         perms,
         onChangeRole: async (email: string, role?: GrantableAccessLevel) => {
           async function grantRevoke(req: GrantRevokeRequest) {
-            try {
+            return await (async () => {
               await appCtx.api.grantRevoke(req);
-            } finally {
+            })().finally(() => {
               refetchData();
-            }
+            });
           }
 
           if (hasOwnership && role === "owner") {

@@ -1,3 +1,6 @@
+import { useServerFunctionCatalog, useServerFunctionMetadata, useServerFunctionRegistration, useQueryDataTokenNames, useQueryPickerComponentInputs } from "@/wab/client/components/sidebar-tabs/ServerQuery/server-query-inputs";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { useStore } from "zustand";
 import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { showError } from "@/wab/client/ErrorNotifications";
 
@@ -37,7 +40,6 @@ import {
   installCustomFunction,
 } from "@/wab/client/utils/hostless-custom-functions";
 import { CUSTOM_CODE_QUERY_CAP } from "@/wab/shared/Labels";
-import { allCustomFunctions } from "@/wab/shared/cached-selectors";
 import {
   getPropTypeDefaultValue,
   normalizeCustomFunctionParams,
@@ -80,7 +82,6 @@ import {
   Expr,
   FunctionArg,
   Interaction,
-  Site,
   TplTag,
   isKnownComponentServerQuery,
 } from "@/wab/shared/model/classes";
@@ -90,8 +91,6 @@ import { smartHumanize } from "@/wab/shared/strs";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 
 import { groupBy } from "lodash";
-import { reaction } from "mobx";
-import { observer } from "mobx-react";
 import * as React from "react";
 import useSWR from "swr";
 import type { SetRequired } from "type-fest";
@@ -200,12 +199,7 @@ function getDraftFromOp(
 
 const INSTALLABLE_PREFIX = "install-custom-function-";
 
-function getAllCustomFunctions(site: Site) {
-  return allCustomFunctions(site).map((fnInfo) => fnInfo.customFunction);
-}
-
-export const ServerQueryOpDraftForm = observer(
-  function ServerQueryOpDraftForm(props: {
+export const ServerQueryOpDraftForm = React.memo(function ServerQueryOpDraftForm(props: {
     value: QueryDraft;
     onChange: (value: QueryDraft) => void;
     readOnly?: boolean;
@@ -236,6 +230,12 @@ export const ServerQueryOpDraftForm = observer(
     const studioCtx = useStudioCtx();
   useStudioSelection(studioCtx, (state) => state.view);
     const viewCtx = studioCtx.focusedViewCtx();
+    const {snapshot: functionCatalog, source: functionSource} = useServerFunctionCatalog(studioCtx);
+    const functionVersion = useServerFunctionMetadata(studioCtx, value.fnExpr?.func);
+    const registrationInput = useServerFunctionRegistration(viewCtx, value.fnExpr?.func);
+    const pickerVersion = useQueryPickerComponentInputs(studioCtx, exprCtx.component);
+    const renderCount = useCanvasRenderCount(viewCtx);
+    const installedHostless = useStore(studioCtx.hostlessPkgsStore, (state) => state.installed);
 
     const cleanedEnvData = React.useMemo(
       () =>
@@ -246,7 +246,7 @@ export const ServerQueryOpDraftForm = observer(
             exprCtx.component ?? undefined,
           ),
         ),
-      [viewCtx, data, exprCtx.component],
+      [viewCtx, data, exprCtx.component, pickerVersion, renderCount],
     );
 
     const isCustomCodeMode = !!value.codeExpr;
@@ -257,19 +257,19 @@ export const ServerQueryOpDraftForm = observer(
         getInstallableCustomFunctions(studioCtx).filter((fn) =>
           mode === "mutation" ? !!fn.isMutation : true,
         ),
-      [studioCtx.site.projectDependencies.length, mode],
+      [studioCtx, functionCatalog, installedHostless, mode],
     );
     const availableFunctions = React.useMemo(
       () =>
-        getAllCustomFunctions(studioCtx.site).filter((fn) =>
+        functionCatalog.functions.map((ref) => functionSource.resolve(ref)).filter((fn) =>
           mode === "mutation" ? fn.isMutation : fn.isQuery,
         ),
-      [studioCtx.site.projectDependencies.length, mode],
+      [functionCatalog, functionSource, mode],
     );
 
     const argsMap = React.useMemo(
       () => groupBy(value.fnExpr?.args ?? [], (arg) => arg.argType.argName),
-      [value.fnExpr?.args],
+      [value.fnExpr?.args, functionVersion],
     );
     const evaluatedArgs = React.useMemo(() => {
       if (!value.fnExpr || !value.fnExpr.func || !value.fnExpr.args) {
@@ -287,10 +287,10 @@ export const ServerQueryOpDraftForm = observer(
         // prop visibility/context data, so they can be safely ignored.
         return [];
       }
-    }, [value, data, exprCtx, currGlobalThis]);
+    }, [value, data, exprCtx, currGlobalThis, functionVersion, renderCount]);
 
     const evaluatedFnContext = React.useMemo(() => {
-      const func = value?.fnExpr?.func;
+      const func = value.fnExpr?.func;
       if (!func) {
         return {
           funcId: null,
@@ -328,7 +328,7 @@ export const ServerQueryOpDraftForm = observer(
           funcParamsValues: evaluatedArgs,
         };
       }
-    }, [studioCtx, value?.fnExpr?.func, evaluatedArgs]);
+    }, [studioCtx, value.fnExpr?.func, evaluatedArgs, registrationInput, functionVersion]);
 
     const { funcId, dataKey, fetcher, funcParamsValues } = evaluatedFnContext;
     const { data: ccContextData } = useSWR(dataKey, fetcher, {
@@ -370,6 +370,8 @@ export const ServerQueryOpDraftForm = observer(
         invalidArgs,
         value?.fnExpr?.func,
         value?.queryName,
+        functionVersion,
+        pickerVersion,
       ]);
 
     React.useEffect(() => {
@@ -460,31 +462,28 @@ export const ServerQueryOpDraftForm = observer(
       [commitFnExprArgs],
     );
 
-    const handleInstallCustomFunction = async (
+    const handleInstallCustomFunction = (
       customFunctionInfo: HostLessCustomFunction,
     ) => {
       setIsInstalling(true);
-      try {
-        const newFunc = await installCustomFunction(
-          studioCtx,
-          customFunctionInfo,
-        );
-        onChange({
-          ...value,
-          codeExpr: undefined,
-          fnExpr: new CustomFunctionExpr({
-            func: newFunc,
-            args: mkCustomFunctionArgs(studioCtx, newFunc, mode),
-          }),
-        });
-      } catch (error) {
-        showError(error, { title: translate(
+      return installCustomFunction(studioCtx, customFunctionInfo)
+        .then((newFunc) => {
+          onChange({
+            ...value,
+            codeExpr: undefined,
+            fnExpr: new CustomFunctionExpr({
+              func: newFunc,
+              args: mkCustomFunctionArgs(studioCtx, newFunc, mode),
+            }),
+          });
+        })
+        .catch((error) => {
+          showError(error, { title: translate(
             getUiLocale(),
             "Failed to install custom function",
           ) });
-      } finally {
-        setIsInstalling(false);
-      }
+        })
+        .finally(() => setIsInstalling(false));
     };
 
     const handleCodeChange = React.useCallback(
@@ -650,11 +649,12 @@ export const ServerQueryOpDraftForm = observer(
         )}
       </div>
     );
-  },
-);
+});
+
+
 
 /** Renders "not executed" UI if queryState is undefined. */
-function _ServerQueryOpPreview(props: {
+function ServerQueryOpPreviewContent(props: {
   queryState: StatefulQueryState | undefined;
   invalidArgs: Record<string, InvalidArg> | undefined;
 }) {
@@ -771,10 +771,9 @@ function _ServerQueryOpPreview(props: {
   );
 }
 
-export const ServerQueryOpPreview = React.memo(_ServerQueryOpPreview);
+export const ServerQueryOpPreview = React.memo(ServerQueryOpPreviewContent);
 
-export const ServerQueryOpExprFormAndPreview = observer(
-  function ServerQueryOpExprFormAndPreview(props: {
+export const ServerQueryOpExprFormAndPreview = React.memo(function ServerQueryOpExprFormAndPreview(props: {
     value: ServerQueryOp | ComponentServerQuery | undefined;
     onSave: (value: ServerQueryOp, opExprName?: string) => void;
     onCancel: () => void;
@@ -806,72 +805,33 @@ export const ServerQueryOpExprFormAndPreview = observer(
       return getDraftFromOp(op ?? undefined, parentQuery?.name);
     });
 
-    // Watch for data token renames and update draft expressions accordingly
+    const tokenNames = useQueryDataTokenNames(studioCtx);
+    const previousTokenNames = React.useRef(tokenNames);
     React.useEffect(() => {
-      const dispose = reaction(
-        () => {
-          // Track data tokens by their uid and name
-          return studioCtx.site.dataTokens.map((token) => ({
-            uid: token.uid,
-            name: token.name,
-          }));
-        },
-        (currentTokens, previousTokens) => {
-          if (!draft.fnExpr?.args && !draft.codeExpr) {
-            return;
+      const previous = new Map(previousTokenNames.current.map((token) => [token.uid, token.name]));
+      previousTokenNames.current = tokenNames;
+      const renames = tokenNames.flatMap((token) => {
+        const oldName = previous.get(token.uid);
+        return oldName !== undefined && oldName !== token.name ? [{oldName, newName: token.name}] : [];
+      });
+      if (!renames.length) {return;}
+      setDraft((previousDraft) => {
+        if (!previousDraft.fnExpr?.args && !previousDraft.codeExpr) {return previousDraft;}
+        const next: QueryDraft = {...previousDraft,
+          fnExpr: previousDraft.fnExpr ? clone(previousDraft.fnExpr) : undefined,
+          codeExpr: previousDraft.codeExpr ? clone(previousDraft.codeExpr) : undefined};
+        for (const {oldName, newName} of renames) {
+          const shortId = makeShortProjectId(studioCtx.siteInfo.id);
+          const oldIdentifier = makeDataTokenIdentifier(shortId, toVarName(oldName));
+          const newIdentifier = makeDataTokenIdentifier(shortId, toVarName(newName));
+          for (const arg of next.fnExpr?.args ?? []) {
+            for (const expression of flattenExprs(arg.expr)) {renameDataTokenInExpr(expression, oldIdentifier, newIdentifier);}
           }
-
-          // Find which tokens were renamed
-          const renames: Array<{ oldName: string; newName: string }> = [];
-          currentTokens.forEach((curr, idx) => {
-            const prev = previousTokens[idx];
-            if (prev && curr.uid === prev.uid && curr.name !== prev.name) {
-              renames.push({ oldName: prev.name, newName: curr.name });
-            }
-          });
-
-          if (renames.length > 0) {
-            // Update the draft expressions with the new token names
-            setDraft((prevDraft) => {
-              if (!prevDraft.fnExpr?.args && !prevDraft.codeExpr) {
-                return prevDraft;
-              }
-
-              // Apply all renames to each arg expression and all nested expressions
-              renames.forEach(({ oldName, newName }) => {
-                const shortId = makeShortProjectId(studioCtx.siteInfo.id);
-                const oldIdentifier = makeDataTokenIdentifier(
-                  shortId,
-                  toVarName(oldName),
-                );
-                const newIdentifier = makeDataTokenIdentifier(
-                  shortId,
-                  toVarName(newName),
-                );
-
-                prevDraft.fnExpr?.args.forEach((arg) => {
-                  flattenExprs(arg.expr).forEach((expr) => {
-                    renameDataTokenInExpr(expr, oldIdentifier, newIdentifier);
-                  });
-                });
-
-                if (prevDraft.codeExpr) {
-                  renameDataTokenInExpr(
-                    prevDraft.codeExpr,
-                    oldIdentifier,
-                    newIdentifier,
-                  );
-                }
-              });
-
-              // Return a new draft object to trigger re-render
-              return { ...prevDraft };
-            });
-          }
-        },
-      );
-      return () => dispose();
-    }, [studioCtx.site.dataTokens, draft.fnExpr?.args, draft.codeExpr]);
+          if (next.codeExpr) {renameDataTokenInExpr(next.codeExpr, oldIdentifier, newIdentifier);}
+        }
+        return next;
+      });
+    }, [studioCtx, tokenNames]);
 
     const [executeArgs, setExecuteArgs] = React.useState<ServerQueryOpArgs>();
     const { queryState, invalidArgs } = useServerQueryOp(executeArgs);
@@ -977,5 +937,4 @@ export const ServerQueryOpExprFormAndPreview = observer(
       </div>
     );
     return contents;
-  },
-);
+});

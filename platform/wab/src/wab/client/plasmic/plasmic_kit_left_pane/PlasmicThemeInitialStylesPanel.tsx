@@ -15,19 +15,19 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   generateStateOnChangeProp,
   generateStateValueProp,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -86,11 +86,10 @@ function PlasmicThemeInitialStylesPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "elementSelect.value",
@@ -99,18 +98,20 @@ function PlasmicThemeInitialStylesPanel__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -150,9 +151,9 @@ function PlasmicThemeInitialStylesPanel__RenderFunc(props: {
               role={"img"}
             />
           }
-          onChange={async (...eventArgs: any) => {
+          onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
             ((...eventArgs) => {
-              generateStateOnChangeProp($state, ["elementSelect", "value"])(
+              generateStateOnChangeProp($stateCommands, ["elementSelect", "value"])(
                 eventArgs[0]
               );
             }).apply(null, eventArgs);
@@ -164,7 +165,7 @@ function PlasmicThemeInitialStylesPanel__RenderFunc(props: {
             ) {
               return;
             }
-          }}
+          })); })}
           options={[
             { value: "option1", label: "Option 1" },
             { value: "option2", label: "Option 2" },
@@ -224,12 +225,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -240,29 +237,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicThemeInitialStylesPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicThemeInitialStylesPanel";
-  } else {
-    func.displayName = `PlasmicThemeInitialStylesPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicThemeInitialStylesPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicThemeInitialStylesPanel__root<T extends PlasmicThemeInitialStylesPanel__rootProps>(props: T & StrictProps<T, PlasmicThemeInitialStylesPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicThemeInitialStylesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicThemeInitialStylesPanel__root.displayName = "PlasmicThemeInitialStylesPanel";
+
+type PlasmicThemeInitialStylesPanel__elementSelectProps = NodeComponentProps<"elementSelect"> & {key?: React.Key};
+function PlasmicThemeInitialStylesPanel__elementSelect<T extends PlasmicThemeInitialStylesPanel__elementSelectProps>(props: T & StrictProps<T, PlasmicThemeInitialStylesPanel__elementSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("elementSelect", props);
+  return <PlasmicThemeInitialStylesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"elementSelect"} />;
+}
+PlasmicThemeInitialStylesPanel__elementSelect.displayName = "PlasmicThemeInitialStylesPanel.elementSelect";
+
+type PlasmicThemeInitialStylesPanel__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicThemeInitialStylesPanel__svg<T extends PlasmicThemeInitialStylesPanel__svgProps>(props: T & StrictProps<T, PlasmicThemeInitialStylesPanel__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicThemeInitialStylesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicThemeInitialStylesPanel__svg.displayName = "PlasmicThemeInitialStylesPanel.svg";
+
+type PlasmicThemeInitialStylesPanel__formProps = NodeComponentProps<"form"> & {key?: React.Key};
+function PlasmicThemeInitialStylesPanel__form<T extends PlasmicThemeInitialStylesPanel__formProps>(props: T & StrictProps<T, PlasmicThemeInitialStylesPanel__formProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("form", props);
+  return <PlasmicThemeInitialStylesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"form"} />;
+}
+PlasmicThemeInitialStylesPanel__form.displayName = "PlasmicThemeInitialStylesPanel.form";
+
 
 export const PlasmicThemeInitialStylesPanel = Object.assign(
   // Top-level PlasmicThemeInitialStylesPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicThemeInitialStylesPanel__root,
   {
     // Helper components rendering sub-elements
-    elementSelect: makeNodeComponent("elementSelect"),
-    svg: makeNodeComponent("svg"),
-    form: makeNodeComponent("form"),
+    elementSelect: PlasmicThemeInitialStylesPanel__elementSelect,
+    svg: PlasmicThemeInitialStylesPanel__svg,
+    form: PlasmicThemeInitialStylesPanel__form,
 
     // Metadata about props expected for PlasmicThemeInitialStylesPanel
     internalVariantProps: PlasmicThemeInitialStylesPanel__VariantProps,

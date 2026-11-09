@@ -137,8 +137,6 @@ export function cleanDataForPreview(
           key.startsWith("__plasmic") ||
           key.startsWith("$dataTokens_") ||
           key === "dataTokensEnv" ||
-          key === "registerInitFunc" ||
-          key === "eagerInitializeStates" ||
           (key === "$queries" && L.isEmpty(val)) // $queries is deprecated, we only show it if there are any queries
         );
       });

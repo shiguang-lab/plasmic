@@ -15,7 +15,6 @@ import React from "react";
 function PageParamsPanel(props: {
   page: Component;
 }) {
-  "use memo";
   const { page } = props;
   const sc = useStudioCtx();
 

@@ -14,19 +14,19 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   PlasmicIcon as PlasmicIcon__,
   PlasmicLink as PlasmicLink__,
   StrictProps,
-  useTrigger,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import InlineEditable from "../../components/InlineEditable"; // plasmic-import: btpz7A3thO/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -88,16 +88,15 @@ function PlasmicCmsTopBar__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const [isSvgHover, triggerSvgHoverProps] = useTrigger("useHover", {});
+  const [isSvgHover, triggerSvgHoverProps] = useHover();
   const triggers = {
     hover_svg: isSvgHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -223,12 +222,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -238,33 +233,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCmsTopBar__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCmsTopBar";
-  } else {
-    func.displayName = `PlasmicCmsTopBar.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCmsTopBar__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCmsTopBar__root<T extends PlasmicCmsTopBar__rootProps>(props: T & StrictProps<T, PlasmicCmsTopBar__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCmsTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCmsTopBar__root.displayName = "PlasmicCmsTopBar";
+
+type PlasmicCmsTopBar__leftProps = NodeComponentProps<"left"> & {key?: React.Key};
+function PlasmicCmsTopBar__left<T extends PlasmicCmsTopBar__leftProps>(props: T & StrictProps<T, PlasmicCmsTopBar__leftProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("left", props);
+  return <PlasmicCmsTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"left"} />;
+}
+PlasmicCmsTopBar__left.displayName = "PlasmicCmsTopBar.left";
+
+type PlasmicCmsTopBar__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicCmsTopBar__link<T extends PlasmicCmsTopBar__linkProps>(props: T & StrictProps<T, PlasmicCmsTopBar__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicCmsTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicCmsTopBar__link.displayName = "PlasmicCmsTopBar.link";
+
+type PlasmicCmsTopBar__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicCmsTopBar__svg<T extends PlasmicCmsTopBar__svgProps>(props: T & StrictProps<T, PlasmicCmsTopBar__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicCmsTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicCmsTopBar__svg.displayName = "PlasmicCmsTopBar.svg";
+
+type PlasmicCmsTopBar__cmsNameProps = NodeComponentProps<"cmsName"> & {key?: React.Key};
+function PlasmicCmsTopBar__cmsName<T extends PlasmicCmsTopBar__cmsNameProps>(props: T & StrictProps<T, PlasmicCmsTopBar__cmsNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cmsName", props);
+  return <PlasmicCmsTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cmsName"} />;
+}
+PlasmicCmsTopBar__cmsName.displayName = "PlasmicCmsTopBar.cmsName";
+
+type PlasmicCmsTopBar__cmsNameValueProps = NodeComponentProps<"cmsNameValue"> & {key?: React.Key};
+function PlasmicCmsTopBar__cmsNameValue<T extends PlasmicCmsTopBar__cmsNameValueProps>(props: T & StrictProps<T, PlasmicCmsTopBar__cmsNameValueProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cmsNameValue", props);
+  return <PlasmicCmsTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cmsNameValue"} />;
+}
+PlasmicCmsTopBar__cmsNameValue.displayName = "PlasmicCmsTopBar.cmsNameValue";
+
+type PlasmicCmsTopBar__middleProps = NodeComponentProps<"middle"> & {key?: React.Key};
+function PlasmicCmsTopBar__middle<T extends PlasmicCmsTopBar__middleProps>(props: T & StrictProps<T, PlasmicCmsTopBar__middleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("middle", props);
+  return <PlasmicCmsTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"middle"} />;
+}
+PlasmicCmsTopBar__middle.displayName = "PlasmicCmsTopBar.middle";
+
+type PlasmicCmsTopBar__rightProps = NodeComponentProps<"right"> & {key?: React.Key};
+function PlasmicCmsTopBar__right<T extends PlasmicCmsTopBar__rightProps>(props: T & StrictProps<T, PlasmicCmsTopBar__rightProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("right", props);
+  return <PlasmicCmsTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"right"} />;
+}
+PlasmicCmsTopBar__right.displayName = "PlasmicCmsTopBar.right";
+
 
 export const PlasmicCmsTopBar = Object.assign(
   // Top-level PlasmicCmsTopBar renders the root element
-  makeNodeComponent("root"),
+  PlasmicCmsTopBar__root,
   {
     // Helper components rendering sub-elements
-    left: makeNodeComponent("left"),
-    link: makeNodeComponent("link"),
-    svg: makeNodeComponent("svg"),
-    cmsName: makeNodeComponent("cmsName"),
-    cmsNameValue: makeNodeComponent("cmsNameValue"),
-    middle: makeNodeComponent("middle"),
-    right: makeNodeComponent("right"),
+    left: PlasmicCmsTopBar__left,
+    link: PlasmicCmsTopBar__link,
+    svg: PlasmicCmsTopBar__svg,
+    cmsName: PlasmicCmsTopBar__cmsName,
+    cmsNameValue: PlasmicCmsTopBar__cmsNameValue,
+    middle: PlasmicCmsTopBar__middle,
+    right: PlasmicCmsTopBar__right,
 
     // Metadata about props expected for PlasmicCmsTopBar
     internalVariantProps: PlasmicCmsTopBar__VariantProps,

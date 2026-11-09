@@ -1,3 +1,8 @@
+import { useContentEditorControlInputs } from "@/wab/client/components/canvas/content-editor-control-inputs";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
+import { isKnownTplComponent } from "@/wab/shared/model/classes";
 import { useCanvasExporting } from "@/wab/client/components/canvas/canvas-frame-info";
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
@@ -17,7 +22,6 @@ import {
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { Button } from "antd";
 import { createStyles } from "antd-style";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { FiArrowLeft, FiArrowUpRight } from "react-icons/fi";
 
@@ -68,8 +72,7 @@ const useStyles = createStyles(({ token }) => ({
   },
 }));
 
-export const CanvasContentEditorControls = observer(
-  function CanvasContentEditorControls({
+export const CanvasContentEditorControls = React.memo(function CanvasContentEditorControls({
     studioCtx,
   }: {
     studioCtx: StudioCtx;
@@ -83,7 +86,9 @@ export const CanvasContentEditorControls = observer(
     const active = activeEditor?.viewCtx;
     const vc = active ?? studioCtx.focusedViewCtx();
     const exporting = useCanvasExporting(vc);
-  useViewSelection(vc, (state) => state.doms);
+  const selection = useViewSelection(vc, useShallow((state) => [state.doms, state.tpls, state.targets, state.context]));
+  useCanvasRenderCount(vc);
+  const modelReady = useContentEditorControlInputs(vc, selection);
     const [, refreshGeometry] = React.useReducer(
       (value: number) => value + 1,
       0,
@@ -128,7 +133,7 @@ export const CanvasContentEditorControls = observer(
     const current = active?.contentEditor.target;
     const { styles } = useStyles();
     const { t } = useI18n();
-    const candidate = vc && getContentEditorTarget(vc);
+    const candidate = modelReady && vc && getContentEditorTarget(vc);
     const entry =
       candidate &&
       (!current ||
@@ -138,7 +143,7 @@ export const CanvasContentEditorControls = observer(
           vc.contentEditor.containsElement(candidate.element)))
         ? candidate
         : undefined;
-    if (!vc || interactive || liveMode || exporting) {
+    if (!vc || !modelReady || interactive || liveMode || exporting) {
       return null;
     }
     return (
@@ -171,10 +176,9 @@ export const CanvasContentEditorControls = observer(
         )}
       </>
     );
-  },
-);
+});
 
-const ContentEditorToolbar = observer(function ContentEditorToolbar({
+const ContentEditorToolbar = React.memo(function ContentEditorToolbar({
   studioCtx,
   vc,
   target,
@@ -305,9 +309,13 @@ const ContentEditorToolbar = observer(function ContentEditorToolbar({
       );
     };
   }, [target.element, vc, editing, zoom, scroll, studioCtx]);
-  const name =
-    target.tpl.name ||
-    ("component" in target.tpl ? target.tpl.component.name : target.tpl.tag);
+  const models = studioCtx.modelSnapshots;
+  const ownName = useStore(models.field(target.tpl, "name"));
+  useStore(models.declaredField(target.tpl, isKnownTplComponent(target.tpl) ? "component" : "tag"));
+  const fallbackName = useStore(isKnownTplComponent(target.tpl)
+    ? models.field(target.tpl.component, "name")
+    : models.field(target.tpl, "tag"));
+  const name = ownName || fallbackName;
   return (
     <div
       ref={root}

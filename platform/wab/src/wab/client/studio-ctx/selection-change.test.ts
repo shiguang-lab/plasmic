@@ -15,7 +15,6 @@ import { ValComponent, ValTag } from "@/wab/shared/core/val-nodes";
 import { TplTag, ensureKnownTplTag } from "@/wab/shared/model/classes";
 import { waitFor } from "@testing-library/react";
 import $ from "jquery";
-import { runInAction } from "mobx";
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -116,7 +115,7 @@ it("commits focus set by model or navigation paths without a pure selection tran
   const { sc, vc } = await setup();
   vi.useFakeTimers();
   try {
-    runInAction(() => vc.setStudioFocusByTpl(vc.component.tplTree, "model-edit"));
+    (() => vc.setStudioFocusByTpl(vc.component.tplTree, "model-edit"))();
     expect(sc.isSelectionPending).toBe(true);
     expect((sc.inspectorSelection?.tpl ?? null)).toBeNull();
     await vi.advanceTimersByTimeAsync(100);
@@ -393,25 +392,25 @@ it("deduplicates hover DOM notifications while keeping clone, target and DOM cha
     }
   });
   try {
-    runInAction(() => vc.setViewCtxHoverBySelectable(val, "first"));
+    (() => vc.setViewCtxHoverBySelectable(val, "first"))();
     const doms = vc.$hoveredDomElt();
     update.mockClear();
-    runInAction(() => vc.setViewCtxHoverBySelectable(val, "first"));
-    runInAction(() => vc.setViewCtxHoverBySelectable(val, "first"));
+    (() => vc.setViewCtxHoverBySelectable(val, "first"))();
+    (() => vc.setViewCtxHoverBySelectable(val, "first"))();
     expect(update).not.toHaveBeenCalled();
     expect(vc.$hoveredDomElt()).toBe(doms);
 
-    runInAction(() => vc.setViewCtxHoverBySelectable(val, "second"));
+    (() => vc.setViewCtxHoverBySelectable(val, "second"))();
     expect(vc.$hoveredDomElt()?.[0]).toBe(second);
     expect(update).toHaveBeenCalledTimes(1);
     firstDom = replacement;
-    runInAction(() => vc.setViewCtxHoverBySelectable(val, "first"));
+    (() => vc.setViewCtxHoverBySelectable(val, "first"))();
     expect(vc.$hoveredDomElt()?.[0]).toBe(replacement);
     expect(update).toHaveBeenCalledTimes(2);
-    runInAction(() => vc.setViewCtxHoverBySelectable(null));
+    (() => vc.setViewCtxHoverBySelectable(null))();
     expect(vc.$hoveredDomElt()).toBeNull();
     expect(update).toHaveBeenCalledTimes(3);
-    runInAction(() => vc.setViewCtxHoverBySelectable(null));
+    (() => vc.setViewCtxHoverBySelectable(null))();
     expect(update).toHaveBeenCalledTimes(3);
   } finally {
     disposeObserver();
@@ -567,10 +566,9 @@ it("keeps a caught nested selection failure inside its outer complete selection"
 
 it("rolls back component stack, context and default slots with a failed or caught nested selection", async () => {
   const { sc, vc } = await setup();
-  const child = mkComponent({ name: "Child", type: ComponentType.Plain, tplTree: (baseVariant) => mkTplTagX("div", { baseVariant }) });
+  const child = await sc.changeUnsafe(() => sc.tplMgr().addComponent({name: "Child", type: ComponentType.Plain}));
   const tpl = mkTplComponent(child, vc.component.variants[0]);
   await sc.changeUnsafe(() => {
-    sc.site.components.push(child);
     const root = ensureKnownTplTag(vc.component.tplTree);
     root.children.push(tpl);
     tpl.parent = root;

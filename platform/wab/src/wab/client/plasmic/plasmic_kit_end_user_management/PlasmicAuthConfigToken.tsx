@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,7 +25,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -84,11 +84,10 @@ function PlasmicAuthConfigToken__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -187,12 +186,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -202,29 +197,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicAuthConfigToken__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicAuthConfigToken";
-  } else {
-    func.displayName = `PlasmicAuthConfigToken.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicAuthConfigToken__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicAuthConfigToken__root<T extends PlasmicAuthConfigToken__rootProps>(props: T & StrictProps<T, PlasmicAuthConfigToken__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicAuthConfigToken__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicAuthConfigToken__root.displayName = "PlasmicAuthConfigToken";
+
+type PlasmicAuthConfigToken__tokenLabelProps = NodeComponentProps<"tokenLabel"> & {key?: React.Key};
+function PlasmicAuthConfigToken__tokenLabel<T extends PlasmicAuthConfigToken__tokenLabelProps>(props: T & StrictProps<T, PlasmicAuthConfigToken__tokenLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("tokenLabel", props);
+  return <PlasmicAuthConfigToken__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tokenLabel"} />;
+}
+PlasmicAuthConfigToken__tokenLabel.displayName = "PlasmicAuthConfigToken.tokenLabel";
+
+type PlasmicAuthConfigToken__copyBtnProps = NodeComponentProps<"copyBtn"> & {key?: React.Key};
+function PlasmicAuthConfigToken__copyBtn<T extends PlasmicAuthConfigToken__copyBtnProps>(props: T & StrictProps<T, PlasmicAuthConfigToken__copyBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("copyBtn", props);
+  return <PlasmicAuthConfigToken__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"copyBtn"} />;
+}
+PlasmicAuthConfigToken__copyBtn.displayName = "PlasmicAuthConfigToken.copyBtn";
+
+type PlasmicAuthConfigToken__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicAuthConfigToken__svg<T extends PlasmicAuthConfigToken__svgProps>(props: T & StrictProps<T, PlasmicAuthConfigToken__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicAuthConfigToken__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicAuthConfigToken__svg.displayName = "PlasmicAuthConfigToken.svg";
+
 
 export const PlasmicAuthConfigToken = Object.assign(
   // Top-level PlasmicAuthConfigToken renders the root element
-  makeNodeComponent("root"),
+  PlasmicAuthConfigToken__root,
   {
     // Helper components rendering sub-elements
-    tokenLabel: makeNodeComponent("tokenLabel"),
-    copyBtn: makeNodeComponent("copyBtn"),
-    svg: makeNodeComponent("svg"),
+    tokenLabel: PlasmicAuthConfigToken__tokenLabel,
+    copyBtn: PlasmicAuthConfigToken__copyBtn,
+    svg: PlasmicAuthConfigToken__svg,
 
     // Metadata about props expected for PlasmicAuthConfigToken
     internalVariantProps: PlasmicAuthConfigToken__VariantProps,

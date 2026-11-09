@@ -2,7 +2,7 @@ import { useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
 import { DefinedIndicator } from "@/wab/client/components/style-controls/DefinedIndicator";
 import {
   getLabelForStyleName,
-  StyleComponentContext,
+  StyleTargetContext,
   WithStyleContextMenu,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { ensure, ensureArray } from "@/wab/shared/common";
@@ -17,8 +17,8 @@ export function StyleWrapper(props: {
   children?: React.ReactNode;
 }) {
   const { showDefinedIndicator = false, styleName, displayStyleName, className } = props;
-  const context = React.useContext(StyleComponentContext);
-  const sc = ensure(context, "StyleWrapper requires a StyleComponent");
+  const context = React.useContext(StyleTargetContext);
+  const sc = ensure(context, "StyleWrapper requires a StyleTarget");
   const styleNames = ensureArray(styleName);
   const indicators = useStyleIndicators(sc.props.expsProvider, showDefinedIndicator ? styleNames : []);
     return (

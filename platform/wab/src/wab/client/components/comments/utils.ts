@@ -1,11 +1,6 @@
 import { CommentsCtx } from "@/wab/client/studio-ctx/comments-ctx";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ApiCommentThread, ApiUser } from "@/wab/shared/ApiSchema";
-import {
-  AnyArena,
-  getArenaFrames,
-  isDedicatedArena,
-} from "@/wab/shared/Arenas";
 import { Bundler } from "@/wab/shared/bundler";
 import {
   extractMentionedEmails,
@@ -136,21 +131,17 @@ export function getCommentThreadWithModelMetadata(
 export function filterCommentThreads(
   threads: TplCommentThreads,
   filters: CommentFilters,
-  currentArena: AnyArena | null | undefined,
+  currentComponentUids: ReadonlySet<number>,
   selfInfo: Pick<ApiUser, "id" | "email">,
 ) {
-  const currentComponents = new Set(
-    isDedicatedArena(currentArena)
-      ? [currentArena.component]
-      : getArenaFrames(currentArena).map((frame) => frame.container.component),
-  );
+
 
   return sortBy(
     threads.filter((thread) => {
       if (
         filters.scope === "current" &&
         (!thread.subjectInfo ||
-          !currentComponents.has(thread.subjectInfo.ownerComponent))
+          !currentComponentUids.has(thread.subjectInfo.ownerComponent.uid))
       ) {
         return false;
       }

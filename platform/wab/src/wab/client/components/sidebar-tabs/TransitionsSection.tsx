@@ -5,7 +5,7 @@ import { NonBaseVariantTransitionsMessage } from "@/wab/client/components/sideba
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { SidebarSectionHandle } from "@/wab/client/components/sidebar/SidebarSection";
 import {
-  mkStyleComponent,
+  createStyleTarget,
   StyleComponentProps,
   StylePanelSection,
   TplExpsProvider,
@@ -41,7 +41,7 @@ export class Transition {
 export function TransitionsPanelSection(props: StyleComponentProps) {
   const { expsProvider } = props;
   const studio = expsProvider.studioCtx;
-  const styling = mkStyleComponent(props);
+  const styling = createStyleTarget(props);
   const [inspectedIndex, setIndex] = React.useState<number>();
   const sectionRef = React.useRef<SidebarSectionHandle>(null);
   const baseRaw = useBaseTransitionInputs(expsProvider instanceof TplExpsProvider ? expsProvider : undefined);
@@ -122,9 +122,8 @@ export function TransitionsPanelSection(props: StyleComponentProps) {
         transitionDuration: "1s",
         transitionDelay: "0s",
       };
-      transitions.push(newTransition);
-      updateTransitions(transitions);
-      setIndex(transitions.length - 1);
+      updateTransitions([...transitions, newTransition]);
+      setIndex(transitions.length);
 
       sectionRef.current?.expand();
     };
@@ -162,8 +161,7 @@ export function TransitionsPanelSection(props: StyleComponentProps) {
                     <TransitionPanel
                       transition={transitions[inspectedIndex]}
                       onChange={(newValue: Transition) => {
-                        transitions[inspectedIndex] = newValue;
-                        updateTransitions(transitions);
+                        updateTransitions(transitions.map((transition, index) => index === inspectedIndex ? newValue : transition));
                       }}
                     />
                   </div>

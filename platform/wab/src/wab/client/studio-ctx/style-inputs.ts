@@ -1,3 +1,4 @@
+import type { TplVisibility } from "@/wab/shared/visibility-utils";
 /**
  * Native selected-style cells from explicit persisted model inputs.
  *
@@ -26,6 +27,7 @@ import { RuleSet as RuleSetModel, ThemeLayoutSettings as ThemeLayoutSettingsMode
 import { instUtil } from "@/wab/shared/model/InstUtil";
 import type {
   Animation,
+  Expr,
   Component,
   Mixin,
   ObjInst,
@@ -51,6 +53,10 @@ export type StyleKey = string;
 
 /** A style-source stack entry with live models replaced by owner refs. */
 export type StyleSourceSnapshot =
+  | { readonly type: "visibility"; readonly combo: readonly ModelRef<Variant>[]; readonly value: TplVisibility; }
+  | { readonly type: "text"; readonly combo: readonly ModelRef<Variant>[]; readonly value: string; }
+  | { readonly type: "attr"; readonly combo: readonly ModelRef<Variant>[]; readonly value: ModelRef<Expr>; readonly attr: string; }
+  | { readonly type: "columnsConfig"; readonly combo: readonly ModelRef<Variant>[]; readonly value: string; }
   | {
       readonly type: "theme";
       readonly theme: ModelRef<Theme>;
@@ -128,6 +134,14 @@ export interface StyleCell {
   readonly indicatorUnsupported?: string;
 }
 
+/** A marker has source metadata, never a CSS value or initial-value lookup. */
+export interface StyleIndicatorCell {
+  readonly key: StyleKey;
+  readonly indicator?: StyleIndicatorSnapshot;
+  readonly indicatorUnsupported?: string;
+}
+export type StyleIndicatorCellsSnapshot = readonly StyleIndicatorCell[];
+
 export type StyleCellsSnapshot = readonly StyleCell[];
 
 export type StyleCellsStore = ModelFieldStore<StyleCellsSnapshot>;
@@ -166,6 +180,14 @@ function captureSource(
   source: VariantSettingSource,
 ): StyleSourceSnapshot {
   switch (source.type) {
+    case "visibility":
+      return freeze({ type: "visibility", combo: variantRefs(models, source.combo), value: source.value });
+    case "text":
+      return freeze({ type: "text", combo: variantRefs(models, source.combo), value: source.value });
+    case "attr":
+      return freeze({ type: "attr", combo: variantRefs(models, source.combo), value: models.ref(source.value), attr: source.attr });
+    case "columnsConfig":
+      return freeze({ type: "columnsConfig", combo: variantRefs(models, source.combo), value: source.value });
     case "theme":
       return freeze({
         type: "theme",
@@ -220,10 +242,6 @@ function captureSource(
         prop: source.prop, value: source.value, activeVariants: variantRefs(models, source.activeVariants),
         tplComponent: source.tplComponent ? models.ref(source.tplComponent) : undefined });
     case "arg":
-    case "attr":
-    case "visibility":
-    case "text":
-    case "columnsConfig":
       throw new Error(
         `Native style projection does not support ${source.type} indicator sources`,
       );
@@ -308,6 +326,14 @@ function resolveSource(
   source: StyleSourceSnapshot,
 ): VariantSettingSource {
   switch (source.type) {
+    case "visibility":
+      return { type: "visibility", combo: source.combo.map((variant) => models.resolve(variant)), value: source.value };
+    case "text":
+      return { type: "text", combo: source.combo.map((variant) => models.resolve(variant)), value: source.value };
+    case "attr":
+      return { type: "attr", combo: source.combo.map((variant) => models.resolve(variant)), value: models.resolve(source.value), attr: source.attr };
+    case "columnsConfig":
+      return { type: "columnsConfig", combo: source.combo.map((variant) => models.resolve(variant)), value: source.value };
     case "theme":
       return {
         type: "theme",
@@ -476,6 +502,14 @@ function sourceEquals(a: StyleSourceSnapshot, b: StyleSourceSnapshot) {
     return false;
   }
   switch (a.type) {
+    case "visibility":
+      return b.type === "visibility" && refsEqual(a.combo, b.combo) && a.value === b.value;
+    case "text":
+      return b.type === "text" && refsEqual(a.combo, b.combo) && a.value === b.value;
+    case "attr":
+      return b.type === "attr" && refsEqual(a.combo, b.combo) && a.value === b.value && a.attr === b.attr;
+    case "columnsConfig":
+      return b.type === "columnsConfig" && refsEqual(a.combo, b.combo) && a.value === b.value;
     case "theme":
       return (
         b.type === "theme" &&
@@ -914,6 +948,8 @@ class ProjectionStore<T> {
 // ---------------------------------------------------------------------------
 
 export interface StyleProjectionOptions {
+  /** Synthetic source markers (such as animation) must not resolve CSS values. */
+  readonly indicatorOnly?: boolean;
   /**
    * Registry-created projections are not demanded until a committed consumer
    * subscribes or retains. Direct projection construction stays eager.
@@ -925,11 +961,15 @@ export interface StyleProjectionOptions {
 
 export class TplStyleProjection {
   readonly store: StyleCellsStore;
+  readonly indicatorStore: ModelFieldStore<StyleIndicatorCellsSnapshot> | undefined;
+  private readonly indicatorStorage: ProjectionStore<StyleIndicatorCellsSnapshot> | undefined;
+  private readonly indicatorOnly: boolean;
   private readonly storage: ProjectionStore<StyleCellsSnapshot>;
   private readonly fieldStops = new Map<ModelFieldStore<unknown>, () => void>();
   private readonly skippedFieldTypes = new Set<string>();
   private readonly invalidate = () => {
     this.storage?.markDirty();
+    this.indicatorStorage?.markDirty();
   };
   private source: TplStyleSource;
   private keys: readonly StyleKey[];
@@ -947,16 +987,27 @@ export class TplStyleProjection {
     options?: StyleProjectionOptions,
   ) {
     this.source = source;
+    this.indicatorOnly = !!options?.indicatorOnly;
     this.keys = normalizeStyleKeys(keys);
     this.managed = !!options?.deferFieldSubscriptions;
     this.connected = !this.managed;
     this.storage = new ProjectionStore(
-      () => this.computeCells(),
+      () => this.indicatorOnly ? freezeArray([]) : this.computeCells(),
       cellsEqual,
       () => this.handleSubscriberChange(),
       options?.ownerDisposed,
     );
     this.store = this.storage.store;
+    this.indicatorStorage = this.indicatorOnly ? new ProjectionStore(
+      () => this.computeIndicators(),
+      (left, right) => left.length === right.length && left.every((cell, index) => {
+        const other = right[index];
+        return cell.key === other.key && cell.indicatorUnsupported === other.indicatorUnsupported &&
+          (cell.indicator && other.indicator ? indicatorEquals(cell.indicator, other.indicator) : cell.indicator === other.indicator);
+      }),
+      () => this.handleSubscriberChange(), options?.ownerDisposed,
+    ) : undefined;
+    this.indicatorStore = this.indicatorStorage?.store;
   }
 
   update(source: TplStyleSource, keys: readonly StyleKey[]) {
@@ -972,6 +1023,7 @@ export class TplStyleProjection {
     this.source = source;
     if (changed) {
       this.storage.markDirty();
+      this.indicatorStorage?.markDirty();
     }
   }
 
@@ -980,12 +1032,14 @@ export class TplStyleProjection {
     const next = this.source.readContext(), previous = this.capturedContext;
     const same = (left: readonly Variant[], right: readonly Variant[]) => left.length === right.length && left.every((variant, index) => variant === right[index]);
     if (!previous || !same(previous.activeVariantCombo, next.activeVariantCombo) ||
-      !same(previous.targetVariantCombo, next.targetVariantCombo) || !same(previous.targetIndicatorCombo, next.targetIndicatorCombo)) { this.storage.markDirty(); }
+      !same(previous.targetVariantCombo, next.targetVariantCombo) || !same(previous.targetIndicatorCombo, next.targetIndicatorCombo)) { this.storage.markDirty(); this.indicatorStorage?.markDirty(); }
     this.storage.prepare();
+    this.indicatorStorage?.prepare();
   }
 
   publish() {
     this.storage.publish();
+    this.indicatorStorage?.publish();
   }
 
   bindDemand(demand: () => boolean, idle: () => void) {
@@ -1004,9 +1058,8 @@ export class TplStyleProjection {
     if (this.demand && !this.demand()) { this.dispose(); return; }
     this.connected = true;
     try {
-      if (this.storage.refresh()) {
-        this.storage.publish();
-      }
+      if (this.storage.refresh()) { this.storage.publish(); }
+      if (this.indicatorStorage?.refresh()) { this.indicatorStorage.publish(); }
     } catch (error) {
       // Do not leave a half-connected projection that silently stops
       // retrying. The genuine active-provider error still surfaces.
@@ -1074,11 +1127,12 @@ export class TplStyleProjection {
     this.stopFields();
     this.connected = false;
     this.storage.dispose();
+    this.indicatorStorage?.dispose();
     this.idle?.();
   }
 
   private handleSubscriberChange() {
-    if (this.storage?.subscriberCount) {
+    if (this.storage?.subscriberCount || this.indicatorStorage?.subscriberCount) {
       this.connect();
     } else if (this.managed) {
       this.releaseIfIdle();
@@ -1090,7 +1144,7 @@ export class TplStyleProjection {
       this.managed &&
       this.leases <= 0 &&
       !!this.storage &&
-      !this.storage.subscriberCount
+      !this.storage.subscriberCount && !this.indicatorStorage?.subscriberCount
     ) {
       this.disconnect();
     }
@@ -1101,6 +1155,34 @@ export class TplStyleProjection {
       stop();
     }
     this.fieldStops.clear();
+  }
+
+  private computeIndicator(context: TplStyleContext, key: StyleKey): StyleIndicatorCell {
+    let indicator: StyleIndicatorSnapshot | undefined;
+    let indicatorUnsupported: string | undefined;
+    try {
+      indicator = captureDefinedIndicator(
+        this.models,
+        computeDefinedIndicator(
+        this.source.site,
+        this.source.component,
+        context.effectiveVariantSetting.getPropSource(key),
+        context.targetIndicatorCombo,
+        ),
+      );
+    } catch (error) {
+      // A value-only cell must remain usable even when the indicator read
+      // projection does not yet support this source stack.
+      indicatorUnsupported =
+        error instanceof Error ? error.message : String(error);
+    }
+    return freeze({ key, indicator, indicatorUnsupported });
+  }
+
+  private computeIndicators(): StyleIndicatorCellsSnapshot {
+    this.declareFields(this.connected);
+    const context = this.source.readContext(); this.capturedContext = context;
+    return freezeArray(this.keys.map((key) => this.computeIndicator(context, key)));
   }
 
   private computeCells(): StyleCellsSnapshot {
@@ -1114,24 +1196,7 @@ export class TplStyleProjection {
       context.targetVariantCombo,
     );
     const cells = this.keys.map((key) => {
-      let indicator: StyleIndicatorSnapshot | undefined;
-      let indicatorUnsupported: string | undefined;
-      try {
-        indicator = captureDefinedIndicator(
-          this.models,
-          computeDefinedIndicator(
-            this.source.site,
-            this.source.component,
-            effectiveVs.getPropSource(key),
-            context.targetIndicatorCombo,
-          ),
-        );
-      } catch (error) {
-        // A value-only cell must remain usable even when the indicator read
-        // projection does not yet support this source stack.
-        indicatorUnsupported =
-          error instanceof Error ? error.message : String(error);
-      }
+      const { indicator, indicatorUnsupported } = this.computeIndicator(context, key);
       return freeze({
         key,
         value: rsh.get(key),
@@ -1445,13 +1510,19 @@ export class ViewStyleInputs {
     }
   }
 
-  get(
-    source: TplStyleSource,
-    keys: readonly StyleKey[],
-  ): TplProjectionHandle {
+  get(source: TplStyleSource, keys: readonly StyleKey[]): TplProjectionHandle {
+    return this.getProjection(source, keys, false);
+  }
+
+  getIndicators(source: TplStyleSource, keys: readonly StyleKey[]) {
+    const handle = this.getProjection(source, keys, true);
+    return { ...handle, store: ensure(handle.projection.indicatorStore, "Indicator projection store") };
+  }
+
+  private getProjection(source: TplStyleSource, keys: readonly StyleKey[], indicatorOnly: boolean): TplProjectionHandle {
     assert(!this.disposed, "Cannot read style inputs from a disposed view");
     const normalized = normalizeStyleKeys(keys);
-    const key = tplStyleProjectionKey(source, normalized);
+    const key = tplStyleProjectionKey(source, normalized) + (indicatorOnly ? "|indicators" : "|values");
     let projection = this.entries.get(key)?.values().next().value;
     if (!projection || projection.isDisposed) {
       // Render-time construction computes the initial cells but does not
@@ -1461,7 +1532,7 @@ export class ViewStyleInputs {
         this.models(),
         source,
         normalized,
-        { deferFieldSubscriptions: true, ownerDisposed: () => this.disposed },
+        { indicatorOnly, deferFieldSubscriptions: true, ownerDisposed: () => this.disposed },
       );
       const candidate = projection;
       candidate.bindDemand(() => {
@@ -1624,7 +1695,7 @@ export class SingleRsStyleInputs {
 
 /**
  * The two real provider modes expose their owner and source explicitly. Hooks
- * consume this contract structurally, so they do not import StyleComponent and
+ * consume this contract structurally, so they do not import StyleTarget and
  * cannot create a second registry during render. The owner (ViewCtx or
  * StudioCtx) owns the registry and its disposal.
  */

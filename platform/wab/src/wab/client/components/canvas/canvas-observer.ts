@@ -1,113 +1,92 @@
-import { useCanvasForceUpdate } from "@/wab/client/components/canvas/canvas-hooks";
-import { SubDeps } from "@/wab/client/components/canvas/subdeps";
-import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { Reaction } from "mobx";
-import { computedFn } from "mobx-utils";
+import { canvasFactory } from "@/wab/client/components/canvas/canvas-factories";
+import type { SubDeps } from "@/wab/client/components/canvas/subdeps";
+import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import type React from "react";
 
-export const mkCanvasObserver = computedFn(
-  (sub, vc) => (props: { children: () => React.ReactElement | null }) =>
-    mkUseCanvasObserver(sub, vc)(props.children),
-);
-
-export const mkUseCanvasObserver = computedFn(
-  (sub: SubDeps, vc: ViewCtx) =>
-    /**
-     * Observes mobx changes using sub.React for canvas elements.
-     *
-     * By default, after detecting a change, it calls `vc.addRerenderObserver`
-     * with `forceUpdate` so the component will re-render in the next observer
-     * flush or evaluation pass, but it takes an optional param `onUpdateCallback` to allow
-     * custom behaviors to run on each change (e.g., call `forceUpdate`
-     * immediately).
-     */
-    function useObserver<T>(
-      fn: () => T,
-      baseComponentName: string = "observed",
-      onUpdateCallback?: () => void,
-    ): T {
-      const forceUpdate = useCanvasForceUpdate(sub);
-
-      const rerenderOnEval = sub.React.useCallback(
-        () => vc.addRerenderObserver(forceUpdate),
-        [forceUpdate],
-      );
-      const onUpdate = onUpdateCallback ?? rerenderOnEval;
-
-      const reactionTrackingRef = sub.React.useRef<IReactionTracking | null>(null);
-      const createTracking = (): IReactionTracking => {
-        const tracking: IReactionTracking = {
-          reaction: new Reaction(observerComponentNameFor(baseComponentName), () => {
-            if (tracking.mounted) {
-              onUpdate();
-            } else {
-              tracking.changedBeforeMount = true;
-            }
-          }),
-          mounted: false,
-          changedBeforeMount: false,
-        };
-        vc.trackCanvasObserver(tracking.reaction);
-        return tracking;
-      };
-
-      if (!reactionTrackingRef.current || reactionTrackingRef.current.reaction.isDisposed) {
-        reactionTrackingRef.current = createTracking();
-      }
-      const { reaction } = reactionTrackingRef.current;
-
-      sub.React.useEffect(() => {
-        let tracking = reactionTrackingRef.current;
-        if (!tracking || tracking.reaction.isDisposed) {
-          // StrictMode cleanup or a delayed commit may have disposed it.
-          tracking = createTracking();
-          reactionTrackingRef.current = tracking;
-          forceUpdate();
-        }
-        vc.commitCanvasObserver(tracking.reaction);
-        tracking.mounted = true;
-        if (tracking.changedBeforeMount) {
-          tracking.changedBeforeMount = false;
-          onUpdate();
-        }
-        const committed = tracking;
-        return () => {
-          committed.mounted = false;
-          vc.disposeCanvasObserver(committed.reaction);
-          if (reactionTrackingRef.current === committed) {
-            reactionTrackingRef.current = null;
-          }
-        };
-      }, [onUpdate]);
-
-      if (vc.isDisposed) {
-        return null as any;
-      }
-
-      let rendering!: T;
-      let exception;
-      reaction.track(() => {
-        try {
-          rendering = fn();
-        } catch (e) {
-          exception = e;
-        }
-      });
-
-      if (exception) {
-        throw exception; // re-throw any exceptions caught during rendering
-      }
-
-      return rendering;
-    },
-);
-
-function observerComponentNameFor(baseComponentName: string) {
-  return `observer${baseComponentName}`;
+export interface CanvasObserverInput {
+  getState(): unknown;
+  subscribe(listener: () => void): () => void;
 }
 
-interface IReactionTracking {
-  reaction: Reaction;
-  mounted: boolean;
-  changedBeforeMount: boolean;
+/** The projection holds a real ReactNode and the inputs/resources that produced
+ * it. It can be evaluated during an external-store consistency check, so its
+ * renderer must only return component elements and never call Hooks. */
+export class CanvasObservedRenderSource {
+  private current?: { node: React.ReactNode; pass: ReturnType<ViewCtx["canvasRenderOwner"]["beginRender"]>; input: unknown };
+  private dirty = true;
+  private disposed = true;
+  private stopInput?: () => void;
+  private readonly listeners = new Set<() => void>();
+
+  constructor(private readonly view: ViewCtx, private readonly render: (onRenderInvalidated: () => void) => React.ReactNode, private readonly input?: CanvasObserverInput, private readonly onUpdate?: () => void) {
+    this.resume();
+  }
+  get isDisposed() { return this.disposed; }
+  private resume() {
+    if (!this.disposed || this.view.isDisposed || this.view.disposeSignal.aborted || this.view.canvasRenderOwner.isDisposed) { return; }
+    this.disposed = false; this.dirty = true;
+    this.view.trackCanvasObserver(this);
+    this.view.disposeSignal.addEventListener("abort", this.retire, { once: true });
+    this.view.canvasRenderOwner.lifetime.addEventListener("abort", this.retire, { once: true });
+  }
+  private retire = () => {
+    const listeners = [...this.listeners];
+    this.dispose();
+    listeners.forEach((listener) => listener());
+  };
+  private publish = () => { if (!this.disposed && this.dirty) { this.listeners.forEach((listener) => listener()); } };
+  private invalidate = () => {
+    if (this.disposed) { return; }
+    this.dirty = true;
+    if (this.onUpdate) { this.onUpdate(); }
+    else { this.view.addRerenderObserver(this.publish); }
+  };
+  getState = () => {
+    this.resume();
+    if (this.disposed) { return null; }
+    const input = this.input?.getState();
+    if (!this.current || this.dirty || this.current.input !== input) {
+      const owner = this.view.canvasRenderOwner;
+      const pass = owner.beginRender(this.invalidate);
+      try {
+        this.current = { pass, input, node: this.render(this.invalidate) };
+        this.dirty = false;
+      } finally { owner.endRender(pass); }
+    }
+    return this.current.node;
+  };
+  getInitialState = this.getState;
+  subscribe = (listener: () => void) => {
+    this.resume();
+    if (this.disposed) { return () => undefined; }
+    this.listeners.add(listener);
+    this.stopInput ??= this.input?.subscribe(this.invalidate);
+    return () => {
+      this.listeners.delete(listener);
+      if (!this.listeners.size) { this.stopInput?.(); this.stopInput = undefined; }
+    };
+  };
+  commit() {
+    this.getState();
+    if (!this.disposed && this.current) {
+      this.view.commitCanvasObserver(this);
+      this.view.canvasRenderOwner.commitRender(this.current.pass);
+    }
+  }
+  dispose() {
+    if (this.disposed) { return; }
+    this.disposed = true;
+    this.stopInput?.(); this.stopInput = undefined;
+    this.listeners.clear();
+    this.view.disposeSignal.removeEventListener("abort", this.retire);
+    this.view.canvasRenderOwner.lifetime.removeEventListener("abort", this.retire);
+    this.view.canvasRenderOwner.releaseRenderListener(this.invalidate);
+    this.view.disposeCanvasObserver(this);
+  }
 }
+
+export const mkUseCanvasObserver = canvasFactory((sub: SubDeps, view: ViewCtx, input?: CanvasObserverInput) =>
+  function renderWithCanvasInputs(render: (onRenderInvalidated: () => void) => React.ReactNode, _name = "canvas", onUpdate?: () => void) {
+    return sub.React.createElement(sub.CanvasObserver, { source: new CanvasObservedRenderSource(view, render, input, onUpdate) });
+  },
+);

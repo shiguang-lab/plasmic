@@ -62,6 +62,7 @@ import { serializeDataConds } from "@/wab/shared/codegen/react-p/data-conds";
 import {
   serializeDataReps,
   serializeDataRepsIndexName,
+  serializeStateCommandHandler,
 } from "@/wab/shared/codegen/react-p/data-reps";
 import {
   getDataSourcesPackageName,
@@ -345,6 +346,7 @@ import {
   ensureKnownVariantGroup,
   isKnownColorPropType,
   isKnownCustomCode,
+  isKnownEventHandler,
   isKnownDefaultStylesClassNamePropType,
   isKnownDefaultStylesPropType,
   isKnownGlobalVariantSplitContent,
@@ -1026,7 +1028,7 @@ ${ctx.hasServerQueries ? makeServerQueryTreeTypeImport() : ""}
 ${rscServerImports}
 ${
   plumeType
-    ? `import * as pp from "${getPlumePackageName(opts, plumeType)}";`
+    ? `import * as Plume from "${getPlumePackageName(opts, plumeType)}";`
     : ""
 }
 ${referencedImports.join("\n")}
@@ -1094,30 +1096,6 @@ ${
     : serializeRootServerQueryTree(ctx)
 }
 
-
-${
-  // We wrap Next.js useRouter() in a try...catch to avoid "next router
-  // not mounted" error in extractPlasmicDataQuery.
-  isPlatformNextJs(ctx)
-    ? `function useNextRouter() {
-      try {
-        return useRouter();
-      } catch {}
-      return undefined;
-    }`
-    : ""
-}
-
-${
-  ctx.exportOpts.platform === "tanstack"
-    ? `function useTanStackRouter() {
-      try {
-        return useRouter();
-      } catch {}
-      return undefined;
-    }`
-    : ""
-}
 
 ${renderFunc}
 
@@ -1378,14 +1356,28 @@ function serializeRenderFunc(
       ? `[props.args, $translator]`
       : `[props.args]`;
 
+  const renderName = makeRenderFuncName(component);
+  const appRouter = isPlatformNextJs(ctx) && !!ctx.exportOpts.platformOptions?.nextjs?.appDir;
+  const propsType = `{
+    variants: ${makeVariantsArgTypeName(component)},
+    args: ${makeArgsTypeName(component)},
+    overrides: ${makeOverridesTypeName(component)},
+    forNode?: string
+  }`;
   return `
-    function ${makeRenderFuncName(component)}(
-      props: {
-        variants: ${makeVariantsArgTypeName(component)},
-        args: ${makeArgsTypeName(component)},
-        overrides: ${makeOverridesTypeName(component)},
-        forNode?: string
+    ${appRouter ? `
+      type ${renderName}__Props = ${propsType};
+      function ${renderName}(props: ${renderName}__Props) {
+        const prepass = usePlasmicPrepass();
+        return prepass ? <${renderName}__Body {...props} /> : <${renderName}__WithNextRouter {...props} />;
       }
+      function ${renderName}__WithNextRouter(props: ${renderName}__Props) {
+        const nextRouter = useRouter();
+        return <${renderName}__Body {...props} nextRouter={nextRouter} />;
+      }
+    ` : ""}
+    function ${appRouter ? `${renderName}__Body` : renderName}(
+      props: ${appRouter ? `${renderName}__Props & { nextRouter?: ReturnType<typeof useRouter> }` : propsType}
     ) {
       ${
         ctx.exportOpts.useComponentSubstitutionApi
@@ -1401,7 +1393,7 @@ function serializeRenderFunc(
 
       ${
         ctx.projectFlags.usePlasmicTranslation
-          ? `const $translator = usePlasmicTranslator?.();`
+          ? `const $translator = usePlasmicTranslator();`
           : ""
       }
 
@@ -1413,9 +1405,21 @@ function serializeRenderFunc(
 
       ${serializeComponentLocalVars(ctx)}
       return (
-        ${renderBody}
+        ${serializeStateInitializerOwner(ctx, renderBody)}
       ) as React.ReactElement | null;
     }`;
+}
+
+/** Collect initializers in the render owner without changing typed children. */
+export function serializeStateInitializerOwner(ctx: SerializerBaseContext, body: string) {
+  if (!ctx.component.states.length) {
+    return body;
+  }
+  return `(() => {
+    const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+    const rendered = (${body});
+    return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+  })()`;
 }
 
 /**
@@ -1442,39 +1446,31 @@ export function serializeComponentLocalVars(ctx: SerializerBaseContext) {
       ...variants,
     };
 
-    ${isPlatformNextJs(ctx) ? `const __nextRouter = useNextRouter();` : ""}
+    ${isPlatformNextJs(ctx) ? `const __nextRouter = ${ctx.exportOpts.platformOptions?.nextjs?.appDir ? "props.nextRouter" : "useRouter()"};` : ""}
     ${
       ctx.exportOpts.platform === "tanstack"
-        ? `const __tanstackRouter = useTanStackRouter();`
+        ? `const __tanstackRouter = useRouter({ warn: false });`
         : ""
     }
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     ${
       component.states.length
-        ? `const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(() =>
+        ? `const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(() =>
           (${serializeStateSpecs(component, ctx, { forLegacyQueries: true })})
-        , [$props, $ctx, $refs]);`
+        , [$props, $ctx]);`
         : ""
     }${
-      // Initialize server queries early so state init funcs can access $q.
-      // $stateRef is used to pass $state to the hook without creating a
-      // circular dependency (useDollarState needs $q, $q hook needs $state).
-      // After useDollarState runs, $stateRef is updated with the live $state proxy.
+      // Query reads use a render-only view. The final view below owns schema
+      // and environment publication after the query results are available.
       ctx.hasServerQueries
         ? `
-      ${
-        component.states.length
-          ? "const $stateRef = React.useRef<Record<string, unknown> | null>(null);"
-          : ""
-      }
-      const $q = usePlasmicQueries(${
-        useRscServerWrapper && isPage ? "pageQueryTree" : "serverQueryTree"
-      }, { $ctx, $props, $state: ${
-        component.states.length ? "$stateRef.current" : "null"
-      } });
+      ${component.states.length ? `const $stateCommands = useDollarState();
+      const $queryState = useDollarStateQueryInput($stateCommands,
+        {$props, $ctx, $queries: {}, $q: {}, getRefs}, stateSpecs);` : ""}
+      const $q = usePlasmicQueries(${useRscServerWrapper && isPage ? "pageQueryTree" : "serverQueryTree"},
+        { $ctx, $props, $state: ${component.states.length ? "$queryState" : "null"} });
       `
         : ""
     }
@@ -1486,12 +1482,12 @@ export function serializeComponentLocalVars(ctx: SerializerBaseContext) {
 
     ${
       ctx.usesGlobalActions
-        ? `const $globalActions = useGlobalActions?.();`
+        ? `const $globalActions = useGlobalActions();`
         : ""
     }
 
     ${
-      ctx.appAuthProvider ? `const currentUser = useCurrentUser?.() || {};` : ""
+      ctx.appAuthProvider ? `const currentUser = useCurrentUser() || {};` : ""
     }
 
     ${
@@ -1501,14 +1497,11 @@ export function serializeComponentLocalVars(ctx: SerializerBaseContext) {
     }
     ${
       component.states.length
-        ? `const $state = useDollarState(stateSpecs, {$props, $ctx, $queries: ${
+        ? `const $stateEnv = {$props, $ctx, $queries: ${
             ctx.usesComponentLevelQueries ? "$queries" : "{}"
-          }, $q: ${ctx.hasServerQueries ? "$q" : "{}"}, $refs});${
-            ctx.hasServerQueries
-              ? `
-        $stateRef.current = $state;`
-              : ""
-          }`
+          }, $q: ${ctx.hasServerQueries ? "$q" : "{}"}, getRefs};
+        ${ctx.hasServerQueries ? "" : "const $stateCommands = useDollarState();"}
+        const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);`
         : ""
     }
     ${
@@ -1744,7 +1737,7 @@ export function serializeTplTagBase(
     const builtinEventHandlers = {
       onChange: [
         `(e) => {
-        generateStateOnChangeProp($state, [${statePath}])(e.target.value)
+        generateStateOnChangeProp($stateCommands, [${statePath}])(e.target.value)
       }`,
       ],
     };
@@ -1857,7 +1850,7 @@ function serializeTplTag(ctx: SerializerBaseContext, node: TplTag) {
   }
 
   if (tplHasRef(node)) {
-    attrs["ref"] = `(ref) => { $refs[${jsLiteral(nodeName)}] = ref; }`;
+    attrs["ref"] = `registerRef(${jsLiteral(nodeName)})`;
   }
 
   const serialized = makeCreatePlasmicElement(
@@ -1999,30 +1992,26 @@ function makeCreatePlasmicElement(
       })
     );
   });
-  const maybeUseCodeComponentHelpers =
-    isTplCodeComponent(node) && isCodeComponentWithHelpers(node.component);
-  if (
-    isFakeTpl ||
-    (statesUsingCtx.length === 0 && !maybeUseCodeComponentHelpers)
-  ) {
+  const codeComponentStates = isTplCodeComponent(node)
+    ? ctx.component.states.filter(
+        (state) => state.implicitState && state.tplNode === node && shouldSerializeState(ctx.component, state),
+      )
+    : [];
+  if (isFakeTpl || (statesUsingCtx.length === 0 && codeComponentStates.length === 0)) {
     return serializeComponentCall(false);
   }
   const codeComponentHelperName =
     isTplComponent(node) && isCodeComponentWithHelpers(node.component)
       ? getImportedCodeComponentHelperName(ctx.aliases, node.component)
       : "undefined";
-  const codeComponentStates = isTplCodeComponent(node)
-    ? ctx.component.states.filter(
-        (state) => state.implicitState && state.tplNode === node && shouldSerializeState(ctx.component, state),
-      )
-    : [];
   return `(() => {
     const child$Props = {${keys
       .map((key) => `${serializedKeyValueForObject(key, `${attrs[key]}`)}`)
       .join(",\n")}};
+    $stateInitializers.push(
     ${
       codeComponentStates.length > 0
-        ? `initializeCodeComponentStates($state, [
+        ? `...getCodeComponentStateInitializers([
             ${codeComponentStates
               .map(
                 (state) => `{
@@ -2031,26 +2020,25 @@ function makeCreatePlasmicElement(
             }`,
               )
               .join(",")}
-          ], [${serializedDataRepsName}], ${codeComponentHelperName} ?? {}, child$Props)`
+          ], [${serializedDataRepsName}], ${codeComponentHelperName} ?? {}, child$Props),`
         : ``
     }
     ${
       statesUsingCtx.length > 0
-        ? `initializePlasmicStates($state, [
-          ${statesUsingCtx
+        ? `${statesUsingCtx
             .map(
               (state) => `{
-            name: "${getStateVarName(state)}",
-            initFunc: ${serializeInitFunc(state, ctx, true)}
+            path: "${getStateVarName(state)}",
+            initFunc: ${serializeInitFunc(state, ctx, true)},
+            env: {...$stateEnv, $ctx},
+            repetitionIndex: [${serializedDataRepsName}]
           }`,
             )
-            .join(",")}],
-          [${serializedDataRepsName}])`
+            .join(",")}`
         : ``
     }
-    return (
-        ${serializeComponentCall(true)}
-    )
+    );
+    return (${serializeComponentCall(true)});
   })()`;
 }
 
@@ -2090,13 +2078,13 @@ export function serializeTplComponentBase(
             slotParam,
           )
         ) {
-          serialized = [wrapInDataCtxReader(asOneNode(serialized))];
+          serialized = [wrapInDataCtxReader(serializeStateInitializerOwner(ctx, asOneNode(serialized)))];
         }
         if (isKnownRenderFuncType(slotParam.type)) {
           serialized = [
             `(${slotParam.type.params
               .map((p) => `${p.argName}: any`)
-              .join(", ")}) => ${asOneNode(serialized)}`,
+              .join(", ")}) => ${serializeStateInitializerOwner(ctx, asOneNode(serialized))}`,
           ];
         }
 
@@ -2190,7 +2178,7 @@ export function serializeTplComponentBase(
           if (node.component.plumeInfo) {
             const plugin = getPlumeCodegenPlugin(node.component);
             pushEventHandler(`(...eventArgs) => {
-              generateStateOnChangeProp($state, [${statePath}])(${
+              generateStateOnChangeProp($stateCommands, [${statePath}])(${
                 plugin?.genOnChangeEventToValue
                   ? `(${plugin.genOnChangeEventToValue}).apply(null, eventArgs)`
                   : "eventArgs[0]"
@@ -2205,11 +2193,11 @@ export function serializeTplComponentBase(
               node.component,
             );
             pushEventHandler(
-              `generateStateOnChangePropForCodeComponents($state, "${stateName}", [${statePath}], ${codeComponentHelperName})`,
+              `generateStateOnChangePropForCodeComponents($stateCommands, "${stateName}", [${statePath}], ${codeComponentHelperName})`,
             );
           } else {
             pushEventHandler(
-              `generateStateOnChangeProp($state, [${statePath}])`,
+              `generateStateOnChangeProp($stateCommands, [${statePath}])`,
             );
           }
         }
@@ -2280,7 +2268,7 @@ function serializeTplComponent(ctx: SerializerBaseContext, node: TplComponent) {
 
   if (tplHasRef(node)) {
     attrs[node.component.codeComponentMeta?.refProp ?? "ref"] =
-      `(ref) => { $refs[${jsLiteral(nodeName)}] = ref; }`;
+      `registerRef(${jsLiteral(nodeName)})`;
   }
 
   if (isRoot && isTplRootWithCodeComponentVariants(node)) {
@@ -2420,6 +2408,7 @@ function serializeTplNodesAsArray(
 function serializeNodeComponents(ctx: SerializerBaseContext) {
   const { component, nodeNamer } = ctx;
   const rootName = nodeNamer(component.tplTree);
+  const exportNamedNodes = !ctx.exportOpts.skinny && ctx.exportOpts.exportNamedNodeComponents !== false;
   const descendantNodes = getNamedDescendantNodes(
     ctx.nodeNamer,
     component.tplTree,
@@ -2434,7 +2423,7 @@ function serializeNodeComponents(ctx: SerializerBaseContext) {
       nodeNamer(node),
       "Unexpected nodeNamer nullish return for " + node.uuid,
     );
-    let makeNode = `makeNodeComponent(${jsLiteral(nodeName)})`;
+    let makeNode = `${componentName}__${nodeName}`;
 
     if (nodeName === rootName) {
       if (shouldWrapWithPageGuard(ctx, component)) {
@@ -2469,10 +2458,8 @@ function serializeNodeComponents(ctx: SerializerBaseContext) {
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: ${
             ctx.exportOpts.targetEnv === "loader"
@@ -2482,17 +2469,21 @@ function serializeNodeComponents(ctx: SerializerBaseContext) {
           internalArgPropNames: ${makeArgPropsName(component)},
           internalVariantPropNames: ${makeVariantPropsName(component)},
         }), [props, nodeName]);
-        return ${makeRenderFuncName(
-          component,
-        )}({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === ${jsLiteral(rootName)}) {
-        func.displayName = ${jsLiteral(componentName)};
-      } else {
-        func.displayName = \`${componentName}.\${nodeName}\`;
-      }
-      return func;
     }
+
+    ${[component.tplTree, ...(exportNamedNodes ? descendantNodes : [])].map((node) => {
+      const nodeName = ensure(nodeNamer(node), "Expected generated node name");
+      const name = `${componentName}__${nodeName}`;
+      const propsType = `${name}Props`;
+      return `
+        type ${propsType} = NodeComponentProps<${jsLiteral(nodeName)}> & {key?: React.Key};
+        function ${name}<T extends ${propsType}>(props: T & StrictProps<T, ${propsType}>) {
+          const {variants, args, overrides} = useNodeRenderOpts(${jsLiteral(nodeName)}, props);
+          return <${makeRenderFuncName(component)} variants={variants} args={args} overrides={overrides} forNode={${jsLiteral(nodeName)}} />;
+        }
+        ${name}.displayName = ${jsLiteral(nodeName === rootName ? componentName : `${componentName}.${nodeName}`)};
+      `;
+    }).join("\n")}
 
     ${serializeWithPlasmicPageGuard(ctx, component)}
     ${serializeWithUsePlasmicAuth(ctx, component)}
@@ -2503,7 +2494,7 @@ function serializeNodeComponents(ctx: SerializerBaseContext) {
       {
         // Helper components rendering sub-elements
         ${
-          ctx.exportOpts.skinny
+          !exportNamedNodes
             ? ""
             : descendantNodes
                 .map(
@@ -2531,7 +2522,7 @@ function serializeNodeComponents(ctx: SerializerBaseContext) {
         `
         }
 
-        ${component.plumeInfo ? "useBehavior," : ""}
+        ${component.plumeInfo ? (component.plumeInfo.type === "button" ? "deriveBehaviorProps," : "useBehavior,") : ""}
 
         ${
           Object.entries(component.metadata).length === 0
@@ -3200,6 +3191,9 @@ export function serializeDescendantsLookup(ctx: SerializerBaseContext) {
     ctx.component.tplTree,
   );
   const nodeNamer = ctx.nodeNamer;
+  const addressableNodes = ctx.exportOpts.exportNamedNodeComponents === false
+    ? namedNodes.filter((node) => node === ctx.component.tplTree)
+    : namedNodes;
 
   // For compability, we should keep addressing previous default names
   const getDescendantNodeName = (tpl: TplTag | TplComponent) => {
@@ -3222,7 +3216,7 @@ export function serializeDescendantsLookup(ctx: SerializerBaseContext) {
     ctx.exportOpts.targetEnv === "loader"
       ? jsLiteral(namedNodes.map((node) => nodeNamer(node)))
       : `{
-    ${namedNodes
+    ${addressableNodes
       .map(
         (node) =>
           `${nodeNamer(node)}: [${getNamedDescendantNodes(ctx.nodeNamer, node)
@@ -3240,7 +3234,7 @@ export function serializeDescendantsLookup(ctx: SerializerBaseContext) {
         : `(typeof ${makeDescendantsName()})[T][number]`
     };
     type NodeDefaultElementType = {
-      ${namedNodes
+      ${addressableNodes
         .map(
           (node) =>
             `${nodeNamer(node)}: ${serializeDefaultElementType(ctx, node)}`,
@@ -3507,7 +3501,7 @@ function conditionalValue(
       }
       return `${argsVarName}`;
     } else {
-      return serializeNonParamExpr(ctx, expr, {
+      const value = serializeNonParamExpr(ctx, expr, {
         forCodeComponent:
           isTplComponent(node) && isCodeComponent(node.component),
         source: {
@@ -3521,6 +3515,9 @@ function conditionalValue(
         },
         localizable: opts.localizable,
       });
+      return isAttrEventHandler(prop) || isKnownEventHandler(expr)
+        ? serializeStateCommandHandler(ctx, node, value)
+        : value;
     }
   };
   const serializedExprCombos = exprCombos.map(([expr, variantCombo]) => {

@@ -14,18 +14,18 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -89,11 +89,10 @@ function PlasmicColorSwatch__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isSelected",
@@ -102,18 +101,20 @@ function PlasmicColorSwatch__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.isSelected,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -240,12 +241,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -255,31 +252,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicColorSwatch__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicColorSwatch";
-  } else {
-    func.displayName = `PlasmicColorSwatch.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicColorSwatch__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicColorSwatch__root<T extends PlasmicColorSwatch__rootProps>(props: T & StrictProps<T, PlasmicColorSwatch__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicColorSwatch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicColorSwatch__root.displayName = "PlasmicColorSwatch";
+
+type PlasmicColorSwatch__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicColorSwatch__freeBox<T extends PlasmicColorSwatch__freeBoxProps>(props: T & StrictProps<T, PlasmicColorSwatch__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicColorSwatch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicColorSwatch__freeBox.displayName = "PlasmicColorSwatch.freeBox";
+
+type PlasmicColorSwatch__checkerProps = NodeComponentProps<"checker"> & {key?: React.Key};
+function PlasmicColorSwatch__checker<T extends PlasmicColorSwatch__checkerProps>(props: T & StrictProps<T, PlasmicColorSwatch__checkerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("checker", props);
+  return <PlasmicColorSwatch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"checker"} />;
+}
+PlasmicColorSwatch__checker.displayName = "PlasmicColorSwatch.checker";
+
+type PlasmicColorSwatch__bgOpacityProps = NodeComponentProps<"bgOpacity"> & {key?: React.Key};
+function PlasmicColorSwatch__bgOpacity<T extends PlasmicColorSwatch__bgOpacityProps>(props: T & StrictProps<T, PlasmicColorSwatch__bgOpacityProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("bgOpacity", props);
+  return <PlasmicColorSwatch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"bgOpacity"} />;
+}
+PlasmicColorSwatch__bgOpacity.displayName = "PlasmicColorSwatch.bgOpacity";
+
+type PlasmicColorSwatch__colorProps = NodeComponentProps<"color"> & {key?: React.Key};
+function PlasmicColorSwatch__color<T extends PlasmicColorSwatch__colorProps>(props: T & StrictProps<T, PlasmicColorSwatch__colorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("color", props);
+  return <PlasmicColorSwatch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"color"} />;
+}
+PlasmicColorSwatch__color.displayName = "PlasmicColorSwatch.color";
+
+type PlasmicColorSwatch__borderProps = NodeComponentProps<"border"> & {key?: React.Key};
+function PlasmicColorSwatch__border<T extends PlasmicColorSwatch__borderProps>(props: T & StrictProps<T, PlasmicColorSwatch__borderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("border", props);
+  return <PlasmicColorSwatch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"border"} />;
+}
+PlasmicColorSwatch__border.displayName = "PlasmicColorSwatch.border";
+
 
 export const PlasmicColorSwatch = Object.assign(
   // Top-level PlasmicColorSwatch renders the root element
-  makeNodeComponent("root"),
+  PlasmicColorSwatch__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    checker: makeNodeComponent("checker"),
-    bgOpacity: makeNodeComponent("bgOpacity"),
-    color: makeNodeComponent("color"),
-    border: makeNodeComponent("border"),
+    freeBox: PlasmicColorSwatch__freeBox,
+    checker: PlasmicColorSwatch__checker,
+    bgOpacity: PlasmicColorSwatch__bgOpacity,
+    color: PlasmicColorSwatch__color,
+    border: PlasmicColorSwatch__border,
 
     // Metadata about props expected for PlasmicColorSwatch
     internalVariantProps: PlasmicColorSwatch__VariantProps,

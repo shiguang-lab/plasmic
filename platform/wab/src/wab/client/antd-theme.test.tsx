@@ -19,14 +19,14 @@ import {
   Dropdown,
   Popover,
   Tooltip,
-  theme,
+  theme as AntdTheme,
 } from "antd";
 import { useTheme } from "antd-style";
 import * as React from "react";
 import { createPortal } from "react-dom";
 
 function ThemeProbe() {
-  const { token } = theme.useToken();
+  const { token } = AntdTheme.useToken();
   const style = useTheme();
   return (
     <output
@@ -95,7 +95,7 @@ it("keeps generated tooltip content readable through theme changes", async () =>
   expect(document.querySelector(`.${tooltipStyles.overlayArrow}`)).toBeNull();
   for (const appearance of ["dark", "light"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const probe = document.createElement("div");
     probe.style.color = token.colorTextLightSolid;
     probe.style.backgroundColor = token.colorBgSpotlight;
@@ -207,7 +207,7 @@ it.each(["popover", "tooltip", "dropdown", "modal", "drawer"] as const)(
     const control = await within(popupHost).findByTestId("overlay-control");
     for (const appearance of ["dark", "light", "dark"] as const) {
       act(() => setAppearancePreference(appearance));
-      const token = theme.getDesignToken(productTheme(appearance));
+      const token = AntdTheme.getDesignToken(productTheme(appearance));
       const probe = document.createElement("div");
       probe.style.backgroundColor = token.colorBgContainer;
       probe.style.color = token.colorText;
@@ -411,7 +411,7 @@ it("themes hidden legacy controls when a portal opens, including while appearanc
   act(() => screen.getByText("Open controls").click());
   for (const appearance of ["dark", "light", "dark"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const expected = document.createElement("div");
     expected.style.color = token.colorText;
     expected.style.backgroundColor = token.colorBgContainer;

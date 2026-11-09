@@ -12,9 +12,7 @@ export interface TestDataToken {
 }
 
 export class LeftPanel extends BaseModel {
-  readonly frame: FrameLocator = this.page
-    .frameLocator("iframe.studio-frame")
-    .frameLocator("iframe");
+  readonly frame: FrameLocator = this.studioFrame;
 
   readonly addContainer: Locator = this.frame.locator(
     '[data-test-id="add-drawer"]',
@@ -24,7 +22,9 @@ export class LeftPanel extends BaseModel {
     `[data-test-id="add-button"]`,
   );
 
-  readonly addSearchInput: Locator = this.addContainer.locator("input");
+  readonly addSearchInput: Locator = this.frame.getByRole("searchbox", {
+    name: "Search resources",
+  });
 
   readonly leftPane = this.frame.locator(".canvas-editor__left-pane");
 
@@ -111,9 +111,7 @@ export class LeftPanel extends BaseModel {
 
     await this.addSearchInput.fill(node);
 
-    const item = this.frame
-      .locator(`li[data-plasmic-add-item-name="${node}"]`)
-      .first();
+    const item = this.frame.getByRole("option", { name: node, exact: true }).first();
     await item.waitFor({ state: "visible", timeout: 10000 });
 
     await item.scrollIntoViewIfNeeded();

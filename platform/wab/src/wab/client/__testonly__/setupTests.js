@@ -35,9 +35,9 @@ vi.mock(
 
 DEVFLAGS.hostUrl = "http://localhost";
 
-// antd's static notifications render in their own React root and auto-close on timer.
-// In CI it can fire after jsdom teardown, which fails the run
-for (const method of ["open", "success", "info", "warning", "error"]) {
+// Mock the entire static notification lifecycle. Antd's destroy() also creates
+// a React root when none exists, even though the mocked emitters opened none.
+for (const method of ["open", "success", "info", "warning", "error", "destroy"]) {
   notification[method] = () => {};
 }
 

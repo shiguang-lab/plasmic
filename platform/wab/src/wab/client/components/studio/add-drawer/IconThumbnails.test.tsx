@@ -7,7 +7,7 @@ import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
 import { AccountBookFilled, AccountBookTwoTone } from "@ant-design/icons";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
-import { ConfigProvider, theme } from "antd";
+import { ConfigProvider, theme as AntdTheme } from "antd";
 import React from "react";
 import * as ReactDOMClient from "react-dom/client";
 
@@ -78,7 +78,7 @@ it.each([false, true])("renders the registered icon with Host React and updates 
   const { container, rerender } = render(card("light"));
   for (const appearance of ["light", "dark", "light"] as const) {
     rerender(card(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const expectedStyle = document.createElement("span").style;
     expectedStyle.color = token.colorText;
     await waitFor(() => {

@@ -17,13 +17,13 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   generateStateOnChangeProp,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -33,8 +33,8 @@ import NavTeamSection from "../../components/dashboard/NavTeamSection"; // plasm
 import ProjectsFilter from "../../components/dashboard/ProjectsFilter"; // plasmic-import: mdX7wFJOmP/component
 import { TutorialsSection } from "../../components/dashboard/TutorialsSection"; // plasmic-import: 3oNTe9fVQ0xW/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -135,11 +135,10 @@ function PlasmicAllProjectsPage__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "tutorialsSection.isCollapsed",
@@ -148,20 +147,22 @@ function PlasmicAllProjectsPage__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <React.Fragment>
@@ -202,8 +203,8 @@ function PlasmicAllProjectsPage__RenderFunc(props: {
                 data-plasmic-name={"tutorialsSection"}
                 data-plasmic-override={overrides.tutorialsSection}
                 className={classNames("__wab_instance", sty.tutorialsSection)}
-                onIsCollapsedChange={async (...eventArgs: any) => {
-                  generateStateOnChangeProp($state, [
+                onIsCollapsedChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+                  generateStateOnChangeProp($stateCommands, [
                     "tutorialsSection",
                     "isCollapsed",
                   ]).apply(null, eventArgs);
@@ -215,7 +216,7 @@ function PlasmicAllProjectsPage__RenderFunc(props: {
                   ) {
                     return;
                   }
-                }}
+                })); })}
               />
 
               <div
@@ -419,12 +420,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -434,36 +431,101 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicAllProjectsPage__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicAllProjectsPage";
-  } else {
-    func.displayName = `PlasmicAllProjectsPage.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicAllProjectsPage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicAllProjectsPage__root<T extends PlasmicAllProjectsPage__rootProps>(props: T & StrictProps<T, PlasmicAllProjectsPage__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicAllProjectsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicAllProjectsPage__root.displayName = "PlasmicAllProjectsPage";
+
+type PlasmicAllProjectsPage__defaultLayoutProps = NodeComponentProps<"defaultLayout"> & {key?: React.Key};
+function PlasmicAllProjectsPage__defaultLayout<T extends PlasmicAllProjectsPage__defaultLayoutProps>(props: T & StrictProps<T, PlasmicAllProjectsPage__defaultLayoutProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("defaultLayout", props);
+  return <PlasmicAllProjectsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"defaultLayout"} />;
+}
+PlasmicAllProjectsPage__defaultLayout.displayName = "PlasmicAllProjectsPage.defaultLayout";
+
+type PlasmicAllProjectsPage__projectsProps = NodeComponentProps<"projects"> & {key?: React.Key};
+function PlasmicAllProjectsPage__projects<T extends PlasmicAllProjectsPage__projectsProps>(props: T & StrictProps<T, PlasmicAllProjectsPage__projectsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("projects", props);
+  return <PlasmicAllProjectsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"projects"} />;
+}
+PlasmicAllProjectsPage__projects.displayName = "PlasmicAllProjectsPage.projects";
+
+type PlasmicAllProjectsPage__tutorialsSectionProps = NodeComponentProps<"tutorialsSection"> & {key?: React.Key};
+function PlasmicAllProjectsPage__tutorialsSection<T extends PlasmicAllProjectsPage__tutorialsSectionProps>(props: T & StrictProps<T, PlasmicAllProjectsPage__tutorialsSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("tutorialsSection", props);
+  return <PlasmicAllProjectsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tutorialsSection"} />;
+}
+PlasmicAllProjectsPage__tutorialsSection.displayName = "PlasmicAllProjectsPage.tutorialsSection";
+
+type PlasmicAllProjectsPage__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicAllProjectsPage__freeBox<T extends PlasmicAllProjectsPage__freeBoxProps>(props: T & StrictProps<T, PlasmicAllProjectsPage__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicAllProjectsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicAllProjectsPage__freeBox.displayName = "PlasmicAllProjectsPage.freeBox";
+
+type PlasmicAllProjectsPage__newProjectButtonProps = NodeComponentProps<"newProjectButton"> & {key?: React.Key};
+function PlasmicAllProjectsPage__newProjectButton<T extends PlasmicAllProjectsPage__newProjectButtonProps>(props: T & StrictProps<T, PlasmicAllProjectsPage__newProjectButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newProjectButton", props);
+  return <PlasmicAllProjectsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newProjectButton"} />;
+}
+PlasmicAllProjectsPage__newProjectButton.displayName = "PlasmicAllProjectsPage.newProjectButton";
+
+type PlasmicAllProjectsPage__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicAllProjectsPage__svg<T extends PlasmicAllProjectsPage__svgProps>(props: T & StrictProps<T, PlasmicAllProjectsPage__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicAllProjectsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicAllProjectsPage__svg.displayName = "PlasmicAllProjectsPage.svg";
+
+type PlasmicAllProjectsPage__filterProps = NodeComponentProps<"filter"> & {key?: React.Key};
+function PlasmicAllProjectsPage__filter<T extends PlasmicAllProjectsPage__filterProps>(props: T & StrictProps<T, PlasmicAllProjectsPage__filterProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("filter", props);
+  return <PlasmicAllProjectsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"filter"} />;
+}
+PlasmicAllProjectsPage__filter.displayName = "PlasmicAllProjectsPage.filter";
+
+type PlasmicAllProjectsPage__mainListProps = NodeComponentProps<"mainList"> & {key?: React.Key};
+function PlasmicAllProjectsPage__mainList<T extends PlasmicAllProjectsPage__mainListProps>(props: T & StrictProps<T, PlasmicAllProjectsPage__mainListProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("mainList", props);
+  return <PlasmicAllProjectsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"mainList"} />;
+}
+PlasmicAllProjectsPage__mainList.displayName = "PlasmicAllProjectsPage.mainList";
+
+type PlasmicAllProjectsPage__noProjectsTextProps = NodeComponentProps<"noProjectsText"> & {key?: React.Key};
+function PlasmicAllProjectsPage__noProjectsText<T extends PlasmicAllProjectsPage__noProjectsTextProps>(props: T & StrictProps<T, PlasmicAllProjectsPage__noProjectsTextProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("noProjectsText", props);
+  return <PlasmicAllProjectsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"noProjectsText"} />;
+}
+PlasmicAllProjectsPage__noProjectsText.displayName = "PlasmicAllProjectsPage.noProjectsText";
+
+type PlasmicAllProjectsPage__navTeamSectionProps = NodeComponentProps<"navTeamSection"> & {key?: React.Key};
+function PlasmicAllProjectsPage__navTeamSection<T extends PlasmicAllProjectsPage__navTeamSectionProps>(props: T & StrictProps<T, PlasmicAllProjectsPage__navTeamSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("navTeamSection", props);
+  return <PlasmicAllProjectsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"navTeamSection"} />;
+}
+PlasmicAllProjectsPage__navTeamSection.displayName = "PlasmicAllProjectsPage.navTeamSection";
+
 
 export const PlasmicAllProjectsPage = Object.assign(
   // Top-level PlasmicAllProjectsPage renders the root element
-  makeNodeComponent("root"),
+  PlasmicAllProjectsPage__root,
   {
     // Helper components rendering sub-elements
-    defaultLayout: makeNodeComponent("defaultLayout"),
-    projects: makeNodeComponent("projects"),
-    tutorialsSection: makeNodeComponent("tutorialsSection"),
-    freeBox: makeNodeComponent("freeBox"),
-    newProjectButton: makeNodeComponent("newProjectButton"),
-    svg: makeNodeComponent("svg"),
-    filter: makeNodeComponent("filter"),
-    mainList: makeNodeComponent("mainList"),
-    noProjectsText: makeNodeComponent("noProjectsText"),
-    navTeamSection: makeNodeComponent("navTeamSection"),
+    defaultLayout: PlasmicAllProjectsPage__defaultLayout,
+    projects: PlasmicAllProjectsPage__projects,
+    tutorialsSection: PlasmicAllProjectsPage__tutorialsSection,
+    freeBox: PlasmicAllProjectsPage__freeBox,
+    newProjectButton: PlasmicAllProjectsPage__newProjectButton,
+    svg: PlasmicAllProjectsPage__svg,
+    filter: PlasmicAllProjectsPage__filter,
+    mainList: PlasmicAllProjectsPage__mainList,
+    noProjectsText: PlasmicAllProjectsPage__noProjectsText,
+    navTeamSection: PlasmicAllProjectsPage__navTeamSection,
 
     // Metadata about props expected for PlasmicAllProjectsPage
     internalVariantProps: PlasmicAllProjectsPage__VariantProps,

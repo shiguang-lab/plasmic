@@ -14,18 +14,18 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   PlasmicIcon as PlasmicIcon__,
   StrictProps,
-  useTrigger,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -82,16 +82,15 @@ function PlasmicMarkComponent__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -169,12 +168,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -184,27 +179,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicMarkComponent__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicMarkComponent";
-  } else {
-    func.displayName = `PlasmicMarkComponent.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicMarkComponent__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicMarkComponent__root<T extends PlasmicMarkComponent__rootProps>(props: T & StrictProps<T, PlasmicMarkComponent__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicMarkComponent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicMarkComponent__root.displayName = "PlasmicMarkComponent";
+
+type PlasmicMarkComponent__iconButtonProps = NodeComponentProps<"iconButton"> & {key?: React.Key};
+function PlasmicMarkComponent__iconButton<T extends PlasmicMarkComponent__iconButtonProps>(props: T & StrictProps<T, PlasmicMarkComponent__iconButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconButton", props);
+  return <PlasmicMarkComponent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconButton"} />;
+}
+PlasmicMarkComponent__iconButton.displayName = "PlasmicMarkComponent.iconButton";
+
 
 export const PlasmicMarkComponent = Object.assign(
   // Top-level PlasmicMarkComponent renders the root element
-  makeNodeComponent("root"),
+  PlasmicMarkComponent__root,
   {
     // Helper components rendering sub-elements
-    iconButton: makeNodeComponent("iconButton"),
+    iconButton: PlasmicMarkComponent__iconButton,
 
     // Metadata about props expected for PlasmicMarkComponent
     internalVariantProps: PlasmicMarkComponent__VariantProps,

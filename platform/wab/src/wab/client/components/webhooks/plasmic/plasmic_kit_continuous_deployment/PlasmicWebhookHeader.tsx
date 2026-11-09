@@ -23,11 +23,12 @@ import {
   createPlasmicElementProxy,
   deriveRenderOpts,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../../../../plasmic/plasmic_kit_continuous_deployment/PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "../../../../plasmic/plasmic_kit_continuous_deployment/PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 import IconButton from "../../../widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 
 import "@plasmicapp/react-web/lib/plasmic.css";
@@ -101,11 +102,10 @@ function PlasmicWebhookHeader__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showAdd",
@@ -120,18 +120,20 @@ function PlasmicWebhookHeader__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.hideDelete,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -167,9 +169,7 @@ function PlasmicWebhookHeader__RenderFunc(props: {
           data-plasmic-override={overrides.keyInput}
           className={classNames("all", "input", "input__fpbcK", sty.keyInput)}
           placeholder={uiT("Enter key…")}
-          ref={(ref) => {
-            $refs["keyInput"] = ref;
-          }}
+          ref={registerRef("keyInput")}
           size={1}
           type={"text"}
           value={""}
@@ -180,9 +180,7 @@ function PlasmicWebhookHeader__RenderFunc(props: {
           data-plasmic-override={overrides.valueInput}
           className={classNames("all", "input", "input__fpbcK", sty.valueInput)}
           placeholder={uiT("Enter value…")}
-          ref={(ref) => {
-            $refs["valueInput"] = ref;
-          }}
+          ref={registerRef("valueInput")}
           size={1}
           type={"text"}
           value={""}
@@ -305,12 +303,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -320,31 +314,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicWebhookHeader__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicWebhookHeader";
-  } else {
-    func.displayName = `PlasmicWebhookHeader.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicWebhookHeader__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicWebhookHeader__root<T extends PlasmicWebhookHeader__rootProps>(props: T & StrictProps<T, PlasmicWebhookHeader__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicWebhookHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicWebhookHeader__root.displayName = "PlasmicWebhookHeader";
+
+type PlasmicWebhookHeader__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicWebhookHeader__text<T extends PlasmicWebhookHeader__textProps>(props: T & StrictProps<T, PlasmicWebhookHeader__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicWebhookHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicWebhookHeader__text.displayName = "PlasmicWebhookHeader.text";
+
+type PlasmicWebhookHeader__keyInputProps = NodeComponentProps<"keyInput"> & {key?: React.Key};
+function PlasmicWebhookHeader__keyInput<T extends PlasmicWebhookHeader__keyInputProps>(props: T & StrictProps<T, PlasmicWebhookHeader__keyInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("keyInput", props);
+  return <PlasmicWebhookHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"keyInput"} />;
+}
+PlasmicWebhookHeader__keyInput.displayName = "PlasmicWebhookHeader.keyInput";
+
+type PlasmicWebhookHeader__valueInputProps = NodeComponentProps<"valueInput"> & {key?: React.Key};
+function PlasmicWebhookHeader__valueInput<T extends PlasmicWebhookHeader__valueInputProps>(props: T & StrictProps<T, PlasmicWebhookHeader__valueInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("valueInput", props);
+  return <PlasmicWebhookHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"valueInput"} />;
+}
+PlasmicWebhookHeader__valueInput.displayName = "PlasmicWebhookHeader.valueInput";
+
+type PlasmicWebhookHeader__addButtonProps = NodeComponentProps<"addButton"> & {key?: React.Key};
+function PlasmicWebhookHeader__addButton<T extends PlasmicWebhookHeader__addButtonProps>(props: T & StrictProps<T, PlasmicWebhookHeader__addButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addButton", props);
+  return <PlasmicWebhookHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addButton"} />;
+}
+PlasmicWebhookHeader__addButton.displayName = "PlasmicWebhookHeader.addButton";
+
+type PlasmicWebhookHeader__deleteButtonProps = NodeComponentProps<"deleteButton"> & {key?: React.Key};
+function PlasmicWebhookHeader__deleteButton<T extends PlasmicWebhookHeader__deleteButtonProps>(props: T & StrictProps<T, PlasmicWebhookHeader__deleteButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("deleteButton", props);
+  return <PlasmicWebhookHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"deleteButton"} />;
+}
+PlasmicWebhookHeader__deleteButton.displayName = "PlasmicWebhookHeader.deleteButton";
+
 
 export const PlasmicWebhookHeader = Object.assign(
   // Top-level PlasmicWebhookHeader renders the root element
-  makeNodeComponent("root"),
+  PlasmicWebhookHeader__root,
   {
     // Helper components rendering sub-elements
-    text: makeNodeComponent("text"),
-    keyInput: makeNodeComponent("keyInput"),
-    valueInput: makeNodeComponent("valueInput"),
-    addButton: makeNodeComponent("addButton"),
-    deleteButton: makeNodeComponent("deleteButton"),
+    text: PlasmicWebhookHeader__text,
+    keyInput: PlasmicWebhookHeader__keyInput,
+    valueInput: PlasmicWebhookHeader__valueInput,
+    addButton: PlasmicWebhookHeader__addButton,
+    deleteButton: PlasmicWebhookHeader__deleteButton,
 
     // Metadata about props expected for PlasmicWebhookHeader
     internalVariantProps: PlasmicWebhookHeader__VariantProps,

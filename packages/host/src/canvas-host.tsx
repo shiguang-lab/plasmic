@@ -95,7 +95,7 @@ export const PlasmicCanvasContext = React.createContext<
 export const usePlasmicCanvasContext = () =>
   React.useContext(PlasmicCanvasContext);
 
-function _PlasmicCanvasHost() {
+function CanvasHost() {
   // If window.parent is null, then this is a window whose containing iframe
   // has been detached from the DOM (for the top window, window.parent === window).
   // In that case, we shouldn't do anything.  If window.parent is null, by the way,
@@ -201,7 +201,7 @@ export const PlasmicCanvasHost: React.FunctionComponent<
     null,
   );
   React.useEffect(() => {
-    setNode(<_PlasmicCanvasHost />);
+    setNode(<CanvasHost />);
   }, []);
   return <>{node}</>;
 };
@@ -282,10 +282,12 @@ export interface PlasmicCanvasProps {
     onReveal?: () => void;
     states?: Record<string, {
       readonly value: unknown;
+      readonly revealed?: boolean;
       reveal: (value: unknown) => unknown;
     }>;
     getState?: (name: string, nativeValue: unknown, initialValue?: unknown) => {
       readonly value: unknown;
+      readonly revealed?: boolean;
       reveal: (value: unknown) => unknown;
       set: (value: unknown) => void;
     };

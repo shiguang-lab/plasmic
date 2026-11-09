@@ -14,7 +14,7 @@ import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { ValTag } from "@/wab/shared/core/val-nodes";
 import { ArenaFrame, Component, TplNode } from "@/wab/shared/model/classes";
 import { act, cleanup, render } from "@testing-library/react";
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 import { ThemeProvider } from "antd-style";
 import React from "react";
 import { afterEach, expect, it, vi } from "vitest";
@@ -383,7 +383,7 @@ it.each([
     </ThemeProvider>,
   );
   const region = ensure(container.querySelector("[data-copilot-target]"), "Expected activity region");
-  const token = theme.getDesignToken(productTheme(appearance));
+  const token = AntdTheme.getDesignToken(productTheme(appearance));
   const color = kind === "inspection" ? token.colorInfo : token.colorPrimary;
   expect(token.colorInfo).not.toBe(token.colorPrimary);
   expect(region.getAttribute("data-kind")).toBe(kind);

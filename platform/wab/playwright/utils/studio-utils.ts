@@ -9,9 +9,7 @@ export interface ExpectedFormItem {
 }
 
 export function getStudioFrame(page: Page): FrameLocator {
-  return page
-    .frameLocator("iframe.studio-frame")
-    .frameLocator("iframe.__wab_studio-frame");
+  return page.frameLocator("iframe.studio-frame");
 }
 
 export async function waitForFrameToLoad(page: Page) {

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -28,7 +28,7 @@ import {
 } from "@plasmicapp/react-web/lib/host";
 
 import { DataProvider } from "@plasmicpkgs/plasmic-basic-components";
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: eyjDfHaWPk4awNJAqhg4Cb/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: eyjDfHaWPk4awNJAqhg4Cb/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -91,11 +91,10 @@ function PlasmicMultiplayerLightDarkColorProvider__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -116,9 +115,8 @@ function PlasmicMultiplayerLightDarkColorProvider__RenderFunc(props: {
         data-plasmic-name={"dataProvider"}
         data-plasmic-override={overrides.dataProvider}
         className={classNames("__wab_instance", sty.dataProvider)}
-        data={(() => {
-          try {
-            return (() => {
+        data={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+              e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ((() => {
               function isLightColor(color) {
                 const newHexColor = +(
                   "0x" +
@@ -139,17 +137,7 @@ function PlasmicMultiplayerLightDarkColorProvider__RenderFunc(props: {
                 backgroundColor: $props.color,
                 foregroundColor: isLight ? "#000000" : "#ffffff",
               };
-            })();
-          } catch (e) {
-            if (
-              e instanceof TypeError ||
-              e?.plasmicType === "PlasmicUndefinedDataError"
-            ) {
-              return { backgroundColor: "#ff0000", foregroundColor: "#ffffff" };
-            }
-            throw e;
-          }
-        })()}
+            })()), () => ({ backgroundColor: "#ff0000", foregroundColor: "#ffffff" }))}
         name={"colors"}
       >
         <DataCtxReader__>
@@ -158,22 +146,11 @@ function PlasmicMultiplayerLightDarkColorProvider__RenderFunc(props: {
               defaultContents: (
                 <div
                   className={classNames("all", sty.freeBox__fbzf)}
-                  style={(() => {
-                    try {
-                      return {
+                  style={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                        e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ({
                         backgroundColor: $ctx.colors.backgroundColor,
                         color: $ctx.colors.foregroundColor,
-                      };
-                    } catch (e) {
-                      if (
-                        e instanceof TypeError ||
-                        e?.plasmicType === "PlasmicUndefinedDataError"
-                      ) {
-                        return undefined;
-                      }
-                      throw e;
-                    }
-                  })()}
+                      }), () => (undefined))}
                 >
                   <div
                     className={classNames("all", "__wab_text", sty.text__nLmle)}
@@ -235,12 +212,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -252,27 +225,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicMultiplayerLightDarkColorProvider__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicMultiplayerLightDarkColorProvider";
-  } else {
-    func.displayName = `PlasmicMultiplayerLightDarkColorProvider.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicMultiplayerLightDarkColorProvider__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicMultiplayerLightDarkColorProvider__root<T extends PlasmicMultiplayerLightDarkColorProvider__rootProps>(props: T & StrictProps<T, PlasmicMultiplayerLightDarkColorProvider__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicMultiplayerLightDarkColorProvider__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicMultiplayerLightDarkColorProvider__root.displayName = "PlasmicMultiplayerLightDarkColorProvider";
+
+type PlasmicMultiplayerLightDarkColorProvider__dataProviderProps = NodeComponentProps<"dataProvider"> & {key?: React.Key};
+function PlasmicMultiplayerLightDarkColorProvider__dataProvider<T extends PlasmicMultiplayerLightDarkColorProvider__dataProviderProps>(props: T & StrictProps<T, PlasmicMultiplayerLightDarkColorProvider__dataProviderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dataProvider", props);
+  return <PlasmicMultiplayerLightDarkColorProvider__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dataProvider"} />;
+}
+PlasmicMultiplayerLightDarkColorProvider__dataProvider.displayName = "PlasmicMultiplayerLightDarkColorProvider.dataProvider";
+
 
 export const PlasmicMultiplayerLightDarkColorProvider = Object.assign(
   // Top-level PlasmicMultiplayerLightDarkColorProvider renders the root element
-  makeNodeComponent("root"),
+  PlasmicMultiplayerLightDarkColorProvider__root,
   {
     // Helper components rendering sub-elements
-    dataProvider: makeNodeComponent("dataProvider"),
+    dataProvider: PlasmicMultiplayerLightDarkColorProvider__dataProvider,
 
     // Metadata about props expected for PlasmicMultiplayerLightDarkColorProvider
     internalVariantProps:

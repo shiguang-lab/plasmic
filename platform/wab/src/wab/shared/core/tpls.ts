@@ -1450,7 +1450,7 @@ export function computeAncestorsValKey(ancestorsWithLayers: NodeWithLayer[]) {
   // layer 1 too and it's not part of the valKey.
   //
   // Reference:
-  // `computeRenderedArg`, `deriveTplTagChildren`, `renderTplSlot`, `useCtxFromInternalComponentProps`
+  // `computeRenderedArg`, `deriveTplTagChildren`, `renderTplSlot`, `prepareCanvasComponent`
   // from cans
   let layer = ancestorsWithLayers[0].layer;
   const valKeyAncestors: TplNode[] = [];
@@ -1471,7 +1471,7 @@ export function computeAncestorsValKey(ancestorsWithLayers: NodeWithLayer[]) {
 
 export const summarizeTpl = (
   tpl: TplNode,
-  rsh?: ReadonlyIRuleSetHelpersX,
+  rsh?: Pick<ReadonlyIRuleSetHelpersX, "get">,
 ): string =>
   switchType(tpl)
     .when(
@@ -1487,20 +1487,20 @@ export const summarizeTpl = (
 export const summarizeTplPath = (tpl) =>
   [...ancestors(tpl).slice(1)].map((node) => summarizeTpl(node)).join(" > ");
 
-export function summarizeTplTag(tpl: TplTag, rsh?: ReadonlyIRuleSetHelpersX) {
+export function summarizeTplTag(tpl: TplTag, rsh?: Pick<ReadonlyIRuleSetHelpersX, "get">) {
   return getTplTagTypeDescription(tpl, rsh);
 }
 
 export function summarizeUnnamedTpl(
   tpl: TplNamable,
-  rsh?: ReadonlyIRuleSetHelpersX,
+  rsh?: Pick<ReadonlyIRuleSetHelpersX, "get">,
 ) {
   return `(unnamed ${summarizeTpl(tpl, rsh)})`;
 }
 
 export function summarizeTplNamable(
   tpl: TplNamable,
-  rsh?: ReadonlyIRuleSetHelpersX,
+  rsh?: Pick<ReadonlyIRuleSetHelpersX, "get">,
 ) {
   if (tpl.name) {
     return tpl.name;
@@ -1510,7 +1510,7 @@ export function summarizeTplNamable(
 
 export function getTplTagTypeDescription(
   tpl: TplTag,
-  rsh?: ReadonlyIRuleSetHelpersX,
+  rsh?: Pick<ReadonlyIRuleSetHelpersX, "get">,
 ) {
   if (isTplColumn(tpl)) {
     return "column";

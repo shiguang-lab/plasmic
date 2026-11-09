@@ -14,6 +14,7 @@
 import * as React from "react";
 
 import {
+  usePlasmicRefs,
   Flex as Flex__,
   StrictProps,
   classNames,
@@ -81,9 +82,8 @@ function PlasmicAtomsButtonOutline__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
   return (
     <EmailButton
@@ -148,12 +148,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -163,24 +159,19 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicAtomsButtonOutline__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicAtomsButtonOutline";
-  } else {
-    func.displayName = `PlasmicAtomsButtonOutline.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicAtomsButtonOutline__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicAtomsButtonOutline__root<T extends PlasmicAtomsButtonOutline__rootProps>(props: T & StrictProps<T, PlasmicAtomsButtonOutline__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicAtomsButtonOutline__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicAtomsButtonOutline__root.displayName = "PlasmicAtomsButtonOutline";
+
 
 export const PlasmicAtomsButtonOutline = Object.assign(
   // Top-level PlasmicAtomsButtonOutline renders the root element
-  makeNodeComponent("root"),
+  PlasmicAtomsButtonOutline__root,
   {
     // Helper components rendering sub-elements
 

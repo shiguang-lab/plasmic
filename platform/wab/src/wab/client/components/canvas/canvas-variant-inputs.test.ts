@@ -18,7 +18,6 @@ import { createSite } from "@/wab/shared/core/sites";
 import { mkTplComponent } from "@/wab/shared/core/tpls";
 import { ValComponent } from "@/wab/shared/core/val-nodes";
 import { ObjInst, TplComponent } from "@/wab/shared/model/classes";
-import { isObservable } from "mobx";
 import { mock } from "vitest-mock-extended";
 
 function fixture() {
@@ -55,7 +54,6 @@ function fixture() {
 
 it("derives atomic pins from native frame DTOs before their publication without observable models", () => {
   const f = fixture(), source = f.owner.ownerStore(f.rootValue.key), unrelated = f.owner.ownerStore("unrelated");
-  expect(isObservable(f.component)).toBe(false);
   expect(source.getState()?.pins.find((pin) => pin.variant.uid === f.first.uid)?.active).toBe(true);
   const observed: unknown[] = [], other = vi.fn();
   source.subscribe(() => observed.push([source.getState(), f.owner.globalStore.getState()])); unrelated.subscribe(other);

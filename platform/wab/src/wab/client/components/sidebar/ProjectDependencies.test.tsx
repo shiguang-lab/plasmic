@@ -1,3 +1,10 @@
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import { ensure } from "@/wab/shared/common";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { createSite } from "@/wab/shared/core/sites";
+import { HostLessPackageInfo, ProjectDependency } from "@/wab/shared/model/classes";
+import { DEVFLAGS } from "@/wab/shared/devflags";
+import { createProjectDependenciesStore, setDependency } from "@/wab/client/studio-ctx/project-dependencies-state";
 import { ProjectDependenciesPanel } from "@/wab/client/components/sidebar/ProjectDependencies";
 import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
 import { StudioSaveState } from "@/wab/client/studio-ctx/save-state";
@@ -11,11 +18,13 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { Menu } from "antd";
 import React from "react";
 
 const mocks = vi.hoisted(() => ({
+  studio: undefined as any,
   deps: [] as any[],
   catalog: [] as any[],
   permission: "writable",
@@ -31,29 +40,7 @@ const mocks = vi.hoisted(() => ({
   getPkgVersion: vi.fn(),
   add: vi.fn(),
 }));
-vi.mock("@/wab/client/contexts/StudioContexts", () => ({
-  useStudioCtx: () => ({
-    ...mocks.nativeInputs(),
-    appCtx: {
-      selfInfo: { email: "user@example.com" },
-      appConfig: { hostLessComponents: mocks.catalog },
-      api: {
-        getPkgVersion: mocks.getPkgVersion,
-      },
-    },
-    bundler: () => ({}),
-    canSave: () => mocks.nativeInputs().saveState.store.getState().canSave,
-    getLeftTabPermission: () => mocks.permission,
-    projectDependencyManager: {
-      getDependencies: () => mocks.deps,
-      refreshDeps: mocks.refresh,
-      removeByPkgId: mocks.remove,
-      getHostLessPackageDependents: mocks.dependents,
-      addByProjectId: mocks.add,
-      upgradeProjectDeps: mocks.upgrade,
-    },
-  }),
-}));
+vi.mock("@/wab/client/contexts/StudioContexts", () => ({ useStudioCtx: () => mocks.studio }));
 vi.mock("@/wab/client/components/studio/add-drawer/AddDrawer", () => ({
   shouldShowHostLessPackage: () => true,
 }));
@@ -117,12 +104,9 @@ vi.mock("@/wab/client/components/menu-builder", () => ({
     }
   },
 }));
-vi.mock("@/wab/shared/core/sites", () => ({
-  isHostLessPackage: (site: any) => !!site.hostLessPackageInfo,
-}));
 vi.mock("@/wab/shared/core/tagged-unbundle", () => ({
   unbundleProjectDependency: () => ({
-    projectDependency: { name: "antd6", site: {} },
+    projectDependency: dependency("antd6", true).model,
   }),
 }));
 vi.mock("@shiguang2/components/esm/scrollbar", () => ({
@@ -136,29 +120,42 @@ function dependency(
   latest = version,
 ) {
   return {
-    model: {
-      name,
-      pkgId: name,
-      projectId: name,
-      version,
-      site: { hostLessPackageInfo: code ? {} : undefined },
-    },
+    model: new ProjectDependency({
+      uuid: `dep-${name}`, name, pkgId: name, projectId: name, version,
+      site: createSite({ hostLessPackageInfo: code ? new HostLessPackageInfo({ name, npmPkg: [], cssImport: [], deps: [], registerCalls: [], minimumReactVersion: null }) : null }),
+    }),
     latestPkgVersionMeta: { version: latest, pkg: { projectId: name } },
   };
 }
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.permission = "writable";
-  mocks.nativeInputs.mockReturnValue({
-    ...createStudioUiEnvironmentFixture(),
-    saveState: new StudioSaveState(),
-  });
+
   mocks.catalog = [{ name: "Ant Design 6", projectId: "antd6" }];
   mocks.deps = [
     dependency("antd6", true, "0.4.7", "0.5.0"),
     dependency("Business components", false, "1.4.0", "1.5.0"),
     dependency("No version", false, ""),
   ];
+  const site = createSite({ projectDependencies: mocks.deps.map((entry) => entry.model) });
+  const modelSnapshots = new ModelSnapshots(), arenaState = new StudioArenaState({site, modelSnapshots}), modelListeners = new Set<() => void>();
+  const dependencyStateStore = createProjectDependenciesStore();
+  dependencyStateStore.setState({ dependencyMap: Object.freeze(Object.fromEntries(mocks.deps.map((entry) => [entry.model.pkgId, entry]))) });
+  const appUiListeners = new Set<() => void>();
+  const native = { ...createStudioUiEnvironmentFixture(), saveState: new StudioSaveState(), site, modelSnapshots,
+    arenaState, subscribeModelChanges: (listener: () => void) => { modelListeners.add(listener); return () => {modelListeners.delete(listener);}; }, close: () => { arenaState.dispose(); modelSnapshots.dispose(); } };
+  mocks.nativeInputs.mockReturnValue(native);
+  mocks.studio = {
+    ...native,
+    appCtx: { selfInfo: { email: "user@example.com" }, appConfig: { ...DEVFLAGS, hostLessComponents: mocks.catalog },
+      subscribeUiEnvironmentInputs: (listener: () => void) => { appUiListeners.add(listener); return () => { appUiListeners.delete(listener); }; },
+      publishUiEnvironmentInputs: () => appUiListeners.forEach((listener) => listener()),
+      api: { getPkgVersion: mocks.getPkgVersion } },
+    bundler: () => ({}),
+    projectDependencyManager: { dependencyStateStore, getDependencies: () => mocks.deps, refreshDeps: mocks.refresh,
+      removeByPkgId: mocks.remove, getHostLessPackageDependents: mocks.dependents,
+      addByProjectId: mocks.add, upgradeProjectDeps: mocks.upgrade },
+  };
   mocks.refresh.mockResolvedValue(undefined);
   mocks.dependents.mockReturnValue([]);
   mocks.promptDelete.mockResolvedValue(true);
@@ -171,6 +168,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   mocks.nativeInputs().saveState.dispose();
+  mocks.nativeInputs().close();
 });
 
 it("shows real names, stable types and imported versions without invented provenance", () => {
@@ -241,7 +239,8 @@ it("keeps refresh loading until the request settles and reports failure", async 
 });
 it("removes through the existing confirmation and dependency manager", async () => {
   render(<ProjectDependenciesPanel />);
-  fireEvent.click(screen.getAllByText("Remove imported project")[0]);
+  const row = ensure(screen.getByText("Ant Design 6").closest<HTMLElement>(".project-library-row"), "Ant Design library row");
+  fireEvent.click(within(row).getByText("Remove imported project"));
   await waitFor(() => expect(mocks.remove).toHaveBeenCalledWith("antd6"));
   expect(mocks.promptDelete).toHaveBeenCalledWith(
     expect.objectContaining({ curDep: mocks.deps[0].model }),
@@ -251,7 +250,7 @@ it("imports a project URL through the existing dependency manager", async () => 
   mocks.promptImport.mockResolvedValue(
     `${getPublicUrl()}/projects/business-library`,
   );
-  mocks.add.mockResolvedValue({ site: {} });
+  mocks.add.mockResolvedValue(dependency("Imported").model);
   render(<ProjectDependenciesPanel />);
   fireEvent.click(screen.getByRole("button", { name: "Import project" }));
   await waitFor(() =>
@@ -260,11 +259,33 @@ it("imports a project URL through the existing dependency manager", async () => 
 });
 it("upgrades hostless code library through the upgrade prompt and dependency manager", async () => {
   render(<ProjectDependenciesPanel />);
-  const viewUpdateButtons = screen.getAllByRole("button", {
-    name: "View update",
-  });
-  fireEvent.click(viewUpdateButtons[0]);
+  const row = ensure(screen.getByText("Ant Design 6").closest<HTMLElement>(".project-library-row"), "Ant Design library row");
+  fireEvent.click(within(row).getByRole("button", { name: "View update" }));
   await waitFor(() => expect(mocks.getPkgVersion).toHaveBeenCalledWith("antd6", "0.5.0"));
   await waitFor(() => expect(mocks.promptUpgrade).toHaveBeenCalled());
   await waitFor(() => expect(mocks.upgrade).toHaveBeenCalled());
+});
+
+
+it("publishes fetched version metadata through the dependency owner's native store", () => {
+  render(<ProjectDependenciesPanel />);
+  const before = mocks.deps[2];
+  expect(screen.getAllByText("View update")).toHaveLength(2);
+  act(() => {
+    setDependency(mocks.studio.projectDependencyManager, before.model.pkgId, { ...before,
+      latestPkgVersionMeta: { ...before.latestPkgVersionMeta, version: "2.0.0" } });
+  });
+  expect(screen.getAllByText("View update")).toHaveLength(3);
+  expect(before.latestPkgVersionMeta.version).toBe("");
+});
+
+it("refreshes friendly package names after the app configuration publishes", () => {
+  render(<ProjectDependenciesPanel />);
+  expect(screen.getByText("Ant Design 6")).toBeVisible();
+  act(() => {
+    mocks.studio.appCtx.appConfig = { ...mocks.studio.appCtx.appConfig, hostLessComponents: [{ name: "Renamed library", projectId: "antd6" }] };
+    mocks.studio.appCtx.publishUiEnvironmentInputs();
+  });
+  expect(screen.getByText("Renamed library")).toBeVisible();
+  expect(screen.queryByText("Ant Design 6")).toBeNull();
 });

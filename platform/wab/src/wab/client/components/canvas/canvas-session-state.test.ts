@@ -1,6 +1,6 @@
 import { applyCanvasSessionState, canvasSessionInstanceKey, CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
 
-it("observes native overlay events without an implicit state and isolates editing reveals", () => {
+it("shows selection reveals during interaction and lets native overlay events dismiss them", () => {
   const session = new CanvasSessionState();
   const onOpenChange = vi.fn();
   session.resolve("tooltip[0]", "open", undefined, false);
@@ -15,8 +15,10 @@ it("observes native overlay events without an implicit state and isolates editin
   const store = session.instanceStore("tooltip[0]");
   const stop = store.subscribe(() => { result = undefined; });
   const cached = { get: () => result ?? (result = render()) };
-  expect(cached.get().open).toBe(false);
-  expect(cached.get().__canvas.getState("open").value).toBe(false);
+  expect(cached.get().open).toBe(true);
+  expect(cached.get().__canvas.getState("open").value).toBe(true);
+  expect(cached.get().__canvas.getState("open").revealed).toBe(true);
+  expect(session.getRuntime("tooltip[0]", "open")).toBe(false);
   expect(session.get("tooltip[0]", "open")).toBe(true);
   expect(onOpenChange).not.toHaveBeenCalled();
   cached.get().onOpenChange(true);
@@ -39,7 +41,8 @@ it.each([undefined, false, true])("overlay defaults and controlled open retain n
   const editing = render(false);
   session.reveal("overlay", "open", false);
   expect(render(false).open).toBe(false);
-  expect(render(true).open).toBe(open ?? true);
+  expect(render(true).open).toBe(false);
+  expect(session.getRuntime("overlay", "open")).toBe(open ?? true);
   render(true).onOpenChange(false);
   expect(render(true).open).toBe(open ?? false);
   expect(callback).toHaveBeenCalledExactlyOnceWith(false);
@@ -58,7 +61,8 @@ it.each([undefined, true])("delayed overlay close updates runtime without dismis
   session.reveal("overlay", "open", true);
   render(false).onOpenChange(false);
   expect(render(false).open).toBe(true);
-  expect(render(true).open).toBe(open ?? false);
+  expect(render(true).open).toBe(true);
+  expect(session.getRuntime("overlay", "open")).toBe(open ?? false);
   expect(callback).toHaveBeenCalledExactlyOnceWith(true);
 });
 

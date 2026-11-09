@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,14 +23,14 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ExperimentEvent from "../../components/splits/ExperimentEvent"; // plasmic-import: fjdDZovo7S/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import ExpandButton from "../../components/widgets/ExpandButton"; // plasmic-import: JJhv0MV9DH/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -98,11 +98,10 @@ function PlasmicExperimentEvents__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isExpanded",
@@ -111,18 +110,20 @@ function PlasmicExperimentEvents__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.isExpanded,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -278,12 +279,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -293,29 +290,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicExperimentEvents__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicExperimentEvents";
-  } else {
-    func.displayName = `PlasmicExperimentEvents.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicExperimentEvents__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicExperimentEvents__root<T extends PlasmicExperimentEvents__rootProps>(props: T & StrictProps<T, PlasmicExperimentEvents__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicExperimentEvents__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicExperimentEvents__root.displayName = "PlasmicExperimentEvents";
+
+type PlasmicExperimentEvents__newBtnProps = NodeComponentProps<"newBtn"> & {key?: React.Key};
+function PlasmicExperimentEvents__newBtn<T extends PlasmicExperimentEvents__newBtnProps>(props: T & StrictProps<T, PlasmicExperimentEvents__newBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newBtn", props);
+  return <PlasmicExperimentEvents__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newBtn"} />;
+}
+PlasmicExperimentEvents__newBtn.displayName = "PlasmicExperimentEvents.newBtn";
+
+type PlasmicExperimentEvents__expandBtnProps = NodeComponentProps<"expandBtn"> & {key?: React.Key};
+function PlasmicExperimentEvents__expandBtn<T extends PlasmicExperimentEvents__expandBtnProps>(props: T & StrictProps<T, PlasmicExperimentEvents__expandBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("expandBtn", props);
+  return <PlasmicExperimentEvents__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"expandBtn"} />;
+}
+PlasmicExperimentEvents__expandBtn.displayName = "PlasmicExperimentEvents.expandBtn";
+
+type PlasmicExperimentEvents__eventsProps = NodeComponentProps<"events"> & {key?: React.Key};
+function PlasmicExperimentEvents__events<T extends PlasmicExperimentEvents__eventsProps>(props: T & StrictProps<T, PlasmicExperimentEvents__eventsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("events", props);
+  return <PlasmicExperimentEvents__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"events"} />;
+}
+PlasmicExperimentEvents__events.displayName = "PlasmicExperimentEvents.events";
+
 
 export const PlasmicExperimentEvents = Object.assign(
   // Top-level PlasmicExperimentEvents renders the root element
-  makeNodeComponent("root"),
+  PlasmicExperimentEvents__root,
   {
     // Helper components rendering sub-elements
-    newBtn: makeNodeComponent("newBtn"),
-    expandBtn: makeNodeComponent("expandBtn"),
-    events: makeNodeComponent("events"),
+    newBtn: PlasmicExperimentEvents__newBtn,
+    expandBtn: PlasmicExperimentEvents__expandBtn,
+    events: PlasmicExperimentEvents__events,
 
     // Metadata about props expected for PlasmicExperimentEvents
     internalVariantProps: PlasmicExperimentEvents__VariantProps,

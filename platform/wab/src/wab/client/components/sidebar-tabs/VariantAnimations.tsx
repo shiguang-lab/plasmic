@@ -1,3 +1,5 @@
+import type { VariantAnimationDisplay } from "@/wab/client/components/sidebar-tabs/variant-animation-inputs";
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { PlexusButton } from "@/wab/client/components/plexus/PlexusButton";
 import { useNewAnimationContext } from "@/wab/client/components/sidebar-tabs/style-tab";
 import { useAnimations } from "@/wab/client/components/sidebar-tabs/useAnimations";
@@ -13,16 +15,15 @@ import KeyframesIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicI
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { VariantCombo, tryGetPrivateStyleVariant } from "@/wab/shared/Variants";
 import { arrayEqIgnoreOrder } from "@/wab/shared/common";
-import { Animation, TplTag } from "@/wab/shared/model/classes";
+import { TplTag } from "@/wab/shared/model/classes";
 import { Tooltip } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
 
 interface VariantAnimationsRenderProps {
   addAnimationLayer: () => void;
   animationsList: React.ReactNode | null;
-  animations: Animation[];
-  playAnimations: (animations: Animation[]) => void;
+  animations: readonly VariantAnimationDisplay[];
+  playAnimations: (animations: readonly VariantAnimationDisplay[]) => void;
   stopAnimations: () => void;
   isAnimationPlaying: boolean;
   previewAnimationButton: React.ReactNode | null;
@@ -35,7 +36,11 @@ interface VariantAnimationsProps {
   children: (props: VariantAnimationsRenderProps) => React.ReactNode;
 }
 
-export const VariantAnimations = observer(function VariantAnimations(
+export const VariantAnimations = React.memo(function VariantAnimations(props: VariantAnimationsProps) {
+  const world = useVariantModelWorld(props.viewCtx.studioCtx, props.tpl, props.viewCtx);
+  return world.alive ? <VariantAnimationsContent {...props} /> : null;
+});
+const VariantAnimationsContent = React.memo(function VariantAnimationsContent(
   props: VariantAnimationsProps,
 ) {
   const { t: uiT } = useI18n();
@@ -46,6 +51,8 @@ export const VariantAnimations = observer(function VariantAnimations(
   const {
     addAnimationLayer,
     animations,
+    animationDisplay,
+    variantSelectors,
     inspectedAnimation,
     vsh,
     closeInspectedAnimation,
@@ -64,7 +71,7 @@ export const VariantAnimations = observer(function VariantAnimations(
   const shouldAutoAdd =
     (newAnimation?.type === "base" && !privateStyleVariant) ||
     (newAnimation?.type === "selector" &&
-      arrayEqIgnoreOrder(privateStyleVariant?.selectors || [], [
+      arrayEqIgnoreOrder(variantSelectors, [
         newAnimation.cssSelector,
       ]));
 
@@ -80,12 +87,12 @@ export const VariantAnimations = observer(function VariantAnimations(
     animations.length > 0 ? (
       <StyleWrapper styleName={["animation"]} className="flex-fill">
         <ListBox appendPrepend={"append"} onReorder={reorderAnimations}>
-          {animations.map((animation: Animation, i: number) => {
+          {animationDisplay.map((animation, i: number) => {
             return (
               <ListBoxItem
-                key={animation.uid}
+                key={animation.target.uid}
                 index={i}
-                onRemove={() => removeAnimation(animation)}
+                onRemove={() => removeAnimation(animation.target)}
                 onClick={() => openAnimationForEditing(i)}
                 mainContent={
                   <div className={"flex flex-vcenter gap-sm"}>
@@ -142,8 +149,8 @@ export const VariantAnimations = observer(function VariantAnimations(
         addAnimationLayer,
         animationsList,
         isAnimationPlaying,
-        animations,
-        playAnimations,
+        animations: animationDisplay,
+        playAnimations: (entries) => playAnimations(entries.map((entry) => entry.target)),
         stopAnimations,
         previewAnimationButton,
       })}

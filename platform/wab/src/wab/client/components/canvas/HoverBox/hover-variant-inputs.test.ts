@@ -1,0 +1,62 @@
+import { renderHook, act } from "@testing-library/react";
+import { ViewStyleInputs } from "@/wab/client/studio-ctx/style-inputs";
+import { ValTag } from "@/wab/shared/core/val-nodes";
+import { ensure } from "@/wab/shared/common";
+import { HoverVariantInputs, useHoverVariantInputs } from "@/wab/client/components/canvas/HoverBox/hover-variant-inputs";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
+import { RootComponentVariantFrame } from "@/wab/shared/component-frame";
+import { mkBaseVariant, mkVariant } from "@/wab/shared/Variants";
+import { ComponentType, mkComponent } from "@/wab/shared/core/components";
+import { ChangeRecorder } from "@/wab/shared/core/observable-model";
+import { mkTplTagX } from "@/wab/shared/core/tpls";
+import { createSite } from "@/wab/shared/core/sites";
+import { instUtil } from "@/wab/shared/model/InstUtil";
+import { mock } from "vitest-mock-extended";
+
+it("changes hover-owner tint classification for native target variant names and closes its original world", () => {
+  const base = mkBaseVariant(), selected = mkVariant({ name: "Active" });
+  const root = mkTplTagX("div", { baseVariant: base, attrs: {} });
+  const component = mkComponent({ name: "Clones", type: ComponentType.Plain, tplTree: root, variants: [base, selected] });
+  const site = createSite(); site.components.push(component);
+  const frame = mkArenaFrame({ site, component, name: "Clones", width: 100, height: 100 });
+  frame.targetVariants = [selected]; site.arenas.push(mkMixedArena("Canvas", [frame]));
+  const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
+  const models = new ModelSnapshots(), next = new ModelSnapshots(), signal = new AbortController();
+  const studio = mock<StudioCtx>(); Object.defineProperty(studio, "modelSnapshots", { value: models, writable: true });
+  const view = mock<ViewCtx>(); Object.defineProperty(view, "studioCtx", { value: studio });
+  const manager = mock<ReturnType<ViewCtx["variantTplMgr"]>>();
+  manager.getContainingFrame.mockReturnValue(new RootComponentVariantFrame(frame)); view.variantTplMgr.mockImplementation(() => { throw new Error("Hover must not use editing frames"); });
+  Object.defineProperties(view, { disposeSignal: { value: signal.signal }, site: { value: site }, styleInputs: { value: new ViewStyleInputs(() => models, signal.signal) } });
+  view.hoverVariantTplMgr.mockReturnValue(manager);
+  const selectable = new ValTag({ tpl: root, children: [], className: "", key: "hover-owner[1]", fullKey: "hover-owner[1]", frameUid: frame.uid, fibers: [], parent: undefined, valOwner: undefined, slotInfo: undefined });
+  const variants = {};
+  const hook = renderHook(() => useHoverVariantInputs(view, selectable, variants, 0));
+  expect(view.hoverVariantTplMgr).toHaveBeenCalledWith(selectable);
+  const native = ensure(hook.result.current.provider, "Hover native source").getNativeStyleSource();
+  expect(native.kind).toBe("tpl");
+  if (native.kind === "tpl") { expect(native.source.component).toBe(component); expect(native.source.contextKey).toContain("hover-owner[1]"); }
+  expect(view.variantTplMgr).not.toHaveBeenCalled();
+  const source = new HoverVariantInputs({ view, models, signal: signal.signal }, root, manager);
+  const publish = vi.fn(), stop = source.subscribe(publish); publish.mockClear();
+  try {
+    expect(source.getSnapshot().targeting).toBe(true);
+    act(() => { models.sync(recorder.withRecording(() => { selected.name = "base"; }).changes); });
+    expect(source.getSnapshot().targeting).toBe(false); expect(publish).toHaveBeenCalledOnce(); publish.mockClear();
+    act(() => { models.sync(recorder.withRecording(() => { selected.name = "Active again"; }).changes); });
+    expect(source.getSnapshot().targeting).toBe(true); expect(publish).toHaveBeenCalledOnce();
+    publish.mockClear();
+    const before = hook.result.current.fields;
+    act(() => { models.sync(recorder.withRecording(() => { ensure(root.vsettings[0], "Hover base setting").rs.values = { display: "flex" }; }).changes); });
+    expect(hook.result.current.fields).not.toBe(before); expect(publish).toHaveBeenCalledOnce();
+    Object.defineProperty(studio, "modelSnapshots", { value: next, writable: true });
+    const calls = view.hoverVariantTplMgr.mock.calls.length;
+    hook.rerender();
+    expect(hook.result.current.alive).toBe(false);
+    expect(view.hoverVariantTplMgr).toHaveBeenCalledTimes(calls);
+    const demand = vi.spyOn(next, "declaredField");
+    expect(source.getSnapshot().alive).toBe(false); expect(demand).not.toHaveBeenCalled();
+  } finally { hook.unmount(); stop(); signal.abort(); models.dispose(); next.dispose(); recorder.dispose(); }
+});

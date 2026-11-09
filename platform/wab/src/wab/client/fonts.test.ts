@@ -56,7 +56,7 @@ it("does not warn when switching to a generic family after opening", async () =>
   const studioCtx = mock<StudioCtx>({ site });
   Object.defineProperty(studioCtx, "viewCtxs", { value: [] });
 
-  manager.useFont(studioCtx, "ui-monospace");
+  manager.loadFont(studioCtx, "ui-monospace");
   manager.installAllUsedFonts([]);
 
   expect(manager.missingUsedFonts()).not.toContain("ui-monospace");
@@ -115,7 +115,7 @@ it.each([true, false])(
     const studioCtx = mock<StudioCtx>({ site });
     Object.defineProperty(studioCtx, "viewCtxs", { value: [] });
 
-    manager.useFont(studioCtx, "Menlo");
+    manager.loadFont(studioCtx, "Menlo");
     manager.installAllUsedFonts([]);
     expect(warn).not.toHaveBeenCalled();
     await Promise.resolve();

@@ -50,7 +50,7 @@ import {
   ContainerLayoutType,
   getRshContainerType,
 } from "@/wab/shared/layoututils";
-import { keyedComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import {
   ArenaFrame,
   Component,
@@ -514,13 +514,8 @@ function getComponentDefaultSize_(
   return size;
 }
 
-export const getComponentDefaultSize = keyedComputedFn(
-  getComponentDefaultSize_,
-  {
-    keyFn: (comp, activeVariants) =>
-      `${comp.uuid}-${variantComboKey(activeVariants)}`,
-  },
-);
+export const getComponentDefaultSize = memoizeModelQuery(getComponentDefaultSize_, {keyFn: (comp, activeVariants) =>
+      `${comp.uuid}-${variantComboKey(activeVariants)}`});
 
 // export const getComponentDefaultSize = getComponentDefaultSize_;
 

@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicLink as PlasmicLink__,
   SingleBooleanChoiceArg,
   StrictProps,
@@ -27,7 +27,7 @@ import {
   generateStateValueProp,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -35,8 +35,8 @@ import Bill from "../../components/dashboard/Bill"; // plasmic-import: sK-iPs7I1
 import PriceTierPicker from "../../components/pricing/PriceTierPicker"; // plasmic-import: Xx_WsdQKli-S/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Switch from "../../components/widgets/Switch"; // plasmic-import: b35JDgXpbiF/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -125,11 +125,10 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "skipCreditCard",
@@ -159,20 +158,22 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => "isChecked",
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -554,9 +555,9 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
               "isChecked",
             ]) ?? false
           }
-          onChange={async (...eventArgs: any) => {
+          onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
             ((...eventArgs) => {
-              generateStateOnChangeProp($state, [
+              generateStateOnChangeProp($stateCommands, [
                 "billingFrequencyToggle",
                 "isChecked",
               ])(eventArgs[0]);
@@ -569,7 +570,7 @@ function PlasmicUpsellCheckout__RenderFunc(props: {
             ) {
               return;
             }
-          }}
+          })); })}
         >
           <div className={classNames("all", "__wab_text", sty.text__c7DnN)}>
             {<UiText message={"Annual Billing (Save 20%)"} />}
@@ -908,12 +909,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -923,40 +920,133 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicUpsellCheckout__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicUpsellCheckout";
-  } else {
-    func.displayName = `PlasmicUpsellCheckout.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicUpsellCheckout__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicUpsellCheckout__root<T extends PlasmicUpsellCheckout__rootProps>(props: T & StrictProps<T, PlasmicUpsellCheckout__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicUpsellCheckout__root.displayName = "PlasmicUpsellCheckout";
+
+type PlasmicUpsellCheckout__operationTitleProps = NodeComponentProps<"operationTitle"> & {key?: React.Key};
+function PlasmicUpsellCheckout__operationTitle<T extends PlasmicUpsellCheckout__operationTitleProps>(props: T & StrictProps<T, PlasmicUpsellCheckout__operationTitleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("operationTitle", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"operationTitle"} />;
+}
+PlasmicUpsellCheckout__operationTitle.displayName = "PlasmicUpsellCheckout.operationTitle";
+
+type PlasmicUpsellCheckout__operationDescriptionProps = NodeComponentProps<"operationDescription"> & {key?: React.Key};
+function PlasmicUpsellCheckout__operationDescription<T extends PlasmicUpsellCheckout__operationDescriptionProps>(props: T & StrictProps<T, PlasmicUpsellCheckout__operationDescriptionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("operationDescription", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"operationDescription"} />;
+}
+PlasmicUpsellCheckout__operationDescription.displayName = "PlasmicUpsellCheckout.operationDescription";
+
+type PlasmicUpsellCheckout__billingFrequencyToggleProps = NodeComponentProps<"billingFrequencyToggle"> & {key?: React.Key};
+function PlasmicUpsellCheckout__billingFrequencyToggle<T extends PlasmicUpsellCheckout__billingFrequencyToggleProps>(props: T & StrictProps<T, PlasmicUpsellCheckout__billingFrequencyToggleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("billingFrequencyToggle", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"billingFrequencyToggle"} />;
+}
+PlasmicUpsellCheckout__billingFrequencyToggle.displayName = "PlasmicUpsellCheckout.billingFrequencyToggle";
+
+type PlasmicUpsellCheckout__priceTierPickerProps = NodeComponentProps<"priceTierPicker"> & {key?: React.Key};
+function PlasmicUpsellCheckout__priceTierPicker<T extends PlasmicUpsellCheckout__priceTierPickerProps>(props: T & StrictProps<T, PlasmicUpsellCheckout__priceTierPickerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("priceTierPicker", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"priceTierPicker"} />;
+}
+PlasmicUpsellCheckout__priceTierPicker.displayName = "PlasmicUpsellCheckout.priceTierPicker";
+
+type PlasmicUpsellCheckout__billProps = NodeComponentProps<"bill"> & {key?: React.Key};
+function PlasmicUpsellCheckout__bill<T extends PlasmicUpsellCheckout__billProps>(props: T & StrictProps<T, PlasmicUpsellCheckout__billProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("bill", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"bill"} />;
+}
+PlasmicUpsellCheckout__bill.displayName = "PlasmicUpsellCheckout.bill";
+
+type PlasmicUpsellCheckout__spinnerContainerProps = NodeComponentProps<"spinnerContainer"> & {key?: React.Key};
+function PlasmicUpsellCheckout__spinnerContainer<T extends PlasmicUpsellCheckout__spinnerContainerProps>(props: T & StrictProps<T, PlasmicUpsellCheckout__spinnerContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("spinnerContainer", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"spinnerContainer"} />;
+}
+PlasmicUpsellCheckout__spinnerContainer.displayName = "PlasmicUpsellCheckout.spinnerContainer";
+
+type PlasmicUpsellCheckout__cancelButtonProps = NodeComponentProps<"cancelButton"> & {key?: React.Key};
+function PlasmicUpsellCheckout__cancelButton<T extends PlasmicUpsellCheckout__cancelButtonProps>(props: T & StrictProps<T, PlasmicUpsellCheckout__cancelButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelButton", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelButton"} />;
+}
+PlasmicUpsellCheckout__cancelButton.displayName = "PlasmicUpsellCheckout.cancelButton";
+
+type PlasmicUpsellCheckout__confirmButtonProps = NodeComponentProps<"confirmButton"> & {key?: React.Key};
+function PlasmicUpsellCheckout__confirmButton<T extends PlasmicUpsellCheckout__confirmButtonProps>(props: T & StrictProps<T, PlasmicUpsellCheckout__confirmButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("confirmButton", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"confirmButton"} />;
+}
+PlasmicUpsellCheckout__confirmButton.displayName = "PlasmicUpsellCheckout.confirmButton";
+
+type PlasmicUpsellCheckout__stripeCardElementProps = NodeComponentProps<"stripeCardElement"> & {key?: React.Key};
+function PlasmicUpsellCheckout__stripeCardElement<T extends PlasmicUpsellCheckout__stripeCardElementProps>(props: T & StrictProps<T, PlasmicUpsellCheckout__stripeCardElementProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("stripeCardElement", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"stripeCardElement"} />;
+}
+PlasmicUpsellCheckout__stripeCardElement.displayName = "PlasmicUpsellCheckout.stripeCardElement";
+
+type PlasmicUpsellCheckout__stripeExpiryElementProps = NodeComponentProps<"stripeExpiryElement"> & {key?: React.Key};
+function PlasmicUpsellCheckout__stripeExpiryElement<T extends PlasmicUpsellCheckout__stripeExpiryElementProps>(props: T & StrictProps<T, PlasmicUpsellCheckout__stripeExpiryElementProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("stripeExpiryElement", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"stripeExpiryElement"} />;
+}
+PlasmicUpsellCheckout__stripeExpiryElement.displayName = "PlasmicUpsellCheckout.stripeExpiryElement";
+
+type PlasmicUpsellCheckout__stripeCvcElementProps = NodeComponentProps<"stripeCvcElement"> & {key?: React.Key};
+function PlasmicUpsellCheckout__stripeCvcElement<T extends PlasmicUpsellCheckout__stripeCvcElementProps>(props: T & StrictProps<T, PlasmicUpsellCheckout__stripeCvcElementProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("stripeCvcElement", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"stripeCvcElement"} />;
+}
+PlasmicUpsellCheckout__stripeCvcElement.displayName = "PlasmicUpsellCheckout.stripeCvcElement";
+
+type PlasmicUpsellCheckout__spinnerContainer2Props = NodeComponentProps<"spinnerContainer2"> & {key?: React.Key};
+function PlasmicUpsellCheckout__spinnerContainer2<T extends PlasmicUpsellCheckout__spinnerContainer2Props>(props: T & StrictProps<T, PlasmicUpsellCheckout__spinnerContainer2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("spinnerContainer2", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"spinnerContainer2"} />;
+}
+PlasmicUpsellCheckout__spinnerContainer2.displayName = "PlasmicUpsellCheckout.spinnerContainer2";
+
+type PlasmicUpsellCheckout__cancelButton2Props = NodeComponentProps<"cancelButton2"> & {key?: React.Key};
+function PlasmicUpsellCheckout__cancelButton2<T extends PlasmicUpsellCheckout__cancelButton2Props>(props: T & StrictProps<T, PlasmicUpsellCheckout__cancelButton2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelButton2", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelButton2"} />;
+}
+PlasmicUpsellCheckout__cancelButton2.displayName = "PlasmicUpsellCheckout.cancelButton2";
+
+type PlasmicUpsellCheckout__confirmButton2Props = NodeComponentProps<"confirmButton2"> & {key?: React.Key};
+function PlasmicUpsellCheckout__confirmButton2<T extends PlasmicUpsellCheckout__confirmButton2Props>(props: T & StrictProps<T, PlasmicUpsellCheckout__confirmButton2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("confirmButton2", props);
+  return <PlasmicUpsellCheckout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"confirmButton2"} />;
+}
+PlasmicUpsellCheckout__confirmButton2.displayName = "PlasmicUpsellCheckout.confirmButton2";
+
 
 export const PlasmicUpsellCheckout = Object.assign(
   // Top-level PlasmicUpsellCheckout renders the root element
-  makeNodeComponent("root"),
+  PlasmicUpsellCheckout__root,
   {
     // Helper components rendering sub-elements
-    operationTitle: makeNodeComponent("operationTitle"),
-    operationDescription: makeNodeComponent("operationDescription"),
-    billingFrequencyToggle: makeNodeComponent("billingFrequencyToggle"),
-    priceTierPicker: makeNodeComponent("priceTierPicker"),
-    bill: makeNodeComponent("bill"),
-    spinnerContainer: makeNodeComponent("spinnerContainer"),
-    cancelButton: makeNodeComponent("cancelButton"),
-    confirmButton: makeNodeComponent("confirmButton"),
-    stripeCardElement: makeNodeComponent("stripeCardElement"),
-    stripeExpiryElement: makeNodeComponent("stripeExpiryElement"),
-    stripeCvcElement: makeNodeComponent("stripeCvcElement"),
-    spinnerContainer2: makeNodeComponent("spinnerContainer2"),
-    cancelButton2: makeNodeComponent("cancelButton2"),
-    confirmButton2: makeNodeComponent("confirmButton2"),
+    operationTitle: PlasmicUpsellCheckout__operationTitle,
+    operationDescription: PlasmicUpsellCheckout__operationDescription,
+    billingFrequencyToggle: PlasmicUpsellCheckout__billingFrequencyToggle,
+    priceTierPicker: PlasmicUpsellCheckout__priceTierPicker,
+    bill: PlasmicUpsellCheckout__bill,
+    spinnerContainer: PlasmicUpsellCheckout__spinnerContainer,
+    cancelButton: PlasmicUpsellCheckout__cancelButton,
+    confirmButton: PlasmicUpsellCheckout__confirmButton,
+    stripeCardElement: PlasmicUpsellCheckout__stripeCardElement,
+    stripeExpiryElement: PlasmicUpsellCheckout__stripeExpiryElement,
+    stripeCvcElement: PlasmicUpsellCheckout__stripeCvcElement,
+    spinnerContainer2: PlasmicUpsellCheckout__spinnerContainer2,
+    cancelButton2: PlasmicUpsellCheckout__cancelButton2,
+    confirmButton2: PlasmicUpsellCheckout__confirmButton2,
 
     // Metadata about props expected for PlasmicUpsellCheckout
     internalVariantProps: PlasmicUpsellCheckout__VariantProps,

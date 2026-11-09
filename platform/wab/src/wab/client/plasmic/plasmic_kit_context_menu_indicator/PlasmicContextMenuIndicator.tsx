@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,15 +22,15 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useFocusedWithin, useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import BoundingBoxHighlighter from "../../components/ContextMenuIndicator/BoundingBoxHighlighter"; // plasmic-import: iKmOjRERju/component
 import ContextMenuIndicatorInner from "../../components/ContextMenuIndicator/ContextMenuIndicatorInner"; // plasmic-import: juosawBbMz/component
 import MenuIndicator from "../../components/ContextMenuIndicator/MenuIndicator"; // plasmic-import: 5RLoIE7-j5/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fuzE93KTc4ZKNBYf3LAfy/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fuzE93KTc4ZKNBYf3LAfy/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -107,11 +107,10 @@ function PlasmicContextMenuIndicator__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isActive",
@@ -133,28 +132,28 @@ function PlasmicContextMenuIndicator__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.fullWidth,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
-  const [isRootFocusWithin, triggerRootFocusWithinProps] = useTrigger(
-    "useFocusedWithin",
-    {}
+  const [isRootHover, triggerRootHoverProps] = useHover();
+  const [isRootFocusWithin, triggerRootFocusWithinProps] = useFocusedWithin({}
   );
   const triggers = {
     hover_root: isRootHover,
     focusWithin_root: isRootFocusWithin,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -304,12 +303,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -319,31 +314,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicContextMenuIndicator__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicContextMenuIndicator";
-  } else {
-    func.displayName = `PlasmicContextMenuIndicator.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicContextMenuIndicator__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicContextMenuIndicator__root<T extends PlasmicContextMenuIndicator__rootProps>(props: T & StrictProps<T, PlasmicContextMenuIndicator__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicContextMenuIndicator__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicContextMenuIndicator__root.displayName = "PlasmicContextMenuIndicator";
+
+type PlasmicContextMenuIndicator__menuIndicatorProps = NodeComponentProps<"menuIndicator"> & {key?: React.Key};
+function PlasmicContextMenuIndicator__menuIndicator<T extends PlasmicContextMenuIndicator__menuIndicatorProps>(props: T & StrictProps<T, PlasmicContextMenuIndicator__menuIndicatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuIndicator", props);
+  return <PlasmicContextMenuIndicator__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuIndicator"} />;
+}
+PlasmicContextMenuIndicator__menuIndicator.displayName = "PlasmicContextMenuIndicator.menuIndicator";
+
+type PlasmicContextMenuIndicator__boundingBoxHighlighterProps = NodeComponentProps<"boundingBoxHighlighter"> & {key?: React.Key};
+function PlasmicContextMenuIndicator__boundingBoxHighlighter<T extends PlasmicContextMenuIndicator__boundingBoxHighlighterProps>(props: T & StrictProps<T, PlasmicContextMenuIndicator__boundingBoxHighlighterProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("boundingBoxHighlighter", props);
+  return <PlasmicContextMenuIndicator__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"boundingBoxHighlighter"} />;
+}
+PlasmicContextMenuIndicator__boundingBoxHighlighter.displayName = "PlasmicContextMenuIndicator.boundingBoxHighlighter";
+
+type PlasmicContextMenuIndicator__contextMenuIndicatorInnerProps = NodeComponentProps<"contextMenuIndicatorInner"> & {key?: React.Key};
+function PlasmicContextMenuIndicator__contextMenuIndicatorInner<T extends PlasmicContextMenuIndicator__contextMenuIndicatorInnerProps>(props: T & StrictProps<T, PlasmicContextMenuIndicator__contextMenuIndicatorInnerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("contextMenuIndicatorInner", props);
+  return <PlasmicContextMenuIndicator__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"contextMenuIndicatorInner"} />;
+}
+PlasmicContextMenuIndicator__contextMenuIndicatorInner.displayName = "PlasmicContextMenuIndicator.contextMenuIndicatorInner";
+
+type PlasmicContextMenuIndicator__invisibleHoverTargetProps = NodeComponentProps<"invisibleHoverTarget"> & {key?: React.Key};
+function PlasmicContextMenuIndicator__invisibleHoverTarget<T extends PlasmicContextMenuIndicator__invisibleHoverTargetProps>(props: T & StrictProps<T, PlasmicContextMenuIndicator__invisibleHoverTargetProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("invisibleHoverTarget", props);
+  return <PlasmicContextMenuIndicator__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"invisibleHoverTarget"} />;
+}
+PlasmicContextMenuIndicator__invisibleHoverTarget.displayName = "PlasmicContextMenuIndicator.invisibleHoverTarget";
+
+type PlasmicContextMenuIndicator__contextMenuContainerProps = NodeComponentProps<"contextMenuContainer"> & {key?: React.Key};
+function PlasmicContextMenuIndicator__contextMenuContainer<T extends PlasmicContextMenuIndicator__contextMenuContainerProps>(props: T & StrictProps<T, PlasmicContextMenuIndicator__contextMenuContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("contextMenuContainer", props);
+  return <PlasmicContextMenuIndicator__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"contextMenuContainer"} />;
+}
+PlasmicContextMenuIndicator__contextMenuContainer.displayName = "PlasmicContextMenuIndicator.contextMenuContainer";
+
 
 export const PlasmicContextMenuIndicator = Object.assign(
   // Top-level PlasmicContextMenuIndicator renders the root element
-  makeNodeComponent("root"),
+  PlasmicContextMenuIndicator__root,
   {
     // Helper components rendering sub-elements
-    menuIndicator: makeNodeComponent("menuIndicator"),
-    boundingBoxHighlighter: makeNodeComponent("boundingBoxHighlighter"),
-    contextMenuIndicatorInner: makeNodeComponent("contextMenuIndicatorInner"),
-    invisibleHoverTarget: makeNodeComponent("invisibleHoverTarget"),
-    contextMenuContainer: makeNodeComponent("contextMenuContainer"),
+    menuIndicator: PlasmicContextMenuIndicator__menuIndicator,
+    boundingBoxHighlighter: PlasmicContextMenuIndicator__boundingBoxHighlighter,
+    contextMenuIndicatorInner: PlasmicContextMenuIndicator__contextMenuIndicatorInner,
+    invisibleHoverTarget: PlasmicContextMenuIndicator__invisibleHoverTarget,
+    contextMenuContainer: PlasmicContextMenuIndicator__contextMenuContainer,
 
     // Metadata about props expected for PlasmicContextMenuIndicator
     internalVariantProps: PlasmicContextMenuIndicator__VariantProps,

@@ -2,7 +2,7 @@ import {
   notSetMessage,
   prepareStyleChanges,
   quoteProps,
-  useWrittenFont,
+  loadWrittenFont,
 } from "@/wab/client/operations/prepare-style-changes";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { RSH, ReadonlyIRuleSetHelpersX } from "@/wab/shared/RuleSetHelpers";
@@ -154,7 +154,7 @@ export function setTplStyles(
       )}.`,
     );
   }
-  useWrittenFont(studioCtx, applied);
+  loadWrittenFont(studioCtx, applied);
 
   return ok(messages);
 }

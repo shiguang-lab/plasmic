@@ -16,6 +16,7 @@ it("shares explicit Inspector reads and freezes runtime data while focus is pend
     focusedCloneKey: () => "captured-clone",
     getComponentEvalContext: evaluate,
     getCanvasEnvForTpl: environment,
+    maybeTpl2ValsInContext: () => [],
   } as unknown as ViewCtx;
   const selection = new InspectorSelection(vc, 1);
   const evaluation = selection.componentEvalStore(tpl);
@@ -26,8 +27,11 @@ it("shares explicit Inspector reads and freezes runtime data while focus is pend
   try {
     expect(selection.componentEvalStore(tpl)).toBe(evaluation);
     expect(selection.canvasEnvStore(tpl)).toBe(env);
-    expect(evaluate).toHaveBeenCalledExactlyOnceWith(tpl, undefined, { anchorCloneKey: "captured-clone", ignoreFocusedCloneKey: true });
-    expect(environment).toHaveBeenCalledTimes(1);
+    expect(evaluate).toHaveBeenCalledTimes(2);
+    expect(evaluate).toHaveBeenLastCalledWith(tpl, undefined, { anchorCloneKey: "captured-clone", ignoreFocusedCloneKey: true });
+    expect(environment).toHaveBeenCalledTimes(2);
+    expect(observed).toHaveBeenCalledOnce();
+    observed.mockClear();
     const first = evaluation.getState();
     props.nested.value = 1;
     revision = 1;
@@ -41,7 +45,7 @@ it("shares explicit Inspector reads and freezes runtime data while focus is pend
     props.nested.value = 2;
     selection.syncCanvas();
     expect(observed).toHaveBeenCalledTimes(2);
-    expect(evaluate).toHaveBeenCalledTimes(2);
+    expect(evaluate).toHaveBeenCalledTimes(3);
     expect(env.getState()).toEqual({ revision: 1 });
     selection.resume();
     expect(env.getState()).toEqual({ revision: 2 });
@@ -85,4 +89,33 @@ it("invalidates only the provider whose context data changed", () => {
   selection.syncContextData("first");
   expect(first.getState()).toBe(committed);
   selection.dispose();
+});
+
+it("publishes real ValComponent writes after render and detaches runtime inputs at owner closure", async () => {
+  const { ValComponent } = await import("@/wab/shared/core/val-nodes");
+  const { mkTplComponentX } = await import("@/wab/shared/core/tpls");
+  const { mkComponent, ComponentType } = await import("@/wab/shared/core/components");
+  const component = mkComponent({name: "Runtime", type: ComponentType.Plain, tplTree: mkTplTagX("div")});
+  const tpl = mkTplComponentX({component, baseVariant: component.variants[0]});
+  const value = new ValComponent({tpl, valOwner: null, key: "runtime", fullKey: "runtime", frameUid: 1, fibers: [], parent: undefined, className: "", slotInfo: undefined, slotArgs: new Map(), slotCanvasEnvs: new Map()});
+  value.codeComponentProps = {title: "Before"};
+  const vc = {
+    currentComponentCtx: () => null, focusedTpl: () => tpl, focusedTpls: () => [tpl], focusedSelectable: () => value,
+    focusedCloneKey: () => "runtime", maybeTpl2ValsInContext: () => [value],
+    getComponentEvalContext: () => ({componentPropValues: value.codeComponentProps ?? {}, ccContextData: undefined, invalidArgs: value.invalidArgs ?? []}),
+  } as unknown as ViewCtx;
+  const selection = new InspectorSelection(vc, 1), store = selection.componentEvalStore(tpl), changed = vi.fn();
+  const stop = store.subscribe(changed);
+  try {
+    const before = store.getState();
+    value.codeComponentProps = {title: "After"};
+    expect(changed).toHaveBeenCalledOnce(); expect(store.getState().componentPropValues.title).toBe("After");
+    expect(before.componentPropValues.title).toBe("Before");
+    changed.mockClear(); const unchanged = value.codeComponentProps; value.codeComponentProps = unchanged; expect(changed).not.toHaveBeenCalled();
+    selection.pause(); value.codeComponentProps = {title: "Pending"}; expect(changed).not.toHaveBeenCalled();
+    expect(store.getState().componentPropValues.title).toBe("After");
+    selection.resume(); expect(store.getState().componentPropValues.title).toBe("Pending");
+    changed.mockClear();
+    selection.dispose(); value.codeComponentProps = {title: "Retired"}; expect(changed).not.toHaveBeenCalled();
+  } finally {stop(); selection.dispose();}
 });

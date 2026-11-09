@@ -1,3 +1,4 @@
+import * as reactCompilerRuntime from "react/compiler-runtime";
 import "@plasmicapp/react-web/lib/plasmic.css";
 import "./live.css";
 import { createPreview } from "./preview";
@@ -11,6 +12,7 @@ const Sub = w.__Sub;
 
 const runtime = createLiveRuntime({
   react: Sub.React,
+  "react/compiler-runtime": reactCompilerRuntime,
   "react-dom": Sub.ReactDOM,
   "@plasmicapp/host": Sub,
   "@plasmicapp/react-web": w.__PlasmicReactWebBundle,

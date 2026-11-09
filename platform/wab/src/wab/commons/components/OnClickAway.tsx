@@ -1,5 +1,5 @@
 import $ from "jquery";
-import React, { cloneElement, ReactElement, useRef } from "react";
+import React, { ReactElement, useRef } from "react";
 import { useInteractOutside } from "react-aria";
 import { useEvent } from "react-use";
 
@@ -18,9 +18,9 @@ export function OnClickAway({ onDone, children }: OnClickAwayProps) {
     }
   }
   useEvent("pointerdown", handleGlobalDown, document);
-  return cloneElement(children, {
-    onPointerDown: (e) => (ignoreNextPointerDown.current = true),
-  });
+  const onPointerDown = () => { ignoreNextPointerDown.current = true; };
+  const Child = children.type;
+  return <Child {...children.props} key={children.key} onPointerDown={onPointerDown} />;
 }
 
 export function useOnClickAwayExcept(

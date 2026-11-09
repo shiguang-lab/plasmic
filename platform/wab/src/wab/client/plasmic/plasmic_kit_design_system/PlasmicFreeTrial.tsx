@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,11 +25,11 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -107,11 +107,10 @@ function PlasmicFreeTrial__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "topBar",
@@ -133,18 +132,20 @@ function PlasmicFreeTrial__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.trialEnded,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <PlasmicLink__
@@ -314,12 +315,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -329,28 +326,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicFreeTrial__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicFreeTrial";
-  } else {
-    func.displayName = `PlasmicFreeTrial.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicFreeTrial__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicFreeTrial__root<T extends PlasmicFreeTrial__rootProps>(props: T & StrictProps<T, PlasmicFreeTrial__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicFreeTrial__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicFreeTrial__root.displayName = "PlasmicFreeTrial";
+
+type PlasmicFreeTrial__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicFreeTrial__svg<T extends PlasmicFreeTrial__svgProps>(props: T & StrictProps<T, PlasmicFreeTrial__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicFreeTrial__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicFreeTrial__svg.displayName = "PlasmicFreeTrial.svg";
+
+type PlasmicFreeTrial__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicFreeTrial__text<T extends PlasmicFreeTrial__textProps>(props: T & StrictProps<T, PlasmicFreeTrial__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicFreeTrial__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicFreeTrial__text.displayName = "PlasmicFreeTrial.text";
+
 
 export const PlasmicFreeTrial = Object.assign(
   // Top-level PlasmicFreeTrial renders the root element
-  makeNodeComponent("root"),
+  PlasmicFreeTrial__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
-    text: makeNodeComponent("text"),
+    svg: PlasmicFreeTrial__svg,
+    text: PlasmicFreeTrial__text,
 
     // Metadata about props expected for PlasmicFreeTrial
     internalVariantProps: PlasmicFreeTrial__VariantProps,

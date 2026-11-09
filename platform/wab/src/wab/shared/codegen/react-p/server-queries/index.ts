@@ -362,7 +362,7 @@ export function getPageRouterSkeletonImports(
   ctx: SerializerBaseContext,
   isDynamicRoute: boolean,
 ) {
-  let imports = `import { useRouter } from "next/router";
+  let imports = `import { useRouter } from "next/compat/router";
 import { PlasmicQueryDataProvider } from "@plasmicapp/react-web/lib/query";`;
   const needsGetStaticProps =
     (ctx.hasServerQueries || ctx.usesComponentLevelQueries) &&

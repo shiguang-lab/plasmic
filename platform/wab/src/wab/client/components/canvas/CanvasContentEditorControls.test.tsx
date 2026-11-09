@@ -1,3 +1,5 @@
+import { ChangeRecorder } from "@/wab/shared/core/observable-model";
+import { instUtil } from "@/wab/shared/model/InstUtil";
 import { CanvasFrameInfoOwner } from "@/wab/client/components/canvas/canvas-frame-info";
 import { StudioCtx as ActualStudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx as ActualViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -26,7 +28,7 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 import * as React from "react";
 import { vi } from "vitest";
 
@@ -38,10 +40,15 @@ const selectionDisposals: (() => void)[] = [];
 function installSelectionSources(studio: StudioCtx) {
   const view = studio.focusedViewCtx();
   const models = new ModelSnapshots(), selection = new ViewSelection(() => models), focused = new StudioSelection(() => models);
-  Object.defineProperties(view, { selection: { value: selection }, selectionStore: { value: selection.store } });
+  const lifetime = new AbortController();
+  Object.defineProperties(view, {
+    selection: { value: selection }, selectionStore: { value: selection.store },
+    disposeSignal: { value: lifetime.signal },
+    focusedTplAncestorsThroughComponents: { value: () => [] },
+  });
   Object.defineProperties(studio, { selection: { value: focused }, selectionStore: { value: focused.store }, modelSnapshots: { value: models } });
   focused.set(view, []);
-  selectionDisposals.push(() => { selection.dispose(); focused.dispose(); models.dispose(); });
+  selectionDisposals.push(() => { lifetime.abort(); selection.dispose(); focused.dispose(); models.dispose(); });
 }
 function installContentEditor(studio: StudioCtx, initial?: ContentEditorTarget) {
   const view = studio.focusedViewCtx();
@@ -126,6 +133,10 @@ test("entry names its owner and keeps a visible generic exit independent of the 
     </div>,
   );
   expect(screen.getByText("ActivityFeed")).toBeTruthy();
+  const recorder = new ChangeRecorder({ inst: tpl, _instUtil: instUtil });
+  selectionDisposals.push(() => recorder.dispose());
+  act(() => { studioCtx.modelSnapshots.sync(recorder.withRecording(() => { tpl.name = "UpdatedFeed"; }).changes); });
+  expect(screen.getByText("UpdatedFeed")).toBeTruthy();
   expect(screen.getByRole("toolbar", { name: "Edit content" }).style.width).toBe("");
   fireEvent.click(screen.getByRole("button", { name: "Edit content" }));
   expect(editor.enter).toHaveBeenCalledWith(target);
@@ -291,7 +302,7 @@ test("entry and mode controls follow all Studio languages and live light/dark th
   document.body.append(probe);
   for (const appearance of ["light", "dark", "light"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     probe.style.backgroundColor = token.colorBgContainer;
     probe.style.color = token.colorText;
     for (const toolbar of [mode, entry]) {

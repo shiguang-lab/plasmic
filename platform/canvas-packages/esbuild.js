@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const sha256 = require("sha256");
 const hostlessPkgNames = require("./hostlessList.json");
+const { reactCompilerPlugin } = require("./react-compiler.cjs");
 
 // PNPM does not install dependences from the linked internal-react-slick, so resolve
 // them from the locked react-slick installation from @plasmicpkgs/react-slick.
@@ -116,6 +117,7 @@ const clientConfigs = clientEntries.map(({ pkg, useSubJSXRuntime }) => ({
     useSubJSXRuntime ? "-v2" : ""
   }.js`,
   plugins: [
+    reactCompilerPlugin(),
     externalGlobalPlugin({
       react: "__Sub.React",
       "react-dom": "__Sub.ReactDOM",
@@ -134,6 +136,9 @@ const clientConfigs = clientEntries.map(({ pkg, useSubJSXRuntime }) => ({
         : {}),
     }),
     alias({
+      // Bundle the public runtime while its React import resolves to __Sub.React.
+      // The bare "react" external also covers subpaths unless resolved here.
+      "react/compiler-runtime": require.resolve("react/compiler-runtime"),
       ...reactSlickDependencyAliases,
       "react-slick": path.join(
         process.cwd(),
@@ -205,23 +210,6 @@ const clientConfigs = clientEntries.map(({ pkg, useSubJSXRuntime }) => ({
   },
 }));
 
-(isNaN(maybeBuildIndex)
-  ? clientConfigs
-  : [clientConfigs[maybeBuildIndex]]
-).forEach((config) =>
-  esbuild
-    .build(config)
-    .then(() => {
-      if (watchMode) {
-        console.log("watching...");
-      }
-    })
-    .catch((_err) => {
-      // console.error(err);
-      process.exit(1);
-    }),
-);
-
 // We also use esbuild to build server-side packages, which are used for upgrading
 // hostless packages via PublishHostless or for creating new hostless packages
 // for Playwright tests. All we need to do is to be able to run the
@@ -239,4 +227,19 @@ const serverConfigs = hostlessPkgNames.map((pkg) => ({
   minify: isProd,
 }));
 
-serverConfigs.forEach((config) => esbuild.build(config));
+module.exports = { clientConfigs, serverConfigs };
+
+if (require.main === module) {
+  const configs = [
+    ...(isNaN(maybeBuildIndex) ? clientConfigs : [clientConfigs[maybeBuildIndex]]),
+    ...serverConfigs,
+  ];
+  Promise.allSettled(configs.map((config) => esbuild.build(config))).then((results) => {
+    if (results.some((result) => result.status === "rejected")) {
+      process.exitCode = 1;
+    } else if (watchMode) {
+      console.log("watching...");
+    }
+  });
+}
+

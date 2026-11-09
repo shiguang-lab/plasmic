@@ -18,7 +18,7 @@ import {
 import { expandRuleSets } from "@/wab/shared/core/styles";
 import { FinalToken, toFinalToken } from "@/wab/shared/core/tokens";
 import { isTplVariantable } from "@/wab/shared/core/tpls";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import {
   Component,
   RuleSet,
@@ -68,7 +68,7 @@ export function makeTokenResolverForTokens(
   };
 }
 
-export const makeTokenResolver = maybeComputedFn(function makeTokenResolver(
+export const makeTokenResolver = memoizeModelQuery(function makeTokenResolver(
   site: Site,
 ): TokenResolver {
   return makeTokenResolverForTokens(site, siteFinalStyleTokensAllDeps(site));
@@ -122,12 +122,10 @@ export function makeTokenRefResolverForTokens(
   };
 }
 
-export const makeTokenRefResolver = maybeComputedFn(
-  function makeTokenRefResolver(site: Site): TokenRefResolver {
+export const makeTokenRefResolver = memoizeModelQuery(function makeTokenRefResolver(site: Site): TokenRefResolver {
     const allTokens = siteFinalStyleTokensAllDeps(site);
     return makeTokenRefResolverForTokens(site, allTokens);
-  },
-);
+  });
 
 /**
  * Style tokens for the given site, optionally including dependencies
@@ -149,44 +147,28 @@ function styleTokens(
   return allTokens;
 }
 
-export const siteStyleTokens = maybeComputedFn(
-  (site: Site): ReadonlyArray<StyleToken> => styleTokens(site),
-);
+export const siteStyleTokens = memoizeModelQuery((site: Site): ReadonlyArray<StyleToken> => styleTokens(site));
 
-export const siteStyleTokensDirectDeps = maybeComputedFn(
-  (site: Site): ReadonlyArray<StyleToken> =>
-    styleTokens(site, { includeDeps: "direct" }),
-);
+export const siteStyleTokensDirectDeps = memoizeModelQuery((site: Site): ReadonlyArray<StyleToken> =>
+    styleTokens(site, { includeDeps: "direct" }));
 
-export const siteStyleTokensAllDeps = maybeComputedFn(
-  (site: Site): ReadonlyArray<StyleToken> =>
-    styleTokens(site, { includeDeps: "all" }),
-);
+export const siteStyleTokensAllDeps = memoizeModelQuery((site: Site): ReadonlyArray<StyleToken> =>
+    styleTokens(site, { includeDeps: "all" }));
 
-export const siteStyleTokensAllDepsDict = maybeComputedFn(
-  (site: Site): Readonly<{ [uuid: string]: StyleToken }> =>
-    keyBy(siteStyleTokensAllDeps(site), (t) => t.uuid),
-);
+export const siteStyleTokensAllDepsDict = memoizeModelQuery((site: Site): Readonly<{ [uuid: string]: StyleToken }> =>
+    keyBy(siteStyleTokensAllDeps(site), (t) => t.uuid));
 
-export const siteFinalStyleTokens = maybeComputedFn(
-  (site: Site): ReadonlyArray<FinalToken<StyleToken>> =>
-    siteStyleTokens(site).map((token) => toFinalToken(token, site)),
-);
+export const siteFinalStyleTokens = memoizeModelQuery((site: Site): ReadonlyArray<FinalToken<StyleToken>> =>
+    siteStyleTokens(site).map((token) => toFinalToken(token, site)));
 
-export const siteFinalStyleTokensDirectDeps = maybeComputedFn(
-  (site: Site): ReadonlyArray<FinalToken<StyleToken>> =>
-    siteStyleTokensDirectDeps(site).map((token) => toFinalToken(token, site)),
-);
+export const siteFinalStyleTokensDirectDeps = memoizeModelQuery((site: Site): ReadonlyArray<FinalToken<StyleToken>> =>
+    siteStyleTokensDirectDeps(site).map((token) => toFinalToken(token, site)));
 
-export const siteFinalStyleTokensAllDeps = maybeComputedFn(
-  (site: Site): ReadonlyArray<FinalToken<StyleToken>> =>
-    siteStyleTokensAllDeps(site).map((token) => toFinalToken(token, site)),
-);
+export const siteFinalStyleTokensAllDeps = memoizeModelQuery((site: Site): ReadonlyArray<FinalToken<StyleToken>> =>
+    siteStyleTokensAllDeps(site).map((token) => toFinalToken(token, site)));
 
-export const siteFinalStyleTokensAllDepsDict = maybeComputedFn(
-  (site: Site): Readonly<{ [uuid: string]: FinalToken<StyleToken> }> =>
-    keyBy(siteFinalStyleTokensAllDeps(site), (t) => t.uuid),
-);
+export const siteFinalStyleTokensAllDepsDict = memoizeModelQuery((site: Site): Readonly<{ [uuid: string]: FinalToken<StyleToken> }> =>
+    keyBy(siteFinalStyleTokensAllDeps(site), (t) => t.uuid));
 
 function cachedSiteFinalStyleTokens(
   site: Site,
@@ -239,8 +221,7 @@ export function styleTokenOverridesForDep(site: Site, depSite: Site) {
   return site.styleTokenOverrides.filter((o) => depTokens[o.token.uuid]);
 }
 
-export const componentToUsedTokens = maybeComputedFn(
-  function componentsToUsedTokens(
+export const componentToUsedTokens = memoizeModelQuery(function componentsToUsedTokens(
     site: Site,
     component: Component,
   ): ReadonlyArray<StyleToken> {
@@ -251,10 +232,9 @@ export const componentToUsedTokens = maybeComputedFn(
       }
     }
     return [...usedTokens.keys()];
-  },
-);
+  });
 
-const tplToUsedTokens = maybeComputedFn(function tplToUsedTokens(
+const tplToUsedTokens = memoizeModelQuery(function tplToUsedTokens(
   site: Site,
   tpl: TplNode,
 ): ReadonlyArray<StyleToken> {
@@ -268,7 +248,7 @@ const tplToUsedTokens = maybeComputedFn(function tplToUsedTokens(
   return [...collector.keys()];
 });
 
-const usedTokensForExp = maybeComputedFn(function usedTokensForExp(
+const usedTokensForExp = memoizeModelQuery(function usedTokensForExp(
   site: Site,
   rs: DeepReadonly<RuleSet>,
   tpl: TplNode,
@@ -293,7 +273,7 @@ const usedTokensForExp = maybeComputedFn(function usedTokensForExp(
   return [...collector.keys()];
 });
 
-const usedTokensForToken = maybeComputedFn(function collectUsedTokensForToken(
+const usedTokensForToken = memoizeModelQuery(function collectUsedTokensForToken(
   site: Site,
   token: FinalToken<StyleToken>,
 ): ReadonlyArray<StyleToken> {

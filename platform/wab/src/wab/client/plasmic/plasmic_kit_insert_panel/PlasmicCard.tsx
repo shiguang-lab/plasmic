@@ -15,19 +15,19 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   PlasmicImg as PlasmicImg__,
   StrictProps,
-  useTrigger,
+  usePressed,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ActionMenuButton from "../../components/widgets/ActionMenuButton"; // plasmic-import: VNi6NC2QOI/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 4B48dRthR8uGgyaBYpWthR/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 4B48dRthR8uGgyaBYpWthR/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -91,16 +91,15 @@ function PlasmicCard__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const [isRootActive, triggerRootActiveProps] = useTrigger("usePressed", {});
+  const [isRootActive, triggerRootActiveProps] = usePressed();
   const triggers = {
     active_root: isRootActive,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -122,32 +121,10 @@ function PlasmicCard__RenderFunc(props: {
         className={classNames("all", sty.freeBox__ydQqe)}
         style={
           triggers.active_root
-            ? (() => {
-                try {
-                  return { cursor: "grabbing" };
-                } catch (e) {
-                  if (
-                    e instanceof TypeError ||
-                    e?.plasmicType === "PlasmicUndefinedDataError"
-                  ) {
-                    return undefined;
-                  }
-                  throw e;
-                }
-              })()
-            : (() => {
-                try {
-                  return { cursor: "grab" };
-                } catch (e) {
-                  if (
-                    e instanceof TypeError ||
-                    e?.plasmicType === "PlasmicUndefinedDataError"
-                  ) {
-                    return undefined;
-                  }
-                  throw e;
-                }
-              })()
+            ? ((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                    e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ({ cursor: "grabbing" }), () => (undefined))
+            : ((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                    e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ({ cursor: "grab" }), () => (undefined))
         }
       >
         <PlasmicImg__
@@ -296,12 +273,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -311,31 +284,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCard__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCard";
-  } else {
-    func.displayName = `PlasmicCard.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCard__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCard__root<T extends PlasmicCard__rootProps>(props: T & StrictProps<T, PlasmicCard__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCard__root.displayName = "PlasmicCard";
+
+type PlasmicCard__imgProps = NodeComponentProps<"img"> & {key?: React.Key};
+function PlasmicCard__img<T extends PlasmicCard__imgProps>(props: T & StrictProps<T, PlasmicCard__imgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("img", props);
+  return <PlasmicCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"img"} />;
+}
+PlasmicCard__img.displayName = "PlasmicCard.img";
+
+type PlasmicCard__actionsProps = NodeComponentProps<"actions"> & {key?: React.Key};
+function PlasmicCard__actions<T extends PlasmicCard__actionsProps>(props: T & StrictProps<T, PlasmicCard__actionsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actions", props);
+  return <PlasmicCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actions"} />;
+}
+PlasmicCard__actions.displayName = "PlasmicCard.actions";
+
+type PlasmicCard__overlayBackgroundProps = NodeComponentProps<"overlayBackground"> & {key?: React.Key};
+function PlasmicCard__overlayBackground<T extends PlasmicCard__overlayBackgroundProps>(props: T & StrictProps<T, PlasmicCard__overlayBackgroundProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("overlayBackground", props);
+  return <PlasmicCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"overlayBackground"} />;
+}
+PlasmicCard__overlayBackground.displayName = "PlasmicCard.overlayBackground";
+
+type PlasmicCard__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicCard__text<T extends PlasmicCard__textProps>(props: T & StrictProps<T, PlasmicCard__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicCard__text.displayName = "PlasmicCard.text";
+
+type PlasmicCard__actionMenuButtonProps = NodeComponentProps<"actionMenuButton"> & {key?: React.Key};
+function PlasmicCard__actionMenuButton<T extends PlasmicCard__actionMenuButtonProps>(props: T & StrictProps<T, PlasmicCard__actionMenuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionMenuButton", props);
+  return <PlasmicCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionMenuButton"} />;
+}
+PlasmicCard__actionMenuButton.displayName = "PlasmicCard.actionMenuButton";
+
 
 export const PlasmicCard = Object.assign(
   // Top-level PlasmicCard renders the root element
-  makeNodeComponent("root"),
+  PlasmicCard__root,
   {
     // Helper components rendering sub-elements
-    img: makeNodeComponent("img"),
-    actions: makeNodeComponent("actions"),
-    overlayBackground: makeNodeComponent("overlayBackground"),
-    text: makeNodeComponent("text"),
-    actionMenuButton: makeNodeComponent("actionMenuButton"),
+    img: PlasmicCard__img,
+    actions: PlasmicCard__actions,
+    overlayBackground: PlasmicCard__overlayBackground,
+    text: PlasmicCard__text,
+    actionMenuButton: PlasmicCard__actionMenuButton,
 
     // Metadata about props expected for PlasmicCard
     internalVariantProps: PlasmicCard__VariantProps,

@@ -1,4 +1,5 @@
-import { CodeComponentMeta, usePlasmicCanvasContext } from "@plasmicapp/host";
+import { usePlasmicCanvasContext } from "@plasmicapp/host";
+import type { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 import ReactAudioPlayer from "react-audio-player";
 
 
@@ -90,10 +91,10 @@ export function AudioPlayer({
   muted,
   volume,
 }: AudioPlayerProps) {
+  const inEditor = !!usePlasmicCanvasContext();
   if (!src) {
     return <div>Please specify the URL of the audio to embed</div>;
   }
-  const inEditor = !!usePlasmicCanvasContext();
   const isAutoPlay = inEditor ? false : autoPlay;
 
   return (

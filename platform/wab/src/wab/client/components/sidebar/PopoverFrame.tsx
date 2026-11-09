@@ -205,7 +205,7 @@ function PopoverFrameInternal(props: PopoverFrameProps & { frameId: string }) {
         valuePath,
         triggerElement,
       }) as PopoverStackFrame,
-    [frameId, onClose, element, triggerElement],
+    [frameId, onClose, element, persistOnInteractOutside, valuePath, triggerElement],
   );
 
   // We push the popover content whenever it changes
@@ -276,7 +276,10 @@ function PopoverFrameShell() {
   }, [stack]);
 
   const [popoverHeight, setPopoverHeight] = React.useState(0);
-  const container = document.querySelector(containerSelector);
+  const [container, setContainer] = React.useState<Element | null>(null);
+  React.useLayoutEffect(() => {
+    setContainer(document.querySelector(containerSelector));
+  }, [containerSelector]);
   const [minHeight, setMinHeight] = React.useState(
     container
       ? Math.min(popoverHeight, container.clientHeight - 50)

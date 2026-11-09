@@ -65,13 +65,13 @@ const TeamMemberListItem = React.forwardRef<
   const name = user.type === "user" ? fullName(user) : user.email;
   const perform = async (action: () => Promise<void>) => {
     setBusy(true);
-    try {
+    return await (async () => {
       await action();
-    } catch (error) {
+    })().catch(async (error) => {
       showError(error, { title: "Failed to update team member" });
-    } finally {
+    }).finally(() => {
       setBusy(false);
-    }
+    });
   };
 
   return (

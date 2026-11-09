@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,12 +23,12 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import StyleToggleButton from "../../components/style-controls/StyleToggleButton"; // plasmic-import: bqUvK9cs5w/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -97,11 +97,10 @@ function PlasmicStyleToggleButtonGroup__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "styleType",
@@ -116,18 +115,20 @@ function PlasmicStyleToggleButtonGroup__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.autoWidth,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -243,12 +244,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -258,27 +255,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicStyleToggleButtonGroup__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicStyleToggleButtonGroup";
-  } else {
-    func.displayName = `PlasmicStyleToggleButtonGroup.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicStyleToggleButtonGroup__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicStyleToggleButtonGroup__root<T extends PlasmicStyleToggleButtonGroup__rootProps>(props: T & StrictProps<T, PlasmicStyleToggleButtonGroup__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicStyleToggleButtonGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicStyleToggleButtonGroup__root.displayName = "PlasmicStyleToggleButtonGroup";
+
+type PlasmicStyleToggleButtonGroup__buttonsContainerProps = NodeComponentProps<"buttonsContainer"> & {key?: React.Key};
+function PlasmicStyleToggleButtonGroup__buttonsContainer<T extends PlasmicStyleToggleButtonGroup__buttonsContainerProps>(props: T & StrictProps<T, PlasmicStyleToggleButtonGroup__buttonsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("buttonsContainer", props);
+  return <PlasmicStyleToggleButtonGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"buttonsContainer"} />;
+}
+PlasmicStyleToggleButtonGroup__buttonsContainer.displayName = "PlasmicStyleToggleButtonGroup.buttonsContainer";
+
 
 export const PlasmicStyleToggleButtonGroup = Object.assign(
   // Top-level PlasmicStyleToggleButtonGroup renders the root element
-  makeNodeComponent("root"),
+  PlasmicStyleToggleButtonGroup__root,
   {
     // Helper components rendering sub-elements
-    buttonsContainer: makeNodeComponent("buttonsContainer"),
+    buttonsContainer: PlasmicStyleToggleButtonGroup__buttonsContainer,
 
     // Metadata about props expected for PlasmicStyleToggleButtonGroup
     internalVariantProps: PlasmicStyleToggleButtonGroup__VariantProps,

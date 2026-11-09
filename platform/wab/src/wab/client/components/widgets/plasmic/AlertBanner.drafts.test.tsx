@@ -38,7 +38,7 @@ it("keeps the draft review entry accessible while conflicting edits are blocked"
   studioCtx.desktopDraft = desktopDraft;
   studioCtx.alertBannerState.set(AlertSpec.ConcurrentEdit);
   studioCtx.isAtTip = false;
-  studioCtx.blockChanges = true;
+  studioCtx.setBlockChanges(true);
   const mask = document.createElement("div");
   mask.className = "dark-mask";
   document.body.append(mask);

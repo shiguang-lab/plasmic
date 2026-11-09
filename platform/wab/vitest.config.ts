@@ -1,6 +1,6 @@
 import { transformAsync } from "@babel/core";
 import fs from "fs";
-import { createRequire, isBuiltin } from "module";
+import { isBuiltin } from "module";
 import os from "os";
 import path from "path";
 import { defineConfig, Plugin } from "vitest/config";
@@ -10,11 +10,6 @@ import {
 } from "./tools/react-compiler.mjs";
 
 const srcDir = path.join(__dirname, "src");
-const mobxReactRequire = createRequire(require.resolve("mobx-react"));
-const mobxReactLiteRequire = createRequire(
-  mobxReactRequire.resolve("mobx-react-lite"),
-);
-
 // jsdom makes vite resolve for the browser, which picks npm shims such as
 // path@0.12.7 over the real builtins. Tests run in node, so use the builtins.
 function nodeBuiltins(): Plugin {
@@ -73,7 +68,7 @@ function reactCompilerForTests(): Plugin {
     enforce: "pre",
     async transform(code, id) {
       const filename = id.split("?")[0];
-      if (!reactCompilerInclude.test(filename)) return null;
+      if (!reactCompilerInclude.test(filename)) { return null; }
       const result = await transformAsync(code, {
         filename,
         babelrc: false,
@@ -82,8 +77,9 @@ function reactCompilerForTests(): Plugin {
         parserOpts: { plugins: ["typescript", "jsx"] },
         plugins: [["babel-plugin-react-compiler", reactCompilerOptions()]],
       });
-      if (!result?.code)
+      if (!result?.code) {
         throw new Error(`React Compiler returned no code for ${filename}`);
+      }
       return { code: result.code, map: result.map };
     },
   };
@@ -107,8 +103,9 @@ export default defineConfig({
     },
   },
   resolve: {
-    // Workspace SDK sources and their external-store hook must share Studio's React.
-    dedupe: ["react", "react-dom"],
+    // Workspace SDK Hooks and SWR's native CJS hook adapter must resolve from
+    // Studio's dependency tree so every callback uses the renderer's React.
+    dedupe: ["react", "react-dom", "swr"],
     alias: [
       {
         find: /^monaco-editor$/,
@@ -131,12 +128,6 @@ export default defineConfig({
           "../../plasmicpkgs/plasmic-basic-components/dist/plasmic-basic-components.esm.js",
         ),
       },
-      {
-        find: /^use-sync-external-store\/shim(?:\/index\.js)?$/,
-        replacement: mobxReactLiteRequire.resolve(
-          "use-sync-external-store/shim",
-        ),
-      },
       ...Object.entries({
         "@plasmicpkgs/antd5/form-meta": path.resolve(
           __dirname,
@@ -152,7 +143,9 @@ export default defineConfig({
       deps: {
         inline: [
           /valtio/,
-          /swr\//,
+          // Published workspace Hooks must pass through Vite's React dedupe.
+          /\/packages\/(?:query|data-sources)\/dist\/index\.esm\.js(?:\?.*)?$/,
+          /(?:^|\/)swr(?:\/|$)/,
           /@plasmicpkgs\/react-aria/,
           /react-aria-components/,
           /@react-querybuilder\/antd/,

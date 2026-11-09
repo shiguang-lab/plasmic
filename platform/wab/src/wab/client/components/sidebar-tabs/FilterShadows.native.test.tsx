@@ -3,7 +3,7 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { FilterEffectSection, BackdropFilterEffectSection } from "@/wab/client/components/sidebar-tabs/FilterEffectSection";
 import { ShadowsPanelSection } from "@/wab/client/components/sidebar-tabs/ShadowsSection";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
-import { SingleRsExpsProvider, StyleComponent, StyleComponentContext } from "@/wab/client/components/style-controls/StyleComponent";
+import { SingleRsExpsProvider, StyleTarget, StyleTargetContext } from "@/wab/client/components/style-controls/StyleComponent";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -37,8 +37,8 @@ async function setup(nonbase = false) {
   await waitFor(() => expect(f.studioCtx.initialRouteReady).toBe(true));
   const studio = f.studioCtx, helper = new VariantedStylesHelper(site, active ? [active] : undefined);
   const provider = new SingleRsExpsProvider(rs, exp, studio, [], { kind: "ruleSet", rs, forTag: "div" });
-  const sc = new StyleComponent({ expsProvider: provider });
-  const wrap = (content: React.ReactNode) => <AppCtxContext.Provider value={f.appCtx}><StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={sc}><SidebarModalProvider containerSelector="#filter-shadow-sidebar"><div id="filter-shadow-sidebar" />{content}</SidebarModalProvider></StyleComponentContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider>;
+  const sc = new StyleTarget({ expsProvider: provider });
+  const wrap = (content: React.ReactNode) => <AppCtxContext.Provider value={f.appCtx}><StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={sc}><SidebarModalProvider containerSelector="#filter-shadow-sidebar"><div id="filter-shadow-sidebar" />{content}</SidebarModalProvider></StyleTargetContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider>;
   return { ...f, studio, site, head, end, exp, provider, helper, active, group, wrap };
 }
 

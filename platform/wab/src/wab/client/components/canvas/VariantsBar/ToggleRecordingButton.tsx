@@ -1,7 +1,4 @@
-import {
-  TriggerAnchor,
-  chainTriggerProps,
-} from "@/wab/client/components/widgets/TriggerAnchor";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { translateUiLabel } from "@/wab/client/i18n/locales";
 
@@ -33,14 +30,9 @@ function ToggleRecordingButton(props: ToggleRecordingButtonProps) {
             })
       }
     >
-      <TriggerAnchor>
-        {(ref, triggerProps) => (
-          <PlasmicToggleRecordingButton
-            {...chainTriggerProps(triggerProps, props)}
-            root={{ ref }}
-          />
-        )}
-      </TriggerAnchor>
+      <TriggerTarget>
+<PlasmicToggleRecordingButton {...props} />
+</TriggerTarget>
     </Tooltip>
   );
 }

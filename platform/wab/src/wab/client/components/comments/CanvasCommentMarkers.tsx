@@ -33,15 +33,15 @@ import {
 } from "@/wab/shared/common";
 import {
   isTplNamable,
-  isTplVariantable,
   tryGetTplOwnerComponent,
 } from "@/wab/shared/core/tpls";
 import { Box } from "@/wab/shared/geom";
-import { ArenaFrame, ObjInst, TplNode } from "@/wab/shared/model/classes";
-import { mkSemVerSiteElement } from "@/wab/shared/site-diffs";
+import { ArenaFrame, TplNode } from "@/wab/shared/model/classes";
+import { maybeMkSemVerSiteElement } from "@/wab/shared/site-diffs";
 import { Popover, Tooltip } from "antd";
 import $ from "jquery";
-import { observer } from "mobx-react";
+import { noCanvasModelFields, useCanvasComponentInputs, useCanvasViewInputs } from "@/wab/client/components/canvas/canvas-view-inputs";
+import { useCommentMarkerOwner } from "@/wab/client/components/comments/comment-marker-inputs";
 import React, { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useStore } from "zustand";
@@ -53,11 +53,13 @@ const ADD_COMMENT_INDIVIDUAL_MARKER_MARGIN = 20;
 const COMMENT_MARKER_INITIAL_Z_INDEX = 12;
 const THREAD_MARKER_MARGIN = 30;
 
-function ObjInstLabel(props: { subject: ObjInst }) {
+export const CanvasCommentSubjectLabel = React.memo(function CanvasCommentSubjectLabel(props: { subject: TplNode; view: ViewCtx }) {
   const { t: studioUiT, label } = useI18n();
 
-  const { subject } = props;
-  const item = mkSemVerSiteElement(subject as any);
+  const { subject, view } = props;
+  const owner = useCommentMarkerOwner(view, subject);
+  if (!owner.alive) {return null;}
+  const item = ensure(owner.item, "Comment subject must be a design element");
   const typeName = label(item.type);
   const objName = item.name;
   return (
@@ -71,9 +73,9 @@ function ObjInstLabel(props: { subject: ObjInst }) {
       )}
     </>
   );
-}
+});
 
-const CanvasCommentMarker = observer(function CanvasCommentMarker(props: {
+const CanvasCommentMarker = React.memo(function CanvasCommentMarker(props: {
   commentThread: TplCommentThread;
   viewCtx: ViewCtx;
   offsetRight: number;
@@ -82,6 +84,7 @@ const CanvasCommentMarker = observer(function CanvasCommentMarker(props: {
 }) {
   const { commentThread, viewCtx, offsetRight, zIndex, onHoverChange } = props;
   const commentsCtx = viewCtx.studioCtx.commentsCtx;
+  const lifetime = useCanvasViewInputs(viewCtx, noCanvasModelFields);
 
   const threadComments = commentThread.comments;
   const [comment] = threadComments;
@@ -106,7 +109,7 @@ const CanvasCommentMarker = observer(function CanvasCommentMarker(props: {
       viewCtx={viewCtx}
       className={"CommentMarker"}
       onClick={(e) => {
-        if (!isSelected) {
+        if (lifetime.alive && !viewCtx.disposeSignal.aborted && !isSelected) {
           e.stopPropagation();
           commentsCtx.openCommentThreadDialog(commentThread.id, true);
         }
@@ -125,7 +128,7 @@ const CanvasCommentMarker = observer(function CanvasCommentMarker(props: {
             <CommentPost
               comment={comment}
               commentThread={commentThread}
-              subjectLabel={<ObjInstLabel subject={subject} />}
+              subjectLabel={<CanvasCommentSubjectLabel view={viewCtx} subject={subject} />}
               hoverBox
               repliesLinkLabel={
                 threadComments.length > 1
@@ -152,23 +155,25 @@ const CanvasCommentMarker = observer(function CanvasCommentMarker(props: {
   );
 });
 
-export const CanvasAddCommentMarker = observer(
+export const CanvasAddCommentMarker = React.memo(
   function CanvasAddCommentMarker(props: { viewCtx: ViewCtx; tpl: TplNode }) {
     const { t: uiT } = useI18n();
     const { viewCtx, tpl } = props;
+    const owner = useCommentMarkerOwner(viewCtx, tpl);
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global, variantState.isEditingNonBaseVariant]));
   useViewSelection(viewCtx, (state) => state.context);
     const commentsCtx = viewCtx.studioCtx.commentsCtx;
-    const variants = getSetOfPinnedVariantsForViewCtx(
+    const variants = owner.alive ? getSetOfPinnedVariantsForViewCtx(
       viewCtx,
       viewCtx.bundler(),
-    );
+    ) : [];
     const variantKey = getSubjectVariantsKey(tpl, variants);
     const commentCount = useStore(
       commentsCtx.store,
       (state) => state.commentStatsByVariant.get(variantKey)?.commentCount ?? 0,
     );
-    const spotlightComponent = viewCtx?.currentComponentCtx()?.component();
+    if (!owner.alive) {return null;}
+    const spotlightComponent = viewCtx.currentComponentCtx()?.component();
     const ownerComponent = tryGetTplOwnerComponent(tpl);
     const isRecording = viewCtx.isEditingNonBaseVariant;
 
@@ -199,6 +204,7 @@ export const CanvasAddCommentMarker = observer(
             icon={{
               onClick: (e) => {
                 e.stopPropagation();
+                if (!owner.isCurrent()) {return;}
                 commentsCtx.openNewCommentDialog(
                   viewCtx,
                   tpl,
@@ -213,64 +219,70 @@ export const CanvasAddCommentMarker = observer(
   },
 );
 
-const CanvasSubjectCommentMarkers = observer(
-  function CanvasSubjectCommentMarkers({
-    subjectCommentThreads,
-    viewCtx,
-  }: {
-    subjectCommentThreads: TplCommentThread[];
-    viewCtx: ViewCtx;
-  }) {
-    const [hoveredThreadId, setHoveredThreadId] = React.useState<string | null>(
-      null,
-    );
-    const commentsCtx = viewCtx.studioCtx.commentsCtx;
-    const openedThreadId = useStore(commentsCtx.dialogStore, (state) =>
-      subjectCommentThreads.some(
-        (thread) => thread.id === state.thread?.threadId,
-      )
-        ? state.thread?.threadId
-        : undefined,
-    );
+const CanvasSubjectCommentMarkers = React.memo(function CanvasSubjectCommentMarkers({
+  subjectCommentThreads,
+  viewCtx,
+}: {
+  subjectCommentThreads: TplCommentThread[];
+  viewCtx: ViewCtx;
+}) {
+  const [hoveredThreadId, setHoveredThreadId] = React.useState<string | null>(
+    null,
+  );
+  const commentsCtx = viewCtx.studioCtx.commentsCtx;
+  const openedThreadId = useStore(commentsCtx.dialogStore, (state) =>
+    subjectCommentThreads.some(
+      (thread) => thread.id === state.thread?.threadId,
+    )
+      ? state.thread?.threadId
+      : undefined,
+  );
 
-    const focusedIndex = subjectCommentThreads.findIndex(
-      (t) => t.id === (hoveredThreadId ?? openedThreadId),
-    );
+  const focusedIndex = subjectCommentThreads.findIndex(
+    (t) => t.id === (hoveredThreadId ?? openedThreadId),
+  );
 
-    return (
-      <>
-        {subjectCommentThreads.map((commentThread, index, arr) => {
-          let zIndex;
-          if (focusedIndex === -1) {
-            // No hover or selection — use base decreasing z-index
-            zIndex = COMMENT_MARKER_INITIAL_Z_INDEX + arr.length - index;
-          } else {
-            // Calculate relative to the focused (hovered/selected) index
-            const distance = Math.abs(index - focusedIndex);
-            zIndex = arr.length + COMMENT_MARKER_INITIAL_Z_INDEX - distance;
-          }
+  return (
+    <>
+      {subjectCommentThreads.map((commentThread, index, arr) => {
+        let zIndex;
+        if (focusedIndex === -1) {
+          // No hover or selection — use base decreasing z-index
+          zIndex = COMMENT_MARKER_INITIAL_Z_INDEX + arr.length - index;
+        } else {
+          // Calculate relative to the focused (hovered/selected) index
+          const distance = Math.abs(index - focusedIndex);
+          zIndex = arr.length + COMMENT_MARKER_INITIAL_Z_INDEX - distance;
+        }
 
-          return (
-            <CanvasCommentMarker
-              key={commentThread.id}
-              offsetRight={
-                THREAD_MARKER_MARGIN + index * HORIZONTAL_MARKER_OFFSET
-              }
-              zIndex={zIndex}
-              commentThread={commentThread}
-              viewCtx={viewCtx}
-              onHoverChange={(hovering) =>
-                setHoveredThreadId(hovering ? commentThread.id : null)
-              }
-            />
-          );
-        })}
-      </>
-    );
-  },
-);
+        return (
+          <CanvasCommentMarker
+            key={commentThread.id}
+            offsetRight={
+              THREAD_MARKER_MARGIN + index * HORIZONTAL_MARKER_OFFSET
+            }
+            zIndex={zIndex}
+            commentThread={commentThread}
+            viewCtx={viewCtx}
+            onHoverChange={(hovering) =>
+              setHoveredThreadId(hovering ? commentThread.id : null)
+            }
+          />
+        );
+      })}
+    </>
+  );
+});
 
-export const CanvasCommentMarkers = observer(function CanvasCommentMarkers({
+export const CanvasCommentMarkers = React.memo(function CanvasCommentMarkers(props: {arena: AnyArena; arenaFrame: ArenaFrame}) {
+  const studio = useStudioCtx();
+  const owner = useCanvasComponentInputs(studio, props.arenaFrame, noCanvasModelFields);
+  const view = useViewEntryForFrame(studio, props.arenaFrame)?.view;
+  const runtime = useCanvasViewInputs(view, noCanvasModelFields);
+  return owner.alive && (!view || runtime.alive) ? <CanvasCommentMarkersContent {...props} /> : null;
+});
+
+function CanvasCommentMarkersContent({
   arenaFrame,
 }: {
   arena: AnyArena;
@@ -330,9 +342,9 @@ export const CanvasCommentMarkers = observer(function CanvasCommentMarkers({
       )}
     </>
   );
-});
+}
 
-export const CanvasCommentOverlay = observer(function CanvasCommentOverlay({
+export const CanvasCommentOverlay = React.memo(function CanvasCommentOverlay({
   tpl,
   children,
   viewCtx,
@@ -349,9 +361,11 @@ export const CanvasCommentOverlay = observer(function CanvasCommentOverlay({
   offsetRight: number;
   zIndex?: number;
 }) {
+  const owner = useCommentMarkerOwner(viewCtx, tpl);
+  useViewSelection(viewCtx, (state) => state.context);
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const renderCount = useCanvasRenderCount(viewCtx);
-  if (renderCount === 0) {
+  if (!owner.alive || renderCount === 0) {
     return null;
   }
 
@@ -365,9 +379,6 @@ export const CanvasCommentOverlay = observer(function CanvasCommentOverlay({
     return null;
   }
 
-  const isTargetingSomeNonBaseVariant =
-    isTplVariantable(tpl) &&
-    viewCtx.variantTplMgr().isTargetingNonBaseVariant(tpl);
 
   return createPortal(
     <CanvasTransformedBox
@@ -382,7 +393,7 @@ export const CanvasCommentOverlay = observer(function CanvasCommentOverlay({
     >
       <div
         className={className}
-        onClick={onClick}
+        onClick={(event) => {if (owner.isCurrent()) {onClick?.(event);}}}
         style={{
           right: `calc(0% - ${offsetRight}px)`,
         }}

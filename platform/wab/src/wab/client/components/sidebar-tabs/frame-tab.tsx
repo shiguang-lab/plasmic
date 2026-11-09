@@ -32,7 +32,8 @@ import { Chroma } from "@/wab/shared/utils/color-utils";
 import { Menu } from "antd";
 import { createStyles } from "antd-style";
 import L from "lodash";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
+import { useTargetedStylePanelInputs } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
 import React from "react";
 
 interface FramePanelProps extends ViewComponentProps {
@@ -48,12 +49,14 @@ const useFramePanelStyles = createStyles(({ token }) => ({
   },
 }));
 
-export const FramePanel = observer(function FramePanel(props: FramePanelProps) {
+export const FramePanel = React.memo(function FramePanel(props: FramePanelProps) {
   const { t: uiT } = useI18n();
   const { styles } = useFramePanelStyles();
   const { viewCtx, frame } = props;
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
 
+  const inputs = useTargetedStylePanelInputs(viewCtx.studioCtx, { kind: "frame", view: viewCtx, tpl: frame.container.component.tplTree, frame });
+  if (!inputs.active) { return null; }
   const component = frame.container.component;
 
   const defaultSize = getComponentDefaultSize(
@@ -72,12 +75,10 @@ export const FramePanel = observer(function FramePanel(props: FramePanelProps) {
             <LabeledItemRow label={uiT("View mode")}>
               <StyleToggleButtonGroup
                 value={frame.viewMode}
-                onChange={async (mode) =>
-                  viewCtx.studioCtx.changeFrameViewMode(
-                    frame,
-                    mode as "stretch" | "centered",
-                  )
-                }
+                onChange={async (mode) => {
+                  if (!inputs.isCurrent()) { return; }
+                  await viewCtx.studioCtx.changeFrameViewMode(frame, mode as "stretch" | "centered");
+                }}
                 autoWidth
               >
                 <StyleToggleButton
@@ -138,15 +139,20 @@ export const FramePanel = observer(function FramePanel(props: FramePanelProps) {
   );
 });
 
-const FrameBgSection = observer(function FrameBgSection(props: {
+const FrameBgSection = React.memo(function FrameBgSection(props: {
   viewCtx: ViewCtx;
 }) {
   const { t: uiT } = useI18n();
   const { viewCtx } = props;
   const frame = viewCtx.arenaFrame();
+  const models = React.useMemo(() => viewCtx.studioCtx.modelSnapshots, [viewCtx, frame]);
+  const bgColor = useStore(models.field(frame, "bgColor"));
+  const inputs = { isActive: () => !viewCtx.disposeSignal.aborted && viewCtx.studioCtx.modelSnapshots === models };
+  if (!inputs.isActive()) { return null; }
 
   const handleChange = (color?: string) => {
     viewCtx.change(() => {
+      if (!inputs.isActive()) { return; }
       if (
         color &&
         (/transparent/i.test(color) ||
@@ -171,17 +177,17 @@ const FrameBgSection = observer(function FrameBgSection(props: {
           </Menu>
         )}
         definedIndicator={
-          frame.bgColor
+          bgColor
             ? {
                 source: "setNonVariable",
                 prop: "background-color",
-                value: frame.bgColor,
+                value: bgColor,
               }
             : undefined
         }
       >
         <ColorButton
-          color={frame.bgColor || ""}
+          color={bgColor || ""}
           onChange={(color) => handleChange(color)}
           sc={viewCtx.studioCtx}
           popupTitle={uiT("Artboard background")}
@@ -191,15 +197,23 @@ const FrameBgSection = observer(function FrameBgSection(props: {
   );
 });
 
-const FrameSizeSection = observer(function FrameSizeSection(
+const FrameSizeSection = React.memo(function FrameSizeSection(
   props: FramePanelProps,
 ) {
   const { t: uiT } = useI18n();
   const { frame, viewCtx } = props;
   const frameHeight = useFrameHeight(viewCtx.studioCtx, frame);
+  const models = React.useMemo(() => viewCtx.studioCtx.modelSnapshots, [viewCtx, frame]);
+  const width = useStore(models.field(frame, "width"));
+  const height = useStore(models.field(frame, "height"));
+  const viewMode = useStore(models.field(frame, "viewMode"));
+  useStore(models.field(frame.container.component, "type"));
+  const inputs = { isActive: () => !viewCtx.disposeSignal.aborted && viewCtx.studioCtx.modelSnapshots === models };
+  if (!inputs.isActive()) { return null; }
 
   const changeSize = (prop: "width" | "height", val: string) => {
     viewCtx.change(() => {
+      if (!inputs.isActive()) { return; }
       const parsedValue = parsePx(val);
       viewCtx.studioCtx.changeFrameSize({
         dim: prop,
@@ -212,7 +226,7 @@ const FrameSizeSection = observer(function FrameSizeSection(
 
   return (
     <>
-      {frame.viewMode === FrameViewMode.Stretch && (
+      {viewMode === FrameViewMode.Stretch && (
         <LabeledItemRow label={uiT("Device")}>
           <widgets.IFrameAwareDropdownMenu
             menu={() =>
@@ -220,6 +234,7 @@ const FrameSizeSection = observer(function FrameSizeSection(
                 studioCtx: viewCtx.studioCtx,
                 onClick: (size) =>
                   viewCtx.change(() => {
+      if (!inputs.isActive()) { return; }
                     viewCtx.studioCtx.changeFrameSize({
                       frame,
                       dim: "width",
@@ -244,8 +259,8 @@ const FrameSizeSection = observer(function FrameSizeSection(
                       frameSizeGroups.map((g) => g.sizes),
                     ).find(
                       (size) =>
-                        size.width === frame.width &&
-                        size.height === frame.height,
+                        size.width === width &&
+                        size.height === height,
                     );
                     if (!curSize) {
                       return "Custom";
@@ -264,7 +279,7 @@ const FrameSizeSection = observer(function FrameSizeSection(
         <DimTokenSpinner
           data-test-id="artboard-size-width"
           allowedUnits={["px"]}
-          value={`${frame.width}px`}
+          value={`${width}px`}
           noClear
           onChange={(val) => changeSize("width", ensure(val, "noClear"))}
           allowFunctions={false}
@@ -274,7 +289,7 @@ const FrameSizeSection = observer(function FrameSizeSection(
         <DimTokenSpinner
           data-test-id="artboard-size-height"
           allowedUnits={["px"]}
-          value={`${frame.height}px`}
+          value={`${height}px`}
           noClear
           onChange={(val) => changeSize("height", ensure(val, "noClear"))}
           allowFunctions={false}

@@ -1,4 +1,4 @@
-import { CodeComponentMeta } from "@plasmicapp/host";
+import type { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -171,19 +171,18 @@ export function CalendlyCornerPopup({
   textColor,
   className,
 }: CalendlyCornerPopupProps) {
+  const container = useRef<HTMLDivElement>(null);
+  const [wrapper, setWrapper] = useState<HTMLDivElement | null>(null);
+  useEffect(() => {
+    setWrapper(container.current);
+  }, [accountLink]);
   if (!accountLink) {
     return <div>Please enter the the URL of your Calendly Account</div>;
   }
 
-  const container = useRef<HTMLDivElement>(null);
-  const [wrapper, setWrapper] = useState(container.current);
-  useEffect(() => {
-    setWrapper(container.current);
-  }, [container]);
-
   return (
     <div className={className} ref={container}>
-      <PopupWidget
+      {wrapper && <PopupWidget
         branding={branding}
         color={color}
         pageSettings={{
@@ -191,11 +190,11 @@ export function CalendlyCornerPopup({
           hideGdprBanner,
           hideLandingPageDetails,
         }}
-        rootElement={wrapper!}
+        rootElement={wrapper}
         text={text!}
         textColor={textColor}
         url={`https://calendly.com/${accountLink}`}
-      />
+      />}
     </div>
   );
 }

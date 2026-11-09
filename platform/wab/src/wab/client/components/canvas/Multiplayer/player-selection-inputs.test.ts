@@ -1,0 +1,50 @@
+import { mkBaseVariant } from "@/wab/shared/Variants";
+import { PlayerSelectionInputs } from "@/wab/client/components/canvas/Multiplayer/player-selection-inputs";
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { ComponentType, mkComponent } from "@/wab/shared/core/components";
+import { mkParam } from "@/wab/shared/core/lang";
+import { ChangeRecorder } from "@/wab/shared/core/observable-model";
+import { mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
+import { ValComponent } from "@/wab/shared/core/val-nodes";
+import { createSite } from "@/wab/shared/core/sites";
+import { instUtil } from "@/wab/shared/model/InstUtil";
+import { typeFactory } from "@/wab/shared/model/model-util";
+import { mock } from "vitest-mock-extended";
+
+it("updates remote slot parameter resolution and closes with its original view world", () => {
+  const child = mkComponent({ name: "Child", type: ComponentType.Plain, tplTree: mkTplTagX("div") });
+  const param = mkParam({ name: "children", paramType: "slot", type: typeFactory.renderable() });
+  child.params.push(param);
+  const base = mkBaseVariant();
+  const tpl = mkTplComponent(child, base);
+  const owner = mkComponent({ name: "Owner", type: ComponentType.Plain, variants: [base], tplTree: tpl });
+  const site = createSite(); site.components.push(owner, child);
+  const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
+  const models = new ModelSnapshots(), nextModels = new ModelSnapshots();
+  const signal = new AbortController();
+  const studio = mock<StudioCtx>();
+  Object.defineProperty(studio, "modelSnapshots", { value: models, writable: true });
+  const state = mock<ViewCtx["renderState"]>();
+  const val = new ValComponent({ tpl, fullKey: "child", key: tpl.uuid, valOwner: undefined, frameUid: 0, fibers: [], parent: undefined, className: "", slotInfo: undefined, slotArgs: new Map(), slotCanvasEnvs: new Map() });
+  state.fullKey2val.mockReturnValue(val);
+  const view = mock<ViewCtx>();
+  Object.defineProperties(view, { studioCtx: { value: studio }, renderState: { value: state } });
+  const source = new PlayerSelectionInputs({ view, models, signal: signal.signal }, `child~${param.uuid}`);
+  const publish = vi.fn();
+  const stop = source.subscribe(publish); publish.mockClear();
+  try {
+    models.sync(recorder.withRecording(() => { child.name = "Unrelated label"; }).changes);
+    expect(publish).not.toHaveBeenCalled();
+    models.sync(recorder.withRecording(() => { child.params = []; }).changes);
+    expect(publish).toHaveBeenCalledOnce();
+    publish.mockClear();
+    Object.defineProperty(studio, "modelSnapshots", { value: nextModels, writable: true });
+    const demand = vi.spyOn(nextModels, "field");
+    expect(source.getSnapshot().alive).toBe(false);
+    expect(demand).not.toHaveBeenCalled();
+    models.sync(recorder.withRecording(() => { child.params = [param]; }).changes);
+    expect(publish).not.toHaveBeenCalled();
+  } finally { stop(); signal.abort(); models.dispose(); nextModels.dispose(); recorder.dispose(); }
+});

@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,7 +25,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import CommentPostForm from "../../components/comments/CommentPostForm"; // plasmic-import: qi3Y1X2qZ7/component
 import { CommentsDialogHead } from "../../components/comments/CommentsDialogHead"; // plasmic-import: tccr1SFVw_AY/component
 import { Dialog } from "../../components/widgets/Dialog"; // plasmic-import: en2IIw2C3_aI/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -81,11 +81,10 @@ function PlasmicCommentPostFormDialog__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <Dialog
@@ -162,12 +161,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -177,29 +172,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCommentPostFormDialog__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCommentPostFormDialog";
-  } else {
-    func.displayName = `PlasmicCommentPostFormDialog.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCommentPostFormDialog__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCommentPostFormDialog__root<T extends PlasmicCommentPostFormDialog__rootProps>(props: T & StrictProps<T, PlasmicCommentPostFormDialog__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCommentPostFormDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCommentPostFormDialog__root.displayName = "PlasmicCommentPostFormDialog";
+
+type PlasmicCommentPostFormDialog__commentsDialogHeadProps = NodeComponentProps<"commentsDialogHead"> & {key?: React.Key};
+function PlasmicCommentPostFormDialog__commentsDialogHead<T extends PlasmicCommentPostFormDialog__commentsDialogHeadProps>(props: T & StrictProps<T, PlasmicCommentPostFormDialog__commentsDialogHeadProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentsDialogHead", props);
+  return <PlasmicCommentPostFormDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentsDialogHead"} />;
+}
+PlasmicCommentPostFormDialog__commentsDialogHead.displayName = "PlasmicCommentPostFormDialog.commentsDialogHead";
+
+type PlasmicCommentPostFormDialog__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicCommentPostFormDialog__freeBox<T extends PlasmicCommentPostFormDialog__freeBoxProps>(props: T & StrictProps<T, PlasmicCommentPostFormDialog__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicCommentPostFormDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicCommentPostFormDialog__freeBox.displayName = "PlasmicCommentPostFormDialog.freeBox";
+
+type PlasmicCommentPostFormDialog__commentPostFormProps = NodeComponentProps<"commentPostForm"> & {key?: React.Key};
+function PlasmicCommentPostFormDialog__commentPostForm<T extends PlasmicCommentPostFormDialog__commentPostFormProps>(props: T & StrictProps<T, PlasmicCommentPostFormDialog__commentPostFormProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentPostForm", props);
+  return <PlasmicCommentPostFormDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentPostForm"} />;
+}
+PlasmicCommentPostFormDialog__commentPostForm.displayName = "PlasmicCommentPostFormDialog.commentPostForm";
+
 
 export const PlasmicCommentPostFormDialog = Object.assign(
   // Top-level PlasmicCommentPostFormDialog renders the root element
-  makeNodeComponent("root"),
+  PlasmicCommentPostFormDialog__root,
   {
     // Helper components rendering sub-elements
-    commentsDialogHead: makeNodeComponent("commentsDialogHead"),
-    freeBox: makeNodeComponent("freeBox"),
-    commentPostForm: makeNodeComponent("commentPostForm"),
+    commentsDialogHead: PlasmicCommentPostFormDialog__commentsDialogHead,
+    freeBox: PlasmicCommentPostFormDialog__freeBox,
+    commentPostForm: PlasmicCommentPostFormDialog__commentPostForm,
 
     // Metadata about props expected for PlasmicCommentPostFormDialog
     internalVariantProps: PlasmicCommentPostFormDialog__VariantProps,

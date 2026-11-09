@@ -9,20 +9,17 @@
 // Plasmic Project: 47tFXWjN2C4NyHFGGpaYQ3
 // Component: 6uuAAE1jiCew
 "use client";
+
 import * as React from "react";
 import Head from "next/head";
 import { useRouter } from "next/navigation";
-import {
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  hasVariant
-} from "@plasmicapp/react-web";
+import { usePlasmicPrepass } from "@plasmicapp/react-web/lib/query";
+import { usePlasmicRefs, classNames, createPlasmicElementProxy, deriveRenderOpts, hasVariant } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/host";
 import { generateDynamicMetadata } from "./PlasmicHomepageServer"; // plasmic-import: 6uuAAE1jiCew/rscServer
 import RandomDynamicPageButton from "../../RandomDynamicPageButton"; // plasmic-import: Q23H1_1M_P/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/styleTokensProvider
 import "@plasmicapp/react-web/lib/plasmic.css";
 import sty from "./PlasmicHomepage.module.css"; // plasmic-import: 6uuAAE1jiCew/css
 
@@ -31,7 +28,6 @@ const emptyProxy = new Proxy(() => "", {
     return prop === Symbol.toPrimitive ? () => "" : emptyProxy;
   }
 });
-
 function wrapQueriesWithLoadingProxy($q) {
   return new Proxy($q, {
     get(target, queryName) {
@@ -40,50 +36,38 @@ function wrapQueriesWithLoadingProxy($q) {
     }
   });
 }
-
 createPlasmicElementProxy;
-
 export const PlasmicHomepage__VariantProps = new Array();
-
 export const PlasmicHomepage__ArgProps = new Array();
-
 const $$ = {};
 
-function useNextRouter() {
-  try {
-    return useRouter();
-  } catch {}
-  return undefined;
+function PlasmicHomepage__RenderFunc(props) {
+  const prepass = usePlasmicPrepass();
+  return prepass ? <PlasmicHomepage__RenderFunc__Body {...props} /> : <PlasmicHomepage__RenderFunc__WithNextRouter {...props} />;
+}
+function PlasmicHomepage__RenderFunc__WithNextRouter(props) {
+  const nextRouter = useRouter();
+  return <PlasmicHomepage__RenderFunc__Body {...props} nextRouter={nextRouter} />;
 }
 
-function PlasmicHomepage__RenderFunc(props) {
-  const { variants, overrides, forNode } = props;
-  const args = React.useMemo(
-    () =>
-      Object.assign(
-        {},
-        Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
-      ),
-    [props.args]
-  );
+function PlasmicHomepage__RenderFunc__Body(props) {
+  const {
+    variants,
+    overrides,
+    forNode
+  } = props;
+  const args = React.useMemo(() => Object.assign({}, Object.fromEntries(Object.entries(props.args).filter(([_, v]) => v !== undefined))), [props.args]);
   const $props = {
     ...args,
     ...variants
   };
-  const __nextRouter = useNextRouter();
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
-  const globalVariants = _useGlobalVariants();
-  const pageMetadata = generateDynamicMetadata(
-    wrapQueriesWithLoadingProxy({}),
-    $ctx
-  );
-  const styleTokensClassNames = _useStyleTokens();
-  return (
-    <React.Fragment>
+  const __nextRouter = props.nextRouter;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
+  const globalVariants = useGlobalVariants();
+  const pageMetadata = generateDynamicMetadata(wrapQueriesWithLoadingProxy({}), $ctx);
+  const styleTokensClassNames = useStyleTokens();
+  return <React.Fragment>
       <Head></Head>
 
       <style>{`
@@ -93,64 +77,20 @@ function PlasmicHomepage__RenderFunc(props) {
       `}</style>
 
       <div className={"plasmic_page_wrapper"}>
-        <div
-          data-plasmic-name={"root"}
-          data-plasmic-override={overrides.root}
-          data-plasmic-root={true}
-          data-plasmic-for-node={forNode}
-          className={classNames(
-            "all",
-            "root_reset_47tFXWjN2C4NyHFGGpaYQ3",
-            "plasmic_default_styles",
-            "plasmic_mixins",
-            styleTokensClassNames,
-            sty.root
-          )}
-        >
-          <section
-            data-plasmic-name={"section"}
-            data-plasmic-override={overrides.section}
-            className={classNames("all", sty.section)}
-          >
-            <h1
-              data-plasmic-name={"h1"}
-              data-plasmic-override={overrides.h1}
-              className={classNames(
-                "all",
-                "h1",
-                "h1__47tFX",
-                "__wab_text",
-                sty.h1
-              )}
-            >
-              {hasVariant(globalVariants, "screen", "desktopOnly")
-                ? "create-plasmic-app"
-                : "cpa"}
+        <div data-plasmic-name={"root"} data-plasmic-override={overrides.root} data-plasmic-root={true} data-plasmic-for-node={forNode} className={classNames("all", "root_reset_47tFXWjN2C4NyHFGGpaYQ3", "plasmic_default_styles", "plasmic_mixins", styleTokensClassNames, sty.root)}>
+          <section data-plasmic-name={"section"} data-plasmic-override={overrides.section} className={classNames("all", sty.section)}>
+            <h1 data-plasmic-name={"h1"} data-plasmic-override={overrides.h1} className={classNames("all", "h1", "h1__47tFX", "__wab_text", sty.h1)}>
+              {hasVariant(globalVariants, "screen", "desktopOnly") ? "create-plasmic-app" : "cpa"}
             </h1>
-            <div
-              data-plasmic-name={"text"}
-              data-plasmic-override={overrides.text}
-              className={classNames("all", "__wab_text", sty.text)}
-            >
-              {
-                "This project is used by run-cpa.ts in the create-plasmic-app repo.\n\n\nrun-cpa.ts runs create-plasmic-app for many combinations of args (e.g. nextjs + appDir + loader + typescript) to check for changes in generated files. Any changes to this project will result in lots of changes to the generated files. Therefore, please avoid changing this project.\n"
-              }
+            <div data-plasmic-name={"text"} data-plasmic-override={overrides.text} className={classNames("all", "__wab_text", sty.text)}>
+              {"This project is used by run-cpa.ts in the create-plasmic-app repo.\n\n\nrun-cpa.ts runs create-plasmic-app for many combinations of args (e.g. nextjs + appDir + loader + typescript) to check for changes in generated files. Any changes to this project will result in lots of changes to the generated files. Therefore, please avoid changing this project.\n"}
             </div>
-            <RandomDynamicPageButton
-              data-plasmic-name={"randomDynamicPageButton"}
-              data-plasmic-override={overrides.randomDynamicPageButton}
-              className={classNames(
-                "__wab_instance",
-                sty.randomDynamicPageButton
-              )}
-            />
+            <RandomDynamicPageButton data-plasmic-name={"randomDynamicPageButton"} data-plasmic-override={overrides.randomDynamicPageButton} className={classNames("__wab_instance", sty.randomDynamicPageButton)} />
           </section>
         </div>
       </div>
-    </React.Fragment>
-  );
+    </React.Fragment>;
 }
-
 const PlasmicDescendants = {
   root: ["root", "section", "h1", "text", "randomDynamicPageButton"],
   section: ["section", "h1", "text", "randomDynamicPageButton"],
@@ -158,54 +98,76 @@ const PlasmicDescendants = {
   text: ["text"],
   randomDynamicPageButton: ["randomDynamicPageButton"]
 };
-
-function makeNodeComponent(nodeName) {
-  const func = function (props) {
-    const { variants, args, overrides } = React.useMemo(
-      () =>
-        deriveRenderOpts(props, {
-          name: nodeName,
-          descendantNames: PlasmicDescendants[nodeName],
-          internalArgPropNames: PlasmicHomepage__ArgProps,
-          internalVariantPropNames: PlasmicHomepage__VariantProps
-        }),
-      [props, nodeName]
-    );
-    return PlasmicHomepage__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicHomepage";
-  } else {
-    func.displayName = `PlasmicHomepage.${nodeName}`;
-  }
-  return func;
+function useNodeRenderOpts(nodeName, props) {
+  return React.useMemo(() => deriveRenderOpts(props, {
+    name: nodeName,
+    descendantNames: PlasmicDescendants[nodeName],
+    internalArgPropNames: PlasmicHomepage__ArgProps,
+    internalVariantPropNames: PlasmicHomepage__VariantProps
+  }), [props, nodeName]);
 }
-
+function PlasmicHomepage__root(props) {
+  const {
+    variants,
+    args,
+    overrides
+  } = useNodeRenderOpts("root", props);
+  return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicHomepage__root.displayName = "PlasmicHomepage";
+function PlasmicHomepage__section(props) {
+  const {
+    variants,
+    args,
+    overrides
+  } = useNodeRenderOpts("section", props);
+  return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"section"} />;
+}
+PlasmicHomepage__section.displayName = "PlasmicHomepage.section";
+function PlasmicHomepage__h1(props) {
+  const {
+    variants,
+    args,
+    overrides
+  } = useNodeRenderOpts("h1", props);
+  return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"h1"} />;
+}
+PlasmicHomepage__h1.displayName = "PlasmicHomepage.h1";
+function PlasmicHomepage__text(props) {
+  const {
+    variants,
+    args,
+    overrides
+  } = useNodeRenderOpts("text", props);
+  return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicHomepage__text.displayName = "PlasmicHomepage.text";
+function PlasmicHomepage__randomDynamicPageButton(props) {
+  const {
+    variants,
+    args,
+    overrides
+  } = useNodeRenderOpts("randomDynamicPageButton", props);
+  return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"randomDynamicPageButton"} />;
+}
+PlasmicHomepage__randomDynamicPageButton.displayName = "PlasmicHomepage.randomDynamicPageButton";
 export const PlasmicHomepage = Object.assign(
-  // Top-level PlasmicHomepage renders the root element
-  makeNodeComponent("root"),
-  {
-    // Helper components rendering sub-elements
-    section: makeNodeComponent("section"),
-    h1: makeNodeComponent("h1"),
-    text: makeNodeComponent("text"),
-    randomDynamicPageButton: makeNodeComponent("randomDynamicPageButton"),
-    // Metadata about props expected for PlasmicHomepage
-    internalVariantProps: PlasmicHomepage__VariantProps,
-    internalArgProps: PlasmicHomepage__ArgProps,
-    pageMetadata: generateDynamicMetadata(wrapQueriesWithLoadingProxy({}), {
-      pageRoute: "/",
-      pagePath: "/",
-      params: {},
-      query: {}
-    })
-  }
-);
-
+// Top-level PlasmicHomepage renders the root element
+PlasmicHomepage__root, {
+  // Helper components rendering sub-elements
+  section: PlasmicHomepage__section,
+  h1: PlasmicHomepage__h1,
+  text: PlasmicHomepage__text,
+  randomDynamicPageButton: PlasmicHomepage__randomDynamicPageButton,
+  // Metadata about props expected for PlasmicHomepage
+  internalVariantProps: PlasmicHomepage__VariantProps,
+  internalArgProps: PlasmicHomepage__ArgProps,
+  pageMetadata: generateDynamicMetadata(wrapQueriesWithLoadingProxy({}), {
+    pageRoute: "/",
+    pagePath: "/",
+    params: {},
+    query: {}
+  })
+});
 export default PlasmicHomepage;
 /* prettier-ignore-end */

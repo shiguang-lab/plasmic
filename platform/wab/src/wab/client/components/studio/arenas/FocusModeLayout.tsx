@@ -5,7 +5,7 @@ import { AnyArena, FocusedDedicatedArena, isMixedArena } from "@/wab/shared/Aren
 import { getSiteArenas } from "@/wab/shared/core/sites";
 import type { ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
 import { ArenaFrame } from "@/wab/shared/model/classes";
-import React, { useMemo } from "react";
+import React from "react";
 import { useStore } from "zustand";
 
 export const FocusModeLayout = function FocusModeLayout(props: {
@@ -38,7 +38,11 @@ const noFocusedFrame: ModelFieldStore<ArenaFrame | undefined> = {
 /** Resolve this finite field only within the captured model lifetime. The
  * imperative frame handle remains cached; foreign and closed owners demand no fields. */
 export function useArenaFocusedFrame(studio: StudioCtx, arena: AnyArena) {
-  const source = useMemo<ModelFieldStore<ArenaFrame | undefined>>(() => {
+  const [binding, setBinding] = React.useState(() => ({ studio, arena, source: createArenaFocusedFrameSource(studio, arena) }));
+  if (binding.studio !== studio || binding.arena !== arena) { setBinding({ studio, arena, source: createArenaFocusedFrameSource(studio, arena) }); }
+  return useStore(binding.source);
+}
+function createArenaFocusedFrameSource(studio: StudioCtx, arena: AnyArena): ModelFieldStore<ArenaFrame | undefined> {
     if (isMixedArena(arena)) { return noFocusedFrame; }
     const owner = studio.arenaState;
     const lifetime = owner.lifetime();
@@ -71,6 +75,5 @@ export function useArenaFocusedFrame(studio: StudioCtx, arena: AnyArena) {
         return stop;
       },
     };
-  }, [studio, arena]);
-  return useStore(source);
+
 }

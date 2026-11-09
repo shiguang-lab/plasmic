@@ -15,42 +15,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
-import {
-  Flex as Flex__,
-  MultiChoiceArg,
-  PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
-  PlasmicIcon as PlasmicIcon__,
-  PlasmicImg as PlasmicImg__,
-  PlasmicLink as PlasmicLink__,
-  PlasmicPageGuard as PlasmicPageGuard__,
-  SingleBooleanChoiceArg,
-  SingleChoiceArg,
-  Stack as Stack__,
-  StrictProps,
-  Trans as Trans__,
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  ensureGlobalVariants,
-  generateOnMutateForSpec,
-  generateStateOnChangeProp,
-  generateStateOnChangePropForCodeComponents,
-  generateStateValueProp,
-  get as $stateGet,
-  hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
-  makeFragment,
-  omit,
-  pick,
-  renderPlasmicSlot,
-  set as $stateSet,
-  useCurrentUser,
-  useDollarState,
-  usePlasmicTranslator,
-  useTrigger,
-  wrapWithClassName
-} from "@plasmicapp/react-web";
+import {usePlasmicRefs, Flex as Flex__, MultiChoiceArg, PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__, PlasmicIcon as PlasmicIcon__, PlasmicImg as PlasmicImg__, PlasmicLink as PlasmicLink__, PlasmicPageGuard as PlasmicPageGuard__, SingleBooleanChoiceArg, SingleChoiceArg, Stack as Stack__, StrictProps, Trans as Trans__, classNames, createPlasmicElementProxy, deriveRenderOpts, ensureGlobalVariants, generateOnMutateForSpec, generateStateOnChangeProp, generateStateOnChangePropForCodeComponents, generateStateValueProp, get as $stateGet, hasVariant, makeFragment, omit, pick, renderPlasmicSlot, set as $stateSet, useCurrentUser, useDollarState, useDollarStateSnapshot, usePlasmicTranslator, wrapWithClassName} from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
@@ -60,8 +25,8 @@ import {
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import CopilotMsg from "../../components/CopilotMsg"; // plasmic-import: CdMYaSGMjG/component
 import { CopilotPromptInput } from "../../components/copilot/CopilotPromptInput"; // plasmic-import: pnV7KLVDUyoz/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -158,11 +123,10 @@ function PlasmicCopilotPromptDialog__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "state",
@@ -177,18 +141,20 @@ function PlasmicCopilotPromptDialog__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.type
       }
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs
-  });
+    getRefs
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -903,12 +869,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -918,44 +880,165 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCopilotPromptDialog__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "rootContainer") {
-    func.displayName = "PlasmicCopilotPromptDialog";
-  } else {
-    func.displayName = `PlasmicCopilotPromptDialog.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCopilotPromptDialog__rootContainerProps = NodeComponentProps<"rootContainer"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__rootContainer<T extends PlasmicCopilotPromptDialog__rootContainerProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__rootContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("rootContainer", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"rootContainer"} />;
+}
+PlasmicCopilotPromptDialog__rootContainer.displayName = "PlasmicCopilotPromptDialog";
+
+type PlasmicCopilotPromptDialog__sizerContainerProps = NodeComponentProps<"sizerContainer"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__sizerContainer<T extends PlasmicCopilotPromptDialog__sizerContainerProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__sizerContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sizerContainer", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sizerContainer"} />;
+}
+PlasmicCopilotPromptDialog__sizerContainer.displayName = "PlasmicCopilotPromptDialog.sizerContainer";
+
+type PlasmicCopilotPromptDialog__promptDialogProps = NodeComponentProps<"promptDialog"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__promptDialog<T extends PlasmicCopilotPromptDialog__promptDialogProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__promptDialogProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("promptDialog", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"promptDialog"} />;
+}
+PlasmicCopilotPromptDialog__promptDialog.displayName = "PlasmicCopilotPromptDialog.promptDialog";
+
+type PlasmicCopilotPromptDialog__headerContainerProps = NodeComponentProps<"headerContainer"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__headerContainer<T extends PlasmicCopilotPromptDialog__headerContainerProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__headerContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("headerContainer", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"headerContainer"} />;
+}
+PlasmicCopilotPromptDialog__headerContainer.displayName = "PlasmicCopilotPromptDialog.headerContainer";
+
+type PlasmicCopilotPromptDialog__promptLabelProps = NodeComponentProps<"promptLabel"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__promptLabel<T extends PlasmicCopilotPromptDialog__promptLabelProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__promptLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("promptLabel", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"promptLabel"} />;
+}
+PlasmicCopilotPromptDialog__promptLabel.displayName = "PlasmicCopilotPromptDialog.promptLabel";
+
+type PlasmicCopilotPromptDialog__historyProps = NodeComponentProps<"history"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__history<T extends PlasmicCopilotPromptDialog__historyProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__historyProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("history", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"history"} />;
+}
+PlasmicCopilotPromptDialog__history.displayName = "PlasmicCopilotPromptDialog.history";
+
+type PlasmicCopilotPromptDialog__rightButtonsProps = NodeComponentProps<"rightButtons"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__rightButtons<T extends PlasmicCopilotPromptDialog__rightButtonsProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__rightButtonsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("rightButtons", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"rightButtons"} />;
+}
+PlasmicCopilotPromptDialog__rightButtons.displayName = "PlasmicCopilotPromptDialog.rightButtons";
+
+type PlasmicCopilotPromptDialog__historyBtnProps = NodeComponentProps<"historyBtn"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__historyBtn<T extends PlasmicCopilotPromptDialog__historyBtnProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__historyBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("historyBtn", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"historyBtn"} />;
+}
+PlasmicCopilotPromptDialog__historyBtn.displayName = "PlasmicCopilotPromptDialog.historyBtn";
+
+type PlasmicCopilotPromptDialog__cancelBtnProps = NodeComponentProps<"cancelBtn"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__cancelBtn<T extends PlasmicCopilotPromptDialog__cancelBtnProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__cancelBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelBtn", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelBtn"} />;
+}
+PlasmicCopilotPromptDialog__cancelBtn.displayName = "PlasmicCopilotPromptDialog.cancelBtn";
+
+type PlasmicCopilotPromptDialog__contentsProps = NodeComponentProps<"contents"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__contents<T extends PlasmicCopilotPromptDialog__contentsProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__contentsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("contents", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"contents"} />;
+}
+PlasmicCopilotPromptDialog__contents.displayName = "PlasmicCopilotPromptDialog.contents";
+
+type PlasmicCopilotPromptDialog__historyContainerProps = NodeComponentProps<"historyContainer"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__historyContainer<T extends PlasmicCopilotPromptDialog__historyContainerProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__historyContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("historyContainer", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"historyContainer"} />;
+}
+PlasmicCopilotPromptDialog__historyContainer.displayName = "PlasmicCopilotPromptDialog.historyContainer";
+
+type PlasmicCopilotPromptDialog__historyEmptyMsgProps = NodeComponentProps<"historyEmptyMsg"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__historyEmptyMsg<T extends PlasmicCopilotPromptDialog__historyEmptyMsgProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__historyEmptyMsgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("historyEmptyMsg", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"historyEmptyMsg"} />;
+}
+PlasmicCopilotPromptDialog__historyEmptyMsg.displayName = "PlasmicCopilotPromptDialog.historyEmptyMsg";
+
+type PlasmicCopilotPromptDialog__historyContentsProps = NodeComponentProps<"historyContents"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__historyContents<T extends PlasmicCopilotPromptDialog__historyContentsProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__historyContentsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("historyContents", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"historyContents"} />;
+}
+PlasmicCopilotPromptDialog__historyContents.displayName = "PlasmicCopilotPromptDialog.historyContents";
+
+type PlasmicCopilotPromptDialog__historyBottomDivProps = NodeComponentProps<"historyBottomDiv"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__historyBottomDiv<T extends PlasmicCopilotPromptDialog__historyBottomDivProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__historyBottomDivProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("historyBottomDiv", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"historyBottomDiv"} />;
+}
+PlasmicCopilotPromptDialog__historyBottomDiv.displayName = "PlasmicCopilotPromptDialog.historyBottomDiv";
+
+type PlasmicCopilotPromptDialog__onLoadTriggerProps = NodeComponentProps<"onLoadTrigger"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__onLoadTrigger<T extends PlasmicCopilotPromptDialog__onLoadTriggerProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__onLoadTriggerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("onLoadTrigger", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"onLoadTrigger"} />;
+}
+PlasmicCopilotPromptDialog__onLoadTrigger.displayName = "PlasmicCopilotPromptDialog.onLoadTrigger";
+
+type PlasmicCopilotPromptDialog__promptInputProps = NodeComponentProps<"promptInput"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__promptInput<T extends PlasmicCopilotPromptDialog__promptInputProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__promptInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("promptInput", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"promptInput"} />;
+}
+PlasmicCopilotPromptDialog__promptInput.displayName = "PlasmicCopilotPromptDialog.promptInput";
+
+type PlasmicCopilotPromptDialog__errorMessageProps = NodeComponentProps<"errorMessage"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__errorMessage<T extends PlasmicCopilotPromptDialog__errorMessageProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__errorMessageProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("errorMessage", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"errorMessage"} />;
+}
+PlasmicCopilotPromptDialog__errorMessage.displayName = "PlasmicCopilotPromptDialog.errorMessage";
+
+type PlasmicCopilotPromptDialog__quotaExceededMsgProps = NodeComponentProps<"quotaExceededMsg"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__quotaExceededMsg<T extends PlasmicCopilotPromptDialog__quotaExceededMsgProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__quotaExceededMsgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("quotaExceededMsg", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"quotaExceededMsg"} />;
+}
+PlasmicCopilotPromptDialog__quotaExceededMsg.displayName = "PlasmicCopilotPromptDialog.quotaExceededMsg";
+
+type PlasmicCopilotPromptDialog__replyProps = NodeComponentProps<"reply"> & {key?: React.Key};
+function PlasmicCopilotPromptDialog__reply<T extends PlasmicCopilotPromptDialog__replyProps>(props: T & StrictProps<T, PlasmicCopilotPromptDialog__replyProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("reply", props);
+  return <PlasmicCopilotPromptDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"reply"} />;
+}
+PlasmicCopilotPromptDialog__reply.displayName = "PlasmicCopilotPromptDialog.reply";
+
 
 export const PlasmicCopilotPromptDialog = Object.assign(
   // Top-level PlasmicCopilotPromptDialog renders the root element
-  makeNodeComponent("rootContainer"),
+  PlasmicCopilotPromptDialog__rootContainer,
   {
     // Helper components rendering sub-elements
-    sizerContainer: makeNodeComponent("sizerContainer"),
-    promptDialog: makeNodeComponent("promptDialog"),
-    headerContainer: makeNodeComponent("headerContainer"),
-    promptLabel: makeNodeComponent("promptLabel"),
-    history: makeNodeComponent("history"),
-    rightButtons: makeNodeComponent("rightButtons"),
-    historyBtn: makeNodeComponent("historyBtn"),
-    cancelBtn: makeNodeComponent("cancelBtn"),
-    contents: makeNodeComponent("contents"),
-    historyContainer: makeNodeComponent("historyContainer"),
-    historyEmptyMsg: makeNodeComponent("historyEmptyMsg"),
-    historyContents: makeNodeComponent("historyContents"),
-    historyBottomDiv: makeNodeComponent("historyBottomDiv"),
-    onLoadTrigger: makeNodeComponent("onLoadTrigger"),
-    promptInput: makeNodeComponent("promptInput"),
-    errorMessage: makeNodeComponent("errorMessage"),
-    quotaExceededMsg: makeNodeComponent("quotaExceededMsg"),
-    reply: makeNodeComponent("reply"),
+    sizerContainer: PlasmicCopilotPromptDialog__sizerContainer,
+    promptDialog: PlasmicCopilotPromptDialog__promptDialog,
+    headerContainer: PlasmicCopilotPromptDialog__headerContainer,
+    promptLabel: PlasmicCopilotPromptDialog__promptLabel,
+    history: PlasmicCopilotPromptDialog__history,
+    rightButtons: PlasmicCopilotPromptDialog__rightButtons,
+    historyBtn: PlasmicCopilotPromptDialog__historyBtn,
+    cancelBtn: PlasmicCopilotPromptDialog__cancelBtn,
+    contents: PlasmicCopilotPromptDialog__contents,
+    historyContainer: PlasmicCopilotPromptDialog__historyContainer,
+    historyEmptyMsg: PlasmicCopilotPromptDialog__historyEmptyMsg,
+    historyContents: PlasmicCopilotPromptDialog__historyContents,
+    historyBottomDiv: PlasmicCopilotPromptDialog__historyBottomDiv,
+    onLoadTrigger: PlasmicCopilotPromptDialog__onLoadTrigger,
+    promptInput: PlasmicCopilotPromptDialog__promptInput,
+    errorMessage: PlasmicCopilotPromptDialog__errorMessage,
+    quotaExceededMsg: PlasmicCopilotPromptDialog__quotaExceededMsg,
+    reply: PlasmicCopilotPromptDialog__reply,
 
     // Metadata about props expected for PlasmicCopilotPromptDialog
     internalVariantProps: PlasmicCopilotPromptDialog__VariantProps,

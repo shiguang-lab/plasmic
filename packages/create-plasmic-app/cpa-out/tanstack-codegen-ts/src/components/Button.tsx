@@ -14,8 +14,8 @@ export interface ButtonProps extends DefaultButtonProps {
   // Feel free to add any additional props that this component should receive
 }
 function Button_(props: ButtonProps, ref: ButtonRef) {
-  const { plasmicProps } = PlasmicButton.useBehavior<ButtonProps>(props, ref);
-  return <PlasmicButton {...plasmicProps} />;
+  const { plasmicProps, rootOverride } = PlasmicButton.deriveBehaviorProps<ButtonProps>(props);
+  return <PlasmicButton {...plasmicProps} overrides={{...plasmicProps.overrides, root: {...rootOverride, props: {...rootOverride.props, ref}}}} />;
 }
 
 export type ButtonComponentType = {

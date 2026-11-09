@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -85,11 +85,10 @@ function PlasmicEditOverrideToggleButton__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <Button
@@ -197,12 +196,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -213,29 +208,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicEditOverrideToggleButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicEditOverrideToggleButton";
-  } else {
-    func.displayName = `PlasmicEditOverrideToggleButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicEditOverrideToggleButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicEditOverrideToggleButton__root<T extends PlasmicEditOverrideToggleButton__rootProps>(props: T & StrictProps<T, PlasmicEditOverrideToggleButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicEditOverrideToggleButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicEditOverrideToggleButton__root.displayName = "PlasmicEditOverrideToggleButton";
+
+type PlasmicEditOverrideToggleButton__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicEditOverrideToggleButton__freeBox<T extends PlasmicEditOverrideToggleButton__freeBoxProps>(props: T & StrictProps<T, PlasmicEditOverrideToggleButton__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicEditOverrideToggleButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicEditOverrideToggleButton__freeBox.displayName = "PlasmicEditOverrideToggleButton.freeBox";
+
+type PlasmicEditOverrideToggleButton__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicEditOverrideToggleButton__text<T extends PlasmicEditOverrideToggleButton__textProps>(props: T & StrictProps<T, PlasmicEditOverrideToggleButton__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicEditOverrideToggleButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicEditOverrideToggleButton__text.displayName = "PlasmicEditOverrideToggleButton.text";
+
+type PlasmicEditOverrideToggleButton__componentNameProps = NodeComponentProps<"componentName"> & {key?: React.Key};
+function PlasmicEditOverrideToggleButton__componentName<T extends PlasmicEditOverrideToggleButton__componentNameProps>(props: T & StrictProps<T, PlasmicEditOverrideToggleButton__componentNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("componentName", props);
+  return <PlasmicEditOverrideToggleButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"componentName"} />;
+}
+PlasmicEditOverrideToggleButton__componentName.displayName = "PlasmicEditOverrideToggleButton.componentName";
+
 
 export const PlasmicEditOverrideToggleButton = Object.assign(
   // Top-level PlasmicEditOverrideToggleButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicEditOverrideToggleButton__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    text: makeNodeComponent("text"),
-    componentName: makeNodeComponent("componentName"),
+    freeBox: PlasmicEditOverrideToggleButton__freeBox,
+    text: PlasmicEditOverrideToggleButton__text,
+    componentName: PlasmicEditOverrideToggleButton__componentName,
 
     // Metadata about props expected for PlasmicEditOverrideToggleButton
     internalVariantProps: PlasmicEditOverrideToggleButton__VariantProps,

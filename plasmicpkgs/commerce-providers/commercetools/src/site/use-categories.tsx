@@ -45,7 +45,7 @@ export const handler: SWRHook<GetCategoriesHook> = {
   },
   useHook:
     ({ useData }) =>
-    (input) => {
+    function useCategoriesHandler(input) {
       const response = useData({
         input: [["categoryId", input?.categoryId]],
         swrOptions: { revalidateOnFocus: false, ...input?.swrOptions },

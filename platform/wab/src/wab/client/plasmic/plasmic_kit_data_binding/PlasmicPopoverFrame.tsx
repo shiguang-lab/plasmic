@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import PopoverFrameTitle from "../../components/sidebar/PopoverFrameTitle"; // plasmic-import: _qAXa8aqLB77/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -88,11 +88,10 @@ function PlasmicPopoverFrame__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -169,12 +168,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -184,28 +179,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPopoverFrame__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "popoverFrame") {
-    func.displayName = "PlasmicPopoverFrame";
-  } else {
-    func.displayName = `PlasmicPopoverFrame.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPopoverFrame__popoverFrameProps = NodeComponentProps<"popoverFrame"> & {key?: React.Key};
+function PlasmicPopoverFrame__popoverFrame<T extends PlasmicPopoverFrame__popoverFrameProps>(props: T & StrictProps<T, PlasmicPopoverFrame__popoverFrameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("popoverFrame", props);
+  return <PlasmicPopoverFrame__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"popoverFrame"} />;
+}
+PlasmicPopoverFrame__popoverFrame.displayName = "PlasmicPopoverFrame";
+
+type PlasmicPopoverFrame__propTitleProps = NodeComponentProps<"propTitle"> & {key?: React.Key};
+function PlasmicPopoverFrame__propTitle<T extends PlasmicPopoverFrame__propTitleProps>(props: T & StrictProps<T, PlasmicPopoverFrame__propTitleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("propTitle", props);
+  return <PlasmicPopoverFrame__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"propTitle"} />;
+}
+PlasmicPopoverFrame__propTitle.displayName = "PlasmicPopoverFrame.propTitle";
+
+type PlasmicPopoverFrame__contentWrapProps = NodeComponentProps<"contentWrap"> & {key?: React.Key};
+function PlasmicPopoverFrame__contentWrap<T extends PlasmicPopoverFrame__contentWrapProps>(props: T & StrictProps<T, PlasmicPopoverFrame__contentWrapProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("contentWrap", props);
+  return <PlasmicPopoverFrame__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"contentWrap"} />;
+}
+PlasmicPopoverFrame__contentWrap.displayName = "PlasmicPopoverFrame.contentWrap";
+
 
 export const PlasmicPopoverFrame = Object.assign(
   // Top-level PlasmicPopoverFrame renders the root element
-  makeNodeComponent("popoverFrame"),
+  PlasmicPopoverFrame__popoverFrame,
   {
     // Helper components rendering sub-elements
-    propTitle: makeNodeComponent("propTitle"),
-    contentWrap: makeNodeComponent("contentWrap"),
+    propTitle: PlasmicPopoverFrame__propTitle,
+    contentWrap: PlasmicPopoverFrame__contentWrap,
 
     // Metadata about props expected for PlasmicPopoverFrame
     internalVariantProps: PlasmicPopoverFrame__VariantProps,

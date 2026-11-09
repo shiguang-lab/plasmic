@@ -220,12 +220,12 @@ export function unsafeStylesMessages(unsafe: Record<string, string>): string[] {
 }
 
 /** Installs a written font-family into the canvas, like the Typography section. */
-export function useWrittenFont(
+export function loadWrittenFont(
   studioCtx: StudioCtx,
   written: Record<string, string>,
 ) {
   const fontFamily = written["font-family"];
   if (fontFamily) {
-    studioCtx.fontManager.useFont(studioCtx, fontFamily);
+    studioCtx.fontManager.loadFont(studioCtx, fontFamily);
   }
 }

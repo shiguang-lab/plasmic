@@ -15,7 +15,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 29njzcsBEPR4koRddw4knF/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 29njzcsBEPR4koRddw4knF/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -90,11 +90,10 @@ function PlasmicPromoBanner__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <PlasmicLink__
@@ -121,19 +120,8 @@ function PlasmicPromoBanner__RenderFunc(props: {
         className={classNames("all", "__wab_text", sty.text)}
       >
         <React.Fragment>
-          {(() => {
-            try {
-              return $props.message;
-            } catch (e) {
-              if (
-                e instanceof TypeError ||
-                e?.plasmicType === "PlasmicUndefinedDataError"
-              ) {
-                return "";
-              }
-              throw e;
-            }
-          })()}
+          {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.message), () => (""))}
         </React.Fragment>
       </div>
     </PlasmicLink__>
@@ -178,12 +166,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -193,27 +177,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPromoBanner__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPromoBanner";
-  } else {
-    func.displayName = `PlasmicPromoBanner.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPromoBanner__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPromoBanner__root<T extends PlasmicPromoBanner__rootProps>(props: T & StrictProps<T, PlasmicPromoBanner__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPromoBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPromoBanner__root.displayName = "PlasmicPromoBanner";
+
+type PlasmicPromoBanner__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicPromoBanner__text<T extends PlasmicPromoBanner__textProps>(props: T & StrictProps<T, PlasmicPromoBanner__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicPromoBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicPromoBanner__text.displayName = "PlasmicPromoBanner.text";
+
 
 export const PlasmicPromoBanner = Object.assign(
   // Top-level PlasmicPromoBanner renders the root element
-  makeNodeComponent("root"),
+  PlasmicPromoBanner__root,
   {
     // Helper components rendering sub-elements
-    text: makeNodeComponent("text"),
+    text: PlasmicPromoBanner__text,
 
     // Metadata about props expected for PlasmicPromoBanner
     internalVariantProps: PlasmicPromoBanner__VariantProps,

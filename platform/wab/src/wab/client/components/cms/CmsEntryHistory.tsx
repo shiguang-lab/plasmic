@@ -244,14 +244,14 @@ export function EntryRevisionView() {
             loading={restoring}
             onClick={async () => {
               setRestoring(true);
-              try {
+              return await (async () => {
                 await finishRestore();
-              } catch (error) {
+              })().catch(async (error) => {
                 showError(error, { title: "Revision restored, but refreshing failed" });
                 setRefreshError(true);
-              } finally {
+              }).finally(() => {
                 setRestoring(false);
-              }
+              });
             }}
           >
             {t("Retry")}
@@ -277,7 +277,7 @@ export function EntryRevisionView() {
                   return;
                 }
                 restorePending.current = true;
-                try {
+                return await (async () => {
                   if (
                     !(await reactConfirm({
                       title: t("Overwrite current draft with this revision?"),
@@ -306,10 +306,10 @@ export function EntryRevisionView() {
                     showError(error, { title: "Revision restored, but refreshing failed" });
                     setRefreshError(true);
                   }
-                } finally {
+                })().finally(() => {
                   setRestoring(false);
                   restorePending.current = false;
-                }
+                });
               }}
             >
               {t("Restore")}

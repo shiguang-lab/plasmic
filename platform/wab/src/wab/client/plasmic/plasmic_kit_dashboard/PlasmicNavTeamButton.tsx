@@ -15,7 +15,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,12 +24,12 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -102,11 +102,10 @@ function PlasmicNavTeamButton__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "selected",
@@ -122,20 +121,22 @@ function PlasmicNavTeamButton__RenderFunc(props: {
       },
     ],
 
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <PlasmicLink__
@@ -294,12 +295,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -309,27 +306,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicNavTeamButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicNavTeamButton";
-  } else {
-    func.displayName = `PlasmicNavTeamButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicNavTeamButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicNavTeamButton__root<T extends PlasmicNavTeamButton__rootProps>(props: T & StrictProps<T, PlasmicNavTeamButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicNavTeamButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicNavTeamButton__root.displayName = "PlasmicNavTeamButton";
+
+type PlasmicNavTeamButton__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicNavTeamButton__link<T extends PlasmicNavTeamButton__linkProps>(props: T & StrictProps<T, PlasmicNavTeamButton__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicNavTeamButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicNavTeamButton__link.displayName = "PlasmicNavTeamButton.link";
+
 
 export const PlasmicNavTeamButton = Object.assign(
   // Top-level PlasmicNavTeamButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicNavTeamButton__root,
   {
     // Helper components rendering sub-elements
-    link: makeNodeComponent("link"),
+    link: PlasmicNavTeamButton__link,
 
     // Metadata about props expected for PlasmicNavTeamButton
     internalVariantProps: PlasmicNavTeamButton__VariantProps,

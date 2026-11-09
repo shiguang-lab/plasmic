@@ -8,7 +8,7 @@ import groupStyles from "@/wab/client/plasmic/plasmic_kit_variants_bar/PlasmicVa
 import { setAppearancePreference } from "@/wab/client/ui-theme";
 import { ensure } from "@/wab/shared/common";
 import { act, cleanup, render, screen } from "@testing-library/react";
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 import * as React from "react";
 import { createPortal } from "react-dom";
 
@@ -102,7 +102,7 @@ it("themes the preview variant trigger and portaled menu through appearance chan
   };
   for (const appearance of ["dark", "light", "dark"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const trigger = screen.getByRole("button", { name: "highlight, night" });
     background(trigger, token.colorBgContainer);
     foreground(screen.getByText("highlight, night"), token.colorText);

@@ -13,29 +13,14 @@
 
 import * as React from "react";
 
-import {
-  Flex as Flex__,
-  MultiChoiceArg,
-  SingleBooleanChoiceArg,
-  SingleChoiceArg,
-  StrictProps,
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  generateOnMutateForSpec,
-  generateStateOnChangePropForCodeComponents,
-  generateStateValueProp,
-  hasVariant,
-  initializeCodeComponentStates,
-  useDollarState,
-} from "@plasmicapp/react-web";
+import {usePlasmicRefs, Flex as Flex__, MultiChoiceArg, SingleBooleanChoiceArg, SingleChoiceArg, StrictProps, classNames, createPlasmicElementProxy, deriveRenderOpts, generateOnMutateForSpec, generateStateOnChangePropForCodeComponents, generateStateValueProp, hasVariant, useDollarState, useDollarStateSnapshot, getCodeComponentStateInitializers, StateInitializer} from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import {
   BaseTextArea,
   inputHelpers as BaseTextArea_Helpers,
 } from "@plasmicpkgs/react-aria/skinny/registerTextArea";
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -151,11 +136,10 @@ function PlasmicTextAreaInput__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "ariaTextArea.value",
@@ -192,18 +176,20 @@ function PlasmicTextAreaInput__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.autoResize,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   const [$ccVariants, setDollarCcVariants] = React.useState<
     Record<string, boolean>
@@ -226,6 +212,8 @@ function PlasmicTextAreaInput__RenderFunc(props: {
   );
 
   return (() => {
+const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+const rendered = ((() => {
     const child$Props = {
       "aria-label": args.ariaLabel,
       autoFocus: args.autoFocus,
@@ -261,7 +249,7 @@ function PlasmicTextAreaInput__RenderFunc(props: {
       inputMode: args.inputMode,
       onChange: async (...eventArgs: any) => {
         generateStateOnChangePropForCodeComponents(
-          $state,
+          $stateCommands,
           "value",
           ["ariaTextArea", "value"],
           BaseTextArea_Helpers
@@ -272,18 +260,12 @@ function PlasmicTextAreaInput__RenderFunc(props: {
       readOnly: args.readOnly,
       value: generateStateValueProp($state, ["ariaTextArea", "value"]),
     };
-    initializeCodeComponentStates(
-      $state,
-      [
+    $stateInitializers.push(...getCodeComponentStateInitializers([
         {
           name: "value",
           plasmicStateName: "ariaTextArea.value",
         },
-      ],
-      [],
-      BaseTextArea_Helpers ?? {},
-      child$Props
-    );
+      ], [], BaseTextArea_Helpers ?? {}, child$Props));
 
     return (
       <BaseTextArea
@@ -294,7 +276,9 @@ function PlasmicTextAreaInput__RenderFunc(props: {
         {...child$Props}
       />
     );
-  })() as React.ReactElement | null;
+  })() as React.ReactElement | null);
+return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+})();
 }
 
 const PlasmicDescendants = {
@@ -332,12 +316,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -347,24 +327,19 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTextAreaInput__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "ariaTextArea") {
-    func.displayName = "PlasmicTextAreaInput";
-  } else {
-    func.displayName = `PlasmicTextAreaInput.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTextAreaInput__ariaTextAreaProps = NodeComponentProps<"ariaTextArea"> & {key?: React.Key};
+function PlasmicTextAreaInput__ariaTextArea<T extends PlasmicTextAreaInput__ariaTextAreaProps>(props: T & StrictProps<T, PlasmicTextAreaInput__ariaTextAreaProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("ariaTextArea", props);
+  return <PlasmicTextAreaInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaTextArea"} />;
+}
+PlasmicTextAreaInput__ariaTextArea.displayName = "PlasmicTextAreaInput";
+
 
 export const PlasmicTextAreaInput = Object.assign(
   // Top-level PlasmicTextAreaInput renders the root element
-  makeNodeComponent("ariaTextArea"),
+  PlasmicTextAreaInput__ariaTextArea,
   {
     // Helper components rendering sub-elements
 

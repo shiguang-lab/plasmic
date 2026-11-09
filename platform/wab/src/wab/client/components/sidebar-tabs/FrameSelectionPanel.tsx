@@ -1,14 +1,16 @@
-import { useFrameHeights } from "@/wab/client/studio-ctx/frame-heights";
+import { ModelFieldSelector } from "@/wab/client/stores/model-field-selector";
+import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
+import { useFrameWidth } from "@/wab/client/studio-ctx/frame-width";
+import type { ArenaFrame } from "@/wab/shared/model/classes";
 import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useFrameSelectionBounds } from "@/wab/client/components/canvas/selection-bounds";
 import { useMultiSelectionStyles } from "@/wab/client/components/sidebar-tabs/MultiSelectionPanel";
 import { useI18n } from "@/wab/client/i18n";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const FrameSelectionPanel = observer(function FrameSelectionPanel({
+export const FrameSelectionPanel = React.memo(function FrameSelectionPanel({
   studioCtx,
 }: {
   studioCtx: StudioCtx;
@@ -18,7 +20,6 @@ export const FrameSelectionPanel = observer(function FrameSelectionPanel({
   const { styles } = useMultiSelectionStyles();
   const bounds = useFrameSelectionBounds(studioCtx);
   const frames = studioCtx.focusedFrames();
-  const heights = useFrameHeights(studioCtx, frames);
   return (
     <Scrollbar
       scrollX={false}
@@ -33,16 +34,25 @@ export const FrameSelectionPanel = observer(function FrameSelectionPanel({
           </div>
         )}
         <ul className={styles.layers}>
-          {frames.map((frame, index) => {
-            const name = studioCtx.tplMgr().describeArenaFrame(frame);
-            return (
-              <li key={frame.uuid} title={name}>
-                {name} · {frame.width} × {heights[index]}
-              </li>
-            );
-          })}
+          {frames.map((frame) => <FrameSelectionRow key={frame.uuid} studio={studioCtx} frame={frame} />)}
         </ul>
       </section>
     </Scrollbar>
   );
+});
+
+const FrameSelectionRow = React.memo(function FrameSelectionRow({ studio, frame }: { studio: StudioCtx; frame: ArenaFrame }) {
+  const source = React.useMemo(() => {
+    const models = studio.modelSnapshots;
+    return new ModelFieldSelector(studio, (read) => {
+      const container = models.resolve(read(frame, "container"));
+      const component = models.resolve(read(container, "component"));
+      const name = read(component, "name");
+      if (!name) { read(frame, "name"); }
+      return studio.tplMgr().describeArenaFrame(frame);
+    });
+  }, [studio, frame]);
+  const name = React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
+  const width = useFrameWidth(studio, frame), height = useFrameHeight(studio, frame);
+  return <li title={name}>{name} · {width} × {height}</li>;
 });

@@ -100,6 +100,10 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
     setConnectedToGithub,
   } = setup;
 
+  const [collapseOptions, setCollapseOptions] = React.useState<boolean>(true);
+  const [pushAs, setPushAs] = React.useState<string>("");
+  const [branch, setBranch] = React.useState<string>("");
+
   React.useEffect(() => {
     if (projectRepository.loading || projectRepository.error) {
       return;
@@ -129,9 +133,7 @@ function SubsectionPushDeploy(props: SubsectionPushDeployProps) {
     }
   };
 
-  const [collapseOptions, setCollapseOptions] = React.useState<boolean>(true);
-  const [pushAs, setPushAs] = React.useState<string>("");
-  const [branch, setBranch] = React.useState<string>("");
+
 
   if (props.view === "status" && !status?.enabled) {
     return null;

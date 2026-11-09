@@ -1,3 +1,4 @@
+import { useCanvasHeaderInputs } from "@/wab/client/components/canvas/CanvasFrame/canvas-header-inputs";
 import { useFrameWidth } from "@/wab/client/studio-ctx/frame-width";
 import { useStudioArena, useViewEntryForFrame } from "@/wab/client/studio-ctx/arena-state";
 import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
@@ -32,29 +33,21 @@ import {
 } from "@/wab/shared/Arenas";
 import {
   StyleVariant,
-  getDisplayVariants,
   isStyleOrCodeComponentVariant,
 } from "@/wab/shared/Variants";
 import {
-  isFrameComponent,
-  isPageComponent,
-} from "@/wab/shared/core/components";
-import {
   ArenaFrame,
   Component,
-  TplTag,
   Variant,
+  isKnownTplTag,
 } from "@/wab/shared/model/classes";
 import { Popover, Tooltip } from "antd";
 import cn from "classnames";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { FiMaximize } from "react-icons/fi";
 
-export const CanvasHeader = observer(CanvasHeader_);
-
-function CanvasHeader_(props: {
+export const CanvasHeader = React.memo(function CanvasHeader(props: {
   studioCtx: StudioCtx;
   arena: AnyArena;
   frame: ArenaFrame;
@@ -64,10 +57,11 @@ function CanvasHeader_(props: {
   const focusedMode = useStudioArena(studioCtx, (state) => state.focusedMode);
   const viewportZoom = useCanvasZoom(studioCtx);
   const width = useFrameWidth(studioCtx, frame);
+  const header = useCanvasHeaderInputs(studioCtx, frame);
   const { t } = useI18n();
   const canFocus =
     isMixedArena(arena) &&
-    !!studioCtx.getDedicatedArena(frame.container.component);
+    !!header?.canFocus;
   const isFocused =
     studioCtx.focusedFrames().includes(frame) ||
     studioCtx.focusedContentFrame() === frame;
@@ -134,7 +128,7 @@ function CanvasHeader_(props: {
           ref={focusRef}
           type="button"
           className={styles.focusButton}
-          aria-label={`${t("Focus artboard")}: ${studioCtx.tplMgr().describeArenaFrame(frame)}`}
+          aria-label={`${t("Focus artboard")}: ${header?.frameName ?? ""}`}
           title={t("Focus artboard")}
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
@@ -151,10 +145,9 @@ function CanvasHeader_(props: {
       )}
     </>
   );
-}
+});
 
-const CanvasHeaderContent = observer(CanvasHeaderContent_);
-function CanvasHeaderContent_(props: {
+const CanvasHeaderContent = React.memo(function CanvasHeaderContent(props: {
   studioCtx: StudioCtx;
   frame: ArenaFrame;
   arena: AnyArena;
@@ -165,21 +158,18 @@ function CanvasHeaderContent_(props: {
   useStudioSelection(studioCtx, (state) => state.view);
   const vc = studioCtx.focusedViewCtx();
   useViewSelection(vc, (state) => state.tpls);
-  const component = frame.container.component;
+  const focusedTpl = vc?.focusedTpl();
+  const header = useCanvasHeaderInputs(studioCtx, frame, isKnownTplTag(focusedTpl) ? focusedTpl : undefined, isPageArena(arena));
+  if (!header) { return null; }
 
-  const arenaFrameNameLabel = studioCtx.tplMgr().describeArenaFrame(frame);
-  const displayVariants = getDisplayVariants({
-    frame,
-    site: studioCtx.site,
-    isPageArena: isPageArena(arena),
-    focusedTag: vc && (vc.focusedTpl() as TplTag),
-  })
+  const arenaFrameNameLabel = header.frameName;
+  const displayVariants = header.displayVariants
     .map((it) => it.displayName)
     .join(" + ");
 
   const componentIcon = (
     <Icon
-      icon={isPageComponent(component) ? PageIcon : ComponentIcon}
+      icon={header.pageComponent ? PageIcon : ComponentIcon}
       className="flex-no-shrink dimdimfg mr-xsm"
     />
   );
@@ -217,7 +207,7 @@ function CanvasHeaderContent_(props: {
     >
       {isMixedArena(arena) && (
         <>
-          {!isFrameComponent(component) && componentIcon}
+          {!header.frameComponent && componentIcon}
           <span className="mr-ch">{arenaFrameNameLabel}</span>
         </>
       )}
@@ -228,11 +218,9 @@ function CanvasHeaderContent_(props: {
       />
     </MaybeWrap>
   );
-}
+});
 
-export const CanvasVariantsDesc = observer(CanvasVariantsDesc_);
-
-export const VariantName = observer(function VariantName_({
+export const VariantName = React.memo(function VariantName_({
   variant,
   isSelected,
   component,
@@ -299,7 +287,7 @@ export const VariantName = observer(function VariantName_({
   );
 });
 
-function CanvasVariantsDesc_(props: {
+export const CanvasVariantsDesc = React.memo(function CanvasVariantsDesc(props: {
   studioCtx: StudioCtx;
   frame: ArenaFrame;
   isPageArena?: boolean;
@@ -307,29 +295,25 @@ function CanvasVariantsDesc_(props: {
   const { studioCtx, frame } = props;
   const vc = useViewEntryForFrame(studioCtx, frame)?.view;
   useViewSelection(vc, (state) => state.tpls);
+  const focusedTpl = vc?.focusedTpl();
+  const header = useCanvasHeaderInputs(studioCtx, frame, isKnownTplTag(focusedTpl) ? focusedTpl : undefined, props.isPageArena);
   useStudioSelection(studioCtx, (state) => state.view);
+  if (!header) { return null; }
 
   if (frame === studioCtx.focusedViewCtx()?.arenaFrame()) {
     // Variants description in the recording panel instead
     return null;
   }
 
-  const displayVariants = getDisplayVariants({
-    frame,
-    site: studioCtx.site,
-    isPageArena: props.isPageArena,
-    focusedTag: vc && (vc.focusedTpl() as TplTag),
-  });
-
   return (
     <div className="inline-flex flex-fill">
-      {displayVariants.map((displayVariant) => (
+      {header.displayVariants.map((displayVariant) => (
         <VariantName
           key={displayVariant.variant.uuid}
           {...displayVariant}
-          component={frame.container.component}
+          component={header.component}
         />
       ))}
     </div>
   );
-}
+});

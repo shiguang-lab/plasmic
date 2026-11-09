@@ -7,17 +7,13 @@ import {
   computeElementVisibility,
   viewportBounds,
 } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
-import { withStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { hasLayoutBox } from "@/wab/client/dom";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { ViewComponentBase } from "@/wab/client/studio-ctx/view-ctx";
-import { ensure, maybe } from "@/wab/shared/common";
+import { maybe } from "@/wab/shared/common";
 import { Box, Pt, Side, horizontalSides } from "@/wab/shared/geom";
-import { reaction } from "mobx";
-import { Observer } from "mobx-react";
 import { subscribeViewport } from "@/wab/client/studio-ctx/viewport-state";
 import * as React from "react";
-import { memo } from "react";
 
 export interface MeasureToolViewProps {
   x1: number;
@@ -194,7 +190,7 @@ function clipLine(
   return line;
 }
 
-function _MeasureToolView({
+export function MeasureToolView({
   viewProps,
   zoom,
 }: {
@@ -248,7 +244,6 @@ function _MeasureToolView({
   );
 }
 
-export const MeasureToolView = memo(_MeasureToolView);
 
 function sides(
   fn: (side: Side) => MeasureToolViewProps[],
@@ -257,76 +252,23 @@ function sides(
   return result.concat(fn("left"), fn("right"), fn("top"), fn("bottom"));
 }
 
-type MeasureToolProps = {
-  studioCtx: StudioCtx;
-};
+type MeasureSnapshot = { viewProps: MeasureToolViewProps[]; zoom: number } | null;
 
-class _MeasureTool extends ViewComponentBase<MeasureToolProps, {}> {
-  private stopWatchingScroll?: () => void;
-
-  componentDidMount() {
-    let doc: Document | undefined;
-    let stopDocument: (() => void) | undefined;
-    let stopHeight: (() => void) | undefined;
-    const update = () => this.forceUpdate();
-    const watchDocument = () => {
-      stopDocument?.(); stopHeight?.();
-      const view = this.viewCtxMaybe();
-      if (view) {
-        let closed = false;
-        let task: number | undefined;
-        const off = subscribeFrameHeights(this.props.studioCtx, [view.arenaFrame()], () => {
-          if (closed || task !== undefined) { return; }
-          task = window.requestAnimationFrame(() => { task = undefined; if (!closed) { update(); } });
-        });
-        stopHeight = () => { closed = true; off(); if (task !== undefined) { window.cancelAnimationFrame(task); task = undefined; } };
-      }
-      stopDocument = reaction(
-        () => view?.canvasCtx.$doc()[0],
-        (nextDoc) => {
-          doc?.removeEventListener("scroll", update, true);
-          doc = nextDoc;
-          doc?.addEventListener("scroll", update, true);
-        },
-        { fireImmediately: true },
-      );
-      update();
-    };
-    const stopOwner = subscribeStudioSelection(this.props.studioCtx, (state) => state.view, watchDocument);
-    const stopDoms = subscribeFocusedViewSelection(this.props.studioCtx, (state) => state.doms, update);
-    const stopMeasure = subscribeFocusedViewSelection(this.props.studioCtx, (state) => state.measure, update);
-    const stopZoom = subscribeViewport(this.props.studioCtx, (state) => state.scale, update);
-    const stopScope = subscribeContentEditorScope(this.props.studioCtx, update);
-    const stopResize = subscribeStudioOverlayState(this.props.studioCtx, (state) => state.resizeDragging, update);
-    watchDocument();
-    this.stopWatchingScroll = () => {
-      stopDocument?.(); stopHeight?.(); stopOwner(); stopDoms(); stopMeasure(); stopZoom(); stopResize(); stopScope();
-      doc?.removeEventListener("scroll", update, true);
-    };
-  }
-
-  componentWillUnmount() {
-    this.stopWatchingScroll?.();
-  }
-
-  viewCtx() {
-    return ensure(this.viewCtxMaybe());
-  }
-  viewCtxMaybe() {
-    return this.props.studioCtx.focusedViewCtx();
-  }
-
-  frameOffset() {
-    const vc = this.viewCtx();
-    const frameBox = vc.studioCtx.getArenaFrameScalerRect(vc.arenaFrame());
+function readMeasureSnapshot(studio: StudioCtx): MeasureSnapshot {
+          const sc = studio;
+          const vc = sc.focusedViewCtx();
+          if (!vc || vc.disposeSignal.aborted || vc.studioCtx !== sc || !sc.arenaState.isCurrentLifetime(vc.modelLifetime)) { return null; }
+  const activeView = vc;
+  function frameOffset() {
+    const frameBox = activeView.studioCtx.getArenaFrameScalerRect(activeView.arenaFrame());
     return { left: frameBox?.left ?? 0, top: frameBox?.top ?? 0 };
   }
 
   /**
    * Given a DOM element, compute its real and visible scaler boxes
    **/
-  makeBox($dom: JQuery): MeasuredBox {
-    const { left, top } = this.frameOffset();
+  function makeBox($dom: JQuery): MeasuredBox {
+    const { left, top } = frameOffset();
     const boxInFrame = recomputeBounds($dom);
     const { visible } = computeElementVisibility($dom, boxInFrame);
     return {
@@ -338,19 +280,13 @@ class _MeasureTool extends ViewComponentBase<MeasureToolProps, {}> {
   }
 
   /** The artboard's visible area in scaler coordinates. */
-  viewportBox(): Box | undefined {
-    const { left, top } = this.frameOffset();
-    const doc = this.viewCtx().canvasCtx.$doc()[0];
+  function viewportBox(): Box | undefined {
+    const { left, top } = frameOffset();
+    const doc = activeView.canvasCtx.$doc()[0];
     const bounds = doc && viewportBounds(doc);
     return bounds && Box.fromRectSides(bounds).moveBy(left, top);
   }
 
-  render() {
-    return (
-      <Observer>
-        {() => {
-          const sc = this.props.studioCtx;
-          const vc = sc.focusedViewCtx();
           // eslint-disable-next-line @typescript-eslint/no-shadow
           const $focusedDomElt = maybe(vc, (vc) => vc.focusedDomElt());
           // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -374,27 +310,89 @@ class _MeasureTool extends ViewComponentBase<MeasureToolProps, {}> {
                 .every((elt) => vc.contentEditor.containsElement(elt))))) ||
             (!($target instanceof Pt) && $focusedDomElt.is($target))
           ) {
-            return <></>;
+            return null;
           }
 
-          const src = this.makeBox($focusedDomElt);
+          const src = makeBox($focusedDomElt);
           const dst: MeasuredBox | undefined =
             $target instanceof Pt
               ? { box: $target.toZeroBox(), visible: $target.toZeroBox() }
               : maybe(
                   vc.getViewOps().getFinalFocusable($target).focusedDom,
-                  (dom) => this.makeBox(dom),
+                  (dom) => makeBox(dom),
                 );
 
           const viewProps = !dst
             ? []
-            : computeMeasureLines(src, dst, this.viewportBox());
+            : computeMeasureLines(src, dst, viewportBox());
 
-          return <MeasureToolView viewProps={viewProps} zoom={sc.zoom} />;
-        }}
-      </Observer>
-    );
-  }
+          return { viewProps, zoom: sc.zoom };
 }
 
-export const MeasureTool = withStudioCtx(_MeasureTool);
+function subscribeMeasureInputs(studio: StudioCtx, notify: () => void) {
+    let closed = false;
+    let stopGeometry: (() => void) | undefined;
+    let stopRuntime: (() => void) | undefined;
+    let stopHeight: (() => void) | undefined;
+    let stopAbort: (() => void) | undefined;
+    const update = () => { if (!closed) { notify(); } };
+    const watchGeometry = () => {
+      stopGeometry?.(); stopGeometry = undefined;
+      const view = studio.focusedViewCtx();
+      if (!view || view.disposeSignal.aborted || !studio.arenaState.isCurrentLifetime(view.modelLifetime)) { update(); return; }
+      // An initialized CanvasCtx owns one document until its view retires.
+      const doc = view.canvasCtx.$doc()[0];
+      if (doc) {
+        const resize = new ResizeObserver(update);
+        resize.observe(doc.documentElement);
+        view.focusedDomElt()?.toArray().forEach((element) => resize.observe(element));
+        const target = view.$measureToolDomElt();
+        if (target && !(target instanceof Pt)) { target.toArray().forEach((element) => resize.observe(element)); }
+        doc.addEventListener("scroll", update, true);
+        const style = view.styleChanged.add(update), frames = studio.framesChanged.add(update);
+        stopGeometry = () => { resize.disconnect(); doc.removeEventListener("scroll", update, true); style.detach(); frames.detach(); };
+      }
+      update();
+    };
+    const watchOwner = () => {
+      stopRuntime?.(); stopHeight?.(); stopAbort?.();
+      stopRuntime = stopHeight = stopAbort = undefined;
+      const view = studio.focusedViewCtx();
+      if (view && !view.disposeSignal.aborted && studio.arenaState.isCurrentLifetime(view.modelLifetime)) {
+        stopRuntime = view.csEvaluator.renderStatusStore.subscribe(watchGeometry);
+        stopHeight = subscribeFrameHeights(studio, [view.arenaFrame()], update);
+        view.disposeSignal.addEventListener("abort", watchOwner, { once: true });
+        stopAbort = () => view.disposeSignal.removeEventListener("abort", watchOwner);
+      }
+      watchGeometry();
+    };
+    const stopOwner = subscribeStudioSelection(studio, (state) => state.view, watchOwner);
+    const stopDoms = subscribeFocusedViewSelection(studio, (state) => state.doms, watchGeometry);
+    const stopMeasure = subscribeFocusedViewSelection(studio, (state) => state.measure, watchGeometry);
+    const stopViewport = subscribeViewport(studio, (state) => state, update);
+    const stopScope = subscribeContentEditorScope(studio, update);
+    const stopResize = subscribeStudioOverlayState(studio, (state) => state.resizeDragging, update);
+    watchOwner();
+    return () => {
+      closed = true; stopGeometry?.(); stopRuntime?.(); stopHeight?.(); stopAbort?.();
+      stopOwner(); stopDoms(); stopMeasure(); stopViewport(); stopResize(); stopScope();
+    };
+}
+
+/** Owns DOM observation and publishes one immutable geometry snapshot per event. */
+class MeasureInputs {
+  private value: MeasureSnapshot;
+  constructor(private studio: StudioCtx) { this.value = readMeasureSnapshot(studio); }
+  getSnapshot = () => this.value;
+  subscribe = (notify: () => void) => subscribeMeasureInputs(this.studio, () => {
+    this.value = readMeasureSnapshot(this.studio);
+    notify();
+  });
+}
+
+export function MeasureTool() {
+  const studio = useStudioCtx();
+  const inputs = React.useMemo(() => new MeasureInputs(studio), [studio]);
+  const snapshot = React.useSyncExternalStore(inputs.subscribe, inputs.getSnapshot, inputs.getSnapshot);
+  return snapshot && <MeasureToolView {...snapshot} />;
+}

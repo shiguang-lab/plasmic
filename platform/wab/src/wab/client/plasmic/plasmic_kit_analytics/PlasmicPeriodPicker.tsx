@@ -15,18 +15,18 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -91,11 +91,10 @@ function PlasmicPeriodPicker__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "month",
@@ -104,18 +103,20 @@ function PlasmicPeriodPicker__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.month,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -239,12 +240,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -254,32 +251,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPeriodPicker__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPeriodPicker";
-  } else {
-    func.displayName = `PlasmicPeriodPicker.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPeriodPicker__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPeriodPicker__root<T extends PlasmicPeriodPicker__rootProps>(props: T & StrictProps<T, PlasmicPeriodPicker__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPeriodPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPeriodPicker__root.displayName = "PlasmicPeriodPicker";
+
+type PlasmicPeriodPicker__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicPeriodPicker__text<T extends PlasmicPeriodPicker__textProps>(props: T & StrictProps<T, PlasmicPeriodPicker__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicPeriodPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicPeriodPicker__text.displayName = "PlasmicPeriodPicker.text";
+
+type PlasmicPeriodPicker__pickerProps = NodeComponentProps<"picker"> & {key?: React.Key};
+function PlasmicPeriodPicker__picker<T extends PlasmicPeriodPicker__pickerProps>(props: T & StrictProps<T, PlasmicPeriodPicker__pickerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("picker", props);
+  return <PlasmicPeriodPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"picker"} />;
+}
+PlasmicPeriodPicker__picker.displayName = "PlasmicPeriodPicker.picker";
+
+type PlasmicPeriodPicker__animationboxProps = NodeComponentProps<"animationbox"> & {key?: React.Key};
+function PlasmicPeriodPicker__animationbox<T extends PlasmicPeriodPicker__animationboxProps>(props: T & StrictProps<T, PlasmicPeriodPicker__animationboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("animationbox", props);
+  return <PlasmicPeriodPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"animationbox"} />;
+}
+PlasmicPeriodPicker__animationbox.displayName = "PlasmicPeriodPicker.animationbox";
+
+type PlasmicPeriodPicker__highlighterProps = NodeComponentProps<"highlighter"> & {key?: React.Key};
+function PlasmicPeriodPicker__highlighter<T extends PlasmicPeriodPicker__highlighterProps>(props: T & StrictProps<T, PlasmicPeriodPicker__highlighterProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("highlighter", props);
+  return <PlasmicPeriodPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"highlighter"} />;
+}
+PlasmicPeriodPicker__highlighter.displayName = "PlasmicPeriodPicker.highlighter";
+
+type PlasmicPeriodPicker__dayOptionProps = NodeComponentProps<"dayOption"> & {key?: React.Key};
+function PlasmicPeriodPicker__dayOption<T extends PlasmicPeriodPicker__dayOptionProps>(props: T & StrictProps<T, PlasmicPeriodPicker__dayOptionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dayOption", props);
+  return <PlasmicPeriodPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dayOption"} />;
+}
+PlasmicPeriodPicker__dayOption.displayName = "PlasmicPeriodPicker.dayOption";
+
+type PlasmicPeriodPicker__monthOptionProps = NodeComponentProps<"monthOption"> & {key?: React.Key};
+function PlasmicPeriodPicker__monthOption<T extends PlasmicPeriodPicker__monthOptionProps>(props: T & StrictProps<T, PlasmicPeriodPicker__monthOptionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("monthOption", props);
+  return <PlasmicPeriodPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"monthOption"} />;
+}
+PlasmicPeriodPicker__monthOption.displayName = "PlasmicPeriodPicker.monthOption";
+
 
 export const PlasmicPeriodPicker = Object.assign(
   // Top-level PlasmicPeriodPicker renders the root element
-  makeNodeComponent("root"),
+  PlasmicPeriodPicker__root,
   {
     // Helper components rendering sub-elements
-    text: makeNodeComponent("text"),
-    picker: makeNodeComponent("picker"),
-    animationbox: makeNodeComponent("animationbox"),
-    highlighter: makeNodeComponent("highlighter"),
-    dayOption: makeNodeComponent("dayOption"),
-    monthOption: makeNodeComponent("monthOption"),
+    text: PlasmicPeriodPicker__text,
+    picker: PlasmicPeriodPicker__picker,
+    animationbox: PlasmicPeriodPicker__animationbox,
+    highlighter: PlasmicPeriodPicker__highlighter,
+    dayOption: PlasmicPeriodPicker__dayOption,
+    monthOption: PlasmicPeriodPicker__monthOption,
 
     // Metadata about props expected for PlasmicPeriodPicker
     internalVariantProps: PlasmicPeriodPicker__VariantProps,

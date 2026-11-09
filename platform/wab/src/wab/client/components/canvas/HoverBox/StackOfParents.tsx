@@ -1,3 +1,12 @@
+import { parentStackStyleProvider, useParentStackItemInputs } from "@/wab/client/components/canvas/HoverBox/parent-stack-inputs";
+import type { NativeStyleProvider } from "@/wab/client/studio-ctx/style-inputs";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import type { ValComponent } from "@/wab/shared/core/val-nodes";
+import { useStore } from "zustand";
+import { createStore } from "zustand/vanilla";
 import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
@@ -12,27 +21,31 @@ import { SQ, Selectable } from "@/wab/shared/core/selection";
 import { SlotSelection } from "@/wab/shared/core/slots";
 import {
   isTplNamable,
+  isTplTag,
   isTplTagOrComponent,
   isTplVariantable,
   summarizeTpl,
 } from "@/wab/shared/core/tpls";
 import { TplNode } from "@/wab/shared/model/classes";
 import * as cssVariables from "@/wab/styles/css-variables";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { RefObject, useEffect, useMemo, useRef } from "react";
 
 const AUTO_HIDE_TIMEOUT = 2000;
+const noRoot = createStore<ValComponent | null>(() => null);
 
 function useParentsOfFocusedSelectable() {
   const studioCtx = useStudioCtx();
   const contentScope = useContentEditorScope(studioCtx);
   useStudioSelection(studioCtx, (state) => state.view);
   const viewCtx = studioCtx.focusedViewCtx();
-  useViewSelection(viewCtx, (state) => state.targets);
-  const focusedSelectable = viewCtx?.focusedSelectable();
+  const selection = useViewSelection(viewCtx, useShallow((state) => [state.targets, state.tpls, state.context]));
+  const scope = useMemo(() => viewCtx ? { models: studioCtx.modelSnapshots, signal: viewCtx.disposeSignal } : undefined, [viewCtx, studioCtx.modelSnapshots]);
+  const active = !!scope && !scope.signal.aborted && scope.models === studioCtx.modelSnapshots;
+  const focusedSelectable = active ? viewCtx?.focusedSelectable() : undefined;
   const renderCount = useCanvasRenderCount(viewCtx);
-  const valUserRoot = viewCtx?.valState().maybeValUserRoot();
+  useStore(viewCtx ? viewCtx.frameState.valRootStore : noRoot);
+  const valUserRoot = active ? viewCtx?.valState().maybeValUserRoot() : undefined;
   const isValRendered = !!valUserRoot;
 
   const parentsChain = useMemo(
@@ -48,58 +61,23 @@ function useParentsOfFocusedSelectable() {
             .map((selectable) => {
               const tpl = selectable.tpl;
 
-              const isFrame =
-                selectable === valUserRoot &&
-                viewCtx?.arenaFrame().viewMode === FrameViewMode.Stretch;
-
-              const name =
-                selectable instanceof SlotSelection
-                  ? getSlotSelectionDisplayName(selectable, viewCtx)
-                  : isFrame
-                    ? studioCtx
-                        .tplMgr()
-                        .describeArenaFrame(viewCtx?.arenaFrame()!)
-                    : isTplNamable(tpl) && tpl.name
-                      ? tpl.name
-                      : summarizeTpl(
-                          tpl!,
-                          isTplVariantable(tpl)
-                            ? viewCtx?.effectiveCurrentVariantSetting(tpl).rsh()
-                            : undefined,
-                        );
-
-              const icon =
-                selectable instanceof SlotSelection
-                  ? SLOT_ICON
-                  : isFrame
-                    ? FRAME_ICON
-                    : createNodeIcon(
-                        tpl as TplNode,
-                        isTplTagOrComponent(tpl)
-                          ? viewCtx?.effectiveCurrentVariantSetting(tpl)
-                          : undefined,
-                      );
-
               return {
                 key:
                   (selectable instanceof SlotSelection &&
                     selectable.val?.fullKey) ||
                   tpl?.uuid,
                 selectable,
-                name,
-                icon,
+                isUserRoot: selectable === valUserRoot,
               };
             })
             .reverse(),
-    [viewCtx, focusedSelectable, isValRendered, contentScope, renderCount],
+    [viewCtx, focusedSelectable, isValRendered, valUserRoot, contentScope, renderCount, selection],
   );
 
   return parentsChain;
 }
 
-export const StackOfParents = observer(StackOfParents_);
-
-function StackOfParents_({
+export const StackOfParents = React.memo(function StackOfParents({
   hoverTagRef,
 }: {
   hoverTagRef: RefObject<HTMLDivElement | null>;
@@ -114,7 +92,7 @@ function StackOfParents_({
 
   useEffect(
     () => () => {
-      studioCtx.showStackOfParents = false;
+      studioCtx.setShowStackOfParents(false);
     },
     [focusedSelectable, studioCtx],
   );
@@ -144,7 +122,7 @@ function StackOfParents_({
   const scheduleAutoHide = () => {
     cancelAutoHide();
     autoHideTimeoutRef.current = +setTimeout(() => {
-      studioCtx.showStackOfParents = false;
+      studioCtx.setShowStackOfParents(false);
     }, AUTO_HIDE_TIMEOUT);
   };
 
@@ -167,7 +145,7 @@ function StackOfParents_({
       tag.removeEventListener("mouseenter", cancelAutoHide);
       tag.removeEventListener("mouseleave", scheduleAutoHide);
     };
-  }, [hoverTagRef.current, studioCtx]);
+  }, [hoverTagRef, studioCtx]);
 
   return !parentsChain.length ? null : !stackOfParents ? (
     <div className={styles.visualHint} data-canvas-node-tree />
@@ -194,10 +172,43 @@ function StackOfParents_({
             }}
           />
           <div>
-            {it.icon} {it.name}
+            {viewCtx && <ParentStackItemContent viewCtx={viewCtx} selectable={it.selectable} isUserRoot={it.isUserRoot} />}
           </div>
         </div>
       ))}
     </div>
   );
+});
+
+
+function ParentStackItemContent({ viewCtx, selectable, isUserRoot }: { viewCtx: ViewCtx; selectable: Selectable; isUserRoot: boolean }) {
+  const ready = useParentStackItemInputs(viewCtx, selectable, isUserRoot);
+  const variants = useViewVariants(viewCtx, useShallow((state) => [state.frames, state.global]));
+  const context = useViewSelection(viewCtx, (state) => state.context);
+  const renderCount = useCanvasRenderCount(viewCtx);
+  const tpl = selectable instanceof SlotSelection ? selectable.getTpl() : selectable.tpl;
+  const needsStyle = ready && tpl && isTplTag(tpl) && !(selectable instanceof SlotSelection) && !(isUserRoot && viewCtx.arenaFrame().viewMode === FrameViewMode.Stretch);
+  const provider = useMemo(() => needsStyle && tpl ? parentStackStyleProvider(viewCtx, tpl) : undefined, [viewCtx, tpl, variants, context, renderCount, needsStyle]);
+  if (!ready || !tpl) { return null; }
+  return provider
+    ? <ParentStackItemStyleContent viewCtx={viewCtx} selectable={selectable} tpl={tpl} isUserRoot={isUserRoot} provider={provider} />
+    : <ParentStackItemDescription viewCtx={viewCtx} selectable={selectable} tpl={tpl} isUserRoot={isUserRoot} />;
+}
+
+function ParentStackItemStyleContent({ viewCtx, selectable, tpl, isUserRoot, provider }: { viewCtx: ViewCtx; selectable: Selectable; tpl: TplNode; isUserRoot: boolean; provider: NativeStyleProvider }) {
+  useStyleCells(provider, ["display", "flex-direction"]);
+  return <ParentStackItemDescription viewCtx={viewCtx} selectable={selectable} tpl={tpl} isUserRoot={isUserRoot} />;
+}
+
+function ParentStackItemDescription({ viewCtx, selectable, tpl, isUserRoot }: { viewCtx: ViewCtx; selectable: Selectable; tpl: TplNode; isUserRoot: boolean }) {
+  const studioCtx = viewCtx.studioCtx;
+  const isFrame = isUserRoot && viewCtx.arenaFrame().viewMode === FrameViewMode.Stretch;
+  const name = selectable instanceof SlotSelection
+    ? getSlotSelectionDisplayName(selectable, viewCtx)
+    : isFrame ? studioCtx.tplMgr().describeArenaFrame(viewCtx.arenaFrame())
+      : isTplNamable(tpl) && tpl.name ? tpl.name
+        : summarizeTpl(tpl, isTplVariantable(tpl) ? viewCtx.effectiveCurrentVariantSetting(tpl).rsh() : undefined);
+  const icon = selectable instanceof SlotSelection ? SLOT_ICON : isFrame ? FRAME_ICON
+    : createNodeIcon(tpl, isTplTagOrComponent(tpl) ? viewCtx.effectiveCurrentVariantSetting(tpl) : undefined);
+  return <>{icon} {name}</>;
 }

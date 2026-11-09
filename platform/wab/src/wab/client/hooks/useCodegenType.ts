@@ -9,16 +9,17 @@ import { useEffect, useState } from "react";
  * Docs portal's localStorage and updates the value accordingly.
  */
 export function useCodegenType(): "loader" | "codegen" {
-  const appCtx = useAppCtx();
+  const { api } = useAppCtx();
   const [codegenType, setCodegenType] = useState<"loader" | "codegen">(
     "codegen",
   );
 
   useEffect(() => {
+    let active = true;
     spawn(
-      Promise.resolve(appCtx.api.getStorageItem(codegenTypeKey)).then(
+      Promise.resolve(api.getStorageItem(codegenTypeKey)).then(
         (storedCodegenType: any) => {
-          if (storedCodegenType) {
+          if (active && storedCodegenType) {
             setCodegenType(storedCodegenType as any);
           }
         },
@@ -26,18 +27,19 @@ export function useCodegenType(): "loader" | "codegen" {
     );
     const uniqueId = mkUuid();
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    appCtx.api.addStorageListener(
+    api.addStorageListener(
       uniqueId,
       proxy(({ key, newValue }) => {
-        if (key === codegenTypeKey && newValue) {
+        if (active && key === codegenTypeKey && newValue) {
           setCodegenType(newValue as any);
         }
       }),
     );
     return () => {
+      active = false;
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      appCtx.api.removeEventListener("storage", uniqueId);
+      api.removeEventListener("storage", uniqueId);
     };
-  }, []);
+  }, [api]);
   return codegenType;
 }

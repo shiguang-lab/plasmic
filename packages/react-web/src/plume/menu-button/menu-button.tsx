@@ -166,19 +166,18 @@ export function useMenuButton<
       },
     },
     [config.trigger]: {
-      props: mergeProps(
+      props: { ...mergeProps(
         triggerProps,
         triggerFocusProps,
         getStyleProps(props),
         pick(props, "title"),
         {
-          ref: triggerRef,
           autoFocus,
           disabled: !!isDisabled,
           // Make sure this button is not interpreted as submit
           type: "button",
         }
-      ),
+      ), ref: triggerRef },
     },
   };
 

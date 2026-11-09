@@ -128,3 +128,18 @@ it("does not consume asset publication on an early read and releases child resou
     source.getSnapshot(); expect(fields).not.toHaveBeenCalled(); expect(late).not.toHaveBeenCalled(); off();
   } finally { inner?.(); stopAssets(); stop(); stopField(); await f.studio.awaitEval(); f.studio.dispose(); }
 });
+
+
+it("resolves actual non-grid CSS variables through the same demanded dictionary and retains original grid reads", async () => {
+  const f = await setup();
+  const token = mkStyleToken({ name: "Gap", type: "Spacing", value: "12px" });
+  await f.studio.changeUnsafe(() => { f.site.styleTokens.push(token); });
+  const source = new GridCssInputs(f.provider, { value: mkTokenRef(token) }, f.studio.arenaState.lifetime());
+  const changed = vi.fn(), stop = source.subscribe(changed);
+  try {
+    expect(source.getSnapshot().value).toBe(f.legacy().tryResolveTokenOrMixinRef(mkTokenRef(token)));
+    await f.studio.changeUnsafe(() => { token.value = "24px"; });
+    expect(changed).toHaveBeenCalled(); expect(source.getSnapshot().value).toBe("24px");
+    expect(f.input("12px", "flex").getSnapshot().value).toBe(f.legacy().tryResolveTokenOrMixinRef("12px"));
+  } finally { stop(); f.studio.dispose(); }
+});

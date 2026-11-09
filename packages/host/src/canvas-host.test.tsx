@@ -9,8 +9,9 @@ it("keeps canvas selection, reveal callbacks and session bindings behind one int
   const state = { value: false, reveal: vi.fn(), set: vi.fn() };
   const canvas = { selected: true, editing: true, slot: "body", fullContent: true,
     instance: "row-a", states: { open: state }, getState: vi.fn(() => state), onReveal: vi.fn() };
+  const initialProps: PlasmicCanvasProps = { __canvas: canvas };
   const { result, rerender, unmount } = renderHook((props: PlasmicCanvasProps) => usePlasmicCanvasComponentInfo(props), {
-    initialProps: { __canvas: canvas },
+    initialProps,
   });
   expect(result.current).toBe(canvas);
   result.current?.onReveal?.();

@@ -1,3 +1,5 @@
+import type { ProjectDependency } from "@/wab/shared/model/classes";
+import { useDirectProjectLibraries, useLibraryAppInputs, type ProjectLibraryEntry } from "@/wab/client/components/sidebar/library-inputs";
 import { showError } from "@/wab/client/ErrorNotifications";
 import { ProjectDependencyData } from "@/wab/client/ProjectDependencyManager";
 import { openNewTab } from "@/wab/client/cli-routes";
@@ -26,11 +28,8 @@ import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { areEquivalentScreenVariants } from "@/wab/shared/Variants";
 import { spawn } from "@/wab/shared/common";
 import { getLeafProjectIdForHostLessPackageMeta } from "@/wab/shared/core/project-deps";
-import { isHostLessPackage } from "@/wab/shared/core/sites";
 import { unbundleProjectDependency } from "@/wab/shared/core/tagged-unbundle";
-import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { DEVFLAGS } from "@/wab/shared/devflags";
-import { ProjectDependency } from "@/wab/shared/model/classes";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { extractProjectIdFromUrlOrId, getPublicUrl } from "@/wab/shared/urls";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
@@ -44,30 +43,24 @@ import {
   Tooltip,
   notification,
 } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-function isDevUser(studioCtx: StudioCtx) {
-  return (
-    getPublicUrl().startsWith("http://localhost:3003") ||
-    isAdminTeamEmail(
-      studioCtx.appCtx.selfInfo?.email,
-      studioCtx.appCtx.appConfig,
-    )
-  );
+function isDevUser(appInputs: ReturnType<typeof useLibraryAppInputs>) {
+  return getPublicUrl().startsWith("http://localhost:3003") || appInputs.isAdmin;
 }
 
 function dependencyDisplayName(
   studioCtx: StudioCtx,
-  dependency: ProjectDependency,
+  dependency: ProjectLibraryEntry,
+  appInputs: ReturnType<typeof useLibraryAppInputs>,
 ) {
-  if (!isHostLessPackage(dependency.site)) {
+  if (!dependency.hostless) {
     return dependency.name;
   }
   const catalog =
-    studioCtx.appCtx.appConfig.hostLessComponents ??
+    appInputs.catalog ??
     DEVFLAGS.hostLessComponents ??
     [];
   return (
@@ -80,22 +73,25 @@ function dependencyDisplayName(
   );
 }
 
-const DependencyItem = observer(function DependencyItem(props: {
+const DependencyItem = React.memo(function DependencyItem(props: {
   studioCtx: StudioCtx;
   matcher: Matcher;
   data: ProjectDependencyData;
   readOnly?: boolean;
+  displayName: string;
+  devUser: boolean;
+  name: string;
+  version: string;
+  hostless: boolean;
 }) {
-  const { studioCtx, matcher, data, readOnly } = props;
+  const { studioCtx, matcher, data, readOnly, displayName, devUser, name, version, hostless: isHostLessPkg } = props;
   const { t } = useI18n();
-  const isHostLessPkg = isHostLessPackage(data.model.site);
-  const displayName = dependencyDisplayName(studioCtx, data.model);
 
   const renderMenu = () => {
     const builder = new MenuBuilder();
     builder.genSection(undefined, (push) => {
       const targetProjectId = data.latestPkgVersionMeta?.pkg?.projectId;
-      if (!!targetProjectId && (!isHostLessPkg || isDevUser(studioCtx))) {
+      if (!!targetProjectId && (!isHostLessPkg || devUser)) {
         push(
           <Menu.Item
             key="jump-newtab"
@@ -166,24 +162,24 @@ const DependencyItem = observer(function DependencyItem(props: {
         {displayName.slice(0, 1).toUpperCase()}
       </Avatar>
       <div className="project-library-info">
-        <Tooltip title={data.model.name}>
+        <Tooltip title={name}>
           <div className="project-library-name">
             {matcher.boldSnippets(displayName)}
           </div>
         </Tooltip>
         <div className="project-library-meta">
           <span>{t(isHostLessPkg ? "Code library" : "Shared project")}</span>
-          {data.model.version && <span>{`v${data.model.version}`}</span>}
+          {version && <span>{`v${version}`}</span>}
         </div>
         {!readOnly &&
           data.latestPkgVersionMeta &&
-          data.latestPkgVersionMeta.version !== data.model.version && (
+          data.latestPkgVersionMeta.version !== version && (
             <div className="project-library-update">
               <Button
                 type="link"
                 size="small"
                 onClick={async () => {
-                  try {
+                  return await (async () => {
                     const { pkg: latest, depPkgs } =
                       await studioCtx.appCtx.api.getPkgVersion(
                         data.model.pkgId,
@@ -206,11 +202,11 @@ const DependencyItem = observer(function DependencyItem(props: {
                         [projectDependency],
                       );
                     }
-                  } catch (e) {
+                  })().catch(async (e) => {
                     showError(e, {
                       title: t("Failed to update library"),
                     });
-                  }
+                  });
                 }}
               >
                 {t("View update")}
@@ -225,7 +221,7 @@ const DependencyItem = observer(function DependencyItem(props: {
           )}
       </div>
       {(!readOnly ||
-        ((!isHostLessPkg || isDevUser(studioCtx)) &&
+        ((!isHostLessPkg || devUser) &&
           data.latestPkgVersionMeta?.pkg?.projectId)) && (
         <IFrameAwareDropdownMenu menu={renderMenu}>
           <button
@@ -248,25 +244,25 @@ export async function importProjectWithPrompt(sc: StudioCtx) {
     return;
   }
   const projectId = extractProjectIdFromUrlOrId(rawProjectUrlOrId);
-  try {
+  return await (async () => {
     const dependency =
       await sc.projectDependencyManager.addByProjectId(projectId);
     if (dependency.site.activeScreenVariantGroup?.variants.length) {
       // Offer to switch screen variant if exists
       await trySwitchScreenVariant(sc, dependency);
     }
-  } catch (e) {
+  })().catch(async (e) => {
     showError(e, {
       title: translate(getUiLocale(), "Error importing project."),
     });
-  }
+  });
 }
 
 async function updateProjectsWithPrompt(
   studioCtx: StudioCtx,
   dependenciesWithUpdates: ProjectDependencyData[],
 ) {
-  try {
+  return await (async () => {
     const targetDeps = await Promise.all(
       dependenciesWithUpdates.map(async (dep) => {
         const { pkg: latest, depPkgs } = await studioCtx.appCtx.api.getPkgVersion(
@@ -284,11 +280,11 @@ async function updateProjectsWithPrompt(
       return;
     }
     await studioCtx.projectDependencyManager.upgradeProjectDeps(targetDeps);
-  } catch (e) {
+  })().catch(async (e) => {
     showError(e, {
       title: translate(getUiLocale(), "Failed to update libraries"),
     });
-  }
+  });
 }
 
 async function trySwitchScreenVariant(
@@ -363,8 +359,10 @@ async function trySwitchScreenVariant(
   }
 }
 
-function _ProjectDependenciesPanel() {
+export const ProjectDependenciesPanel = React.memo(function ProjectDependenciesPanel() {
   const sc = useStudioCtx();
+  const dependencies = useDirectProjectLibraries(sc);
+  const appInputs = useLibraryAppInputs(sc);
   const { t } = useI18n();
   const { styles } = useLibraryPanelStyles();
   const [query, setQuery] = React.useState("");
@@ -387,30 +385,33 @@ function _ProjectDependenciesPanel() {
   // Function called when a user clicks the "+" icon
   // Create the list of dependencies
   const renderItems = () => {
-    const items = sc.projectDependencyManager.getDependencies();
+    const items = dependencies;
     const filteredItems = items.filter(
       (d) =>
-        matcher.matches(d.model.name) ||
-        matcher.matches(dependencyDisplayName(sc, d.model)),
+        matcher.matches(d.name) ||
+        matcher.matches(dependencyDisplayName(sc, d, appInputs)),
     );
 
     return filteredItems.map((entry) => (
       <DependencyItem
-        key={entry.model.pkgId}
+        key={entry.pkgId}
         studioCtx={sc}
         matcher={matcher}
-        data={entry}
+        data={entry.data}
+        name={entry.name}
+        version={entry.version}
+        hostless={entry.hostless}
+        displayName={dependencyDisplayName(sc, entry, appInputs)}
+        devUser={isDevUser(appInputs)}
         readOnly={readOnly}
       />
     ));
   };
 
-  const dependenciesWithUpdates = sc.projectDependencyManager
-    .getDependencies()
-    .filter(
+  const dependenciesWithUpdates = dependencies.filter(
       (dep) =>
-        dep.latestPkgVersionMeta &&
-        dep.latestPkgVersionMeta.version !== dep.model.version,
+        dep.data.latestPkgVersionMeta &&
+        dep.data.latestPkgVersionMeta.version !== dep.version,
     );
 
   const rendered = renderItems();
@@ -441,13 +442,13 @@ function _ProjectDependenciesPanel() {
             disabled={refreshing}
             onClick={async () => {
               setRefreshing(true);
-              try {
+              return await (async () => {
                 await sc.projectDependencyManager.refreshDeps();
-              } catch (error) {
+              })().catch(async (error) => {
                 showError(error, { title: t("Failed to check for updates") });
-              } finally {
+              }).finally(() => {
                 setRefreshing(false);
-              }
+              });
             }}
             data-test-id="check-for-updates-btn"
           >
@@ -459,7 +460,7 @@ function _ProjectDependenciesPanel() {
         <span>{t("Added to current project")}</span>
         <span>
           {t("{count} libraries", {
-            count: sc.projectDependencyManager.getDependencies().length,
+            count: dependencies.length,
           })}
         </span>
       </div>
@@ -467,7 +468,7 @@ function _ProjectDependenciesPanel() {
         <Button
           className="project-library-update-all"
           onClick={() =>
-            spawn(updateProjectsWithPrompt(sc, dependenciesWithUpdates))
+            spawn(updateProjectsWithPrompt(sc, dependenciesWithUpdates.map((entry) => entry.data)))
           }
         >
           {t("Update all")}
@@ -487,6 +488,4 @@ function _ProjectDependenciesPanel() {
       </Scrollbar>
     </div>
   );
-}
-
-export const ProjectDependenciesPanel = observer(_ProjectDependenciesPanel);
+});

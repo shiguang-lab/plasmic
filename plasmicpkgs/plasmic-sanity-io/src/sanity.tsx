@@ -228,20 +228,8 @@ export const sanityFetcherMeta: CodeComponentMeta<SanityFetcherProps> = {
   },
 };
 
-export function SanityFetcher({
-  groq,
-  docType,
-  filterField,
-  filterValue,
-  filterParameter,
-  limit,
-  noAutoRepeat,
-  children,
-  className,
-  noLayout,
-
-  setControlContextData,
-}: SanityFetcherProps) {
+export function SanityFetcher(props: SanityFetcherProps) {
+  const { className } = props;
   const projectIdRegex = new RegExp(/^[-a-z0-9]+$/i);
   const datasetRegex = new RegExp(
     /^(~[a-z0-9]{1}[-\w]{0,63}|[a-z0-9]{1}[-\w]{0,63})$/
@@ -288,6 +276,25 @@ export function SanityFetcher({
       }
     }
   }
+
+  return <SanityFetcherContent {...props} />;
+}
+
+function SanityFetcherContent({
+  groq,
+  docType,
+  filterField,
+  filterValue,
+  filterParameter,
+  limit,
+  noAutoRepeat,
+  children,
+  className,
+  noLayout,
+
+  setControlContextData,
+}: SanityFetcherProps) {
+  const creds = ensure(useContext(CredentialsContext));
 
   const filterUniqueDocTypes = (records: { _type: string }[]): string[] =>
     records

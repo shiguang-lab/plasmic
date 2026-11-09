@@ -3,7 +3,9 @@ import { execFileSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 import { desktopSources, hashFiles, sourceIdentity } from "../../scripts/build-identity.mjs";
+import { assertDesktopBrowserTarget } from "../../scripts/studio-build-target.mjs";
 import { macSigningCertificate, verifyMacSignature } from "./local-signing.mjs";
 import runtimeSecurity from "../src/runtime-security.cjs";
 import { buildMcp } from "./build-mcp.mjs";
@@ -21,6 +23,7 @@ const config = JSON.parse(
 const manifest = JSON.parse(
   await readFile(path.join(root, "renderer/desktop-assets.json"), "utf8"),
 );
+assertDesktopBrowserTarget(manifest.build?.browserTarget, metadata.devDependencies.electron);
 if (
   manifest.build?.kind === "local" &&
   manifest.build.sourceHash !==
@@ -39,16 +42,23 @@ if (manifest.build?.rendererHash !== await hashFiles(path.join(root, "renderer")
     manifest.build?.desktopHash !== await hashFiles(root, desktopSources)) {
   throw new Error("Bundled assets or desktop sources changed; run assets before packaging.");
 }
-const [platform = process.platform, arch = process.arch] =
-  process.argv.slice(2);
+const { values, positionals } = parseArgs({
+  allowPositionals: true,
+  options: {
+    "local-adhoc": { type: "boolean", default: false },
+    output: { type: "string" },
+    notes: { type: "string" },
+  },
+});
+const [platform = process.platform, arch = process.arch] = positionals;
 const platforms = { darwin: Platform.MAC, win32: Platform.WINDOWS, linux: Platform.LINUX };
-if (!platforms[platform] || !["arm64", "x64"].includes(arch)) throw new Error("Unsupported platform or architecture");
-const signingCertificate = platform === "darwin" ? macSigningCertificate() : undefined;
-if (platform === "darwin" && process.env.GITHUB_ACTIONS !== "true" && !signingCertificate) {
+if (positionals.length > 2 || !platforms[platform] || !["arm64", "x64"].includes(arch)) throw new Error("Unsupported platform or architecture");
+if (values["local-adhoc"] && platform !== "darwin") throw new Error("Local ad-hoc packaging requires macOS");
+const signingCertificate = platform === "darwin" && !values["local-adhoc"] ? macSigningCertificate() : undefined;
+if (platform === "darwin" && !values["local-adhoc"] && process.env.GITHUB_ACTIONS !== "true" && !signingCertificate) {
   throw new Error("Create or import a valid Apple Development identity in the build Mac keychain before packaging");
 }
-const notesIndex = process.argv.indexOf("--notes");
-const releaseNotes = notesIndex < 0 ? undefined : await readFile(process.argv[notesIndex + 1], "utf8");
+const releaseNotes = values.notes ? await readFile(values.notes, "utf8") : undefined;
 const mcpDirectory = await buildMcp(platform, arch);
 const componentReuseDirectory = await prepareComponentReuse(platform, arch);
 const outputs = await build({
@@ -59,7 +69,7 @@ const outputs = await build({
     appId: "cn.publib.plasmic.desktop",
     productName: "Plasmic",
     electronVersion: metadata.devDependencies.electron,
-    directories: { output: `dist/${metadata.version}/${platform}-${arch}`, buildResources: "assets" },
+    directories: { output: values.output ? path.resolve(values.output) : `dist/${metadata.version}/${platform}-${arch}`, buildResources: "assets" },
     files: ["src/**/*", "renderer/**/*", "assets/**/*", "desktop.config.json", "package.json"],
     asar: true,
     extraResources: [
@@ -69,7 +79,7 @@ const outputs = await build({
     ],
     npmRebuild: false,
     electronFuses: runtimeSecurity.productionFuses,
-    forceCodeSigning: platform === "darwin",
+    forceCodeSigning: platform === "darwin" && !values["local-adhoc"],
     afterPack: async (context) => {
       if (platform !== "darwin" || process.platform !== "darwin") return;
       const bundle = path.join(context.appOutDir, "Plasmic.app/Contents");

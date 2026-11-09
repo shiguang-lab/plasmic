@@ -50,6 +50,15 @@ export function useSelectOptionGroup<
     | Node<React.ReactElement<BaseSelectOptionGroupProps>>
     | undefined;
 
+  const { headingProps, groupProps } = useListBoxSection({
+    heading: props.title,
+    "aria-label": props["aria-label"],
+  });
+
+  const { separatorProps } = useSeparator({
+    elementType: "li",
+  });
+
   if (!state || !node) {
     if (PLUME_STRICT_MODE) {
       throw new Error(
@@ -59,14 +68,6 @@ export function useSelectOptionGroup<
     return getDefaultPlasmicProps(plasmicClass, props);
   }
 
-  const { headingProps, groupProps } = useListBoxSection({
-    heading: props.title,
-    "aria-label": props["aria-label"],
-  });
-
-  const { separatorProps } = useSeparator({
-    elementType: "li",
-  });
 
   const variants = {
     ...pick(props, ...plasmicClass.internalVariantProps),

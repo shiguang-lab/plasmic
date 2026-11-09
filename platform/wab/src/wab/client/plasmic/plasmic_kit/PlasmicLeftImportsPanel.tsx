@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
@@ -24,14 +24,14 @@ import {
   createPlasmicElementProxy,
   deriveRenderOpts,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import LeftPaneHeader from "../../components/studio/LeftPaneHeader"; // plasmic-import: XLa52PvduIy/component
 import LeftSearchPanel from "../../components/studio/LeftSearchPanel"; // plasmic-import: TqAPn0srTq/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "../plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -109,11 +109,10 @@ function PlasmicLeftImportsPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "state",
@@ -129,18 +128,20 @@ function PlasmicLeftImportsPanel__RenderFunc(props: {
           $props.withUpdateAll,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -385,12 +386,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -400,33 +397,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftImportsPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftImportsPanel";
-  } else {
-    func.displayName = `PlasmicLeftImportsPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftImportsPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftImportsPanel__root<T extends PlasmicLeftImportsPanel__rootProps>(props: T & StrictProps<T, PlasmicLeftImportsPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftImportsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftImportsPanel__root.displayName = "PlasmicLeftImportsPanel";
+
+type PlasmicLeftImportsPanel__leftSearchPanelProps = NodeComponentProps<"leftSearchPanel"> & {key?: React.Key};
+function PlasmicLeftImportsPanel__leftSearchPanel<T extends PlasmicLeftImportsPanel__leftSearchPanelProps>(props: T & StrictProps<T, PlasmicLeftImportsPanel__leftSearchPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftSearchPanel", props);
+  return <PlasmicLeftImportsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftSearchPanel"} />;
+}
+PlasmicLeftImportsPanel__leftSearchPanel.displayName = "PlasmicLeftImportsPanel.leftSearchPanel";
+
+type PlasmicLeftImportsPanel__importsHeaderProps = NodeComponentProps<"importsHeader"> & {key?: React.Key};
+function PlasmicLeftImportsPanel__importsHeader<T extends PlasmicLeftImportsPanel__importsHeaderProps>(props: T & StrictProps<T, PlasmicLeftImportsPanel__importsHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("importsHeader", props);
+  return <PlasmicLeftImportsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"importsHeader"} />;
+}
+PlasmicLeftImportsPanel__importsHeader.displayName = "PlasmicLeftImportsPanel.importsHeader";
+
+type PlasmicLeftImportsPanel__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicLeftImportsPanel__freeBox<T extends PlasmicLeftImportsPanel__freeBoxProps>(props: T & StrictProps<T, PlasmicLeftImportsPanel__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicLeftImportsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicLeftImportsPanel__freeBox.displayName = "PlasmicLeftImportsPanel.freeBox";
+
+type PlasmicLeftImportsPanel__importButtonProps = NodeComponentProps<"importButton"> & {key?: React.Key};
+function PlasmicLeftImportsPanel__importButton<T extends PlasmicLeftImportsPanel__importButtonProps>(props: T & StrictProps<T, PlasmicLeftImportsPanel__importButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("importButton", props);
+  return <PlasmicLeftImportsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"importButton"} />;
+}
+PlasmicLeftImportsPanel__importButton.displayName = "PlasmicLeftImportsPanel.importButton";
+
+type PlasmicLeftImportsPanel__refreshButtonProps = NodeComponentProps<"refreshButton"> & {key?: React.Key};
+function PlasmicLeftImportsPanel__refreshButton<T extends PlasmicLeftImportsPanel__refreshButtonProps>(props: T & StrictProps<T, PlasmicLeftImportsPanel__refreshButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("refreshButton", props);
+  return <PlasmicLeftImportsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"refreshButton"} />;
+}
+PlasmicLeftImportsPanel__refreshButton.displayName = "PlasmicLeftImportsPanel.refreshButton";
+
+type PlasmicLeftImportsPanel__updateButtonProps = NodeComponentProps<"updateButton"> & {key?: React.Key};
+function PlasmicLeftImportsPanel__updateButton<T extends PlasmicLeftImportsPanel__updateButtonProps>(props: T & StrictProps<T, PlasmicLeftImportsPanel__updateButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("updateButton", props);
+  return <PlasmicLeftImportsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"updateButton"} />;
+}
+PlasmicLeftImportsPanel__updateButton.displayName = "PlasmicLeftImportsPanel.updateButton";
+
+type PlasmicLeftImportsPanel__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicLeftImportsPanel__content<T extends PlasmicLeftImportsPanel__contentProps>(props: T & StrictProps<T, PlasmicLeftImportsPanel__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicLeftImportsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicLeftImportsPanel__content.displayName = "PlasmicLeftImportsPanel.content";
+
 
 export const PlasmicLeftImportsPanel = Object.assign(
   // Top-level PlasmicLeftImportsPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftImportsPanel__root,
   {
     // Helper components rendering sub-elements
-    leftSearchPanel: makeNodeComponent("leftSearchPanel"),
-    importsHeader: makeNodeComponent("importsHeader"),
-    freeBox: makeNodeComponent("freeBox"),
-    importButton: makeNodeComponent("importButton"),
-    refreshButton: makeNodeComponent("refreshButton"),
-    updateButton: makeNodeComponent("updateButton"),
-    content: makeNodeComponent("content"),
+    leftSearchPanel: PlasmicLeftImportsPanel__leftSearchPanel,
+    importsHeader: PlasmicLeftImportsPanel__importsHeader,
+    freeBox: PlasmicLeftImportsPanel__freeBox,
+    importButton: PlasmicLeftImportsPanel__importButton,
+    refreshButton: PlasmicLeftImportsPanel__refreshButton,
+    updateButton: PlasmicLeftImportsPanel__updateButton,
+    content: PlasmicLeftImportsPanel__content,
 
     // Metadata about props expected for PlasmicLeftImportsPanel
     internalVariantProps: PlasmicLeftImportsPanel__VariantProps,

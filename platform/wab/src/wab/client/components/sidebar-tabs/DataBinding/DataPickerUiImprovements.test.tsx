@@ -1,8 +1,9 @@
+import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import DataPicker from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import DataPickerColumn from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerColumn";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { setUiLocale } from "@/wab/client/i18n";
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import * as React from "react";
 
 afterEach(() => {
@@ -10,10 +11,9 @@ afterEach(() => {
 });
 
 describe("DataPicker UI Improvements", () => {
-  it("renders DataPickerColumn with Scrollbar container", () => {
-    const mockStudioCtx = {
-      hasCached$stepValue: () => false,
-    } as any;
+  it("renders DataPickerColumn with Scrollbar container", async () => {
+    const { studioCtx: mockStudioCtx } = fakeStudioCtx();
+    await waitFor(() => expect(mockStudioCtx.initialRouteReady).toBe(true));
 
     const data = {
       user: {
@@ -26,7 +26,7 @@ describe("DataPicker UI Improvements", () => {
       { name: "age", value: 30, pathPrefix: ["user"] },
     ];
 
-    const { container } = render(
+    const { container, unmount } = render(
       <StudioCtxContext.Provider value={mockStudioCtx}>
         <DataPickerColumn
           columnIndex={0}
@@ -45,6 +45,8 @@ describe("DataPicker UI Improvements", () => {
       "[data-overlayscrollbars-initialize], [data-overlayscrollbars-contents]",
     );
     expect(osElement).toBeTruthy();
+    unmount();
+    mockStudioCtx.dispose();
   });
 
   it("localizes 'Add new Query' and 'Add new State Variable' buttons based on current locale", async () => {

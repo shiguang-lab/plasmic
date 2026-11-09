@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicImg as PlasmicImg__,
   StrictProps,
   classNames,
@@ -26,7 +26,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -88,11 +88,10 @@ function PlasmicPublishWizard__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -254,12 +253,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -269,30 +264,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPublishWizard__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPublishWizard";
-  } else {
-    func.displayName = `PlasmicPublishWizard.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPublishWizard__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPublishWizard__root<T extends PlasmicPublishWizard__rootProps>(props: T & StrictProps<T, PlasmicPublishWizard__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPublishWizard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPublishWizard__root.displayName = "PlasmicPublishWizard";
+
+type PlasmicPublishWizard__imgProps = NodeComponentProps<"img"> & {key?: React.Key};
+function PlasmicPublishWizard__img<T extends PlasmicPublishWizard__imgProps>(props: T & StrictProps<T, PlasmicPublishWizard__imgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("img", props);
+  return <PlasmicPublishWizard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"img"} />;
+}
+PlasmicPublishWizard__img.displayName = "PlasmicPublishWizard.img";
+
+type PlasmicPublishWizard__closeButtonProps = NodeComponentProps<"closeButton"> & {key?: React.Key};
+function PlasmicPublishWizard__closeButton<T extends PlasmicPublishWizard__closeButtonProps>(props: T & StrictProps<T, PlasmicPublishWizard__closeButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("closeButton", props);
+  return <PlasmicPublishWizard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"closeButton"} />;
+}
+PlasmicPublishWizard__closeButton.displayName = "PlasmicPublishWizard.closeButton";
+
+type PlasmicPublishWizard__laterButtonProps = NodeComponentProps<"laterButton"> & {key?: React.Key};
+function PlasmicPublishWizard__laterButton<T extends PlasmicPublishWizard__laterButtonProps>(props: T & StrictProps<T, PlasmicPublishWizard__laterButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("laterButton", props);
+  return <PlasmicPublishWizard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"laterButton"} />;
+}
+PlasmicPublishWizard__laterButton.displayName = "PlasmicPublishWizard.laterButton";
+
+type PlasmicPublishWizard__connectButtonProps = NodeComponentProps<"connectButton"> & {key?: React.Key};
+function PlasmicPublishWizard__connectButton<T extends PlasmicPublishWizard__connectButtonProps>(props: T & StrictProps<T, PlasmicPublishWizard__connectButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("connectButton", props);
+  return <PlasmicPublishWizard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"connectButton"} />;
+}
+PlasmicPublishWizard__connectButton.displayName = "PlasmicPublishWizard.connectButton";
+
 
 export const PlasmicPublishWizard = Object.assign(
   // Top-level PlasmicPublishWizard renders the root element
-  makeNodeComponent("root"),
+  PlasmicPublishWizard__root,
   {
     // Helper components rendering sub-elements
-    img: makeNodeComponent("img"),
-    closeButton: makeNodeComponent("closeButton"),
-    laterButton: makeNodeComponent("laterButton"),
-    connectButton: makeNodeComponent("connectButton"),
+    img: PlasmicPublishWizard__img,
+    closeButton: PlasmicPublishWizard__closeButton,
+    laterButton: PlasmicPublishWizard__laterButton,
+    connectButton: PlasmicPublishWizard__connectButton,
 
     // Metadata about props expected for PlasmicPublishWizard
     internalVariantProps: PlasmicPublishWizard__VariantProps,

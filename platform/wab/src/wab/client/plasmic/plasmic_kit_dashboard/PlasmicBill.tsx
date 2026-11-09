@@ -25,12 +25,13 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -133,11 +134,10 @@ function PlasmicBill__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "type",
@@ -160,20 +160,22 @@ function PlasmicBill__RenderFunc(props: {
           $props.hideSeatPrice,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -238,9 +240,7 @@ function PlasmicBill__RenderFunc(props: {
             "button__ooL7E",
             sty.moreSeats
           )}
-          ref={(ref) => {
-            $refs["moreSeats"] = ref;
-          }}
+          ref={registerRef("moreSeats")}
           type={"button"}
         >
           <PlusSvgIcon
@@ -456,12 +456,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -471,28 +467,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicBill__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicBill";
-  } else {
-    func.displayName = `PlasmicBill.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicBill__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicBill__root<T extends PlasmicBill__rootProps>(props: T & StrictProps<T, PlasmicBill__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicBill__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicBill__root.displayName = "PlasmicBill";
+
+type PlasmicBill__lessSeatsProps = NodeComponentProps<"lessSeats"> & {key?: React.Key};
+function PlasmicBill__lessSeats<T extends PlasmicBill__lessSeatsProps>(props: T & StrictProps<T, PlasmicBill__lessSeatsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("lessSeats", props);
+  return <PlasmicBill__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"lessSeats"} />;
+}
+PlasmicBill__lessSeats.displayName = "PlasmicBill.lessSeats";
+
+type PlasmicBill__moreSeatsProps = NodeComponentProps<"moreSeats"> & {key?: React.Key};
+function PlasmicBill__moreSeats<T extends PlasmicBill__moreSeatsProps>(props: T & StrictProps<T, PlasmicBill__moreSeatsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("moreSeats", props);
+  return <PlasmicBill__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"moreSeats"} />;
+}
+PlasmicBill__moreSeats.displayName = "PlasmicBill.moreSeats";
+
 
 export const PlasmicBill = Object.assign(
   // Top-level PlasmicBill renders the root element
-  makeNodeComponent("root"),
+  PlasmicBill__root,
   {
     // Helper components rendering sub-elements
-    lessSeats: makeNodeComponent("lessSeats"),
-    moreSeats: makeNodeComponent("moreSeats"),
+    lessSeats: PlasmicBill__lessSeats,
+    moreSeats: PlasmicBill__moreSeats,
 
     // Metadata about props expected for PlasmicBill
     internalVariantProps: PlasmicBill__VariantProps,

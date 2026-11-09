@@ -1,3 +1,5 @@
+import { createStore } from "zustand/vanilla";
+import * as Signals from "signals";
 import { CanvasContentEditorIndex } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { FrameHeights } from "@/wab/client/studio-ctx/frame-heights";
 import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
@@ -21,9 +23,6 @@ import { act, render } from "@testing-library/react";
 import $ from "jquery";
 import React from "react";
 
-vi.mock("@/wab/client/studio-ctx/view-ctx", async () => ({
-  ViewComponentBase: (await import("react")).Component,
-}));
 vi.mock("@/wab/client/dom", () => ({ hasLayoutBox: () => true }));
 vi.mock("@/wab/client/components/canvas/HoverBox", () => ({
   recomputeBounds: ($node: JQuery) =>
@@ -53,6 +52,8 @@ it("updates existing measurement lines on nested content scroll and cleans up wh
   site.arenas.push(mkMixedArena("Measured", [frame]));
   const arenaState = new StudioArenaState({ site, modelSnapshots: models });
   const studioCtx = mockDeepAuto<StudioCtx>();
+  const views: { signal: AbortController; selection: ViewSelection }[] = [];
+  Object.defineProperty(studioCtx, "framesChanged", { value: new Signals.Signal() });
   const contentEditors = new CanvasContentEditorIndex(() => []);
   Object.defineProperty(studioCtx, "activeContentEditorStore", { value: contentEditors.store });
   Object.defineProperties(studioCtx, { modelSnapshots: { value: models }, arenaState: { value: arenaState } });
@@ -69,6 +70,12 @@ it("updates existing measurement lines on nested content scroll and cleans up wh
     selection.setDoms([$(child)]);
     selection.setMeasure($(parent));
     const view = mockDeepAuto<ViewCtx>();
+    const signal = new AbortController(); views.push({ signal, selection });
+    Object.defineProperties(view, {
+      studioCtx: { value: studioCtx }, disposeSignal: { value: signal.signal }, modelLifetime: { value: arenaState.lifetime() },
+      styleChanged: { value: new Signals.Signal() },
+      csEvaluator: { value: { renderStatusStore: createStore(() => ({ renderCount: 0, isFirstRenderComplete: true })) } },
+    });
     view.arenaFrame.mockReturnValue(frame);
     Object.defineProperty(view, "selectionStore", { value: selection.store });
     view.canvasCtx.$doc.mockReturnValue($(canvasDocument));
@@ -129,7 +136,7 @@ it("updates existing measurement lines on nested content scroll and cleans up wh
   expect(remove).toHaveBeenCalledWith("scroll", expect.any(Function), true);
   unmount();
   expect(nextRemove).toHaveBeenCalledWith("scroll", expect.any(Function), true);
-  focus.dispose();
+  focus.dispose(); views.forEach(({ signal, selection }) => { signal.abort(); selection.dispose(); });
   contentEditors.dispose(); frameHeights.dispose(); arenaState.dispose();
   models.dispose();
   vi.restoreAllMocks();

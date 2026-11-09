@@ -10,10 +10,11 @@ import { StudioInitializer } from "@/wab/client/components/studio/studio-initial
 import * as studioBundles from "@/wab/client/components/studio/studio-bundles";
 import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
 import { LoadingAnimationContext } from "@/wab/client/contexts/LoadingAnimationContext";
-import { providesFrameCtx } from "@/wab/client/frame-ctx/frame-ctx";
+import { FrameCtxProvider } from "@/wab/client/frame-ctx/frame-ctx";
 import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { initStudioCtx } from "@/wab/client/init-view-ctx";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
+import { ensure } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { ProjectId } from "@/wab/shared/ApiSchema";
 import {
@@ -56,9 +57,10 @@ vi.mock("@/wab/client/route/Switch", () => ({
 }));
 vi.mock("@/wab/client/components/live/PreviewCtx", () => ({
   PreviewCtx: class {
-    store = createStore(() => ({ isLive: false, previewData: undefined }));
-    full = false;
-    isLive = false;
+    store = createStore<{ isLive: boolean; previewData: { full: boolean } | undefined }>(() => ({ isLive: false, previewData: undefined }));
+    constructor(_host: unknown, studio: { previewCtx?: unknown }) { studio.previewCtx = this; }
+    get full() { return !!this.store.getState().previewData?.full; }
+    get isLive() { return this.store.getState().isLive; }
     dispose() {}
   },
   providesPreviewCtx: () => (children: React.ReactNode) => children,
@@ -105,7 +107,7 @@ it("restores local loading when retrying after initialization revealed an error"
     const [host] = React.useState(() => mock<HostFrameCtx>({
       revealStudio: async () => { reveal(); setRevealed(true); },
     }));
-    return providesFrameCtx(host)(providesAppCtx(appCtx)(
+    return <FrameCtxProvider value={host}>{providesAppCtx(appCtx)(
       <LoadingAnimationContext.Provider value={revealed}>
         <HistoryProvider history={appCtx.history}>
           <AntdConfigProvider productUI>
@@ -113,7 +115,7 @@ it("restores local loading when retrying after initialization revealed an error"
           </AntdConfigProvider>
         </HistoryProvider>
       </LoadingAnimationContext.Provider>,
-    ));
+    )}</FrameCtxProvider>;
   }
   const { container } = render(<Harness />);
   expect(fetch).not.toHaveBeenCalled();
@@ -202,6 +204,13 @@ it("shows shared editor controls before project data, then preserves the project
     );
     expect(screen.getByTestId("editor-shell")).toBe(shell);
     expect(screen.getByText("Project menu open")).toBeTruthy();
+    const preview = ensure(studioCtx.previewCtx, "Initialized native preview owner");
+    const full = mock<NonNullable<ReturnType<typeof preview.store.getState>["previewData"]>>({ full: true });
+    act(() => preview.store.setState({ isLive: true, previewData: full }));
+    expect(screen.queryByTestId("editor-shell")).toBeNull();
+    act(() => preview.store.setState({ isLive: false }));
+    expect(screen.getByTestId("editor-shell")).toBeTruthy();
+    expect(screen.getByTestId("canvas").textContent).toBe("Canvas ready");
   } finally {
     releaseMetadata();
     cleanup();
@@ -268,4 +277,29 @@ it("disposes a context that finishes initializing after its host has left", asyn
   await act(async () => { finish(studioCtx); await pending; });
   expect(dispose).toHaveBeenCalledOnce();
   expect(startListening).not.toHaveBeenCalled();
+});
+
+it("retires the progressively published context before retrying a failed dependency load", async () => {
+  const first = fakeStudioCtx({ devFlagOverrides: { ccStubs: false } });
+  const second = fakeStudioCtx({ devFlagOverrides: { ccStubs: false } });
+  const disposedFirst = vi.spyOn(first.studioCtx, "dispose");
+  for (const studio of [first.studioCtx, second.studioCtx]) {
+    vi.spyOn(studio, "startListeningForSocketEvents").mockResolvedValue();
+    vi.spyOn(studio.projectDependencyManager, "refreshDeps").mockResolvedValue();
+    vi.spyOn(studio, "maybeShowGlobalContextNotificationForStarters").mockResolvedValue();
+  }
+  vi.mocked(initStudioCtx).mockResolvedValueOnce(first.studioCtx).mockResolvedValueOnce(second.studioCtx);
+  vi.mocked(syncCodeComponentsAndHandleErrors).mockRejectedValueOnce(new Error("Dependency load failed")).mockResolvedValue(undefined);
+  const host = mock<HostFrameCtx>({ revealStudio: async () => undefined });
+  const mounted = render(<FrameCtxProvider value={host}>{providesAppCtx(first.appCtx)(<HistoryProvider history={first.appCtx.history}><AntdConfigProvider productUI><StudioInitializer projectId={first.studioCtx.siteInfo.id} appCtx={first.appCtx} hostFrameCtx={host} onRefreshUi={() => undefined} /></AntdConfigProvider></HistoryProvider>)}</FrameCtxProvider>);
+  try {
+    await screen.findByRole("alert");
+    const preview = ensure(first.studioCtx.previewCtx, "Published preview owner");
+    const disposedPreview = vi.spyOn(preview, "dispose");
+    fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+    await waitFor(() => expect(screen.getByTestId("canvas").textContent).toBe("Canvas ready"));
+    expect(disposedFirst).toHaveBeenCalledOnce();
+    expect(disposedPreview).toHaveBeenCalledOnce();
+    expect(initStudioCtx).toHaveBeenLastCalledWith(first.appCtx, first.studioCtx.siteInfo.id, expect.any(Function), expect.anything());
+  } finally { mounted.unmount(); first.studioCtx.dispose(); second.studioCtx.dispose(); }
 });

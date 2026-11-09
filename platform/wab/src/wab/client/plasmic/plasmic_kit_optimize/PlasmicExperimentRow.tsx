@@ -15,17 +15,17 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   StrictProps,
-  useTrigger,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ListItem from "../../components/ListItem"; // plasmic-import: v31d9_ANqk/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -84,16 +84,15 @@ function PlasmicExperimentRow__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -197,12 +196,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -212,31 +207,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicExperimentRow__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicExperimentRow";
-  } else {
-    func.displayName = `PlasmicExperimentRow.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicExperimentRow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicExperimentRow__root<T extends PlasmicExperimentRow__rootProps>(props: T & StrictProps<T, PlasmicExperimentRow__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicExperimentRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicExperimentRow__root.displayName = "PlasmicExperimentRow";
+
+type PlasmicExperimentRow__listItemProps = NodeComponentProps<"listItem"> & {key?: React.Key};
+function PlasmicExperimentRow__listItem<T extends PlasmicExperimentRow__listItemProps>(props: T & StrictProps<T, PlasmicExperimentRow__listItemProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("listItem", props);
+  return <PlasmicExperimentRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"listItem"} />;
+}
+PlasmicExperimentRow__listItem.displayName = "PlasmicExperimentRow.listItem";
+
+type PlasmicExperimentRow__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicExperimentRow__svg<T extends PlasmicExperimentRow__svgProps>(props: T & StrictProps<T, PlasmicExperimentRow__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicExperimentRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicExperimentRow__svg.displayName = "PlasmicExperimentRow.svg";
+
+type PlasmicExperimentRow__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicExperimentRow__freeBox<T extends PlasmicExperimentRow__freeBoxProps>(props: T & StrictProps<T, PlasmicExperimentRow__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicExperimentRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicExperimentRow__freeBox.displayName = "PlasmicExperimentRow.freeBox";
+
+type PlasmicExperimentRow__titleProps = NodeComponentProps<"title"> & {key?: React.Key};
+function PlasmicExperimentRow__title<T extends PlasmicExperimentRow__titleProps>(props: T & StrictProps<T, PlasmicExperimentRow__titleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("title", props);
+  return <PlasmicExperimentRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"title"} />;
+}
+PlasmicExperimentRow__title.displayName = "PlasmicExperimentRow.title";
+
+type PlasmicExperimentRow__statusProps = NodeComponentProps<"status"> & {key?: React.Key};
+function PlasmicExperimentRow__status<T extends PlasmicExperimentRow__statusProps>(props: T & StrictProps<T, PlasmicExperimentRow__statusProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("status", props);
+  return <PlasmicExperimentRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"status"} />;
+}
+PlasmicExperimentRow__status.displayName = "PlasmicExperimentRow.status";
+
 
 export const PlasmicExperimentRow = Object.assign(
   // Top-level PlasmicExperimentRow renders the root element
-  makeNodeComponent("root"),
+  PlasmicExperimentRow__root,
   {
     // Helper components rendering sub-elements
-    listItem: makeNodeComponent("listItem"),
-    svg: makeNodeComponent("svg"),
-    freeBox: makeNodeComponent("freeBox"),
-    title: makeNodeComponent("title"),
-    status: makeNodeComponent("status"),
+    listItem: PlasmicExperimentRow__listItem,
+    svg: PlasmicExperimentRow__svg,
+    freeBox: PlasmicExperimentRow__freeBox,
+    title: PlasmicExperimentRow__title,
+    status: PlasmicExperimentRow__status,
 
     // Metadata about props expected for PlasmicExperimentRow
     internalVariantProps: PlasmicExperimentRow__VariantProps,

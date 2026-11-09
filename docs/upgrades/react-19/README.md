@@ -2,7 +2,7 @@
 
 状态：实施中，阶段结果见 [实施记录](implementation-report.md)。编写日期：2026-11-04；完整性复核：2026-11-05（Asia/Shanghai）。
 
-当前源码核查基准：`32df7af09a1df7d119143b546f14a81b6d876c83`，复核开始时工作区干净。当前已在隔离工作区执行准备改造、依赖构建和部分运行验收，隔离工作区的根、platform、sub、live-frame、react-web-bundle 已安装 React/ReactDOM 19.3.1、React 类型 19.3.0。Compiler 默认开启，当前按已完成显式订阅审查的组件编译；完整 Zustand 替换、范围验收与正式性能对照未完成，全部实施改动已合入 `codex/react-19-upgrade`，接手说明见 [迁移交接](./migration-handoff.md) 与 [集成验收](./branch-integration-verification.json)。阶段证据见实施记录；源码 commit 不代表实际性能制品，比较时必须同时核对源码、renderer 和依赖闭包身份。
+当前主工作区的根、platform、sub、live-frame、react-web-bundle 已统一安装 React/ReactDOM 19.3.1、React 类型 19.3.0。MobX 替换和依赖清理已完成，见[原生状态验收](../../design/mobx-to-zustand-migration/handoff.md)。Studio／Canvas／react-web SDK 运行链已按 `infer` 严格合同完成候选零跳过审计、生产构建和完整测试加修后逐项复验，三个必需捕错 class 单独计数；精确范围和证据见 [Compiler 接入](compiler-rollout.md)。邮件 SSR 和邮件 Host 也已接入同一严格 Compiler 合同；最终 SDK／CLI／CPA、独立 Preview／原生 renderer 和 Desktop 的验收范围、入口与证据见[最终运行链验收](release-verification.md)。这不是全仓零跳过声明；正式性能对照和发布仍需分别签收。接手说明见[迁移交接](./migration-handoff.md)；源码 commit 不代表实际性能制品，比较时必须同时核对源码、renderer 和依赖闭包身份。
 
 用户确认无消费者的 Rich Components、Sortable、Quill、Rive、YouTube 已退役，连同仅供 Rich Components 使用的 Pro 和 Pro Form 替身一并清理。Studio 内置拖拽、Slate 富文本、筛选器、表单及数据源保留；公开组件发布计划现为 59 个包。
 
@@ -108,28 +108,22 @@ Compiler 阶段：C0 定义纯组件边界和目标指标 → C1 接入受控编
 
 ## 6. Zustand 与 Compiler 的实施规则
 
-### 6.1 不采用全局推断编译
+### 6.1 全量推断与输入合同
 
-本轮将状态管理迁移到 Zustand，细则和阶段门槛见 [迁移方案](zustand-migration.md)。尚未迁移的标准 observer、项目 observer 包装器、Reaction.track 回调、CanvasText／canvas-rendering、ViewCtx／StudioCtx、属性面板的直接或间接 observable 读取，均不进入首批 Compiler 范围。
+Compiler 对 `src/wab` 下全部前端 JS／TS 源码启用 `compilationMode: 'infer'`，自动识别函数组件和 Hooks；排除服务端、测试、Storybook 用例及类型声明。没有文件白名单或关闭指令；空生成 Hook 使用正向 `"use memo"` 显式要求实际编译，不添加虚假 Hook。原生状态合同见[迁移方案](zustand-migration.md)。
 
-原因：MobX 依赖每轮实际读取收集订阅；Compiler 的引用／值缓存不天然表达隐藏可变性。缓存跳过必要读取会同时影响显示和依赖集合。强制重渲染、升级 mobx-react、加 React.memo、仅排除 observer 定义文件都不能证明安全。
+组件必须消费订阅返回的不可变快照或普通值。仅调用订阅 Hook 后从稳定模型实例重新读取可变字段，不能表达 Compiler 缓存的失效输入。模型对象保留领域命令身份，渲染数据通过原生 selector 提供；不使用全局 revision 或增加通用 schema 转换层。
 
-observer 自带的 props memo 与组件内部计算缓存不同；不能因此删除所有现有 memo，也不能把 MobX computed 换成只按对象引用失效的 useMemo。
+### 6.2 构建与诊断
 
-### 6.2 首批范围与接入
-
-- 使用明确文件白名单，配合 `compilationMode: 'annotation'`；只对具名函数显式启用 `use memo`。记录实际产物中被编译、被跳过的函数，不能仅看配置存在。
-- 先从输入为字符串、数字等明确值的展示热点选择候选；[CodeDisplayContent.tsx](../../../platform/wab/src/wab/client/components/coding/CodeDisplayContent.tsx)仅是待核查候选，其主题 Hook、第三方 render callback 及首次高亮成本仍须验证。骨架屏可用于接入验证，不能宣称为主要收益。
-- 沿已有 observer 容器读取必要字段，再向纯展示叶子传普通值／不可变数据。不要为全项目新增通用 snapshot/schema 转换层；只在已确认热点做最小拆分。
-- 没有数据变化时保持必要输入身份；真实数据变化时正确更新普通数组／对象。不要把 observable／Proxy、类实例、动态 getter 或返回实时模型的方法作为纯输入漏进白名单。
-- `use no memo` 作为问题隔离手段，不能替代白名单，也不能假设包装器上的排除会传递到所有被调用函数。
-- 现有 Rsbuild 1.x 可经 @rsbuild/plugin-babel 接入；限制 include 范围，保留 SWC、既有别名与单 React 归属。不同时升级构建器大版本。
-- React 18 实验需 `target: '18'` 与 react-compiler-runtime；React 19 使用 `target: '19'`。基础升级与试点依赖分别提交。
-- 首批仅处理普通 Studio 打包产物，不编译 SDK 发布产物、运行时生成代码或画布下载模块。扩展前必须处理 react/compiler-runtime 的 external、Host 全局与 Loader 模块解析，不能私自打入另一份 React。
+- 配置由 [react-compiler.mjs](../../../platform/wab/tools/react-compiler.mjs) 统一维护，目标 React 19。共享 Rsbuild 配置覆盖 Studio、Dashboard Preview 和 Storybook；Vitest 使用相同转换配置。
+- 使用 `panicThreshold: 'all_errors'`，诊断阻断构建；不增加关闭指令或通过安全跳过签收。Canvas 的 Hooks 和 Compiler runtime 必须归属同一个 iframe renderer。
+- 在 `platform/wab` 运行 `node tools/react-compiler-audit.mjs /tmp/compiler-audit.json`，按当前源码生成参与文件、实际转换函数、诊断及源码哈希。扫描独立使用收集模式以保留全部诊断，发现诊断或解析错误时退出 1；该扫描不是性能或功能验收。
+- 保留 SWC、现有别名和每个 renderer 的 React 归属。react-web 发布产物、Sub／Canvas／live-frame 使用各自严格构建入口，并处理 `react/compiler-runtime` 的 external、Host 全局与模块解析；精确源码范围、三个必需捕错 class 和验证入口见 [Compiler 接入](compiler-rollout.md)。运行时生成业务模块的浏览器 Compiler 链已完成开发／生产 Rspack＋Chromium 契约复验。
 
 ### 6.3 必须证明的正确性
 
-对象引用不变而 observable 内部变化、动态分支切换订阅、选择快速变更、暂停／恢复、卸载重开、放弃渲染、主题／语言变化和异步结果乱序均有检查项。测试必须执行与生产相同的 Compiler 转换；Vitest 已提供同白名单、同选项的 Compiler 转换；验收时必须实际启用该路径，仅运行原源码单测不能验收编译产物。
+模型对象引用不变而字段变化、动态分支切换订阅、选择快速变更、暂停／恢复、卸载重开、放弃渲染、主题／语言变化和异步结果乱序均有检查项。测试必须执行与生产相同范围、相同选项的 Compiler 转换；仅运行原源码单测不能验收编译产物。
 
 若通过 useSyncExternalStore 改善某处订阅，仍须提供正确的不可变 snapshot 与失效规则；它不是给整个 MobX 图加一层包装的理由。外部 store 更新也不能仅用 startTransition 包住就认定变成可中断工作。
 
@@ -143,7 +137,7 @@ observer 自带的 props memo 与组件内部计算缓存不同；不能因此�
 | A1  | React 18 + U1/U2 可在 18 运行的准备改动，Compiler 关闭 | A0/A1 区分 root／依赖准备收益                                             |
 | B   | React 19 基础升级，Compiler 关闭                       | A1/B 评估实际升级包的影响，列出不可避免的联合依赖变化                     |
 | Z   | React 19 + Zustand 迁移，Compiler 关闭 | B/Z 单独评估状态架构变化 |
-| C   | 与 Z 相同，仅增加 Compiler 白名单试点                  | Z/C 评估编译成本与收益；必要时增加相同 Babel 管线但关闭 Compiler 的控制组 |
+| C   | 与 Z 相同，仅增加 Compiler 全量 infer                  | Z/C 评估编译成本与收益；必要时增加相同 Babel 管线但关闭 Compiler 的控制组 |
 
 另一个优化不得只出现在其中一组。冻结 Electron、窗口／DPR、项目修订、组件库精确版本、网络 fixture、构建模式及后台负载。旧报告数值不是 A0。
 
@@ -186,7 +180,7 @@ observer 自带的 props memo 与组件内部计算缓存不同；不能因此�
 | 旧 antd v4/v5 的实际设计引用及迁移路径          | U0/U2    | 模型引用、注册合同、渲染与交互对照；无引用才可移除                    |
 | 各第三方库最终精确版本／替代库                  | U2       | peer、实际 API、补丁重放、类型／交互测试，不能只记录 registry 声明    |
 | React 19 Fiber 和内部 dispatcher 的目标实现     | U3       | 目标版本源结构核对、挂起／恢复／卸载回归；不能仅凭 tag 常量编译通过   |
-| Compiler 具体白名单与主指标                     | C0       | 更新热点样本、不可变输入边界、编译产物及 B/C 对照设计                 |
+| Compiler 实际转换范围、诊断与主指标             | C0       | 更新热点样本、不可变输入边界、编译产物及 B/C 对照设计                 |
 | 私有测试数据和发布平台覆盖                      | U0/U6    | 授权隔离 fixture、真实运行环境；缺少 Windows/Linux 等平台不得宣称通过 |
 
 ## 10. 官方依据

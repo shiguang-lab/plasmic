@@ -1,12 +1,12 @@
-import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { useShallow } from "zustand/react/shallow";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { subscribeStudioSelection, useFocusedViewCtx } from "@/wab/client/studio-ctx/selection-state";
+import type { TplNode, Variant } from "@/wab/shared/model/classes";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import type { ViewVariantSnapshot } from "@/wab/client/studio-ctx/view-variant-state";
 import { arrayEq } from "@/wab/shared/common";
 import * as React from "react";
 import { useStore } from "zustand";
-import { useShallow } from "zustand/react/shallow";
 import { createStore } from "zustand/vanilla";
 
 const empty = createStore<ViewVariantSnapshot>(() => Object.freeze({
@@ -24,39 +24,28 @@ export function useFocusedViewVariants<Selected>(studio: StudioCtx, selector: (s
   return useViewVariants(useFocusedViewCtx(studio), selector);
 }
 
-/** Mirrors makeVariantsController's actual owner choice; arena/model permissions
- * remain real observer inputs at its consumer. */
-export function useVariantsControllerInputs(studio: StudioCtx, view?: ViewCtx) {
-  const focused = useFocusedViewCtx(studio);
-  const [, focusedMode] = useStudioArena(studio, useShallow((state) => [state.current, state.focusedMode, state.frames[0]] as const));
-  const owner = view || (focusedMode ? focused || studio.focusedOrFirstViewCtx() : focused);
-  return useViewVariants(owner, useShallow((variantState) => [variantState.frames, variantState.global]));
-}
-
 /** A tree renders several artboard owners. Combine their immutable inputs with
  * one React subscription, retaining the snapshot when every owner is unchanged. */
 export function useViewVariantsList(views: readonly ViewCtx[]) {
   const owners = useShallow((input: readonly ViewCtx[]) => input)(views);
-  const source = React.useMemo(() => {
-    type TreeInputs = Pick<ViewVariantSnapshot, "frames" | "global" | "showDefaultSlots">;
-    let snapshot: readonly TreeInputs[] = Object.freeze([]);
-    const getSnapshot = () => {
-      const next = owners.map((view, index) => {
-        const state = view.variantStore.getState();
-        const before = snapshot[index];
-        return before && before.frames === state.frames && before.global === state.global && before.showDefaultSlots === state.showDefaultSlots
-          ? before : Object.freeze({ frames: state.frames, global: state.global, showDefaultSlots: state.showDefaultSlots });
-      });
-      if (!arrayEq(snapshot, next)) { snapshot = Object.freeze(next); }
-      return snapshot;
-    };
-    const subscribe = (listener: () => void) => {
-      const stops = owners.map((view) => view.variantStore.subscribe(listener));
-      return () => stops.forEach((stop) => stop());
-    };
-    return { getSnapshot, subscribe };
-  }, [owners]);
+  const source = React.useMemo(() => createViewVariantsListSource(owners), [owners]);
   return React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
+}
+
+/** Project the domain's node-specific target combo at the store boundary. */
+export function useCurrentSharedVariantCombo(view: ViewCtx, tpl: TplNode) {
+  const source = React.useMemo(() => createSharedVariantComboSource(view, tpl), [view, tpl]);
+  return React.useSyncExternalStore(source.subscribe, source.read, source.read);
+}
+function createSharedVariantComboSource(view: ViewCtx, tpl: TplNode) {
+  let current: Variant[] = [];
+  const read = () => {
+    if (view.isDisposed) { return current; }
+    const next = view.variantTplMgr().getCurrentSharedVariantComboForNode(tpl);
+    if (!arrayEq(current, next)) { current = next; }
+    return current;
+  };
+  return { read, subscribe: (listener: () => void) => view.variantStore.subscribe(() => { const before = current; read(); if (current !== before) { listener(); } }) };
 }
 
 export function subscribeViewVariants<Selected>(view: ViewCtx, selector: (state: ViewVariantSnapshot) => Selected, listener: (next: Selected, previous: Selected) => void) {
@@ -91,3 +80,23 @@ export function subscribeFocusedViewVariants<Selected>(studio: StudioCtx, select
   const stopOwner = subscribeStudioSelection(studio, (selection) => selection.view, connect);
   return () => { stopOwner(); stopView?.(); };
 }
+
+function createViewVariantsListSource(owners: readonly ViewCtx[]) {
+    type TreeInputs = Pick<ViewVariantSnapshot, "frames" | "global" | "showDefaultSlots">;
+    let snapshot: readonly TreeInputs[] = Object.freeze([]);
+    const getSnapshot = () => {
+      const next = owners.map((view, index) => {
+        const state = view.variantStore.getState();
+        const before = snapshot[index];
+        return before && before.frames === state.frames && before.global === state.global && before.showDefaultSlots === state.showDefaultSlots
+          ? before : Object.freeze({ frames: state.frames, global: state.global, showDefaultSlots: state.showDefaultSlots });
+      });
+      if (!arrayEq(snapshot, next)) { snapshot = Object.freeze(next); }
+      return snapshot;
+    };
+    const subscribe = (listener: () => void) => {
+      const stops = owners.map((view) => view.variantStore.subscribe(listener));
+      return () => stops.forEach((stop) => stop());
+    };
+    return { getSnapshot, subscribe };
+  }

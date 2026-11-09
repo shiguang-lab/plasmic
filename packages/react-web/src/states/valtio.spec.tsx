@@ -1,3 +1,5 @@
+import { StateInitializer, useDollarStateSnapshot } from "./snapshot";
+import { getStateCommandValue } from "./command-values";
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import React from "react";
@@ -7,7 +9,7 @@ import {
   hasUnstableStateInitializer,
   resetToInitialValue,
 } from "./helpers";
-import type { $State, $StateSpec } from "./types";
+import type { $State, $StateSpec, StateInitializerDeclaration } from "./types";
 import { useDollarState } from "./valtio";
 
 function mkComponent(
@@ -17,8 +19,8 @@ function mkComponent(
   const seen = { renders: 0, $state: undefined as any };
   function Comp(props: { x?: any }) {
     seen.renders++;
-    const $state = useDollarState(specs, { $props: props });
-    seen.$state = $state;
+    const $state = useDollarStateSnapshot(useDollarState(), { $props: props }, specs);
+    React.useLayoutEffect(() => { seen.$state = getStateCommandValue($state); });
     return (
       <div data-testid="val">
         {opts?.renderState === false ? "-" : String($state.val)}
@@ -134,7 +136,7 @@ describe("useDollarState with a non-deterministic initFunc", () => {
     function Comp() {
       renders++;
       tick = renders;
-      const $state = useDollarState(specs, { $props: {} });
+      const $state = useDollarStateSnapshot(useDollarState(), { $props: {} }, specs);
       return <div>{String($state.val)}</div>;
     }
     render(<Comp />);
@@ -183,11 +185,11 @@ describe("registered initializers", () => {
       initial: number;
     }) {
       renderingChild = true;
-      const $state = useDollarState(specs, { $props: props });
-      $state.registerInitFunc!("val", ({ $props }) => $props.initial);
+      const $state = useDollarStateSnapshot(useDollarState(), { $props: props }, specs);
+      const initializers: StateInitializerDeclaration[] = [{ path: "val", initFunc: ({ $props }) => $props.initial }];
       const value = $state.val;
       renderingChild = false;
-      return <div data-testid="value">{value}</div>;
+      return <StateInitializer state={$state} initializers={initializers}><div data-testid="value">{value}</div></StateInitializer>;
     }
     function Parent({ initial }: { initial: number }) {
       const [value, setValue] = React.useState(0);
@@ -229,16 +231,15 @@ describe("registered initializers", () => {
       let state: any;
       function Comp() {
         renders++;
-        const $state = useDollarState(specs, { $props: {} });
-        $state.registerInitFunc!(
-          specs[0].path,
-          ({ $props }) => $props.value,
-          repeated ? [0] : undefined,
-          // Cap the drift so a regression cannot hang the test runner.
-          { $props: { value: Math.min(renders, 30) } }
-        );
-        state = repeated ? $state.rows[0] : $state;
-        return <div>{String(state.val)}</div>;
+        const $state = useDollarStateSnapshot(useDollarState(), { $props: {} }, specs);
+        const initializers: StateInitializerDeclaration[] = [{
+          path: specs[0].path, initFunc: ({ $props }) => $props.value,
+          repetitionIndex: repeated ? [0] : undefined,
+          env: { $props: { value: Math.min(renders, 30) } },
+        }];
+        const current = repeated ? $state.rows[0] : $state;
+        React.useLayoutEffect(() => { state = getStateCommandValue(current); });
+        return <StateInitializer state={$state} initializers={initializers}><div>{String(current.val)}</div></StateInitializer>;
       }
       render(<Comp />);
       await flushDeferred();
@@ -265,17 +266,17 @@ describe("registered initializers", () => {
     };
     function Comp(props: { init: (ctx: any) => any; ctx?: any }) {
       seen.renders++;
-      const $state = useDollarState(specs, { $props: {} });
-      $state.registerInitFunc!(
-        specs[0].path,
-        ({ $ctx }) => props.init($ctx),
-        repeated ? [0] : undefined,
-        { $props: {}, $ctx: props.ctx }
-      );
-      seen.$state = repeated ? $state.rows[0] : $state;
-      const value = seen.$state.val;
+      const $state = useDollarStateSnapshot(useDollarState(), { $props: {} }, specs);
+      const initializers: StateInitializerDeclaration[] = [{
+        path: specs[0].path, initFunc: ({ $ctx }) => props.init($ctx),
+        repetitionIndex: repeated ? [0] : undefined,
+        env: { $props: {}, $ctx: props.ctx },
+      }];
+      const current = repeated ? $state.rows[0] : $state;
+      React.useLayoutEffect(() => { seen.$state = getStateCommandValue(current); });
+      const value = current.val;
       seen.renderedValues.push(value);
-      return <div>{String(value)}</div>;
+      return <StateInitializer state={$state} initializers={initializers}><div>{String(value)}</div></StateInitializer>;
     }
     return { Comp, seen };
   }
@@ -288,7 +289,7 @@ describe("registered initializers", () => {
       const init = (ctx: any) => ctx.offset + ++value;
       const { Comp, seen } = mkRegisteredComponent(repeated);
       const view = render(<Comp init={init} ctx={{ offset: 10 }} />);
-      // Like master, registration takes effect in the layout effect.
+      // A committed initializer fiber publishes its value before the next paint.
       expect(seen.renderedValues[0]).toBeUndefined();
       expect(seen.$state.val).toBe(11);
       await flushDeferred();
@@ -364,19 +365,19 @@ describe("registered initializers", () => {
     const Child = React.memo(function Child({ owner }: { owner: $State }) {
       const [n, setN] = React.useState(1);
       setCtx = setN;
-      owner.registerInitFunc!("val", ({ $ctx }) => $ctx.n, undefined, {
-        $props: {},
-        $ctx: { n },
-      });
-      return null;
+      return <StateInitializer state={owner} initializers={[{
+        path: "val", initFunc: ({ $ctx }) => $ctx.n,
+        env: { $props: {}, $ctx: { n } },
+      }]} />;
     });
     function Owner() {
       ownerRenders++;
-      $state = useDollarState(specs, { $props: {} });
+      const current = useDollarStateSnapshot(useDollarState(), { $props: {} }, specs);
+      React.useLayoutEffect(() => { $state = getStateCommandValue(current); });
       return (
         <>
-          <Child owner={$state} />
-          <div>{String($state.val)}</div>
+          <Child owner={current} />
+          <div>{String(current.val)}</div>
         </>
       );
     }
@@ -385,7 +386,7 @@ describe("registered initializers", () => {
     expect($state.val).toBe(1);
     const renders = ownerRenders;
     act(() => setCtx(2));
-    expect(ownerRenders).toBe(renders);
+    expect(ownerRenders).toBe(renders + 1);
     await flushDeferred();
     expect($state.val).toBe(2);
     // Re-registering the same value does not schedule an owner render.
@@ -433,9 +434,10 @@ describe("initializer diagnostics for the state editor", () => {
         ...stateSpec,
         initFuncHash: corrected ? "stable" : "unstable",
       }));
-      $state = useDollarState(specs, { $props: {} }, { inCanvas: true });
-      $state.eagerInitializeStates(specs);
-      return <div>{String($state.val)}</div>;
+      const current = useDollarStateSnapshot(useDollarState(), { $props: {} }, specs);
+      const initializers: StateInitializerDeclaration[] = specs.map((stateSpec) => ({ path: stateSpec.path }));
+      React.useLayoutEffect(() => { $state = getStateCommandValue(current); });
+      return <StateInitializer state={current} initializers={initializers}><div>{String(current.val)}</div></StateInitializer>;
     }
     const { rerender } = render(<Comp corrected={false} />);
     expect(hasUnstableStateInitializer($state, ["val"])).toBe(true);
@@ -458,7 +460,7 @@ it("bounds unsettled resets even when renders take over 100 ms", () => {
     if (renders > 25) {
       throw new Error("Initializer failed to settle");
     }
-    const $state = useDollarState(specs, { $props: {} });
+    const $state = useDollarStateSnapshot(useDollarState(), { $props: {} }, specs);
     return <div>{String($state.val)}</div>;
   }
   render(<Comp />);
@@ -471,7 +473,7 @@ it("allows consecutive input events to update derived state", () => {
   const specs = spec(({ $props }) => "Hello, " + $props.value);
   function Comp() {
     const [value, setValue] = React.useState("");
-    const $state = useDollarState(specs, { $props: { value } });
+    const $state = useDollarStateSnapshot(useDollarState(), { $props: { value } }, specs);
     return (
       <>
         <input
@@ -544,16 +546,14 @@ describe("rejected initializer probes", () => {
         if (drifting) {
           tick++;
         }
-        const $state = useDollarState(specs, { $props: {} });
-        if (kind !== "spec") {
-          $state.registerInitFunc!(
-            specs[0].path,
-            init,
-            kind === "repeated" ? [0] : undefined
-          );
-        }
-        state = kind === "repeated" ? $state.rows[0] : $state;
-        return <div>{String(state.val)}</div>;
+        const $state = useDollarStateSnapshot(useDollarState(), { $props: {} }, specs);
+        const initializers: StateInitializerDeclaration[] = kind !== "spec" ? [{
+          path: specs[0].path, initFunc: init,
+          repetitionIndex: kind === "repeated" ? [0] : undefined,
+        }] : [];
+        const current = kind === "repeated" ? $state.rows[0] : $state;
+        React.useLayoutEffect(() => { state = getStateCommandValue(current); });
+        return <StateInitializer state={$state} initializers={initializers}><div>{String(current.val)}</div></StateInitializer>;
       }
       const { rerender } = render(<Comp />);
       rerender(<Comp />);

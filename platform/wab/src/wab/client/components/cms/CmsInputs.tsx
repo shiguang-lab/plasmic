@@ -664,7 +664,8 @@ export function CmsColorInput(props: {
   const { disabled } = useContentEntryFormContext();
   const { value, onChange } = props;
   const colorPickerRef = React.useRef<HTMLDivElement>(null);
-  const [pickr, setPickr] = React.useState<Pickr | null>(null);
+  const pickr = React.useRef<Pickr | null>(null);
+  const onColorChange = React.useEffectEvent((color: Pickr.HSVaColor) => onChange?.(color.toHEXA().toString()));
 
   React.useLayoutEffect(() => {
     const _pickr = Pickr.create({
@@ -674,7 +675,7 @@ export function CmsColorInput(props: {
       inline: !disabled,
       disabled,
       theme: "nano",
-      default: value ?? "#ffffff",
+      default: "#ffffff",
       components: {
         preview: true,
         opacity: true,
@@ -688,14 +689,17 @@ export function CmsColorInput(props: {
           hsla: false,
         },
       },
-    }).on("change", (val) => {
-      onChange?.(val.toHEXA().toString());
     });
-    if (value) {
-      _pickr.setColor(value);
-    }
-    setPickr(_pickr);
-  }, []);
+    const change = (color: Pickr.HSVaColor) => onColorChange(color);
+    _pickr.on("change", change);
+    pickr.current = _pickr;
+    return () => {
+      pickr.current = null;
+      _pickr.off("change", change);
+      _pickr.destroy();
+    };
+  }, [disabled]);
+  React.useLayoutEffect(() => { pickr.current?.setColor(value ?? "#ffffff", true); }, [disabled, value]);
 
   return (
     <div className={`flex justify-between flex-vcenter ${styles.root}`}>

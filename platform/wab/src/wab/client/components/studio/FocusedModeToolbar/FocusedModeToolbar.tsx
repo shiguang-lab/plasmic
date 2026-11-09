@@ -17,7 +17,7 @@ export const FocusedModeToolbar = ({
   studioCtx: StudioCtx;
 }) => {
   const focusedMode = useStudioArena(studioCtx, (state) => state.focusedMode);
-  useStudioSelection(studioCtx, (state) => state.view);
+  const currentArenaViewCtx = useStudioSelection(studioCtx, (state) => state.view);
   const { t: uiT } = useI18n();
   const onClick = async () => {
     await studioCtx.change(() => {
@@ -28,7 +28,6 @@ export const FocusedModeToolbar = ({
 
   // The frame is only an opaque prop for CanvasConfigButton; that child keeps
   // its own frame/selection subscriptions.
-  const currentArenaViewCtx = studioCtx.focusedViewCtx();
   const currentFrame = currentArenaViewCtx?.arenaFrame();
 
   return !focusedMode ? null : (

@@ -1,3 +1,5 @@
+import { useComponentLibraryRowInputs } from "@/wab/client/components/sidebar/library-inputs";
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { showError } from "@/wab/client/ErrorNotifications";
 import { openNewTab } from "@/wab/client/cli-routes";
 import RowItem from "@/wab/client/components/RowItem";
@@ -51,12 +53,11 @@ import { isTplComponent } from "@/wab/shared/core/tpls";
 import { Component } from "@/wab/shared/model/classes";
 import { mkProjectLocation } from "@/wab/shared/route/app-routes";
 import { Menu, Popover, message, notification } from "antd";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { useStore } from "zustand";
 
-export const ComponentRow = observer(function ComponentRow(props: {
+export const ComponentRow = React.memo(function ComponentRow(props: {
   component: Component;
   matcher: Matcher;
   indentMultiplier: number;
@@ -64,20 +65,22 @@ export const ComponentRow = observer(function ComponentRow(props: {
 }) {
   const { component, matcher, importedFrom, indentMultiplier } = props;
   const studioCtx = useStudioCtx();
+  const rowInput = useComponentLibraryRowInputs(studioCtx, component);
+  const showCommentsPanel = useStudioOverlayState(studioCtx, (state) => state.commentsPanel);
   const commentsCtx = studioCtx.commentsCtx;
   const commentsStats = useStore(commentsCtx.store, (state) =>
     state.commentStatsByComponent.get(component.uuid),
   );
   const isPlainComponent =
-    isReusableComponent(component) &&
-    !isCodeComponent(component) &&
+    rowInput.reusable &&
+    !rowInput.code &&
     !importedFrom;
-  const isCodeComp = isCodeComponent(component);
-  const readOnly = studioCtx.getLeftTabPermission("components") === "readable";
+  const isCodeComp = rowInput.code;
+  const readOnly = useStore(studioCtx.uiEnvironment.store, (state) => state.leftTabPermissions.components === "readable");
 
   const overlay = () => {
     const builder = new MenuBuilder();
-    if (isCodeComp) {
+    if (isCodeComponent(component)) {
       buildCodeComponentMenuItems(builder, studioCtx, component);
     } else {
       buildPlasmicComponentMenuItems(
@@ -94,15 +97,12 @@ export const ComponentRow = observer(function ComponentRow(props: {
   };
 
   const calcIndent = !matcher.hasQuery()
-    ? getSuperComponents(component).length + indentMultiplier
+    ? rowInput.superCount + indentMultiplier
     : indentMultiplier;
 
-  const defaultComponentKind = getDefaultComponentKind(
-    studioCtx.site,
-    component,
-  );
+  const defaultComponentKind = rowInput.defaultKind;
   const icon = (() => {
-    if (commentsStats && studioCtx.showCommentsPanel) {
+    if (commentsStats && showCommentsPanel) {
       return (
         <CommentIndicatorIcon
           commentCount={commentsStats.commentCount}
@@ -129,7 +129,7 @@ export const ComponentRow = observer(function ComponentRow(props: {
         }}
         spec={{
           key: component.uuid,
-          label: getComponentDisplayName(component),
+          label: rowInput.displayName,
           factory: (vc: ViewCtx) => {
             return vc.variantTplMgr().mkTplComponentWithDefaults(component);
           },
@@ -163,7 +163,7 @@ export const ComponentRow = observer(function ComponentRow(props: {
                 }
               : undefined
           }
-          data-test-id={`listitem-component-${component.name}`}
+          data-test-id={`listitem-component-${rowInput.name}`}
         >
           {defaultComponentKind ? (
             <Popover
@@ -177,11 +177,11 @@ export const ComponentRow = observer(function ComponentRow(props: {
               }
             >
               <strong>
-                {matcher.boldSnippets(getFolderComponentDisplayName(component))}
+                {matcher.boldSnippets(rowInput.folderName)}
               </strong>
             </Popover>
           ) : (
-            matcher.boldSnippets(getFolderComponentDisplayName(component))
+            matcher.boldSnippets(rowInput.folderName)
           )}
         </RowItem>
       </DraggableInsertable>
@@ -490,7 +490,7 @@ function buildCommonComponentMenuItems(
   const onFindReferences = () => {
     spawn(
       studioCtx.changeUnsafe(
-        () => (studioCtx.findReferencesComponent = component),
+        () => (studioCtx.setFindReferencesComponent(component)),
       ),
     );
   };

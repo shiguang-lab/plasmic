@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -28,7 +28,7 @@ import BranchSectionHeader from "../../components/sidebar-tabs/ProjectPanel/Bran
 import FolderItem from "../../components/sidebar-tabs/ProjectPanel/FolderItem"; // plasmic-import: iWeSjEMdI3/component
 import SearchInput from "../../components/sidebar-tabs/ProjectPanel/SearchInput"; // plasmic-import: CHoUJxFMpo/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: m8VxGcigeLAEXFe8c12w5Q/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: m8VxGcigeLAEXFe8c12w5Q/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -88,11 +88,10 @@ function PlasmicBranchPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -305,12 +304,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>,
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -320,31 +315,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName],
     );
-    return PlasmicBranchPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicBranchPanel";
-  } else {
-    func.displayName = `PlasmicBranchPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicBranchPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicBranchPanel__root<T extends PlasmicBranchPanel__rootProps>(props: T & StrictProps<T, PlasmicBranchPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicBranchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicBranchPanel__root.displayName = "PlasmicBranchPanel";
+
+type PlasmicBranchPanel__searchInputProps = NodeComponentProps<"searchInput"> & {key?: React.Key};
+function PlasmicBranchPanel__searchInput<T extends PlasmicBranchPanel__searchInputProps>(props: T & StrictProps<T, PlasmicBranchPanel__searchInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchInput", props);
+  return <PlasmicBranchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchInput"} />;
+}
+PlasmicBranchPanel__searchInput.displayName = "PlasmicBranchPanel.searchInput";
+
+type PlasmicBranchPanel__plusButtonContainerProps = NodeComponentProps<"plusButtonContainer"> & {key?: React.Key};
+function PlasmicBranchPanel__plusButtonContainer<T extends PlasmicBranchPanel__plusButtonContainerProps>(props: T & StrictProps<T, PlasmicBranchPanel__plusButtonContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("plusButtonContainer", props);
+  return <PlasmicBranchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"plusButtonContainer"} />;
+}
+PlasmicBranchPanel__plusButtonContainer.displayName = "PlasmicBranchPanel.plusButtonContainer";
+
+type PlasmicBranchPanel__plusButtonProps = NodeComponentProps<"plusButton"> & {key?: React.Key};
+function PlasmicBranchPanel__plusButton<T extends PlasmicBranchPanel__plusButtonProps>(props: T & StrictProps<T, PlasmicBranchPanel__plusButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("plusButton", props);
+  return <PlasmicBranchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"plusButton"} />;
+}
+PlasmicBranchPanel__plusButton.displayName = "PlasmicBranchPanel.plusButton";
+
+type PlasmicBranchPanel__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicBranchPanel__svg<T extends PlasmicBranchPanel__svgProps>(props: T & StrictProps<T, PlasmicBranchPanel__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicBranchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicBranchPanel__svg.displayName = "PlasmicBranchPanel.svg";
+
+type PlasmicBranchPanel__spanProps = NodeComponentProps<"span"> & {key?: React.Key};
+function PlasmicBranchPanel__span<T extends PlasmicBranchPanel__spanProps>(props: T & StrictProps<T, PlasmicBranchPanel__spanProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("span", props);
+  return <PlasmicBranchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"span"} />;
+}
+PlasmicBranchPanel__span.displayName = "PlasmicBranchPanel.span";
+
 
 export const PlasmicBranchPanel = Object.assign(
   // Top-level PlasmicBranchPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicBranchPanel__root,
   {
     // Helper components rendering sub-elements
-    searchInput: makeNodeComponent("searchInput"),
-    plusButtonContainer: makeNodeComponent("plusButtonContainer"),
-    plusButton: makeNodeComponent("plusButton"),
-    svg: makeNodeComponent("svg"),
-    span: makeNodeComponent("span"),
+    searchInput: PlasmicBranchPanel__searchInput,
+    plusButtonContainer: PlasmicBranchPanel__plusButtonContainer,
+    plusButton: PlasmicBranchPanel__plusButton,
+    svg: PlasmicBranchPanel__svg,
+    span: PlasmicBranchPanel__span,
 
     // Metadata about props expected for PlasmicBranchPanel
     internalVariantProps: PlasmicBranchPanel__VariantProps,

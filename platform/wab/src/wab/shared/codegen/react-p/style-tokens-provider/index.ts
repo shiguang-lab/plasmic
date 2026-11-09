@@ -7,8 +7,6 @@ import {
 } from "@/wab/shared/codegen/react-p/class-names";
 import { getContextGlobalVariantsWithVariantedTokens } from "@/wab/shared/codegen/react-p/global-variants";
 import {
-  makeCreateStyleTokensProviderName,
-  makeCreateUseStyleTokensName,
   makePlasmicModulePrelude,
   makePlasmicTokensClassName,
   makePlasmicTokensOverrideClassName,
@@ -75,12 +73,13 @@ export function makeStyleTokensProviderBundle(
 
   // Generate the import statement based on what's needed
   const reactWebImports = [
-    makeCreateUseStyleTokensName(),
-    ...(hasStyleTokenOverrides ? [makeCreateStyleTokensProviderName()] : []),
+    "useStyleTokens as useProjectStyleTokens",
+    ...(hasStyleTokenOverrides ? ["StyleTokensProvider as ProjectStyleTokensProvider"] : []),
   ];
 
   const module = `${makePlasmicModulePrelude(projectId)}
   
+    import * as React from "react";
     import { ${reactWebImports.join(", ")} } from "${getReactWebPackageName(
       exportOpts,
     )}";
@@ -117,17 +116,16 @@ export function makeStyleTokensProviderBundle(
       siteGenHelper,
     )};
   
-    export const ${makeUseStyleTokensName()} = ${makeCreateUseStyleTokensName()}(
-      data,
-      ${makeUseGlobalVariantsName()},
-    );
+    export function ${makeUseStyleTokensName()}() {
+      return useProjectStyleTokens(data, ${makeUseGlobalVariantsName()}());
+    }
   
     ${
       hasStyleTokenOverrides
-        ? `export const ${makeStyleTokensProviderName()} = ${makeCreateStyleTokensProviderName()}(
-      ${dataWithOverrides},
-      ${makeUseGlobalVariantsName()},
-    );`
+        ? `export function ${makeStyleTokensProviderName()}({children}: {children?: import("react").ReactNode}) {
+      const globalVariants = ${makeUseGlobalVariantsName()}();
+      return <ProjectStyleTokensProvider tokenData={${dataWithOverrides}} globalVariants={globalVariants}>{children}</ProjectStyleTokensProvider>;
+    }`
         : ""
     }`;
 

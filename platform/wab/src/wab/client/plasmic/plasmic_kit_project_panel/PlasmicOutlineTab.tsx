@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,14 +23,14 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import FolderItem from "../../components/sidebar-tabs/ProjectPanel/FolderItem"; // plasmic-import: iWeSjEMdI3/component
 import SearchInput from "../../components/sidebar-tabs/ProjectPanel/SearchInput"; // plasmic-import: CHoUJxFMpo/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "../plasmic_kit_project_panel/PlasmicStyleTokensProvider"; // plasmic-import: m8VxGcigeLAEXFe8c12w5Q/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_project_panel/PlasmicStyleTokensProvider"; // plasmic-import: m8VxGcigeLAEXFe8c12w5Q/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -105,11 +105,10 @@ function PlasmicOutlineTab__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "noHeader",
@@ -118,18 +117,20 @@ function PlasmicOutlineTab__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.noHeader,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -319,12 +320,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -334,30 +331,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicOutlineTab__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicOutlineTab";
-  } else {
-    func.displayName = `PlasmicOutlineTab.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicOutlineTab__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicOutlineTab__root<T extends PlasmicOutlineTab__rootProps>(props: T & StrictProps<T, PlasmicOutlineTab__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicOutlineTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicOutlineTab__root.displayName = "PlasmicOutlineTab";
+
+type PlasmicOutlineTab__headerFilterProps = NodeComponentProps<"headerFilter"> & {key?: React.Key};
+function PlasmicOutlineTab__headerFilter<T extends PlasmicOutlineTab__headerFilterProps>(props: T & StrictProps<T, PlasmicOutlineTab__headerFilterProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("headerFilter", props);
+  return <PlasmicOutlineTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"headerFilter"} />;
+}
+PlasmicOutlineTab__headerFilter.displayName = "PlasmicOutlineTab.headerFilter";
+
+type PlasmicOutlineTab__searchInputProps = NodeComponentProps<"searchInput"> & {key?: React.Key};
+function PlasmicOutlineTab__searchInput<T extends PlasmicOutlineTab__searchInputProps>(props: T & StrictProps<T, PlasmicOutlineTab__searchInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchInput", props);
+  return <PlasmicOutlineTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchInput"} />;
+}
+PlasmicOutlineTab__searchInput.displayName = "PlasmicOutlineTab.searchInput";
+
+type PlasmicOutlineTab__expandAllButtonProps = NodeComponentProps<"expandAllButton"> & {key?: React.Key};
+function PlasmicOutlineTab__expandAllButton<T extends PlasmicOutlineTab__expandAllButtonProps>(props: T & StrictProps<T, PlasmicOutlineTab__expandAllButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("expandAllButton", props);
+  return <PlasmicOutlineTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"expandAllButton"} />;
+}
+PlasmicOutlineTab__expandAllButton.displayName = "PlasmicOutlineTab.expandAllButton";
+
+type PlasmicOutlineTab__collapseAllButtonProps = NodeComponentProps<"collapseAllButton"> & {key?: React.Key};
+function PlasmicOutlineTab__collapseAllButton<T extends PlasmicOutlineTab__collapseAllButtonProps>(props: T & StrictProps<T, PlasmicOutlineTab__collapseAllButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("collapseAllButton", props);
+  return <PlasmicOutlineTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"collapseAllButton"} />;
+}
+PlasmicOutlineTab__collapseAllButton.displayName = "PlasmicOutlineTab.collapseAllButton";
+
 
 export const PlasmicOutlineTab = Object.assign(
   // Top-level PlasmicOutlineTab renders the root element
-  makeNodeComponent("root"),
+  PlasmicOutlineTab__root,
   {
     // Helper components rendering sub-elements
-    headerFilter: makeNodeComponent("headerFilter"),
-    searchInput: makeNodeComponent("searchInput"),
-    expandAllButton: makeNodeComponent("expandAllButton"),
-    collapseAllButton: makeNodeComponent("collapseAllButton"),
+    headerFilter: PlasmicOutlineTab__headerFilter,
+    searchInput: PlasmicOutlineTab__searchInput,
+    expandAllButton: PlasmicOutlineTab__expandAllButton,
+    collapseAllButton: PlasmicOutlineTab__collapseAllButton,
 
     // Metadata about props expected for PlasmicOutlineTab
     internalVariantProps: PlasmicOutlineTab__VariantProps,

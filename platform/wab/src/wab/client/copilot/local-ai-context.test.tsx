@@ -12,7 +12,6 @@ import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
 import type { ValTag } from "@/wab/shared/core/val-nodes";
 import { act, cleanup, render, waitFor } from "@testing-library/react";
-import { observer } from "mobx-react";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -73,7 +72,7 @@ test("AI bridge follows native fences and view ownership, preserves model tracki
     expect(publish).toHaveBeenLastCalledWith(undefined);
     preview.isLive = false;
     expect(publish).toHaveBeenLastCalledWith(getLocalAiContext(studio));
-    studio.isDocs = true;
+    studio.setDocsMode(true);
     expect(publish).toHaveBeenLastCalledWith(undefined);
     publish.mockClear();
     studio.setFullPageHeightOverride(true);
@@ -81,7 +80,7 @@ test("AI bridge follows native fences and view ownership, preserves model tracki
     preview.isLive = true;
     preview.isLive = false;
     expect(publish).not.toHaveBeenCalled();
-    studio.isDocs = false;
+    studio.setDocsMode(false);
     expect(publish).toHaveBeenLastCalledWith(getLocalAiContext(studio));
     studio.editMode = false;
     expect(publish).toHaveBeenLastCalledWith(undefined);
@@ -90,8 +89,8 @@ test("AI bridge follows native fences and view ownership, preserves model tracki
     stop(); publish.mockClear();
     second.selection.setTpls([component.tplTree]);
     studio.startUnlogged(); studio.stopUnlogged();
-    studio.isDocs = true;
-    studio.isDocs = false;
+    studio.setDocsMode(true);
+    studio.setDocsMode(false);
     expect(publish).not.toHaveBeenCalled();
   } finally { stop(); preview.dispose(); await studio.awaitEval(); studio.dispose(); }
 });
@@ -99,7 +98,7 @@ test("AI bridge follows native fences and view ownership, preserves model tracki
 test("AI panel inputs update a stable observer without refreshing on unrelated save state", async () => {
   const { studio, component, first, arena } = await fixture();
   const commits = vi.fn();
-  const Probe = observer(function Probe() { useLocalAiContextInputs(studio); return <output>{JSON.stringify(getLocalAiContext(studio))}</output>; });
+  const Probe = React.memo(function Probe() { useLocalAiContextInputs(studio); return <output>{JSON.stringify(getLocalAiContext(studio))}</output>; });
   const view = render(<React.Profiler id="context" onRender={commits}><Probe /></React.Profiler>);
   try {
     commits.mockClear();

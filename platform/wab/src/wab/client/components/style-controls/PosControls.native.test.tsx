@@ -2,7 +2,7 @@ import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { PosControls2 } from "@/wab/client/components/style-controls/PosControls";
 import { BackgroundSection } from "@/wab/client/components/sidebar-tabs/background-section";
-import { SingleRsExpsProvider, StyleComponent, StyleComponentContext, type ExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { SingleRsExpsProvider, StyleTarget, StyleTargetContext, type ExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
 import { AppContext } from "@/wab/client/components/top-view";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
@@ -37,8 +37,8 @@ async function setup() {
   const f = fakeStudioCtx({ site }); studios.add(f.studioCtx);
   await waitFor(() => expect(f.studioCtx.initialRouteReady).toBe(true));
   f.studioCtx.createViewStateUndoRecord();
-  const studio = f.studioCtx, provider = new SingleRsExpsProvider(rs, exp, studio, [], { kind: "ruleSet", rs, forTag: "div" }), sc = new StyleComponent({ expsProvider: provider });
-  const wrap = (children: React.ReactNode) => <AppContext.Provider value={studio.app}><AppCtxContext.Provider value={f.appCtx}><StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={sc}><SidebarModalProvider containerSelector="#position-test-sidebar"><div id="position-test-sidebar" />{children}</SidebarModalProvider></StyleComponentContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider></AppContext.Provider>;
+  const studio = f.studioCtx, provider = new SingleRsExpsProvider(rs, exp, studio, [], { kind: "ruleSet", rs, forTag: "div" }), sc = new StyleTarget({ expsProvider: provider });
+  const wrap = (children: React.ReactNode) => <AppContext.Provider value={studio.app}><AppCtxContext.Provider value={f.appCtx}><StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={sc}><SidebarModalProvider containerSelector="#position-test-sidebar"><div id="position-test-sidebar" />{children}</SidebarModalProvider></StyleTargetContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider></AppContext.Provider>;
   return { ...f, studio, site, head, image, exp, provider, wrap };
 }
 function trigger(side: string) { return ensure(document.querySelector<HTMLButtonElement>(`[data-plasmic-pos-trigger="${side}"]`), "Original position trigger"); }
@@ -118,7 +118,7 @@ it("releases an actual open position dialog before model replacement and binds a
   mounted.rerender(content()); expect(declared).not.toHaveBeenCalled();
   const rs = ensure(f.studio.site.activeTheme, "Next position theme").defaultStyle.rs, exp = new RuleSetHelpers(rs, "div");
   const provider = new SingleRsExpsProvider(rs, exp, f.studio, [], { kind: "ruleSet", rs, forTag: "div" });
-  mounted.rerender(f.wrap(<StyleComponentContext.Provider value={new StyleComponent({ expsProvider: provider })}><PosControls2 expsProvider={provider} /></StyleComponentContext.Provider>));
+  mounted.rerender(f.wrap(<StyleTargetContext.Provider value={new StyleTarget({ expsProvider: provider })}><PosControls2 expsProvider={provider} /></StyleTargetContext.Provider>));
   expect(trigger("left").textContent).toBe("10px");
   expect(declared.mock.calls.some(([model]) => model === f.head || model === f.image)).toBe(false);
   mounted.unmount();

@@ -1,4 +1,5 @@
 import {
+  BottomModal,
   BottomModalButtons,
   BottomModals,
   BottomModalsProvider,
@@ -80,4 +81,14 @@ it("keeps query actions in the focus scope and handles Escape without changing t
   } finally {
     window.removeEventListener("keydown", underlyingKey);
   }
+});
+
+
+it("replaces a modal key without leaving the previous modal registered", async () => {
+  const field = (modalKey: string) => <BottomModalsProvider><BottomModal modalKey={modalKey} title={modalKey}><span>{modalKey} content</span></BottomModal><BottomModals /></BottomModalsProvider>;
+  const view = render(field("first"));
+  expect(await screen.findByRole("dialog", { name: "first" })).toBeTruthy();
+  view.rerender(field("second"));
+  expect(await screen.findByRole("dialog", { name: "second" })).toBeTruthy();
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "first" })).toBeNull());
 });

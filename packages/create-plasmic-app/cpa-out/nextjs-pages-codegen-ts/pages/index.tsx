@@ -4,7 +4,7 @@ import * as React from "react";
 import { PageParamsProvider as PageParamsProvider__ } from "@plasmicapp/react-web/lib/host";
 
 import { PlasmicHomepage } from "../components/plasmic/create_plasmic_app/PlasmicHomepage";
-import { useRouter } from "next/router";
+import { useRouter } from "next/compat/router";
 import { PlasmicQueryDataProvider } from "@plasmicapp/react-web/lib/query";
 
 function Homepage() {

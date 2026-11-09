@@ -62,7 +62,7 @@ export default function usePrice(
     return baseAmount
       ? formatVariantPrice({ amount, baseAmount, currencyCode, locale })
       : formatPrice({ amount, currencyCode, locale })
-  }, [amount, baseAmount, currencyCode])
+  }, [amount, baseAmount, currencyCode, locale])
 
   return typeof value === 'string' ? { price: value } : value
 }

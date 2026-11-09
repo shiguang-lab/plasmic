@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -80,11 +80,10 @@ function PlasmicListSeperator__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -173,12 +172,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -188,27 +183,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicListSeperator__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicListSeperator";
-  } else {
-    func.displayName = `PlasmicListSeperator.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicListSeperator__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicListSeperator__root<T extends PlasmicListSeperator__rootProps>(props: T & StrictProps<T, PlasmicListSeperator__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicListSeperator__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicListSeperator__root.displayName = "PlasmicListSeperator";
+
+type PlasmicListSeperator__separatorLineProps = NodeComponentProps<"separatorLine"> & {key?: React.Key};
+function PlasmicListSeperator__separatorLine<T extends PlasmicListSeperator__separatorLineProps>(props: T & StrictProps<T, PlasmicListSeperator__separatorLineProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("separatorLine", props);
+  return <PlasmicListSeperator__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"separatorLine"} />;
+}
+PlasmicListSeperator__separatorLine.displayName = "PlasmicListSeperator.separatorLine";
+
 
 export const PlasmicListSeperator = Object.assign(
   // Top-level PlasmicListSeperator renders the root element
-  makeNodeComponent("root"),
+  PlasmicListSeperator__root,
   {
     // Helper components rendering sub-elements
-    separatorLine: makeNodeComponent("separatorLine"),
+    separatorLine: PlasmicListSeperator__separatorLine,
 
     // Metadata about props expected for PlasmicListSeperator
     internalVariantProps: PlasmicListSeperator__VariantProps,

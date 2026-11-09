@@ -31,6 +31,7 @@ pnpm build
 
 ## Conventions
 
+- Run direct WAB checks with `platform/wab/node_modules/.bin/vitest` and `platform/wab/node_modules/.bin/tsc` (or `node_modules/.bin/...` from this directory). The repository root has a separate tool dependency tree; mixing its Vitest runner with WAB's dependencies can register matchers on a different test instance.
 - Use `Scrollbar` from `@shiguang2/components/esm/scrollbar` for UI scroll regions. Use the existing `VirtualListScrollbar` wrapper for virtualized lists and trees. Do not create native scrolling regions with `overflow: auto` / `overflow: scroll` or implement custom scrollbars; follow the root UI scroll container requirements.
 - Check `src/wab/shared/common.ts` before writing a helper. It is the shared
   grab-bag — `ensure`, `assert`, `withoutNils`, `maybe`, `only`, `tuple`,

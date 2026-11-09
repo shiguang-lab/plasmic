@@ -1,4 +1,6 @@
 import { useStore } from "zustand";
+import { uniqueKey } from "@/wab/shared/common";
+import { useShallow } from "zustand/react/shallow";
 import ListItem from "@/wab/client/components/ListItem";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import { FindReferencesModal } from "@/wab/client/components/sidebar/FindReferencesModal";
@@ -46,7 +48,8 @@ import { ImageAsset, ProjectDependency } from "@/wab/shared/model/classes";
 import { naturalSort } from "@/wab/shared/sort";
 import { canRead, canWrite } from "@/wab/shared/ui-config-utils";
 import { Menu } from "antd";
-import { observer } from "mobx-react";
+import { ProjectLibraryInputs, useLibraryAppInputs } from "@/wab/client/components/sidebar/library-inputs";
+import { useImageAssetList } from "@/wab/client/studio-ctx/image-asset-inputs";
 import { ok } from "neverthrow";
 import React from "react";
 import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
@@ -56,7 +59,19 @@ type ImageAssetTypeExpanded = {
   [ImageAssetType.Picture]: boolean;
 };
 
-export const ImageAssetsPanel = observer(function ImageAssetsPanel() {
+export const ImageAssetsPanel = React.memo(function ImageAssetsPanel() {
+  const studio = useStudioCtx();
+  useImageAssetList(studio, "direct");
+  useLibraryAppInputs(studio);
+  const models = studio.modelSnapshots, site = studio.site, lifetime = studio.arenaState.lifetime();
+  const owner = React.useMemo(() => ({ models, site, lifetime, key: uniqueKey(models) }), [models, site, lifetime]);
+  const projects = React.useMemo(() => new ProjectLibraryInputs(studio), [studio, owner]);
+  React.useSyncExternalStore(projects.subscribe, projects.getSnapshot, projects.getSnapshot);
+  const isActive = () => !owner.lifetime.aborted && studio.modelSnapshots === owner.models && studio.site === owner.site;
+  return isActive() ? <ImageAssetsPanelContent key={owner.key} isActive={isActive} /> : null;
+});
+
+function ImageAssetsPanelContent({ isActive }: { isActive: () => boolean }) {
   const studioCtx = useStudioCtx();
   const [query, setQuery] = React.useState("");
   const { filterDeps, filterProps } = useDepFilterButton({
@@ -67,7 +82,7 @@ export const ImageAssetsPanel = observer(function ImageAssetsPanel() {
   });
 
   const { canReadIcons, canWriteIcons, canReadImages, canWriteImages } =
-    getImageAssetsPermissions(studioCtx);
+    useImageAssetsPermissions(studioCtx);
 
   const matcher = new Matcher(query);
 
@@ -91,6 +106,7 @@ export const ImageAssetsPanel = observer(function ImageAssetsPanel() {
 
   const addAsset = async (type: ImageAssetType) => {
     return studioCtx.changeUnsafe(() => {
+      if (!isActive()) { return; }
       const asset = studioCtx.tplMgr().addImageAsset({
         type,
       });
@@ -177,6 +193,7 @@ export const ImageAssetsPanel = observer(function ImageAssetsPanel() {
         type="asset"
         selectableAssets={selectableAssets}
         onDelete={async (selected: string[]) => {
+          if (!isActive()) { return false; }
           const selectedAssetsIds = new Set(selected);
           const selectedAssets = studioCtx.site.imageAssets.filter((asset) => {
             return selectedAssetsIds.has(asset.uuid);
@@ -315,7 +332,7 @@ export const ImageAssetsPanel = observer(function ImageAssetsPanel() {
       )}
     </>
   );
-});
+}
 
 export function ImageAssetControl(props: {
   studioCtx: StudioCtx;
@@ -553,10 +570,11 @@ export function getCmsImageUrl(uploaded: ImageUploadResponse) {
   return uploaded.dataUri;
 }
 
-function getImageAssetsPermissions(studioCtx: StudioCtx) {
-  const panelPermission = studioCtx.getLeftTabPermission("images");
-  const iconsPermission = studioCtx.getLeftTabPermission("iconsSection");
-  const imagesPermission = studioCtx.getLeftTabPermission("imagesSection");
+function useImageAssetsPermissions(studioCtx: StudioCtx) {
+  const permissions = useStore(studioCtx.uiEnvironment.store, useShallow((state) => ({ images: state.leftTabPermissions.images, iconsSection: state.leftTabPermissions.iconsSection, imagesSection: state.leftTabPermissions.imagesSection })));
+  const panelPermission = permissions.images;
+  const iconsPermission = permissions.iconsSection;
+  const imagesPermission = permissions.imagesSection;
   return {
     canReadIcons: canRead(panelPermission, iconsPermission),
     canWriteIcons: canWrite(panelPermission, iconsPermission),

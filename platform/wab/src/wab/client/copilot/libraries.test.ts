@@ -15,8 +15,6 @@ import { flattenTpls } from "@/wab/shared/core/tpls";
 import { DEVFLAGS, type HostLessPackageInfo as CatalogEntry } from "@/wab/shared/devflags";
 import { HostLessPackageInfo, ProjectDependency, isKnownTplComponent } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
-import { makeGlobalObservable, clearGlobalObservable } from "@/wab/shared/mobx-util";
-import { runInAction } from "mobx";
 import { runInNewContext } from "node:vm";
 
 function entry(codeName: string, name: string, options: Partial<CatalogEntry> = {}): CatalogEntry {
@@ -95,7 +93,7 @@ it("keeps multi-project installation requirements and uncatalogued installed lib
 it("uses the store's team visibility rules", async () => {
   const allowed = entry("allowed", "Allowed", { hidden: true, whitelistTeams: ["team"] });
   const { studioCtx, call } = fixture([allowed, entry("denied", "Denied", { hidden: true })]);
-  runInAction(() => { studioCtx.siteInfo.teamId = "team" as TeamId; });
+  (() => { studioCtx.siteInfo.teamId = "team" as TeamId; })();
   expect((await call("listLibraries")).libraries.map((library: { name: string }) => library.name)).toEqual(["Allowed"]);
 });
 
@@ -158,7 +156,7 @@ it("uses a discovered provider ID to install the library, then exposes its proje
   const icons = dependency("antd-icons", [{ name: "AccountBookFilled", displayName: "AccountBookFilled" }]);
   const { call, studioCtx } = fixture([entry("antd-icons", "Ant Design Icons")], [icons]);
   const add = vi.spyOn(studioCtx.projectDependencyManager, "addByProjectId").mockImplementation(async () => {
-    runInAction(() => studioCtx.site.projectDependencies.push(icons));
+    (() => studioCtx.site.projectDependencies.push(icons))();
     return icons;
   });
   const registry = vi.spyOn(studioCtx, "updateCcRegistry").mockResolvedValue(undefined);
@@ -187,7 +185,7 @@ it("does not report an upgrade as successful before registration readiness, and 
   const latest = dependency("overseas", []);
   const { call, studioCtx } = fixture([], [latest], [old]);
   const upgrade = vi.spyOn(studioCtx.projectDependencyManager, "upgradeProjectDeps").mockImplementation(async ([next]) => {
-    runInAction(() => studioCtx.site.projectDependencies.splice(0, 1, next));
+    (() => studioCtx.site.projectDependencies.splice(0, 1, next))();
   });
   const ready = vi.spyOn(studioCtx, "ensureCodeComponentRegistrations")
     .mockRejectedValueOnce(new Error("Registration failed"))
@@ -207,7 +205,6 @@ it("installs and upgrades through the real dependency manager, reads new live co
   DEVFLAGS.hostLessComponents = catalog;
   // Match studio-initializer: lazy model observation invalidates cached trees
   // through this observable during real editing sessions.
-  makeGlobalObservable();
   const { studioCtx, api, call, versions } = fixture(catalog, [library]);
   const realBundles = await vi.importActual<typeof studioBundles>("@/wab/client/components/studio/studio-bundles");
   vi.spyOn(studioBundles, "getSortedHostLessPkgs").mockImplementation(realBundles.getSortedHostLessPkgs);
@@ -270,7 +267,6 @@ it("installs and upgrades through the real dependency manager, reads new live co
     expect((await call("getLibrary", { projectId: latest.projectId })).updateAvailable).toBe(false);
   } finally {
     DEVFLAGS.hostLessComponents = previousCatalog;
-    clearGlobalObservable();
     vi.unstubAllGlobals();
   }
 });

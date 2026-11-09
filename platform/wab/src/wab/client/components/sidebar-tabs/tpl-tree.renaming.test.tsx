@@ -1,3 +1,4 @@
+import { AppContext } from "@/wab/client/components/top-view";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { OutlineCtx } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
 import { ArenaTree, TreeDndManager } from "@/wab/client/components/sidebar-tabs/tpl-tree";
@@ -32,7 +33,7 @@ afterEach(() => { cleanup(); labelRender.mockClear(); vi.restoreAllMocks(); });
 
 it("opens the actual focused tag and slot rename editors from the native command, then commits and cancels", async () => {
   vi.spyOn(ViewCtx.prototype, "isVisible").mockReturnValue(false);
-  const { studioCtx: studio } = fakeStudioCtx();
+  const { studioCtx: studio, app } = fakeStudioCtx();
   await waitFor(() => expect(studio.initialRouteReady).toBe(true));
   const component = await studio.changeUnsafe(() => studio.addComponent("Rename tree", { type: ComponentType.Plain }));
   const root = ensureKnownTplTag(component.tplTree);
@@ -49,7 +50,7 @@ it("opens the actual focused tag and slot rename editors from the native command
   vc.setStudioFocusByTpl(node);
   const outline = new OutlineCtx(studio, "");
   outline.expandAll();
-  const view = render(<StudioCtxContext.Provider value={studio}><ArenaTree studioCtx={studio} arena={studio.currentArena} outlineCtx={outline} dndManager={new TreeDndManager(studio)} /></StudioCtxContext.Provider>);
+  const view = render(<AppContext.Provider value={app}><StudioCtxContext.Provider value={studio}><ArenaTree studioCtx={studio} arena={studio.currentArena} outlineCtx={outline} dndManager={new TreeDndManager(studio)} /></StudioCtxContext.Provider></AppContext.Provider>);
   try {
     expect(screen.queryByPlaceholderText("Element name")).toBeNull();
     const otherRenders = labelRender.mock.calls.filter(([name]) => name === "OtherNode").length;

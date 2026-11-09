@@ -41,7 +41,7 @@ export const FontFamilyTokenEditModal = function FontFamilyTokenEditModal(props:
       spawn(
         studioCtx.change(() => {
           if (newTokenValueAllowed(token, studioCtx.site, val, vsh)) {
-            studioCtx.fontManager.useFont(studioCtx, val);
+            studioCtx.fontManager.loadFont(studioCtx, val);
             vsh.updateToken(token, val);
           }
           return ok();

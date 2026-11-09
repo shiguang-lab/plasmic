@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicImg as PlasmicImg__,
   SingleBooleanChoiceArg,
   StrictProps,
@@ -23,13 +23,13 @@ import {
   createPlasmicElementProxy,
   deriveRenderOpts,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -110,11 +110,10 @@ function PlasmicVersionsListItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "publish",
@@ -129,18 +128,20 @@ function PlasmicVersionsListItem__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.isSelected,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -702,12 +703,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -717,41 +714,141 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVersionsListItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "listItemContainer") {
-    func.displayName = "PlasmicVersionsListItem";
-  } else {
-    func.displayName = `PlasmicVersionsListItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVersionsListItem__listItemContainerProps = NodeComponentProps<"listItemContainer"> & {key?: React.Key};
+function PlasmicVersionsListItem__listItemContainer<T extends PlasmicVersionsListItem__listItemContainerProps>(props: T & StrictProps<T, PlasmicVersionsListItem__listItemContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("listItemContainer", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"listItemContainer"} />;
+}
+PlasmicVersionsListItem__listItemContainer.displayName = "PlasmicVersionsListItem";
+
+type PlasmicVersionsListItem__listTopContainerProps = NodeComponentProps<"listTopContainer"> & {key?: React.Key};
+function PlasmicVersionsListItem__listTopContainer<T extends PlasmicVersionsListItem__listTopContainerProps>(props: T & StrictProps<T, PlasmicVersionsListItem__listTopContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("listTopContainer", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"listTopContainer"} />;
+}
+PlasmicVersionsListItem__listTopContainer.displayName = "PlasmicVersionsListItem.listTopContainer";
+
+type PlasmicVersionsListItem__versionWrapperProps = NodeComponentProps<"versionWrapper"> & {key?: React.Key};
+function PlasmicVersionsListItem__versionWrapper<T extends PlasmicVersionsListItem__versionWrapperProps>(props: T & StrictProps<T, PlasmicVersionsListItem__versionWrapperProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("versionWrapper", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"versionWrapper"} />;
+}
+PlasmicVersionsListItem__versionWrapper.displayName = "PlasmicVersionsListItem.versionWrapper";
+
+type PlasmicVersionsListItem__versionNumberProps = NodeComponentProps<"versionNumber"> & {key?: React.Key};
+function PlasmicVersionsListItem__versionNumber<T extends PlasmicVersionsListItem__versionNumberProps>(props: T & StrictProps<T, PlasmicVersionsListItem__versionNumberProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("versionNumber", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"versionNumber"} />;
+}
+PlasmicVersionsListItem__versionNumber.displayName = "PlasmicVersionsListItem.versionNumber";
+
+type PlasmicVersionsListItem__versionTitleProps = NodeComponentProps<"versionTitle"> & {key?: React.Key};
+function PlasmicVersionsListItem__versionTitle<T extends PlasmicVersionsListItem__versionTitleProps>(props: T & StrictProps<T, PlasmicVersionsListItem__versionTitleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("versionTitle", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"versionTitle"} />;
+}
+PlasmicVersionsListItem__versionTitle.displayName = "PlasmicVersionsListItem.versionTitle";
+
+type PlasmicVersionsListItem__btnMoreProps = NodeComponentProps<"btnMore"> & {key?: React.Key};
+function PlasmicVersionsListItem__btnMore<T extends PlasmicVersionsListItem__btnMoreProps>(props: T & StrictProps<T, PlasmicVersionsListItem__btnMoreProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("btnMore", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"btnMore"} />;
+}
+PlasmicVersionsListItem__btnMore.displayName = "PlasmicVersionsListItem.btnMore";
+
+type PlasmicVersionsListItem__versionsTagsContainerProps = NodeComponentProps<"versionsTagsContainer"> & {key?: React.Key};
+function PlasmicVersionsListItem__versionsTagsContainer<T extends PlasmicVersionsListItem__versionsTagsContainerProps>(props: T & StrictProps<T, PlasmicVersionsListItem__versionsTagsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("versionsTagsContainer", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"versionsTagsContainer"} />;
+}
+PlasmicVersionsListItem__versionsTagsContainer.displayName = "PlasmicVersionsListItem.versionsTagsContainer";
+
+type PlasmicVersionsListItem__itemInfoContainerProps = NodeComponentProps<"itemInfoContainer"> & {key?: React.Key};
+function PlasmicVersionsListItem__itemInfoContainer<T extends PlasmicVersionsListItem__itemInfoContainerProps>(props: T & StrictProps<T, PlasmicVersionsListItem__itemInfoContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("itemInfoContainer", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"itemInfoContainer"} />;
+}
+PlasmicVersionsListItem__itemInfoContainer.displayName = "PlasmicVersionsListItem.itemInfoContainer";
+
+type PlasmicVersionsListItem__userAndDateContainerProps = NodeComponentProps<"userAndDateContainer"> & {key?: React.Key};
+function PlasmicVersionsListItem__userAndDateContainer<T extends PlasmicVersionsListItem__userAndDateContainerProps>(props: T & StrictProps<T, PlasmicVersionsListItem__userAndDateContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("userAndDateContainer", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"userAndDateContainer"} />;
+}
+PlasmicVersionsListItem__userAndDateContainer.displayName = "PlasmicVersionsListItem.userAndDateContainer";
+
+type PlasmicVersionsListItem__avatarContainerProps = NodeComponentProps<"avatarContainer"> & {key?: React.Key};
+function PlasmicVersionsListItem__avatarContainer<T extends PlasmicVersionsListItem__avatarContainerProps>(props: T & StrictProps<T, PlasmicVersionsListItem__avatarContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("avatarContainer", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"avatarContainer"} />;
+}
+PlasmicVersionsListItem__avatarContainer.displayName = "PlasmicVersionsListItem.avatarContainer";
+
+type PlasmicVersionsListItem__imgProps = NodeComponentProps<"img"> & {key?: React.Key};
+function PlasmicVersionsListItem__img<T extends PlasmicVersionsListItem__imgProps>(props: T & StrictProps<T, PlasmicVersionsListItem__imgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("img", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"img"} />;
+}
+PlasmicVersionsListItem__img.displayName = "PlasmicVersionsListItem.img";
+
+type PlasmicVersionsListItem__nameAndDateProps = NodeComponentProps<"nameAndDate"> & {key?: React.Key};
+function PlasmicVersionsListItem__nameAndDate<T extends PlasmicVersionsListItem__nameAndDateProps>(props: T & StrictProps<T, PlasmicVersionsListItem__nameAndDateProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("nameAndDate", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"nameAndDate"} />;
+}
+PlasmicVersionsListItem__nameAndDate.displayName = "PlasmicVersionsListItem.nameAndDate";
+
+type PlasmicVersionsListItem__userNameProps = NodeComponentProps<"userName"> & {key?: React.Key};
+function PlasmicVersionsListItem__userName<T extends PlasmicVersionsListItem__userNameProps>(props: T & StrictProps<T, PlasmicVersionsListItem__userNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("userName", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"userName"} />;
+}
+PlasmicVersionsListItem__userName.displayName = "PlasmicVersionsListItem.userName";
+
+type PlasmicVersionsListItem__versionDateTimeProps = NodeComponentProps<"versionDateTime"> & {key?: React.Key};
+function PlasmicVersionsListItem__versionDateTime<T extends PlasmicVersionsListItem__versionDateTimeProps>(props: T & StrictProps<T, PlasmicVersionsListItem__versionDateTimeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("versionDateTime", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"versionDateTime"} />;
+}
+PlasmicVersionsListItem__versionDateTime.displayName = "PlasmicVersionsListItem.versionDateTime";
+
+type PlasmicVersionsListItem__revertBtnProps = NodeComponentProps<"revertBtn"> & {key?: React.Key};
+function PlasmicVersionsListItem__revertBtn<T extends PlasmicVersionsListItem__revertBtnProps>(props: T & StrictProps<T, PlasmicVersionsListItem__revertBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("revertBtn", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"revertBtn"} />;
+}
+PlasmicVersionsListItem__revertBtn.displayName = "PlasmicVersionsListItem.revertBtn";
+
+type PlasmicVersionsListItem__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicVersionsListItem__svg<T extends PlasmicVersionsListItem__svgProps>(props: T & StrictProps<T, PlasmicVersionsListItem__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicVersionsListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicVersionsListItem__svg.displayName = "PlasmicVersionsListItem.svg";
+
 
 export const PlasmicVersionsListItem = Object.assign(
   // Top-level PlasmicVersionsListItem renders the root element
-  makeNodeComponent("listItemContainer"),
+  PlasmicVersionsListItem__listItemContainer,
   {
     // Helper components rendering sub-elements
-    listTopContainer: makeNodeComponent("listTopContainer"),
-    versionWrapper: makeNodeComponent("versionWrapper"),
-    versionNumber: makeNodeComponent("versionNumber"),
-    versionTitle: makeNodeComponent("versionTitle"),
-    btnMore: makeNodeComponent("btnMore"),
-    versionsTagsContainer: makeNodeComponent("versionsTagsContainer"),
-    itemInfoContainer: makeNodeComponent("itemInfoContainer"),
-    userAndDateContainer: makeNodeComponent("userAndDateContainer"),
-    avatarContainer: makeNodeComponent("avatarContainer"),
-    img: makeNodeComponent("img"),
-    nameAndDate: makeNodeComponent("nameAndDate"),
-    userName: makeNodeComponent("userName"),
-    versionDateTime: makeNodeComponent("versionDateTime"),
-    revertBtn: makeNodeComponent("revertBtn"),
-    svg: makeNodeComponent("svg"),
+    listTopContainer: PlasmicVersionsListItem__listTopContainer,
+    versionWrapper: PlasmicVersionsListItem__versionWrapper,
+    versionNumber: PlasmicVersionsListItem__versionNumber,
+    versionTitle: PlasmicVersionsListItem__versionTitle,
+    btnMore: PlasmicVersionsListItem__btnMore,
+    versionsTagsContainer: PlasmicVersionsListItem__versionsTagsContainer,
+    itemInfoContainer: PlasmicVersionsListItem__itemInfoContainer,
+    userAndDateContainer: PlasmicVersionsListItem__userAndDateContainer,
+    avatarContainer: PlasmicVersionsListItem__avatarContainer,
+    img: PlasmicVersionsListItem__img,
+    nameAndDate: PlasmicVersionsListItem__nameAndDate,
+    userName: PlasmicVersionsListItem__userName,
+    versionDateTime: PlasmicVersionsListItem__versionDateTime,
+    revertBtn: PlasmicVersionsListItem__revertBtn,
+    svg: PlasmicVersionsListItem__svg,
 
     // Metadata about props expected for PlasmicVersionsListItem
     internalVariantProps: PlasmicVersionsListItem__VariantProps,

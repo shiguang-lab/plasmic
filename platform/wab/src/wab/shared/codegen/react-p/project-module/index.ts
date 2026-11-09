@@ -1,7 +1,6 @@
 import { ProjectId } from "@/wab/shared/ApiSchema";
 import { serializeUseGlobalVariants } from "@/wab/shared/codegen/react-p/global-variants";
 import {
-  makeCreateUseGlobalVariantsName,
   makePlasmicModulePrelude,
   makeProjectModuleFileName,
 } from "@/wab/shared/codegen/react-p/serialize-utils";
@@ -42,7 +41,7 @@ export function makeProjectModuleBundle(
 
   const module = `${makePlasmicModulePrelude(projectId)}
   
-    import { ${makeCreateUseGlobalVariantsName()} } from "${getReactWebPackageName(
+    import { ensureGlobalVariants } from "${getReactWebPackageName(
       exportOpts,
     )}";
     ${globalVariantImports}

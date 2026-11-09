@@ -19,7 +19,7 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 import { readFileSync } from "node:fs";
 import * as React from "react";
 
@@ -170,7 +170,7 @@ it("keeps popup primary labels and icons paired with their fill on hover", () =>
   );
   for (const appearance of ["dark", "light", "dark"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     slots.forEach((slot) => expectColor(slot, token.colorTextLightSolid));
     hover(action);
     slots.forEach((slot) => expectColor(slot, token.colorTextLightSolid));
@@ -203,7 +203,7 @@ it("keeps collapsed search and clear icons readable on hover", () => {
   for (const appearance of ["dark", "light", "dark"] as const) {
     fireEvent.mouseOut(root);
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     expectColor(icon, token.colorTextSecondary);
     hover(root);
     expectColor(icon, token.colorText);
@@ -228,7 +228,7 @@ it("themes chip removal and the color picker's surrounding surface", () => {
   );
   for (const appearance of ["dark", "light", "dark"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     hover(remove);
     expectColor(remove, token.colorText);
     expectColor(
@@ -251,7 +251,7 @@ it("binds colored action scales through normal, hover and pressed states", () =>
   );
   for (const appearance of ["dark", "light", "dark"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const action = ensure(
       container.querySelector("button"),
       "Expected generated action",
@@ -300,7 +300,7 @@ it.each(["insert", "selected insert", "data source", "workspace"] as const)(
     );
     for (const appearance of ["dark", "light", "dark"] as const) {
       act(() => setAppearancePreference(appearance));
-      const token = theme.getDesignToken(productTheme(appearance));
+      const token = AntdTheme.getDesignToken(productTheme(appearance));
       hover(root);
       expectColor(
         root,

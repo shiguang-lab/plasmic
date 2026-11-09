@@ -67,6 +67,11 @@ try {
   }
   await readFile(path.join(source, "index.html"));
   await readFile(path.join(source, "studio.js.template"));
+  // A release image may also describe a Desktop-targeted frontend. Preserve its
+  // declared target without comparing the release's sources to this checkout.
+  const sourceBuild = studioBuild ?? ((await readdir(source)).includes("studio-build.json")
+    ? JSON.parse(await readFile(path.join(source, "studio-build.json"), "utf8"))
+    : undefined);
   const target = path.join(desktop, "renderer");
   if (source === target)
     throw new Error(
@@ -128,6 +133,7 @@ try {
           builtAt: studioBuild?.builtAt ?? new Date().toISOString(),
           sourceHash: studioBuild?.sourceHash,
           reactCompiler: studioBuild?.reactCompiler,
+          browserTarget: sourceBuild?.browserTarget,
           rendererHash: await hashFiles(target, ["."], ["desktop-assets.json"]),
           desktopHash: await hashFiles(desktop, desktopSources),
         },

@@ -35,15 +35,19 @@ import {
 } from "@/wab/shared/model/classes";
 import { Dropdown, Menu } from "antd";
 import { findIndex } from "lodash";
-import { observer } from "mobx-react";
+import { useCustomBehaviorInputs } from "@/wab/client/components/sidebar-tabs/custom-behavior-inputs";
+import { useLibraryAppInputs } from "@/wab/client/components/sidebar/library-inputs";
 import React from "react";
 
-export const CustomBehaviorsSection = observer(function (props: {
+export const CustomBehaviorsSection = React.memo(function CustomBehaviorsSection(props: {
   tpl: TplNode;
   viewCtx: ViewCtx;
 }) {
   const { t: uiT } = useI18n();
   const { tpl, viewCtx } = props;
+  const inputs = useCustomBehaviorInputs(viewCtx, tpl);
+  useLibraryAppInputs(viewCtx.studioCtx);
+  if (!inputs.alive) {return null;}
 
   // Getting immediate parents that are code component attachments
   const ancestors = $$$(tpl).ancestors().toArray();
@@ -62,7 +66,7 @@ export const CustomBehaviorsSection = observer(function (props: {
   ) as TplComponent[];
 
   const components = getAttachmentComponents(viewCtx.studioCtx);
-  const menu = getMenu(viewCtx, components, tpl);
+  const menu = getMenu(viewCtx, components, tpl, inputs.isCurrent);
 
   return (
     <SidebarSection
@@ -92,11 +96,11 @@ export const CustomBehaviorsSection = observer(function (props: {
                 {...{
                   onClick: () => {
                     viewCtx.change(() => {
-                      viewCtx.setStudioFocusByTpl(attach);
+                      if (inputs.isCurrent()) {viewCtx.setStudioFocusByTpl(attach);}
                     });
                   },
                 }}
-                onRemove={() => detachComp(viewCtx, attach)}
+                onRemove={() => {if (inputs.isCurrent()) {detachComp(viewCtx, attach);}}}
                 mainContent={
                   <div style={{ minWidth: 80 }}>
                     {getComponentDisplayName(attach.component)}
@@ -135,6 +139,7 @@ export function getMenu(
   viewCtx: ViewCtx,
   components: Component[],
   selectedTpl: TplNode,
+  isCurrent: () => boolean,
 ) {
   const defaultPacksNames = [
     "react-awesome-reveal",
@@ -162,7 +167,7 @@ export function getMenu(
         <Menu.Item
           key={comp.uuid}
           onClick={() => {
-            attachComp(viewCtx, comp, selectedTpl);
+            if (isCurrent()) {attachComp(viewCtx, comp, selectedTpl);}
           }}
         >
           {getComponentDisplayName(comp)}
@@ -179,11 +184,13 @@ export function getMenu(
           <Menu.Item
             key={pack.codeName}
             onClick={async () => {
+              if (!isCurrent()) {return;}
               if (checkAndNotifyUnsupportedHostVersion()) {
                 return;
               }
               const projectDependencies: ProjectDependency[] = [];
               for (const id of ensureArray(pack.projectId)) {
+                if (!isCurrent()) {return;}
                 projectDependencies.push(
                   await viewCtx.studioCtx.projectDependencyManager.addByProjectId(
                     id,
@@ -191,6 +198,7 @@ export function getMenu(
                 );
               }
 
+              if (!isCurrent()) {return;}
               projectDependencies.forEach((projectDependency) =>
                 maybeShowGlobalContextNotification(
                   viewCtx.studioCtx,

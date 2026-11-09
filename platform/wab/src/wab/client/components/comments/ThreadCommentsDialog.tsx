@@ -1,3 +1,4 @@
+import { CommentSubjectName, CommentSubjectType } from "@/wab/client/components/comments/CommentSubjectInputs";
 import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import CommentPostForm from "@/wab/client/components/comments/CommentPostForm";
 import { FloatingWindow } from "@/wab/client/components/widgets/FloatingWindow";
@@ -9,8 +10,6 @@ import {
 import { OpenedThread } from "@/wab/client/studio-ctx/comments-ctx";
 import { canUpdateHistory } from "@/wab/client/studio-ctx/StudioCtx";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
-import { summarizeTpl } from "@/wab/shared/core/tpls";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useStore } from "zustand";
 
@@ -18,7 +17,7 @@ export type ThreadCommentsDialogProps = DefaultThreadCommentsDialogProps & {
   openedThread: OpenedThread;
 };
 
-export const ThreadCommentsDialog = observer(function ThreadCommentsDialog({
+export const ThreadCommentsDialog = React.memo(function ThreadCommentsDialog({
   openedThread,
   ...props
 }: ThreadCommentsDialogProps) {
@@ -73,14 +72,9 @@ export const ThreadCommentsDialog = observer(function ThreadCommentsDialog({
             },
             ...(subjectInfo
               ? {
-                  name: subjectInfo.subject.name || "Unnamed element",
+                  name: <CommentSubjectName studio={studioCtx} subject={subjectInfo.subject} fallback="Unnamed element" />,
                   type: openedThread.viewCtx
-                    ? summarizeTpl(
-                        subjectInfo.subject,
-                        openedThread.viewCtx
-                          .effectiveCurrentVariantSetting(subjectInfo.subject)
-                          .rsh(),
-                      )
+                    ? <CommentSubjectType view={openedThread.viewCtx} subject={subjectInfo.subject} />
                     : "",
                 }
               : {

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,7 +26,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import LabeledProp from "../../components/docs/LabeledProp"; // plasmic-import: 95ed9ODv12/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -95,11 +95,10 @@ function PlasmicElementProp__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -206,12 +205,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -221,28 +216,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicElementProp__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicElementProp";
-  } else {
-    func.displayName = `PlasmicElementProp.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicElementProp__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicElementProp__root<T extends PlasmicElementProp__rootProps>(props: T & StrictProps<T, PlasmicElementProp__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicElementProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicElementProp__root.displayName = "PlasmicElementProp";
+
+type PlasmicElementProp__labeledPropProps = NodeComponentProps<"labeledProp"> & {key?: React.Key};
+function PlasmicElementProp__labeledProp<T extends PlasmicElementProp__labeledPropProps>(props: T & StrictProps<T, PlasmicElementProp__labeledPropProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labeledProp", props);
+  return <PlasmicElementProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labeledProp"} />;
+}
+PlasmicElementProp__labeledProp.displayName = "PlasmicElementProp.labeledProp";
+
+type PlasmicElementProp__addButtonProps = NodeComponentProps<"addButton"> & {key?: React.Key};
+function PlasmicElementProp__addButton<T extends PlasmicElementProp__addButtonProps>(props: T & StrictProps<T, PlasmicElementProp__addButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addButton", props);
+  return <PlasmicElementProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addButton"} />;
+}
+PlasmicElementProp__addButton.displayName = "PlasmicElementProp.addButton";
+
 
 export const PlasmicElementProp = Object.assign(
   // Top-level PlasmicElementProp renders the root element
-  makeNodeComponent("root"),
+  PlasmicElementProp__root,
   {
     // Helper components rendering sub-elements
-    labeledProp: makeNodeComponent("labeledProp"),
-    addButton: makeNodeComponent("addButton"),
+    labeledProp: PlasmicElementProp__labeledProp,
+    addButton: PlasmicElementProp__addButton,
 
     // Metadata about props expected for PlasmicElementProp
     internalVariantProps: PlasmicElementProp__VariantProps,

@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -26,7 +26,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import LeftPaneHeader from "../../components/studio/LeftPaneHeader"; // plasmic-import: XLa52PvduIy/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -94,11 +94,10 @@ function PlasmicLeftSplitsPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -307,12 +306,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -322,36 +317,101 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftSplitsPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftSplitsPanel";
-  } else {
-    func.displayName = `PlasmicLeftSplitsPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftSplitsPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftSplitsPanel__root<T extends PlasmicLeftSplitsPanel__rootProps>(props: T & StrictProps<T, PlasmicLeftSplitsPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftSplitsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftSplitsPanel__root.displayName = "PlasmicLeftSplitsPanel";
+
+type PlasmicLeftSplitsPanel__abHeaderProps = NodeComponentProps<"abHeader"> & {key?: React.Key};
+function PlasmicLeftSplitsPanel__abHeader<T extends PlasmicLeftSplitsPanel__abHeaderProps>(props: T & StrictProps<T, PlasmicLeftSplitsPanel__abHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("abHeader", props);
+  return <PlasmicLeftSplitsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"abHeader"} />;
+}
+PlasmicLeftSplitsPanel__abHeader.displayName = "PlasmicLeftSplitsPanel.abHeader";
+
+type PlasmicLeftSplitsPanel__newTestButtonProps = NodeComponentProps<"newTestButton"> & {key?: React.Key};
+function PlasmicLeftSplitsPanel__newTestButton<T extends PlasmicLeftSplitsPanel__newTestButtonProps>(props: T & StrictProps<T, PlasmicLeftSplitsPanel__newTestButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newTestButton", props);
+  return <PlasmicLeftSplitsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newTestButton"} />;
+}
+PlasmicLeftSplitsPanel__newTestButton.displayName = "PlasmicLeftSplitsPanel.newTestButton";
+
+type PlasmicLeftSplitsPanel__abContentProps = NodeComponentProps<"abContent"> & {key?: React.Key};
+function PlasmicLeftSplitsPanel__abContent<T extends PlasmicLeftSplitsPanel__abContentProps>(props: T & StrictProps<T, PlasmicLeftSplitsPanel__abContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("abContent", props);
+  return <PlasmicLeftSplitsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"abContent"} />;
+}
+PlasmicLeftSplitsPanel__abContent.displayName = "PlasmicLeftSplitsPanel.abContent";
+
+type PlasmicLeftSplitsPanel__segmentsHeaderProps = NodeComponentProps<"segmentsHeader"> & {key?: React.Key};
+function PlasmicLeftSplitsPanel__segmentsHeader<T extends PlasmicLeftSplitsPanel__segmentsHeaderProps>(props: T & StrictProps<T, PlasmicLeftSplitsPanel__segmentsHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("segmentsHeader", props);
+  return <PlasmicLeftSplitsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"segmentsHeader"} />;
+}
+PlasmicLeftSplitsPanel__segmentsHeader.displayName = "PlasmicLeftSplitsPanel.segmentsHeader";
+
+type PlasmicLeftSplitsPanel__newSegmentButtonProps = NodeComponentProps<"newSegmentButton"> & {key?: React.Key};
+function PlasmicLeftSplitsPanel__newSegmentButton<T extends PlasmicLeftSplitsPanel__newSegmentButtonProps>(props: T & StrictProps<T, PlasmicLeftSplitsPanel__newSegmentButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newSegmentButton", props);
+  return <PlasmicLeftSplitsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newSegmentButton"} />;
+}
+PlasmicLeftSplitsPanel__newSegmentButton.displayName = "PlasmicLeftSplitsPanel.newSegmentButton";
+
+type PlasmicLeftSplitsPanel__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicLeftSplitsPanel__text<T extends PlasmicLeftSplitsPanel__textProps>(props: T & StrictProps<T, PlasmicLeftSplitsPanel__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicLeftSplitsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicLeftSplitsPanel__text.displayName = "PlasmicLeftSplitsPanel.text";
+
+type PlasmicLeftSplitsPanel__segmentsContentProps = NodeComponentProps<"segmentsContent"> & {key?: React.Key};
+function PlasmicLeftSplitsPanel__segmentsContent<T extends PlasmicLeftSplitsPanel__segmentsContentProps>(props: T & StrictProps<T, PlasmicLeftSplitsPanel__segmentsContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("segmentsContent", props);
+  return <PlasmicLeftSplitsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"segmentsContent"} />;
+}
+PlasmicLeftSplitsPanel__segmentsContent.displayName = "PlasmicLeftSplitsPanel.segmentsContent";
+
+type PlasmicLeftSplitsPanel__leftPaneHeaderProps = NodeComponentProps<"leftPaneHeader"> & {key?: React.Key};
+function PlasmicLeftSplitsPanel__leftPaneHeader<T extends PlasmicLeftSplitsPanel__leftPaneHeaderProps>(props: T & StrictProps<T, PlasmicLeftSplitsPanel__leftPaneHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftPaneHeader", props);
+  return <PlasmicLeftSplitsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftPaneHeader"} />;
+}
+PlasmicLeftSplitsPanel__leftPaneHeader.displayName = "PlasmicLeftSplitsPanel.leftPaneHeader";
+
+type PlasmicLeftSplitsPanel__newScheduleButtonProps = NodeComponentProps<"newScheduleButton"> & {key?: React.Key};
+function PlasmicLeftSplitsPanel__newScheduleButton<T extends PlasmicLeftSplitsPanel__newScheduleButtonProps>(props: T & StrictProps<T, PlasmicLeftSplitsPanel__newScheduleButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newScheduleButton", props);
+  return <PlasmicLeftSplitsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newScheduleButton"} />;
+}
+PlasmicLeftSplitsPanel__newScheduleButton.displayName = "PlasmicLeftSplitsPanel.newScheduleButton";
+
+type PlasmicLeftSplitsPanel__scheduledContentProps = NodeComponentProps<"scheduledContent"> & {key?: React.Key};
+function PlasmicLeftSplitsPanel__scheduledContent<T extends PlasmicLeftSplitsPanel__scheduledContentProps>(props: T & StrictProps<T, PlasmicLeftSplitsPanel__scheduledContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("scheduledContent", props);
+  return <PlasmicLeftSplitsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"scheduledContent"} />;
+}
+PlasmicLeftSplitsPanel__scheduledContent.displayName = "PlasmicLeftSplitsPanel.scheduledContent";
+
 
 export const PlasmicLeftSplitsPanel = Object.assign(
   // Top-level PlasmicLeftSplitsPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftSplitsPanel__root,
   {
     // Helper components rendering sub-elements
-    abHeader: makeNodeComponent("abHeader"),
-    newTestButton: makeNodeComponent("newTestButton"),
-    abContent: makeNodeComponent("abContent"),
-    segmentsHeader: makeNodeComponent("segmentsHeader"),
-    newSegmentButton: makeNodeComponent("newSegmentButton"),
-    text: makeNodeComponent("text"),
-    segmentsContent: makeNodeComponent("segmentsContent"),
-    leftPaneHeader: makeNodeComponent("leftPaneHeader"),
-    newScheduleButton: makeNodeComponent("newScheduleButton"),
-    scheduledContent: makeNodeComponent("scheduledContent"),
+    abHeader: PlasmicLeftSplitsPanel__abHeader,
+    newTestButton: PlasmicLeftSplitsPanel__newTestButton,
+    abContent: PlasmicLeftSplitsPanel__abContent,
+    segmentsHeader: PlasmicLeftSplitsPanel__segmentsHeader,
+    newSegmentButton: PlasmicLeftSplitsPanel__newSegmentButton,
+    text: PlasmicLeftSplitsPanel__text,
+    segmentsContent: PlasmicLeftSplitsPanel__segmentsContent,
+    leftPaneHeader: PlasmicLeftSplitsPanel__leftPaneHeader,
+    newScheduleButton: PlasmicLeftSplitsPanel__newScheduleButton,
+    scheduledContent: PlasmicLeftSplitsPanel__scheduledContent,
 
     // Metadata about props expected for PlasmicLeftSplitsPanel
     internalVariantProps: PlasmicLeftSplitsPanel__VariantProps,

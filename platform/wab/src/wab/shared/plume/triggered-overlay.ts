@@ -8,7 +8,7 @@ import {
   makePlasmicComponentName,
 } from "@/wab/shared/codegen/react-p/serialize-utils";
 import { SerializerBaseContext } from "@/wab/shared/codegen/react-p/types";
-import { getPlumePackageName } from "@/wab/shared/codegen/react-p/utils";
+import { getPlumePackageName, getReactWebPackageName } from "@/wab/shared/codegen/react-p/utils";
 import {
   jsLiteral,
   paramToVarName,
@@ -32,7 +32,7 @@ const triggeredOverlayConfig = {
 export const TriggeredOverlayPlugin: PlumePlugin = {
   // PlumeCanvasPlugin
   genCanvasWrapperComponent: (sub, comp, observer) => {
-    return sub.React.forwardRef((allProps, ref: TriggeredOverlayRef) =>
+    return sub.createCanvasComponentType((allProps, ref: TriggeredOverlayRef) =>
       observer(() => {
         // We are editing the Overlay component itself - don't need the hook
         // and using it will throw.
@@ -45,8 +45,8 @@ export const TriggeredOverlayPlugin: PlumePlugin = {
   genHook(ctx: SerializerBaseContext) {
     const { component } = ctx;
     return `
-      function useBehavior<P extends pp.BaseTriggeredOverlayProps>(props: P, ref: pp.TriggeredOverlayRef) {
-        return pp.useTriggeredOverlay(
+      function useBehavior<P extends Plume.BaseTriggeredOverlayProps>(props: P, ref: Plume.TriggeredOverlayRef) {
+        return Plume.useTriggeredOverlay(
           ${makePlasmicComponentName(component)},
           props,
           ${jsLiteral(triggeredOverlayConfig)},
@@ -63,7 +63,7 @@ export const TriggeredOverlayPlugin: PlumePlugin = {
     return `
       export interface ${
         opts?.typeName ?? makeDefaultExternalPropsName(component)
-      } extends pp.BaseTriggeredOverlayProps {
+      } extends Plume.BaseTriggeredOverlayProps {
         ${params
           .map(
             (param) =>
@@ -108,6 +108,16 @@ export const TriggeredOverlayPlugin: PlumePlugin = {
       }
 
       function ${componentName}_(props: ${propsName}, ref: TriggeredOverlayRef) {
+        const context = React.useContext(TriggeredOverlayContext);
+        if (!context) {
+          if (PLUME_STRICT_MODE) { throw new Error("You can only use a triggered overlay with a TriggeredOverlayContext"); }
+          const { plasmicProps } = getDefaultPlasmicProps(${plasmicComponentName}, props);
+          return <${plasmicComponentName} {...plasmicProps} />;
+        }
+        return <${componentName}WithContext props={props} ref={ref} />;
+      }
+
+      function ${componentName}WithContext({props, ref}: {props: ${propsName}; ref: TriggeredOverlayRef}) {
         const { plasmicProps } = ${plasmicComponentName}.useBehavior(props, ref);
         return <${plasmicComponentName} {...plasmicProps} />;
       }
@@ -128,10 +138,11 @@ export const TriggeredOverlayPlugin: PlumePlugin = {
   genSkeletonImports(ctx) {
     return {
       imports: `
-        import {TriggeredOverlayRef} from "${getPlumePackageName(
+        import {TriggeredOverlayRef, TriggeredOverlayContext} from "${getPlumePackageName(
           ctx.exportOpts,
           "triggered-overlay",
-        )}";`,
+        )}";
+        import {getDefaultPlasmicProps, PLUME_STRICT_MODE} from "${getReactWebPackageName(ctx.exportOpts)}";`,
       refName: "TriggeredOverlayRef",
     };
   },

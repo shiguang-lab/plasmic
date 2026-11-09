@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,12 +25,12 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ListItem from "../../components/ListItem"; // plasmic-import: v31d9_ANqk/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: oB885NJtg5rwT11s7yCnwW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: oB885NJtg5rwT11s7yCnwW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -111,11 +111,10 @@ function PlasmicReferenceItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "type",
@@ -130,18 +129,20 @@ function PlasmicReferenceItem__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.selected,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -292,12 +293,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -307,27 +304,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicReferenceItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicReferenceItem";
-  } else {
-    func.displayName = `PlasmicReferenceItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicReferenceItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicReferenceItem__root<T extends PlasmicReferenceItem__rootProps>(props: T & StrictProps<T, PlasmicReferenceItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicReferenceItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicReferenceItem__root.displayName = "PlasmicReferenceItem";
+
+type PlasmicReferenceItem__listItemProps = NodeComponentProps<"listItem"> & {key?: React.Key};
+function PlasmicReferenceItem__listItem<T extends PlasmicReferenceItem__listItemProps>(props: T & StrictProps<T, PlasmicReferenceItem__listItemProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("listItem", props);
+  return <PlasmicReferenceItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"listItem"} />;
+}
+PlasmicReferenceItem__listItem.displayName = "PlasmicReferenceItem.listItem";
+
 
 export const PlasmicReferenceItem = Object.assign(
   // Top-level PlasmicReferenceItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicReferenceItem__root,
   {
     // Helper components rendering sub-elements
-    listItem: makeNodeComponent("listItem"),
+    listItem: PlasmicReferenceItem__listItem,
 
     // Metadata about props expected for PlasmicReferenceItem
     internalVariantProps: PlasmicReferenceItem__VariantProps,

@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleChoiceArg,
   StrictProps,
   classNames,
@@ -24,12 +24,12 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { BaseLabel } from "@plasmicpkgs/react-aria/skinny/registerLabel";
-import { _useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -97,11 +97,10 @@ function PlasmicLabel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "size",
@@ -117,18 +116,20 @@ function PlasmicLabel__RenderFunc(props: {
           $props.requirementIndicator,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <BaseLabel
@@ -254,12 +255,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -269,28 +266,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLabel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLabel";
-  } else {
-    func.displayName = `PlasmicLabel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLabel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLabel__root<T extends PlasmicLabel__rootProps>(props: T & StrictProps<T, PlasmicLabel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLabel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLabel__root.displayName = "PlasmicLabel";
+
+type PlasmicLabel__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicLabel__freeBox<T extends PlasmicLabel__freeBoxProps>(props: T & StrictProps<T, PlasmicLabel__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicLabel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicLabel__freeBox.displayName = "PlasmicLabel.freeBox";
+
+type PlasmicLabel__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicLabel__text<T extends PlasmicLabel__textProps>(props: T & StrictProps<T, PlasmicLabel__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicLabel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicLabel__text.displayName = "PlasmicLabel.text";
+
 
 export const PlasmicLabel = Object.assign(
   // Top-level PlasmicLabel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLabel__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    text: makeNodeComponent("text"),
+    freeBox: PlasmicLabel__freeBox,
+    text: PlasmicLabel__text,
 
     // Metadata about props expected for PlasmicLabel
     internalVariantProps: PlasmicLabel__VariantProps,

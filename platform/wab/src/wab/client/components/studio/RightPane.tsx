@@ -1,6 +1,7 @@
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
-import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
-import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { useRightTabKey } from "@/wab/client/studio-ctx/right-panel-state";
+import { useStudioSelection, useViewSelection, useFocusedOrFirstViewCtx } from "@/wab/client/studio-ctx/selection-state";
 import { useShallow } from "zustand/react/shallow";
 import { useInspectorPending } from "@/wab/client/studio-ctx/inspector-state";
 import CommentsTab from "@/wab/client/components/comments/CommentsTab";
@@ -18,22 +19,21 @@ import * as widgets from "@/wab/client/components/widgets";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { RightTabKey, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { selectPanelsHidden } from "@/wab/client/studio-ctx/left-panel-state";
-import { isTplComponent, summarizeTpl } from "@/wab/shared/core/tpls";
-import { isKnownTplTag } from "@/wab/shared/model/classes";
 import { Tabs } from "antd";
 import cx from "classnames";
-import { observer } from "mobx-react";
 import React from "react";
+import { useInspectorTitle } from "@/wab/client/components/studio/inspector-title-inputs";
 import { useStore } from "zustand";
 
-export const RightPane = observer(function RightPane({
+export const RightPane = React.memo(function RightPane({
   studioCtx,
   canvasLoading,
 }: {
   studioCtx: StudioCtx;
   canvasLoading: boolean;
 }) {
-  useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view]));
+  const rightTabKey = useRightTabKey(studioCtx);
+  const [selectedFrames, focusedViewCtx] = useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view] as const));
   const [hover, setHover] = React.useState(false);
   const pending = useInspectorPending(studioCtx);
   const devMode = useStudioRenderPolicy(studioCtx, (state) => state.devMode);
@@ -42,33 +42,28 @@ export const RightPane = observer(function RightPane({
     selectPanelsHidden,
   );
 
-  const focusedViewCtx = studioCtx.focusedViewCtx();
-  useStudioArena(studioCtx, useShallow((state) => [state.current, state.frames[0]] as const));
-  useViewSelection(focusedViewCtx, useShallow((state) => [state.doms, state.part, state.targets, state.tpls]));
-  const isFrameSelection = studioCtx.focusedFrames().length > 1;
+  const selection = useViewSelection(focusedViewCtx, useShallow((state) => ({ part: state.part, targets: state.targets, tpls: state.tpls })));
+  const isFrameSelection = selectedFrames.length > 1;
   const selectionCount = isFrameSelection
-    ? studioCtx.focusedFrames().length
-    : (focusedViewCtx?.focusedSelectables().length ?? 0);
+    ? selectedFrames.length
+    : selection.targets.length;
   const isMultiSelection = selectionCount > 1;
-  const focusedOrFirstViewCtx = studioCtx.focusedOrFirstViewCtx();
-  const selectedTpl = focusedViewCtx?.focusedTpl();
-  const selectionTitle = selectedTpl
-    ? ((isTplComponent(selectedTpl) || isKnownTplTag(selectedTpl)) &&
-        selectedTpl.name) ||
-      summarizeTpl(selectedTpl)
-    : focusedOrFirstViewCtx?.component.name;
-  const partTitle = focusedViewCtx?.focusedComponentPart?.displayName;
+  const focusedOrFirstViewCtx = useFocusedOrFirstViewCtx(studioCtx);
+  const selectedRef = selection.tpls[0];
+  const selectedTpl = selectedRef ? studioCtx.modelSnapshots.resolve(selectedRef) : undefined;
+  const focusedComponent = focusedOrFirstViewCtx?.component;
 
-  const inspectorTitle =
-    studioCtx.rightTabKey === RightTabKey.component
-      ? focusedOrFirstViewCtx?.component.name
-      : partTitle ? `${selectionTitle} › ${partTitle}` : selectionTitle;
+  const selectionTitle = useInspectorTitle(studioCtx,
+    rightTabKey === RightTabKey.component ? undefined : selectedTpl, focusedComponent);
+  const partTitle = selection.part?.displayName;
+  const inspectorTitle = rightTabKey !== RightTabKey.component && partTitle
+    ? `${selectionTitle} › ${partTitle}` : selectionTitle;
 
   const tabs: widgets.Tab[] = [];
 
   // Element tabs are shown if an artboard is focused
   // and element is selected (not frame)
-  if (focusedViewCtx && !studioCtx.focusedFrame()) {
+  if (focusedViewCtx && selectedFrames.length === 0) {
     tabs.push(
       new widgets.Tab({
         name: <UiText message={"Design"} />,
@@ -114,8 +109,11 @@ export const RightPane = observer(function RightPane({
     }
   }, [tabs.length, isMultiSelection]);
 
-  const showCommentsPanel =
-    studioCtx.showComments() && studioCtx.showCommentsPanel;
+  const commentsPanel = useStudioOverlayState(
+    studioCtx,
+    (state) => state.commentsPanel,
+  );
+  const showCommentsPanel = studioCtx.showComments() && commentsPanel;
   const open =
     !canvasLoading &&
     devMode &&
@@ -165,7 +163,7 @@ export const RightPane = observer(function RightPane({
             ) : (
               <Tabs
                 className="editor-inspector-tabs"
-                activeKey={studioCtx.rightTabKey}
+                activeKey={rightTabKey}
                 // Selection can change the tab order without changing the active key.
                 // Reset only the header so its indicator cannot reuse the old layout.
                 renderTabBar={(tabBarProps, DefaultTabBar) => (

@@ -1,5 +1,4 @@
 import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
-import { DocsPreviewCanvas } from "@/wab/client/components/docs/DocsPreviewCanvas";
 import { createDocsModelFixture } from "@/wab/client/components/docs/__testonly__/model-fixture";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { ComponentType } from "@/wab/shared/core/components";
@@ -83,7 +82,7 @@ it("reports runtime bootstrap failure and releases the startup overlay", async (
   mocks.load.mockRejectedValueOnce(error);
   const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any, full: true, isLive: false, pageHash: "" });
   const hook = renderHook(() => useLivePreview(previewCtx));
-  hook.result.current.frameRef.current = window;
+  act(() => hook.result.current.attachFrame(window));
   await act(async () => hook.result.current.onLoad());
   expect((window as any).__plasmicLive.showError).toHaveBeenCalledExactlyOnceWith(error);
   expect(mocks.api.setStudioReady).toHaveBeenCalledOnce();
@@ -96,7 +95,7 @@ it("reports package loading failure once and can load again after reset", async 
   mocks.sortedPackages.mockRejectedValueOnce(error).mockResolvedValueOnce([["components", "package"]]);
   const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any, full: true, isLive: false, pageHash: "" });
   const hook = renderHook(() => useLivePreview(previewCtx));
-  hook.result.current.frameRef.current = window;
+  act(() => hook.result.current.attachFrame(window));
   await act(async () => hook.result.current.onLoad());
   expect((window as any).__plasmicLive.showError).toHaveBeenCalledExactlyOnceWith(error);
   expect(mocks.api.setStudioReady).toHaveBeenCalledOnce();
@@ -104,7 +103,7 @@ it("reports package loading failure once and can load again after reset", async 
   expect(mocks.sortedPackages).toHaveBeenCalledOnce();
   expect(mocks.push).not.toHaveBeenCalled();
   act(() => hook.result.current.reset());
-  hook.result.current.frameRef.current = window;
+  act(() => hook.result.current.attachFrame(window));
   await act(async () => hook.result.current.onLoad());
   expect(mocks.push).toHaveBeenCalledExactlyOnceWith(window);
 });
@@ -115,7 +114,7 @@ it("ignores package failures from a disposed preview", async () => {
   mocks.sortedPackages.mockReturnValueOnce(pending.promise);
   const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any, full: true, isLive: false, pageHash: "" });
   const hook = renderHook(() => useLivePreview(previewCtx));
-  hook.result.current.frameRef.current = window;
+  act(() => hook.result.current.attachFrame(window));
   await act(async () => hook.result.current.onLoad());
   act(() => hook.result.current.reset());
   await act(async () => pending.reject(new Error("Old load failed")));
@@ -130,7 +129,7 @@ it("clears SPA navigation feedback and removes the cursor layer on reset and clo
     pageHash: "",
   });
   const hook = renderHook(() => useLivePreview(previewCtx));
-  hook.result.current.frameRef.current = window;
+  act(() => hook.result.current.attachFrame(window));
   await act(async () => hook.result.current.onLoad());
   expect(document.querySelectorAll("[data-plasmic-agent-cursor]")).toHaveLength(
     2,
@@ -144,7 +143,7 @@ it("clears SPA navigation feedback and removes the cursor layer on reset and clo
     expect(events).toEqual(["clear"]);
     act(() => hook.result.current.reset());
     expect(document.querySelector("[data-plasmic-agent-cursor]")).toBeNull();
-    hook.result.current.frameRef.current = window;
+    hook.result.current.attachFrame(window);
     await act(async () => hook.result.current.onLoad());
     expect(
       document.querySelectorAll("[data-plasmic-agent-cursor]"),
@@ -163,7 +162,7 @@ async function setup(full: boolean) {
     pageHash: "",
   });
   const hook = renderHook(() => useLivePreview(previewCtx));
-  hook.result.current.frameRef.current = window;
+  act(() => hook.result.current.attachFrame(window));
   await act(async () => hook.result.current.onLoad());
   const notify = (type: string, source: MessageEventSource = window) => {
     act(() => {
@@ -215,7 +214,7 @@ it("disables the commit callback when the preview unmounts", async () => {
 
 it("ignores a commit belonging to a replaced frame", async () => {
   const { result, commit } = await setup(true);
-  result.current.frameRef.current = null;
+  act(() => result.current.attachFrame(null));
   commit();
   expect(mocks.api.setStudioReady).not.toHaveBeenCalled();
 });
@@ -225,7 +224,7 @@ it("ignores a commit from the previous generation before effect cleanup", async 
   const committed = mocks.committed;
   act(() => {
     result.current.reset();
-    result.current.frameRef.current = window;
+    result.current.attachFrame(window);
     committed?.();
   });
   expect(mocks.api.setStudioReady).not.toHaveBeenCalled();
@@ -245,7 +244,7 @@ it("does not activate a delayed host after reset", async () => {
     pageHash: "",
   });
   const hook = renderHook(() => useLivePreview(previewCtx));
-  hook.result.current.frameRef.current = window;
+  act(() => hook.result.current.attachFrame(window));
   let loading: Promise<void> | undefined;
   act(() => {
     loading = hook.result.current.onLoad();
@@ -274,13 +273,13 @@ it("does not activate an earlier load after reset even when the WindowProxy is r
     pageHash: "",
   });
   const hook = renderHook(() => useLivePreview(previewCtx));
-  hook.result.current.frameRef.current = window;
+  act(() => hook.result.current.attachFrame(window));
   let loading: Promise<void> | undefined;
   act(() => {
     loading = hook.result.current.onLoad();
   });
   act(() => hook.result.current.reset());
-  hook.result.current.frameRef.current = window;
+  act(() => hook.result.current.attachFrame(window));
   await act(async () => {
     finish();
     await loading;
@@ -313,13 +312,13 @@ it.each([true, false])(
       pageHash: "",
     });
     const hook = renderHook(() => useLivePreview(previewCtx));
-    hook.result.current.frameRef.current = window;
+    hook.result.current.attachFrame(window);
     await act(async () => hook.result.current.onLoad());
     expect(mocks.sortedPackages).toHaveBeenCalledTimes(1);
     expect(mocks.push).not.toHaveBeenCalled();
     act(() => hook.result.current.reset());
     // Navigating an iframe can retain its WindowProxy identity.
-    hook.result.current.frameRef.current = window;
+    hook.result.current.attachFrame(window);
     await act(async () => hook.result.current.onLoad());
     expect(mocks.sortedPackages).toHaveBeenCalledTimes(2);
     if (oldFirst) {
@@ -370,7 +369,7 @@ it("routes anchor actions through business history like page actions", async () 
     pageHash: "",
   });
   const hook = renderHook(() => useLivePreview(previewCtx));
-  hook.result.current.frameRef.current = window;
+  act(() => hook.result.current.attachFrame(window));
   await act(async () => hook.result.current.onLoad());
   (window as any).__PlasmicWrapUserFunction(
     {
@@ -407,14 +406,16 @@ it("reloads the original library version in Preview after an update is undone", 
 });
 
 
-it.each(["live", "docs"] as const)("updates the actual %s iframe host from the native environment", (mode) => {
+it.each(["live", "docs"] as const)("updates the actual %s iframe host from the native environment", async (mode) => {
   const environment = createStudioUiEnvironmentFixture({ hostUrl: "https://first.example/host" });
   const fixture = createDocsModelFixture(createSite());
   const component = new TplMgr({ site: fixture.studio.site }).addComponent({ name: "Preview", type: ComponentType.Plain });
   Object.assign(fixture.studio, environment);
   fixture.ctx.setFocusedComponent(component);
   const preview = mockPreview({ studioCtx: fixture.studio, full: true, isLive: false, component: undefined });
-  const view = render(mode === "live" ? <PreviewFrame previewCtx={preview} /> : <DocsPreviewCanvas docsCtx={fixture.ctx} />);
+  const view = mode === "live"
+    ? render(<PreviewFrame previewCtx={preview} />)
+    : render(React.createElement((await import("@/wab/client/components/docs/DocsPreviewCanvas")).DocsPreviewCanvas, { docsCtx: fixture.ctx }));
   const iframe = view.container.querySelector("iframe");
   expect(iframe?.getAttribute("src")).toContain("https://first.example/host#live=true");
   act(() => { environment.uiEnvironment.store.setState({ hostUrl: "https://second.example/host" }); });

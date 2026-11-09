@@ -98,6 +98,21 @@ test("unchanged state is silent; pixel bytes travel once while feedback and save
   assert.equal(Object.hasOwn(f.messages.at(-1).value.image, "src"), false);
 });
 
+test("interactive canvases remain eligible for the mirror and have a distinct identity from native Preview", async t => {
+  const f = fixture(t);
+  let previewKind = "interactive";
+  f.controller.state = async () => ({ url: f.main.webContents.getURL(), ready: true, projectId: "p",
+    editorContext: { mode: "preview", previewKind, canEdit: true, previewContext: { componentUuid: "page" } } });
+  await f.presentation.setMode("island"); await f.tick();
+  const context = f.presentation.snapshot().context;
+  assert.equal(context.allowed, true);
+  assert.equal(context.previewKind, "interactive");
+  assert.equal(context.canEdit, true);
+  previewKind = "in-app";
+  await f.tick();
+  assert.notEqual(f.presentation.snapshot().context.identity, context.identity);
+});
+
 test("exit releases the window and stops island requests/IPC; reopening restores current state and one subscription", async t => {
   const f = fixture(t);
   f.main.webContents.emit("did-navigate-in-page", {}, f.main.webContents.getURL(), true); await flush();

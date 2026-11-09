@@ -21,7 +21,7 @@ import { translate } from "@/wab/client/i18n/locales";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { derefTokenRefs, extractAllReferencedTokenIds, replaceAllTokenRefs } from "@/wab/commons/StyleToken";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
-import { arrayMoveIndex, arrayRemove } from "@/wab/shared/collections";
+import { arrayMoveIndex } from "@/wab/shared/collections";
 import { BoxShadow, BoxShadows, Dim } from "@/wab/shared/core/bg-styles";
 import { parseCss } from "@/wab/shared/css";
 import { Tooltip } from "antd";
@@ -86,10 +86,8 @@ function ShadowsContent(props: StyleComponentProps) {
         color: "rgba(0,0,0,0.2)",
       });
 
-      boxShadows.shadows.push(layer);
-
-      updateBoxShadows(boxShadows);
-      inspectBoxShadow(layer, boxShadows.shadows.length - 1);
+      updateBoxShadows(new BoxShadows([...boxShadows.shadows, layer]));
+      inspectBoxShadow(layer, boxShadows.shadows.length);
     };
 
     const { isDisabled, disabledTooltip } = shouldBeDisabled({
@@ -153,9 +151,9 @@ function ShadowsContent(props: StyleComponentProps) {
                   <BoxShadowPanel
                     expsProvider={expsProvider}
                     defaultShadow={inspectedShadow}
-                    onUpdated={() => {
-                      boxShadows.shadows[index] = inspectedShadow;
-                      updateBoxShadows(boxShadows);
+                    onUpdated={(shadow) => {
+                      setState({ inspectedShadow: shadow, index });
+                      updateBoxShadows(new BoxShadows(boxShadows.shadows.map((current, position) => position === index ? shadow : current)));
                     }}
                     vsh={vsh}
                   />
@@ -173,12 +171,7 @@ function ShadowsContent(props: StyleComponentProps) {
                   ? {}
                   : {
                       onReorder: (from, to) => {
-                        boxShadows.shadows = arrayMoveIndex(
-                          boxShadows.shadows,
-                          from,
-                          to,
-                        );
-                        updateBoxShadows(boxShadows);
+                        updateBoxShadows(new BoxShadows(arrayMoveIndex(boxShadows.shadows, from, to)));
                       },
                     })}
               >
@@ -191,8 +184,7 @@ function ShadowsContent(props: StyleComponentProps) {
                       index={i}
                       onRemove={() => {
                         if (!isDisabled) {
-                          arrayRemove(boxShadows.shadows, shadow);
-                          return updateBoxShadows(boxShadows);
+                          return updateBoxShadows(new BoxShadows(boxShadows.shadows.filter((candidate) => candidate !== shadow)));
                         }
                       }}
                       onClick={() =>

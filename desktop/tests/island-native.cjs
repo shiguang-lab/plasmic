@@ -56,13 +56,14 @@ const editorScript = `
   window.fixture = { mode:'edit', name:'审批列表', counter:0, saveStatus:'saved', calls:[], page:'page', path:'/approvals' };
   const result = output => ({success:true,output:JSON.stringify(output)});
   const context = () => ({ projectId:'p', projectName:'审批系统', projectSummary:{pages:2,components:4,artboards:2,canvases:1,images:3,libraries:0},saveStatus:fixture.saveStatus,canvasName:'审批组合画布', sessionId:'session', canEdit:true,
-    mode:fixture.mode, previewKind:fixture.mode==='preview'?'in-app':null, changeCounter:fixture.counter,
+    mode:fixture.interactive?'preview':fixture.mode, previewKind:fixture.interactive?'interactive':fixture.mode==='preview'?'in-app':null, changeCounter:fixture.counter,
     componentUuid:'page', componentName:fixture.name, frameUuid:'frame', editorView:{arenaId:'arena',scale:.65},
     previewContext:fixture.mode==='preview'?{componentUuid:fixture.page,componentName:'审批预览',path:fixture.path,width:360,height:560}:null });
   window.PLASMIC_AI_TOOLS = {
-    _meta:{read:{},changeElement:{},save:{},preview:{},getEditorContext:{},identify:{}},
+    _meta:{read:{},changeElement:{},save:{},preview:{},getEditorContext:{},identify:{},setInteractiveMode:{}},
     getEditorContext:async()=>result(context()),
     identify:async()=>result(context()),
+    setInteractiveMode:async input=>{fixture.interactive=input.enabled;return result({current:input.enabled});},
     read:async input=>{fixture.calls.push('read');await new Promise(r=>setTimeout(r,900));return result({nodes:['Table']});},
     changeElement:async input=>{fixture.calls.push('changeElement');await new Promise(r=>setTimeout(r,900));
       if(input.elementUuid==='missing')return {success:false,error:{message:'Element missing'}};
@@ -109,7 +110,7 @@ app.whenReady().then(async () => {
     let html;
     if (url.origin === origin) html = `<header style="height:44px"><span data-desktop-update-slot="header"></span></header><iframe class="studio-frame" style="border:0;width:1100px;height:650px" src="${canvasOrigin}/editor"></iframe>
       <script>${editorScript}</script><script src="/editor-bridge.js"></script><script src="/renderer-i18n.js"></script>`;
-    else if (url.pathname === "/editor") html = `<div class="canvas-editor__canvas-clipper" style="position:absolute;left:180px;top:20px;width:820px;height:570px;background:#303238"><iframe class="canvas-editor__viewport" data-plasmic-frame-uuid="frame" data-plasmic-component-uuid="page" style="position:absolute;left:0;top:0;width:360px;height:400px;border:0;pointer-events:none" src="${canvasOrigin}/page"></iframe><iframe class="canvas-editor__viewport" data-plasmic-frame-uuid="frame-two" data-plasmic-component-uuid="page-two" style="position:absolute;left:400px;top:70px;width:340px;height:460px;border:0;pointer-events:none" src="${canvasOrigin}/page-two"></iframe></div><script>addEventListener('message',event=>{if(event.origin==='${origin}'&&event.data?.fixtureWrite)document.querySelector('.canvas-editor__canvas-clipper').style.background='#243e38';});</script>`;
+    else if (url.pathname === "/editor") html = `<div class="canvas-editor__canvas-clipper" style="position:absolute;left:180px;top:20px;width:820px;height:570px;background:#303238"><iframe class="canvas-editor__viewport" data-plasmic-frame-uuid="frame" data-plasmic-component-uuid="page" style="position:absolute;left:0;top:0;width:360px;height:400px;border:0;pointer-events:none" src="${canvasOrigin}/page#canvas=true"></iframe><iframe class="canvas-editor__viewport" data-plasmic-frame-uuid="frame-two" data-plasmic-component-uuid="page-two" style="position:absolute;left:400px;top:70px;width:340px;height:460px;border:0;pointer-events:none" src="${canvasOrigin}/page-two#canvas=true"></iframe></div><script>addEventListener('message',event=>{if(event.origin==='${origin}'&&event.data?.fixtureWrite)document.querySelector('.canvas-editor__canvas-clipper').style.background='#243e38';});</script>`;
     else if (url.pathname === "/preview") html = `<div class="live-root-container" data-plasmic-preview-component="page" style="height:100vh;background:#f5f5f5;padding:32px"><button onclick="document.getElementById('result').textContent='Submitted'">Submit</button><output id="result"></output></div>`;
     else html = `<main data-plasmic-valkey="root.table" style="margin:30px;background:white;padding:24px;border-radius:8px"><h3>审批列表</h3><p>采购申请　　审批中</p><p>费用报销　　已完成</p></main>`;
     return new Response(`<html ${url.pathname === "/page" ? 'data-plasmic-render-ready data-plasmic-frame-uuid="frame" data-plasmic-component-uuid="page"' : url.pathname === "/page-two" ? 'data-plasmic-render-ready data-plasmic-frame-uuid="frame-two" data-plasmic-component-uuid="page-two"' : ''}><head><style>body{margin:0;font:14px -apple-system;background:#222;color:#ddd}iframe{display:block}main{color:#222}</style></head><body>${html}</body></html>`, { headers: { "Content-Type": "text/html; charset=utf-8" } });
@@ -219,6 +220,29 @@ app.whenReady().then(async () => {
   assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "true", "completed calls and analysis gaps cannot collapse editor cards");
   assert.equal(await inspect("document.getElementById('feedback').hidden"), true, "idle must not scan");
   passed.push("stdio MCP read scans; idle and completed calls retain the current canvas without extra model reads or inferred progress");
+
+  await call("execute", {name:"setInteractiveMode",input:{enabled:true}});
+  await until(()=>presentation.snapshot().context.previewKind==="interactive" && presentation.snapshot().image?.src,"interactive canvas stays mirrored");
+  assert.equal(presentation.snapshot().context.allowed,true);
+  await call("snapshot_layout",{});
+  await call("get_screenshot",{mode:"workspace"});
+  assert.equal((await controller.state()).editorContext.previewKind,"interactive");
+  const interactionRead=call("execute",{name:"read",input:{elements:[{componentUuid:"page",elementUuid:"table"}]}});
+  await until(()=>presentation.snapshot().image?.width===360 && presentation.snapshot().image.feedback?.kind==="read" && presentation.snapshot().image.feedback.regions[0]?.x>0,"interactive element read scans its artboard");
+  assert.equal(presentation.snapshot().image.width,360);
+  assert.ok(presentation.snapshot().image.feedback.regions[0].x>0,"element feedback follows the valkey bounds, not the whole viewport");
+  await interactionRead;
+  const interactionWrite=call("execute",{name:"changeElement",input:{componentUuid:"page",elementUuid:"table",name:"Updated",reviewContext:{purpose:"Verify interactive canvas writes retain the current mode and show target feedback"}}});
+  await until(()=>presentation.snapshot().image?.feedback?.kind==="write","interactive write highlights its target");
+  await interactionWrite;
+  assert.equal((await controller.state()).editorContext.previewKind,"interactive");
+  await call("execute",{name:"save",input:{}});
+  assert.equal((await controller.state()).editorContext.previewKind,"interactive");
+  fs.writeFileSync(path.join(reportDir,"interactive-feedback.png"),(await island.webContents.capturePage()).toPNG());
+  await call("execute",{name:"setInteractiveMode",input:{enabled:false}});
+  await call("execute",{name:"read",input:{collection:"components"}});
+  await until(()=>presentation.snapshot().context.mode==="edit" && presentation.snapshot().image?.framing==="overview","return to the editing overview");
+  passed.push("interactive canvas retains its mirror, element scans and write feedback through MCP reads, writes and saves without leaving interaction");
 
   const complete = presentation.snapshot().image;
   await main.webContents.mainFrame.frames[0].executeJavaScript(`(() => {
@@ -369,7 +393,7 @@ app.whenReady().then(async () => {
   await delay(2400);
   assert.equal(await inspect("document.getElementById('shell').dataset.expanded"), "true");
   await call("report_task", { ...task, sequence: 2, status: "completed" });
-  const write = call("execute", { name: "changeElement", input: { componentUuid: "page", elementUuid: "table" } });
+  const write = call("execute", { name: "changeElement", input: { componentUuid: "page", elementUuid: "table", reviewContext: { purpose: "Verify native write feedback" } } });
   await until(async () => await inspect("document.getElementById('phase-text').textContent==='应用更改'"), "write applying");
   await until(async () => await inspect("!document.getElementById('feedback').hidden && document.getElementById('feedback').dataset.kind==='write' && document.querySelector('.feedback-region').getBoundingClientRect().width < document.getElementById('feedback').getBoundingClientRect().width"), "write highlights the actual target, not the whole canvas");
   await write;
@@ -385,7 +409,7 @@ app.whenReady().then(async () => {
   fs.writeFileSync(path.join(reportDir,"save-result.png"),(await island.webContents.capturePage()).toPNG());
   await until(async () => await inspect("document.getElementById('phase-text').textContent==='已保存'"), "successful save updates idle information");
   assert.equal(await inspect("document.getElementById('phase-text').scrollWidth <= document.getElementById('phase-text').clientWidth"), true, "Chinese saved status fits");
-  await call("execute", { name: "changeElement", input: { elementUuid: "missing" } }, true);
+  await call("execute", { name: "changeElement", input: { elementUuid: "missing", reviewContext: { purpose: "Verify failed writes stop native feedback" } } }, true);
   await until(async () => await inspect("document.getElementById('issue-tooltip').textContent.includes('Element missing')"), "actual editor error");
   assert.equal(await inspect("document.getElementById('feedback').hidden"), true, "failed calls clear visual feedback");
   assert.equal(await inspect("!document.getElementById('left-statistics').hidden && document.getElementById('progress')===null"),true,"errors preserve statistics and do not invent percentage progress");

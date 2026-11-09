@@ -46,6 +46,21 @@ type SequenceBinding = {
   sequenceField: ModelFieldStore<readonly ModelRef<KeyFrame>[]>;
 };
 
+class KeyFrameSequenceBindings {
+  private readonly owners = new WeakMap<StudioCtx, WeakMap<AnimationSequence, SequenceBinding>>();
+  read(studio: StudioCtx, sequence: AnimationSequence): SequenceBinding {
+    let sequences = this.owners.get(studio);
+    if (!sequences) { sequences = new WeakMap(); this.owners.set(studio, sequences); }
+    let binding = sequences.get(sequence);
+    if (!binding) {
+      const models = studio.modelSnapshots;
+      binding = { models, sequenceField: models.field(sequence, "keyframes") };
+      sequences.set(sequence, binding);
+    }
+    return binding;
+  }
+}
+
 /**
  * Create a keyframe, but do not actually insert it, just return it with the
  * proposed index where it should be inserted.
@@ -313,26 +328,8 @@ export function KeyFrameStops(props: KeyFrameStopsProps) {
 
   const stopsAndBarRef = React.useRef<HTMLDivElement>(null);
   const barRef = React.useRef<HTMLDivElement>(null);
-  const bindings = React.useRef<
-    WeakMap<StudioCtx, WeakMap<AnimationSequence, SequenceBinding>>
-  >(new WeakMap());
-  const binding = React.useMemo(() => {
-    let bySequence = bindings.current.get(studioCtx);
-    if (!bySequence) {
-      bySequence = new WeakMap();
-      bindings.current.set(studioCtx, bySequence);
-    }
-    let found = bySequence.get(sequence);
-    if (!found) {
-      const models = studioCtx.modelSnapshots;
-      found = {
-        models,
-        sequenceField: models.field(sequence, "keyframes"),
-      };
-      bySequence.set(sequence, found);
-    }
-    return found;
-  }, [studioCtx, sequence]);
+  const [bindings] = React.useState(() => new KeyFrameSequenceBindings());
+  const binding = bindings.read(studioCtx, sequence);
   const { models, sequenceField } = binding;
   const keyframeRefs = useStore(sequenceField);
   const percentageStores = useKeyFramePercentageStores(models, keyframeRefs);

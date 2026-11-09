@@ -15,18 +15,18 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   PlasmicImg as PlasmicImg__,
   StrictProps,
-  useTrigger,
+  useFocusedWithin, useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { Tooltip } from "../../components/plexus/Tooltip"; // plasmic-import: EBbuUzYSewBk/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -89,21 +89,18 @@ function PlasmicCopilotPromptImage__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
-  const [isRootFocusWithin, triggerRootFocusWithinProps] = useTrigger(
-    "useFocusedWithin",
-    {}
+  const [isRootHover, triggerRootHoverProps] = useHover();
+  const [isRootFocusWithin, triggerRootFocusWithinProps] = useFocusedWithin({}
   );
   const triggers = {
     hover_root: isRootHover,
     focusWithin_root: isRootFocusWithin,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -245,12 +242,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -260,32 +253,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCopilotPromptImage__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCopilotPromptImage";
-  } else {
-    func.displayName = `PlasmicCopilotPromptImage.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCopilotPromptImage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCopilotPromptImage__root<T extends PlasmicCopilotPromptImage__rootProps>(props: T & StrictProps<T, PlasmicCopilotPromptImage__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCopilotPromptImage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCopilotPromptImage__root.displayName = "PlasmicCopilotPromptImage";
+
+type PlasmicCopilotPromptImage__tooltipProps = NodeComponentProps<"tooltip"> & {key?: React.Key};
+function PlasmicCopilotPromptImage__tooltip<T extends PlasmicCopilotPromptImage__tooltipProps>(props: T & StrictProps<T, PlasmicCopilotPromptImage__tooltipProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("tooltip", props);
+  return <PlasmicCopilotPromptImage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tooltip"} />;
+}
+PlasmicCopilotPromptImage__tooltip.displayName = "PlasmicCopilotPromptImage.tooltip";
+
+type PlasmicCopilotPromptImage__buttonProps = NodeComponentProps<"button"> & {key?: React.Key};
+function PlasmicCopilotPromptImage__button<T extends PlasmicCopilotPromptImage__buttonProps>(props: T & StrictProps<T, PlasmicCopilotPromptImage__buttonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("button", props);
+  return <PlasmicCopilotPromptImage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"button"} />;
+}
+PlasmicCopilotPromptImage__button.displayName = "PlasmicCopilotPromptImage.button";
+
+type PlasmicCopilotPromptImage__imgProps = NodeComponentProps<"img"> & {key?: React.Key};
+function PlasmicCopilotPromptImage__img<T extends PlasmicCopilotPromptImage__imgProps>(props: T & StrictProps<T, PlasmicCopilotPromptImage__imgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("img", props);
+  return <PlasmicCopilotPromptImage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"img"} />;
+}
+PlasmicCopilotPromptImage__img.displayName = "PlasmicCopilotPromptImage.img";
+
+type PlasmicCopilotPromptImage__deleteOverlayProps = NodeComponentProps<"deleteOverlay"> & {key?: React.Key};
+function PlasmicCopilotPromptImage__deleteOverlay<T extends PlasmicCopilotPromptImage__deleteOverlayProps>(props: T & StrictProps<T, PlasmicCopilotPromptImage__deleteOverlayProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("deleteOverlay", props);
+  return <PlasmicCopilotPromptImage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"deleteOverlay"} />;
+}
+PlasmicCopilotPromptImage__deleteOverlay.displayName = "PlasmicCopilotPromptImage.deleteOverlay";
+
+type PlasmicCopilotPromptImage__deleteBackgroundProps = NodeComponentProps<"deleteBackground"> & {key?: React.Key};
+function PlasmicCopilotPromptImage__deleteBackground<T extends PlasmicCopilotPromptImage__deleteBackgroundProps>(props: T & StrictProps<T, PlasmicCopilotPromptImage__deleteBackgroundProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("deleteBackground", props);
+  return <PlasmicCopilotPromptImage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"deleteBackground"} />;
+}
+PlasmicCopilotPromptImage__deleteBackground.displayName = "PlasmicCopilotPromptImage.deleteBackground";
+
+type PlasmicCopilotPromptImage__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicCopilotPromptImage__svg<T extends PlasmicCopilotPromptImage__svgProps>(props: T & StrictProps<T, PlasmicCopilotPromptImage__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicCopilotPromptImage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicCopilotPromptImage__svg.displayName = "PlasmicCopilotPromptImage.svg";
+
 
 export const PlasmicCopilotPromptImage = Object.assign(
   // Top-level PlasmicCopilotPromptImage renders the root element
-  makeNodeComponent("root"),
+  PlasmicCopilotPromptImage__root,
   {
     // Helper components rendering sub-elements
-    tooltip: makeNodeComponent("tooltip"),
-    button: makeNodeComponent("button"),
-    img: makeNodeComponent("img"),
-    deleteOverlay: makeNodeComponent("deleteOverlay"),
-    deleteBackground: makeNodeComponent("deleteBackground"),
-    svg: makeNodeComponent("svg"),
+    tooltip: PlasmicCopilotPromptImage__tooltip,
+    button: PlasmicCopilotPromptImage__button,
+    img: PlasmicCopilotPromptImage__img,
+    deleteOverlay: PlasmicCopilotPromptImage__deleteOverlay,
+    deleteBackground: PlasmicCopilotPromptImage__deleteBackground,
+    svg: PlasmicCopilotPromptImage__svg,
 
     // Metadata about props expected for PlasmicCopilotPromptImage
     internalVariantProps: PlasmicCopilotPromptImage__VariantProps,

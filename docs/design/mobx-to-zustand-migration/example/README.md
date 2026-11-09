@@ -1,20 +1,20 @@
 # 迁移最小样例（可编译 / 可运行）
 
-这是 [mobx-to-zustand-migration.md](../../mobx-to-zustand-migration.md) 里 4.1 / 4.2 / 4.5 / 5.2 的可执行版本，用来验证三件事：
+这是显式 selector 与修订记忆化的独立概念样例。Studio 的生产所有权、原子发布和字段订阅以[当前架构](../../mobx-to-zustand-migration.md)及实际源码为准：store 和 revision 索引由编辑器拥有，输出比较必须在 React 快照层生效。该样例演示：
 
-1. **不需要 equality 也能拿到稳定引用**（靠修订号记忆化，而不是靠比较函数）；
+1. 未变修订下复用快照；修订改变后，生产实现仍需比较所选输出以避免无效渲染；
 2. `useShallow` 只负责"一次读多个 React 状态字段"，不负责模型数据；
-3. 通知抑制（`observable.box` 的 `{ equals }`）在 store 里就是一句 `if (get().x === v) return`。
+3. 同值写入的通知抑制在 store 里就是一句 `if (get().x === v) return`。
 
 ## 文件
 
 | 文件 | 对应文档 | 作用 |
 |---|---|---|
-| `revisions.ts` | 5.2 | 模型修订索引：脏键 → 版本号 + 订阅 |
-| `model-selector.ts` | 4.5 / 5.4 | `createModelSelector`（非 Hook）与 `useModelSelector`（Hook） |
-| `studio-stores.ts` | 3.2 / 4.1 | zustand 单例 store + `subscribeWithSelector` + setter 判等 |
-| `effects.ts` | 4.3 | 用 `store.subscribe(selector, cb)` 替代 `reaction` |
-| `StudioPanel.tsx` | 4.1 / 4.2 | 组件：`useShallow` 读多字段 + 模型数据走 `useModelSelector` |
+| `revisions.ts` | §5 | 模型修订索引：脏键 → 版本号 + 订阅 |
+| `model-selector.ts` | §5 | `createModelSelector`（非 Hook）与 `useModelSelector`（Hook） |
+| `studio-stores.ts` | §2 | zustand 单例 store + `subscribeWithSelector` + setter 判等 |
+| `effects.ts` | §2 | 用 `store.subscribe(selector, cb)` 替代 `reaction` |
+| `StudioPanel.tsx` | §2 / §5 | 组件：`useShallow` 读多字段 + 模型数据走 `useModelSelector` |
 
 ## 验证
 

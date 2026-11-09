@@ -16,18 +16,18 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleChoiceArg,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../../../plasmic/plasmic_kit_alert_banner/PlasmicStyleTokensProvider"; // plasmic-import: 29njzcsBEPR4koRddw4knF/styleTokensProvider
+import { useStyleTokens } from "../../../plasmic/plasmic_kit_alert_banner/PlasmicStyleTokensProvider"; // plasmic-import: 29njzcsBEPR4koRddw4knF/styleTokensProvider
 import Button from "../Button"; // plasmic-import: SEF-sRmSoqV5c/component
 
 import "@plasmicapp/react-web/lib/plasmic.css";
@@ -139,11 +139,10 @@ function PlasmicAlertBanner__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "state",
@@ -152,18 +151,20 @@ function PlasmicAlertBanner__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.state,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -976,12 +977,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -991,31 +988,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicAlertBanner__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicAlertBanner";
-  } else {
-    func.displayName = `PlasmicAlertBanner.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicAlertBanner__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicAlertBanner__root<T extends PlasmicAlertBanner__rootProps>(props: T & StrictProps<T, PlasmicAlertBanner__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicAlertBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicAlertBanner__root.displayName = "PlasmicAlertBanner";
+
+type PlasmicAlertBanner__watchBtnProps = NodeComponentProps<"watchBtn"> & {key?: React.Key};
+function PlasmicAlertBanner__watchBtn<T extends PlasmicAlertBanner__watchBtnProps>(props: T & StrictProps<T, PlasmicAlertBanner__watchBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("watchBtn", props);
+  return <PlasmicAlertBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"watchBtn"} />;
+}
+PlasmicAlertBanner__watchBtn.displayName = "PlasmicAlertBanner.watchBtn";
+
+type PlasmicAlertBanner__visit2Props = NodeComponentProps<"visit2"> & {key?: React.Key};
+function PlasmicAlertBanner__visit2<T extends PlasmicAlertBanner__visit2Props>(props: T & StrictProps<T, PlasmicAlertBanner__visit2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("visit2", props);
+  return <PlasmicAlertBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"visit2"} />;
+}
+PlasmicAlertBanner__visit2.displayName = "PlasmicAlertBanner.visit2";
+
+type PlasmicAlertBanner__actionBtnProps = NodeComponentProps<"actionBtn"> & {key?: React.Key};
+function PlasmicAlertBanner__actionBtn<T extends PlasmicAlertBanner__actionBtnProps>(props: T & StrictProps<T, PlasmicAlertBanner__actionBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionBtn", props);
+  return <PlasmicAlertBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionBtn"} />;
+}
+PlasmicAlertBanner__actionBtn.displayName = "PlasmicAlertBanner.actionBtn";
+
+type PlasmicAlertBanner__visitProps = NodeComponentProps<"visit"> & {key?: React.Key};
+function PlasmicAlertBanner__visit<T extends PlasmicAlertBanner__visitProps>(props: T & StrictProps<T, PlasmicAlertBanner__visitProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("visit", props);
+  return <PlasmicAlertBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"visit"} />;
+}
+PlasmicAlertBanner__visit.displayName = "PlasmicAlertBanner.visit";
+
+type PlasmicAlertBanner__dismissBtnProps = NodeComponentProps<"dismissBtn"> & {key?: React.Key};
+function PlasmicAlertBanner__dismissBtn<T extends PlasmicAlertBanner__dismissBtnProps>(props: T & StrictProps<T, PlasmicAlertBanner__dismissBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dismissBtn", props);
+  return <PlasmicAlertBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dismissBtn"} />;
+}
+PlasmicAlertBanner__dismissBtn.displayName = "PlasmicAlertBanner.dismissBtn";
+
 
 export const PlasmicAlertBanner = Object.assign(
   // Top-level PlasmicAlertBanner renders the root element
-  makeNodeComponent("root"),
+  PlasmicAlertBanner__root,
   {
     // Helper components rendering sub-elements
-    watchBtn: makeNodeComponent("watchBtn"),
-    visit2: makeNodeComponent("visit2"),
-    actionBtn: makeNodeComponent("actionBtn"),
-    visit: makeNodeComponent("visit"),
-    dismissBtn: makeNodeComponent("dismissBtn"),
+    watchBtn: PlasmicAlertBanner__watchBtn,
+    visit2: PlasmicAlertBanner__visit2,
+    actionBtn: PlasmicAlertBanner__actionBtn,
+    visit: PlasmicAlertBanner__visit,
+    dismissBtn: PlasmicAlertBanner__dismissBtn,
 
     // Metadata about props expected for PlasmicAlertBanner
     internalVariantProps: PlasmicAlertBanner__VariantProps,

@@ -302,7 +302,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
     }
     setEmailInvalid(false);
     setSubmitting(true);
-    try {
+    return await (async () => {
       const { enqueued, granted } = await doGrantRevoke({
         grants: [
           { email: parsedEmail.normalized, accessLevel: inviteAccessLevel },
@@ -325,27 +325,27 @@ function ShareDialogContent(props: ShareDialogContentProps) {
         void message.success({ content: uiT("Invitation sent") });
       }
       setEmail("");
-    } catch {
+    })().catch(async () => {
       void message.error({ content: uiT("Failed to invite member") });
-    } finally {
+    }).finally(() => {
       setSubmitting(false);
-    }
+    });
   }
 
   const updateProject = async (inviteOnly: boolean) => {
     assert(resource.type === "project", 'Resource type must be "project"');
     setUpdatingAccess(true);
-    try {
+    return await (async () => {
       const data = await maybeShowPaywall(appCtx, () =>
         appCtx.api.setSiteInfo(resource.resource.id, { inviteOnly }),
       );
       setProjectInviteOnly(inviteOnly);
       await updateResourceCallback?.(data);
-    } catch {
+    })().catch(async () => {
       void message.error({ content: uiT("Failed to update permissions") });
-    } finally {
+    }).finally(() => {
       setUpdatingAccess(false);
-    }
+    });
   };
 
   const updateTeam = async (
@@ -353,18 +353,18 @@ function ShareDialogContent(props: ShareDialogContentProps) {
   ) => {
     assert(resource.type === "team", 'Resource type must be "team"');
     setUpdatingAccess(true);
-    try {
+    return await (async () => {
       const data = await appCtx.api.updateTeam(resource.resource.id, {
         defaultAccessLevel,
       });
       setLinkRole(defaultAccessLevel);
       setCopyStatus("idle");
       await updateResourceCallback?.(data);
-    } catch {
+    })().catch(async () => {
       void message.error({ content: uiT("Failed to update permissions") });
-    } finally {
+    }).finally(() => {
       setUpdatingAccess(false);
-    }
+    });
   };
 
   const existingPermItems = L.sortBy(
@@ -786,10 +786,10 @@ function ShareDialogContent(props: ShareDialogContentProps) {
       />
     );
 
-  const { config, loading: loadingAuthConfig } =
-    resource.type === "project"
-      ? useAppAuthConfig(appCtx, resource.resource.id)
-      : { config: undefined, loading: false };
+  const { config, loading: loadingAuthConfig } = useAppAuthConfig(
+    appCtx,
+    resource.type === "project" ? resource.resource.id : undefined,
+  );
   const showEndUsersTab =
     hasTopFrameCtx && resource.type === "project" && config;
 
@@ -805,8 +805,7 @@ function ShareDialogContent(props: ShareDialogContentProps) {
     return props.renderDialog(<Spinner />, null);
   }
 
-  const TabsWrapper = () => {
-    return (
+  const tabs = showEndUsersTab ? (
       <Tabs
         onSwitch={(tabKey) => {
           setCurrentTab(tabKey);
@@ -849,12 +848,11 @@ function ShareDialogContent(props: ShareDialogContentProps) {
           }),
         ])}
       ></Tabs>
-    );
-  };
+  ) : null;
 
   const body = (
     <div style={{ width: "100%", minWidth: 0 }}>
-      {showEndUsersTab ? TabsWrapper() : collaboratorShareDialog}
+      {showEndUsersTab ? tabs : collaboratorShareDialog}
     </div>
   );
   const footer =

@@ -68,10 +68,10 @@ interface ButtonConfig<C extends AnyPlasmicClass> {
   root: keyof PlasmicClassOverrides<C>;
 }
 
-export function useButton<
+export function deriveButtonProps<
   P extends PlumeButtonProps,
   C extends AnyPlasmicClass
->(plasmicClass: C, props: P, config: ButtonConfig<C>, ref: ButtonRef = null) {
+>(plasmicClass: C, props: P, config: ButtonConfig<C>) {
   const {
     link,
     isDisabled,
@@ -117,9 +117,8 @@ export function useButton<
     }
   }
 
-  const overrides: Overrides = {
-    [config.root]: {
-      as: link ? "a" : "button",
+  const rootOverride = {
+      as: link ? "a" as const : "button" as const,
       props: {
         // Put this at the top, as user may also have set `type` as
         // inherited from "button", so let `rest` override it
@@ -129,16 +128,16 @@ export function useButton<
           ...plasmicClass.internalVariantProps
         ),
         type: buttonType,
-        ref: ref,
         disabled: isDisabled,
         target:
           target === true ? "_blank" : target === false ? undefined : target,
         ...(!!link && { href: link }),
       },
-    },
   };
+  const overrides: Overrides = {[config.root]: rootOverride};
 
   return {
+    rootOverride,
     plasmicProps: {
       variants: variants as PlasmicClassVariants<C>,
       args: args as PlasmicClassArgs<C>,

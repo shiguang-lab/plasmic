@@ -1,12 +1,14 @@
-import { getComponentPresets } from "@/wab/client/code-components/code-presets";
 import { createAddComponentPreset } from "@/wab/client/components/studio/add-drawer/AddDrawer";
 import AddDrawerItem from "@/wab/client/components/studio/add-drawer/AddDrawerItem";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import {
+  useComponentPresets,
+  usePresetsModalComponent,
+} from "@/wab/client/studio-ctx/presets-state";
 import { spawn } from "@/wab/shared/common";
 import { getComponentDisplayName } from "@/wab/shared/core/components";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 /**
@@ -14,15 +16,16 @@ import * as React from "react";
  * a code component that registers `templates` (e.g. antd5 Modal / Form Item).
  * Opened via `StudioCtx.showPresetsModal`.
  */
-export const ComponentPresetsModal = observer(function ComponentPresetsModal() {
+export const ComponentPresetsModal = React.memo(function ComponentPresetsModal() {
   const { t: uiT } = useI18n();
 
   const studioCtx = useStudioCtx();
-  const component = studioCtx.getPresetsModalComponent();
+  const component = usePresetsModalComponent(studioCtx);
+  const presets = useComponentPresets(studioCtx, component);
   if (!component) {
     return null;
   }
-  const items = getComponentPresets(studioCtx, component).map((preset) =>
+  const items = presets.map((preset) =>
     createAddComponentPreset(studioCtx, component, preset),
   );
   const onClose = () => studioCtx.hidePresetsModal();

@@ -5,6 +5,25 @@ import path from "path";
 import dts from "rollup-plugin-dts";
 import typescript from "rollup-plugin-typescript2";
 import ts from "typescript";
+import { transformAsync } from "@babel/core";
+import compiler from "babel-plugin-react-compiler";
+import { reactCompilerInclude, reactCompilerOptions } from "../../platform/wab/tools/react-compiler.mjs";
+
+function reactCompilerPlugin() {
+  return {
+    name: "react-web-compiler",
+    async transform(code, filename) {
+      if (!reactCompilerInclude.test(filename)) { return null; }
+      const result = await transformAsync(code, {
+        filename, babelrc: false, configFile: false, sourceMaps: true,
+        parserOpts: { plugins: ["typescript", "jsx"] },
+        plugins: [[compiler, reactCompilerOptions()]],
+      });
+      if (!result?.code) { throw new Error(`Compiler returned no runtime source: ${filename}`); }
+      return { code: result.code, map: result.map };
+    },
+  };
+}
 
 const external = (id) => {
   if (id.startsWith("regenerator-runtime") || id.startsWith("tslib")) {
@@ -37,6 +56,7 @@ export default [
       },
     ],
     plugins: [
+      reactCompilerPlugin(),
       resolve(),
       commonjs(),
       json(),
@@ -44,7 +64,7 @@ export default [
         typescript: ts,
         check: false,
         tsconfigOverride: {
-          emitDeclarationOnly: true,
+          compilerOptions: { declaration: false, declarationMap: false, emitDeclarationOnly: false },
         },
       }),
     ],
@@ -91,12 +111,14 @@ export default [
       },
     ],
     plugins: [
+      reactCompilerPlugin(),
       resolve(),
       commonjs(),
       json(),
       typescript({
         typescript: ts,
         check: false,
+        tsconfigOverride: { compilerOptions: { declaration: false, declarationMap: false, emitDeclarationOnly: false } },
       }),
     ],
   },
@@ -131,6 +153,7 @@ export default [
       },
     ],
     plugins: [
+      reactCompilerPlugin(),
       resolve(),
       commonjs(),
       json(),
@@ -146,7 +169,7 @@ export default [
             "src/auth",
             "src/splits",
           ],
-          emitDeclarationOnly: true,
+          compilerOptions: { declaration: false, declarationMap: false, emitDeclarationOnly: false },
         },
       }),
     ],

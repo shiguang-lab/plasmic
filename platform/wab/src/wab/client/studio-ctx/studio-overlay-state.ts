@@ -11,11 +11,17 @@ export interface StudioOverlaySnapshot {
   readonly ancestorsHoverBoxes: boolean;
   readonly screenshotting: boolean;
   readonly resizeDragging: boolean;
+  /** Variants switcher drawer, toggled from the variants bar. */
+  readonly variantsDrawer: boolean;
+  /** Comments panel visibility in the right pane. */
+  readonly commentsPanel: boolean;
 }
 
 const initialOverlay: StudioOverlaySnapshot = Object.freeze({
   commentsOverlay: true, stackOfParents: false, multiplayerSelections: true,
   ancestorsHoverBoxes: true, screenshotting: false, resizeDragging: false,
+  variantsDrawer: false,
+  commentsPanel: false,
 });
 const emptyOverlay = createStore(() => initialOverlay);
 
@@ -61,6 +67,10 @@ export class StudioOverlayState {
   set screenshotting(value: boolean) { this.update("screenshotting", value); }
   get resizeDragging() { return this.values.resizeDragging; }
   set resizeDragging(value: boolean) { this.update("resizeDragging", value); }
+  get variantsDrawer() { return this.values.variantsDrawer; }
+  set variantsDrawer(value: boolean) { this.update("variantsDrawer", value); }
+  get commentsPanel() { return this.values.commentsPanel; }
+  set commentsPanel(value: boolean) { this.update("commentsPanel", value); }
 
   /** Reuse a real synchronous editor command; never retain this across I/O. */
   deferPublication<Result>(command: () => Result): Result {

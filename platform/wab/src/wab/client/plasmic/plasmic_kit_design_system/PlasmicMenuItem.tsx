@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -27,7 +27,7 @@ import {
   BaseText,
   BaseText as BaseText2,
 } from "@plasmicpkgs/react-aria/skinny/registerText";
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -95,11 +95,10 @@ function PlasmicMenuItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   const [$ccVariants, setDollarCcVariants] = React.useState<
     Record<string, boolean>
@@ -151,36 +150,14 @@ function PlasmicMenuItem__RenderFunc(props: {
           <div className={classNames("all", sty.freeBox__mm7In)}>
             <div className={classNames("all", "__wab_text", sty.text__nMqd0)}>
               <React.Fragment>
-                {(() => {
-                  try {
-                    return $props.label;
-                  } catch (e) {
-                    if (
-                      e instanceof TypeError ||
-                      e?.plasmicType === "PlasmicUndefinedDataError"
-                    ) {
-                      return "Item 1";
-                    }
-                    throw e;
-                  }
-                })()}
+                {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                      e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.label), () => ("Item 1"))}
               </React.Fragment>
             </div>
           </div>
         </BaseText>
-        {(() => {
-          try {
-            return $props.description;
-          } catch (e) {
-            if (
-              e instanceof TypeError ||
-              e?.plasmicType === "PlasmicUndefinedDataError"
-            ) {
-              return false;
-            }
-            throw e;
-          }
-        })() ? (
+        {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+              e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.description), () => (false)) ? (
           <BaseText2
             data-plasmic-name={"ariaDescription"}
             data-plasmic-override={overrides.ariaDescription}
@@ -237,12 +214,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -252,28 +225,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicMenuItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicMenuItem";
-  } else {
-    func.displayName = `PlasmicMenuItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicMenuItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicMenuItem__root<T extends PlasmicMenuItem__rootProps>(props: T & StrictProps<T, PlasmicMenuItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicMenuItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicMenuItem__root.displayName = "PlasmicMenuItem";
+
+type PlasmicMenuItem__ariaTextProps = NodeComponentProps<"ariaText"> & {key?: React.Key};
+function PlasmicMenuItem__ariaText<T extends PlasmicMenuItem__ariaTextProps>(props: T & StrictProps<T, PlasmicMenuItem__ariaTextProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("ariaText", props);
+  return <PlasmicMenuItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaText"} />;
+}
+PlasmicMenuItem__ariaText.displayName = "PlasmicMenuItem.ariaText";
+
+type PlasmicMenuItem__ariaDescriptionProps = NodeComponentProps<"ariaDescription"> & {key?: React.Key};
+function PlasmicMenuItem__ariaDescription<T extends PlasmicMenuItem__ariaDescriptionProps>(props: T & StrictProps<T, PlasmicMenuItem__ariaDescriptionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("ariaDescription", props);
+  return <PlasmicMenuItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaDescription"} />;
+}
+PlasmicMenuItem__ariaDescription.displayName = "PlasmicMenuItem.ariaDescription";
+
 
 export const PlasmicMenuItem = Object.assign(
   // Top-level PlasmicMenuItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicMenuItem__root,
   {
     // Helper components rendering sub-elements
-    ariaText: makeNodeComponent("ariaText"),
-    ariaDescription: makeNodeComponent("ariaDescription"),
+    ariaText: PlasmicMenuItem__ariaText,
+    ariaDescription: PlasmicMenuItem__ariaDescription,
 
     // Metadata about props expected for PlasmicMenuItem
     internalVariantProps: PlasmicMenuItem__VariantProps,

@@ -14,6 +14,7 @@
 import * as React from "react";
 
 import {
+  usePlasmicRefs,
   Flex as Flex__,
   StrictProps,
   classNames,
@@ -71,9 +72,8 @@ function PlasmicAtomsCard__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
   return (
     <EmailSection
@@ -143,12 +143,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -158,24 +154,19 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicAtomsCard__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicAtomsCard";
-  } else {
-    func.displayName = `PlasmicAtomsCard.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicAtomsCard__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicAtomsCard__root<T extends PlasmicAtomsCard__rootProps>(props: T & StrictProps<T, PlasmicAtomsCard__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicAtomsCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicAtomsCard__root.displayName = "PlasmicAtomsCard";
+
 
 export const PlasmicAtomsCard = Object.assign(
   // Top-level PlasmicAtomsCard renders the root element
-  makeNodeComponent("root"),
+  PlasmicAtomsCard__root,
   {
     // Helper components rendering sub-elements
 

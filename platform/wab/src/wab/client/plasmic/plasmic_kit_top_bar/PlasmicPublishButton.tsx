@@ -15,20 +15,20 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ActionMenuButton from "../../components/widgets/ActionMenuButton"; // plasmic-import: VNi6NC2QOI/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6CrqkTcB6gSAHoA8c8zpNz/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6CrqkTcB6gSAHoA8c8zpNz/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -93,11 +93,10 @@ function PlasmicPublishButton__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "withMenuButton",
@@ -107,18 +106,20 @@ function PlasmicPublishButton__RenderFunc(props: {
           $props.withMenuButton,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -227,12 +228,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -242,28 +239,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPublishButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPublishButton";
-  } else {
-    func.displayName = `PlasmicPublishButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPublishButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPublishButton__root<T extends PlasmicPublishButton__rootProps>(props: T & StrictProps<T, PlasmicPublishButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPublishButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPublishButton__root.displayName = "PlasmicPublishButton";
+
+type PlasmicPublishButton__buttonProps = NodeComponentProps<"button"> & {key?: React.Key};
+function PlasmicPublishButton__button<T extends PlasmicPublishButton__buttonProps>(props: T & StrictProps<T, PlasmicPublishButton__buttonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("button", props);
+  return <PlasmicPublishButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"button"} />;
+}
+PlasmicPublishButton__button.displayName = "PlasmicPublishButton.button";
+
+type PlasmicPublishButton__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicPublishButton__menuButton<T extends PlasmicPublishButton__menuButtonProps>(props: T & StrictProps<T, PlasmicPublishButton__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicPublishButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicPublishButton__menuButton.displayName = "PlasmicPublishButton.menuButton";
+
 
 export const PlasmicPublishButton = Object.assign(
   // Top-level PlasmicPublishButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicPublishButton__root,
   {
     // Helper components rendering sub-elements
-    button: makeNodeComponent("button"),
-    menuButton: makeNodeComponent("menuButton"),
+    button: PlasmicPublishButton__button,
+    menuButton: PlasmicPublishButton__menuButton,
 
     // Metadata about props expected for PlasmicPublishButton
     internalVariantProps: PlasmicPublishButton__VariantProps,

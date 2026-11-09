@@ -20,7 +20,8 @@ import PromoBanner from "@/wab/client/components/PromoBanner";
 import { documentTitle } from "@/wab/client/components/dashboard/page-utils";
 import { shouldUpsellRedirect } from "@/wab/client/components/dashboard/useUpsellQueryParam";
 import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
-import { AppView } from "@/wab/client/components/top-view";
+import { loadProjectEntry } from "@/wab/client/components/studio/project-entry-loader";
+import { AppView, useApp } from "@/wab/client/components/top-view";
 import * as widgets from "@/wab/client/components/widgets";
 import { BrandLoading } from "@/wab/client/components/widgets/BrandLoading";
 import {
@@ -59,9 +60,9 @@ const ShiguangSignIn = React.lazy(() => import("./pages/ShiguangSignIn").then((m
 
 type LazyPage = React.LazyExoticComponent<React.ComponentType<any>>;
 
-// Keep every page rendered by LoggedInContainer in this registry, the type
-// constraint rejects eager components. Layouts and other shared route chrome
-// remain regular imports.
+// Dashboard pages suspend while loading. The project entry below uses an
+// explicit loading state so a completed module import can mount its Host iframe
+// immediately, without waiting for a Suspense fallback retry.
 const LoggedInPages = {
   AdminPage: React.lazy(() => import("./pages/admin/AdminPage")),
   AllProjectsPage: React.lazy(() => import("./dashboard/AllProjectsPage")),
@@ -90,9 +91,24 @@ const LoggedInPages = {
   TeamPage: React.lazy(() => import("./dashboard/TeamPage")),
   OrganizationsPage: React.lazy(() => import("./dashboard/OrganizationsPage")),
   TeamSettingsPage: React.lazy(() => import("./dashboard/TeamSettingsPage")),
-  ViewInitializer: React.lazy(() => import("./studio/view-initializer")),
   WorkspacePage: React.lazy(() => import("./dashboard/WorkspacePage")),
 } satisfies Record<string, LazyPage>;
+
+function ProjectEntry(props: React.ComponentProps<typeof import("./studio/view-initializer").ViewInitializer>) {
+  return <widgets.Loadable
+    loader={loadProjectEntry}
+    loadingContents={() => <StudioChrome />}
+    failureContents={(retry, error) => <StartupFailure retry={retry} error={error} />}
+    contents={({ ViewInitializer }) => <LoadedProjectEntry initializer={ViewInitializer} {...props} />}
+  />;
+}
+
+function LoadedProjectEntry({ initializer: Initializer, ...props }: React.ComponentProps<typeof ProjectEntry> & {
+  initializer: typeof import("./studio/view-initializer").ViewInitializer;
+}) {
+  React.useLayoutEffect(() => { performance.mark("studio-project-entry-committed"); }, []);
+  return <Initializer {...props} />;
+}
 
 interface LoggedInContainerProps {
   onRefreshUi: () => void;
@@ -129,7 +145,7 @@ function LoggedInContainer(props: LoggedInContainerProps) {
           APP_ROUTES.projectDocs.parse(appCtx.history.location.pathname, false)?.projectId,
         "Project route not resolved",
       );
-      return <LoggedInPages.ViewInitializer appCtx={appCtx} onRefreshUi={onRefreshUi} projectId={projectId as import("@/wab/shared/ApiSchema").ProjectId} />;
+      return <ProjectEntry appCtx={appCtx} onRefreshUi={onRefreshUi} projectId={projectId as import("@/wab/shared/ApiSchema").ProjectId} />;
     },
   });
 
@@ -216,7 +232,7 @@ function LoggedInContainer(props: LoggedInContainerProps) {
               exact: true,
               route: APP_ROUTES.orgCreation,
               render: () => (
-                <NormalNonAuthLayout nonAuthCtx={nonAuthCtx}>
+                <NormalNonAuthLayout>
                   <LoggedInPages.TeamCreation />
                 </NormalNonAuthLayout>
               ),
@@ -540,15 +556,20 @@ export function Root() {
     const bundler = new FastBundler();
 
     const projectLocation = parseProjectLocation(history.location);
+    if (projectLocation) {
+      // Loading code needs no project permission. The route's Loadable owns
+      // retries and errors if this speculative import fails.
+      void loadProjectEntry().catch(() => undefined);
+    }
     if (!hostFrameCtx && projectLocation) {
       const desktop = (window as Window & { desktopEnvironment?: {
         consumeStartupData?: (projectId: string, branchName?: string) => Promise<import("@/wab/shared/ApiSchema").ProjectOpeningResponse | null>;
       } }).desktopEnvironment;
       const opening = await (async () => {
-        try {
+        return await (async () => {
           return await desktop?.consumeStartupData?.(projectLocation.projectId, projectLocation.branchName)
             ?? await retryStartupRead(() => api.getProjectStartup(projectLocation.projectId, projectLocation.branchName));
-        } catch (error) {
+        })().catch((error) => {
           const status = asApiError(error)?.statusCode;
           // The combined request checks project access before the app knows
           // who is signed in. Let normal initialization reach StudioFrame's
@@ -557,7 +578,7 @@ export function Root() {
             return null;
           }
           throw error;
-        }
+        });
       })();
       if (opening) {
       const bootstrap = opening.startup;
@@ -626,15 +647,18 @@ export function Root() {
   );
 }
 
-function InitializedRoot({
-  nonAuthCtx,
-  appData,
-  forceUpdate,
-}: {
+interface InitializedRootProps {
   nonAuthCtx: NonAuthCtx;
   appData: Promise<PromiseSettledResult<Awaited<ReturnType<typeof loadAppCtxData>>>>;
   forceUpdate: () => void;
-}) {
+}
+
+function InitializedRoot(props: InitializedRootProps) {
+  return <AppView contents={() => <InitializedApp {...props} />} />;
+}
+
+function InitializedApp({ nonAuthCtx, appData, forceUpdate }: InitializedRootProps) {
+  const app = useApp();
   const initialData = React.useRef<typeof appData | undefined>(appData);
   const loader = async () => {
     const dataPromise = initialData.current;
@@ -643,6 +667,9 @@ function InitializedRoot({
     if (data?.status === "rejected") {
       throw data.reason;
     }
+    // Root and AppCtx share the same startup owner, so consuming its one-shot
+    // model also releases the reference held by Root's Loadable result.
+    nonAuthCtx.attachApp(app);
     const appCtx = await loadAppCtx(nonAuthCtx, true, data?.value);
     hackyCast(window).gAppCtx = appCtx;
 
@@ -664,10 +691,6 @@ function InitializedRoot({
     }
     return appCtx;
   };
-  return (
-    <AppView
-      contents={(app) => {
-        nonAuthCtx.app = app;
         // We are adding no-op event handlers here because of the following:
         //
         // When you addEventListener() in a componentDidMount (say,
@@ -681,7 +704,7 @@ function InitializedRoot({
         // already used onPointerDown somewhere before.
         //
         // This matters in particular to e.g. SidebarPopup.
-        return (
+  return (
           <widgets.Loadable
             loader={loader}
             loadingContents={() => <ApplicationPageLoading />}
@@ -700,7 +723,7 @@ function InitializedRoot({
                           render: () => (
                             <>
                               <PromoBanner />
-                              <NormalNonAuthLayout nonAuthCtx={nonAuthCtx}>
+                              <NormalNonAuthLayout>
                                 {documentTitle("Sign in")}
                                 <ShiguangSignIn />
                               </NormalNonAuthLayout>
@@ -719,7 +742,7 @@ function InitializedRoot({
                           exact: true,
                           route: APP_ROUTES.authorize,
                           render: () => (
-                            <NormalNonAuthLayout nonAuthCtx={nonAuthCtx}>
+                            <NormalNonAuthLayout>
                               <AppAuthPage />
                             </NormalNonAuthLayout>
                           ),
@@ -768,8 +791,5 @@ function InitializedRoot({
               );
             }}
           />
-        );
-      }}
-    />
   );
 }

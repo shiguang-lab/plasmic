@@ -44,15 +44,15 @@ export function VersionsTab(
 
     if (response && response.confirm) {
       setIsPublishing(true);
-      try {
+      return await (async () => {
         await studioCtx.publish(
           response.tags,
           response.title,
           studioCtx.uiEnvironment.store.getState().branchId ?? undefined,
         );
-      } finally {
+      })().finally(() => {
         setIsPublishing(false);
-      }
+      });
     }
   }
 

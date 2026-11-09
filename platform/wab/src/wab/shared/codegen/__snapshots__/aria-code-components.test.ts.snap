@@ -844,16 +844,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -861,8 +864,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -883,8 +894,8 @@ import {
 
 
 import { BaseButton } from "@plasmicpkgs/react-aria/skinny/registerButton";
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     import "./plasmic__default_style.css"; // plasmic-import: global/defaultcss
@@ -978,17 +989,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicButton__RenderFunc(
       props: {
-        variants: PlasmicButton__VariantsArgs,
-        args: PlasmicButton__ArgsType,
-        overrides: PlasmicButton__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicButton__VariantsArgs,
+    args: PlasmicButton__ArgsType,
+    overrides: PlasmicButton__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -1012,11 +1020,10 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
-    const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(() =>
+    const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(() =>
           ([{
       path: "color",
       type: "private",
@@ -1081,7 +1088,7 @@ const $$ = {};
       
       
     }])
-        , [$props, $ctx, $refs]);
+        , [$props, $ctx]);
 
     
 
@@ -1090,7 +1097,9 @@ const $$ = {};
     
 
     
-    const $state = useDollarState(stateSpecs, {$props, $ctx, $queries: {}, $q: {}, $refs});
+    const $stateEnv = {$props, $ctx, $queries: {}, $q: {}, getRefs};
+        const $stateCommands = useDollarState();
+        const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
     
     
 
@@ -1100,7 +1109,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
     const [$ccVariants, setDollarCcVariants] = React.useState<Record<string, boolean>>({
       hovered: false,
@@ -1120,7 +1129,9 @@ disabled: false
   
   
       return (
-        <BaseButton
+        (() => {
+    const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+    const rendered = (<BaseButton
       data-plasmic-name={"root"}
       data-plasmic-override={overrides.root}
       data-plasmic-root={true}
@@ -2018,7 +2029,9 @@ role={"img"}
   }) }
           </div>
           </div>
-          </BaseButton>
+          </BaseButton>);
+    return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+  })()
       ) as React.ReactElement | null;
     }
 
@@ -2060,36 +2073,59 @@ interactionEffect: "div"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicButton__ArgProps,
           internalVariantPropNames: PlasmicButton__VariantProps,
         }), [props, nodeName]);
-        return PlasmicButton__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicButton";
-      } else {
-        func.displayName = \`PlasmicButton.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicButton__root<T extends PlasmicButton__rootProps>(props: T & StrictProps<T, PlasmicButton__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicButton__root.displayName = "PlasmicButton";
+      
+
+        type PlasmicButton__softBackgroundProps = NodeComponentProps<"softBackground"> & {key?: React.Key};
+        function PlasmicButton__softBackground<T extends PlasmicButton__softBackgroundProps>(props: T & StrictProps<T, PlasmicButton__softBackgroundProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("softBackground", props);
+          return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"softBackground"} />;
+        }
+        PlasmicButton__softBackground.displayName = "PlasmicButton.softBackground";
+      
+
+        type PlasmicButton__borderProps = NodeComponentProps<"border"> & {key?: React.Key};
+        function PlasmicButton__border<T extends PlasmicButton__borderProps>(props: T & StrictProps<T, PlasmicButton__borderProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("border", props);
+          return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"border"} />;
+        }
+        PlasmicButton__border.displayName = "PlasmicButton.border";
+      
+
+        type PlasmicButton__interactionEffectProps = NodeComponentProps<"interactionEffect"> & {key?: React.Key};
+        function PlasmicButton__interactionEffect<T extends PlasmicButton__interactionEffectProps>(props: T & StrictProps<T, PlasmicButton__interactionEffectProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("interactionEffect", props);
+          return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"interactionEffect"} />;
+        }
+        PlasmicButton__interactionEffect.displayName = "PlasmicButton.interactionEffect";
+      
 
     
     
 
     export const PlasmicButton = Object.assign(
       // Top-level PlasmicButton renders the root element
-      makeNodeComponent("root"),
+      PlasmicButton__root,
       {
         // Helper components rendering sub-elements
-        softBackground: makeNodeComponent("softBackground"),
-border: makeNodeComponent("border"),
-interactionEffect: makeNodeComponent("interactionEffect"),
+        softBackground: PlasmicButton__softBackground,
+border: PlasmicButton__border,
+interactionEffect: PlasmicButton__interactionEffect,
 
         // Metadata about props expected for PlasmicButton
         internalVariantProps: PlasmicButton__VariantProps,
@@ -2151,16 +2187,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -2168,8 +2207,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -2190,8 +2237,8 @@ import {
 
 
 import DataFetcherParent from "./DataFetcherParent";  // plasmic-import: iUkwSJQ7glxH/component
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     import "./plasmic__default_style.css"; // plasmic-import: global/defaultcss
@@ -2246,17 +2293,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicDataFetcherGrandParent__RenderFunc(
       props: {
-        variants: PlasmicDataFetcherGrandParent__VariantsArgs,
-        args: PlasmicDataFetcherGrandParent__ArgsType,
-        overrides: PlasmicDataFetcherGrandParent__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicDataFetcherGrandParent__VariantsArgs,
+    args: PlasmicDataFetcherGrandParent__ArgsType,
+    overrides: PlasmicDataFetcherGrandParent__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -2280,9 +2324,8 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
@@ -2303,7 +2346,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
@@ -2350,31 +2393,30 @@ const $$ = {};
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicDataFetcherGrandParent__ArgProps,
           internalVariantPropNames: PlasmicDataFetcherGrandParent__VariantProps,
         }), [props, nodeName]);
-        return PlasmicDataFetcherGrandParent__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicDataFetcherGrandParent";
-      } else {
-        func.displayName = \`PlasmicDataFetcherGrandParent.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicDataFetcherGrandParent__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicDataFetcherGrandParent__root<T extends PlasmicDataFetcherGrandParent__rootProps>(props: T & StrictProps<T, PlasmicDataFetcherGrandParent__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicDataFetcherGrandParent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicDataFetcherGrandParent__root.displayName = "PlasmicDataFetcherGrandParent";
+      
 
     
     
 
     export const PlasmicDataFetcherGrandParent = Object.assign(
       // Top-level PlasmicDataFetcherGrandParent renders the root element
-      makeNodeComponent("root"),
+      PlasmicDataFetcherGrandParent__root,
       {
         // Helper components rendering sub-elements
         
@@ -2441,16 +2483,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -2458,8 +2503,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -2480,8 +2533,8 @@ import {
 
 
 import { Fetcher } from "@plasmicapp/react-web/lib/data-sources";
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     import "./plasmic__default_style.css"; // plasmic-import: global/defaultcss
@@ -2536,17 +2589,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicDataFetcherParent__RenderFunc(
       props: {
-        variants: PlasmicDataFetcherParent__VariantsArgs,
-        args: PlasmicDataFetcherParent__ArgsType,
-        overrides: PlasmicDataFetcherParent__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicDataFetcherParent__VariantsArgs,
+    args: PlasmicDataFetcherParent__ArgsType,
+    overrides: PlasmicDataFetcherParent__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -2570,9 +2620,8 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
@@ -2593,7 +2642,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
@@ -2640,31 +2689,30 @@ const $$ = {};
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicDataFetcherParent__ArgProps,
           internalVariantPropNames: PlasmicDataFetcherParent__VariantProps,
         }), [props, nodeName]);
-        return PlasmicDataFetcherParent__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "dataFetcher") {
-        func.displayName = "PlasmicDataFetcherParent";
-      } else {
-        func.displayName = \`PlasmicDataFetcherParent.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicDataFetcherParent__dataFetcherProps = NodeComponentProps<"dataFetcher"> & {key?: React.Key};
+        function PlasmicDataFetcherParent__dataFetcher<T extends PlasmicDataFetcherParent__dataFetcherProps>(props: T & StrictProps<T, PlasmicDataFetcherParent__dataFetcherProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("dataFetcher", props);
+          return <PlasmicDataFetcherParent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dataFetcher"} />;
+        }
+        PlasmicDataFetcherParent__dataFetcher.displayName = "PlasmicDataFetcherParent";
+      
 
     
     
 
     export const PlasmicDataFetcherParent = Object.assign(
       // Top-level PlasmicDataFetcherParent renders the root element
-      makeNodeComponent("dataFetcher"),
+      PlasmicDataFetcherParent__dataFetcher,
       {
         // Helper components rendering sub-elements
         
@@ -2743,16 +2791,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -2760,8 +2811,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -2782,8 +2841,8 @@ import {
 
 
 
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     import "./plasmic__default_style.css"; // plasmic-import: global/defaultcss
@@ -2839,17 +2898,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicHelloWorld__RenderFunc(
       props: {
-        variants: PlasmicHelloWorld__VariantsArgs,
-        args: PlasmicHelloWorld__ArgsType,
-        overrides: PlasmicHelloWorld__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicHelloWorld__VariantsArgs,
+    args: PlasmicHelloWorld__ArgsType,
+    overrides: PlasmicHelloWorld__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -2873,9 +2929,8 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
@@ -2896,7 +2951,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
@@ -2956,34 +3011,41 @@ text: "div"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicHelloWorld__ArgProps,
           internalVariantPropNames: PlasmicHelloWorld__VariantProps,
         }), [props, nodeName]);
-        return PlasmicHelloWorld__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicHelloWorld";
-      } else {
-        func.displayName = \`PlasmicHelloWorld.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicHelloWorld__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicHelloWorld__root<T extends PlasmicHelloWorld__rootProps>(props: T & StrictProps<T, PlasmicHelloWorld__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicHelloWorld__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicHelloWorld__root.displayName = "PlasmicHelloWorld";
+      
+
+        type PlasmicHelloWorld__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+        function PlasmicHelloWorld__text<T extends PlasmicHelloWorld__textProps>(props: T & StrictProps<T, PlasmicHelloWorld__textProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("text", props);
+          return <PlasmicHelloWorld__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+        }
+        PlasmicHelloWorld__text.displayName = "PlasmicHelloWorld.text";
+      
 
     
     
 
     export const PlasmicHelloWorld = Object.assign(
       // Top-level PlasmicHelloWorld renders the root element
-      makeNodeComponent("root"),
+      PlasmicHelloWorld__root,
       {
         // Helper components rendering sub-elements
-        text: makeNodeComponent("text"),
+        text: PlasmicHelloWorld__text,
 
         // Metadata about props expected for PlasmicHelloWorld
         internalVariantProps: PlasmicHelloWorld__VariantProps,
@@ -3326,16 +3388,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -3343,8 +3408,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -3368,8 +3441,8 @@ import { BaseDialogTrigger } from "@plasmicpkgs/react-aria/skinny/registerDialog
 import Button from "./Button";  // plasmic-import: D557GwRUy2HJ/component
 import { BaseModal } from "@plasmicpkgs/react-aria/skinny/registerModal";
 import { BaseHeading } from "@plasmicpkgs/react-aria/skinny/registerHeading";
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     import "./plasmic__default_style.css"; // plasmic-import: global/defaultcss
@@ -3449,17 +3522,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicModalDialog__RenderFunc(
       props: {
-        variants: PlasmicModalDialog__VariantsArgs,
-        args: PlasmicModalDialog__ArgsType,
-        overrides: PlasmicModalDialog__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicModalDialog__VariantsArgs,
+    args: PlasmicModalDialog__ArgsType,
+    overrides: PlasmicModalDialog__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -3485,11 +3555,10 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
-    const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(() =>
+    const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(() =>
           ([{
       path: "ariaDialogTrigger.isOpen",
       type: "writable",
@@ -3518,7 +3587,7 @@ const $$ = {};
       
       
     }])
-        , [$props, $ctx, $refs]);
+        , [$props, $ctx]);
 
     
 
@@ -3527,7 +3596,9 @@ const $$ = {};
     
 
     
-    const $state = useDollarState(stateSpecs, {$props, $ctx, $queries: {}, $q: {}, $refs});
+    const $stateEnv = {$props, $ctx, $queries: {}, $q: {}, getRefs};
+        const $stateCommands = useDollarState();
+        const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
     
     
 
@@ -3537,39 +3608,48 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
-        <BaseDialogTrigger
-      data-plasmic-name={"ariaDialogTrigger"}
-      data-plasmic-override={overrides.ariaDialogTrigger}
-      data-plasmic-root={true}
-      data-plasmic-for-node={forNode}
-      dialog={<BaseModal
+        (() => {
+    const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+    const rendered = ((() => {
+    const child$Props = {dialog: (() => {
+    const child$Props = {className: classNames("__wab_instance", "ModalDialog__ariaModal__eaRon", { "ModalDialog__ariaModalnoTrigger__eaRoneQ53M": hasVariant(
+      $state,
+      "noTrigger",
+      "noTrigger"
+    ) }),
+defaultOpen: true,
+isDismissable: args.closeOnBackdropClick,
+isKeyboardDismissDisabled: args.isKeyboardDismissDisabled,
+isOpen: generateStateValueProp($state, ["ariaModal","isOpen"]),
+modalOverlayClass: classNames({ "pcls_QFOecPzS37aO": true }),
+onOpenChange: async (...eventArgs: any) => {
+        (generateStateOnChangeProp($stateCommands, ["ariaModal","isOpen"])).apply(null, eventArgs);
+
+        
+
+        
+      },
+ref: registerRef("ariaModal"),
+resetClassName: classNames("root_reset_1234567890", "plasmic_default_styles", "plasmic_mixins", styleTokensClassNames)};
+    $stateInitializers.push(
+    ...getCodeComponentStateInitializers([
+            {
+              name: "isOpen",
+              plasmicStateName: "ariaModal.isOpen"
+            }
+          ], [], undefined ?? {}, child$Props),
+    
+    );
+    return (<BaseModal
       data-plasmic-name={"ariaModal"}
       data-plasmic-override={overrides.ariaModal}
       
       
-      className={classNames("__wab_instance", "ModalDialog__ariaModal__eaRon", { "ModalDialog__ariaModalnoTrigger__eaRoneQ53M": hasVariant(
-      $state,
-      "noTrigger",
-      "noTrigger"
-    ) })}
-defaultOpen={true}
-isDismissable={args.closeOnBackdropClick}
-isKeyboardDismissDisabled={args.isKeyboardDismissDisabled}
-isOpen={generateStateValueProp($state, ["ariaModal","isOpen"])}
-modalOverlayClass={classNames({ "pcls_QFOecPzS37aO": true })}
-onOpenChange={async (...eventArgs: any) => {
-        (generateStateOnChangeProp($state, ["ariaModal","isOpen"])).apply(null, eventArgs);
-
-        
-
-        
-      }}
-ref={(ref) => { $refs["ariaModal"] = ref; }}
-resetClassName={classNames("root_reset_1234567890", "plasmic_default_styles", "plasmic_mixins", styleTokensClassNames)}
+      {...child$Props}
       
       >
             <div
@@ -3674,7 +3754,9 @@ label={<div
       >
             { "Close" }
           </div>}
-onClick={async (event) => {
+onClick={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => {
+    const $refs = getRefs();
+    return (async (event) => {
         
         const $steps = {};
         
@@ -3707,7 +3789,8 @@ onClick={async (event) => {
             
             
             
-      }}
+      });
+  })}
 type={"soft"}
       
       />
@@ -3717,16 +3800,17 @@ type={"soft"}
   }) }
           </div>) : null }
           </div>
-          </BaseModal>}
-isOpen={generateStateValueProp($state, ["ariaDialogTrigger","isOpen"])}
-onOpenChange={async (...eventArgs: any) => {
-        (generateStateOnChangeProp($state, ["ariaDialogTrigger","isOpen"])).apply(null, eventArgs);
+          </BaseModal>);
+  })(),
+isOpen: generateStateValueProp($state, ["ariaDialogTrigger","isOpen"]),
+onOpenChange: async (...eventArgs: any) => {
+        (generateStateOnChangeProp($stateCommands, ["ariaDialogTrigger","isOpen"])).apply(null, eventArgs);
 
         
 
         
-      }}
-trigger={(hasVariant(
+      },
+trigger: (hasVariant(
       $state,
       "noTrigger",
       "noTrigger"
@@ -3741,9 +3825,27 @@ trigger={(hasVariant(
       />,
       value: args.trigger,
       
-  })) : null}
+  })) : null};
+    $stateInitializers.push(
+    ...getCodeComponentStateInitializers([
+            {
+              name: "isOpen",
+              plasmicStateName: "ariaDialogTrigger.isOpen"
+            }
+          ], [], undefined ?? {}, child$Props),
+    
+    );
+    return (<BaseDialogTrigger
+      data-plasmic-name={"ariaDialogTrigger"}
+      data-plasmic-override={overrides.ariaDialogTrigger}
+      data-plasmic-root={true}
+      data-plasmic-for-node={forNode}
+      {...child$Props}
       
-      />
+      />);
+  })());
+    return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+  })()
       ) as React.ReactElement | null;
     }
 
@@ -3785,36 +3887,59 @@ scrollableContent: "div"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicModalDialog__ArgProps,
           internalVariantPropNames: PlasmicModalDialog__VariantProps,
         }), [props, nodeName]);
-        return PlasmicModalDialog__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "ariaDialogTrigger") {
-        func.displayName = "PlasmicModalDialog";
-      } else {
-        func.displayName = \`PlasmicModalDialog.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicModalDialog__ariaDialogTriggerProps = NodeComponentProps<"ariaDialogTrigger"> & {key?: React.Key};
+        function PlasmicModalDialog__ariaDialogTrigger<T extends PlasmicModalDialog__ariaDialogTriggerProps>(props: T & StrictProps<T, PlasmicModalDialog__ariaDialogTriggerProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("ariaDialogTrigger", props);
+          return <PlasmicModalDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaDialogTrigger"} />;
+        }
+        PlasmicModalDialog__ariaDialogTrigger.displayName = "PlasmicModalDialog";
+      
+
+        type PlasmicModalDialog__ariaModalProps = NodeComponentProps<"ariaModal"> & {key?: React.Key};
+        function PlasmicModalDialog__ariaModal<T extends PlasmicModalDialog__ariaModalProps>(props: T & StrictProps<T, PlasmicModalDialog__ariaModalProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("ariaModal", props);
+          return <PlasmicModalDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaModal"} />;
+        }
+        PlasmicModalDialog__ariaModal.displayName = "PlasmicModalDialog.ariaModal";
+      
+
+        type PlasmicModalDialog__ariaHeadingProps = NodeComponentProps<"ariaHeading"> & {key?: React.Key};
+        function PlasmicModalDialog__ariaHeading<T extends PlasmicModalDialog__ariaHeadingProps>(props: T & StrictProps<T, PlasmicModalDialog__ariaHeadingProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("ariaHeading", props);
+          return <PlasmicModalDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaHeading"} />;
+        }
+        PlasmicModalDialog__ariaHeading.displayName = "PlasmicModalDialog.ariaHeading";
+      
+
+        type PlasmicModalDialog__scrollableContentProps = NodeComponentProps<"scrollableContent"> & {key?: React.Key};
+        function PlasmicModalDialog__scrollableContent<T extends PlasmicModalDialog__scrollableContentProps>(props: T & StrictProps<T, PlasmicModalDialog__scrollableContentProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("scrollableContent", props);
+          return <PlasmicModalDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"scrollableContent"} />;
+        }
+        PlasmicModalDialog__scrollableContent.displayName = "PlasmicModalDialog.scrollableContent";
+      
 
     
     
 
     export const PlasmicModalDialog = Object.assign(
       // Top-level PlasmicModalDialog renders the root element
-      makeNodeComponent("ariaDialogTrigger"),
+      PlasmicModalDialog__ariaDialogTrigger,
       {
         // Helper components rendering sub-elements
-        ariaModal: makeNodeComponent("ariaModal"),
-ariaHeading: makeNodeComponent("ariaHeading"),
-scrollableContent: makeNodeComponent("scrollableContent"),
+        ariaModal: PlasmicModalDialog__ariaModal,
+ariaHeading: PlasmicModalDialog__ariaHeading,
+scrollableContent: PlasmicModalDialog__scrollableContent,
 
         // Metadata about props expected for PlasmicModalDialog
         internalVariantProps: PlasmicModalDialog__VariantProps,
@@ -3893,16 +4018,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -3910,8 +4038,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -3932,8 +4068,8 @@ import {
 
 
 import { BaseOverlayArrow } from "@plasmicpkgs/react-aria/skinny/registerOverlayArrow";
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     import "./plasmic__default_style.css"; // plasmic-import: global/defaultcss
@@ -3989,17 +4125,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicMyOverlayArrow__RenderFunc(
       props: {
-        variants: PlasmicMyOverlayArrow__VariantsArgs,
-        args: PlasmicMyOverlayArrow__ArgsType,
-        overrides: PlasmicMyOverlayArrow__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicMyOverlayArrow__VariantsArgs,
+    args: PlasmicMyOverlayArrow__ArgsType,
+    overrides: PlasmicMyOverlayArrow__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -4023,9 +4156,8 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
@@ -4046,7 +4178,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
     const [$ccVariants, setDollarCcVariants] = React.useState<Record<string, boolean>>({
       placementTop: false,
@@ -4119,34 +4251,41 @@ freeBox: "div"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicMyOverlayArrow__ArgProps,
           internalVariantPropNames: PlasmicMyOverlayArrow__VariantProps,
         }), [props, nodeName]);
-        return PlasmicMyOverlayArrow__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicMyOverlayArrow";
-      } else {
-        func.displayName = \`PlasmicMyOverlayArrow.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicMyOverlayArrow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicMyOverlayArrow__root<T extends PlasmicMyOverlayArrow__rootProps>(props: T & StrictProps<T, PlasmicMyOverlayArrow__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicMyOverlayArrow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicMyOverlayArrow__root.displayName = "PlasmicMyOverlayArrow";
+      
+
+        type PlasmicMyOverlayArrow__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+        function PlasmicMyOverlayArrow__freeBox<T extends PlasmicMyOverlayArrow__freeBoxProps>(props: T & StrictProps<T, PlasmicMyOverlayArrow__freeBoxProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+          return <PlasmicMyOverlayArrow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+        }
+        PlasmicMyOverlayArrow__freeBox.displayName = "PlasmicMyOverlayArrow.freeBox";
+      
 
     
     
 
     export const PlasmicMyOverlayArrow = Object.assign(
       // Top-level PlasmicMyOverlayArrow renders the root element
-      makeNodeComponent("root"),
+      PlasmicMyOverlayArrow__root,
       {
         // Helper components rendering sub-elements
-        freeBox: makeNodeComponent("freeBox"),
+        freeBox: PlasmicMyOverlayArrow__freeBox,
 
         // Metadata about props expected for PlasmicMyOverlayArrow
         internalVariantProps: PlasmicMyOverlayArrow__VariantProps,
@@ -4338,16 +4477,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -4355,8 +4497,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -4383,8 +4533,8 @@ import MyOverlayArrow from "./MyOverlayArrow";  // plasmic-import: N_LiHbyjn30l/
 import { Fetcher } from "@plasmicapp/react-web/lib/data-sources";
 import ModalDialog from "./ModalDialog";  // plasmic-import: 4D8eN8Bv_isH/component
 import HelloWorld from "./HelloWorld";  // plasmic-import: 3khyLeywU1SP/component
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     import "./plasmic__default_style.css"; // plasmic-import: global/defaultcss
@@ -4487,17 +4637,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicNewPage__RenderFunc(
       props: {
-        variants: PlasmicNewPage__VariantsArgs,
-        args: PlasmicNewPage__ArgsType,
-        overrides: PlasmicNewPage__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicNewPage__VariantsArgs,
+    args: PlasmicNewPage__ArgsType,
+    overrides: PlasmicNewPage__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -4521,11 +4668,10 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
-    const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(() =>
+    const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(() =>
           ([{
       path: "popoverDialog.isOpen",
       type: "private",
@@ -4545,7 +4691,7 @@ const $$ = {};
       
       
     }])
-        , [$props, $ctx, $refs]);
+        , [$props, $ctx]);
 
     
 
@@ -4554,7 +4700,9 @@ const $$ = {};
     
 
     
-    const $state = useDollarState(stateSpecs, {$props, $ctx, $queries: {}, $q: {}, $refs});
+    const $stateEnv = {$props, $ctx, $queries: {}, $q: {}, getRefs};
+        const $stateCommands = useDollarState();
+        const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
     
     
 
@@ -4564,11 +4712,13 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
-        <React.Fragment>
+        (() => {
+    const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+    const rendered = (<React.Fragment>
   
 
       <div className={"plasmic_page_wrapper"}>
@@ -4587,7 +4737,7 @@ const $$ = {};
       
       className={classNames("__wab_instance", "NewPage__popoverDialog__jyuy8")}
 onOpenChange={async (...eventArgs: any) => {
-        (generateStateOnChangeProp($state, ["popoverDialog","isOpen"])).apply(null, eventArgs);
+        (generateStateOnChangeProp($stateCommands, ["popoverDialog","isOpen"])).apply(null, eventArgs);
 
         if(eventArgs.length > 1 && eventArgs[1] && eventArgs[1]._plasmic_state_init_) {
   return;
@@ -4621,7 +4771,9 @@ onOpenChange={async (...eventArgs: any) => {
       queries={{}}
       
       >
-            { ($queries: any) => <div
+            { ($queries: any) => (() => {
+    const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+    const rendered = (<div
       
       
       
@@ -4630,7 +4782,9 @@ onOpenChange={async (...eventArgs: any) => {
       
       >
             { "Enter some text" }
-          </div> }
+          </div>);
+    return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+  })() }
           </Fetcher>
 <ModalDialog
       data-plasmic-name={"modalDialog"}
@@ -4640,7 +4794,7 @@ onOpenChange={async (...eventArgs: any) => {
       className={classNames("__wab_instance", "NewPage__modalDialog__eb26A")}
 isOpen={generateStateValueProp($state, ["modalDialog","isOpen"])}
 onOpenChange={async (...eventArgs: any) => {
-        (generateStateOnChangeProp($state, ["modalDialog","isOpen"])).apply(null, eventArgs);
+        (generateStateOnChangeProp($stateCommands, ["modalDialog","isOpen"])).apply(null, eventArgs);
 
         if(eventArgs.length > 1 && eventArgs[1] && eventArgs[1]._plasmic_state_init_) {
   return;
@@ -4679,7 +4833,9 @@ onOpenChange={async (...eventArgs: any) => {
           </div>
       </div>
     
-</React.Fragment>
+</React.Fragment>);
+    return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+  })()
       ) as React.ReactElement | null;
     }
 
@@ -4729,40 +4885,95 @@ helloWorld: typeof HelloWorld
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicNewPage__ArgProps,
           internalVariantPropNames: PlasmicNewPage__VariantProps,
         }), [props, nodeName]);
-        return PlasmicNewPage__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicNewPage";
-      } else {
-        func.displayName = \`PlasmicNewPage.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicNewPage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicNewPage__root<T extends PlasmicNewPage__rootProps>(props: T & StrictProps<T, PlasmicNewPage__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicNewPage__root.displayName = "PlasmicNewPage";
+      
+
+        type PlasmicNewPage__popoverDialogProps = NodeComponentProps<"popoverDialog"> & {key?: React.Key};
+        function PlasmicNewPage__popoverDialog<T extends PlasmicNewPage__popoverDialogProps>(props: T & StrictProps<T, PlasmicNewPage__popoverDialogProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("popoverDialog", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"popoverDialog"} />;
+        }
+        PlasmicNewPage__popoverDialog.displayName = "PlasmicNewPage.popoverDialog";
+      
+
+        type PlasmicNewPage__tooltipProps = NodeComponentProps<"tooltip"> & {key?: React.Key};
+        function PlasmicNewPage__tooltip<T extends PlasmicNewPage__tooltipProps>(props: T & StrictProps<T, PlasmicNewPage__tooltipProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("tooltip", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tooltip"} />;
+        }
+        PlasmicNewPage__tooltip.displayName = "PlasmicNewPage.tooltip";
+      
+
+        type PlasmicNewPage__myOverlayArrowProps = NodeComponentProps<"myOverlayArrow"> & {key?: React.Key};
+        function PlasmicNewPage__myOverlayArrow<T extends PlasmicNewPage__myOverlayArrowProps>(props: T & StrictProps<T, PlasmicNewPage__myOverlayArrowProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("myOverlayArrow", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"myOverlayArrow"} />;
+        }
+        PlasmicNewPage__myOverlayArrow.displayName = "PlasmicNewPage.myOverlayArrow";
+      
+
+        type PlasmicNewPage__dataFetcherProps = NodeComponentProps<"dataFetcher"> & {key?: React.Key};
+        function PlasmicNewPage__dataFetcher<T extends PlasmicNewPage__dataFetcherProps>(props: T & StrictProps<T, PlasmicNewPage__dataFetcherProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("dataFetcher", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dataFetcher"} />;
+        }
+        PlasmicNewPage__dataFetcher.displayName = "PlasmicNewPage.dataFetcher";
+      
+
+        type PlasmicNewPage__modalDialogProps = NodeComponentProps<"modalDialog"> & {key?: React.Key};
+        function PlasmicNewPage__modalDialog<T extends PlasmicNewPage__modalDialogProps>(props: T & StrictProps<T, PlasmicNewPage__modalDialogProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("modalDialog", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"modalDialog"} />;
+        }
+        PlasmicNewPage__modalDialog.displayName = "PlasmicNewPage.modalDialog";
+      
+
+        type PlasmicNewPage__buttonProps = NodeComponentProps<"button"> & {key?: React.Key};
+        function PlasmicNewPage__button<T extends PlasmicNewPage__buttonProps>(props: T & StrictProps<T, PlasmicNewPage__buttonProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("button", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"button"} />;
+        }
+        PlasmicNewPage__button.displayName = "PlasmicNewPage.button";
+      
+
+        type PlasmicNewPage__helloWorldProps = NodeComponentProps<"helloWorld"> & {key?: React.Key};
+        function PlasmicNewPage__helloWorld<T extends PlasmicNewPage__helloWorldProps>(props: T & StrictProps<T, PlasmicNewPage__helloWorldProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("helloWorld", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"helloWorld"} />;
+        }
+        PlasmicNewPage__helloWorld.displayName = "PlasmicNewPage.helloWorld";
+      
 
     
     
 
     export const PlasmicNewPage = Object.assign(
       // Top-level PlasmicNewPage renders the root element
-      makeNodeComponent("root"),
+      PlasmicNewPage__root,
       {
         // Helper components rendering sub-elements
-        popoverDialog: makeNodeComponent("popoverDialog"),
-tooltip: makeNodeComponent("tooltip"),
-myOverlayArrow: makeNodeComponent("myOverlayArrow"),
-dataFetcher: makeNodeComponent("dataFetcher"),
-modalDialog: makeNodeComponent("modalDialog"),
-button: makeNodeComponent("button"),
-helloWorld: makeNodeComponent("helloWorld"),
+        popoverDialog: PlasmicNewPage__popoverDialog,
+tooltip: PlasmicNewPage__tooltip,
+myOverlayArrow: PlasmicNewPage__myOverlayArrow,
+dataFetcher: PlasmicNewPage__dataFetcher,
+modalDialog: PlasmicNewPage__modalDialog,
+button: PlasmicNewPage__button,
+helloWorld: PlasmicNewPage__helloWorld,
 
         // Metadata about props expected for PlasmicNewPage
         internalVariantProps: PlasmicNewPage__VariantProps,
@@ -4887,16 +5098,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -4904,8 +5118,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -4926,8 +5148,8 @@ import {
 
 
 import { BasePopover } from "@plasmicpkgs/react-aria/skinny/registerPopover";
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     import "./plasmic__default_style.css"; // plasmic-import: global/defaultcss
@@ -4991,17 +5213,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicPopover__RenderFunc(
       props: {
-        variants: PlasmicPopover__VariantsArgs,
-        args: PlasmicPopover__ArgsType,
-        overrides: PlasmicPopover__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicPopover__VariantsArgs,
+    args: PlasmicPopover__ArgsType,
+    overrides: PlasmicPopover__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -5027,9 +5246,8 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
@@ -5050,7 +5268,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
     const [$ccVariants, setDollarCcVariants] = React.useState<Record<string, boolean>>({
       placementTop: false,
@@ -5083,20 +5301,20 @@ resetClassName={classNames("root_reset_1234567890", "plasmic_default_styles", "p
 shouldFlip={args.shouldFlip}
       
       >
-            { ((() => {
+            { (((evaluate, fallback) => {
       try {
-        return (
-          $props.showArrow
-        );
+        return evaluate();
       } catch (e) {
         if(e instanceof TypeError) {
-          return (
-            true
-          );
+          return fallback();
         }
         throw e;
       }
-    })()) ? (<TriangleFilledIcon
+    })(() => (
+      $props.showArrow
+    ), () => (
+      true
+    ))) ? (<TriangleFilledIcon
       data-plasmic-name={"svg"}
       data-plasmic-override={overrides.svg}
       
@@ -5186,34 +5404,41 @@ svg: "svg"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicPopover__ArgProps,
           internalVariantPropNames: PlasmicPopover__VariantProps,
         }), [props, nodeName]);
-        return PlasmicPopover__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicPopover";
-      } else {
-        func.displayName = \`PlasmicPopover.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicPopover__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicPopover__root<T extends PlasmicPopover__rootProps>(props: T & StrictProps<T, PlasmicPopover__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicPopover__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicPopover__root.displayName = "PlasmicPopover";
+      
+
+        type PlasmicPopover__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+        function PlasmicPopover__svg<T extends PlasmicPopover__svgProps>(props: T & StrictProps<T, PlasmicPopover__svgProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+          return <PlasmicPopover__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+        }
+        PlasmicPopover__svg.displayName = "PlasmicPopover.svg";
+      
 
     
     
 
     export const PlasmicPopover = Object.assign(
       // Top-level PlasmicPopover renders the root element
-      makeNodeComponent("root"),
+      PlasmicPopover__root,
       {
         // Helper components rendering sub-elements
-        svg: makeNodeComponent("svg"),
+        svg: PlasmicPopover__svg,
 
         // Metadata about props expected for PlasmicPopover
         internalVariantProps: PlasmicPopover__VariantProps,
@@ -5305,16 +5530,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -5322,8 +5550,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -5346,8 +5582,8 @@ import {
 import { BaseDialogTrigger } from "@plasmicpkgs/react-aria/skinny/registerDialogTrigger";
 import Button from "./Button";  // plasmic-import: D557GwRUy2HJ/component
 import Popover from "./Popover";  // plasmic-import: 6YHxfeslQ2vo/component
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     import "./plasmic__default_style.css"; // plasmic-import: global/defaultcss
@@ -5416,17 +5652,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicPopoverDialog__RenderFunc(
       props: {
-        variants: PlasmicPopoverDialog__VariantsArgs,
-        args: PlasmicPopoverDialog__ArgsType,
-        overrides: PlasmicPopoverDialog__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicPopoverDialog__VariantsArgs,
+    args: PlasmicPopoverDialog__ArgsType,
+    overrides: PlasmicPopoverDialog__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -5452,11 +5685,10 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
-    const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(() =>
+    const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(() =>
           ([{
       path: "ariaDialogTrigger.isOpen",
       type: "readonly",
@@ -5467,7 +5699,7 @@ const $$ = {};
       
       
     }])
-        , [$props, $ctx, $refs]);
+        , [$props, $ctx]);
 
     
 
@@ -5476,7 +5708,9 @@ const $$ = {};
     
 
     
-    const $state = useDollarState(stateSpecs, {$props, $ctx, $queries: {}, $q: {}, $refs});
+    const $stateEnv = {$props, $ctx, $queries: {}, $q: {}, getRefs};
+        const $stateCommands = useDollarState();
+        const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
     
     
 
@@ -5486,16 +5720,14 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
-        <BaseDialogTrigger
-      data-plasmic-name={"ariaDialogTrigger"}
-      data-plasmic-override={overrides.ariaDialogTrigger}
-      data-plasmic-root={true}
-      data-plasmic-for-node={forNode}
-      dialog={<Popover
+        (() => {
+    const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+    const rendered = ((() => {
+    const child$Props = {dialog: <Popover
       data-plasmic-name={"popover"}
       data-plasmic-override={overrides.popover}
       
@@ -5538,16 +5770,16 @@ placement={args.placement}
 shouldFlip={args.shouldFlip}
 showArrow={args.showArrow}
       
-      />}
-isOpen={generateStateValueProp($state, ["ariaDialogTrigger","isOpen"])}
-onOpenChange={async (...eventArgs: any) => {
-        (generateStateOnChangeProp($state, ["ariaDialogTrigger","isOpen"])).apply(null, eventArgs);
+      />,
+isOpen: generateStateValueProp($state, ["ariaDialogTrigger","isOpen"]),
+onOpenChange: async (...eventArgs: any) => {
+        (generateStateOnChangeProp($stateCommands, ["ariaDialogTrigger","isOpen"])).apply(null, eventArgs);
 
         
 
         
-      }}
-trigger={renderPlasmicSlot({
+      },
+trigger: renderPlasmicSlot({
       defaultContents: <Button
       
       
@@ -5559,9 +5791,27 @@ label={"Open Popover"}
       />,
       value: args.trigger,
       
-  })}
+  })};
+    $stateInitializers.push(
+    ...getCodeComponentStateInitializers([
+            {
+              name: "isOpen",
+              plasmicStateName: "ariaDialogTrigger.isOpen"
+            }
+          ], [], undefined ?? {}, child$Props),
+    
+    );
+    return (<BaseDialogTrigger
+      data-plasmic-name={"ariaDialogTrigger"}
+      data-plasmic-override={overrides.ariaDialogTrigger}
+      data-plasmic-root={true}
+      data-plasmic-for-node={forNode}
+      {...child$Props}
       
-      />
+      />);
+  })());
+    return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+  })()
       ) as React.ReactElement | null;
     }
 
@@ -5599,34 +5849,41 @@ popover: typeof Popover
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicPopoverDialog__ArgProps,
           internalVariantPropNames: PlasmicPopoverDialog__VariantProps,
         }), [props, nodeName]);
-        return PlasmicPopoverDialog__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "ariaDialogTrigger") {
-        func.displayName = "PlasmicPopoverDialog";
-      } else {
-        func.displayName = \`PlasmicPopoverDialog.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicPopoverDialog__ariaDialogTriggerProps = NodeComponentProps<"ariaDialogTrigger"> & {key?: React.Key};
+        function PlasmicPopoverDialog__ariaDialogTrigger<T extends PlasmicPopoverDialog__ariaDialogTriggerProps>(props: T & StrictProps<T, PlasmicPopoverDialog__ariaDialogTriggerProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("ariaDialogTrigger", props);
+          return <PlasmicPopoverDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaDialogTrigger"} />;
+        }
+        PlasmicPopoverDialog__ariaDialogTrigger.displayName = "PlasmicPopoverDialog";
+      
+
+        type PlasmicPopoverDialog__popoverProps = NodeComponentProps<"popover"> & {key?: React.Key};
+        function PlasmicPopoverDialog__popover<T extends PlasmicPopoverDialog__popoverProps>(props: T & StrictProps<T, PlasmicPopoverDialog__popoverProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("popover", props);
+          return <PlasmicPopoverDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"popover"} />;
+        }
+        PlasmicPopoverDialog__popover.displayName = "PlasmicPopoverDialog.popover";
+      
 
     
     
 
     export const PlasmicPopoverDialog = Object.assign(
       // Top-level PlasmicPopoverDialog renders the root element
-      makeNodeComponent("ariaDialogTrigger"),
+      PlasmicPopoverDialog__ariaDialogTrigger,
       {
         // Helper components rendering sub-elements
-        popover: makeNodeComponent("popover"),
+        popover: PlasmicPopoverDialog__popover,
 
         // Metadata about props expected for PlasmicPopoverDialog
         internalVariantProps: PlasmicPopoverDialog__VariantProps,
@@ -5658,9 +5915,10 @@ export default PlasmicPopoverDialog;
     // Plasmic Project: 1234567890
     // plasmic-unformatted
   
-    import { createUseStyleTokens } from "@plasmicapp/react-web";
+    import * as React from "react";
+    import { useStyleTokens as useProjectStyleTokens } from "@plasmicapp/react-web";
 
-    import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+    import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
 
     import "./plasmic.css"; // plasmic-import: 1234567890/projectcss
 
@@ -5671,10 +5929,9 @@ export default PlasmicPopoverDialog;
   ],
   };
   
-    export const _useStyleTokens = createUseStyleTokens(
-      data,
-      _useGlobalVariants,
-    );
+    export function useStyleTokens() {
+      return useProjectStyleTokens(data, useGlobalVariants());
+    }
   
     
 --- PlasmicTooltip.css ---
@@ -5785,16 +6042,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -5802,8 +6062,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -5824,8 +6092,8 @@ import {
 
 
 import { BaseTooltip } from "@plasmicpkgs/react-aria/skinny/registerTooltip";
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     import "./plasmic__default_style.css"; // plasmic-import: global/defaultcss
@@ -5893,17 +6161,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicTooltip__RenderFunc(
       props: {
-        variants: PlasmicTooltip__VariantsArgs,
-        args: PlasmicTooltip__ArgsType,
-        overrides: PlasmicTooltip__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicTooltip__VariantsArgs,
+    args: PlasmicTooltip__ArgsType,
+    overrides: PlasmicTooltip__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -5930,11 +6195,10 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
-    const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(() =>
+    const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(() =>
           ([{
       path: "ariaTooltip.isOpen",
       type: "private",
@@ -5945,7 +6209,7 @@ const $$ = {};
       
       
     }])
-        , [$props, $ctx, $refs]);
+        , [$props, $ctx]);
 
     
 
@@ -5954,7 +6218,9 @@ const $$ = {};
     
 
     
-    const $state = useDollarState(stateSpecs, {$props, $ctx, $queries: {}, $q: {}, $refs});
+    const $stateEnv = {$props, $ctx, $queries: {}, $q: {}, getRefs};
+        const $stateCommands = useDollarState();
+        const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
     
     
 
@@ -5964,7 +6230,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
     const [$ccVariants, setDollarCcVariants] = React.useState<Record<string, boolean>>({
       placementTop: false,
@@ -5983,40 +6249,38 @@ placementRight: false
   
   
       return (
-        <BaseTooltip
-      data-plasmic-name={"ariaTooltip"}
-      data-plasmic-override={overrides.ariaTooltip}
-      data-plasmic-root={true}
-      data-plasmic-for-node={forNode}
-      className={classNames("__wab_instance", "root_reset_1234567890", "plasmic_default_styles", "plasmic_mixins", styleTokensClassNames, "Tooltip__ariaTooltip__ry2S4")}
-closeDelay={args.closeDelay}
-delay={args.delay}
-isDisabled={args.isDisabled}
-isOpen={generateStateValueProp($state, ["ariaTooltip","isOpen"])}
-onOpenChange={async (...eventArgs: any) => {
-        (generateStateOnChangeProp($state, ["ariaTooltip","isOpen"])).apply(null, eventArgs);
+        (() => {
+    const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+    const rendered = ((() => {
+    const child$Props = {className: classNames("__wab_instance", "root_reset_1234567890", "plasmic_default_styles", "plasmic_mixins", styleTokensClassNames, "Tooltip__ariaTooltip__ry2S4"),
+closeDelay: args.closeDelay,
+delay: args.delay,
+isDisabled: args.isDisabled,
+isOpen: generateStateValueProp($state, ["ariaTooltip","isOpen"]),
+onOpenChange: async (...eventArgs: any) => {
+        (generateStateOnChangeProp($stateCommands, ["ariaTooltip","isOpen"])).apply(null, eventArgs);
 
         
 
         
-      }}
-placement={args.placement}
-plasmicUpdateVariant={updateVariant}
-resetClassName={classNames("root_reset_1234567890", "plasmic_default_styles", "plasmic_mixins", styleTokensClassNames)}
-tooltipContent={<React.Fragment>{ ((() => {
+      },
+placement: args.placement,
+plasmicUpdateVariant: updateVariant,
+resetClassName: classNames("root_reset_1234567890", "plasmic_default_styles", "plasmic_mixins", styleTokensClassNames),
+tooltipContent: <React.Fragment>{ (((evaluate, fallback) => {
       try {
-        return (
-          $props.showArrow
-        );
+        return evaluate();
       } catch (e) {
         if(e instanceof TypeError) {
-          return (
-            true
-          );
+          return fallback();
         }
         throw e;
       }
-    })()) ? (<TriangleInvertedFilledIcon
+    })(() => (
+      $props.showArrow
+    ), () => (
+      true
+    ))) ? (<TriangleInvertedFilledIcon
       data-plasmic-name={"svg"}
       data-plasmic-override={overrides.svg}
       
@@ -6066,7 +6330,22 @@ role={"img"}
       className: classNames("Tooltip__slotTargetContent__kYbf4")
   }) }
           </div>
-          </div></React.Fragment>}
+          </div></React.Fragment>};
+    $stateInitializers.push(
+    ...getCodeComponentStateInitializers([
+            {
+              name: "isOpen",
+              plasmicStateName: "ariaTooltip.isOpen"
+            }
+          ], [], undefined ?? {}, child$Props),
+    
+    );
+    return (<BaseTooltip
+      data-plasmic-name={"ariaTooltip"}
+      data-plasmic-override={overrides.ariaTooltip}
+      data-plasmic-root={true}
+      data-plasmic-for-node={forNode}
+      {...child$Props}
       
       >
             { renderPlasmicSlot({
@@ -6083,7 +6362,10 @@ role={"img"}
       value: args.trigger,
       className: classNames("Tooltip__slotTargetTrigger__tRz5")
   }) }
-          </BaseTooltip>
+          </BaseTooltip>);
+  })());
+    return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+  })()
       ) as React.ReactElement | null;
     }
 
@@ -6121,34 +6403,41 @@ svg: "svg"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicTooltip__ArgProps,
           internalVariantPropNames: PlasmicTooltip__VariantProps,
         }), [props, nodeName]);
-        return PlasmicTooltip__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "ariaTooltip") {
-        func.displayName = "PlasmicTooltip";
-      } else {
-        func.displayName = \`PlasmicTooltip.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicTooltip__ariaTooltipProps = NodeComponentProps<"ariaTooltip"> & {key?: React.Key};
+        function PlasmicTooltip__ariaTooltip<T extends PlasmicTooltip__ariaTooltipProps>(props: T & StrictProps<T, PlasmicTooltip__ariaTooltipProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("ariaTooltip", props);
+          return <PlasmicTooltip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaTooltip"} />;
+        }
+        PlasmicTooltip__ariaTooltip.displayName = "PlasmicTooltip";
+      
+
+        type PlasmicTooltip__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+        function PlasmicTooltip__svg<T extends PlasmicTooltip__svgProps>(props: T & StrictProps<T, PlasmicTooltip__svgProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+          return <PlasmicTooltip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+        }
+        PlasmicTooltip__svg.displayName = "PlasmicTooltip.svg";
+      
 
     
     
 
     export const PlasmicTooltip = Object.assign(
       // Top-level PlasmicTooltip renders the root element
-      makeNodeComponent("ariaTooltip"),
+      PlasmicTooltip__ariaTooltip,
       {
         // Helper components rendering sub-elements
-        svg: makeNodeComponent("svg"),
+        svg: PlasmicTooltip__svg,
 
         // Metadata about props expected for PlasmicTooltip
         internalVariantProps: PlasmicTooltip__VariantProps,
@@ -6514,13 +6803,13 @@ column-gap: var(--mixin-SFG6O5da3UHa_column-gap);
     // Plasmic Project: 1234567890
     // plasmic-unformatted
   
-    import { createUseGlobalVariants } from "@plasmicapp/react-web";
+    import { ensureGlobalVariants } from "@plasmicapp/react-web";
     
   
     
-  export const _useGlobalVariants = createUseGlobalVariants({
+  export function useGlobalVariants() { "use memo"; return ensureGlobalVariants({
     
-  });
+  }); }
 
   
 --- plasmic__default_style.css ---
@@ -7678,16 +7967,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -7695,8 +7987,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -7717,8 +8017,8 @@ import {
 
 
 import { BaseButton } from "@plasmicpkgs/react-aria/skinny/registerButton";
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     
@@ -7812,17 +8112,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicButton__RenderFunc(
       props: {
-        variants: PlasmicButton__VariantsArgs,
-        args: PlasmicButton__ArgsType,
-        overrides: PlasmicButton__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicButton__VariantsArgs,
+    args: PlasmicButton__ArgsType,
+    overrides: PlasmicButton__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -7846,11 +8143,10 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
-    const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(() =>
+    const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(() =>
           ([{
       path: "color",
       type: "private",
@@ -7915,7 +8211,7 @@ const $$ = {};
       
       
     }])
-        , [$props, $ctx, $refs]);
+        , [$props, $ctx]);
 
     
 
@@ -7924,7 +8220,9 @@ const $$ = {};
     
 
     
-    const $state = useDollarState(stateSpecs, {$props, $ctx, $queries: {}, $q: {}, $refs});
+    const $stateEnv = {$props, $ctx, $queries: {}, $q: {}, getRefs};
+        const $stateCommands = useDollarState();
+        const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
     
     
 
@@ -7934,7 +8232,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
     const [$ccVariants, setDollarCcVariants] = React.useState<Record<string, boolean>>({
       hovered: false,
@@ -7954,7 +8252,9 @@ disabled: false
   
   
       return (
-        <BaseButton
+        (() => {
+    const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+    const rendered = (<BaseButton
       data-plasmic-name={"root"}
       data-plasmic-override={overrides.root}
       data-plasmic-root={true}
@@ -8852,7 +9152,9 @@ role={"img"}
   }) }
           </div>
           </div>
-          </BaseButton>
+          </BaseButton>);
+    return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+  })()
       ) as React.ReactElement | null;
     }
 
@@ -8894,36 +9196,59 @@ interactionEffect: "div"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicButton__ArgProps,
           internalVariantPropNames: PlasmicButton__VariantProps,
         }), [props, nodeName]);
-        return PlasmicButton__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicButton";
-      } else {
-        func.displayName = \`PlasmicButton.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicButton__root<T extends PlasmicButton__rootProps>(props: T & StrictProps<T, PlasmicButton__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicButton__root.displayName = "PlasmicButton";
+      
+
+        type PlasmicButton__softBackgroundProps = NodeComponentProps<"softBackground"> & {key?: React.Key};
+        function PlasmicButton__softBackground<T extends PlasmicButton__softBackgroundProps>(props: T & StrictProps<T, PlasmicButton__softBackgroundProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("softBackground", props);
+          return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"softBackground"} />;
+        }
+        PlasmicButton__softBackground.displayName = "PlasmicButton.softBackground";
+      
+
+        type PlasmicButton__borderProps = NodeComponentProps<"border"> & {key?: React.Key};
+        function PlasmicButton__border<T extends PlasmicButton__borderProps>(props: T & StrictProps<T, PlasmicButton__borderProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("border", props);
+          return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"border"} />;
+        }
+        PlasmicButton__border.displayName = "PlasmicButton.border";
+      
+
+        type PlasmicButton__interactionEffectProps = NodeComponentProps<"interactionEffect"> & {key?: React.Key};
+        function PlasmicButton__interactionEffect<T extends PlasmicButton__interactionEffectProps>(props: T & StrictProps<T, PlasmicButton__interactionEffectProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("interactionEffect", props);
+          return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"interactionEffect"} />;
+        }
+        PlasmicButton__interactionEffect.displayName = "PlasmicButton.interactionEffect";
+      
 
     
     
 
     export const PlasmicButton = Object.assign(
       // Top-level PlasmicButton renders the root element
-      makeNodeComponent("root"),
+      PlasmicButton__root,
       {
         // Helper components rendering sub-elements
-        softBackground: makeNodeComponent("softBackground"),
-border: makeNodeComponent("border"),
-interactionEffect: makeNodeComponent("interactionEffect"),
+        softBackground: PlasmicButton__softBackground,
+border: PlasmicButton__border,
+interactionEffect: PlasmicButton__interactionEffect,
 
         // Metadata about props expected for PlasmicButton
         internalVariantProps: PlasmicButton__VariantProps,
@@ -8985,16 +9310,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -9002,8 +9330,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -9024,8 +9360,8 @@ import {
 
 
 import DataFetcherParent from "./DataFetcherParent";  // plasmic-import: iUkwSJQ7glxH/component
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     
@@ -9080,17 +9416,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicDataFetcherGrandParent__RenderFunc(
       props: {
-        variants: PlasmicDataFetcherGrandParent__VariantsArgs,
-        args: PlasmicDataFetcherGrandParent__ArgsType,
-        overrides: PlasmicDataFetcherGrandParent__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicDataFetcherGrandParent__VariantsArgs,
+    args: PlasmicDataFetcherGrandParent__ArgsType,
+    overrides: PlasmicDataFetcherGrandParent__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -9114,9 +9447,8 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
@@ -9137,7 +9469,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
@@ -9184,31 +9516,30 @@ const $$ = {};
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicDataFetcherGrandParent__ArgProps,
           internalVariantPropNames: PlasmicDataFetcherGrandParent__VariantProps,
         }), [props, nodeName]);
-        return PlasmicDataFetcherGrandParent__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicDataFetcherGrandParent";
-      } else {
-        func.displayName = \`PlasmicDataFetcherGrandParent.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicDataFetcherGrandParent__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicDataFetcherGrandParent__root<T extends PlasmicDataFetcherGrandParent__rootProps>(props: T & StrictProps<T, PlasmicDataFetcherGrandParent__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicDataFetcherGrandParent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicDataFetcherGrandParent__root.displayName = "PlasmicDataFetcherGrandParent";
+      
 
     
     
 
     export const PlasmicDataFetcherGrandParent = Object.assign(
       // Top-level PlasmicDataFetcherGrandParent renders the root element
-      makeNodeComponent("root"),
+      PlasmicDataFetcherGrandParent__root,
       {
         // Helper components rendering sub-elements
         
@@ -9275,16 +9606,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -9292,8 +9626,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -9314,8 +9656,8 @@ import {
 
 
 import { Fetcher } from "@plasmicapp/react-web/lib/data-sources";
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     
@@ -9370,17 +9712,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicDataFetcherParent__RenderFunc(
       props: {
-        variants: PlasmicDataFetcherParent__VariantsArgs,
-        args: PlasmicDataFetcherParent__ArgsType,
-        overrides: PlasmicDataFetcherParent__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicDataFetcherParent__VariantsArgs,
+    args: PlasmicDataFetcherParent__ArgsType,
+    overrides: PlasmicDataFetcherParent__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -9404,9 +9743,8 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
@@ -9427,7 +9765,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
@@ -9474,31 +9812,30 @@ const $$ = {};
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicDataFetcherParent__ArgProps,
           internalVariantPropNames: PlasmicDataFetcherParent__VariantProps,
         }), [props, nodeName]);
-        return PlasmicDataFetcherParent__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "dataFetcher") {
-        func.displayName = "PlasmicDataFetcherParent";
-      } else {
-        func.displayName = \`PlasmicDataFetcherParent.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicDataFetcherParent__dataFetcherProps = NodeComponentProps<"dataFetcher"> & {key?: React.Key};
+        function PlasmicDataFetcherParent__dataFetcher<T extends PlasmicDataFetcherParent__dataFetcherProps>(props: T & StrictProps<T, PlasmicDataFetcherParent__dataFetcherProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("dataFetcher", props);
+          return <PlasmicDataFetcherParent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dataFetcher"} />;
+        }
+        PlasmicDataFetcherParent__dataFetcher.displayName = "PlasmicDataFetcherParent";
+      
 
     
     
 
     export const PlasmicDataFetcherParent = Object.assign(
       // Top-level PlasmicDataFetcherParent renders the root element
-      makeNodeComponent("dataFetcher"),
+      PlasmicDataFetcherParent__dataFetcher,
       {
         // Helper components rendering sub-elements
         
@@ -9577,16 +9914,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -9594,8 +9934,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -9616,8 +9964,8 @@ import {
 
 
 
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     
@@ -9673,17 +10021,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicHelloWorld__RenderFunc(
       props: {
-        variants: PlasmicHelloWorld__VariantsArgs,
-        args: PlasmicHelloWorld__ArgsType,
-        overrides: PlasmicHelloWorld__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicHelloWorld__VariantsArgs,
+    args: PlasmicHelloWorld__ArgsType,
+    overrides: PlasmicHelloWorld__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -9707,9 +10052,8 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
@@ -9730,7 +10074,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
@@ -9790,34 +10134,41 @@ text: "div"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicHelloWorld__ArgProps,
           internalVariantPropNames: PlasmicHelloWorld__VariantProps,
         }), [props, nodeName]);
-        return PlasmicHelloWorld__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicHelloWorld";
-      } else {
-        func.displayName = \`PlasmicHelloWorld.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicHelloWorld__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicHelloWorld__root<T extends PlasmicHelloWorld__rootProps>(props: T & StrictProps<T, PlasmicHelloWorld__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicHelloWorld__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicHelloWorld__root.displayName = "PlasmicHelloWorld";
+      
+
+        type PlasmicHelloWorld__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+        function PlasmicHelloWorld__text<T extends PlasmicHelloWorld__textProps>(props: T & StrictProps<T, PlasmicHelloWorld__textProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("text", props);
+          return <PlasmicHelloWorld__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+        }
+        PlasmicHelloWorld__text.displayName = "PlasmicHelloWorld.text";
+      
 
     
     
 
     export const PlasmicHelloWorld = Object.assign(
       // Top-level PlasmicHelloWorld renders the root element
-      makeNodeComponent("root"),
+      PlasmicHelloWorld__root,
       {
         // Helper components rendering sub-elements
-        text: makeNodeComponent("text"),
+        text: PlasmicHelloWorld__text,
 
         // Metadata about props expected for PlasmicHelloWorld
         internalVariantProps: PlasmicHelloWorld__VariantProps,
@@ -10160,16 +10511,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -10177,8 +10531,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -10202,8 +10564,8 @@ import { BaseDialogTrigger } from "@plasmicpkgs/react-aria/skinny/registerDialog
 import Button from "./Button";  // plasmic-import: D557GwRUy2HJ/component
 import { BaseModal } from "@plasmicpkgs/react-aria/skinny/registerModal";
 import { BaseHeading } from "@plasmicpkgs/react-aria/skinny/registerHeading";
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     
@@ -10283,17 +10645,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicModalDialog__RenderFunc(
       props: {
-        variants: PlasmicModalDialog__VariantsArgs,
-        args: PlasmicModalDialog__ArgsType,
-        overrides: PlasmicModalDialog__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicModalDialog__VariantsArgs,
+    args: PlasmicModalDialog__ArgsType,
+    overrides: PlasmicModalDialog__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -10319,11 +10678,10 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
-    const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(() =>
+    const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(() =>
           ([{
       path: "ariaDialogTrigger.isOpen",
       type: "writable",
@@ -10352,7 +10710,7 @@ const $$ = {};
       
       
     }])
-        , [$props, $ctx, $refs]);
+        , [$props, $ctx]);
 
     
 
@@ -10361,7 +10719,9 @@ const $$ = {};
     
 
     
-    const $state = useDollarState(stateSpecs, {$props, $ctx, $queries: {}, $q: {}, $refs});
+    const $stateEnv = {$props, $ctx, $queries: {}, $q: {}, getRefs};
+        const $stateCommands = useDollarState();
+        const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
     
     
 
@@ -10371,39 +10731,48 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
-        <BaseDialogTrigger
-      data-plasmic-name={"ariaDialogTrigger"}
-      data-plasmic-override={overrides.ariaDialogTrigger}
-      data-plasmic-root={true}
-      data-plasmic-for-node={forNode}
-      dialog={<BaseModal
+        (() => {
+    const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+    const rendered = ((() => {
+    const child$Props = {dialog: (() => {
+    const child$Props = {className: classNames("__wab_instance", sty.ariaModal, { [sty.ariaModalnoTrigger]: hasVariant(
+      $state,
+      "noTrigger",
+      "noTrigger"
+    ) }),
+defaultOpen: true,
+isDismissable: args.closeOnBackdropClick,
+isKeyboardDismissDisabled: args.isKeyboardDismissDisabled,
+isOpen: generateStateValueProp($state, ["ariaModal","isOpen"]),
+modalOverlayClass: classNames({ [sty["pcls_QFOecPzS37aO"]]: true }),
+onOpenChange: async (...eventArgs: any) => {
+        (generateStateOnChangeProp($stateCommands, ["ariaModal","isOpen"])).apply(null, eventArgs);
+
+        
+
+        
+      },
+ref: registerRef("ariaModal"),
+resetClassName: classNames("root_reset_1234567890", "plasmic_default_styles", "plasmic_mixins", styleTokensClassNames)};
+    $stateInitializers.push(
+    ...getCodeComponentStateInitializers([
+            {
+              name: "isOpen",
+              plasmicStateName: "ariaModal.isOpen"
+            }
+          ], [], undefined ?? {}, child$Props),
+    
+    );
+    return (<BaseModal
       data-plasmic-name={"ariaModal"}
       data-plasmic-override={overrides.ariaModal}
       
       
-      className={classNames("__wab_instance", sty.ariaModal, { [sty.ariaModalnoTrigger]: hasVariant(
-      $state,
-      "noTrigger",
-      "noTrigger"
-    ) })}
-defaultOpen={true}
-isDismissable={args.closeOnBackdropClick}
-isKeyboardDismissDisabled={args.isKeyboardDismissDisabled}
-isOpen={generateStateValueProp($state, ["ariaModal","isOpen"])}
-modalOverlayClass={classNames({ [sty["pcls_QFOecPzS37aO"]]: true })}
-onOpenChange={async (...eventArgs: any) => {
-        (generateStateOnChangeProp($state, ["ariaModal","isOpen"])).apply(null, eventArgs);
-
-        
-
-        
-      }}
-ref={(ref) => { $refs["ariaModal"] = ref; }}
-resetClassName={classNames("root_reset_1234567890", "plasmic_default_styles", "plasmic_mixins", styleTokensClassNames)}
+      {...child$Props}
       
       >
             <div
@@ -10508,7 +10877,9 @@ label={<div
       >
             { "Close" }
           </div>}
-onClick={async (event) => {
+onClick={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => {
+    const $refs = getRefs();
+    return (async (event) => {
         
         const $steps = {};
         
@@ -10541,7 +10912,8 @@ onClick={async (event) => {
             
             
             
-      }}
+      });
+  })}
 type={"soft"}
       
       />
@@ -10551,16 +10923,17 @@ type={"soft"}
   }) }
           </div>) : null }
           </div>
-          </BaseModal>}
-isOpen={generateStateValueProp($state, ["ariaDialogTrigger","isOpen"])}
-onOpenChange={async (...eventArgs: any) => {
-        (generateStateOnChangeProp($state, ["ariaDialogTrigger","isOpen"])).apply(null, eventArgs);
+          </BaseModal>);
+  })(),
+isOpen: generateStateValueProp($state, ["ariaDialogTrigger","isOpen"]),
+onOpenChange: async (...eventArgs: any) => {
+        (generateStateOnChangeProp($stateCommands, ["ariaDialogTrigger","isOpen"])).apply(null, eventArgs);
 
         
 
         
-      }}
-trigger={(hasVariant(
+      },
+trigger: (hasVariant(
       $state,
       "noTrigger",
       "noTrigger"
@@ -10575,9 +10948,27 @@ trigger={(hasVariant(
       />,
       value: args.trigger,
       
-  })) : null}
+  })) : null};
+    $stateInitializers.push(
+    ...getCodeComponentStateInitializers([
+            {
+              name: "isOpen",
+              plasmicStateName: "ariaDialogTrigger.isOpen"
+            }
+          ], [], undefined ?? {}, child$Props),
+    
+    );
+    return (<BaseDialogTrigger
+      data-plasmic-name={"ariaDialogTrigger"}
+      data-plasmic-override={overrides.ariaDialogTrigger}
+      data-plasmic-root={true}
+      data-plasmic-for-node={forNode}
+      {...child$Props}
       
-      />
+      />);
+  })());
+    return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+  })()
       ) as React.ReactElement | null;
     }
 
@@ -10619,36 +11010,59 @@ scrollableContent: "div"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicModalDialog__ArgProps,
           internalVariantPropNames: PlasmicModalDialog__VariantProps,
         }), [props, nodeName]);
-        return PlasmicModalDialog__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "ariaDialogTrigger") {
-        func.displayName = "PlasmicModalDialog";
-      } else {
-        func.displayName = \`PlasmicModalDialog.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicModalDialog__ariaDialogTriggerProps = NodeComponentProps<"ariaDialogTrigger"> & {key?: React.Key};
+        function PlasmicModalDialog__ariaDialogTrigger<T extends PlasmicModalDialog__ariaDialogTriggerProps>(props: T & StrictProps<T, PlasmicModalDialog__ariaDialogTriggerProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("ariaDialogTrigger", props);
+          return <PlasmicModalDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaDialogTrigger"} />;
+        }
+        PlasmicModalDialog__ariaDialogTrigger.displayName = "PlasmicModalDialog";
+      
+
+        type PlasmicModalDialog__ariaModalProps = NodeComponentProps<"ariaModal"> & {key?: React.Key};
+        function PlasmicModalDialog__ariaModal<T extends PlasmicModalDialog__ariaModalProps>(props: T & StrictProps<T, PlasmicModalDialog__ariaModalProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("ariaModal", props);
+          return <PlasmicModalDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaModal"} />;
+        }
+        PlasmicModalDialog__ariaModal.displayName = "PlasmicModalDialog.ariaModal";
+      
+
+        type PlasmicModalDialog__ariaHeadingProps = NodeComponentProps<"ariaHeading"> & {key?: React.Key};
+        function PlasmicModalDialog__ariaHeading<T extends PlasmicModalDialog__ariaHeadingProps>(props: T & StrictProps<T, PlasmicModalDialog__ariaHeadingProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("ariaHeading", props);
+          return <PlasmicModalDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaHeading"} />;
+        }
+        PlasmicModalDialog__ariaHeading.displayName = "PlasmicModalDialog.ariaHeading";
+      
+
+        type PlasmicModalDialog__scrollableContentProps = NodeComponentProps<"scrollableContent"> & {key?: React.Key};
+        function PlasmicModalDialog__scrollableContent<T extends PlasmicModalDialog__scrollableContentProps>(props: T & StrictProps<T, PlasmicModalDialog__scrollableContentProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("scrollableContent", props);
+          return <PlasmicModalDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"scrollableContent"} />;
+        }
+        PlasmicModalDialog__scrollableContent.displayName = "PlasmicModalDialog.scrollableContent";
+      
 
     
     
 
     export const PlasmicModalDialog = Object.assign(
       // Top-level PlasmicModalDialog renders the root element
-      makeNodeComponent("ariaDialogTrigger"),
+      PlasmicModalDialog__ariaDialogTrigger,
       {
         // Helper components rendering sub-elements
-        ariaModal: makeNodeComponent("ariaModal"),
-ariaHeading: makeNodeComponent("ariaHeading"),
-scrollableContent: makeNodeComponent("scrollableContent"),
+        ariaModal: PlasmicModalDialog__ariaModal,
+ariaHeading: PlasmicModalDialog__ariaHeading,
+scrollableContent: PlasmicModalDialog__scrollableContent,
 
         // Metadata about props expected for PlasmicModalDialog
         internalVariantProps: PlasmicModalDialog__VariantProps,
@@ -10727,16 +11141,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -10744,8 +11161,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -10766,8 +11191,8 @@ import {
 
 
 import { BaseOverlayArrow } from "@plasmicpkgs/react-aria/skinny/registerOverlayArrow";
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     
@@ -10823,17 +11248,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicMyOverlayArrow__RenderFunc(
       props: {
-        variants: PlasmicMyOverlayArrow__VariantsArgs,
-        args: PlasmicMyOverlayArrow__ArgsType,
-        overrides: PlasmicMyOverlayArrow__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicMyOverlayArrow__VariantsArgs,
+    args: PlasmicMyOverlayArrow__ArgsType,
+    overrides: PlasmicMyOverlayArrow__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -10857,9 +11279,8 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
@@ -10880,7 +11301,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
     const [$ccVariants, setDollarCcVariants] = React.useState<Record<string, boolean>>({
       placementTop: false,
@@ -10953,34 +11374,41 @@ freeBox: "div"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicMyOverlayArrow__ArgProps,
           internalVariantPropNames: PlasmicMyOverlayArrow__VariantProps,
         }), [props, nodeName]);
-        return PlasmicMyOverlayArrow__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicMyOverlayArrow";
-      } else {
-        func.displayName = \`PlasmicMyOverlayArrow.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicMyOverlayArrow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicMyOverlayArrow__root<T extends PlasmicMyOverlayArrow__rootProps>(props: T & StrictProps<T, PlasmicMyOverlayArrow__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicMyOverlayArrow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicMyOverlayArrow__root.displayName = "PlasmicMyOverlayArrow";
+      
+
+        type PlasmicMyOverlayArrow__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+        function PlasmicMyOverlayArrow__freeBox<T extends PlasmicMyOverlayArrow__freeBoxProps>(props: T & StrictProps<T, PlasmicMyOverlayArrow__freeBoxProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+          return <PlasmicMyOverlayArrow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+        }
+        PlasmicMyOverlayArrow__freeBox.displayName = "PlasmicMyOverlayArrow.freeBox";
+      
 
     
     
 
     export const PlasmicMyOverlayArrow = Object.assign(
       // Top-level PlasmicMyOverlayArrow renders the root element
-      makeNodeComponent("root"),
+      PlasmicMyOverlayArrow__root,
       {
         // Helper components rendering sub-elements
-        freeBox: makeNodeComponent("freeBox"),
+        freeBox: PlasmicMyOverlayArrow__freeBox,
 
         // Metadata about props expected for PlasmicMyOverlayArrow
         internalVariantProps: PlasmicMyOverlayArrow__VariantProps,
@@ -11172,16 +11600,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -11189,8 +11620,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -11217,8 +11656,8 @@ import MyOverlayArrow from "./MyOverlayArrow";  // plasmic-import: N_LiHbyjn30l/
 import { Fetcher } from "@plasmicapp/react-web/lib/data-sources";
 import ModalDialog from "./ModalDialog";  // plasmic-import: 4D8eN8Bv_isH/component
 import HelloWorld from "./HelloWorld";  // plasmic-import: 3khyLeywU1SP/component
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     
@@ -11321,17 +11760,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicNewPage__RenderFunc(
       props: {
-        variants: PlasmicNewPage__VariantsArgs,
-        args: PlasmicNewPage__ArgsType,
-        overrides: PlasmicNewPage__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicNewPage__VariantsArgs,
+    args: PlasmicNewPage__ArgsType,
+    overrides: PlasmicNewPage__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -11355,11 +11791,10 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
-    const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(() =>
+    const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(() =>
           ([{
       path: "popoverDialog.isOpen",
       type: "private",
@@ -11379,7 +11814,7 @@ const $$ = {};
       
       
     }])
-        , [$props, $ctx, $refs]);
+        , [$props, $ctx]);
 
     
 
@@ -11388,7 +11823,9 @@ const $$ = {};
     
 
     
-    const $state = useDollarState(stateSpecs, {$props, $ctx, $queries: {}, $q: {}, $refs});
+    const $stateEnv = {$props, $ctx, $queries: {}, $q: {}, getRefs};
+        const $stateCommands = useDollarState();
+        const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
     
     
 
@@ -11398,11 +11835,13 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
-        <React.Fragment>
+        (() => {
+    const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+    const rendered = (<React.Fragment>
   
 
       <div className={"plasmic_page_wrapper"}>
@@ -11421,7 +11860,7 @@ const $$ = {};
       
       className={classNames("__wab_instance", sty.popoverDialog)}
 onOpenChange={async (...eventArgs: any) => {
-        (generateStateOnChangeProp($state, ["popoverDialog","isOpen"])).apply(null, eventArgs);
+        (generateStateOnChangeProp($stateCommands, ["popoverDialog","isOpen"])).apply(null, eventArgs);
 
         if(eventArgs.length > 1 && eventArgs[1] && eventArgs[1]._plasmic_state_init_) {
   return;
@@ -11455,7 +11894,9 @@ onOpenChange={async (...eventArgs: any) => {
       queries={{}}
       
       >
-            { ($queries: any) => <div
+            { ($queries: any) => (() => {
+    const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+    const rendered = (<div
       
       
       
@@ -11464,7 +11905,9 @@ onOpenChange={async (...eventArgs: any) => {
       
       >
             { "Enter some text" }
-          </div> }
+          </div>);
+    return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+  })() }
           </Fetcher>
 <ModalDialog
       data-plasmic-name={"modalDialog"}
@@ -11474,7 +11917,7 @@ onOpenChange={async (...eventArgs: any) => {
       className={classNames("__wab_instance", sty.modalDialog)}
 isOpen={generateStateValueProp($state, ["modalDialog","isOpen"])}
 onOpenChange={async (...eventArgs: any) => {
-        (generateStateOnChangeProp($state, ["modalDialog","isOpen"])).apply(null, eventArgs);
+        (generateStateOnChangeProp($stateCommands, ["modalDialog","isOpen"])).apply(null, eventArgs);
 
         if(eventArgs.length > 1 && eventArgs[1] && eventArgs[1]._plasmic_state_init_) {
   return;
@@ -11513,7 +11956,9 @@ onOpenChange={async (...eventArgs: any) => {
           </div>
       </div>
     
-</React.Fragment>
+</React.Fragment>);
+    return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+  })()
       ) as React.ReactElement | null;
     }
 
@@ -11563,40 +12008,95 @@ helloWorld: typeof HelloWorld
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicNewPage__ArgProps,
           internalVariantPropNames: PlasmicNewPage__VariantProps,
         }), [props, nodeName]);
-        return PlasmicNewPage__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicNewPage";
-      } else {
-        func.displayName = \`PlasmicNewPage.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicNewPage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicNewPage__root<T extends PlasmicNewPage__rootProps>(props: T & StrictProps<T, PlasmicNewPage__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicNewPage__root.displayName = "PlasmicNewPage";
+      
+
+        type PlasmicNewPage__popoverDialogProps = NodeComponentProps<"popoverDialog"> & {key?: React.Key};
+        function PlasmicNewPage__popoverDialog<T extends PlasmicNewPage__popoverDialogProps>(props: T & StrictProps<T, PlasmicNewPage__popoverDialogProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("popoverDialog", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"popoverDialog"} />;
+        }
+        PlasmicNewPage__popoverDialog.displayName = "PlasmicNewPage.popoverDialog";
+      
+
+        type PlasmicNewPage__tooltipProps = NodeComponentProps<"tooltip"> & {key?: React.Key};
+        function PlasmicNewPage__tooltip<T extends PlasmicNewPage__tooltipProps>(props: T & StrictProps<T, PlasmicNewPage__tooltipProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("tooltip", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tooltip"} />;
+        }
+        PlasmicNewPage__tooltip.displayName = "PlasmicNewPage.tooltip";
+      
+
+        type PlasmicNewPage__myOverlayArrowProps = NodeComponentProps<"myOverlayArrow"> & {key?: React.Key};
+        function PlasmicNewPage__myOverlayArrow<T extends PlasmicNewPage__myOverlayArrowProps>(props: T & StrictProps<T, PlasmicNewPage__myOverlayArrowProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("myOverlayArrow", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"myOverlayArrow"} />;
+        }
+        PlasmicNewPage__myOverlayArrow.displayName = "PlasmicNewPage.myOverlayArrow";
+      
+
+        type PlasmicNewPage__dataFetcherProps = NodeComponentProps<"dataFetcher"> & {key?: React.Key};
+        function PlasmicNewPage__dataFetcher<T extends PlasmicNewPage__dataFetcherProps>(props: T & StrictProps<T, PlasmicNewPage__dataFetcherProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("dataFetcher", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dataFetcher"} />;
+        }
+        PlasmicNewPage__dataFetcher.displayName = "PlasmicNewPage.dataFetcher";
+      
+
+        type PlasmicNewPage__modalDialogProps = NodeComponentProps<"modalDialog"> & {key?: React.Key};
+        function PlasmicNewPage__modalDialog<T extends PlasmicNewPage__modalDialogProps>(props: T & StrictProps<T, PlasmicNewPage__modalDialogProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("modalDialog", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"modalDialog"} />;
+        }
+        PlasmicNewPage__modalDialog.displayName = "PlasmicNewPage.modalDialog";
+      
+
+        type PlasmicNewPage__buttonProps = NodeComponentProps<"button"> & {key?: React.Key};
+        function PlasmicNewPage__button<T extends PlasmicNewPage__buttonProps>(props: T & StrictProps<T, PlasmicNewPage__buttonProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("button", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"button"} />;
+        }
+        PlasmicNewPage__button.displayName = "PlasmicNewPage.button";
+      
+
+        type PlasmicNewPage__helloWorldProps = NodeComponentProps<"helloWorld"> & {key?: React.Key};
+        function PlasmicNewPage__helloWorld<T extends PlasmicNewPage__helloWorldProps>(props: T & StrictProps<T, PlasmicNewPage__helloWorldProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("helloWorld", props);
+          return <PlasmicNewPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"helloWorld"} />;
+        }
+        PlasmicNewPage__helloWorld.displayName = "PlasmicNewPage.helloWorld";
+      
 
     
     
 
     export const PlasmicNewPage = Object.assign(
       // Top-level PlasmicNewPage renders the root element
-      makeNodeComponent("root"),
+      PlasmicNewPage__root,
       {
         // Helper components rendering sub-elements
-        popoverDialog: makeNodeComponent("popoverDialog"),
-tooltip: makeNodeComponent("tooltip"),
-myOverlayArrow: makeNodeComponent("myOverlayArrow"),
-dataFetcher: makeNodeComponent("dataFetcher"),
-modalDialog: makeNodeComponent("modalDialog"),
-button: makeNodeComponent("button"),
-helloWorld: makeNodeComponent("helloWorld"),
+        popoverDialog: PlasmicNewPage__popoverDialog,
+tooltip: PlasmicNewPage__tooltip,
+myOverlayArrow: PlasmicNewPage__myOverlayArrow,
+dataFetcher: PlasmicNewPage__dataFetcher,
+modalDialog: PlasmicNewPage__modalDialog,
+button: PlasmicNewPage__button,
+helloWorld: PlasmicNewPage__helloWorld,
 
         // Metadata about props expected for PlasmicNewPage
         internalVariantProps: PlasmicNewPage__VariantProps,
@@ -11721,16 +12221,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -11738,8 +12241,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -11760,8 +12271,8 @@ import {
 
 
 import { BasePopover } from "@plasmicpkgs/react-aria/skinny/registerPopover";
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     
@@ -11825,17 +12336,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicPopover__RenderFunc(
       props: {
-        variants: PlasmicPopover__VariantsArgs,
-        args: PlasmicPopover__ArgsType,
-        overrides: PlasmicPopover__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicPopover__VariantsArgs,
+    args: PlasmicPopover__ArgsType,
+    overrides: PlasmicPopover__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -11861,9 +12369,8 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
@@ -11884,7 +12391,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
     const [$ccVariants, setDollarCcVariants] = React.useState<Record<string, boolean>>({
       placementTop: false,
@@ -11917,20 +12424,20 @@ resetClassName={classNames("root_reset_1234567890", "plasmic_default_styles", "p
 shouldFlip={args.shouldFlip}
       
       >
-            { ((() => {
+            { (((evaluate, fallback) => {
       try {
-        return (
-          $props.showArrow
-        );
+        return evaluate();
       } catch (e) {
         if(e instanceof TypeError) {
-          return (
-            true
-          );
+          return fallback();
         }
         throw e;
       }
-    })()) ? (<TriangleFilledIcon
+    })(() => (
+      $props.showArrow
+    ), () => (
+      true
+    ))) ? (<TriangleFilledIcon
       data-plasmic-name={"svg"}
       data-plasmic-override={overrides.svg}
       
@@ -12020,34 +12527,41 @@ svg: "svg"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicPopover__ArgProps,
           internalVariantPropNames: PlasmicPopover__VariantProps,
         }), [props, nodeName]);
-        return PlasmicPopover__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicPopover";
-      } else {
-        func.displayName = \`PlasmicPopover.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicPopover__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicPopover__root<T extends PlasmicPopover__rootProps>(props: T & StrictProps<T, PlasmicPopover__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicPopover__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicPopover__root.displayName = "PlasmicPopover";
+      
+
+        type PlasmicPopover__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+        function PlasmicPopover__svg<T extends PlasmicPopover__svgProps>(props: T & StrictProps<T, PlasmicPopover__svgProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+          return <PlasmicPopover__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+        }
+        PlasmicPopover__svg.displayName = "PlasmicPopover.svg";
+      
 
     
     
 
     export const PlasmicPopover = Object.assign(
       // Top-level PlasmicPopover renders the root element
-      makeNodeComponent("root"),
+      PlasmicPopover__root,
       {
         // Helper components rendering sub-elements
-        svg: makeNodeComponent("svg"),
+        svg: PlasmicPopover__svg,
 
         // Metadata about props expected for PlasmicPopover
         internalVariantProps: PlasmicPopover__VariantProps,
@@ -12139,16 +12653,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -12156,8 +12673,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -12180,8 +12705,8 @@ import {
 import { BaseDialogTrigger } from "@plasmicpkgs/react-aria/skinny/registerDialogTrigger";
 import Button from "./Button";  // plasmic-import: D557GwRUy2HJ/component
 import Popover from "./Popover";  // plasmic-import: 6YHxfeslQ2vo/component
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     
@@ -12250,17 +12775,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicPopoverDialog__RenderFunc(
       props: {
-        variants: PlasmicPopoverDialog__VariantsArgs,
-        args: PlasmicPopoverDialog__ArgsType,
-        overrides: PlasmicPopoverDialog__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicPopoverDialog__VariantsArgs,
+    args: PlasmicPopoverDialog__ArgsType,
+    overrides: PlasmicPopoverDialog__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -12286,11 +12808,10 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
-    const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(() =>
+    const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(() =>
           ([{
       path: "ariaDialogTrigger.isOpen",
       type: "readonly",
@@ -12301,7 +12822,7 @@ const $$ = {};
       
       
     }])
-        , [$props, $ctx, $refs]);
+        , [$props, $ctx]);
 
     
 
@@ -12310,7 +12831,9 @@ const $$ = {};
     
 
     
-    const $state = useDollarState(stateSpecs, {$props, $ctx, $queries: {}, $q: {}, $refs});
+    const $stateEnv = {$props, $ctx, $queries: {}, $q: {}, getRefs};
+        const $stateCommands = useDollarState();
+        const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
     
     
 
@@ -12320,16 +12843,14 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
-        <BaseDialogTrigger
-      data-plasmic-name={"ariaDialogTrigger"}
-      data-plasmic-override={overrides.ariaDialogTrigger}
-      data-plasmic-root={true}
-      data-plasmic-for-node={forNode}
-      dialog={<Popover
+        (() => {
+    const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+    const rendered = ((() => {
+    const child$Props = {dialog: <Popover
       data-plasmic-name={"popover"}
       data-plasmic-override={overrides.popover}
       
@@ -12372,16 +12893,16 @@ placement={args.placement}
 shouldFlip={args.shouldFlip}
 showArrow={args.showArrow}
       
-      />}
-isOpen={generateStateValueProp($state, ["ariaDialogTrigger","isOpen"])}
-onOpenChange={async (...eventArgs: any) => {
-        (generateStateOnChangeProp($state, ["ariaDialogTrigger","isOpen"])).apply(null, eventArgs);
+      />,
+isOpen: generateStateValueProp($state, ["ariaDialogTrigger","isOpen"]),
+onOpenChange: async (...eventArgs: any) => {
+        (generateStateOnChangeProp($stateCommands, ["ariaDialogTrigger","isOpen"])).apply(null, eventArgs);
 
         
 
         
-      }}
-trigger={renderPlasmicSlot({
+      },
+trigger: renderPlasmicSlot({
       defaultContents: <Button
       
       
@@ -12393,9 +12914,27 @@ label={"Open Popover"}
       />,
       value: args.trigger,
       
-  })}
+  })};
+    $stateInitializers.push(
+    ...getCodeComponentStateInitializers([
+            {
+              name: "isOpen",
+              plasmicStateName: "ariaDialogTrigger.isOpen"
+            }
+          ], [], undefined ?? {}, child$Props),
+    
+    );
+    return (<BaseDialogTrigger
+      data-plasmic-name={"ariaDialogTrigger"}
+      data-plasmic-override={overrides.ariaDialogTrigger}
+      data-plasmic-root={true}
+      data-plasmic-for-node={forNode}
+      {...child$Props}
       
-      />
+      />);
+  })());
+    return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+  })()
       ) as React.ReactElement | null;
     }
 
@@ -12433,34 +12972,41 @@ popover: typeof Popover
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicPopoverDialog__ArgProps,
           internalVariantPropNames: PlasmicPopoverDialog__VariantProps,
         }), [props, nodeName]);
-        return PlasmicPopoverDialog__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "ariaDialogTrigger") {
-        func.displayName = "PlasmicPopoverDialog";
-      } else {
-        func.displayName = \`PlasmicPopoverDialog.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicPopoverDialog__ariaDialogTriggerProps = NodeComponentProps<"ariaDialogTrigger"> & {key?: React.Key};
+        function PlasmicPopoverDialog__ariaDialogTrigger<T extends PlasmicPopoverDialog__ariaDialogTriggerProps>(props: T & StrictProps<T, PlasmicPopoverDialog__ariaDialogTriggerProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("ariaDialogTrigger", props);
+          return <PlasmicPopoverDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaDialogTrigger"} />;
+        }
+        PlasmicPopoverDialog__ariaDialogTrigger.displayName = "PlasmicPopoverDialog";
+      
+
+        type PlasmicPopoverDialog__popoverProps = NodeComponentProps<"popover"> & {key?: React.Key};
+        function PlasmicPopoverDialog__popover<T extends PlasmicPopoverDialog__popoverProps>(props: T & StrictProps<T, PlasmicPopoverDialog__popoverProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("popover", props);
+          return <PlasmicPopoverDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"popover"} />;
+        }
+        PlasmicPopoverDialog__popover.displayName = "PlasmicPopoverDialog.popover";
+      
 
     
     
 
     export const PlasmicPopoverDialog = Object.assign(
       // Top-level PlasmicPopoverDialog renders the root element
-      makeNodeComponent("ariaDialogTrigger"),
+      PlasmicPopoverDialog__ariaDialogTrigger,
       {
         // Helper components rendering sub-elements
-        popover: makeNodeComponent("popover"),
+        popover: PlasmicPopoverDialog__popover,
 
         // Metadata about props expected for PlasmicPopoverDialog
         internalVariantProps: PlasmicPopoverDialog__VariantProps,
@@ -12492,9 +13038,10 @@ export default PlasmicPopoverDialog;
     // Plasmic Project: 1234567890
     // plasmic-unformatted
   
-    import { createUseStyleTokens } from "@plasmicapp/react-web";
+    import * as React from "react";
+    import { useStyleTokens as useProjectStyleTokens } from "@plasmicapp/react-web";
 
-    import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+    import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
 
     import "./plasmic.css"; // plasmic-import: 1234567890/projectcss
 
@@ -12505,10 +13052,9 @@ export default PlasmicPopoverDialog;
   ],
   };
   
-    export const _useStyleTokens = createUseStyleTokens(
-      data,
-      _useGlobalVariants,
-    );
+    export function useStyleTokens() {
+      return useProjectStyleTokens(data, useGlobalVariants());
+    }
   
     
 --- PlasmicTooltip.module.css ---
@@ -12619,16 +13165,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -12636,8 +13185,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -12658,8 +13215,8 @@ import {
 
 
 import { BaseTooltip } from "@plasmicpkgs/react-aria/skinny/registerTooltip";
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     
@@ -12727,17 +13284,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicTooltip__RenderFunc(
       props: {
-        variants: PlasmicTooltip__VariantsArgs,
-        args: PlasmicTooltip__ArgsType,
-        overrides: PlasmicTooltip__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicTooltip__VariantsArgs,
+    args: PlasmicTooltip__ArgsType,
+    overrides: PlasmicTooltip__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -12764,11 +13318,10 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
-    const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(() =>
+    const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(() =>
           ([{
       path: "ariaTooltip.isOpen",
       type: "private",
@@ -12779,7 +13332,7 @@ const $$ = {};
       
       
     }])
-        , [$props, $ctx, $refs]);
+        , [$props, $ctx]);
 
     
 
@@ -12788,7 +13341,9 @@ const $$ = {};
     
 
     
-    const $state = useDollarState(stateSpecs, {$props, $ctx, $queries: {}, $q: {}, $refs});
+    const $stateEnv = {$props, $ctx, $queries: {}, $q: {}, getRefs};
+        const $stateCommands = useDollarState();
+        const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
     
     
 
@@ -12798,7 +13353,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
     const [$ccVariants, setDollarCcVariants] = React.useState<Record<string, boolean>>({
       placementTop: false,
@@ -12817,40 +13372,38 @@ placementRight: false
   
   
       return (
-        <BaseTooltip
-      data-plasmic-name={"ariaTooltip"}
-      data-plasmic-override={overrides.ariaTooltip}
-      data-plasmic-root={true}
-      data-plasmic-for-node={forNode}
-      className={classNames("__wab_instance", "root_reset_1234567890", "plasmic_default_styles", "plasmic_mixins", styleTokensClassNames, sty.ariaTooltip)}
-closeDelay={args.closeDelay}
-delay={args.delay}
-isDisabled={args.isDisabled}
-isOpen={generateStateValueProp($state, ["ariaTooltip","isOpen"])}
-onOpenChange={async (...eventArgs: any) => {
-        (generateStateOnChangeProp($state, ["ariaTooltip","isOpen"])).apply(null, eventArgs);
+        (() => {
+    const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+    const rendered = ((() => {
+    const child$Props = {className: classNames("__wab_instance", "root_reset_1234567890", "plasmic_default_styles", "plasmic_mixins", styleTokensClassNames, sty.ariaTooltip),
+closeDelay: args.closeDelay,
+delay: args.delay,
+isDisabled: args.isDisabled,
+isOpen: generateStateValueProp($state, ["ariaTooltip","isOpen"]),
+onOpenChange: async (...eventArgs: any) => {
+        (generateStateOnChangeProp($stateCommands, ["ariaTooltip","isOpen"])).apply(null, eventArgs);
 
         
 
         
-      }}
-placement={args.placement}
-plasmicUpdateVariant={updateVariant}
-resetClassName={classNames("root_reset_1234567890", "plasmic_default_styles", "plasmic_mixins", styleTokensClassNames)}
-tooltipContent={<React.Fragment>{ ((() => {
+      },
+placement: args.placement,
+plasmicUpdateVariant: updateVariant,
+resetClassName: classNames("root_reset_1234567890", "plasmic_default_styles", "plasmic_mixins", styleTokensClassNames),
+tooltipContent: <React.Fragment>{ (((evaluate, fallback) => {
       try {
-        return (
-          $props.showArrow
-        );
+        return evaluate();
       } catch (e) {
         if(e instanceof TypeError) {
-          return (
-            true
-          );
+          return fallback();
         }
         throw e;
       }
-    })()) ? (<TriangleInvertedFilledIcon
+    })(() => (
+      $props.showArrow
+    ), () => (
+      true
+    ))) ? (<TriangleInvertedFilledIcon
       data-plasmic-name={"svg"}
       data-plasmic-override={overrides.svg}
       
@@ -12900,7 +13453,22 @@ role={"img"}
       className: classNames(sty.slotTargetContent)
   }) }
           </div>
-          </div></React.Fragment>}
+          </div></React.Fragment>};
+    $stateInitializers.push(
+    ...getCodeComponentStateInitializers([
+            {
+              name: "isOpen",
+              plasmicStateName: "ariaTooltip.isOpen"
+            }
+          ], [], undefined ?? {}, child$Props),
+    
+    );
+    return (<BaseTooltip
+      data-plasmic-name={"ariaTooltip"}
+      data-plasmic-override={overrides.ariaTooltip}
+      data-plasmic-root={true}
+      data-plasmic-for-node={forNode}
+      {...child$Props}
       
       >
             { renderPlasmicSlot({
@@ -12917,7 +13485,10 @@ role={"img"}
       value: args.trigger,
       className: classNames(sty.slotTargetTrigger)
   }) }
-          </BaseTooltip>
+          </BaseTooltip>);
+  })());
+    return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+  })()
       ) as React.ReactElement | null;
     }
 
@@ -12955,34 +13526,41 @@ svg: "svg"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicTooltip__ArgProps,
           internalVariantPropNames: PlasmicTooltip__VariantProps,
         }), [props, nodeName]);
-        return PlasmicTooltip__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "ariaTooltip") {
-        func.displayName = "PlasmicTooltip";
-      } else {
-        func.displayName = \`PlasmicTooltip.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicTooltip__ariaTooltipProps = NodeComponentProps<"ariaTooltip"> & {key?: React.Key};
+        function PlasmicTooltip__ariaTooltip<T extends PlasmicTooltip__ariaTooltipProps>(props: T & StrictProps<T, PlasmicTooltip__ariaTooltipProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("ariaTooltip", props);
+          return <PlasmicTooltip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaTooltip"} />;
+        }
+        PlasmicTooltip__ariaTooltip.displayName = "PlasmicTooltip";
+      
+
+        type PlasmicTooltip__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+        function PlasmicTooltip__svg<T extends PlasmicTooltip__svgProps>(props: T & StrictProps<T, PlasmicTooltip__svgProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+          return <PlasmicTooltip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+        }
+        PlasmicTooltip__svg.displayName = "PlasmicTooltip.svg";
+      
 
     
     
 
     export const PlasmicTooltip = Object.assign(
       // Top-level PlasmicTooltip renders the root element
-      makeNodeComponent("ariaTooltip"),
+      PlasmicTooltip__ariaTooltip,
       {
         // Helper components rendering sub-elements
-        svg: makeNodeComponent("svg"),
+        svg: PlasmicTooltip__svg,
 
         // Metadata about props expected for PlasmicTooltip
         internalVariantProps: PlasmicTooltip__VariantProps,
@@ -13638,13 +14216,13 @@ column-gap: var(--mixin-SFG6O5da3UHa_column-gap);
     // Plasmic Project: 1234567890
     // plasmic-unformatted
   
-    import { createUseGlobalVariants } from "@plasmicapp/react-web";
+    import { ensureGlobalVariants } from "@plasmicapp/react-web";
     
   
     
-  export const _useGlobalVariants = createUseGlobalVariants({
+  export function useGlobalVariants() { "use memo"; return ensureGlobalVariants({
     
-  });
+  }); }
 
   
 --- plasmic__default_style.css ---

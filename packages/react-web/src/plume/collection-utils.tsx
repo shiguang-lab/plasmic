@@ -330,8 +330,9 @@ export function useDerivedItems(
     itemsProp,
   } = opts;
   const items = itemsProp ? props[itemsProp] : undefined;
+  const hasItems = !!itemsProp && itemsProp in props;
   return React.useMemo(() => {
-    return deriveItemsFromProps(props, {
+    return deriveItemsFromProps({ children, ...(hasItems && itemsProp ? { [itemsProp]: items } : {}) }, {
       itemPlumeType,
       sectionPlumeType,
       invalidChildError,
@@ -343,6 +344,8 @@ export function useDerivedItems(
   }, [
     children,
     items,
+    itemsProp,
+    hasItems,
     itemPlumeType,
     sectionPlumeType,
     invalidChildError,

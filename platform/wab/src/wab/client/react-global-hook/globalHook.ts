@@ -45,6 +45,7 @@ import { isCodeComponent } from "@/wab/shared/core/components";
 import { SlotSelection } from "@/wab/shared/core/slots";
 import {
   ValComponent,
+  deferValRuntimePublication,
   ValNode,
   ValSlot,
   ValTag,
@@ -52,7 +53,6 @@ import {
 } from "@/wab/shared/core/val-nodes";
 import { SlotInfo } from "@/wab/shared/eval/val-state";
 import { isString, omit } from "lodash";
-import { runInAction } from "mobx";
 import { FrameContextData } from "@/wab/client/react-global-hook/frame-context-data";
 import { createStore } from "zustand/vanilla";
 
@@ -962,7 +962,7 @@ if (officialHook) {
             rootNode.alternate.memoizedState != null &&
             rootNode.alternate.memoizedState.element != null;
 
-          runInAction(() => {
+          deferValRuntimePublication(() => {
             if (!knownRoots.has(fiberRoot) || !wasMounted) {
               // New tree, traverse it entirely
               knownRoots.add(fiberRoot);

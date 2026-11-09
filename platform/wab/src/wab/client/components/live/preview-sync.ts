@@ -1,7 +1,8 @@
+import { createTranspiler } from "@/wab/client/components/live/preview-transpiler";
 import type {
+  LiveFrame,
   AssetModule,
   CodeModule,
-  LiveFrame,
   PreviewUpdate,
   SourceModule,
 } from "@/wab/client/components/live/preview-types";
@@ -9,6 +10,11 @@ import { safeCallbackify } from "@/wab/commons/control";
 import { ensure, spawn } from "@/wab/shared/common";
 import type { WindowWithLiveFrame } from "@/wab/shared/live-frame-types";
 import * as asynclib from "async";
+
+export type PreviewBatchCompiler = (
+  modules: SourceModule[],
+  signal: AbortSignal,
+) => Promise<(CodeModule | AssetModule)[]>;
 
 export function syncPreview(
   win: Window,
@@ -18,9 +24,10 @@ export function syncPreview(
     name?: string;
     scheduler?: (run: () => void) => void;
     subscribe?: (invalidate: () => void) => () => void;
+    compileModules?: PreviewBatchCompiler;
   },
 ) {
-  const queue = makeRenderQueue(win, onDone);
+  const queue = makeRenderQueue(win, onDone, options?.compileModules);
   let disposed = false;
   let scheduled = false;
   const buildAndQueue = () => {
@@ -89,37 +96,11 @@ export async function showPreviewLoadError(win: Window, error: unknown) {
   win.document.body.replaceChildren(failure);
 }
 
-function createTranspiler() {
-  const cache = new Map<
-    string,
-    { source: string; jsxPragma?: string; code: string }
-  >();
-  return async (mod: SourceModule): Promise<CodeModule | AssetModule> => {
-    if (mod.lang === "css") {
-      return { fileName: mod.name, source: mod.source, type: "asset" };
-    }
-    let entry = cache.get(mod.name);
-    if (
-      !entry ||
-      entry.source !== mod.source ||
-      entry.jsxPragma !== mod.jsxPragma
-    ) {
-      const { transform } = await import("sucrase");
-      const { code } = transform(mod.source, {
-        transforms: ["typescript", "jsx", "imports"],
-        jsxPragma: mod.jsxPragma,
-        production: true,
-        disableESTransforms: true,
-      });
-      entry = { source: mod.source, jsxPragma: mod.jsxPragma, code };
-      cache.set(mod.name, entry);
-    }
-    return { fileName: mod.name, code: entry.code, imports: [], type: "code" };
-  };
-}
 
-function makeRenderQueue(win: Window, onDone: (error?: unknown) => void) {
+function makeRenderQueue(win: Window, onDone: (error?: unknown) => void, compileModules?: PreviewBatchCompiler) {
   const transpile = createTranspiler();
+  const compile: PreviewBatchCompiler = compileModules ?? ((modules) => Promise.all(modules.map(transpile)));
+  const compilation = new AbortController();
   let disposed = false;
   // Cargo holds updates until the previous render commits, then delivers the latest
   const queue = asynclib.cargo(
@@ -133,7 +114,7 @@ function makeRenderQueue(win: Window, onDone: (error?: unknown) => void) {
         }
         const { modules } = task;
         render = task.render;
-        const compiled = await Promise.all(modules.map(transpile));
+        const compiled = await compile(modules, compilation.signal);
         if (!disposed) {
           updating = true;
           await liveFrame(win).update(compiled, render);
@@ -168,6 +149,7 @@ function makeRenderQueue(win: Window, onDone: (error?: unknown) => void) {
     },
     dispose: () => {
       disposed = true;
+      compilation.abort();
       queue.kill();
     },
   };

@@ -43,10 +43,27 @@ import { Pt } from "@/wab/shared/geom";
 import { ArenaFrame } from "@/wab/shared/model/classes";
 import { Skeleton } from "antd";
 import $ from "jquery";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
+import { useCanvasComponentInputs, type CanvasViewFieldRecipe } from "@/wab/client/components/canvas/canvas-view-inputs";
 import { ok } from "neverthrow";
 import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useMountedState, useUnmount } from "react-use";
+
+/** Consume the viewport's async loading protocol as a lifetime-owned command. */
+async function initializeCanvasViewport(
+  ctx: CanvasCtx,
+  viewport: JQuery<HTMLIFrameElement>,
+  frame: ArenaFrame,
+  studio: StudioCtx,
+  load: CanvasFrameLoad,
+  publish: (state: AsyncGeneratorReturnType<CanvasCtx["initViewPort"]>) => void,
+): Promise<boolean> {
+  for await (const state of ctx.initViewPort(viewport, frame, studio)) {
+    if (!load.isActive()) { return false; }
+    publish(state);
+  }
+  return load.isActive();
+}
 
 interface CanvasFrameProps {
   studioCtx: StudioCtx;
@@ -56,7 +73,7 @@ interface CanvasFrameProps {
   isFree: boolean;
 }
 
-export const CanvasFrame = observer(function CanvasFrame({
+export const CanvasFrame = React.memo(function CanvasFrame({
   arena,
   arenaFrame,
   isFree,
@@ -65,6 +82,14 @@ export const CanvasFrame = observer(function CanvasFrame({
 }: CanvasFrameProps) {
   const { t: studioUiT } = useI18n();
   const frameHeight = useFrameHeight(studioCtx, arenaFrame);
+  const modelFields = React.useCallback<CanvasViewFieldRecipe>((field) => {
+    field(arenaFrame, "width", "left", "top", "container");
+    field(arenaFrame.container, "component");
+    if ("name" in arena) { field(arena, "name"); }
+    else { field(arena.component, "name"); }
+  }, [arena, arenaFrame]);
+  const { alive } = useCanvasComponentInputs(studioCtx, arenaFrame, modelFields);
+  const canComment = useStore(studioCtx.uiEnvironment.store, (state) => state.canComment);
 
   const [createdVc, setCreatedVc] = useState(false);
   const [iFrameKey, setIFrameKey] = useState(0);
@@ -88,7 +113,7 @@ export const CanvasFrame = observer(function CanvasFrame({
   const [initState, setInitState] = useState<
     AsyncGeneratorReturnType<CanvasCtx["initViewPort"]> | undefined
   >(undefined);
-  const modelLifetime = React.useMemo(() => studioCtx.arenaState.lifetime(), [studioCtx, arenaFrame]);
+  const modelLifetime = React.useMemo(() => studioCtx.arenaState.lifetime(), [studioCtx.arenaState, arenaFrame]);
   const loadRef = useRef<CanvasFrameLoad | null>(null);
   const frameHashRef = useRef<CanvasFrameHash | null>(null);
   React.useLayoutEffect(() => {
@@ -121,6 +146,11 @@ export const CanvasFrame = observer(function CanvasFrame({
       if (loadRef.current === load) { loadRef.current = null; }
     };
   }, [studioCtx, arenaFrame, modelLifetime, iFrameKey, isMounted]);
+  const makeFrameHash = React.useCallback(
+    () => ensure(frameHashRef.current, "Active iframe must have its committed URL source").getHash(),
+    [studioCtx, arenaFrame, modelLifetime, iFrameKey],
+  );
+
   useEffect(() => {
     const load = loadRef.current;
     if (loadState === "unloaded" && load?.isActive()) {
@@ -176,6 +206,42 @@ export const CanvasFrame = observer(function CanvasFrame({
     }
   });
 
+  const getTopClientPt = useCallback(
+    (frameEvent: WheelEvent) => {
+      // NOTE: the below commented out implementation attempts to compute the
+      // pointer position with respect to the top-level page by looking at screen
+      // positions and window sizes.  However, this was unreliable because there's
+      // no way to get exactly where the viewport is within the window (the window can
+      // have other chrome, like the URL bar, the devtools panel, etc), so this was
+      // just an approximation.  The current implementation tries to compute this by
+      // looking at the event's clientX/Y instead.  This is also inprecise, as clientX/Y
+      // are integer-precision values, and when you're zoomed in, will not give you the
+      // exact position of your cursor.  But for the purpose of doing zooming, this
+      // is "good enough", and safer than using the screenX/screenY.
+
+      // TODO: fix this hack. We can learn about the screen position of the
+      // topmost viewport from a mouse event inside the iframe when scale is 1 or
+      // any mouse event outside the iframe. This works when the topmost scale
+      // is 1. When the topmost scale is not one, we have to just do a best
+      // effort based on the toplevel window's scale.
+      // clientX/clientY in topmost window. We cannot use e.clientX and e.clientY
+      // because they are not scaled. This is hacky though - we are assuming the
+      // browser window doesn't have fixed tab at the left and bottom. The problem
+      // is that we don't know the position of the viewport inside the browser.
+      // const clientX = frameEvent.screenX - window.screenX;
+      // const clientY =
+      //   frameEvent.screenY -
+      //   window.screenY -
+      //   (window.outerHeight - window.innerHeight);
+
+      const frameBB = viewCtx().canvasCtx.viewport().getBoundingClientRect();
+      const clientX = frameEvent.clientX * studioCtx.zoom + frameBB.left;
+      const clientY = frameEvent.clientY * studioCtx.zoom + frameBB.top;
+      return tuple(clientX, clientY);
+    },
+    [studioCtx, viewCtx],
+  );
+
   const handleLoad = useCallback(
     async (viewport: HTMLIFrameElement, load: CanvasFrameLoad) => {
       if (!load.isActive() || loadState === "unloaded" || loadState === "queued") {
@@ -186,15 +252,7 @@ export const CanvasFrame = observer(function CanvasFrame({
       const ctx = createCanvasCtx($viewport, canvasName);
       const releaseContext = load.own(() => ctx.dispose());
       try {
-        for await (const initState_ of ctx.initViewPort(
-          $viewport,
-          arenaFrame,
-          studioCtx,
-        )) {
-          if (!load.isActive()) { return; }
-          setInitState(initState_);
-        }
-        if (!load.isActive()) { return; }
+        if (!await initializeCanvasViewport(ctx, $viewport, arenaFrame, studioCtx, load, setInitState)) { return; }
       } catch (e: any) {
         ctx.dispose();
         releaseContext();
@@ -359,6 +417,8 @@ export const CanvasFrame = observer(function CanvasFrame({
       loadState,
       toggleTrailingSlash,
       onFrameLoad,
+      canvasName,
+      getTopClientPt,
     ],
   );
 
@@ -366,56 +426,22 @@ export const CanvasFrame = observer(function CanvasFrame({
   // Get the coordinate of a mouse event (that targeted element inside the frame
   // for vc) in the top most window.
 
-  const getTopClientPt = useCallback(
-    (frameEvent: WheelEvent) => {
-      // NOTE: the below commented out implementation attempts to compute the
-      // pointer position with respect to the top-level page by looking at screen
-      // positions and window sizes.  However, this was unreliable because there's
-      // no way to get exactly where the viewport is within the window (the window can
-      // have other chrome, like the URL bar, the devtools panel, etc), so this was
-      // just an approximation.  The current implementation tries to compute this by
-      // looking at the event's clientX/Y instead.  This is also inprecise, as clientX/Y
-      // are integer-precision values, and when you're zoomed in, will not give you the
-      // exact position of your cursor.  But for the purpose of doing zooming, this
-      // is "good enough", and safer than using the screenX/screenY.
-
-      // TODO: fix this hack. We can learn about the screen position of the
-      // topmost viewport from a mouse event inside the iframe when scale is 1 or
-      // any mouse event outside the iframe. This works when the topmost scale
-      // is 1. When the topmost scale is not one, we have to just do a best
-      // effort based on the toplevel window's scale.
-      // clientX/clientY in topmost window. We cannot use e.clientX and e.clientY
-      // because they are not scaled. This is hacky though - we are assuming the
-      // browser window doesn't have fixed tab at the left and bottom. The problem
-      // is that we don't know the position of the viewport inside the browser.
-      // const clientX = frameEvent.screenX - window.screenX;
-      // const clientY =
-      //   frameEvent.screenY -
-      //   window.screenY -
-      //   (window.outerHeight - window.innerHeight);
-
-      const frameBB = viewCtx().canvasCtx.viewport().getBoundingClientRect();
-      const clientX = frameEvent.clientX * studioCtx.zoom + frameBB.left;
-      const clientY = frameEvent.clientY * studioCtx.zoom + frameBB.top;
-      return tuple(clientX, clientY);
-    },
-    [studioCtx],
-  );
 
   const handleSelectionClick = useCallback(() => {
-    if (studioCtx.isInteractiveMode || maybeViewCtx()?.contentEditor.target) {
+    if (!studioCtx.arenaState.isCurrentLifetime(modelLifetime) || studioCtx.isInteractiveMode || maybeViewCtx()?.contentEditor.target) {
       return;
     }
     spawn(
       studioCtx.change(() => {
+        if (!studioCtx.arenaState.isCurrentLifetime(modelLifetime)) { return ok(); }
         studioCtx.setStudioFocusOnFrame({ frame: arenaFrame });
         return ok();
       }),
     );
-  }, [studioCtx, arenaFrame, maybeViewCtx]);
+  }, [studioCtx, arenaFrame, maybeViewCtx, modelLifetime]);
   const handleArenaHandleClick = useCallback(
     (e?: React.MouseEvent<HTMLElement>) => {
-      if (studioCtx.isInteractiveMode) {
+      if (!studioCtx.arenaState.isCurrentLifetime(modelLifetime) || studioCtx.isInteractiveMode) {
         return;
       }
       if (!e?.shiftKey && studioCtx.focusedFrames().includes(arenaFrame)) {
@@ -423,6 +449,7 @@ export const CanvasFrame = observer(function CanvasFrame({
       }
       spawn(
         studioCtx.change(() => {
+          if (!studioCtx.arenaState.isCurrentLifetime(modelLifetime)) { return ok(); }
           studioCtx.setStudioFocusOnFrame({
             frame: arenaFrame,
             appendToMultiSelection: e?.shiftKey,
@@ -431,12 +458,13 @@ export const CanvasFrame = observer(function CanvasFrame({
         }),
       );
     },
-    [studioCtx],
+    [studioCtx, arenaFrame, modelLifetime],
   );
 
   const dragMoveManager = useRef<DragMoveFrameManager | undefined>(undefined);
 
   const startMove = (e: XDraggableEvent) => {
+    if (!studioCtx.arenaState.isCurrentLifetime(modelLifetime)) { return; }
     const clientPt = new Pt(e.mouseEvent.pageX, e.mouseEvent.pageY);
     if (studioCtx.isPositionManagedFrame(arenaFrame)) {
       return;
@@ -622,14 +650,12 @@ export const CanvasFrame = observer(function CanvasFrame({
 
   const interactive = useStudioRenderPolicy(studioCtx, (policy) => policy.interactive);
   const commentsOverlay = useStudioOverlayState(studioCtx, (state) => state.commentsOverlay);
-  const makeFrameHash = React.useCallback(
-    () => ensure(frameHashRef.current, "Active iframe must have its committed URL source").getHash(),
-    [studioCtx, arenaFrame, modelLifetime, iFrameKey],
-  );
+
 
   const contentView = useActiveContentEditor(studioCtx)?.viewCtx;
   const [contentSize, isContentEditing, contentReady] = useContentEditor(maybeViewCtx()?.contentEditor,
     useShallow((state) => [state.size, !!state.target, state.ready] as const));
+  if (!alive || !studioCtx.arenaState.isCurrentLifetime(modelLifetime)) { return null; }
   return (
     <div className={styles.root} onClick={handleSelectionClick} style={contentView && contentView.arenaFrame() !== arenaFrame ? { visibility: "hidden", pointerEvents: "none" } : undefined}>
       <div
@@ -740,7 +766,7 @@ export const CanvasFrame = observer(function CanvasFrame({
           </span>
         </XDraggable>
         {!interactive &&
-          studioCtx.showComments() &&
+          canComment &&
           commentsOverlay && (
             <CanvasCommentMarkers arena={arena} arenaFrame={arenaFrame} />
           )}

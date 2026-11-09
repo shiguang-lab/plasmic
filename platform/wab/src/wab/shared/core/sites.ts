@@ -105,7 +105,7 @@ import {
 } from "@/wab/shared/eval/expression-parser";
 import { makeTplAnimationsFixer } from "@/wab/shared/insertable-templates/fixers";
 import { getRshContainerType } from "@/wab/shared/layoututils";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import {
   Arena,
   ArenaFrame,
@@ -1425,11 +1425,9 @@ export function getFrameContainerType(frame: ArenaFrame) {
     : undefined;
 }
 
-export const getFrameRootTplComponents = maybeComputedFn(
-  function getFrameRootTplComponents(site: Site) {
+export const getFrameRootTplComponents = memoizeModelQuery(function getFrameRootTplComponents(site: Site) {
     return getAllSiteFrames(site).map((f) => f.container);
-  },
-);
+  });
 
 export function isFrameRootTplComponent(site: Site, node: TplNode) {
   return isTplComponent(node) && getFrameRootTplComponents(site).includes(node);
@@ -1486,7 +1484,7 @@ export function getReferencingComponents(site: Site, component: Component) {
   return referencingComponents;
 }
 
-export const getAllSiteFrames = maybeComputedFn(function getAllSiteFrames(
+export const getAllSiteFrames = memoizeModelQuery(function getAllSiteFrames(
   site: Site,
 ) {
   return getSiteArenas(site).flatMap((arena) => getArenaFrames(arena, true));
@@ -1572,7 +1570,7 @@ export function getArenaByNameOrUuidOrPath(
 /**
  * Returns whether the given arena still exists in the site
  */
-export const isValidArena = maybeComputedFn((site: Site, arena: AnyArena) => {
+export const isValidArena = memoizeModelQuery((site: Site, arena: AnyArena) => {
   return switchType(arena)
     .when(ComponentArena, (componentArena) =>
       site.componentArenas.find((it) => it === componentArena),

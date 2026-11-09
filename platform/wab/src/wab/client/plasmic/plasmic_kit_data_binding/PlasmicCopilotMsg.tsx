@@ -15,42 +15,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
-import {
-  Flex as Flex__,
-  MultiChoiceArg,
-  PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
-  PlasmicIcon as PlasmicIcon__,
-  PlasmicImg as PlasmicImg__,
-  PlasmicLink as PlasmicLink__,
-  PlasmicPageGuard as PlasmicPageGuard__,
-  SingleBooleanChoiceArg,
-  SingleChoiceArg,
-  Stack as Stack__,
-  StrictProps,
-  Trans as Trans__,
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  ensureGlobalVariants,
-  generateOnMutateForSpec,
-  generateStateOnChangeProp,
-  generateStateOnChangePropForCodeComponents,
-  generateStateValueProp,
-  get as $stateGet,
-  hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
-  makeFragment,
-  omit,
-  pick,
-  renderPlasmicSlot,
-  set as $stateSet,
-  useCurrentUser,
-  useDollarState,
-  usePlasmicTranslator,
-  useTrigger,
-  wrapWithClassName
-} from "@plasmicapp/react-web";
+import {usePlasmicRefs, Flex as Flex__, MultiChoiceArg, PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__, PlasmicIcon as PlasmicIcon__, PlasmicImg as PlasmicImg__, PlasmicLink as PlasmicLink__, PlasmicPageGuard as PlasmicPageGuard__, SingleBooleanChoiceArg, SingleChoiceArg, Stack as Stack__, StrictProps, Trans as Trans__, classNames, createPlasmicElementProxy, deriveRenderOpts, ensureGlobalVariants, generateOnMutateForSpec, generateStateOnChangeProp, generateStateOnChangePropForCodeComponents, generateStateValueProp, get as $stateGet, hasVariant, makeFragment, omit, pick, renderPlasmicSlot, set as $stateSet, useCurrentUser, useDollarState, useDollarStateSnapshot, usePlasmicTranslator, wrapWithClassName} from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
@@ -60,8 +25,8 @@ import {
 import CopilotLikeDislike from "../../components/CopilotLikeDislike"; // plasmic-import: -LDNJojbDZD/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -145,11 +110,10 @@ function PlasmicCopilotMsg__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "userPrompt",
@@ -170,18 +134,20 @@ function PlasmicCopilotMsg__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.feedback
       }
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs
-  });
+    getRefs
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -552,12 +518,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -567,34 +529,85 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCopilotMsg__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCopilotMsg";
-  } else {
-    func.displayName = `PlasmicCopilotMsg.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCopilotMsg__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCopilotMsg__root<T extends PlasmicCopilotMsg__rootProps>(props: T & StrictProps<T, PlasmicCopilotMsg__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCopilotMsg__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCopilotMsg__root.displayName = "PlasmicCopilotMsg";
+
+type PlasmicCopilotMsg__codeProps = NodeComponentProps<"code"> & {key?: React.Key};
+function PlasmicCopilotMsg__code<T extends PlasmicCopilotMsg__codeProps>(props: T & StrictProps<T, PlasmicCopilotMsg__codeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("code", props);
+  return <PlasmicCopilotMsg__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"code"} />;
+}
+PlasmicCopilotMsg__code.displayName = "PlasmicCopilotMsg.code";
+
+type PlasmicCopilotMsg__promptProps = NodeComponentProps<"prompt"> & {key?: React.Key};
+function PlasmicCopilotMsg__prompt<T extends PlasmicCopilotMsg__promptProps>(props: T & StrictProps<T, PlasmicCopilotMsg__promptProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("prompt", props);
+  return <PlasmicCopilotMsg__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"prompt"} />;
+}
+PlasmicCopilotMsg__prompt.displayName = "PlasmicCopilotMsg.prompt";
+
+type PlasmicCopilotMsg__copilotLikeDislikeProps = NodeComponentProps<"copilotLikeDislike"> & {key?: React.Key};
+function PlasmicCopilotMsg__copilotLikeDislike<T extends PlasmicCopilotMsg__copilotLikeDislikeProps>(props: T & StrictProps<T, PlasmicCopilotMsg__copilotLikeDislikeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("copilotLikeDislike", props);
+  return <PlasmicCopilotMsg__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"copilotLikeDislike"} />;
+}
+PlasmicCopilotMsg__copilotLikeDislike.displayName = "PlasmicCopilotMsg.copilotLikeDislike";
+
+type PlasmicCopilotMsg__applyBtnProps = NodeComponentProps<"applyBtn"> & {key?: React.Key};
+function PlasmicCopilotMsg__applyBtn<T extends PlasmicCopilotMsg__applyBtnProps>(props: T & StrictProps<T, PlasmicCopilotMsg__applyBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("applyBtn", props);
+  return <PlasmicCopilotMsg__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"applyBtn"} />;
+}
+PlasmicCopilotMsg__applyBtn.displayName = "PlasmicCopilotMsg.applyBtn";
+
+type PlasmicCopilotMsg__feedbackTextboxProps = NodeComponentProps<"feedbackTextbox"> & {key?: React.Key};
+function PlasmicCopilotMsg__feedbackTextbox<T extends PlasmicCopilotMsg__feedbackTextboxProps>(props: T & StrictProps<T, PlasmicCopilotMsg__feedbackTextboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("feedbackTextbox", props);
+  return <PlasmicCopilotMsg__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"feedbackTextbox"} />;
+}
+PlasmicCopilotMsg__feedbackTextbox.displayName = "PlasmicCopilotMsg.feedbackTextbox";
+
+type PlasmicCopilotMsg__submitFeedbackBtnProps = NodeComponentProps<"submitFeedbackBtn"> & {key?: React.Key};
+function PlasmicCopilotMsg__submitFeedbackBtn<T extends PlasmicCopilotMsg__submitFeedbackBtnProps>(props: T & StrictProps<T, PlasmicCopilotMsg__submitFeedbackBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("submitFeedbackBtn", props);
+  return <PlasmicCopilotMsg__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"submitFeedbackBtn"} />;
+}
+PlasmicCopilotMsg__submitFeedbackBtn.displayName = "PlasmicCopilotMsg.submitFeedbackBtn";
+
+type PlasmicCopilotMsg__feedbackSubmittedContainerProps = NodeComponentProps<"feedbackSubmittedContainer"> & {key?: React.Key};
+function PlasmicCopilotMsg__feedbackSubmittedContainer<T extends PlasmicCopilotMsg__feedbackSubmittedContainerProps>(props: T & StrictProps<T, PlasmicCopilotMsg__feedbackSubmittedContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("feedbackSubmittedContainer", props);
+  return <PlasmicCopilotMsg__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"feedbackSubmittedContainer"} />;
+}
+PlasmicCopilotMsg__feedbackSubmittedContainer.displayName = "PlasmicCopilotMsg.feedbackSubmittedContainer";
+
+type PlasmicCopilotMsg__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicCopilotMsg__svg<T extends PlasmicCopilotMsg__svgProps>(props: T & StrictProps<T, PlasmicCopilotMsg__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicCopilotMsg__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicCopilotMsg__svg.displayName = "PlasmicCopilotMsg.svg";
+
 
 export const PlasmicCopilotMsg = Object.assign(
   // Top-level PlasmicCopilotMsg renders the root element
-  makeNodeComponent("root"),
+  PlasmicCopilotMsg__root,
   {
     // Helper components rendering sub-elements
-    code: makeNodeComponent("code"),
-    prompt: makeNodeComponent("prompt"),
-    copilotLikeDislike: makeNodeComponent("copilotLikeDislike"),
-    applyBtn: makeNodeComponent("applyBtn"),
-    feedbackTextbox: makeNodeComponent("feedbackTextbox"),
-    submitFeedbackBtn: makeNodeComponent("submitFeedbackBtn"),
-    feedbackSubmittedContainer: makeNodeComponent("feedbackSubmittedContainer"),
-    svg: makeNodeComponent("svg"),
+    code: PlasmicCopilotMsg__code,
+    prompt: PlasmicCopilotMsg__prompt,
+    copilotLikeDislike: PlasmicCopilotMsg__copilotLikeDislike,
+    applyBtn: PlasmicCopilotMsg__applyBtn,
+    feedbackTextbox: PlasmicCopilotMsg__feedbackTextbox,
+    submitFeedbackBtn: PlasmicCopilotMsg__submitFeedbackBtn,
+    feedbackSubmittedContainer: PlasmicCopilotMsg__feedbackSubmittedContainer,
+    svg: PlasmicCopilotMsg__svg,
 
     // Metadata about props expected for PlasmicCopilotMsg
     internalVariantProps: PlasmicCopilotMsg__VariantProps,

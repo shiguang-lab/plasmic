@@ -16,14 +16,14 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -31,7 +31,7 @@ import TextWithInfo from "../../components/TextWithInfo"; // plasmic-import: -Es
 import LeftPaneHeader from "../../components/studio/LeftPaneHeader"; // plasmic-import: XLa52PvduIy/component
 import LeftSearchPanel from "../../components/studio/LeftSearchPanel"; // plasmic-import: TqAPn0srTq/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "../plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -105,11 +105,10 @@ function PlasmicLeftImagesPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "compact",
@@ -118,18 +117,20 @@ function PlasmicLeftImagesPanel__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.compact,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -366,12 +367,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -381,35 +378,93 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftImagesPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftImagesPanel";
-  } else {
-    func.displayName = `PlasmicLeftImagesPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftImagesPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftImagesPanel__root<T extends PlasmicLeftImagesPanel__rootProps>(props: T & StrictProps<T, PlasmicLeftImagesPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftImagesPanel__root.displayName = "PlasmicLeftImagesPanel";
+
+type PlasmicLeftImagesPanel__leftSearchPanelProps = NodeComponentProps<"leftSearchPanel"> & {key?: React.Key};
+function PlasmicLeftImagesPanel__leftSearchPanel<T extends PlasmicLeftImagesPanel__leftSearchPanelProps>(props: T & StrictProps<T, PlasmicLeftImagesPanel__leftSearchPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftSearchPanel", props);
+  return <PlasmicLeftImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftSearchPanel"} />;
+}
+PlasmicLeftImagesPanel__leftSearchPanel.displayName = "PlasmicLeftImagesPanel.leftSearchPanel";
+
+type PlasmicLeftImagesPanel__iconsHeaderProps = NodeComponentProps<"iconsHeader"> & {key?: React.Key};
+function PlasmicLeftImagesPanel__iconsHeader<T extends PlasmicLeftImagesPanel__iconsHeaderProps>(props: T & StrictProps<T, PlasmicLeftImagesPanel__iconsHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconsHeader", props);
+  return <PlasmicLeftImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconsHeader"} />;
+}
+PlasmicLeftImagesPanel__iconsHeader.displayName = "PlasmicLeftImagesPanel.iconsHeader";
+
+type PlasmicLeftImagesPanel__newIconButtonProps = NodeComponentProps<"newIconButton"> & {key?: React.Key};
+function PlasmicLeftImagesPanel__newIconButton<T extends PlasmicLeftImagesPanel__newIconButtonProps>(props: T & StrictProps<T, PlasmicLeftImagesPanel__newIconButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newIconButton", props);
+  return <PlasmicLeftImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newIconButton"} />;
+}
+PlasmicLeftImagesPanel__newIconButton.displayName = "PlasmicLeftImagesPanel.newIconButton";
+
+type PlasmicLeftImagesPanel__iconInfoProps = NodeComponentProps<"iconInfo"> & {key?: React.Key};
+function PlasmicLeftImagesPanel__iconInfo<T extends PlasmicLeftImagesPanel__iconInfoProps>(props: T & StrictProps<T, PlasmicLeftImagesPanel__iconInfoProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconInfo", props);
+  return <PlasmicLeftImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconInfo"} />;
+}
+PlasmicLeftImagesPanel__iconInfo.displayName = "PlasmicLeftImagesPanel.iconInfo";
+
+type PlasmicLeftImagesPanel__iconsContentProps = NodeComponentProps<"iconsContent"> & {key?: React.Key};
+function PlasmicLeftImagesPanel__iconsContent<T extends PlasmicLeftImagesPanel__iconsContentProps>(props: T & StrictProps<T, PlasmicLeftImagesPanel__iconsContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconsContent", props);
+  return <PlasmicLeftImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconsContent"} />;
+}
+PlasmicLeftImagesPanel__iconsContent.displayName = "PlasmicLeftImagesPanel.iconsContent";
+
+type PlasmicLeftImagesPanel__imagesHeaderProps = NodeComponentProps<"imagesHeader"> & {key?: React.Key};
+function PlasmicLeftImagesPanel__imagesHeader<T extends PlasmicLeftImagesPanel__imagesHeaderProps>(props: T & StrictProps<T, PlasmicLeftImagesPanel__imagesHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("imagesHeader", props);
+  return <PlasmicLeftImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"imagesHeader"} />;
+}
+PlasmicLeftImagesPanel__imagesHeader.displayName = "PlasmicLeftImagesPanel.imagesHeader";
+
+type PlasmicLeftImagesPanel__newImageButtonProps = NodeComponentProps<"newImageButton"> & {key?: React.Key};
+function PlasmicLeftImagesPanel__newImageButton<T extends PlasmicLeftImagesPanel__newImageButtonProps>(props: T & StrictProps<T, PlasmicLeftImagesPanel__newImageButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newImageButton", props);
+  return <PlasmicLeftImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newImageButton"} />;
+}
+PlasmicLeftImagesPanel__newImageButton.displayName = "PlasmicLeftImagesPanel.newImageButton";
+
+type PlasmicLeftImagesPanel__imageInfoProps = NodeComponentProps<"imageInfo"> & {key?: React.Key};
+function PlasmicLeftImagesPanel__imageInfo<T extends PlasmicLeftImagesPanel__imageInfoProps>(props: T & StrictProps<T, PlasmicLeftImagesPanel__imageInfoProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("imageInfo", props);
+  return <PlasmicLeftImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"imageInfo"} />;
+}
+PlasmicLeftImagesPanel__imageInfo.displayName = "PlasmicLeftImagesPanel.imageInfo";
+
+type PlasmicLeftImagesPanel__imagesContentProps = NodeComponentProps<"imagesContent"> & {key?: React.Key};
+function PlasmicLeftImagesPanel__imagesContent<T extends PlasmicLeftImagesPanel__imagesContentProps>(props: T & StrictProps<T, PlasmicLeftImagesPanel__imagesContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("imagesContent", props);
+  return <PlasmicLeftImagesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"imagesContent"} />;
+}
+PlasmicLeftImagesPanel__imagesContent.displayName = "PlasmicLeftImagesPanel.imagesContent";
+
 
 export const PlasmicLeftImagesPanel = Object.assign(
   // Top-level PlasmicLeftImagesPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftImagesPanel__root,
   {
     // Helper components rendering sub-elements
-    leftSearchPanel: makeNodeComponent("leftSearchPanel"),
-    iconsHeader: makeNodeComponent("iconsHeader"),
-    newIconButton: makeNodeComponent("newIconButton"),
-    iconInfo: makeNodeComponent("iconInfo"),
-    iconsContent: makeNodeComponent("iconsContent"),
-    imagesHeader: makeNodeComponent("imagesHeader"),
-    newImageButton: makeNodeComponent("newImageButton"),
-    imageInfo: makeNodeComponent("imageInfo"),
-    imagesContent: makeNodeComponent("imagesContent"),
+    leftSearchPanel: PlasmicLeftImagesPanel__leftSearchPanel,
+    iconsHeader: PlasmicLeftImagesPanel__iconsHeader,
+    newIconButton: PlasmicLeftImagesPanel__newIconButton,
+    iconInfo: PlasmicLeftImagesPanel__iconInfo,
+    iconsContent: PlasmicLeftImagesPanel__iconsContent,
+    imagesHeader: PlasmicLeftImagesPanel__imagesHeader,
+    newImageButton: PlasmicLeftImagesPanel__newImageButton,
+    imageInfo: PlasmicLeftImagesPanel__imageInfo,
+    imagesContent: PlasmicLeftImagesPanel__imagesContent,
 
     // Metadata about props expected for PlasmicLeftImagesPanel
     internalVariantProps: PlasmicLeftImagesPanel__VariantProps,

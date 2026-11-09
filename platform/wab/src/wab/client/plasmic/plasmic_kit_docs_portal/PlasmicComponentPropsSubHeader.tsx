@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,11 +23,11 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -95,11 +95,10 @@ function PlasmicComponentPropsSubHeader__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "noDetails",
@@ -108,18 +107,20 @@ function PlasmicComponentPropsSubHeader__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.noDetails,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -212,12 +213,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -228,28 +225,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicComponentPropsSubHeader__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicComponentPropsSubHeader";
-  } else {
-    func.displayName = `PlasmicComponentPropsSubHeader.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicComponentPropsSubHeader__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicComponentPropsSubHeader__root<T extends PlasmicComponentPropsSubHeader__rootProps>(props: T & StrictProps<T, PlasmicComponentPropsSubHeader__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicComponentPropsSubHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicComponentPropsSubHeader__root.displayName = "PlasmicComponentPropsSubHeader";
+
+type PlasmicComponentPropsSubHeader__headerProps = NodeComponentProps<"header"> & {key?: React.Key};
+function PlasmicComponentPropsSubHeader__header<T extends PlasmicComponentPropsSubHeader__headerProps>(props: T & StrictProps<T, PlasmicComponentPropsSubHeader__headerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("header", props);
+  return <PlasmicComponentPropsSubHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"header"} />;
+}
+PlasmicComponentPropsSubHeader__header.displayName = "PlasmicComponentPropsSubHeader.header";
+
+type PlasmicComponentPropsSubHeader__detailsProps = NodeComponentProps<"details"> & {key?: React.Key};
+function PlasmicComponentPropsSubHeader__details<T extends PlasmicComponentPropsSubHeader__detailsProps>(props: T & StrictProps<T, PlasmicComponentPropsSubHeader__detailsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("details", props);
+  return <PlasmicComponentPropsSubHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"details"} />;
+}
+PlasmicComponentPropsSubHeader__details.displayName = "PlasmicComponentPropsSubHeader.details";
+
 
 export const PlasmicComponentPropsSubHeader = Object.assign(
   // Top-level PlasmicComponentPropsSubHeader renders the root element
-  makeNodeComponent("root"),
+  PlasmicComponentPropsSubHeader__root,
   {
     // Helper components rendering sub-elements
-    header: makeNodeComponent("header"),
-    details: makeNodeComponent("details"),
+    header: PlasmicComponentPropsSubHeader__header,
+    details: PlasmicComponentPropsSubHeader__details,
 
     // Metadata about props expected for PlasmicComponentPropsSubHeader
     internalVariantProps: PlasmicComponentPropsSubHeader__VariantProps,

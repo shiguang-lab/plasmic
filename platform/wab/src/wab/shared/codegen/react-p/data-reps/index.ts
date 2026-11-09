@@ -5,8 +5,25 @@ import {
   getRepetitionIndexName,
 } from "@/wab/shared/core/components";
 import { getRawCode } from "@/wab/shared/core/exprs";
-import { getNumberOfRepeatingAncestors } from "@/wab/shared/core/tpls";
-import { TplComponent, TplTag } from "@/wab/shared/model/classes";
+import { ancestorsUp, getNumberOfRepeatingAncestors, isTplTagOrComponent } from "@/wab/shared/core/tpls";
+import { TplComponent, TplNode, TplTag } from "@/wab/shared/model/classes";
+
+export function serializeStateCommandHandler(ctx: Pick<SerializerBaseContext, "component">, node: TplNode, handler: string) {
+  const repetitions = ancestorsUp(node).reverse().filter(isTplTagOrComponent).flatMap((tpl) => {
+    const rep = tpl.vsettings.find((vs) => isBaseVariant(vs.variants))?.dataRep;
+    return rep ? [getRepetitionElementName(rep)] : [];
+  });
+  const names = [...new Set(["$props", "$ctx", ...repetitions])];
+  const params = ctx.component.states.length ? ["$state", ...names] : names;
+  const values = [
+    ...(ctx.component.states.length ? ["$stateCommands"] : []),
+    ...names.map((name) => `${name === "$props" || name === "$ctx" ? "getStateCommandEnv" : "getStateCommandValue"}(${name})`),
+  ];
+  return `createStateEventHandler(() => [${values.join(", ")}], (${params.join(", ")}) => {
+    const $refs = getRefs();
+    return (${handler});
+  })`;
+}
 
 export function getRepetitionItemInternalName(idx: number) {
   return `__plasmic_item_${idx}`;

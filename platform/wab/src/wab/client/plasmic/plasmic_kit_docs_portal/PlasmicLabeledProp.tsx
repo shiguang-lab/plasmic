@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,14 +22,14 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -124,11 +124,10 @@ function PlasmicLabeledProp__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "noContent",
@@ -150,23 +149,25 @@ function PlasmicLabeledProp__RenderFunc(props: {
           $props.hasAnnotation,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -410,12 +411,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -425,33 +422,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLabeledProp__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLabeledProp";
-  } else {
-    func.displayName = `PlasmicLabeledProp.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLabeledProp__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLabeledProp__root<T extends PlasmicLabeledProp__rootProps>(props: T & StrictProps<T, PlasmicLabeledProp__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLabeledProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLabeledProp__root.displayName = "PlasmicLabeledProp";
+
+type PlasmicLabeledProp__primaryProps = NodeComponentProps<"primary"> & {key?: React.Key};
+function PlasmicLabeledProp__primary<T extends PlasmicLabeledProp__primaryProps>(props: T & StrictProps<T, PlasmicLabeledProp__primaryProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("primary", props);
+  return <PlasmicLabeledProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"primary"} />;
+}
+PlasmicLabeledProp__primary.displayName = "PlasmicLabeledProp.primary";
+
+type PlasmicLabeledProp__iconContainerProps = NodeComponentProps<"iconContainer"> & {key?: React.Key};
+function PlasmicLabeledProp__iconContainer<T extends PlasmicLabeledProp__iconContainerProps>(props: T & StrictProps<T, PlasmicLabeledProp__iconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconContainer", props);
+  return <PlasmicLabeledProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconContainer"} />;
+}
+PlasmicLabeledProp__iconContainer.displayName = "PlasmicLabeledProp.iconContainer";
+
+type PlasmicLabeledProp__labelContainerProps = NodeComponentProps<"labelContainer"> & {key?: React.Key};
+function PlasmicLabeledProp__labelContainer<T extends PlasmicLabeledProp__labelContainerProps>(props: T & StrictProps<T, PlasmicLabeledProp__labelContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelContainer", props);
+  return <PlasmicLabeledProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelContainer"} />;
+}
+PlasmicLabeledProp__labelContainer.displayName = "PlasmicLabeledProp.labelContainer";
+
+type PlasmicLabeledProp__primaryAnnotationProps = NodeComponentProps<"primaryAnnotation"> & {key?: React.Key};
+function PlasmicLabeledProp__primaryAnnotation<T extends PlasmicLabeledProp__primaryAnnotationProps>(props: T & StrictProps<T, PlasmicLabeledProp__primaryAnnotationProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("primaryAnnotation", props);
+  return <PlasmicLabeledProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"primaryAnnotation"} />;
+}
+PlasmicLabeledProp__primaryAnnotation.displayName = "PlasmicLabeledProp.primaryAnnotation";
+
+type PlasmicLabeledProp__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicLabeledProp__menuButton<T extends PlasmicLabeledProp__menuButtonProps>(props: T & StrictProps<T, PlasmicLabeledProp__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicLabeledProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicLabeledProp__menuButton.displayName = "PlasmicLabeledProp.menuButton";
+
+type PlasmicLabeledProp__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicLabeledProp__content<T extends PlasmicLabeledProp__contentProps>(props: T & StrictProps<T, PlasmicLabeledProp__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicLabeledProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicLabeledProp__content.displayName = "PlasmicLabeledProp.content";
+
+type PlasmicLabeledProp__typeContainerProps = NodeComponentProps<"typeContainer"> & {key?: React.Key};
+function PlasmicLabeledProp__typeContainer<T extends PlasmicLabeledProp__typeContainerProps>(props: T & StrictProps<T, PlasmicLabeledProp__typeContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("typeContainer", props);
+  return <PlasmicLabeledProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"typeContainer"} />;
+}
+PlasmicLabeledProp__typeContainer.displayName = "PlasmicLabeledProp.typeContainer";
+
 
 export const PlasmicLabeledProp = Object.assign(
   // Top-level PlasmicLabeledProp renders the root element
-  makeNodeComponent("root"),
+  PlasmicLabeledProp__root,
   {
     // Helper components rendering sub-elements
-    primary: makeNodeComponent("primary"),
-    iconContainer: makeNodeComponent("iconContainer"),
-    labelContainer: makeNodeComponent("labelContainer"),
-    primaryAnnotation: makeNodeComponent("primaryAnnotation"),
-    menuButton: makeNodeComponent("menuButton"),
-    content: makeNodeComponent("content"),
-    typeContainer: makeNodeComponent("typeContainer"),
+    primary: PlasmicLabeledProp__primary,
+    iconContainer: PlasmicLabeledProp__iconContainer,
+    labelContainer: PlasmicLabeledProp__labelContainer,
+    primaryAnnotation: PlasmicLabeledProp__primaryAnnotation,
+    menuButton: PlasmicLabeledProp__menuButton,
+    content: PlasmicLabeledProp__content,
+    typeContainer: PlasmicLabeledProp__typeContainer,
 
     // Metadata about props expected for PlasmicLabeledProp
     internalVariantProps: PlasmicLabeledProp__VariantProps,

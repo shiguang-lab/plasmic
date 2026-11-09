@@ -34,7 +34,7 @@ export interface PlumeCanvasPlugin {
   genCanvasWrapperComponent(
     sub: SubDeps,
     impl: React.FunctionComponent<any>,
-    canvasObserver: <T>(fn: () => T) => T,
+    canvasObserver: (fn: () => React.ReactNode) => React.ReactElement | null,
     getVariantsAndArgsMeta: () => {
       internalVariantProps: string[];
       internalArgProps: string[];

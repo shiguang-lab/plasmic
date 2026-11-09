@@ -6,6 +6,7 @@ import ArrowLeftIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ArrowLe
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { useInteractOutsideWithCommonExceptions } from "@/wab/commons/components/OnClickAway";
+import { useCommittedValue } from "@/wab/commons/components/ReactUtil";
 import { arrayReversed } from "@/wab/shared/collections";
 import { cx, ensure } from "@/wab/shared/common";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
@@ -192,18 +193,18 @@ function SidebarModalInternal(props: {
     [frameId, onClose, element, persistOnInteractOutside],
   );
 
-  // Use a ref to always have the latest frame
-  const frameRef = React.useRef(frame);
-  frameRef.current = frame;
+  const getFrame = useCommittedValue(frame);
+  const firstFrame = state.stack[0];
+  const isFirstFrame = firstFrame ? frame.element === firstFrame.element : false;
 
   React.useEffect(() => {
     // We push the modal content when frameId changes
-    dispatch({ type: "push", frame: frameRef.current });
+    dispatch({ type: "push", frame: getFrame() });
     // We pop the modal content only when we unmount
     return () => {
       dispatch({ type: "pop", frameId });
     };
-  }, [frameId]);
+  }, [frameId, dispatch, getFrame]);
 
   // We want to be rendering the modal content in a portal here, so that
   // in the React tree, the portal content will be a child of the parent
@@ -232,7 +233,7 @@ function SidebarModalInternal(props: {
         }}
       >
         <div className="panel-popup-title" style={{ minHeight: 48, flexShrink: 0 }}>
-          {frame?.element !== state.stack[0]?.element && (
+          {!isFirstFrame && (
             <IconButton
               type="seamless"
               className="mr-ch"

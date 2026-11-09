@@ -72,7 +72,7 @@ class IslandActivity {
   bind(id, context, url) {
     const operation = this.operations.get(id);
     if (operation && context) {
-      Object.assign(operation, { projectId: context.projectId, sessionId: context.sessionId, mode: context.mode, arenaId: context.arenaId, url });
+      Object.assign(operation, { projectId: context.projectId, sessionId: context.sessionId, mode: context.mode, previewKind: context.previewKind, arenaId: context.arenaId, url });
       if (operation.kind) this.notify();
     }
   }

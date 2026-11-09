@@ -194,7 +194,7 @@ export async function insertFigmaData(
               extractUsedFontsFromComponents(studioCtx.site, [
                 vc.component,
               ]).forEach((usage) =>
-                studioCtx.fontManager.useFont(studioCtx, usage.fontFamily),
+                studioCtx.fontManager.loadFont(studioCtx, usage.fontFamily),
               );
               return ok(true);
             } else {
@@ -309,7 +309,7 @@ export async function insertFigmaData(
           extractUsedFontsFromComponents(studioCtx.site, [
             newComponent,
           ]).forEach((usage) =>
-            studioCtx.fontManager.useFont(studioCtx, usage.fontFamily),
+            studioCtx.fontManager.loadFont(studioCtx, usage.fontFamily),
           );
           return ok(true);
         }),

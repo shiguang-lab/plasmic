@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,14 +26,14 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import TextInput from "../../components/plexus/TextInput"; // plasmic-import: J_e2eE41048e/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -109,11 +109,10 @@ function PlasmicHostUrlInput__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "urlValidationStatus",
@@ -144,20 +143,22 @@ function PlasmicHostUrlInput__RenderFunc(props: {
           $props["defaultValue"],
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -224,8 +225,8 @@ function PlasmicHostUrlInput__RenderFunc(props: {
         <TextInput
           data-plasmic-name={"urlInput"}
           data-plasmic-override={overrides.urlInput}
-          onChange={async (...eventArgs: any) => {
-            generateStateOnChangeProp($state, ["urlInput", "value"]).apply(
+          onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+            generateStateOnChangeProp($stateCommands, ["urlInput", "value"]).apply(
               null,
               eventArgs
             );
@@ -237,7 +238,7 @@ function PlasmicHostUrlInput__RenderFunc(props: {
             ) {
               return;
             }
-          }}
+          })); })}
           placeholder={"https://my-app.com/plasmic-host"}
           value={generateStateValueProp($state, ["urlInput", "value"])}
         />
@@ -470,12 +471,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -485,29 +482,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicHostUrlInput__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicHostUrlInput";
-  } else {
-    func.displayName = `PlasmicHostUrlInput.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicHostUrlInput__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicHostUrlInput__root<T extends PlasmicHostUrlInput__rootProps>(props: T & StrictProps<T, PlasmicHostUrlInput__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicHostUrlInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicHostUrlInput__root.displayName = "PlasmicHostUrlInput";
+
+type PlasmicHostUrlInput__urlInputProps = NodeComponentProps<"urlInput"> & {key?: React.Key};
+function PlasmicHostUrlInput__urlInput<T extends PlasmicHostUrlInput__urlInputProps>(props: T & StrictProps<T, PlasmicHostUrlInput__urlInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("urlInput", props);
+  return <PlasmicHostUrlInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"urlInput"} />;
+}
+PlasmicHostUrlInput__urlInput.displayName = "PlasmicHostUrlInput.urlInput";
+
+type PlasmicHostUrlInput__clearButtonProps = NodeComponentProps<"clearButton"> & {key?: React.Key};
+function PlasmicHostUrlInput__clearButton<T extends PlasmicHostUrlInput__clearButtonProps>(props: T & StrictProps<T, PlasmicHostUrlInput__clearButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("clearButton", props);
+  return <PlasmicHostUrlInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"clearButton"} />;
+}
+PlasmicHostUrlInput__clearButton.displayName = "PlasmicHostUrlInput.clearButton";
+
+type PlasmicHostUrlInput__confirmButtonProps = NodeComponentProps<"confirmButton"> & {key?: React.Key};
+function PlasmicHostUrlInput__confirmButton<T extends PlasmicHostUrlInput__confirmButtonProps>(props: T & StrictProps<T, PlasmicHostUrlInput__confirmButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("confirmButton", props);
+  return <PlasmicHostUrlInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"confirmButton"} />;
+}
+PlasmicHostUrlInput__confirmButton.displayName = "PlasmicHostUrlInput.confirmButton";
+
 
 export const PlasmicHostUrlInput = Object.assign(
   // Top-level PlasmicHostUrlInput renders the root element
-  makeNodeComponent("root"),
+  PlasmicHostUrlInput__root,
   {
     // Helper components rendering sub-elements
-    urlInput: makeNodeComponent("urlInput"),
-    clearButton: makeNodeComponent("clearButton"),
-    confirmButton: makeNodeComponent("confirmButton"),
+    urlInput: PlasmicHostUrlInput__urlInput,
+    clearButton: PlasmicHostUrlInput__clearButton,
+    confirmButton: PlasmicHostUrlInput__confirmButton,
 
     // Metadata about props expected for PlasmicHostUrlInput
     internalVariantProps: PlasmicHostUrlInput__VariantProps,

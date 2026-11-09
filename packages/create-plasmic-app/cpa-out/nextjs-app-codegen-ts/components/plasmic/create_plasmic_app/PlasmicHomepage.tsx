@@ -18,9 +18,10 @@ import * as React from "react";
 import Head from "next/head";
 import Link, { LinkProps } from "next/link";
 import { useRouter } from "next/navigation";
+import { usePlasmicPrepass } from "@plasmicapp/react-web/lib/query";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   MultiChoiceArg,
   PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
   PlasmicIcon as PlasmicIcon__,
@@ -42,8 +43,6 @@ import {
   generateStateValueProp,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
   makeFragment,
   omit,
   pick,
@@ -52,7 +51,6 @@ import {
   useCurrentUser,
   useDollarState,
   usePlasmicTranslator,
-  useTrigger,
   wrapWithClassName
 } from "@plasmicapp/react-web";
 import {
@@ -64,8 +62,8 @@ import {
 import { generateDynamicMetadata, PageCtx } from "./PlasmicHomepageServer"; // plasmic-import: 6uuAAE1jiCew/rscServer
 
 import RandomDynamicPageButton from "../../RandomDynamicPageButton"; // plasmic-import: Q23H1_1M_P/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -109,19 +107,24 @@ export interface DefaultHomepageProps {}
 
 const $$ = {};
 
-function useNextRouter() {
-  try {
-    return useRouter();
-  } catch {}
-  return undefined;
-}
 
-function PlasmicHomepage__RenderFunc(props: {
+
+type PlasmicHomepage__RenderFunc__Props = {
   variants: PlasmicHomepage__VariantsArgs;
   args: PlasmicHomepage__ArgsType;
   overrides: PlasmicHomepage__OverridesType;
   forNode?: string;
-}) {
+};
+function PlasmicHomepage__RenderFunc(props: PlasmicHomepage__RenderFunc__Props) {
+  const prepass = usePlasmicPrepass();
+  return prepass ? <PlasmicHomepage__RenderFunc__Body {...props} /> : <PlasmicHomepage__RenderFunc__WithNextRouter {...props} />;
+}
+function PlasmicHomepage__RenderFunc__WithNextRouter(props: PlasmicHomepage__RenderFunc__Props) {
+  const nextRouter = useRouter();
+  return <PlasmicHomepage__RenderFunc__Body {...props} nextRouter={nextRouter} />;
+}
+
+function PlasmicHomepage__RenderFunc__Body(props: PlasmicHomepage__RenderFunc__Props & { nextRouter?: ReturnType<typeof useRouter> }) {
   const { variants, overrides, forNode } = props;
 
   const args = React.useMemo(
@@ -140,20 +143,19 @@ function PlasmicHomepage__RenderFunc(props: {
     ...variants
   };
 
-  const __nextRouter = useNextRouter();
+  const __nextRouter = props.nextRouter;
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
   const pageMetadata = generateDynamicMetadata(
     wrapQueriesWithLoadingProxy({}),
     $ctx as PageCtx
   );
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <React.Fragment>
@@ -269,12 +271,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -284,30 +282,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicHomepage__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicHomepage";
-  } else {
-    func.displayName = `PlasmicHomepage.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicHomepage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicHomepage__root<T extends PlasmicHomepage__rootProps>(props: T & StrictProps<T, PlasmicHomepage__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicHomepage__root.displayName = "PlasmicHomepage";
+
+type PlasmicHomepage__sectionProps = NodeComponentProps<"section"> & {key?: React.Key};
+function PlasmicHomepage__section<T extends PlasmicHomepage__sectionProps>(props: T & StrictProps<T, PlasmicHomepage__sectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("section", props);
+  return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"section"} />;
+}
+PlasmicHomepage__section.displayName = "PlasmicHomepage.section";
+
+type PlasmicHomepage__h1Props = NodeComponentProps<"h1"> & {key?: React.Key};
+function PlasmicHomepage__h1<T extends PlasmicHomepage__h1Props>(props: T & StrictProps<T, PlasmicHomepage__h1Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("h1", props);
+  return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"h1"} />;
+}
+PlasmicHomepage__h1.displayName = "PlasmicHomepage.h1";
+
+type PlasmicHomepage__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicHomepage__text<T extends PlasmicHomepage__textProps>(props: T & StrictProps<T, PlasmicHomepage__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicHomepage__text.displayName = "PlasmicHomepage.text";
+
+type PlasmicHomepage__randomDynamicPageButtonProps = NodeComponentProps<"randomDynamicPageButton"> & {key?: React.Key};
+function PlasmicHomepage__randomDynamicPageButton<T extends PlasmicHomepage__randomDynamicPageButtonProps>(props: T & StrictProps<T, PlasmicHomepage__randomDynamicPageButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("randomDynamicPageButton", props);
+  return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"randomDynamicPageButton"} />;
+}
+PlasmicHomepage__randomDynamicPageButton.displayName = "PlasmicHomepage.randomDynamicPageButton";
+
 
 export const PlasmicHomepage = Object.assign(
   // Top-level PlasmicHomepage renders the root element
-  makeNodeComponent("root"),
+  PlasmicHomepage__root,
   {
     // Helper components rendering sub-elements
-    section: makeNodeComponent("section"),
-    h1: makeNodeComponent("h1"),
-    text: makeNodeComponent("text"),
-    randomDynamicPageButton: makeNodeComponent("randomDynamicPageButton"),
+    section: PlasmicHomepage__section,
+    h1: PlasmicHomepage__h1,
+    text: PlasmicHomepage__text,
+    randomDynamicPageButton: PlasmicHomepage__randomDynamicPageButton,
 
     // Metadata about props expected for PlasmicHomepage
     internalVariantProps: PlasmicHomepage__VariantProps,

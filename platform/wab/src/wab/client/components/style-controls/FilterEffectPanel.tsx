@@ -32,6 +32,12 @@ const menuDescription = {
   "Color Effects": ["grayscale", "invert", "sepia"],
 };
 
+function withFilterArgument(effect: FilterEffect, index: number, value: string): FilterEffect {
+  const args = [...effect.args];
+  args[index] = value;
+  return { ...effect, args };
+}
+
 export function FilterEffectPanel(props: FilterEffectPanelProps) {
   const { t: uiT } = useI18n();
   const { filterEffect, onChange } = props;
@@ -104,8 +110,7 @@ const FilterEffectEditor = (props: FilterEffectPanelProps) => {
                 max={20}
                 onChange={(val) => {
                   studioCtx.startUnlogged();
-                  filterEffect.args[0] = `${val}${parsedX.units}`;
-                  onChange(filterEffect);
+                  onChange(withFilterArgument(filterEffect, 0, `${val}${parsedX.units}`));
                 }}
                 onAfterChange={() => {
                   studioCtx.stopUnlogged();
@@ -115,8 +120,7 @@ const FilterEffectEditor = (props: FilterEffectPanelProps) => {
                 value={X}
                 onChange={(val) => {
                   if (val) {
-                    filterEffect.args[0] = val;
-                    onChange(filterEffect);
+                    onChange(withFilterArgument(filterEffect, 0, val));
                   }
                 }}
                 noClear
@@ -137,8 +141,7 @@ const FilterEffectEditor = (props: FilterEffectPanelProps) => {
                 max={20}
                 onChange={(val) => {
                   studioCtx.startUnlogged();
-                  filterEffect.args[1] = `${val}${parsedY.units}`;
-                  onChange(filterEffect);
+                  onChange(withFilterArgument(filterEffect, 1, `${val}${parsedY.units}`));
                 }}
                 onAfterChange={() => {
                   studioCtx.stopUnlogged();
@@ -148,8 +151,7 @@ const FilterEffectEditor = (props: FilterEffectPanelProps) => {
                 value={Y}
                 onChange={(val) => {
                   if (val) {
-                    filterEffect.args[1] = val;
-                    onChange(filterEffect);
+                    onChange(withFilterArgument(filterEffect, 1, val));
                   }
                 }}
                 noClear
@@ -171,8 +173,7 @@ const FilterEffectEditor = (props: FilterEffectPanelProps) => {
                 step={1}
                 onChange={(val) => {
                   studioCtx.startUnlogged();
-                  filterEffect.args[2] = `${val}${parsedRad.units}`;
-                  onChange(filterEffect);
+                  onChange(withFilterArgument(filterEffect, 2, `${val}${parsedRad.units}`));
                 }}
                 onAfterChange={() => {
                   studioCtx.stopUnlogged();
@@ -182,8 +183,7 @@ const FilterEffectEditor = (props: FilterEffectPanelProps) => {
                 value={rad}
                 onChange={(val) => {
                   if (val) {
-                    filterEffect.args[2] = val;
-                    onChange(filterEffect);
+                    onChange(withFilterArgument(filterEffect, 2, val));
                   }
                 }}
                 noClear
@@ -197,8 +197,7 @@ const FilterEffectEditor = (props: FilterEffectPanelProps) => {
         <ColorPicker
           color={color}
           onChange={(newColor) => {
-            filterEffect.args[3] = newColor;
-            onChange(filterEffect);
+            onChange(withFilterArgument(filterEffect, 3, newColor));
           }}
         />
       </>
@@ -224,8 +223,7 @@ const FilterEffectEditor = (props: FilterEffectPanelProps) => {
               max={filterEffectEditorConfig[type].max}
               onChange={(val) => {
                 studioCtx.startUnlogged();
-                filterEffect.args[0] = `${val}${parsed.units}`;
-                onChange(filterEffect);
+                onChange(withFilterArgument(filterEffect, 0, `${val}${parsed.units}`));
               }}
               onAfterChange={() => {
                 studioCtx.stopUnlogged();
@@ -235,8 +233,7 @@ const FilterEffectEditor = (props: FilterEffectPanelProps) => {
               value={filterEffect.args[0]}
               onChange={(val) => {
                 if (val) {
-                  filterEffect.args[0] = val;
-                  onChange(filterEffect);
+                  onChange(withFilterArgument(filterEffect, 0, val));
                 }
               }}
               noClear

@@ -1,13 +1,10 @@
-import { PropsOf } from "@/wab/commons/ComponentTypes";
 import {
   assert,
   check,
   ensure,
   ensureArray,
-  generateWith,
   reSplitAll,
   simpleWords,
-  tuple,
 } from "@/wab/shared/common";
 import L from "lodash";
 import * as React from "react";
@@ -172,79 +169,6 @@ function boldSnippetsString(text: string, pat: RegExp, className?: string) {
   return result.length > 0 ? <span>{result}</span> : undefined;
 }
 
-function stripDefault(name: string) {
-  const munged = name.replace(/^default/, "");
-  if (munged === name) {
-    return null;
-  } else {
-    return munged[0].toLowerCase() + munged.slice(1);
-  }
-}
-
-/**
- * Explicitly requires passing in defaultProps, unfortunately.  Tried using
- *
- * https://github.com/Microsoft/TypeScript/issues/23812#issuecomment-426771485
- *
- * but that didn't work.
- */
-export function uncontrollable<
-  TComp extends React.ComponentType<P>,
-  DP extends {},
-  P extends {} = PropsOf<TComp>,
->(
-  ComponentClass: TComp,
-  defaultProps: DP,
-  propToCallbackName: { [prop: string]: string },
-) {
-  const CastedComponent = ComponentClass as React.ComponentType<P>;
-  const newClass = class extends React.Component<P, any> {
-    static defaultProps = defaultProps;
-    constructor(props: P) {
-      super(props);
-      this.state = Object.fromEntries(
-        generateWith(this, function* () {
-          for (const [prop, pureProp] of [...this.getUncontrolledProps()]) {
-            yield tuple(pureProp, this.props[prop]);
-          }
-        }),
-      );
-    }
-    getUncontrolledProps() {
-      return generateWith(this, function* () {
-        for (const prop in this.props) {
-          const pureProp = stripDefault(prop);
-          if (pureProp != null && pureProp in propToCallbackName) {
-            yield tuple(prop, pureProp);
-          }
-        }
-      });
-    }
-    render() {
-      const props = {};
-      L(this.props)
-        .toPairs()
-        .map(([prop, value]) => {
-          const pureProp = stripDefault(prop);
-          if (pureProp && pureProp in propToCallbackName) {
-            props[pureProp] = this.state[pureProp];
-            return (props[propToCallbackName[pureProp]] = (
-              val: /*TWZ*/ boolean,
-            ) => {
-              return this.setState(Object.fromEntries([tuple(pureProp, val)]));
-            });
-          } else {
-            return (props[prop] = value);
-          }
-        })
-        .value();
-      // TODO need this cast due to this bug?
-      // https://github.com/Microsoft/TypeScript/issues/28884
-      return <CastedComponent {...(props as any)} />;
-    }
-  };
-  return newClass;
-}
 export function absorb<T, This>(
   fn: (this: This, e: Event | SyntheticEvent | EventBase) => T,
 ) {

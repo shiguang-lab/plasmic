@@ -181,6 +181,20 @@ function CmsEntryDetails_(
   }
 }
 
+function removeUndefined(obj) {
+  if (Array.isArray(obj)) {
+    return obj.map(removeUndefined);
+  } else if (typeof obj === "object" && obj !== null) {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .map(([key, value]) => [key, removeUndefined(value)])
+        .filter(([_key, value]) => value !== undefined),
+    );
+  } else {
+    return obj;
+  }
+}
+
 export function renderContentEntryFormFields(
   table: ApiCmsTable,
   database: ApiCmsDatabase,
@@ -349,19 +363,7 @@ function CmsEntryDetailsForm_(
     );
   };
 
-  function removeUndefined(obj) {
-    if (Array.isArray(obj)) {
-      return obj.map(removeUndefined);
-    } else if (typeof obj === "object" && obj !== null) {
-      return Object.fromEntries(
-        Object.entries(obj)
-          .map(([key, value]) => [key, removeUndefined(value)])
-          .filter(([_key, value]) => value !== undefined),
-      );
-    } else {
-      return obj;
-    }
-  }
+
 
   const hasChanges = () => {
     const { identifier, ...draftData } = form.getFieldsValue(true);
@@ -687,7 +689,7 @@ function CmsEntryDetailsForm_(
                         setPublishing(true);
                         const { identifier, ...draftData } =
                           form.getFieldsValue(true);
-                        try {
+                        return await (async () => {
                           await api.updateCmsRow(row.id, {
                             identifier,
                             data: draftData,
@@ -703,16 +705,16 @@ function CmsEntryDetailsForm_(
                             }),
                           );
                           await triggerPublishWebhooksAndNotify(api, table);
-                        } catch (err) {
+                        })().catch(async (err) => {
                           if (isUniqueViolationError(err)) {
                             handleUniqueFieldChecks(err.violations);
                             await form.validateFields();
                           } else {
                             throw err;
                           }
-                        } finally {
+                        }).finally(() => {
                           setPublishing(false);
-                        }
+                        });
                       }
                     }}
                     disabled={
@@ -934,7 +936,7 @@ function CmsEntryDetailsForm_(
               content: <UiText message="Duplicating {name}..." values={{ name: entryDisplayName }} />,
             }),
           );
-          try {
+          return await (async () => {
             setDuplicating(true);
             const clonedRow = await api.cloneCmsRow(row.id, {
               identifier: newIdentifier,
@@ -955,9 +957,9 @@ function CmsEntryDetailsForm_(
                 duration: 5,
               }),
             );
-          } finally {
+          })().finally(() => {
             setDuplicating(false);
-          }
+          });
         }}
         onCancel={() => setShowDuplicateModal(false)}
       />

@@ -15,42 +15,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
-import {
-  Flex as Flex__,
-  MultiChoiceArg,
-  PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
-  PlasmicIcon as PlasmicIcon__,
-  PlasmicImg as PlasmicImg__,
-  PlasmicLink as PlasmicLink__,
-  PlasmicPageGuard as PlasmicPageGuard__,
-  SingleBooleanChoiceArg,
-  SingleChoiceArg,
-  Stack as Stack__,
-  StrictProps,
-  Trans as Trans__,
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  ensureGlobalVariants,
-  generateOnMutateForSpec,
-  generateStateOnChangeProp,
-  generateStateOnChangePropForCodeComponents,
-  generateStateValueProp,
-  get as $stateGet,
-  hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
-  makeFragment,
-  omit,
-  pick,
-  renderPlasmicSlot,
-  set as $stateSet,
-  useCurrentUser,
-  useDollarState,
-  usePlasmicTranslator,
-  useTrigger,
-  wrapWithClassName
-} from "@plasmicapp/react-web";
+import {Flex as Flex__, MultiChoiceArg, PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__, PlasmicIcon as PlasmicIcon__, PlasmicImg as PlasmicImg__, PlasmicLink as PlasmicLink__, PlasmicPageGuard as PlasmicPageGuard__, SingleBooleanChoiceArg, SingleChoiceArg, Stack as Stack__, StrictProps, Trans as Trans__, classNames, createPlasmicElementProxy, deriveRenderOpts, ensureGlobalVariants, generateOnMutateForSpec, generateStateOnChangeProp, generateStateOnChangePropForCodeComponents, generateStateValueProp, get as $stateGet, hasVariant, makeFragment, omit, pick, renderPlasmicSlot, set as $stateSet, useCurrentUser, useDollarState, useDollarStateSnapshot, usePlasmicTranslator, wrapWithClassName, usePlasmicRefs} from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
@@ -58,8 +23,8 @@ import {
 } from "@plasmicapp/react-web/lib/host";
 
 import { CopilotCodePrompt } from "../../components/copilot/CopilotCodePrompt"; // plasmic-import: SdMPiPjcB9G/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -143,11 +108,10 @@ function PlasmicDataPickerCodeEditorLayout__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "hidePreview",
@@ -168,18 +132,20 @@ function PlasmicDataPickerCodeEditorLayout__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.copilot
       }
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs
-  });
+    getRefs
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -304,9 +270,7 @@ function PlasmicDataPickerCodeEditorLayout__RenderFunc(props: {
                 )
               }
             )}
-            ref={ref => {
-              $refs["envToggleButton"] = ref;
-            }}
+            ref={registerRef("envToggleButton")}
             type={"button"}
           />
 
@@ -489,12 +453,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -505,34 +465,85 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDataPickerCodeEditorLayout__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDataPickerCodeEditorLayout";
-  } else {
-    func.displayName = `PlasmicDataPickerCodeEditorLayout.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDataPickerCodeEditorLayout__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDataPickerCodeEditorLayout__root<T extends PlasmicDataPickerCodeEditorLayout__rootProps>(props: T & StrictProps<T, PlasmicDataPickerCodeEditorLayout__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDataPickerCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDataPickerCodeEditorLayout__root.displayName = "PlasmicDataPickerCodeEditorLayout";
+
+type PlasmicDataPickerCodeEditorLayout__envLabelProps = NodeComponentProps<"envLabel"> & {key?: React.Key};
+function PlasmicDataPickerCodeEditorLayout__envLabel<T extends PlasmicDataPickerCodeEditorLayout__envLabelProps>(props: T & StrictProps<T, PlasmicDataPickerCodeEditorLayout__envLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("envLabel", props);
+  return <PlasmicDataPickerCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"envLabel"} />;
+}
+PlasmicDataPickerCodeEditorLayout__envLabel.displayName = "PlasmicDataPickerCodeEditorLayout.envLabel";
+
+type PlasmicDataPickerCodeEditorLayout__envLabelTextProps = NodeComponentProps<"envLabelText"> & {key?: React.Key};
+function PlasmicDataPickerCodeEditorLayout__envLabelText<T extends PlasmicDataPickerCodeEditorLayout__envLabelTextProps>(props: T & StrictProps<T, PlasmicDataPickerCodeEditorLayout__envLabelTextProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("envLabelText", props);
+  return <PlasmicDataPickerCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"envLabelText"} />;
+}
+PlasmicDataPickerCodeEditorLayout__envLabelText.displayName = "PlasmicDataPickerCodeEditorLayout.envLabelText";
+
+type PlasmicDataPickerCodeEditorLayout__envPanelContainerProps = NodeComponentProps<"envPanelContainer"> & {key?: React.Key};
+function PlasmicDataPickerCodeEditorLayout__envPanelContainer<T extends PlasmicDataPickerCodeEditorLayout__envPanelContainerProps>(props: T & StrictProps<T, PlasmicDataPickerCodeEditorLayout__envPanelContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("envPanelContainer", props);
+  return <PlasmicDataPickerCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"envPanelContainer"} />;
+}
+PlasmicDataPickerCodeEditorLayout__envPanelContainer.displayName = "PlasmicDataPickerCodeEditorLayout.envPanelContainer";
+
+type PlasmicDataPickerCodeEditorLayout__envToggleButtonProps = NodeComponentProps<"envToggleButton"> & {key?: React.Key};
+function PlasmicDataPickerCodeEditorLayout__envToggleButton<T extends PlasmicDataPickerCodeEditorLayout__envToggleButtonProps>(props: T & StrictProps<T, PlasmicDataPickerCodeEditorLayout__envToggleButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("envToggleButton", props);
+  return <PlasmicDataPickerCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"envToggleButton"} />;
+}
+PlasmicDataPickerCodeEditorLayout__envToggleButton.displayName = "PlasmicDataPickerCodeEditorLayout.envToggleButton";
+
+type PlasmicDataPickerCodeEditorLayout__envPreviewContainerProps = NodeComponentProps<"envPreviewContainer"> & {key?: React.Key};
+function PlasmicDataPickerCodeEditorLayout__envPreviewContainer<T extends PlasmicDataPickerCodeEditorLayout__envPreviewContainerProps>(props: T & StrictProps<T, PlasmicDataPickerCodeEditorLayout__envPreviewContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("envPreviewContainer", props);
+  return <PlasmicDataPickerCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"envPreviewContainer"} />;
+}
+PlasmicDataPickerCodeEditorLayout__envPreviewContainer.displayName = "PlasmicDataPickerCodeEditorLayout.envPreviewContainer";
+
+type PlasmicDataPickerCodeEditorLayout__codePanelProps = NodeComponentProps<"codePanel"> & {key?: React.Key};
+function PlasmicDataPickerCodeEditorLayout__codePanel<T extends PlasmicDataPickerCodeEditorLayout__codePanelProps>(props: T & StrictProps<T, PlasmicDataPickerCodeEditorLayout__codePanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("codePanel", props);
+  return <PlasmicDataPickerCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"codePanel"} />;
+}
+PlasmicDataPickerCodeEditorLayout__codePanel.displayName = "PlasmicDataPickerCodeEditorLayout.codePanel";
+
+type PlasmicDataPickerCodeEditorLayout__copilotCodePromptProps = NodeComponentProps<"copilotCodePrompt"> & {key?: React.Key};
+function PlasmicDataPickerCodeEditorLayout__copilotCodePrompt<T extends PlasmicDataPickerCodeEditorLayout__copilotCodePromptProps>(props: T & StrictProps<T, PlasmicDataPickerCodeEditorLayout__copilotCodePromptProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("copilotCodePrompt", props);
+  return <PlasmicDataPickerCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"copilotCodePrompt"} />;
+}
+PlasmicDataPickerCodeEditorLayout__copilotCodePrompt.displayName = "PlasmicDataPickerCodeEditorLayout.copilotCodePrompt";
+
+type PlasmicDataPickerCodeEditorLayout__previewPanelProps = NodeComponentProps<"previewPanel"> & {key?: React.Key};
+function PlasmicDataPickerCodeEditorLayout__previewPanel<T extends PlasmicDataPickerCodeEditorLayout__previewPanelProps>(props: T & StrictProps<T, PlasmicDataPickerCodeEditorLayout__previewPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("previewPanel", props);
+  return <PlasmicDataPickerCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"previewPanel"} />;
+}
+PlasmicDataPickerCodeEditorLayout__previewPanel.displayName = "PlasmicDataPickerCodeEditorLayout.previewPanel";
+
 
 export const PlasmicDataPickerCodeEditorLayout = Object.assign(
   // Top-level PlasmicDataPickerCodeEditorLayout renders the root element
-  makeNodeComponent("root"),
+  PlasmicDataPickerCodeEditorLayout__root,
   {
     // Helper components rendering sub-elements
-    envLabel: makeNodeComponent("envLabel"),
-    envLabelText: makeNodeComponent("envLabelText"),
-    envPanelContainer: makeNodeComponent("envPanelContainer"),
-    envToggleButton: makeNodeComponent("envToggleButton"),
-    envPreviewContainer: makeNodeComponent("envPreviewContainer"),
-    codePanel: makeNodeComponent("codePanel"),
-    copilotCodePrompt: makeNodeComponent("copilotCodePrompt"),
-    previewPanel: makeNodeComponent("previewPanel"),
+    envLabel: PlasmicDataPickerCodeEditorLayout__envLabel,
+    envLabelText: PlasmicDataPickerCodeEditorLayout__envLabelText,
+    envPanelContainer: PlasmicDataPickerCodeEditorLayout__envPanelContainer,
+    envToggleButton: PlasmicDataPickerCodeEditorLayout__envToggleButton,
+    envPreviewContainer: PlasmicDataPickerCodeEditorLayout__envPreviewContainer,
+    codePanel: PlasmicDataPickerCodeEditorLayout__codePanel,
+    copilotCodePrompt: PlasmicDataPickerCodeEditorLayout__copilotCodePrompt,
+    previewPanel: PlasmicDataPickerCodeEditorLayout__previewPanel,
 
     // Metadata about props expected for PlasmicDataPickerCodeEditorLayout
     internalVariantProps: PlasmicDataPickerCodeEditorLayout__VariantProps,

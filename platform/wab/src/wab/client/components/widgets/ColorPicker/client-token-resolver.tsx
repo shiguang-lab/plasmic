@@ -1,4 +1,4 @@
-import { arrayEq, ensure } from "@/wab/shared/common";
+import { arrayEq } from "@/wab/shared/common";
 import * as React from "react";
 import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { getHostWindow } from "@/wab/client/frame-ctx/host-window";
@@ -44,7 +44,7 @@ function useClientTokenContext() {
 
 export function useClientTokenResolver(): TokenValueResolver {
   const { studio, client } = useClientTokenContext();
-  return makeClientTokenResolver(makeTokenResolver(studio.site), client);
+  return makeClientTokenResolver((token, vsh) => makeTokenResolver(studio.site)(token, vsh), client);
 }
 
 /** Resolve an already captured native token value through the same DOM path.
@@ -58,13 +58,13 @@ export interface ClientTokenValueInput {
 /** One selection/render-status subscription for a dynamic finite input list. */
 export function useClientTokenValues(inputs: readonly (ClientTokenValueInput | undefined)[], lifetime: AbortSignal): readonly (StyleTokenValue | undefined)[] {
   const { client } = useClientTokenContext();
-  const cached = React.useRef<{ lifetime: AbortSignal; values: readonly (StyleTokenValue | undefined)[] } | undefined>(undefined);
-  if (lifetime.aborted) { return cached.current?.lifetime === lifetime ? cached.current.values : []; }
+  const [cached, setCached] = React.useState<{ lifetime: AbortSignal; values: readonly (StyleTokenValue | undefined)[] }>();
+  if (lifetime.aborted) { return cached?.lifetime === lifetime ? cached.values : []; }
   const values = inputs.map((input) => input && resolveClientTokenValue(input.value, input, client));
-  if (cached.current?.lifetime !== lifetime || !arrayEq(cached.current.values, values)) {
-    cached.current = { lifetime, values: Object.freeze(values) };
-  }
-  return ensure(cached.current, "Native token values must be captured").values;
+  if (cached?.lifetime === lifetime && arrayEq(cached.values, values)) { return cached.values; }
+  const next = Object.freeze(values);
+  setCached({ lifetime, values: next });
+  return next;
 }
 
 export function useClientTokenValue(value: StyleTokenValue | undefined,

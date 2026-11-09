@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,7 +26,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ListSectionSeparator from "../../components/ListSectionSeparator"; // plasmic-import: uG5_fPM0sK/component
 import ReferenceItem from "../../components/sidebar/ReferenceItem"; // plasmic-import: i-BferDjrAl/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: oB885NJtg5rwT11s7yCnwW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: oB885NJtg5rwT11s7yCnwW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -85,11 +85,10 @@ function PlasmicFindReferencesModal__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -305,12 +304,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -320,27 +315,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicFindReferencesModal__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicFindReferencesModal";
-  } else {
-    func.displayName = `PlasmicFindReferencesModal.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicFindReferencesModal__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicFindReferencesModal__root<T extends PlasmicFindReferencesModal__rootProps>(props: T & StrictProps<T, PlasmicFindReferencesModal__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicFindReferencesModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicFindReferencesModal__root.displayName = "PlasmicFindReferencesModal";
+
+type PlasmicFindReferencesModal__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicFindReferencesModal__freeBox<T extends PlasmicFindReferencesModal__freeBoxProps>(props: T & StrictProps<T, PlasmicFindReferencesModal__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicFindReferencesModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicFindReferencesModal__freeBox.displayName = "PlasmicFindReferencesModal.freeBox";
+
 
 export const PlasmicFindReferencesModal = Object.assign(
   // Top-level PlasmicFindReferencesModal renders the root element
-  makeNodeComponent("root"),
+  PlasmicFindReferencesModal__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
+    freeBox: PlasmicFindReferencesModal__freeBox,
 
     // Metadata about props expected for PlasmicFindReferencesModal
     internalVariantProps: PlasmicFindReferencesModal__VariantProps,

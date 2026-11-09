@@ -3,7 +3,6 @@ import {
   CommentFilters,
   CommentsStats,
   computeCommentStats,
-  filterCommentThreads,
   getCommentFrameKey,
   getCommentThreadWithModelMetadata,
   hasNonDeletedComments,
@@ -35,7 +34,6 @@ import {
 import { AnyArena } from "@/wab/shared/Arenas";
 import { mkIdMap } from "@/wab/shared/collections";
 import {
-  assert,
   ensure,
   mkShortUuid,
   mkUuid,
@@ -512,17 +510,6 @@ export class CommentsCtx {
     const value = this.skipZoomOnFocus;
     this.skipZoomOnFocus = false;
     return value;
-  }
-
-  filteredThreads() {
-    const selfInfo = this.studioCtx.appCtx.selfInfo;
-    assert(selfInfo, "Expected selfInfo to exists in AppCtx");
-    return filterCommentThreads(
-      this.data.getState().allThreads,
-      this.commentsFilter(),
-      this.studioCtx.currentArena,
-      selfInfo,
-    );
   }
 
   private getQueryParams(): URLSearchParams {

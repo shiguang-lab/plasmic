@@ -23,7 +23,9 @@ export function ProductVariantPicker(props: ProductVariantPickerProps) {
   const { className } = props;
 
   const product = useProduct();
-  const form = useFormContext() ?? useForm();
+  const parentForm = useFormContext();
+  const localForm = useForm();
+  const form = parentForm ?? localForm;
 
   return (
     <Controller

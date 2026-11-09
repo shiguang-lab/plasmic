@@ -64,7 +64,7 @@ function CmsSettingsPage_(
                     spawn(
                       (async () => {
                         setDuplicating(true);
-                        try {
+                        return await (async () => {
                           const newCmsDatabase =
                             await api.cloneCmsDatabase(databaseId);
                           notification.success({
@@ -84,13 +84,13 @@ function CmsSettingsPage_(
                               </Button>
                             ),
                           });
-                        } catch (err) {
+                        })().catch(async (err) => {
                           void message.error({
                             content: t("Failed to duplicate CMS"),
                           });
-                        } finally {
+                        }).finally(() => {
                           setDuplicating(false);
-                        }
+                        });
                       })(),
                     );
                   }}
@@ -174,7 +174,7 @@ function CmsSettingsPage_(
                   return;
                 }
                 setSubmitting(true);
-                try {
+                return await (async () => {
                   await api.updateCmsDatabase(databaseId, {
                     extraData: { ...database.extraData, locales },
                   });
@@ -182,9 +182,9 @@ function CmsSettingsPage_(
                   void message.success({
                     content: t("Successfully saved changes"),
                   });
-                } finally {
+                })().finally(() => {
                   setSubmitting(false);
-                }
+                });
               }}
             >
               <div className={settings.sectionHeader}>

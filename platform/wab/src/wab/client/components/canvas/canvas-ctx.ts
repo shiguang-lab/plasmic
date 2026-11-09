@@ -7,7 +7,6 @@ import { translate } from "@/wab/client/i18n/locales";
 /// <reference types="@types/resize-observer-browser" />
 import { handleError, normalizeError } from "@/wab/client/ErrorNotifications";
 import { isCanvasOverlay } from "@/wab/client/components/canvas/CanvasFrame";
-import { mkCanvas } from "@/wab/client/components/canvas/canvas-rendering";
 import { CanvasFrameInfoOwner } from "@/wab/client/components/canvas/canvas-frame-info";
 import { CanvasRegistrations } from "@/wab/client/components/canvas/canvas-registrations";
 import { CanvasHostlessInputs } from "@/wab/client/components/canvas/canvas-hostless-inputs";
@@ -25,6 +24,7 @@ import { upsertJQSelector } from "@/wab/client/dom-utils";
 import { scriptExec } from "@/wab/client/script-exec";
 import { ENV } from "@/wab/client/env";
 import { PlasmicWindowInternals } from "@/wab/client/frame-ctx/windows";
+import { isBuiltinStudioDocument } from "@/wab/client/frame-ctx/host-window";
 import { globalHookCtx } from "@/wab/client/react-global-hook/globalHook";
 import { FrameState } from "@/wab/client/react-global-hook/types";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -44,7 +44,7 @@ import {
   withTimeout,
 } from "@/wab/shared/common";
 import { Box } from "@/wab/shared/geom";
-import { disposeOwnedComputedFns } from "@/wab/shared/mobx-util";
+import { disposeCanvasFactories } from "@/wab/client/components/canvas/canvas-factories";
 import { ArenaFrame } from "@/wab/shared/model/classes";
 import { CodeLibraryRegistration } from "@/wab/shared/register-library";
 import { getStaticBaseUrl } from "@/wab/shared/urls";
@@ -350,7 +350,8 @@ export class CanvasCtx {
     (this._win as any).__PLASMIC_STUDIO_PATH = sc.getCurrentPathName;
 
     this.usedPackages?.dispose();
-    this.usedPackages = new CanvasHostlessInputs(sc, (requests) => this.updatePkgsList(requests, sc));
+    // Custom Hosts own opaque code and may select components at runtime.
+    this.usedPackages = new CanvasHostlessInputs(sc, (requests) => this.updatePkgsList(requests, sc), isBuiltinStudioDocument() ? arenaFrame : undefined);
     const hostlessDone = sc.loadTimings.begin(
       "frame-component-packages",
       arenaFrame.uuid,
@@ -385,6 +386,7 @@ export class CanvasCtx {
     this.Sub = {
       ...(this._win as any).__Sub,
       ...(this._win as any).__CanvasPkgs,
+      ...(this._win as any).__PlasmicCanvasReactRuntime,
       reactWeb: (this._win as any).__PlasmicReactWebBundle,
       dataSources,
       dataSourcesContext: (this._win as any).__PlasmicDataSourcesContextBundle,
@@ -740,7 +742,6 @@ export class CanvasCtx {
   }
 
   private frameInfoOwner: CanvasFrameInfoOwner | undefined;
-  private canvasFrameComponent: ReturnType<typeof mkCanvas> | undefined;
 
   syncFrameInfo(viewCtx: ViewCtx) {
     if (this._isDisposed || !this.frameInfoOwner) {
@@ -766,15 +767,17 @@ export class CanvasCtx {
 
   rerender(children: React.ReactNode, viewCtx: ViewCtx) {
     const frameInfo = this.frameInfo(viewCtx);
-    this.canvasFrameComponent ??= mkCanvas(this.Sub, viewCtx);
     this.syncFrameInfo(viewCtx);
 
     const r = this.Sub.React.createElement;
 
     const node = r(
-      this.canvasFrameComponent,
+      this.Sub.CanvasFrame,
       {
         frameInfo,
+        currentUser: viewCtx.studioCtx.currentAppUserStore,
+        lifetime: viewCtx.disposeSignal,
+        DataSourceProvider: this.Sub.dataSourcesContext.PlasmicDataSourceContextProvider,
       },
       children,
     );
@@ -801,14 +804,13 @@ export class CanvasCtx {
       } catch (err) {
         console.error("Failed to unmount canvas", this._name, err);
       }
-      disposeOwnedComputedFns(this.Sub);
-      disposeOwnedComputedFns(this.Sub.React);
+      disposeCanvasFactories(this.Sub);
+      disposeCanvasFactories(this.Sub.React);
     }
     this._frameState?.dispose();
     this._frameState = undefined;
     this.frameInfoOwner?.dispose();
     this.frameInfoOwner = undefined;
-    this.canvasFrameComponent = undefined;
     this.usedPackages?.dispose(); this.usedPackages = undefined;
     this.registrations.dispose();
     for (const dispose of this.disposals) {

@@ -71,7 +71,6 @@ export function StudioFrame({
     [appCtx.appConfigOverrides],
   );
   const forceUpdate = useForceUpdate();
-  const initialProjectInfo = React.useRef(appCtx.initialProjectInfo);
   const [project, setProject] = React.useState<ApiProject>();
   const [branch, setBranch] = React.useState<ApiBranch>();
   const [editorPerm, setEditorPerm] = React.useState(false);
@@ -84,8 +83,8 @@ export function StudioFrame({
     () => setFetchProjectCount(fetchProjectCount + 1),
     [fetchProjectCount],
   );
-  const fetchBranches = React.useCallback(
-    moize(
+  const fetchBranches = React.useMemo(
+    () => moize(
       async () => (await appCtx.api.listBranchesForProject(projectId)).branches,
       {
         isPromise: true,
@@ -132,14 +131,12 @@ export function StudioFrame({
 
   useEffect(() => {
     const fetchProject = async () => {
-      try {
+      return await (async () => {
         setIsRefreshingProjectData(true);
         const branchName = parseProjectLocation(
           appCtx.history.location,
         )?.branchName;
-        const initial = initialProjectInfo.current;
-        initialProjectInfo.current = undefined;
-        appCtx.initialProjectInfo = undefined;
+        const initial = appCtx.takeInitialProjectInfo();
         const [{ projects, perms: permissions }, { trustedHosts }, branches] =
           initial?.projectId === projectId && initial.branchName === branchName
           ? [initial.projectData, initial.hosts, initial.branches]
@@ -203,7 +200,7 @@ export function StudioFrame({
           reportError(new Error(message));
         }
         setIsRefreshingProjectData(false);
-      } catch (e) {
+      })().catch(async (e) => {
         setIsRefreshingProjectData(false);
         if (!appCtx.selfInfo) {
           // User is not logged and project is not public.
@@ -221,7 +218,7 @@ export function StudioFrame({
           return;
         }
         throw e;
-      }
+      });
     };
     spawn(fetchProject());
   }, [projectId, setProject, fetchProjectCount]);

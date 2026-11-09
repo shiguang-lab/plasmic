@@ -14,6 +14,7 @@
 import * as React from "react";
 
 import {
+  usePlasmicRefs,
   Flex as Flex__,
   StrictProps,
   classNames,
@@ -74,9 +75,8 @@ function PlasmicCommentsHeader__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
   return (
     <EmailText
@@ -139,12 +139,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -154,24 +150,19 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCommentsHeader__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCommentsHeader";
-  } else {
-    func.displayName = `PlasmicCommentsHeader.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCommentsHeader__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCommentsHeader__root<T extends PlasmicCommentsHeader__rootProps>(props: T & StrictProps<T, PlasmicCommentsHeader__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCommentsHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCommentsHeader__root.displayName = "PlasmicCommentsHeader";
+
 
 export const PlasmicCommentsHeader = Object.assign(
   // Top-level PlasmicCommentsHeader renders the root element
-  makeNodeComponent("root"),
+  PlasmicCommentsHeader__root,
   {
     // Helper components rendering sub-elements
 

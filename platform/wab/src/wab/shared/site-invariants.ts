@@ -64,7 +64,7 @@ import {
   tplChildren,
 } from "@/wab/shared/core/tpls";
 import { parseCss } from "@/wab/shared/css";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import { instUtil } from "@/wab/shared/model/InstUtil";
 import {
   ArenaFrame,
@@ -207,12 +207,10 @@ function* genGenericModelErrors(site: Site) {
   }
 }
 
-const genStyleTokenErrors = maybeComputedFn(
-  (
+const genStyleTokenErrors = memoizeModelQuery((
     token: FinalToken<StyleToken>,
     allTokens: ReadonlyArray<FinalToken<StyleToken>>,
-  ) => Array.from(_genStyleTokenErrors(token, allTokens)),
-);
+  ) => Array.from(_genStyleTokenErrors(token, allTokens)));
 
 function* _genStyleTokenErrors(
   token: FinalToken<StyleToken>,
@@ -231,9 +229,8 @@ function* _genStyleTokenErrors(
   }
 }
 
-const genComponentErrors = maybeComputedFn((site: Site, component: Component) =>
-  Array.from(_genComponentErrors(site, component)),
-);
+const genComponentErrors = memoizeModelQuery((site: Site, component: Component) =>
+  Array.from(_genComponentErrors(site, component)));
 
 function* _genComponentErrors(site: Site, component: Component) {
   if (isCodeComponent(component)) {
@@ -604,10 +601,8 @@ export const isInvalidDimValue = (v: string) => {
   );
 };
 
-const genTplErrors = maybeComputedFn(
-  (site: Site, component: Component, tpl: TplNode) =>
-    Array.from(_genTplErrors(site, component, tpl)),
-);
+const genTplErrors = memoizeModelQuery((site: Site, component: Component, tpl: TplNode) =>
+    Array.from(_genTplErrors(site, component, tpl)));
 
 function getTplName(tpl: TplNode | undefined | null) {
   if (!tpl) {

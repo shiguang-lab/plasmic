@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -28,7 +28,7 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -38,8 +38,8 @@ import HoverableText from "../../components/pricing/HoverableText"; // plasmic-i
 import PriceTier from "../../components/pricing/PriceTier"; // plasmic-import: P7E8qtNzKrbM/component
 import PriceTierFeatureItem from "../../components/pricing/PriceTierFeatureItem"; // plasmic-import: Z40kBWC-Knbn/component
 import Switch from "../../components/widgets/Switch"; // plasmic-import: b35JDgXpbiF/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -132,11 +132,10 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showOutdatedTier",
@@ -186,20 +185,22 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => "isChecked",
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -330,9 +331,9 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
               "isChecked",
             ]) ?? false
           }
-          onChange={async (...eventArgs: any) => {
+          onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
             ((...eventArgs) => {
-              generateStateOnChangeProp($state, [
+              generateStateOnChangeProp($stateCommands, [
                 "billingFrequencyToggle",
                 "isChecked",
               ])(eventArgs[0]);
@@ -345,7 +346,7 @@ function PlasmicPriceTierPicker__RenderFunc(props: {
             ) {
               return;
             }
-          }}
+          })); })}
         >
           <div className={classNames("all", "__wab_text", sty.text__b6Uf2)}>
             {<UiText message={"Annual Billing (Save 20%)"} />}
@@ -4821,12 +4822,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -4836,35 +4833,93 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPriceTierPicker__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPriceTierPicker";
-  } else {
-    func.displayName = `PlasmicPriceTierPicker.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPriceTierPicker__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPriceTierPicker__root<T extends PlasmicPriceTierPicker__rootProps>(props: T & StrictProps<T, PlasmicPriceTierPicker__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPriceTierPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPriceTierPicker__root.displayName = "PlasmicPriceTierPicker";
+
+type PlasmicPriceTierPicker__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicPriceTierPicker__link<T extends PlasmicPriceTierPicker__linkProps>(props: T & StrictProps<T, PlasmicPriceTierPicker__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicPriceTierPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicPriceTierPicker__link.displayName = "PlasmicPriceTierPicker.link";
+
+type PlasmicPriceTierPicker__billingFrequencyToggleProps = NodeComponentProps<"billingFrequencyToggle"> & {key?: React.Key};
+function PlasmicPriceTierPicker__billingFrequencyToggle<T extends PlasmicPriceTierPicker__billingFrequencyToggleProps>(props: T & StrictProps<T, PlasmicPriceTierPicker__billingFrequencyToggleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("billingFrequencyToggle", props);
+  return <PlasmicPriceTierPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"billingFrequencyToggle"} />;
+}
+PlasmicPriceTierPicker__billingFrequencyToggle.displayName = "PlasmicPriceTierPicker.billingFrequencyToggle";
+
+type PlasmicPriceTierPicker__newGrandfatheredTierProps = NodeComponentProps<"newGrandfatheredTier"> & {key?: React.Key};
+function PlasmicPriceTierPicker__newGrandfatheredTier<T extends PlasmicPriceTierPicker__newGrandfatheredTierProps>(props: T & StrictProps<T, PlasmicPriceTierPicker__newGrandfatheredTierProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newGrandfatheredTier", props);
+  return <PlasmicPriceTierPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newGrandfatheredTier"} />;
+}
+PlasmicPriceTierPicker__newGrandfatheredTier.displayName = "PlasmicPriceTierPicker.newGrandfatheredTier";
+
+type PlasmicPriceTierPicker__newOutdatedTierProps = NodeComponentProps<"newOutdatedTier"> & {key?: React.Key};
+function PlasmicPriceTierPicker__newOutdatedTier<T extends PlasmicPriceTierPicker__newOutdatedTierProps>(props: T & StrictProps<T, PlasmicPriceTierPicker__newOutdatedTierProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newOutdatedTier", props);
+  return <PlasmicPriceTierPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newOutdatedTier"} />;
+}
+PlasmicPriceTierPicker__newOutdatedTier.displayName = "PlasmicPriceTierPicker.newOutdatedTier";
+
+type PlasmicPriceTierPicker__newFreeTierProps = NodeComponentProps<"newFreeTier"> & {key?: React.Key};
+function PlasmicPriceTierPicker__newFreeTier<T extends PlasmicPriceTierPicker__newFreeTierProps>(props: T & StrictProps<T, PlasmicPriceTierPicker__newFreeTierProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newFreeTier", props);
+  return <PlasmicPriceTierPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newFreeTier"} />;
+}
+PlasmicPriceTierPicker__newFreeTier.displayName = "PlasmicPriceTierPicker.newFreeTier";
+
+type PlasmicPriceTierPicker__newStarterTierProps = NodeComponentProps<"newStarterTier"> & {key?: React.Key};
+function PlasmicPriceTierPicker__newStarterTier<T extends PlasmicPriceTierPicker__newStarterTierProps>(props: T & StrictProps<T, PlasmicPriceTierPicker__newStarterTierProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newStarterTier", props);
+  return <PlasmicPriceTierPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newStarterTier"} />;
+}
+PlasmicPriceTierPicker__newStarterTier.displayName = "PlasmicPriceTierPicker.newStarterTier";
+
+type PlasmicPriceTierPicker__newProTierProps = NodeComponentProps<"newProTier"> & {key?: React.Key};
+function PlasmicPriceTierPicker__newProTier<T extends PlasmicPriceTierPicker__newProTierProps>(props: T & StrictProps<T, PlasmicPriceTierPicker__newProTierProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newProTier", props);
+  return <PlasmicPriceTierPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newProTier"} />;
+}
+PlasmicPriceTierPicker__newProTier.displayName = "PlasmicPriceTierPicker.newProTier";
+
+type PlasmicPriceTierPicker__newTeamTierProps = NodeComponentProps<"newTeamTier"> & {key?: React.Key};
+function PlasmicPriceTierPicker__newTeamTier<T extends PlasmicPriceTierPicker__newTeamTierProps>(props: T & StrictProps<T, PlasmicPriceTierPicker__newTeamTierProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newTeamTier", props);
+  return <PlasmicPriceTierPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newTeamTier"} />;
+}
+PlasmicPriceTierPicker__newTeamTier.displayName = "PlasmicPriceTierPicker.newTeamTier";
+
+type PlasmicPriceTierPicker__newEnterpriseTierProps = NodeComponentProps<"newEnterpriseTier"> & {key?: React.Key};
+function PlasmicPriceTierPicker__newEnterpriseTier<T extends PlasmicPriceTierPicker__newEnterpriseTierProps>(props: T & StrictProps<T, PlasmicPriceTierPicker__newEnterpriseTierProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newEnterpriseTier", props);
+  return <PlasmicPriceTierPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newEnterpriseTier"} />;
+}
+PlasmicPriceTierPicker__newEnterpriseTier.displayName = "PlasmicPriceTierPicker.newEnterpriseTier";
+
 
 export const PlasmicPriceTierPicker = Object.assign(
   // Top-level PlasmicPriceTierPicker renders the root element
-  makeNodeComponent("root"),
+  PlasmicPriceTierPicker__root,
   {
     // Helper components rendering sub-elements
-    link: makeNodeComponent("link"),
-    billingFrequencyToggle: makeNodeComponent("billingFrequencyToggle"),
-    newGrandfatheredTier: makeNodeComponent("newGrandfatheredTier"),
-    newOutdatedTier: makeNodeComponent("newOutdatedTier"),
-    newFreeTier: makeNodeComponent("newFreeTier"),
-    newStarterTier: makeNodeComponent("newStarterTier"),
-    newProTier: makeNodeComponent("newProTier"),
-    newTeamTier: makeNodeComponent("newTeamTier"),
-    newEnterpriseTier: makeNodeComponent("newEnterpriseTier"),
+    link: PlasmicPriceTierPicker__link,
+    billingFrequencyToggle: PlasmicPriceTierPicker__billingFrequencyToggle,
+    newGrandfatheredTier: PlasmicPriceTierPicker__newGrandfatheredTier,
+    newOutdatedTier: PlasmicPriceTierPicker__newOutdatedTier,
+    newFreeTier: PlasmicPriceTierPicker__newFreeTier,
+    newStarterTier: PlasmicPriceTierPicker__newStarterTier,
+    newProTier: PlasmicPriceTierPicker__newProTier,
+    newTeamTier: PlasmicPriceTierPicker__newTeamTier,
+    newEnterpriseTier: PlasmicPriceTierPicker__newEnterpriseTier,
 
     // Metadata about props expected for PlasmicPriceTierPicker
     internalVariantProps: PlasmicPriceTierPicker__VariantProps,

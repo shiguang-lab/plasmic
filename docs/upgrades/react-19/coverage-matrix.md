@@ -45,7 +45,7 @@ Rich Components、Sortable、Quill、Rive、YouTube 按用户确认完整退役�
 | Next 16.3.1                                       | peer 覆盖 ^19.0.0，Node >=20.9.0；仓库部分 CPA 输出已经使用                        | 可作为统一候选；审查 Next 15/16 的异步 request APIs、路由参数、缓存、Link／Image／router／middleware、构建／lint 与 RSC 条件导出；不要只检查 package.json |
 | Next 15.5.14                                      | peer 覆盖 ^19.0.0，允许 Node ^18.18／^19.8／>=20                                   | 仅在实际支持矩阵需要此路线时作为具名候选，不新增仅为兼容旧 React 的双框架实现；不同消费者可以有经验证的框架版本                                           |
 | CRA fixture                                       | React 17 类型和运行时，入口仍 ReactDOM.render                                      | 维护则升级测试消费者与构建工具；若改为 Vite fixture，保留原行为覆盖并同步测试 runner，不能只删除旧测试                                                    |
-| TypeScript／ESLint／Storybook／Babel／SWC／Rollup | 各安装根版本不同；部分包类型构建带既有 skipLibCheck；根／Studio Storybook 不同版本 | 只做 React 19／Compiler 所需升级和配置调整，保留构建入口；现有 skipLibCheck 不代表依赖类型已兼容，另做公开 d.ts／consumer 编译验证，不增加压制            |
+| TypeScript／ESLint／Storybook／Babel／SWC／Rollup | 各安装根版本不同；类型检查采用 skipLibCheck: true；根／Studio Storybook 不同版本 | 只做 React 19／Compiler 所需升级和配置调整，保留构建入口；用真实 consumer 检查自有声明及 API 使用，第三方声明内部检查不列为升级验收项 |
 
 不强求所有工具统一最新版本。框架版本、engines、CI 镜像、对应 types 和 adapter 的联动是本轮必须处理的依赖闭包。
 

@@ -1,3 +1,6 @@
+import { useComponentParamValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/component-param-inputs";
+import { captureVariantModelWorld, useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useLibraryAppInputs } from "@/wab/client/components/sidebar/library-inputs";
 import { COMMANDS } from "@/wab/client/commands/command";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import promptForMetadata from "@/wab/client/components/modals/ComponentMetadataModal";
@@ -45,25 +48,30 @@ import {
 } from "@/wab/shared/model/classes";
 import { typeDisplayName } from "@/wab/shared/model/model-util";
 import { Menu, Tooltip, notification } from "antd";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-export const LegacyComponentParamsSection = observer(
-  function ComponentParamsPanel(props: {
-    studioCtx: StudioCtx;
-    component: Component;
-    metaDataOnly?: boolean;
-    justOneSection?: "variants" | "slots" | "meta";
-  }) {
+interface LegacyComponentParamsProps { studioCtx: StudioCtx; component: Component; metaDataOnly?: boolean; justOneSection?: "variants" | "slots" | "meta"; }
+export const LegacyComponentParamsSection = React.memo(function LegacyComponentParamsSection(props: LegacyComponentParamsProps) {
+  const world = useVariantModelWorld(props.studioCtx, props.component);
+  return world.alive ? <LegacyComponentParamsContent {...props} /> : null;
+});
+const LegacyComponentParamsContent = React.memo(function LegacyComponentParamsContent(props: LegacyComponentParamsProps) {
     const { t: uiT } = useI18n();
     const { studioCtx, component, justOneSection, metaDataOnly } = props;
+    const selectParams = React.useCallback(() => Object.freeze({
+      slots: getSlotParams(component), real: getRealParams(component),
+      variants: component.variantGroups.map((group) => group.param),
+      reusable: isReusableComponent(component), trapsFocus: component.trapsFocus,
+    }), [component]);
+    const parameterInputs = useComponentParamValue(studioCtx, component, selectParams);
+    useLibraryAppInputs(studioCtx);
+    const world = React.useMemo(() => captureVariantModelWorld(studioCtx), [studioCtx, component]);
     const [showNewParamModal, setShowNewParamModal] = React.useState(false);
 
-    const slotParams = getSlotParams(component);
-    const realParams = getRealParams(component);
+    const { slots: slotParams, real: realParams } = parameterInputs;
     const hasMetadata = useStore(studioCtx.modelSnapshots.field(component, "metadata"), (metadata) => Object.keys(metadata).length > 0);
     const contentEditorMode = useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
     const editableByContentEditor = useStore(studioCtx.modelSnapshots.field(component, "editableByContentEditor"));
@@ -91,6 +99,7 @@ export const LegacyComponentParamsSection = observer(
                 </div>
                 <BoolPropEditor
                   onChange={(val) => {
+                    if (!world.isCurrent()) { return; }
                     spawn(
                       COMMANDS.component.settings.setEditableByContentEditor.execute(
                         studioCtx,
@@ -111,6 +120,7 @@ export const LegacyComponentParamsSection = observer(
                 </div>
                 <BoolPropEditor
                   onChange={(val) => {
+                    if (!world.isCurrent()) { return; }
                     spawn(
                       COMMANDS.component.settings.setHiddenFromContentEditor.execute(
                         studioCtx,
@@ -127,7 +137,7 @@ export const LegacyComponentParamsSection = observer(
             </>
           ) : null}
 
-          {isReusableComponent(component) && (
+          {parameterInputs.reusable && (
             <div className="flex flex-vcenter justify-between list-item-height">
               <div className="labeled-item__label">
                 <LabelWithDetailedTooltip
@@ -140,6 +150,7 @@ export const LegacyComponentParamsSection = observer(
               </div>
               <BoolPropEditor
                 onChange={(val) => {
+                  if (!world.isCurrent()) { return; }
                   spawn(
                     COMMANDS.component.settings.setTrapFocus.execute(
                       studioCtx,
@@ -150,19 +161,19 @@ export const LegacyComponentParamsSection = observer(
                     ),
                   );
                 }}
-                value={component.trapsFocus}
+                value={parameterInputs.trapsFocus}
               />
             </div>
           )}
 
           {!metaDataOnly &&
-            component.variantGroups.length > 0 &&
+            parameterInputs.variants.length > 0 &&
             shown.variants && (
               <ParamsSection
                 title={uiT("Variants")}
                 studioCtx={studioCtx}
                 component={component}
-                params={component.variantGroups.map((vg) => vg.param)}
+                params={parameterInputs.variants}
               />
             )}
           {!metaDataOnly && slotParams.length > 0 && shown.slots && (
@@ -195,7 +206,9 @@ export const LegacyComponentParamsSection = observer(
           className="spaced-above"
           onClick={async (e) => {
             e.stopPropagation();
+            if (!world.isCurrent()) { return; }
             const metaKeyAndValue = await promptForMetadata(component);
+            if (!world.isCurrent()) { return; }
             if (!metaKeyAndValue) {
               notification.error({
                 message: uiT("Fill key and value"),
@@ -228,6 +241,7 @@ export const LegacyComponentParamsSection = observer(
               metaKeyAndValue.key = validKey;
             }
             await studioCtx.changeUnsafe(() => {
+              if (!world.isCurrent()) { return; }
               if (metaKeyAndValue.key in component.metadata) {
                 notification.error({
                   message: uiT("Existing key"),
@@ -286,6 +300,7 @@ export const LegacyComponentParamsSection = observer(
               onEdit={(value) => {
                 spawn(
                   studioCtx.changeUnsafe(() => {
+              if (!world.isCurrent()) { return; }
                     if (value.trim() === "") {
                       component.templateInfo = null;
                     } else if (component.templateInfo) {
@@ -314,7 +329,7 @@ export const LegacyComponentParamsSection = observer(
         )}
       </SidebarSection>
     );
-  },
+  }
 );
 
 function ParamsSection(props: {
@@ -368,7 +383,7 @@ function MetadataSection(props: {
   );
 }
 
-const ParamRow = observer(function ParamRow(props: {
+const ParamRow = React.memo(function ParamRow(props: {
   studioCtx: StudioCtx;
   component: Component;
   param: Param;
@@ -377,11 +392,16 @@ const ParamRow = observer(function ParamRow(props: {
   showDefault?: boolean;
 }) {
   const { studioCtx, component, param, showType, showDefault } = props;
+  const selectRow = React.useCallback(() => Object.freeze({
+    name: param.variable.name, type: typeDisplayName(param.type), canRename: canRenameParam(component, param),
+    isFunction: isKnownFunctionType(param.type), propType: wabTypeToPropType(param.type), defaultValue: extractLit(param),
+  }), [component, param]);
+  const row = useComponentParamValue(studioCtx, component, selectRow, param);
+  const world = React.useMemo(() => captureVariantModelWorld(studioCtx), [studioCtx, component]);
 
-  const defaultLit = extractLit(param);
+  const defaultLit = row.defaultValue;
 
-  const overlay = () => makeParamMenu(studioCtx, component, param);
-  const canRename = canRenameParam(component, param);
+  const overlay = () => world.isCurrent() ? makeParamMenu(studioCtx, component, param) : <></>;
   return (
     <div>
       <WithContextMenu
@@ -389,10 +409,11 @@ const ParamRow = observer(function ParamRow(props: {
         overlay={overlay}
       >
         <EditableLabel
-          value={param.variable.name}
+          value={row.name}
           onEdit={(val) => {
             spawn(
               studioCtx.changeUnsafe(() =>
+                world.isCurrent() &&
                 studioCtx.tplMgr().renameParam(component, param, val),
               ),
             );
@@ -401,11 +422,11 @@ const ParamRow = observer(function ParamRow(props: {
             <span {..._props} className="flex-fill mr-sm text-ellipsis code" />
           )}
           doubleClickToEdit
-          disabled={!canRename}
+          disabled={!row.canRename}
         />
         {showType && (
           <div className="dimfg">
-            <UiText message={"(Type:"} /> {typeDisplayName(param.type)})
+            <UiText message={"(Type:"} /> {row.type})
           </div>
         )}
         <IFrameAwareDropdownMenu menu={overlay}>
@@ -414,7 +435,7 @@ const ParamRow = observer(function ParamRow(props: {
           </div>
         </IFrameAwareDropdownMenu>
       </WithContextMenu>
-      {showDefault && !isKnownFunctionType(param.type) && (
+      {showDefault && !row.isFunction && (
         <div className="flex flex-vcenter list-item-height">
           <LabeledItemRow
             label={
@@ -425,9 +446,9 @@ const ParamRow = observer(function ParamRow(props: {
             labelSize="small"
           >
             <PropValueEditor
-              attr={param.variable.name}
-              label={param.variable.name}
-              propType={wabTypeToPropType(param.type)}
+              attr={row.name}
+              label={row.name}
+              propType={row.propType}
               value={defaultLit}
               disabled={false}
               onChange={(val) => {
@@ -437,6 +458,7 @@ const ParamRow = observer(function ParamRow(props: {
 
                 spawn(
                   studioCtx.change(() => {
+                    if (!world.isCurrent()) { return ok(); }
                     param.defaultExpr = updateOrCreateExpr(
                       param.defaultExpr,
                       param.type,
@@ -465,8 +487,9 @@ function MetadataRow(props: {
   const { t: studioUiT } = useI18n();
 
   const { studioCtx, component, metadataKey } = props;
+  const world = React.useMemo(() => captureVariantModelWorld(studioCtx), [studioCtx, component]);
   const value = useStore(studioCtx.modelSnapshots.field(component, "metadata"), (metadata) => metadata[metadataKey]);
-  const overlay = () => makeMetadataMenu(studioCtx, component, metadataKey);
+  const overlay = () => world.isCurrent() ? makeMetadataMenu(studioCtx, component, metadataKey) : <></>;
   return (
     <div>
       <WithContextMenu
@@ -498,6 +521,7 @@ function MetadataRow(props: {
             }
             spawn(
               studioCtx.changeUnsafe(() => {
+              if (!world.isCurrent()) { return; }
                 if (newKey !== metadataKey) {
                   if (newKey in component.metadata) {
                     notification.error({
@@ -533,6 +557,7 @@ function MetadataRow(props: {
           onEdit={(newValue) => {
             spawn(
               studioCtx.changeUnsafe(() => {
+              if (!world.isCurrent()) { return; }
                 addOrEditComponentMetadata(component, metadataKey, newValue);
               }),
             );
@@ -557,6 +582,7 @@ function makeParamMenu(
   component: Component,
   param: Param,
 ) {
+  const world = captureVariantModelWorld(studioCtx);
   return (
     <Menu>
       {/*<Menu.SubMenu title="Set code export type to">*/}
@@ -579,6 +605,7 @@ function makeParamMenu(
         <Menu.Item
           onClick={() =>
             studioCtx.changeUnsafe(() => {
+              if (!world.isCurrent()) { return; }
               removeComponentParam(studioCtx.site, component, param);
             })
           }
@@ -595,11 +622,13 @@ function makeMetadataMenu(
   component: Component,
   metadataKey: string,
 ) {
+  const world = captureVariantModelWorld(studioCtx);
   return (
     <Menu>
       <Menu.Item
         onClick={() =>
           studioCtx.changeUnsafe(() => {
+              if (!world.isCurrent()) { return; }
             removeComponentMetadata(component, metadataKey);
           })
         }

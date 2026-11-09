@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -85,11 +85,10 @@ function PlasmicMessagePartPopoverContentBlock__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -169,12 +168,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -185,27 +180,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicMessagePartPopoverContentBlock__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicMessagePartPopoverContentBlock";
-  } else {
-    func.displayName = `PlasmicMessagePartPopoverContentBlock.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicMessagePartPopoverContentBlock__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicMessagePartPopoverContentBlock__root<T extends PlasmicMessagePartPopoverContentBlock__rootProps>(props: T & StrictProps<T, PlasmicMessagePartPopoverContentBlock__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicMessagePartPopoverContentBlock__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicMessagePartPopoverContentBlock__root.displayName = "PlasmicMessagePartPopoverContentBlock";
+
+type PlasmicMessagePartPopoverContentBlock__preProps = NodeComponentProps<"pre"> & {key?: React.Key};
+function PlasmicMessagePartPopoverContentBlock__pre<T extends PlasmicMessagePartPopoverContentBlock__preProps>(props: T & StrictProps<T, PlasmicMessagePartPopoverContentBlock__preProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("pre", props);
+  return <PlasmicMessagePartPopoverContentBlock__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"pre"} />;
+}
+PlasmicMessagePartPopoverContentBlock__pre.displayName = "PlasmicMessagePartPopoverContentBlock.pre";
+
 
 export const PlasmicMessagePartPopoverContentBlock = Object.assign(
   // Top-level PlasmicMessagePartPopoverContentBlock renders the root element
-  makeNodeComponent("root"),
+  PlasmicMessagePartPopoverContentBlock__root,
   {
     // Helper components rendering sub-elements
-    pre: makeNodeComponent("pre"),
+    pre: PlasmicMessagePartPopoverContentBlock__pre,
 
     // Metadata about props expected for PlasmicMessagePartPopoverContentBlock
     internalVariantProps: PlasmicMessagePartPopoverContentBlock__VariantProps,

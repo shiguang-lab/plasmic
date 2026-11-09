@@ -6,11 +6,11 @@ class IslandFraming {
   group = "";
   targets = null;
   select(scene, context, operation, operations) {
-    const key = JSON.stringify([context.projectId, context.sessionId, context.arenaId, context.mode]);
+    const key = JSON.stringify([context.projectId, context.sessionId, context.arenaId, context.mode, context.previewKind]);
     const changed = key !== this.context;
     if (changed) { this.context = key; this.targets = null; }
     const matches = op => meaningful.has(op.kind) && op.projectId === context.projectId && op.sessionId === context.sessionId &&
-      op.mode === context.mode && (op.kind === "view" || op.arenaId === context.arenaId);
+      op.mode === context.mode && op.previewKind === context.previewKind && (op.kind === "view" || op.arenaId === context.arenaId);
     const running = operations.filter(op => op.phase === "running" && matches(op));
     const completed = operations.findLast(op => op.phase === "completed" && matches(op)) ||
       (operation?.phase === "completed" && matches(operation) ? operation : null);

@@ -251,17 +251,23 @@ function MergeFlow_(
     "main" | "source branch changes" | "destination branch changes"
   >("main");
 
+  const destinationBranchName = data?.branches.find((branch) => branch.id === toBranchId)?.name ?? "main";
+  const unpublishedDestinationDisplay = React.useMemo(() => ({
+    message: uiT("{part1} has unpublished changes", { part1: uiT('Branch "{name}"', { name: destinationBranchName }) }),
+    description: uiT("Can only merge into a branch that does not have any changes since its last publish. Please publish the branch, or roll back the branch to the last publish."),
+  }), [uiT, destinationBranchName]);
+
   useEffect(() => {
     if (
       data?.pretendMergeResult.status ===
       "uncommitted changes on destination branch"
     ) {
       notification.error({
-        ...friendlyMergeResultDisplays[pretendMergeResult.status],
+        ...unpublishedDestinationDisplay,
         duration: 0,
       });
     }
-  }, [data?.pretendMergeResult.status]);
+  }, [data?.pretendMergeResult.status, unpublishedDestinationDisplay]);
 
   if (!data) {
     return (
@@ -357,14 +363,7 @@ function MergeFlow_(
       message: uiT("Successfully merged"),
       description: successDescription,
     },
-    "uncommitted changes on destination branch": {
-      message: uiT("{part1} has unpublished changes", {
-        part1: String(describeBranch(toBranch, true)),
-      }),
-      description: uiT(
-        "Can only merge into a branch that does not have any changes since its last publish. Please publish the branch, or roll back the branch to the last publish.",
-      ),
-    },
+    "uncommitted changes on destination branch": unpublishedDestinationDisplay,
     "app host mismatch": {
       success: false,
       message: uiT("Incompatible host apps"),

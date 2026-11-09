@@ -1,6 +1,6 @@
 import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
-import { useShallow } from "zustand/react/shallow";
 import { useStudioArena, useViewRegistry } from "@/wab/client/studio-ctx/arena-state";
+import { useCanvasOverviewArena } from "@/wab/client/studio-ctx/canvas-overview-state";
 import { OutlineCtx } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
 import styles from "@/wab/client/components/sidebar-tabs/outline-tab.module.scss";
 import {
@@ -21,19 +21,16 @@ import ChevronDownsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/Pla
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import {
-  getArenaFrameDesc,
   getArenaFrames,
-  getArenaName,
   isMixedArena,
   isPageArena,
 } from "@/wab/shared/Arenas";
-import { getDisplayVariants } from "@/wab/shared/Variants";
-import { ensure, switchType } from "@/wab/shared/common";
-import { getComponentArenaRowLabel } from "@/wab/shared/component-arenas";
-import { ArenaFrame, ComponentArena } from "@/wab/shared/model/classes";
-import { frameSizeGroups } from "@/wab/shared/responsiveness";
+import { ensure } from "@/wab/shared/common";
+import { ArenaFrame } from "@/wab/shared/model/classes";
 import { Button, Menu } from "antd";
-import { observer } from "mobx-react";
+import { useStore } from "zustand";
+import { useCanvasComponentValue, type CanvasViewFieldRecipe } from "@/wab/client/components/canvas/canvas-view-inputs";
+import { outlineTabFields, outlineTabPresentation } from "@/wab/client/components/sidebar-tabs/outline-tab-inputs";
 import * as React from "react";
 import {
   FiArrowUpLeft,
@@ -43,25 +40,27 @@ import {
   FiLayers,
 } from "react-icons/fi";
 
-export const OutlineTab = observer(OutlineTab_);
+export const OutlineTab = React.memo(OutlineTab_);
 
 function OutlineTab_() {
   const { t: uiT, label: uiLabel } = useI18n();
   const studioCtx = useStudioCtx();
-  useStudioSelection(studioCtx, (state) => state.view);
+  useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
+  const world = studioCtx.arenaState.lifetime();
   // Subscribe precisely to save permission so the overview menu re-evaluates
   // when it changes; the unique overview policy stays in StudioCtx.
-  useStudioSaveState(studioCtx, (state) => state.canSave);
+  const canOpenPageOverview = useStudioSaveState(studioCtx, () => studioCtx.canOpenPageOverview);
   const { styles: panelStyles } = useStructurePanelStyles();
   const dndManager = React.useMemo(
     () => new TreeDndManager(studioCtx),
-    [studioCtx],
+    [studioCtx, world],
   );
 
   const outlineCtx = React.useMemo(
     () => new OutlineCtx(studioCtx, ""),
-    [studioCtx],
+    [studioCtx, world],
   );
+  const expandedFrames = useStore(outlineCtx.stateStore, (state) => state.expandedFrames);
   React.useEffect(() => {
     return () => {
       outlineCtx.dispose();
@@ -78,53 +77,26 @@ function OutlineTab_() {
     }
   }, []);
   useToggleDisplayed(ref, onVisible);
-  useStudioArena(studioCtx, useShallow((state) => [state.current, state.frames, state.focusedMode, state.name]));
+  const arena = useStudioArena(studioCtx, (state) => state.current ? studioCtx.modelSnapshots.resolve(state.current) : null);
   // The outline tree uses the current ViewCtx command owner; a roster change
   // must rebuild the rows without converting the whole outline state to UI data.
-  useViewRegistry(studioCtx, (entries) => entries);
-  const arena = studioCtx.currentArena;
-
-  const currentArenaFrame = outlineCtx.viewCtx()?.arenaFrame();
-
-  const arenaFrameGroups: {
-    groupLabel?: string;
-    frames: ArenaFrame[];
-    alwaysShowGroupLabel?: boolean;
-  }[] = switchType(arena)
-    .when(ComponentArena, (it) => [
-      ...it.matrix.rows.map((row) => ({
-        groupLabel: getComponentArenaRowLabel(it.component, row),
-        frames: row.cols.map((col) => col.frame),
-      })),
-      {
-        alwaysShowGroupLabel: true,
-        groupLabel: "Combinations",
-        frames: it.customMatrix.rows[0]?.cols.map((col) => col.frame),
-      },
-    ])
-    .elseUnsafe(() => [{ frames: getArenaFrames(arena) }]);
-
-  const frameLabel = (frame: ArenaFrame) => {
-    if (!isPageArena(arena)) {
-      return getArenaFrameDesc(
-        ensure(arena, "Expected current arena"),
-        frame,
-        studioCtx.site,
-      );
-    }
-    const variants = getDisplayVariants({
-      site: studioCtx.site,
-      frame,
-      isPageArena: true,
-    })
-      .map((variant) => variant.displayName)
-      .join(" + ");
-    return `${getArenaName(arena)} · ${frame.width} × ${frame.height}${variants ? ` · ${variants}` : ""}`;
-  };
+  const selectedFrame = useStudioSelection(studioCtx, (state) => {
+    const frame = state.view?.arenaFrame() ?? (state.frames[0] ? studioCtx.modelSnapshots.resolve(state.frames[0]) : undefined);
+    return frame && getArenaFrames(arena).includes(frame) ? frame : undefined;
+  });
+  const fallbackFrame = useViewRegistry(studioCtx, () => outlineCtx.viewCtx()?.arenaFrame());
+  const overviewArena = useCanvasOverviewArena(studioCtx);
+  const metadataRecipe = React.useCallback<CanvasViewFieldRecipe>((field) => outlineTabFields(studioCtx.site, arena, field), [studioCtx, arena]);
+  const readMetadata = React.useCallback(() => outlineTabPresentation(studioCtx.site, arena), [studioCtx, arena]);
+  const metadata = useCanvasComponentValue(studioCtx, arena ?? studioCtx.site, metadataRecipe, readMetadata);
+  if (!metadata) { return null; }
+  const currentArenaFrame = selectedFrame ?? fallbackFrame;
+  const arenaFrameGroups = metadata.groups;
+  const frameLabel = (frame: ArenaFrame) => metadata.groups.flatMap((group) => group.frames).find((row) => row.frame === frame)?.label ?? "";
 
   const mixed = isMixedArena(arena);
   const page = isPageArena(arena);
-  const focused = studioCtx.canvasFocusActive;
+  const focused = overviewArena === arena;
   const kind = mixed
     ? uiT("Arena")
     : isPageArena(arena)
@@ -135,15 +107,16 @@ function OutlineTab_() {
     : isPageArena(arena)
       ? PageIcon
       : ComponentIcon;
-  const frames = arenaFrameGroups.flatMap((group) => group.frames ?? []);
+  const frames = arenaFrameGroups.flatMap((group) => group.frames.map((row) => row.frame));
   const frameSelected = (frame: ArenaFrame) => frame === currentArenaFrame;
   const selectFrame = (frame: ArenaFrame) => {
+    if (!studioCtx.arenaState.isCurrentLifetime(world)) { return; }
     if (page) {
       outlineCtx.setFrameExpanded(frame, true);
     }
-    void studioCtx.changeUnsafe(() =>
-      studioCtx.setStudioFocusOnFrame({ frame, autoZoom: !mixed }),
-    );
+    void studioCtx.changeUnsafe(() => {
+      if (studioCtx.arenaState.isCurrentLifetime(world)) { studioCtx.setStudioFocusOnFrame({ frame, autoZoom: !mixed }); }
+    });
   };
   const frameChoices =
     frames.length > 4 &&
@@ -151,32 +124,16 @@ function OutlineTab_() {
     !frames.slice(0, 4).includes(currentArenaFrame)
       ? [...frames.slice(0, 3), currentArenaFrame]
       : frames.slice(0, 4);
-  const frameDevice = (frame: ArenaFrame) => {
-    const preset = frameSizeGroups.find((group) =>
-      group.sizes.some(
-        ({ width, height }) =>
-          (width === frame.width && height === frame.height) ||
-          (height === frame.width && width === frame.height),
-      ),
-    )?.groupName;
-    return preset === "Phone"
-      ? "Mobile"
-      : (preset ??
-          (frame.width <= 640
-            ? "Mobile"
-            : frame.width < 1024
-              ? "Tablet"
-              : "Desktop"));
-  };
+  const frameDevice = (frame: ArenaFrame) => metadata.groups.flatMap((group) => group.frames).find((row) => row.frame === frame)?.device;
   const device = currentArenaFrame ? frameDevice(currentArenaFrame) : undefined;
   const pageExpanded =
     !page ||
     !currentArenaFrame ||
-    outlineCtx.isFrameExpanded(currentArenaFrame, true);
+    (expandedFrames.get(currentArenaFrame) ?? true);
   const footerText =
     focused && arena && currentArenaFrame
       ? uiT("Focused in arena · {name}", {
-          name: mixed ? frameLabel(currentArenaFrame) : getArenaName(arena),
+          name: mixed ? frameLabel(currentArenaFrame) : metadata.arenaName,
         })
       : mixed
         ? uiT("Arena · {count} artboards", { count: frames.length })
@@ -198,7 +155,7 @@ function OutlineTab_() {
       onDrop={(e) => {
         // In case the user drops on the tree panel instead of a tree node,
         // we inform the TreeDndManager to execute the drop anyway.
-        dndManager.onDrop(e);
+        if (studioCtx.arenaState.isCurrentLifetime(world)) { dndManager.onDrop(e); }
       }}
     >
       {arena && (
@@ -242,8 +199,8 @@ function OutlineTab_() {
         <div className={panelStyles.layerContext}>
           <div className={panelStyles.scopeCard}>
             <Icon icon={ArenaIcon} />
-            <span className={panelStyles.scopeName} title={getArenaName(arena)}>
-              {getArenaName(arena)}
+            <span className={panelStyles.scopeName} title={metadata.arenaName}>
+              {metadata.arenaName}
             </span>
             <span className={panelStyles.scopeKind}>{kind}</span>
           </div>
@@ -260,7 +217,7 @@ function OutlineTab_() {
                   >
                     <Menu.Item
                       key="overview"
-                      disabled={!studioCtx.canOpenPageOverview}
+                      disabled={!canOpenPageOverview}
                       onClick={() => {
                         void studioCtx.openPageOverview();
                       }}
@@ -271,12 +228,12 @@ function OutlineTab_() {
                     {arenaFrameGroups
                       .filter((it) => it.frames.length)
                       .map((group) => {
-                        const items = group.frames.map((frame) => (
+                        const items = group.frames.map(({ frame, label }) => (
                           <Menu.Item
                             key={frame.uuid}
                             onClick={() => selectFrame(frame)}
                           >
-                            {frameLabel(frame)}
+                            {label}
                           </Menu.Item>
                         ));
 
@@ -342,7 +299,7 @@ function OutlineTab_() {
               title={frameLabel(frame)}
               onClick={() => selectFrame(frame)}
             >
-              {page ? uiLabel(frameDevice(frame)) : frameLabel(frame)}
+              {page ? uiLabel(ensure(frameDevice(frame), "Frame device")) : frameLabel(frame)}
             </Button>
           ))}
         </div>
@@ -366,7 +323,7 @@ function OutlineTab_() {
             )}
             <FiHash size={14} />
             <span className={panelStyles.scopeName}>
-              {getArenaName(arena)} ·{" "}
+              {metadata.arenaName} ·{" "}
               {uiLabel(ensure(device, "Current page device"))}
             </span>
           </Button>

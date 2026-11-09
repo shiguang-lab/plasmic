@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,13 +25,13 @@ import {
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
 import Select__Option from "../../components/widgets/Select__Option"; // plasmic-import: rr-LWdMni2G/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -106,11 +106,10 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showPseudoClass",
@@ -145,18 +144,20 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -237,9 +238,9 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
                 />
               }
               name={""}
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, [
+                  generateStateOnChangeProp($stateCommands, [
                     "globalVariantSelect",
                     "value",
                   ])(eventArgs[0]);
@@ -252,7 +253,7 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
               placeholder={
                 <div
                   className={classNames("all", "__wab_text", sty.text__oqmBw)}
@@ -297,9 +298,9 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
               role={"img"}
             />
           }
-          onChange={async (...eventArgs: any) => {
+          onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
             ((...eventArgs) => {
-              generateStateOnChangeProp($state, ["tagSelect", "value"])(
+              generateStateOnChangeProp($stateCommands, ["tagSelect", "value"])(
                 eventArgs[0]
               );
             }).apply(null, eventArgs);
@@ -311,7 +312,7 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
             ) {
               return;
             }
-          }}
+          })); })}
           options={[
             { value: "option1", label: "Option 1" },
             { value: "option2", label: "Option 2" },
@@ -346,9 +347,9 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
                 role={"img"}
               />
             }
-            onChange={async (...eventArgs: any) => {
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
               ((...eventArgs) => {
-                generateStateOnChangeProp($state, [
+                generateStateOnChangeProp($stateCommands, [
                   "pseudoClassSelect",
                   "value",
                 ])(eventArgs[0]);
@@ -361,7 +362,7 @@ function PlasmicDefaultStylesPanel__RenderFunc(props: {
               ) {
                 return;
               }
-            }}
+            })); })}
             options={[
               { value: "option1", label: "Option 1" },
               { value: "option2", label: "Option 2" },
@@ -469,12 +470,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -484,36 +481,85 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDefaultStylesPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDefaultStylesPanel";
-  } else {
-    func.displayName = `PlasmicDefaultStylesPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDefaultStylesPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDefaultStylesPanel__root<T extends PlasmicDefaultStylesPanel__rootProps>(props: T & StrictProps<T, PlasmicDefaultStylesPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDefaultStylesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDefaultStylesPanel__root.displayName = "PlasmicDefaultStylesPanel";
+
+type PlasmicDefaultStylesPanel__selectorProps = NodeComponentProps<"selector"> & {key?: React.Key};
+function PlasmicDefaultStylesPanel__selector<T extends PlasmicDefaultStylesPanel__selectorProps>(props: T & StrictProps<T, PlasmicDefaultStylesPanel__selectorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("selector", props);
+  return <PlasmicDefaultStylesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"selector"} />;
+}
+PlasmicDefaultStylesPanel__selector.displayName = "PlasmicDefaultStylesPanel.selector";
+
+type PlasmicDefaultStylesPanel__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicDefaultStylesPanel__freeBox<T extends PlasmicDefaultStylesPanel__freeBoxProps>(props: T & StrictProps<T, PlasmicDefaultStylesPanel__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicDefaultStylesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicDefaultStylesPanel__freeBox.displayName = "PlasmicDefaultStylesPanel.freeBox";
+
+type PlasmicDefaultStylesPanel__globalVariantSelectorContainerProps = NodeComponentProps<"globalVariantSelectorContainer"> & {key?: React.Key};
+function PlasmicDefaultStylesPanel__globalVariantSelectorContainer<T extends PlasmicDefaultStylesPanel__globalVariantSelectorContainerProps>(props: T & StrictProps<T, PlasmicDefaultStylesPanel__globalVariantSelectorContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("globalVariantSelectorContainer", props);
+  return <PlasmicDefaultStylesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"globalVariantSelectorContainer"} />;
+}
+PlasmicDefaultStylesPanel__globalVariantSelectorContainer.displayName = "PlasmicDefaultStylesPanel.globalVariantSelectorContainer";
+
+type PlasmicDefaultStylesPanel__globalVariantSelectProps = NodeComponentProps<"globalVariantSelect"> & {key?: React.Key};
+function PlasmicDefaultStylesPanel__globalVariantSelect<T extends PlasmicDefaultStylesPanel__globalVariantSelectProps>(props: T & StrictProps<T, PlasmicDefaultStylesPanel__globalVariantSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("globalVariantSelect", props);
+  return <PlasmicDefaultStylesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"globalVariantSelect"} />;
+}
+PlasmicDefaultStylesPanel__globalVariantSelect.displayName = "PlasmicDefaultStylesPanel.globalVariantSelect";
+
+type PlasmicDefaultStylesPanel__optionProps = NodeComponentProps<"option"> & {key?: React.Key};
+function PlasmicDefaultStylesPanel__option<T extends PlasmicDefaultStylesPanel__optionProps>(props: T & StrictProps<T, PlasmicDefaultStylesPanel__optionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("option", props);
+  return <PlasmicDefaultStylesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"option"} />;
+}
+PlasmicDefaultStylesPanel__option.displayName = "PlasmicDefaultStylesPanel.option";
+
+type PlasmicDefaultStylesPanel__tagSelectProps = NodeComponentProps<"tagSelect"> & {key?: React.Key};
+function PlasmicDefaultStylesPanel__tagSelect<T extends PlasmicDefaultStylesPanel__tagSelectProps>(props: T & StrictProps<T, PlasmicDefaultStylesPanel__tagSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("tagSelect", props);
+  return <PlasmicDefaultStylesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tagSelect"} />;
+}
+PlasmicDefaultStylesPanel__tagSelect.displayName = "PlasmicDefaultStylesPanel.tagSelect";
+
+type PlasmicDefaultStylesPanel__pseudoClassSelectProps = NodeComponentProps<"pseudoClassSelect"> & {key?: React.Key};
+function PlasmicDefaultStylesPanel__pseudoClassSelect<T extends PlasmicDefaultStylesPanel__pseudoClassSelectProps>(props: T & StrictProps<T, PlasmicDefaultStylesPanel__pseudoClassSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("pseudoClassSelect", props);
+  return <PlasmicDefaultStylesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"pseudoClassSelect"} />;
+}
+PlasmicDefaultStylesPanel__pseudoClassSelect.displayName = "PlasmicDefaultStylesPanel.pseudoClassSelect";
+
+type PlasmicDefaultStylesPanel__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicDefaultStylesPanel__content<T extends PlasmicDefaultStylesPanel__contentProps>(props: T & StrictProps<T, PlasmicDefaultStylesPanel__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicDefaultStylesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicDefaultStylesPanel__content.displayName = "PlasmicDefaultStylesPanel.content";
+
 
 export const PlasmicDefaultStylesPanel = Object.assign(
   // Top-level PlasmicDefaultStylesPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicDefaultStylesPanel__root,
   {
     // Helper components rendering sub-elements
-    selector: makeNodeComponent("selector"),
-    freeBox: makeNodeComponent("freeBox"),
-    globalVariantSelectorContainer: makeNodeComponent(
-      "globalVariantSelectorContainer"
-    ),
-    globalVariantSelect: makeNodeComponent("globalVariantSelect"),
-    option: makeNodeComponent("option"),
-    tagSelect: makeNodeComponent("tagSelect"),
-    pseudoClassSelect: makeNodeComponent("pseudoClassSelect"),
-    content: makeNodeComponent("content"),
+    selector: PlasmicDefaultStylesPanel__selector,
+    freeBox: PlasmicDefaultStylesPanel__freeBox,
+    globalVariantSelectorContainer: PlasmicDefaultStylesPanel__globalVariantSelectorContainer,
+    globalVariantSelect: PlasmicDefaultStylesPanel__globalVariantSelect,
+    option: PlasmicDefaultStylesPanel__option,
+    tagSelect: PlasmicDefaultStylesPanel__tagSelect,
+    pseudoClassSelect: PlasmicDefaultStylesPanel__pseudoClassSelect,
+    content: PlasmicDefaultStylesPanel__content,
 
     // Metadata about props expected for PlasmicDefaultStylesPanel
     internalVariantProps: PlasmicDefaultStylesPanel__VariantProps,

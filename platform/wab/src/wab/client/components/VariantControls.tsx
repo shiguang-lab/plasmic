@@ -1,3 +1,5 @@
+import { captureVariantModelWorld, useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useVariantLabelInputs } from "@/wab/client/components/variants/variant-label-inputs";
 import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
 
@@ -36,7 +38,6 @@ import {
 import { Menu } from "antd";
 import { default as classNames, default as cn } from "classnames";
 import { sumBy } from "lodash";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React, {
   forwardRef,
@@ -82,20 +83,15 @@ const VariantLabel_: ForwardRefRenderFunction<
   const viewCtx = studioCtx.focusedViewCtx()!;
   useViewSelection(viewCtx, (state) => state.tpls);
   const focusedTpl = viewCtx?.focusedTpl();
+  const labels = useVariantLabelInputs(studioCtx, variant, { superComp, focusedTag: isTplTag(focusedTpl) ? focusedTpl : undefined, splitGroup: useGroupNameForSplits });
+  const world = React.useMemo(() => captureVariantModelWorld(studioCtx), [studioCtx, variant]);
 
-  const variantName = (() => {
-    return makeVariantName({
-      variant,
-      superComp,
-      ...(isTplTag(focusedTpl) && { focusedTag: focusedTpl }),
-      site: studioCtx.site,
-      useGroupNameForSplits,
-    });
-  })();
+  const variantName = labels.entries[0]?.name ?? "";
 
   const _onRename = (newName: string) => {
     spawn(
       studioCtx.changeUnsafe(() => {
+        if (!world.isCurrent()) { return; }
         studioCtx.siteOps().tryRenameVariant(variant, newName);
         onRenamed?.(newName);
       }),
@@ -129,7 +125,12 @@ const VariantLabel_: ForwardRefRenderFunction<
   );
 };
 
-export const VariantLabel = observer(forwardRef(VariantLabel_));
+const VariantLabelContent = React.memo(forwardRef(VariantLabel_));
+export const VariantLabel = React.memo(forwardRef<EditableLabelHandles, VariantLabelProps>(function VariantLabel(props, ref) {
+  const studio = useStudioCtx();
+  const world = useVariantModelWorld(studio, props.variant);
+  return world.alive ? <VariantLabelContent {...props} ref={ref} /> : null;
+}));
 
 export function makeCanvasVariantContextMenu({
   studioCtx,
@@ -170,7 +171,7 @@ export function makeCanvasVariantContextMenu({
   );
 }
 
-export const StyleVariantEditor = observer(function StyleVariantEditor_({
+const StyleVariantEditorContent = React.memo(function StyleVariantEditor_({
   component,
   onDismiss,
   variant,
@@ -181,10 +182,14 @@ export const StyleVariantEditor = observer(function StyleVariantEditor_({
 }) {
   const [chosenSelectors, setChosenSelectors] = useState<Selector[]>([]);
   const studioCtx = useStudioCtx();
+  const labels = useVariantLabelInputs(studioCtx, variant, { component });
+  const world = React.useMemo(() => captureVariantModelWorld(studioCtx), [studioCtx, variant]);
 
   const maybeSubmit = async (opts?: { force?: boolean }) => {
+    if (!world.isCurrent()) { return; }
     if (chosenSelectors.length || opts?.force) {
       return studioCtx.changeUnsafe(() => {
+        if (!world.isCurrent()) { return; }
         if (isCodeComponentVariant(variant)) {
           variant.codeComponentVariantKeys =
             chosenSelectors.map(getVariantIdentifier);
@@ -204,21 +209,20 @@ export const StyleVariantEditor = observer(function StyleVariantEditor_({
     }
   };
 
-  const maybeSubmitRef = React.useRef(maybeSubmit);
-  maybeSubmitRef.current = maybeSubmit;
+  const submitLatest = React.useEffectEvent(maybeSubmit);
 
   useEffect(
     () => () => {
-      spawn(maybeSubmitRef.current({ force: true }));
+      spawn(submitLatest({ force: true }));
     },
     [],
   );
 
+  const incomingSelectors = labels.entries[0]?.selectors ?? [];
+  const selectorKey = JSON.stringify(incomingSelectors.map((selector) => selector.type === "CssSelector" ? selector.cssSelector : [selector.componentUuid, selector.componentName, selector.key, selector.displayName]));
   useEffect(() => {
-    setChosenSelectors(
-      styleOrCodeComponentVariantToSelectors(variant, studioCtx.site),
-    );
-  }, [toVariantKey(variant)]);
+    setChosenSelectors(incomingSelectors);
+  }, [toVariantKey(variant), selectorKey]);
 
   const tplRoot = component.tplTree;
 
@@ -258,9 +262,17 @@ export const StyleVariantEditor = observer(function StyleVariantEditor_({
   );
 });
 
-export const StyleOrCodeComponentVariantLabel = observer(
-  forwardRef(StyleOrCodeComponentVariantLabel_),
-);
+export const StyleVariantEditor = React.memo(function StyleVariantEditor(props: React.ComponentProps<typeof StyleVariantEditorContent>) {
+  const studio = useStudioCtx();
+  const world = useVariantModelWorld(studio, props.variant);
+  return world.alive ? <StyleVariantEditorContent {...props} /> : null;
+});
+const StyleOrCodeComponentVariantLabelContent = React.memo(forwardRef(StyleOrCodeComponentVariantLabel_));
+export const StyleOrCodeComponentVariantLabel = React.memo(forwardRef<EditableLabelHandles, React.ComponentProps<typeof StyleOrCodeComponentVariantLabelContent>>(function StyleOrCodeComponentVariantLabel(props, ref) {
+  const studio = useStudioCtx();
+  const world = useVariantModelWorld(studio, props.variant);
+  return world.alive ? <StyleOrCodeComponentVariantLabelContent {...props} ref={ref} /> : null;
+}));
 function StyleOrCodeComponentVariantLabel_(
   props: {
     defaultEditing?: boolean;
@@ -275,16 +287,18 @@ function StyleOrCodeComponentVariantLabel_(
 ) {
   const studioCtx = useStudioCtx();
   const { defaultEditing, variant, forTag, forRoot, component } = props;
+  const labels = useVariantLabelInputs(studioCtx, variant, { component });
+  const world = React.useMemo(() => captureVariantModelWorld(studioCtx), [studioCtx, variant]);
   const [chosenSelectors, setChosenSelectors] = useState<Selector[]>([]);
 
   const tplRoot = component.tplTree;
-  const isPrivate = isPrivateStyleVariant(variant);
+  const isPrivate = labels.entries[0]?.isPrivate ?? false;
 
+  const incomingSelectors = labels.entries[0]?.selectors ?? [];
+  const selectorKey = JSON.stringify(incomingSelectors.map((selector) => selector.type === "CssSelector" ? selector.cssSelector : [selector.componentUuid, selector.componentName, selector.key, selector.displayName]));
   useEffect(() => {
-    setChosenSelectors(
-      styleOrCodeComponentVariantToSelectors(variant, studioCtx.site),
-    );
-  }, [toVariantKey(variant)]);
+    setChosenSelectors(incomingSelectors);
+  }, [toVariantKey(variant), selectorKey]);
 
   return (
     <div
@@ -299,7 +313,7 @@ function StyleOrCodeComponentVariantLabel_(
           !editing ? (
             <div onDoubleClick={onStart}>
               <SelectorTags
-                isCodeComponent={isTplCodeComponent(tplRoot)}
+                isCodeComponent={labels.entries[0]?.rootIsCode ?? false}
                 selectors={chosenSelectors}
               />
             </div>
@@ -309,8 +323,10 @@ function StyleOrCodeComponentVariantLabel_(
               selectors={chosenSelectors}
               onClick={(e) => e.stopPropagation()}
               onBlur={() => {
+                if (!world.isCurrent()) { return; }
                 spawn(
                   studioCtx.change(() => {
+                    if (!world.isCurrent()) { return ok(); }
                     if (isCodeComponentVariant(variant)) {
                       variant.codeComponentVariantKeys =
                         chosenSelectors.map(getVariantIdentifier);

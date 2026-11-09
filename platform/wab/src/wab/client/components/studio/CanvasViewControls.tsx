@@ -9,7 +9,6 @@ import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { Button, Tooltip } from "antd";
 import { createStyles } from "antd-style";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
 
@@ -74,7 +73,7 @@ const useStyles = createStyles(({ token }) => ({
     background: token.colorBorder,
   },
 }));
-export const CanvasViewControls = observer(function CanvasViewControls({
+export const CanvasViewControls = React.memo(function CanvasViewControls({
   studioCtx,
 }: {
   studioCtx?: StudioCtx;
@@ -217,4 +216,4 @@ export const CanvasViewControls = observer(function CanvasViewControls({
       </Tooltip>
     </div>
   );
-});
+})

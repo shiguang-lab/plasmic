@@ -176,15 +176,15 @@ function PermissionItem(props: PermissionItemProps) {
               }
               onChange={async (value: GrantableAccessLevel) => {
                 setLoading(true);
-                try {
+                return await (async () => {
                   await onGrant(value);
-                } catch {
+                })().catch(async () => {
                   void message.error({
                     content: t("Failed to update permissions"),
                   });
-                } finally {
+                }).finally(() => {
                   setLoading(false);
-                }
+                });
               }}
             />
             {canEdit && (
@@ -198,15 +198,15 @@ function PermissionItem(props: PermissionItemProps) {
                 disabled={loading}
                 onClick={async () => {
                   setLoading(true);
-                  try {
+                  return await (async () => {
                     await onRevoke();
-                  } catch {
+                  })().catch(async () => {
                     void message.error({
                       content: t("Failed to update permissions"),
                     });
-                  } finally {
+                  }).finally(() => {
                     setLoading(false);
-                  }
+                  });
                 }}
               />
             )}

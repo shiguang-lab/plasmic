@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,8 +26,8 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -92,13 +92,12 @@ function PlasmicDocsPortalBranch__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <PlasmicLink__
@@ -197,12 +196,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -212,27 +207,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDocsPortalBranch__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDocsPortalBranch";
-  } else {
-    func.displayName = `PlasmicDocsPortalBranch.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDocsPortalBranch__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDocsPortalBranch__root<T extends PlasmicDocsPortalBranch__rootProps>(props: T & StrictProps<T, PlasmicDocsPortalBranch__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDocsPortalBranch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDocsPortalBranch__root.displayName = "PlasmicDocsPortalBranch";
+
+type PlasmicDocsPortalBranch__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicDocsPortalBranch__freeBox<T extends PlasmicDocsPortalBranch__freeBoxProps>(props: T & StrictProps<T, PlasmicDocsPortalBranch__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicDocsPortalBranch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicDocsPortalBranch__freeBox.displayName = "PlasmicDocsPortalBranch.freeBox";
+
 
 export const PlasmicDocsPortalBranch = Object.assign(
   // Top-level PlasmicDocsPortalBranch renders the root element
-  makeNodeComponent("root"),
+  PlasmicDocsPortalBranch__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
+    freeBox: PlasmicDocsPortalBranch__freeBox,
 
     // Metadata about props expected for PlasmicDocsPortalBranch
     internalVariantProps: PlasmicDocsPortalBranch__VariantProps,

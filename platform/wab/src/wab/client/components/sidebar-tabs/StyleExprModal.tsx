@@ -18,8 +18,8 @@ import {
 } from "@/wab/client/components/style-controls/BorderControls";
 import {
   SingleRsExpsProvider,
-  mkStyleComponent,
-  providesStyleComponent,
+  createStyleTarget,
+  providesStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import Button from "@/wab/client/components/widgets/Button";
 import Select from "@/wab/client/components/widgets/Select";
@@ -37,7 +37,8 @@ import {
   TplComponent,
   ensureKnownStyleExpr,
 } from "@/wab/shared/model/classes";
-import { observer } from "mobx-react";
+import { useTargetedStylePanelInputs } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
+import { useStore } from "zustand";
 import React from "react";
 
 export interface StyleExprSpec {
@@ -50,7 +51,7 @@ interface SelectorSpec {
   label?: string;
 }
 
-export const StyleExprButton = observer(function StyleExprButton(props: {
+export const StyleExprButton = React.memo(function StyleExprButton(props: {
   viewCtx: ViewCtx;
   tpl: TplComponent;
   attr: string;
@@ -59,8 +60,10 @@ export const StyleExprButton = observer(function StyleExprButton(props: {
 }) {
   const { viewCtx, tpl, attr, spec, title } = props;
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
-  const vtm = viewCtx.variantTplMgr();
+  const inputs = useTargetedStylePanelInputs(viewCtx.studioCtx, { kind: "button", view: viewCtx, tpl, attr });
   const [show, setShow] = React.useState(false);
+  if (!inputs.active) { return null; }
+  const vtm = viewCtx.variantTplMgr();
   const component = tpl.component;
   const isClassName =
     attr === "className" ||
@@ -77,6 +80,7 @@ export const StyleExprButton = observer(function StyleExprButton(props: {
         size="small"
         onClick={() =>
           viewCtx.change(() => {
+            if (!inputs.isCurrent()) { return; }
             if (!show) {
               // now we show
               if (!expr) {
@@ -120,7 +124,7 @@ export const StyleExprButton = observer(function StyleExprButton(props: {
   );
 });
 
-const StyleExprPopup = observer(function StyleExprPopup(props: {
+const StyleExprPopup = React.memo(function StyleExprPopup(props: {
   studioCtx: StudioCtx;
   label: string;
   spec: StyleExprSpec;
@@ -131,6 +135,9 @@ const StyleExprPopup = observer(function StyleExprPopup(props: {
   const { t: studioUiT } = useI18n();
 
   const { studioCtx, label, spec, expr, isClassName, onClose } = props;
+  const inputs = useTargetedStylePanelInputs(studioCtx, { kind: "selectors", expr });
+  const selectorVersion = inputs.fields;
+  const canEditProject = useStore(studioCtx.uiEnvironment.store, (state) => state.canEditProject);
   const selectorOptions = withoutNils([
     !isClassName && !spec.selectors?.some((s) => s.label === "Base")
       ? { value: "base", label: studioUiT("Base") }
@@ -150,10 +157,11 @@ const StyleExprPopup = observer(function StyleExprPopup(props: {
   React.useEffect(() => {
     // If the SelectorRuleSet for the current selector doesn't exist yet, then
     // create it
-    if (studioCtx.canEditProject() && selector !== "base") {
+    if (inputs.active && canEditProject && selector !== "base") {
       if (!expr.styles.find((s) => s.selector === selector)) {
         spawn(
           studioCtx.changeUnsafe(() => {
+            if (!inputs.isCurrent()) { return; }
             expr.styles.push(
               mkSelectorRuleSet({
                 selector,
@@ -164,7 +172,8 @@ const StyleExprPopup = observer(function StyleExprPopup(props: {
         );
       }
     }
-  }, [studioCtx, expr, selector]);
+  }, [studioCtx, expr, selector, inputs, selectorVersion, canEditProject]);
+  if (!inputs.active) { return null; }
   return (
     <SidebarModal
       show
@@ -199,13 +208,15 @@ const StyleExprPopup = observer(function StyleExprPopup(props: {
   );
 });
 
-const StyleExprForm = observer(function StyleExprForm(props: {
+const StyleExprForm = React.memo(function StyleExprForm(props: {
   studioCtx: StudioCtx;
   spec: StyleExprSpec;
   selector: string | null;
   expr: StyleExpr;
 }) {
   const { spec, studioCtx, selector, expr } = props;
+  const inputs = useTargetedStylePanelInputs(studioCtx, { kind: "selectors", expr });
+  if (!inputs.active) { return null; }
 
   const selectorRuleSet = expr.styles.find((sty) =>
     selector === "base" ? !sty.selector : sty.selector === selector,
@@ -222,13 +233,13 @@ const StyleExprForm = observer(function StyleExprForm(props: {
     /*unremovableProps=*/ [],
     { kind: "ruleSet", rs: selectorRuleSet.rs, forTag: "div" },
   );
-  const styleComponent = mkStyleComponent({ expsProvider });
+  const styleComponent = createStyleTarget({ expsProvider });
 
   const show = (section: PublicStyleSection) => {
     return !spec.styleSections || spec.styleSections.includes(section);
   };
 
-  return providesStyleComponent(
+  return providesStyleTarget(
     styleComponent,
     `${expr.uuid}`,
   )(

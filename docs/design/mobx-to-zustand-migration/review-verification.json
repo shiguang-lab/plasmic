@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "reviewDate": "2026-11-08",
+  "scope": "Studio MobX to Zustand migration: state ownership, selectors, publication, model lifetime, caches and render boundaries",
+  "sourceSnapshot": {
+    "root": "platform/wab",
+    "inputs": 4718,
+    "paths": [
+      "src/**/*.{ts,tsx,js,jsx,mjs,cjs}",
+      "tools/**/*.{ts,tsx,js,jsx,mjs,cjs}",
+      "package.json",
+      "vitest.config.ts",
+      "tsconfig.json"
+    ],
+    "digestFormat": "SHA-256 of compact JSON with sorted relative path keys and each file's SHA-256 as its value",
+    "sha256": "6facafc7b85205788ab4416a11cabab1f80b97f791ceb3237e72630fe834fa0d",
+    "changedInputsDuringFullRun": 0
+  },
+  "checks": {
+    "studio": {
+      "cwd": "platform/wab",
+      "command": "node_modules/.bin/vitest run --project studio --maxWorkers 4 --reporter=verbose --reporter=json --outputFile.json=/tmp/plasmic-zustand-review-full-complete.json",
+      "databaseEnvironment": "Existing local WAB test PostgreSQL on 127.0.0.1:55436 via WAB_TEST_SUPER_DATABASE_URI and WAB_TEST_DATABASE_URI",
+      "exitCode": 0,
+      "physicalTestFiles": 842,
+      "passedFiles": 842,
+      "passedTests": 5596,
+      "skippedTests": 4,
+      "failedTests": 0,
+      "unhandledErrors": 0,
+      "durationSeconds": 919.01,
+      "jsonReport": "/tmp/plasmic-zustand-review-full-complete.json",
+      "log": "/tmp/plasmic-zustand-review-full-complete.log"
+    },
+    "typecheck": {
+      "cwd": "platform/wab",
+      "command": "NODE_OPTIONS=--max-old-space-size=16384 node_modules/.bin/tsc --incremental",
+      "exitCode": 0,
+      "log": "/tmp/plasmic-zustand-review-typecheck-complete.log"
+    },
+    "eslint": {
+      "cwd": ".",
+      "command": "node_modules/.bin/eslint -f json -o /tmp/plasmic-zustand-review-lint-complete.json <reviewed source files>",
+      "fileList": "/tmp/plasmic-zustand-review-files.json",
+      "files": 96,
+      "exitCode": 0,
+      "errors": 0,
+      "existingWarnings": 9
+    },
+    "migrationInventory": {
+      "command": "node docs/design/mobx-to-zustand-migration/inventory.mjs --check",
+      "exitCode": 0,
+      "remainingMobxImports": 0
+    },
+    "repositoryStateInventory": {
+      "command": "node docs/upgrades/react-19/state-inventory.mjs --check",
+      "exitCode": 0,
+      "scannedSourceFiles": 6759,
+      "remainingLegacyFiles": 0,
+      "remainingDependencyDeclarations": 0
+    },
+    "diffWhitespace": {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  },
+  "verifiedInvariants": [
+    "Model revision indexes belong to one Studio; multi-key publication installs every version before notifying a subscription once.",
+    "Selector equality retains the selected snapshot and prevents renders for equal outputs, including prop, key and owner changes.",
+    "Explicit field selectors rebind actual model dependencies and release subscriptions when unused or retired.",
+    "Project catalogs, dependencies, arena layout, inspector titles, header permissions and custom function schemas use their actual finite inputs.",
+    "Synchronous command queries and registration-dependent caches invalidate from current model writes and real registry revisions.",
+    "Retired model references cannot reconnect to a replacement owner; model-backed dialogs are cleared on owner exit.",
+    "Unchanged UI commands retain store snapshots; frame-delayed subscriptions read current values and cancel old scheduled notifications.",
+    "Immediate selector callbacks observe writes performed inside the callback.",
+    "Memo boundaries preserve parent-prop bailout behavior, including forwardRef wrappers.",
+    "Test notification cleanup does not create late React roots after the jsdom environment is destroyed."
+  ],
+  "renderBoundaryRepair": {
+    "memoBoundaries": 52,
+    "files": 40
+  },
+  "performanceEvidence": {
+    "method": "Deterministic notification, computation and React render counters with real model ownership, plus full Studio regression",
+    "covered": [
+      "Equal selected output does not render",
+      "Unrelated model fields do not recompute finite projections",
+      "Repeated unchanged UI commands do not publish",
+      "Unchanged parent props do not render canvas frames again",
+      "Unsubscription and model retirement release owned listeners"
+    ],
+    "browserFpsLatencyOrHeapBenchmark": false
+  }
+}

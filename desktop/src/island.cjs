@@ -97,10 +97,10 @@ function createIsland({ getWindow, getStudio, controller, identity, i18n, appear
     const actual = currentContext({ ...state, projectId: state.projectId ?? routeProject }, config.studioOrigin), editor = state.editorContext || {};
     // Editor routes govern image eligibility; signed-out accounts stay compact.
     const loading = !actual.ready || !actual.mode || !!actual.sessionProjectId || !!actual.routeProjectId;
-    const allowed = actual.surface === "editor" && (loading || actual.mode !== "preview" || actual.previewKind === "in-app");
+    const allowed = actual.surface === "editor" && (loading || actual.mode !== "preview" || ["in-app", "interactive"].includes(actual.previewKind));
     const sameProject = actual.projectId === context.projectId;
     const editorMode = actual.mode || (allowed ? "edit" : null);
-    const identity = JSON.stringify([state.url, actual.projectId, actual.sessionId, editorMode, editor.previewContext?.componentUuid,
+    const identity = JSON.stringify([state.url, actual.projectId, actual.sessionId, editorMode, actual.previewKind, editor.previewContext?.componentUuid,
       editor.previewContext?.path, editor.editorView?.arenaId, actual.branchId]);
     if (identity !== context.identity || !allowed || loading) { epoch++; image = null; stale = false; }
     context = { ...actual, mode: editorMode, allowed, loading, identity,

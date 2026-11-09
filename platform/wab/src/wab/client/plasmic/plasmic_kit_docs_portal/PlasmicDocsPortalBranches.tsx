@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -27,8 +27,8 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import DocsPortalBranch from "../../components/docs/DocsPortalBranch"; // plasmic-import: mJFZOBWGNu/component
 import DocsPortalHeader from "../../components/docs/DocsPortalHeader"; // plasmic-import: 6yrnCqYwJf/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -88,13 +88,12 @@ function PlasmicDocsPortalBranches__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -369,12 +368,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -384,31 +379,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDocsPortalBranches__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDocsPortalBranches";
-  } else {
-    func.displayName = `PlasmicDocsPortalBranches.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDocsPortalBranches__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDocsPortalBranches__root<T extends PlasmicDocsPortalBranches__rootProps>(props: T & StrictProps<T, PlasmicDocsPortalBranches__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDocsPortalBranches__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDocsPortalBranches__root.displayName = "PlasmicDocsPortalBranches";
+
+type PlasmicDocsPortalBranches__docsPortalHeaderProps = NodeComponentProps<"docsPortalHeader"> & {key?: React.Key};
+function PlasmicDocsPortalBranches__docsPortalHeader<T extends PlasmicDocsPortalBranches__docsPortalHeaderProps>(props: T & StrictProps<T, PlasmicDocsPortalBranches__docsPortalHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("docsPortalHeader", props);
+  return <PlasmicDocsPortalBranches__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"docsPortalHeader"} />;
+}
+PlasmicDocsPortalBranches__docsPortalHeader.displayName = "PlasmicDocsPortalBranches.docsPortalHeader";
+
+type PlasmicDocsPortalBranches__codegenBranchProps = NodeComponentProps<"codegenBranch"> & {key?: React.Key};
+function PlasmicDocsPortalBranches__codegenBranch<T extends PlasmicDocsPortalBranches__codegenBranchProps>(props: T & StrictProps<T, PlasmicDocsPortalBranches__codegenBranchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("codegenBranch", props);
+  return <PlasmicDocsPortalBranches__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"codegenBranch"} />;
+}
+PlasmicDocsPortalBranches__codegenBranch.displayName = "PlasmicDocsPortalBranches.codegenBranch";
+
+type PlasmicDocsPortalBranches__loaderBranchProps = NodeComponentProps<"loaderBranch"> & {key?: React.Key};
+function PlasmicDocsPortalBranches__loaderBranch<T extends PlasmicDocsPortalBranches__loaderBranchProps>(props: T & StrictProps<T, PlasmicDocsPortalBranches__loaderBranchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("loaderBranch", props);
+  return <PlasmicDocsPortalBranches__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"loaderBranch"} />;
+}
+PlasmicDocsPortalBranches__loaderBranch.displayName = "PlasmicDocsPortalBranches.loaderBranch";
+
+type PlasmicDocsPortalBranches__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicDocsPortalBranches__link<T extends PlasmicDocsPortalBranches__linkProps>(props: T & StrictProps<T, PlasmicDocsPortalBranches__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicDocsPortalBranches__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicDocsPortalBranches__link.displayName = "PlasmicDocsPortalBranches.link";
+
+type PlasmicDocsPortalBranches__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicDocsPortalBranches__svg<T extends PlasmicDocsPortalBranches__svgProps>(props: T & StrictProps<T, PlasmicDocsPortalBranches__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicDocsPortalBranches__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicDocsPortalBranches__svg.displayName = "PlasmicDocsPortalBranches.svg";
+
 
 export const PlasmicDocsPortalBranches = Object.assign(
   // Top-level PlasmicDocsPortalBranches renders the root element
-  makeNodeComponent("root"),
+  PlasmicDocsPortalBranches__root,
   {
     // Helper components rendering sub-elements
-    docsPortalHeader: makeNodeComponent("docsPortalHeader"),
-    codegenBranch: makeNodeComponent("codegenBranch"),
-    loaderBranch: makeNodeComponent("loaderBranch"),
-    link: makeNodeComponent("link"),
-    svg: makeNodeComponent("svg"),
+    docsPortalHeader: PlasmicDocsPortalBranches__docsPortalHeader,
+    codegenBranch: PlasmicDocsPortalBranches__codegenBranch,
+    loaderBranch: PlasmicDocsPortalBranches__loaderBranch,
+    link: PlasmicDocsPortalBranches__link,
+    svg: PlasmicDocsPortalBranches__svg,
 
     // Metadata about props expected for PlasmicDocsPortalBranches
     internalVariantProps: PlasmicDocsPortalBranches__VariantProps,

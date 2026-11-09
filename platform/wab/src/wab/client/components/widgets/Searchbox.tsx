@@ -10,9 +10,8 @@ import {
   createFakeEvent,
   useForwardedRef,
 } from "@/wab/commons/components/ReactUtil";
-import { maybe } from "@/wab/shared/common";
 import React from "react";
-import { mergeProps } from "react-aria";
+import { maybe } from "@/wab/shared/common";
 
 type SearchboxProps = Omit<
   React.ComponentProps<typeof Textbox>,
@@ -24,11 +23,7 @@ const Searchbox = React.forwardRef(function Searchbox(
   outerRef: React.Ref<TextboxRef>,
 ) {
   const { ref, onRef } = useForwardedRef(outerRef);
-
-  const getInput = React.useCallback(
-    () => maybe(ref.current, (x) => x.input()),
-    [ref],
-  );
+  const getInput = React.useCallback(() => maybe(ref.current, (input) => input.input()), [ref]);
 
   useFocusOnDisplayed(getInput, { autoFocus: props.autoFocus });
 
@@ -55,10 +50,11 @@ const Searchbox = React.forwardRef(function Searchbox(
     <PlasmicSearchbox
       root={{
         // className prop needs to be piped to the root element of this component
-        props: mergeProps(props, {
+        props: {
+          ...props,
           className: props.className,
-          ref: onRef,
           onKeyDown: (e) => {
+            props.onKeyDown?.(e);
             if (e.key === "Escape") {
               resetInput(e);
             }
@@ -72,7 +68,8 @@ const Searchbox = React.forwardRef(function Searchbox(
               <Icon icon={CloseIcon} />
             </IconButton>
           ),
-        }),
+          ref: onRef,
+        },
       }}
     />
   );

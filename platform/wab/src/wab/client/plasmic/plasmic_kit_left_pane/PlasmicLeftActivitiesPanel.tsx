@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,7 +22,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -76,11 +76,10 @@ function PlasmicLeftActivitiesPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -144,12 +143,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -159,27 +154,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftActivitiesPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftActivitiesPanel";
-  } else {
-    func.displayName = `PlasmicLeftActivitiesPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftActivitiesPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftActivitiesPanel__root<T extends PlasmicLeftActivitiesPanel__rootProps>(props: T & StrictProps<T, PlasmicLeftActivitiesPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftActivitiesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftActivitiesPanel__root.displayName = "PlasmicLeftActivitiesPanel";
+
+type PlasmicLeftActivitiesPanel__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicLeftActivitiesPanel__content<T extends PlasmicLeftActivitiesPanel__contentProps>(props: T & StrictProps<T, PlasmicLeftActivitiesPanel__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicLeftActivitiesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicLeftActivitiesPanel__content.displayName = "PlasmicLeftActivitiesPanel.content";
+
 
 export const PlasmicLeftActivitiesPanel = Object.assign(
   // Top-level PlasmicLeftActivitiesPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftActivitiesPanel__root,
   {
     // Helper components rendering sub-elements
-    content: makeNodeComponent("content"),
+    content: PlasmicLeftActivitiesPanel__content,
 
     // Metadata about props expected for PlasmicLeftActivitiesPanel
     internalVariantProps: PlasmicLeftActivitiesPanel__VariantProps,

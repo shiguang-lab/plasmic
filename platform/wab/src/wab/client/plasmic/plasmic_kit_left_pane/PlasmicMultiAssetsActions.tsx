@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,13 +26,13 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Checkbox from "../../components/widgets/Checkbox"; // plasmic-import: W-rO7NZqPjZ/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -106,11 +106,10 @@ function PlasmicMultiAssetsActions__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "withoutControlBar",
@@ -126,18 +125,20 @@ function PlasmicMultiAssetsActions__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -179,9 +180,9 @@ function PlasmicMultiAssetsActions__RenderFunc(props: {
           isChecked={
             generateStateValueProp($state, ["selectAll", "isChecked"]) ?? false
           }
-          onChange={async (...eventArgs: any) => {
+          onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
             ((...eventArgs) => {
-              generateStateOnChangeProp($state, ["selectAll", "isChecked"])(
+              generateStateOnChangeProp($stateCommands, ["selectAll", "isChecked"])(
                 eventArgs[0]
               );
             }).apply(null, eventArgs);
@@ -193,7 +194,7 @@ function PlasmicMultiAssetsActions__RenderFunc(props: {
             ) {
               return;
             }
-          }}
+          })); })}
         >
           {<UiText message={"Select all"} />}
         </Checkbox>
@@ -301,12 +302,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -316,31 +313,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicMultiAssetsActions__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicMultiAssetsActions";
-  } else {
-    func.displayName = `PlasmicMultiAssetsActions.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicMultiAssetsActions__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicMultiAssetsActions__root<T extends PlasmicMultiAssetsActions__rootProps>(props: T & StrictProps<T, PlasmicMultiAssetsActions__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicMultiAssetsActions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicMultiAssetsActions__root.displayName = "PlasmicMultiAssetsActions";
+
+type PlasmicMultiAssetsActions__controlBarProps = NodeComponentProps<"controlBar"> & {key?: React.Key};
+function PlasmicMultiAssetsActions__controlBar<T extends PlasmicMultiAssetsActions__controlBarProps>(props: T & StrictProps<T, PlasmicMultiAssetsActions__controlBarProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("controlBar", props);
+  return <PlasmicMultiAssetsActions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"controlBar"} />;
+}
+PlasmicMultiAssetsActions__controlBar.displayName = "PlasmicMultiAssetsActions.controlBar";
+
+type PlasmicMultiAssetsActions__numSelectedProps = NodeComponentProps<"numSelected"> & {key?: React.Key};
+function PlasmicMultiAssetsActions__numSelected<T extends PlasmicMultiAssetsActions__numSelectedProps>(props: T & StrictProps<T, PlasmicMultiAssetsActions__numSelectedProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("numSelected", props);
+  return <PlasmicMultiAssetsActions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"numSelected"} />;
+}
+PlasmicMultiAssetsActions__numSelected.displayName = "PlasmicMultiAssetsActions.numSelected";
+
+type PlasmicMultiAssetsActions__selectAllProps = NodeComponentProps<"selectAll"> & {key?: React.Key};
+function PlasmicMultiAssetsActions__selectAll<T extends PlasmicMultiAssetsActions__selectAllProps>(props: T & StrictProps<T, PlasmicMultiAssetsActions__selectAllProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("selectAll", props);
+  return <PlasmicMultiAssetsActions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"selectAll"} />;
+}
+PlasmicMultiAssetsActions__selectAll.displayName = "PlasmicMultiAssetsActions.selectAll";
+
+type PlasmicMultiAssetsActions__deleteSelectedProps = NodeComponentProps<"deleteSelected"> & {key?: React.Key};
+function PlasmicMultiAssetsActions__deleteSelected<T extends PlasmicMultiAssetsActions__deleteSelectedProps>(props: T & StrictProps<T, PlasmicMultiAssetsActions__deleteSelectedProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("deleteSelected", props);
+  return <PlasmicMultiAssetsActions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"deleteSelected"} />;
+}
+PlasmicMultiAssetsActions__deleteSelected.displayName = "PlasmicMultiAssetsActions.deleteSelected";
+
+type PlasmicMultiAssetsActions__cancelProps = NodeComponentProps<"cancel"> & {key?: React.Key};
+function PlasmicMultiAssetsActions__cancel<T extends PlasmicMultiAssetsActions__cancelProps>(props: T & StrictProps<T, PlasmicMultiAssetsActions__cancelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancel", props);
+  return <PlasmicMultiAssetsActions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancel"} />;
+}
+PlasmicMultiAssetsActions__cancel.displayName = "PlasmicMultiAssetsActions.cancel";
+
 
 export const PlasmicMultiAssetsActions = Object.assign(
   // Top-level PlasmicMultiAssetsActions renders the root element
-  makeNodeComponent("root"),
+  PlasmicMultiAssetsActions__root,
   {
     // Helper components rendering sub-elements
-    controlBar: makeNodeComponent("controlBar"),
-    numSelected: makeNodeComponent("numSelected"),
-    selectAll: makeNodeComponent("selectAll"),
-    deleteSelected: makeNodeComponent("deleteSelected"),
-    cancel: makeNodeComponent("cancel"),
+    controlBar: PlasmicMultiAssetsActions__controlBar,
+    numSelected: PlasmicMultiAssetsActions__numSelected,
+    selectAll: PlasmicMultiAssetsActions__selectAll,
+    deleteSelected: PlasmicMultiAssetsActions__deleteSelected,
+    cancel: PlasmicMultiAssetsActions__cancel,
 
     // Metadata about props expected for PlasmicMultiAssetsActions
     internalVariantProps: PlasmicMultiAssetsActions__VariantProps,

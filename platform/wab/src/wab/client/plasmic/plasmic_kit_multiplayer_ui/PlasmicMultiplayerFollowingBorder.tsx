@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -27,7 +27,7 @@ import {
 } from "@plasmicapp/react-web/lib/host";
 
 import MultiplayerLightDarkColorProvider from "../../components/canvas/Multiplayer/MultiplayerLightDarkColorProvider"; // plasmic-import: JH5l4wUr73/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: eyjDfHaWPk4awNJAqhg4Cb/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: eyjDfHaWPk4awNJAqhg4Cb/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -94,11 +94,10 @@ function PlasmicMultiplayerFollowingBorder__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -114,21 +113,10 @@ function PlasmicMultiplayerFollowingBorder__RenderFunc(props: {
         styleTokensClassNames,
         sty.root
       )}
-      style={(() => {
-        try {
-          return {
+      style={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+            e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ({
             borderColor: $props.hexColor,
-          };
-        } catch (e) {
-          if (
-            e instanceof TypeError ||
-            e?.plasmicType === "PlasmicUndefinedDataError"
-          ) {
-            return undefined;
-          }
-          throw e;
-        }
-      })()}
+          }), () => (undefined))}
     >
       <MultiplayerLightDarkColorProvider
         data-plasmic-name={"multiplayerLightDarkColorProvider"}
@@ -145,42 +133,20 @@ function PlasmicMultiplayerFollowingBorder__RenderFunc(props: {
               data-plasmic-name={"border"}
               data-plasmic-override={overrides.border}
               className={classNames("all", sty.border)}
-              style={(() => {
-                try {
-                  return {
+              style={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                    e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ({
                     borderColor: $ctx.colors.backgroundColor,
-                  };
-                } catch (e) {
-                  if (
-                    e instanceof TypeError ||
-                    e?.plasmicType === "PlasmicUndefinedDataError"
-                  ) {
-                    return undefined;
-                  }
-                  throw e;
-                }
-              })()}
+                  }), () => (undefined))}
             >
               <div
                 data-plasmic-name={"nameTag"}
                 data-plasmic-override={overrides.nameTag}
                 className={classNames("all", sty.nameTag)}
-                style={(() => {
-                  try {
-                    return {
+                style={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                      e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ({
                       backgroundColor: $ctx.colors.backgroundColor,
                       color: $ctx.colors.foregroundColor,
-                    };
-                  } catch (e) {
-                    if (
-                      e instanceof TypeError ||
-                      e?.plasmicType === "PlasmicUndefinedDataError"
-                    ) {
-                      return undefined;
-                    }
-                    throw e;
-                  }
-                })()}
+                    }), () => (undefined))}
               >
                 <div
                   className={classNames("all", "__wab_text", sty.text__nGj4L)}
@@ -191,19 +157,8 @@ function PlasmicMultiplayerFollowingBorder__RenderFunc(props: {
                   className={classNames("all", "__wab_text", sty.text__p4Adk)}
                 >
                   <React.Fragment>
-                    {(() => {
-                      try {
-                        return $props.name;
-                      } catch (e) {
-                        if (
-                          e instanceof TypeError ||
-                          e?.plasmicType === "PlasmicUndefinedDataError"
-                        ) {
-                          return "UserName";
-                        }
-                        throw e;
-                      }
-                    })()}
+                    {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                          e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.name), () => ("UserName"))}
                   </React.Fragment>
                 </div>
               </div>
@@ -261,12 +216,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -277,31 +228,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicMultiplayerFollowingBorder__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicMultiplayerFollowingBorder";
-  } else {
-    func.displayName = `PlasmicMultiplayerFollowingBorder.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicMultiplayerFollowingBorder__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicMultiplayerFollowingBorder__root<T extends PlasmicMultiplayerFollowingBorder__rootProps>(props: T & StrictProps<T, PlasmicMultiplayerFollowingBorder__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicMultiplayerFollowingBorder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicMultiplayerFollowingBorder__root.displayName = "PlasmicMultiplayerFollowingBorder";
+
+type PlasmicMultiplayerFollowingBorder__multiplayerLightDarkColorProviderProps = NodeComponentProps<"multiplayerLightDarkColorProvider"> & {key?: React.Key};
+function PlasmicMultiplayerFollowingBorder__multiplayerLightDarkColorProvider<T extends PlasmicMultiplayerFollowingBorder__multiplayerLightDarkColorProviderProps>(props: T & StrictProps<T, PlasmicMultiplayerFollowingBorder__multiplayerLightDarkColorProviderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("multiplayerLightDarkColorProvider", props);
+  return <PlasmicMultiplayerFollowingBorder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"multiplayerLightDarkColorProvider"} />;
+}
+PlasmicMultiplayerFollowingBorder__multiplayerLightDarkColorProvider.displayName = "PlasmicMultiplayerFollowingBorder.multiplayerLightDarkColorProvider";
+
+type PlasmicMultiplayerFollowingBorder__borderProps = NodeComponentProps<"border"> & {key?: React.Key};
+function PlasmicMultiplayerFollowingBorder__border<T extends PlasmicMultiplayerFollowingBorder__borderProps>(props: T & StrictProps<T, PlasmicMultiplayerFollowingBorder__borderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("border", props);
+  return <PlasmicMultiplayerFollowingBorder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"border"} />;
+}
+PlasmicMultiplayerFollowingBorder__border.displayName = "PlasmicMultiplayerFollowingBorder.border";
+
+type PlasmicMultiplayerFollowingBorder__nameTagProps = NodeComponentProps<"nameTag"> & {key?: React.Key};
+function PlasmicMultiplayerFollowingBorder__nameTag<T extends PlasmicMultiplayerFollowingBorder__nameTagProps>(props: T & StrictProps<T, PlasmicMultiplayerFollowingBorder__nameTagProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("nameTag", props);
+  return <PlasmicMultiplayerFollowingBorder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"nameTag"} />;
+}
+PlasmicMultiplayerFollowingBorder__nameTag.displayName = "PlasmicMultiplayerFollowingBorder.nameTag";
+
 
 export const PlasmicMultiplayerFollowingBorder = Object.assign(
   // Top-level PlasmicMultiplayerFollowingBorder renders the root element
-  makeNodeComponent("root"),
+  PlasmicMultiplayerFollowingBorder__root,
   {
     // Helper components rendering sub-elements
-    multiplayerLightDarkColorProvider: makeNodeComponent(
-      "multiplayerLightDarkColorProvider"
-    ),
-    border: makeNodeComponent("border"),
-    nameTag: makeNodeComponent("nameTag"),
+    multiplayerLightDarkColorProvider: PlasmicMultiplayerFollowingBorder__multiplayerLightDarkColorProvider,
+    border: PlasmicMultiplayerFollowingBorder__border,
+    nameTag: PlasmicMultiplayerFollowingBorder__nameTag,
 
     // Metadata about props expected for PlasmicMultiplayerFollowingBorder
     internalVariantProps: PlasmicMultiplayerFollowingBorder__VariantProps,

@@ -21,11 +21,9 @@ import {
   PlasmicClassArgs,
   PlasmicClassOverrides,
   PlasmicClassVariants,
-  PLUME_STRICT_MODE,
   VariantDef,
 } from "../plume-utils";
 import {
-  getDefaultPlasmicProps,
   getStyleProps,
   StyleProps,
 } from "../props-utils";
@@ -58,28 +56,25 @@ export function useTriggeredOverlay<
   isDismissable = true
 ) {
   const overlayRef = React.useRef<HTMLElement>(null);
-  const onOverlayRef = mergeRefs(overlayRef, outerRef, (ref) => {
+  const retainTouchEnd = React.useCallback<React.RefCallback<HTMLElement>>((ref) => {
     // Workaround for https://github.com/adobe/react-spectrum/issues/1513
     // to avoid touch events leaking under the overlay when it is closed.
     if (ref) {
-      ref.addEventListener("touchend", (e) => {
-        e.preventDefault();
-      });
+      const preventTouchEnd = (event: TouchEvent) => event.preventDefault();
+      ref.addEventListener("touchend", preventTouchEnd);
+      return () => ref.removeEventListener("touchend", preventTouchEnd);
     }
-  });
+    return undefined;
+  }, []);
+  const onOverlayRef = React.useCallback<React.RefCallback<HTMLElement>>(
+    (value) => mergeRefs(overlayRef, outerRef, retainTouchEnd)(value),
+    [overlayRef, outerRef, retainTouchEnd]
+  );
 
   const context = React.useContext(TriggeredOverlayContext);
 
   if (!context) {
-    // If no context, then we are not being correctly used.  Either complain, or
-    // exit early.  It's okay to exit early and break the rules of React hooks
-    // because we won't suddenly have the appropriate context anyway for this instance.
-    if (PLUME_STRICT_MODE) {
-      throw new Error(
-        "You can only use a triggered overlay with a TriggeredOverlayContext"
-      );
-    }
-    return getDefaultPlasmicProps(plasmicClass, props);
+    throw new Error("You can only use a triggered overlay with a TriggeredOverlayContext");
   }
 
   const { children } = props;
@@ -93,26 +88,12 @@ export function useTriggeredOverlay<
   } = context;
 
   // Measure the width of the trigger to inform the width of the menu (below).
-  const [isRendered, setRendered] = React.useState(false);
-  const triggerWidth =
-    triggerRef.current && (overlayMatchTriggerWidth || overlayMinTriggerWidth)
-      ? triggerRef.current.offsetWidth
-      : undefined;
-
+  const [triggerWidth, setTriggerWidth] = React.useState<number | undefined>();
   useIsomorphicLayoutEffect(() => {
-    if (
-      !isRendered &&
-      triggerRef.current &&
-      (overlayMatchTriggerWidth || overlayMinTriggerWidth)
-    ) {
-      setRendered(true);
-    }
-  }, [
-    triggerRef,
-    isRendered,
-    overlayMatchTriggerWidth,
-    overlayMinTriggerWidth,
-  ]);
+    const trigger = triggerRef.current;
+    setTriggerWidth(trigger && (overlayMatchTriggerWidth || overlayMinTriggerWidth)
+      ? trigger.offsetWidth : undefined);
+  });
 
   const { overlayProps: overlayAriaProps } = useOverlay(
     {
@@ -191,9 +172,7 @@ export function useTriggeredOverlay<
 
   const overrides: Overrides = {
     [config.root]: {
-      props: mergeProps(overlayProps, getStyleProps(props), {
-        ref: onOverlayRef,
-      }),
+      props: { ...mergeProps(overlayProps, getStyleProps(props)), ref: onOverlayRef },
       wrap: (root: React.ReactNode) => {
         if (typeof document !== "undefined") {
           return ReactDOM.createPortal(root, document.body);

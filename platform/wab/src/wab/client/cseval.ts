@@ -1,7 +1,6 @@
-import { useCanvasForceUpdate } from "@/wab/client/components/canvas/canvas-hooks";
 import { mkUseCanvasObserver } from "@/wab/client/components/canvas/canvas-observer";
 import {
-  useRenderedFrameRoot,
+  renderFrameRoot,
 } from "@/wab/client/components/canvas/canvas-rendering";
 import { FrameState } from "@/wab/client/react-global-hook/types";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -130,7 +129,9 @@ export abstract class BaseCliSvrEvaluator {
     const viewCtx = this.viewCtx();
     if (this.rootNode == null) {
       this.rootNode = this.renderRoot();
-      viewCtx.canvasCtx.rerender(this.rootNode, viewCtx);
+      viewCtx.canvasCtx.Sub.ReactDOM.flushSync(() =>
+        viewCtx.canvasCtx.rerender(this.rootNode, viewCtx),
+      );
     }
     this.addPostEval(() => {
       this.incrementRenderCount();
@@ -156,20 +157,17 @@ export abstract class BaseCliSvrEvaluator {
   private renderRoot() {
     const vc = this.viewCtx();
     const sub = vc.canvasCtx.Sub;
-    // We need to create a single node and make it rerender after observable
-    // changes instead of create several root nodes to avoid unmounting the
+    // Keep one root and subscribe to its explicit component inputs rather
+    // than creating several root nodes to avoid unmounting the
     // canvas (currently `Sub.hostUtils.setPlasmicRootNode` forces the tree to remount)
-    return sub.React.createElement(() => {
-      const forceUpdate = useCanvasForceUpdate(sub, false);
-      return mkUseCanvasObserver(sub, vc)(
-        () => {
+    return sub.React.createElement(sub.CanvasStoreProjection<ReturnType<typeof this.globalContexts.store.getState>>, {
+      store: this.globalContexts.store,
+      render: (contexts) => mkUseCanvasObserver(sub, vc, vc.canvasRenderOwner.observerInput(vc, vc.component))(
+        (onRenderInvalidated) => {
           const tpl = vc.componentArgsContainer();
-          const contexts = sub.React.useSyncExternalStore(
-            this.globalContexts.store.subscribe, this.globalContexts.store.getState, this.globalContexts.store.getInitialState,
-          );
           const tplRootWithContexts = vc.studioCtx.modelSnapshots.resolve(contexts.root);
 
-          let reactRoot = useRenderedFrameRoot(vc, tplRootWithContexts);
+          let reactRoot = renderFrameRoot(vc, tplRootWithContexts, onRenderInvalidated);
 
           if (tpl.component.pageMeta) {
             const pageParamsProviderProps = tpl.component.pageMeta
@@ -190,8 +188,7 @@ export abstract class BaseCliSvrEvaluator {
           return reactRoot;
         },
         `renderRoot`,
-        forceUpdate,
-      );
+      ),
     });
   }
 

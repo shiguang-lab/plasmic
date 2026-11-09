@@ -2,8 +2,9 @@ import "@/wab/client/frame-ctx/project-model-transfer";
 import { LoadingAnimationContext } from "@/wab/client/contexts/LoadingAnimationContext";
 import { ensureIsHostFrame, isHostFrame } from "@/wab/client/cli-routes";
 import {
-  providesFrameCtx,
+  FrameCtxProvider,
   useFrameCtx,
+  useFrameCtxMaybe,
 } from "@/wab/client/frame-ctx/frame-ctx";
 import { FrameMessage } from "@/wab/client/frame-ctx/frame-message-types";
 import { getTopFrameWindow } from "@/wab/client/frame-ctx/host-window";
@@ -13,7 +14,7 @@ import { TopFrameFullApi } from "@/wab/client/frame-ctx/top-frame-api";
 import { setUiLocale } from "@/wab/client/i18n";
 import { setUiAppearance } from "@/wab/client/ui-theme";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
-import { spawn } from "@/wab/shared/common";
+import { ensure, spawn } from "@/wab/shared/common";
 import * as Comlink from "comlink";
 import {
   Action,
@@ -103,11 +104,11 @@ export function HostFrameCtxProvider({ children }: HostFrameCtxProviderProps) {
   }, []);
 
   // block children until connected to TopFrame
-  return providesFrameCtx(hostFrameCtx)(
+  return <FrameCtxProvider value={hostFrameCtx}>
     <LoadingAnimationContext.Provider value={animationEnabled}>
       {hostFrameCtx ? children : null}
-    </LoadingAnimationContext.Provider>,
-  );
+    </LoadingAnimationContext.Provider>
+  </FrameCtxProvider>;
 }
 
 /**
@@ -125,7 +126,8 @@ export function useHostFrameCtx(): HostFrameCtx {
  * @throws if HostFrameCtx not provided
  */
 export function useHostFrameCtxIfHostFrame(): HostFrameCtx | undefined {
-  return isHostFrame() ? useFrameCtx() : undefined;
+  const frame = useFrameCtxMaybe<HostFrameCtx>();
+  return isHostFrame() ? ensure(frame, "FrameCtx not provided") : undefined;
 }
 
 /**

@@ -6,7 +6,7 @@ import {
   usesProductTheme,
 } from "@/wab/client/ui-theme";
 import type { ThemeConfig } from "antd";
-import { ConfigProvider, theme } from "antd";
+import { ConfigProvider, theme as AntdTheme } from "antd";
 import { ThemeProvider } from "antd-style";
 import enUS from "antd/locale/en_US";
 import jaJP from "antd/locale/ja_JP";
@@ -56,7 +56,7 @@ export function AntdConfigProvider({
     document.documentElement.lang = locale;
   }, [locale]);
   const currentTheme = productUI ? productTheme(appearance) : antdTheme;
-  const { styles } = useProductThemeStyles(theme.getDesignToken(currentTheme));
+  const { styles } = useProductThemeStyles(AntdTheme.getDesignToken(currentTheme));
   // Portals can leave the themed body/editor subtree. Bind the palette to
   // every popup root so legacy controls inside inherit it in any container.
   const popupClassNames = productUI ? { root: styles.root } : undefined;
@@ -83,7 +83,7 @@ export function AntdConfigProvider({
     ConfigProvider.config({ theme: currentTheme });
     // Document/loading colors follow the selected appearance even on auth
     // routes and in independent modal roots that use the legacy control theme.
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const root = document.documentElement;
     for (const [name, value] of Object.entries({
       layout: token.colorBgLayout,
@@ -120,7 +120,7 @@ export function AntdConfigProvider({
 export function productTheme(appearance: UiAppearance): ThemeConfig {
   const dark = appearance === "dark";
   return {
-    algorithm: dark ? theme.darkAlgorithm : theme.defaultAlgorithm,
+    algorithm: dark ? AntdTheme.darkAlgorithm : AntdTheme.defaultAlgorithm,
     token: {
       colorPrimary: dark ? "#9474ff" : "#7955d9",
       colorText: dark ? "#edeef5" : "#252a38",

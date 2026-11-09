@@ -3,7 +3,6 @@ import { useTreeState } from "@react-stately/tree";
 import { AriaLabelingProps, DOMProps } from "@react-types/shared";
 import * as React from "react";
 import { pick } from "../../common";
-import { mergeProps } from "../../react-utils";
 import { Overrides } from "../../render/elements";
 import { useEnsureSSRProvider } from "../../render/ssr";
 import {
@@ -59,7 +58,7 @@ export interface MenuConfig<C extends AnyPlasmicClass> {
 /**
  * Converts props from BaseMenuProps to react-aria's useMenu() props.
  */
-function asAriaMenuProps(props: BaseMenuProps) {
+function useAriaMenuProps(props: BaseMenuProps) {
   const { children, ...rest } = props;
   const { items, disabledKeys } = useDerivedItemsFromChildren(children, {
     ...COLLECTION_OPTS,
@@ -94,7 +93,7 @@ export function useMenu<P extends BaseMenuProps, C extends AnyPlasmicClass>(
   ref: MenuRef = null
 ) {
   useEnsureSSRProvider();
-  const { ariaProps } = asAriaMenuProps(props);
+  const { ariaProps } = useAriaMenuProps(props);
   const triggerContext = React.useContext(TriggeredOverlayContext);
   const rootRef = React.useRef<HTMLElement>(null);
 
@@ -122,18 +121,17 @@ export function useMenu<P extends BaseMenuProps, C extends AnyPlasmicClass>(
 
   const overrides: Overrides = {
     [config.root]: {
-      props: mergeProps(getStyleProps(props), {
-        ref: rootRef,
-      }),
+      props: { ...getStyleProps(props), ref: rootRef },
     },
     [config.itemsContainer]: {
       as: "ul",
-      props: mergeProps(menuProps, {
+      props: {
+        ...menuProps,
         ref: menuListRef,
         style: {
           ...noOutline(),
         },
-      }),
+      },
     },
   };
 

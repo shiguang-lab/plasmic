@@ -1,3 +1,4 @@
+import { TplVisibility } from "@/wab/shared/visibility-utils";
 import { $$$ } from "@/wab/shared/TplQuery";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
@@ -34,6 +35,7 @@ import {
 } from "@/wab/shared/Variants";
 import {
   resolveDefinedIndicator,
+  captureDefinedIndicator,
   SingleRsStyleProjection,
   TplStyleProjection,
   type SingleRsStyleSource,
@@ -738,5 +740,78 @@ it("keeps theme layout defaults without persisting on read and follows first att
     syncAndPublish(f, projection, () => { theme.layout = undefined; });
     expect(cellOf(projection, "plasmic-standard-width").value).toBe(before);
     projection.dispose();
+  } finally { f.snapshots.dispose(); f.recorder.dispose(); }
+});
+
+it("keeps marker and CSS-value projections distinct while sharing the same legitimate CSS indicator", () => {
+  const f = fixture(), owner = new ViewStyleInputs(() => f.snapshots);
+  const source = sourceFor(f, [f.base], [f.base], [f.base]);
+  try {
+    f.recorder.withRecording(() => { ensure(tryGetVariantSetting(f.root, [f.base]), "Base style").rs.values = { opacity: "0.4" }; });
+    const values = owner.get(source, ["opacity"]), markers = owner.getIndicators(source, ["opacity"]);
+    const stopValues = values.retain(), stopMarkers = markers.retain();
+    try {
+      expect(markers.key).not.toBe(values.key);
+      expect(markers.projection).not.toBe(values.projection);
+      expect(markers.store.getState()[0]?.indicator).toEqual(values.projection.store.getState()[0]?.indicator);
+      expect(markers.store.getState()[0]).not.toHaveProperty("value");
+      expect(values.projection.store.getState()[0]?.value).toBe("0.4");
+    } finally { stopValues(); stopMarkers(); }
+  } finally { owner.dispose(); f.snapshots.dispose(); f.recorder.dispose(); }
+});
+
+it("publishes synthetic animation markers without CSS value parsing and preserves invalid value-key errors", () => {
+  const f = fixture(), owner = new ViewStyleInputs(() => f.snapshots);
+  const source = sourceFor(f, [f.base], [f.base], [f.base]);
+  try {
+    const animation = recordValue(f, () => {
+      const sequence = f.tplMgr.addAnimationSequence("Entrance"), created = f.tplMgr.addAnimation(sequence);
+      ensure(tryGetVariantSetting(f.root, [f.base]), "Base animation setting").rs.animations = [created]; return created;
+    });
+    const marker = owner.getIndicators(source, ["animation"]), stop = marker.retain(), changed = vi.fn(), stopChanges = marker.store.subscribe(changed);
+    try {
+      const cell = ensure(marker.store.getState()[0], "Animation marker");
+      expect(marker.projection.resolveIndicator(ensure(cell.indicator, "Animation source")).source).toBe("set");
+      expect(cell).not.toHaveProperty("value");
+      expect(() => owner.get(source, ["animation"])).toThrow("tryGetCssInitial");
+      const edit = f.recorder.withRecording(() => { ensure(tryGetVariantSetting(f.root, [f.base]), "Base animation setting").rs.animations = null; });
+      f.snapshots.sync(edit.changes, () => owner.prepareCommit()); owner.publishCommit();
+      expect(changed).toHaveBeenCalledOnce();
+      expect(marker.projection.resolveIndicator(ensure(marker.store.getState()[0]?.indicator, "Empty animation source")).source).toBe("none");
+      expect(animation.sequence.name).toBe("Entrance");
+    } finally { stopChanges(); stop(); }
+  } finally { owner.dispose(); f.snapshots.dispose(); f.recorder.dispose(); }
+});
+
+
+it("captures and resolves real responsive-columns indicator sources with original variant identities", () => {
+  const f = fixture();
+  try {
+    const source = { type: "columnsConfig" as const, combo: [f.base], value: "wrap - [6, 6]" };
+    const captured = captureDefinedIndicator(f.snapshots, { source: "set", stack: [source], targetSource: source });
+    expect(captured.stack[0]).toMatchObject({ type: "columnsConfig", value: "wrap - [6, 6]" });
+    expect(Object.isFrozen(captured.stack[0])).toBe(true);
+    const indicator = resolveDefinedIndicator(f.snapshots, captured);
+    expect(indicator.source).toBe("set");
+    if (indicator.source !== "set") { throw new Error("Expected the original set indicator"); }
+    expect(indicator.targetSource).toBe(indicator.stack[0]);
+    const resolved = indicator.stack[0];
+    if (resolved.type !== "columnsConfig") { throw new Error("Expected responsive-columns source"); }
+    expect(resolved.combo[0]).toBe(f.base); expect(resolved.value).toBe(source.value);
+  } finally { f.snapshots.dispose(); f.recorder.dispose(); }
+});
+
+it("round-trips a real visibility indicator without redirecting variant ownership", () => {
+  const f = fixture();
+  try {
+    const source = { type: "visibility" as const, combo: [f.base], value: TplVisibility.NotRendered };
+    const captured = captureDefinedIndicator(f.snapshots, { source: "set", stack: [source], targetSource: source });
+    expect(Object.isFrozen(captured.stack[0])).toBe(true);
+    const indicator = resolveDefinedIndicator(f.snapshots, captured);
+    if (indicator.source !== "set") { throw new Error("Expected original set indicator"); }
+    expect(indicator.targetSource).toBe(indicator.stack[0]);
+    const resolved = indicator.stack[0];
+    if (resolved.type !== "visibility") { throw new Error("Expected original visibility source"); }
+    expect(resolved.combo[0]).toBe(f.base); expect(resolved.value).toBe(TplVisibility.NotRendered);
   } finally { f.snapshots.dispose(); f.recorder.dispose(); }
 });

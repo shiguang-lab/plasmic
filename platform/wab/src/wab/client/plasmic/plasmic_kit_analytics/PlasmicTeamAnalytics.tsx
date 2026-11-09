@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,7 +26,7 @@ import AnalyticsHeader from "../../components/analytics/AnalyticsHeader"; // pla
 import ChartView from "../../components/analytics/ChartView"; // plasmic-import: vSQc3cNg5Q/component
 import DataFilters from "../../components/analytics/DataFilters"; // plasmic-import: Dza4MqGNx4p/component
 import TeamFilters from "../../components/analytics/TeamFilters"; // plasmic-import: U5oM6fe0OlY/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -113,11 +113,10 @@ function PlasmicTeamAnalytics__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <React.Fragment>
@@ -214,12 +213,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -229,30 +224,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTeamAnalytics__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTeamAnalytics";
-  } else {
-    func.displayName = `PlasmicTeamAnalytics.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTeamAnalytics__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTeamAnalytics__root<T extends PlasmicTeamAnalytics__rootProps>(props: T & StrictProps<T, PlasmicTeamAnalytics__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTeamAnalytics__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTeamAnalytics__root.displayName = "PlasmicTeamAnalytics";
+
+type PlasmicTeamAnalytics__headerProps = NodeComponentProps<"header"> & {key?: React.Key};
+function PlasmicTeamAnalytics__header<T extends PlasmicTeamAnalytics__headerProps>(props: T & StrictProps<T, PlasmicTeamAnalytics__headerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("header", props);
+  return <PlasmicTeamAnalytics__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"header"} />;
+}
+PlasmicTeamAnalytics__header.displayName = "PlasmicTeamAnalytics.header";
+
+type PlasmicTeamAnalytics__teamFiltersProps = NodeComponentProps<"teamFilters"> & {key?: React.Key};
+function PlasmicTeamAnalytics__teamFilters<T extends PlasmicTeamAnalytics__teamFiltersProps>(props: T & StrictProps<T, PlasmicTeamAnalytics__teamFiltersProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("teamFilters", props);
+  return <PlasmicTeamAnalytics__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"teamFilters"} />;
+}
+PlasmicTeamAnalytics__teamFilters.displayName = "PlasmicTeamAnalytics.teamFilters";
+
+type PlasmicTeamAnalytics__dataFiltersProps = NodeComponentProps<"dataFilters"> & {key?: React.Key};
+function PlasmicTeamAnalytics__dataFilters<T extends PlasmicTeamAnalytics__dataFiltersProps>(props: T & StrictProps<T, PlasmicTeamAnalytics__dataFiltersProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dataFilters", props);
+  return <PlasmicTeamAnalytics__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dataFilters"} />;
+}
+PlasmicTeamAnalytics__dataFilters.displayName = "PlasmicTeamAnalytics.dataFilters";
+
+type PlasmicTeamAnalytics__chartViewProps = NodeComponentProps<"chartView"> & {key?: React.Key};
+function PlasmicTeamAnalytics__chartView<T extends PlasmicTeamAnalytics__chartViewProps>(props: T & StrictProps<T, PlasmicTeamAnalytics__chartViewProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("chartView", props);
+  return <PlasmicTeamAnalytics__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"chartView"} />;
+}
+PlasmicTeamAnalytics__chartView.displayName = "PlasmicTeamAnalytics.chartView";
+
 
 export const PlasmicTeamAnalytics = Object.assign(
   // Top-level PlasmicTeamAnalytics renders the root element
-  makeNodeComponent("root"),
+  PlasmicTeamAnalytics__root,
   {
     // Helper components rendering sub-elements
-    header: makeNodeComponent("header"),
-    teamFilters: makeNodeComponent("teamFilters"),
-    dataFilters: makeNodeComponent("dataFilters"),
-    chartView: makeNodeComponent("chartView"),
+    header: PlasmicTeamAnalytics__header,
+    teamFilters: PlasmicTeamAnalytics__teamFilters,
+    dataFilters: PlasmicTeamAnalytics__dataFilters,
+    chartView: PlasmicTeamAnalytics__chartView,
 
     // Metadata about props expected for PlasmicTeamAnalytics
     internalVariantProps: PlasmicTeamAnalytics__VariantProps,

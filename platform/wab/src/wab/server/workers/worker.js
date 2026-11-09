@@ -1,6 +1,6 @@
 const workerpool = require("workerpool");
 
-require("esbuild-register");
+require("../../../../tools/backend-register.cjs");
 
 require("../util/profiler").maybeStartGoogleCloudProfiler("worker");
 

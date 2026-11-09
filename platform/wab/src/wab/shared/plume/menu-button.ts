@@ -52,50 +52,33 @@ const menuButtonConfig = {
 export const MenuButtonPlugin: PlumePlugin = {
   // PlumeCanvasPlugin
   genCanvasWrapperComponent: (sub, impl, observer, getCompMeta, component) => {
-    return sub.React.forwardRef((allProps, ref: MenuButtonRef) =>
+    const Comp = sub.createCanvasComponentType((allProps, ref: MenuButtonRef) =>
       observer(() => {
-        const internalProps = pick(allProps, internalCanvasElementProps);
-        let usingDefaultMenu: false | React.ReactElement = false;
-        let componentProps = omit(allProps, internalCanvasElementProps);
-        if (
-          !("menu" in componentProps) &&
-          getTplSlotByName(component, "menu")?.defaultContents.length
-        ) {
-          usingDefaultMenu = createDefaultSlotContentsStub(sub);
-          componentProps = {
-            ...componentProps,
-            menu: usingDefaultMenu,
-          };
-        }
-        const { plasmicProps } = sub.reactWeb.useMenuButton(
-          Object.assign(impl, getCompMeta()),
-          componentProps as BaseMenuButtonProps,
-          menuButtonConfig as any,
-          ref,
-        );
-        if (usingDefaultMenu) {
-          assert(
-            plasmicProps.args.menu === usingDefaultMenu,
-            () => `Expected menu to match slot stub`,
-          );
-          delete plasmicProps.args.menu;
-        }
-        return sub.React.createElement(impl, {
-          ...plasmicProps,
-          ...internalProps,
+        const componentProps = omit(allProps, internalCanvasElementProps);
+        const hasDefault = !("menu" in componentProps) && !!getTplSlotByName(component, "menu")?.defaultContents.length;
+        return sub.React.createElement(sub.CanvasPlume.CanvasPlumeMenuButton, {
+          impl,
+          metadata: getCompMeta(),
+          internalProps: pick(allProps, internalCanvasElementProps),
+          componentProps: hasDefault ? { ...componentProps, menu: createDefaultSlotContentsStub(sub) } : componentProps,
+          config: menuButtonConfig as any,
+          forwardedRef: ref,
+          defaultSlot: hasDefault ? "menu" : undefined,
         });
       }),
     );
+
+    return Comp;
   },
 
   // PlumeCodegenPlugin
   genHook(ctx: SerializerBaseContext) {
     const { component } = ctx;
     return `
-      function useBehavior<P extends pp.BaseMenuButtonProps>(props: P, ref: pp.MenuButtonRef) {
+      function useBehavior<P extends Plume.BaseMenuButtonProps>(props: P, ref: Plume.MenuButtonRef) {
         ${serializeComponentSubstitutionCallsForDefaultContents(ctx, ["menu"])}
         ${maybeIncludeSerializedDefaultSlotContent(ctx, "menu")}
-        return pp.useMenuButton(
+        return Plume.useMenuButton(
           ${makePlasmicComponentName(component)},
           props,
           ${jsLiteral(menuButtonConfig)},
@@ -112,7 +95,7 @@ export const MenuButtonPlugin: PlumePlugin = {
     return `
       export interface ${
         opts?.typeName ?? makeDefaultExternalPropsName(component)
-      } extends pp.BaseMenuButtonProps {
+      } extends Plume.BaseMenuButtonProps {
         ${params
           .map(
             (param) =>

@@ -24,17 +24,13 @@ export interface AddCommentMarkerProps extends DefaultAddCommentMarkerProps {
   icon?: PlasmicAddCommentMarker__OverridesType["icon"];
 }
 
-/** Adds `ref` to a Plasmic override given as props or as `{ props }`. */
-function withOverrideRef(override: unknown, ref: React.Ref<any>) {
-  if (!ref) {
-    return override;
-  }
+/** Normalizes the object forms of a Plasmic node override. */
+function objectOverride(override: unknown) {
   if (override == null) {
-    return { ref };
+    return { props: {} };
   }
   if (typeof override !== "object" || React.isValidElement(override)) {
-    // Children or render-function overrides can't take a ref.
-    return override;
+    return undefined;
   }
   const full = ["props", "as", "render", "wrap", "wrapChildren"].some(
     (key) => key in override,
@@ -42,9 +38,9 @@ function withOverrideRef(override: unknown, ref: React.Ref<any>) {
   return full
     ? {
         ...override,
-        props: { ...(override as { props?: object }).props, ref },
+        props: (override as { props?: object }).props,
       }
-    : { ...override, ref };
+    : { props: override };
 }
 
 // The root element is the `icon` button. Tooltip triggers anchor through the
@@ -53,6 +49,7 @@ export const AddCommentMarker = React.forwardRef<
   HTMLButtonElement,
   AddCommentMarkerProps
 >(function AddCommentMarker({ icon, ...props }, ref) {
+  const normalized = objectOverride(icon);
   // Use PlasmicAddCommentMarker to render this component as it was
   // designed in Plasmic, by activating the appropriate variants,
   // attaching the appropriate event handlers, etc.  You
@@ -72,10 +69,7 @@ export const AddCommentMarker = React.forwardRef<
     <PlasmicAddCommentMarker
       {...props}
       icon={
-        withOverrideRef(
-          icon,
-          ref,
-        ) as PlasmicAddCommentMarker__OverridesType["icon"]
+        (normalized ? { ...normalized, props: { ...normalized.props, ref } } : icon) as PlasmicAddCommentMarker__OverridesType["icon"]
       }
     />
   );

@@ -20,7 +20,7 @@ export function ImportPlasmicButton(props: {
     getUploadedFile(
       async (content: string, file?: File) => {
         setLoading(true);
-        try {
+        return await (async () => {
           if (!file?.name.toLowerCase().endsWith(".plasmic")) {
             throw new Error(t("Please select a valid .plasmic file."));
           }
@@ -40,7 +40,7 @@ export function ImportPlasmicButton(props: {
           window.location.href = APP_ROUTES.project.fill({
             projectId: result.projectId,
           });
-        } catch (error) {
+        })().catch((error) => {
           console.error("Failed to import .plasmic file:", error);
           void message.error({
             content:
@@ -49,7 +49,7 @@ export function ImportPlasmicButton(props: {
                 : t("Failed to import .plasmic file"),
           });
           setLoading(false);
-        }
+        });
       },
       {
         accept: ".plasmic",

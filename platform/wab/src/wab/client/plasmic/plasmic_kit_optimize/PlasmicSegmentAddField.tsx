@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -27,7 +27,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -91,11 +91,10 @@ function PlasmicSegmentAddField__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -219,12 +218,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -234,30 +229,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSegmentAddField__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSegmentAddField";
-  } else {
-    func.displayName = `PlasmicSegmentAddField.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSegmentAddField__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSegmentAddField__root<T extends PlasmicSegmentAddField__rootProps>(props: T & StrictProps<T, PlasmicSegmentAddField__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSegmentAddField__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSegmentAddField__root.displayName = "PlasmicSegmentAddField";
+
+type PlasmicSegmentAddField__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicSegmentAddField__text<T extends PlasmicSegmentAddField__textProps>(props: T & StrictProps<T, PlasmicSegmentAddField__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicSegmentAddField__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicSegmentAddField__text.displayName = "PlasmicSegmentAddField.text";
+
+type PlasmicSegmentAddField__fieldNameProps = NodeComponentProps<"fieldName"> & {key?: React.Key};
+function PlasmicSegmentAddField__fieldName<T extends PlasmicSegmentAddField__fieldNameProps>(props: T & StrictProps<T, PlasmicSegmentAddField__fieldNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("fieldName", props);
+  return <PlasmicSegmentAddField__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"fieldName"} />;
+}
+PlasmicSegmentAddField__fieldName.displayName = "PlasmicSegmentAddField.fieldName";
+
+type PlasmicSegmentAddField__fieldTypeProps = NodeComponentProps<"fieldType"> & {key?: React.Key};
+function PlasmicSegmentAddField__fieldType<T extends PlasmicSegmentAddField__fieldTypeProps>(props: T & StrictProps<T, PlasmicSegmentAddField__fieldTypeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("fieldType", props);
+  return <PlasmicSegmentAddField__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"fieldType"} />;
+}
+PlasmicSegmentAddField__fieldType.displayName = "PlasmicSegmentAddField.fieldType";
+
+type PlasmicSegmentAddField__addFieldBtnProps = NodeComponentProps<"addFieldBtn"> & {key?: React.Key};
+function PlasmicSegmentAddField__addFieldBtn<T extends PlasmicSegmentAddField__addFieldBtnProps>(props: T & StrictProps<T, PlasmicSegmentAddField__addFieldBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addFieldBtn", props);
+  return <PlasmicSegmentAddField__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addFieldBtn"} />;
+}
+PlasmicSegmentAddField__addFieldBtn.displayName = "PlasmicSegmentAddField.addFieldBtn";
+
 
 export const PlasmicSegmentAddField = Object.assign(
   // Top-level PlasmicSegmentAddField renders the root element
-  makeNodeComponent("root"),
+  PlasmicSegmentAddField__root,
   {
     // Helper components rendering sub-elements
-    text: makeNodeComponent("text"),
-    fieldName: makeNodeComponent("fieldName"),
-    fieldType: makeNodeComponent("fieldType"),
-    addFieldBtn: makeNodeComponent("addFieldBtn"),
+    text: PlasmicSegmentAddField__text,
+    fieldName: PlasmicSegmentAddField__fieldName,
+    fieldType: PlasmicSegmentAddField__fieldType,
+    addFieldBtn: PlasmicSegmentAddField__addFieldBtn,
 
     // Metadata about props expected for PlasmicSegmentAddField
     internalVariantProps: PlasmicSegmentAddField__VariantProps,

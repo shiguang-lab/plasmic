@@ -628,7 +628,7 @@ export function useFocusOnDisplayed(
         }
       }
     },
-    [getInput],
+    [getInput, opts?.autoFocus, opts?.selectAll],
   );
   useToggleDisplayed(getInput, callback);
 }

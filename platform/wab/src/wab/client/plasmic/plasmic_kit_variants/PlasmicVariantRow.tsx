@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,8 +24,8 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -34,7 +34,7 @@ import { PlexusButton } from "../../components/plexus/PlexusButton"; // plasmic-
 import Indicator from "../../components/style-controls/Indicator"; // plasmic-import: KRNHR6lpj1/component
 import VariantPinButton from "../../components/variants/VariantPinButton"; // plasmic-import: iPC_skyaMh/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: wT5BWZPEc2fYxyqbTLXMt2/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: wT5BWZPEc2fYxyqbTLXMt2/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -148,11 +148,10 @@ function PlasmicVariantRow__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "type",
@@ -201,23 +200,25 @@ function PlasmicVariantRow__RenderFunc(props: {
           $props.showAddAnimation,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -951,12 +952,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -966,35 +963,93 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVariantRow__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicVariantRow";
-  } else {
-    func.displayName = `PlasmicVariantRow.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVariantRow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicVariantRow__root<T extends PlasmicVariantRow__rootProps>(props: T & StrictProps<T, PlasmicVariantRow__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicVariantRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicVariantRow__root.displayName = "PlasmicVariantRow";
+
+type PlasmicVariantRow__listItemProps = NodeComponentProps<"listItem"> & {key?: React.Key};
+function PlasmicVariantRow__listItem<T extends PlasmicVariantRow__listItemProps>(props: T & StrictProps<T, PlasmicVariantRow__listItemProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("listItem", props);
+  return <PlasmicVariantRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"listItem"} />;
+}
+PlasmicVariantRow__listItem.displayName = "PlasmicVariantRow.listItem";
+
+type PlasmicVariantRow__iconProps = NodeComponentProps<"icon"> & {key?: React.Key};
+function PlasmicVariantRow__icon<T extends PlasmicVariantRow__iconProps>(props: T & StrictProps<T, PlasmicVariantRow__iconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("icon", props);
+  return <PlasmicVariantRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"icon"} />;
+}
+PlasmicVariantRow__icon.displayName = "PlasmicVariantRow.icon";
+
+type PlasmicVariantRow__recordButtonProps = NodeComponentProps<"recordButton"> & {key?: React.Key};
+function PlasmicVariantRow__recordButton<T extends PlasmicVariantRow__recordButtonProps>(props: T & StrictProps<T, PlasmicVariantRow__recordButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("recordButton", props);
+  return <PlasmicVariantRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"recordButton"} />;
+}
+PlasmicVariantRow__recordButton.displayName = "PlasmicVariantRow.recordButton";
+
+type PlasmicVariantRow__variantPinButtonProps = NodeComponentProps<"variantPinButton"> & {key?: React.Key};
+function PlasmicVariantRow__variantPinButton<T extends PlasmicVariantRow__variantPinButtonProps>(props: T & StrictProps<T, PlasmicVariantRow__variantPinButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("variantPinButton", props);
+  return <PlasmicVariantRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"variantPinButton"} />;
+}
+PlasmicVariantRow__variantPinButton.displayName = "PlasmicVariantRow.variantPinButton";
+
+type PlasmicVariantRow__exprButtonProps = NodeComponentProps<"exprButton"> & {key?: React.Key};
+function PlasmicVariantRow__exprButton<T extends PlasmicVariantRow__exprButtonProps>(props: T & StrictProps<T, PlasmicVariantRow__exprButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("exprButton", props);
+  return <PlasmicVariantRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"exprButton"} />;
+}
+PlasmicVariantRow__exprButton.displayName = "PlasmicVariantRow.exprButton";
+
+type PlasmicVariantRow__previewAnimationContainerProps = NodeComponentProps<"previewAnimationContainer"> & {key?: React.Key};
+function PlasmicVariantRow__previewAnimationContainer<T extends PlasmicVariantRow__previewAnimationContainerProps>(props: T & StrictProps<T, PlasmicVariantRow__previewAnimationContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("previewAnimationContainer", props);
+  return <PlasmicVariantRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"previewAnimationContainer"} />;
+}
+PlasmicVariantRow__previewAnimationContainer.displayName = "PlasmicVariantRow.previewAnimationContainer";
+
+type PlasmicVariantRow__previewAnimationProps = NodeComponentProps<"previewAnimation"> & {key?: React.Key};
+function PlasmicVariantRow__previewAnimation<T extends PlasmicVariantRow__previewAnimationProps>(props: T & StrictProps<T, PlasmicVariantRow__previewAnimationProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("previewAnimation", props);
+  return <PlasmicVariantRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"previewAnimation"} />;
+}
+PlasmicVariantRow__previewAnimation.displayName = "PlasmicVariantRow.previewAnimation";
+
+type PlasmicVariantRow__addAnimationProps = NodeComponentProps<"addAnimation"> & {key?: React.Key};
+function PlasmicVariantRow__addAnimation<T extends PlasmicVariantRow__addAnimationProps>(props: T & StrictProps<T, PlasmicVariantRow__addAnimationProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addAnimation", props);
+  return <PlasmicVariantRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addAnimation"} />;
+}
+PlasmicVariantRow__addAnimation.displayName = "PlasmicVariantRow.addAnimation";
+
+type PlasmicVariantRow__indicatorProps = NodeComponentProps<"indicator"> & {key?: React.Key};
+function PlasmicVariantRow__indicator<T extends PlasmicVariantRow__indicatorProps>(props: T & StrictProps<T, PlasmicVariantRow__indicatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("indicator", props);
+  return <PlasmicVariantRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"indicator"} />;
+}
+PlasmicVariantRow__indicator.displayName = "PlasmicVariantRow.indicator";
+
 
 export const PlasmicVariantRow = Object.assign(
   // Top-level PlasmicVariantRow renders the root element
-  makeNodeComponent("root"),
+  PlasmicVariantRow__root,
   {
     // Helper components rendering sub-elements
-    listItem: makeNodeComponent("listItem"),
-    icon: makeNodeComponent("icon"),
-    recordButton: makeNodeComponent("recordButton"),
-    variantPinButton: makeNodeComponent("variantPinButton"),
-    exprButton: makeNodeComponent("exprButton"),
-    previewAnimationContainer: makeNodeComponent("previewAnimationContainer"),
-    previewAnimation: makeNodeComponent("previewAnimation"),
-    addAnimation: makeNodeComponent("addAnimation"),
-    indicator: makeNodeComponent("indicator"),
+    listItem: PlasmicVariantRow__listItem,
+    icon: PlasmicVariantRow__icon,
+    recordButton: PlasmicVariantRow__recordButton,
+    variantPinButton: PlasmicVariantRow__variantPinButton,
+    exprButton: PlasmicVariantRow__exprButton,
+    previewAnimationContainer: PlasmicVariantRow__previewAnimationContainer,
+    previewAnimation: PlasmicVariantRow__previewAnimation,
+    addAnimation: PlasmicVariantRow__addAnimation,
+    indicator: PlasmicVariantRow__indicator,
 
     // Metadata about props expected for PlasmicVariantRow
     internalVariantProps: PlasmicVariantRow__VariantProps,

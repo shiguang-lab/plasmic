@@ -93,7 +93,7 @@ try {
   );
   execFileSync(
     process.execPath,
-    [path.join(repo, "scripts/build-studio.mjs")],
+    [path.join(repo, "scripts/build-studio.mjs"), "--desktop"],
     {
       env,
       stdio: "inherit",

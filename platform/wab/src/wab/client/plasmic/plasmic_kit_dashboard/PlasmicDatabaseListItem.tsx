@@ -15,22 +15,22 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicLink as PlasmicLink__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   renderPlasmicSlot,
-  useTrigger,
+  useFocusVisible, useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import EditableResourceName from "../../components/EditableResourceName"; // plasmic-import: UttGK3xVrb/component
 import Shared from "../../components/dashboard/Shared"; // plasmic-import: r2L4x5kulJ/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -95,25 +95,22 @@ function PlasmicDatabaseListItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const [isRootFocusVisible, triggerRootFocusVisibleProps] = useTrigger(
-    "useFocusVisible",
-    {
+  const [isRootFocusVisible, triggerRootFocusVisibleProps] = useFocusVisible({
       isTextInput: false,
     }
   );
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     focusVisible_root: isRootFocusVisible,
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <PlasmicLink__
@@ -262,12 +259,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -277,33 +270,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDatabaseListItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDatabaseListItem";
-  } else {
-    func.displayName = `PlasmicDatabaseListItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDatabaseListItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDatabaseListItem__root<T extends PlasmicDatabaseListItem__rootProps>(props: T & StrictProps<T, PlasmicDatabaseListItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDatabaseListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDatabaseListItem__root.displayName = "PlasmicDatabaseListItem";
+
+type PlasmicDatabaseListItem__leftProps = NodeComponentProps<"left"> & {key?: React.Key};
+function PlasmicDatabaseListItem__left<T extends PlasmicDatabaseListItem__leftProps>(props: T & StrictProps<T, PlasmicDatabaseListItem__leftProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("left", props);
+  return <PlasmicDatabaseListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"left"} />;
+}
+PlasmicDatabaseListItem__left.displayName = "PlasmicDatabaseListItem.left";
+
+type PlasmicDatabaseListItem__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicDatabaseListItem__svg<T extends PlasmicDatabaseListItem__svgProps>(props: T & StrictProps<T, PlasmicDatabaseListItem__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicDatabaseListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicDatabaseListItem__svg.displayName = "PlasmicDatabaseListItem.svg";
+
+type PlasmicDatabaseListItem__editableNameProps = NodeComponentProps<"editableName"> & {key?: React.Key};
+function PlasmicDatabaseListItem__editableName<T extends PlasmicDatabaseListItem__editableNameProps>(props: T & StrictProps<T, PlasmicDatabaseListItem__editableNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("editableName", props);
+  return <PlasmicDatabaseListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"editableName"} />;
+}
+PlasmicDatabaseListItem__editableName.displayName = "PlasmicDatabaseListItem.editableName";
+
+type PlasmicDatabaseListItem__rightProps = NodeComponentProps<"right"> & {key?: React.Key};
+function PlasmicDatabaseListItem__right<T extends PlasmicDatabaseListItem__rightProps>(props: T & StrictProps<T, PlasmicDatabaseListItem__rightProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("right", props);
+  return <PlasmicDatabaseListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"right"} />;
+}
+PlasmicDatabaseListItem__right.displayName = "PlasmicDatabaseListItem.right";
+
+type PlasmicDatabaseListItem__sharedProps = NodeComponentProps<"shared"> & {key?: React.Key};
+function PlasmicDatabaseListItem__shared<T extends PlasmicDatabaseListItem__sharedProps>(props: T & StrictProps<T, PlasmicDatabaseListItem__sharedProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("shared", props);
+  return <PlasmicDatabaseListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"shared"} />;
+}
+PlasmicDatabaseListItem__shared.displayName = "PlasmicDatabaseListItem.shared";
+
+type PlasmicDatabaseListItem__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicDatabaseListItem__menuButton<T extends PlasmicDatabaseListItem__menuButtonProps>(props: T & StrictProps<T, PlasmicDatabaseListItem__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicDatabaseListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicDatabaseListItem__menuButton.displayName = "PlasmicDatabaseListItem.menuButton";
+
+type PlasmicDatabaseListItem__updatedJustNowProps = NodeComponentProps<"updatedJustNow"> & {key?: React.Key};
+function PlasmicDatabaseListItem__updatedJustNow<T extends PlasmicDatabaseListItem__updatedJustNowProps>(props: T & StrictProps<T, PlasmicDatabaseListItem__updatedJustNowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("updatedJustNow", props);
+  return <PlasmicDatabaseListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"updatedJustNow"} />;
+}
+PlasmicDatabaseListItem__updatedJustNow.displayName = "PlasmicDatabaseListItem.updatedJustNow";
+
 
 export const PlasmicDatabaseListItem = Object.assign(
   // Top-level PlasmicDatabaseListItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicDatabaseListItem__root,
   {
     // Helper components rendering sub-elements
-    left: makeNodeComponent("left"),
-    svg: makeNodeComponent("svg"),
-    editableName: makeNodeComponent("editableName"),
-    right: makeNodeComponent("right"),
-    shared: makeNodeComponent("shared"),
-    menuButton: makeNodeComponent("menuButton"),
-    updatedJustNow: makeNodeComponent("updatedJustNow"),
+    left: PlasmicDatabaseListItem__left,
+    svg: PlasmicDatabaseListItem__svg,
+    editableName: PlasmicDatabaseListItem__editableName,
+    right: PlasmicDatabaseListItem__right,
+    shared: PlasmicDatabaseListItem__shared,
+    menuButton: PlasmicDatabaseListItem__menuButton,
+    updatedJustNow: PlasmicDatabaseListItem__updatedJustNow,
 
     // Metadata about props expected for PlasmicDatabaseListItem
     internalVariantProps: PlasmicDatabaseListItem__VariantProps,

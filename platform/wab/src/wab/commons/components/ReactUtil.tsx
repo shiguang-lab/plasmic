@@ -90,7 +90,7 @@ export function joinReactNodes(
  */
 export function useForwardedRef<T>(ref: React.Ref<T>) {
   const ensuredRef = React.useRef<T | null>(null);
-  const onRef = React.useMemo(() => mergeRefs(ref, ensuredRef), [ref]);
+  const onRef = React.useCallback((value: T | null) => mergeRefs(ref, ensuredRef)(value), [ref]);
   return { ref: ensuredRef, onRef };
 }
 
@@ -116,19 +116,19 @@ export function MaybeWrap(props: {
 
 /**
  * Returns some value that will be a constant for the lifetime of a
- * Component.  This is basically the same as doing React.useRef,
- * except it takes in a initialization function instead of an instance.
- * That makes it suitable for things that are expensive to instantiate,
- * like a ResizeObserver.
+ * Component. The initializer must create an unconnected value; subscriptions
+ * and other effects belong to commit-time effects.
  */
 export function useConstant<T>(fn: () => T): T {
-  const ref = React.useRef<{ v: T }>(undefined);
+  const [value] = React.useState(fn);
+  return value;
+}
 
-  if (!ref.current) {
-    ref.current = { v: fn() };
-  }
-
-  return ref.current.v;
+/** Event commands read committed inputs, without exposing abandoned renders. */
+export function useCommittedValue<T>(value: T): () => T {
+  const committed = React.useRef(value);
+  React.useLayoutEffect(() => { committed.current = value; }, [value]);
+  return React.useCallback(() => committed.current, []);
 }
 
 /**

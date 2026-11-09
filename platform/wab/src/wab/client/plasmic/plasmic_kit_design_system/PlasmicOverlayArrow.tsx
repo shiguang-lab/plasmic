@@ -14,19 +14,19 @@
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { BaseOverlayArrow } from "@plasmicpkgs/react-aria/skinny/registerOverlayArrow";
-import { _useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -88,11 +88,10 @@ function PlasmicOverlayArrow__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "dark",
@@ -101,18 +100,20 @@ function PlasmicOverlayArrow__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.dark,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   const [$ccVariants, setDollarCcVariants] = React.useState<
     Record<string, boolean>
@@ -199,12 +200,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -214,27 +211,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicOverlayArrow__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicOverlayArrow";
-  } else {
-    func.displayName = `PlasmicOverlayArrow.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicOverlayArrow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicOverlayArrow__root<T extends PlasmicOverlayArrow__rootProps>(props: T & StrictProps<T, PlasmicOverlayArrow__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicOverlayArrow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicOverlayArrow__root.displayName = "PlasmicOverlayArrow";
+
+type PlasmicOverlayArrow__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicOverlayArrow__svg<T extends PlasmicOverlayArrow__svgProps>(props: T & StrictProps<T, PlasmicOverlayArrow__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicOverlayArrow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicOverlayArrow__svg.displayName = "PlasmicOverlayArrow.svg";
+
 
 export const PlasmicOverlayArrow = Object.assign(
   // Top-level PlasmicOverlayArrow renders the root element
-  makeNodeComponent("root"),
+  PlasmicOverlayArrow__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
+    svg: PlasmicOverlayArrow__svg,
 
     // Metadata about props expected for PlasmicOverlayArrow
     internalVariantProps: PlasmicOverlayArrow__VariantProps,

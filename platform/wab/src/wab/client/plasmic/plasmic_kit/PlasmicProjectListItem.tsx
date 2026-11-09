@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   MultiChoiceArg,
   PlasmicLink as PlasmicLink__,
   SingleBooleanChoiceArg,
@@ -26,8 +26,8 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useFocusVisible, useFocused, useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -36,8 +36,8 @@ import EditableResourceName from "../../components/EditableResourceName"; // pla
 import Shared from "../../components/dashboard/Shared"; // plasmic-import: r2L4x5kulJ/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "../plasmic_kit_dashboard/PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "../plasmic_kit_dashboard/plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "../plasmic_kit_dashboard/PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "../plasmic_kit_dashboard/plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -116,11 +116,10 @@ function PlasmicProjectListItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "explorations",
@@ -137,33 +136,33 @@ function PlasmicProjectListItem__RenderFunc(props: {
           $props.showWorkspace,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootFocus, triggerRootFocusProps] = useTrigger("useFocused", {});
-  const [isRootFocusVisible, triggerRootFocusVisibleProps] = useTrigger(
-    "useFocusVisible",
-    {
+  const [isRootFocus, triggerRootFocusProps] = useFocused({});
+  const [isRootFocusVisible, triggerRootFocusVisibleProps] = useFocusVisible({
       isTextInput: false,
     }
   );
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     focusFocusVisible_root: isRootFocus && isRootFocusVisible,
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <PlasmicLink__
@@ -444,12 +443,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -459,34 +454,85 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicProjectListItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicProjectListItem";
-  } else {
-    func.displayName = `PlasmicProjectListItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicProjectListItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicProjectListItem__root<T extends PlasmicProjectListItem__rootProps>(props: T & StrictProps<T, PlasmicProjectListItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicProjectListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicProjectListItem__root.displayName = "PlasmicProjectListItem";
+
+type PlasmicProjectListItem__leftProps = NodeComponentProps<"left"> & {key?: React.Key};
+function PlasmicProjectListItem__left<T extends PlasmicProjectListItem__leftProps>(props: T & StrictProps<T, PlasmicProjectListItem__leftProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("left", props);
+  return <PlasmicProjectListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"left"} />;
+}
+PlasmicProjectListItem__left.displayName = "PlasmicProjectListItem.left";
+
+type PlasmicProjectListItem__editableNameProps = NodeComponentProps<"editableName"> & {key?: React.Key};
+function PlasmicProjectListItem__editableName<T extends PlasmicProjectListItem__editableNameProps>(props: T & StrictProps<T, PlasmicProjectListItem__editableNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("editableName", props);
+  return <PlasmicProjectListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"editableName"} />;
+}
+PlasmicProjectListItem__editableName.displayName = "PlasmicProjectListItem.editableName";
+
+type PlasmicProjectListItem__workspaceProps = NodeComponentProps<"workspace"> & {key?: React.Key};
+function PlasmicProjectListItem__workspace<T extends PlasmicProjectListItem__workspaceProps>(props: T & StrictProps<T, PlasmicProjectListItem__workspaceProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("workspace", props);
+  return <PlasmicProjectListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"workspace"} />;
+}
+PlasmicProjectListItem__workspace.displayName = "PlasmicProjectListItem.workspace";
+
+type PlasmicProjectListItem__projectIdCopyButtonProps = NodeComponentProps<"projectIdCopyButton"> & {key?: React.Key};
+function PlasmicProjectListItem__projectIdCopyButton<T extends PlasmicProjectListItem__projectIdCopyButtonProps>(props: T & StrictProps<T, PlasmicProjectListItem__projectIdCopyButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("projectIdCopyButton", props);
+  return <PlasmicProjectListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"projectIdCopyButton"} />;
+}
+PlasmicProjectListItem__projectIdCopyButton.displayName = "PlasmicProjectListItem.projectIdCopyButton";
+
+type PlasmicProjectListItem__rightProps = NodeComponentProps<"right"> & {key?: React.Key};
+function PlasmicProjectListItem__right<T extends PlasmicProjectListItem__rightProps>(props: T & StrictProps<T, PlasmicProjectListItem__rightProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("right", props);
+  return <PlasmicProjectListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"right"} />;
+}
+PlasmicProjectListItem__right.displayName = "PlasmicProjectListItem.right";
+
+type PlasmicProjectListItem__sharedProps = NodeComponentProps<"shared"> & {key?: React.Key};
+function PlasmicProjectListItem__shared<T extends PlasmicProjectListItem__sharedProps>(props: T & StrictProps<T, PlasmicProjectListItem__sharedProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("shared", props);
+  return <PlasmicProjectListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"shared"} />;
+}
+PlasmicProjectListItem__shared.displayName = "PlasmicProjectListItem.shared";
+
+type PlasmicProjectListItem__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicProjectListItem__menuButton<T extends PlasmicProjectListItem__menuButtonProps>(props: T & StrictProps<T, PlasmicProjectListItem__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicProjectListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicProjectListItem__menuButton.displayName = "PlasmicProjectListItem.menuButton";
+
+type PlasmicProjectListItem__updatedJustNowProps = NodeComponentProps<"updatedJustNow"> & {key?: React.Key};
+function PlasmicProjectListItem__updatedJustNow<T extends PlasmicProjectListItem__updatedJustNowProps>(props: T & StrictProps<T, PlasmicProjectListItem__updatedJustNowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("updatedJustNow", props);
+  return <PlasmicProjectListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"updatedJustNow"} />;
+}
+PlasmicProjectListItem__updatedJustNow.displayName = "PlasmicProjectListItem.updatedJustNow";
+
 
 export const PlasmicProjectListItem = Object.assign(
   // Top-level PlasmicProjectListItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicProjectListItem__root,
   {
     // Helper components rendering sub-elements
-    left: makeNodeComponent("left"),
-    editableName: makeNodeComponent("editableName"),
-    workspace: makeNodeComponent("workspace"),
-    projectIdCopyButton: makeNodeComponent("projectIdCopyButton"),
-    right: makeNodeComponent("right"),
-    shared: makeNodeComponent("shared"),
-    menuButton: makeNodeComponent("menuButton"),
-    updatedJustNow: makeNodeComponent("updatedJustNow"),
+    left: PlasmicProjectListItem__left,
+    editableName: PlasmicProjectListItem__editableName,
+    workspace: PlasmicProjectListItem__workspace,
+    projectIdCopyButton: PlasmicProjectListItem__projectIdCopyButton,
+    right: PlasmicProjectListItem__right,
+    shared: PlasmicProjectListItem__shared,
+    menuButton: PlasmicProjectListItem__menuButton,
+    updatedJustNow: PlasmicProjectListItem__updatedJustNow,
 
     // Metadata about props expected for PlasmicProjectListItem
     internalVariantProps: PlasmicProjectListItem__VariantProps,

@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -28,8 +28,8 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -40,7 +40,7 @@ import StyleToggleButtonGroup from "../../components/style-controls/StyleToggleB
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -157,11 +157,10 @@ function PlasmicActionBuilder__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isCollapsed",
@@ -217,23 +216,25 @@ function PlasmicActionBuilder__RenderFunc(props: {
           $props.previewSteps,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -630,9 +631,9 @@ function PlasmicActionBuilder__RenderFunc(props: {
                           "isAdding"
                         ),
                       })}
-                      onChange={async (...eventArgs: any) => {
+                      onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                         ((...eventArgs) => {
-                          generateStateOnChangeProp($state, [
+                          generateStateOnChangeProp($stateCommands, [
                             "actionType",
                             "value",
                           ])(eventArgs[0]);
@@ -645,7 +646,7 @@ function PlasmicActionBuilder__RenderFunc(props: {
                         ) {
                           return;
                         }
-                      }}
+                      })); })}
                       placeholder={uiT("Select...")}
                       value={generateStateValueProp($state, [
                         "actionType",
@@ -1056,12 +1057,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1071,39 +1068,125 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicActionBuilder__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicActionBuilder";
-  } else {
-    func.displayName = `PlasmicActionBuilder.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicActionBuilder__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicActionBuilder__root<T extends PlasmicActionBuilder__rootProps>(props: T & StrictProps<T, PlasmicActionBuilder__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicActionBuilder__root.displayName = "PlasmicActionBuilder";
+
+type PlasmicActionBuilder__dragHandleProps = NodeComponentProps<"dragHandle"> & {key?: React.Key};
+function PlasmicActionBuilder__dragHandle<T extends PlasmicActionBuilder__dragHandleProps>(props: T & StrictProps<T, PlasmicActionBuilder__dragHandleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dragHandle", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dragHandle"} />;
+}
+PlasmicActionBuilder__dragHandle.displayName = "PlasmicActionBuilder.dragHandle";
+
+type PlasmicActionBuilder__editActionNameProps = NodeComponentProps<"editActionName"> & {key?: React.Key};
+function PlasmicActionBuilder__editActionName<T extends PlasmicActionBuilder__editActionNameProps>(props: T & StrictProps<T, PlasmicActionBuilder__editActionNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("editActionName", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"editActionName"} />;
+}
+PlasmicActionBuilder__editActionName.displayName = "PlasmicActionBuilder.editActionName";
+
+type PlasmicActionBuilder__playProps = NodeComponentProps<"play"> & {key?: React.Key};
+function PlasmicActionBuilder__play<T extends PlasmicActionBuilder__playProps>(props: T & StrictProps<T, PlasmicActionBuilder__playProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("play", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"play"} />;
+}
+PlasmicActionBuilder__play.displayName = "PlasmicActionBuilder.play";
+
+type PlasmicActionBuilder__editProps = NodeComponentProps<"edit"> & {key?: React.Key};
+function PlasmicActionBuilder__edit<T extends PlasmicActionBuilder__editProps>(props: T & StrictProps<T, PlasmicActionBuilder__editProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("edit", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"edit"} />;
+}
+PlasmicActionBuilder__edit.displayName = "PlasmicActionBuilder.edit";
+
+type PlasmicActionBuilder__collapseProps = NodeComponentProps<"collapse"> & {key?: React.Key};
+function PlasmicActionBuilder__collapse<T extends PlasmicActionBuilder__collapseProps>(props: T & StrictProps<T, PlasmicActionBuilder__collapseProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("collapse", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"collapse"} />;
+}
+PlasmicActionBuilder__collapse.displayName = "PlasmicActionBuilder.collapse";
+
+type PlasmicActionBuilder__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicActionBuilder__menuButton<T extends PlasmicActionBuilder__menuButtonProps>(props: T & StrictProps<T, PlasmicActionBuilder__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicActionBuilder__menuButton.displayName = "PlasmicActionBuilder.menuButton";
+
+type PlasmicActionBuilder__actionItemProps = NodeComponentProps<"actionItem"> & {key?: React.Key};
+function PlasmicActionBuilder__actionItem<T extends PlasmicActionBuilder__actionItemProps>(props: T & StrictProps<T, PlasmicActionBuilder__actionItemProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionItem", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionItem"} />;
+}
+PlasmicActionBuilder__actionItem.displayName = "PlasmicActionBuilder.actionItem";
+
+type PlasmicActionBuilder__actionTypeProps = NodeComponentProps<"actionType"> & {key?: React.Key};
+function PlasmicActionBuilder__actionType<T extends PlasmicActionBuilder__actionTypeProps>(props: T & StrictProps<T, PlasmicActionBuilder__actionTypeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionType", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionType"} />;
+}
+PlasmicActionBuilder__actionType.displayName = "PlasmicActionBuilder.actionType";
+
+type PlasmicActionBuilder__conditionalModeProps = NodeComponentProps<"conditionalMode"> & {key?: React.Key};
+function PlasmicActionBuilder__conditionalMode<T extends PlasmicActionBuilder__conditionalModeProps>(props: T & StrictProps<T, PlasmicActionBuilder__conditionalModeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("conditionalMode", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"conditionalMode"} />;
+}
+PlasmicActionBuilder__conditionalMode.displayName = "PlasmicActionBuilder.conditionalMode";
+
+type PlasmicActionBuilder__labeledItemProps = NodeComponentProps<"labeledItem"> & {key?: React.Key};
+function PlasmicActionBuilder__labeledItem<T extends PlasmicActionBuilder__labeledItemProps>(props: T & StrictProps<T, PlasmicActionBuilder__labeledItemProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labeledItem", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labeledItem"} />;
+}
+PlasmicActionBuilder__labeledItem.displayName = "PlasmicActionBuilder.labeledItem";
+
+type PlasmicActionBuilder__condExprProps = NodeComponentProps<"condExpr"> & {key?: React.Key};
+function PlasmicActionBuilder__condExpr<T extends PlasmicActionBuilder__condExprProps>(props: T & StrictProps<T, PlasmicActionBuilder__condExprProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("condExpr", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"condExpr"} />;
+}
+PlasmicActionBuilder__condExpr.displayName = "PlasmicActionBuilder.condExpr";
+
+type PlasmicActionBuilder__cancelBtnProps = NodeComponentProps<"cancelBtn"> & {key?: React.Key};
+function PlasmicActionBuilder__cancelBtn<T extends PlasmicActionBuilder__cancelBtnProps>(props: T & StrictProps<T, PlasmicActionBuilder__cancelBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelBtn", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelBtn"} />;
+}
+PlasmicActionBuilder__cancelBtn.displayName = "PlasmicActionBuilder.cancelBtn";
+
+type PlasmicActionBuilder__saveBtnProps = NodeComponentProps<"saveBtn"> & {key?: React.Key};
+function PlasmicActionBuilder__saveBtn<T extends PlasmicActionBuilder__saveBtnProps>(props: T & StrictProps<T, PlasmicActionBuilder__saveBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("saveBtn", props);
+  return <PlasmicActionBuilder__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"saveBtn"} />;
+}
+PlasmicActionBuilder__saveBtn.displayName = "PlasmicActionBuilder.saveBtn";
+
 
 export const PlasmicActionBuilder = Object.assign(
   // Top-level PlasmicActionBuilder renders the root element
-  makeNodeComponent("root"),
+  PlasmicActionBuilder__root,
   {
     // Helper components rendering sub-elements
-    dragHandle: makeNodeComponent("dragHandle"),
-    editActionName: makeNodeComponent("editActionName"),
-    play: makeNodeComponent("play"),
-    edit: makeNodeComponent("edit"),
-    collapse: makeNodeComponent("collapse"),
-    menuButton: makeNodeComponent("menuButton"),
-    actionItem: makeNodeComponent("actionItem"),
-    actionType: makeNodeComponent("actionType"),
-    conditionalMode: makeNodeComponent("conditionalMode"),
-    labeledItem: makeNodeComponent("labeledItem"),
-    condExpr: makeNodeComponent("condExpr"),
-    cancelBtn: makeNodeComponent("cancelBtn"),
-    saveBtn: makeNodeComponent("saveBtn"),
+    dragHandle: PlasmicActionBuilder__dragHandle,
+    editActionName: PlasmicActionBuilder__editActionName,
+    play: PlasmicActionBuilder__play,
+    edit: PlasmicActionBuilder__edit,
+    collapse: PlasmicActionBuilder__collapse,
+    menuButton: PlasmicActionBuilder__menuButton,
+    actionItem: PlasmicActionBuilder__actionItem,
+    actionType: PlasmicActionBuilder__actionType,
+    conditionalMode: PlasmicActionBuilder__conditionalMode,
+    labeledItem: PlasmicActionBuilder__labeledItem,
+    condExpr: PlasmicActionBuilder__condExpr,
+    cancelBtn: PlasmicActionBuilder__cancelBtn,
+    saveBtn: PlasmicActionBuilder__saveBtn,
 
     // Metadata about props expected for PlasmicActionBuilder
     internalVariantProps: PlasmicActionBuilder__VariantProps,

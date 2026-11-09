@@ -48,7 +48,7 @@ const useStyles = createStyles(({ token }) => ({
     color: token.colorText,
     fontWeight: 400,
     border: `1px solid ${token.colorBorder}`,
-    borderRadius: 16,
+    borderRadius: token.borderRadius,
     boxShadow: token.boxShadowSecondary,
     "& svg[data-ai-composer-icon]": {
       width: 16,
@@ -64,7 +64,6 @@ const useStyles = createStyles(({ token }) => ({
       boxShadow: "none",
     },
     "&[data-expanded=true]": {
-      borderRadius: 16,
       gridTemplateColumns: "auto minmax(0, 1fr)",
       "& [data-composer-part=input]": { gridColumn: "1 / -1", gridRow: 1 },
       "& [role=textbox]": { minHeight: 66 },

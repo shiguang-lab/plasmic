@@ -7,7 +7,7 @@ import {
 } from "@/wab/shared/common";
 import { getSuperComponents } from "@/wab/shared/core/components";
 import { parseScreenSpec } from "@/wab/shared/css-size";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import {
   Component,
   Site,
@@ -193,11 +193,11 @@ const compareGlobalVariantGroup = (vg_a: VariantGroup, vg_b: VariantGroup) =>
       : 1
     : 0;
 
-export const makeGlobalVariantComboSorter = maybeComputedFn(
-  function makeGlobalVariantComboSorter(site: Site) {
+export const makeGlobalVariantComboSorter = memoizeModelQuery(function makeGlobalVariantComboSorter(site: Site) {
     const globalVariantRanks = xIndexMap([
       ...site.projectDependencies.flatMap((dep) =>
         dep.site.globalVariantGroups
+          .slice()
           .sort(compareGlobalVariantGroup)
           .flatMap((vg) => sortedGlobalVariants(site, vg)),
       ),
@@ -210,11 +210,9 @@ export const makeGlobalVariantComboSorter = maybeComputedFn(
       return [combo.length, L.sum(combo.map((v) => globalVariantRanks.get(v)))];
     }
     return makeKey as VariantComboSorter;
-  },
-);
+  });
 
-export const makeVariantComboSorter = maybeComputedFn(
-  function makeVariantComboSorter(site: Site, component: Component) {
+export const makeVariantComboSorter = memoizeModelQuery(function makeVariantComboSorter(site: Site, component: Component) {
     const componentVariantRanks = xIndexMap([
       getBaseVariant(component),
       ...component.variantGroups.flatMap((vg) => vg.variants),
@@ -256,8 +254,7 @@ export const makeVariantComboSorter = maybeComputedFn(
       ];
     }
     return makeKey as VariantComboSorter;
-  },
-);
+  });
 
 export function partitionVariants(
   component: Component,

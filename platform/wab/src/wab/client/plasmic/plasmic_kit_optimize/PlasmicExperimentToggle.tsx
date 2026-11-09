@@ -16,18 +16,18 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -89,11 +89,10 @@ function PlasmicExperimentToggle__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "checked",
@@ -102,18 +101,20 @@ function PlasmicExperimentToggle__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.checked,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -214,12 +215,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -229,28 +226,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicExperimentToggle__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicExperimentToggle";
-  } else {
-    func.displayName = `PlasmicExperimentToggle.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicExperimentToggle__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicExperimentToggle__root<T extends PlasmicExperimentToggle__rootProps>(props: T & StrictProps<T, PlasmicExperimentToggle__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicExperimentToggle__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicExperimentToggle__root.displayName = "PlasmicExperimentToggle";
+
+type PlasmicExperimentToggle__selectionIndicatorProps = NodeComponentProps<"selectionIndicator"> & {key?: React.Key};
+function PlasmicExperimentToggle__selectionIndicator<T extends PlasmicExperimentToggle__selectionIndicatorProps>(props: T & StrictProps<T, PlasmicExperimentToggle__selectionIndicatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("selectionIndicator", props);
+  return <PlasmicExperimentToggle__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"selectionIndicator"} />;
+}
+PlasmicExperimentToggle__selectionIndicator.displayName = "PlasmicExperimentToggle.selectionIndicator";
+
+type PlasmicExperimentToggle__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicExperimentToggle__freeBox<T extends PlasmicExperimentToggle__freeBoxProps>(props: T & StrictProps<T, PlasmicExperimentToggle__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicExperimentToggle__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicExperimentToggle__freeBox.displayName = "PlasmicExperimentToggle.freeBox";
+
 
 export const PlasmicExperimentToggle = Object.assign(
   // Top-level PlasmicExperimentToggle renders the root element
-  makeNodeComponent("root"),
+  PlasmicExperimentToggle__root,
   {
     // Helper components rendering sub-elements
-    selectionIndicator: makeNodeComponent("selectionIndicator"),
-    freeBox: makeNodeComponent("freeBox"),
+    selectionIndicator: PlasmicExperimentToggle__selectionIndicator,
+    freeBox: PlasmicExperimentToggle__freeBox,
 
     // Metadata about props expected for PlasmicExperimentToggle
     internalVariantProps: PlasmicExperimentToggle__VariantProps,

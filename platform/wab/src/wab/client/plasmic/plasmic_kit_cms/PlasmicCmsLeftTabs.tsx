@@ -14,20 +14,20 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ListSectionSeparator from "../../components/ListSectionSeparator"; // plasmic-import: uG5_fPM0sK/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -94,11 +94,10 @@ function PlasmicCmsLeftTabs__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "activeTab",
@@ -107,18 +106,20 @@ function PlasmicCmsLeftTabs__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.activeTab,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -245,12 +246,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -260,30 +257,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCmsLeftTabs__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCmsLeftTabs";
-  } else {
-    func.displayName = `PlasmicCmsLeftTabs.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCmsLeftTabs__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCmsLeftTabs__root<T extends PlasmicCmsLeftTabs__rootProps>(props: T & StrictProps<T, PlasmicCmsLeftTabs__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCmsLeftTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCmsLeftTabs__root.displayName = "PlasmicCmsLeftTabs";
+
+type PlasmicCmsLeftTabs__contentButtonProps = NodeComponentProps<"contentButton"> & {key?: React.Key};
+function PlasmicCmsLeftTabs__contentButton<T extends PlasmicCmsLeftTabs__contentButtonProps>(props: T & StrictProps<T, PlasmicCmsLeftTabs__contentButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("contentButton", props);
+  return <PlasmicCmsLeftTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"contentButton"} />;
+}
+PlasmicCmsLeftTabs__contentButton.displayName = "PlasmicCmsLeftTabs.contentButton";
+
+type PlasmicCmsLeftTabs__schemaButtonProps = NodeComponentProps<"schemaButton"> & {key?: React.Key};
+function PlasmicCmsLeftTabs__schemaButton<T extends PlasmicCmsLeftTabs__schemaButtonProps>(props: T & StrictProps<T, PlasmicCmsLeftTabs__schemaButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("schemaButton", props);
+  return <PlasmicCmsLeftTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"schemaButton"} />;
+}
+PlasmicCmsLeftTabs__schemaButton.displayName = "PlasmicCmsLeftTabs.schemaButton";
+
+type PlasmicCmsLeftTabs__listSectionSeparatorProps = NodeComponentProps<"listSectionSeparator"> & {key?: React.Key};
+function PlasmicCmsLeftTabs__listSectionSeparator<T extends PlasmicCmsLeftTabs__listSectionSeparatorProps>(props: T & StrictProps<T, PlasmicCmsLeftTabs__listSectionSeparatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("listSectionSeparator", props);
+  return <PlasmicCmsLeftTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"listSectionSeparator"} />;
+}
+PlasmicCmsLeftTabs__listSectionSeparator.displayName = "PlasmicCmsLeftTabs.listSectionSeparator";
+
+type PlasmicCmsLeftTabs__settingsButtonProps = NodeComponentProps<"settingsButton"> & {key?: React.Key};
+function PlasmicCmsLeftTabs__settingsButton<T extends PlasmicCmsLeftTabs__settingsButtonProps>(props: T & StrictProps<T, PlasmicCmsLeftTabs__settingsButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("settingsButton", props);
+  return <PlasmicCmsLeftTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"settingsButton"} />;
+}
+PlasmicCmsLeftTabs__settingsButton.displayName = "PlasmicCmsLeftTabs.settingsButton";
+
 
 export const PlasmicCmsLeftTabs = Object.assign(
   // Top-level PlasmicCmsLeftTabs renders the root element
-  makeNodeComponent("root"),
+  PlasmicCmsLeftTabs__root,
   {
     // Helper components rendering sub-elements
-    contentButton: makeNodeComponent("contentButton"),
-    schemaButton: makeNodeComponent("schemaButton"),
-    listSectionSeparator: makeNodeComponent("listSectionSeparator"),
-    settingsButton: makeNodeComponent("settingsButton"),
+    contentButton: PlasmicCmsLeftTabs__contentButton,
+    schemaButton: PlasmicCmsLeftTabs__schemaButton,
+    listSectionSeparator: PlasmicCmsLeftTabs__listSectionSeparator,
+    settingsButton: PlasmicCmsLeftTabs__settingsButton,
 
     // Metadata about props expected for PlasmicCmsLeftTabs
     internalVariantProps: PlasmicCmsLeftTabs__VariantProps,

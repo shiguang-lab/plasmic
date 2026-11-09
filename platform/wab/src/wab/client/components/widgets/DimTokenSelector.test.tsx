@@ -8,13 +8,6 @@ import {
 } from "@testing-library/react";
 import React from "react";
 
-vi.mock(
-  "@/wab/client/components/widgets/ColorPicker/client-token-resolver",
-  () => ({
-    useClientTokenResolver: () => (token: { value: string }) => token.value,
-  }),
-);
-
 afterEach(cleanup);
 
 it("mounts one shared scrolling viewport only while the options are open", async () => {
@@ -52,4 +45,26 @@ it("mounts one shared scrolling viewport only while the options are open", async
       0,
     ),
   );
+});
+
+it("keeps the public focus command and commits numeric edits, spins, and escaped drafts", () => {
+  const changed = vi.fn(), inputRef = React.createRef<{ focus(): void }>();
+  function Controlled() {
+    const [value, setValue] = React.useState("10px");
+    return <DimTokenSpinner ref={inputRef} allowFunctions={false} value={value} onChange={(next, type) => { changed(next, type); setValue(next ?? ""); }} allowedUnits={["px"]} />;
+  }
+  render(<Controlled />);
+  const input = screen.getByRole("textbox") as HTMLInputElement;
+  inputRef.current?.focus();
+  expect(document.activeElement).toBe(input);
+  fireEvent.change(input, { target: { value: "25" } });
+  fireEvent.keyDown(input, { key: "Enter" });
+  expect(changed).toHaveBeenLastCalledWith("25px", "raw");
+  fireEvent.keyDown(input, { key: "ArrowUp" });
+  expect(changed).toHaveBeenLastCalledWith("26px", "spin");
+  const count = changed.mock.calls.length;
+  fireEvent.change(input, { target: { value: "99" } });
+  fireEvent.keyDown(input, { key: "Escape" });
+  fireEvent.blur(input);
+  expect(changed).toHaveBeenCalledTimes(count);
 });

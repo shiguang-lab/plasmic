@@ -1,4 +1,5 @@
 import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
 import DataPicker from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { ClickStopper } from "@/wab/client/components/widgets";
@@ -433,6 +434,7 @@ export function VariantDataPicker(props: {
   } = props;
   useStudioSelection(studioCtx, (state) => state.view);
   const viewCtx = studioCtx.focusedOrFirstViewCtx();
+  const functionsSchema = useCustomFunctionsSchema(studioCtx);
   const canvasEnv = viewCtx?.getCanvasEnvForTpl(component.tplTree);
   return (
     <ClickStopper>
@@ -487,7 +489,7 @@ export function VariantDataPicker(props: {
               setVisibleDataPicker(false);
             }}
             data={canvasEnv}
-            schema={studioCtx.customFunctionsSchema()}
+            schema={functionsSchema}
             expectedValues={getExpectedValuesForVariantGroup(group)}
           />
         }

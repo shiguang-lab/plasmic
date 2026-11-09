@@ -47,21 +47,21 @@ interface PreInsertionModalProps {
 }
 
 export const PreInsertionModal = (props: PreInsertionModalProps) => {
-  const { studioCtx, component } = props;
+  const { studioCtx, component, onClose: closeModal } = props;
   const [isOpen, setIsOpen] = React.useState(true);
   const [args, setArgs] = React.useState<Record<string, Expr>>({});
 
   const meta = React.useMemo(
     () => studioCtx.getCodeComponentMeta(component),
-    [component],
+    [studioCtx, component],
   );
 
   const onClose = React.useCallback(
     (data: Record<string, Expr> | undefined) => {
       setIsOpen(false);
-      props.onClose(data);
+      closeModal(data);
     },
-    [setIsOpen, props.onClose],
+    [closeModal],
   );
 
   return (

@@ -7,9 +7,10 @@ import {
   screen,
 } from "@testing-library/react";
 import { Input } from "antd";
+import { createRef } from "react";
 
 import { afterEach, beforeAll, expect, test, vi } from "vitest";
-import { SearchForm, SearchFormItem } from "../src/SearchForm";
+import { SearchForm, SearchFormItem, type SearchFormActions } from "../src/SearchForm";
 import { searchFormMeta } from "../src/registerSearchForm";
 afterEach(cleanup);
 beforeAll(() => {
@@ -26,6 +27,27 @@ const fields = ["市场", "场景", "类型", "状态", "关键字"].map((label,
     <Input aria-label={label} />
   </SearchFormItem>
 ));
+test("imperative actions use current fields, clear values and callbacks after a rerender", () => {
+  const ref = createRef<SearchFormActions>();
+  const changed = vi.fn(), reset = vi.fn();
+  const form = (phase: string) => (
+    <SearchForm ref={ref} onValuesChange={(values) => changed(phase, values)} onReset={(values) => reset(phase, values)}>
+      <SearchFormItem name={phase} clearValue={`${phase} cleared`}>
+        <Input aria-label="Search field" />
+      </SearchFormItem>
+    </SearchForm>
+  );
+  const view = render(form("first"));
+  act(() => ref.current!.setFieldsValue({ first: "first value" }));
+  expect(changed).toHaveBeenLastCalledWith("first", { first: "first value" });
+  view.rerender(form("second"));
+  act(() => ref.current!.setFieldsValue({ second: "second value" }));
+  expect(changed).toHaveBeenLastCalledWith("second", { second: "second value" });
+  act(() => ref.current!.reset());
+  expect(reset).toHaveBeenLastCalledWith("second", { second: "second cleared" });
+  expect(changed).toHaveBeenLastCalledWith("second", { second: "second cleared" });
+});
+
 test.each([true, false])("registered initial collapse value stays interactive (%s)", async (initial) => {
   const meta = searchFormMeta.props.collapsed;
   if (typeof meta !== "object" || !("uncontrolledProp" in meta) || !meta.uncontrolledProp) {

@@ -26,27 +26,37 @@ type DistributeTuple<T> = T extends [infer T1, infer T2]
 
 export type VariantDef<V> = DistributeTuple<VariantDefTuple<V>>;
 
+/** Behavior hooks consume the model's prop keys, independently of a render component. */
+declare const plasmicClassTypes: unique symbol;
+export interface PlasmicClassMetadata<
+  V extends Record<string, any> = Record<string, any>,
+  A extends Record<string, any> = Record<string, any>,
+  O extends Record<string, any> = Record<string, any>
+> {
+  internalVariantProps: (keyof V)[];
+  internalArgProps: (keyof A)[];
+  readonly [plasmicClassTypes]?: { variants: V; args: A; overrides: O };
+}
+
 export type PlasmicClass<
   V extends Record<string, any>,
   A extends Record<string, any>,
   O extends Record<string, any>
-> = {
+> = PlasmicClassMetadata<V, A, O> & {
   (props: { variants?: V; args?: A; overrides?: O }): ReturnType<React.FunctionComponent>;
-  internalVariantProps: (keyof V)[];
-  internalArgProps: (keyof A)[];
 };
 
-export type AnyPlasmicClass = PlasmicClass<any, any, any>;
+export type AnyPlasmicClass = PlasmicClassMetadata<any, any, any>;
 
-export type PlasmicClassVariants<
-  C extends AnyPlasmicClass
-> = C extends PlasmicClass<infer V, any, any> ? V : unknown;
-export type PlasmicClassArgs<
-  C extends AnyPlasmicClass
-> = C extends PlasmicClass<any, infer A, any> ? A : unknown;
-export type PlasmicClassOverrides<
-  C extends AnyPlasmicClass
-> = C extends PlasmicClass<any, any, infer O> ? O : unknown;
+export type PlasmicClassVariants<C extends AnyPlasmicClass> =
+  C extends PlasmicClass<infer V, any, any> ? V :
+  C extends PlasmicClassMetadata<infer V, any, any> ? V : unknown;
+export type PlasmicClassArgs<C extends AnyPlasmicClass> =
+  C extends PlasmicClass<any, infer A, any> ? A :
+  C extends PlasmicClassMetadata<any, infer A, any> ? A : unknown;
+export type PlasmicClassOverrides<C extends AnyPlasmicClass> =
+  C extends PlasmicClass<any, any, infer O> ? O :
+  C extends PlasmicClassMetadata<any, any, infer O> ? O : unknown;
 
 type BooleanLike = boolean | undefined | null;
 

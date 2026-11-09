@@ -9,7 +9,7 @@ const require = createRequire(path.join(root, "package.json"));
 const ts = require("typescript");
 const files = [...new Set(execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], { cwd: root, maxBuffer: 32 * 1024 * 1024 }).toString().split("\0"))]
   .filter(file => /\.[cm]?[jt]sx?$/.test(file) && fs.existsSync(path.join(root, file)) && !file.endsWith(".d.ts"));
-const legacy = /^(?:mobx(?:-react(?:-lite)?|-utils)?(?:\/|$)|.*\/(?:import-mobx|mobx-util|mobx-client-util|canvas-observer|canvas-cache)$)/;
+const legacy = /^(?:mobx(?:-react(?:-lite)?|-utils)?(?:\/|$)|.*\/(?:import-mobx|mobx-util|mobx-client-util)$)/;
 const rows = [];
 for (const file of files) {
   const source = ts.createSourceFile(file, fs.readFileSync(path.join(root, file), "utf8"), ts.ScriptTarget.Latest, true);

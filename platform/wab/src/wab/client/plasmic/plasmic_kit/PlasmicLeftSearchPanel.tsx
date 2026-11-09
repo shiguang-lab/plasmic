@@ -14,21 +14,21 @@
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleChoiceArg,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import FilterButton from "../../components/widgets/FilterButton"; // plasmic-import: 93uVZfRMCA/component
 import Searchbox from "../../components/widgets/Searchbox"; // plasmic-import: po7gr0PX4_gWo/component
-import { _useStyleTokens } from "../plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -97,11 +97,10 @@ function PlasmicLeftSearchPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "rightOptions",
@@ -111,18 +110,20 @@ function PlasmicLeftSearchPanel__RenderFunc(props: {
           $props.rightOptions,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -324,12 +325,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -339,31 +336,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftSearchPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "searchPanel") {
-    func.displayName = "PlasmicLeftSearchPanel";
-  } else {
-    func.displayName = `PlasmicLeftSearchPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftSearchPanel__searchPanelProps = NodeComponentProps<"searchPanel"> & {key?: React.Key};
+function PlasmicLeftSearchPanel__searchPanel<T extends PlasmicLeftSearchPanel__searchPanelProps>(props: T & StrictProps<T, PlasmicLeftSearchPanel__searchPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchPanel", props);
+  return <PlasmicLeftSearchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchPanel"} />;
+}
+PlasmicLeftSearchPanel__searchPanel.displayName = "PlasmicLeftSearchPanel";
+
+type PlasmicLeftSearchPanel__searchboxProps = NodeComponentProps<"searchbox"> & {key?: React.Key};
+function PlasmicLeftSearchPanel__searchbox<T extends PlasmicLeftSearchPanel__searchboxProps>(props: T & StrictProps<T, PlasmicLeftSearchPanel__searchboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchbox", props);
+  return <PlasmicLeftSearchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchbox"} />;
+}
+PlasmicLeftSearchPanel__searchbox.displayName = "PlasmicLeftSearchPanel.searchbox";
+
+type PlasmicLeftSearchPanel__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicLeftSearchPanel__freeBox<T extends PlasmicLeftSearchPanel__freeBoxProps>(props: T & StrictProps<T, PlasmicLeftSearchPanel__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicLeftSearchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicLeftSearchPanel__freeBox.displayName = "PlasmicLeftSearchPanel.freeBox";
+
+type PlasmicLeftSearchPanel__expandButtonProps = NodeComponentProps<"expandButton"> & {key?: React.Key};
+function PlasmicLeftSearchPanel__expandButton<T extends PlasmicLeftSearchPanel__expandButtonProps>(props: T & StrictProps<T, PlasmicLeftSearchPanel__expandButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("expandButton", props);
+  return <PlasmicLeftSearchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"expandButton"} />;
+}
+PlasmicLeftSearchPanel__expandButton.displayName = "PlasmicLeftSearchPanel.expandButton";
+
+type PlasmicLeftSearchPanel__collapseButtonProps = NodeComponentProps<"collapseButton"> & {key?: React.Key};
+function PlasmicLeftSearchPanel__collapseButton<T extends PlasmicLeftSearchPanel__collapseButtonProps>(props: T & StrictProps<T, PlasmicLeftSearchPanel__collapseButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("collapseButton", props);
+  return <PlasmicLeftSearchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"collapseButton"} />;
+}
+PlasmicLeftSearchPanel__collapseButton.displayName = "PlasmicLeftSearchPanel.collapseButton";
+
+type PlasmicLeftSearchPanel__filterButtonProps = NodeComponentProps<"filterButton"> & {key?: React.Key};
+function PlasmicLeftSearchPanel__filterButton<T extends PlasmicLeftSearchPanel__filterButtonProps>(props: T & StrictProps<T, PlasmicLeftSearchPanel__filterButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("filterButton", props);
+  return <PlasmicLeftSearchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"filterButton"} />;
+}
+PlasmicLeftSearchPanel__filterButton.displayName = "PlasmicLeftSearchPanel.filterButton";
+
 
 export const PlasmicLeftSearchPanel = Object.assign(
   // Top-level PlasmicLeftSearchPanel renders the root element
-  makeNodeComponent("searchPanel"),
+  PlasmicLeftSearchPanel__searchPanel,
   {
     // Helper components rendering sub-elements
-    searchbox: makeNodeComponent("searchbox"),
-    freeBox: makeNodeComponent("freeBox"),
-    expandButton: makeNodeComponent("expandButton"),
-    collapseButton: makeNodeComponent("collapseButton"),
-    filterButton: makeNodeComponent("filterButton"),
+    searchbox: PlasmicLeftSearchPanel__searchbox,
+    freeBox: PlasmicLeftSearchPanel__freeBox,
+    expandButton: PlasmicLeftSearchPanel__expandButton,
+    collapseButton: PlasmicLeftSearchPanel__collapseButton,
+    filterButton: PlasmicLeftSearchPanel__filterButton,
 
     // Metadata about props expected for PlasmicLeftSearchPanel
     internalVariantProps: PlasmicLeftSearchPanel__VariantProps,

@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   StrictProps,
   classNames,
@@ -26,7 +26,7 @@ import {
   generateStateValueProp,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -35,8 +35,8 @@ import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRm
 import Searchbox from "../../components/widgets/Searchbox"; // plasmic-import: po7gr0PX4_gWo/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
 import Select__Option from "../../components/widgets/Select__Option"; // plasmic-import: rr-LWdMni2G/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -109,11 +109,10 @@ function PlasmicTeamMemberList__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isCollapsed",
@@ -129,20 +128,22 @@ function PlasmicTeamMemberList__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -212,9 +213,9 @@ function PlasmicTeamMemberList__RenderFunc(props: {
                 role={"img"}
               />
             }
-            onChange={async (...eventArgs: any) => {
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
               ((...eventArgs) => {
-                generateStateOnChangeProp($state, ["filterSelect", "value"])(
+                generateStateOnChangeProp($stateCommands, ["filterSelect", "value"])(
                   eventArgs[0]
                 );
               }).apply(null, eventArgs);
@@ -226,7 +227,7 @@ function PlasmicTeamMemberList__RenderFunc(props: {
               ) {
                 return;
               }
-            }}
+            })); })}
             placeholder={uiT("Filter…")}
             type={"bordered"}
             value={generateStateValueProp($state, ["filterSelect", "value"])}
@@ -424,12 +425,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -439,32 +436,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTeamMemberList__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTeamMemberList";
-  } else {
-    func.displayName = `PlasmicTeamMemberList.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTeamMemberList__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTeamMemberList__root<T extends PlasmicTeamMemberList__rootProps>(props: T & StrictProps<T, PlasmicTeamMemberList__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTeamMemberList__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTeamMemberList__root.displayName = "PlasmicTeamMemberList";
+
+type PlasmicTeamMemberList__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicTeamMemberList__freeBox<T extends PlasmicTeamMemberList__freeBoxProps>(props: T & StrictProps<T, PlasmicTeamMemberList__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicTeamMemberList__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicTeamMemberList__freeBox.displayName = "PlasmicTeamMemberList.freeBox";
+
+type PlasmicTeamMemberList__actionsProps = NodeComponentProps<"actions"> & {key?: React.Key};
+function PlasmicTeamMemberList__actions<T extends PlasmicTeamMemberList__actionsProps>(props: T & StrictProps<T, PlasmicTeamMemberList__actionsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actions", props);
+  return <PlasmicTeamMemberList__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actions"} />;
+}
+PlasmicTeamMemberList__actions.displayName = "PlasmicTeamMemberList.actions";
+
+type PlasmicTeamMemberList__newButtonProps = NodeComponentProps<"newButton"> & {key?: React.Key};
+function PlasmicTeamMemberList__newButton<T extends PlasmicTeamMemberList__newButtonProps>(props: T & StrictProps<T, PlasmicTeamMemberList__newButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newButton", props);
+  return <PlasmicTeamMemberList__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newButton"} />;
+}
+PlasmicTeamMemberList__newButton.displayName = "PlasmicTeamMemberList.newButton";
+
+type PlasmicTeamMemberList__filterSelectProps = NodeComponentProps<"filterSelect"> & {key?: React.Key};
+function PlasmicTeamMemberList__filterSelect<T extends PlasmicTeamMemberList__filterSelectProps>(props: T & StrictProps<T, PlasmicTeamMemberList__filterSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("filterSelect", props);
+  return <PlasmicTeamMemberList__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"filterSelect"} />;
+}
+PlasmicTeamMemberList__filterSelect.displayName = "PlasmicTeamMemberList.filterSelect";
+
+type PlasmicTeamMemberList__memberSearchProps = NodeComponentProps<"memberSearch"> & {key?: React.Key};
+function PlasmicTeamMemberList__memberSearch<T extends PlasmicTeamMemberList__memberSearchProps>(props: T & StrictProps<T, PlasmicTeamMemberList__memberSearchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("memberSearch", props);
+  return <PlasmicTeamMemberList__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"memberSearch"} />;
+}
+PlasmicTeamMemberList__memberSearch.displayName = "PlasmicTeamMemberList.memberSearch";
+
+type PlasmicTeamMemberList__headerProps = NodeComponentProps<"header"> & {key?: React.Key};
+function PlasmicTeamMemberList__header<T extends PlasmicTeamMemberList__headerProps>(props: T & StrictProps<T, PlasmicTeamMemberList__headerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("header", props);
+  return <PlasmicTeamMemberList__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"header"} />;
+}
+PlasmicTeamMemberList__header.displayName = "PlasmicTeamMemberList.header";
+
 
 export const PlasmicTeamMemberList = Object.assign(
   // Top-level PlasmicTeamMemberList renders the root element
-  makeNodeComponent("root"),
+  PlasmicTeamMemberList__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    actions: makeNodeComponent("actions"),
-    newButton: makeNodeComponent("newButton"),
-    filterSelect: makeNodeComponent("filterSelect"),
-    memberSearch: makeNodeComponent("memberSearch"),
-    header: makeNodeComponent("header"),
+    freeBox: PlasmicTeamMemberList__freeBox,
+    actions: PlasmicTeamMemberList__actions,
+    newButton: PlasmicTeamMemberList__newButton,
+    filterSelect: PlasmicTeamMemberList__filterSelect,
+    memberSearch: PlasmicTeamMemberList__memberSearch,
+    header: PlasmicTeamMemberList__header,
 
     // Metadata about props expected for PlasmicTeamMemberList
     internalVariantProps: PlasmicTeamMemberList__VariantProps,

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -26,7 +26,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import Preset from "../../components/Preset"; // plasmic-import: eS_Bw5U3wr/component
 import PresetGroup from "../../components/PresetGroup"; // plasmic-import: kZ3Ar3RnLt/component
 import LeftSearchPanel from "../../components/studio/LeftSearchPanel"; // plasmic-import: TqAPn0srTq/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -85,11 +85,10 @@ function PlasmicPresetsSelector__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -243,12 +242,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -258,32 +253,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPresetsSelector__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPresetsSelector";
-  } else {
-    func.displayName = `PlasmicPresetsSelector.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPresetsSelector__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPresetsSelector__root<T extends PlasmicPresetsSelector__rootProps>(props: T & StrictProps<T, PlasmicPresetsSelector__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPresetsSelector__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPresetsSelector__root.displayName = "PlasmicPresetsSelector";
+
+type PlasmicPresetsSelector__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicPresetsSelector__freeBox<T extends PlasmicPresetsSelector__freeBoxProps>(props: T & StrictProps<T, PlasmicPresetsSelector__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicPresetsSelector__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicPresetsSelector__freeBox.displayName = "PlasmicPresetsSelector.freeBox";
+
+type PlasmicPresetsSelector__searchProps = NodeComponentProps<"search"> & {key?: React.Key};
+function PlasmicPresetsSelector__search<T extends PlasmicPresetsSelector__searchProps>(props: T & StrictProps<T, PlasmicPresetsSelector__searchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("search", props);
+  return <PlasmicPresetsSelector__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"search"} />;
+}
+PlasmicPresetsSelector__search.displayName = "PlasmicPresetsSelector.search";
+
+type PlasmicPresetsSelector__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicPresetsSelector__text<T extends PlasmicPresetsSelector__textProps>(props: T & StrictProps<T, PlasmicPresetsSelector__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicPresetsSelector__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicPresetsSelector__text.displayName = "PlasmicPresetsSelector.text";
+
+type PlasmicPresetsSelector__groupsProps = NodeComponentProps<"groups"> & {key?: React.Key};
+function PlasmicPresetsSelector__groups<T extends PlasmicPresetsSelector__groupsProps>(props: T & StrictProps<T, PlasmicPresetsSelector__groupsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("groups", props);
+  return <PlasmicPresetsSelector__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"groups"} />;
+}
+PlasmicPresetsSelector__groups.displayName = "PlasmicPresetsSelector.groups";
+
+type PlasmicPresetsSelector__example16Props = NodeComponentProps<"example16"> & {key?: React.Key};
+function PlasmicPresetsSelector__example16<T extends PlasmicPresetsSelector__example16Props>(props: T & StrictProps<T, PlasmicPresetsSelector__example16Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("example16", props);
+  return <PlasmicPresetsSelector__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"example16"} />;
+}
+PlasmicPresetsSelector__example16.displayName = "PlasmicPresetsSelector.example16";
+
+type PlasmicPresetsSelector__example162Props = NodeComponentProps<"example162"> & {key?: React.Key};
+function PlasmicPresetsSelector__example162<T extends PlasmicPresetsSelector__example162Props>(props: T & StrictProps<T, PlasmicPresetsSelector__example162Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("example162", props);
+  return <PlasmicPresetsSelector__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"example162"} />;
+}
+PlasmicPresetsSelector__example162.displayName = "PlasmicPresetsSelector.example162";
+
 
 export const PlasmicPresetsSelector = Object.assign(
   // Top-level PlasmicPresetsSelector renders the root element
-  makeNodeComponent("root"),
+  PlasmicPresetsSelector__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    search: makeNodeComponent("search"),
-    text: makeNodeComponent("text"),
-    groups: makeNodeComponent("groups"),
-    example16: makeNodeComponent("example16"),
-    example162: makeNodeComponent("example162"),
+    freeBox: PlasmicPresetsSelector__freeBox,
+    search: PlasmicPresetsSelector__search,
+    text: PlasmicPresetsSelector__text,
+    groups: PlasmicPresetsSelector__groups,
+    example16: PlasmicPresetsSelector__example16,
+    example162: PlasmicPresetsSelector__example162,
 
     // Metadata about props expected for PlasmicPresetsSelector
     internalVariantProps: PlasmicPresetsSelector__VariantProps,

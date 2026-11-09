@@ -1,3 +1,7 @@
+import "@/wab/client/components/sidebar/MixinControls";
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
+import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
+import { ViewStyleInputs } from "@/wab/client/studio-ctx/style-inputs";
 import { ComponentType } from "@/wab/shared/core/components";
 import { BaseVariantRow } from "@/wab/client/components/sidebar-tabs/BaseVariantRow";
 import type { VariantAnimations } from "@/wab/client/components/sidebar-tabs/VariantAnimations";
@@ -8,7 +12,7 @@ import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
 import { useFocusedViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ViewVariantState } from "@/wab/client/studio-ctx/view-variant-state";
-import { mkArenaFrame } from "@/wab/shared/Arenas";
+import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
 import { mkVariant } from "@/wab/shared/Variants";
@@ -40,22 +44,38 @@ function setup() {
   const variant = mkVariant({ name: "Active" });
   component.variants.push(variant);
   const frame = mkArenaFrame({ site, component, name: "Native", width: 100, height: 100 });
+  const arena = mkMixedArena("Native variants", [frame]); site.arenas.push(arena);
   const models = new ModelSnapshots();
+  const arenaState = new StudioArenaState({ site, modelSnapshots: models }); arenaState.setCurrent(arena);
+  const lifetime = new AbortController();
+  const viewSelection = new ViewSelection(() => models);
+  const styles = new ViewStyleInputs(() => models, lifetime.signal);
   let hasRoot = false;
   const inputs = new ViewVariantState(() => models, () => frame, () => site, () => false, () => hasRoot);
   const local = new TransientComponentVariantFrame(frame.container);
   const global = new GlobalVariantFrame(site, frame);
   inputs.transaction(() => { inputs.replaceFrames([local]); inputs.setGlobal(global); });
   const view = mock<ViewCtx>();
-  Object.defineProperty(view, "variantStore", { value: inputs.store });
+  Object.defineProperties(view, {
+    variantStore: { value: inputs.store }, selectionStore: { value: viewSelection.store },
+    site: { value: site }, component: { value: component }, styleInputs: { value: styles },
+    disposeSignal: { value: lifetime.signal }, modelLifetime: { value: arenaState.lifetime() },
+    isDisposed: { get: () => lifetime.signal.aborted },
+  });
+  view.currentComponent.mockReturnValue(component);
+  view.componentStackFrames.mockImplementation(() => inputs.frames());
   view.variantTplMgr.mockImplementation(() => new VariantTplMgr(inputs.frames(), site, tplMgr, inputs.global()));
   const studio = mock<StudioCtx>();
   const selection = new StudioSelection(() => models);
-  Object.defineProperty(studio, "selectionStore", { value: selection.store });
+  Object.defineProperties(studio, {
+    site: { value: site }, modelSnapshots: { value: models }, arenaState: { value: arenaState },
+    selectionStore: { value: selection.store },
+  });
+  Object.defineProperty(view, "studioCtx", { value: studio });
   selection.set(view, []);
   return { component, variant, inputs, local, view, studio, selection,
     rootExists: (exists: boolean) => { hasRoot = exists; inputs.syncRuntime(); },
-    dispose: () => { selection.dispose(); inputs.dispose(); models.dispose(); },
+    dispose: () => { lifetime.abort(); styles.dispose(); viewSelection.dispose(); selection.dispose(); inputs.dispose(); arenaState.dispose(); models.dispose(); },
   };
 }
 

@@ -12,7 +12,6 @@ import { asSvgDataUrl } from "@/wab/shared/data-urls";
 import { Box, Pt } from "@/wab/shared/geom";
 import { Site, isKnownTplTag } from "@/wab/shared/model/classes";
 import { strToU8 } from "fflate";
-import { runInAction, when } from "mobx";
 import { mock } from "vitest-mock-extended";
 
 vi.mock("@/wab/client/components/coding/FullCodeEditor.tsx", () => ({
@@ -22,15 +21,13 @@ vi.mock("@/wab/client/components/coding/FullCodeEditor.tsx", () => ({
 
 async function setup() {
   const { studioCtx } = fakeStudioCtx();
-  runInAction(() => {
-    studioCtx.viewportCtx = new ViewportCtx({
-      dom: mock<DomActions>(),
-      initialArena: null,
-      initialClipperBox: new Box(0, 0, 1024, 768),
-      initialClipperScroll: Pt.zero(),
-    });
+  studioCtx.viewportCtx = new ViewportCtx({
+    dom: mock<DomActions>(),
+    initialArena: null,
+    initialClipperBox: new Box(0, 0, 1024, 768),
+    initialClipperScroll: Pt.zero(),
   });
-  await when(() => studioCtx.initialRouteReady);
+  await vi.waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
   vi.spyOn(studioCtx, "tryZoomToFitArena").mockImplementation(() => undefined);
   vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(undefined);
   await studioCtx.changeUnsafe(() => undefined);

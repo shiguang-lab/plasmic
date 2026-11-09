@@ -1,99 +1,78 @@
 import React from "react";
 import { v4 as uuid } from "uuid";
 
-const TAG_ID = `EB_SCRIPT_${uuid()}`;
 const SCRIPT_URL = "https://www.eventbrite.com/static/widgets/eb_widgets.js";
 
 interface Props {
-    eventId?: string;
-    modal?: boolean;
-    onOrderComplete: () => void;
-    promoCode?: string;
-    iFrameHeight?: string;
-    iFrameAutoAdapt?: string;
+  eventId?: string;
+  modal?: boolean;
+  onOrderComplete: () => void;
+  promoCode?: string;
+  iFrameHeight?: string;
+  iFrameAutoAdapt?: string;
 }
-type Widget = {
-    widgetType?: string;
-    eventId?: string;
-    onOrderComplete: () => void;
-    modal?: boolean;
-    modalTriggerElementId?: string;
-    promoCode?: string;
-    iframeContainerId?: string;
+
+interface Widget {
+  widgetType: "checkout";
+  eventId: string;
+  onOrderComplete: () => void;
+  modal?: boolean;
+  modalTriggerElementId?: string;
+  iframeContainerId?: string;
+  promoCode?: string;
 }
-const useEventbrite = ({
-    eventId,
-    modal,
-    onOrderComplete,
-    promoCode,
-}: Props) => {
-    const id = `EB_${uuid()}`;
-    const [isLoaded, setLoaded] = React.useState(false);
-    const onLoad = React.useCallback(() => setLoaded(true), [setLoaded]);
-    const onErr = React.useCallback(
-        (e:any) => {
-            console.error(`Failed to load Eventbrite script from ${SCRIPT_URL}`);
-            console.error(e);
 
-            setLoaded(false);
-        },
-        [setLoaded]
-    );
+declare global {
+  interface Window {
+    EBWidgets?: { createWidget: (config: Widget) => void };
+  }
+}
 
-    React.useEffect(() => {
-        //@ts-ignore
-        if (globalThis.window?.EBWidgets) {
-            setLoaded(true);
-            return;
-        }
-        const existing = document.getElementById(TAG_ID);
-        if (existing) {
-            existing.remove();
-        }
-        const script = document.createElement("script");
-        script.id = TAG_ID;
-        script.async = true;
-        script.src = SCRIPT_URL;
-        script.addEventListener("load", onLoad);
-        script.addEventListener("error", onErr);
-        script.addEventListener("abort", onErr);
-        document.head.appendChild(script);
+export default function useEventbrite({ eventId, modal, onOrderComplete, promoCode }: Props) {
+  const [id] = React.useState(() => `EB_${uuid()}`);
+  const [isLoaded, setLoaded] = React.useState(false);
+  const orderComplete = React.useEffectEvent(onOrderComplete);
 
-        return () => {
-            script.removeEventListener("load", onLoad);
-            script.removeEventListener("error", onErr);
-            script.removeEventListener("abort", onErr);
-            script.remove();
-            setLoaded(false);
-        };
-    }, [setLoaded, onLoad, onErr]);
+  React.useEffect(() => {
+    if (window.EBWidgets) {
+      setLoaded(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.id = `EB_SCRIPT_${id}`;
+    script.async = true;
+    script.src = SCRIPT_URL;
+    const onLoad = () => setLoaded(true);
+    const onError = (event: Event) => {
+      console.error(`Failed to load Eventbrite script from ${SCRIPT_URL}`, event);
+    };
+    script.addEventListener("load", onLoad);
+    script.addEventListener("error", onError);
+    script.addEventListener("abort", onError);
+    document.head.appendChild(script);
+    return () => {
+      script.removeEventListener("load", onLoad);
+      script.removeEventListener("error", onError);
+      script.removeEventListener("abort", onError);
+      script.remove();
+    };
+  }, [id]);
 
-    React.useEffect(() => {
-        if (!isLoaded) {
-            return;
-        }
+  React.useEffect(() => {
+    if (!isLoaded || !eventId) {
+      return;
+    }
+    let active = true;
+    window.EBWidgets?.createWidget({
+      widgetType: "checkout",
+      eventId,
+      modal,
+      ...(modal ? { modalTriggerElementId: id } : { iframeContainerId: id }),
+      ...(promoCode ? { promoCode } : {}),
+      onOrderComplete: () => { if (active) { orderComplete(); } },
+    });
+    return () => { active = false; };
+  }, [isLoaded, eventId, modal, id, promoCode]);
 
-        const config: Widget = {
-            widgetType: "checkout",
-            eventId,
-            onOrderComplete,
-            modal,
-        };
-
-        if (modal) {
-            config.modalTriggerElementId = id;
-        } else {
-            config.iframeContainerId = id;
-        }
-
-        if (promoCode) {
-            config.promoCode = promoCode;
-        }
-        //@ts-ignore
-        globalThis.window?.EBWidgets.createWidget(config);
-    }, [isLoaded]);
-
-    return isLoaded ? { id } : null;
-};
-
-export default useEventbrite;
+  return isLoaded ? { id } : null;
+}

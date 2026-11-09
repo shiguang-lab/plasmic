@@ -18,7 +18,7 @@ function createContextMenuContext() {
     onPointerDownSignal: new Signals.Signal(),
     onPointerEnterSignal: new Signals.Signal(),
     onPointerLeaveSignal: new Signals.Signal(),
-    useDynamicValue: () => {},
+    editDynamicValue: () => {},
     setOpenTooltip: (state: undefined | boolean) => {},
   };
 }
@@ -51,7 +51,7 @@ function ContextMenuIndicator_(
   {
     menu,
     onIndicatorClickDefault,
-    tooltip = <UiText message="Use dynamic value" />,
+    tooltip: tooltipProp,
     showDynamicValueButton = false,
     showMenuOnRightClick = false,
     style,
@@ -63,9 +63,13 @@ function ContextMenuIndicator_(
   const [openTooltip, setOpenTooltip] = useState<boolean | undefined>(
     undefined,
   );
-  const [ctx] = useState(createContextMenuContext());
-  ctx.setOpenTooltip = setOpenTooltip;
-  ctx.useDynamicValue = onIndicatorClickDefault ?? (() => {});
+  const tooltip = tooltipProp === undefined ? <UiText message="Use dynamic value" /> : tooltipProp;
+  const [signals] = useState(createContextMenuContext);
+  const ctx = React.useMemo(() => ({
+    ...signals,
+    setOpenTooltip,
+    editDynamicValue: onIndicatorClickDefault ?? signals.editDynamicValue,
+  }), [signals, onIndicatorClickDefault, setOpenTooltip]);
   const contextMenuProps = useContextMenu({
     menu: showMenuOnRightClick ? menu : undefined,
   });

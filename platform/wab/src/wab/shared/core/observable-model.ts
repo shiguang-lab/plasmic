@@ -27,8 +27,7 @@ import {
 import { allGlobalVariants, allImageAssets } from "@/wab/shared/core/sites";
 import { undoChanges } from "@/wab/shared/core/undo-util";
 import { dbg } from "@/wab/shared/dbg";
-import mobx from "@/wab/shared/import-mobx";
-import { mutateGlobalObservable } from "@/wab/shared/mobx-util";
+import { instrumentModel, isInstrumentedModel, isRecordedModel, observeMutations } from "@/wab/shared/core/model-mutations";
 import { InstUtil, instUtil } from "@/wab/shared/model/InstUtil";
 import {
   ArenaFrame,
@@ -49,9 +48,9 @@ import {
   isStrongRefField,
   isWeakRefField,
 } from "@/wab/shared/model/model-meta";
-import { Dictionary, memoize, once } from "lodash";
-import type { IObservableArray, Lambda } from "mobx";
-import type { IAtom, IDerivation, IObjectDidChange } from "mobx/dist/internal";
+import { Dictionary, memoize } from "lodash";
+type Lambda = () => void;
+
 import { Err, Ok, Result, err, ok } from "neverthrow";
 import defaultReact from "react";
 
@@ -195,13 +194,13 @@ type ObservableState = {
   disposeInstField: (node: ObjInst, field: Field) => void;
 };
 
-const mobxHack = hackyMobxUtils();
+
 
 /**
  * Starts observing changes to the argument `inst`.  Specifically,
  *
  * * `inst`, its properties, and all other `ObjInsts` referenced by it
- *   will become mobx-observable.
+ *   will have their model mutations recorded.
  * * All updates to `inst`, its properties, and its dependencies will be
  *   recorded and passed to the `opts.listener`.
  *
@@ -225,8 +224,8 @@ const mobxHack = hackyMobxUtils();
  *
  *
  * @returns a disposal function that, when called, will unsubscribe to
- * all changes to mobx observables.  `inst` will remain mobx-observable
- * however, not a plain `ObjInst`; we've simply unsubscribed to changes.
+ * all model mutations. Instrumentation remains installed on `inst`,
+ * while this recorder's listeners are released.
  */
 export function observeModel(
   rootInst: ObjInst,
@@ -309,7 +308,7 @@ export function observeModel(
       // External references shouldn't have strong references pointing to it.
       return true;
     }
-    if (!flags.modelUpdate && opts.incremental && !mobxHack.isObserved(inst)) {
+    if (!flags.modelUpdate && opts.incremental && !isRecordedModel(inst)) {
       return true;
     }
     return false;
@@ -339,7 +338,7 @@ export function observeModel(
     if (
       !flags.modelUpdate &&
       opts.incremental &&
-      !mobxHack.isObservable(inst)
+      !isInstrumentedModel(inst)
     ) {
       return false;
     }
@@ -429,11 +428,11 @@ export function observeModel(
     const instClass = _instUtil.getInstClass(inst);
     const allFields = getClassFields(instClass);
 
-    if (!mobxHack.isObservable(inst)) {
-      mobxHack.makeInstObservable(inst, instClass, allFields);
+    if (!isInstrumentedModel(inst)) {
+      instrumentModel(inst, instClass, allFields);
     }
 
-    state.instDispose = mobx.observe(inst, (event) => {
+    state.instDispose = observeMutations(inst, (event) => {
       // We observe changes when setting an inst field, like `inst[field.name] = ...`
       assert(event.type === "update", `ObjInst only fires update events`);
       const fieldName = event.name as string;
@@ -638,7 +637,7 @@ export function observeModel(
 
     // Now, we want to observe the array itself, to monitor when new
     // items are added, removed, or set at an index.
-    const arrayDispose = mobx.observe(array as IObservableArray, (event) => {
+    const arrayDispose = observeMutations(array, (event) => {
       if (event.type === "splice") {
         fireFieldChange(inst, field.name, {
           type: "array-splice",
@@ -659,7 +658,7 @@ export function observeModel(
         fireFieldChange(inst, field.name, {
           type: "array-update",
           object: event.object,
-          index: event.index,
+          index: ensure(event.index, "Array update index"),
           oldValue: event.oldValue,
           newValue: event.newValue,
         });
@@ -728,7 +727,7 @@ export function observeModel(
     // Now, observe the object itself, so we get notified when new entries
     // are added, removed, or changed.
     // eslint-disable-next-line @typescript-eslint/ban-types
-    const objDispose = mobx.observe(obj as Object, (event) => {
+    const objDispose = observeMutations(obj, (event) => {
       const newFlags: VisitFlags = {
         ...flags,
         incrementalObserve: false,
@@ -754,7 +753,7 @@ export function observeModel(
       } else if (event.type === "update") {
         fireFieldChange(inst, field.name, {
           type: "obj-update",
-          key: event.name,
+          key: ensure(event.name, "Object update key"),
           object: event.object,
           newValue: event.newValue,
           oldValue: event.oldValue,
@@ -1550,10 +1549,10 @@ export class ChangeRecorder implements IChangeRecorder {
     }
     const currentTime = new Date();
     const observedResult = components.reduce((observedNewComp, component) => {
-      if (!mobxHack.isObserved(component)) {
+      if (!isRecordedModel(component)) {
         return observedNewComp;
       }
-      if (!mobxHack.isObserved(component.tplTree)) {
+      if (!isRecordedModel(component.tplTree)) {
         this.observableState.observeInstField(
           component,
           meta.getFieldByName("Component", "tplTree"),
@@ -1564,7 +1563,6 @@ export class ChangeRecorder implements IChangeRecorder {
       return observedNewComp;
     }, false);
     if (observedResult) {
-      mutateGlobalObservable();
       console.log("Mutated global state");
     }
 
@@ -1578,12 +1576,12 @@ export class ChangeRecorder implements IChangeRecorder {
    */
   ensureObservedComponents(components: Component[]) {
     components.forEach((component) => {
-      if (!mobxHack.isObserved(component)) {
+      if (!isRecordedModel(component)) {
         throw new Error(
           `Component ${component.name} is not observed, but it should be`,
         );
       }
-      if (!mobxHack.isObserved(component.tplTree)) {
+      if (!isRecordedModel(component.tplTree)) {
         this.observableState.observeInstField(
           component,
           meta.getFieldByName("Component", "tplTree"),
@@ -1603,14 +1601,14 @@ export class ChangeRecorder implements IChangeRecorder {
       if (this.componentsInContext.includes(comp)) {
         return;
       }
-      if (mobxHack.isObserved(comp.tplTree) && date < allowedLastTime) {
+      if (isRecordedModel(comp.tplTree) && date < allowedLastTime) {
         console.log(`Tried to dispose ${comp.name}`);
         this.observableState.disposeInstField(
           comp,
           meta.getFieldByName("Component", "tplTree"),
         );
         map.delete(comp);
-      } else if (!mobxHack.isObserved(comp.tplTree)) {
+      } else if (!isRecordedModel(comp.tplTree)) {
         map.delete(comp);
       }
     });
@@ -1794,197 +1792,4 @@ export function filterPersistentChanges(allChanges: ModelChange[]) {
     }
     return true;
   });
-}
-
-function hackyMobxUtils() {
-  const globalState = mobx._getGlobalState();
-
-  // Instead of the typical mobx observable object admin, which
-  // uses more memory, with an observable box for each field,
-  // we use our custom implementation of admin specific to ObjInst.
-  // There are kind of two mostly orthogonal parts of mobx machinery:
-  // 1. The "observable" reactivity system, where you have observers
-  //    observing observable things, and are invalidated when observable
-  //    things change. This is how mobx-react components know to re-render,
-  //    or how mobx.computed() knows to re-compute.
-  // 2. The "change event tracking" system, which is an explicit system
-  //    of subscribing to changes and notifying listeners when changed.
-  //    This is implemented by the observable.* data structures provided
-  //    by mobx, and we mimic what we do there with our own observable
-  //    ObjInst.
-
-  /**
-   * Returns the ObservableInstAdmin for this ObjInst; assumes
-   * it already exists
-   */
-  function getInstAdmin(inst: ObjInst) {
-    return inst[mobx.$mobx] as ObservableInstAdmin;
-  }
-
-  /**
-   * Returns whether this value is either mobx-observable,
-   * or instrumented with our ObservableInstAdmin
-   */
-  function isObservable(v: any) {
-    return (
-      mobx.isObservable(v) ||
-      (typeof v === "object" &&
-        !!v &&
-        ((v[mobx.$mobx]?.__isObservableInst ?? false) as boolean))
-    );
-  }
-
-  /**
-   * Returns whether this inst is currently being observed
-   */
-  function isObserved(inst: ObjInst) {
-    return isObservable(inst) && !!getInstAdmin(inst).__changeListeners?.length;
-  }
-
-  /**
-   * Returns an observable version of the argument value. We deeply
-   * make array and object field values observable as well
-   */
-  function prepareNewValue(v: any) {
-    if (isObservable(v)) {
-      return v;
-    } else if (Array.isArray(v)) {
-      return mobx.observable.array(v);
-    } else if (isLiteralObject(v)) {
-      return mobx.observable.object(v);
-    } else {
-      // Note that if v is an ObjInst, it would fall in this case!
-      // We do not turn it observable here; instead, the observeModel()
-      // call above will do the work of turning this inst into observable
-      return v;
-    }
-  }
-
-  /**
-   * Custom descriptors we install onto our ObjInst, one for each field
-   */
-  const getHandlers = memoize((clazz: Class, allFields: Field[]) => {
-    return Object.fromEntries(
-      allFields.map((f) => [
-        f.name,
-        {
-          get(this: ObjInst) {
-            // We report that the value is observed each time it is
-            // access, so that any observer can be tracked by mobx.
-            // And then we return the observable version
-            // of the value.
-            const admin = getInstAdmin(this);
-            admin.__atoms[f.name].reportObserved();
-            return admin.__values[f.name];
-          },
-          set(this: ObjInst, v: any) {
-            const admin = getInstAdmin(this);
-            const prev = admin.__values[f.name];
-            // Turn the new value into an observable value
-            const next = prepareNewValue(v);
-            if (prev !== next) {
-              // Upon mutation, we report that the atom has been
-              // updated, so that any observers knows to be
-              // invalidated.
-              admin.__values[f.name] = next;
-
-              // This notifies the reactivity system
-              admin.__atoms[f.name].reportChanged();
-
-              // This notifies the change event system
-              notifyListeners(this, {
-                type: "update",
-                observableKind: "object",
-                name: f.name,
-                object: this,
-                oldValue: prev,
-                newValue: next,
-              });
-            }
-          },
-        },
-      ]),
-    );
-  });
-
-  /**
-   * Mutates `inst` into an observable inst, by installing
-   * the ObservableInstAdmin
-   */
-  function makeInstObservable(
-    inst: ObjInst,
-    instClass: Class,
-    allFields: Field[],
-  ) {
-    // The observable version of field values
-    const values: Record<string, any> = {};
-    // We create one Atom for each field value. An Atom is a mobx
-    // primitive to represent an observable; it can report that it
-    // has been observed, and that it has been changed. We track
-    // observation and mutation for each field.
-    const atoms: Record<string, IAtom> = {};
-    for (const field of allFields) {
-      values[field.name] = prepareNewValue(inst[field.name]);
-      atoms[field.name] = mobx.createAtom(field.name);
-    }
-
-    // Install the custom descriptors for tracked fields
-    Object.defineProperties(inst, getHandlers(instClass, allFields));
-    inst[mobx.$mobx] = {
-      isMobXObservableObjectAdministration: true,
-      __isObservableInst: true,
-      __values: values,
-      __atoms: atoms,
-      observe_(listener: (changes: IObjectDidChange) => void) {
-        return registerListener(inst, listener);
-      },
-    };
-  }
-
-  // mobx's change event system isn't very extensible, so we
-  // copy some source code from mobx here.
-  function notifyListeners<T>(inst: ObjInst, change: T) {
-    const prevU = untrackedStart();
-    let listeners = getInstAdmin(inst)?.__changeListeners;
-    if (!listeners) {
-      return;
-    }
-    listeners = listeners.slice();
-    for (let i = 0, l = listeners.length; i < l; i++) {
-      listeners[i](change);
-    }
-    untrackedEnd(prevU);
-  }
-  function registerListener(inst: ObjInst, handler: Function): Lambda {
-    const admin = getInstAdmin(inst);
-    const listeners = admin.__changeListeners || (admin.__changeListeners = []);
-    listeners.push(handler);
-    return once(() => {
-      const idx = listeners.indexOf(handler);
-      if (idx !== -1) {
-        listeners.splice(idx, 1);
-      }
-    });
-  }
-  function untrackedStart(): IDerivation | null {
-    const prev = globalState.trackingDerivation;
-    globalState.trackingDerivation = null;
-    return prev;
-  }
-  function untrackedEnd(prev: IDerivation | null) {
-    globalState.trackingDerivation = prev;
-  }
-
-  return {
-    isObserved,
-    isObservable,
-    makeInstObservable,
-  };
-}
-
-export interface ObservableInstAdmin {
-  __isObservableInst: boolean;
-  __values: Record<string, any>;
-  __atoms: Record<string, IAtom>;
-  __changeListeners: Function[] | undefined;
 }

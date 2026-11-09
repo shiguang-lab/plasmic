@@ -1,3 +1,4 @@
+import { StyleTokenReaderBinding } from "@/wab/client/studio-ctx/style-token-inputs";
 import type { ModelFieldStore, ModelRef } from "@/wab/client/studio-ctx/model-snapshots";
 import { StyleTokenInputs, type StyleTokenSnapshot } from "@/wab/client/studio-ctx/style-token-inputs";
 import { getStyleTokenReaderScope } from "@/wab/client/studio-ctx/style-token-ref-inputs";
@@ -153,12 +154,12 @@ export function useFontFamilyTokenInputs(studio: StudioCtx, suppliedVsh: Variant
   }, [studio]);
   const readOwner = React.useCallback(() => studio.singleRsStyleInputs, [studio]);
   const owner = React.useSyncExternalStore(subscribeOwner, readOwner, readOwner);
-  const binding = React.useMemo<{ committed: FontFamilyTokenInputs | undefined }>(() => ({ committed: undefined }), [studio]);
+  const binding = React.useMemo(() => new StyleTokenReaderBinding<FontFamilyTokenInputs>(), [studio]);
   const context = React.useMemo(() => getStyleTokenReaderScope(studio, vsh), [studio, owner, vsh]);
   const source = React.useMemo(() => (context.owner.isDisposed || context.lifetime.aborted) && binding.committed?.lifetime === context.lifetime
     ? binding.committed : new FontFamilyTokenInputs(studio, vsh), [studio, owner, vsh, context, binding]);
   React.useLayoutEffect(() => {
-    if (!binding.committed || !context.owner.isDisposed && !context.lifetime.aborted) { binding.committed = source; }
+    if (!binding.committed || !context.owner.isDisposed && !context.lifetime.aborted) { binding.commit(source); }
   }, [source, binding, context]);
   return React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
 }

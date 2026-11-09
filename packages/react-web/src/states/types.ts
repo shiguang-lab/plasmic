@@ -6,10 +6,12 @@ export type InitFuncEnv = {
   $queries?: Record<string, any>;
   $q?: Record<string, any>;
   $ctx?: Record<string, any>;
-  $refs?: Record<string, any>;
 };
 
-export type DollarStateEnv = Omit<InitFuncEnv, "$state">;
+export type DollarStateEnv = Omit<InitFuncEnv, "$state"> & {
+  /** Resolve imperative commands only when an onMutate callback runs. */
+  getRefs?: () => Readonly<Record<string, any>>;
+};
 
 export type NoUndefinedField<T> = { [P in keyof T]-?: T[P] };
 
@@ -58,12 +60,7 @@ export interface $StateSpec<T> {
 
 export interface $State {
   [key: string]: any;
-  registerInitFunc?: (
-    path: string,
-    f: InitFunc<any>,
-    repetitonIndex?: number[],
-    overrideEnv?: DollarStateEnv
-  ) => any;
+
 }
 
 export const ARRAY_SYMBOL = Symbol("[]");
@@ -89,6 +86,7 @@ export interface StateCell<T> {
   overrideEnv?: NoUndefinedField<DollarStateEnv>;
   // Registered but not yet applied by the layout effect.
   pendingInit?: boolean;
+  initializerOwner?: object;
   // Resets that happened back to back without the value ever settling; used
   // to stop a runaway re-initialization loop. See shouldReInitialize().
   unsettledResetCount?: number;
@@ -96,7 +94,29 @@ export interface StateCell<T> {
   warnedUnstableInitFunc?: boolean;
 }
 
+export interface StateInitialValue {
+  readonly path: ObjectPath;
+  readonly value: any;
+  readonly initFunc: InitFunc<any> | undefined;
+}
+
+export interface StateInitializerDeclaration {
+  readonly path: string;
+  readonly initFunc?: InitFunc<any>;
+  readonly repetitionIndex?: number[];
+  readonly env?: DollarStateEnv;
+  readonly owner?: object;
+}
+
 export interface Internal$State {
+  getCommands(): $State;
+  subscribeCommands(listener: () => void): () => void;
+  activeRender?: object;
+  /** Child layout initialization may publish before this owner first commits. */
+  initialCommands: Record<string | number | symbol, any>;
+  commit(owner: object, env: DollarStateEnv, specs: $StateSpec<any>[], declarations: readonly StateInitializerDeclaration[], initialValues: readonly StateInitialValue[]): void;
+  applyInitializers(owner: object, declarations: readonly StateInitializerDeclaration[]): void;
+  releaseInitializers(owner: object): void;
   stateValues: Record<string, any>;
   env: NoUndefinedField<DollarStateEnv>;
   rootSpecTree: StateSpecNode<any>;

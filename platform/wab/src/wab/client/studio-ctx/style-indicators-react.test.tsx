@@ -1,6 +1,6 @@
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
-import { SingleRsExpsProvider, StyleComponent, StyleComponentContext, StylePanelSection } from "@/wab/client/components/style-controls/StyleComponent";
+import { SingleRsExpsProvider, StyleTarget, StyleTargetContext, StylePanelSection } from "@/wab/client/components/style-controls/StyleComponent";
 import { StyleWrapper } from "@/wab/client/components/style-controls/StyleWrapper";
 import sidebarStyles from "@/wab/client/components/sidebar/SidebarSection.module.scss";
 import indicatorStyles from "@/wab/client/components/style-controls/DefinedIndicator.module.sass";
@@ -25,8 +25,8 @@ async function setup() {
   const { studioCtx: studio } = fakeStudioCtx({ site });
   await waitFor(() => expect(studio.initialRouteReady).toBe(true));
   const provider = new SingleRsExpsProvider(rs, new RuleSetHelpers(rs, "div"), studio, [], { kind: "ruleSet", rs, forTag: "div" });
-  const sc = new StyleComponent({ expsProvider: provider });
-  const wrap = (children: React.ReactNode) => <StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={sc}>{children}</StyleComponentContext.Provider></StudioCtxContext.Provider>;
+  const sc = new StyleTarget({ expsProvider: provider });
+  const wrap = (children: React.ReactNode) => <StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={sc}>{children}</StyleTargetContext.Provider></StudioCtxContext.Provider>;
   return { studio, rs, provider, wrap };
 }
 

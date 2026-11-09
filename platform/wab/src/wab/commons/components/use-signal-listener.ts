@@ -11,5 +11,5 @@ export function useSignalListener<T>(
     return () => {
       signal.remove(listener);
     };
-  }, deps);
+  }, [signal, ...deps]);
 }

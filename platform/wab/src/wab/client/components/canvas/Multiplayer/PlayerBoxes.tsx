@@ -1,3 +1,5 @@
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { usePlayerSelectionInputs } from "@/wab/client/components/canvas/Multiplayer/player-selection-inputs";
 import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
@@ -10,11 +12,10 @@ import {
   cssPropsForInvertTransform,
   StudioCtx,
 } from "@/wab/client/studio-ctx/StudioCtx";
-import { useForceUpdate } from "@/wab/client/useForceUpdate";
+import { useFrameForceUpdate } from "@/wab/client/useForceUpdate";
 import { getArenaFrames } from "@/wab/shared/Arenas";
 import { maybe } from "@/wab/shared/common";
 import $ from "jquery";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -47,13 +48,14 @@ interface PlayerBoxProps {
   playerId: number;
 }
 
-const PlayerBox = observer(function PlayerBox({
+const PlayerBox = React.memo(function PlayerBox({
   studioCtx,
   playerId,
 }: PlayerBoxProps) {
   useContentEditorScope(studioCtx);
   useStudioArena(studioCtx, (state) => state.frames);
   const viewportZoom = useCanvasZoom(studioCtx);
+  const currentBranch = useStore(studioCtx.uiEnvironment.store, (state) => state.branchId);
   const [color, knowsSelf, selectionInfo, branchId] = useStore(
     studioCtx.multiplayerCtx.store,
     useShallow((state) => {
@@ -73,12 +75,13 @@ const PlayerBox = observer(function PlayerBox({
         )
       : undefined;
   const viewEntry = useViewEntryForFrame(studioCtx, frame);
+  const renderCount = useCanvasRenderCount(viewEntry?.view);
+  const modelReady = usePlayerSelectionInputs(viewEntry?.view, selectionInfo?.selectableKey, renderCount);
   const maybeData = (() => {
-    if (!frame || !knowsSelf || !color || !selectionInfo?.selectableFrameUuid) {
+    if (!modelReady || !frame || !knowsSelf || !color || !selectionInfo?.selectableFrameUuid) {
       return null;
     }
-    const branch = studioCtx.branchInfo();
-    if (branchId !== branch?.id) {
+    if (branchId !== (currentBranch ?? undefined)) {
       return null;
     }
     const viewCtx = viewEntry?.view;
@@ -103,24 +106,38 @@ const PlayerBox = observer(function PlayerBox({
 
   const $elt = maybeData?.$elt;
 
-  const forceUpdate = useForceUpdate();
+  const elements = useShallow((nodes: Element[]) => nodes)($elt?.toArray() ?? []);
+  const geometryView = maybeData?.viewCtx;
+  const forceUpdate = useFrameForceUpdate(geometryView?.disposeSignal);
 
   React.useEffect(() => {
-    if ($elt && $elt.length > 0) {
+    if (geometryView && elements.length > 0) {
       const resizeObserver = new ResizeObserver(forceUpdate);
-      const elts = $elt.toArray();
+      const elts = elements;
       elts.forEach((elt) => resizeObserver.observe(elt));
       // Scrolling moves the element and changes which part of it is visible.
       const doc = elts[0].ownerDocument;
+      const viewport = geometryView.canvasCtx.viewport();
+      const container = geometryView.canvasCtx.viewportContainer();
+      resizeObserver.observe(doc.documentElement);
+      resizeObserver.observe(viewport);
+      resizeObserver.observe(container);
+      const styles = studioCtx.styleChanged.add(forceUpdate);
+      const frames = studioCtx.framesChanged.add(forceUpdate);
+      const placement = new MutationObserver(forceUpdate);
+      placement.observe(container, { attributes: true, attributeFilter: ["style", "class", "hidden"] });
       doc.addEventListener("scroll", forceUpdate, true);
       return () => {
         resizeObserver.disconnect();
+        placement.disconnect();
+        styles.detach();
+        frames.detach();
         doc.removeEventListener("scroll", forceUpdate, true);
       };
     } else {
       return undefined;
     }
-  }, [$elt]);
+  }, [elements, geometryView, forceUpdate, studioCtx]);
 
   if (!maybeData || !$elt || $elt.toArray().filter(hasLayoutBox).length === 0) {
     return null;

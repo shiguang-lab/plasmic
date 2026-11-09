@@ -1,4 +1,8 @@
+import type { ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
+import type { Site } from "@/wab/shared/model/classes";
+import { isEqual } from "lodash";
 import { subscribeStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
+import { useCanvasLoadError } from "@/wab/client/studio-ctx/canvas-load-state";
 import { subscribeViewRegistry } from "@/wab/client/studio-ctx/arena-state";
 import type { LocalAiContext } from "@/wab/shared/copilot/local-edit";
 import {
@@ -42,8 +46,6 @@ import type { AiOutputFormat, CopilotCaller } from "@/wab/shared/copilot/copilot
 import { isPageComponent } from "@/wab/shared/core/components";
 import { formatErrorMessage } from "@/wab/shared/error-handling";
 import { notification, message } from "antd";
-import { autorun } from "mobx";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
 import { mutate as swrMutate } from "swr";
@@ -115,25 +117,91 @@ function trackArtboardFileDrags(studioCtx: StudioCtx): () => void {
   return stop;
 }
 
-/** Native ownership changes rebind the actual model reaction. Old View
- * listeners and model dependencies are released before reading the new View. */
+/** Scope labels, selection, model ownership and access are published by their
+ * native owners after a completed command. No model reaction is retained. */
 export function observeLocalAiContext(
   studio: StudioCtx,
   enabled: () => boolean,
   publish: (context: LocalAiContext | undefined) => void,
 ): () => void {
-  let stopModel: (() => void) | undefined;
-  const observe = () => {
-    stopModel?.();
-    stopModel = autorun(() => publish(enabled() ? getLocalAiContext(studio) : undefined));
-  };
+  const observe = () => publish(enabled() ? getLocalAiContext(studio) : undefined);
   const stopInputs = subscribeLocalAiContextInputs(studio, observe);
   const stopPolicy = subscribeStudioRenderPolicy(studio, (state) => state.devMode, observe);
   observe();
-  return () => { stopInputs(); stopPolicy(); stopModel?.(); };
+  return () => { stopInputs(); stopPolicy(); };
 }
 
-export const TopFrameObserver = observer(function _TopFrameObserver({
+type TopFramePrimitives = Parameters<ReturnType<typeof useTopFrameApi>["setPrimitiveValues"]>[0];
+
+/** Host chrome consumes these two Site fields and the admitted DB revision.
+ * A site replacement rebinds the fields after the new model owner is installed. */
+export function observeTopFramePrimitiveValues(studio: StudioCtx, publish: (values: TopFramePrimitives) => void): () => void {
+  const modelStops: (() => void)[] = [];
+  let models = studio.modelSnapshots, site = studio.site, lifetime = studio.arenaState.lifetime();
+  let flags: ModelFieldStore<Readonly<Site["flags"]>> | undefined;
+  let role: ModelFieldStore<Site["defaultPageRoleId"]> | undefined;
+  let previous: TopFramePrimitives | undefined;
+  let closed = false;
+  const releaseModelInputs = () => {
+    modelStops.splice(0).forEach((stop) => stop());
+    flags = undefined; role = undefined;
+  };
+  const sync = () => {
+    if (closed || lifetime.aborted || models !== studio.modelSnapshots || site !== studio.site || !flags || !role) { return; }
+    const currentFlags = flags.getState();
+    const next: TopFramePrimitives = {
+      revisionNum: studio.revisionNum,
+      isLocalizationEnabled: !!currentFlags.usePlasmicTranslation,
+      defaultPageRoleId: role.getState(),
+      localizationScheme: currentFlags.keyScheme ? ({ keyScheme: currentFlags.keyScheme, tagPrefix: currentFlags.tagPrefix } as LocalizationConfig) : undefined,
+    };
+    if (!previous || !isEqual(previous, next)) { previous = next; publish(next); }
+  };
+  const bind = () => {
+    releaseModelInputs();
+    models = studio.modelSnapshots; site = studio.site; lifetime = studio.arenaState.lifetime();
+    if (closed || lifetime.aborted) { return; }
+    flags = models.field(site, "flags"); role = models.field(site, "defaultPageRoleId");
+    const capturedLifetime = lifetime;
+    capturedLifetime.addEventListener("abort", releaseModelInputs, { once: true });
+    modelStops.push(flags.subscribe(sync), role.subscribe(sync), () => capturedLifetime.removeEventListener("abort", releaseModelInputs));
+    sync();
+  };
+  const stops = [
+    studio.dbCtx().subscribeVersionInputs(sync),
+    studio.subscribeModelChanges((event) => { if (event.type === "site-replaced") { bind(); } }),
+    studio.arenaState.readinessStore.subscribe((ready) => { if (ready && lifetime !== studio.arenaState.lifetime()) { bind(); } }),
+  ];
+  bind();
+  return () => { closed = true; stops.forEach((stop) => stop()); releaseModelInputs(); };
+}
+
+/** Branch DTOs are owned by DB version inputs, and feature access by the native
+ * UI environment. Unrelated revision changes do not resend an unchanged branch. */
+export function observeActivatedBranch(studio: StudioCtx, publish: (branch: ApiBranch | undefined) => void): () => void {
+  let hasPrevious = false;
+  let previous: ApiBranch | undefined;
+  const sync = () => {
+    if (!studio.uiEnvironment.store.getState().showBranching) { return; }
+    const next = jsonClone(studio.dbCtx().branchInfo ?? null) ?? undefined;
+    if (!hasPrevious || !isEqual(previous, next)) { hasPrevious = true; previous = next; publish(next); }
+  };
+  const stops = [studio.dbCtx().subscribeVersionInputs(sync), studio.uiEnvironment.store.subscribe(sync)];
+  sync();
+  return () => stops.forEach((stop) => stop());
+}
+
+class CopilotToolCalls {
+  private readonly controllers = new Map<string, AbortController>();
+  start(requestId: string | undefined) {
+    if (!requestId) { return undefined; }
+    const controller = new AbortController(); this.controllers.set(requestId, controller); return controller;
+  }
+  cancel(requestId: string) { this.controllers.get(requestId)?.abort(); }
+  finish(requestId: string | undefined) { if (requestId) { this.controllers.delete(requestId); } }
+}
+
+export const TopFrameObserver = React.memo(function TopFrameObserverContent({
   preview,
   studioReady = true,
 }: TopFrameObserverProps) {
@@ -141,7 +209,7 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
   const studioCtx = useStudioCtx();
   const previewCtx = usePreviewCtx();
   const topFrameApi = useTopFrameApi();
-  const toolControllers = React.useMemo(() => new Map<string, AbortController>(), [studioCtx]);
+  const toolControllers = React.useMemo(() => new CopilotToolCalls(), [studioCtx]);
 
   const hostFrameApi = React.useMemo<HostFrameApi>(
     () => ({
@@ -289,10 +357,10 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
         if (studioCtx.desktopDraft?.store.getState().drafts.length) {studioCtx.desktopDraft.setDialogOpen(true);}
       },
       async blockChanges(): Promise<void> {
-        studioCtx.blockChanges = true;
+        studioCtx.setBlockChanges(true);
       },
       async cancelCopilotToolCall(requestId: string) {
-        toolControllers.get(requestId)?.abort();
+        toolControllers.cancel(requestId);
       },
       async clearCopilotCallerActivity(callerId: string) {
         studioCtx.copilotActivity.clearCaller(callerId);
@@ -316,18 +384,15 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
           };
         }
 
-        const controller = requestId ? new AbortController() : undefined;
-        if (requestId && controller) {
-          toolControllers.set(requestId, controller);
-        }
-        try {
+        const controller = toolControllers.start(requestId);
+        return await (async (): Promise<CopilotToolCallResult> => {
           const output = await copilotTool.execute(studioCtx, toolArgs, {
             outputFormat,
             caller,
             signal: controller?.signal,
           });
           return { success: true, output };
-        } catch (err) {
+        })().catch(async (err): Promise<CopilotToolCallResult> => {
           return {
             success: false,
             error: {
@@ -336,11 +401,9 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
               ...(err && typeof err === "object" && "operationExecuted" in err && err.operationExecuted === false ? { operationExecuted: false as const } : {}),
             },
           };
-        } finally {
-          if (requestId) {
-            toolControllers.delete(requestId);
-          }
-        }
+        }).finally(() => {
+          toolControllers.finish(requestId);
+        });
       },
       async setPreferredAiOutputFormat(format: AiOutputFormat): Promise<void> {
         studioCtx.setPreferredAiOutputFormat(format);
@@ -383,7 +446,7 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
     hostFrameCtx.onHostFrameApiReady(hostFrameApi);
   }, [hostFrameApi]);
 
-  const canvasError = studioCtx.canvasLoadError.get();
+  const canvasError = useCanvasLoadError(studioCtx);
   React.useEffect(() => {
     if (canvasError) { spawn(topFrameApi.setStudioError(canvasError)); }
   }, [canvasError, topFrameApi]);
@@ -452,21 +515,7 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
         () => !preview && studioCtx.showDevControls && studioCtx.canEditProject(),
         (context) => spawn(topFrameApi.setLocalAiContext(context)),
       ),
-      autorun(() => {
-        spawn(
-          topFrameApi.setPrimitiveValues({
-            revisionNum: studioCtx.revisionNum,
-            isLocalizationEnabled: !!studioCtx.site.flags.usePlasmicTranslation,
-            defaultPageRoleId: studioCtx.site.defaultPageRoleId,
-            localizationScheme: !!studioCtx.site.flags.keyScheme
-              ? ({
-                  keyScheme: studioCtx.site.flags.keyScheme,
-                  tagPrefix: studioCtx.site.flags.tagPrefix,
-                } as LocalizationConfig)
-              : undefined,
-          }),
-        );
-      }),
+      observeTopFramePrimitiveValues(studioCtx, (values) => spawn(topFrameApi.setPrimitiveValues(values))),
       (() => {
         const syncLatest = () => {
           const latest = studioCtx.versionHistory.store.getState().releases[0];
@@ -475,18 +524,12 @@ export const TopFrameObserver = observer(function _TopFrameObserver({
         syncLatest();
         return studioCtx.versionHistory.store.subscribe((next, previous) => {
           const latest = next.releases[0], before = previous.releases[0];
-          if (latest?.revisionId !== before?.revisionId || latest?.version !== before?.version) { syncLatest(); }
+          const revisionChanged = latest?.revisionId !== before?.revisionId;
+          const versionChanged = latest?.version !== before?.version;
+          if (revisionChanged || versionChanged) { syncLatest(); }
         });
       })(),
-      studioCtx.showBranching() &&
-        autorun(() => {
-          const branchInfo = studioCtx.dbCtx().branchInfo;
-          spawn(
-            topFrameApi.setActivatedBranch(
-              jsonClone(branchInfo ?? null) ?? undefined,
-            ),
-          );
-        }),
+      observeActivatedBranch(studioCtx, (branch) => spawn(topFrameApi.setActivatedBranch(branch))),
     ]);
     return () => disposes.forEach((f) => f());
   }, [studioCtx, previewCtx, preview, topFrameApi]);

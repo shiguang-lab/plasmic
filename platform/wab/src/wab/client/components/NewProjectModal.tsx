@@ -32,7 +32,7 @@ import {
   Space,
   Tabs,
   Typography,
-  theme,
+  theme as AntdTheme,
 } from "antd";
 import { createStyles } from "antd-style";
 import { union, uniqBy } from "lodash";
@@ -64,7 +64,7 @@ const NewProjectModal = function NewProjectModal({
   onCancel,
 }: NewProjectModalProps) {
   useTrackOpenModal(true);
-  const { token } = theme.useToken();
+  const { token } = AntdTheme.useToken();
   const { styles: productStyles } = useProductThemeStyles(token);
   const { t } = useI18n();
   const appCtx = useAppCtx();
@@ -136,7 +136,7 @@ const NewProjectModal = function NewProjectModal({
       return;
     }
     setCreating(true);
-    try {
+    return await (async () => {
       let projectId: ProjectId;
       if (startingPoint === "template" && selectedTemplate) {
         await appCtx.api.updateUserPreferences(
@@ -169,10 +169,10 @@ const NewProjectModal = function NewProjectModal({
         projectId = project.id;
         history.push(APP_ROUTES.project.fill({ projectId }));
       }
-    } catch (cause) {
+    })().catch((cause) => {
       showError(cause, { title: "Failed to create project" });
       setCreating(false);
-    }
+    });
   };
 
   return (

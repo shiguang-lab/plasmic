@@ -156,7 +156,7 @@ export class DocsPortalCtx {
   getCodegenType() {
     return this.store.getState().codegenType;
   }
-  useLoader() {
+  isUsingLoader() {
     return this.getCodegenType() === "loader";
   }
   setCodegenType(type: "loader" | "codegen") {
@@ -184,7 +184,7 @@ export class DocsPortalCtx {
           serializeToggledComponent(
             component,
             this.getComponentToggles(component),
-            this.useLoader(),
+            this.isUsingLoader(),
           ),
         true,
       );
@@ -274,7 +274,7 @@ export class DocsPortalCtx {
           component,
           code: previous.code,
           toggles,
-          useLoader: this.useLoader(),
+          useLoader: this.isUsingLoader(),
         },
         resolveCollisionsForComponentProp(
           component,
@@ -329,7 +329,7 @@ export class DocsPortalCtx {
         component,
         code: previous.code,
         toggles: previous.toggles,
-        useLoader: this.useLoader(),
+        useLoader: this.isUsingLoader(),
       },
       path,
       value,

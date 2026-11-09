@@ -14,18 +14,18 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -90,11 +90,10 @@ function PlasmicVariableType__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "type",
@@ -103,18 +102,20 @@ function PlasmicVariableType__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.type,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -204,12 +205,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -219,28 +216,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVariableType__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicVariableType";
-  } else {
-    func.displayName = `PlasmicVariableType.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVariableType__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicVariableType__root<T extends PlasmicVariableType__rootProps>(props: T & StrictProps<T, PlasmicVariableType__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicVariableType__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicVariableType__root.displayName = "PlasmicVariableType";
+
+type PlasmicVariableType__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicVariableType__freeBox<T extends PlasmicVariableType__freeBoxProps>(props: T & StrictProps<T, PlasmicVariableType__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicVariableType__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicVariableType__freeBox.displayName = "PlasmicVariableType.freeBox";
+
+type PlasmicVariableType__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicVariableType__text<T extends PlasmicVariableType__textProps>(props: T & StrictProps<T, PlasmicVariableType__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicVariableType__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicVariableType__text.displayName = "PlasmicVariableType.text";
+
 
 export const PlasmicVariableType = Object.assign(
   // Top-level PlasmicVariableType renders the root element
-  makeNodeComponent("root"),
+  PlasmicVariableType__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    text: makeNodeComponent("text"),
+    freeBox: PlasmicVariableType__freeBox,
+    text: PlasmicVariableType__text,
 
     // Metadata about props expected for PlasmicVariableType
     internalVariantProps: PlasmicVariableType__VariantProps,

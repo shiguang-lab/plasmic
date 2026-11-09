@@ -1,3 +1,4 @@
+import { SelectContext, getDefaultPlasmicProps, PLUME_STRICT_MODE } from "@plasmicapp/react-web";
 import {
   DefaultSelect__OptionProps,
   PlasmicSelect__Option,
@@ -8,6 +9,21 @@ import * as React from "react";
 type Select__OptionProps = DefaultSelect__OptionProps;
 
 function Select__Option_(props: Select__OptionProps, ref: SelectOptionRef) {
+  const context = React.useContext(SelectContext);
+  if (!context) {
+    if (PLUME_STRICT_MODE) { throw new Error("You can only use a Select.Option within a Select component."); }
+    const {plasmicProps} = getDefaultPlasmicProps(PlasmicSelect__Option, props);
+    return (
+    <PlasmicSelect__Option
+      isUnsetOption={props.value == null}
+      {...plasmicProps}
+    />
+  );
+  }
+  return <Select__OptionWithContext props={props} ref={ref} />;
+}
+
+function Select__OptionWithContext({props, ref}: {props: Select__OptionProps; ref: SelectOptionRef}) {
   const { plasmicProps } = PlasmicSelect__Option.useBehavior(props, ref);
   return (
     <PlasmicSelect__Option

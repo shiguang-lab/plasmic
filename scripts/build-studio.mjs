@@ -2,23 +2,28 @@ import { execFileSync } from "node:child_process";
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 import { reactCompilerBuildInfo } from "../platform/wab/tools/react-compiler.mjs";
 import { hashFiles, sourceIdentity } from "./build-identity.mjs";
+import { desktopBrowserTarget, studioBuildEnvironment } from "./studio-build-target.mjs";
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const wab = path.join(repo, "platform/wab");
+const { values } = parseArgs({ options: { desktop: { type: "boolean", default: false } } });
+const browserTarget = values.desktop ? await desktopBrowserTarget(repo) : undefined;
+const sharedEnvironment = studioBuildEnvironment();
 const identity = await sourceIdentity(repo);
 execFileSync(
   process.platform === "win32" ? "npm.cmd" : "npm",
   ["run", "build-css"],
-  { cwd: wab, stdio: "inherit" },
+  { cwd: wab, env: sharedEnvironment, stdio: "inherit" },
 );
-execFileSync(process.execPath, [path.join(repo, "scripts/build-html-hydrate.mjs")], { cwd: repo, stdio: "inherit" });
+execFileSync(process.execPath, [path.join(repo, "scripts/build-html-hydrate.mjs")], { cwd: repo, env: sharedEnvironment, stdio: "inherit" });
 for (const cwd of [path.join(repo, "platform/sub"), path.join(repo, "platform/live-frame"), wab]) {
   execFileSync(
     process.platform === "win32" ? "npm.cmd" : "npm",
     ["run", "build"],
-    { cwd, stdio: "inherit" },
+    { cwd, env: cwd === wab ? studioBuildEnvironment(browserTarget) : sharedEnvironment, stdio: "inherit" },
   );
 }
 if (identity.sourceHash !== (await sourceIdentity(repo)).sourceHash) {
@@ -30,6 +35,7 @@ await writeFile(
   JSON.stringify(
     {
       ...identity,
+      ...(browserTarget ? { browserTarget } : {}),
       reactCompiler: reactCompilerBuildInfo(),
       builtAt: new Date().toISOString(),
       artifactHash: await hashFiles(output, ["."], ["studio-build.json"]),

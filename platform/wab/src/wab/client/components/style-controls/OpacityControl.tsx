@@ -1,7 +1,7 @@
 import { LabeledStyleDimItem } from "@/wab/client/components/sidebar/sidebar-helpers";
 import {
   ExpsProvider,
-  useStyleComponent,
+  useStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { useStyleCells, useStyleIndicator } from "@/wab/client/studio-ctx/style-inputs-react";
 import { useI18n } from "@/wab/client/i18n";
@@ -21,7 +21,7 @@ export function OpacityControl(
 ) {
   const { t: uiT } = useI18n();
   const { expsProvider } = props;
-  const styling = useStyleComponent();
+  const styling = useStyleTarget();
 
   // Use provided vsh or create one from studio context
   const currentVsh = useVariantedStylesHelperFromCurrentCtx(props.vsh ? undefined : expsProvider.studioCtx);

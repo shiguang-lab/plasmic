@@ -1,6 +1,7 @@
 import { AppCtx } from "@/wab/client/app-ctx";
 import { useTopFrameCtx } from "@/wab/client/frame-ctx/top-frame-ctx";
 import useSWR from "swr/immutable";
+import { ensure } from "@/wab/shared/common";
 
 export const useTeamDirectories = (appCtx: AppCtx, teamId?: string) => {
   const key = `/app-auth/team/${teamId}/directories`;
@@ -70,12 +71,12 @@ export const useDirectoryGroups = (appCtx: AppCtx, directoryId?: string) => {
   };
 };
 
-export const useAppAuthConfig = (appCtx: AppCtx, appId: string) => {
-  const key = `/app-auth/${appId}/config`;
+export const useAppAuthConfig = (appCtx: AppCtx, appId: string | undefined) => {
+  const key = appId ? `/app-auth/${appId}/config` : null;
   const { data, error, mutate } = useSWR(
     key,
     async () => {
-      const config = await appCtx.api.getAppAuthConfig(appId);
+      const config = await appCtx.api.getAppAuthConfig(ensure(appId, "App auth config requires a project"));
       return config;
     },
     {
@@ -85,7 +86,7 @@ export const useAppAuthConfig = (appCtx: AppCtx, appId: string) => {
   );
   return {
     config: data ?? undefined,
-    loading: !error && !data,
+    loading: !!appId && !error && !data,
     mutate,
     error,
   };

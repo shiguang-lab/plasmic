@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,12 +24,12 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useFocusVisible,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -124,11 +124,10 @@ function PlasmicStyleToggleButton__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "valueSetState",
@@ -168,20 +167,20 @@ function PlasmicStyleToggleButton__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.styleType,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootFocusVisible, triggerRootFocusVisibleProps] = useTrigger(
-    "useFocusVisible",
-    {
+  const [isRootFocusVisible, triggerRootFocusVisibleProps] = useFocusVisible({
       isTextInput: false,
     }
   );
@@ -189,7 +188,7 @@ function PlasmicStyleToggleButton__RenderFunc(props: {
     focusVisible_root: isRootFocusVisible,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <button
@@ -399,12 +398,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -414,28 +409,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicStyleToggleButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicStyleToggleButton";
-  } else {
-    func.displayName = `PlasmicStyleToggleButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicStyleToggleButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicStyleToggleButton__root<T extends PlasmicStyleToggleButton__rootProps>(props: T & StrictProps<T, PlasmicStyleToggleButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicStyleToggleButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicStyleToggleButton__root.displayName = "PlasmicStyleToggleButton";
+
+type PlasmicStyleToggleButton__iconContainerProps = NodeComponentProps<"iconContainer"> & {key?: React.Key};
+function PlasmicStyleToggleButton__iconContainer<T extends PlasmicStyleToggleButton__iconContainerProps>(props: T & StrictProps<T, PlasmicStyleToggleButton__iconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconContainer", props);
+  return <PlasmicStyleToggleButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconContainer"} />;
+}
+PlasmicStyleToggleButton__iconContainer.displayName = "PlasmicStyleToggleButton.iconContainer";
+
+type PlasmicStyleToggleButton__labelContainerProps = NodeComponentProps<"labelContainer"> & {key?: React.Key};
+function PlasmicStyleToggleButton__labelContainer<T extends PlasmicStyleToggleButton__labelContainerProps>(props: T & StrictProps<T, PlasmicStyleToggleButton__labelContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelContainer", props);
+  return <PlasmicStyleToggleButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelContainer"} />;
+}
+PlasmicStyleToggleButton__labelContainer.displayName = "PlasmicStyleToggleButton.labelContainer";
+
 
 export const PlasmicStyleToggleButton = Object.assign(
   // Top-level PlasmicStyleToggleButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicStyleToggleButton__root,
   {
     // Helper components rendering sub-elements
-    iconContainer: makeNodeComponent("iconContainer"),
-    labelContainer: makeNodeComponent("labelContainer"),
+    iconContainer: PlasmicStyleToggleButton__iconContainer,
+    labelContainer: PlasmicStyleToggleButton__labelContainer,
 
     // Metadata about props expected for PlasmicStyleToggleButton
     internalVariantProps: PlasmicStyleToggleButton__VariantProps,

@@ -112,7 +112,7 @@ export const SelectPlugin: PlumePlugin = {
     _viewCtx,
     createCanvasComponent,
   ) => {
-    return sub.React.forwardRef((allProps, ref: SelectRef) =>
+    return sub.createCanvasComponentType((allProps, ref: SelectRef) =>
       observer(() => {
         // Avoid using the very error-prone selectedContent prop
         const props = omit(allProps, "selectedContent");
@@ -124,20 +124,17 @@ export const SelectPlugin: PlumePlugin = {
           (c) => c.plumeInfo?.type === "select-option-group",
         )!;
         const internalProps = pick(props, internalCanvasElementProps);
-        const { plasmicProps } = sub.reactWeb.useSelect(
-          Object.assign(comp, getCompMeta()),
-          omit(props, internalCanvasElementProps),
-          {
+        return sub.React.createElement(sub.CanvasPlume.CanvasPlumeSelect, {
+          impl: comp,
+          metadata: getCompMeta(),
+          internalProps,
+          componentProps: omit(props, internalCanvasElementProps),
+          config: {
             ...selectConfig,
             OptionComponent: createCanvasComponent(optionComponent),
             OptionGroupComponent: createCanvasComponent(optionGroupComponent),
           } as any,
-          ref,
-        );
-
-        return sub.React.createElement(comp, {
-          ...plasmicProps,
-          ...internalProps,
+          forwardedRef: ref,
         });
       }),
     );
@@ -159,7 +156,7 @@ export const SelectPlugin: PlumePlugin = {
       "Expected to find select-option-group subComponent",
     );
     return `
-      function useBehavior<P extends pp.BaseSelectProps>(props: P, ref: pp.SelectRef) {
+      function useBehavior<P extends Plume.BaseSelectProps>(props: P, ref: Plume.SelectRef) {
         ${
           ctx.exportOpts.useComponentSubstitutionApi
             ? // If we're using substitution, then we can't just reference the
@@ -176,7 +173,7 @@ export const SelectPlugin: PlumePlugin = {
         if (!("options" in props)) {
           ${maybeIncludeSerializedDefaultSlotContent(ctx, "children")}
         }
-        return pp.useSelect(
+        return Plume.useSelect(
           ${makePlasmicComponentName(component)},
           props,
           {
@@ -203,10 +200,10 @@ export const SelectPlugin: PlumePlugin = {
     return `
       export interface ${
         opts?.typeName ?? makeDefaultExternalPropsName(component)
-      } extends pp.BaseSelectProps {
+      } extends Plume.BaseSelectProps {
         ${params
           // We exclude onChange here, as we just inherit the onChange prop
-          // with better types from pp.BaseSelectProps
+          // with better types from Plume.BaseSelectProps
           .filter((p) => paramToVarName(ctx.component, p) !== "onChange")
           .map(
             (param) =>

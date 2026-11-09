@@ -9,6 +9,11 @@ import {
   get,
   set,
   useDollarState,
+  useDollarStateSnapshot,
+  StateInitializer,
+  StateInitializerDeclaration,
+  createStateEventHandler,
+  getStateCommandValue,
 } from "../states";
 import { CyclicStatesReferencesError } from "../states/errors";
 
@@ -37,8 +42,7 @@ const Counter = (props: CounterProps) => {
     title,
   } = props;
 
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "count",
         type: stateType,
@@ -61,16 +65,17 @@ const Counter = (props: CounterProps) => {
           : {}),
         variableType: "number",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: props,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   return (
     <div>
       {title}
       <button
-        onClick={() => ($state.count = $state.count + 1)}
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => ($state.count = $state.count + 1))}
         data-testid={
           "data-testid" in props ? `${props["data-testid"]}-btn` : "counter-btn"
         }
@@ -97,32 +102,32 @@ const ParentCounter: StoryFn<{
 }> = (args) => {
   const { counterStateType = "readonly" } = args;
 
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "counter.count",
         type: "private",
         initVal: 0,
         variableType: "number",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: args,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   return (
     <div>
       <Counter
         stateType={counterStateType}
-        onChange={(val) => ($state.counter.count = val)}
+        onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => ($state.counter.count = val))}
         {...(counterStateType === "writable"
           ? { initCount: $state.counter.count }
           : {})}
       />
       <p>ParentCounter: {$state.counter.count}</p>
       <button
-        onClick={() => ($state.counter.count += 1)}
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => ($state.counter.count += 1))}
         data-testid="parent-counter-btn"
       >
         ParentCounter Increment
@@ -174,8 +179,7 @@ WritableCounter.play = async ({ canvasElement }) => {
 };
 
 const _DynamicInitCount: StoryFn = (args) => {
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "initCount",
         type: "private",
@@ -188,23 +192,24 @@ const _DynamicInitCount: StoryFn = (args) => {
         initVal: 0,
         variableType: "number",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: args,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   return (
     <div>
       <button
-        onClick={() => ($state.initCount = $state.initCount + 1)}
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => ($state.initCount = $state.initCount + 1))}
         data-testid={"init-count-btn"}
       >
         Bump initCount
       </button>
       <Counter
         initCount={$state.initCount}
-        onChange={(count) => ($state.counter.count = count)}
+        onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (count) => ($state.counter.count = count))}
         showCount={false}
         stateType={"readonly"}
         useInitalFunction={true}
@@ -238,8 +243,7 @@ function TextInput(props: {
   onBlur?: () => void;
   "data-testid"?: string;
 }) {
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "value",
         type: "writable",
@@ -247,15 +251,16 @@ function TextInput(props: {
         onChangeProp: "onChange",
         variableType: "text",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: props,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   return (
     <input
       value={$state.value}
-      onChange={(event) => ($state.value = event.target.value)}
+      onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (event) => ($state.value = event.target.value))}
       // onChange={props.onChange}
       onBlur={() => props.onBlur?.()}
       data-testid={props["data-testid"] ?? "text-input"}
@@ -267,19 +272,19 @@ function PeopleList(props: {
   data: { firstName: string; lastName: string }[];
   onIndexSelected: (index: number) => void;
 }) {
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "selectedIndex",
         type: "readonly",
         onChangeProp: "onIndexSelected",
         variableType: "number",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: props,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   return (
     <ul>
       {props.data.map((datum, index) => (
@@ -288,7 +293,7 @@ function PeopleList(props: {
             fontWeight: index === $state.selectedIndex ? "bold" : "normal",
           }}
           key={index}
-          onClick={() => ($state.selectedIndex = index)}
+          onClick={createStateEventHandler(() => [$stateCommands, getStateCommandValue(index)] as const, ($state, index) => () => ($state.selectedIndex = index))}
           data-testid={`people_${index}`}
         >
           {datum.firstName} {datum.lastName}
@@ -301,8 +306,7 @@ function PeopleList(props: {
 const _ResetInput: StoryFn<{
   peopleList: { firstName: string; lastName: string }[];
 }> = (props) => {
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "peopleList",
         type: "private",
@@ -339,42 +343,43 @@ const _ResetInput: StoryFn<{
         type: "private",
         variableType: "text",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: props,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   return (
     <div>
       <PeopleList
         data={$state.peopleList ?? []}
-        onIndexSelected={(x) => ($state.list.selectedIndex = x)}
+        onIndexSelected={createStateEventHandler(() => [$stateCommands] as const, ($state) => (x) => ($state.list.selectedIndex = x))}
       />
       <div>
         <TextInput
           value={$state.textInputFirstName.value}
-          onChange={(val) => ($state.textInputFirstName.value = val)}
+          onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => ($state.textInputFirstName.value = val))}
           data-testid={"textInputFirstName"}
         />
         <TextInput
           value={$state.textInputLastName.value}
-          onChange={(val) => ($state.textInputLastName.value = val)}
+          onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => ($state.textInputLastName.value = val))}
           data-testid={"textInputLastName"}
         />
         <TextInput
           value={$state.textInputUpper.value}
-          onChange={(val) => ($state.textInputUpper.value = val)}
+          onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => ($state.textInputUpper.value = val))}
           data-testid={"textInputUpper"}
         />
       </div>
       <button
-        onClick={() => {
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => {
           $state.peopleList[$state.list.selectedIndex].firstName =
             $state.textInputFirstName.value;
           $state.peopleList[$state.list.selectedIndex].lastName =
             $state.textInputLastName.value;
-        }}
+        })}
       >
         Submit
       </button>
@@ -442,8 +447,7 @@ const _RepeatedStates: StoryFn<{
   const subsets = getAllSubsets(set)
     .sort((a, b) => a.length - b.length)
     .filter((set) => set.length);
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "counter[].count",
         type: "private",
@@ -460,11 +464,12 @@ const _RepeatedStates: StoryFn<{
             variableType: "number",
           } as $StateSpec<any>)
       ),
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: args,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   return (
     <div>
@@ -481,7 +486,7 @@ const _RepeatedStates: StoryFn<{
             key={idx}
             title={<p>{`counter[${idx}]`}</p>}
             stateType="readonly"
-            onChange={(val) => ($state.counter[idx].count = val)}
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandValue(idx)] as const, ($state, idx) => (val) => ($state.counter[idx].count = val))}
             data-testid={`counter[${idx}]`}
           />
         ))}
@@ -491,7 +496,7 @@ const _RepeatedStates: StoryFn<{
             title={<p>= {set.map((el) => `counter[${el}]`).join(" + ")}</p>}
             stateType="writable"
             initCount={$state[`test${i}`].count}
-            onChange={(val) => ($state[`test${i}`].count = val)}
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandValue(i)] as const, ($state, i) => (val) => ($state[`test${i}`].count = val))}
             data-testid={`test${i}`}
           />
         ))}
@@ -540,18 +545,18 @@ const _NestedRepeatedCounter: StoryFn<{}> = () => {
       initCount: any;
     }) => {
       const { grandParentIndex } = args;
-      const $state = useDollarState(
-        [
+      const stateSpecs: $StateSpec<any>[] = [
           {
             path: "counter[].count",
             type: "private",
             variableType: "number",
           },
-        ],
-        {
+        ];
+  const stateEnv = {
           $props: args,
-        }
-      );
+        };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
       return (
         <div
           style={{
@@ -562,27 +567,23 @@ const _NestedRepeatedCounter: StoryFn<{}> = () => {
           }}
         >
           {[0, 1, 2].map((index) => {
-            $state.registerInitFunc?.(
-              "counter[].count",
-              () => args.initCount[index],
-              [index]
-            );
+            const stateInitializers: StateInitializerDeclaration[] = [{path: "counter[].count", initFunc: () => args.initCount[index], repetitionIndex: [index]}];
             return (
-              <div key={index}>
+              <StateInitializer state={$state} initializers={stateInitializers} key={index}>{<div key={index}>
                 <Counter
                   data-testid={`counter[${grandParentIndex}][${index}]`}
                   title={<p>{`counter[${grandParentIndex}][${index}]`}</p>}
                   stateType="writable"
-                  onChange={(val) => {
+                  onChange={createStateEventHandler(() => [$stateCommands, getStateCommandValue(index)] as const, ($state, index) => (val) => {
                     $state.counter[index].count = val;
                     args.onChange($state.counter.map((c: any) => c.count));
-                  }}
+                  })}
                   initCount={$state.counter[index].count}
                 />
                 <span
                   data-testid={`parentLabel[${grandParentIndex}][${index}]`}
                 >{`parentCounter: ${$state.counter[index].count}`}</span>
-              </div>
+              </div>}</StateInitializer>
             );
           })}
         </div>
@@ -591,8 +592,7 @@ const _NestedRepeatedCounter: StoryFn<{}> = () => {
     []
   );
   const GrandParent = React.useCallback((args: {}) => {
-    const $state = useDollarState(
-      [
+    const stateSpecs: $StateSpec<any>[] = [
         {
           path: "counters",
           type: "private",
@@ -603,11 +603,12 @@ const _NestedRepeatedCounter: StoryFn<{}> = () => {
           ],
           variableType: "array",
         },
-      ],
-      {
+      ];
+  const stateEnv = {
         $props: args,
-      }
-    );
+      };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
     return (
       <div
         style={{
@@ -620,7 +621,7 @@ const _NestedRepeatedCounter: StoryFn<{}> = () => {
           <div key={index}>
             <Parent
               grandParentIndex={index}
-              onChange={(val) => ($state.counters[index] = val)}
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandValue(index)] as const, ($state, index) => (val) => ($state.counters[index] = val))}
               initCount={$state.counters[index]}
             />
           </div>
@@ -640,7 +641,7 @@ const _NestedRepeatedCounter: StoryFn<{}> = () => {
             </select>
           ))}
           <button
-            onClick={() => {
+            onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => {
               const selector = [
                 +(document.getElementById("select_0") as HTMLSelectElement)!
                   .value,
@@ -648,7 +649,7 @@ const _NestedRepeatedCounter: StoryFn<{}> = () => {
                   .value,
               ];
               $state.counters[selector[0]][selector[1]]++;
-            }}
+            })}
             data-testid="increment-btn"
           >
             Increment
@@ -656,10 +657,10 @@ const _NestedRepeatedCounter: StoryFn<{}> = () => {
           <br />
           <button
             data-testid="clear-btn"
-            onClick={() =>
+            onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () =>
               [0, 1, 2].map((i: any) =>
                 [0, 1, 2].map((j: any) => ($state.counters[i][j] = 0))
-              )
+              ))
             }
           >
             Clear all
@@ -721,19 +722,19 @@ NestedRepeatedCounter.play = async ({ canvasElement }) => {
 };
 
 const _MatrixRepeatedCounter: StoryFn<{}> = () => {
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "counter[][].count",
         type: "private",
         initFunc: () => 0,
         variableType: "number",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: {},
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   return (
     <div
       style={{
@@ -749,7 +750,7 @@ const _MatrixRepeatedCounter: StoryFn<{}> = () => {
             key={i * arr.length + j}
             stateType="writable"
             initCount={$state.counter[i][j].count}
-            onChange={(val) => ($state.counter[i][j].count = val)}
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandValue(j)] as const, ($state, j) => (val) => ($state.counter[i][j].count = val))}
             data-testid={`counter[${i}][${j}]`}
           />
         ))
@@ -765,7 +766,7 @@ const _MatrixRepeatedCounter: StoryFn<{}> = () => {
           </select>
         ))}
         <button
-          onClick={() => {
+          onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => {
             const selector = [
               +(document.getElementById("select_0") as HTMLSelectElement)!
                 .value,
@@ -773,7 +774,7 @@ const _MatrixRepeatedCounter: StoryFn<{}> = () => {
                 .value,
             ];
             $state.counter[selector[0]][selector[1]].count += 1;
-          }}
+          })}
           data-testid="increment-btn"
         >
           Increment
@@ -781,10 +782,10 @@ const _MatrixRepeatedCounter: StoryFn<{}> = () => {
         <br />
         <button
           data-testid="clear-btn"
-          onClick={() =>
+          onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () =>
             [0, 1, 2].map((i: any) =>
               [0, 1, 2].map((j: any) => ($state.counter[i][j].count = 0))
-            )
+            ))
           }
         >
           Clear all
@@ -849,8 +850,7 @@ const _InitFuncFromInternalContextData: StoryFn<{
   );
   const InternalComponent = React.useCallback(
     (props: { quantity: number; onProductChange: (product: any) => void }) => {
-      const $state = useDollarState(
-        [
+      const stateSpecs: $StateSpec<any>[] = [
           {
             path: "price",
             type: "private",
@@ -864,20 +864,21 @@ const _InitFuncFromInternalContextData: StoryFn<{
             onChangeProp: "onProductChange",
             variableType: "object",
           },
-        ],
-        {
+        ];
+  const stateEnv = {
           $props: props,
-        }
-      );
+        };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
       return (
         <>
           <ProductContext.Consumer>
             {($ctx) => {
-              $state.registerInitFunc?.("product", () => $ctx);
+              const stateInitializers: StateInitializerDeclaration[] = [{path: "product", initFunc: () => $ctx}];
               return (
-                <>
+                <StateInitializer state={$state} initializers={stateInitializers}>{<>
                   <p data-testid="product_price">Price: {$state.price}</p>
-                </>
+                </>}</StateInitializer>
               );
             }}
           </ProductContext.Consumer>
@@ -887,8 +888,7 @@ const _InitFuncFromInternalContextData: StoryFn<{
     []
   );
 
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "selectedIndex",
         type: "private",
@@ -906,11 +906,12 @@ const _InitFuncFromInternalContextData: StoryFn<{
         type: "private",
         variableType: "object",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: args,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   return (
     <div
@@ -924,7 +925,7 @@ const _InitFuncFromInternalContextData: StoryFn<{
           <li
             data-testid={`product_${index}`}
             key={index}
-            onClick={() => ($state.selectedIndex = index)}
+            onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => ($state.selectedIndex = index))}
           >
             {product.name}
           </li>
@@ -940,13 +941,13 @@ const _InitFuncFromInternalContextData: StoryFn<{
       >
         <InternalComponent
           quantity={$state.quantity}
-          onProductChange={(val) => ($state.ctx.product = val)}
+          onProductChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => ($state.ctx.product = val))}
         />
       </ProductContext.Provider>
       <input
         data-testid="product_quantity-input"
         type="text"
-        onChange={(e) => ($state.quantity = +e.target.value)}
+        onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (e) => ($state.quantity = +e.target.value))}
         value={$state.quantity}
       />
     </div>
@@ -999,25 +1000,24 @@ const _InitFuncFromRootContextData: StoryFn<{
     onProductChange: (product: any) => void;
   }) => {
     const $ctx = React.useContext(ProductContext);
-    const $state = useDollarState(
-      [
+    const stateSpecs: $StateSpec<any>[] = [
         {
           path: "price",
           type: "private",
           initFunc: ({ $props, $ctx }) => $props.quantity * ($ctx.price ?? 0),
           variableType: "number",
         },
-      ],
-      {
+      ];
+  const stateEnv = {
         $props: props,
         $ctx: $ctx ?? {},
-      }
-    );
+      };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
     return <p data-testid="product_price">Price: {$state.price}</p>;
   };
 
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "selectedIndex",
         type: "private",
@@ -1035,11 +1035,12 @@ const _InitFuncFromRootContextData: StoryFn<{
         type: "private",
         variableType: "object",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: args,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   return (
     <div
@@ -1053,7 +1054,7 @@ const _InitFuncFromRootContextData: StoryFn<{
           <li
             data-testid={`product_${index}`}
             key={index}
-            onClick={() => ($state.selectedIndex = index)}
+            onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => ($state.selectedIndex = index))}
           >
             {product.name}
           </li>
@@ -1071,13 +1072,13 @@ const _InitFuncFromRootContextData: StoryFn<{
       >
         <InternalComponent
           quantity={$state.quantity}
-          onProductChange={(val) => ($state.ctx.product = val)}
+          onProductChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => ($state.ctx.product = val))}
         />
       </ProductContext.Provider>
       <input
         data-testid="product_quantity-input"
         type="text"
-        onChange={(e) => ($state.quantity = +e.target.value)}
+        onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (e) => ($state.quantity = +e.target.value))}
         value={$state.quantity}
       />
     </div>
@@ -1141,18 +1142,18 @@ const _InitFuncFromInternalContextDataWithDelay: StoryFn<{
       </div>
     );
   }, []);
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "counter.count",
         type: "private",
         variableType: "number",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: args,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   return (
     <div
@@ -1164,24 +1165,24 @@ const _InitFuncFromInternalContextDataWithDelay: StoryFn<{
       <ProductBox>
         <ProductContext.Consumer>
           {($ctx) => {
-            $state.registerInitFunc?.("counter.count", () => $ctx?.price);
+            const stateInitializers: StateInitializerDeclaration[] = [{path: "counter.count", initFunc: () => $ctx?.price}];
             return (
-              <div>
+              <StateInitializer state={$state} initializers={stateInitializers}>{<div>
                 {(() => {
                   return (
                     <Counter
                       initCount={$state.counter.count}
-                      onChange={(val) => ($state.counter.count = val)}
+                      onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => ($state.counter.count = val))}
                       stateType={"writable"}
                     />
                   );
                 })()}
-              </div>
+              </div>}</StateInitializer>
             );
           }}
         </ProductContext.Consumer>
       </ProductBox>
-      <button onClick={() => ($state.counter.count = 0)}>Zero</button>
+      <button onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => ($state.counter.count = 0))}>Zero</button>
     </div>
   );
 };
@@ -1211,8 +1212,7 @@ InitFuncFromInternalContextDataWithDelay.play = async ({ canvasElement }) => {
 };
 
 const _RepeatedImplicitState: StoryFn<{}> = (args) => {
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "counter[].count",
         type: "private",
@@ -1230,11 +1230,12 @@ const _RepeatedImplicitState: StoryFn<{}> = (args) => {
         initVal: 0,
         variableType: "number",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: args,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   return (
     <div>
       <ul data-testid={"list"}>
@@ -1245,22 +1246,22 @@ const _RepeatedImplicitState: StoryFn<{}> = (args) => {
         ))}
       </ul>
       <button
-        onClick={() => {
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => {
           $state.counter.push({ count: $state.usedValuesCount });
           $state.usedValuesCount++;
-        }}
+        })}
         data-testid={"push-btn"}
       >
         AddItem using push
       </button>
       <button
-        onClick={() => {
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => {
           $state.counter = [
             ...$state.counter,
             { count: $state.usedValuesCount },
           ];
           $state.usedValuesCount++;
-        }}
+        })}
         data-testid={"spread-btn"}
       >
         AddItem using spread operator
@@ -1268,11 +1269,11 @@ const _RepeatedImplicitState: StoryFn<{}> = (args) => {
       <input
         type="text"
         value={$state.removeIndex}
-        onChange={(e) => ($state.removeIndex = +e.target.value)}
+        onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (e) => ($state.removeIndex = +e.target.value))}
         data-testid={"remove-input"}
       />
       <button
-        onClick={() => $state.counter.splice($state.removeIndex, 1)}
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => $state.counter.splice($state.removeIndex, 1))}
         data-testid={"remove-btn"}
       >
         Remove
@@ -1342,28 +1343,28 @@ const _FormBuilder: StoryFn<{ people: Person[] }> = (props) => {
       onDeleteNickname: () => void;
       "data-test-index": string;
     }) => {
-      const $state = useDollarState(
-        [
+      const stateSpecs: $StateSpec<any>[] = [
           {
             path: "nickname",
             type: "private",
             initFunc: ({ $props }) => $props.nickname,
             variableType: "text",
           },
-        ],
-        {
+        ];
+  const stateEnv = {
           $props: props,
-        }
-      );
+        };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
       return (
         <div>
           <input
             type="text"
             value={$state.nickname}
-            onChange={(e) => {
+            onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (e) => {
               $state.nickname = e.target.value;
               props.onChangeNickname($state.nickname);
-            }}
+            })}
             data-testid={`nickname-input${props["data-test-index"]}`}
           />
           <button
@@ -1385,8 +1386,7 @@ const _FormBuilder: StoryFn<{ people: Person[] }> = (props) => {
       onDeletePerson: () => void;
       "data-test-index": string;
     }) => {
-      const $state = useDollarState(
-        [
+      const stateSpecs: $StateSpec<any>[] = [
           {
             path: "nicknames",
             type: "private",
@@ -1405,11 +1405,12 @@ const _FormBuilder: StoryFn<{ people: Person[] }> = (props) => {
             initFunc: ({ $props }) => $props.person.lastName,
             variableType: "text",
           },
-        ],
-        {
+        ];
+  const stateEnv = {
           $props: props,
-        }
-      );
+        };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
       const onChangePersonHandler = (
         field: "firstName" | "lastName" | "nicknames"
@@ -1437,10 +1438,10 @@ const _FormBuilder: StoryFn<{ people: Person[] }> = (props) => {
             <input
               type="text"
               value={$state.firstName}
-              onChange={(e) => {
+              onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (e) => {
                 $state.firstName = e.target.value;
                 onChangePersonHandler("firstName");
-              }}
+              })}
               {...mkDataTestIdAttr("firstName-input")}
             />
           </div>
@@ -1449,10 +1450,10 @@ const _FormBuilder: StoryFn<{ people: Person[] }> = (props) => {
             <input
               type="text"
               value={$state.lastName}
-              onChange={(e) => {
+              onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (e) => {
                 $state.lastName = e.target.value;
                 onChangePersonHandler("lastName");
-              }}
+              })}
               {...mkDataTestIdAttr("lastName-input")}
             />
           </div>
@@ -1472,20 +1473,20 @@ const _FormBuilder: StoryFn<{ people: Person[] }> = (props) => {
                 <Nickname
                   key={i}
                   nickname={nickname}
-                  onChangeNickname={(newNickname) => {
+                  onChangeNickname={createStateEventHandler(() => [$stateCommands, getStateCommandValue(i)] as const, ($state, i) => (newNickname) => {
                     $state.nicknames[i] = newNickname;
                     onChangePersonHandler("nicknames");
-                  }}
-                  onDeleteNickname={() => {
+                  })}
+                  onDeleteNickname={createStateEventHandler(() => [$stateCommands, getStateCommandValue(i)] as const, ($state, i) => () => {
                     $state.nicknames.splice(i, 1);
                     $state.nicknames = [...$state.nicknames];
                     onChangePersonHandler("nicknames");
-                  }}
+                  })}
                   data-test-index={`${props["data-test-index"]}[${i}]`}
                 />
               ))}
               <button
-                onClick={() => ($state.nicknames = [...$state.nicknames, ""])}
+                onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => ($state.nicknames = [...$state.nicknames, ""]))}
                 {...mkDataTestIdAttr("add-nickname-btn")}
               >
                 Add nickname
@@ -1504,19 +1505,19 @@ const _FormBuilder: StoryFn<{ people: Person[] }> = (props) => {
     []
   );
 
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "people",
         type: "private",
         initFunc: ({ $props }) => $props.people,
         variableType: "array",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: deepClone(props),
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   return (
     <div
@@ -1530,19 +1531,19 @@ const _FormBuilder: StoryFn<{ people: Person[] }> = (props) => {
         <Person
           person={person}
           key={i}
-          onChangePerson={(person) => ($state.people[i] = person)}
-          onDeletePerson={() => $state.people.splice(i, 1)}
+          onChangePerson={createStateEventHandler(() => [$stateCommands, getStateCommandValue(i)] as const, ($state, i) => (person) => ($state.people[i] = person))}
+          onDeletePerson={createStateEventHandler(() => [$stateCommands, getStateCommandValue(i)] as const, ($state, i) => () => $state.people.splice(i, 1))}
           data-test-index={`[${i}]`}
         />
       ))}
       <button
         data-testid={"add-person-btn"}
-        onClick={() =>
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () =>
           $state.people.push({
             firstName: "",
             lastName: "",
             nicknames: [],
-          })
+          }))
         }
       >
         Add person
@@ -1689,8 +1690,7 @@ const _FormBuilderImplicitStates: StoryFn<{ people: Person[] }> = (props: {
       onNicknamesChange: (nickname: string) => void;
       "data-test-index": string;
     }) => {
-      const $state = useDollarState(
-        [
+      const stateSpecs: $StateSpec<any>[] = [
           {
             path: "nicknames",
             type: "writable",
@@ -1703,11 +1703,12 @@ const _FormBuilderImplicitStates: StoryFn<{ people: Person[] }> = (props: {
             type: "private",
             variableType: "text",
           },
-        ],
-        {
+        ];
+  const stateEnv = {
           $props: props,
-        }
-      );
+        };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
       return (
         <div
           style={{
@@ -1722,34 +1723,34 @@ const _FormBuilderImplicitStates: StoryFn<{ people: Person[] }> = (props: {
             }}
           >
             {$state.nicknames.map((nickname: any, i: number) => {
-              $state.registerInitFunc?.("textInput[].value", () => nickname, [
+              const stateInitializers: StateInitializerDeclaration[] = [{path: "textInput[].value", initFunc: () => nickname, repetitionIndex: [
                 i,
-              ]);
+              ]}];
               return (
-                <div>
+                <StateInitializer state={$state} initializers={stateInitializers}>{<div>
                   <TextInput
                     value={$state.textInput[i].value}
-                    onChange={(val) => {
+                    onChange={createStateEventHandler(() => [$stateCommands, getStateCommandValue(i)] as const, ($state, i) => (val) => {
                       $state.textInput[i].value = val;
                       $state.nicknames[i] = val;
-                    }}
+                    })}
                     data-testid={`nickname-input${props["data-test-index"]}[${i}]`}
                   />
                   <button
-                    onClick={() => {
+                    onClick={createStateEventHandler(() => [$stateCommands, getStateCommandValue(i)] as const, ($state, i) => () => {
                       $state.nicknames.splice(i, 1);
-                    }}
+                    })}
                     data-testid={`remove-nickname-btn${props["data-test-index"]}[${i}]`}
                   >
                     X
                   </button>
-                </div>
+                </div>}</StateInitializer>
               );
             })}
             <button
-              onClick={() => {
+              onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => {
                 $state.nicknames.push("");
-              }}
+              })}
               data-testid={`add-nickname-btn${props["data-test-index"]}`}
             >
               Add nickname
@@ -1768,8 +1769,7 @@ const _FormBuilderImplicitStates: StoryFn<{ people: Person[] }> = (props: {
       onDeletePerson: () => void;
       "data-test-index": string;
     }) => {
-      const $state = useDollarState(
-        [
+      const stateSpecs: $StateSpec<any>[] = [
           {
             path: "person",
             type: "writable",
@@ -1795,11 +1795,12 @@ const _FormBuilderImplicitStates: StoryFn<{ people: Person[] }> = (props: {
             variableType: "text",
             initFunc: ({ $state }) => $state.person.nicknames,
           },
-        ],
-        {
+        ];
+  const stateEnv = {
           $props: props,
-        }
-      );
+        };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
       const mkDataTestIdAttr = (label: string) => ({
         "data-testid": `${label}${props["data-test-index"]}`,
       });
@@ -1815,10 +1816,10 @@ const _FormBuilderImplicitStates: StoryFn<{ people: Person[] }> = (props: {
             <label>First Name</label>
             <TextInput
               value={$state.firstName.value}
-              onChange={(val) => {
+              onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => {
                 $state.firstName.value = val;
                 $state.person.firstName = val;
-              }}
+              })}
               {...mkDataTestIdAttr("firstName-input")}
             />
           </div>
@@ -1826,19 +1827,19 @@ const _FormBuilderImplicitStates: StoryFn<{ people: Person[] }> = (props: {
             <label>Last Name</label>
             <TextInput
               value={$state.lastName.value}
-              onChange={(val) => {
+              onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => {
                 generateStateOnChangeProp($state, ["lastName", "value"])(val);
                 $state.person.lastName = val;
-              }}
+              })}
               {...mkDataTestIdAttr("lastName-input")}
             />
           </div>
           <Nicknames
             nicknames={$state.nicknames.value}
-            onNicknamesChange={(val) => {
+            onNicknamesChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => {
               generateStateOnChangeProp($state, ["nicknames", "value"])(val);
               $state.person.nicknames = val;
-            }}
+            })}
             data-test-index={props["data-test-index"]}
           />
           <button
@@ -1853,8 +1854,7 @@ const _FormBuilderImplicitStates: StoryFn<{ people: Person[] }> = (props: {
     []
   );
 
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "people",
         type: "private",
@@ -1866,11 +1866,12 @@ const _FormBuilderImplicitStates: StoryFn<{ people: Person[] }> = (props: {
         type: "private",
         variableType: "object",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: deepClone(props),
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   return (
     <div
@@ -1881,25 +1882,25 @@ const _FormBuilderImplicitStates: StoryFn<{ people: Person[] }> = (props: {
       }}
     >
       {$state.people.map((person: any, i: number) => {
-        $state.registerInitFunc?.("person[].value", () => person, [i]);
+        const stateInitializers: StateInitializerDeclaration[] = [{path: "person[].value", initFunc: () => person, repetitionIndex: [i]}];
         return (
-          $state.person[i].value && (
+          <StateInitializer state={$state} initializers={stateInitializers}>{$state.person[i].value && (
             <Person
               key={i}
               initialPerson={$state.person[i].value}
-              onPersonChange={(val) => {
+              onPersonChange={createStateEventHandler(() => [$stateCommands, getStateCommandValue(i)] as const, ($state, i) => (val) => {
                 $state.person[i].value = val;
                 $state.people[i] = val;
-              }}
-              onDeletePerson={() => $state.people.splice(i, 1)}
+              })}
+              onDeletePerson={createStateEventHandler(() => [$stateCommands, getStateCommandValue(i)] as const, ($state, i) => () => $state.people.splice(i, 1))}
               data-test-index={`[${i}]`}
             />
-          )
+          )}</StateInitializer>
         );
       })}
       <button
         data-testid={"add-person-btn"}
-        onClick={() =>
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () =>
           ($state.people = [
             ...$state.people,
             {
@@ -1907,7 +1908,7 @@ const _FormBuilderImplicitStates: StoryFn<{ people: Person[] }> = (props: {
               lastName: "",
               nicknames: [],
             },
-          ])
+          ]))
         }
       >
         Add person
@@ -1929,8 +1930,7 @@ FormBuilderImplicitStates.play = async ({ canvasElement }) => {
 const _StateCellIsArray: StoryFn<{ people: Person[] }> = (props: {
   people: Person[];
 }) => {
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "people",
         type: "private",
@@ -1947,11 +1947,12 @@ const _StateCellIsArray: StoryFn<{ people: Person[] }> = (props: {
         type: "private",
         variableType: "text",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: props,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   return (
     <div
@@ -1968,7 +1969,7 @@ const _StateCellIsArray: StoryFn<{ people: Person[] }> = (props: {
               {person.firstName} {person.lastName}
             </span>
             <button
-              onClick={() => $state.people.splice(i, 1)}
+              onClick={createStateEventHandler(() => [$stateCommands, getStateCommandValue(i)] as const, ($state, i) => () => $state.people.splice(i, 1))}
               data-testid={`remove-${person.firstName}-${person.lastName}`}
             >
               X
@@ -1979,22 +1980,22 @@ const _StateCellIsArray: StoryFn<{ people: Person[] }> = (props: {
       <div>
         <input
           value={$state.firstName}
-          onChange={(e) => ($state.firstName = e.target.value)}
+          onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (e) => ($state.firstName = e.target.value))}
           data-testid={"first-name-input"}
         />
         <input
           value={$state.lastName}
-          onChange={(e) => ($state.lastName = e.target.value)}
+          onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (e) => ($state.lastName = e.target.value))}
           data-testid={"last-name-input"}
         />
         <button
           data-testid={"add-person-btn"}
-          onClick={() => {
+          onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => {
             $state.people.push({
               firstName: $state.firstName,
               lastName: $state.lastName,
             });
-          }}
+          })}
         >
           Add person
         </button>
@@ -2069,8 +2070,7 @@ StateCellIsArray.play = async ({ canvasElement }) => {
 };
 
 const _StateCellIsAMatrix: StoryFn<{ board: number[][] }> = (props) => {
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "board",
         type: "private",
@@ -2087,11 +2087,12 @@ const _StateCellIsAMatrix: StoryFn<{ board: number[][] }> = (props) => {
         type: "private",
         variableType: "number",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: props,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   return (
     <div
@@ -2111,7 +2112,7 @@ const _StateCellIsAMatrix: StoryFn<{ board: number[][] }> = (props) => {
         >
           {item.map((item, col) => (
             <div
-              onClick={() => {
+              onClick={createStateEventHandler(() => [$stateCommands, getStateCommandValue(row), getStateCommandValue(col)] as const, ($state, row, col) => () => {
                 if (
                   $state.selectedRow !== undefined &&
                   $state.selectedCol !== undefined
@@ -2128,7 +2129,7 @@ const _StateCellIsAMatrix: StoryFn<{ board: number[][] }> = (props) => {
                   $state.selectedRow = row;
                   $state.selectedCol = col;
                 }
-              }}
+              })}
               data-testid={`board-${row}-${col}`}
             >
               {item}
@@ -2209,8 +2210,7 @@ const _IsOnChangePropImmediatelyFired: StoryFn<{}> = (props) => {
       onCountChange: (val: number) => void;
       onIsOddChange: (val: boolean) => void;
     }) => {
-      const $state = useDollarState(
-        [
+      const stateSpecs: $StateSpec<any>[] = [
           {
             path: "count",
             type: "readonly",
@@ -2225,15 +2225,16 @@ const _IsOnChangePropImmediatelyFired: StoryFn<{}> = (props) => {
             initFunc: ({ $state }) => !!($state.count % 2),
             variableType: "boolean",
           },
-        ],
-        {
+        ];
+  const stateEnv = {
           $props: props,
-        }
-      );
+        };
+  const $stateCommands = useDollarState();
+  useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
       return (
         <div>
           <button
-            onClick={() => ($state.count = $state.count + 1)}
+            onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => ($state.count = $state.count + 1))}
             data-testid={"counter-btn"}
           >
             Counter Increment
@@ -2244,8 +2245,7 @@ const _IsOnChangePropImmediatelyFired: StoryFn<{}> = (props) => {
     []
   );
 
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "counter.count",
         type: "private",
@@ -2262,11 +2262,12 @@ const _IsOnChangePropImmediatelyFired: StoryFn<{}> = (props) => {
         variableType: "array",
         initVal: [],
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: props,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   if ($state.invocations.length > 1) {
     throw new Error(
@@ -2277,14 +2278,14 @@ const _IsOnChangePropImmediatelyFired: StoryFn<{}> = (props) => {
   return (
     <div>
       <Counter
-        onCountChange={generateStateOnChangeProp($state, ["counter", "count"])}
-        onIsOddChange={(...args: any) => {
+        onCountChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => generateStateOnChangeProp($state, ["counter", "count"]))}
+        onIsOddChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (...args: any) => {
           generateStateOnChangeProp($state, ["counter", "isOdd"]).apply(
             null,
             args
           );
           $state.invocations.push(args);
-        }}
+        })}
       />
       <br />
       <span data-testid="counter-span">{$state.counter.count}</span>
@@ -2313,8 +2314,7 @@ const _IsOnChangeFiredWithCorrectInitialValue: StoryFn<{}> = (props) => {
       delta: number;
       onDeltaChange: (val: number) => void;
     }) => {
-      const $state = useDollarState(
-        [
+      const stateSpecs: $StateSpec<any>[] = [
           {
             path: "count",
             type: "readonly",
@@ -2329,15 +2329,16 @@ const _IsOnChangeFiredWithCorrectInitialValue: StoryFn<{}> = (props) => {
             valueProp: "delta",
             onChangeProp: "onDeltaChange",
           },
-        ],
-        {
+        ];
+  const stateEnv = {
           $props: props,
-        }
-      );
+        };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
       return (
         <div>
           <button
-            onClick={() => ($state.count = $state.count + $state.delta)}
+            onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => ($state.count = $state.count + $state.delta))}
             data-testid={"counter-btn"}
           >
             Counter Increment
@@ -2348,7 +2349,7 @@ const _IsOnChangeFiredWithCorrectInitialValue: StoryFn<{}> = (props) => {
           <br />
 
           <button
-            onClick={() => ($state.delta = Math.max($state.delta / 2, 1))}
+            onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => ($state.delta = Math.max($state.delta / 2, 1)))}
             data-testid={"half-delta-btn"}
           >
             Half delta
@@ -2359,8 +2360,7 @@ const _IsOnChangeFiredWithCorrectInitialValue: StoryFn<{}> = (props) => {
     []
   );
 
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "counter.count",
         type: "private",
@@ -2384,30 +2384,31 @@ const _IsOnChangeFiredWithCorrectInitialValue: StoryFn<{}> = (props) => {
         variableType: "array",
         initVal: [],
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: props,
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   return (
     <div>
       <Counter
-        onCountChange={(...args: any) => {
+        onCountChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (...args: any) => {
           generateStateOnChangeProp($state, ["counter", "count"]).apply(
             null,
             args
           );
           $state.invocationsCount.push(args);
-        }}
+        })}
         delta={generateStateValueProp($state, ["counter", "delta"])}
-        onDeltaChange={(...args: any) => {
+        onDeltaChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (...args: any) => {
           generateStateOnChangeProp($state, ["counter", "delta"]).apply(
             null,
             args
           );
           $state.invocationsDelta.push(args);
-        }}
+        })}
       />
       <br />
 
@@ -2416,7 +2417,7 @@ const _IsOnChangeFiredWithCorrectInitialValue: StoryFn<{}> = (props) => {
       <br />
 
       <button
-        onClick={() => ($state.counter.delta = $state.counter.delta * 2)}
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => ($state.counter.delta = $state.counter.delta * 2))}
         data-testid={"twice-delta-btn"}
       >
         Twice delta
@@ -2475,8 +2476,7 @@ IsOnChangeFiredWithCorrectInitialValue.play = async ({ canvasElement }) => {
 };
 
 const _ImmutableStateCells: StoryFn<{ people: Person[] }> = (props) => {
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "peopleList",
         type: "private",
@@ -2514,54 +2514,55 @@ const _ImmutableStateCells: StoryFn<{ people: Person[] }> = (props) => {
         type: "private",
         variableType: "text",
       },
-    ],
-    {
+    ];
+  const stateEnv = {
       $props: deepClone(props),
-    }
-  );
+    };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
 
   return (
     <div>
       <PeopleList
         data={$state.peopleList ?? []}
-        onIndexSelected={(x) => ($state.list.selectedIndex = x)}
+        onIndexSelected={createStateEventHandler(() => [$stateCommands] as const, ($state) => (x) => ($state.list.selectedIndex = x))}
       />
       <div>
         <TextInput
           value={$state.textInputFirstName.value}
-          onChange={(val) => ($state.textInputFirstName.value = val)}
+          onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => ($state.textInputFirstName.value = val))}
           data-testid={"textInputFirstName"}
         />
         <TextInput
           value={$state.textInputLastName.value}
-          onChange={(val) => ($state.textInputLastName.value = val)}
+          onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => ($state.textInputLastName.value = val))}
           data-testid={"textInputLastName"}
         />
         <TextInput
           value={$state.textInputUpper.value}
-          onChange={(val) => ($state.textInputUpper.value = val)}
+          onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => ($state.textInputUpper.value = val))}
           data-testid={"textInputUpper"}
         />
       </div>
       <button
-        onClick={() => {
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => {
           $state.peopleList[$state.list.selectedIndex].firstName =
             $state.textInputFirstName.value;
           $state.peopleList[$state.list.selectedIndex].lastName =
             $state.textInputLastName.value;
-        }}
+        })}
         data-testid={"submit"}
       >
         Submit
       </button>
       <button
-        onClick={() => {
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => {
           $state.peopleList[$state.list.selectedIndex].firstName =
             $state.textInputFirstName.value;
           $state.peopleList[$state.list.selectedIndex].lastName =
             $state.textInputLastName.value;
           $state.peopleList = [...$state.peopleList];
-        }}
+        })}
         data-testid={"submit-assignment"}
       >
         Submit -- New assignment
@@ -2637,13 +2638,16 @@ const _InCanvasDollarState: StoryFn<{}> = (props) => {
         initFuncHash: type === "single" ? `${id}` : undefined,
       } as $StateSpec<string>)
   );
-  const $state = useDollarState(specs, { $props: props }, { inCanvas: true });
-  $state.eagerInitializeStates(specs);
+  const stateSpecs: $StateSpec<any>[] = specs;
+  const stateEnv = { $props: props };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
+  const stateInitializers: StateInitializerDeclaration[] = [...(specs).filter(spec => !spec.path.includes("[]")).map(spec => ({path: spec.path}))];
   console.log(JSON.stringify(activeVariables, null, 2));
   console.log(JSON.stringify(specs, null, 2));
   console.log(JSON.stringify($state, null, 2));
   return (
-    <div>
+    <StateInitializer state={$state} initializers={stateInitializers}>{<div>
       <p data-testid={"$state"}>{JSON.stringify(sorted$StateKeys($state))}</p>
       {activeVariables.map(({ id, type }) => {
         if (type === "single") {
@@ -2654,7 +2658,7 @@ const _InCanvasDollarState: StoryFn<{}> = (props) => {
               </h1>
               <TextInput
                 value={get($state, `textInput${id}.value`)}
-                onChange={(val) => set($state, `textInput${id}.value`, val)}
+                onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => (val) => set($state, `textInput${id}.value`, val))}
                 data-testid={`textInput${id}`}
               />
             </div>
@@ -2673,22 +2677,18 @@ const _InCanvasDollarState: StoryFn<{}> = (props) => {
                 }}
               >
                 {[0, 1, 2].map((currItem, currIndex) => {
-                  $state.registerInitFunc?.(
-                    `textInput${id}[].value`,
-                    () => `hello ${id} ${currItem}`,
-                    [currIndex]
-                  );
+                  const stateInitializers: StateInitializerDeclaration[] = [{path: `textInput${id}[].value`, initFunc: () => `hello ${id} ${currItem}`, repetitionIndex: [currIndex]}];
                   return (
-                    <div key={currItem}>
+                    <StateInitializer state={$state} initializers={stateInitializers} key={currItem}>{<div key={currItem}>
                       <h2>{currItem}</h2>
                       <TextInput
                         value={get($state, `textInput${id}.${currIndex}.value`)}
-                        onChange={(val) =>
-                          set($state, `textInput${id}.${currIndex}.value`, val)
+                        onChange={createStateEventHandler(() => [$stateCommands, getStateCommandValue(currIndex)] as const, ($state, currIndex) => (val) =>
+                          set($state, `textInput${id}.${currIndex}.value`, val))
                         }
                         data-testid={`textInput${id}${currIndex}`}
                       />
-                    </div>
+                    </div>}</StateInitializer>
                   );
                 })}
               </div>
@@ -2802,7 +2802,7 @@ const _InCanvasDollarState: StoryFn<{}> = (props) => {
           Delete
         </button>
       </div>
-    </div>
+    </div>}</StateInitializer>
   );
 };
 
@@ -2955,13 +2955,16 @@ const _AddDeleteSpecsInCanvas: StoryFn<{}> = () => {
         ]
       : []),
   ];
-  const $state = useDollarState(specs, { $props: {} }, { inCanvas: true });
-  $state.eagerInitializeStates(specs);
+  const stateSpecs: $StateSpec<any>[] = specs;
+  const stateEnv = { $props: {} };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
+  const stateInitializers: StateInitializerDeclaration[] = [...(specs).filter(spec => !spec.path.includes("[]")).map(spec => ({path: spec.path}))];
   return (
-    <div>
+    <StateInitializer state={$state} initializers={stateInitializers}>{<div>
       <Counter
         stateType="readonly"
-        onChange={generateStateOnChangeProp($state, ["counter", "count"])}
+        onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => generateStateOnChangeProp($state, ["counter", "count"]))}
       />
       <p>
         <strong>{JSON.stringify($state)}</strong>
@@ -2972,11 +2975,11 @@ const _AddDeleteSpecsInCanvas: StoryFn<{}> = () => {
       {toggle ? (
         <Counter
           stateType="readonly"
-          onChange={generateStateOnChangeProp($state, ["count2"])}
+          onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => generateStateOnChangeProp($state, ["count2"]))}
           data-testid={"counter2"}
         />
       ) : null}
-    </div>
+    </div>}</StateInitializer>
   );
 };
 
@@ -3032,49 +3035,48 @@ const _TodoApp: StoryFn<{}> = (props) => {
       type: "private",
     },
   ];
-  const $state = useDollarState(specs, { $props: props });
+  const stateSpecs: $StateSpec<any>[] = specs;
+  const stateEnv = { $props: props };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   return (
     <div data-testid="root">
       <h1>To Do App</h1>
       <div data-testid="tasksWrapper">
         {$state.tasks.map((currentItem: string, currentIndex: number) => {
-          $state.registerInitFunc?.(
-            "textInput[].value",
-            ({ $state }) => $state.tasks[currentIndex],
-            [currentIndex]
-          );
+          const stateInitializers: StateInitializerDeclaration[] = [{path: "textInput[].value", initFunc: ({ $state }) => $state.tasks[currentIndex], repetitionIndex: [currentIndex]}];
           return (
-            <div key={currentIndex}>
+            <StateInitializer state={$state} initializers={stateInitializers} key={currentIndex}>{<div key={currentIndex}>
               <div>
                 <span data-testid={`span${currentIndex}`}>{currentItem}</span>
                 <TextInput
-                  onChange={(val) =>
-                    ($state.textInput[currentIndex].value = val)
+                  onChange={createStateEventHandler(() => [$stateCommands, getStateCommandValue(currentIndex)] as const, ($state, currentIndex) => (val) =>
+                    ($state.textInput[currentIndex].value = val))
                   }
                   value={$state.textInput[currentIndex].value}
-                  onBlur={() =>
+                  onBlur={createStateEventHandler(() => [$stateCommands, getStateCommandValue(currentIndex)] as const, ($state, currentIndex) => () =>
                     ($state.tasks[currentIndex] =
-                      $state.textInput[currentIndex].value)
+                      $state.textInput[currentIndex].value))
                   }
                   data-testid={`textInput${currentIndex}`}
                 />
                 <button
-                  onClick={() => {
+                  onClick={createStateEventHandler(() => [$stateCommands, getStateCommandValue(currentIndex)] as const, ($state, currentIndex) => () => {
                     $state.tasks.splice(currentIndex, 1);
-                  }}
+                  })}
                   data-testid={`delete${currentIndex}`}
                 >
                   X
                 </button>
               </div>
-            </div>
+            </div>}</StateInitializer>
           );
         })}
       </div>
       <button
-        onClick={() => {
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => () => {
           $state.tasks.push("new task");
-        }}
+        })}
         data-testid={"add"}
       >
         Add
@@ -3169,8 +3171,7 @@ const _CycleInStateInitialization: StoryFn<{}> = (props) => {
   const [selfCycle, setSelfCycle] = React.useState(true);
   const InnerComponent = React.useCallback(
     ({ selfCycle }: { selfCycle: boolean }) => {
-      const $state = useDollarState(
-        [
+      const stateSpecs: $StateSpec<any>[] = [
           {
             path: "self",
             type: "private",
@@ -3189,11 +3190,12 @@ const _CycleInStateInitialization: StoryFn<{}> = (props) => {
             variableType: "text",
             initFunc: ({ $state }) => $state.a,
           },
-        ],
-        {
+        ];
+  const stateEnv = {
           $props: props,
-        }
-      );
+        };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
       return (
         <div>
           <span>{selfCycle ? $state.self : $state.a}</span>

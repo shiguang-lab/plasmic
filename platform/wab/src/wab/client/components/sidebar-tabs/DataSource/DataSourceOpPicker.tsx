@@ -1,3 +1,10 @@
+import { usePropExpressionInputs, usePropExpressionValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
+import { useQueryInteractionInputs } from "@/wab/client/components/sidebar-tabs/ServerQuery/server-query-inputs";
+import { useCurrentModelWorld, useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
+import { useStepCacheVersion } from "@/wab/client/studio-ctx/steps-cache-state";
+import { useModelSelector } from "@/wab/client/stores/model-revisions-react";
+import { modelKeys } from "@/wab/shared/model-revisions";
 import { useStore } from "zustand";
 import { useCurrentAppUserToken } from "@/wab/client/studio-ctx/studio-mode-state";
 
@@ -20,7 +27,6 @@ import { Input, Menu, notification, Tooltip } from "antd";
 
 import "graphiql/style.css";
 import { isArray, isNil, isString, mapValues, omit } from "lodash";
-import { observer } from "mobx-react";
 import React, {
   createContext,
   Dispatch,
@@ -39,7 +45,7 @@ import {
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import ContextMenuIndicator from "@/wab/client/components/ContextMenuIndicator/ContextMenuIndicator";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
-import { createPortalTunnel } from "@/wab/client/components/portal-tunnel";
+import { createPortalTunnel, PortalTunnelIn, PortalTunnelOut } from "@/wab/client/components/portal-tunnel";
 import {
   DynamicValueWidget,
   mkUndefinedObjectPath,
@@ -307,7 +313,13 @@ type DataSourceOpPickerProps = {
     }
 );
 
-export const DataSourceOpPicker = observer((props: DataSourceOpPickerProps) => {
+export const DataSourceOpPicker = React.memo(function DataSourceOpPicker(props: DataSourceOpPickerProps) {
+  const studio = useStudioCtx(), view = "viewCtx" in props ? props.viewCtx : undefined;
+  const live = useCurrentModelWorld(studio);
+  const world = useVariantModelWorld(studio, props.component ?? props.interaction ?? props.value ?? view ?? live, view);
+  return world.alive ? <DataSourceOpPickerContent {...props} /> : null;
+});
+const DataSourceOpPickerContent = React.memo((props: DataSourceOpPickerProps) => {
   const { t: studioUiT } = useI18n();
 
   const {
@@ -327,6 +339,14 @@ export const DataSourceOpPicker = observer((props: DataSourceOpPickerProps) => {
   } = props;
   const { open, close } = useDataSourceOpExprBottomModal(queryKey);
   const studioCtx = useStudioCtx();
+  const view = "viewCtx" in props ? props.viewCtx : undefined, tpl = "tpl" in props ? props.tpl : undefined, key = "eventHandlerKey" in props ? props.eventHandlerKey : undefined;
+  const world = useVariantModelWorld(studioCtx, component ?? props.interaction ?? value ?? view ?? studioCtx.site, view);
+  usePropExpressionInputs(studioCtx, component ?? props.interaction ?? value ?? view ?? studioCtx.site, value, component);
+  useQueryInteractionInputs(studioCtx, props.interaction, key, view);
+  useStepCacheVersion(studioCtx);
+  const canvasEnv = useInspectorCanvasEnv(view, tpl);
+  const subscribeFlags = React.useCallback((listener: () => void) => studioCtx.appCtx.subscribeUiEnvironmentInputs(listener), [studioCtx]);
+  React.useSyncExternalStore(subscribeFlags, () => !!studioCtx.appCtx.appConfig.previewSteps, () => !!studioCtx.appCtx.appConfig.previewSteps);
   const exprCtx: ExprCtx = {
     projectFlags: studioCtx.projectFlags(),
     component: component ?? null,
@@ -340,7 +360,7 @@ export const DataSourceOpPicker = observer((props: DataSourceOpPickerProps) => {
         ? extractDataCtx(
             props.viewCtx,
             props.tpl,
-            undefined,
+            canvasEnv,
             props.interaction,
             props.eventHandlerKey,
           )
@@ -350,7 +370,7 @@ export const DataSourceOpPicker = observer((props: DataSourceOpPickerProps) => {
     <DataSourceOpPickerProvider
       {...{
         isRowSelector,
-        onRowSelected,
+        onRowSelected: onRowSelected ? (row: any) => { if (world.isCurrent()) { onRowSelected(row); } } : undefined,
         selectedRowKey,
         rowKey,
         livePreview,
@@ -361,14 +381,17 @@ export const DataSourceOpPicker = observer((props: DataSourceOpPickerProps) => {
           id="configure-operation-btn"
           type="leftAligned"
           onClick={() => {
+            if (!world.isCurrent()) { return; }
             open({
               value,
               onSave: (newExpr) => {
+                if (!world.isCurrent()) { return; }
                 onChange(newExpr);
                 close();
                 onClose?.();
               },
               onCancel: () => {
+                if (!world.isCurrent()) { return; }
                 close();
                 onClose?.();
               },
@@ -462,7 +485,12 @@ interface DataSourceOpExprBottomModalContentProps {
   eventHandlerKey?: EventHandlerKeyType;
 }
 
-const DataSourceOpExprBottomModalContent = observer(
+const DataSourceOpExprBottomModalContent = React.memo(function DataSourceOpExprBottomModalContent(props: DataSourceOpExprBottomModalContentProps) {
+  const studio = useStudioCtx(), live = useCurrentModelWorld(studio);
+  const world = useVariantModelWorld(studio, props.parent ?? props.exprCtx.component ?? props.interaction ?? props.value ?? props.viewCtx ?? live, props.viewCtx);
+  return world.alive ? <DataSourceOpExprBottomModalContentInner {...props} /> : null;
+});
+const DataSourceOpExprBottomModalContentInner = React.memo(
   function DataSourceOpExprBottomModal({
     value,
     sourceType,
@@ -487,9 +515,16 @@ const DataSourceOpExprBottomModalContent = observer(
     ...rest
   }: DataSourceOpExprBottomModalContentProps) {
     const studioCtx = useStudioCtx();
+    const world = useVariantModelWorld(studioCtx, parent ?? exprCtx.component ?? interaction ?? value ?? viewCtx ?? studioCtx.site, viewCtx);
+    usePropExpressionInputs(studioCtx, parent ?? exprCtx.component ?? interaction ?? value ?? viewCtx ?? studioCtx.site, value, exprCtx.component);
+    useQueryInteractionInputs(studioCtx, interaction, eventHandlerKey, viewCtx); useStepCacheVersion(studioCtx);
+    const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl);
+    const subscribeFlags = React.useCallback((listener: () => void) => studioCtx.appCtx.subscribeUiEnvironmentInputs(listener), [studioCtx]);
+    React.useSyncExternalStore(subscribeFlags, () => !!studioCtx.appCtx.appConfig.previewSteps, () => !!studioCtx.appCtx.appConfig.previewSteps);
     const userAuthToken = useCurrentAppUserToken(studioCtx);
     const wrappedOnSave = React.useCallback(
       (newExpr: DataSourceOpExpr, opExprName?: string) => {
+        if (!world.isCurrent()) { return; }
         if (hasUnsafeCurrentUserBinding(newExpr, exprCtx)) {
           notification.warning({
             message: INVALID_CURRENT_USER_OPERATION_MESSAGE(),
@@ -498,13 +533,13 @@ const DataSourceOpExprBottomModalContent = observer(
         }
         onSave(newExpr, opExprName);
       },
-      [onSave],
+      [onSave, exprCtx, world],
     );
 
     const env = rest.env
       ? rest.env
       : viewCtx && tpl
-        ? extractDataCtx(viewCtx, tpl, undefined, interaction, eventHandlerKey)
+        ? extractDataCtx(viewCtx, tpl, canvasEnv, interaction, eventHandlerKey)
         : undefined;
 
     return (
@@ -514,7 +549,7 @@ const DataSourceOpExprBottomModalContent = observer(
         <DataSourceOpPickerProvider
           {...{
             isRowSelector,
-            onRowSelected,
+            onRowSelected: onRowSelected ? (row: any) => { if (world.isCurrent()) { onRowSelected(row); } } : undefined,
             selectedRowKey,
             livePreview,
             rowKey,
@@ -524,7 +559,7 @@ const DataSourceOpExprBottomModalContent = observer(
             value={value}
             sourceType={sourceType}
             onSave={wrappedOnSave}
-            onCancel={onCancel}
+            onCancel={() => { if (world.isCurrent()) { onCancel(); } }}
             env={env}
             schema={schema}
             parent={parent}
@@ -541,8 +576,12 @@ const DataSourceOpExprBottomModalContent = observer(
   },
 );
 
-export const DataSourceOpExprSummary =
-  function DataSourceOpExprSummary(props: { expr: DataSourceOpExpr }) {
+export const DataSourceOpExprSummary = React.memo(function DataSourceOpExprSummary(props: { expr: DataSourceOpExpr }) {
+  const studio = useStudioCtx(), world = useVariantModelWorld(studio, props.expr);
+  return world.alive ? <DataSourceOpExprSummaryContent {...props} /> : null;
+});
+const DataSourceOpExprSummaryContent =
+  function DataSourceOpExprSummary_(props: { expr: DataSourceOpExpr }) {
     const { t: studioUiT } = useI18n();
 
     const { expr } = props;
@@ -816,8 +855,13 @@ function getArgLabel(argMeta: ArgMeta, codeName: string) {
   return argMeta.label ?? smartHumanize(codeName);
 }
 
-const DataSourceOpExprFormAndPreview = observer(
-  function DataSourceOpExprFormAndPreview(props: {
+const DataSourceOpExprFormAndPreview = React.memo(function DataSourceOpExprFormAndPreview(props: React.ComponentProps<typeof DataSourceOpExprFormAndPreviewContent>) {
+  const studio = useStudioCtx(), live = useCurrentModelWorld(studio);
+  const world = useVariantModelWorld(studio, props.parent ?? props.exprCtx.component ?? props.interaction ?? props.value ?? live);
+  return world.alive ? <DataSourceOpExprFormAndPreviewContent {...props} /> : null;
+});
+const DataSourceOpExprFormAndPreviewContent = React.memo(
+  function DataSourceOpExprFormAndPreview_(props: {
     value?: DataSourceOpExpr;
     sourceType?: DataSourceType;
     onSave: (value: DataSourceOpExpr, opExprName?: string) => void;
@@ -857,6 +901,10 @@ const DataSourceOpExprFormAndPreview = observer(
     const studioCtx = useStudioCtx();
     const api = useApi();
     const isMounted = useMountedState();
+    const world = useVariantModelWorld(studioCtx, parent ?? exprCtx.component ?? interaction ?? value ?? studioCtx.site);
+    useStore(studioCtx.modelSnapshots.field(studioCtx.site, "defaultPageRoleId"));
+    const subscribeFlags = React.useCallback((listener: () => void) => studioCtx.appCtx.subscribeUiEnvironmentInputs(listener), [studioCtx]);
+    const enablePreviewSteps = React.useSyncExternalStore(subscribeFlags, () => !!studioCtx.appCtx.appConfig.previewSteps, () => !!studioCtx.appCtx.appConfig.previewSteps);
     const [showControls, setShowControls] = useState(false);
     const [draft, setDraft] = React.useState<DataSourceOpDraftValue>(() =>
       value
@@ -896,6 +944,7 @@ const DataSourceOpExprFormAndPreview = observer(
       DataSourceOpDraftValue | undefined
     >(value ? draft : undefined);
 
+    usePropExpressionInputs(studioCtx, parent ?? exprCtx.component ?? interaction ?? value ?? studioCtx.site, draft, exprCtx.component);
     const sourceId = draft.sourceId;
     const opName = draft.opName;
     const { data: source } = useSource(studioCtx, sourceId);
@@ -923,6 +972,7 @@ const DataSourceOpExprFormAndPreview = observer(
       useDataSourceOpPickerContext();
 
     const saveOpExpr = async () => {
+      if (!world.isCurrent()) { return; }
       setGettingOpId(true);
       const pickedSourceId = ensure(
         draft.sourceId,
@@ -950,7 +1000,7 @@ const DataSourceOpExprFormAndPreview = observer(
           roleId: draft.roleId,
         },
       );
-      if (isMounted()) {
+      if (isMounted() && world.isCurrent()) {
         if (missingRequiredArgs.length === 0) {
           onSave(
             new DataSourceOpExpr({
@@ -1001,6 +1051,7 @@ const DataSourceOpExprFormAndPreview = observer(
     );
 
     function refresh(newDraft: DataSourceOpDraftValue) {
+      if (!world.isCurrent()) { return; }
       setPreviewOperation(newDraft);
       spawn(clearDataOpCache(studioCtx, newDraft, env, exprCtx));
     }
@@ -1011,7 +1062,6 @@ const DataSourceOpExprFormAndPreview = observer(
       [schemaTunnel, sourceMeta],
     );
 
-    const enablePreviewSteps = studioCtx.appCtx.appConfig.previewSteps;
 
     const contents = (
       <div className="fill-height">
@@ -1939,7 +1989,7 @@ export function DataSourceOpDraftForm(props: {
   );
 }
 
-function _DataSourceOpDraftPreview(props: {
+function DataSourceOpDraftPreviewContent(props: {
   value?: DataSourceOpDraftValue | DataSourceOpExpr;
   env?: Record<string, any>;
   tableSchema?: TableSchema;
@@ -1948,6 +1998,8 @@ function _DataSourceOpDraftPreview(props: {
   projectId: string;
 }) {
   const { value, env, opType, tableSchema, exprCtx, projectId } = props;
+  const studio = useStudioCtx();
+  const expressionInputs = usePropExpressionInputs(studio, exprCtx.component ?? (isKnownDataSourceOpExpr(value) ? value : studio.site), value, exprCtx.component);
 
   const api = useApi();
   const { sourceId, opName, templates, roleId } = value ?? {};
@@ -1965,7 +2017,7 @@ function _DataSourceOpDraftPreview(props: {
       exprCtx,
       projectId,
     });
-  }, [sourceId, opName, templates, roleId, api]);
+  }, [sourceId, opName, templates, roleId, api, expressionInputs, exprCtx, projectId]);
 
   const draftOpExprValue = draftOpExpr.value;
 
@@ -1980,7 +2032,11 @@ function _DataSourceOpDraftPreview(props: {
   );
 }
 
-export const DataSourceOpDraftPreview = React.memo(_DataSourceOpDraftPreview);
+export const DataSourceOpDraftPreview = React.memo(function DataSourceOpDraftPreview(props: Parameters<typeof DataSourceOpDraftPreviewContent>[0]) {
+  const studio = useStudioCtx(), live = useCurrentModelWorld(studio);
+  const world = useVariantModelWorld(studio, props.exprCtx.component ?? (isKnownDataSourceOpExpr(props.value) ? props.value : live));
+  return world.alive ? <DataSourceOpDraftPreviewContent {...props} /> : null;
+});
 
 function simplifyName(x: string) {
   return x.replace(/[\W]+/g, "").toLowerCase();
@@ -2119,7 +2175,7 @@ function DataSourceOpDataPreview(props: {
       }
       setExecuteQueue(rest);
     }
-  }, [executeQueue, setExecuteQueue, uiT]);
+  }, [executeQueue, setExecuteQueue, uiT, studioCtx, env, exprCtx]);
 
   React.useEffect(() => {
     spawn(popExecuteQueue());
@@ -2262,7 +2318,7 @@ function DataSourceOpDataPreview(props: {
                       }}
                     />
                   ) : (
-                    schemaTunnel && <schemaTunnel.Out />
+                    schemaTunnel && <PortalTunnelOut tunnel={schemaTunnel} />
                   ),
               }),
             opResults &&
@@ -2537,18 +2593,10 @@ export const SortEditor = function SortEditor({
 };
 
 
-export function clearUnusedBindings(
-  bindings: React.MutableRefObject<
-    Record<string, ObjectPath | CustomCode | TemplatedString>
-  >,
-  newValStr: string,
-) {
-  const keys = [...Object.keys(bindings.current)];
-  for (const key of keys) {
-    if (!newValStr.includes(key)) {
-      delete bindings.current[key];
-    }
-  }
+type DataSourceBindings = Record<string, ObjectPath | CustomCode | TemplatedString>;
+
+export function pickUsedBindings(bindings: DataSourceBindings, newValStr: string): DataSourceBindings {
+  return Object.fromEntries(Object.entries(bindings).filter(([key]) => newValStr.includes(key)));
 }
 
 export function mkBindingId() {
@@ -2576,7 +2624,7 @@ const StringDictPropEditor = function StringDictPropEditor({
   "data-plasmic-prop"?: string;
 }) {
   const { t: uiT } = useI18n();
-  const bindings = React.useRef({ ...defaultBindings });
+  const [bindings, setBindings] = React.useState(() => ({ ...defaultBindings }));
 
   const [currentValues, setCurrentValues] = React.useState(
     value !== undefined && Object.keys(value).length > 0
@@ -2587,30 +2635,13 @@ const StringDictPropEditor = function StringDictPropEditor({
       : [{ key: "", value: "" }],
   );
 
-  const getUsedBindings = (newValStr: string) => {
-    const usedBindings = {};
-    for (const key in bindings.current) {
-      if (newValStr.includes(key)) {
-        usedBindings[key] = bindings.current[key];
-      }
-    }
-    return usedBindings;
-  };
-
-  const handleChange = (idx: number, newVal: { key: string; value: any }) => {
-    const newCurrentValues = [...currentValues];
-    newCurrentValues[idx] = newVal;
-    const newObject = currentValues.reduce((acc, cur, curIdx) => {
-      const [curKey, curValue] =
-        curIdx === idx ? [newVal.key, newVal.value] : [cur.key, cur.value];
-      if (curKey && curValue) {
-        acc[curKey] = curValue;
-      }
-      return acc;
-    }, {}) as Record<string, any>;
-
+  const handleChange = (idx: number, newVal: { key: string; value: any }, nextBindings = bindings) => {
+    const newCurrentValues = currentValues.map((entry, index) => index === idx ? newVal : entry);
+    const newObject = Object.fromEntries(newCurrentValues.filter((entry) => entry.key && entry.value).map((entry) => [entry.key, entry.value]));
+    const usedBindings = pickUsedBindings(nextBindings, JSON.stringify(newObject));
     setCurrentValues(newCurrentValues);
-    onChange(newObject, getUsedBindings(JSON.stringify(newObject)));
+    setBindings(usedBindings);
+    onChange(newObject, usedBindings);
   };
 
   return (
@@ -2630,8 +2661,8 @@ const StringDictPropEditor = function StringDictPropEditor({
               data-plasmic-prop={`${dataPlasmicProp}-key`}
             />
             {(() => {
-              const setValue = (newVal: string | undefined) => {
-                handleChange(idx, { key: fieldName, value: newVal });
+              const setValue = (newVal: string | undefined, nextBindings = bindings) => {
+                handleChange(idx, { key: fieldName, value: newVal }, nextBindings);
               };
               return (
                 <TemplatedTextWidget
@@ -2639,21 +2670,21 @@ const StringDictPropEditor = function StringDictPropEditor({
                   data={data}
                   schema={schema}
                   exprCtx={exprCtx}
-                  bindings={{ ...defaultBindings, ...bindings.current }}
+                  bindings={{ ...defaultBindings, ...bindings }}
                   setValue={(expr) => {
                     const binding = mkBindingId();
-                    bindings.current = {
+                    const nextBindings = {
                       ...defaultBindings,
-                      ...bindings.current,
+                      ...bindings,
                       [binding]: ensureKnownTemplatedString(expr),
                     };
                     if (
                       isKnownTemplatedString(expr) &&
                       arrayEq(expr.text, [""])
                     ) {
-                      setValue(undefined);
+                      setValue(undefined, nextBindings);
                     } else {
-                      setValue(binding);
+                      setValue(binding, nextBindings);
                     }
                   }}
                   value={fieldValue}
@@ -2701,7 +2732,19 @@ const INPUT_TOGGLE_OPTIONS = [
   },
 ];
 
-export const JsonWithSchemaEditor = observer(function JsonWithSchemaEditor({
+export const JsonWithSchemaEditor = React.memo(function JsonWithSchemaEditor(props: React.ComponentProps<typeof JsonWithSchemaEditorContent>) {
+  const studio = useStudioCtx(), live = useCurrentModelWorld(studio);
+  const model = Object.values(props.bindings)[0];
+  const identity = props.exprCtx.component ?? model ?? live;
+  const world = useVariantModelWorld(studio, identity);
+  return world.alive ? <JsonWithSchemaEditorModelInputs {...props} identity={identity} onChange={(...args) => { if (world.isCurrent()) { props.onChange(...args); } } } /> : null;
+});
+const JsonWithSchemaEditorModelInputs = React.memo(function JsonWithSchemaEditorModelInputs({ identity, ...props }: React.ComponentProps<typeof JsonWithSchemaEditorContent> & { identity: object }) {
+  const studio = useStudioCtx(), values = React.useMemo(() => [props.value, props.bindings], [props.value, props.bindings]);
+  const nativeInputs = usePropExpressionInputs(studio, identity, values, props.exprCtx.component);
+  return <JsonWithSchemaEditorContent {...props} {...{ nativeInputs }} />;
+});
+const JsonWithSchemaEditorContent = React.memo(function JsonWithSchemaEditor_({
   fields,
   onChange,
   value,
@@ -2733,38 +2776,34 @@ export const JsonWithSchemaEditor = observer(function JsonWithSchemaEditor({
   exprCtx: ExprCtx;
   "data-plasmic-prop"?: string;
 }) {
-  const bindings = React.useRef({ ...defaultBindings });
+  const [bindings, setBindings] = React.useState(() => ({ ...defaultBindings }));
 
   const [defaultOpenDataPicker, setDefaultOpenDataPicker] =
     React.useState<string>();
 
   const inputType = typeof value === "string" ? "code" : "editor";
 
-  const handleChange = (newVal: {} | string, usedType: "editor" | "code") => {
+  const handleChange = (newVal: {} | string, usedType: "editor" | "code", nextBindings = bindings) => {
     if (usedType === "code") {
       assert(
         typeof newVal === "string",
         () => `Expected newVal to be a string`,
       );
       assert(
-        bindings.current[newVal],
+        nextBindings[newVal],
         () => `No corresponding binding for: ${newVal}`,
       );
-      bindings.current = {
-        [newVal]: bindings.current[newVal],
-      };
+      nextBindings = { [newVal]: nextBindings[newVal] };
     } else {
-      clearUnusedBindings(bindings, JSON.stringify(newVal));
+      nextBindings = pickUsedBindings(nextBindings, JSON.stringify(newVal));
     }
-    onChange(newVal, bindings.current);
+    setBindings(nextBindings);
+    onChange(newVal, nextBindings);
   };
 
   const handleCodeChange = (expr: CustomCode | ObjectPath) => {
     const binding = mkBindingId();
-    bindings.current = {
-      [binding]: ensureInstance(expr, CustomCode, ObjectPath),
-    };
-    handleChange(binding, "code");
+    handleChange(binding, "code", { [binding]: ensureInstance(expr, CustomCode, ObjectPath) });
   };
 
   const isStringType = (type: string) => {
@@ -2808,13 +2847,15 @@ export const JsonWithSchemaEditor = observer(function JsonWithSchemaEditor({
             const fieldType = field.type === "enum" ? "select" : field.type;
             const setValue = (
               newVal: string | number | boolean | undefined,
+              nextBindings = bindings,
             ) => {
               if (newVal == null) {
-                handleChange(omit(value ?? {}, fieldName), "editor");
+                handleChange(omit(value ?? {}, fieldName), "editor", nextBindings);
               } else {
                 handleChange(
                   { ...(value ?? {}), [fieldName]: newVal },
                   "editor",
+                  nextBindings,
                 );
               }
             };
@@ -2835,9 +2876,9 @@ export const JsonWithSchemaEditor = observer(function JsonWithSchemaEditor({
               }
 
               const binding = mkBindingId();
-              bindings.current = {
+              const nextBindings = {
                 ...defaultBindings,
-                ...bindings.current,
+                ...bindings,
                 [binding]: ensureInstance(
                   newVal,
                   CustomCode,
@@ -2845,7 +2886,7 @@ export const JsonWithSchemaEditor = observer(function JsonWithSchemaEditor({
                   TemplatedString,
                 ),
               };
-              setValue(binding);
+              setValue(binding, nextBindings);
             };
             const menu = () => {
               const builder = new MenuBuilder();
@@ -2912,7 +2953,7 @@ export const JsonWithSchemaEditor = observer(function JsonWithSchemaEditor({
                         (() => {
                           const allBindings = {
                             ...defaultBindings,
-                            ...bindings.current,
+                            ...bindings,
                           };
                           if (
                             isKnownTemplatedString(allBindings[val]) ||
@@ -3011,7 +3052,7 @@ export const JsonWithSchemaEditor = observer(function JsonWithSchemaEditor({
           <DynamicValueWidget
             setValue={(expr) => expr && handleCodeChange(expr)}
             value={
-              bindings.current[ensureString(value)] ??
+              bindings[ensureString(value)] ??
               defaultBindings[ensureString(value)] ??
               mkUndefinedObjectPath()
             }
@@ -3052,7 +3093,7 @@ const JsonArrayWithSchemaEditor = function JsonArrayWithSchemaEditor({
   exprCtx: ExprCtx;
 }) {
   const value = initValue ?? (initialCodeOnly ? undefined : []);
-  const bindings = React.useRef({ ...defaultBindings });
+  const [bindings, setBindings] = React.useState(() => ({ ...defaultBindings }));
   const inputType = typeof value === "object" ? "editor" : "code";
   const codeOnly = React.useMemo(
     () => !!initialCodeOnly && inputType === "code",
@@ -3063,6 +3104,7 @@ const JsonArrayWithSchemaEditor = function JsonArrayWithSchemaEditor({
     // eslint-disable-next-line @typescript-eslint/ban-types
     newVal: Object[] | string,
     usedType: "editor" | "code",
+    nextBindings = bindings,
   ) => {
     if (usedType === "code") {
       assert(
@@ -3070,24 +3112,20 @@ const JsonArrayWithSchemaEditor = function JsonArrayWithSchemaEditor({
         () => `Expected newVal to be a string`,
       );
       assert(
-        bindings.current[newVal],
+        nextBindings[newVal],
         () => `No corresponding binding for: ${newVal}`,
       );
-      bindings.current = {
-        [newVal]: bindings.current[newVal],
-      };
+      nextBindings = { [newVal]: nextBindings[newVal] };
     } else {
-      clearUnusedBindings(bindings, JSON.stringify(newVal));
+      nextBindings = pickUsedBindings(nextBindings, JSON.stringify(newVal));
     }
-    onChange(newVal, bindings.current);
+    setBindings(nextBindings);
+    onChange(newVal, nextBindings);
   };
 
   const handleCodeChange = (expr: ObjectPath | CustomCode) => {
     const binding = mkBindingId();
-    bindings.current = {
-      [binding]: ensureInstance(expr, ObjectPath, CustomCode),
-    };
-    handleChange(binding, "code");
+    handleChange(binding, "code", { [binding]: ensureInstance(expr, ObjectPath, CustomCode) });
   };
 
   React.useEffect(() => {
@@ -3131,17 +3169,17 @@ const JsonArrayWithSchemaEditor = function JsonArrayWithSchemaEditor({
                 />
                 <JsonWithSchemaEditor
                   value={v}
-                  bindings={{ ...defaultBindings, ...bindings.current }}
+                  bindings={{ ...defaultBindings, ...bindings }}
                   key={i}
                   onChange={(newVal, newBindings) => {
-                    bindings.current = {
+                    const nextBindings = {
                       ...defaultBindings,
-                      ...bindings.current,
+                      ...bindings,
                       ...newBindings,
                     };
                     const newVals = [...value];
                     newVals[i] = newVal;
-                    handleChange(newVals, "editor");
+                    handleChange(newVals, "editor", nextBindings);
                   }}
                   data={data}
                   schema={schema}
@@ -3171,7 +3209,7 @@ const JsonArrayWithSchemaEditor = function JsonArrayWithSchemaEditor({
             <DynamicValueWidget
               setValue={(expr) => expr && handleCodeChange(expr)}
               value={
-                bindings.current[ensureString(value)] ??
+                bindings[ensureString(value)] ??
                 defaultBindings[ensureString(value)] ??
                 mkUndefinedObjectPath()
               }
@@ -3238,7 +3276,19 @@ function serializeHttpBody(
   }
 }
 
-const HttpBodyEditor = observer(function HttpBodyEditor({
+const HttpBodyEditor = React.memo(function HttpBodyEditor(props: React.ComponentProps<typeof HttpBodyEditorContent>) {
+  const studio = useStudioCtx(), live = useCurrentModelWorld(studio);
+  const model = typeof props.value === "object" ? props.value : Object.values(props.bindings ?? {})[0];
+  const identity = props.exprCtx.component ?? model ?? live;
+  const world = useVariantModelWorld(studio, identity);
+  return world.alive ? <HttpBodyEditorModelInputs {...props} identity={identity} onChange={(...args) => { if (world.isCurrent()) { props.onChange(...args); } } } /> : null;
+});
+const HttpBodyEditorModelInputs = React.memo(function HttpBodyEditorModelInputs({ identity, ...props }: React.ComponentProps<typeof HttpBodyEditorContent> & { identity: object }) {
+  const studio = useStudioCtx(), values = React.useMemo(() => [props.value, props.bindings], [props.value, props.bindings]);
+  const nativeInputs = usePropExpressionInputs(studio, identity, values, props.exprCtx.component);
+  return <HttpBodyEditorContent {...props} {...{ nativeInputs }} />;
+});
+const HttpBodyEditorContent = React.memo(function HttpBodyEditor_({
   onChange,
   value: defaultValue,
   data,
@@ -3262,21 +3312,23 @@ const HttpBodyEditor = observer(function HttpBodyEditor({
     deserializeHttpBody(defaultValue);
 
   const [encodingType, setEncodingType] = React.useState(derivedEncodingType);
-  const bindings = React.useRef({ ...defaultBindings });
+  const [bindings, setBindings] = React.useState(() => ({ ...defaultBindings }));
 
   const handleChange = (
     newVal: TemplatedString | object | undefined,
     clearBindings: boolean,
     useEncode?: HttpBodyEncodingType,
+    nextBindings = bindings,
   ) => {
     const currentEncodingType = useEncode ?? encodingType;
     const encodedValue = serializeHttpBody(newVal, currentEncodingType);
     if (clearBindings) {
-      bindings.current = {};
+      setBindings({});
       onChange(encodedValue, undefined);
     } else {
-      clearUnusedBindings(bindings, JSON.stringify(newVal));
-      onChange(encodedValue, bindings.current);
+      const usedBindings = pickUsedBindings(nextBindings, JSON.stringify(newVal));
+      setBindings(usedBindings);
+      onChange(encodedValue, usedBindings);
     }
   };
 
@@ -3337,15 +3389,14 @@ const HttpBodyEditor = observer(function HttpBodyEditor({
           }
           data={data}
           schema={schema}
-          bindings={{ ...defaultBindings, ...bindings.current }}
+          bindings={{ ...defaultBindings, ...bindings }}
           exprCtx={exprCtx}
           onChange={(newVal, newBindings) => {
-            bindings.current = {
+            handleChange(newVal, false, undefined, {
               ...defaultBindings,
-              ...bindings.current,
+              ...bindings,
               ...newBindings,
-            };
-            handleChange(newVal, false);
+            });
           }}
         />
       )}
@@ -3391,8 +3442,13 @@ const InputToggleWrapper = function InputToggleWrapper({
   );
 };
 
-export const DataSourceOpValuePreview = observer(
-  function DataSourceOpValuePreview(props: {
+export const DataSourceOpValuePreview = React.memo(function DataSourceOpValuePreview(props: React.ComponentProps<typeof DataSourceOpValuePreviewContent>) {
+  const studio = useStudioCtx(), live = useCurrentModelWorld(studio);
+  const world = useVariantModelWorld(studio, props.exprCtx.component ?? props.expr ?? live);
+  return world.alive ? <DataSourceOpValuePreviewContent {...props} /> : null;
+});
+const DataSourceOpValuePreviewContent = React.memo(
+  function DataSourceOpValuePreview_(props: {
     title?: React.ReactNode;
     expr?: DataSourceOpExpr;
     env?: Record<string, any>;
@@ -3447,10 +3503,10 @@ function useDataSourceOpData(
   env: Record<string, any> | undefined,
   exprCtx: ExprCtx,
 ) {
-  const maybeEvalResult =
-    (expr &&
-      swallow(() => tryEvalExpr(asCode(expr, exprCtx).code, env ?? {}))) ||
-    undefined;
+  const studio = useStudioCtx();
+  const serialize = React.useCallback(() => expr ? asCode(expr, exprCtx).code : undefined, [expr, exprCtx]);
+  const code = usePropExpressionValue(studio, exprCtx.component ?? expr ?? studio.site, expr, exprCtx.component, serialize);
+  const maybeEvalResult = code === undefined ? undefined : swallow(() => tryEvalExpr(code, env ?? {}));
 
   const dataResult = usePlasmicDataOp(maybeEvalResult?.val, {
     noUndefinedDataProxy: true,
@@ -3570,7 +3626,7 @@ export function DataSourcePicker({
   const studioCtx = useStudioCtx();
   const topFrameApi = useTopFrameApi();
 
-  const usedDataSources = siteToUsedDataSources(studioCtx.site);
+  const usedDataSources = useModelSelector(studioCtx.modelRevisions, [modelKeys.site], () => siteToUsedDataSources(studioCtx.site), arrayEq);
 
   const sourceOptions = React.useMemo(() => {
     if (!sourceId || usedDataSources.includes(sourceId)) {
@@ -3671,7 +3727,7 @@ function GraphqlQueryField(props: {
         onChange={onChange}
       />
       {schemaTunnel && (
-        <schemaTunnel.In>
+        <PortalTunnelIn tunnel={schemaTunnel}>
           <Scrollbar className="fill-height" scrollX={false}>
             <div className={"graphiql-container custom-gql-ui p-xlg"}>
               <div className={"fill-width"}>
@@ -3679,7 +3735,7 @@ function GraphqlQueryField(props: {
               </div>
             </div>
           </Scrollbar>
-        </schemaTunnel.In>
+        </PortalTunnelIn>
       )}
     </GqlProvider>
   );
@@ -3816,7 +3872,7 @@ function GqlProvider(props: {
       );
       return result.data.response;
     },
-    [sourceId],
+    [sourceId, sourceMeta?.id, studioCtx, exprCtx],
   );
   return (
     <GraphiQLProvider fetcher={gqlFetcher} plugins={[QUERY_BUILDER_PLUGIN]} referencePlugin={DOC_EXPLORER_PLUGIN} initialQuery={query} defaultTheme="light">

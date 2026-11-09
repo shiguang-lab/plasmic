@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -26,8 +26,8 @@ import ProjectListItem from "../../components/ProjectListItem"; // plasmic-impor
 import DefaultLayout from "../../components/dashboard/DefaultLayout"; // plasmic-import: nSkQWLjK-B/component
 import NavTeamSection from "../../components/dashboard/NavTeamSection"; // plasmic-import: VqaN_WL-stA/component
 import WorkspaceSection from "../../components/dashboard/WorkspaceSection"; // plasmic-import: 5cdjGaqBQ4/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -113,13 +113,12 @@ function PlasmicWorkspacePage__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <React.Fragment>
@@ -247,12 +246,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -262,29 +257,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicWorkspacePage__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicWorkspacePage";
-  } else {
-    func.displayName = `PlasmicWorkspacePage.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicWorkspacePage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicWorkspacePage__root<T extends PlasmicWorkspacePage__rootProps>(props: T & StrictProps<T, PlasmicWorkspacePage__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicWorkspacePage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicWorkspacePage__root.displayName = "PlasmicWorkspacePage";
+
+type PlasmicWorkspacePage__defaultLayoutProps = NodeComponentProps<"defaultLayout"> & {key?: React.Key};
+function PlasmicWorkspacePage__defaultLayout<T extends PlasmicWorkspacePage__defaultLayoutProps>(props: T & StrictProps<T, PlasmicWorkspacePage__defaultLayoutProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("defaultLayout", props);
+  return <PlasmicWorkspacePage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"defaultLayout"} />;
+}
+PlasmicWorkspacePage__defaultLayout.displayName = "PlasmicWorkspacePage.defaultLayout";
+
+type PlasmicWorkspacePage__workspaceSectionProps = NodeComponentProps<"workspaceSection"> & {key?: React.Key};
+function PlasmicWorkspacePage__workspaceSection<T extends PlasmicWorkspacePage__workspaceSectionProps>(props: T & StrictProps<T, PlasmicWorkspacePage__workspaceSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("workspaceSection", props);
+  return <PlasmicWorkspacePage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"workspaceSection"} />;
+}
+PlasmicWorkspacePage__workspaceSection.displayName = "PlasmicWorkspacePage.workspaceSection";
+
+type PlasmicWorkspacePage__navTeamSectionProps = NodeComponentProps<"navTeamSection"> & {key?: React.Key};
+function PlasmicWorkspacePage__navTeamSection<T extends PlasmicWorkspacePage__navTeamSectionProps>(props: T & StrictProps<T, PlasmicWorkspacePage__navTeamSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("navTeamSection", props);
+  return <PlasmicWorkspacePage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"navTeamSection"} />;
+}
+PlasmicWorkspacePage__navTeamSection.displayName = "PlasmicWorkspacePage.navTeamSection";
+
 
 export const PlasmicWorkspacePage = Object.assign(
   // Top-level PlasmicWorkspacePage renders the root element
-  makeNodeComponent("root"),
+  PlasmicWorkspacePage__root,
   {
     // Helper components rendering sub-elements
-    defaultLayout: makeNodeComponent("defaultLayout"),
-    workspaceSection: makeNodeComponent("workspaceSection"),
-    navTeamSection: makeNodeComponent("navTeamSection"),
+    defaultLayout: PlasmicWorkspacePage__defaultLayout,
+    workspaceSection: PlasmicWorkspacePage__workspaceSection,
+    navTeamSection: PlasmicWorkspacePage__navTeamSection,
 
     // Metadata about props expected for PlasmicWorkspacePage
     internalVariantProps: PlasmicWorkspacePage__VariantProps,

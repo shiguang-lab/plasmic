@@ -80,7 +80,7 @@
     "skinny"
   ],
   "scripts": {
-    "build": "rollup -c && mkdir -p lib && cp src/styles/plasmic.css lib/",
+    "build": "node build-types.mjs && rollup -c && mkdir -p lib && cp src/styles/plasmic.css lib/",
     "clean": "rm -rf dist/ skinny/dist/ lib/host/*js lib/host/*.ts lib/host/*.map lib/data-sources/*js lib/data-sources/*.ts lib/data-sources/*.map lib/query/*js lib/query/*.ts lib/query/*.map lib/auth/*js lib/auth/*.ts lib/auth/*.map lib/splits/*js lib/splits/*.ts lib/splits/*.map",
     "test": "vitest run",
     "lint": "eslint",
@@ -127,6 +127,7 @@
     "@babel/preset-env": "catalog:",
     "@babel/preset-react": "catalog:",
     "@babel/preset-typescript": "catalog:",
+    "babel-plugin-react-compiler": "1.0.0",
     "@react-types/overlays": "3.8.15",
     "@react-types/select": "^3.9.2",
     "@react-types/shared": "^3.36.1",

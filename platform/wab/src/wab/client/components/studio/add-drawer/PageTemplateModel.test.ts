@@ -60,7 +60,7 @@ it("imports real template text, image and styles into a Page, and persists the s
     StudioCtx["projectDependencyManager"],
     "plumeSite" | "syncDirectDeps"
   > = { plumeSite: undefined, syncDirectDeps: vi.fn() };
-  const fonts: Pick<StudioCtx["fontManager"], "useFont"> = { useFont: vi.fn() };
+  const fonts: Pick<StudioCtx["fontManager"], "loadFont"> = { loadFont: vi.fn() };
   const ctx: Partial<StudioCtx> = {
     site,
     currentArena: arena,

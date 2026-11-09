@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
   PlasmicImg as PlasmicImg__,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -34,7 +34,7 @@ import { ThreadHistoryStatus } from "../../components/comments/ThreadHistoryStat
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -129,11 +129,10 @@ function PlasmicCommentPost__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "thread",
@@ -167,18 +166,20 @@ function PlasmicCommentPost__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.hoverBox,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -600,12 +601,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -615,41 +612,141 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCommentPost__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCommentPost";
-  } else {
-    func.displayName = `PlasmicCommentPost.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCommentPost__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCommentPost__root<T extends PlasmicCommentPost__rootProps>(props: T & StrictProps<T, PlasmicCommentPost__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCommentPost__root.displayName = "PlasmicCommentPost";
+
+type PlasmicCommentPost__avatarContainerProps = NodeComponentProps<"avatarContainer"> & {key?: React.Key};
+function PlasmicCommentPost__avatarContainer<T extends PlasmicCommentPost__avatarContainerProps>(props: T & StrictProps<T, PlasmicCommentPost__avatarContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("avatarContainer", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"avatarContainer"} />;
+}
+PlasmicCommentPost__avatarContainer.displayName = "PlasmicCommentPost.avatarContainer";
+
+type PlasmicCommentPost__imgProps = NodeComponentProps<"img"> & {key?: React.Key};
+function PlasmicCommentPost__img<T extends PlasmicCommentPost__imgProps>(props: T & StrictProps<T, PlasmicCommentPost__imgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("img", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"img"} />;
+}
+PlasmicCommentPost__img.displayName = "PlasmicCommentPost.img";
+
+type PlasmicCommentPost__userFullNameProps = NodeComponentProps<"userFullName"> & {key?: React.Key};
+function PlasmicCommentPost__userFullName<T extends PlasmicCommentPost__userFullNameProps>(props: T & StrictProps<T, PlasmicCommentPost__userFullNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("userFullName", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"userFullName"} />;
+}
+PlasmicCommentPost__userFullName.displayName = "PlasmicCommentPost.userFullName";
+
+type PlasmicCommentPost__timestampProps = NodeComponentProps<"timestamp"> & {key?: React.Key};
+function PlasmicCommentPost__timestamp<T extends PlasmicCommentPost__timestampProps>(props: T & StrictProps<T, PlasmicCommentPost__timestampProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("timestamp", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"timestamp"} />;
+}
+PlasmicCommentPost__timestamp.displayName = "PlasmicCommentPost.timestamp";
+
+type PlasmicCommentPost__actionsProps = NodeComponentProps<"actions"> & {key?: React.Key};
+function PlasmicCommentPost__actions<T extends PlasmicCommentPost__actionsProps>(props: T & StrictProps<T, PlasmicCommentPost__actionsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actions", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actions"} />;
+}
+PlasmicCommentPost__actions.displayName = "PlasmicCommentPost.actions";
+
+type PlasmicCommentPost__btnMoreProps = NodeComponentProps<"btnMore"> & {key?: React.Key};
+function PlasmicCommentPost__btnMore<T extends PlasmicCommentPost__btnMoreProps>(props: T & StrictProps<T, PlasmicCommentPost__btnMoreProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("btnMore", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"btnMore"} />;
+}
+PlasmicCommentPost__btnMore.displayName = "PlasmicCommentPost.btnMore";
+
+type PlasmicCommentPost__threadHistoryStatusProps = NodeComponentProps<"threadHistoryStatus"> & {key?: React.Key};
+function PlasmicCommentPost__threadHistoryStatus<T extends PlasmicCommentPost__threadHistoryStatusProps>(props: T & StrictProps<T, PlasmicCommentPost__threadHistoryStatusProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("threadHistoryStatus", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"threadHistoryStatus"} />;
+}
+PlasmicCommentPost__threadHistoryStatus.displayName = "PlasmicCommentPost.threadHistoryStatus";
+
+type PlasmicCommentPost__subjectLabelProps = NodeComponentProps<"subjectLabel"> & {key?: React.Key};
+function PlasmicCommentPost__subjectLabel<T extends PlasmicCommentPost__subjectLabelProps>(props: T & StrictProps<T, PlasmicCommentPost__subjectLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("subjectLabel", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"subjectLabel"} />;
+}
+PlasmicCommentPost__subjectLabel.displayName = "PlasmicCommentPost.subjectLabel";
+
+type PlasmicCommentPost__bodyProps = NodeComponentProps<"body"> & {key?: React.Key};
+function PlasmicCommentPost__body<T extends PlasmicCommentPost__bodyProps>(props: T & StrictProps<T, PlasmicCommentPost__bodyProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("body", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"body"} />;
+}
+PlasmicCommentPost__body.displayName = "PlasmicCommentPost.body";
+
+type PlasmicCommentPost__reactionsContainerProps = NodeComponentProps<"reactionsContainer"> & {key?: React.Key};
+function PlasmicCommentPost__reactionsContainer<T extends PlasmicCommentPost__reactionsContainerProps>(props: T & StrictProps<T, PlasmicCommentPost__reactionsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("reactionsContainer", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"reactionsContainer"} />;
+}
+PlasmicCommentPost__reactionsContainer.displayName = "PlasmicCommentPost.reactionsContainer";
+
+type PlasmicCommentPost__btnAddReactionProps = NodeComponentProps<"btnAddReaction"> & {key?: React.Key};
+function PlasmicCommentPost__btnAddReaction<T extends PlasmicCommentPost__btnAddReactionProps>(props: T & StrictProps<T, PlasmicCommentPost__btnAddReactionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("btnAddReaction", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"btnAddReaction"} />;
+}
+PlasmicCommentPost__btnAddReaction.displayName = "PlasmicCommentPost.btnAddReaction";
+
+type PlasmicCommentPost__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicCommentPost__svg<T extends PlasmicCommentPost__svgProps>(props: T & StrictProps<T, PlasmicCommentPost__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicCommentPost__svg.displayName = "PlasmicCommentPost.svg";
+
+type PlasmicCommentPost__commentPostFormProps = NodeComponentProps<"commentPostForm"> & {key?: React.Key};
+function PlasmicCommentPost__commentPostForm<T extends PlasmicCommentPost__commentPostFormProps>(props: T & StrictProps<T, PlasmicCommentPost__commentPostFormProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentPostForm", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentPostForm"} />;
+}
+PlasmicCommentPost__commentPostForm.displayName = "PlasmicCommentPost.commentPostForm";
+
+type PlasmicCommentPost__repliesLinkProps = NodeComponentProps<"repliesLink"> & {key?: React.Key};
+function PlasmicCommentPost__repliesLink<T extends PlasmicCommentPost__repliesLinkProps>(props: T & StrictProps<T, PlasmicCommentPost__repliesLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("repliesLink", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"repliesLink"} />;
+}
+PlasmicCommentPost__repliesLink.displayName = "PlasmicCommentPost.repliesLink";
+
+type PlasmicCommentPost__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicCommentPost__text<T extends PlasmicCommentPost__textProps>(props: T & StrictProps<T, PlasmicCommentPost__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicCommentPost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicCommentPost__text.displayName = "PlasmicCommentPost.text";
+
 
 export const PlasmicCommentPost = Object.assign(
   // Top-level PlasmicCommentPost renders the root element
-  makeNodeComponent("root"),
+  PlasmicCommentPost__root,
   {
     // Helper components rendering sub-elements
-    avatarContainer: makeNodeComponent("avatarContainer"),
-    img: makeNodeComponent("img"),
-    userFullName: makeNodeComponent("userFullName"),
-    timestamp: makeNodeComponent("timestamp"),
-    actions: makeNodeComponent("actions"),
-    btnMore: makeNodeComponent("btnMore"),
-    threadHistoryStatus: makeNodeComponent("threadHistoryStatus"),
-    subjectLabel: makeNodeComponent("subjectLabel"),
-    body: makeNodeComponent("body"),
-    reactionsContainer: makeNodeComponent("reactionsContainer"),
-    btnAddReaction: makeNodeComponent("btnAddReaction"),
-    svg: makeNodeComponent("svg"),
-    commentPostForm: makeNodeComponent("commentPostForm"),
-    repliesLink: makeNodeComponent("repliesLink"),
-    text: makeNodeComponent("text"),
+    avatarContainer: PlasmicCommentPost__avatarContainer,
+    img: PlasmicCommentPost__img,
+    userFullName: PlasmicCommentPost__userFullName,
+    timestamp: PlasmicCommentPost__timestamp,
+    actions: PlasmicCommentPost__actions,
+    btnMore: PlasmicCommentPost__btnMore,
+    threadHistoryStatus: PlasmicCommentPost__threadHistoryStatus,
+    subjectLabel: PlasmicCommentPost__subjectLabel,
+    body: PlasmicCommentPost__body,
+    reactionsContainer: PlasmicCommentPost__reactionsContainer,
+    btnAddReaction: PlasmicCommentPost__btnAddReaction,
+    svg: PlasmicCommentPost__svg,
+    commentPostForm: PlasmicCommentPost__commentPostForm,
+    repliesLink: PlasmicCommentPost__repliesLink,
+    text: PlasmicCommentPost__text,
 
     // Metadata about props expected for PlasmicCommentPost
     internalVariantProps: PlasmicCommentPost__VariantProps,

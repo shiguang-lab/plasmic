@@ -15,18 +15,18 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -91,11 +91,10 @@ function PlasmicCmsSettingsPage__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "noModels",
@@ -104,18 +103,20 @@ function PlasmicCmsSettingsPage__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.noModels,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -246,12 +247,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -261,32 +258,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCmsSettingsPage__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCmsSettingsPage";
-  } else {
-    func.displayName = `PlasmicCmsSettingsPage.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCmsSettingsPage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCmsSettingsPage__root<T extends PlasmicCmsSettingsPage__rootProps>(props: T & StrictProps<T, PlasmicCmsSettingsPage__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCmsSettingsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCmsSettingsPage__root.displayName = "PlasmicCmsSettingsPage";
+
+type PlasmicCmsSettingsPage__leftProps = NodeComponentProps<"left"> & {key?: React.Key};
+function PlasmicCmsSettingsPage__left<T extends PlasmicCmsSettingsPage__leftProps>(props: T & StrictProps<T, PlasmicCmsSettingsPage__leftProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("left", props);
+  return <PlasmicCmsSettingsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"left"} />;
+}
+PlasmicCmsSettingsPage__left.displayName = "PlasmicCmsSettingsPage.left";
+
+type PlasmicCmsSettingsPage__detailsProps = NodeComponentProps<"details"> & {key?: React.Key};
+function PlasmicCmsSettingsPage__details<T extends PlasmicCmsSettingsPage__detailsProps>(props: T & StrictProps<T, PlasmicCmsSettingsPage__detailsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("details", props);
+  return <PlasmicCmsSettingsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"details"} />;
+}
+PlasmicCmsSettingsPage__details.displayName = "PlasmicCmsSettingsPage.details";
+
+type PlasmicCmsSettingsPage__rightProps = NodeComponentProps<"right"> & {key?: React.Key};
+function PlasmicCmsSettingsPage__right<T extends PlasmicCmsSettingsPage__rightProps>(props: T & StrictProps<T, PlasmicCmsSettingsPage__rightProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("right", props);
+  return <PlasmicCmsSettingsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"right"} />;
+}
+PlasmicCmsSettingsPage__right.displayName = "PlasmicCmsSettingsPage.right";
+
+type PlasmicCmsSettingsPage__duplicateButtonProps = NodeComponentProps<"duplicateButton"> & {key?: React.Key};
+function PlasmicCmsSettingsPage__duplicateButton<T extends PlasmicCmsSettingsPage__duplicateButtonProps>(props: T & StrictProps<T, PlasmicCmsSettingsPage__duplicateButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("duplicateButton", props);
+  return <PlasmicCmsSettingsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"duplicateButton"} />;
+}
+PlasmicCmsSettingsPage__duplicateButton.displayName = "PlasmicCmsSettingsPage.duplicateButton";
+
+type PlasmicCmsSettingsPage__saveButtonProps = NodeComponentProps<"saveButton"> & {key?: React.Key};
+function PlasmicCmsSettingsPage__saveButton<T extends PlasmicCmsSettingsPage__saveButtonProps>(props: T & StrictProps<T, PlasmicCmsSettingsPage__saveButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("saveButton", props);
+  return <PlasmicCmsSettingsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"saveButton"} />;
+}
+PlasmicCmsSettingsPage__saveButton.displayName = "PlasmicCmsSettingsPage.saveButton";
+
+type PlasmicCmsSettingsPage__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicCmsSettingsPage__content<T extends PlasmicCmsSettingsPage__contentProps>(props: T & StrictProps<T, PlasmicCmsSettingsPage__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicCmsSettingsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicCmsSettingsPage__content.displayName = "PlasmicCmsSettingsPage.content";
+
 
 export const PlasmicCmsSettingsPage = Object.assign(
   // Top-level PlasmicCmsSettingsPage renders the root element
-  makeNodeComponent("root"),
+  PlasmicCmsSettingsPage__root,
   {
     // Helper components rendering sub-elements
-    left: makeNodeComponent("left"),
-    details: makeNodeComponent("details"),
-    right: makeNodeComponent("right"),
-    duplicateButton: makeNodeComponent("duplicateButton"),
-    saveButton: makeNodeComponent("saveButton"),
-    content: makeNodeComponent("content"),
+    left: PlasmicCmsSettingsPage__left,
+    details: PlasmicCmsSettingsPage__details,
+    right: PlasmicCmsSettingsPage__right,
+    duplicateButton: PlasmicCmsSettingsPage__duplicateButton,
+    saveButton: PlasmicCmsSettingsPage__saveButton,
+    content: PlasmicCmsSettingsPage__content,
 
     // Metadata about props expected for PlasmicCmsSettingsPage
     internalVariantProps: PlasmicCmsSettingsPage__VariantProps,

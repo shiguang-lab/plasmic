@@ -1,4 +1,11 @@
-import { useVariantsControllerInputs } from "@/wab/client/studio-ctx/variant-state";
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useVariantLabelInputs } from "@/wab/client/components/variants/variant-label-inputs";
+import { useVariantPanelInputs } from "@/wab/client/components/variants/variant-panel-inputs";
+import { usePreviewVariantModelInputs } from "@/wab/client/components/top-bar/preview-variant-inputs";
+import { usePropExpressionInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
+import { useModelRevisions } from "@/wab/client/stores/model-revisions-react";
+import { modelKeys } from "@/wab/shared/model-revisions";
+import { useVariantsController } from "@/wab/client/studio-ctx/variant-controller-inputs";
 import {
   StyleOrCodeComponentVariantLabel,
   VariantLabel,
@@ -21,7 +28,6 @@ import {
   ComponentArenaVariantsController,
   CustomVariantsController,
   PageArenaVariantsController,
-  makeVariantsController,
 } from "@/wab/client/components/variants/VariantsController";
 import {
   VariantDataPicker,
@@ -92,7 +98,6 @@ import {
 import { getPlumeVariantDef } from "@/wab/shared/plume/plume-registry";
 import { Button, Menu, Tooltip } from "antd";
 import sortBy from "lodash/sortBy";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
@@ -109,14 +114,23 @@ export interface VariantsPanelHandle {
   onVariantGroupAdded: (group: VariantGroup) => void;
 }
 
-export const VariantsPanel = observer(
-  React.forwardRef(function VariantsPanel(
+export const VariantsPanel = React.memo(React.forwardRef(function VariantsPanel(props: VariantsPanelProps, ref: React.Ref<VariantsPanelHandle>) {
+  const world = useVariantModelWorld(props.studioCtx, props.component, props.viewCtx);
+  return world.alive ? <VariantsPanelContent {...props} ref={ref} /> : null;
+}));
+const VariantsPanelContent = React.memo(
+  React.forwardRef(function VariantsPanel_(
     props: VariantsPanelProps,
     ref: React.Ref<VariantsPanelHandle>,
   ) {
     const { t: uiT } = useI18n();
     const { studioCtx, component, viewCtx } = props;
     const site = studioCtx.site;
+    const world = useVariantModelWorld(studioCtx, component, viewCtx);
+    usePreviewVariantModelInputs(studioCtx, component); useVariantPanelInputs(studioCtx, component);
+    useVariantLabelInputs(studioCtx, component.variants, { component, componentVariants: true });
+    // Finding nonempty combinations scans every variant setting in this component.
+    useModelRevisions(studioCtx.modelRevisions, [modelKeys.component(component.uuid)]);
 
     const [justAddedGroup, setJustAddedGroup] = React.useState<
       VariantGroup | undefined
@@ -132,15 +146,15 @@ export const VariantsPanel = observer(
       true,
     );
 
-    useVariantsControllerInputs(studioCtx, viewCtx);
-    const vcontroller = makeVariantsController(studioCtx, viewCtx);
+    const variantInput = useVariantsController(studioCtx, viewCtx);
+    const vcontroller = variantInput?.commands;
 
     React.useImperativeHandle(ref, () => ({
       onVariantAdded: (variant: Variant) => {
-        setJustAddedVariant(variant);
+        if (world.isCurrent()) { setJustAddedVariant(variant); }
       },
       onVariantGroupAdded: (group: VariantGroup) => {
-        setJustAddedGroup(group);
+        if (world.isCurrent()) { setJustAddedGroup(group); }
       },
     }));
 
@@ -148,7 +162,7 @@ export const VariantsPanel = observer(
 
     useModelUiActionHandler("Variant", (uuid) => {
       if (
-        tryGetGlobalVariantByUuid(studioCtx.site, uuid, {
+        world.isCurrent() && tryGetGlobalVariantByUuid(studioCtx.site, uuid, {
           includeDeps: "direct",
         })
       ) {
@@ -156,9 +170,7 @@ export const VariantsPanel = observer(
       }
     });
 
-    const addVariantsMenu = React.useMemo(
-      () =>
-        new MenuBuilder()
+    const addVariantsMenu = new MenuBuilder()
           .genSection(undefined, (push) => {
             push(
               <Menu.Item
@@ -201,33 +213,33 @@ export const VariantsPanel = observer(
           })
           .build({
             menuName: "variantspanel-add-variant-group",
-          }),
-      [],
-    );
+          });
 
-    if (!vcontroller) {
+    if (!vcontroller || !variantInput) {
       return null;
     }
 
-    const canChangeVariants = vcontroller.canChangeActiveVariants();
+    const canChangeVariants = variantInput.canChangeVariants;
     const superComps = getSuperComponents(component);
 
     const styleOrCodeComponentVariants =
       allComponentStyleOrCodeComponentVariants(component);
     const baseVariant = getBaseVariant(component);
     const combos = findNonEmptyCombos(component);
-    const selectedVariants = vcontroller.getTargetedVariants();
+    const selectedVariants = variantInput.targetedVariants;
     const [relevantCombos, otherCombos] = partitions(combos, [
       (combo) => selectedVariants.every((v) => combo.includes(v)),
     ]);
 
     const onAddedVariant = (variant: Variant) => {
+      if (!world.isCurrent()) { return; }
       vcontroller.onAddedVariant(variant, { focusFrame: false });
       setJustAddedVariant(variant);
     };
 
     const addVariantGroup = (optionsType: VariantOptionsType) =>
       studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
         const group = studioCtx
           .tplMgr()
           .createVariantGroup({ component, optionsType });
@@ -245,6 +257,7 @@ export const VariantsPanel = observer(
       newName: string,
     ) => {
       return studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
         studioCtx.siteOps().tryRenameVariantGroup(group, newName);
 
         if (justAddedGroup === group && !group.variants.length) {
@@ -272,6 +285,7 @@ export const VariantsPanel = observer(
           <SimpleReorderableList
             onReordered={(fromIndex, toIndex) =>
               studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                 moveVariant({
                   site: studioCtx.site,
                   component,
@@ -324,6 +338,7 @@ export const VariantsPanel = observer(
     const handleAddGlobalGroupOfVariants = (e) => {
       globalVariantsSectionRef.current?.expand();
       return void studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
         e.stopPropagation();
         const group = studioCtx.tplMgr().createGlobalVariantGroup();
         setJustAddedGroup(isScreenVariantGroup(group) ? undefined : group);
@@ -334,12 +349,14 @@ export const VariantsPanel = observer(
 
     const onClickCombo = (combo) =>
       studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
         vcontroller.onClickCombo(combo);
         return ok();
       });
 
     const onActivateCombo = (combo) =>
       studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
         vcontroller.onActivateCombo(combo);
         return ok();
       });
@@ -393,12 +410,13 @@ export const VariantsPanel = observer(
               viewCtx={viewCtx}
               variant={baseVariant}
               pinState={
-                isBaseVariant(vcontroller.getTargetedVariants())
+                (variantInput.targetedVariants.length === 1 && isBaseVariant(variantInput.targetedVariants[0]))
                   ? "selected-pinned"
                   : undefined
               }
               onClick={() =>
                 studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                   vcontroller.onClearVariants();
                   return ok();
                 })
@@ -409,6 +427,7 @@ export const VariantsPanel = observer(
             <SimpleReorderableList
               onReordered={(fromIndex, toIndex) =>
                 studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                   moveVariantGroup({
                     site: studioCtx.site,
                     component,
@@ -428,18 +447,20 @@ export const VariantsPanel = observer(
                     key={group.uuid}
                     viewCtx={viewCtx}
                     group={group}
-                    pinState={vcontroller.getPinState(group.variants[0])}
+                    pinState={variantInput.variants[group.variants[0].uid]?.pinState}
                     onClick={() =>
                       studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                         vcontroller.onClickVariant(group.variants[0]);
                         return ok();
                       })
                     }
                     onTarget={
                       canChangeVariants ||
-                      vcontroller.canToggleTargeting(group.variants[0])
+                      variantInput.variants[group.variants[0].uid]?.canToggle
                         ? (target) =>
                             studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                               vcontroller.onTargetVariant(
                                 group.variants[0],
                                 target,
@@ -452,6 +473,7 @@ export const VariantsPanel = observer(
                       canChangeVariants
                         ? () =>
                             studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                               vcontroller.onToggleVariant(group.variants[0]);
                               return ok();
                             })
@@ -483,18 +505,20 @@ export const VariantsPanel = observer(
                           variant={variant}
                           studioCtx={studioCtx}
                           viewCtx={viewCtx}
-                          pinState={vcontroller.getPinState(variant)}
+                          pinState={variantInput.variants[variant.uid]?.pinState}
                           onClick={() =>
                             studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                               vcontroller.onClickVariant(variant);
                               return ok();
                             })
                           }
                           onTarget={
                             canChangeVariants ||
-                            vcontroller.canToggleTargeting(variant)
+                            variantInput.variants[variant.uid]?.canToggle
                               ? (target) =>
                                   studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                                     vcontroller.onTargetVariant(
                                       variant,
                                       target,
@@ -507,6 +531,7 @@ export const VariantsPanel = observer(
                             canChangeVariants
                               ? () =>
                                   studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                                     vcontroller.onToggleVariant(variant);
                                     return ok();
                                   })
@@ -539,6 +564,7 @@ export const VariantsPanel = observer(
                   }
                   onAddNewVariant={() =>
                     studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                       isTplCodeComponent(tplRoot)
                         ? studioCtx
                             .siteOps()
@@ -559,19 +585,21 @@ export const VariantsPanel = observer(
                       component={component}
                       studioCtx={studioCtx}
                       viewCtx={viewCtx}
-                      pinState={vcontroller.getPinState(variant)}
+                      pinState={variantInput.variants[variant.uid]?.pinState}
                       onClick={() =>
                         justAddedVariant !== variant &&
                         studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                           vcontroller.onClickVariant(variant);
                           return ok();
                         })
                       }
                       onTarget={
                         canChangeVariants ||
-                        vcontroller.canToggleTargeting(variant)
+                        variantInput.variants[variant.uid]?.canToggle
                           ? (target) =>
                               studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                                 vcontroller.onTargetVariant(variant, target);
                                 return ok();
                               })
@@ -581,6 +609,7 @@ export const VariantsPanel = observer(
                         canChangeVariants
                           ? () =>
                               studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                                 vcontroller.onToggleVariant(variant);
                                 return ok();
                               })
@@ -651,6 +680,7 @@ export const VariantsPanel = observer(
                             onClickSettings: () =>
                               spawn(
                                 studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                                   studioCtx.switchLeftTab("responsiveness", {
                                     highlight: true,
                                   });
@@ -686,18 +716,20 @@ export const VariantsPanel = observer(
                                     variant={variant}
                                     studioCtx={studioCtx}
                                     viewCtx={viewCtx}
-                                    pinState={vcontroller.getPinState(variant)}
+                                    pinState={variantInput.variants[variant.uid]?.pinState}
                                     onClick={() =>
                                       studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                                         vcontroller.onClickVariant(variant);
                                         return ok();
                                       })
                                     }
                                     onTarget={
                                       canChangeVariants ||
-                                      vcontroller.canToggleTargeting(variant)
+                                      variantInput.variants[variant.uid]?.canToggle
                                         ? (target) =>
                                             studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                                               vcontroller.onTargetVariant(
                                                 variant,
                                                 target,
@@ -710,6 +742,7 @@ export const VariantsPanel = observer(
                                       canChangeVariants
                                         ? () =>
                                             studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                                               vcontroller.onToggleVariant(
                                                 variant,
                                               );
@@ -813,7 +846,11 @@ export const VariantsPanel = observer(
   }),
 );
 
-const ComponentVariantRow = observer(function ComponentVariantRow(props: {
+const ComponentVariantRow = React.memo(function ComponentVariantRow(props: React.ComponentProps<typeof ComponentVariantRowContent>) {
+  const world = useVariantModelWorld(props.studioCtx, props.variant, props.viewCtx);
+  return world.alive ? <ComponentVariantRowContent {...props} /> : null;
+});
+const ComponentVariantRowContent = React.memo(function ComponentVariantRow_(props: {
   studioCtx: StudioCtx;
   viewCtx?: ViewCtx;
   component: Component;
@@ -843,7 +880,9 @@ const ComponentVariantRow = observer(function ComponentVariantRow(props: {
     onTarget,
     onToggle,
   } = props;
-  const ref = React.useRef<EditableLabelHandles>(null);
+  const world = useVariantModelWorld(studioCtx, variant, props.viewCtx);
+  useVariantLabelInputs(studioCtx, variant, { component, splitGroup: true });
+  const [label, setLabel] = React.useState<EditableLabelHandles | null>(null);
   const plumeDef = getPlumeVariantDef(component, variant);
   return (
     <VariantRow
@@ -865,6 +904,7 @@ const ComponentVariantRow = observer(function ComponentVariantRow(props: {
         onRemove: () =>
           spawn(
             studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
               spawn(studioCtx.siteOps().removeVariant(component, variant));
               return ok();
             }),
@@ -873,6 +913,7 @@ const ComponentVariantRow = observer(function ComponentVariantRow(props: {
         onClone: () =>
           spawn(
             studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
               studioCtx.tplMgr().cloneVariant(component, variant);
               return ok();
             }),
@@ -881,6 +922,7 @@ const ComponentVariantRow = observer(function ComponentVariantRow(props: {
         onCopyTo: (toVariant) =>
           spawn(
             studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
               studioCtx.tplMgr().copyToVariant(component, variant, toVariant);
               return ok();
             }),
@@ -889,16 +931,17 @@ const ComponentVariantRow = observer(function ComponentVariantRow(props: {
         onMove: (toGroup) =>
           spawn(
             studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
               studioCtx.tplMgr().moveVariant(component, variant, toGroup);
               return ok();
             }),
           ),
 
-        onRename: () => ref.current && ref.current.setEditing(true),
+        onRename: () => label && label.setEditing(true),
       })}
       label={
         <VariantLabel
-          ref={ref}
+          ref={setLabel}
           doubleClickToEdit
           variant={variant}
           defaultEditing={defaultEditing}
@@ -908,7 +951,11 @@ const ComponentVariantRow = observer(function ComponentVariantRow(props: {
     />
   );
 });
-const GlobalVariantRow = observer(function GlobalVariantRow(props: {
+const GlobalVariantRow = React.memo(function GlobalVariantRow(props: React.ComponentProps<typeof GlobalVariantRowContent>) {
+  const world = useVariantModelWorld(props.studioCtx, props.variant, props.viewCtx);
+  return world.alive ? <GlobalVariantRowContent {...props} /> : null;
+});
+const GlobalVariantRowContent = React.memo(function GlobalVariantRow_(props: {
   studioCtx: StudioCtx;
   viewCtx?: ViewCtx;
   component: Component;
@@ -938,7 +985,9 @@ const GlobalVariantRow = observer(function GlobalVariantRow(props: {
     onTarget,
     onToggle,
   } = props;
-  const ref = React.useRef<EditableLabelHandles>(null);
+  const world = useVariantModelWorld(studioCtx, variant, props.viewCtx);
+  useVariantLabelInputs(studioCtx, variant, { component, splitGroup: true });
+  const [label, setLabel] = React.useState<EditableLabelHandles | null>(null);
 
   const isSplitsVariant = isVariantUsedInSplits(studioCtx.site, variant);
 
@@ -959,6 +1008,7 @@ const GlobalVariantRow = observer(function GlobalVariantRow(props: {
         onCopyTo: (toVariant) =>
           spawn(
             studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
               studioCtx.tplMgr().copyToVariant(component, variant, toVariant);
               return ok();
             }),
@@ -969,13 +1019,14 @@ const GlobalVariantRow = observer(function GlobalVariantRow(props: {
           ? () =>
               spawn(
                 studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                   spawn(studioCtx.siteOps().removeGlobalVariant(variant));
                   return ok();
                 }),
               )
           : undefined,
         onRename: !isSplitsVariant
-          ? () => ref.current && ref.current.setEditing(true)
+          ? () => label && label.setEditing(true)
           : undefined,
       })}
       label={
@@ -983,7 +1034,7 @@ const GlobalVariantRow = observer(function GlobalVariantRow(props: {
           variant.parent?.param.variable.name
         ) : (
           <VariantLabel
-            ref={ref}
+            ref={setLabel}
             doubleClickToEdit
             variant={variant}
             defaultEditing={defaultEditing}
@@ -998,8 +1049,12 @@ const GlobalVariantRow = observer(function GlobalVariantRow(props: {
   );
 });
 
-const ComponentStyleVariantRow = observer(
-  function ComponentStyleVariantRow(props: {
+const ComponentStyleVariantRow = React.memo(function ComponentStyleVariantRow(props: React.ComponentProps<typeof ComponentStyleVariantRowContent>) {
+  const world = useVariantModelWorld(props.studioCtx, props.variant, props.viewCtx);
+  return world.alive ? <ComponentStyleVariantRowContent {...props} /> : null;
+});
+const ComponentStyleVariantRowContent = React.memo(
+  function ComponentStyleVariantRow_(props: {
     studioCtx: StudioCtx;
     viewCtx?: ViewCtx;
     component: Component;
@@ -1023,7 +1078,9 @@ const ComponentStyleVariantRow = observer(
       onTarget,
       onToggle,
     } = props;
-    const ref = React.useRef<EditableLabelHandles>(null);
+  const world = useVariantModelWorld(studioCtx, variant, props.viewCtx);
+  useVariantLabelInputs(studioCtx, variant, { component, splitGroup: true });
+    const [label, setLabel] = React.useState<EditableLabelHandles | null>(null);
 
     return (
       <VariantRow
@@ -1041,6 +1098,7 @@ const ComponentStyleVariantRow = observer(
           onRemove: () =>
             spawn(
               studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                 spawn(studioCtx.siteOps().removeVariant(component, variant));
                 return ok();
               }),
@@ -1048,12 +1106,13 @@ const ComponentStyleVariantRow = observer(
           onCopyTo: (toVariant) =>
             spawn(
               studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                 studioCtx.tplMgr().copyToVariant(component, variant, toVariant);
                 return ok();
               }),
             ),
 
-          onEditSelectors: () => ref.current && ref.current.setEditing(true),
+          onEditSelectors: () => label && label.setEditing(true),
         })}
         label={
           <StyleOrCodeComponentVariantLabel
@@ -1063,7 +1122,7 @@ const ComponentStyleVariantRow = observer(
               isKnownTplTag(component.tplTree) ? component.tplTree.tag : ""
             }
             forRoot={true}
-            ref={ref}
+            ref={setLabel}
             onBlur={() => {
               onEdited();
             }}
@@ -1075,8 +1134,12 @@ const ComponentStyleVariantRow = observer(
   },
 );
 
-const ComponentVariantGroupSection = observer(
-  function ComponentVariantGroupSection(props: {
+const ComponentVariantGroupSection = React.memo(function ComponentVariantGroupSection(props: React.ComponentProps<typeof ComponentVariantGroupSectionContent>) {
+  const world = useVariantModelWorld(props.studioCtx, props.group, props.viewCtx);
+  return world.alive ? <ComponentVariantGroupSectionContent {...props} /> : null;
+});
+const ComponentVariantGroupSectionContent = React.memo(
+  function ComponentVariantGroupSection_(props: {
     studioCtx: StudioCtx;
     viewCtx?: ViewCtx;
     group: ComponentVariantGroup;
@@ -1109,7 +1172,10 @@ const ComponentVariantGroupSection = observer(
     const hasCodeExpression = !!group.param.defaultExpr;
     const [visibleDataPicker, setVisibleDataPicker] = React.useState(false);
 
-    const ref = React.useRef<EditableLabelHandles>(null);
+  const world = useVariantModelWorld(studioCtx, group, props.viewCtx);
+  useVariantLabelInputs(studioCtx, group.variants, { component, group, splitGroup: true });
+  usePropExpressionInputs(studioCtx, group, group.param, undefined);
+    const [label, setLabel] = React.useState<EditableLabelHandles | null>(null);
     return (
       <VariantSection
         key={group.uuid}
@@ -1122,7 +1188,7 @@ const ComponentVariantGroupSection = observer(
             group={group}
             defaultEditing={justAdded}
             onEdit={(name) => onRename(name)}
-            ref={ref}
+            ref={setLabel}
           />
         }
         emptyAddButtonText={studioUiT("Add variant option")}
@@ -1132,15 +1198,14 @@ const ComponentVariantGroupSection = observer(
             : () =>
                 studioCtx
                   .change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                     const variant = studioCtx
                       .tplMgr()
                       .createVariant(component, group);
                     onAddedVariant(variant);
                     return ok();
                   })
-                  .then(() =>
-                    notifyLinkedPropDrift(studioCtx, component, group.param),
-                  )
+                  .then(() => { if (world.isCurrent()) { notifyLinkedPropDrift(studioCtx, component, group.param); } })
         }
         hasCodeExpression={hasCodeExpression}
         exprButton={{
@@ -1162,19 +1227,19 @@ const ComponentVariantGroupSection = observer(
             spawn(
               studioCtx
                 .change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                   studioCtx
                     .siteOps()
                     .updateVariantGroupMulti(group, !group.multi);
                   return ok();
                 })
-                .then(() =>
-                  notifyLinkedPropDrift(studioCtx, component, group.param),
-                ),
+                .then(() => { if (world.isCurrent()) { notifyLinkedPropDrift(studioCtx, component, group.param); } }),
             ),
 
           onRemove: () =>
             spawn(
               studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                 spawn(studioCtx.siteOps().removeVariantGroup(component, group));
                 return ok();
               }),
@@ -1187,6 +1252,7 @@ const ComponentVariantGroupSection = observer(
             );
             spawn(
               studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                 studioCtx.siteOps().updateState(state, {
                   accessType,
                 });
@@ -1195,11 +1261,12 @@ const ComponentVariantGroupSection = observer(
             );
           },
 
-          onRename: () => ref.current && ref.current.setEditing(true),
+          onRename: () => label && label.setEditing(true),
 
           onEditDynamicValue: () => {
             spawn(
               studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                 if (!group.param.defaultExpr) {
                   studioCtx.siteOps().updateState(group.linkedState, {
                     initialValue: new ObjectPath({
@@ -1217,6 +1284,7 @@ const ComponentVariantGroupSection = observer(
           onRemoveDynamicValue: () => {
             spawn(
               studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                 studioCtx.siteOps().updateState(group.linkedState, {
                   initialValue: null,
                 });
@@ -1232,8 +1300,12 @@ const ComponentVariantGroupSection = observer(
   },
 );
 
-const GlobalVariantGroupSection = observer(
-  function GlobalVariantGroupSection(props: {
+const GlobalVariantGroupSection = React.memo(function GlobalVariantGroupSection(props: React.ComponentProps<typeof GlobalVariantGroupSectionContent>) {
+  const world = useVariantModelWorld(props.studioCtx, props.group, props.viewCtx);
+  return world.alive ? <GlobalVariantGroupSectionContent {...props} /> : null;
+});
+const GlobalVariantGroupSectionContent = React.memo(
+  function GlobalVariantGroupSection_(props: {
     studioCtx: StudioCtx;
     viewCtx?: ViewCtx;
     group: VariantGroup;
@@ -1258,7 +1330,10 @@ const GlobalVariantGroupSection = observer(
       group,
     );
 
-    const ref = React.useRef<EditableLabelHandles>(null);
+  const world = useVariantModelWorld(studioCtx, group, props.viewCtx);
+  useVariantLabelInputs(studioCtx, group.variants, { group, splitGroup: true });
+  usePropExpressionInputs(studioCtx, group, group.param, undefined);
+    const [label, setLabel] = React.useState<EditableLabelHandles | null>(null);
 
     // For split variant groups with only one variant, just render the child row directly
     if (isSplitsGroup) {
@@ -1275,7 +1350,7 @@ const GlobalVariantGroupSection = observer(
             group={group}
             defaultEditing={defaultEditing}
             onEdit={(name) => onRename(name)}
-            ref={ref}
+            ref={setLabel}
           />
         }
         // We don't allow adding new variants to split groups as they
@@ -1284,6 +1359,7 @@ const GlobalVariantGroupSection = observer(
           !isSplitsGroup
             ? () =>
                 studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                   const variant = studioCtx.tplMgr().createGlobalVariant(group);
                   if (isScreenVariantGroup(group)) {
                     variant.mediaQuery = new ScreenSizeSpec(0).query();
@@ -1298,6 +1374,7 @@ const GlobalVariantGroupSection = observer(
           onToggleMulti: () =>
             spawn(
               studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                 studioCtx
                   .siteOps()
                   .updateVariantGroupMulti(group, !group.multi);
@@ -1308,14 +1385,15 @@ const GlobalVariantGroupSection = observer(
           onRemove: () =>
             spawn(
               studioCtx.change(() => {
+                  if (!world.isCurrent()) { return ok(); }
                 spawn(studioCtx.siteOps().removeGlobalVariantGroup(group));
                 return ok();
               }),
             ),
 
           onRename: () => {
-            if (ref.current) {
-              ref.current.setEditing(true);
+            if (label) {
+              label.setEditing(true);
             }
           },
         })}

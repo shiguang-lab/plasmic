@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -27,7 +27,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import StyleSelect from "../../components/style-controls/StyleSelect"; // plasmic-import: E0bKgamUEin/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -102,11 +102,10 @@ function PlasmicSettingsTab__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -326,12 +325,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -341,36 +336,101 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSettingsTab__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSettingsTab";
-  } else {
-    func.displayName = `PlasmicSettingsTab.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSettingsTab__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSettingsTab__root<T extends PlasmicSettingsTab__rootProps>(props: T & StrictProps<T, PlasmicSettingsTab__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSettingsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSettingsTab__root.displayName = "PlasmicSettingsTab";
+
+type PlasmicSettingsTab__providerLabelProps = NodeComponentProps<"providerLabel"> & {key?: React.Key};
+function PlasmicSettingsTab__providerLabel<T extends PlasmicSettingsTab__providerLabelProps>(props: T & StrictProps<T, PlasmicSettingsTab__providerLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("providerLabel", props);
+  return <PlasmicSettingsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"providerLabel"} />;
+}
+PlasmicSettingsTab__providerLabel.displayName = "PlasmicSettingsTab.providerLabel";
+
+type PlasmicSettingsTab__providerSelectProps = NodeComponentProps<"providerSelect"> & {key?: React.Key};
+function PlasmicSettingsTab__providerSelect<T extends PlasmicSettingsTab__providerSelectProps>(props: T & StrictProps<T, PlasmicSettingsTab__providerSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("providerSelect", props);
+  return <PlasmicSettingsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"providerSelect"} />;
+}
+PlasmicSettingsTab__providerSelect.displayName = "PlasmicSettingsTab.providerSelect";
+
+type PlasmicSettingsTab__directoryLabelProps = NodeComponentProps<"directoryLabel"> & {key?: React.Key};
+function PlasmicSettingsTab__directoryLabel<T extends PlasmicSettingsTab__directoryLabelProps>(props: T & StrictProps<T, PlasmicSettingsTab__directoryLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("directoryLabel", props);
+  return <PlasmicSettingsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"directoryLabel"} />;
+}
+PlasmicSettingsTab__directoryLabel.displayName = "PlasmicSettingsTab.directoryLabel";
+
+type PlasmicSettingsTab__directorySelectProps = NodeComponentProps<"directorySelect"> & {key?: React.Key};
+function PlasmicSettingsTab__directorySelect<T extends PlasmicSettingsTab__directorySelectProps>(props: T & StrictProps<T, PlasmicSettingsTab__directorySelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("directorySelect", props);
+  return <PlasmicSettingsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"directorySelect"} />;
+}
+PlasmicSettingsTab__directorySelect.displayName = "PlasmicSettingsTab.directorySelect";
+
+type PlasmicSettingsTab__manageBtnProps = NodeComponentProps<"manageBtn"> & {key?: React.Key};
+function PlasmicSettingsTab__manageBtn<T extends PlasmicSettingsTab__manageBtnProps>(props: T & StrictProps<T, PlasmicSettingsTab__manageBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("manageBtn", props);
+  return <PlasmicSettingsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"manageBtn"} />;
+}
+PlasmicSettingsTab__manageBtn.displayName = "PlasmicSettingsTab.manageBtn";
+
+type PlasmicSettingsTab__rolesLabelProps = NodeComponentProps<"rolesLabel"> & {key?: React.Key};
+function PlasmicSettingsTab__rolesLabel<T extends PlasmicSettingsTab__rolesLabelProps>(props: T & StrictProps<T, PlasmicSettingsTab__rolesLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("rolesLabel", props);
+  return <PlasmicSettingsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"rolesLabel"} />;
+}
+PlasmicSettingsTab__rolesLabel.displayName = "PlasmicSettingsTab.rolesLabel";
+
+type PlasmicSettingsTab__addRoleBtnProps = NodeComponentProps<"addRoleBtn"> & {key?: React.Key};
+function PlasmicSettingsTab__addRoleBtn<T extends PlasmicSettingsTab__addRoleBtnProps>(props: T & StrictProps<T, PlasmicSettingsTab__addRoleBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addRoleBtn", props);
+  return <PlasmicSettingsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addRoleBtn"} />;
+}
+PlasmicSettingsTab__addRoleBtn.displayName = "PlasmicSettingsTab.addRoleBtn";
+
+type PlasmicSettingsTab__roleNeededRowProps = NodeComponentProps<"roleNeededRow"> & {key?: React.Key};
+function PlasmicSettingsTab__roleNeededRow<T extends PlasmicSettingsTab__roleNeededRowProps>(props: T & StrictProps<T, PlasmicSettingsTab__roleNeededRowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("roleNeededRow", props);
+  return <PlasmicSettingsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"roleNeededRow"} />;
+}
+PlasmicSettingsTab__roleNeededRow.displayName = "PlasmicSettingsTab.roleNeededRow";
+
+type PlasmicSettingsTab__defaultRoleLabelProps = NodeComponentProps<"defaultRoleLabel"> & {key?: React.Key};
+function PlasmicSettingsTab__defaultRoleLabel<T extends PlasmicSettingsTab__defaultRoleLabelProps>(props: T & StrictProps<T, PlasmicSettingsTab__defaultRoleLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("defaultRoleLabel", props);
+  return <PlasmicSettingsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"defaultRoleLabel"} />;
+}
+PlasmicSettingsTab__defaultRoleLabel.displayName = "PlasmicSettingsTab.defaultRoleLabel";
+
+type PlasmicSettingsTab__roleSelectProps = NodeComponentProps<"roleSelect"> & {key?: React.Key};
+function PlasmicSettingsTab__roleSelect<T extends PlasmicSettingsTab__roleSelectProps>(props: T & StrictProps<T, PlasmicSettingsTab__roleSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("roleSelect", props);
+  return <PlasmicSettingsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"roleSelect"} />;
+}
+PlasmicSettingsTab__roleSelect.displayName = "PlasmicSettingsTab.roleSelect";
+
 
 export const PlasmicSettingsTab = Object.assign(
   // Top-level PlasmicSettingsTab renders the root element
-  makeNodeComponent("root"),
+  PlasmicSettingsTab__root,
   {
     // Helper components rendering sub-elements
-    providerLabel: makeNodeComponent("providerLabel"),
-    providerSelect: makeNodeComponent("providerSelect"),
-    directoryLabel: makeNodeComponent("directoryLabel"),
-    directorySelect: makeNodeComponent("directorySelect"),
-    manageBtn: makeNodeComponent("manageBtn"),
-    rolesLabel: makeNodeComponent("rolesLabel"),
-    addRoleBtn: makeNodeComponent("addRoleBtn"),
-    roleNeededRow: makeNodeComponent("roleNeededRow"),
-    defaultRoleLabel: makeNodeComponent("defaultRoleLabel"),
-    roleSelect: makeNodeComponent("roleSelect"),
+    providerLabel: PlasmicSettingsTab__providerLabel,
+    providerSelect: PlasmicSettingsTab__providerSelect,
+    directoryLabel: PlasmicSettingsTab__directoryLabel,
+    directorySelect: PlasmicSettingsTab__directorySelect,
+    manageBtn: PlasmicSettingsTab__manageBtn,
+    rolesLabel: PlasmicSettingsTab__rolesLabel,
+    addRoleBtn: PlasmicSettingsTab__addRoleBtn,
+    roleNeededRow: PlasmicSettingsTab__roleNeededRow,
+    defaultRoleLabel: PlasmicSettingsTab__defaultRoleLabel,
+    roleSelect: PlasmicSettingsTab__roleSelect,
 
     // Metadata about props expected for PlasmicSettingsTab
     internalVariantProps: PlasmicSettingsTab__VariantProps,

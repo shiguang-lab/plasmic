@@ -46,11 +46,14 @@ interface ColorStopsProps {
 }
 
 const ColorStops_ = (props: ColorStopsProps) => {
+  const [input, setInput] = React.useState(() => ({ target: props.stops, stops: props.stops.map((stop) => stop.clone()) }));
+  if (input.target !== props.stops) { setInput({ target: props.stops, stops: props.stops.map((stop) => stop.clone()) }); }
+  const renderStops = input.stops;
   const [selectedStop, setSelectedStop] = React.useState(0);
   const [removing, setRemoving] = React.useState(false);
   const [ghostLeftPct, setGhostLeftPct] = React.useState<number | null>(null);
   const [isDragging, setIsDragging] = React.useState(false);
-  const inputs = props.stops.map((stop) => stop.color);
+  const inputs = renderStops.map((stop) => stop.color);
   const { selected: resolved, lifetime } = useStyleTokenRefs(props.studioCtx, inputs, props.vsh, "all", useShallow((snapshot) => snapshot.rows.map((row) => row.resolved)));
   const colors = useClientTokenValues(resolved, lifetime);
 
@@ -103,6 +106,7 @@ const ColorStops_ = (props: ColorStopsProps) => {
 
   const handleChange = (f: /*TWZ*/ () => any) => {
     f();
+    setInput({ target: props.stops, stops: props.stops.map((stop) => stop.clone()) });
     return props.onChange(props.stops);
   };
 
@@ -160,7 +164,7 @@ const ColorStops_ = (props: ColorStopsProps) => {
   };
 
   const stopz = tuple(
-    ...props.stops,
+    ...renderStops,
     maybes(ghostLeftPct)((g) => createStop(g))((x) => x.stop)(),
   );
   const stops = withoutNils(stopz);
@@ -193,7 +197,7 @@ const ColorStops_ = (props: ColorStopsProps) => {
             style={{
               backgroundImage: new LinearGradient({
                 angle: 90,
-                stops: props.stops.map((s: Stop) => {
+                stops: renderStops.map((s: Stop) => {
                   const derefStop = s.clone();
                   derefStop.color = realStopColor(s);
                   return derefStop;
@@ -236,9 +240,9 @@ const ColorStops_ = (props: ColorStopsProps) => {
                       prev != null ? prev + 1 : 0,
                       next != null ? next - 1 : 100,
                     );
-                    if (stop.dim.getNumericValue() !== newVal) {
+                    if (props.stops[stopNum]?.dim.getNumericValue() !== newVal) {
                       return handleChange(() => {
-                        return (stop.dim = new Dim(`${newVal}`, "%"));
+                        return (ensure(props.stops[stopNum], "Dragged gradient stop must retain its editing target").dim = new Dim(`${newVal}`, "%"));
                       });
                     }
                   }}
@@ -263,7 +267,7 @@ const ColorStops_ = (props: ColorStopsProps) => {
                       "color-stop--selected": selectedStop === stopNum,
                       "color-stop--removing":
                         selectedStop === stopNum && removing,
-                      "color-stop--ghost": stopNum === props.stops.length,
+                      "color-stop--ghost": stopNum === renderStops.length,
                     })}
                     onMouseDown={() => setSelectedStop(stopNum)}
                   >
@@ -287,7 +291,7 @@ const ColorStops_ = (props: ColorStopsProps) => {
       </div>
       <ColorPicker
         key={selectedStop}
-        color={props.stops[selectedStop].color}
+        color={ensure(renderStops[selectedStop], "Selected gradient stop must exist").color}
         onChange={(color) => {
           return handleChange(() => {
             return (props.stops[selectedStop].color = color);

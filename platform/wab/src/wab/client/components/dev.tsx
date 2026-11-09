@@ -13,8 +13,7 @@ interface DevContainerProps {
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
 }
-export class DevContainer extends React.Component<DevContainerProps, {}> {
-  render() {
+export function DevContainer(props: DevContainerProps) {
     return (
       <div
         onContextMenu={(e) => {
@@ -25,19 +24,18 @@ export class DevContainer extends React.Component<DevContainerProps, {}> {
             e.preventDefault();
           }
         }}
-        className={cx(this.props.className, {
+        className={cx(props.className, {
           "dev-env": true,
           invisible:
-            this.props.showControls === undefined
-              ? this.props.defaultHidden
-              : !this.props.showControls,
+            props.showControls === undefined
+              ? props.defaultHidden
+              : !props.showControls,
         })}
-        style={this.props.style}
-        onMouseEnter={this.props.onMouseEnter}
-        onMouseLeave={this.props.onMouseLeave}
+        style={props.style}
+        onMouseEnter={props.onMouseEnter}
+        onMouseLeave={props.onMouseLeave}
       >
-        {this.props.children}
+        {props.children}
       </div>
     );
-  }
 }

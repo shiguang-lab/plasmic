@@ -6,8 +6,6 @@ import { useMultiAssetsActions } from "@/wab/client/components/sidebar/MultiAsse
 import {
   TOKEN_ROW_HEIGHT,
   getLeftPadding,
-  getTokenIndicatorType,
-  isTokenPanelReadOnly,
 } from "@/wab/client/components/sidebar/token-utils";
 import ColorSwatch from "@/wab/client/components/style-controls/ColorSwatch";
 import { Matcher } from "@/wab/client/components/view-common";
@@ -32,11 +30,14 @@ import {
 import { StyleToken } from "@/wab/shared/model/classes";
 import { Menu } from "antd";
 import { sortBy } from "lodash";
-import { observer } from "mobx-react";
+import { getStyleTokenScope, useStyleTokenInputs } from "@/wab/client/studio-ctx/style-token-inputs";
+import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
+import { useStore } from "zustand";
+import { useShallow } from "zustand/react/shallow";
 import { ok } from "neverthrow";
 import React from "react";
 
-const StyleTokenRow = observer(function _StyleTokenRow(props: {
+const StyleTokenRow = React.memo(function StyleTokenRowContent(props: {
   token: FinalToken<StyleToken>;
   tokenValue: StyleTokenValue;
   matcher: Matcher;
@@ -48,11 +49,20 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
   const { vsh, resolver, onDuplicate, onSelect, onDeleteOverride } =
     useStyleTokenControls();
 
-  const tokenPanelReadOnly = isTokenPanelReadOnly(studioCtx);
+  const helper = React.useMemo(() => vsh ?? new VariantedStylesHelper(), [vsh]);
+  const snapshot = useStyleTokenInputs(studioCtx, token, helper, (value) => value);
+  const scope = getStyleTokenScope(studioCtx, token);
+  const isActive = () => !scope.owner.isDisposed && !scope.lifetime.aborted && scope.models === studioCtx.modelSnapshots;
+  const { tokenPanelReadOnly, ...tokenUiConfig } = useStore(studioCtx.uiEnvironment.store, useShallow((state) => ({
+    tokenPanelReadOnly: state.tokenPanelReadOnly,
+    canOverrideImportedTokens: state.canOverrideImportedTokens,
+    canOverrideRegisteredTokens: state.canOverrideRegisteredTokens,
+  })));
 
   const onFindReferences = () => {
     spawn(
       studioCtx.change(() => {
+                    if (!isActive()) { return ok(); }
         studioCtx.findReferencesStyleToken = token.base;
         return ok();
       }),
@@ -70,21 +80,22 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
       );
       if (
         !tokenPanelReadOnly &&
-        isStyleTokenEditable(token, vsh, studioCtx.getCurrentUiConfig()) &&
+        isStyleTokenEditable(token, vsh, tokenUiConfig) &&
         token instanceof OverrideableToken
       ) {
         if (vsh && !vsh.isTargetBaseVariant()) {
           push(
-            <Menu.Item key="varianted-override" onClick={() => onSelect(token)}>
+            <Menu.Item key="varianted-override" onClick={() => { if (isActive()) { onSelect(token); } }}>
               <UiText message={"Override global variant value"} />
             </Menu.Item>,
           );
-          if (token.override && !vsh.isStyleInherited(token)) {
+          if (snapshot?.hasOverride && !snapshot.styleInherited) {
             push(
               <Menu.Item
                 key="remove-global-variant-value"
                 onClick={async () => {
                   return studioCtx.change(() => {
+                    if (!isActive()) { return ok(); }
                     vsh.removeVariantedValue(token);
                     return ok();
                   });
@@ -96,15 +107,15 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
           }
         } else {
           push(
-            <Menu.Item key="override" onClick={() => onSelect(token)}>
+            <Menu.Item key="override" onClick={() => { if (isActive()) { onSelect(token); } }}>
               <UiText message={"Override value"} />
             </Menu.Item>,
           );
-          if (token.override?.value) {
+          if (snapshot?.hasOverrideValue) {
             push(
               <Menu.Item
                 key="remove-override"
-                onClick={() => onDeleteOverride(token)}
+                onClick={() => { if (isActive()) { onDeleteOverride(token); } }}
               >
                 <UiText message={"Remove override"} />
               </Menu.Item>,
@@ -115,7 +126,7 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
 
       if (!tokenPanelReadOnly && token.isLocal) {
         push(
-          <Menu.Item key="clone" onClick={() => onDuplicate(token.base)}>
+          <Menu.Item key="clone" onClick={() => { if (isActive()) { void onDuplicate(token.base); } }}>
             <UiText message={"Duplicate"} />
           </Menu.Item>,
         );
@@ -126,13 +137,14 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
         token instanceof MutableToken &&
         vsh &&
         !vsh.isTargetBaseVariant() &&
-        !vsh.isStyleInherited(token)
+        !snapshot?.styleInherited
       ) {
         push(
           <Menu.Item
             key="remove-global-variant-value"
             onClick={async () => {
               return studioCtx.change(() => {
+                    if (!isActive()) { return ok(); }
                 vsh.removeVariantedValue(token);
                 return ok();
               });
@@ -154,7 +166,7 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
                 <Menu.Item
                   key={tok.uuid}
                   onClick={() => {
-                    spawn(studioCtx.siteOps().swapTokens(token.base, tok.base));
+                    if (isActive()) { spawn(studioCtx.siteOps().swapTokens(token.base, tok.base)); }
                   }}
                 >
                   <div className="flex-row flex-vcenter gap-sm">
@@ -214,7 +226,7 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
             <Menu.Item
               key="delete"
               onClick={async () => {
-                await studioCtx.siteOps().tryDeleteTokens([token.base]);
+                if (isActive()) { await studioCtx.siteOps().tryDeleteTokens([token.base]); }
               }}
             >
               <UiText message={"Delete"} />
@@ -239,7 +251,7 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
     }
   }, [multiAssetsActions, token.uuid]);
 
-  const indicatorType = getTokenIndicatorType(token, vsh);
+  const indicatorType = snapshot?.indicatorType;
 
   const onClickHandler = (() => {
     if (multiAssetsActions.isSelecting) {
@@ -248,7 +260,7 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
 
     const isEditable =
       !tokenPanelReadOnly &&
-      isStyleTokenEditable(token, vsh, studioCtx.getCurrentUiConfig());
+      isStyleTokenEditable(token, vsh, tokenUiConfig);
 
     if (!isEditable) {
       // not editable, clicking should do nothing
@@ -260,8 +272,10 @@ const StyleTokenRow = observer(function _StyleTokenRow(props: {
       return undefined;
     }
 
-    return () => onSelect(token);
+    return () => { if (isActive()) { onSelect(token); } };
   })();
+
+  if (!isActive() || !snapshot) { return null; }
 
   return (
     <>

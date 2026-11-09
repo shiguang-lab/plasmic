@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,11 +24,11 @@ import {
   renderPlasmicSlot,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -106,11 +106,10 @@ function PlasmicDataPickerGlobalSearchResultsItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "variableType",
@@ -120,18 +119,20 @@ function PlasmicDataPickerGlobalSearchResultsItem__RenderFunc(props: {
           $props.variableType,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -297,12 +298,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -314,28 +311,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDataPickerGlobalSearchResultsItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDataPickerGlobalSearchResultsItem";
-  } else {
-    func.displayName = `PlasmicDataPickerGlobalSearchResultsItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDataPickerGlobalSearchResultsItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDataPickerGlobalSearchResultsItem__root<T extends PlasmicDataPickerGlobalSearchResultsItem__rootProps>(props: T & StrictProps<T, PlasmicDataPickerGlobalSearchResultsItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDataPickerGlobalSearchResultsItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDataPickerGlobalSearchResultsItem__root.displayName = "PlasmicDataPickerGlobalSearchResultsItem";
+
+type PlasmicDataPickerGlobalSearchResultsItem__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicDataPickerGlobalSearchResultsItem__freeBox<T extends PlasmicDataPickerGlobalSearchResultsItem__freeBoxProps>(props: T & StrictProps<T, PlasmicDataPickerGlobalSearchResultsItem__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicDataPickerGlobalSearchResultsItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicDataPickerGlobalSearchResultsItem__freeBox.displayName = "PlasmicDataPickerGlobalSearchResultsItem.freeBox";
+
+type PlasmicDataPickerGlobalSearchResultsItem__previewValueProps = NodeComponentProps<"previewValue"> & {key?: React.Key};
+function PlasmicDataPickerGlobalSearchResultsItem__previewValue<T extends PlasmicDataPickerGlobalSearchResultsItem__previewValueProps>(props: T & StrictProps<T, PlasmicDataPickerGlobalSearchResultsItem__previewValueProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("previewValue", props);
+  return <PlasmicDataPickerGlobalSearchResultsItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"previewValue"} />;
+}
+PlasmicDataPickerGlobalSearchResultsItem__previewValue.displayName = "PlasmicDataPickerGlobalSearchResultsItem.previewValue";
+
 
 export const PlasmicDataPickerGlobalSearchResultsItem = Object.assign(
   // Top-level PlasmicDataPickerGlobalSearchResultsItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicDataPickerGlobalSearchResultsItem__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    previewValue: makeNodeComponent("previewValue"),
+    freeBox: PlasmicDataPickerGlobalSearchResultsItem__freeBox,
+    previewValue: PlasmicDataPickerGlobalSearchResultsItem__previewValue,
 
     // Metadata about props expected for PlasmicDataPickerGlobalSearchResultsItem
     internalVariantProps:

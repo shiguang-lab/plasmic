@@ -1,3 +1,4 @@
+import { AppContext } from "@/wab/client/components/top-view";
 import { CanvasRenderOwner } from "@/wab/client/components/canvas/canvas-cache";
 import { CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
 import { ensureKnownTplTag } from "@/wab/shared/model/classes";
@@ -55,7 +56,7 @@ it("shows a bounded local skeleton until first render, preserves component-regis
   });
   arena.children.push(frame);
   site.arenas.push(arena);
-  const { studioCtx } = fakeStudioCtx({
+  const { studioCtx, app } = fakeStudioCtx({
     site,
     initialUrl: "/projects/test?arena_type=custom&arena=Overview",
   });
@@ -77,13 +78,13 @@ it("shows a bounded local skeleton until first render, preserves component-regis
     await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
     selectFrame.mockClear();
     const { container } = render(
-      <CanvasFrame
+      <AppContext.Provider value={app}><CanvasFrame
         studioCtx={studioCtx}
         arena={arena}
         arenaFrame={frame}
         isFree
         onFrameLoad={vi.fn()}
-      />,
+      /></AppContext.Provider>,
     );
     expect(screen.getByRole("status").getAttribute("aria-busy")).toBe("true");
     expect(container.querySelectorAll(".ant-skeleton")).toHaveLength(1);
@@ -123,6 +124,10 @@ it("shows a bounded local skeleton until first render, preserves component-regis
     act(() => vc.contentEditor["setSize"](undefined));
     expect(contentFrame?.style.width).toBe("800px");
     expect(contentFrame?.style.height).toBe("600px");
+    await act(async () => { await studioCtx.changeUnsafe(() => { frame.width = 920; frame.left = 36; frame.top = 48; }); });
+    expect(contentFrame?.style.width).toBe("920px");
+    expect(contentFrame?.style.left).toBe("36px");
+    expect(contentFrame?.style.top).toBe("48px");
   } finally {
     cleanup();
     registrations.dispose();
@@ -138,7 +143,7 @@ it("cancels a pending iframe initializer before its old frame can reach the new 
   const arena = mkMixedArena("Pending");
   const frame = mkArenaFrame({ site, component, name: "Pending", width: 800, height: 600, left: 0, top: 0 });
   arena.children.push(frame); site.arenas.push(arena);
-  const { studioCtx } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Pending" });
+  const { studioCtx, app } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Pending" });
   vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(undefined);
   await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
   vi.spyOn(studioCtx, "fetchHostPageHtml").mockResolvedValue("<!doctype html><html><head></head><body></body></html>");
@@ -154,7 +159,7 @@ it("cancels a pending iframe initializer before its old frame can reach the new 
   const createView = vi.spyOn(studioCtx, "createViewCtx");
   const report = vi.spyOn(studioCtx, "reportCanvasLoadError");
   const onFrameLoad = vi.fn((loadedFrame: typeof frame, canvas: CanvasCtx) => studioCtx.createViewCtx(loadedFrame, canvas));
-  const { unmount } = render(<CanvasFrame studioCtx={studioCtx} arena={arena} arenaFrame={frame} isFree onFrameLoad={onFrameLoad} />);
+  const { unmount } = render(<AppContext.Provider value={app}><CanvasFrame studioCtx={studioCtx} arena={arena} arenaFrame={frame} isFree onFrameLoad={onFrameLoad} /></AppContext.Provider>);
   const request = ensure(queue.mock.calls[0]?.[0], "Queued frame load request");
   let loaded: Promise<void> | undefined;
   await act(async () => { loaded = request.load(); });
@@ -182,13 +187,13 @@ it("renders transient page measurements without changing the authored viewport h
   site.components.push(component);
   const frame = mkArenaFrame({ site, component, name: "Measured", width: 800, height: 600, left: 0, top: 0 });
   const arena = mkMixedArena("Measured", [frame]); site.arenas.push(arena);
-  const { studioCtx } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Measured" });
+  const { studioCtx, app } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Measured" });
   await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
   const existing = studioCtx.arenaState.viewRegistry.forFrame(frame);
   if (existing) { studioCtx.disposeViewCtx(existing.view); }
   vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(undefined);
   vi.spyOn(studioCtx, "queueCanvasFrame").mockImplementation(() => vi.fn());
-  const mounted = render(<CanvasFrame studioCtx={studioCtx} arena={arena} arenaFrame={frame} isFree onFrameLoad={vi.fn()} />);
+  const mounted = render(<AppContext.Provider value={app}><CanvasFrame studioCtx={studioCtx} arena={arena} arenaFrame={frame} isFree onFrameLoad={vi.fn()} /></AppContext.Provider>);
   const container = mounted.container.querySelector<HTMLElement>(".CanvasFrame__Container");
   try {
     expect(container?.style.height).toBe("600px");

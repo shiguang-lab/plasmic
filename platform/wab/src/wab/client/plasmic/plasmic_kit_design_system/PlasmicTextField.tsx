@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   StrictProps,
   classNames,
@@ -25,7 +25,7 @@ import {
   generateStateValueProp,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -34,7 +34,7 @@ import Description from "../../components/plexus/Description"; // plasmic-import
 import Label from "../../components/plexus/Label"; // plasmic-import: Hxtf0EKrkmO5/component
 import TextAreaInput from "../../components/plexus/TextAreaInput"; // plasmic-import: 0wwbx9l7LS5I/component
 import TextInput from "../../components/plexus/TextInput"; // plasmic-import: J_e2eE41048e/component
-import { _useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -299,11 +299,10 @@ function PlasmicTextField__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "ariaTextField.value",
@@ -346,18 +345,20 @@ function PlasmicTextField__RenderFunc(props: {
           $props["defaultValue"],
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   const [$ccVariants, setDollarCcVariants] = React.useState<
     Record<string, boolean>
@@ -414,12 +415,12 @@ function PlasmicTextField__RenderFunc(props: {
       inputMode={args.inputMode}
       isDisabled={args.disabled}
       isReadOnly={args.readOnly}
-      onChange={async (...eventArgs: any) => {
-        generateStateOnChangeProp($state, ["ariaTextField", "value"]).apply(
+      onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+        generateStateOnChangeProp($stateCommands, ["ariaTextField", "value"]).apply(
           null,
           eventArgs
         );
-      }}
+      })); })}
       plasmicUpdateVariant={updateVariant}
       type={args.type}
       value={generateStateValueProp($state, ["ariaTextField", "value"])}
@@ -494,8 +495,8 @@ function PlasmicTextField__RenderFunc(props: {
             data-plasmic-name={"textInput"}
             data-plasmic-override={overrides.textInput}
             disabled={$ccVariants["disabled"] ? true : undefined}
-            onChange={async (...eventArgs: any) => {
-              generateStateOnChangeProp($state, ["textInput", "value"]).apply(
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+              generateStateOnChangeProp($stateCommands, ["textInput", "value"]).apply(
                 null,
                 eventArgs
               );
@@ -507,7 +508,7 @@ function PlasmicTextField__RenderFunc(props: {
               ) {
                 return;
               }
-            }}
+            })); })}
             padded={
               hasVariant($state, "iconStart", "iconStart") &&
               hasVariant($state, "iconEnd", "iconEnd")
@@ -533,8 +534,8 @@ function PlasmicTextField__RenderFunc(props: {
                 "multiLine"
               ),
             })}
-            onChange={async (...eventArgs: any) => {
-              generateStateOnChangeProp($state, [
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+              generateStateOnChangeProp($stateCommands, [
                 "textAreaInput",
                 "value",
               ]).apply(null, eventArgs);
@@ -546,7 +547,7 @@ function PlasmicTextField__RenderFunc(props: {
               ) {
                 return;
               }
-            }}
+            })); })}
             padded={
               hasVariant($state, "iconStart", "iconStart") &&
               hasVariant($state, "iconEnd", "iconEnd")
@@ -653,12 +654,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -668,30 +665,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTextField__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "ariaTextField") {
-    func.displayName = "PlasmicTextField";
-  } else {
-    func.displayName = `PlasmicTextField.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTextField__ariaTextFieldProps = NodeComponentProps<"ariaTextField"> & {key?: React.Key};
+function PlasmicTextField__ariaTextField<T extends PlasmicTextField__ariaTextFieldProps>(props: T & StrictProps<T, PlasmicTextField__ariaTextFieldProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("ariaTextField", props);
+  return <PlasmicTextField__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaTextField"} />;
+}
+PlasmicTextField__ariaTextField.displayName = "PlasmicTextField";
+
+type PlasmicTextField__labelProps = NodeComponentProps<"label"> & {key?: React.Key};
+function PlasmicTextField__label<T extends PlasmicTextField__labelProps>(props: T & StrictProps<T, PlasmicTextField__labelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("label", props);
+  return <PlasmicTextField__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"label"} />;
+}
+PlasmicTextField__label.displayName = "PlasmicTextField.label";
+
+type PlasmicTextField__textInputProps = NodeComponentProps<"textInput"> & {key?: React.Key};
+function PlasmicTextField__textInput<T extends PlasmicTextField__textInputProps>(props: T & StrictProps<T, PlasmicTextField__textInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("textInput", props);
+  return <PlasmicTextField__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"textInput"} />;
+}
+PlasmicTextField__textInput.displayName = "PlasmicTextField.textInput";
+
+type PlasmicTextField__textAreaInputProps = NodeComponentProps<"textAreaInput"> & {key?: React.Key};
+function PlasmicTextField__textAreaInput<T extends PlasmicTextField__textAreaInputProps>(props: T & StrictProps<T, PlasmicTextField__textAreaInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("textAreaInput", props);
+  return <PlasmicTextField__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"textAreaInput"} />;
+}
+PlasmicTextField__textAreaInput.displayName = "PlasmicTextField.textAreaInput";
+
+type PlasmicTextField__descriptionProps = NodeComponentProps<"description"> & {key?: React.Key};
+function PlasmicTextField__description<T extends PlasmicTextField__descriptionProps>(props: T & StrictProps<T, PlasmicTextField__descriptionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("description", props);
+  return <PlasmicTextField__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"description"} />;
+}
+PlasmicTextField__description.displayName = "PlasmicTextField.description";
+
 
 export const PlasmicTextField = Object.assign(
   // Top-level PlasmicTextField renders the root element
-  makeNodeComponent("ariaTextField"),
+  PlasmicTextField__ariaTextField,
   {
     // Helper components rendering sub-elements
-    label: makeNodeComponent("label"),
-    textInput: makeNodeComponent("textInput"),
-    textAreaInput: makeNodeComponent("textAreaInput"),
-    description: makeNodeComponent("description"),
+    label: PlasmicTextField__label,
+    textInput: PlasmicTextField__textInput,
+    textAreaInput: PlasmicTextField__textAreaInput,
+    description: PlasmicTextField__description,
 
     // Metadata about props expected for PlasmicTextField
     internalVariantProps: PlasmicTextField__VariantProps,

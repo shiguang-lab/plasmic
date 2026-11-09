@@ -15,14 +15,14 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -31,7 +31,7 @@ import ComponentTogglesPanel from "../../components/docs/ComponentTogglesPanel";
 import ComponentView from "../../components/docs/ComponentView"; // plasmic-import: fiIuU8gs9A/component
 import LabeledProp from "../../components/docs/LabeledProp"; // plasmic-import: 95ed9ODv12/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -104,11 +104,10 @@ function PlasmicDocsComponentsPortal__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "componentType",
@@ -118,18 +117,20 @@ function PlasmicDocsComponentsPortal__RenderFunc(props: {
           $props.componentType,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -666,12 +667,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -681,31 +678,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDocsComponentsPortal__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDocsComponentsPortal";
-  } else {
-    func.displayName = `PlasmicDocsComponentsPortal.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDocsComponentsPortal__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDocsComponentsPortal__root<T extends PlasmicDocsComponentsPortal__rootProps>(props: T & StrictProps<T, PlasmicDocsComponentsPortal__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDocsComponentsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDocsComponentsPortal__root.displayName = "PlasmicDocsComponentsPortal";
+
+type PlasmicDocsComponentsPortal__togglesContainerProps = NodeComponentProps<"togglesContainer"> & {key?: React.Key};
+function PlasmicDocsComponentsPortal__togglesContainer<T extends PlasmicDocsComponentsPortal__togglesContainerProps>(props: T & StrictProps<T, PlasmicDocsComponentsPortal__togglesContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("togglesContainer", props);
+  return <PlasmicDocsComponentsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"togglesContainer"} />;
+}
+PlasmicDocsComponentsPortal__togglesContainer.displayName = "PlasmicDocsComponentsPortal.togglesContainer";
+
+type PlasmicDocsComponentsPortal__componentTogglesPanelProps = NodeComponentProps<"componentTogglesPanel"> & {key?: React.Key};
+function PlasmicDocsComponentsPortal__componentTogglesPanel<T extends PlasmicDocsComponentsPortal__componentTogglesPanelProps>(props: T & StrictProps<T, PlasmicDocsComponentsPortal__componentTogglesPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("componentTogglesPanel", props);
+  return <PlasmicDocsComponentsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"componentTogglesPanel"} />;
+}
+PlasmicDocsComponentsPortal__componentTogglesPanel.displayName = "PlasmicDocsComponentsPortal.componentTogglesPanel";
+
+type PlasmicDocsComponentsPortal__viewportProps = NodeComponentProps<"viewport"> & {key?: React.Key};
+function PlasmicDocsComponentsPortal__viewport<T extends PlasmicDocsComponentsPortal__viewportProps>(props: T & StrictProps<T, PlasmicDocsComponentsPortal__viewportProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("viewport", props);
+  return <PlasmicDocsComponentsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"viewport"} />;
+}
+PlasmicDocsComponentsPortal__viewport.displayName = "PlasmicDocsComponentsPortal.viewport";
+
+type PlasmicDocsComponentsPortal__editorProps = NodeComponentProps<"editor"> & {key?: React.Key};
+function PlasmicDocsComponentsPortal__editor<T extends PlasmicDocsComponentsPortal__editorProps>(props: T & StrictProps<T, PlasmicDocsComponentsPortal__editorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("editor", props);
+  return <PlasmicDocsComponentsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"editor"} />;
+}
+PlasmicDocsComponentsPortal__editor.displayName = "PlasmicDocsComponentsPortal.editor";
+
+type PlasmicDocsComponentsPortal__componentViewProps = NodeComponentProps<"componentView"> & {key?: React.Key};
+function PlasmicDocsComponentsPortal__componentView<T extends PlasmicDocsComponentsPortal__componentViewProps>(props: T & StrictProps<T, PlasmicDocsComponentsPortal__componentViewProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("componentView", props);
+  return <PlasmicDocsComponentsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"componentView"} />;
+}
+PlasmicDocsComponentsPortal__componentView.displayName = "PlasmicDocsComponentsPortal.componentView";
+
 
 export const PlasmicDocsComponentsPortal = Object.assign(
   // Top-level PlasmicDocsComponentsPortal renders the root element
-  makeNodeComponent("root"),
+  PlasmicDocsComponentsPortal__root,
   {
     // Helper components rendering sub-elements
-    togglesContainer: makeNodeComponent("togglesContainer"),
-    componentTogglesPanel: makeNodeComponent("componentTogglesPanel"),
-    viewport: makeNodeComponent("viewport"),
-    editor: makeNodeComponent("editor"),
-    componentView: makeNodeComponent("componentView"),
+    togglesContainer: PlasmicDocsComponentsPortal__togglesContainer,
+    componentTogglesPanel: PlasmicDocsComponentsPortal__componentTogglesPanel,
+    viewport: PlasmicDocsComponentsPortal__viewport,
+    editor: PlasmicDocsComponentsPortal__editor,
+    componentView: PlasmicDocsComponentsPortal__componentView,
 
     // Metadata about props expected for PlasmicDocsComponentsPortal
     internalVariantProps: PlasmicDocsComponentsPortal__VariantProps,

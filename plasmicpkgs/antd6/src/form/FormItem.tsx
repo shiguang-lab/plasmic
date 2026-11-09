@@ -172,41 +172,30 @@ export function FormItemWrapper(props: InternalFormItemProps) {
     initialValues,
     internalFieldCtx,
   } = React.useContext(InternalFormInstanceContext) ?? {};
+  const form = useFormInstanceMaybe();
+  const prevPropValues = React.useRef({ name: props.name });
+  const fullNameKey = JSON.stringify(fullFormItemName);
+  const formInitialValue = fullFormItemName && get(initialValues, fullFormItemName);
   if (inCanvas) {
-    const form = useFormInstanceMaybe();
-    const prevPropValues = React.useRef({
-      initialValue: props.initialValue,
-      name: props.name,
-    });
     props.setControlContextData?.({
       internalFieldCtx,
       formInstance: form,
       parentFormItemPath: pathCtx.fullPath,
       layout: layoutContext,
     });
-    React.useEffect(() => {
-      if (prevPropValues.current.name !== props.name) {
-        forceRemount?.();
-      }
-      if (
-        !fullFormItemName ||
-        get(initialValues, fullFormItemName) != null ||
-        props.initialValue == null
-      ) {
-        // this field value is set at the form level
-        return;
-      }
-      form?.setFieldValue(fullFormItemName, props.initialValue);
-      prevPropValues.current.initialValue = props.initialValue;
-      fireOnValuesChange?.();
-    }, [
-      form,
-      props.initialValue,
-      JSON.stringify(pathCtx.fullPath),
-      props.name,
-      props.preserve,
-    ]);
   }
+  React.useEffect(() => {
+    if (!inCanvas) { return; }
+    const nameChanged = prevPropValues.current.name !== props.name;
+    prevPropValues.current = { name: props.name };
+    if (nameChanged) { forceRemount?.(); }
+    const fullName: (string | number)[] | undefined = fullNameKey === undefined ? undefined : JSON.parse(fullNameKey);
+    if (!fullName || formInitialValue != null || props.initialValue == null) {
+      return;
+    }
+    form?.setFieldValue(fullName, props.initialValue);
+    fireOnValuesChange?.();
+  }, [inCanvas, form, fullNameKey, props.name, props.initialValue, props.preserve, formInitialValue, forceRemount, fireOnValuesChange]);
   React.useEffect(() => {
     fieldEntity.fullPath = [
       ...pathCtx.fullPath,
@@ -214,11 +203,11 @@ export function FormItemWrapper(props: InternalFormItemProps) {
     ];
     fieldEntity.name = props.name;
     fieldEntity.preserve = props.preserve ?? true;
-  }, [pathCtx.fullPath, props.name, props.preserve]);
+  }, [fieldEntity, pathCtx.fullPath, props.name, props.preserve]);
   React.useEffect(() => {
     const unregister = registerField?.(fieldEntity);
     return () => unregister?.();
-  }, []);
+  }, [registerField, fieldEntity]);
   return (
     <FormItem
       {...rest}

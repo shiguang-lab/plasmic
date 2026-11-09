@@ -1,4 +1,5 @@
 import {
+  MonacoEditorActions,
   createFilePathWithExtension,
   makeMonacoAutoFocus,
   upsertMonacoExtraLib,
@@ -9,6 +10,7 @@ import {
   DataPickerTypesSchema,
   extraTsFilesSymbol,
 } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
+import { useCommittedValue } from "@/wab/commons/components/ReactUtil";
 import { useUiAppearance } from "@/wab/client/ui-theme";
 import { isPlainObject, uniq } from "lodash";
 import * as monaco from "monaco-editor";
@@ -48,6 +50,93 @@ export interface FullCodeEditor {
   insertAtCursor: (text: string) => void;
 }
 
+function* createDataLibraries(data: FullCodeEditorProps["data"], language: string, schema: FullCodeEditorProps["schema"]) {
+        // Add data as library so IntelliSense can use it for completions.
+        if (data) {
+          // Add extra libs for the correct language.
+          const langDefaults =
+            language === "javascript"
+              ? monaco.typescript.javascriptDefaults
+              : monaco.typescript.typescriptDefaults;
+
+          // Not sure why dataLanguage is typescript if schema,
+          // but it was introduced in this CR:
+          // https://gerrit.aws.plasmic.app/c/plasmic/+/16651
+          const dataLanguage =
+            language === "javascript" && schema ? "typescript" : language;
+
+          const dataCode = dataObjToCode(data, schema);
+          const envUri = createFilePathWithExtension("env", dataLanguage);
+          yield upsertMonacoExtraLib(langDefaults, envUri, dataCode);
+          yield upsertMonacoModel(envUri, dataLanguage, dataCode);
+
+          if (schema && schema[extraTsFilesSymbol]) {
+            for (const { contents, fileName: tsFileName } of schema[
+              extraTsFilesSymbol
+            ]) {
+              const fullPath = `file:///${tsFileName.replace(/^\.\//, "")}`;
+              yield upsertMonacoExtraLib(langDefaults, fullPath, contents);
+            }
+          }
+        }
+      
+}
+
+function* connectMonacoEditor(
+  editor: monaco.editor.IStandaloneCodeEditor,
+  actions: MonacoEditorActions,
+  attachEditor: (editor: monaco.editor.IStandaloneCodeEditor) => void,
+  templateVariables: string[] | undefined,
+  getHandlers: () => Pick<FullCodeEditorProps, "onChange" | "onSave">,
+  autoFocus: boolean,
+) {
+        attachEditor(editor);
+        const model = editor.getModel();
+        if (model && templateVariables?.length) {
+          yield monaco.languages.registerCompletionItemProvider(model.getLanguageId(), {
+            triggerCharacters: ["{"],
+            provideCompletionItems: (candidate, position) => {
+              if (candidate !== model) {
+                return { suggestions: [] };
+              }
+              const prefix = candidate.getLineContent(position.lineNumber).slice(0, position.column - 1);
+              const token = /\{[a-zA-Z]*$/.exec(prefix);
+              const startColumn = token ? position.column - token[0].length : position.column;
+              const suffix = candidate.getLineContent(position.lineNumber).slice(position.column - 1);
+              const endColumn = token
+                ? position.column + (suffix.match(/^[a-zA-Z]*\}/)?.[0].length ?? 0)
+                : position.column;
+              return {
+                suggestions: (templateVariables ?? []).map((name) => ({
+                  label: name,
+                  kind: monaco.languages.CompletionItemKind.Variable,
+                  insertText: `{${name}}`,
+                  filterText: `{${name}}`,
+                  range: {
+                    startLineNumber: position.lineNumber,
+                    endLineNumber: position.lineNumber,
+                    startColumn,
+                    endColumn,
+                  },
+                })),
+              };
+            },
+          });
+        }
+        yield editor.onDidChangeModelContent(() => {
+          getHandlers().onChange?.(actions.getUserValue());
+        });
+        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () =>
+          getHandlers().onSave?.(actions.getUserValue()),
+        );
+        if (autoFocus) {
+          setTimeout(() => {
+            makeMonacoAutoFocus(editor);
+          }, 0);
+        }
+      
+}
+
 export const FullCodeEditor = React.forwardRef(
   (props: FullCodeEditorProps, ref: React.Ref<FullCodeEditor>) => {
     const {
@@ -63,18 +152,7 @@ export const FullCodeEditor = React.forwardRef(
       fileName = "main",
     } = props;
 
-    const handlersRef = React.useRef<
-      Pick<FullCodeEditorProps, "onChange" | "onSave">
-    >({
-      onChange: props.onChange,
-      onSave: props.onSave,
-    });
-    React.useLayoutEffect(() => {
-      handlersRef.current = {
-        onChange: props.onChange,
-        onSave: props.onSave,
-      };
-    }, [props.onChange, props.onSave]);
+    const getHandlers = useCommittedValue({ onChange: props.onChange, onSave: props.onSave });
 
     const { appearance } = useUiAppearance();
     const editorTheme = appearance === "dark" ? "vs-dark" : "vs";
@@ -127,82 +205,9 @@ export const FullCodeEditor = React.forwardRef(
       modelLanguage: language,
       modelDefaultValue: defaultValue,
       editorOptions: options,
-      onBeforeEditorCreate: function* () {
-        // Add data as library so IntelliSense can use it for completions.
-        if (data) {
-          // Add extra libs for the correct language.
-          const langDefaults =
-            language === "javascript"
-              ? monaco.typescript.javascriptDefaults
-              : monaco.typescript.typescriptDefaults;
-
-          // Not sure why dataLanguage is typescript if schema,
-          // but it was introduced in this CR:
-          // https://gerrit.aws.plasmic.app/c/plasmic/+/16651
-          const dataLanguage =
-            language === "javascript" && schema ? "typescript" : language;
-
-          const dataCode = dataObjToCode(data, schema);
-          const envUri = createFilePathWithExtension("env", dataLanguage);
-          yield upsertMonacoExtraLib(langDefaults, envUri, dataCode);
-          yield upsertMonacoModel(envUri, dataLanguage, dataCode);
-
-          if (schema && schema[extraTsFilesSymbol]) {
-            for (const { contents, fileName: tsFileName } of schema[
-              extraTsFilesSymbol
-            ]) {
-              const fullPath = `file:///${tsFileName.replace(/^\.\//, "")}`;
-              yield upsertMonacoExtraLib(langDefaults, fullPath, contents);
-            }
-          }
-        }
-      },
-      onAfterEditorCreate: function* (editor, actions) {
-        editorRef.current = editor;
-        const model = editor.getModel();
-        if (model && props.templateVariables?.length) {
-          yield monaco.languages.registerCompletionItemProvider(model.getLanguageId(), {
-            triggerCharacters: ["{"],
-            provideCompletionItems: (candidate, position) => {
-              if (candidate !== model) {
-                return { suggestions: [] };
-              }
-              const prefix = candidate.getLineContent(position.lineNumber).slice(0, position.column - 1);
-              const token = /\{[a-zA-Z]*$/.exec(prefix);
-              const startColumn = token ? position.column - token[0].length : position.column;
-              const suffix = candidate.getLineContent(position.lineNumber).slice(position.column - 1);
-              const endColumn = token
-                ? position.column + (suffix.match(/^[a-zA-Z]*\}/)?.[0].length ?? 0)
-                : position.column;
-              return {
-                suggestions: (props.templateVariables ?? []).map((name) => ({
-                  label: name,
-                  kind: monaco.languages.CompletionItemKind.Variable,
-                  insertText: `{${name}}`,
-                  filterText: `{${name}}`,
-                  range: {
-                    startLineNumber: position.lineNumber,
-                    endLineNumber: position.lineNumber,
-                    startColumn,
-                    endColumn,
-                  },
-                })),
-              };
-            },
-          });
-        }
-        yield editor.onDidChangeModelContent(() => {
-          handlersRef.current.onChange?.(actions.getUserValue());
-        });
-        editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () =>
-          handlersRef.current.onSave?.(actions.getUserValue()),
-        );
-        if (autoFocus) {
-          setTimeout(() => {
-            makeMonacoAutoFocus(editor);
-          }, 0);
-        }
-      },
+      onBeforeEditorCreate: () => createDataLibraries(data, language, schema),
+      onAfterEditorCreate: (editor, actions) => connectMonacoEditor(editor, actions,
+        (instance) => { editorRef.current = instance; }, props.templateVariables, getHandlers, autoFocus),
     });
 
     React.useImperativeHandle(
@@ -279,12 +284,7 @@ function literalize(value: any) {
       } else if (isPlainObject(val)) {
         const res = { ...val };
         for (const key of Object.keys(res)) {
-          if (
-            key.startsWith("__plasmic") ||
-            // Exclude functions on $state that shouldn't be used by
-            // the user
-            ["registerInitFunc", "eagerInitializeStates"].includes(key)
-          ) {
+          if (key.startsWith("__plasmic")) {
             delete res[key];
           }
         }

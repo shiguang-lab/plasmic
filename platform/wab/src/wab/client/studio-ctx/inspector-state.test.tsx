@@ -23,6 +23,7 @@ it("renders native Inspector subscribers, defers pending reads, and detaches rep
     focusedSelectable: () => null,
     focusedCloneKey: () => undefined,
     getComponentEvalContext: evaluate,
+    maybeTpl2ValsInContext: () => [],
     getInspectorReadOwner: () => store.getState().selection,
   } as unknown as ViewCtx;
   const first = new InspectorSelection(view, 1);
@@ -35,19 +36,19 @@ it("renders native Inspector subscribers, defers pending reads, and detaches rep
     return <output>{String(useInspectorPending(studio))}</output>;
   }
   render(<><PropertyValue /><PropertyValue /><Pending /></>);
-  expect(evaluate).toHaveBeenCalledTimes(1);
+  expect(evaluate).toHaveBeenCalledTimes(2);
   expect(screen.getAllByText("first")).toHaveLength(2);
   act(() => { first.pause(); store.setState({ pending: true }); value = "pending"; first.syncCanvas(); });
   expect(screen.getByText("true")).toBeTruthy();
   expect(screen.getAllByText("first")).toHaveLength(2);
-  expect(evaluate).toHaveBeenCalledTimes(1);
+  expect(evaluate).toHaveBeenCalledTimes(2);
   const second = new InspectorSelection(view, 2);
   act(() => { store.setState({ selection: second, pending: false }); first.dispose(); });
   expect(screen.getAllByText("pending")).toHaveLength(2);
-  expect(evaluate).toHaveBeenCalledTimes(2);
+  expect(evaluate).toHaveBeenCalledTimes(4);
   act(() => { value = "updated"; second.syncCanvas(); });
   expect(screen.getAllByText("updated")).toHaveLength(2);
-  expect(evaluate).toHaveBeenCalledTimes(3);
+  expect(evaluate).toHaveBeenCalledTimes(5);
   act(() => { value = "disposed"; first.syncCanvas(); });
   expect(screen.queryByText("disposed")).toBeNull();
   second.dispose();

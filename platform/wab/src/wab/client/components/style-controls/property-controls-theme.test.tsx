@@ -30,7 +30,7 @@ import {
   screen,
   within,
 } from "@testing-library/react";
-import { ConfigProvider, theme } from "antd";
+import { ConfigProvider, theme as AntdTheme } from "antd";
 import { mock } from "vitest-mock-extended";
 import * as React from "react";
 import {
@@ -100,7 +100,7 @@ it("keeps sidebar modal surfaces readable with a light scrim across themes", asy
   const select = screen.getByRole("button", { name: /Type/ });
   for (const appearance of ["dark", "light"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const probe = document.createElement("div");
     document.body.appendChild(probe);
     probe.style.backgroundColor = "rgba(0, 0, 0, 0.15)";
@@ -169,7 +169,7 @@ it("themes the image format menu portal and keeps selection working", async () =
   try {
     for (const appearance of ["dark", "light"] as const) {
       act(() => setAppearancePreference(appearance));
-      const token = theme.getDesignToken(productTheme(appearance));
+      const token = AntdTheme.getDesignToken(productTheme(appearance));
       const probe = document.createElement("div");
       probe.style.backgroundColor = token.colorBgElevated;
       probe.style.color = token.colorText;
@@ -199,7 +199,7 @@ it.each([false, true])("themes list add actions and sizing separators with disab
   const separator = ensure(document.querySelector(".property-separator"), "Expected sizing separator");
   for (const appearance of ["dark", "light", "dark"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const probe = document.createElement("div");
     probe.style.backgroundColor = token.colorBorderSecondary;
     probe.style.color = disabled ? token.colorTextDisabled : token.colorText;
@@ -240,7 +240,7 @@ it("keeps selected and focused format options readable across themes", async () 
   );
   for (const appearance of ["dark", "light"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const probe = document.createElement("div");
     document.body.appendChild(probe);
     probe.style.backgroundColor = token.colorPrimaryBg;
@@ -272,7 +272,7 @@ it.each([false, true])(
     const field = screen.getByRole("textbox");
     for (const appearance of ["dark", "light"] as const) {
       act(() => setAppearancePreference(appearance));
-      const token = theme.getDesignToken(productTheme(appearance));
+      const token = AntdTheme.getDesignToken(productTheme(appearance));
       const probe = document.createElement("div");
       probe.style.backgroundColor = disabled
         ? token.colorBgContainerDisabled
@@ -317,7 +317,7 @@ it("updates property inputs, bindings, indicators and image placeholders across 
   );
   for (const appearance of ["dark", "light"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const probe = document.createElement("div");
     document.body.appendChild(probe);
     probe.style.background = token.colorBgContainer;
@@ -393,7 +393,7 @@ it("themes the source popup and preserves its reset action", async () => {
   const stack = await screen.findByTestId("source-stack");
   for (const appearance of ["dark", "light"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const probe = document.createElement("div");
     probe.style.background = token.colorBgElevated;
     probe.style.color = token.colorText;
@@ -427,12 +427,16 @@ it("themes the actual property-source popup outside the document's product theme
   onTestFinished(() => popupHost.remove());
   const studioCtx = mock<StudioCtx>({ site: createSite() });
   const models = new ModelSnapshots();
+  Object.defineProperty(studioCtx, "modelSnapshots", { value: models });
   const selection = new StudioSelection(() => models);
   Object.defineProperty(studioCtx, "selectionStore", { value: selection.store });
   const arenas = new StudioArenaState({ site: studioCtx.site, modelSnapshots: models });
+  const singleRsStyleInputs = new SingleRsStyleInputs(() => models, arenas.lifetime());
+  Object.defineProperty(studioCtx, "singleRsStyleInputs", { value: singleRsStyleInputs });
   Object.defineProperty(studioCtx, "arenaState", { value: arenas });
   Object.defineProperty(studioCtx, "viewCtxs", { get: () => arenas.viewRegistry.commandViews() });
-  onTestFinished(() => { arenas.dispose(); selection.dispose(); models.dispose(); });
+  onTestFinished(() => { singleRsStyleInputs.dispose(); arenas.dispose(); selection.dispose(); models.dispose(); });
+  studioCtx.subscribeModelChanges.mockReturnValue(() => undefined);
   studioCtx.focusedViewCtx.mockReturnValue(undefined);
   const source: AttrSource = {
     type: "attr",
@@ -468,7 +472,7 @@ it("themes the actual property-source popup outside the document's product theme
   );
   for (const appearance of ["dark", "light", "dark"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const probe = document.createElement("div");
     probe.style.backgroundColor = token.colorBgElevated;
     probe.style.color = token.colorText;

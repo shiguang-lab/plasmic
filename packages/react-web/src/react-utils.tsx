@@ -128,7 +128,27 @@ function updateRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
   }
 }
 
+interface MergedRefNode {
+  readonly children: WeakMap<object, MergedRefNode>;
+  callback?: React.RefCallback<unknown>;
+}
+const mergedRefRoot: MergedRefNode = { children: new WeakMap() };
+
+/** Preserve callback identity for the same ordered refs. A new callback would
+ * detach and reattach committed refs on every render. Weak keys let abandoned
+ * component refs and their compositions be collected together. */
 export function mergeRefs<T>(...refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
+  let node = mergedRefRoot;
+  for (const ref of refs) {
+    if (!ref) { continue; }
+    let next = node.children.get(ref);
+    if (!next) { next = { children: new WeakMap() }; node.children.set(ref, next); }
+    node = next;
+  }
+  return node.callback ??= createMergedRef(refs);
+}
+
+function createMergedRef<T>(refs: (React.Ref<T> | undefined)[]): React.RefCallback<T> {
   return (value) => {
     const cleanups = refs.map((ref) => updateRef(ref, value));
     if (value === null) {

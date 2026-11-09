@@ -1,3 +1,5 @@
+import type { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { isValComponent } from "@/wab/shared/core/val-nodes";
 import { isCodeComponent } from "@/wab/shared/core/components";
 import { canvasNodePolicy, type CanvasNodePolicy } from "@/wab/client/components/canvas/canvas-render-policy";
 import type { StudioRenderPolicySnapshot } from "@/wab/client/studio-ctx/studio-render-policy";
@@ -22,18 +24,15 @@ import {
   ensure,
   isLiteralObjectByName,
   objsEq,
-  removeWhere,
 } from "@/wab/shared/common";
 import { StatefulQueryResult } from "@/wab/shared/core/custom-functions";
 import { CanvasEnv } from "@/wab/shared/eval";
-import { TplNode, isKnownTplComponent, isKnownTplSlot } from "@/wab/shared/model/classes";
+import { Component, TplNode, isKnownComponent, isKnownTplComponent, isKnownTplSlot } from "@/wab/shared/model/classes";
 import { isEqual, uniq } from "lodash";
-import {
-  IComputedValue,
-  _isComputingDerivation,
-  computed,
-  onBecomeUnobserved,
-} from "mobx";
+import type { CanvasObserverInput } from "@/wab/client/components/canvas/canvas-observer";
+
+const emptyObserverSnapshot: readonly unknown[] = Object.freeze([]);
+const inactiveObserverInput: CanvasObserverInput = { getState: () => emptyObserverSnapshot, subscribe: () => () => undefined };
 
 export function reactHookSpecsToKey(reactHookSpecs: ReactHookSpec[]) {
   return JSON.stringify(
@@ -67,6 +66,9 @@ function computeHashFromStableFields(node: TplNode, ctx: RenderingCtx) {
     // ctx.triggers, // `triggers` keys can't change if `reactHookSpecs` hasn't changed
     JSON.stringify(ctx.$ccVariants),
     ctx.updateVariant,
+    ctx.registerRef,
+    ctx.getRefs,
+    JSON.stringify([...(ctx.pinnedVariants ?? [])].map((variant) => variant.uuid).sort()),
     ctx.onRenderInvalidated,
     ctx.viewCtx.disabledAutoOpenUuid,
   ];
@@ -97,22 +99,47 @@ type HandledCtxFields =
   | "triggers"
   | "$ccVariants"
   | "updateVariant"
-  | "onRenderInvalidated";
+  | "onRenderInvalidated"
+  | "registerRef"
+  | "getRefs"
+  | "pinnedVariants"
+  // Output metadata is replayed from each cached node into the current owner.
+  | "stateInitializers";
 
-type NonStableFieldsFromCtx = Omit<Full<RenderingCtx>, HandledCtxFields> & {
+type RecordSnapshot = ReadonlyMap<string, unknown>;
+interface CanvasEnvSnapshot {
+  readonly locals: RecordSnapshot;
+  readonly context: RecordSnapshot;
+  readonly props: RecordSnapshot;
+  readonly queries: RecordSnapshot;
+  readonly serverQueries: RecordSnapshot;
+}
+
+type NonStableFieldsFromCtx = Omit<Full<RenderingCtx>, HandledCtxFields | "env" | "wrappingEnv"> & {
+  env: CanvasEnvSnapshot;
+  wrappingEnv: CanvasEnvSnapshot;
   $stateSnapshot: Record<string, any>;
 };
 
-function snapshotCanvasEnv(env: CanvasEnv): CanvasEnv {
+function snapshotCanvasEnv(env: CanvasEnv): CanvasEnvSnapshot {
+  // These snapshots are private comparison inputs, never expression/runtime
+  // environments. Preserve own enumerable string keys, including __proto__ and
+  // explicit undefined; opaque symbol command metadata is not a render input.
+  const locals = new Map(Object.entries(env));
+  locals.delete("$ctx");
+  locals.delete("$props");
+  locals.delete("$state");
+  locals.delete("$queries");
+  locals.delete("$q");
   return {
-      ...env,
-      $ctx: { ...env.$ctx },
-      $props: { ...env.$props },
-      $queries: { ...env.$queries },
-      // Snapshot the current state of each StatefulQueryResult so oneLevelDeepComparison
+      locals,
+      context: new Map(Object.entries(env.$ctx)),
+      props: new Map(Object.entries(env.$props)),
+      queries: new Map(Object.entries(env.$queries)),
+      // Snapshot the current state of each StatefulQueryResult so record comparison
       // detects changes. This is decoupled from the data picker's unwrap representation,
       // which collapses initial/loading to the same { data: undefined, error: undefined }.
-      $q: Object.fromEntries(
+      serverQueries: new Map(
         Object.entries(env.$q).map(
           ([k, v]: [string, StatefulQueryResult]) => [k, v.current],
         ),
@@ -121,9 +148,13 @@ function snapshotCanvasEnv(env: CanvasEnv): CanvasEnv {
 }
 
 function computeNonStableFields(ctx: RenderingCtx): NonStableFieldsFromCtx {
+  const env = snapshotCanvasEnv(ctx.env);
   return {
-    env: snapshotCanvasEnv(ctx.env),
-    wrappingEnv: snapshotCanvasEnv(ctx.wrappingEnv),
+    env,
+    // The common non-repeated scope uses one environment for both fields.
+    // Capture it once per comparison, preserving a separate snapshot whenever
+    // a slot or repeated child has a distinct wrapping environment.
+    wrappingEnv: ctx.wrappingEnv === ctx.env ? env : snapshotCanvasEnv(ctx.wrappingEnv),
     overrides: ctx.overrides,
     $stateSnapshot: ctx.$stateSnapshot,
     plasmicInvalidate: ctx.plasmicInvalidate,
@@ -153,29 +184,13 @@ function compareVals(a: any, b: any) {
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-function oneLevelDeepComparison(a: Object, b: Object, excludeKeys?: string[]) {
+function oneLevelDeepComparison(a: Object, b: Object) {
   // Minimizing object allocations during this comparison
   const aKeys = Object.keys(a);
-  function countKeys(keys: string[]) {
-    if (!excludeKeys) {
-      return keys.length;
-    }
-    let count = 0;
-    for (const key of keys) {
-      if (!excludeKeys.includes(key)) {
-        count += 1;
-      }
-    }
-    return count;
-  }
-
-  if (countKeys(aKeys) !== countKeys(Object.keys(b))) {
+  if (aKeys.length !== Object.keys(b).length) {
     return false;
   }
   for (const key of aKeys) {
-    if (excludeKeys && excludeKeys.includes(key)) {
-      continue;
-    }
     if (!(key in b)) {
       return false;
     }
@@ -217,33 +232,29 @@ const areStateSnapshotsEquiv = cachedEquiv(
   },
 );
 
-const cachedOneLevelDeepComparison = cachedEquiv(oneLevelDeepComparison);
-
-const areCanvasEnvLocalsEquiv = cachedEquiv((a: CanvasEnv, b: CanvasEnv) => {
-  return oneLevelDeepComparison(a, b, [
-    "$props",
-    "$ctx",
-    "$state",
-    "$queries",
-    "$q",
-  ]);
+const areRecordSnapshotsEquiv = cachedEquiv((a: RecordSnapshot, b: RecordSnapshot) => {
+  if (a.size !== b.size) { return false; }
+  for (const [key, value] of a) {
+    if (!b.has(key) || !compareVals(value, b.get(key))) { return false; }
+  }
+  return true;
 });
 
-const areCanvasEnvsEquiv = cachedEquiv((a: CanvasEnv, b: CanvasEnv) => {
-  if (!cachedOneLevelDeepComparison(a.$ctx, b.$ctx)) {
+const areCanvasEnvsEquiv = cachedEquiv((a: CanvasEnvSnapshot, b: CanvasEnvSnapshot) => {
+  if (!areRecordSnapshotsEquiv(a.context, b.context)) {
     return false;
   }
-  if (!cachedOneLevelDeepComparison(a.$props, b.$props)) {
+  if (!areRecordSnapshotsEquiv(a.props, b.props)) {
     return false;
   }
 
-  if (!cachedOneLevelDeepComparison(a.$queries, b.$queries)) {
+  if (!areRecordSnapshotsEquiv(a.queries, b.queries)) {
     return false;
   }
-  if (!cachedOneLevelDeepComparison(a.$q, b.$q)) {
+  if (!areRecordSnapshotsEquiv(a.serverQueries, b.serverQueries)) {
     return false;
   }
-  if (!areCanvasEnvLocalsEquiv(a, b)) {
+  if (!areRecordSnapshotsEquiv(a.locals, b.locals)) {
     return false;
   }
   return true;
@@ -277,7 +288,7 @@ function areNonStableFieldsEquiv(
   return true;
 }
 
-type RenderEntries = [NonStableFieldsFromCtx, IComputedValue<any>][];
+type RenderEntries = [NonStableFieldsFromCtx, { readonly value: unknown }][];
 interface ContextInputs {
   readonly ownerIsCurrent: boolean;
   readonly nodeIsCurrent: boolean;
@@ -307,12 +318,18 @@ function contextInputs(node: TplNode, ctx: RenderingCtx): ContextInputs {
   };
 }
 
+export interface CanvasRenderPass {
+  readonly listener: () => void;
+  readonly instances: Set<string>;
+  readonly environments: Set<string>;
+  readonly previous: CanvasRenderPass | undefined;
+}
 interface InstanceCache {
   readonly fullKey: string;
   readonly renderSlotInstance?: string;
-  readonly cache: DeepMap<RenderEntries>;
+  readonly environmentIds: Set<string>;
+  cache: DeepMap<RenderEntries>;
   readonly listeners: Set<() => void>;
-  size: number;
   stopModelInputs: () => void;
   node: TplNode;
   ctx: RenderingCtx;
@@ -328,7 +345,10 @@ export class CanvasRenderOwner {
   private readonly instances = new Map<string, InstanceCache>();
   private readonly stopSession: () => void;
   private disposed = false;
-  private nextRenderId = 0;
+  private readonly lifetimeController = new AbortController();
+  readonly lifetime = this.lifetimeController.signal;
+  get isDisposed() { return this.disposed; }
+  private inputModels: ModelSnapshots | undefined;
   private modelInputs: CanvasModelInputs | undefined;
   private selectionInputs: CanvasSelectionInputs | undefined;
   private globalContexts: CanvasGlobalContexts | undefined;
@@ -348,9 +368,15 @@ export class CanvasRenderOwner {
     readonly loading: CanvasRegistrations["loadingStore"] | undefined;
     readonly slot: ReturnType<CanvasVariantInputs["slotStore"]> | undefined;
     readonly stop: () => void;
+    readonly listeners: Set<() => void>;
+    readonly fullKey: string;
+    readonly renderSlotInstance: string | undefined;
   }>();
   private stopModelCommits: (() => void) | undefined;
   private inputNotifications: Set<() => void> | undefined;
+  private readonly activeRenderPasses = new Map<() => void, CanvasRenderPass>();
+  private readonly environments = new Map<string, { readonly listener: (() => void) | undefined; readonly value: { env: CanvasEnv; wrappingEnv: CanvasEnv } }>();
+  private readonly observerSources = new WeakMap<Component | TplNode, Map<string, { ctx?: RenderingCtx; input: CanvasObserverInput }>>();
 
   constructor(session: CanvasSessionState) {
     this.stopSession = session.subscribeToChanges((instance) =>
@@ -399,11 +425,14 @@ export class CanvasRenderOwner {
   }
 
   private bindInputs(view: ViewCtx) {
+    assert(!this.disposed, "Cannot bind inputs to a disposed canvas owner");
+    if (this.inputModels && this.inputModels !== view.studioCtx.modelSnapshots) { this.dispose(); throw new Error("Canvas inputs belong to a retired model world"); }
     if (this.modelInputs) {
       return;
     }
     const studio = view.studioCtx;
     this.contextView = view;
+    this.inputModels = studio.modelSnapshots;
     this.modelInputs = new CanvasModelInputs(studio.modelSnapshots);
     this.selectionInputs = new CanvasSelectionInputs(view, studio.draggingObjectStore.getState());
     const stopSelectionCache = this.selectionInputs.subscribeBeforePublish((changed) => {
@@ -454,10 +483,7 @@ export class CanvasRenderOwner {
         if (!parentNotifications) {
           notifications.forEach((notify) => notify());
         }
-      } else {
-        this.releaseInputs();
-        this.instances.clear();
-      }
+      } else { this.dispose(); }
     });
   }
 
@@ -582,6 +608,57 @@ export class CanvasRenderOwner {
     return ensure(this.selectionInputs, "Canvas selection inputs must be initialized").subscribeAncestryBeforePublish(check);
   }
 
+  observerInput(view: ViewCtx, model: Component | TplNode, ctx?: RenderingCtx): CanvasObserverInput {
+    if (this.inputModels && this.inputModels !== view.studioCtx.modelSnapshots) { this.dispose(); }
+    if (this.disposed || view.disposeSignal.aborted || view.isDisposed) { return inactiveObserverInput; }
+    this.bindInputs(view);
+    const models = ensure(this.inputModels, "Canvas original model scope");
+    const component = isKnownComponent(model);
+    const modelInput = component ? ensure(this.modelInputs, "Canvas model owner").component(model) : ensure(this.modelInputs, "Canvas model owner").node(model);
+    const selected = !component && ctx ? this.selectionInput(view, model, ctx.valKey) : undefined;
+    const key = ctx ? JSON.stringify([ctx.valKey, ctx.ownerKey, ctx.renderSlotInstance, ctx.ownerComponent?.uid]) : "component";
+    let sources = this.observerSources.get(model);
+    if (!sources) { sources = new Map(); this.observerSources.set(model, sources); }
+    const retained = sources.get(key);
+    if (retained) { retained.ctx = ctx; return retained.input; }
+    const entry: { ctx?: RenderingCtx; input: CanvasObserverInput } = { ctx, input: inactiveObserverInput };
+    let current: readonly unknown[] = [];
+    const closed = () => this.disposed || view.disposeSignal.aborted || view.isDisposed || view.studioCtx.modelSnapshots !== models;
+    const capture = () => {
+      if (closed()) { return emptyObserverSnapshot; }
+      const context = !component && entry.ctx ? Object.values(contextInputs(model, entry.ctx)) : [view.currentComponent() === model];
+      const values = [modelInput.getState(), selected?.getState(), ...context];
+      if (!arrayEq(current, values)) { current = Object.freeze(values); }
+      return current;
+    };
+    entry.input = {
+      getState: capture,
+      subscribe: (listener) => {
+        if (closed()) { return () => undefined; }
+        let previous = capture();
+        const runtime = new Map<CanvasObserverInput, () => void>();
+        const rebindRuntime = () => {
+          const used = new Set<CanvasObserverInput>();
+          if (!closed()) {
+            const values = [...view.valComponentStack()];
+            const root = view.frameState.valRootStore.getState();
+            if (root) { values.push(root); }
+            values.forEach((value) => { used.add(value.runtimeInputs); if (isValComponent(value)) { used.add(value.componentRuntimeInputs); } });
+          }
+          for (const source of used) { if (!runtime.has(source)) { runtime.set(source, source.subscribe(changed)); } }
+          for (const [source, stop] of runtime) { if (!used.has(source)) { stop(); runtime.delete(source); } }
+        };
+        const changed = () => { rebindRuntime(); const next = capture(); if (next !== previous) { previous = next; listener(); } };
+        const stops = [modelInput.subscribe(changed), view.selectionStore.subscribe(changed), view.variantStore.subscribe(changed), view.frameState.valRootStore.subscribe(changed)];
+        if (selected) { stops.push(selected.subscribe(changed)); }
+        rebindRuntime();
+        return () => { stops.forEach((stop) => stop()); runtime.forEach((stop) => stop()); runtime.clear(); };
+      },
+    };
+    sources.set(key, entry);
+    return entry.input;
+  }
+
   selectionInput(view: ViewCtx, node: TplNode, valKey: string) {
     this.bindInputs(view);
     return ensure(this.selectionInputs, "Canvas selection inputs must be initialized").node(node, valKey);
@@ -627,6 +704,43 @@ export class CanvasRenderOwner {
     this.selectionInputs?.dispose(); this.selectionInputs = undefined;
   }
 
+  beginRender(listener: () => void): CanvasRenderPass {
+    const pass = { listener, instances: new Set<string>(), environments: new Set<string>(), previous: this.activeRenderPasses.get(listener) };
+    this.activeRenderPasses.set(listener, pass); return pass;
+  }
+  endRender(pass: CanvasRenderPass) {
+    if (this.activeRenderPasses.get(pass.listener) === pass) {
+      if (pass.previous) { this.activeRenderPasses.set(pass.listener, pass.previous); }
+      else { this.activeRenderPasses.delete(pass.listener); }
+    }
+  }
+  commitRender(pass: CanvasRenderPass) {
+    this.releaseUnusedRenderInputs(pass.listener, pass.instances);
+    for (const [id, environment] of this.environments) {
+      if (environment.listener === pass.listener && !pass.environments.has(id)) { this.environments.delete(id); }
+    }
+  }
+  retainEnvironment(ctx: RenderingCtx, id: string, value: { env: CanvasEnv; wrappingEnv: CanvasEnv }) {
+    assert(!this.disposed, "Cannot retain an environment on a disposed canvas owner");
+    this.environments.set(id, { listener: ctx.onRenderInvalidated, value });
+    this.instances.get(computeCanvasSessionKey(ctx))?.environmentIds.add(id);
+    if (ctx.onRenderInvalidated) { this.activeRenderPasses.get(ctx.onRenderInvalidated)?.environments.add(id); }
+  }
+  private releaseUnusedRenderInputs(listener: () => void, retained?: ReadonlySet<string>) {
+    for (const [instance, subscription] of this.modelSubscriptions) {
+      if (retained?.has(instance)) { continue; }
+      if (subscription.listeners.delete(listener) && !subscription.listeners.size) {
+        subscription.stop(); this.modelSubscriptions.delete(instance); this.instances.delete(instance);
+      }
+    }
+  }
+  /** A render candidate and its committed component own the same explicit
+   * listener, so abandoned/StrictMode cleanup also releases native node leases. */
+  releaseRenderListener(listener: () => void) {
+    this.releaseUnusedRenderInputs(listener);
+    for (const [id, environment] of this.environments) { if (environment.listener === listener) { this.environments.delete(id); } }
+  }
+
   render<R>(node: TplNode, ctx: RenderingCtx, doRenderNode: () => R): R {
     assert(!this.disposed, "Cannot render a disposed canvas owner");
     const instance = computeCanvasSessionKey(ctx);
@@ -642,20 +756,21 @@ export class CanvasRenderOwner {
     let subscription = this.modelSubscriptions.get(instance);
     if (!subscription || subscription.model !== modelInput || subscription.owner !== ownerInput || subscription.selection !== selectionInput ||
         subscription.registration !== registrationInput || subscription.loading !== loadingInput || subscription.slot !== slotInput) {
+      const listeners = subscription?.listeners ?? new Set<() => void>();
       subscription?.stop();
       const changed = () => { this.invalidateInstance(instance); };
       const stopModel = modelInput.subscribe(changed);
       const stopOwner = ownerInput?.subscribe(changed);
       const stopRegistration = registrationInput?.subscribe(changed), stopLoading = loadingInput?.subscribe(changed);
-      subscription = { model: modelInput, owner: ownerInput, selection: selectionInput, registration: registrationInput, loading: loadingInput, slot: slotInput,
+      subscription = { model: modelInput, owner: ownerInput, selection: selectionInput, registration: registrationInput, loading: loadingInput, slot: slotInput, listeners, fullKey: computeFullKey(ctx), renderSlotInstance: ctx.renderSlotInstance,
         stop: () => { stopModel(); stopOwner?.(); stopRegistration?.(); stopLoading?.(); } };
       this.modelSubscriptions.set(instance, subscription);
     }
     let resource = this.instances.get(instance);
     if (!resource) {
       resource = {
-        fullKey: computeFullKey(ctx), renderSlotInstance: ctx.renderSlotInstance,
-        cache: new DeepMap<RenderEntries>(), listeners: new Set(), size: 0,
+        fullKey: computeFullKey(ctx), renderSlotInstance: ctx.renderSlotInstance, environmentIds: new Set(),
+        cache: new DeepMap<RenderEntries>(), listeners: subscription.listeners,
         stopModelInputs: subscription.stop, node, ctx, context: contextInputs(node, ctx),
         policy: canvasNodePolicy(node, ctx, ctx.viewCtx.studioCtx.renderPolicy.store.getState()),
         contentEditingExpanded: isKnownTplComponent(node) && isCodeComponent(node.component) && ctx.viewCtx.contentEditor.isExpanded(computeFullKey(ctx)),
@@ -679,47 +794,41 @@ export class CanvasRenderOwner {
     const mapEntry = resource.cache.entry(hash);
     const entries = mapEntry.exists() ? mapEntry.get() : [];
     const hit = entries.find(([key]) => areNonStableFieldsEquiv(rest, key));
-    if (hit) {
-      return hit[1].get();
+    const pass = ctx.onRenderInvalidated ? this.activeRenderPasses.get(ctx.onRenderInvalidated) : undefined;
+    if (pass) {
+      pass.instances.add(instance);
+      if (hit) {
+        resource.environmentIds.forEach((id) => pass.environments.add(id));
+        for (const [key, descendant] of this.modelSubscriptions) {
+          if (descendant.listeners.has(pass.listener) && descendant.renderSlotInstance === ctx.renderSlotInstance &&
+            (descendant.fullKey === resource.fullKey || descendant.fullKey.startsWith(resource.fullKey + "."))) {
+            pass.instances.add(key); this.instances.get(key)?.environmentIds.forEach((id) => pass.environments.add(id));
+          }
+        }
+      }
     }
-    // Model rendering still has legacy MobX dependencies. Keep that existing
-    // contract until each model input is replaced by a declared field capsule.
-    assert(_isComputingDerivation(), () => "Rendering a canvas node without observing!");
-    const computedRender = computed(doRenderNode, {
-      name: `cachedRenderTplNode#${++this.nextRenderId}`,
-    });
-    entries.push([rest, computedRender]);
-    mapEntry.set(entries);
-    resource.size++;
-    const owned = resource;
-    onBecomeUnobserved(computedRender, () => {
-      if (this.instances.get(instance) !== owned) {
-        return;
-      }
-      const entry = owned.cache.entry(hash);
-      if (!entry.exists()) {
-        return;
-      }
-      const retained = entry.get();
-      removeWhere(retained, ([key]) => key === rest);
-      owned.size--;
-      if (retained.length === 0) {
-        entry.delete();
-      }
-      if (owned.size === 0) {
-        owned.stopModelInputs();
-        this.modelSubscriptions.delete(instance);
-        this.instances.delete(instance);
-      }
-    });
-    return computedRender.get();
+    if (hit) { return hit[1].value as R; }
+    // React retains previous elements itself. Keep only this instance's latest
+    // successful native-input result; invalidation evicts its retained ancestors.
+    const previousEnvironments = [...resource.environmentIds];
+    resource.environmentIds.clear();
+    let result: R;
+    try { result = doRenderNode(); }
+    catch (error) {
+      resource.environmentIds.clear(); previousEnvironments.forEach((id) => resource.environmentIds.add(id));
+      throw error;
+    }
+    resource.cache = new DeepMap<RenderEntries>();
+    resource.cache.entry(hash).set([[rest, { value: result }]]);
+    return result;
   }
 
   dispose() {
-    this.disposed = true;
+    if (this.disposed) { return; }
+    this.disposed = true; this.lifetimeController.abort();
     this.stopSession();
     this.releaseInputs();
-    this.instances.clear();
+    this.instances.clear(); this.environments.clear(); this.activeRenderPasses.clear();
   }
 }
 

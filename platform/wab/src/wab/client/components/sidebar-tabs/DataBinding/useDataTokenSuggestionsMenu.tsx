@@ -44,7 +44,10 @@ export function useDataTokenSuggestionsMenu(
   const [anchor, setAnchor] = React.useState<HTMLElement | null>(null);
   const overlayRef = React.useRef<HTMLDivElement>(null);
   const anchorRef = React.useRef<HTMLElement | null>(null);
-  anchorRef.current = anchor;
+  const attachAnchor = React.useCallback((element: HTMLElement | null) => {
+    anchorRef.current = element;
+    setAnchor(element);
+  }, []);
 
   const {
     isOpen,
@@ -137,7 +140,7 @@ export function useDataTokenSuggestionsMenu(
     openMenu,
     getComboboxProps: (
       options?: Omit<Parameters<typeof getComboboxProps>[0], "ref">,
-    ) => getComboboxProps({ ...options, ref: setAnchor }),
+    ) => getComboboxProps({ ...options, ref: attachAnchor }),
     getInputProps: (options: UseComboboxGetInputPropsOptions = {}) => {
       const { onKeyDown, onBlur, onFocus, onContextMenu, ...rest } = options;
       const {

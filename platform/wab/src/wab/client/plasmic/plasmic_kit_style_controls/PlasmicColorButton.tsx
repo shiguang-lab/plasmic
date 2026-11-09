@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,12 +23,12 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ColorSwatch from "../../components/style-controls/ColorSwatch"; // plasmic-import: 4AYfEug-RA/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -95,11 +95,10 @@ function PlasmicColorButton__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isDisabled",
@@ -115,18 +114,20 @@ function PlasmicColorButton__RenderFunc(props: {
           $props.valueSetState,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <button
@@ -246,12 +247,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -261,29 +258,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicColorButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicColorButton";
-  } else {
-    func.displayName = `PlasmicColorButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicColorButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicColorButton__root<T extends PlasmicColorButton__rootProps>(props: T & StrictProps<T, PlasmicColorButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicColorButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicColorButton__root.displayName = "PlasmicColorButton";
+
+type PlasmicColorButton__swatchContainerProps = NodeComponentProps<"swatchContainer"> & {key?: React.Key};
+function PlasmicColorButton__swatchContainer<T extends PlasmicColorButton__swatchContainerProps>(props: T & StrictProps<T, PlasmicColorButton__swatchContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("swatchContainer", props);
+  return <PlasmicColorButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"swatchContainer"} />;
+}
+PlasmicColorButton__swatchContainer.displayName = "PlasmicColorButton.swatchContainer";
+
+type PlasmicColorButton__swatchProps = NodeComponentProps<"swatch"> & {key?: React.Key};
+function PlasmicColorButton__swatch<T extends PlasmicColorButton__swatchProps>(props: T & StrictProps<T, PlasmicColorButton__swatchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("swatch", props);
+  return <PlasmicColorButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"swatch"} />;
+}
+PlasmicColorButton__swatch.displayName = "PlasmicColorButton.swatch";
+
+type PlasmicColorButton__labelContainerProps = NodeComponentProps<"labelContainer"> & {key?: React.Key};
+function PlasmicColorButton__labelContainer<T extends PlasmicColorButton__labelContainerProps>(props: T & StrictProps<T, PlasmicColorButton__labelContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelContainer", props);
+  return <PlasmicColorButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelContainer"} />;
+}
+PlasmicColorButton__labelContainer.displayName = "PlasmicColorButton.labelContainer";
+
 
 export const PlasmicColorButton = Object.assign(
   // Top-level PlasmicColorButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicColorButton__root,
   {
     // Helper components rendering sub-elements
-    swatchContainer: makeNodeComponent("swatchContainer"),
-    swatch: makeNodeComponent("swatch"),
-    labelContainer: makeNodeComponent("labelContainer"),
+    swatchContainer: PlasmicColorButton__swatchContainer,
+    swatch: PlasmicColorButton__swatch,
+    labelContainer: PlasmicColorButton__labelContainer,
 
     // Metadata about props expected for PlasmicColorButton
     internalVariantProps: PlasmicColorButton__VariantProps,

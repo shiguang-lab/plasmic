@@ -4,75 +4,108 @@ import path from "node:path";
 import { expect, it } from "vitest";
 import {
   reactCompilerBuildInfo,
-  reactCompilerFiles,
   reactCompilerInclude,
   reactCompilerOptions,
 } from "../react-compiler.mjs";
 
-const codeCandidate = path.resolve(
-  __dirname,
-  "../../src/wab/client/components/coding/CodeDisplayContent.tsx",
-);
-
-it("limits compilation to audited components and excludes observers, canvas and SDKs", () => {
-  expect(reactCompilerInclude.test(codeCandidate)).toBe(true);
+it("includes Studio components, Hooks, shared UI and canvas sources without a whitelist", () => {
   for (const file of [
+    "src/wab/main.tsx",
+    "src/wab/server/emails/components.tsx",
+    "src/wab/server/emails/templates/TemplateComments.tsx",
+    "src/wab/server/emails/host/plasmic-host.tsx",
+    "src/wab/client/components/Shell.tsx",
     "src/wab/client/components/canvas/canvas-observer.ts",
     "src/wab/client/studio-ctx/StudioCtx.tsx",
     "src/wab/client/components/QueryBuilder/FilterQueryBuilder.tsx",
-    "packages/react-web/src/index.tsx",
-    "src/wab/client/components/coding/CodeDisplayContent.test.tsx",
+    "src/wab/commons/components/ReactUtil.tsx",
+    "src/wab/shared/react-utils.ts",
+    "../canvas-packages/src/slate-string.tsx",
+    "../react-web-bundle/src/canvas-component.tsx",
+    "../live-frame/src/preview.tsx",
+    "../live-frame/src/render.tsx",
+    "../sub/src/studio-controls-provider.tsx",
+    "../../packages/react-web/src/states/snapshot.tsx",
   ]) {
-    expect(reactCompilerInclude.test(path.resolve(file))).toBe(false);
+    expect(reactCompilerInclude.test(path.resolve(file)), file).toBe(true);
+  }
+  for (const file of [
+    "src/wab/server/entities/Entities.ts",
+    "src/wab/client/components/coding/CodeDisplayContent.test.tsx",
+    "src/wab/client/components/coding/CodeDisplayContent.stories.tsx",
+    "src/wab/client/__testonly__/setupTests.js",
+    "src/wab/client/react-app-env.d.ts",
+  ]) {
+    expect(reactCompilerInclude.test(path.resolve(file)), file).toBe(false);
   }
 });
-it.each(reactCompilerFiles)("actually compiles %s against React 19", (file) => {
-  const candidate = path.resolve(__dirname, "../../", file);
+
+it("compiles every native Slate leaf and Hook with the iframe runtime contract", () => {
+  const filename = path.resolve(__dirname, "../../../canvas-packages/src/slate-string.tsx");
   const names: Array<string | null> = [];
-  const output = transformSync(fs.readFileSync(candidate, "utf8"), {
-    filename: candidate,
+  transformSync(fs.readFileSync(filename, "utf8"), {
+    filename, babelrc: false, configFile: false,
+    parserOpts: { plugins: ["typescript", "jsx"] },
+    plugins: [["babel-plugin-react-compiler", reactCompilerOptions({ logEvent: (_file, event) => {
+      if (event.kind === "CompileSuccess") { names.push(event.fnName); }
+    } })]],
+  });
+  expect(names).toEqual(expect.arrayContaining(["SlateString", "TextString", "MemoizedText", "ZeroWidthString"]));
+});
+
+it.each([
+  ["client/components/coding/CodeDisplayContent.tsx", "CodeDisplayContent"],
+  ["client/components/canvas/CanvasFrame/CanvasHeader.tsx", "CanvasHeader"],
+  ["client/components/studio/StudioChrome.tsx", "useStudioStartup"],
+  ["client/plasmic/plasmic_kit_style_controls/PlasmicStyleSwitch.tsx", "useBehavior"],
+  ["client/plasmic/plasmic_kit_style_controls/PlasmicStyleSwitch.tsx", "useNodeRenderOpts"],
+  ["client/plasmic/plasmic_kit_style_controls/PlasmicStyleSwitch.tsx", "PlasmicStyleSwitch__root"],
+  ["client/plasmic/plasmic_kit_style_controls/PlasmicStyleSwitch.tsx", "PlasmicStyleSwitch__labelContainer"],
+])("compiles unannotated production code in %s", (file, name) => {
+  const filename = path.resolve(__dirname, "../../src/wab", file);
+  const code = fs.readFileSync(filename, "utf8");
+  const names: Array<string | null> = [];
+  expect(code).not.toContain('"use memo"');
+  const output = transformSync(code, {
+    filename,
     babelrc: false,
     configFile: false,
     parserOpts: { plugins: ["typescript", "jsx"] },
-    plugins: [
-      [
-        "babel-plugin-react-compiler",
-        reactCompilerOptions({
-          logEvent: (_file, event) => {
-            if (event.kind === "CompileSuccess") {
-              names.push(event.fnName);
-            }
-          },
-        }),
-      ],
-    ],
+    plugins: [["babel-plugin-react-compiler", reactCompilerOptions({
+      logEvent: (_file, event) => {
+        if (event.kind === "CompileSuccess") { names.push(event.fnName); }
+      },
+    })]],
   });
-  expect(names).toContain(
-    file.endsWith("SettingsPage.tsx")
-      ? "SettingsPageContent"
-      : path.basename(file, ".tsx"),
-  );
+  expect(names).toContain(name);
   expect(output?.code).toContain('from "react/compiler-runtime"');
 });
-it("does not compile annotated code outside the whitelist", () => {
-  const output = transformSync(
-    'function ObserverView(props) { "use memo"; return props.store.values.map(x => x.name); }',
-    {
-      filename: path.resolve(
-        __dirname,
-        "../../src/wab/client/components/canvas/ObserverView.tsx",
-      ),
-      babelrc: false,
-      configFile: false,
-      plugins: [["babel-plugin-react-compiler", reactCompilerOptions()]],
-    },
-  );
-  expect(output?.code).not.toContain("react/compiler-runtime");
+
+it("rejects unsupported Hooks instead of silently skipping them", () => {
+  const events: string[] = [];
+  expect(() => transformSync(`
+    import { useState } from "react";
+    function Conditional({ enabled }) {
+      if (enabled) { const [value] = useState(0); return <span>{value}</span>; }
+      return null;
+    }
+  `, {
+    filename: path.resolve("src/wab/client/components/CompilerExample.tsx"),
+    babelrc: false,
+    configFile: false,
+    parserOpts: { plugins: ["jsx"] },
+    plugins: [["babel-plugin-react-compiler", reactCompilerOptions({
+      logEvent: (_file, event) => { events.push(event.kind); },
+    })]],
+  })).toThrow(/Hooks must/);
+  expect(events).toContain("CompileError");
 });
 
-it("enables Compiler in ordinary production builds without an environment opt-in", () => {
-  expect(reactCompilerBuildInfo()).toMatchObject({
+it("enables full inference in ordinary builds without an environment opt-in", () => {
+  expect(reactCompilerBuildInfo()).toEqual({
     enabled: true,
     target: "19",
+    compilationMode: "infer",
+    scope: "studio-canvas-runtime-and-emails",
   });
 });

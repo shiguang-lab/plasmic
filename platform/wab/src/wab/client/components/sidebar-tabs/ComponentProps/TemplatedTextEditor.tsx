@@ -192,18 +192,18 @@ export const TemplatedTextEditor = React.forwardRef<
                 multiLineAllowed,
               ),
             ),
-      [],
+      [sql, multiLine, multiLineAllowed],
     );
 
     const [validSqlString, setValidSqlString] = React.useState(true);
     const studioCtx = useStudioCtx();
     const viewCtx = useFocusedViewCtx(studioCtx);
 
-    const slateContainerRef = React.useRef<HTMLDivElement>(null);
+    const [slateContainer, setSlateContainer] = React.useState<HTMLDivElement | null>(null);
     const ctx = useContext(ContextMenuContext);
     const insertDynamicValue = React.useCallback(() => {
       if (!templatedString) {
-        ctx.useDynamicValue();
+        ctx.editDynamicValue();
       } else {
         insertCodeTag(editor);
       }
@@ -213,10 +213,10 @@ export const TemplatedTextEditor = React.forwardRef<
       () => ({
         focus: () => focusSlateEditor(editor, "end"),
         isFocused: () => ReactEditor.isFocused(editor),
-        element: slateContainerRef.current,
-        useDynamicValue: insertDynamicValue,
+        element: slateContainer,
+        editDynamicValue: insertDynamicValue,
       }),
-      [slateContainerRef, editor, insertDynamicValue],
+      [slateContainer, editor, insertDynamicValue],
     );
 
     const exprCtx = React.useMemo(
@@ -280,7 +280,7 @@ export const TemplatedTextEditor = React.forwardRef<
 
         onChange(newVal);
       },
-      [value, onChange, sql, openMenu],
+      [value, onChange, sql, openMenu, isEmptyTextSlateDescendant],
     );
 
     const renderElementFn = React.useMemo(
@@ -294,7 +294,7 @@ export const TemplatedTextEditor = React.forwardRef<
           prefix,
           disabled,
         ),
-      [data, schema, showExpressionAsPreviewValue, prefix],
+      [data, schema, showExpressionAsPreviewValue, exprCtx, prefix, disabled],
     );
 
     const decorate = useCallback(([node, path]) => {
@@ -325,24 +325,24 @@ export const TemplatedTextEditor = React.forwardRef<
 
     const [moved, setMoved] = useState(false);
 
-    const previousValue = React.useRef(value);
+    const previousValue = React.useRef({ value, editor });
     // Slate doesn't support changing the values externally, so we need to keep
     // track of it
     useLayoutEffect(() => {
       if (
-        previousValue.current !== value &&
+        (previousValue.current.value !== value || previousValue.current.editor !== editor) &&
         getTextFromDescendents(editor.children, exprCtx) !==
           getTextFromDescendents(value, exprCtx)
       ) {
         resetNodes(editor, { nodes: value as SlateDescendant[] });
       }
-      previousValue.current = value;
-    }, [value, component, studioCtx]);
+      previousValue.current = { value, editor };
+    }, [value, editor, exprCtx]);
 
     return (
       <div {...getComboboxProps()} className="flex-col fill-width">
         <div
-          ref={slateContainerRef}
+          ref={setSlateContainer}
           onPointerMove={() => setMoved(true)}
           onPointerLeave={() => setMoved(false)}
           data-plasmic-prop={dataPlasmicProp}
@@ -353,7 +353,7 @@ export const TemplatedTextEditor = React.forwardRef<
             onValueChange={onSlateChange}
           >
             <CustomCaret
-              slateContainerRef={slateContainerRef}
+              slateContainer={slateContainer}
               scrollerContainerClassName={scrollerContainerClassName}
               onCaretClick={insertDynamicValue}
             />
@@ -912,13 +912,13 @@ function DefaultElement({
 }
 
 interface CustomCaretProps {
-  slateContainerRef: React.RefObject<HTMLDivElement | null>;
+  slateContainer: HTMLDivElement | null;
   scrollerContainerClassName?: string;
   onCaretClick: () => void;
 }
 
 function CustomCaret({
-  slateContainerRef,
+  slateContainer,
   scrollerContainerClassName,
   onCaretClick,
 }: CustomCaretProps) {
@@ -971,10 +971,7 @@ function CustomCaret({
     setBoundingClientRect(domSelection.getRangeAt(0).getBoundingClientRect());
   }, [editor, focused, tick, selection]);
 
-  const cachedAnchor = React.useMemo(
-    () => selection?.anchor,
-    [JSON.stringify(selection?.anchor ?? null)],
-  );
+  const cachedAnchor = selection?.anchor;
 
   const ctx = useContext(ContextMenuContext);
   // We need to know if the editor was focused at the time the mouse went down on the insert button (which causes focus
@@ -994,7 +991,7 @@ function CustomCaret({
       if (
         !focused_ ||
         !boundingClientRect ||
-        !slateContainerRef.current ||
+        !slateContainer ||
         !cachedAnchor
       ) {
         Transforms.select(editor, Editor.end(editor, []));
@@ -1008,12 +1005,12 @@ function CustomCaret({
       focused,
       cachedAnchor,
       boundingClientRect,
-      slateContainerRef.current,
+      slateContainer,
       onCaretClick,
     ],
   );
 
-  if (!boundingClientRect || !slateContainerRef.current || !cachedAnchor) {
+  if (!boundingClientRect || !slateContainer || !cachedAnchor) {
     return null;
   }
 
@@ -1023,7 +1020,7 @@ function CustomCaret({
       left={Math.round(boundingClientRect.left)}
       anchor={cachedAnchor}
     />,
-    slateContainerRef.current,
+    slateContainer,
   );
 }
 
@@ -1050,17 +1047,12 @@ function CaretUI({ top, left }: CaretUIProps) {
     setHover(false);
   });
 
-  const animationNames = ["caret-animation", "caret-animation2"];
-  const previousAnimationName = React.useRef(animationNames[0]);
-  const caretAnimationName = React.useMemo(() => {
-    // Hack to disable animation while the caret is moving based on
-    // https://github.com/codemirror/view/blob/adbfd33c10911c28071ce0502ed33c5ab6c1187f/src/draw-selection.ts#L115
-    previousAnimationName.current =
-      previousAnimationName.current === animationNames[0]
-        ? animationNames[1]
-        : animationNames[0];
-    return previousAnimationName.current;
-  }, [left, top]);
+  // Alternate animation names when the caret moves so its blink restarts.
+  const [animation, setAnimation] = React.useState({ left, top, alternate: false });
+  if (animation.left !== left || animation.top !== top) {
+    setAnimation({ left, top, alternate: !animation.alternate });
+  }
+  const caretAnimationName = animation.alternate ? "caret-animation2" : "caret-animation";
 
   return (
     <div

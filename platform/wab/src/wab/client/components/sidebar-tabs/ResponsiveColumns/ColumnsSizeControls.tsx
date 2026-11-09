@@ -1,3 +1,4 @@
+import { useColumnsWrapInputs } from "@/wab/client/studio-ctx/columns-wrap-inputs";
 import S from "@/wab/client/components/sidebar-tabs/ResponsiveColumns/ColumnsSizeControls.module.scss";
 import {
   addNewColumn,
@@ -16,15 +17,15 @@ import {
   updateCurrentTplColumns,
 } from "@/wab/shared/columns-utils";
 import { spawn } from "@/wab/shared/common";
-import { siteFinalStyleTokensAllDeps } from "@/wab/shared/core/site-style-tokens";
-import { allImageAssets, allMixins } from "@/wab/shared/core/sites";
-import { CssVarResolver } from "@/wab/shared/core/styles";
 import { TplColumnsTag } from "@/wab/shared/core/tpls";
 import { ColumnsConfig } from "@/wab/shared/model/classes";
 import { Tooltip } from "antd";
 import cn from "classnames";
 import { isEqual, isUndefined } from "lodash";
-import { observer } from "mobx-react";
+import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
+import { useCssVariableInputs } from "@/wab/client/studio-ctx/grid-css-inputs";
+import { useStore } from "zustand";
 import { ok } from "neverthrow";
 import React from "react";
 
@@ -33,14 +34,14 @@ interface ColumnSizeDragState {
   cols: number[];
 }
 
-export const ColumnsSizeControls = observer(
-  function ColumnsSizeControls(props: {
+export const ColumnsSizeControls = React.memo(function ColumnsSizeControls(props: {
     viewCtx: ViewCtx;
     tpl: TplColumnsTag;
-    config: ColumnsConfig;
+    config: ColumnsConfig | undefined;
     isDisabled?: boolean;
   }) {
     const { tpl, viewCtx, config, isDisabled } = props;
+    const { colsSizes } = useColumnsWrapInputs(viewCtx, tpl, config);
 
     const [dragState, setDragState] = React.useState<
       ColumnSizeDragState | undefined
@@ -57,7 +58,7 @@ export const ColumnsSizeControls = observer(
               cursor: dragState ? "ew-resize" : undefined,
             }}
           >
-            {config.colsSizes.map((size, idx) => {
+            {colsSizes.map((size, idx) => {
               return (
                 <div
                   key={`rc-column-control-${idx}`}
@@ -76,7 +77,7 @@ export const ColumnsSizeControls = observer(
               <ColumnSizeControlDraggables
                 tpl={tpl}
                 viewCtx={viewCtx}
-                sizes={config.colsSizes}
+                sizes={[...colsSizes]}
                 dragState={dragState}
                 width={columnBlockSize}
                 zoom={1}
@@ -88,10 +89,9 @@ export const ColumnsSizeControls = observer(
         </div>
       </FullRow>
     );
-  },
-);
+});
 
-export const ColumnSizeControlDraggables = observer(
+export const ColumnSizeControlDraggables = React.memo(
   function ColumnSizeControlDraggables(props: {
     tpl: TplColumnsTag;
     viewCtx: ViewCtx;
@@ -114,20 +114,14 @@ export const ColumnSizeControlDraggables = observer(
       setDragState,
     } = props;
 
-    const colGapRaw = isCanvas
-      ? viewCtx.effectiveCurrentVariantSetting(tpl).rsh().get("column-gap") ||
-        "0px"
-      : "0px";
-
-    const site = viewCtx.site;
-    const resolver = new CssVarResolver(
-      siteFinalStyleTokensAllDeps(site),
-      allMixins(site, { includeDeps: "all" }),
-      allImageAssets(site, { includeDeps: "all" }),
-      site.activeTheme,
-    );
-
-    const colGap = resolver.tryResolveTokenOrMixinRef(colGapRaw);
+    const provider = React.useMemo(() => new TplExpsProvider(viewCtx, tpl), [viewCtx, tpl]);
+    const gap = useStyleCells(provider, isCanvas ? ["column-gap"] : [])[0];
+    const colGapRaw = isCanvas ? gap?.value || "0px" : "0px";
+    const resolved = useCssVariableInputs(provider, colGapRaw, viewCtx.disposeSignal);
+    const colGap = resolved.value ?? colGapRaw;
+    const models = React.useMemo(() => viewCtx.studioCtx.modelSnapshots, [viewCtx, tpl]);
+    const childCount = useStore(models.field(tpl, "children"), (children) => children.length);
+    const isActive = () => !viewCtx.disposeSignal.aborted && viewCtx.studioCtx.modelSnapshots === models;
     const colGapInZoom = `${colGap} * ${zoom}`;
     const areaWidth = `(100% - ${sizes.length - 1} * ${colGapInZoom})`;
 
@@ -147,6 +141,7 @@ export const ColumnSizeControlDraggables = observer(
               <XDraggable
                 key={`rc-column-control-${isCanvas}-${idx}`}
                 onStart={(_) => {
+                  if (!isActive()) { return; }
                   viewCtx.startUnlogged();
                   setDragState({
                     index: idx,
@@ -165,6 +160,7 @@ export const ColumnSizeControlDraggables = observer(
                     if (!isEqual(newCols, sizes)) {
                       spawn(
                         viewCtx.studioCtx.change(() => {
+                          if (!isActive()) { return ok(); }
                           updateCurrentTplColumns(
                             tpl,
                             {
@@ -179,6 +175,7 @@ export const ColumnSizeControlDraggables = observer(
                   }
                 }}
                 onStop={(e) => {
+                  if (!isActive()) { setDragState(undefined); return; }
                   viewCtx.stopUnlogged();
                   setDragState(undefined);
                 }}
@@ -208,9 +205,10 @@ export const ColumnSizeControlDraggables = observer(
           <>
             <IconLinkButton
               className={cn(S.canvasColumnBtn, S.canvasColumnPlusBtn)}
-              disabled={tpl.children.length === 12}
+              disabled={childCount === 12}
               onClick={async () =>
                 await viewCtx.studioCtx.change<never>(() => {
+                  if (!isActive()) { return ok(); }
                   addNewColumn(tpl, viewCtx);
                   return ok();
                 })

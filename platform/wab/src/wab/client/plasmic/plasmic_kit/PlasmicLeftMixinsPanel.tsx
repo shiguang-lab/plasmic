@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -27,7 +27,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import LeftPaneHeader from "../../components/studio/LeftPaneHeader"; // plasmic-import: XLa52PvduIy/component
 import LeftSearchPanel from "../../components/studio/LeftSearchPanel"; // plasmic-import: TqAPn0srTq/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "../plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -90,11 +90,10 @@ function PlasmicLeftMixinsPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -210,12 +209,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -225,30 +220,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftMixinsPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftMixinsPanel";
-  } else {
-    func.displayName = `PlasmicLeftMixinsPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftMixinsPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftMixinsPanel__root<T extends PlasmicLeftMixinsPanel__rootProps>(props: T & StrictProps<T, PlasmicLeftMixinsPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftMixinsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftMixinsPanel__root.displayName = "PlasmicLeftMixinsPanel";
+
+type PlasmicLeftMixinsPanel__leftSearchPanelProps = NodeComponentProps<"leftSearchPanel"> & {key?: React.Key};
+function PlasmicLeftMixinsPanel__leftSearchPanel<T extends PlasmicLeftMixinsPanel__leftSearchPanelProps>(props: T & StrictProps<T, PlasmicLeftMixinsPanel__leftSearchPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftSearchPanel", props);
+  return <PlasmicLeftMixinsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftSearchPanel"} />;
+}
+PlasmicLeftMixinsPanel__leftSearchPanel.displayName = "PlasmicLeftMixinsPanel.leftSearchPanel";
+
+type PlasmicLeftMixinsPanel__mixinsHeaderProps = NodeComponentProps<"mixinsHeader"> & {key?: React.Key};
+function PlasmicLeftMixinsPanel__mixinsHeader<T extends PlasmicLeftMixinsPanel__mixinsHeaderProps>(props: T & StrictProps<T, PlasmicLeftMixinsPanel__mixinsHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("mixinsHeader", props);
+  return <PlasmicLeftMixinsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"mixinsHeader"} />;
+}
+PlasmicLeftMixinsPanel__mixinsHeader.displayName = "PlasmicLeftMixinsPanel.mixinsHeader";
+
+type PlasmicLeftMixinsPanel__newMixinButtonProps = NodeComponentProps<"newMixinButton"> & {key?: React.Key};
+function PlasmicLeftMixinsPanel__newMixinButton<T extends PlasmicLeftMixinsPanel__newMixinButtonProps>(props: T & StrictProps<T, PlasmicLeftMixinsPanel__newMixinButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newMixinButton", props);
+  return <PlasmicLeftMixinsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newMixinButton"} />;
+}
+PlasmicLeftMixinsPanel__newMixinButton.displayName = "PlasmicLeftMixinsPanel.newMixinButton";
+
+type PlasmicLeftMixinsPanel__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicLeftMixinsPanel__content<T extends PlasmicLeftMixinsPanel__contentProps>(props: T & StrictProps<T, PlasmicLeftMixinsPanel__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicLeftMixinsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicLeftMixinsPanel__content.displayName = "PlasmicLeftMixinsPanel.content";
+
 
 export const PlasmicLeftMixinsPanel = Object.assign(
   // Top-level PlasmicLeftMixinsPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftMixinsPanel__root,
   {
     // Helper components rendering sub-elements
-    leftSearchPanel: makeNodeComponent("leftSearchPanel"),
-    mixinsHeader: makeNodeComponent("mixinsHeader"),
-    newMixinButton: makeNodeComponent("newMixinButton"),
-    content: makeNodeComponent("content"),
+    leftSearchPanel: PlasmicLeftMixinsPanel__leftSearchPanel,
+    mixinsHeader: PlasmicLeftMixinsPanel__mixinsHeader,
+    newMixinButton: PlasmicLeftMixinsPanel__newMixinButton,
+    content: PlasmicLeftMixinsPanel__content,
 
     // Metadata about props expected for PlasmicLeftMixinsPanel
     internalVariantProps: PlasmicLeftMixinsPanel__VariantProps,

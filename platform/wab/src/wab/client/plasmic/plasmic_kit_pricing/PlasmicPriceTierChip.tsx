@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,12 +23,12 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -102,11 +102,10 @@ function PlasmicPriceTierChip__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "current",
@@ -121,20 +120,22 @@ function PlasmicPriceTierChip__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.simplified,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -265,12 +266,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -280,29 +277,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPriceTierChip__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPriceTierChip";
-  } else {
-    func.displayName = `PlasmicPriceTierChip.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPriceTierChip__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPriceTierChip__root<T extends PlasmicPriceTierChip__rootProps>(props: T & StrictProps<T, PlasmicPriceTierChip__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPriceTierChip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPriceTierChip__root.displayName = "PlasmicPriceTierChip";
+
+type PlasmicPriceTierChip__h5Props = NodeComponentProps<"h5"> & {key?: React.Key};
+function PlasmicPriceTierChip__h5<T extends PlasmicPriceTierChip__h5Props>(props: T & StrictProps<T, PlasmicPriceTierChip__h5Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("h5", props);
+  return <PlasmicPriceTierChip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"h5"} />;
+}
+PlasmicPriceTierChip__h5.displayName = "PlasmicPriceTierChip.h5";
+
+type PlasmicPriceTierChip__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicPriceTierChip__freeBox<T extends PlasmicPriceTierChip__freeBoxProps>(props: T & StrictProps<T, PlasmicPriceTierChip__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicPriceTierChip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicPriceTierChip__freeBox.displayName = "PlasmicPriceTierChip.freeBox";
+
+type PlasmicPriceTierChip__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicPriceTierChip__text<T extends PlasmicPriceTierChip__textProps>(props: T & StrictProps<T, PlasmicPriceTierChip__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicPriceTierChip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicPriceTierChip__text.displayName = "PlasmicPriceTierChip.text";
+
 
 export const PlasmicPriceTierChip = Object.assign(
   // Top-level PlasmicPriceTierChip renders the root element
-  makeNodeComponent("root"),
+  PlasmicPriceTierChip__root,
   {
     // Helper components rendering sub-elements
-    h5: makeNodeComponent("h5"),
-    freeBox: makeNodeComponent("freeBox"),
-    text: makeNodeComponent("text"),
+    h5: PlasmicPriceTierChip__h5,
+    freeBox: PlasmicPriceTierChip__freeBox,
+    text: PlasmicPriceTierChip__text,
 
     // Metadata about props expected for PlasmicPriceTierChip
     internalVariantProps: PlasmicPriceTierChip__VariantProps,

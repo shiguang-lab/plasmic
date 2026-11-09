@@ -113,7 +113,7 @@ function TabsWithItems(props: TabsProps) {
     [animateTabBar, animateTabContent, animated],
   );
   const tabItems = getTabItems(itemsRaw);
-  const selectedKey = isEditing
+  const selectedKey = canvas
     ? getSelectedCanvasItemKey(tabItems)
     : undefined;
   const items: TabItemType[] = tabItems
@@ -127,8 +127,8 @@ function TabsWithItems(props: TabsProps) {
     })
     .filter((i) => i != null) as TabItemType[];
   const initialActiveKey = rest.activeKey ?? rest.defaultActiveKey;
-  const activeKey = selectedKey !== undefined && state
-    ? state.reveal(String(selectedKey)) as string | undefined
+  const activeKey = selectedKey !== undefined
+    ? state ? state.reveal(String(selectedKey)) as string | undefined : String(selectedKey)
     : rest.activeKey;
 
   return (

@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,11 +23,11 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../plasmic_kit_user_mentions/PlasmicStyleTokensProvider"; // plasmic-import: kTSMroKPFv65RRTb44SCtk/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_user_mentions/PlasmicStyleTokensProvider"; // plasmic-import: kTSMroKPFv65RRTb44SCtk/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -110,11 +110,10 @@ function PlasmicUserListItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isHighlighted",
@@ -124,18 +123,20 @@ function PlasmicUserListItem__RenderFunc(props: {
           $props.isHighlighted,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -253,12 +254,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -268,28 +265,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicUserListItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicUserListItem";
-  } else {
-    func.displayName = `PlasmicUserListItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicUserListItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicUserListItem__root<T extends PlasmicUserListItem__rootProps>(props: T & StrictProps<T, PlasmicUserListItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicUserListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicUserListItem__root.displayName = "PlasmicUserListItem";
+
+type PlasmicUserListItem__avatarContainerProps = NodeComponentProps<"avatarContainer"> & {key?: React.Key};
+function PlasmicUserListItem__avatarContainer<T extends PlasmicUserListItem__avatarContainerProps>(props: T & StrictProps<T, PlasmicUserListItem__avatarContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("avatarContainer", props);
+  return <PlasmicUserListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"avatarContainer"} />;
+}
+PlasmicUserListItem__avatarContainer.displayName = "PlasmicUserListItem.avatarContainer";
+
+type PlasmicUserListItem__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicUserListItem__freeBox<T extends PlasmicUserListItem__freeBoxProps>(props: T & StrictProps<T, PlasmicUserListItem__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicUserListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicUserListItem__freeBox.displayName = "PlasmicUserListItem.freeBox";
+
 
 export const PlasmicUserListItem = Object.assign(
   // Top-level PlasmicUserListItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicUserListItem__root,
   {
     // Helper components rendering sub-elements
-    avatarContainer: makeNodeComponent("avatarContainer"),
-    freeBox: makeNodeComponent("freeBox"),
+    avatarContainer: PlasmicUserListItem__avatarContainer,
+    freeBox: PlasmicUserListItem__freeBox,
 
     // Metadata about props expected for PlasmicUserListItem
     internalVariantProps: PlasmicUserListItem__VariantProps,

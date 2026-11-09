@@ -313,4 +313,22 @@ export type HeadMetadata = {
   canonical?: string;
 };
 
-export const HeadMetadataContext = React.createContext<HeadMetadata>({});
+/** A single server prepass owns this collector. Client renders do not share a
+ * mutable default object, and React context carries only the resource handle. */
+export class HeadMetadataCollector {
+  private metadata: HeadMetadata = {};
+
+  collect(metadata: HeadMetadata) {
+    for (const key of ["title", "description", "image", "canonical"] as const) {
+      if (metadata[key]) {
+        this.metadata = { ...this.metadata, [key]: metadata[key] };
+      }
+    }
+  }
+
+  getMetadata(): HeadMetadata {
+    return { ...this.metadata };
+  }
+}
+
+export const HeadMetadataContext = React.createContext<HeadMetadataCollector | undefined>(undefined);

@@ -20,6 +20,7 @@ export interface ComponentData {
   type: "component";
   key: string;
   component: Component;
+  displayName: string;
   importedFrom?: string;
 }
 

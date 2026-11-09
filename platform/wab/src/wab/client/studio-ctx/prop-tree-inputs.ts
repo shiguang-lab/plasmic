@@ -426,72 +426,56 @@ export function collectPropTreeParams(
     : node.children.flatMap(collectPropTreeParams);
 }
 
-export function usePropTreeInputs(
-  studioCtx: { modelSnapshots: ModelSnapshots; site: Site },
-  component: Component,
-  params: readonly Param[],
-) {
-  const bindings = React.useRef(
-    new WeakMap<
-      typeof studioCtx,
-      WeakMap<Component, PropTreeInputs>
-    >(),
-  );
-  const modelWorld = studioCtx.modelSnapshots;
-  const committed = (() => {
-    let byComponent = bindings.current.get(studioCtx);
-    if (!byComponent) {
-      byComponent = new WeakMap();
-      bindings.current.set(studioCtx, byComponent);
+type PropTreeOwner = { modelSnapshots: ModelSnapshots; site: Site };
+
+/** Only committed tree sources are shared across temporary parameter candidates. */
+class PropTreeBindings {
+  private readonly owners = new WeakMap<PropTreeOwner, WeakMap<Component, PropTreeInputs>>();
+  private readonly listeners = new Set<() => void>();
+  private candidate: { owner: PropTreeOwner; component: Component; source: PropTreeInputs } | undefined;
+
+  /** A caller's roster is an external input. Validate its actual contents for
+   * each store read; keep uncommitted candidates disconnected from field leases. */
+  getCandidate(owner: PropTreeOwner, component: Component, params: readonly Param[]) {
+    const committed = this.owners.get(owner)?.get(component);
+    if (committed && !committed.isDisposed) {
+      committed.getSnapshot();
+      if (committed.isTerminal || committed.matchesParams(params)) { return committed; }
     }
-    let found = byComponent.get(component);
-    if (!found || found.isDisposed) {
-      found = new PropTreeInputs(
-        modelWorld,
-        component,
-        studioCtx.site,
-        params,
-        () => studioCtx.modelSnapshots === modelWorld,
-      );
-      byComponent.set(component, found);
+    const previous = this.candidate;
+    if (previous?.owner === owner && previous.component === component && previous.source.models === owner.modelSnapshots && previous.source.matchesParams(params)) {
+      return previous.source;
     }
-    return found;
-  })();
-  committed.getSnapshot();
-  const paramKey = params.map((param) => param.uid).join("|");
-  const candidate = React.useMemo(() => {
-    if (
-      committed.isTerminal ||
-      committed.isDisposed ||
-      committed.matchesParams(params)
-    ) {
-      return committed;
+    const models = owner.modelSnapshots;
+    const source = new PropTreeInputs(models, component, owner.site, params, () => owner.modelSnapshots === models, committed);
+    this.candidate = { owner, component, source };
+    return source;
+  }
+
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener);
+    return () => { this.listeners.delete(listener); };
+  };
+
+  commit(owner: PropTreeOwner, component: Component, source: PropTreeInputs) {
+    let byComponent = this.owners.get(owner);
+    if (!byComponent) { byComponent = new WeakMap(); this.owners.set(owner, byComponent); }
+    if (byComponent.get(component) !== source) {
+      byComponent.set(component, source);
+      this.listeners.forEach((listener) => listener());
     }
-    return new PropTreeInputs(
-      modelWorld,
-      component,
-      studioCtx.site,
-      params,
-      () => studioCtx.modelSnapshots === modelWorld,
-      committed,
-    );
-  }, [studioCtx, component, committed, params, paramKey, modelWorld]);
+  }
+}
+
+export function usePropTreeInputs(studioCtx: PropTreeOwner, component: Component, params: readonly Param[]) {
+  const [bindings] = React.useState(() => new PropTreeBindings());
+  const readCandidate = React.useCallback(() => bindings.getCandidate(studioCtx, component, params), [bindings, studioCtx, component, params]);
+  const candidate = React.useSyncExternalStore(bindings.subscribe, readCandidate, readCandidate);
   React.useEffect(() => {
-    if (candidate !== committed && candidate.canCommit()) {
-      let byComponent = bindings.current.get(studioCtx);
-      if (!byComponent) {
-        byComponent = new WeakMap();
-        bindings.current.set(studioCtx, byComponent);
-      }
-      byComponent.set(component, candidate);
-    }
+    if (candidate.canCommit()) { bindings.commit(studioCtx, component, candidate); }
     candidate.commitParams();
     candidate.publishPending();
-  }, [candidate, committed, studioCtx, component, paramKey, modelWorld]);
-  const tree = React.useSyncExternalStore(
-    candidate.subscribe,
-    candidate.getSnapshot,
-    candidate.getSnapshot,
-  );
+  }, [bindings, candidate, studioCtx, component]);
+  const tree = React.useSyncExternalStore(candidate.subscribe, candidate.getSnapshot, candidate.getSnapshot);
   return { models: candidate.models, tree };
 }

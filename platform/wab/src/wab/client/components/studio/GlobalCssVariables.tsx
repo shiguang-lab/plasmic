@@ -1,9 +1,9 @@
+import { memo } from "react";
 import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { useCurrentRecordingTarget } from "@/wab/client/hooks/useCurrentRecordingTarget";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import * as tokens from "@/wab/styles/_tokens";
 import * as cssVariables from "@/wab/styles/css-variables";
-import { observer } from "mobx-react";
 import { useEffect } from "react";
 
 export const NON_BASE_VARIANT_COLOR = tokens.tomato9;
@@ -52,7 +52,7 @@ export function getGlobalCssVariableValue(variable: string) {
   return getComputedStyle(getRootElement()).getPropertyValue(variable);
 }
 
-export const GlobalCssVariables = observer(function GlobalCssVariables_() {
+export const GlobalCssVariables = memo(function GlobalCssVariables_() {
   useSelectionControlsColor();
   useGridSpacing();
   return null;

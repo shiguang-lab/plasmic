@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,8 +24,8 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -85,13 +85,12 @@ function PlasmicUpsellCreditCard__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -206,12 +205,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -221,30 +216,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicUpsellCreditCard__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicUpsellCreditCard";
-  } else {
-    func.displayName = `PlasmicUpsellCreditCard.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicUpsellCreditCard__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicUpsellCreditCard__root<T extends PlasmicUpsellCreditCard__rootProps>(props: T & StrictProps<T, PlasmicUpsellCreditCard__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicUpsellCreditCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicUpsellCreditCard__root.displayName = "PlasmicUpsellCreditCard";
+
+type PlasmicUpsellCreditCard__stripeCardElementProps = NodeComponentProps<"stripeCardElement"> & {key?: React.Key};
+function PlasmicUpsellCreditCard__stripeCardElement<T extends PlasmicUpsellCreditCard__stripeCardElementProps>(props: T & StrictProps<T, PlasmicUpsellCreditCard__stripeCardElementProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("stripeCardElement", props);
+  return <PlasmicUpsellCreditCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"stripeCardElement"} />;
+}
+PlasmicUpsellCreditCard__stripeCardElement.displayName = "PlasmicUpsellCreditCard.stripeCardElement";
+
+type PlasmicUpsellCreditCard__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicUpsellCreditCard__text<T extends PlasmicUpsellCreditCard__textProps>(props: T & StrictProps<T, PlasmicUpsellCreditCard__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicUpsellCreditCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicUpsellCreditCard__text.displayName = "PlasmicUpsellCreditCard.text";
+
+type PlasmicUpsellCreditCard__spinnerContainerProps = NodeComponentProps<"spinnerContainer"> & {key?: React.Key};
+function PlasmicUpsellCreditCard__spinnerContainer<T extends PlasmicUpsellCreditCard__spinnerContainerProps>(props: T & StrictProps<T, PlasmicUpsellCreditCard__spinnerContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("spinnerContainer", props);
+  return <PlasmicUpsellCreditCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"spinnerContainer"} />;
+}
+PlasmicUpsellCreditCard__spinnerContainer.displayName = "PlasmicUpsellCreditCard.spinnerContainer";
+
+type PlasmicUpsellCreditCard__submitButtonProps = NodeComponentProps<"submitButton"> & {key?: React.Key};
+function PlasmicUpsellCreditCard__submitButton<T extends PlasmicUpsellCreditCard__submitButtonProps>(props: T & StrictProps<T, PlasmicUpsellCreditCard__submitButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("submitButton", props);
+  return <PlasmicUpsellCreditCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"submitButton"} />;
+}
+PlasmicUpsellCreditCard__submitButton.displayName = "PlasmicUpsellCreditCard.submitButton";
+
 
 export const PlasmicUpsellCreditCard = Object.assign(
   // Top-level PlasmicUpsellCreditCard renders the root element
-  makeNodeComponent("root"),
+  PlasmicUpsellCreditCard__root,
   {
     // Helper components rendering sub-elements
-    stripeCardElement: makeNodeComponent("stripeCardElement"),
-    text: makeNodeComponent("text"),
-    spinnerContainer: makeNodeComponent("spinnerContainer"),
-    submitButton: makeNodeComponent("submitButton"),
+    stripeCardElement: PlasmicUpsellCreditCard__stripeCardElement,
+    text: PlasmicUpsellCreditCard__text,
+    spinnerContainer: PlasmicUpsellCreditCard__spinnerContainer,
+    submitButton: PlasmicUpsellCreditCard__submitButton,
 
     // Metadata about props expected for PlasmicUpsellCreditCard
     internalVariantProps: PlasmicUpsellCreditCard__VariantProps,

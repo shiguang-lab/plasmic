@@ -126,3 +126,63 @@ it.each(["matching", "offline", "older-build"])("retains cached images for %s re
   cancel();
   vi.unstubAllGlobals();
 });
+
+it.each(["matching", "offline"])("finishes once after a cached %s revision check, including later cancellation", async (mode) => {
+  const blob = new Blob(["cached"]);
+  cacheMocks.read.mockResolvedValue({ blob, revision: 1, format: previewFormat });
+  vi.stubGlobal("fetch", vi.fn(async () => {
+    if (mode === "offline") { throw new Error("offline"); }
+    return new Response(JSON.stringify({ rev: { revision: 1 } }));
+  }));
+  const finish = vi.fn();
+  const cancel = subscribePreview("user", mode, vi.fn(), undefined, finish);
+  await vi.waitFor(() => expect(finish).toHaveBeenCalledOnce());
+  cancel();
+  expect(finish).toHaveBeenCalledOnce();
+  vi.unstubAllGlobals();
+});
+
+it("finishes generated work only after the PNG cache write completes", async () => {
+  cacheMocks.read.mockResolvedValue(undefined);
+  const writing = Promise.withResolvers<void>();
+  cacheMocks.write.mockReturnValueOnce(writing.promise);
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ rev: { revision: 1 } }))));
+  vi.stubGlobal("desktopPreview", { render: vi.fn(async () => new Uint8Array(4)), cancel: vi.fn() });
+  const finish = vi.fn();
+  const cancel = subscribePreview("user", "pending-write", vi.fn(), undefined, finish);
+  await vi.waitFor(() => expect(cacheMocks.write).toHaveBeenCalledWith("user:pending-write", 1, expect.any(Blob)));
+  expect(finish).not.toHaveBeenCalled();
+  writing.resolve();
+  await vi.waitFor(() => expect(finish).toHaveBeenCalledOnce());
+  cancel();
+  expect(finish).toHaveBeenCalledOnce();
+  vi.unstubAllGlobals();
+});
+
+it("finishes a failed refresh without replacing a cached image", async () => {
+  const blob = new Blob(["cached"]);
+  cacheMocks.read.mockResolvedValue({ blob, revision: 0, format: previewFormat });
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify({ rev: { revision: 1 } }))));
+  vi.stubGlobal("desktopPreview", { render: vi.fn(async () => { throw new Error("render failed"); }), cancel: vi.fn() });
+  const finish = vi.fn(), listener = vi.fn();
+  const cancel = subscribePreview("user", "failed-refresh", listener, undefined, finish);
+  await vi.waitFor(() => expect(finish).toHaveBeenCalledOnce());
+  expect(listener.mock.calls).toEqual([[blob]]);
+  cancel();
+  expect(finish).toHaveBeenCalledOnce();
+  vi.unstubAllGlobals();
+});
+
+it("finishes cancellation before cache validation and never starts late work", async () => {
+  const reading = Promise.withResolvers<undefined>();
+  cacheMocks.read.mockReturnValueOnce(reading.promise);
+  const listener = vi.fn(), start = vi.fn(), finish = vi.fn();
+  const cancel = subscribePreview("user", "cancelled", listener, start, finish);
+  cancel();
+  expect(finish).toHaveBeenCalledOnce();
+  reading.resolve(undefined);
+  await Promise.resolve(); await Promise.resolve();
+  expect(listener).not.toHaveBeenCalled();
+  expect(start).not.toHaveBeenCalled();
+  expect(finish).toHaveBeenCalledOnce();
+});

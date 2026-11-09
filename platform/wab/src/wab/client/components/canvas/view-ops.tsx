@@ -89,7 +89,6 @@ import { promptComponentName, promptPageName } from "@/wab/client/prompts";
 import { getComboForAction } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { ViewCtx, ensureBaseRs } from "@/wab/client/studio-ctx/view-ctx";
-import { runInAction } from "mobx";
 import { trackEvent } from "@/wab/client/tracking";
 import {
   fontWeightOptions,
@@ -1403,7 +1402,7 @@ export class ViewOps {
         ? expr.text.join("") : exprs.tryExtractJson(expr)
       : part.element.querySelector(part.text.selector)?.textContent;
     if (typeof value !== "string") {
-      vc.highlightParams = { tpl: part.tpl, params: [param] };
+      vc.setHighlightParams({ tpl: part.tpl, params: [param] });
       notification.info({ message: <UiText message="Edit bound text in the property panel." /> });
       return;
     }
@@ -1703,12 +1702,10 @@ export class ViewOps {
 
   refreshHover(deepSelect: boolean) {
     if (this.lastHoverDom?.[0]?.isConnected) {
-      runInAction(() =>
-        this.tryHoverDomElt(ensure(this.lastHoverDom, "Hover target"), {
+      this.tryHoverDomElt(ensure(this.lastHoverDom, "Hover target"), {
           deepSelect,
           exact: false,
-        }),
-      );
+        });
     }
   }
 

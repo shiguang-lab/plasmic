@@ -7,28 +7,8 @@ export const PlasmicHeadContext = React.createContext<
 
 export function PlasmicHead(props: plasmicQuery.HeadMetadata) {
   const Head = React.useContext(PlasmicHeadContext);
-  const headMetadata =
-    // Check if `HeadMetadataContext` is exported for backward compatibility
-    "HeadMetadataContext" in plasmicQuery
-      ? React.useContext(plasmicQuery.HeadMetadataContext)
-      : undefined;
-
-  if (headMetadata) {
-    // If we have the Head metadata object specified, mutate it so to ensure it
-    // stores the data that should go in the <head>.
-    if (props.image) {
-      headMetadata.image = props.image;
-    }
-    if (props.title) {
-      headMetadata.title = props.title;
-    }
-    if (props.description) {
-      headMetadata.description = props.description;
-    }
-    if (props.canonical) {
-      headMetadata.canonical = props.canonical;
-    }
-  }
+  const metadataCollector = React.useContext(plasmicQuery.HeadMetadataContext);
+  metadataCollector?.collect(props);
 
   if (!Head) {
     console.warn(

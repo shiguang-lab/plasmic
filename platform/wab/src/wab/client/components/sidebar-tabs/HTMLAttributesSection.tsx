@@ -1,3 +1,5 @@
+import { useElementPropValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
+import { useTargetedStylePanelInputs } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useShallow } from "zustand/react/shallow";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
@@ -68,7 +70,6 @@ import { tryGetBaseVariantSetting } from "@/wab/shared/Variants";
 import { notification, Popover, Select } from "antd";
 import { RefSelectProps } from "antd/lib/select";
 import { keyBy, orderBy, uniq, without } from "lodash";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
 
@@ -185,7 +186,10 @@ function switchableTags(tpl: TplTag): readonly string[] {
   }
 }
 
-export const TplTagSection = observer(TplTagSection_);
+export const TplTagSection = React.memo(function TplTagSection(props: Parameters<typeof TplTagSection_>[0]) {
+  const source = useTargetedStylePanelInputs(props.viewCtx.studioCtx, { kind: "attributes", view: props.viewCtx, tpl: props.tpl });
+  return source.active ? <TplTagSection_ {...props} /> : null;
+});
 
 function TplTagSection_(props: { tpl: TplTag; viewCtx: ViewCtx }) {
   const { t: uiT } = useI18n();
@@ -296,8 +300,11 @@ interface AttrInfo {
   alwaysVisible: boolean;
 }
 
-export const HTMLAttributesSection = observer(
-  ({
+export const HTMLAttributesSection = React.memo(function HTMLAttributesSection(props: Parameters<typeof HTMLAttributesSectionBody>[0]) {
+  const source = useTargetedStylePanelInputs(props.viewCtx.studioCtx, { kind: "attributes", view: props.viewCtx, tpl: props.tpl });
+  return source.active ? <HTMLAttributesSectionBody {...props} /> : null;
+});
+function HTMLAttributesSectionBody({
     viewCtx,
     tpl,
     expsProvider,
@@ -307,7 +314,7 @@ export const HTMLAttributesSection = observer(
     tpl: TplTag | TplComponent;
     expsProvider: TplExpsProvider;
     component: Component;
-  }) => {
+  }) {
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   useViewSelection(viewCtx, (state) => state.context);
     const params = isTplTag(tpl)
@@ -329,7 +336,7 @@ export const HTMLAttributesSection = observer(
           }
         }
       };
-    }, []);
+    }, [addedAttrs, setAddedAttrs]);
 
     const [addedEventHandlerKey, setAddedEventHandlerKey] = React.useState<
       EventHandlerKeyType | undefined
@@ -465,8 +472,7 @@ export const HTMLAttributesSection = observer(
         )}
       </>
     );
-  },
-);
+}
 
 function AddHtmlAttrButton(props: {
   tag: string;
@@ -628,8 +634,11 @@ interface HTMLAttributePropEditorProps {
   about?: string;
 }
 
-export const HTMLAttributePropEditor = observer(
-  function HTMLAttributePropEditor(props: HTMLAttributePropEditorProps) {
+export const HTMLAttributePropEditor = React.memo(function HTMLAttributePropEditor(props: HTMLAttributePropEditorProps) {
+  const source = useTargetedStylePanelInputs(props.viewCtx.studioCtx, { kind: "attributes", view: props.viewCtx, tpl: props.tpl });
+  return source.active ? <HTMLAttributePropEditorBody {...props} /> : null;
+});
+function HTMLAttributePropEditorBody(props: HTMLAttributePropEditorProps) {
     const { viewCtx, tpl, expsProvider, attr, onChange, about } = props;
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   useViewSelection(viewCtx, (state) => state.context);
@@ -638,11 +647,13 @@ export const HTMLAttributePropEditor = observer(
     const baseVs = vtm.tryGetBaseVariantSetting(tpl);
     const curSharedVS = vtm.tryGetCurrentSharedVariantSetting(tpl);
 
+    const readExpression = React.useCallback(() => { const current = expsProvider.effectiveVs().attrs[attr]; return current ? clone(current) : undefined; }, [expsProvider, attr]);
+    const expr = useElementPropValue(viewCtx, tpl, readExpression);
+
     if (!curSharedVS || !baseVs) {
       return null;
     }
 
-    const expr = effectiveVs.attrs[attr];
     const attrSource = effectiveVs.getAttrSource(attr);
     const propType = inferPropTypeFromAttr(viewCtx, tpl, attr) ?? "string";
     const defined = computeDefinedIndicator(
@@ -704,5 +715,4 @@ export const HTMLAttributePropEditor = observer(
         viewCtx={viewCtx}
       />
     );
-  },
-);
+}

@@ -1,6 +1,7 @@
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import { ensure } from "@/wab/shared/common";
+import { ensureKnownTplTag } from "@/wab/shared/model/classes";
 
 async function fixture() {
   const { studioCtx } = fakeStudioCtx();
@@ -102,3 +103,58 @@ it("rejects enabling an empty canvas but always permits disabling", async () => 
     f.studioCtx.dispose();
   }
 });
+
+it("reads, edits, batches, undoes and saves without leaving canvas interaction", async () => {
+  const f = await fixture();
+  try {
+    const page = ensure(f.studioCtx.site.components.find(c => c.name === "Page"), "Page missing");
+    const root = ensureKnownTplTag(page.tplTree);
+    const name = root.name;
+    const input = { componentUuid: page.uuid, elementUuid: page.tplTree.uuid };
+    const arena = f.studioCtx.currentArena;
+    await f.call("setInteractiveMode", { enabled: true });
+    expect(await f.call("getEditorContext", {})).toMatchObject({ mode: "preview", previewKind: "interactive", canEdit: true });
+    expect(await f.call("identify", { model: "test", client: "test", skill: "plasmic", outputFormat: "json" })).toMatchObject({ canEdit: true });
+    await f.call("read", { elements: [input] });
+    await f.call("queryElements", { componentUuid: page.uuid });
+    expect(await f.call("validate", {})).toMatchObject({ valid: true });
+    await f.call("changeElement", { ...input, name: "Updated" });
+    expect(root.name).toBe("Updated");
+    expect(await f.call("undo", {})).toEqual({ undone: true });
+    expect(root.name).toBe(name);
+    await f.call("executeBatch", { operations: [
+      { name: "changeElement", input: { ...input, name: "BatchUpdated" } },
+    ] });
+    expect(root.name).toBe("BatchUpdated");
+    const save = vi.spyOn(f.studioCtx, "save").mockResolvedValue(undefined);
+    f.studioCtx.dbCtx().revisionNum = 1;
+    vi.spyOn(f.studioCtx, "hasUnsavedChanges").mockReturnValue(false);
+    expect(await f.call("save", {})).toMatchObject({ saved: true });
+    expect(save).toHaveBeenCalledExactlyOnceWith({ noErrorNotification: true });
+    expect(f.studioCtx.isInteractiveMode).toBe(true);
+    expect(f.studioCtx.currentArena).toBe(arena);
+  } finally {
+    f.studioCtx.dispose();
+  }
+});
+
+it.each(["blocked", "stale", "readOnly", "protectedMain", "nativePreview"])(
+  "keeps the %s write guard while interacting",
+  async state => {
+    const f = await fixture();
+    try {
+      await f.call("setInteractiveMode", { enabled: true });
+      if (state === "blocked") f.studioCtx.setBlockChanges(true);
+      if (state === "stale") f.studioCtx.isAtTip = false;
+      if (state === "readOnly") vi.spyOn(f.studioCtx, "canEditProject").mockReturnValue(false);
+      if (state === "protectedMain") f.studioCtx.siteInfo.isMainBranchProtected = true;
+      if (state === "nativePreview") vi.spyOn(f.studioCtx, "isLiveMode", "get").mockReturnValue(true);
+      expect(await f.call("getEditorContext", {})).toMatchObject({ canEdit: false });
+      await expect(f.call("createComponent", { name: "Unauthorized" })).rejects.toThrow();
+      expect(f.studioCtx.site.components.some(c => c.name === "Unauthorized")).toBe(false);
+      expect(f.studioCtx.isInteractiveMode).toBe(true);
+    } finally {
+      f.studioCtx.dispose();
+    }
+  },
+);

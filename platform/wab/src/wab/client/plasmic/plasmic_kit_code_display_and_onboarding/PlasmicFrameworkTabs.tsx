@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,7 +23,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import FrameworkTab from "../../components/studio/code-quickstart/FrameworkTab"; // plasmic-import: aSLlLoswhi/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: pTmuho7nuNtDcvZAf2kJgx/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: pTmuho7nuNtDcvZAf2kJgx/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -126,11 +126,10 @@ function PlasmicFrameworkTabs__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -353,12 +352,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -368,35 +363,93 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicFrameworkTabs__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicFrameworkTabs";
-  } else {
-    func.displayName = `PlasmicFrameworkTabs.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicFrameworkTabs__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicFrameworkTabs__root<T extends PlasmicFrameworkTabs__rootProps>(props: T & StrictProps<T, PlasmicFrameworkTabs__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicFrameworkTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicFrameworkTabs__root.displayName = "PlasmicFrameworkTabs";
+
+type PlasmicFrameworkTabs__reactProps = NodeComponentProps<"react"> & {key?: React.Key};
+function PlasmicFrameworkTabs__react<T extends PlasmicFrameworkTabs__reactProps>(props: T & StrictProps<T, PlasmicFrameworkTabs__reactProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("react", props);
+  return <PlasmicFrameworkTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"react"} />;
+}
+PlasmicFrameworkTabs__react.displayName = "PlasmicFrameworkTabs.react";
+
+type PlasmicFrameworkTabs__nextjsProps = NodeComponentProps<"nextjs"> & {key?: React.Key};
+function PlasmicFrameworkTabs__nextjs<T extends PlasmicFrameworkTabs__nextjsProps>(props: T & StrictProps<T, PlasmicFrameworkTabs__nextjsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("nextjs", props);
+  return <PlasmicFrameworkTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"nextjs"} />;
+}
+PlasmicFrameworkTabs__nextjs.displayName = "PlasmicFrameworkTabs.nextjs";
+
+type PlasmicFrameworkTabs__hydrogenProps = NodeComponentProps<"hydrogen"> & {key?: React.Key};
+function PlasmicFrameworkTabs__hydrogen<T extends PlasmicFrameworkTabs__hydrogenProps>(props: T & StrictProps<T, PlasmicFrameworkTabs__hydrogenProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("hydrogen", props);
+  return <PlasmicFrameworkTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"hydrogen"} />;
+}
+PlasmicFrameworkTabs__hydrogen.displayName = "PlasmicFrameworkTabs.hydrogen";
+
+type PlasmicFrameworkTabs__remixProps = NodeComponentProps<"remix"> & {key?: React.Key};
+function PlasmicFrameworkTabs__remix<T extends PlasmicFrameworkTabs__remixProps>(props: T & StrictProps<T, PlasmicFrameworkTabs__remixProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("remix", props);
+  return <PlasmicFrameworkTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"remix"} />;
+}
+PlasmicFrameworkTabs__remix.displayName = "PlasmicFrameworkTabs.remix";
+
+type PlasmicFrameworkTabs__tanstackProps = NodeComponentProps<"tanstack"> & {key?: React.Key};
+function PlasmicFrameworkTabs__tanstack<T extends PlasmicFrameworkTabs__tanstackProps>(props: T & StrictProps<T, PlasmicFrameworkTabs__tanstackProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("tanstack", props);
+  return <PlasmicFrameworkTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tanstack"} />;
+}
+PlasmicFrameworkTabs__tanstack.displayName = "PlasmicFrameworkTabs.tanstack";
+
+type PlasmicFrameworkTabs__jsProps = NodeComponentProps<"js"> & {key?: React.Key};
+function PlasmicFrameworkTabs__js<T extends PlasmicFrameworkTabs__jsProps>(props: T & StrictProps<T, PlasmicFrameworkTabs__jsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("js", props);
+  return <PlasmicFrameworkTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"js"} />;
+}
+PlasmicFrameworkTabs__js.displayName = "PlasmicFrameworkTabs.js";
+
+type PlasmicFrameworkTabs__phpProps = NodeComponentProps<"php"> & {key?: React.Key};
+function PlasmicFrameworkTabs__php<T extends PlasmicFrameworkTabs__phpProps>(props: T & StrictProps<T, PlasmicFrameworkTabs__phpProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("php", props);
+  return <PlasmicFrameworkTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"php"} />;
+}
+PlasmicFrameworkTabs__php.displayName = "PlasmicFrameworkTabs.php";
+
+type PlasmicFrameworkTabs__restProps = NodeComponentProps<"rest"> & {key?: React.Key};
+function PlasmicFrameworkTabs__rest<T extends PlasmicFrameworkTabs__restProps>(props: T & StrictProps<T, PlasmicFrameworkTabs__restProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("rest", props);
+  return <PlasmicFrameworkTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"rest"} />;
+}
+PlasmicFrameworkTabs__rest.displayName = "PlasmicFrameworkTabs.rest";
+
+type PlasmicFrameworkTabs__graphqlProps = NodeComponentProps<"graphql"> & {key?: React.Key};
+function PlasmicFrameworkTabs__graphql<T extends PlasmicFrameworkTabs__graphqlProps>(props: T & StrictProps<T, PlasmicFrameworkTabs__graphqlProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("graphql", props);
+  return <PlasmicFrameworkTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"graphql"} />;
+}
+PlasmicFrameworkTabs__graphql.displayName = "PlasmicFrameworkTabs.graphql";
+
 
 export const PlasmicFrameworkTabs = Object.assign(
   // Top-level PlasmicFrameworkTabs renders the root element
-  makeNodeComponent("root"),
+  PlasmicFrameworkTabs__root,
   {
     // Helper components rendering sub-elements
-    react: makeNodeComponent("react"),
-    nextjs: makeNodeComponent("nextjs"),
-    hydrogen: makeNodeComponent("hydrogen"),
-    remix: makeNodeComponent("remix"),
-    tanstack: makeNodeComponent("tanstack"),
-    js: makeNodeComponent("js"),
-    php: makeNodeComponent("php"),
-    rest: makeNodeComponent("rest"),
-    graphql: makeNodeComponent("graphql"),
+    react: PlasmicFrameworkTabs__react,
+    nextjs: PlasmicFrameworkTabs__nextjs,
+    hydrogen: PlasmicFrameworkTabs__hydrogen,
+    remix: PlasmicFrameworkTabs__remix,
+    tanstack: PlasmicFrameworkTabs__tanstack,
+    js: PlasmicFrameworkTabs__js,
+    php: PlasmicFrameworkTabs__php,
+    rest: PlasmicFrameworkTabs__rest,
+    graphql: PlasmicFrameworkTabs__graphql,
 
     // Metadata about props expected for PlasmicFrameworkTabs
     internalVariantProps: PlasmicFrameworkTabs__VariantProps,

@@ -510,12 +510,12 @@ export function ContentStackField({
   ...rest
 }: ContentStackFieldProps) {
   const item = useSelector("contentstackItem");
+  const schema = useSelector("contentstackSchema");
   if (!item) {
     return (
       <div>ContentStackField must be used within a ContentStackFetcher </div>
     );
   }
-  const schema = useSelector("contentstackSchema");
 
   setControlContextData?.({
     data: item,

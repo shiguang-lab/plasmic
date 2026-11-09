@@ -51,7 +51,7 @@ SQL/JsonLogic 使用上游公开导出器；需要读回 JsonLogic 的属性与�
 ## 补丁处置
 
 - **Swell**：当前工作区使用 `swell-js 5.9.3`，原默认导出声明补丁及配置引用已经移除。这是其他依赖修复会话的结果，本次只核实当前源码和锁文件状态。
-- **Inspector**：registry 最新正式版仍为 `react-inspector 9.0.0`。上游[公开说明](https://github.com/storybookjs/react-inspector#theme)支持自定义对象主题，但发布声明将相关 `theme` 参数推断为字符串。当前补丁仅修正 `.d.ts`，没有修改运行时或 React。
+- **Inspector**：本次重新查询 npm，`latest` 为 `react-inspector 9.0.0`，工作区已使用该版本；`canary` 为更早的 `8.0.1--canary.194.17460316903.0`。该版本运行时支持自定义对象主题，但发布声明将 `ObjectInspector`／`TableInspector` 的 `theme` 参数限定为字符串。[本地补丁](../../../platform/patches/react-inspector.patch)只将这两个声明补为 `string | typeof theme$1 | undefined`，不修改运行时。`useInspectorTheme` 使用 Antd token 配色，`CodePreview` 另设置代码字体，因此实际传入主题对象。`skipLibCheck: true` 仍检查自有源码中的传参：独立最小消费者在未补丁声明下报 TS2322，应用补丁后通过。
 - Inspector 使用预设主题字符串可消除补丁，但会失去当前 Antd token 配色和代码字体定制；用类型断言、模块声明覆盖或隐藏在 props spread 中，只会转移声明问题。保留当前主题合同的直接路径是等待上游发布正确声明，或向上游提供声明修复。未经用户授权未提交外部 issue/PR。
 - 既有 React Aria、react-slick 和跨 iframe DOM 补丁不属于本次新增的 React 19 模拟逻辑；其中 `@rc-component/util` 的跨窗口判断补丁与原版本逐字节相同。本次没有宣称这些既有问题已被上游解决，也没有无依据移除。
 

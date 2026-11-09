@@ -57,8 +57,8 @@ export const nextjsStrategy: CPAStrategy = {
       ` --use-${packageManagerCommand(
         packageManager,
       )} --eslint --no-src-dir --import-alias "@/*" --no-tailwind --no-react-compiler --no-cache-components --yes` +
-      // Berry must install into the project we set up below, not the default PnP one
-      (isYarnBerry ? " --skip-install" : "");
+      // Install after writing the selected manager's own project settings.
+      (isYarnBerry || packageManager === "pnpm" ? " --skip-install" : "");
 
     // Default Next.js starter already supports Typescript
     // See where we `touch tsconfig.json` later on

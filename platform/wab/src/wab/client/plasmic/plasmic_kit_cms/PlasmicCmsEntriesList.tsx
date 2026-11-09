@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,14 +24,14 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import CmsEntryItem from "../../components/cms/CmsEntryItem"; // plasmic-import: girCdMST6R/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import Searchbox from "../../components/widgets/Searchbox"; // plasmic-import: po7gr0PX4_gWo/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -106,11 +106,10 @@ function PlasmicCmsEntriesList__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isEmpty",
@@ -119,18 +118,20 @@ function PlasmicCmsEntriesList__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.isEmpty,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -288,12 +289,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -303,31 +300,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCmsEntriesList__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCmsEntriesList";
-  } else {
-    func.displayName = `PlasmicCmsEntriesList.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCmsEntriesList__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCmsEntriesList__root<T extends PlasmicCmsEntriesList__rootProps>(props: T & StrictProps<T, PlasmicCmsEntriesList__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCmsEntriesList__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCmsEntriesList__root.displayName = "PlasmicCmsEntriesList";
+
+type PlasmicCmsEntriesList__addButtonProps = NodeComponentProps<"addButton"> & {key?: React.Key};
+function PlasmicCmsEntriesList__addButton<T extends PlasmicCmsEntriesList__addButtonProps>(props: T & StrictProps<T, PlasmicCmsEntriesList__addButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addButton", props);
+  return <PlasmicCmsEntriesList__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addButton"} />;
+}
+PlasmicCmsEntriesList__addButton.displayName = "PlasmicCmsEntriesList.addButton";
+
+type PlasmicCmsEntriesList__searchInputProps = NodeComponentProps<"searchInput"> & {key?: React.Key};
+function PlasmicCmsEntriesList__searchInput<T extends PlasmicCmsEntriesList__searchInputProps>(props: T & StrictProps<T, PlasmicCmsEntriesList__searchInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchInput", props);
+  return <PlasmicCmsEntriesList__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchInput"} />;
+}
+PlasmicCmsEntriesList__searchInput.displayName = "PlasmicCmsEntriesList.searchInput";
+
+type PlasmicCmsEntriesList__sortButtonProps = NodeComponentProps<"sortButton"> & {key?: React.Key};
+function PlasmicCmsEntriesList__sortButton<T extends PlasmicCmsEntriesList__sortButtonProps>(props: T & StrictProps<T, PlasmicCmsEntriesList__sortButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sortButton", props);
+  return <PlasmicCmsEntriesList__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sortButton"} />;
+}
+PlasmicCmsEntriesList__sortButton.displayName = "PlasmicCmsEntriesList.sortButton";
+
+type PlasmicCmsEntriesList__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicCmsEntriesList__svg<T extends PlasmicCmsEntriesList__svgProps>(props: T & StrictProps<T, PlasmicCmsEntriesList__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicCmsEntriesList__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicCmsEntriesList__svg.displayName = "PlasmicCmsEntriesList.svg";
+
+type PlasmicCmsEntriesList__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicCmsEntriesList__text<T extends PlasmicCmsEntriesList__textProps>(props: T & StrictProps<T, PlasmicCmsEntriesList__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicCmsEntriesList__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicCmsEntriesList__text.displayName = "PlasmicCmsEntriesList.text";
+
 
 export const PlasmicCmsEntriesList = Object.assign(
   // Top-level PlasmicCmsEntriesList renders the root element
-  makeNodeComponent("root"),
+  PlasmicCmsEntriesList__root,
   {
     // Helper components rendering sub-elements
-    addButton: makeNodeComponent("addButton"),
-    searchInput: makeNodeComponent("searchInput"),
-    sortButton: makeNodeComponent("sortButton"),
-    svg: makeNodeComponent("svg"),
-    text: makeNodeComponent("text"),
+    addButton: PlasmicCmsEntriesList__addButton,
+    searchInput: PlasmicCmsEntriesList__searchInput,
+    sortButton: PlasmicCmsEntriesList__sortButton,
+    svg: PlasmicCmsEntriesList__svg,
+    text: PlasmicCmsEntriesList__text,
 
     // Metadata about props expected for PlasmicCmsEntriesList
     internalVariantProps: PlasmicCmsEntriesList__VariantProps,

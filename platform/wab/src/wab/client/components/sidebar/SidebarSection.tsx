@@ -11,7 +11,6 @@ import { isEmptyReactNode } from "@/wab/commons/ViewUtil";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { useTheme } from "antd-style";
 import cn from "classnames";
-import { observer, Observer } from "mobx-react";
 import React, {
   CSSProperties,
   forwardRef,
@@ -216,7 +215,7 @@ export type SidebarSectionHandle = {
   collapse(): void;
 };
 
-export const SidebarSection = observer(forwardRef(SidebarSection_));
+export const SidebarSection = React.memo(forwardRef(SidebarSection_));
 
 export function SidebarSection_(
   {
@@ -398,19 +397,13 @@ export function SidebarSection_(
           }}
         >
           <SidebarSectionContext.Provider value={{ isExpanded: showMore }}>
-            <Observer>
-              {() => (
-                <>
-                  {showEmptyDescription ? (
-                    <div className={cn(styles.emptyDescription, "dimfg")}>
-                      {emptyDescription}
-                    </div>
-                  ) : (
-                    renderableChildren
-                  )}
-                </>
-              )}
-            </Observer>
+            {showEmptyDescription ? (
+              <div className={cn(styles.emptyDescription, "dimfg")}>
+                {emptyDescription}
+              </div>
+            ) : (
+              renderableChildren
+            )}
             {hasCollapsibleContent && (
               <ChevronToggle
                 expanded={showMore}

@@ -713,10 +713,9 @@ export class Bundler {
       );
     };
 
-    // For incremental unbundling, the tree might already be observed by mobx
-    // so we want to delay fixing fields from those instances until the new
-    // instances are correct (in order to avoid mobx from seeing those fixes
-    // as model changes).
+    // Incremental unbundling may update an instrumented model tree. Delay
+    // fixing existing fields until new instances are valid, so recording
+    // sees complete references rather than partially initialized instances.
     // See https://app.clubhouse.io/plasmic/story/17655/crash-when-syncing-changes-from-other-users
     const delayedIids = new Set(
       partial

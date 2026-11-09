@@ -1,11 +1,11 @@
 import { fakeRegistryViewCtx, fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { PROTOTYPE_TOOL_META } from "@/wab/shared/copilot/prototype-tools";
 import { COPILOT_TOOLS } from "@/wab/client/copilot";
+import { presentToolTarget, requestToolTarget } from "@/wab/client/copilot/present-target";
 import { createViewportFixture } from "@/wab/client/__testonly__/viewport";
 import { getArenaFrames } from "@/wab/shared/Arenas";
-import { ensure } from "@/wab/shared/common";
+import { assert, ensure } from "@/wab/shared/common";
 import { Box } from "@/wab/shared/geom";
-import { runInAction } from "mobx";
 
 async function fixture() {
   const { studioCtx } = fakeStudioCtx();
@@ -88,6 +88,7 @@ async function fixture() {
     input,
     selection,
     change,
+    present: () => presentToolTarget(studioCtx, page, page.tplTree),
   };
 }
 
@@ -120,9 +121,9 @@ it("automatically presents a targeted model read by selection reveal followed by
   f.target.hidden = true;
   vi.mocked(f.vc.setStudioFocusByTpl).mockImplementation(() => { f.target.hidden = false; });
   const result = await f.call("read", { view: "properties", elements: [f.input] });
-  expect(result.presentation, result.presentation?.message).toMatchObject({ ...f.input, visible: true, reason: "visible", phase: "after" });
+  expect(result.presentation, result.presentation?.message).toMatchObject({ ...f.input, visible: null, reason: "pending", phase: "after" });
   expect(f.vc.setStudioFocusByTpl).toHaveBeenCalledWith(page.tplTree);
-  expect(f.parent.scrollTop).toBe(420);
+  await vi.waitFor(() => expect(f.parent.scrollTop).toBe(420));
   expect(f.fit).not.toHaveBeenCalled();
   expect(businessHandler).not.toHaveBeenCalled();
   expect(f.studioCtx.isInteractiveMode).toBe(false);
@@ -133,20 +134,40 @@ it("automatically presents a targeted model read by selection reveal followed by
 it("locates a target outside the visible Studio workspace using the existing viewport fit", async () => {
   const f = await visibleEditorFixture();
   vi.spyOn(f.viewport, "getBoundingClientRect").mockReturnValue(new DOMRect(1200, 0, 600, 400));
-  expect((await f.call("read", { elements: [f.input] })).presentation.visible).toBe(true);
+  expect((await f.call("read", { elements: [f.input] })).presentation.visible).toBeNull();
+  await vi.waitFor(() => expect(f.fit).toHaveBeenCalled());
   expect(f.fit).toHaveBeenCalledExactlyOnceWith(f.target);
 });
 
-it("returns from interaction to editing before automatically selecting the read target", async () => {
+it("selects and reveals a read target without leaving interaction", async () => {
   const f = await visibleEditorFixture();
-  runInAction(() => { f.studioCtx.isInteractiveMode = true; });
+  f.studioCtx.isInteractiveMode = true;
+  f.target.hidden = true;
   vi.mocked(f.vc.setStudioFocusByTpl).mockImplementation(() => {
-    expect(f.studioCtx.isInteractiveMode).toBe(false);
+    expect(f.studioCtx.isInteractiveMode).toBe(true);
+    f.target.hidden = false;
   });
   const result = await f.call("read", { elements: [f.input] });
-  expect(result.presentation).toMatchObject({ visible: true, reason: "visible" });
+  expect(result.presentation).toMatchObject({ visible: null, reason: "pending" });
   expect(f.vc.setStudioFocusByTpl).toHaveBeenCalled();
-  expect(f.studioCtx.isInteractiveMode).toBe(false);
+  expect(f.target.hidden).toBe(false);
+  expect(f.studioCtx.isInteractiveMode).toBe(true);
+});
+
+it("selects and reveals a hidden edit target without leaving interaction", async () => {
+  const f = await visibleEditorFixture();
+  vi.mocked(f.studioCtx.canEditProject).mockReturnValue(true);
+  f.studioCtx.isInteractiveMode = true;
+  f.target.hidden = true;
+  vi.mocked(f.vc.setStudioFocusByTpl).mockImplementation(() => {
+    expect(f.studioCtx.isInteractiveMode).toBe(true);
+    f.target.hidden = false;
+  });
+  const result = await f.call("changeElement", { ...f.input, name: "Updated" });
+  expect(result.presentation).toMatchObject({ visible: null, reason: "pending" });
+  expect(f.studioCtx.site.components.find(c => c.uuid === f.input.componentUuid)?.tplTree).toMatchObject({ name: "Updated" });
+  expect(f.vc.setStudioFocusByTpl).toHaveBeenCalled();
+  expect(f.studioCtx.isInteractiveMode).toBe(true);
 });
 
 it("preserves a successful mutation when automatic presentation throws", async () => {
@@ -154,9 +175,78 @@ it("preserves a successful mutation when automatic presentation throws", async (
   vi.mocked(f.studioCtx.canEditProject).mockReturnValue(true);
   vi.mocked(f.vc.setStudioFocusByTpl).mockImplementation(() => { throw new Error("Canvas unavailable"); });
   const result = await f.call("changeElement", { ...f.input, name: "Updated" });
-  expect(result.presentation).toMatchObject({ visible: false, reason: "presentation-failed", message: expect.stringContaining("Do not repeat a successful mutation") });
+  expect(result.presentation).toMatchObject({ visible: null, reason: "pending" });
+  expect(await f.present()).toMatchObject({ visible: false, reason: "presentation-failed" });
   expect(f.studioCtx.site.components.find(c => c.uuid === f.input.componentUuid)?.tplTree).toMatchObject({ name: "Updated" });
 });
+
+it.each([false, true])("keeps model reads, writes and later calls running while rendering never settles (interactive: %s)", async interactive => {
+  const f = await visibleEditorFixture();
+  vi.mocked(f.studioCtx.canEditProject).mockReturnValue(true);
+  f.studioCtx.isInteractiveMode = interactive;
+  let release = () => {};
+  const rendering = new Promise<void>(resolve => { release = resolve; });
+  vi.mocked(f.vc.awaitSync).mockReturnValue(rendering);
+  try {
+    const read = await f.call("read", { elements: [f.input] });
+    expect(read.results).toHaveLength(1);
+    expect(read.presentation).toMatchObject({ visible: null, reason: "pending" });
+    await f.call("changeElement", { ...f.input, name: "UpdatedWhileRendering" });
+    await f.call("executeBatch", { operations: [
+      { name: "changeElement", input: { ...f.input, name: "NextCall" } },
+    ] });
+    expect(f.studioCtx.site.components.find(c => c.uuid === f.input.componentUuid)?.tplTree).toMatchObject({ name: "NextCall" });
+    expect(f.studioCtx.isInteractiveMode).toBe(interactive);
+  } finally {
+    release();
+  }
+}, 1500);
+
+it("returns model data while target canvas acquisition is pending and skips a cancelled late selection", async () => {
+  const f = await visibleEditorFixture();
+  let unavailable = true;
+  vi.spyOn(f.vc, "isDisposed", "get").mockImplementation(() => unavailable);
+  let release = () => {};
+  const acquired = new Promise<typeof f.vc>(resolve => { release = () => resolve(f.vc); });
+  vi.spyOn(f.studioCtx, "getViewCtxForComponent").mockReturnValue(acquired);
+  try {
+    const read = await f.call("read", { elements: [f.input] });
+    expect(read.results).toHaveLength(1);
+    expect(read.presentation).toMatchObject({ visible: null, reason: "pending" });
+    unavailable = false;
+    await f.call("read", { elements: [f.input] });
+    await vi.waitFor(() => expect(f.vc.setStudioFocusByTpl).toHaveBeenCalledTimes(1));
+  } finally {
+    release();
+  }
+  await acquired;
+  await new Promise(resolve => setTimeout(resolve, 0));
+  expect(f.studioCtx.getViewCtxForComponent).toHaveBeenCalledTimes(1);
+  expect(f.vc.setStudioFocusByTpl).toHaveBeenCalledTimes(1);
+}, 1500);
+
+it("expires stalled background presentation without scrolling a late result", async () => {
+  const f = await visibleEditorFixture();
+  const page = ensure(f.studioCtx.site.components.find(c => c.uuid === f.input.componentUuid), "Page missing");
+  let release = () => {};
+  const rendering = new Promise<void>(resolve => { release = resolve; });
+  vi.mocked(f.vc.awaitSync).mockReturnValue(rendering);
+  const timers = vi.spyOn(globalThis, "setTimeout");
+  try {
+    expect(requestToolTarget(f.studioCtx, page, page.tplTree)).toMatchObject({ visible: null, reason: "pending" });
+    await vi.waitFor(() => expect(f.vc.awaitSync).toHaveBeenCalled());
+    const expire = ensure(timers.mock.calls.find(([, delay]) => delay === 10000)?.[0], "Presentation deadline missing");
+    assert(typeof expire === "function", "Presentation deadline requires a callback");
+    expire();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    release();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(f.parent.scrollTop).toBe(0);
+    expect(f.fit).not.toHaveBeenCalled();
+  } finally {
+    release();
+  }
+}, 1500);
 
 it("automatically presents an edited target without an extra Agent call", async () => {
   const f = await visibleEditorFixture();
@@ -164,9 +254,9 @@ it("automatically presents an edited target without an extra Agent call", async 
   const names: (string | null)[] = [];
   vi.mocked(f.vc.setStudioFocusByTpl).mockImplementation(tpl => { if (tpl && "name" in tpl) { names.push(tpl.name ?? null); } });
   const result = await f.call("changeElement", { ...f.input, name: "Updated" });
-  expect(result.presentation, result.presentation?.message).toMatchObject({ ...f.input, visible: true, reason: "visible", phase: "after" });
+  expect(result.presentation, result.presentation?.message).toMatchObject({ ...f.input, visible: null, reason: "pending", phase: "after" });
   expect(f.vc.setStudioFocusByTpl).toHaveBeenCalled();
-  expect(f.parent.scrollTop).toBe(420);
+  await vi.waitFor(() => expect(f.parent.scrollTop).toBe(420));
   expect(names[0]).not.toBe("Updated");
   expect(names.at(-1)).toBe("Updated");
 });
@@ -175,7 +265,8 @@ it("reports non-scrollable clipping accurately after automatic selection instead
   const f = await visibleEditorFixture();
   f.parent.style.overflowY = "hidden";
   const result = await f.call("read", { view: "properties", elements: [f.input] });
-  expect(result.presentation).toMatchObject({ visible: false, reason: "layout-clipped", message: expect.stringContaining("non-scrollable") });
+  expect(result.presentation).toMatchObject({ visible: null, reason: "pending" });
+  expect(await f.present()).toMatchObject({ visible: false, reason: "layout-clipped", message: expect.stringContaining("non-scrollable") });
   expect(f.parent.scrollTop).toBe(0);
   expect(f.studioCtx.isInteractiveMode).toBe(false);
 });
@@ -186,16 +277,16 @@ it("presents a newly inserted node only after its model identity exists", async 
   const result = await f.call("insertHtml", { ...f.input, location: "append", html: "<div>New content</div>" });
   const created = ensure(result.created.find((item: { kind: string }) => item.kind === "Element"), "Created element missing");
   expect(created.uuid).not.toBe(f.input.elementUuid);
-  expect(result.presentation).toMatchObject({ componentUuid: f.input.componentUuid, elementUuid: created.uuid, visible: true, phase: "after" });
+  expect(result.presentation).toMatchObject({ componentUuid: f.input.componentUuid, elementUuid: created.uuid, visible: null, reason: "pending", phase: "after" });
 });
 
-it("shows a deletion target before removal and labels that presentation phase", async () => {
+it("requests deletion presentation before removal without waiting for it", async () => {
   const f = await visibleEditorFixture();
   vi.mocked(f.studioCtx.canEditProject).mockReturnValue(true);
   const inserted = await f.call("insertHtml", { ...f.input, location: "append", html: "<div>Remove me</div>" });
   const created = ensure(inserted.created.find((item: { kind: string }) => item.kind === "Element"), "Created element missing");
   const result = await f.call("deleteElement", { componentUuid: f.input.componentUuid, elementUuid: created.uuid });
-  expect(result.presentation).toMatchObject({ elementUuid: created.uuid, visible: true, phase: "before" });
+  expect(result.presentation).toMatchObject({ elementUuid: created.uuid, visible: null, reason: "pending", phase: "before" });
   await expect(f.call("read", { elements: [{ componentUuid: f.input.componentUuid, elementUuid: created.uuid }] })).rejects.toThrow("not found");
 });
 
@@ -203,7 +294,8 @@ it("does not mistake a CSS-hidden target for a scroll problem or run its busines
   const f = await visibleEditorFixture();
   f.target.hidden = true;
   const result = await f.call("read", { view: "properties", elements: [f.input] });
-  expect(result.presentation).toMatchObject({ visible: false, reason: "hidden", message: expect.stringContaining("display-state transition is confirmed") });
+  expect(result.presentation).toMatchObject({ visible: null, reason: "pending" });
+  expect(await f.present()).toMatchObject({ visible: false, reason: "hidden", message: expect.stringContaining("display-state transition is confirmed") });
   expect(f.studioCtx.isInteractiveMode).toBe(false);
 });
 
@@ -212,7 +304,8 @@ it("keeps model data when a target has no rendered instance and does not infer i
   vi.mocked(f.vc.renderState.val2dom).mockReturnValue([]);
   const result = await f.call("read", { view: "properties", elements: [f.input] });
   expect(result.results).toHaveLength(1);
-  expect(result.presentation).toMatchObject({ visible: false, reason: "not-rendered", message: expect.stringContaining("do not infer") });
+  expect(result.presentation).toMatchObject({ visible: null, reason: "pending" });
+  expect(await f.present()).toMatchObject({ visible: false, reason: "not-rendered", message: expect.stringContaining("do not infer") });
 });
 
 it("does not invent a node or change the view for a failed model lookup or empty query", async () => {
@@ -228,7 +321,8 @@ it("does not silently select a repeated instance during a model read", async () 
   const f = await visibleEditorFixture();
   vi.mocked(f.vc.renderState.tpl2fullKeys).mockReturnValue(["first", "second"]);
   const result = await f.call("read", { elements: [f.input] });
-  expect(result.presentation).toMatchObject({ visible: false, reason: "ambiguous-instance", message: expect.stringContaining("instanceIndex") });
+  expect(result.presentation).toMatchObject({ visible: null, reason: "pending" });
+  expect(await f.present()).toMatchObject({ visible: false, reason: "ambiguous-instance", message: expect.stringContaining("instanceIndex") });
   expect(f.vc.setStudioFocusByTpl).not.toHaveBeenCalled();
 });
 

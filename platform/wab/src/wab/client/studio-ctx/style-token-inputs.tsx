@@ -1,3 +1,4 @@
+import { getTokenIndicatorType, type TokenIndicatorType } from "@/wab/client/components/sidebar/token-utils";
 import type { StyleTokenValue } from "@/wab/commons/StyleToken";
 import type { ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
 import { assert } from "@/wab/shared/common";
@@ -39,6 +40,11 @@ export interface StyleTokenSnapshot {
   readonly activeValue: StyleTokenValue;
   readonly isRegistered: boolean;
   readonly regKey: StyleToken["regKey"];
+  readonly indicatorType: TokenIndicatorType;
+  readonly styleInherited: boolean;
+  readonly hasOverride: boolean;
+  readonly hasOverrideValue: boolean;
+  readonly canUpdate: boolean;
 }
 
 /** One demanded token's display inputs. Reference strings remain references;
@@ -130,9 +136,13 @@ export class StyleTokenInputs {
       }
     }
     const next = { name: this.token.name, type: this.token.type,
-      activeValue: this.vsh.getActiveTokenValue(this.token), isRegistered: this.token.isRegistered, regKey: this.token.base.regKey };
+      activeValue: this.vsh.getActiveTokenValue(this.token), isRegistered: this.token.isRegistered, regKey: this.token.base.regKey,
+      indicatorType: getTokenIndicatorType(this.token, this.vsh),
+      styleInherited: this.vsh.isStyleInherited(this.token),
+      hasOverride: !!this.token.override, hasOverrideValue: !!this.token.override?.value,
+      canUpdate: this.vsh.canUpdateToken() };
     const previous = this.current;
-    if (!previous || previous.name !== next.name || previous.type !== next.type || previous.activeValue !== next.activeValue || previous.isRegistered !== next.isRegistered || previous.regKey !== next.regKey) {
+    if (!previous || previous.name !== next.name || previous.type !== next.type || previous.activeValue !== next.activeValue || previous.isRegistered !== next.isRegistered || previous.regKey !== next.regKey || previous.indicatorType !== next.indicatorType || previous.styleInherited !== next.styleInherited || previous.hasOverride !== next.hasOverride || previous.hasOverrideValue !== next.hasOverrideValue || previous.canUpdate !== next.canUpdate) {
       this.current = Object.freeze(next);
     }
     if (this.connected) {
@@ -166,17 +176,25 @@ export class StyleTokenInputs {
   }
 }
 
+/** A committed reader stays bound to its retired model lifetime. */
+export class StyleTokenReaderBinding<T> {
+  private current: T | undefined;
+  get committed() { return this.current; }
+  commit(reader: T) { this.current = reader; }
+}
+
 export function useStyleTokenInputs<Selected>(studio: StudioCtx, token: FinalToken<StyleToken>, vsh: VariantedStylesHelper,
   selector: (snapshot: StyleTokenSnapshot | undefined) => Selected): Selected {
-  const binding = React.useMemo<{ scope: StyleTokenScope; committed: StyleTokenInputs | undefined }>(() => ({ scope: getStyleTokenScope(studio, token), committed: undefined }), [studio, token]);
+  const scope = React.useMemo(() => getStyleTokenScope(studio, token), [studio, token]);
+  const binding = React.useMemo(() => new StyleTokenReaderBinding<StyleTokenInputs>(), [studio, token]);
   const source = React.useMemo(() => {
-    const closed = binding.scope.owner.isDisposed || binding.scope.lifetime.aborted;
+    const closed = scope.owner.isDisposed || scope.lifetime.aborted;
     return closed && binding.committed ? binding.committed : new StyleTokenInputs(studio, token, vsh);
-  }, [studio, token, vsh, binding]);
+  }, [studio, token, vsh, binding, scope]);
   React.useLayoutEffect(() => {
-    if (!binding.committed || !binding.scope.owner.isDisposed && !binding.scope.lifetime.aborted) {
-      binding.committed = source;
+    if (!binding.committed || !scope.owner.isDisposed && !scope.lifetime.aborted) {
+      binding.commit(source);
     }
-  }, [binding, source]);
+  }, [binding, source, scope]);
   return useStore(source.store, selector);
 }

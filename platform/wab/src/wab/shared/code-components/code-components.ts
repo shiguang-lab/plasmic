@@ -1,3 +1,4 @@
+import { createStore } from "zustand/vanilla";
 import { StyleTokenType } from "@/wab/commons/StyleToken";
 import { RSH } from "@/wab/shared/RuleSetHelpers";
 import { getSlotParams, isSlot } from "@/wab/shared/SlotUtils";
@@ -502,6 +503,7 @@ type ComponentInteractionToClear = {
 };
 
 export class CodeComponentsRegistry {
+  readonly revisionStore = createStore(() => 0);
   constructor(
     private win: Window | typeof globalThis,
     private builtinComponents: BuiltinComponentsType,
@@ -620,10 +622,12 @@ export class CodeComponentsRegistry {
     this.getRegisteredContexts.clear();
     this.getRegisteredContextsMap.clear();
     this.getRegisteredTokens.clear();
+    this.getRegisteredTokensMap.clear();
     this.getRegisteredFunctions.clear();
     this.getRegisteredFunctionsMap.clear();
     this.getRegisteredLibraries.clear();
     this.getRegisteredLibrariesMap.clear();
+    this.revisionStore.setState(value => value + 1, true);
   }
 }
 

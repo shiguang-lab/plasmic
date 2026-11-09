@@ -23,20 +23,20 @@ export function AdminUserSelect({ onChange }: AdminUserSelectProps) {
     }
     const timer = setTimeout(async () => {
       setLoading(true);
-      try {
+      return await (async () => {
         const result = await api.searchIdentities(query.trim());
         if (!cancelled) {
           setUsers(result.users);
         }
-      } catch {
+      })().catch(async () => {
         if (!cancelled) {
           setUsers([]);
         }
-      } finally {
+      }).finally(() => {
         if (!cancelled) {
           setLoading(false);
         }
-      }
+      });
     }, 300);
     return () => {
       cancelled = true;

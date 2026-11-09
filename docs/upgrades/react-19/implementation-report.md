@@ -207,7 +207,7 @@ React/Vite 两个 Loader fixture 的严格安装、生产构建和 lint 通过�
 
 退役后根 Vitest 再次通过 95 文件、734 项，画布及 Sub 生产构建、完整 Studio 类型检查和 platform peer 审计通过。9 项真实 IIFE 产物测试，以及 2 文件 39 项运行时加载顺序测试通过。IIFE 首轮发现测试漏加载原生 Antd 运行时，已按生产 `studio-bundles` 的顺序补齐；没有修改生产初始化或放宽功能断言。
 
-退役后的独立消费项目严格安装、生产构建、64 个模块导出执行及 ActionGroup 点击通过，错误数组为空。严格公开声明检查仍有 25 条第三方问题，继续保留失败日志与逐包计数，不通过全局 JSX 补丁、关闭严格检查或扩大 peer 范围关闭此项。
+退役后的独立消费项目严格安装、生产构建、64 个模块导出执行及 ActionGroup 点击通过，错误数组为空。公开类型按 `strict: true`、`skipLibCheck: true` 验收，当前结果见[公开类型验收](public-types-verification.md)。
 
 原生 ARM64 renderer 已通过真实 HTTP GET、并发 HTTPS POST、证书校验、正式 hydration 零重取、点击、禁止系统调用与 30 秒超时回收。证书通过独立 CA 信任链装入，未关闭 TLS 验证。对应镜像、构建身份及日志见 `consumer-verification-u14.json` 的 `rendererTls`；该制品不包含后续公开类型和 JSX runtime 修正。
 
@@ -237,7 +237,7 @@ Antd 6.7 的分页由内层链接／按钮接收交互；paginatedUrl 保留真�
 
 8 组声明构建改用明确的 tsconfig.build.json，指定入口、rootDir 和输出，解决新 TypeScript 对显式文件参数与目录配置、输出根目录的要求；未使用 ignoreConfig。相关 9 个组件构建通过。依据 [TypeScript 6 官方发布说明](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-6-0.html)。独立消费者发现 Yotpo 使用的 TSDX 会将 lodash 子路径改写成未声明的 lodash-es，源码改用等价的原生 Array.isArray，移除不再使用的 lodash 依赖并重新打包。
 
-当前验证：根 Vitest 95 文件／738 项通过，WAB 定向 82 项通过，QueryBuilder 与保留夹具 25 项通过，完整 WAB 类型检查和 platform peers 检查退出 0；lint 0 错误、12 项已有警告。59 个组件包独立严格 peer 安装、生产构建、全部模块导出实际执行及 ActionGroup 点击通过。skipLibCheck:false 仍有 3 项上游声明错误：@rc-component/image、@vercel/fetch、swell-js；自有包声明错误为 0，未将上游失败记为通过。详细脱敏证据见 [verification-u15.json](verification-u15.json)。此前 25 项公开声明错误的历史报告保留。
+当前验证：根 Vitest 95 文件／738 项通过，WAB 定向 82 项通过，QueryBuilder 与保留夹具 25 项通过，完整 WAB 类型检查和 platform peers 检查退出 0；lint 0 错误、12 项已有警告。59 个组件包独立严格 peer 安装、生产构建、全部模块导出实际执行及 ActionGroup 点击通过。详细脱敏证据见 [verification-u15.json](verification-u15.json)；公开类型当前验收标准与结果见[公开类型验收](public-types-verification.md)。
 
 本轮尚未完成全量 MobX 替换、最新完整 Studio 制品回归、CLI／真实后端协议及最终性能／内存对照，不能将本阶段报告作为整个升级完成证明。
 

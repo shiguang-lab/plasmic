@@ -1,184 +1,126 @@
+import { AppContext } from "@/wab/client/components/top-view";
+import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
+import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { mkMixedArena } from "@/wab/shared/Arenas";
 import { createSite } from "@/wab/shared/core/sites";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
-import { TopFrameObserver } from "@/wab/client/components/studio/TopFrameObserver";
 import { ViewEditor_ } from "@/wab/client/components/studio/view-editor";
-import LeftPane from "@/wab/client/components/studio/LeftPane";
-import { RightPane } from "@/wab/client/components/studio/RightPane";
-import { StudioLoading } from "@/wab/client/components/widgets/StudioLoading";
-import { waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { mock } from "vitest-mock-extended";
+import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 
-function elements(tree: React.ReactNode): React.ReactElement[] {
-  const result: React.ReactElement[] = [];
-  React.Children.forEach(tree, (child) => {
-    if (React.isValidElement<{ children?: React.ReactNode }>(child)) {
-      result.push(child, ...elements(child.props.children));
-    }
-  });
-  return result;
+vi.mock("@shiguang2/components/esm/scrollbar", () => ({ Scrollbar: ({children}: React.PropsWithChildren) => <div>{children}</div> }));
+vi.mock("@/wab/client/components/studio/LeftPane", () => ({ default: () => <aside data-testid="left-sidebar" /> }));
+vi.mock("@/wab/client/components/studio/RightPane", () => ({ RightPane: ({canvasLoading}: {canvasLoading: boolean}) => <aside data-testid="right-sidebar" data-loading={String(canvasLoading)} /> }));
+vi.mock("@/wab/client/components/studio/TopFrameObserver", () => ({ TopFrameObserver: ({studioReady}: {studioReady: boolean}) => <output data-testid="studio-ready">{String(studioReady)}</output> }));
+vi.mock("@/wab/client/components/widgets/StudioLoading", () => ({ StudioLoading: () => <output data-testid="studio-loading" /> }));
+vi.mock("@/wab/client/components/insert-panel/ComponentPresetsModal", () => ({ ComponentPresetsModal: () => <output data-testid="component-presets" /> }));
+vi.mock("@/wab/client/components/canvas/canvas-arena", () => ({ CanvasArenaShell: ({arena}: {arena: {uid: number}}) => <div data-testid={`arena-${arena.uid}`} /> }));
+vi.mock("@/wab/client/components/canvas/CanvasOverlayToolbar", () => ({ CanvasOverlayToolbar: () => null }));
+vi.mock("@/wab/client/components/canvas/FreestyleBox", () => ({ FreestyleBox: () => null }));
+vi.mock("@/wab/client/components/canvas/HoverBox/CloneBoxes", () => ({ CloneBoxes: () => null }));
+vi.mock("@/wab/client/components/canvas/HoverBox/HoverBoxes", () => ({ HoverBoxes: () => null }));
+vi.mock("@/wab/client/components/canvas/HoverBox/PreselectBoxes", () => ({ PreselectBoxes: () => null }));
+vi.mock("@/wab/client/components/canvas/MeasureTool", () => ({ MeasureTool: () => null }));
+vi.mock("@/wab/client/components/canvas/Multiplayer/FollowingPlayer", () => ({ FollowingPlayer: () => null }));
+vi.mock("@/wab/client/components/canvas/Multiplayer/PlayerBoxes", () => ({ PlayerBoxes: () => null }));
+vi.mock("@/wab/client/components/canvas/Multiplayer/PlayerCursors", () => ({ PlayerCursors: () => null }));
+vi.mock("@/wab/client/components/canvas/Spotlight", () => ({ Spotlight: () => null }));
+vi.mock("@/wab/client/components/canvas/VariantsBar", () => ({ VariantsBar: () => null }));
+vi.mock("@/wab/client/components/canvas/CanvasDndOverlay", () => ({ CanvasDndOverlay: () => null }));
+vi.mock("@/wab/client/components/canvas/RichText/RichTextToolbar", () => ({ default: () => null }));
+vi.mock("@/wab/client/components/canvas/CanvasContentEditorControls", () => ({ CanvasContentEditorControls: () => null }));
+vi.mock("@/wab/client/components/comments/CommentsDialogs", () => ({ CommentsDialogs: () => null }));
+vi.mock("@/wab/client/components/studio/CanvasViewControls", () => ({ CanvasViewControls: () => null }));
+vi.mock("@/wab/client/components/studio/FocusedModeToolbar/FocusedModeToolbar", () => ({ FocusedModeToolbar: () => null }));
+vi.mock("@/wab/client/components/studio/GlobalCssVariables", () => ({ GlobalCssVariables: () => null }));
+vi.mock("@/wab/client/components/studio/code-preview/CodePreviewPanel", () => ({ CodePreviewPanel: () => null }));
+vi.mock("@/wab/client/components/top-bar/TopBar", () => ({ TopBar: () => null }));
+vi.mock("@/wab/client/components/PageSettingsDialog", () => ({ PageSettingsDialog: () => null }));
+vi.mock("@/wab/client/components/AutoOpenBanner", () => ({ default: () => null }));
+vi.mock("@/wab/client/components/widgets/BrowserAlertBanner", () => ({ BrowserAlertBanner: () => null }));
+vi.mock("@/wab/client/components/widgets/plasmic/AlertBanner", () => ({ AlertBanner: () => null }));
+vi.mock("@/wab/client/components/BottomModal", () => ({ BottomModals: () => null }));
+vi.mock("@/wab/client/components/widgets/FloatingWindow", () => ({ FloatingWindowLayer: ({children}: React.PropsWithChildren) => <>{children}</> }));
+
+function view(studioCtx: StudioCtx) {
+  const policy = studioCtx.renderPolicy.store.getState();
+  return <AppContext.Provider value={studioCtx.app}><AppCtxContext.Provider value={studioCtx.appCtx}><StudioCtxContext.Provider value={studioCtx}><ViewEditor_ studioCtx={studioCtx} viewCtx={undefined} previewCtx={mock<PreviewCtx>()} canvasLoading={false} renderInteractive={policy.interactive} renderDocs={policy.docs} renderDevMode={policy.devMode} panelsHidden={studioCtx.leftPanelState.panelsHidden} /></StudioCtxContext.Provider></AppCtxContext.Provider></AppContext.Provider>;
 }
-
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 it("keeps both sidebar shells mounted while comments toggle without a focused artboard", async () => {
-  const { studioCtx } = fakeStudioCtx();
+  const {studioCtx} = fakeStudioCtx();
+  await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
   vi.spyOn(studioCtx, "showComments").mockReturnValue(true);
   vi.spyOn(studioCtx, "focusedOrFirstViewCtx").mockReturnValue(undefined);
-  const editor = new ViewEditor_({
-    renderInteractive: studioCtx.renderPolicy.store.getState().interactive,
-    renderDocs: studioCtx.renderPolicy.store.getState().docs,
-    renderDevMode: studioCtx.renderPolicy.store.getState().devMode,
-    panelsHidden: studioCtx.leftPanelState.panelsHidden,
-    studioCtx,
-    viewCtx: undefined,
-    previewCtx: mock<PreviewCtx>(),
-    canvasLoading: false,
-  });
-  const mountedSidebars = () => {
-    const split = elements(editor.render()).find((element) =>
-      (element.props as { className?: string }).className === "canvas-editor__hsplit",
-    );
-    expect(split).toBeDefined();
-    return React.Children.toArray(
-      (split?.props as { children?: React.ReactNode }).children,
-    ).filter((child) =>
-      React.isValidElement<{ studioCtx?: typeof studioCtx }>(child) &&
-      child.props.studioCtx === studioCtx,
-    );
-  };
+  const mounted = render(view(studioCtx));
+  const left = screen.getByTestId("left-sidebar"), right = screen.getByTestId("right-sidebar");
   try {
-    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
-    const checkShells = (comments: boolean) => {
-      const sidebars = mountedSidebars() as React.ReactElement<{ canvasLoading?: boolean }>[];
-      expect(sidebars.map((sidebar) => sidebar.type)).toEqual([LeftPane, RightPane]);
-      expect(sidebars[1].props.canvasLoading).toBe(false);
-      expect(studioCtx.showCommentsPanel).toBe(comments);
-    };
-    checkShells(false);
-    studioCtx.toggleCommentsPanel();
-    checkShells(true);
-    studioCtx.toggleCommentsPanel();
-    checkShells(false);
-  } finally {
-    studioCtx.dispose();
-  }
+    expect(right.getAttribute("data-loading")).toBe("false");
+    act(() => studioCtx.toggleCommentsPanel()); expect(studioCtx.showCommentsPanel).toBe(true);
+    expect(screen.getByTestId("left-sidebar")).toBe(left); expect(screen.getByTestId("right-sidebar")).toBe(right);
+    act(() => studioCtx.toggleCommentsPanel()); expect(studioCtx.showCommentsPanel).toBe(false);
+    expect(screen.getByTestId("left-sidebar")).toBe(left); expect(screen.getByTestId("right-sidebar")).toBe(right);
+  } finally { mounted.unmount(); studioCtx.dispose(); }
 });
 
 it("keeps the global mask and top-frame readiness closed until both target render and viewport restoration complete", async () => {
-  const { studioCtx } = fakeStudioCtx();
-  const target = vi
-    .spyOn(studioCtx, "activeCanvasReady", "get")
-    .mockReturnValue(false);
-  const viewport = vi
-    .spyOn(studioCtx, "initialViewportReady", "get")
-    .mockReturnValue(false);
-  const editor = new ViewEditor_({
-    renderInteractive: studioCtx.renderPolicy.store.getState().interactive,
-    renderDocs: studioCtx.renderPolicy.store.getState().docs,
-    renderDevMode: studioCtx.renderPolicy.store.getState().devMode,
-    panelsHidden: studioCtx.leftPanelState.panelsHidden,
-    studioCtx,
-    viewCtx: undefined,
-    previewCtx: mock<PreviewCtx>(),
-    canvasLoading: false,
-  });
-  const check = (ready: boolean) => {
-    const children = elements(editor.render());
-    expect(children.some((element) => element.type === StudioLoading)).toBe(
-      !ready,
-    );
-    const observer = children.find(
-      (element) => element.type === TopFrameObserver,
-    );
-    expect(observer).toBeDefined();
-    expect((observer?.props as { studioReady: boolean }).studioReady).toBe(
-      ready,
-    );
-  };
-  try {
-    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
-    check(false);
-    target.mockReturnValue(true);
-    check(false);
-    viewport.mockReturnValue(true);
-    check(true);
-  } finally {
-    studioCtx.dispose();
-  }
-});
-
-it("refreshes the real drag-guard render boundary from native dragging and detaches it on unmount", async () => {
-  const { studioCtx } = fakeStudioCtx();
-  const editor = new ViewEditor_({
-    renderInteractive: studioCtx.renderPolicy.store.getState().interactive,
-    renderDocs: studioCtx.renderPolicy.store.getState().docs,
-    renderDevMode: studioCtx.renderPolicy.store.getState().devMode,
-    panelsHidden: studioCtx.leftPanelState.panelsHidden,
-    studioCtx, viewCtx: undefined, previewCtx: mock<PreviewCtx>(), canvasLoading: false });
-  const updated = vi.spyOn(editor, "forceUpdate").mockImplementation(() => undefined);
-  const containsGuard = (tree: React.ReactNode): boolean => {
-    let found = false;
-    React.Children.forEach(tree, (child) => {
-      if (React.isValidElement<{ className?: string; children?: React.ReactNode }>(child)) {
-        found ||= child.props.className === "drag-guard" || containsGuard(child.props.children);
-      } else if (child && typeof child === "object" && Reflect.get(child, "$$typeof") === Symbol.for("react.portal")) {
-        found ||= containsGuard(Reflect.get(child, "children"));
-      }
-    });
-    return found;
-  };
-  try {
-    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
-    expect(containsGuard(editor.render())).toBe(false);
-    editor.componentDidMount();
-    expect(updated).not.toHaveBeenCalled();
-    studioCtx.setIsDraggingObject(true);
-    expect(updated).toHaveBeenCalledTimes(1);
-    expect(containsGuard(editor.render())).toBe(true);
-    studioCtx.setIsDraggingObject(true);
-    expect(updated).toHaveBeenCalledTimes(1);
-    studioCtx.setIsDraggingObject(false);
-    expect(updated).toHaveBeenCalledTimes(2);
-    expect(containsGuard(editor.render())).toBe(false);
-    editor.componentWillUnmount();
-    const before = updated.mock.calls.length;
-    studioCtx.setIsDraggingObject(true);
-    expect(updated).toHaveBeenCalledTimes(before);
-  } finally { studioCtx.dispose(); }
-});
-
-
-it("updates the class for native arena ownership and detaches its exact selectors on unmount", async () => {
-  const site = createSite();
-  const first = mkMixedArena("First");
-  const second = mkMixedArena("Second");
-  site.arenas.push(first, second);
-  const { studioCtx } = fakeStudioCtx({ site });
+  const {studioCtx} = fakeStudioCtx();
   await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
-  studioCtx.currentArena = first;
-  const editor = new ViewEditor_({
-    renderInteractive: studioCtx.renderPolicy.store.getState().interactive,
-    renderDocs: studioCtx.renderPolicy.store.getState().docs,
-    renderDevMode: studioCtx.renderPolicy.store.getState().devMode,
-    panelsHidden: studioCtx.leftPanelState.panelsHidden,
-    studioCtx, viewCtx: undefined, previewCtx: mock<PreviewCtx>(), canvasLoading: false });
-  // Match React's lifecycle: the first render precedes componentDidMount.
-  editor.render();
-  const update = vi.spyOn(editor, "forceUpdate").mockImplementation(() => undefined);
-  editor.componentDidMount();
+  const target = vi.spyOn(studioCtx, "activeCanvasReady", "get").mockReturnValue(false);
+  studioCtx.startupStore.setState({viewportLoaded: false});
+  const mounted = render(view(studioCtx));
+  const check = (ready: boolean) => { expect(!!screen.queryByTestId("studio-loading")).toBe(!ready); expect(screen.getByTestId("studio-ready").textContent).toBe(String(ready)); };
   try {
-    studioCtx.currentArena = second;
-    expect(update).toHaveBeenCalledTimes(1);
-    studioCtx.currentArena = second;
-    expect(update).toHaveBeenCalledTimes(1);
-    editor.componentWillUnmount();
-    studioCtx.currentArena = first;
-    expect(update).toHaveBeenCalledTimes(1);
-  } finally {
-    editor.componentWillUnmount();
-    studioCtx.dispose();
-  }
+    check(false);
+    target.mockReturnValue(true); mounted.rerender(view(studioCtx)); check(false);
+    act(() => studioCtx.startupStore.setState({viewportLoaded: true})); check(true);
+  } finally { mounted.unmount(); studioCtx.dispose(); }
+});
+
+it("refreshes the native drag-guard boundary and detaches it on unmount", async () => {
+  const {studioCtx} = fakeStudioCtx(); await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+  const mounted = render(view(studioCtx));
+  try {
+    expect(document.querySelector(".drag-guard")).toBeNull();
+    act(() => studioCtx.setIsDraggingObject(true)); const guard = document.querySelector(".drag-guard"); expect(guard).toBeTruthy();
+    act(() => studioCtx.setIsDraggingObject(true)); expect(document.querySelector(".drag-guard")).toBe(guard);
+    act(() => studioCtx.setIsDraggingObject(false)); expect(document.querySelector(".drag-guard")).toBeNull();
+    mounted.unmount(); act(() => studioCtx.setIsDraggingObject(true)); expect(document.querySelector(".drag-guard")).toBeNull();
+  } finally { mounted.unmount(); studioCtx.dispose(); }
+});
+
+it("uses native arena ownership and releases its exact readiness subscription on unmount", async () => {
+  const site = createSite(), first = mkMixedArena("First"), second = mkMixedArena("Second"); site.arenas.push(first, second);
+  const {studioCtx} = fakeStudioCtx({site}); await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true)); studioCtx.currentArena = first;
+  const subscribe = studioCtx.subscribeActiveCanvasInputs.bind(studioCtx), released = vi.fn();
+  vi.spyOn(studioCtx, "subscribeActiveCanvasInputs").mockImplementation((listener) => { const stop = subscribe(listener); return () => { released(); stop(); }; });
+  const mounted = render(view(studioCtx));
+  try {
+    expect(screen.getByTestId("component-presets")).toBeTruthy();
+    act(() => { studioCtx.currentArena = second; });
+    expect(studioCtx.currentArena).toBe(second); expect(screen.getByTestId(`arena-${second.uid}`)).toBeTruthy();
+    mounted.unmount(); expect(released).toHaveBeenCalledOnce();
+    act(() => { studioCtx.currentArena = first; }); expect(screen.queryByTestId("component-presets")).toBeNull(); expect(released).toHaveBeenCalledOnce();
+  } finally { mounted.unmount(); studioCtx.dispose(); }
+});
+
+it("retires the previous Studio controller and renders only the replacement owner's native stores", async () => {
+  const first = fakeStudioCtx().studioCtx, second = fakeStudioCtx().studioCtx;
+  await waitFor(() => expect(first.initialRouteReady && second.initialRouteReady).toBe(true));
+  const mounted = render(view(first));
+  try {
+    mounted.rerender(view(second));
+    act(() => first.setIsDraggingObject(true));
+    expect(document.querySelector(".drag-guard")).toBeNull();
+    act(() => second.setIsDraggingObject(true));
+    expect(document.querySelector(".drag-guard")).toBeTruthy();
+    mounted.unmount();
+    expect(document.querySelector(".drag-guard")).toBeNull();
+    act(() => { first.setIsDraggingObject(false); second.setIsDraggingObject(false); });
+    expect(screen.queryByTestId("left-sidebar")).toBeNull();
+  } finally { mounted.unmount(); first.dispose(); second.dispose(); }
 });

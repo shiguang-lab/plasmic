@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,14 +25,14 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Link from "../../components/Link"; // plasmic-import: IQU7DmjqUs/component
 import StarterProject from "../../components/StarterProject"; // plasmic-import: CCsDeqqYeoM/component
-import { _useGlobalVariants } from "../plasmic_kit_dashboard/plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "../plasmic_kit_dashboard/PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "../plasmic_kit_dashboard/plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "../plasmic_kit_dashboard/PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -119,11 +119,10 @@ function PlasmicStarterGroup__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "type",
@@ -146,20 +145,22 @@ function PlasmicStarterGroup__RenderFunc(props: {
           $props.gridColumns,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -395,12 +396,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -410,29 +407,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicStarterGroup__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicStarterGroup";
-  } else {
-    func.displayName = `PlasmicStarterGroup.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicStarterGroup__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicStarterGroup__root<T extends PlasmicStarterGroup__rootProps>(props: T & StrictProps<T, PlasmicStarterGroup__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicStarterGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicStarterGroup__root.displayName = "PlasmicStarterGroup";
+
+type PlasmicStarterGroup__infoIconProps = NodeComponentProps<"infoIcon"> & {key?: React.Key};
+function PlasmicStarterGroup__infoIcon<T extends PlasmicStarterGroup__infoIconProps>(props: T & StrictProps<T, PlasmicStarterGroup__infoIconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("infoIcon", props);
+  return <PlasmicStarterGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"infoIcon"} />;
+}
+PlasmicStarterGroup__infoIcon.displayName = "PlasmicStarterGroup.infoIcon";
+
+type PlasmicStarterGroup__viewDocsProps = NodeComponentProps<"viewDocs"> & {key?: React.Key};
+function PlasmicStarterGroup__viewDocs<T extends PlasmicStarterGroup__viewDocsProps>(props: T & StrictProps<T, PlasmicStarterGroup__viewDocsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("viewDocs", props);
+  return <PlasmicStarterGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"viewDocs"} />;
+}
+PlasmicStarterGroup__viewDocs.displayName = "PlasmicStarterGroup.viewDocs";
+
+type PlasmicStarterGroup__moreProps = NodeComponentProps<"more"> & {key?: React.Key};
+function PlasmicStarterGroup__more<T extends PlasmicStarterGroup__moreProps>(props: T & StrictProps<T, PlasmicStarterGroup__moreProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("more", props);
+  return <PlasmicStarterGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"more"} />;
+}
+PlasmicStarterGroup__more.displayName = "PlasmicStarterGroup.more";
+
 
 export const PlasmicStarterGroup = Object.assign(
   // Top-level PlasmicStarterGroup renders the root element
-  makeNodeComponent("root"),
+  PlasmicStarterGroup__root,
   {
     // Helper components rendering sub-elements
-    infoIcon: makeNodeComponent("infoIcon"),
-    viewDocs: makeNodeComponent("viewDocs"),
-    more: makeNodeComponent("more"),
+    infoIcon: PlasmicStarterGroup__infoIcon,
+    viewDocs: PlasmicStarterGroup__viewDocs,
+    more: PlasmicStarterGroup__more,
 
     // Metadata about props expected for PlasmicStarterGroup
     internalVariantProps: PlasmicStarterGroup__VariantProps,

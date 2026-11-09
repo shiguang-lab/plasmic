@@ -109,7 +109,7 @@ function PkgVersionDetails(props: {
       pkgVersionsToDownload.push(oldestMainVersionBeforeParent);
     }
 
-    try {
+    return await (async () => {
       const appCtx = await loadAppCtx(nonAuthCtx);
       await appCtx.ops?.downloadFullProjectData(
         metadata.projectId,
@@ -118,9 +118,9 @@ function PkgVersionDetails(props: {
             `${pkgVersion.branchId ?? MainBranchId}@${pkgVersion.id}`,
         ),
       );
-    } catch (e) {
+    })().catch((e) => {
       showError(normalizeError(e));
-    }
+    });
   }
 
   async function downloadDataPriorToMerge() {

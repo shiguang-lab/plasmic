@@ -311,7 +311,6 @@ describe("buildDataContextResourceResult", () => {
           $state: {
             visible: 1,
             hidden: 2,
-            registerInitFunc: "internal",
             [mkMetaName("hidden")]: { hidden: true },
           },
         },
@@ -321,7 +320,6 @@ describe("buildDataContextResourceResult", () => {
           paths: [
             "$$",
             "$state.hidden",
-            "$state.registerInitFunc",
             "$state.visible",
           ],
         },
@@ -333,7 +331,6 @@ describe("buildDataContextResourceResult", () => {
       expect(invalidPaths.map((error) => error.path)).toEqual([
         "$$",
         "$state.hidden",
-        "$state.registerInitFunc",
       ]);
     });
 

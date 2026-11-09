@@ -7,7 +7,7 @@ import { createSite } from "@/wab/shared/core/sites";
 import { mkTplComponent, mkTplComponentX, mkTplTagX } from "@/wab/shared/core/tpls";
 import { ensureKnownRenderExpr, ensureKnownTplComponent, type TplComponent } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
-import { isObservable } from "mobx";
+import { isInstrumentedModel } from "@/wab/shared/core/model-mutations";
 
 function provider(name: string) {
   const children = mkParam({ name: "children", type: typeFactory.renderable(), paramType: "slot" });
@@ -35,9 +35,9 @@ it("reuses nonobservable provider clones, reports authored argument updates and 
   expect(outer).not.toBe(first.tpl); expect(outer.uuid).toBe(first.tpl.uuid);
   expect(inner).not.toBe(second.tpl); expect(inner.uuid).toBe(second.tpl.uuid);
   expect(child(inner)).toBe(root); expect(root.parent).toBe(parent);
-  expect(isObservable(outer)).toBe(false);
-  expect(isObservable(outer.vsettings[0])).toBe(false);
-  expect(outer.vsettings[0].args.every((arg) => !isObservable(arg))).toBe(true);
+  expect(isInstrumentedModel(outer)).toBe(false);
+  expect(isInstrumentedModel(outer.vsettings[0])).toBe(false);
+  expect(outer.vsettings[0].args.every((arg) => !isInstrumentedModel(arg))).toBe(true);
   const clean = factory.wrap(root, [first.tpl, second.tpl]);
   expect(clean.root).toBe(outer); expect(clean.changes).toEqual([]);
   const original = first.tpl.vsettings[0].args[0].expr;

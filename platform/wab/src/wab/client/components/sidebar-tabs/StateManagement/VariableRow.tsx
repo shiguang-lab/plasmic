@@ -8,10 +8,8 @@ import { DefaultVariableRowProps } from "@/wab/client/plasmic/plasmic_kit_state_
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { getStateVarName } from "@/wab/shared/core/states";
 import { Component, State } from "@/wab/shared/model/classes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 export interface VariableRowProps extends DefaultVariableRowProps {
@@ -22,8 +20,7 @@ export interface VariableRowProps extends DefaultVariableRowProps {
   defaultEditing?: boolean;
 }
 
-const VariableRow = observer(
-  React.forwardRef(function VariableRow(
+const VariableRow = React.memo(React.forwardRef(function VariableRow(
     props: VariableRowProps,
     ref: HTMLElementRefOf<"div">,
   ) {
@@ -31,6 +28,7 @@ const VariableRow = observer(
     const {
       menu,
       modals,
+      inputs,
       props: variableRowProps,
     } = useVariableRow({ sc, component, state, viewCtx });
 
@@ -38,7 +36,7 @@ const VariableRow = observer(
       <WithContextMenu overlay={menu}>
         <LabeledListItem
           uiId={mkModelUiId(state.param)}
-          data-test-id={getStateVarName(state)}
+          data-test-id={inputs.variableName}
           data-test-type={"variable-row"}
           ref={ref}
           valueSetState={variableRowProps.hasTempValue ? "isSet" : undefined}
@@ -53,7 +51,6 @@ const VariableRow = observer(
         {modals}
       </WithContextMenu>
     );
-  }),
-);
+  }));
 
 export default VariableRow;

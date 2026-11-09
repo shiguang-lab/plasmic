@@ -1,3 +1,4 @@
+import { useAiSessionSnapshot } from "@/wab/client/copilot/ai-session-view";
 import { useErrorMessage } from "@/wab/client/hooks/useErrorMessage";
 import { useAiAttachments } from "@/wab/client/components/copilot/AiAttachments";
 import { AiComposer } from "@/wab/client/components/copilot/AiComposer";
@@ -129,16 +130,16 @@ export function CopilotChatDialog({
   const { styles } = useStyles();
   const appCtx = useAppCtx();
   const enabled = appCtx.appConfig.enableLocalAiEditing;
-  React.useSyncExternalStore(session.subscribe, session.snapshot);
-  const tasks = session.visibleTasks;
-  const model = session.selectedModel;
-  const draft = session.draft.prompt;
-  const threadId = session.activeThreadId;
+  const view = useAiSessionSnapshot(session);
+  const tasks = view.visibleTasks;
+  const model = view.selectedModel;
+  const draft = view.draft.prompt;
+  const threadId = view.activeThreadId;
   const setDraft = (prompt: string) => {
-    session.draft = { ...session.draft, prompt };
+    session.setThreadDraft(view.activeThreadId, { ...view.draft, prompt });
   };
   const attachmentState = useAiAttachments(
-    session.draft.attachments,
+    view.draft.attachments,
     attachments => session.setThreadAttachments(threadId, attachments),
     threadId,
   );
@@ -149,22 +150,22 @@ export function CopilotChatDialog({
     fetchModels,
   );
   useErrorMessage(error);
-  useErrorMessage(session.error);
+  useErrorMessage(view.error);
   const consumed = React.useRef<CopilotChatOpenOpts>(undefined);
   React.useEffect(() => {
     if (status) {
       const selected = session.selectedModel;
       if (!selected || (modelsLoaded && !status.models.some(option => option.id === selected))) {
-        session.selectedModel = status.model ?? undefined;
+        session.setSelectedModel(status.model ?? undefined);
       }
     }
   }, [status, modelsLoaded, session]);
   React.useEffect(() => {
     if (chatOpenOpts?.prompt && consumed.current !== chatOpenOpts) {
-      session.draft = {
+      session.setThreadDraft(session.activeThreadId, {
         ...session.draft,
         prompt: chatOpenOpts.prompt,
-      };
+      });
       if (!readOnly && status?.configured && !session.running) {
         consumed.current = chatOpenOpts;
         void session.run(
@@ -179,16 +180,16 @@ export function CopilotChatDialog({
         );
       }
     }
-  }, [chatOpenOpts, status, session, model, session.running]);
+  }, [chatOpenOpts, status, session, model, view.running]);
   const historyRef = React.useRef<HTMLElement>(null);
-  const followLatest = React.useRef(session.scrollTop < 0);
+  const followLatest = React.useRef(view.scrollTop < 0);
   const previousLastTask = React.useRef(tasks.at(-1)?.id);
-  const previousThread = React.useRef(session.activeThreadId);
+  const previousThread = React.useRef<string | undefined>(undefined);
   React.useLayoutEffect(() => {
-    const changedThread = previousThread.current !== session.activeThreadId;
+    const changedThread = previousThread.current !== view.activeThreadId;
     if (changedThread) {
       followLatest.current = session.scrollTop < 0;
-      previousThread.current = session.activeThreadId;
+      previousThread.current = view.activeThreadId;
     } else if (tasks.at(-1)?.id !== previousLastTask.current) {
       followLatest.current = true;
     }
@@ -197,9 +198,9 @@ export function CopilotChatDialog({
     if (viewport && (changedThread || followLatest.current)) {
       viewport.scrollTop = changedThread && session.scrollTop >= 0 ? session.scrollTop : viewport.scrollHeight;
     }
-  }, [tasks, session.activeThreadId]);
+  }, [tasks, view.activeThreadId]);
   const lastTask = tasks.at(-1);
-  const lastRecord = session.tasks
+  const lastRecord = view.tasks
     .flatMap((task) => task.records)
     .filter((record) => !record.undone)
     .at(-1);
@@ -234,7 +235,7 @@ export function CopilotChatDialog({
       aria-label={t("AI assistant")}
       style={{ visibility: hiddenByModal ? "hidden" : undefined }}
       data-test-id="local-ai-panel"
-      data-ai-busy={session.running}
+      data-ai-busy={view.running}
     >
       <div className={styles.header}>
         <strong>{t("AI assistant")}</strong>
@@ -254,7 +255,7 @@ export function CopilotChatDialog({
                 viewport.scrollTop -
                 viewport.clientHeight <
               48;
-            session.scrollTop = viewport.scrollTop;
+            session.setThreadScroll(view.activeThreadId, viewport.scrollTop);
           },
           initialized: (instance) => {
             const viewport = instance.elements().viewport;
@@ -285,14 +286,14 @@ export function CopilotChatDialog({
               )}
             />
           )}
-          {session.before && (
+          {view.before && (
             <Button onClick={() => void session.loadEarlier()}>
               {t("Load earlier messages")}
             </Button>
           )}
           <AiSyncNotice session={session} />
-          {session.historyLoading && <Spin size="small" />}
-          {!tasks.length && !session.historyLoading && !session.syncError && <AiWelcome pageEnabled={!!pageEnabled} hasWorkspace={!!context?.binding} disabled={!enabled || readOnly || !status?.configured || !!session.activeThread?.archivedAt}
+          {view.historyLoading && <Spin size="small" />}
+          {!tasks.length && !view.historyLoading && !view.syncError && <AiWelcome pageEnabled={!!pageEnabled} hasWorkspace={!!context?.binding} disabled={!enabled || readOnly || !status?.configured || !!view.activeThread?.archivedAt}
             onChoose={prompt => setDraft(draft ? `${draft}\n${prompt}` : prompt)} />}
           {tasks.map((task) => (
             <article
@@ -380,16 +381,16 @@ export function CopilotChatDialog({
                   lastRecord={lastRecord}
                 />
                 {task.error && <Alert type="error" message={task.error} />}
-                {task.needsReconciliation && session.canStop(task) && (
+                {task.needsReconciliation && view.stoppable.includes(task.id) && (
                   <Button onClick={() => void session.reconcile(task)}>
                     {t("Verify saved design")}
                   </Button>
                 )}
                 {(task.status === "failed" || task.status === "stopped") &&
                   !task.needsReconciliation &&
-                  session.canStop(task) && (
+                  view.stoppable.includes(task.id) && (
                     <Button
-                      disabled={session.running}
+                      disabled={view.running}
                       onClick={() => void session.retry(task)}
                     >
                       {t("Retry in current editor")}
@@ -424,7 +425,7 @@ export function CopilotChatDialog({
       </Scrollbar>
       <div className={styles.composer}>
         <AiRunningNotice session={session} />
-        {session.activeThread?.archivedAt && <Alert type="info" message={t("This conversation is archived. Restore it to continue.")} action={!readOnly && <Button size="small" onClick={() => void session.updateThread(session.activeThreadId, {archived: false})}>{t("Restore conversation")}</Button>} />}
+        {view.activeThread?.archivedAt && <Alert type="info" message={t("This conversation is archived. Restore it to continue.")} action={!readOnly && <Button size="small" onClick={() => void session.updateThread(view.activeThreadId, {archived: false})}>{t("Restore conversation")}</Button>} />}
         <AiComposer
           value={draft}
           onChange={setDraft}
@@ -432,7 +433,7 @@ export function CopilotChatDialog({
           attachmentState={attachmentState}
           scope={
             context?.scope ??
-            (session.running && lastTask?.scopeLabel
+            (view.running && lastTask?.scopeLabel
               ? lastTask.scopeLabel
               : t("Current canvas"))
           }
@@ -440,15 +441,15 @@ export function CopilotChatDialog({
           onModelMenuOpen={refreshModels}
           model={model ?? status?.model}
           onModelChange={(value) => {
-            session.selectedModel = value;
+            session.setSelectedModel(value);
           }}
-          disabled={!enabled || readOnly || !!session.activeThread?.archivedAt}
-          canSubmit={!!status?.configured && !session.running && !session.historyLoading && !session.syncError}
-          running={session.activeRun?.threadId === session.activeThreadId}
+          disabled={!enabled || readOnly || !!view.activeThread?.archivedAt}
+          canSubmit={!!status?.configured && !view.running && !view.historyLoading && !view.syncError}
+          running={view.activeRun?.threadId === view.activeThreadId}
           onStop={() => session.stop()}
           stopDisabled={
             lastTask?.status !== "running" ||
-            !session.canStop(lastTask) ||
+            !view.stoppable.includes(lastTask.id) ||
             lastTask.phase === "Stopping"
           }
           placeholder={t(

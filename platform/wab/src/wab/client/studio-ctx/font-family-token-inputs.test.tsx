@@ -4,7 +4,7 @@ import { FontFamilySelector } from "@/wab/client/components/widgets/FontFamilySe
 import { FontFamilyTokenEditModal } from "@/wab/client/components/sidebar/FontFamilyTokenEditModal";
 import { LabeledFontFamilySelector } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
-import { SingleRsExpsProvider, StyleComponent, StyleComponentContext } from "@/wab/client/components/style-controls/StyleComponent";
+import { SingleRsExpsProvider, StyleTarget, StyleTargetContext } from "@/wab/client/components/style-controls/StyleComponent";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -36,8 +36,8 @@ async function setup(nonbase = false) {
   const f = fakeStudioCtx({ site }); studios.add(f.studioCtx);
   await waitFor(() => expect(f.studioCtx.initialRouteReady).toBe(true));
   const studio = f.studioCtx, helper = new VariantedStylesHelper(site, dark ? [dark] : undefined, dark ? [dark] : undefined);
-  const provider = new SingleRsExpsProvider(rs, exp, studio, [], { kind: "ruleSet", rs, forTag: "div" }), sc = new StyleComponent({ expsProvider: provider });
-  const wrap = (children: React.ReactNode) => <AppCtxContext.Provider value={f.appCtx}><StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={sc}><SidebarModalProvider containerSelector="#font-test-sidebar"><div id="font-test-sidebar" />{children}</SidebarModalProvider></StyleComponentContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider>;
+  const provider = new SingleRsExpsProvider(rs, exp, studio, [], { kind: "ruleSet", rs, forTag: "div" }), sc = new StyleTarget({ expsProvider: provider });
+  const wrap = (children: React.ReactNode) => <AppCtxContext.Provider value={f.appCtx}><StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={sc}><SidebarModalProvider containerSelector="#font-test-sidebar"><div id="font-test-sidebar" />{children}</SidebarModalProvider></StyleTargetContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider>;
   return { ...f, studio, site, first, second, unrelated, group, dark, helper, exp, provider, wrap };
 }
 function original(f: Awaited<ReturnType<typeof setup>>) {
@@ -131,14 +131,14 @@ it("uses real native CSS, font-registry updates and original select commands in 
   mounted.unmount();
 });
 
-it("keeps the actual font-token modal's value and useFont commands", async () => {
+it("keeps the actual font-token modal's value and loadFont commands", async () => {
   const f = await setup(); await f.studio.changeUnsafe(() => f.site.userManagedFonts.push("var(--ModalFontFamily)"));
-  const useFont = vi.spyOn(f.studio.fontManager, "useFont").mockImplementation(() => undefined);
+  const loadFont = vi.spyOn(f.studio.fontManager, "loadFont").mockImplementation(() => undefined);
   const mounted = render(f.wrap(<FontFamilyTokenEditModal studioCtx={f.studio} token={new MutableToken(f.first)} vsh={f.helper} onClose={() => undefined} />));
   fireEvent.mouseDown(screen.getByRole("combobox"));
   fireEvent.click(ensure((await screen.findByText("ModalFontFamily")).closest(".ant-select-item-option"), "Original custom font option"));
   await waitFor(() => expect(f.first.value).toBe("var(--ModalFontFamily)"));
-  expect(useFont).toHaveBeenCalledWith(f.studio, "var(--ModalFontFamily)");
+  expect(loadFont).toHaveBeenCalledWith(f.studio, "var(--ModalFontFamily)");
   mounted.unmount();
 });
 

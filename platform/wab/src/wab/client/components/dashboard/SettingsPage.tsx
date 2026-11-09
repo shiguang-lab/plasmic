@@ -30,7 +30,6 @@ interface SettingsContentProps extends SettingsPageProps {
 }
 
 function SettingsPageContent(props: SettingsContentProps) {
-  "use memo";
   const { appCtx, displayName, email, ops, rootRef, ...rest } = props;
   const { t } = useI18n();
   const tokensState = usePersonalApiTokens();

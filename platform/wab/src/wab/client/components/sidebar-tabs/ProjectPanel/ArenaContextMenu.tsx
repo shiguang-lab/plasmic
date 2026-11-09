@@ -195,7 +195,7 @@ export function ArenaContextMenu({
     );
 
   const onFindReferences = () => {
-    studioCtx.findReferencesComponent = component;
+    studioCtx.setFindReferencesComponent(component);
     onClose?.();
   };
 

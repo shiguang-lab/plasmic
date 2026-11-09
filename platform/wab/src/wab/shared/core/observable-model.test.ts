@@ -9,7 +9,7 @@ import { InstUtil } from "@/wab/shared/model/InstUtil";
 import { parse, transform } from "@/wab/shared/model/model-generator";
 import { MetaRuntime, ObjInstBase } from "@/wab/shared/model/model-meta";
 import L from "lodash";
-import { Lambda } from "mobx";
+type Lambda = () => void;
 
 class Sentinel {
   tag = "SENTINEL" as const;

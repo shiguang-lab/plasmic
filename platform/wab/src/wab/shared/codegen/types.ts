@@ -186,6 +186,10 @@ export interface ExportOpts {
   // Used by loader
   skinny: boolean;
 
+  // Export React components for rendering individual named descendants.
+  // Runtime-only Preview consumers use the root with its full node overrides.
+  exportNamedNodeComponents?: boolean;
+
   // Whether we should generate code component stubs for host-less components,
   // or actually import the package
   hostLessComponentsConfig: "stub" | "package";

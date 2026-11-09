@@ -1,3 +1,7 @@
+import { useServerQueryInputs, useServerQueryList, useServerFunctionMetadata, useServerFunctionRegistration } from "@/wab/client/components/sidebar-tabs/ServerQuery/server-query-inputs";
+import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
+import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import {
@@ -31,14 +35,9 @@ import {
 } from "@/wab/shared/Labels";
 import {
   ServerQueryOp,
-  isServerQueryWithOperation,
 } from "@/wab/shared/codegen/react-p/server-queries/utils";
 import { mkShortId, spawn } from "@/wab/shared/common";
-import {
-  getComponentDisplayName,
-  isPageComponent,
-} from "@/wab/shared/core/components";
-import { ExprCtx } from "@/wab/shared/core/exprs";
+import { clone, ExprCtx } from "@/wab/shared/core/exprs";
 import {
   Component,
   ComponentServerQuery,
@@ -46,12 +45,10 @@ import {
   isKnownCustomFunctionExpr,
 } from "@/wab/shared/model/classes";
 import { Button, Menu, Tooltip, notification } from "antd";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
 
-const ServerQueryRow = observer(
-  (props: {
+const ServerQueryRow = React.memo((props: {
     component: Component;
     query: ComponentServerQuery;
     viewCtx: ViewCtx;
@@ -71,8 +68,16 @@ const ServerQueryRow = observer(
       }),
       [projectFlags, component],
     );
-    const schema = viewCtx.customFunctionsSchema();
+    const schema = useCustomFunctionsSchema(studioCtx);
     const tpl = viewCtx.currentCtxTplRoot();
+    const {snapshot, source} = useServerQueryInputs(studioCtx, query, viewCtx);
+    const originalOp = snapshot.op ? source.resolve(snapshot.op) : undefined;
+    const func = isKnownCustomFunctionExpr(originalOp) ? originalOp.func : undefined;
+    const functionVersion = useServerFunctionMetadata(studioCtx, func);
+    const registration = useServerFunctionRegistration(viewCtx, func);
+    const op = React.useMemo(() => originalOp ? clone(originalOp) : undefined, [originalOp, snapshot.version, functionVersion, registration]);
+    const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl, {forDataRepCollection: true});
+    const renderCount = useCanvasRenderCount(viewCtx);
 
     const serverQueryModal = useServerQueryBottomModal(query.uuid);
     const openServerQueryModal = () => {
@@ -132,39 +137,35 @@ const ServerQueryRow = observer(
       );
     };
     const title = studioUiT('Query data results for "{part1}"', {
-      part1: String(query.name),
+      part1: snapshot.name,
     });
-    let env: Record<string, any> | undefined = viewCtx.getCanvasEnvForTpl(tpl, {
-      forDataRepCollection: true,
-    });
-    if (env) {
-      env = omitQueryFromEnv(env, query);
-    }
+    const env = React.useMemo(() => canvasEnv ? omitQueryFromEnv({...canvasEnv}, {name: snapshot.name}) : undefined,
+      [canvasEnv, snapshot.name, renderCount]);
     const currGlobalThis = viewCtx.canvasCtx.win();
 
     return (
       <WithContextMenu overlay={menu}>
         <LabeledListItem
           uiId={mkModelUiId(query)}
-          label={query.name}
+          label={snapshot.name}
           menu={menu}
           onClick={() => openServerQueryModal()}
         >
-          {query.op ? (
+          {op ? (
             <div className="flex flex-col fill-width">
-              <ServerQueryOpSummary expr={query.op} />
-              {isKnownCustomFunctionExpr(query.op) ? (
+              <ServerQueryOpSummary expr={op} />
+              {isKnownCustomFunctionExpr(op) ? (
                 <CustomFunctionExprPreview
-                  expr={query.op}
+                  expr={op}
                   env={env}
                   title={title}
                   exprCtx={exprCtx}
                   currGlobalThis={currGlobalThis}
                 />
-              ) : isKnownCustomCode(query.op) ? (
+              ) : isKnownCustomCode(op) ? (
                 <CustomCodePreview
                   queryUuid={query.uuid}
-                  expr={query.op}
+                  expr={op}
                   env={env}
                   title={title}
                 />
@@ -178,8 +179,7 @@ const ServerQueryRow = observer(
         </LabeledListItem>
       </WithContextMenu>
     );
-  },
-);
+  });
 
 function ServerQueriesSection_(props: {
   component: Component;
@@ -189,7 +189,8 @@ function ServerQueriesSection_(props: {
   const { component, viewCtx } = props;
   const studioCtx = useStudioCtx();
 
-  const componentType = uiT(isPageComponent(component) ? "page" : "component");
+  const {snapshot, source} = useServerQueryList(studioCtx, component, viewCtx);
+  const componentType = uiT(snapshot.isPage ? "page" : "component");
 
   const handleAddBlankQuery = () => {
     spawn(
@@ -253,9 +254,7 @@ function ServerQueriesSection_(props: {
     );
   };
 
-  const otherComponentsWithQueries = studioCtx.site.components.filter(
-    (c) => c !== component && c.serverQueries.some(isServerQueryWithOperation),
-  );
+  const otherComponentsWithQueries = snapshot.other;
 
   const addMenu = (onMenuClicked: () => void) => (
     <Menu>
@@ -273,15 +272,15 @@ function ServerQueriesSection_(props: {
           <Menu.Divider />
           <Menu.SubMenu key="copy-from" title={uiT("Copy from...")}>
             {otherComponentsWithQueries.map((c) => (
-              <Menu.SubMenu key={c.uuid} title={getComponentDisplayName(c)}>
-                {c.serverQueries.filter(isServerQueryWithOperation).map((q) => (
+              <Menu.SubMenu key={c.component.uid} title={c.label}>
+                {c.queries.map((q) => (
                   <Menu.Item
-                    key={q.uuid}
+                    key={q.query.uid}
                     // the minwidth ensures the innermost submenu popup is wide enough
                     // so it doesn't flip and overlap its parent menu
                     style={{ minWidth: 130 }}
                     onClick={() => {
-                      handleCopyFromQuery(c, q);
+                      handleCopyFromQuery(source.resolve(c.component), source.resolve(q.query));
                       onMenuClicked();
                     }}
                   >
@@ -304,7 +303,7 @@ function ServerQueriesSection_(props: {
           {<UiLabel text={SERVER_QUERY_PLURAL_CAP} />}
         </LabelWithDetailedTooltip>
       }
-      emptyBody={component.serverQueries.length === 0}
+      emptyBody={snapshot.queries.length === 0}
       emptyDescription={uiT("Fetch data from external sources.")}
       zeroBodyPadding
       controls={
@@ -344,16 +343,16 @@ function ServerQueriesSection_(props: {
         )
       }
     >
-      {component.serverQueries.map((query) => (
+      {snapshot.queries.map((queryRef) => (
         <ServerQueryRow
-          key={query.name}
+          key={queryRef.uid}
           component={component}
           viewCtx={viewCtx}
-          query={query}
+          query={source.resolve(queryRef)}
         />
       ))}
     </SidebarSection>
   );
 }
 
-export const ServerQueriesSection = observer(ServerQueriesSection_);
+export const ServerQueriesSection = React.memo(ServerQueriesSection_);

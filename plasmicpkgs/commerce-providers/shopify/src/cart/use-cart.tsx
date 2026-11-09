@@ -47,7 +47,7 @@ export const handler: SWRHook<CartType.GetCartHook> = {
   },
   useHook:
     ({ useData }) =>
-    (input) => {
+    function useCartHandler(input) {
       const response = useData({
         swrOptions: { revalidateOnFocus: false, ...input?.swrOptions },
       });

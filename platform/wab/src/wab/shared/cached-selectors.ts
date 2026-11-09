@@ -78,8 +78,9 @@ import {
   isTplVariantable,
 } from "@/wab/shared/core/tpls";
 import { getProjectFlags } from "@/wab/shared/devflags";
-import mobx from "@/wab/shared/import-mobx";
-import { keyedComputedFn, maybeComputedFn } from "@/wab/shared/mobx-util";
+import { shallow } from "zustand/shallow";
+import isEqual from "lodash/isEqual";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import {
   ArenaFrame,
   CodeComponentVariantMeta,
@@ -124,14 +125,13 @@ import {
 import { getTplVisibilityAsDescendant } from "@/wab/shared/visibility-utils";
 import { keyBy } from "lodash";
 
-export const flattenComponent = maybeComputedFn(function flattenComponent(
+export const flattenComponent = memoizeModelQuery(function flattenComponent(
   component: Component,
 ) {
   return component.tplTree ? flattenTpls(component.tplTree) : [];
 });
 
-export const extractComponentVariantSettings = maybeComputedFn(
-  (site: Site, component: Component, ordered: boolean) => {
+export const extractComponentVariantSettings = memoizeModelQuery((site: Site, component: Component, ordered: boolean) => {
     const sorter = ordered
       ? makeVariantComboSorter(site, component)
       : undefined;
@@ -147,11 +147,9 @@ export const extractComponentVariantSettings = maybeComputedFn(
       }
     }
     return result;
-  },
-);
+  });
 
-export const extractImageAssetRefsByAttrs = maybeComputedFn(
-  function extractImageAssetRefsByAttrs(site: Site, component: Component) {
+export const extractImageAssetRefsByAttrs = memoizeModelQuery(function extractImageAssetRefsByAttrs(site: Site, component: Component) {
     const assets = new Set<ImageAsset>();
     for (const tpl of flattenComponent(component)) {
       if (isTplVariantable(tpl)) {
@@ -159,10 +157,9 @@ export const extractImageAssetRefsByAttrs = maybeComputedFn(
       }
     }
     return assets;
-  },
-);
+  });
 
-export const findNonEmptyCombos = maybeComputedFn(function findNonEmptyCombos(
+export const findNonEmptyCombos = memoizeModelQuery(function findNonEmptyCombos(
   component: Component,
 ) {
   const combos = new Map<string, VariantCombo>();
@@ -182,7 +179,7 @@ export const findNonEmptyCombos = maybeComputedFn(function findNonEmptyCombos(
   return [...combos.values()];
 });
 
-export const usesVariantGroup = maybeComputedFn(function usesVariantGroup(
+export const usesVariantGroup = memoizeModelQuery(function usesVariantGroup(
   component: Component,
   group: VariantGroup,
 ) {
@@ -202,21 +199,17 @@ export const usesVariantGroup = maybeComputedFn(function usesVariantGroup(
   return false;
 });
 
-export const siteToAllGlobalVariants = maybeComputedFn(
-  function siteToAllGlobalVariants(site: Site) {
+export const siteToAllGlobalVariants = memoizeModelQuery(function siteToAllGlobalVariants(site: Site) {
     return allGlobalVariants(site, { includeDeps: "direct" });
-  },
-);
+  });
 
-export const componentToAllVariants = maybeComputedFn(
-  function componentToAllVariants(component: Component) {
+export const componentToAllVariants = memoizeModelQuery(function componentToAllVariants(component: Component) {
     return allComponentVariants(component, {
       includeSuperVariants: true,
     });
-  },
-);
+  });
 
-export const usedHostLessPkgs = maybeComputedFn(function usedHostLessPkgs(
+export const usedHostLessPkgs = memoizeModelQuery(function usedHostLessPkgs(
   site: Site,
 ) {
   const usedPkgs = new Set<string>();
@@ -231,27 +224,22 @@ export const usedHostLessPkgs = maybeComputedFn(function usedHostLessPkgs(
   return Array.from(usedPkgs.keys());
 });
 
-export const usedGlobalVariantGroups = maybeComputedFn(
-  function usedGlobalVariantGroups(site: Site, component: Component) {
+export const usedGlobalVariantGroups = memoizeModelQuery(function usedGlobalVariantGroups(site: Site, component: Component) {
     const groups = allGlobalVariantGroups(site, {
       includeDeps: "direct",
       excludeEmpty: true,
       excludeInactiveScreenVariants: true,
     });
     return groups.filter((g) => usesVariantGroup(component, g));
-  },
-);
+  });
 
-export const usedScreenVariantGroups = maybeComputedFn(
-  function usedScreenVariantGroups(site: Site, component: Component) {
+export const usedScreenVariantGroups = memoizeModelQuery(function usedScreenVariantGroups(site: Site, component: Component) {
     return usedGlobalVariantGroups(site, component).filter(
       (g) => g === site.activeScreenVariantGroup,
     );
-  },
-);
+  });
 
-export const componentToElementNames = maybeComputedFn(
-  (component: Component) => {
+export const componentToElementNames = memoizeModelQuery((component: Component) => {
     const nodeNamer = computedNodeNamer(component);
     return getNamedDescendantNodes(nodeNamer, component.tplTree).flatMap(
       (x) => {
@@ -266,11 +254,9 @@ export const componentToElementNames = maybeComputedFn(
         ];
       },
     );
-  },
-);
+  });
 
-export const componentToNonVariantParamNames = maybeComputedFn(
-  (component: Component) => [
+export const componentToNonVariantParamNames = memoizeModelQuery((component: Component) => [
     ...getParamNames(
       component,
       getNonVariantParams(component).filter(
@@ -284,34 +270,27 @@ export const componentToNonVariantParamNames = maybeComputedFn(
           ) && p.exportType !== ParamExportType.ToolsOnly,
       ),
     ),
-  ],
-);
+  ]);
 
-export const componentToVariantParamNames = maybeComputedFn(
-  function componentToVariantParamNames(component: Component) {
+export const componentToVariantParamNames = memoizeModelQuery(function componentToVariantParamNames(component: Component) {
     return getParamNames(
       component,
       component.variantGroups
         .filter((vg) => vg.variants.length > 0)
         .map((p) => p.param),
     );
-  },
-);
+  });
 
-export const computedNodeNamer = maybeComputedFn(function makeNodeNamer_(
-  component: Component,
-) {
-  // We only want to create a new nodeNamer if the actual set of names and their
-  // mappings to uid has changed.
-  const uidToNameMap = mobx
-    .computed(() => buildUidToNameMap(component), {
-      equals: mobx.comparer.shallow,
-    })
-    .get();
-  return makeNodeNamerFromMap(uidToNameMap);
-});
+const componentNameMaps = memoizeModelQuery(buildUidToNameMap, { equals: shallow });
+const nodeNamers = new WeakMap<ReturnType<typeof buildUidToNameMap>, ReturnType<typeof makeNodeNamerFromMap>>();
+export function computedNodeNamer(component: Component) {
+  const names = componentNameMaps(component);
+  let namer = nodeNamers.get(names);
+  if (!namer) { namer = makeNodeNamerFromMap(names); nodeNamers.set(names, namer); }
+  return namer;
+}
 
-export const computedProjectFlags = maybeComputedFn(getProjectFlags);
+export const computedProjectFlags = memoizeModelQuery(getProjectFlags, {equals: isEqual});
 
 /**
  * Returns a mapping from argument `comp`'s param names, to
@@ -322,7 +301,7 @@ export const computedProjectFlags = maybeComputedFn(getProjectFlags);
  * Plasmic component that wraps another Plasmic component that exposes
  * the code component prop.
  */
-export const getLinkedCodeProps = maybeComputedFn(function getLinkedProps(
+export const getLinkedCodeProps = memoizeModelQuery(function getLinkedProps(
   comp: Component,
 ) {
   const attr2LinkedCodeProp = new Map<string, [TplComponent, Param]>();
@@ -379,8 +358,7 @@ export const getLinkedCodeProps = maybeComputedFn(function getLinkedProps(
   return attr2LinkedCodeProp;
 });
 
-export const componentToReferencers = maybeComputedFn(
-  function componentToReferencers(site: Site) {
+export const componentToReferencers = memoizeModelQuery(function componentToReferencers(site: Site) {
     const compToReferencers = new Map<Component, Set<Component>>(
       site.components.map((comp) => tuple(comp, new Set<Component>())),
     );
@@ -396,11 +374,9 @@ export const componentToReferencers = maybeComputedFn(
       }
     }
     return compToReferencers;
-  },
-);
+  });
 
-export const deepComponentToReferencers = maybeComputedFn(
-  function deepComponentToReferencers(site: Site) {
+export const deepComponentToReferencers = memoizeModelQuery(function deepComponentToReferencers(site: Site) {
     const compToReferencers = componentToReferencers(site);
     const deepCompToReferencers = new Map<Component, Set<Component>>();
 
@@ -432,15 +408,13 @@ export const deepComponentToReferencers = maybeComputedFn(
     }
 
     return deepCompToReferencers;
-  },
-);
+  });
 
 /**
  * Given a component, returns all other components that are used
  * directly as a TplComponent instance or TplRef in its tree
  */
-export const componentToReferenced = maybeComputedFn(
-  function componentToReferenced(component: Component) {
+export const componentToReferenced = memoizeModelQuery(function componentToReferenced(component: Component) {
     const referenced = new Set<Component>();
     for (const tpl of flattenComponent(component)) {
       if (isTplComponent(tpl)) {
@@ -453,8 +427,7 @@ export const componentToReferenced = maybeComputedFn(
       });
     }
     return Array.from(referenced);
-  },
-);
+  });
 
 /**
  * Given a component, returns all components transitively used by this component
@@ -468,8 +441,7 @@ export function componentToDeepReferenced(
   return _componentToDeepReferenced(component, includeSubComps);
 }
 
-const _componentToDeepReferenced = maybeComputedFn(
-  function _componentToDeepReferenced(
+const _componentToDeepReferenced = memoizeModelQuery(function _componentToDeepReferenced(
     component: Component,
     includeSubComps: boolean,
   ) {
@@ -494,8 +466,7 @@ const _componentToDeepReferenced = maybeComputedFn(
 
     extract(component);
     return seen;
-  },
-);
+  });
 
 /**
  * Searches through all expressions in each component to find references to the data token.
@@ -504,8 +475,7 @@ const _componentToDeepReferenced = maybeComputedFn(
  * @param token - The data token to extract usages for
  * @returns The set of all components in the site that reference the given data token
  */
-export const componentsReferencingDataToken = maybeComputedFn(
-  function componentsReferencingDataToken(
+export const componentsReferencingDataToken = memoizeModelQuery(function componentsReferencingDataToken(
     projectId: ProjectId,
     site: Site,
     token: DataToken,
@@ -521,11 +491,9 @@ export const componentsReferencingDataToken = maybeComputedFn(
       }
     }
     return referencingComponents;
-  },
-);
+  });
 
-export const componentsReferencerToPageHref = maybeComputedFn(
-  function componentsReferencerToPageHref(site: Site, page: PageComponent) {
+export const componentsReferencerToPageHref = memoizeModelQuery(function componentsReferencerToPageHref(site: Site, page: PageComponent) {
     const isHRefToPage = (expr: Expr | null | undefined): expr is PageHref =>
       isKnownPageHref(expr) && expr.page === page;
 
@@ -538,10 +506,9 @@ export const componentsReferencerToPageHref = maybeComputedFn(
       }
     }
     return usingComponents;
-  },
-);
+  });
 
-export const allCustomFunctions = maybeComputedFn(function allCustomFunctions(
+export const allCustomFunctions = memoizeModelQuery(function allCustomFunctions(
   rootSite: Site,
 ) {
   const functionIds = new Set<CustomFunctionId>();
@@ -560,7 +527,7 @@ export const allCustomFunctions = maybeComputedFn(function allCustomFunctions(
   return customFunctions;
 });
 
-export const allCodeLibraries = maybeComputedFn(function allCodeLibraries(
+export const allCodeLibraries = memoizeModelQuery(function allCodeLibraries(
   rootSite: Site,
 ) {
   const codeLibNames = new Set<string>();
@@ -579,13 +546,11 @@ export const allCodeLibraries = maybeComputedFn(function allCodeLibraries(
   return libs;
 });
 
-export const cachedExprsInComponent = maybeComputedFn(
-  function cachedExprsInComponent(component: Component) {
+export const cachedExprsInComponent = memoizeModelQuery(function cachedExprsInComponent(component: Component) {
     return findExprsInComponent(component);
-  },
-);
+  });
 
-export const cachedExprsInSite = maybeComputedFn(function cachedExprsInSite(
+export const cachedExprsInSite = memoizeModelQuery(function cachedExprsInSite(
   site: Site,
 ) {
   return withoutNils(
@@ -602,8 +567,7 @@ export const cachedExprsInSite = maybeComputedFn(function cachedExprsInSite(
   );
 });
 
-export const customFunctionsAndLibsUsedByComponent = maybeComputedFn(
-  function customFunctionsAndLibsUsedByComponent(
+export const customFunctionsAndLibsUsedByComponent = memoizeModelQuery(function customFunctionsAndLibsUsedByComponent(
     site: Site,
     component: Component,
   ) {
@@ -664,11 +628,9 @@ export const customFunctionsAndLibsUsedByComponent = maybeComputedFn(
           ] as const,
       ),
     };
-  },
-);
+  });
 
-export const customFunctionsUsedBySite = maybeComputedFn(
-  function customFunctionsUsedBySite(site: Site) {
+export const customFunctionsUsedBySite = memoizeModelQuery(function customFunctionsUsedBySite(site: Site) {
     const usedFunctions = new Set<CustomFunction>();
     for (const component of site.components) {
       for (const fn of customFunctionsAndLibsUsedByComponent(site, component)
@@ -677,14 +639,12 @@ export const customFunctionsUsedBySite = maybeComputedFn(
       }
     }
     return usedFunctions;
-  },
-);
+  });
 
 /**
  * Returns all instances of TplComponent for the argument component
  */
-export const componentToTplComponents = maybeComputedFn(
-  function getTplComponentsInSite(site: Site, component: Component) {
+export const componentToTplComponents = memoizeModelQuery(function getTplComponentsInSite(site: Site, component: Component) {
     const instances: TplComponent[] = [];
     for (const comp of site.components) {
       for (const node of flattenComponent(comp)) {
@@ -694,11 +654,9 @@ export const componentToTplComponents = maybeComputedFn(
       }
     }
     return instances;
-  },
-);
+  });
 
-export const getTplComponentFetchers = maybeComputedFn(
-  function getTplComponentFetchers(component: Component) {
+export const getTplComponentFetchers = memoizeModelQuery(function getTplComponentFetchers(component: Component) {
     return flattenComponent(component)
       .filter(isTplComponent)
       .filter(
@@ -707,15 +665,12 @@ export const getTplComponentFetchers = maybeComputedFn(
           tpl.component.name ===
             getBuiltinComponentRegistrations().PlasmicFetcher.meta.name,
       );
-  },
-);
+  });
 
-export const siteToAllImageAssetsDict = maybeComputedFn((site: Site) =>
-  keyBy(allImageAssets(site, { includeDeps: "all" }), (x) => x.uuid),
-);
+export const siteToAllImageAssetsDict = memoizeModelQuery((site: Site) =>
+  keyBy(allImageAssets(site, { includeDeps: "all" }), (x) => x.uuid));
 
-export const componentToUsedMixins = maybeComputedFn(
-  function componentToUsedMixins(component: Component) {
+export const componentToUsedMixins = memoizeModelQuery(function componentToUsedMixins(component: Component) {
     const mixins = new Set<Mixin>();
     for (const tpl of flattenComponent(component)) {
       if (isTplVariantable(tpl)) {
@@ -723,10 +678,9 @@ export const componentToUsedMixins = maybeComputedFn(
       }
     }
     return mixins;
-  },
-);
+  });
 
-const tplToUsedMixins = maybeComputedFn(function tplToUsedMixins(tpl: TplNode) {
+const tplToUsedMixins = memoizeModelQuery(function tplToUsedMixins(tpl: TplNode) {
   const mixins = new Set<Mixin>();
   for (const vs of tpl.vsettings) {
     xAddAll(mixins, vs.rs.mixins);
@@ -734,8 +688,7 @@ const tplToUsedMixins = maybeComputedFn(function tplToUsedMixins(tpl: TplNode) {
   return [...mixins.keys()];
 });
 
-export const componentToUsedImageAssets = maybeComputedFn(
-  function componentToUsedImageAssets(site: Site, component: Component) {
+export const componentToUsedImageAssets = memoizeModelQuery(function componentToUsedImageAssets(site: Site, component: Component) {
     const assets = new Set<ImageAsset>();
     for (const tpl of flattenComponent(component)) {
       if (isTplVariantable(tpl)) {
@@ -743,10 +696,9 @@ export const componentToUsedImageAssets = maybeComputedFn(
       }
     }
     return [...assets.keys()];
-  },
-);
+  });
 
-const tplToUsedImageAssets = maybeComputedFn(function tplToUsedImageAssets(
+const tplToUsedImageAssets = memoizeModelQuery(function tplToUsedImageAssets(
   site: Site,
   tpl: TplNode,
 ) {
@@ -785,7 +737,7 @@ const tplToUsedImageAssets = maybeComputedFn(function tplToUsedImageAssets(
   return [...assets.keys()];
 });
 
-const expToPictureAssetRefs = maybeComputedFn(function expToPictureAssetRefs(
+const expToPictureAssetRefs = memoizeModelQuery(function expToPictureAssetRefs(
   rs: DeepReadonly<RuleSet>,
   tpl: TplNode,
 ) {
@@ -798,8 +750,7 @@ const expToPictureAssetRefs = maybeComputedFn(function expToPictureAssetRefs(
   return refIds;
 });
 
-export const getComponentsUsingImageAsset = maybeComputedFn(
-  function getComponentsUsingImageAsset(site: Site, asset: ImageAsset) {
+export const getComponentsUsingImageAsset = memoizeModelQuery(function getComponentsUsingImageAsset(site: Site, asset: ImageAsset) {
     return site.components.filter((comp) => {
       if (isCodeComponent(comp)) {
         return false;
@@ -815,11 +766,9 @@ export const getComponentsUsingImageAsset = maybeComputedFn(
       }
       return false;
     });
-  },
-);
+  });
 
-export const findAllQueryInvalidationExpr = maybeComputedFn(
-  function findDataSourceInteractions(site: Site) {
+export const findAllQueryInvalidationExpr = memoizeModelQuery(function findDataSourceInteractions(site: Site) {
     return site.components.flatMap((c) =>
       flattenTpls(c.tplTree).flatMap((tpl) =>
         findExprsInNode(tpl)
@@ -830,32 +779,26 @@ export const findAllQueryInvalidationExpr = maybeComputedFn(
           })),
       ),
     );
-  },
-);
+  });
 
-export const findAllQueryInvalidationExprForComponent = maybeComputedFn(
-  function findDataSourceInteractions(component: Component) {
+export const findAllQueryInvalidationExprForComponent = memoizeModelQuery(function findDataSourceInteractions(component: Component) {
     return flattenTpls(component.tplTree).flatMap((tpl) =>
       findExprsInNode(tpl)
         .filter(({ expr }) => isKnownQueryInvalidationExpr(expr))
         .map(({ expr }) => expr as QueryInvalidationExpr),
     );
-  },
-);
+  });
 
-export const findQueryInvalidationExprWithRefs = maybeComputedFn(
-  function findQueryInvalidationExprWithRefs(site: Site, queryRefs: string[]) {
+export const findQueryInvalidationExprWithRefs = memoizeModelQuery(function findQueryInvalidationExprWithRefs(site: Site, queryRefs: string[]) {
     const queryRefSet = new Set(queryRefs);
     return findAllQueryInvalidationExpr(site).filter(({ expr }) =>
       expr.invalidationQueries.some(
         (key) => isKnownQueryRef(key) && queryRefSet.has(key.ref.uuid),
       ),
     );
-  },
-);
+  });
 
-export const findAllDataSourceOpExprForComponent = maybeComputedFn(
-  function findAllDataSourceOpExprs(component: Component) {
+export const findAllDataSourceOpExprForComponent = memoizeModelQuery(function findAllDataSourceOpExprs(component: Component) {
     return [
       ...withoutNils(component.dataQueries.map((dq) => dq.op)),
       ...flattenTpls(component.tplTree).flatMap((tpl) =>
@@ -864,11 +807,9 @@ export const findAllDataSourceOpExprForComponent = maybeComputedFn(
           .map(({ expr }) => expr as DataSourceOpExpr),
       ),
     ];
-  },
-);
+  });
 
-export const findAllDataSourceOpExpr = maybeComputedFn(
-  function findAllDataSourceOpExpr(site: Site) {
+export const findAllDataSourceOpExpr = memoizeModelQuery(function findAllDataSourceOpExpr(site: Site) {
     return site.components.flatMap((c) => {
       return [
         ...withoutNils(c.dataQueries.map((dq) => dq.op)).map((op) => {
@@ -891,18 +832,14 @@ export const findAllDataSourceOpExpr = maybeComputedFn(
         }),
       ];
     });
-  },
-);
+  });
 
-export const getActiveVariantsForFrame = maybeComputedFn(
-  function getActiveVariantsForFrame(site: Site, frame: ArenaFrame) {
+export const getActiveVariantsForFrame = memoizeModelQuery(function getActiveVariantsForFrame(site: Site, frame: ArenaFrame) {
     const pinManager = new FramePinManager(site, frame);
     return pinManager.activeNonBaseVariants();
-  },
-);
+  });
 
-export const findComponentsUsingComponentVariant = maybeComputedFn(
-  function findComponentsUsingComponentVariant(
+export const findComponentsUsingComponentVariant = memoizeModelQuery(function findComponentsUsingComponentVariant(
     site: Site,
     component: Component,
     variant: Variant,
@@ -937,11 +874,9 @@ export const findComponentsUsingComponentVariant = maybeComputedFn(
     }
 
     return results;
-  },
-);
+  });
 
-export const findComponentsUsingGlobalVariant = maybeComputedFn(
-  function findComponentsUsingGlobalVariant(site: Site, variant: Variant) {
+export const findComponentsUsingGlobalVariant = memoizeModelQuery(function findComponentsUsingGlobalVariant(site: Site, variant: Variant) {
     const results = new Set<Component>();
 
     const compUsesVariant = (comp: Component) => {
@@ -960,11 +895,9 @@ export const findComponentsUsingGlobalVariant = maybeComputedFn(
     }
 
     return results;
-  },
-);
+  });
 
-export const findSplitsUsingVariantGroup = maybeComputedFn(
-  function findSplitsUsingVariantGroup(site: Site, variantGroup: VariantGroup) {
+export const findSplitsUsingVariantGroup = memoizeModelQuery(function findSplitsUsingVariantGroup(site: Site, variantGroup: VariantGroup) {
     return site.splits.filter((split) =>
       split.slices.some((slice) =>
         slice.contents.some((content) =>
@@ -978,11 +911,9 @@ export const findSplitsUsingVariantGroup = maybeComputedFn(
         ),
       ),
     );
-  },
-);
+  });
 
-export const findStyleTokensUsingVariantGroup = maybeComputedFn(
-  function findStyleTokensUsingVariantGroup(
+export const findStyleTokensUsingVariantGroup = memoizeModelQuery(function findStyleTokensUsingVariantGroup(
     site: Site,
     variantGroup: VariantGroup,
   ) {
@@ -992,30 +923,22 @@ export const findStyleTokensUsingVariantGroup = maybeComputedFn(
         value.variants.some((variant) => groupVariants.has(variant)),
       ),
     );
-  },
-);
+  });
 
 /**
  * Returns true if the argument tpl slot belonging to component
  * is visible when the `variants` are active.
  */
-export const isTplSlotVisible = keyedComputedFn(
-  function isTplSlotVisible(
+export const isTplSlotVisible = memoizeModelQuery(function isTplSlotVisible(
     component: Component,
     tpl: TplSlot,
     variants: VariantCombo,
   ) {
     return getTplVisibilityAsDescendant(tpl, variants);
-  },
-  {
-    keyFn: (component, tpl, variants) =>
-      `${component.uuid}-${tpl.uuid}-${variantComboKey(variants)}`,
-    name: "isTplSlotVisible",
-  },
-);
+  }, {keyFn: (component, tpl, variants) =>
+      `${component.uuid}-${tpl.uuid}-${variantComboKey(variants)}`});
 
-export const componentToUsedDataSources = maybeComputedFn(
-  function componentToUsedDataSources(component: Component) {
+export const componentToUsedDataSources = memoizeModelQuery(function componentToUsedDataSources(component: Component) {
     const dataSourceCount = new Map<string, number>();
     for (const { expr } of findExprsInComponent(component)) {
       if (!isKnownDataSourceOpExpr(expr)) {
@@ -1027,8 +950,7 @@ export const componentToUsedDataSources = maybeComputedFn(
       );
     }
     return dataSourceCount;
-  },
-);
+  });
 
 export const getUsedDataSourcesFromDep = maybeMemoizeFn(
   function getUsedDataSourcesFromDep(site: Site) {
@@ -1045,8 +967,7 @@ export const getUsedDataSourcesFromDep = maybeMemoizeFn(
   },
 );
 
-export const siteToUsedDataSources = maybeComputedFn(
-  function siteToUsedDataSources(site: Site) {
+export const siteToUsedDataSources = memoizeModelQuery(function siteToUsedDataSources(site: Site) {
     const dataSourceCount = new Map<string, number>();
     for (const component of site.components) {
       const componentDataSourceCount = componentToUsedDataSources(component);
@@ -1071,8 +992,7 @@ export const siteToUsedDataSources = maybeComputedFn(
     const entries = [...dataSourceCount.entries()];
     entries.sort((a, b) => b[1] - a[1]);
     return entries.map((entry) => entry[0]);
-  },
-);
+  });
 
 interface CCVariantInfo {
   component: Component;
@@ -1080,8 +1000,7 @@ interface CCVariantInfo {
   keysToMetas: Map<string, CodeComponentVariantMeta>;
 }
 
-const componentCCVariantsToInfos = maybeComputedFn(
-  (component: Component): [CodeComponentVariant, CCVariantInfo][] => {
+const componentCCVariantsToInfos = memoizeModelQuery((component: Component): [CodeComponentVariant, CCVariantInfo][] => {
     const tplRoot = component.tplTree;
     if (isTplRootWithCodeComponentVariants(tplRoot)) {
       const variantMeta = tplRoot.component.codeComponentMeta.variants;
@@ -1103,13 +1022,10 @@ const componentCCVariantsToInfos = maybeComputedFn(
         ]);
     }
     return [];
-  },
-);
+  });
 
-export const siteCCVariantsToInfos = maybeComputedFn(
-  (site: Site): Map<CodeComponentVariant, CCVariantInfo> => {
+export const siteCCVariantsToInfos = memoizeModelQuery((site: Site): Map<CodeComponentVariant, CCVariantInfo> => {
     return new Map(
       site.components.flatMap((comp) => componentCCVariantsToInfos(comp)),
     );
-  },
-);
+  });

@@ -1,7 +1,8 @@
+import { AppContext } from "@/wab/client/components/top-view";
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { BorderPanelSection, BorderRadiusSection } from "@/wab/client/components/style-controls/BorderControls";
-import { SingleRsExpsProvider, StyleComponent, StyleComponentContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { SingleRsExpsProvider, StyleTarget, StyleTargetContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -39,8 +40,8 @@ async function setup(tpl = false) {
   const studio = f.studioCtx, view = ensure(studio.tryGetViewCtxForFrame(frame), "Border view");
   studio.setStudioFocusOnViewCtxContent(view); view.setStudioFocusByTpl(root);
   const provider = tpl ? new TplExpsProvider(view, root) : new SingleRsExpsProvider(rs, exp, studio, [], { kind: "ruleSet", rs, forTag: "div" });
-  const styling = new StyleComponent({ expsProvider: provider }), vsh = new VariantedStylesHelper(site);
-  const wrap = (children: React.ReactNode) => <AppCtxContext.Provider value={f.appCtx}><StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={styling}>{children}</StyleComponentContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider>;
+  const styling = new StyleTarget({ expsProvider: provider }), vsh = new VariantedStylesHelper(site);
+  const wrap = (children: React.ReactNode) => <AppCtxContext.Provider value={f.appCtx}><AppContext.Provider value={studio.app}><StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={styling}>{children}</StyleTargetContext.Provider></StudioCtxContext.Provider></AppContext.Provider></AppCtxContext.Provider>;
   const panel = () => wrap(<><BorderPanelSection expsProvider={provider} vsh={vsh} /><BorderRadiusSection expsProvider={provider} vsh={vsh} /></>);
   return { ...f, studio, site, manager, component, root, frame, view, exp, provider, wrap, vsh, panel };
 }

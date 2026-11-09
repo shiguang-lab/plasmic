@@ -1,3 +1,6 @@
+import { useVariantAnimationInputs } from "@/wab/client/components/sidebar-tabs/variant-animation-inputs";
+import { captureVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useShallow } from "zustand/react/shallow";
 import { useInspectorSelection } from "@/wab/client/studio-ctx/inspector-state";
@@ -5,16 +8,14 @@ import { useI18n } from "@/wab/client/i18n";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useForceUpdate } from "@/wab/client/useForceUpdate";
-import { makeVariantedStylesHelperFromCurrentCtx } from "@/wab/client/utils/style-utils";
 import { useSignalListener } from "@/wab/commons/components/use-signal-listener";
 import { ANIMATIONS_LOWER } from "@/wab/shared/Labels";
 import { VariantCombo } from "@/wab/shared/Variants";
 import { spawn } from "@/wab/shared/common";
-import { allAnimationSequences } from "@/wab/shared/core/sites";
 import { Animation, TplTag } from "@/wab/shared/model/classes";
 import { notification } from "antd";
 import { ok } from "neverthrow";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 interface UseAnimationsOptions {
   tpl: TplTag;
@@ -29,23 +30,17 @@ export function useAnimations(options: UseAnimationsOptions) {
   const { tpl, variants, viewCtx, isDisabled } = options;
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const studioCtx = useStudioCtx();
+  const world = useMemo(() => captureVariantModelWorld(studioCtx), [studioCtx, tpl]);
+  const animationInputs = useVariantAnimationInputs(viewCtx, tpl, variants);
   const vtm = viewCtx.variantTplMgr();
 
-  // Get animations using VariantTplMgr (handles private vs component variant logic)
-  const { animations, definedIndicator } = vtm.getAnimationInfoForVariantCombo(
-    tpl,
-    variants,
-  );
-
-  const allAnimSequences = allAnimationSequences(studioCtx.site, {
-    includeDeps: "direct",
-  });
+  const { animations, definedIndicator, allSequences: allAnimSequences, display: animationDisplay, selectors: variantSelectors } = animationInputs;
 
   const [inspectedIndex, setInspectedIndex] = useState<number | undefined>();
   const inspectedAnimation =
     inspectedIndex !== undefined ? animations?.[inspectedIndex] : undefined;
 
-  const vsh = makeVariantedStylesHelperFromCurrentCtx(studioCtx);
+  const vsh = useVariantedStylesHelperFromCurrentCtx(studioCtx);
 
   const focusedTpl = useInspectorSelection(studioCtx)?.tpl;
   const forceUpdate = useForceUpdate();
@@ -55,7 +50,7 @@ export function useAnimations(options: UseAnimationsOptions) {
     focusedTpl && studioCtx.styleMgrBcast.hasActiveAnimationPreview(focusedTpl);
 
   const playAnimations = (previewAnimations: Animation[]) => {
-    if (previewAnimations.length === 0 || isDisabled || !focusedTpl) {
+    if (!world.isCurrent(viewCtx) || previewAnimations.length === 0 || isDisabled || !focusedTpl) {
       return;
     }
     spawn(
@@ -67,7 +62,7 @@ export function useAnimations(options: UseAnimationsOptions) {
   };
 
   const stopAnimations = () => {
-    if (isAnimationPlaying && focusedTpl) {
+    if (world.isCurrent(viewCtx) && isAnimationPlaying && focusedTpl) {
       studioCtx.styleMgrBcast.stopAnimationPreview(focusedTpl);
     }
   };
@@ -87,6 +82,7 @@ export function useAnimations(options: UseAnimationsOptions) {
   };
 
   const addAnimationLayer = () => {
+    if (!world.isCurrent(viewCtx)) { return; }
     if (allAnimSequences.length === 0) {
       studioCtx.switchLeftTab("animationSequences", { highlight: true });
       notification.warning({
@@ -99,6 +95,7 @@ export function useAnimations(options: UseAnimationsOptions) {
 
     spawn(
       studioCtx.change(() => {
+        if (!world.isCurrent(viewCtx)) { return ok(); }
         const defaultSequence = allAnimSequences[0];
         const newAnimation = studioCtx.tplMgr().addAnimation(defaultSequence);
         const newAnimations = vtm.addAnimation(tpl, newAnimation, variants);
@@ -112,12 +109,13 @@ export function useAnimations(options: UseAnimationsOptions) {
   };
 
   const removeAnimation = (animation: Animation) => {
-    if (isDisabled) {
+    if (!world.isCurrent(viewCtx) || isDisabled) {
       return;
     }
 
     spawn(
       studioCtx.change(() => {
+        if (!world.isCurrent(viewCtx)) { return ok(); }
         const tplAnimations = vtm.removeAnimation(tpl, animation, variants);
         triggerAnimationPreviewOnUpdate(tplAnimations);
         return ok();
@@ -126,12 +124,13 @@ export function useAnimations(options: UseAnimationsOptions) {
   };
 
   const reorderAnimations = (from: number, to: number) => {
-    if (isDisabled) {
+    if (!world.isCurrent(viewCtx) || isDisabled) {
       return;
     }
 
     spawn(
       studioCtx.change(() => {
+        if (!world.isCurrent(viewCtx)) { return ok(); }
         const newAnimations = vtm.reorderAnimations(tpl, from, to, variants);
         triggerAnimationPreviewOnUpdate(newAnimations);
         return ok();
@@ -140,12 +139,13 @@ export function useAnimations(options: UseAnimationsOptions) {
   };
 
   const openAnimationForEditing = (index: number) => {
-    if (isDisabled) {
+    if (!world.isCurrent(viewCtx) || isDisabled) {
       return;
     }
 
     spawn(
       studioCtx.change(() => {
+        if (!world.isCurrent(viewCtx)) { return ok(); }
         vtm.ensureAnimationsForEditing(tpl, variants);
         setInspectedIndex(index);
         return ok();
@@ -156,6 +156,8 @@ export function useAnimations(options: UseAnimationsOptions) {
   return {
     inspectedAnimation,
     animations,
+    animationDisplay,
+    variantSelectors,
     vsh,
     isAnimationPlaying: !!isAnimationPlaying,
     addAnimationLayer,

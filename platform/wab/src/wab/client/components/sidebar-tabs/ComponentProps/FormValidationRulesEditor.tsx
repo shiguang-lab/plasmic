@@ -1,4 +1,5 @@
 import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
+import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
 import {
   isPropShown,
   PropEditorRow,
@@ -135,6 +136,7 @@ interface ValidationRuleBuilderProps {
 export function ValidationRuleBuilder(props: ValidationRuleBuilderProps) {
   const { onChange, onDelete, viewCtx, tpl, rule } = props;
   const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl);
+  const functionsSchema = useCustomFunctionsSchema(viewCtx.studioCtx);
   return (
     <>
       {RULE_EDITORS.map(({ name, type }) => {
@@ -163,7 +165,7 @@ export function ValidationRuleBuilder(props: ValidationRuleBuilderProps) {
             disableLinkToProp={true}
             attr={name}
             componentPropValues={rule}
-            schema={viewCtx.customFunctionsSchema()}
+            schema={functionsSchema}
             env={{
               ...(canvasEnv ?? {}),
               ...(name === "custom"

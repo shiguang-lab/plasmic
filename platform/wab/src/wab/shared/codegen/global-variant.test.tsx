@@ -12,7 +12,7 @@ import {
   isKnownProjectDependency,
   isKnownSite,
 } from "@/wab/shared/model/classes";
-import { createUseStyleTokens } from "@plasmicapp/react-web";
+import { useStyleTokens as useProjectStyleTokens } from "@plasmicapp/react-web";
 import "@testing-library/jest-dom/vitest";
 import { getByText, render, renderHook } from "@testing-library/react";
 import { CssNode, find, parse } from "css-tree";
@@ -229,7 +229,7 @@ describe("tests codegen for global variants", () => {
     });
 
     it("codegens component, StyleTokensProvider, and useStyleTokens that react to global variants", async () => {
-      const { StyleTokensProvider, _useStyleTokens } = await importFromProject(
+      const { StyleTokensProvider, useStyleTokens } = await importFromProject(
         "PlasmicStyleTokensProvider.tsx",
       );
       const { default: Homepage } = await importFromProject("Homepage.js");
@@ -248,12 +248,12 @@ describe("tests codegen for global variants", () => {
         expectHomepage(expectedClasses, unexpectedClasses);
         component.unmount();
 
-        const useStyleTokens = renderHook(_useStyleTokens);
+        const styleTokensHook = renderHook(useStyleTokens);
 
-        expect(useStyleTokens.result.current).toEqual(expectedClasses);
-        useStyleTokens.unmount();
+        expect(styleTokensHook.result.current).toEqual(expectedClasses);
+        styleTokensHook.unmount();
 
-        const useStyleTokensWithProvider = renderHook(_useStyleTokens, {
+        const useStyleTokensWithProvider = renderHook(useStyleTokens, {
           wrapper: StyleTokensProvider,
         });
         expect(useStyleTokensWithProvider.result.current).toEqual(
@@ -296,11 +296,11 @@ describe("tests codegen for global variants", () => {
         expectHomepage(expectedClasses, unexpectedClasses);
         component.unmount();
 
-        const useStyleTokens = renderHook(_useStyleTokens, { wrapper });
-        expect(useStyleTokens.result.current).toEqual(expectedClasses);
-        useStyleTokens.unmount();
+        const styleTokensHook = renderHook(useStyleTokens, { wrapper });
+        expect(styleTokensHook.result.current).toEqual(expectedClasses);
+        styleTokensHook.unmount();
 
-        const useStyleTokensWithProvider = renderHook(_useStyleTokens, {
+        const useStyleTokensWithProvider = renderHook(useStyleTokens, {
           wrapper: StyleTokensProvider,
         });
         expect(useStyleTokensWithProvider.result.current).toEqual(
@@ -344,11 +344,11 @@ describe("tests codegen for global variants", () => {
         expectHomepage(expectedClasses, unexpectedClasses);
         component.unmount();
 
-        const useStyleTokens = renderHook(_useStyleTokens, { wrapper });
-        expect(useStyleTokens.result.current).toEqual(expectedClasses);
-        useStyleTokens.unmount();
+        const styleTokensHook = renderHook(useStyleTokens, { wrapper });
+        expect(styleTokensHook.result.current).toEqual(expectedClasses);
+        styleTokensHook.unmount();
 
-        const useStyleTokensWithProvider = renderHook(_useStyleTokens, {
+        const useStyleTokensWithProvider = renderHook(useStyleTokens, {
           wrapper: ({ children }) =>
             wrapper({
               children: <StyleTokensProvider>{children}</StyleTokensProvider>,
@@ -397,11 +397,11 @@ describe("tests codegen for global variants", () => {
         expectHomepage(expectedClasses, unexpectedClasses);
         component.unmount();
 
-        const useStyleTokens = renderHook(_useStyleTokens, { wrapper });
-        expect(useStyleTokens.result.current).toEqual(expectedClasses);
-        useStyleTokens.unmount();
+        const styleTokensHook = renderHook(useStyleTokens, { wrapper });
+        expect(styleTokensHook.result.current).toEqual(expectedClasses);
+        styleTokensHook.unmount();
 
-        const useStyleTokensWithProvider = renderHook(_useStyleTokens, {
+        const useStyleTokensWithProvider = renderHook(useStyleTokens, {
           wrapper: ({ children }) =>
             wrapper({
               children: <StyleTokensProvider>{children}</StyleTokensProvider>,
@@ -637,13 +637,10 @@ const expectedOtherProjClasses = ["otherProjOverrides", "otherProjTokens"];
  * Note: The base value passed to `createUseStyleTokens` is always included in the result because useStyleTokens
  * merges context values with default project values, rather than using conditional logic.
  */
-const useStyleTokensTester = createUseStyleTokens(
-  {
+function useStyleTokensTester() { return useProjectStyleTokens({
     base: otherProjData.base, // this value is always present in the result of useStyleTokens provider, as the values are merged
     varianted: [],
-  },
-  () => ({}),
-);
+  }, (() => ({}))()); }
 
 describe("useProviderTest", () => {
   it("returns `expectedOtherProjClasses` by default", () => {

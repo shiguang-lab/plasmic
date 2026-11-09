@@ -57,7 +57,8 @@ import {
 import { DataToken, ProjectDependency } from "@/wab/shared/model/classes";
 import { naturalSort } from "@/wab/shared/sort";
 import { debounce, groupBy } from "lodash";
-import { observer } from "mobx-react";
+import { useLibraryAppInputs } from "@/wab/client/components/sidebar/library-inputs";
+import { TokenPanelInputs, useTokenPanelInputs } from "@/wab/client/components/sidebar/token-panel-inputs";
 import { ok } from "neverthrow";
 import * as React from "react";
 
@@ -119,13 +120,12 @@ function mapToDataTokenPanelRow({
   };
 }
 
-const LeftGeneralDataTokensPanel = observer(
-  function LeftGeneralDataTokensPanel() {
+function LeftGeneralDataTokensPanelContent({ source }: { source: TokenPanelInputs }) {
     const studioCtx = useStudioCtx();
     const treeRef = React.useRef<VirtualTreeHandle>(null);
     const [debouncedQuery, setDebouncedQuery] = React.useState("");
-    const debouncedSetQuery = React.useCallback(
-      debounce((value: string) => {
+    const debouncedSetQuery = React.useMemo(
+      () => debounce((value: string) => {
         setDebouncedQuery(value);
       }, 500),
       [setDebouncedQuery],
@@ -177,6 +177,7 @@ const LeftGeneralDataTokensPanel = observer(
         const folderPath = getFolderWithSlash(folderName);
 
         await studioCtx.change(() => {
+          if (!source.isActive()) { return ok(); }
           const token = studioCtx.tplMgr().addDataToken({
             prefix: folderPath,
             value: dataTypes[type].defaultSerializedValue,
@@ -186,7 +187,7 @@ const LeftGeneralDataTokensPanel = observer(
           return ok();
         });
       },
-      [studioCtx, setJustAdded, setEditToken],
+      [studioCtx, source, setJustAdded, setEditToken],
     );
 
     const getFolderTokens = (
@@ -225,20 +226,20 @@ const LeftGeneralDataTokensPanel = observer(
           getFolderWithSlash(folder.name),
           folder.count,
         );
-        if (confirmation) {
+        if (confirmation && source.isActive()) {
           const { tokens } = getFolderTokens([folder]);
           await studioCtx.siteOps().tryDeleteDataTokens(tokens);
         }
       },
-      [studioCtx],
+      [studioCtx, source],
     );
 
-    const onFolderRenamed = React.useCallback(
-      async (folder: DataTokenFolder, newName: string) => {
+    const onFolderRenamed = async (folder: DataTokenFolder, newName: string) => {
         const pathData = replaceFolderName(folder.key, newName);
         const { tokens, folders } = getFolderTokens([folder]);
 
         await studioCtx.changeUnsafe(() => {
+          if (!source.isActive()) { return; }
           const { oldPath, newPath } = pathData;
           for (const token of tokens) {
             const oldTokenName = token.name;
@@ -250,29 +251,25 @@ const LeftGeneralDataTokensPanel = observer(
         });
         const keyChanges = getFolderKeyChanges(folders, pathData);
         renameGroup(keyChanges);
-      },
-      [studioCtx],
-    );
+      };
 
-    const actions: DataTokenFolderActions = React.useMemo(
-      () => ({
+    const actions: DataTokenFolderActions = ({
         onAddToken,
         onDeleteFolder,
         onFolderRenamed,
-      }),
-      [onAddToken, onDeleteFolder, onFolderRenamed],
-    );
+      });
 
     const onDuplicate = React.useCallback(
       async (token: DataToken) => {
         await studioCtx.change(() => {
+          if (!source.isActive()) { return ok(); }
           const newToken = studioCtx.tplMgr().duplicateDataToken(token);
           setJustAdded(newToken);
           setEditToken(new MutableToken(newToken));
           return ok();
         });
       },
-      [studioCtx, setJustAdded, setEditToken],
+      [studioCtx, source, setJustAdded, setEditToken],
     );
 
     const onSelect = React.useCallback(
@@ -412,6 +409,7 @@ const LeftGeneralDataTokensPanel = observer(
           type="token"
           selectableAssets={selectableTokens}
           onDelete={async (selected: string[]) => {
+          if (!source.isActive()) { return false; }
             const selectedTokens = studioCtx.site.dataTokens.filter((t) =>
               selected.includes(t.uuid),
             );
@@ -445,7 +443,7 @@ const LeftGeneralDataTokensPanel = observer(
       );
     };
 
-    const treeItems: DataTokenPanelRow[] = React.useMemo(() => {
+    const treeItems: DataTokenPanelRow[] = (() => {
       const availableCategories = sortDataTokenCategories(
         Object.keys(tokensByCategory) as DataTokenType[],
       );
@@ -459,7 +457,7 @@ const LeftGeneralDataTokensPanel = observer(
           count,
         };
       });
-    }, [tokensByCategory, tokenSectionItems]);
+    })();
 
     const {
       nodeData,
@@ -528,8 +526,14 @@ const LeftGeneralDataTokensPanel = observer(
         )}
       </>
     );
-  },
-);
+}
+
+const LeftGeneralDataTokensPanel = React.memo(function LeftGeneralDataTokensPanel() {
+  const studio = useStudioCtx();
+  useLibraryAppInputs(studio);
+  const source = useTokenPanelInputs(studio, "data");
+  return source.isActive() ? <LeftGeneralDataTokensPanelContent key={source.key} source={source} /> : null;
+});
 
 const DataTokenTreeRow = (props: RenderElementProps<DataTokenPanelRow>) => {
   const { value, treeState } = props;

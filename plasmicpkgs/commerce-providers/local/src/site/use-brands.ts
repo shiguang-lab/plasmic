@@ -18,7 +18,7 @@ export const handler: SWRHook<any> = {
       };
     });
   },
-  useHook: ({ useData }) => (input) => {
+  useHook: ({ useData }) => function useBrandsHandler(input) {
     const response = useData({
       swrOptions: { revalidateOnFocus: false, ...input?.swrOptions },
     });

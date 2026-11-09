@@ -1,3 +1,5 @@
+import { useDataBindingDisplayValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/data-binding-display-inputs";
+import { captureVariantModelWorld, useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { useInspectorSelection } from "@/wab/client/studio-ctx/inspector-state";
 import { isContextMenuOpen } from "@/wab/client/components/ContextMenu";
 import DataPicker, {
@@ -18,7 +20,6 @@ import {
 import { ComponentDataQuery } from "@/wab/shared/model/classes";
 import { Popover, Tooltip } from "antd";
 import { default as classNames } from "classnames";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
 
@@ -45,13 +46,15 @@ interface DataPickerEditorProps {
   onRunClick?: (value: string) => void;
 }
 
-export const InternalDataPickerEditor = observer(
-  function InternalDataPickerEditor_(
-    props: DataPickerEditorProps & {
-      visible: boolean;
-      setVisible: (value: boolean) => void;
-    },
-  ) {
+type InternalDataPickerProps = DataPickerEditorProps & { visible: boolean; setVisible: (value: boolean) => void };
+export const InternalDataPickerEditor = React.memo(function InternalDataPickerEditor(props: InternalDataPickerProps) {
+  return props.viewCtx ? <BoundDataPickerEditor {...props} viewCtx={props.viewCtx} /> : <InternalDataPickerContent {...props} />;
+});
+function BoundDataPickerEditor(props: InternalDataPickerProps & { viewCtx: ViewCtx }) {
+  const world = useVariantModelWorld(props.viewCtx.studioCtx, props.viewCtx, props.viewCtx);
+  return world.alive ? <InternalDataPickerContent {...props} /> : null;
+}
+const InternalDataPickerContent = React.memo(function InternalDataPickerContent(props: InternalDataPickerProps) {
     const { t: studioUiT } = useI18n();
 
     const {
@@ -75,6 +78,9 @@ export const InternalDataPickerEditor = observer(
       isRunCodeInteraction,
       onRunClick,
     } = props;
+    const {codeExpr, displayValue} = useDataBindingDisplayValue(viewCtx, value);
+    const world = React.useMemo(() => viewCtx ? captureVariantModelWorld(viewCtx.studioCtx) : undefined, [viewCtx]);
+    const isCurrent = () => !viewCtx || !!world?.isCurrent(viewCtx);
     const selection = useInspectorSelection(viewCtx?.studioCtx);
     const firstRenderRef = React.useRef(true);
     React.useLayoutEffect(() => {
@@ -92,15 +98,6 @@ export const InternalDataPickerEditor = observer(
       },
       [],
     );
-    const displayValue =
-      viewCtx && typeof value === "string"
-        ? transformDataTokensToDisplay(value, viewCtx.site, viewCtx.siteInfo.id)
-        : value;
-    const codeExpr: string | (string | number)[] | null | undefined =
-      typeof displayValue === "object" && displayValue && viewCtx
-        ? pathToDisplayString(displayValue, viewCtx.site, viewCtx.siteInfo.id)
-        : displayValue;
-
     const complexExpression =
       typeof codeExpr === "string" &&
       (codeExpr.length > 80 || codeExpr.includes("\n"));
@@ -131,10 +128,11 @@ export const InternalDataPickerEditor = observer(
           <DataPicker
             value={displayValue}
             onChange={(val) => {
+              if (!isCurrent()) { return; }
               onChange(val);
               setVisible(false);
             }}
-            onRunClick={onRunClick}
+            onRunClick={onRunClick ? (code) => { if (isCurrent()) { onRunClick(code); } } : undefined}
             onCancel={() => setVisible(false)}
             data={data}
             schema={schema}
@@ -142,6 +140,7 @@ export const InternalDataPickerEditor = observer(
             onUnlink={
               onUnlink
                 ? () => {
+                    if (!isCurrent()) { return; }
                     onUnlink();
                     setVisible(false);
                   }
@@ -152,9 +151,10 @@ export const InternalDataPickerEditor = observer(
             withAddQuery={!!viewCtx}
             hidePreview={hidePreview}
             onAddQuery={() => {
-              if (viewCtx) {
+              if (viewCtx && isCurrent()) {
                 spawn(
                   viewCtx.studioCtx.change(() => {
+                    if (!isCurrent()) { return ok(); }
                     const component = viewCtx.currentTplComponent().component;
                     const newQuery = new ComponentDataQuery({
                       uuid: mkShortId(),
@@ -171,7 +171,7 @@ export const InternalDataPickerEditor = observer(
                     });
                     component.dataQueries.push(newQuery);
                     viewCtx.studioCtx.switchRightTab(RightTabKey.component);
-                    viewCtx.studioCtx.newlyAddedQuery = newQuery;
+                    viewCtx.studioCtx.setNewlyAddedQuery(newQuery);
                     setVisible(false);
                     return ok();
                   }),

@@ -319,24 +319,20 @@ export function makeUseClient(opts: Partial<ExportOpts>): string {
 
 export function makePlatformImports(opts: ExportOpts): string {
   if (opts.platform === "nextjs") {
-    // Next.js has multiple routing hooks depending on your Next.js version and pages/ or app/ dir:
-    // * next/router - all recent Next.js versions, but only works for pages/
-    // * next/navigation - Next.js 13+, works for both pages/ and app/
-    //
-    // The APIs are similar (but not the exact same!), so we switch it here at the import.
-    // When generating code that uses this hook, make sure that it works for both.
-    // https://beta.nextjs.org/docs/upgrade-guide#step-5-migrating-routing-hooks
+    // App navigation is read only inside its native runtime fiber; Pages uses
+    // Next's public nullable router when rendering outside a mounted router.
     if (opts.platformOptions?.nextjs?.appDir) {
       return `
       import Head from "next/head";
       import Link, { LinkProps } from "next/link";
       import { useRouter } from "next/navigation";
+      import { usePlasmicPrepass } from "@plasmicapp/react-web/lib/query";
     `;
     } else {
       return `
       import Head from "next/head";
       import Link, { LinkProps } from "next/link";
-      import { useRouter } from "next/router";
+      import { useRouter } from "next/compat/router";
     `;
     }
   } else if (opts.platform === "tanstack") {
@@ -768,24 +764,12 @@ export function makeGlobalVariantIdFileName(group: VariantGroup) {
   return `global__${group.uuid}`;
 }
 
-export function makeCreateUseGlobalVariantsName() {
-  return `createUseGlobalVariants`;
-}
-
-export function makeCreateStyleTokensProviderName() {
-  return "createStyleTokensProvider";
-}
-
 export function makeStyleTokensProviderName() {
   return "StyleTokensProvider";
 }
 
-export function makeCreateUseStyleTokensName() {
-  return "createUseStyleTokens";
-}
-
 export function makeUseGlobalVariantsName() {
-  return "_useGlobalVariants";
+  return "useGlobalVariants";
 }
 
 export function makeStyleTokensClassNames() {
@@ -793,7 +777,7 @@ export function makeStyleTokensClassNames() {
 }
 
 export function makeUseStyleTokensName() {
-  return "_useStyleTokens";
+  return "useStyleTokens";
 }
 
 export function makeProjectModuleFileName(
@@ -873,16 +857,19 @@ export function getReactWebNamedImportsForRender() {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -890,8 +877,16 @@ export function getReactWebNamedImportsForRender() {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   `;
 }

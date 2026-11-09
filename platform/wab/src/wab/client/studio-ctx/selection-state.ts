@@ -1,3 +1,5 @@
+import { useStudioArena, useViewRegistry } from "@/wab/client/studio-ctx/arena-state";
+import { useShallow } from "zustand/react/shallow";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { emptyViewSelection, type ViewSelectionSnapshot, type SelectionTargetRef } from "@/wab/client/studio-ctx/view-selection";
@@ -18,6 +20,14 @@ export function useStudioSelection<Selected>(studio: StudioCtx | undefined, sele
 }
 
 export const useFocusedViewCtx = (studio: StudioCtx | undefined) => useStudioSelection(studio, (state) => state.view);
+
+/** The fallback owner is selected from immutable frame membership and registrations. */
+export function useFocusedOrFirstViewCtx(studio: StudioCtx) {
+  const focused = useFocusedViewCtx(studio);
+  const [kind, firstFrame] = useStudioArena(studio, useShallow((state) => [state.kind, state.frames[0]] as const));
+  const fallback = useViewRegistry(studio, (entries) => kind === "component" || kind === "page" ? entries.find((entry) => entry.frame === firstFrame)?.view : undefined);
+  return focused ?? fallback;
+}
 
 export function useFocusedViewSelection<Selected>(studio: StudioCtx | undefined, select: (state: ViewSelectionSnapshot) => Selected): Selected {
   const view = useFocusedViewCtx(studio);

@@ -14,50 +14,15 @@
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
-import {
-  Flex as Flex__,
-  MultiChoiceArg,
-  PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
-  PlasmicIcon as PlasmicIcon__,
-  PlasmicImg as PlasmicImg__,
-  PlasmicLink as PlasmicLink__,
-  PlasmicPageGuard as PlasmicPageGuard__,
-  SingleBooleanChoiceArg,
-  SingleChoiceArg,
-  Stack as Stack__,
-  StrictProps,
-  Trans as Trans__,
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  ensureGlobalVariants,
-  generateOnMutateForSpec,
-  generateStateOnChangeProp,
-  generateStateOnChangePropForCodeComponents,
-  generateStateValueProp,
-  get as $stateGet,
-  hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
-  makeFragment,
-  omit,
-  pick,
-  renderPlasmicSlot,
-  set as $stateSet,
-  useCurrentUser,
-  useDollarState,
-  usePlasmicTranslator,
-  useTrigger,
-  wrapWithClassName
-} from "@plasmicapp/react-web";
+import {usePlasmicRefs, Flex as Flex__, MultiChoiceArg, PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__, PlasmicIcon as PlasmicIcon__, PlasmicImg as PlasmicImg__, PlasmicLink as PlasmicLink__, PlasmicPageGuard as PlasmicPageGuard__, SingleBooleanChoiceArg, SingleChoiceArg, Stack as Stack__, StrictProps, Trans as Trans__, classNames, createPlasmicElementProxy, deriveRenderOpts, ensureGlobalVariants, generateOnMutateForSpec, generateStateOnChangeProp, generateStateOnChangePropForCodeComponents, generateStateValueProp, get as $stateGet, hasVariant, makeFragment, omit, pick, renderPlasmicSlot, set as $stateSet, useCurrentUser, useDollarState, useDollarStateSnapshot, usePlasmicTranslator, useHover, wrapWithClassName} from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
   useGlobalActions
 } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "./plasmic_kit_design_system/plasmic"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/projectModule
-import { _useStyleTokens } from "./plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useGlobalVariants } from "./plasmic_kit_design_system/plasmic"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/projectModule
+import { useStyleTokens } from "./plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -216,11 +181,10 @@ function PlasmicButton__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "type",
@@ -266,23 +230,25 @@ function PlasmicButton__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.color
       }
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs
-  });
+    getRefs
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <button
@@ -1311,12 +1277,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1326,29 +1288,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicButton";
-  } else {
-    func.displayName = `PlasmicButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicButton__root<T extends PlasmicButton__rootProps>(props: T & StrictProps<T, PlasmicButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicButton__root.displayName = "PlasmicButton";
+
+type PlasmicButton__startIconContainerProps = NodeComponentProps<"startIconContainer"> & {key?: React.Key};
+function PlasmicButton__startIconContainer<T extends PlasmicButton__startIconContainerProps>(props: T & StrictProps<T, PlasmicButton__startIconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("startIconContainer", props);
+  return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"startIconContainer"} />;
+}
+PlasmicButton__startIconContainer.displayName = "PlasmicButton.startIconContainer";
+
+type PlasmicButton__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicButton__freeBox<T extends PlasmicButton__freeBoxProps>(props: T & StrictProps<T, PlasmicButton__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicButton__freeBox.displayName = "PlasmicButton.freeBox";
+
+type PlasmicButton__endIconContainerProps = NodeComponentProps<"endIconContainer"> & {key?: React.Key};
+function PlasmicButton__endIconContainer<T extends PlasmicButton__endIconContainerProps>(props: T & StrictProps<T, PlasmicButton__endIconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("endIconContainer", props);
+  return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"endIconContainer"} />;
+}
+PlasmicButton__endIconContainer.displayName = "PlasmicButton.endIconContainer";
+
 
 export const PlasmicButton = Object.assign(
   // Top-level PlasmicButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicButton__root,
   {
     // Helper components rendering sub-elements
-    startIconContainer: makeNodeComponent("startIconContainer"),
-    freeBox: makeNodeComponent("freeBox"),
-    endIconContainer: makeNodeComponent("endIconContainer"),
+    startIconContainer: PlasmicButton__startIconContainer,
+    freeBox: PlasmicButton__freeBox,
+    endIconContainer: PlasmicButton__endIconContainer,
 
     // Metadata about props expected for PlasmicButton
     internalVariantProps: PlasmicButton__VariantProps,

@@ -1,3 +1,4 @@
+import { useGridLayoutInputs } from "@/wab/client/components/studio/arenas/arena-layout-inputs";
 import { useFrameHeights } from "@/wab/client/studio-ctx/frame-heights";
 import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { CanvasFrame } from "@/wab/client/components/canvas/CanvasFrame";
@@ -14,11 +15,9 @@ import {
   ComponentArena,
   PageArena,
 } from "@/wab/shared/model/classes";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const GridFramesLayout = observer(GridFramesLayout_);
-function GridFramesLayout_(props: {
+type GridFramesLayoutProps = {
   arena: AnyArena;
   grid: ArenaFrameGrid;
   onFrameLoad: (frame: ArenaFrame, canvasCtx: CanvasCtx) => void;
@@ -26,7 +25,13 @@ function GridFramesLayout_(props: {
   makeRowLabelControls?: (row: ArenaFrameRow, index: number) => React.ReactNode;
   rowEndControls?: (row: ArenaFrameRow, index: number) => React.ReactNode;
   gridEndControls?: () => React.ReactNode;
-}) {
+};
+export const GridFramesLayout = React.memo(function GridFramesLayout(props: GridFramesLayoutProps) {
+  const studio = useStudioCtx();
+  const inputs = useGridLayoutInputs(studio, props.grid);
+  return inputs ? <GridFramesLayoutContent {...props} /> : null;
+});
+function GridFramesLayoutContent(props: GridFramesLayoutProps) {
   const {
     arena,
     grid,
@@ -93,14 +98,14 @@ function GridFramesLayout_(props: {
   );
 }
 
-const ArenaGridRowLabel = observer(ArenaGridRowLabel_);
-function ArenaGridRowLabel_(props: {
+const ArenaGridRowLabel = React.memo(function ArenaGridRowLabel(props: {
   arena: AnyArena;
   studioCtx: StudioCtx;
   children: React.ReactNode;
   style?: React.CSSProperties;
 }) {
   const { studioCtx, children, style } = props;
+  useGridLayoutInputs(studioCtx, switchType(props.arena).when([ComponentArena, PageArena], (arena) => arena.matrix).elseUnsafe(() => undefined));
   const viewportZoom = useCanvasZoom(studioCtx);
   const heightFrames = switchType(props.arena)
     .when(ComponentArena, (arena) => arena.matrix.rows[0]?.cols[0]?.frame ? [arena.matrix.rows[0].cols[0].frame] : [])
@@ -141,4 +146,4 @@ function ArenaGridRowLabel_(props: {
       <div className={sty.rowLabelInner}>{children}</div>
     </div>
   );
-}
+});

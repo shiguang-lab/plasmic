@@ -7,11 +7,8 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { assert } from "@/wab/shared/common";
-import { isPageComponent } from "@/wab/shared/core/components";
-import { getStateVarName } from "@/wab/shared/core/states";
 import { Component, State } from "@/wab/shared/model/classes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 export interface ImplicitVariableRowProps extends DefaultVariableRowProps {
@@ -21,8 +18,7 @@ export interface ImplicitVariableRowProps extends DefaultVariableRowProps {
   sc: StudioCtx;
 }
 
-const ImplicitVariableRow = observer(
-  React.forwardRef(function (
+const ImplicitVariableRow = React.memo(React.forwardRef(function (
     props: ImplicitVariableRowProps,
     ref: HTMLElementRefOf<"div">,
   ) {
@@ -30,16 +26,17 @@ const ImplicitVariableRow = observer(
     const {
       menu,
       modals,
+      inputs,
       props: variableRowProps,
     } = useVariableRow({ sc, component, state, viewCtx });
 
-    assert(state.tplNode, "implicit states should have a tpl node");
+    assert(inputs.hasTpl, "implicit states should have a tpl node");
 
     return (
       <WithContextMenu overlay={menu} onClick={(e) => e.stopPropagation()}>
         <LabeledListItem
           uiId={mkModelUiId(state.param)}
-          data-test-id={getStateVarName(state)}
+          data-test-id={inputs.variableName}
           data-test-type="implicit-variable-row"
           nesting="simple"
           ref={ref}
@@ -53,7 +50,7 @@ const ImplicitVariableRow = observer(
             // There is nothing to configure for implicit states in page
             // components. We do not add the `onClick` handler to
             // avoid opening an empty modal.
-            isPageComponent(component)
+            inputs.isPage
               ? undefined
               : variableRowProps.showVariableConfigModal
           }
@@ -71,6 +68,5 @@ const ImplicitVariableRow = observer(
         {modals}
       </WithContextMenu>
     );
-  }),
-);
+  }));
 export default ImplicitVariableRow;

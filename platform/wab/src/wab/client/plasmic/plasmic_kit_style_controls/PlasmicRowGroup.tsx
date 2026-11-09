@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,13 +22,13 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "../plasmic_kit_style_controls/PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_style_controls/PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -122,11 +122,10 @@ function PlasmicRowGroup__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isOpen",
@@ -154,23 +153,25 @@ function PlasmicRowGroup__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.draggable,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -403,12 +404,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -418,34 +415,85 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicRowGroup__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicRowGroup";
-  } else {
-    func.displayName = `PlasmicRowGroup.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicRowGroup__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicRowGroup__root<T extends PlasmicRowGroup__rootProps>(props: T & StrictProps<T, PlasmicRowGroup__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicRowGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicRowGroup__root.displayName = "PlasmicRowGroup";
+
+type PlasmicRowGroup__dragHandleProps = NodeComponentProps<"dragHandle"> & {key?: React.Key};
+function PlasmicRowGroup__dragHandle<T extends PlasmicRowGroup__dragHandleProps>(props: T & StrictProps<T, PlasmicRowGroup__dragHandleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dragHandle", props);
+  return <PlasmicRowGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dragHandle"} />;
+}
+PlasmicRowGroup__dragHandle.displayName = "PlasmicRowGroup.dragHandle";
+
+type PlasmicRowGroup__gripProps = NodeComponentProps<"grip"> & {key?: React.Key};
+function PlasmicRowGroup__grip<T extends PlasmicRowGroup__gripProps>(props: T & StrictProps<T, PlasmicRowGroup__gripProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("grip", props);
+  return <PlasmicRowGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"grip"} />;
+}
+PlasmicRowGroup__grip.displayName = "PlasmicRowGroup.grip";
+
+type PlasmicRowGroup__iconContainerProps = NodeComponentProps<"iconContainer"> & {key?: React.Key};
+function PlasmicRowGroup__iconContainer<T extends PlasmicRowGroup__iconContainerProps>(props: T & StrictProps<T, PlasmicRowGroup__iconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconContainer", props);
+  return <PlasmicRowGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconContainer"} />;
+}
+PlasmicRowGroup__iconContainer.displayName = "PlasmicRowGroup.iconContainer";
+
+type PlasmicRowGroup__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicRowGroup__svg<T extends PlasmicRowGroup__svgProps>(props: T & StrictProps<T, PlasmicRowGroup__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicRowGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicRowGroup__svg.displayName = "PlasmicRowGroup.svg";
+
+type PlasmicRowGroup__labelContainerProps = NodeComponentProps<"labelContainer"> & {key?: React.Key};
+function PlasmicRowGroup__labelContainer<T extends PlasmicRowGroup__labelContainerProps>(props: T & StrictProps<T, PlasmicRowGroup__labelContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelContainer", props);
+  return <PlasmicRowGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelContainer"} />;
+}
+PlasmicRowGroup__labelContainer.displayName = "PlasmicRowGroup.labelContainer";
+
+type PlasmicRowGroup__sizeContainerProps = NodeComponentProps<"sizeContainer"> & {key?: React.Key};
+function PlasmicRowGroup__sizeContainer<T extends PlasmicRowGroup__sizeContainerProps>(props: T & StrictProps<T, PlasmicRowGroup__sizeContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sizeContainer", props);
+  return <PlasmicRowGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sizeContainer"} />;
+}
+PlasmicRowGroup__sizeContainer.displayName = "PlasmicRowGroup.sizeContainer";
+
+type PlasmicRowGroup__actionsContainerProps = NodeComponentProps<"actionsContainer"> & {key?: React.Key};
+function PlasmicRowGroup__actionsContainer<T extends PlasmicRowGroup__actionsContainerProps>(props: T & StrictProps<T, PlasmicRowGroup__actionsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionsContainer", props);
+  return <PlasmicRowGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionsContainer"} />;
+}
+PlasmicRowGroup__actionsContainer.displayName = "PlasmicRowGroup.actionsContainer";
+
+type PlasmicRowGroup__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicRowGroup__menuButton<T extends PlasmicRowGroup__menuButtonProps>(props: T & StrictProps<T, PlasmicRowGroup__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicRowGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicRowGroup__menuButton.displayName = "PlasmicRowGroup.menuButton";
+
 
 export const PlasmicRowGroup = Object.assign(
   // Top-level PlasmicRowGroup renders the root element
-  makeNodeComponent("root"),
+  PlasmicRowGroup__root,
   {
     // Helper components rendering sub-elements
-    dragHandle: makeNodeComponent("dragHandle"),
-    grip: makeNodeComponent("grip"),
-    iconContainer: makeNodeComponent("iconContainer"),
-    svg: makeNodeComponent("svg"),
-    labelContainer: makeNodeComponent("labelContainer"),
-    sizeContainer: makeNodeComponent("sizeContainer"),
-    actionsContainer: makeNodeComponent("actionsContainer"),
-    menuButton: makeNodeComponent("menuButton"),
+    dragHandle: PlasmicRowGroup__dragHandle,
+    grip: PlasmicRowGroup__grip,
+    iconContainer: PlasmicRowGroup__iconContainer,
+    svg: PlasmicRowGroup__svg,
+    labelContainer: PlasmicRowGroup__labelContainer,
+    sizeContainer: PlasmicRowGroup__sizeContainer,
+    actionsContainer: PlasmicRowGroup__actionsContainer,
+    menuButton: PlasmicRowGroup__menuButton,
 
     // Metadata about props expected for PlasmicRowGroup
     internalVariantProps: PlasmicRowGroup__VariantProps,

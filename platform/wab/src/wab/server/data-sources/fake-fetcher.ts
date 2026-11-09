@@ -161,7 +161,7 @@ export class FakeFetcher {
     if (!resource) {
       throw new BadRequestError(`Must specify table name`);
     }
-    this.database[resource].concat(variables);
+    this.database[resource].push(...variables);
     return variables.length;
   }
 
@@ -178,8 +178,8 @@ export class FakeFetcher {
       throw new BadRequestError(`Missing required parameter: Filters`);
     }
     const tableData = this.database[resource];
-    const tableSchema = this.database[resource];
-    if (!tableData || !tableSchema) {
+    const tableSchema = this.getResourceSchema(resource);
+    if (!tableData) {
       throw new DataSourceError(`Table "${resource}" doesn't exist`);
     }
     const primaryKeys = tableSchema.fields.filter((field) => field.primaryKey);
@@ -200,7 +200,7 @@ export class FakeFetcher {
     }
     let rowCount = 0;
     for (const row of tableData) {
-      if (Object.entries(row).some(([field, value]) => keys[field] !== value)) {
+      if (primaryKeys.some((field) => row[field.id] !== keys[field.id])) {
         continue;
       }
       Object.assign(row, variables);

@@ -10,7 +10,6 @@ import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { clone, mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
 import { ValComponent } from "@/wab/shared/core/val-nodes";
 import { CodeComponentMeta } from "@/wab/shared/model/classes";
-import { autorun, observable, runInAction } from "mobx";
 
 function makeVal(name: string, isContext = true) {
   const component = mkComponent({
@@ -62,25 +61,32 @@ it("resolves rendered provider clones through the global wrapper chain only", ()
 it("tracks providers that finish rendering after the editor opens", () => {
   const outer = makeVal("OtherGlobalContext");
   const hello = makeVal("HelloGlobalContext");
-  const root = observable.box<ValComponent | undefined>(undefined);
+  const root = createStore<ValComponent | undefined>(() => undefined);
   const evaluator = {
     get valRoot() {
-      return root.get();
+      return root.getState();
     },
   };
   let tpl;
-  const dispose = autorun(() => {
-    tpl = BaseCliSvrEvaluator.prototype.getGlobalContextTpl.call(
-      evaluator,
-      "HelloGlobalContext",
-    );
-  });
+  const runtime = new Map<ValComponent, () => void>();
+  const sync = () => {
+    tpl = BaseCliSvrEvaluator.prototype.getGlobalContextTpl.call(evaluator, "HelloGlobalContext");
+    const used = new Set<ValComponent>();
+    for (let current = root.getState(); current; current = current.contents?.[0] instanceof ValComponent ? current.contents[0] : undefined) {
+      used.add(current);
+      if (!runtime.has(current)) {runtime.set(current, current.componentRuntimeInputs.subscribe(sync));}
+    }
+    for (const [value, stop] of runtime) {if (!used.has(value)) {stop(); runtime.delete(value);}}
+  };
+  const stopRoot = root.subscribe(sync);
+  const dispose = () => {stopRoot(); runtime.forEach(stop => stop()); runtime.clear();};
+  sync();
   expect(tpl).toBeUndefined();
-  runInAction(() => root.set(outer.val));
+  root.setState(outer.val, true);
   expect(tpl).toBeUndefined();
-  runInAction(() => (outer.val.contents = [hello.val]));
+  outer.val.contents = [hello.val];
   expect(tpl).toBe(hello.val.tpl);
-  runInAction(() => root.set(undefined));
+  root.setState(undefined, true);
   expect(tpl).toBeUndefined();
   dispose();
 });

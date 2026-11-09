@@ -103,3 +103,17 @@ it("keeps the actual picker's select and add commands on original models", async
   await waitFor(() => expect(f.site.styleTokens.filter((token) => token.type === "Color")).toHaveLength(3));
   const created = ensure(f.site.styleTokens.find((token) => token !== f.first && token !== f.second && token.type === "Color"), "Created color"); expect(created.value).toBe("#445566"); expect(changed).toHaveBeenLastCalledWith(mkTokenRef(created)); mounted.unmount();
 });
+
+
+it("updates the actual default picker roster when colors are added and removed without a parent render", async () => {
+  const f = await setup(), changed = vi.fn();
+  const mounted = render(f.wrap(<ColorPicker color={mkTokenRef(f.first)} onChange={changed} vsh={f.helper} />));
+  const added = mkStyleToken({ name: "New palette color", type: "Color", value: "#778899" });
+  await waitFor(() => expect(mounted.container.querySelectorAll(".SwatchButton")).toHaveLength(1));
+  await act(async () => { await f.studio.changeUnsafe(() => { f.site.styleTokens.push(added); }); });
+  await waitFor(() => expect(mounted.container.querySelectorAll(".SwatchButton")).toHaveLength(2));
+  expect(f.site.styleTokens).toContain(added); expect(changed).not.toHaveBeenCalled();
+  await act(async () => { await f.studio.changeUnsafe(() => { f.site.styleTokens.splice(f.site.styleTokens.indexOf(added), 1); }); });
+  await waitFor(() => expect(mounted.container.querySelectorAll(".SwatchButton")).toHaveLength(1));
+  expect(changed).not.toHaveBeenCalled(); mounted.unmount();
+});

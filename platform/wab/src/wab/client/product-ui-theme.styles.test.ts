@@ -1,9 +1,9 @@
 import { productPalette } from "@/wab/client/product-ui-theme.styles";
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 
 it("themes antd inputs rendered inside property rows", () => {
-  const token = theme.getDesignToken({
-    algorithm: theme.darkAlgorithm,
+  const token = AntdTheme.getDesignToken({
+    algorithm: AntdTheme.darkAlgorithm,
     token: { colorBgContainer: "#202128", colorText: "#edeef5" },
   });
   const palette = productPalette(token) as Record<string, any>;

@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -22,7 +22,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../../../plasmic/plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "../../../plasmic/plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 import ActivityFeedItem from "./ActivityFeedItem"; // plasmic-import: kkbHZ8nmgGH/component
 
 import "@plasmicapp/react-web/lib/plasmic.css";
@@ -75,11 +75,10 @@ function PlasmicActivityFeed__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -170,12 +169,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -185,24 +180,19 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicActivityFeed__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "feedContainer") {
-    func.displayName = "PlasmicActivityFeed";
-  } else {
-    func.displayName = `PlasmicActivityFeed.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicActivityFeed__feedContainerProps = NodeComponentProps<"feedContainer"> & {key?: React.Key};
+function PlasmicActivityFeed__feedContainer<T extends PlasmicActivityFeed__feedContainerProps>(props: T & StrictProps<T, PlasmicActivityFeed__feedContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("feedContainer", props);
+  return <PlasmicActivityFeed__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"feedContainer"} />;
+}
+PlasmicActivityFeed__feedContainer.displayName = "PlasmicActivityFeed";
+
 
 export const PlasmicActivityFeed = Object.assign(
   // Top-level PlasmicActivityFeed renders the root element
-  makeNodeComponent("feedContainer"),
+  PlasmicActivityFeed__feedContainer,
   {
     // Helper components rendering sub-elements
 

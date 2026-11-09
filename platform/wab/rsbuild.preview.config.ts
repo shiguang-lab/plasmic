@@ -23,6 +23,8 @@ export default mergeRsbuildConfig(
     tools: {
       htmlPlugin: false,
       rspack: {
+        // The engine document is same-origin even when static chunks use a CDN.
+        output: { workerPublicPath: "/canvas-preview/" },
         // This separate build includes pure rendering exports and omits Studio UI initializers.
         module: {
           rules: [{ test: /\/src\/wab\/client\//, sideEffects: false }],

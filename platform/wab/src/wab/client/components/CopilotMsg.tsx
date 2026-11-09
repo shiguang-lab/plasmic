@@ -6,6 +6,7 @@ import {
   PlasmicCopilotMsg__OverridesType,
 } from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicCopilotMsg";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
+import { useCopilotFeedback } from "@/wab/client/studio-ctx/copilot-state";
 import { CopilotInteractionId } from "@/wab/shared/ApiSchema";
 import { assert, maybe, spawn } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
@@ -21,8 +22,7 @@ function CopilotMsg_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const studioCtx = useStudioCtx();
-  const savedFeedback =
-    copilotInteractionId && studioCtx.getCopilotFeedback(copilotInteractionId);
+  const savedFeedback = useCopilotFeedback(studioCtx, copilotInteractionId);
   const isFeedbackAlreadySaved = savedFeedback != null;
   const feedbackTextboxRef = React.useRef<TextboxRef>(null);
 

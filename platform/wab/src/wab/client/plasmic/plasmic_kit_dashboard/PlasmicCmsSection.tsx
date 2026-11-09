@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicLink as PlasmicLink__,
   SingleBooleanChoiceArg,
   SingleChoiceArg,
@@ -26,7 +26,7 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -34,8 +34,8 @@ import CmsListItem from "../../components/CmsListItem"; // plasmic-import: DEllw
 import EditableResourceName from "../../components/EditableResourceName"; // plasmic-import: UttGK3xVrb/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -146,11 +146,10 @@ function PlasmicCmsSection__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "noProjects",
@@ -199,20 +198,22 @@ function PlasmicCmsSection__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.subHeader,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -624,12 +625,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -639,35 +636,93 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCmsSection__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCmsSection";
-  } else {
-    func.displayName = `PlasmicCmsSection.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCmsSection__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCmsSection__root<T extends PlasmicCmsSection__rootProps>(props: T & StrictProps<T, PlasmicCmsSection__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCmsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCmsSection__root.displayName = "PlasmicCmsSection";
+
+type PlasmicCmsSection__headerProps = NodeComponentProps<"header"> & {key?: React.Key};
+function PlasmicCmsSection__header<T extends PlasmicCmsSection__headerProps>(props: T & StrictProps<T, PlasmicCmsSection__headerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("header", props);
+  return <PlasmicCmsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"header"} />;
+}
+PlasmicCmsSection__header.displayName = "PlasmicCmsSection.header";
+
+type PlasmicCmsSection__backNavProps = NodeComponentProps<"backNav"> & {key?: React.Key};
+function PlasmicCmsSection__backNav<T extends PlasmicCmsSection__backNavProps>(props: T & StrictProps<T, PlasmicCmsSection__backNavProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("backNav", props);
+  return <PlasmicCmsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"backNav"} />;
+}
+PlasmicCmsSection__backNav.displayName = "PlasmicCmsSection.backNav";
+
+type PlasmicCmsSection__editableNameProps = NodeComponentProps<"editableName"> & {key?: React.Key};
+function PlasmicCmsSection__editableName<T extends PlasmicCmsSection__editableNameProps>(props: T & StrictProps<T, PlasmicCmsSection__editableNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("editableName", props);
+  return <PlasmicCmsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"editableName"} />;
+}
+PlasmicCmsSection__editableName.displayName = "PlasmicCmsSection.editableName";
+
+type PlasmicCmsSection__readonlyNameProps = NodeComponentProps<"readonlyName"> & {key?: React.Key};
+function PlasmicCmsSection__readonlyName<T extends PlasmicCmsSection__readonlyNameProps>(props: T & StrictProps<T, PlasmicCmsSection__readonlyNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("readonlyName", props);
+  return <PlasmicCmsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"readonlyName"} />;
+}
+PlasmicCmsSection__readonlyName.displayName = "PlasmicCmsSection.readonlyName";
+
+type PlasmicCmsSection__subtextProps = NodeComponentProps<"subtext"> & {key?: React.Key};
+function PlasmicCmsSection__subtext<T extends PlasmicCmsSection__subtextProps>(props: T & StrictProps<T, PlasmicCmsSection__subtextProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("subtext", props);
+  return <PlasmicCmsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"subtext"} />;
+}
+PlasmicCmsSection__subtext.displayName = "PlasmicCmsSection.subtext";
+
+type PlasmicCmsSection__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicCmsSection__text<T extends PlasmicCmsSection__textProps>(props: T & StrictProps<T, PlasmicCmsSection__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicCmsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicCmsSection__text.displayName = "PlasmicCmsSection.text";
+
+type PlasmicCmsSection__actionsProps = NodeComponentProps<"actions"> & {key?: React.Key};
+function PlasmicCmsSection__actions<T extends PlasmicCmsSection__actionsProps>(props: T & StrictProps<T, PlasmicCmsSection__actionsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actions", props);
+  return <PlasmicCmsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actions"} />;
+}
+PlasmicCmsSection__actions.displayName = "PlasmicCmsSection.actions";
+
+type PlasmicCmsSection__newProjectButtonProps = NodeComponentProps<"newProjectButton"> & {key?: React.Key};
+function PlasmicCmsSection__newProjectButton<T extends PlasmicCmsSection__newProjectButtonProps>(props: T & StrictProps<T, PlasmicCmsSection__newProjectButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newProjectButton", props);
+  return <PlasmicCmsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newProjectButton"} />;
+}
+PlasmicCmsSection__newProjectButton.displayName = "PlasmicCmsSection.newProjectButton";
+
+type PlasmicCmsSection__moreButtonProps = NodeComponentProps<"moreButton"> & {key?: React.Key};
+function PlasmicCmsSection__moreButton<T extends PlasmicCmsSection__moreButtonProps>(props: T & StrictProps<T, PlasmicCmsSection__moreButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("moreButton", props);
+  return <PlasmicCmsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"moreButton"} />;
+}
+PlasmicCmsSection__moreButton.displayName = "PlasmicCmsSection.moreButton";
+
 
 export const PlasmicCmsSection = Object.assign(
   // Top-level PlasmicCmsSection renders the root element
-  makeNodeComponent("root"),
+  PlasmicCmsSection__root,
   {
     // Helper components rendering sub-elements
-    header: makeNodeComponent("header"),
-    backNav: makeNodeComponent("backNav"),
-    editableName: makeNodeComponent("editableName"),
-    readonlyName: makeNodeComponent("readonlyName"),
-    subtext: makeNodeComponent("subtext"),
-    text: makeNodeComponent("text"),
-    actions: makeNodeComponent("actions"),
-    newProjectButton: makeNodeComponent("newProjectButton"),
-    moreButton: makeNodeComponent("moreButton"),
+    header: PlasmicCmsSection__header,
+    backNav: PlasmicCmsSection__backNav,
+    editableName: PlasmicCmsSection__editableName,
+    readonlyName: PlasmicCmsSection__readonlyName,
+    subtext: PlasmicCmsSection__subtext,
+    text: PlasmicCmsSection__text,
+    actions: PlasmicCmsSection__actions,
+    newProjectButton: PlasmicCmsSection__newProjectButton,
+    moreButton: PlasmicCmsSection__moreButton,
 
     // Metadata about props expected for PlasmicCmsSection
     internalVariantProps: PlasmicCmsSection__VariantProps,

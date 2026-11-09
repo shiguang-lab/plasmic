@@ -110,7 +110,7 @@ import {
   getFolderDisplayName,
   getFolderTrimmed,
 } from "@/wab/shared/folders/folders-util";
-import { ensureComponentsObserved } from "@/wab/shared/mobx-util";
+import { ensureComponentsRecorded } from "@/wab/shared/core/component-recording";
 import {
   ArenaFrame,
   Arg,
@@ -1959,7 +1959,7 @@ export function removeComponentParam(
     removeComponentStateOnly(site, component, state);
   }
 
-  ensureComponentsObserved([component]);
+  ensureComponentsRecorded([component]);
   const group = findVariantGroupForParam(component, param);
   if (group) {
     // Remove all VariantSettings referencing this group
@@ -1968,7 +1968,7 @@ export function removeComponentParam(
         findVariantSettingsUnderTpl(comp.tplTree),
       )) {
         if (vs.variants.some((v) => group.variants.includes(v))) {
-          ensureComponentsObserved([comp]);
+          ensureComponentsRecorded([comp]);
           arrayRemove(tpl.vsettings, vs);
         }
       }
@@ -2000,7 +2000,7 @@ export function removeComponentParam(
       for (const arg of [...vs.args]) {
         if (arg.param === param) {
           if (!isContextCodeComponent(component)) {
-            ensureComponentsObserved([$$$(inst).owningComponent()]);
+            ensureComponentsRecorded([$$$(inst).owningComponent()]);
           }
           // If we're removing a slot prop, we first explicitly remove
           // the tpl nodes passed in as arg, so that we can deal with invariants

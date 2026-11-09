@@ -29,14 +29,14 @@ it("keeps rapid local edits while earlier stream snapshots arrive, then accepts 
   const dispose = view.subscribe(listener);
   const first = { prompt: "A", attachments: [] };
   const second = { prompt: "AB", attachments: [] };
-  view.draft = first;
-  view.draft = second;
+  view.setThreadDraft(view.activeThreadId, first);
+  view.setThreadDraft(view.activeThreadId, second);
   await applyAiSessionAction(service, { type: "draft", value: first, threadId: service.activeThreadId });
   view.update(snapshotAiSession(service));
   expect(view.draft.prompt).toBe("AB");
   await applyAiSessionAction(service, { type: "draft", value: second, threadId: service.activeThreadId });
   view.update(snapshotAiSession(service));
-  service.draft = { prompt: "", attachments: [] };
+  service.setThreadDraft(service.activeThreadId, { prompt: "", attachments: [] });
   view.update(snapshotAiSession(service));
   expect(view.draft.prompt).toBe("");
   expect(api.updateAiSession).toHaveBeenNthCalledWith(1, "project", {
@@ -64,12 +64,12 @@ it("sends execution to the top frame and reads ownership from the service snapsh
     type: "run",
     args: ["Edit this page", undefined, "auto", [], "model", service.activeThreadId],
   });
-  view.selectedModel = "model";
+  view.setSelectedModel("model");
   view.update(snapshotAiSession(service));
   expect(view.selectedModel).toBe("model");
-  service.selectedModel = "model";
+  service.setSelectedModel("model");
   view.update(snapshotAiSession(service));
-  service.selectedModel = "new-model";
+  service.setSelectedModel("new-model");
   view.update(snapshotAiSession(service));
   expect(view.selectedModel).toBe("new-model");
 });
@@ -78,11 +78,11 @@ it("keeps a new topic and its draft when an older topic snapshot arrives during 
   const api = mock<TopFrameApi>();
   const service = new LocalEditSession("project");
   service.newThread("topic-a");
-  service.draft = {prompt: "A draft", attachments: []};
+  service.setThreadDraft(service.activeThreadId, {prompt: "A draft", attachments: []});
   const view = new RemoteAiSessionView(api, "project");
   view.update(snapshotAiSession(service));
   view.newThread("topic-b");
-  view.draft = {prompt: "B draft", attachments: []};
+  view.setThreadDraft(view.activeThreadId, {prompt: "B draft", attachments: []});
   view.update(snapshotAiSession(service));
   expect(view.activeThreadId).toBe("topic-b");
   expect(view.draft.prompt).toBe("B draft");

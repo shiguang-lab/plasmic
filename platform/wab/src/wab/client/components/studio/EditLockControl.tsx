@@ -7,7 +7,7 @@ import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { Tooltip } from "antd";
 import React from "react";
 
-export function _EditLockControl() {
+export function EditLockControl() {
   const { t } = useI18n();
   const sc = useStudioCtx();
   const isAtTip = useStudioSaveState(sc, (state) => state.isAtTip);
@@ -34,4 +34,3 @@ export function _EditLockControl() {
   );
 }
 
-export const EditLockControl = _EditLockControl;

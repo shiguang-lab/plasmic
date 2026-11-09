@@ -28,6 +28,9 @@ const origin = "https://plasmic-studio.shiguanglab.com";
 const canvasOrigin = "https://plasmic-canvas.shiguanglab.com";
 const read = name => JSON.parse(fs.readFileSync(path.join(task, name)));
 const opening = read("project-response.json"), startup = opening.startup;
+const customHost = process.env.PERF_OPEN_CUSTOM_HOST === "1"
+  ? require('./open-hostless.cjs').customHost({opening, canvasOrigin, html:fs.readFileSync(path.join(buildRoot,'static/host.html'),'utf8')})
+  : undefined;
 if (process.env.PERF_CODE_DISPLAY === "1") startup.appConfig.config.codePreview = true;
 // Native draft recovery deliberately keeps the remote fixture revision unchanged.
 if (process.env.PERF_OPEN_NATIVE) startup.appConfig.config.autoSave = false;
@@ -56,6 +59,15 @@ if (sparePolicy) report.spareRenderer = {policy:sparePolicy,arguments:spareArgum
 const now = () => performance.timeOrigin + performance.now();
 const firstFrames=new Map();
 let phase = "dashboard-bootstrap", win, tracing = false, previews, memoryTimer, nativeBridge;
+const progressPrefix = "REAL_PROJECT_PROGRESS ";
+function progress(step, details = {}) {
+  const entry = { at: new Date().toISOString(), phase, step, ...details };
+  report.currentStep = entry;
+  (report.progress ??= []).push(entry);
+  fs.appendFileSync(path.join(task, "open-progress-" + mode + ".jsonl"), JSON.stringify(entry) + "\n", { mode: 0o600 });
+  console.log(progressPrefix + JSON.stringify(entry));
+}
+function setPhase(next) { phase = next; progress("phase-start"); }
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 app.setName("Plasmic real-project diagnostic");
 app.userAgentFallback = `${app.userAgentFallback} PlasmicDesktop/${process.platform}`;
@@ -64,6 +76,9 @@ app.on("window-all-closed", () => {});
 ipcMain.on("desktop:preview-host-error", (_event,message) => report.previewErrors.push({phase,message:String(message)}));
 function bootstrap(countStyles, blockPhysicalInput) {
   window.__openProbe = { longTasks: [], paints: [] };
+  for (const event of ["beforeunload", "unload"]) {
+    window.addEventListener(event, () => console.log("REAL_PROJECT_UNLOAD " + JSON.stringify({event, url:location.origin+location.pathname})));
+  }
   if (blockPhysicalInput) {
     window.__openProbe.blockedInputEvents = 0;
     for (const type of ["paste", "drop", "beforeinput", "pointerdown", "mousedown", "click"]) {
@@ -92,6 +107,20 @@ function bootstrap(countStyles, blockPhysicalInput) {
   new PerformanceObserver(list => __openProbe.longTasks.push(...list.getEntries().map(e => ({ start:e.startTime, duration:e.duration })))).observe({type:"longtask",buffered:true});
 }
 app.on("web-contents-created", (_, contents) => {
+  const navigation = (event, details = {}) => {
+    if (phase !== "functional") return;
+    const entry = { at: new Date().toISOString(), phase, event, rendererId: contents.id, ...details };
+    (report.navigation ??= []).push(entry);
+    fs.appendFileSync(path.join(task, "open-navigation-" + mode + ".jsonl"), JSON.stringify(entry) + "\n", { mode: 0o600 });
+    console.log("REAL_PROJECT_NAVIGATION " + JSON.stringify(entry));
+  };
+  contents.on("did-start-navigation", details => navigation("did-start-navigation", { url: details.url, isMainFrame: details.isMainFrame, isSameDocument: details.isSameDocument }));
+  contents.on("did-navigate", (_event, url) => navigation("did-navigate", { url }));
+  contents.on("did-fail-load", (_event, code, description, url, isMainFrame) => navigation("did-fail-load", { code, description, url, isMainFrame }));
+  contents.on("did-finish-load", () => navigation("did-finish-load", { url: contents.getURL() }));
+  contents.on("did-start-loading", () => navigation("did-start-loading"));
+  contents.on("did-stop-loading", () => navigation("did-stop-loading"));
+  contents.on("destroyed", () => navigation("destroyed"));
   if (process.env.PERF_BLOCK_PHYSICAL_INPUT === "1") {
     contents.on("before-input-event", event => {
       event.preventDefault();
@@ -124,9 +153,17 @@ app.on("web-contents-created", (_, contents) => {
     contents.once("destroyed",()=>clearInterval(timer));
   }
   contents.on("console-message", event => {
+    if (event.message.startsWith("REAL_PROJECT_UNLOAD ")) {
+      const entry = JSON.parse(event.message.slice("REAL_PROJECT_UNLOAD ".length));
+      navigation(entry.event, entry);
+    }
+    if (event.message.startsWith(progressPrefix)) {
+      const entry = JSON.parse(event.message.slice(progressPrefix.length));
+      progress(entry.step, { ...entry, rendererId: contents.id });
+    }
     if (event.level === "error") report.errors.push(event.message.slice(0,800));
   });
-  contents.on("will-prevent-unload", event => event.preventDefault());
+  contents.on("will-prevent-unload", event => { navigation("will-prevent-unload"); event.preventDefault(); });
   if(!debuggerEnabled)return;
   const debug = contents.debugger;
   debug.attach("1.3");
@@ -144,17 +181,18 @@ app.on("web-contents-created", (_, contents) => {
   void setup().catch(e => report.errors.push(e.message));
 });
 async function until(fn, description) {
+  progress("wait-start", { description });
   const deadline = Date.now() + 60000;
   while (Date.now() < deadline) {
     const value = await fn();
-    if (value) return value;
+    if (value) { progress("wait-complete", { description }); return value; }
     await sleep(process.env.PERF_RETURN_TIMING === "1" && description === "real dashboard card" ? 5 : 100);
   }
   report.timeoutFrames = [];
   for (const f of win.webContents.mainFrame.framesInSubtree) {
     try { report.timeoutFrames.push(await f.executeJavaScript("({url:location.href,body:document.body?.innerText?.slice(0,1500)})")); } catch {}
   }
-  throw Error("Timeout: " + description);
+  throw Error("Timeout: " + description + "; phase=" + phase + "; step=" + report.currentStep?.step);
 }
 async function memoryPoint(label, retiredPid, retiredFramePids = []) {
   const processes = app.getAppMetrics().map(p=>({pid:p.pid,type:p.type,rssKiB:p.memory.workingSetSize}));
@@ -174,14 +212,18 @@ async function memoryPoint(label, retiredPid, retiredFramePids = []) {
 async function dashboard() {
   return until(() => win.webContents.executeJavaScript(`(()=>{const e=[...document.querySelectorAll('[role="link"][aria-label]')].find(e=>e.getAttribute('aria-label').endsWith(${JSON.stringify(": " + opening.project.name)}));return e && {label:e.getAttribute('aria-label'),rect:JSON.stringify(e.getBoundingClientRect())}})()`), "real dashboard card");
 }
-async function ready() {
+async function ready({ previousTimeOrigin } = {}) {
   return until(async () => {
     for (const f of win.webContents.mainFrame.framesInSubtree) {
-      try { if (await f.executeJavaScript("!!window.studioCtx?.activeCanvasReady && !!window.studioCtx?.initialViewportReady")) return f; } catch {}
+      try {
+        const state = await f.executeJavaScript("({ready:!!window.studioCtx?.activeCanvasReady && !!window.studioCtx?.initialViewportReady,timeOrigin:performance.timeOrigin})");
+        if (state.ready && state.timeOrigin !== previousTimeOrigin) return f;
+      } catch {}
     }
   }, "canvas and viewport ready");
 }
 app.whenReady().then(async () => {
+  progress("phase-start");
   app.setActivationPolicy?.(process.env.PERF_RETURN_TIMING === "1" ? "regular" : "accessory");
   if (process.env.PERF_OPEN_MEMORY) {
     report.memoryProbe={peakRssKiB:0,afterReturn:[]};
@@ -206,7 +248,9 @@ app.whenReady().then(async () => {
   ses.protocol.handle("http", remoteFetch);
   const assets=createAssetHandler({root:buildRoot,studioOrigin:origin,canvasOrigin,remoteFetch,previewHostPath:path.resolve(__dirname,"../../src/preview-host.html")});
   ses.protocol.handle("https",async request=>{
-    const response=await assets(request);
+    const response=customHost && new URL(request.url).origin === canvasOrigin && new URL(request.url).pathname === customHost.pathname
+      ? new Response(customHost.html,{headers:{"Content-Type":"text/html; charset=utf-8","Access-Control-Allow-Origin":"*"}})
+      : await assets(request);
     if(debuggerEnabled||!response.headers.get("Content-Type")?.startsWith("text/html"))return response;
     const headers=new Headers(response.headers);headers.delete("Content-Length");
     const html=(await response.text()).replace(/<head[^>]*>/i,head=>head+`<script>(${bootstrap.toString()})(false,${process.env.PERF_BLOCK_PHYSICAL_INPUT === '1'})</script>`);
@@ -233,7 +277,10 @@ app.whenReady().then(async () => {
     if(event.sender!==win.webContents||event.senderFrame!==win.webContents.mainFrame)throw Error("Stale renderer navigation");
     return win.loadURL(url);
   });
-  if(isolatedSessions) win.on("contents-deactivated",contents=>previews?.cancelFor(contents));
+  if(isolatedSessions) {
+    win.on("contents-deactivated",contents=>previews?.cancelQueuedFor(contents));
+    win.on("contents-released",contents=>previews?.cancelFor(contents));
+  }
   previews = createDashboardPreviews({session:ses,studioOrigin:origin,trustedSender:event=>event.sender===win.webContents});
   await win.loadURL(origin+"/projects");
   report.card = await dashboard();
@@ -254,11 +301,11 @@ app.whenReady().then(async () => {
   for (let i=0;i<opens;i++) {
     if(report.memoryProbe) report.memoryProbe.openPeakRssKiB=0;
     if(process.env.PERF_RETURN_TIMING === "1") {app.focus({steal:true});nativeWindow.show();nativeWindow.focus();win.webContents.focus();}
-    phase = i===0 ? "first-list-open" : "warm-list-open-"+i;
+    setPhase(i===0 ? "first-list-open" : "warm-list-open-"+i);
     const beforeOpenProcesses = sparePolicy ? app.getAppMetrics().map(p=>({pid:p.pid,type:p.type,rssKiB:p.memory.workingSetSize})) : undefined;
     let click;
     if (nativeBridge?.reload && i > 0) {
-      phase = "native-document-reload-" + i;
+      setPhase("native-document-reload-" + i);
       click = { at: now(), source: "native-document-reload" };
       const loaded = new Promise(resolve => win.webContents.once('did-finish-load', resolve));
       win.webContents.reload();
@@ -303,6 +350,7 @@ app.whenReady().then(async () => {
         report.inputProbes.push({durationMs:now()-start,...result});await sleep(60);
       }
     }
+    progress("await-initial-studio-ready");
     await frame.executeJavaScript("studioCtx.awaitStudioReady()");
     await until(() => frame.executeJavaScript("studioCtx.loadTimings.has('all-frames-rendered')"), "all initial artboards rendered");
     await sleep(300);
@@ -332,27 +380,31 @@ app.whenReady().then(async () => {
     };
     report.samples.push(sample);
     console.log(JSON.stringify({phase,detectedReadyMs:sample.detectedReadyMs,studio:probes.find(p=>p.studio)?.studio}));
-    if (nativeBridge) await nativeBridge.afterOpen(frame, i);
+    if (nativeBridge) {
+      progress("native-after-open", { iteration: i });
+      await nativeBridge.afterOpen(frame, i);
+      progress("native-after-open-complete", { iteration: i });
+    }
     if (i===opens-1) fs.writeFileSync(path.join(task,"real-project-"+mode+".png"),await win.webContents.capturePage().then(i=>i.toPNG()));
     if (i===opens-1 && process.env.PERF_OPEN_RENDERERS==='1') {
-      phase = 'renderer-first-use';
+      setPhase('renderer-first-use');
       report.renderers = await require('./lazy-renderers-first-use.cjs').run(frame);
     }
     if (i===opens-1 && process.env.PERF_CODE_DISPLAY==='1') {
-      phase='code-display';report.codeDisplay=await require('./code-display.cjs').run(frame);
+      setPhase('code-display');report.codeDisplay=await require('./code-display.cjs').run(frame);
     }
     if (i===opens-1 && process.env.PERF_OPEN_DOCS==='1') {
-      phase='docs-portal';
+      setPhase('docs-portal');
       const docs=await require('./docs-portal.cjs').run({frame,win,ready});
       report.docsPortal=docs.result;frame=docs.frame;
     }
     if (i===opens-1 && process.env.PERF_OPEN_FUNCTIONAL==='1') {
-      phase='functional';report.functional=(await require('./open-functional.cjs').run({frame,win,ready,preview:startup.projectId==='tk89W1Akg2HjAjyHAYEro7'})).result;
+      setPhase('functional');report.functional=(await require('./open-functional.cjs').run({frame,win,ready,progress,preview:startup.projectId==='tk89W1Akg2HjAjyHAYEro7'})).result;
       if (report.errors.length) throw Error('Renderer errors during functional replay: '+report.errors.join('; '));
       break;
     }
     if (nativeBridge?.reload) continue;
-    phase = "return-list-"+i;
+    setPhase("return-list-"+i);
     if(process.env.PERF_RETURN_TIMING === "1") {app.focus({steal:true});nativeWindow.show();nativeWindow.focus();win.webContents.focus();}
     const returnStartedAt=now();activatedAt=undefined;
     const retiredPid = win.webContents.getOSProcessId();
@@ -403,4 +455,10 @@ app.whenReady().then(async () => {
   for (const w of BrowserWindow.getAllWindows()) w.destroy();
   app.exit(process.exitCode||0);
 });
-setTimeout(()=>{fs.writeFileSync(path.join(task,"list-open-"+mode+".json"),JSON.stringify(report,null,2));app.exit(2)},240000);
+setTimeout(()=>{
+  report.timedOut = { timeoutMs: 240000, phase, currentStep: report.currentStep };
+  report.error ??= "Harness deadline exceeded (240000 ms); phase=" + phase + "; currentStep=" + JSON.stringify(report.currentStep);
+  console.error(report.error);
+  fs.writeFileSync(path.join(task,"list-open-"+mode+".json"),JSON.stringify(report,null,2),{mode:0o600});
+  app.exit(2);
+},240000);

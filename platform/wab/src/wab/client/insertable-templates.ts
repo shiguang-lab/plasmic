@@ -123,7 +123,7 @@ export function postInsertableTemplate(
 
   // Add new fonts to font manager
   for (const font of seenFonts) {
-    studioCtx.fontManager.useFont(studioCtx, font);
+    studioCtx.fontManager.loadFont(studioCtx, font);
   }
 }
 

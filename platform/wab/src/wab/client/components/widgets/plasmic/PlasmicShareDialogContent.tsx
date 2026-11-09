@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   MultiChoiceArg,
   PlasmicLink as PlasmicLink__,
   SingleBooleanChoiceArg,
@@ -29,11 +29,11 @@ import {
   generateStateValueProp,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../../../plasmic/plasmic_kit_share_dialog/PlasmicStyleTokensProvider"; // plasmic-import: kA1Hysr5ZeimtATHTDJz5B/styleTokensProvider
+import { useStyleTokens } from "../../../plasmic/plasmic_kit_share_dialog/PlasmicStyleTokensProvider"; // plasmic-import: kA1Hysr5ZeimtATHTDJz5B/styleTokensProvider
 import ListSectionSeparator from "../../ListSectionSeparator"; // plasmic-import: uG5_fPM0sK/component
 import ActionMenuButton from "../ActionMenuButton"; // plasmic-import: VNi6NC2QOI/component
 import Button from "../Button"; // plasmic-import: SEF-sRmSoqV5c/component
@@ -154,11 +154,10 @@ function PlasmicShareDialogContent__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "state",
@@ -193,19 +192,8 @@ function PlasmicShareDialogContent__RenderFunc(props: {
         variableType: "boolean",
         initFunc: ({ $props, $state, $queries, $q, $ctx }) =>
           hasVariant($state, "shareByLinkAllowed", "no")
-            ? (() => {
-                try {
-                  return false;
-                } catch (e) {
-                  if (
-                    e instanceof TypeError ||
-                    e?.plasmicType === "PlasmicUndefinedDataError"
-                  ) {
-                    return [];
-                  }
-                  throw e;
-                }
-              })()
+            ? ((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                    e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => (false), () => ([]))
             : "isChecked",
       },
       {
@@ -234,18 +222,20 @@ function PlasmicShareDialogContent__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => "value1",
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -565,9 +555,9 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                     ? true
                     : undefined
                 }
-                onChange={async (...eventArgs: any) => {
+                onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                   ((...eventArgs) => {
-                    generateStateOnChangeProp($state, [
+                    generateStateOnChangeProp($stateCommands, [
                       "shareByLinkSwitch",
                       "isChecked",
                     ])(eventArgs[0]);
@@ -580,7 +570,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                   ) {
                     return;
                   }
-                }}
+                })); })}
               >
                 {hasVariant($state, "resourceType", "team")
                   ? uiT("Invite by link is enabled")
@@ -739,9 +729,9 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                       role={"img"}
                     />
                   }
-                  onChange={async (...eventArgs: any) => {
+                  onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                     ((...eventArgs) => {
-                      generateStateOnChangeProp($state, [
+                      generateStateOnChangeProp($stateCommands, [
                         "shareByLinkPermDropdown",
                         "value",
                       ])(eventArgs[0]);
@@ -754,7 +744,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                     ) {
                       return;
                     }
-                  }}
+                  })); })}
                   type={"bordered"}
                   value={generateStateValueProp($state, [
                     "shareByLinkPermDropdown",
@@ -985,9 +975,9 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                       role={"img"}
                     />
                   }
-                  onChange={async (...eventArgs: any) => {
+                  onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                     ((...eventArgs) => {
-                      generateStateOnChangeProp($state, [
+                      generateStateOnChangeProp($stateCommands, [
                         "newUserRoleDropdown",
                         "value",
                       ])(eventArgs[0]);
@@ -1000,7 +990,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                     ) {
                       return;
                     }
-                  }}
+                  })); })}
                   type={"bordered"}
                   value={generateStateValueProp($state, [
                     "newUserRoleDropdown",
@@ -1703,9 +1693,9 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                   role={"img"}
                 />
               }
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, [
+                  generateStateOnChangeProp($stateCommands, [
                     "everyoneElseDropdown",
                     "value",
                   ])(eventArgs[0]);
@@ -1718,7 +1708,7 @@ function PlasmicShareDialogContent__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
               textAlign={"right"}
               type={"seamless"}
               value={generateStateValueProp($state, [
@@ -1840,12 +1830,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1855,41 +1841,141 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicShareDialogContent__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicShareDialogContent";
-  } else {
-    func.displayName = `PlasmicShareDialogContent.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicShareDialogContent__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicShareDialogContent__root<T extends PlasmicShareDialogContent__rootProps>(props: T & StrictProps<T, PlasmicShareDialogContent__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicShareDialogContent__root.displayName = "PlasmicShareDialogContent";
+
+type PlasmicShareDialogContent__projectActionMenuProps = NodeComponentProps<"projectActionMenu"> & {key?: React.Key};
+function PlasmicShareDialogContent__projectActionMenu<T extends PlasmicShareDialogContent__projectActionMenuProps>(props: T & StrictProps<T, PlasmicShareDialogContent__projectActionMenuProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("projectActionMenu", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"projectActionMenu"} />;
+}
+PlasmicShareDialogContent__projectActionMenu.displayName = "PlasmicShareDialogContent.projectActionMenu";
+
+type PlasmicShareDialogContent__shareByLinkSwitchProps = NodeComponentProps<"shareByLinkSwitch"> & {key?: React.Key};
+function PlasmicShareDialogContent__shareByLinkSwitch<T extends PlasmicShareDialogContent__shareByLinkSwitchProps>(props: T & StrictProps<T, PlasmicShareDialogContent__shareByLinkSwitchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("shareByLinkSwitch", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"shareByLinkSwitch"} />;
+}
+PlasmicShareDialogContent__shareByLinkSwitch.displayName = "PlasmicShareDialogContent.shareByLinkSwitch";
+
+type PlasmicShareDialogContent__copyLinkProps = NodeComponentProps<"copyLink"> & {key?: React.Key};
+function PlasmicShareDialogContent__copyLink<T extends PlasmicShareDialogContent__copyLinkProps>(props: T & StrictProps<T, PlasmicShareDialogContent__copyLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("copyLink", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"copyLink"} />;
+}
+PlasmicShareDialogContent__copyLink.displayName = "PlasmicShareDialogContent.copyLink";
+
+type PlasmicShareDialogContent__shareByLinkPermDropdownProps = NodeComponentProps<"shareByLinkPermDropdown"> & {key?: React.Key};
+function PlasmicShareDialogContent__shareByLinkPermDropdown<T extends PlasmicShareDialogContent__shareByLinkPermDropdownProps>(props: T & StrictProps<T, PlasmicShareDialogContent__shareByLinkPermDropdownProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("shareByLinkPermDropdown", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"shareByLinkPermDropdown"} />;
+}
+PlasmicShareDialogContent__shareByLinkPermDropdown.displayName = "PlasmicShareDialogContent.shareByLinkPermDropdown";
+
+type PlasmicShareDialogContent__byInviteTabProps = NodeComponentProps<"byInviteTab"> & {key?: React.Key};
+function PlasmicShareDialogContent__byInviteTab<T extends PlasmicShareDialogContent__byInviteTabProps>(props: T & StrictProps<T, PlasmicShareDialogContent__byInviteTabProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("byInviteTab", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"byInviteTab"} />;
+}
+PlasmicShareDialogContent__byInviteTab.displayName = "PlasmicShareDialogContent.byInviteTab";
+
+type PlasmicShareDialogContent__newUserEmailProps = NodeComponentProps<"newUserEmail"> & {key?: React.Key};
+function PlasmicShareDialogContent__newUserEmail<T extends PlasmicShareDialogContent__newUserEmailProps>(props: T & StrictProps<T, PlasmicShareDialogContent__newUserEmailProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newUserEmail", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newUserEmail"} />;
+}
+PlasmicShareDialogContent__newUserEmail.displayName = "PlasmicShareDialogContent.newUserEmail";
+
+type PlasmicShareDialogContent__newUserRoleDropdownProps = NodeComponentProps<"newUserRoleDropdown"> & {key?: React.Key};
+function PlasmicShareDialogContent__newUserRoleDropdown<T extends PlasmicShareDialogContent__newUserRoleDropdownProps>(props: T & StrictProps<T, PlasmicShareDialogContent__newUserRoleDropdownProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newUserRoleDropdown", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newUserRoleDropdown"} />;
+}
+PlasmicShareDialogContent__newUserRoleDropdown.displayName = "PlasmicShareDialogContent.newUserRoleDropdown";
+
+type PlasmicShareDialogContent__sendInviteButtonProps = NodeComponentProps<"sendInviteButton"> & {key?: React.Key};
+function PlasmicShareDialogContent__sendInviteButton<T extends PlasmicShareDialogContent__sendInviteButtonProps>(props: T & StrictProps<T, PlasmicShareDialogContent__sendInviteButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sendInviteButton", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sendInviteButton"} />;
+}
+PlasmicShareDialogContent__sendInviteButton.displayName = "PlasmicShareDialogContent.sendInviteButton";
+
+type PlasmicShareDialogContent__loginLinkProps = NodeComponentProps<"loginLink"> & {key?: React.Key};
+function PlasmicShareDialogContent__loginLink<T extends PlasmicShareDialogContent__loginLinkProps>(props: T & StrictProps<T, PlasmicShareDialogContent__loginLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("loginLink", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"loginLink"} />;
+}
+PlasmicShareDialogContent__loginLink.displayName = "PlasmicShareDialogContent.loginLink";
+
+type PlasmicShareDialogContent__permsContainerProps = NodeComponentProps<"permsContainer"> & {key?: React.Key};
+function PlasmicShareDialogContent__permsContainer<T extends PlasmicShareDialogContent__permsContainerProps>(props: T & StrictProps<T, PlasmicShareDialogContent__permsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("permsContainer", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"permsContainer"} />;
+}
+PlasmicShareDialogContent__permsContainer.displayName = "PlasmicShareDialogContent.permsContainer";
+
+type PlasmicShareDialogContent__teamNameProps = NodeComponentProps<"teamName"> & {key?: React.Key};
+function PlasmicShareDialogContent__teamName<T extends PlasmicShareDialogContent__teamNameProps>(props: T & StrictProps<T, PlasmicShareDialogContent__teamNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("teamName", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"teamName"} />;
+}
+PlasmicShareDialogContent__teamName.displayName = "PlasmicShareDialogContent.teamName";
+
+type PlasmicShareDialogContent__teamLinkProps = NodeComponentProps<"teamLink"> & {key?: React.Key};
+function PlasmicShareDialogContent__teamLink<T extends PlasmicShareDialogContent__teamLinkProps>(props: T & StrictProps<T, PlasmicShareDialogContent__teamLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("teamLink", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"teamLink"} />;
+}
+PlasmicShareDialogContent__teamLink.displayName = "PlasmicShareDialogContent.teamLink";
+
+type PlasmicShareDialogContent__workspaceNameProps = NodeComponentProps<"workspaceName"> & {key?: React.Key};
+function PlasmicShareDialogContent__workspaceName<T extends PlasmicShareDialogContent__workspaceNameProps>(props: T & StrictProps<T, PlasmicShareDialogContent__workspaceNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("workspaceName", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"workspaceName"} />;
+}
+PlasmicShareDialogContent__workspaceName.displayName = "PlasmicShareDialogContent.workspaceName";
+
+type PlasmicShareDialogContent__workspaceLinkProps = NodeComponentProps<"workspaceLink"> & {key?: React.Key};
+function PlasmicShareDialogContent__workspaceLink<T extends PlasmicShareDialogContent__workspaceLinkProps>(props: T & StrictProps<T, PlasmicShareDialogContent__workspaceLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("workspaceLink", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"workspaceLink"} />;
+}
+PlasmicShareDialogContent__workspaceLink.displayName = "PlasmicShareDialogContent.workspaceLink";
+
+type PlasmicShareDialogContent__everyoneElseDropdownProps = NodeComponentProps<"everyoneElseDropdown"> & {key?: React.Key};
+function PlasmicShareDialogContent__everyoneElseDropdown<T extends PlasmicShareDialogContent__everyoneElseDropdownProps>(props: T & StrictProps<T, PlasmicShareDialogContent__everyoneElseDropdownProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("everyoneElseDropdown", props);
+  return <PlasmicShareDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"everyoneElseDropdown"} />;
+}
+PlasmicShareDialogContent__everyoneElseDropdown.displayName = "PlasmicShareDialogContent.everyoneElseDropdown";
+
 
 export const PlasmicShareDialogContent = Object.assign(
   // Top-level PlasmicShareDialogContent renders the root element
-  makeNodeComponent("root"),
+  PlasmicShareDialogContent__root,
   {
     // Helper components rendering sub-elements
-    projectActionMenu: makeNodeComponent("projectActionMenu"),
-    shareByLinkSwitch: makeNodeComponent("shareByLinkSwitch"),
-    copyLink: makeNodeComponent("copyLink"),
-    shareByLinkPermDropdown: makeNodeComponent("shareByLinkPermDropdown"),
-    byInviteTab: makeNodeComponent("byInviteTab"),
-    newUserEmail: makeNodeComponent("newUserEmail"),
-    newUserRoleDropdown: makeNodeComponent("newUserRoleDropdown"),
-    sendInviteButton: makeNodeComponent("sendInviteButton"),
-    loginLink: makeNodeComponent("loginLink"),
-    permsContainer: makeNodeComponent("permsContainer"),
-    teamName: makeNodeComponent("teamName"),
-    teamLink: makeNodeComponent("teamLink"),
-    workspaceName: makeNodeComponent("workspaceName"),
-    workspaceLink: makeNodeComponent("workspaceLink"),
-    everyoneElseDropdown: makeNodeComponent("everyoneElseDropdown"),
+    projectActionMenu: PlasmicShareDialogContent__projectActionMenu,
+    shareByLinkSwitch: PlasmicShareDialogContent__shareByLinkSwitch,
+    copyLink: PlasmicShareDialogContent__copyLink,
+    shareByLinkPermDropdown: PlasmicShareDialogContent__shareByLinkPermDropdown,
+    byInviteTab: PlasmicShareDialogContent__byInviteTab,
+    newUserEmail: PlasmicShareDialogContent__newUserEmail,
+    newUserRoleDropdown: PlasmicShareDialogContent__newUserRoleDropdown,
+    sendInviteButton: PlasmicShareDialogContent__sendInviteButton,
+    loginLink: PlasmicShareDialogContent__loginLink,
+    permsContainer: PlasmicShareDialogContent__permsContainer,
+    teamName: PlasmicShareDialogContent__teamName,
+    teamLink: PlasmicShareDialogContent__teamLink,
+    workspaceName: PlasmicShareDialogContent__workspaceName,
+    workspaceLink: PlasmicShareDialogContent__workspaceLink,
+    everyoneElseDropdown: PlasmicShareDialogContent__everyoneElseDropdown,
 
     // Metadata about props expected for PlasmicShareDialogContent
     internalVariantProps: PlasmicShareDialogContent__VariantProps,

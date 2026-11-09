@@ -12,7 +12,7 @@ import { ComponentEvalContext } from "@/wab/shared/core/val-nodes";
 import { tryEvalExpr } from "@/wab/shared/eval";
 import { ChoicePropValuesLintIssue } from "@/wab/shared/linting/lint-types";
 import { lintIssuesEquals } from "@/wab/shared/linting/lint-utils";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import {
   Component,
   isKnownExpr,
@@ -25,22 +25,14 @@ import { isBoolean, isNumber, isObject, isString } from "lodash";
 
 const TYPE = "choice-prop-values";
 
-export const lintChoicePropValues = maybeComputedFn(
-  function lintChoicePropValues(site: Site, studioCtx: StudioCtx) {
+export const lintChoicePropValues = memoizeModelQuery(function lintChoicePropValues(site: Site, studioCtx: StudioCtx) {
     const issues: ChoicePropValuesLintIssue[] = [];
 
     for (const comp of site.components) {
       issues.push(...lintComponent(studioCtx, comp));
     }
     return issues;
-  },
-
-  {
-    keepAlive: false,
-    equals: lintIssuesEquals,
-    name: "lintChoicePropValues",
-  },
-);
+  }, {equals: lintIssuesEquals});
 
 export const valueInOptions = (
   options: ChoiceOptions | undefined,
@@ -80,8 +72,7 @@ export const getChoicePropOptions = (
   return undefined;
 };
 
-const lintComponent = maybeComputedFn(
-  function lintComponent(studioCtx: StudioCtx, component: Component) {
+const lintComponent = memoizeModelQuery(function lintComponent(studioCtx: StudioCtx, component: Component) {
     const issues: ChoicePropValuesLintIssue[] = [];
     const exprCtx: ExprCtx = {
       projectFlags: studioCtx.projectFlags(),
@@ -143,13 +134,7 @@ const lintComponent = maybeComputedFn(
       }
     }
     return issues;
-  },
-  {
-    keepAlive: false,
-    equals: lintIssuesEquals,
-    name: "lintChoicePropValuesComponent",
-  },
-);
+  }, {equals: lintIssuesEquals});
 
 function makeIssueKey(component: Component, tpl: TplNode) {
   return `${TYPE}-${component.uuid}-${tpl.uuid}`;

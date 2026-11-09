@@ -17,7 +17,7 @@ import {
 } from "@react-types/shared";
 import * as React from "react";
 import { pick } from "../../common";
-import { mergeProps } from "../../react-utils";
+import { mergeProps, mergeRefs } from "../../react-utils";
 import { Overrides } from "../../render/elements";
 import { useEnsureSSRProvider } from "../../render/ssr";
 import {
@@ -332,9 +332,7 @@ export function useSelect<P extends BaseSelectProps, C extends AnyPlasmicClass>(
 
   const overrides: Overrides = {
     [config.root]: {
-      props: mergeProps(getStyleProps(props), {
-        ref: rootRef,
-      }),
+      props: { ...getStyleProps(props), ref: rootRef },
       wrapChildren: (children: React.ReactNode) => (
         <>
           {(!canvasCtx || canvasCtx.interactive) && (
@@ -350,16 +348,15 @@ export function useSelect<P extends BaseSelectProps, C extends AnyPlasmicClass>(
       ),
     },
     [config.trigger]: {
-      props: mergeProps(
+      props: { ...mergeProps(
         canvasCtx && !canvasCtx.interactive ? {} : triggerProps,
         {
-          ref: triggerRef,
           autoFocus,
           disabled: !!isDisabled,
           // Don't trigger form submission!
           type: "button",
         }
-      ),
+      ), ref: triggerRef },
     },
     [config.overlay]: {
       wrap: (content: React.ReactNode) => (
@@ -429,7 +426,7 @@ export function useSelect<P extends BaseSelectProps, C extends AnyPlasmicClass>(
 function ListBoxWrapper(props: {
   state: AriaSelectState<any>;
   menuProps: AriaListBoxOptions<any>;
-  children: React.ReactElement<React.HTMLAttributes<HTMLElement>>;
+  children: React.ReactElement<React.HTMLAttributes<HTMLElement> & React.RefAttributes<HTMLElement>>;
 }) {
   const { state, menuProps, children } = props;
 
@@ -447,15 +444,13 @@ function ListBoxWrapper(props: {
     ref
   );
 
-  return React.cloneElement(
-    children,
-    mergeProps(
+  const Child = children.type;
+  const childProps = mergeProps(
       children.props,
       canvasCtx && !canvasCtx.interactive ? {} : listBoxProps,
       {
         style: noOutline(),
-        ref,
       }
-    )
-  );
+    );
+  return <Child {...childProps} key={children.key} ref={mergeRefs(children.props.ref, ref)} />;
 }

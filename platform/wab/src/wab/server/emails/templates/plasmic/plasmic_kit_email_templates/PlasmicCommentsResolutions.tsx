@@ -14,6 +14,7 @@
 import * as React from "react";
 
 import {
+  usePlasmicRefs,
   Flex as Flex__,
   StrictProps,
   classNames,
@@ -59,6 +60,15 @@ export interface DefaultCommentsResolutionsProps {
 
 const $$ = {};
 
+function resolutionAboutComment(item: {name: string; resolved: boolean}) {
+  try {
+    return `${item.name} ${item.resolved ? "resolved" : "reopened"} a comment`;
+  } catch (error) {
+    if (error instanceof TypeError || error?.plasmicType === "PlasmicUndefinedDataError") { return undefined; }
+    throw error;
+  }
+}
+
 function PlasmicCommentsResolutions__RenderFunc(props: {
   variants: PlasmicCommentsResolutions__VariantsArgs;
   args: PlasmicCommentsResolutions__ArgsType;
@@ -85,9 +95,8 @@ function PlasmicCommentsResolutions__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
   return (
     <EmailSection
@@ -144,21 +153,7 @@ function PlasmicCommentsResolutions__RenderFunc(props: {
               <CommentsComment
                 data-plasmic-name={"commentsComment"}
                 data-plasmic-override={overrides.commentsComment}
-                aboutCommentText={(() => {
-                  try {
-                    return `${currentItem.name} ${
-                      currentItem.resolved ? "resolved" : "reopened"
-                    } a comment`;
-                  } catch (e) {
-                    if (
-                      e instanceof TypeError ||
-                      e?.plasmicType === "PlasmicUndefinedDataError"
-                    ) {
-                      return undefined;
-                    }
-                    throw e;
-                  }
-                })()}
+                aboutCommentText={resolutionAboutComment(currentItem)}
                 avatarUrl={(() => {
                   try {
                     return currentItem.rootComment.avatarUrl;
@@ -266,12 +261,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -281,29 +272,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCommentsResolutions__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCommentsResolutions";
-  } else {
-    func.displayName = `PlasmicCommentsResolutions.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCommentsResolutions__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCommentsResolutions__root<T extends PlasmicCommentsResolutions__rootProps>(props: T & StrictProps<T, PlasmicCommentsResolutions__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCommentsResolutions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCommentsResolutions__root.displayName = "PlasmicCommentsResolutions";
+
+type PlasmicCommentsResolutions__emailRowProps = NodeComponentProps<"emailRow"> & {key?: React.Key};
+function PlasmicCommentsResolutions__emailRow<T extends PlasmicCommentsResolutions__emailRowProps>(props: T & StrictProps<T, PlasmicCommentsResolutions__emailRowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emailRow", props);
+  return <PlasmicCommentsResolutions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emailRow"} />;
+}
+PlasmicCommentsResolutions__emailRow.displayName = "PlasmicCommentsResolutions.emailRow";
+
+type PlasmicCommentsResolutions__atomsCardProps = NodeComponentProps<"atomsCard"> & {key?: React.Key};
+function PlasmicCommentsResolutions__atomsCard<T extends PlasmicCommentsResolutions__atomsCardProps>(props: T & StrictProps<T, PlasmicCommentsResolutions__atomsCardProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("atomsCard", props);
+  return <PlasmicCommentsResolutions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"atomsCard"} />;
+}
+PlasmicCommentsResolutions__atomsCard.displayName = "PlasmicCommentsResolutions.atomsCard";
+
+type PlasmicCommentsResolutions__commentsCommentProps = NodeComponentProps<"commentsComment"> & {key?: React.Key};
+function PlasmicCommentsResolutions__commentsComment<T extends PlasmicCommentsResolutions__commentsCommentProps>(props: T & StrictProps<T, PlasmicCommentsResolutions__commentsCommentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentsComment", props);
+  return <PlasmicCommentsResolutions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentsComment"} />;
+}
+PlasmicCommentsResolutions__commentsComment.displayName = "PlasmicCommentsResolutions.commentsComment";
+
 
 export const PlasmicCommentsResolutions = Object.assign(
   // Top-level PlasmicCommentsResolutions renders the root element
-  makeNodeComponent("root"),
+  PlasmicCommentsResolutions__root,
   {
     // Helper components rendering sub-elements
-    emailRow: makeNodeComponent("emailRow"),
-    atomsCard: makeNodeComponent("atomsCard"),
-    commentsComment: makeNodeComponent("commentsComment"),
+    emailRow: PlasmicCommentsResolutions__emailRow,
+    atomsCard: PlasmicCommentsResolutions__atomsCard,
+    commentsComment: PlasmicCommentsResolutions__commentsComment,
 
     // Metadata about props expected for PlasmicCommentsResolutions
     internalVariantProps: PlasmicCommentsResolutions__VariantProps,

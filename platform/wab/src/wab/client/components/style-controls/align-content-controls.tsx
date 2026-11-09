@@ -1,6 +1,5 @@
 import { LabeledToggleButtonGroup } from "@/wab/client/components/sidebar/sidebar-helpers";
 import {
-  StyleComponent,
   StyleComponentProps,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
@@ -39,11 +38,10 @@ interface AlignContentRenderProps extends StyleComponentProps {
   readonly flexWrap: string;
 }
 
-class AlignContentControls_ extends StyleComponent<AlignContentRenderProps> {
-  render() {
+function AlignContentControlsContent(props: AlignContentRenderProps) {
     // currently flexDir can only be row/column, not -reverse
-    const flexDir = this.props.flexDirection;
-    const flexWrap = this.props.flexWrap;
+    const flexDir = props.flexDirection;
+    const flexWrap = props.flexWrap;
 
     // TODO: shouldn't use flexAxis to index into icons, and icons
     // will change depending on whether flexDir is reverse or not.
@@ -61,7 +59,7 @@ class AlignContentControls_ extends StyleComponent<AlignContentRenderProps> {
     return (
       <LabeledToggleButtonGroup styleName="align-content">
         {alignContents.map((value) => (
-          <StyleToggleButton className="flex-fill" value={value}>
+          <StyleToggleButton className="flex-fill" value={value} key={value}>
             <Icon
               className={cx({
                 "flip-horiz": flexAxis === "row" && isFlexReversed,
@@ -73,7 +71,6 @@ class AlignContentControls_ extends StyleComponent<AlignContentRenderProps> {
         ))}
       </LabeledToggleButtonGroup>
     );
-  }
 }
 
 const icons = {
@@ -115,12 +112,10 @@ const icons = {
   },
 };
 
-export const AlignContentControls = React.forwardRef<AlignContentControls_, StyleComponentProps>(
-  function AlignContentControls(props, ref) {
-    const cells = useStyleCells(props.expsProvider, ["flex-direction", "flex-wrap"]);
-    const flexDirection = cells.find((cell) => cell.key === "flex-direction")?.value;
-    const flexWrap = cells.find((cell) => cell.key === "flex-wrap")?.value;
-    if (flexDirection === undefined || flexWrap === undefined) { return null; }
-    return <AlignContentControls_ {...props} ref={ref} flexDirection={flexDirection} flexWrap={flexWrap} />;
-  },
-);
+export function AlignContentControls(props: StyleComponentProps) {
+  const cells = useStyleCells(props.expsProvider, ["flex-direction", "flex-wrap"]);
+  const flexDirection = cells.find((cell) => cell.key === "flex-direction")?.value;
+  const flexWrap = cells.find((cell) => cell.key === "flex-wrap")?.value;
+  if (flexDirection === undefined || flexWrap === undefined) { return null; }
+  return <AlignContentControlsContent {...props} flexDirection={flexDirection} flexWrap={flexWrap} />;
+}

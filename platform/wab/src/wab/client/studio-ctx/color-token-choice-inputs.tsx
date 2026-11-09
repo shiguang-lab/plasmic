@@ -1,3 +1,4 @@
+import { StyleTokenReaderBinding } from "@/wab/client/studio-ctx/style-token-inputs";
 import { useShallow } from "zustand/react/shallow";
 import type { ModelFieldStore, ModelRef } from "@/wab/client/studio-ctx/model-snapshots";
 import { getStyleTokenScope, StyleTokenInputs, type StyleTokenSnapshot } from "@/wab/client/studio-ctx/style-token-inputs";
@@ -186,12 +187,12 @@ export function useColorTokenChoiceInputs(studio: StudioCtx, starts: readonly Fi
   const readOwner = React.useCallback(() => studio.singleRsStyleInputs, [studio]);
   const owner = React.useSyncExternalStore(subscribeOwner, readOwner, readOwner);
   const inputs = useShallow((tokens: readonly FinalToken<StyleToken>[]) => tokens)(starts);
-  const binding = React.useMemo<{ committed: ColorTokenChoiceInputs | undefined }>(() => ({ committed: undefined }), [studio]);
+  const binding = React.useMemo(() => new StyleTokenReaderBinding<ColorTokenChoiceInputs>(), [studio]);
   const scope = React.useMemo(() => choiceScope(studio, inputs, vsh), [studio, owner, inputs, vsh]);
   const source = React.useMemo(() => (scope.owner.isDisposed || scope.lifetime.aborted) && binding.committed?.lifetime === scope.lifetime
     ? binding.committed : new ColorTokenChoiceInputs(studio, inputs, vsh), [studio, owner, inputs, vsh, scope, binding]);
   React.useLayoutEffect(() => {
-    if (!binding.committed || !scope.owner.isDisposed && !scope.lifetime.aborted) { binding.committed = source; }
+    if (!binding.committed || !scope.owner.isDisposed && !scope.lifetime.aborted) { binding.commit(source); }
   }, [source, binding, scope]);
   const snapshot = React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
   return { snapshot, lifetime: source.lifetime, command: (choice: ColorTokenChoice) => source.command(choice), isActive: source.isActive };

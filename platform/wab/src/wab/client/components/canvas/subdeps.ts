@@ -56,11 +56,35 @@ export type SubDeps = {
     "usePlasmicDataConfig" | "usePlasmicInvalidate" | "usePlasmicQueries"
   >;
   dataSourcesContext: typeof PlasmicDataSourcesContext;
-  useGlobalActions?: typeof useGlobalActions;
-} & CanvasPkgs;
+  useGlobalActions: typeof useGlobalActions;
+} & CanvasPkgs & CanvasReactRuntime;
+
+/** Native component fibers share the exact SDK module graph installed above. */
+interface CanvasReactRuntime {
+  CanvasTriggersRuntime: typeof import("../../../../../../react-web-bundle/src/canvas-triggers").CanvasTriggersRuntime;
+  CanvasPlume: typeof import("../../../../../../react-web-bundle/src/canvas-plume");
+  CanvasQueriesRuntime: typeof import("../../../../../../react-web-bundle/src/canvas-queries").CanvasQueriesRuntime;
+  CanvasComponentRuntime: typeof import("../../../../../../react-web-bundle/src/canvas-component").CanvasComponentRuntime;
+}
 
 // Make sure this matches the type in canvas-packages/src/index.ts
 interface CanvasPkgs {
+  createCanvasComponentType: typeof import("../../../../../../canvas-packages/src/canvas-component-type").createCanvasComponentType;
+  CanvasWrapper: typeof import("../../../../../../canvas-packages/src/canvas-component-type").CanvasWrapper;
+  CanvasIcon: typeof import("../../../../../../canvas-packages/src/canvas-component-type").CanvasIcon;
+  CanvasRenderSlot: typeof import("../../../../../../canvas-packages/src/canvas-render-slot").CanvasRenderSlot;
+  CanvasRichTextFrame: typeof import("../../../../../../canvas-packages/src/canvas-rich-text-frame").CanvasRichTextFrame;
+  CanvasPlaceholder: typeof import("../../../../../../canvas-packages/src/canvas-rich-text-frame").CanvasPlaceholder;
+  CanvasTextEditor: typeof import("../../../../../../canvas-packages/src/canvas-text").CanvasTextEditor;
+  CanvasSlateChildren: typeof import("../../../../../../canvas-packages/src/canvas-text").CanvasSlateChildren;
+  CanvasStoreProjection: typeof import("../../../../../../canvas-packages/src/canvas-text").CanvasStoreProjection;
+  CanvasObserver: typeof import("../../../../../../canvas-packages/src/canvas-observer").CanvasObserver;
+  CanvasRoot: typeof import("../../../../../../canvas-packages/src/canvas-root").CanvasRoot;
+  CanvasErrorBoundary: typeof import("../../../../../../canvas-packages/src/canvas-error").CanvasErrorBoundary;
+  CanvasErrorDisplay: typeof import("../../../../../../canvas-packages/src/canvas-error").CanvasErrorDisplay;
+  CanvasFrame: typeof import("../../../../../../canvas-packages/src/canvas-frame").CanvasFrame;
+  CustomPropValueEcho: typeof import("../../../../../../canvas-packages/src/custom-prop-value-echo").CustomPropValueEcho;
+  SlateString: React.ComponentType<{ isLast: boolean; leaf: slate.Text; parent: slate.Element; text: slate.Text }>;
   StudioControlsProvider: React.ComponentType<{ studioDocument: Document; theme: ThemeConfig | undefined; children?: React.ReactNode }>;
   ResizeObserver: typeof ResizeObserver;
   GenericErrorBoundary: React.ComponentType<{ className?: string }>;

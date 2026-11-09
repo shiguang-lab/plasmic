@@ -44,7 +44,7 @@ export function useCanvasOverlay<
   } = props;
   const onReveal = __canvas?.onReveal;
   const autoOpen =
-    isEditing &&
+    !!canvas &&
     !!selection?.selected &&
     (!triggerSlotName || selection.slot !== triggerSlotName);
   const state = canvas ? selection?.getState?.("open", open, props.defaultOpen) : undefined;
@@ -58,21 +58,25 @@ export function useCanvasOverlay<
     };
   }
 
-  const resolvedOpen = state ? !!state.value : isEditing ? editingOpen : open;
-  const previous = useRef({ isEditing, open: resolvedOpen });
-  const silentTransition = useRef(false);
+  const resolvedOpen = state ? !!state.value : canvas ? editingOpen : open;
+  const revealed = state?.revealed ?? autoOpened;
+  const previous = useRef({ isEditing, open: resolvedOpen, revealed });
+  const silentTransition = useRef(revealed);
+  const nativeTransition = useRef(false);
   const destroyEditingContent = useRef(false);
   // Dismissing content in the editor removes nested body portals. A mode switch
-  // only hides the editing reveal and must preserve the mounted runtime content.
+  // preserves selection reveals and the mounted runtime content.
   if (!isEditing || resolvedOpen) {
     destroyEditingContent.current = false;
   } else if (previous.current.isEditing && previous.current.open) {
     destroyEditingContent.current = true;
   }
   if (previous.current.open !== resolvedOpen) {
-    silentTransition.current = previous.current.isEditing !== isEditing;
+    silentTransition.current = !nativeTransition.current &&
+      (previous.current.isEditing !== isEditing || revealed || previous.current.revealed);
+    nativeTransition.current = false;
   }
-  previous.current = { isEditing, open: resolvedOpen };
+  previous.current = { isEditing, open: resolvedOpen, revealed };
   const lifecycleProps = rest as {
     onOpenChange?: (...args: any[]) => void;
     afterOpenChange?: (open: boolean) => void;
@@ -82,7 +86,7 @@ export function useCanvasOverlay<
   // Native events resume lifecycle callbacks after a silent mode transition.
   lifecycleProps.onOpenChange = (next: boolean, ...args) => {
     if (isEditing && (next || !state)) {return;}
-    if (!isEditing) {silentTransition.current = false;}
+    if (!isEditing) {silentTransition.current = false; nativeTransition.current = true;}
     return onOpenChange?.(next, ...args);
   };
   if (afterOpenChange) {

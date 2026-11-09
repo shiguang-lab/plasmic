@@ -3,6 +3,7 @@ export { useSWRConfig } from "swr";
 export {
   addLoadingStateListener,
   HeadMetadataContext,
+  HeadMetadataCollector,
   PlasmicPrepassContext,
   PlasmicQueryDataProvider,
   useMutablePlasmicQueryData,

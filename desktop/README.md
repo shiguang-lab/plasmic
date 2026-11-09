@@ -168,7 +168,7 @@ To bundle an already completed production frontend instead:
 
 ```sh
 # Recompile Studio and record its provenance after building the local canvas packages:
-node ../scripts/build-studio.mjs
+node ../scripts/build-studio.mjs --desktop
 npm run assets -- --from ../platform/wab/build
 ```
 
@@ -178,6 +178,13 @@ quit and reopen the app to load the updated frontend and desktop login code.
 
 That directory must be a complete self-hosted WAB production build, including
 canvas packages, generated CSS and valid `studio-build.json` provenance.
+`--desktop` queries the installed Electron binary in Node mode and checks its
+version against `desktop/package.json`. Only the WAB Studio and DashboardPreview
+compilation receives that binary's Chromium target; Web builds, SDKs, Sub and
+live-frame retain their existing targets. The actual Electron and Chromium
+versions are recorded as `browserTarget` in Studio and Desktop build metadata.
+Packaging checks the pinned Electron version for a Desktop-targeted renderer.
+The default build without `--desktop` and pinned Docker/Web assets remain valid.
 
 Packaging creates applications, installers and update manifests in
 `dist/<version>/<platform>-<arch>/`, with renderer files inside `resources/app.asar`.
@@ -190,8 +197,19 @@ Mac's keychain. Create it through Xcode's account settings or import the intende
 certificate and private key before packaging. Packaging selects the single valid
 Apple Development identity and fails if it is missing or ambiguous; it never
 falls back to ad-hoc signing locally. GitHub Actions (`GITHUB_ACTIONS=true`) uses
-ad-hoc signing without looking up or importing a certificate. Do not commit or
-bundle private keys.
+ad-hoc signing without looking up or importing a certificate. Explicit local acceptance
+can select the same certificate-free signing mode with a separate output directory:
+
+```sh
+npm run package -- darwin arm64 --local-adhoc --output /absolute/task/artifacts
+```
+
+This option keeps production fuses, ASAR and provenance/signature-integrity checks;
+it does not publish or use the local Apple Development identity. Copy the resulting
+App into a task-owned installation directory, then launch it with an independent
+`PLASMIC_DESKTOP_PROFILE`. A custom profile does not register itself as the system's
+login URL handler. `install-local.mjs` targets the user's normal installation and
+is not the isolated acceptance installer. Do not commit or bundle private keys.
 For local builds, `CSC_NAME`, when set, selects the exact certificate SHA-1 fingerprint; a different
 certificate is rejected even if it is a valid Apple Development identity.
 
@@ -287,6 +305,8 @@ inaccessible projects open Dashboard after login is confirmed. Saved editor view
 remains covered until its saved zoom and pan are applied after artboards and the
 inspector mount. Default initial fitting is skipped for a valid saved viewport;
 missing arenas or artboards fall back to the normal initial overview.
+
+The retained Dashboard cancels queued thumbnail jobs when opening an editor or minimizing, and cancels a card's queued job when it leaves the viewport. Its one running offscreen thumbnail can finish and write the existing PNG cache. Ownership does not depend on visibility and activation event order. Its temporary offscreen renderer can overlap that first editor open and is destroyed on completion or timeout. Hidden cards release image URLs and do not start further jobs. Closing or navigating the Dashboard, unmounting a card, or changing the sign-in session cancels all its owned jobs; hidden views can cancel only their own registered jobs. Browser hidden-tab previews still cancel immediately.
 
 ## Import from the web
 
@@ -744,6 +764,10 @@ The island starts as a compact capsule. Every tool invocation through the Deskto
 Account cards show the authenticated account, current organization/workspace and organization, workspace and project totals. The existing self, app-context and all-project APIs supply the data; totals cover resources available to that account, independently of the current route. Internal reads are cached for 30 seconds and never enter MCP dispatch or renew the expansion lease. Navigation bypasses the summary interval and shares its pending task. Native account UI and drafts use one main-process identity verifier. A server-verified identity is held in memory for at most 30 seconds, after session preparation; new-document navigation expires completed verification, while in-document canvas routes reuse it. Cookie changes, login, logout and device revocation invalidate it and reject late results. Draft handles must reauthorize after those changes: the same account can continue editing, while a replacement account is rejected. Unchanged authorized draft sessions still read and write locally without network requests. Successful resource creation refreshes totals. Authentication-cookie changes clear the old identity and counts immediately; late requests cannot restore them. Signed-out, loading and failed reads hide counts rather than displaying zeros. The header combines organization and workspace names and shows the username on the right. Accessible organization/workspace/project totals occupy the left column; the selected workspace’s project and effective-user counts occupy the right column. Permission counts remain unavailable when the API omits inherited grants. Active tasks retain statistics and show their current operation in the footer. Signed-out cards provide one inline sign-in action.
 
 The readonly mirror starts with a complete current-arena overview, including offscreen artboards, with a 16 CSS-pixel outer margin. A read, write or navigation operation with one unambiguous page/frame target fits that entire artboard into the image; element targets highlight the node without cropping the page. Explicit frame identity takes priority; component targets with multiple responsive artboards use the matching active frame, or fall back to overview when ambiguous. Whole-canvas and multi-page operations use the full overview. Concurrent calls targeting different pages also use overview; a remaining single-page call can regain focus. Completed calls retain the last scope for inspection. Metadata queries, saves and internal polling do not change it. Collapsing, reopening or releasing capture resources preserves the last display scope. Project/arena changes reset to overview; new targeted calls can select another page. Unresolved targets use overview. Neither mode clips artboards to the editor viewport. It preserves original artboard viewports, backgrounds, spacing and offsets independently of editor pan and zoom. Sanitized copies of the live artboard DOM render in one reusable hidden surface; editor panels, structure trees, selection handles and floating toolbars are excluded. Static copies retain input values, scroll positions and Canvas pixels, remove authored scripts and editor-only elements, and reuse the export renderer. During scroll-container content editing, the mirror retains the current expanded frame dimensions and its explicitly marked content-isolation stylesheet, while excluding other editor styles and controls. Entering, switching targets and exiting invalidate the image through live geometry/DOM changes without writing the model; normal exports continue to omit the temporary isolation stylesheet. While expanded, an ephemeral rendering target lets the required current-arena artboards render outside the editor viewport: all for overview, or the selected frame for page focus. The image waits for those artboards to be render-ready. Refreshes never invoke screenshot tools or modify selection, zoom, pan or model state. The last compressed image stays cached in memory when collapsed and is displayed immediately on reopening. Polls inspect scene geometry, the model change counter and document-local visual revisions; unchanged static views do not clone DOM or recreate the hidden renderer. DOM changes, input, scrolling, asset/font loading and Preview viewport changes invalidate the image; changes settle for 150 ms before refreshing the same scope. Editor-only overlays, pan/zoom, save metadata and operation feedback do not regenerate pixels. Canvas/video and running animations retain low-frequency refreshes. Feedback geometry updates independently over cached pixels. Collapsing or leaving island mode cancels pending captures and releases the hidden surface and rendering flag. Native Preview retains its current complete runtime viewport. Contain sizing preserves aspect ratio. Page/session changes clear the previous image; a failed capture of the same view labels its last image as Previous frame. The expanded card uses a fixed 360 × 144 layout across canvas, account and update states. The header combines project and page/canvas names and places the username on the right. The main area has a wider left column and a fixed 144 px right column. Canvas previews use a contained 144 × 81 image (16:9); page, component and artboard totals remain vertically centered on the left. Without a canvas, custom-canvas, image and library counts appear on the left, with page/component counts on the right. Preview shows its actual viewport dimensions. Counts exclude registered code components and internal frame components. Native model metadata supplies these values without extra read tools; loading clears previous values. Theme and language remain in the lower-left corner. The lower-right corner shows the actual operation/stage or save state, with an explicit known step count and no repeated queue count. Errors and blockers show a brief label with an accessible detail tooltip. The capsule tooltip retains queue, concurrency, target and error information. Writes report Changes applied; only explicit successful saves report Saved.
+
+Interactive canvas supports model reads, writes, atomic batches, target selection, undo and save without switching back to design editing. Automatic target presentation is a best-effort background task; model execution and MCP responses do not wait for rendering or visibility. Its optional presentation receipt uses reason pending and visible null, which is advisory rather than a blocker or a request to retry. Failed or expired presentation does not fail or roll back successful model work; newer targets cancel previous requests. Targeted operations keep the shared temporary selection reveals for Tabs, overlays and hidden regions; they do not persist display overrides or invoke business callbacks. Real canvas inputs still invoke normal handlers. Effective edit permission, protected-branch and current-revision checks apply in both canvas modes. Native/external Preview remains read-only for model writes.
+
+The island also mirrors interactive canvas artboards and shows their read/write feedback. It uses canvas frame/model identities and live runtime refs, independently of the native Preview container. Switching between interactive canvas and native Preview invalidates the previous feedback.
 
 The island draws readable feedback over the contained image using real operation targets: model UUIDs, frame identities and native Preview refs. Reads scan the inspected view or node; writes and interactions highlight their targets in the fitted artboards. Untargeted reads scan the overview or Preview viewport. Missing targets, dependency reads, failed calls and stale images do not produce target highlights. Running feedback follows the actual call; successful calls briefly acknowledge completion and then stop. Task reports alone never start scans. Geometry reads do not mutate or save the design, and reduced-motion mode uses static outlines.
 

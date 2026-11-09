@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleChoiceArg,
   StrictProps,
   classNames,
@@ -23,11 +23,11 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../../../plasmic/plasmic_kit_user_settings/PlasmicStyleTokensProvider"; // plasmic-import: aaggSgVS8yYsAwQffVQB4p/styleTokensProvider
+import { useStyleTokens } from "../../../plasmic/plasmic_kit_user_settings/PlasmicStyleTokensProvider"; // plasmic-import: aaggSgVS8yYsAwQffVQB4p/styleTokensProvider
 import IconButton from "../../widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 
 import "@plasmicapp/react-web/lib/plasmic.css";
@@ -97,11 +97,10 @@ function PlasmicPersonalAccessToken__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "copyState",
@@ -110,18 +109,20 @@ function PlasmicPersonalAccessToken__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.copyState,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -234,12 +235,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -249,29 +246,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPersonalAccessToken__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPersonalAccessToken";
-  } else {
-    func.displayName = `PlasmicPersonalAccessToken.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPersonalAccessToken__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPersonalAccessToken__root<T extends PlasmicPersonalAccessToken__rootProps>(props: T & StrictProps<T, PlasmicPersonalAccessToken__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPersonalAccessToken__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPersonalAccessToken__root.displayName = "PlasmicPersonalAccessToken";
+
+type PlasmicPersonalAccessToken__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicPersonalAccessToken__freeBox<T extends PlasmicPersonalAccessToken__freeBoxProps>(props: T & StrictProps<T, PlasmicPersonalAccessToken__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicPersonalAccessToken__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicPersonalAccessToken__freeBox.displayName = "PlasmicPersonalAccessToken.freeBox";
+
+type PlasmicPersonalAccessToken__copyLinkProps = NodeComponentProps<"copyLink"> & {key?: React.Key};
+function PlasmicPersonalAccessToken__copyLink<T extends PlasmicPersonalAccessToken__copyLinkProps>(props: T & StrictProps<T, PlasmicPersonalAccessToken__copyLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("copyLink", props);
+  return <PlasmicPersonalAccessToken__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"copyLink"} />;
+}
+PlasmicPersonalAccessToken__copyLink.displayName = "PlasmicPersonalAccessToken.copyLink";
+
+type PlasmicPersonalAccessToken__deleteBtnProps = NodeComponentProps<"deleteBtn"> & {key?: React.Key};
+function PlasmicPersonalAccessToken__deleteBtn<T extends PlasmicPersonalAccessToken__deleteBtnProps>(props: T & StrictProps<T, PlasmicPersonalAccessToken__deleteBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("deleteBtn", props);
+  return <PlasmicPersonalAccessToken__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"deleteBtn"} />;
+}
+PlasmicPersonalAccessToken__deleteBtn.displayName = "PlasmicPersonalAccessToken.deleteBtn";
+
 
 export const PlasmicPersonalAccessToken = Object.assign(
   // Top-level PlasmicPersonalAccessToken renders the root element
-  makeNodeComponent("root"),
+  PlasmicPersonalAccessToken__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    copyLink: makeNodeComponent("copyLink"),
-    deleteBtn: makeNodeComponent("deleteBtn"),
+    freeBox: PlasmicPersonalAccessToken__freeBox,
+    copyLink: PlasmicPersonalAccessToken__copyLink,
+    deleteBtn: PlasmicPersonalAccessToken__deleteBtn,
 
     // Metadata about props expected for PlasmicPersonalAccessToken
     internalVariantProps: PlasmicPersonalAccessToken__VariantProps,

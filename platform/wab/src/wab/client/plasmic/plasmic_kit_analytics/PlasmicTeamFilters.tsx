@@ -15,7 +15,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,7 +26,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import LabeledSelect from "../../components/analytics/LabeledSelect"; // plasmic-import: bQ74QBVIbHI/component
 import OptimizationOption from "../../components/analytics/OptimizationOption"; // plasmic-import: yvny0cDy_e/component
 import OptimizationsSelect from "../../components/analytics/OptimizationsSelect"; // plasmic-import: 0bODOMCtGi/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -85,11 +85,10 @@ function PlasmicTeamFilters__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -220,12 +219,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -235,30 +230,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTeamFilters__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTeamFilters";
-  } else {
-    func.displayName = `PlasmicTeamFilters.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTeamFilters__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTeamFilters__root<T extends PlasmicTeamFilters__rootProps>(props: T & StrictProps<T, PlasmicTeamFilters__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTeamFilters__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTeamFilters__root.displayName = "PlasmicTeamFilters";
+
+type PlasmicTeamFilters__workspaceSelectProps = NodeComponentProps<"workspaceSelect"> & {key?: React.Key};
+function PlasmicTeamFilters__workspaceSelect<T extends PlasmicTeamFilters__workspaceSelectProps>(props: T & StrictProps<T, PlasmicTeamFilters__workspaceSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("workspaceSelect", props);
+  return <PlasmicTeamFilters__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"workspaceSelect"} />;
+}
+PlasmicTeamFilters__workspaceSelect.displayName = "PlasmicTeamFilters.workspaceSelect";
+
+type PlasmicTeamFilters__projectSelectProps = NodeComponentProps<"projectSelect"> & {key?: React.Key};
+function PlasmicTeamFilters__projectSelect<T extends PlasmicTeamFilters__projectSelectProps>(props: T & StrictProps<T, PlasmicTeamFilters__projectSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("projectSelect", props);
+  return <PlasmicTeamFilters__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"projectSelect"} />;
+}
+PlasmicTeamFilters__projectSelect.displayName = "PlasmicTeamFilters.projectSelect";
+
+type PlasmicTeamFilters__pageSelectProps = NodeComponentProps<"pageSelect"> & {key?: React.Key};
+function PlasmicTeamFilters__pageSelect<T extends PlasmicTeamFilters__pageSelectProps>(props: T & StrictProps<T, PlasmicTeamFilters__pageSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("pageSelect", props);
+  return <PlasmicTeamFilters__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"pageSelect"} />;
+}
+PlasmicTeamFilters__pageSelect.displayName = "PlasmicTeamFilters.pageSelect";
+
+type PlasmicTeamFilters__optimizationsSelectProps = NodeComponentProps<"optimizationsSelect"> & {key?: React.Key};
+function PlasmicTeamFilters__optimizationsSelect<T extends PlasmicTeamFilters__optimizationsSelectProps>(props: T & StrictProps<T, PlasmicTeamFilters__optimizationsSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("optimizationsSelect", props);
+  return <PlasmicTeamFilters__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"optimizationsSelect"} />;
+}
+PlasmicTeamFilters__optimizationsSelect.displayName = "PlasmicTeamFilters.optimizationsSelect";
+
 
 export const PlasmicTeamFilters = Object.assign(
   // Top-level PlasmicTeamFilters renders the root element
-  makeNodeComponent("root"),
+  PlasmicTeamFilters__root,
   {
     // Helper components rendering sub-elements
-    workspaceSelect: makeNodeComponent("workspaceSelect"),
-    projectSelect: makeNodeComponent("projectSelect"),
-    pageSelect: makeNodeComponent("pageSelect"),
-    optimizationsSelect: makeNodeComponent("optimizationsSelect"),
+    workspaceSelect: PlasmicTeamFilters__workspaceSelect,
+    projectSelect: PlasmicTeamFilters__projectSelect,
+    pageSelect: PlasmicTeamFilters__pageSelect,
+    optimizationsSelect: PlasmicTeamFilters__optimizationsSelect,
 
     // Metadata about props expected for PlasmicTeamFilters
     internalVariantProps: PlasmicTeamFilters__VariantProps,

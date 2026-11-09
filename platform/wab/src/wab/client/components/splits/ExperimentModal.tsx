@@ -28,8 +28,7 @@ interface SliceInput {
   readonly externalId: string | undefined;
 }
 
-function useSliceInputs(models: ModelSnapshots, slices: readonly ModelRef<SplitSlice>[]) {
-  const source = React.useMemo(() => {
+function createSliceInputSource(models: ModelSnapshots, slices: readonly ModelRef<SplitSlice>[]) {
     const fields = slices.map((ref) => {
       const slice = models.resolve(ref);
       return {
@@ -57,7 +56,11 @@ function useSliceInputs(models: ModelSnapshots, slices: readonly ModelRef<SplitS
       return () => stops.forEach((stop) => stop());
     };
     return { getSnapshot, subscribe };
-  }, [models, slices]);
+
+}
+
+function useSliceInputs(models: ModelSnapshots, slices: readonly ModelRef<SplitSlice>[]) {
+  const source = React.useMemo(() => createSliceInputSource(models, slices), [models, slices]);
   return React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
 }
 

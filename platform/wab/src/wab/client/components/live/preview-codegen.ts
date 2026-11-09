@@ -109,6 +109,7 @@ export interface PreviewRoute {
 function buildComponentModules(
   studioCtx: PreviewCodegenContext,
   rootComponent: Component | undefined,
+  exportNamedNodeComponents: boolean,
 ) {
   const site = studioCtx.site;
   const styleOutput = exportStyleConfig({ targetEnv: "preview" });
@@ -138,6 +139,7 @@ function buildComponentModules(
       projectConfig,
       depsProjectConfigs,
       componentOutputs,
+      exportNamedNodeComponents,
     ),
     createCustomFunctionsModule(site),
   ];
@@ -150,6 +152,7 @@ function createReferencedComponentModules(
   projectConfig: ProjectConfig,
   depsProjectConfigs: ProjectConfig[],
   componentOutputs: Map<Component, ComponentExportOutput>,
+  exportNamedNodeComponents: boolean,
 ) {
   const modules: SourceModule[] = [];
   for (const component of components) {
@@ -170,7 +173,7 @@ function createReferencedComponentModules(
         getOwnerSite(component) === studioCtx.site
           ? projectConfig
           : getComponentProjectConfig(studioCtx, component, depsProjectConfigs);
-      const output = createComponentOutput(studioCtx, component, componentProjectConfig, false);
+      const output = createComponentOutput(studioCtx, component, componentProjectConfig, false, exportNamedNodeComponents);
       componentOutputs.set(component, output);
       modules.push(...createComponentModules(output));
     }
@@ -183,7 +186,7 @@ function generatePreviewModules(
   rootComponent?: Component,
 ) {
   const site = studioCtx.site;
-  const { componentOutputs, ...result } = buildComponentModules(studioCtx, rootComponent);
+  const { componentOutputs, ...result } = buildComponentModules(studioCtx, rootComponent, false);
   const { modules, projectConfig, components } = result;
   const rootOutput = rootComponent ? componentOutputs.get(rootComponent) : undefined;
   modules.push(
@@ -207,7 +210,7 @@ function generateDocsPreviewModules(
   usePlasmicImg: boolean,
 ) {
   const site = studioCtx.site;
-  const { componentOutputs: _componentOutputs, ...result } = buildComponentModules(studioCtx, component);
+  const { componentOutputs: _componentOutputs, ...result } = buildComponentModules(studioCtx, component, true);
   const globalGroups = [
     ...getReferencedVariantGroups(
       extractUsedGlobalVariantsForComponents(
@@ -705,6 +708,7 @@ function createComponentOutput(
     component: Component,
     projectConfig: ProjectConfig,
     forceRootDisabled: boolean,
+    exportNamedNodeComponents: boolean,
   ) {
     const exportOpts: ExportOpts = {
       lang: "ts",
@@ -713,6 +717,7 @@ function createComponentOutput(
       uncontrolledProps: true,
       shouldTransformWritableStates: true,
       forceRootDisabled: forceRootDisabled,
+      exportNamedNodeComponents,
       imageOpts: {
         scheme: "cdn",
       },

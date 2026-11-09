@@ -10,7 +10,6 @@ import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
 import { getMaximumTier } from "@/wab/shared/pricing/pricing-utils";
 import * as Sentry from "@sentry/browser";
 import * as Integrations from "@sentry/integrations";
-import { onReactionError } from "mobx";
 import type { PostHog } from "posthog-js";
 
 export function initSentryBrowser(opts: {
@@ -116,7 +115,4 @@ export function initSentryBrowser(opts: {
     },
   });
 
-  onReactionError((error) => {
-    Sentry.captureException(error);
-  });
 }

@@ -1,0 +1,1656 @@
+{
+  "measuredAt": "2026-11-09T05:22:32.847589+00:00",
+  "decisions": {
+    "item3": "abandoned at user request; never enabled in product",
+    "item4": "no server-stage improvement for tested account; no production API change",
+    "item5": "small/no consistent whole-app gains; private prototype only"
+  },
+  "serverContext": {
+    "scope": "Exact deployed getAppCtxData versus scoped prototype reusing the authorized project; authorization excluded and reported separately; DB SELECTs only; every transaction rolled back; server query stage excludes HTTP/auth/network; first ABBA round is warmup",
+    "databaseCounts": {
+      "Team": 4,
+      "Workspace": 7,
+      "Permission": 95
+    },
+    "results": {
+      "full": {
+        "samples": 6,
+        "medianMs": 21.99240950000012,
+        "queries": 9.0,
+        "jsonBytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      "scoped-reused": {
+        "samples": 6,
+        "medianMs": 22.441096500000185,
+        "queries": 8.0,
+        "jsonBytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      }
+    },
+    "samples": [
+      {
+        "round": 0,
+        "variant": "full",
+        "authorizationMs": 53.372425999999905,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 4.9572739999994155
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 8.7428060000002
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 6.624488000000383
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 2.7032160000007934
+          }
+        ],
+        "ms": 24.698551999999836,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 0,
+        "variant": "scoped-reused",
+        "authorizationMs": 32.4274519999999,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 3.171147999999448
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 24.982896000000437
+          }
+        ],
+        "ms": 30.9487450000006,
+        "queries": 8,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 0,
+        "variant": "scoped-reused",
+        "authorizationMs": 30.50531299999966,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 2.7472139999999854
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 21.75693599999977
+          }
+        ],
+        "ms": 27.357782000000043,
+        "queries": 8,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 0,
+        "variant": "full",
+        "authorizationMs": 33.54684400000042,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 1.9622349999999642
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 3.5055869999996503
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 5.726234999999178
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 2.1291180000007444
+          }
+        ],
+        "ms": 14.12662999999975,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 1,
+        "variant": "full",
+        "authorizationMs": 26.28197099999943,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 1.7863860000006753
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 3.3510329999999158
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 5.019784000000072
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 1.9454299999997602
+          }
+        ],
+        "ms": 12.707879999999932,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 1,
+        "variant": "scoped-reused",
+        "authorizationMs": 23.904806000000463,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 2.1773009999997157
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 16.836136999999326
+          }
+        ],
+        "ms": 20.594484999999622,
+        "queries": 8,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 1,
+        "variant": "scoped-reused",
+        "authorizationMs": 31.472755999999208,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 5.158623999999691
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 28.22821500000009
+          }
+        ],
+        "ms": 35.51037400000041,
+        "queries": 8,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 1,
+        "variant": "full",
+        "authorizationMs": 41.22676700000011,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 3.5812729999997828
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 6.593041000000085
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 12.17529999999988
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 3.906511000000137
+          }
+        ],
+        "ms": 27.583174999999756,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 2,
+        "variant": "full",
+        "authorizationMs": 33.91467899999952,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 2.260266000000229
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 5.61293299999943
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 8.772739000000001
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 4.357641999999942
+          }
+        ],
+        "ms": 22.070977000000312,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 2,
+        "variant": "scoped-reused",
+        "authorizationMs": 28.310911000000488,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 2.868620000000192
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 19.636263999999755
+          }
+        ],
+        "ms": 24.287708000000748,
+        "queries": 8,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 2,
+        "variant": "scoped-reused",
+        "authorizationMs": 35.38975000000028,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 4.047303000000284
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 27.982788000000255
+          }
+        ],
+        "ms": 34.657757999999376,
+        "queries": 8,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 2,
+        "variant": "full",
+        "authorizationMs": 37.51267999999982,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 3.5189349999991464
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 6.9259439999996175
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 10.55593299999964
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 3.8073349999995116
+          }
+        ],
+        "ms": 26.081732000000557,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 3,
+        "variant": "full",
+        "authorizationMs": 35.682519999999386,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 2.2010870000003706
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 3.714637999999468
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 5.244821000000229
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 9.158575000000383
+          }
+        ],
+        "ms": 21.00804799999969,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 3,
+        "variant": "scoped-reused",
+        "authorizationMs": 21.024312000000464,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 1.7473039999995308
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 14.429534999999305
+          }
+        ],
+        "ms": 17.478029000000788,
+        "queries": 8,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 3,
+        "variant": "scoped-reused",
+        "authorizationMs": 20.70687799999996,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 1.5938080000005357
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 14.127769000000626
+          }
+        ],
+        "ms": 16.91086599999926,
+        "queries": 8,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 3,
+        "variant": "full",
+        "authorizationMs": 20.417421000000104,
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 1.7428509999999733
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 3.4970219999995606
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 13.278066999999282
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 2.428418999999849
+          }
+        ],
+        "ms": 21.91384199999993,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      }
+    ]
+  },
+  "serverContextWithoutReuse": {
+    "scope": "Exact deployed getAppCtxData versus project-authorized scoped prototype; DB SELECTs only; every transaction rolled back; server query stage excludes HTTP/auth/network; first ABBA round is warmup",
+    "databaseCounts": {
+      "Team": 4,
+      "Workspace": 7,
+      "Permission": 95
+    },
+    "results": {
+      "full": {
+        "samples": 6,
+        "medianMs": 22.008259000002,
+        "queries": 9.0,
+        "jsonBytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      "scoped": {
+        "samples": 6,
+        "medianMs": 42.49465450000207,
+        "queries": 14.0,
+        "jsonBytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      }
+    },
+    "samples": [
+      {
+        "round": 0,
+        "variant": "full",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 17.16371900000013
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 19.891278999999486
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 16.206920000000537
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 7.915218999998615
+          }
+        ],
+        "ms": 64.72566099999676,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 0,
+        "variant": "scoped",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 2.432031000000279
+          },
+          {
+            "name": "getProjectById",
+            "ms": 8.143964999999298
+          },
+          {
+            "name": "getProjectById",
+            "ms": 75.31511300000057
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 29.02850000000035
+          }
+        ],
+        "ms": 108.88122199999998,
+        "queries": 14,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 0,
+        "variant": "scoped",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 3.2817770000001474
+          },
+          {
+            "name": "getProjectById",
+            "ms": 9.612809999998717
+          },
+          {
+            "name": "getProjectById",
+            "ms": 47.07754600000044
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 28.969033000001218
+          }
+        ],
+        "ms": 81.74485300000015,
+        "queries": 14,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 0,
+        "variant": "full",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 2.413424999998824
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 5.758817999998428
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 10.632722999998805
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 6.052138999999443
+          }
+        ],
+        "ms": 25.85447600000043,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 1,
+        "variant": "full",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 3.5728300000009767
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 8.405151999999362
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 15.707774999998946
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 8.685175999999046
+          }
+        ],
+        "ms": 37.53732899999886,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 1,
+        "variant": "scoped",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 4.900594000002457
+          },
+          {
+            "name": "getProjectById",
+            "ms": 9.242239999999583
+          },
+          {
+            "name": "getProjectById",
+            "ms": 53.99812999999995
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 30.269413999998505
+          }
+        ],
+        "ms": 90.68416900000011,
+        "queries": 14,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 1,
+        "variant": "scoped",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 1.7206690000020899
+          },
+          {
+            "name": "getProjectById",
+            "ms": 4.128712999998243
+          },
+          {
+            "name": "getProjectById",
+            "ms": 23.00059500000134
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 17.184220999999525
+          }
+        ],
+        "ms": 43.23953800000163,
+        "queries": 14,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 1,
+        "variant": "full",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 1.644402000001719
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 4.894911999999749
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 12.292953000000125
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 2.263685000001715
+          }
+        ],
+        "ms": 21.563874999999825,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 2,
+        "variant": "full",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 1.6603649999997288
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 3.6208320000005187
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 5.086405000001832
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 2.0679959999979474
+          }
+        ],
+        "ms": 12.838675999999396,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 2,
+        "variant": "scoped",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 1.6646469999977853
+          },
+          {
+            "name": "getProjectById",
+            "ms": 3.4348420000023907
+          },
+          {
+            "name": "getProjectById",
+            "ms": 21.918582999998762
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 16.827726000003167
+          }
+        ],
+        "ms": 41.74977100000251,
+        "queries": 14,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 2,
+        "variant": "scoped",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 1.873623999999836
+          },
+          {
+            "name": "getProjectById",
+            "ms": 4.260428000001411
+          },
+          {
+            "name": "getProjectById",
+            "ms": 30.895854000002146
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 25.600886999996874
+          }
+        ],
+        "ms": 60.68127800000002,
+        "queries": 14,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 2,
+        "variant": "full",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 4.124701999997342
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 5.4943009999988135
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 9.421752999998716
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 3.0994470000005094
+          }
+        ],
+        "ms": 22.701858000000357,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 3,
+        "variant": "full",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 1.7195790000005218
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 3.377806000000419
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 5.591189000002487
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 11.25021999999808
+          }
+        ],
+        "ms": 22.274838000001182,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      },
+      {
+        "round": 3,
+        "variant": "scoped",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 1.625355000000127
+          },
+          {
+            "name": "getProjectById",
+            "ms": 4.363661999999749
+          },
+          {
+            "name": "getProjectById",
+            "ms": 21.766584000000876
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 14.359030999999959
+          }
+        ],
+        "ms": 39.00768800000151,
+        "queries": 14,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 3,
+        "variant": "scoped",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 1.3694150000010268
+          },
+          {
+            "name": "getProjectById",
+            "ms": 3.3568620000005467
+          },
+          {
+            "name": "getProjectById",
+            "ms": 19.720713999999134
+          },
+          {
+            "name": "getWorkspaceById",
+            "ms": 15.10646799999813
+          }
+        ],
+        "ms": 37.34545900000012,
+        "queries": 14,
+        "bytes": 3855,
+        "gzipBytes": 981,
+        "counts": {
+          "teams": 1,
+          "workspaces": 1,
+          "perms": 2
+        }
+      },
+      {
+        "round": 3,
+        "variant": "full",
+        "calls": [
+          {
+            "name": "ensurePersonalWorkspace",
+            "ms": 2.013648000000103
+          },
+          {
+            "name": "getAffiliatedTeams",
+            "ms": 5.360995000002731
+          },
+          {
+            "name": "getAffiliatedWorkspaces",
+            "ms": 8.945227000000159
+          },
+          {
+            "name": "getSelfPerms",
+            "ms": 4.851134000000457
+          }
+        ],
+        "ms": 21.741680000002816,
+        "queries": 9,
+        "bytes": 34360,
+        "gzipBytes": 5892,
+        "counts": {
+          "teams": 2,
+          "workspaces": 3,
+          "perms": 79
+        }
+      }
+    ]
+  },
+  "serverSourceMatchesCurrent": {
+    "platform/wab/src/wab/server/routes/appctx.ts": "52fa48fbc86f273d69945def8a1c3cbf46239a02a428f91d4f6e314b2efded13",
+    "platform/wab/src/wab/server/routes/team-plans.ts": "3bb702670827eacf5aa9c06f0f3f8513d79491c09b1f576ea8b9a5dc5d3e5266",
+    "platform/wab/src/wab/server/db/DbMgr.ts": "7205f55bdea61128f6b1c3ea4a3f23bf725c738ad806193ab63ea06b9f1a8055"
+  },
+  "contextClientCoverage": {
+    "onlineEndToEnd": false,
+    "appWorkingSetAB": false,
+    "reason": "Existing independent HTTP probe had no usable session-cookie value; no login or candidate deployment performed. Server method timing and response bytes must not be presented as client memory or online startup benefit."
+  },
+  "clientScans": [
+    {
+      "project": "gp",
+      "timing": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1453.8,
+          "allFramesMs": 1412.3,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 733.86,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1448.0,
+          "allFramesMs": 1405.7,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 727.52,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      },
+      "memory": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1463.7,
+          "allFramesMs": 1422.25,
+          "activeWorkingSetMiB": 1317.17,
+          "settledWorkingSetMiB": null,
+          "activeViews": 1.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1317.09,
+          "returnedWorkingSetMiB": 729.18,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1447.9,
+          "allFramesMs": 1406.0,
+          "activeWorkingSetMiB": 1307.44,
+          "settledWorkingSetMiB": null,
+          "activeViews": 1.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1307.4,
+          "returnedWorkingSetMiB": 726.47,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      }
+    },
+    {
+      "project": "complex",
+      "timing": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1324.6,
+          "allFramesMs": 3380.95,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 735.8,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1326.2,
+          "allFramesMs": 3380.3,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 743.78,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      },
+      "memory": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1319.35,
+          "allFramesMs": 3390.5,
+          "activeWorkingSetMiB": 1537.43,
+          "settledWorkingSetMiB": null,
+          "activeViews": 10.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1538.62,
+          "returnedWorkingSetMiB": 722.45,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1315.4,
+          "allFramesMs": 3396.9,
+          "activeWorkingSetMiB": 1532.68,
+          "settledWorkingSetMiB": null,
+          "activeViews": 10.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1536.75,
+          "returnedWorkingSetMiB": 723.54,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      }
+    }
+  ],
+  "constructorPhases": {
+    "gp": {
+      "before": {
+        "style-manager": 16.100000023841858,
+        "font-manager": 2.849999964237213,
+        "studio-context": 25.849999964237213
+      },
+      "after": {
+        "style-manager": 5.899999976158142,
+        "font-manager": 3.600000023841858,
+        "studio-context": 16.350000023841858
+      },
+      "rejectedFullSiteScope": {
+        "style-manager": 16.0,
+        "font-manager": 2.350000023841858,
+        "studio-context": 25.250000059604645
+      }
+    },
+    "complex": {
+      "before": {
+        "style-manager": 4.850000023841858,
+        "font-manager": 3.199999988079071,
+        "studio-context": 15.300000011920929
+      },
+      "after": {
+        "style-manager": 4.800000071525574,
+        "font-manager": 3.299999952316284,
+        "studio-context": 15.099999964237213
+      },
+      "rejectedFullSiteScope": {
+        "style-manager": 33.299999952316284,
+        "font-manager": 3.5,
+        "studio-context": 43.94999998807907
+      }
+    }
+  },
+  "memoryProcesses": {
+    "gp": {
+      "a1": {
+        "medianMiB": 1314.2578125,
+        "rangeMiB": [
+          1299.265625,
+          1330.015625
+        ]
+      },
+      "a2": {
+        "medianMiB": 1318.0390625,
+        "rangeMiB": [
+          1304.90625,
+          1341.484375
+        ]
+      },
+      "b1": {
+        "medianMiB": 1308.8125,
+        "rangeMiB": [
+          1306.9375,
+          1346.953125
+        ]
+      },
+      "b2": {
+        "medianMiB": 1304.9296875,
+        "rangeMiB": [
+          1297.0625,
+          1329.375
+        ]
+      }
+    },
+    "complex": {
+      "a1": {
+        "medianMiB": 1541.390625,
+        "rangeMiB": [
+          1535.484375,
+          1544.125
+        ]
+      },
+      "a2": {
+        "medianMiB": 1524.0234375,
+        "rangeMiB": [
+          1522.8125,
+          1562.25
+        ]
+      },
+      "b1": {
+        "medianMiB": 1541.109375,
+        "rangeMiB": [
+          1532.046875,
+          1546.640625
+        ]
+      },
+      "b2": {
+        "medianMiB": 1522.9609375,
+        "rangeMiB": [
+          1502.65625,
+          1533.125
+        ]
+      }
+    }
+  },
+  "qualification": [
+    {
+      "project": "gp",
+      "mode": "qual-css-baseline",
+      "result": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "outline-dom-rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 160,
+        "reopen": true,
+        "scanDependency": {
+          "afterChars": 72663,
+          "beforeChars": 72663,
+          "computed": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "color": "rgb(0, 0, 0)",
+            "display": "block",
+            "fontFamily": "Roboto, sans-serif",
+            "fontSize": "16px",
+            "position": "static"
+          },
+          "fontLinkCount": 4,
+          "fontUrls": [
+            "https://fonts.googleapis.com/css?family=Inconsolata:200,300,regular,500,600,700,800,900&subset=latin,latin-ext,vietnamese",
+            "https://fonts.googleapis.com/css?family=Roboto:100,100italic,300,300italic,regular,italic,500,500italic,700,700italic,900,900italic&subset=cyrillic,cyrillic-ext,greek,greek-ext,latin,latin-ext,vietnamese"
+          ],
+          "frameId": "dO6gEmTQ80cE",
+          "nodeId": "UfOxQenDww_R",
+          "revision": 159,
+          "target": "TemplatePreview",
+          "totalDependencyCharsBefore": 97446,
+          "uniqueFontUrls": 2,
+          "undoRedo": true,
+          "reopen": true
+        }
+      },
+      "errors": [],
+      "blocked": [],
+      "saves": 2
+    },
+    {
+      "project": "complex",
+      "mode": "qual-base-complex",
+      "result": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "outline-dom-rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-redo-rendered-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "errors": [],
+      "blocked": [],
+      "saves": 1
+    },
+    {
+      "project": "gp",
+      "mode": "qual-css-candidate",
+      "result": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "outline-dom-rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 160,
+        "reopen": true,
+        "scanDependency": {
+          "afterChars": 54255,
+          "beforeChars": 48292,
+          "computed": {
+            "backgroundColor": "rgba(0, 0, 0, 0)",
+            "borderRadius": "0px",
+            "color": "rgb(0, 0, 0)",
+            "display": "block",
+            "fontFamily": "Roboto, sans-serif",
+            "fontSize": "16px",
+            "position": "static"
+          },
+          "fontLinkCount": 2,
+          "fontUrls": [
+            "https://fonts.googleapis.com/css?family=Inconsolata:200,300,regular,500,600,700,800,900&subset=latin,latin-ext,vietnamese",
+            "https://fonts.googleapis.com/css?family=Roboto:100,100italic,300,300italic,regular,italic,500,500italic,700,700italic,900,900italic&subset=cyrillic,cyrillic-ext,greek,greek-ext,latin,latin-ext,vietnamese"
+          ],
+          "frameId": "dO6gEmTQ80cE",
+          "nodeId": "VL-FWv7iT8N-",
+          "revision": 159,
+          "target": "TemplatePreview",
+          "totalDependencyCharsBefore": 73075,
+          "uniqueFontUrls": 2,
+          "undoRedo": true,
+          "reopen": true
+        }
+      },
+      "errors": [],
+      "blocked": [],
+      "saves": 2
+    },
+    {
+      "project": "complex",
+      "mode": "qual-v2-complex",
+      "result": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "outline-dom-rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-redo-rendered-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "errors": [],
+      "blocked": [],
+      "saves": 1
+    },
+    {
+      "project": "gp",
+      "mode": "qual-v2-dynamic",
+      "result": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "outline-dom-rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 160,
+        "reopen": true,
+        "hostless": {
+          "custom": false,
+          "frameId": "dO6gEmTQ80cE",
+          "iconName": "plasmic-antd-icon-AccountBookFilled",
+          "initialIconLibraryLoaded": false,
+          "nodeId": "tUsvaRe6vZLg",
+          "revision": 159,
+          "undoRedo": true,
+          "savedDynamicReference": true,
+          "previewCondition": true,
+          "reopen": true
+        }
+      },
+      "errors": [],
+      "blocked": [],
+      "saves": 2
+    },
+    {
+      "project": "gp",
+      "mode": "qual-v2-custom",
+      "result": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "outline-dom-rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 160,
+        "reopen": true,
+        "hostless": {
+          "custom": true,
+          "frameId": "dO6gEmTQ80cE",
+          "iconName": "plasmic-antd-icon-AccountBookFilled",
+          "initialIconLibraryLoaded": true,
+          "nodeId": "fUnpIejJOzgx",
+          "revision": 159,
+          "undoRedo": true,
+          "savedDynamicReference": true,
+          "previewCondition": false,
+          "reopen": true
+        }
+      },
+      "errors": [],
+      "blocked": [],
+      "saves": 2
+    }
+  ],
+  "sharedRuntimes": {
+    "static/sub/build/client.a475f2.js": "2ef024b74e23ff828f3071eac6f2c464eb8760710150be69e91e58c174dc849a",
+    "static/canvas-packages/build/client.a475f2.js": "98f0bc26798dbe6c388534616d8f87bbea67ded49b003b42b53186f22e450a0d",
+    "static/react-web-bundle/build/client.a475f2.js": "6f77ff9cbd7d45525d415ef3bb70d0ec815fa95d9b22adfa63daffa7879c0e66"
+  },
+  "builds": {
+    "profile": {
+      "kind": "diagnostic",
+      "variant": "profile",
+      "sourceRoot": "/tmp/plasmic-context-fonts-20261109/source",
+      "runtimeRevision": "a475f219bfae530ba61900e8e5b310020cbb8292",
+      "rendererHash": "2fa3d13000b287634d912e493007abed54154f70d38df1b2be07fd5dc1eae82f"
+    },
+    "scans-final": {
+      "kind": "diagnostic",
+      "variant": "scans-final",
+      "sourceRoot": "/tmp/plasmic-context-fonts-20261109/source",
+      "runtimeRevision": "a475f219bfae530ba61900e8e5b310020cbb8292",
+      "rendererHash": "59a253e6b909602d539a7f9196a5978edbfbcfb76b5948b3486ccccaee2bbe51"
+    },
+    "per-frame": {
+      "kind": "diagnostic",
+      "variant": "per-frame",
+      "sourceRoot": "/tmp/plasmic-context-fonts-20261109/source",
+      "runtimeRevision": "a475f219bfae530ba61900e8e5b310020cbb8292",
+      "rendererHash": "c6d95cc8850fc579a55ca1e49f0e4d671597d8bebcdbed3df005d52784c2c305"
+    }
+  },
+  "candidateSources": {
+    "platform/wab/src/wab/client/style-mgr.ts": "99c9766541b4fbc94086a4c737d81f6592dd31f7ef0809bb19fba8440ee021c4",
+    "platform/wab/src/wab/client/fonts.ts": "03977cd6ac12668a4d99411a22f5ab62b334c54701be4eebfd1b50e9e93fae82",
+    "platform/wab/src/wab/client/components/canvas/canvas-hostless-inputs.ts": "853c863204a5cf7a7bb5c54465893127b1a76108a8ea3834bcb35e3d675e7857",
+    "platform/wab/src/wab/client/dependency-scan-scope.ts": "8bd66b9d10876590d8b0328498976efc2c9193420d362c9ecb3d8bcd97290684",
+    "platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx": "b378f5a8c1c2ccf775416d6854e14594f0c38a3e6cd123e4a795bcf9171946f7"
+  },
+  "workingProductSourcesUnchanged": {
+    "platform/wab/src/wab/client/fonts.ts": "e39839a3c1485736541853e376ae45b451c77a3d6d815e5fea5dc1d0ae62a1b5",
+    "platform/wab/src/wab/client/style-mgr.ts": "8d4f4c7c523c64b3e285c2736dbad02a1f5be033240730eeac05c59ca31ec211",
+    "platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx": "cdcd6f32e68bfed36dde1d592e4944dcdf18d23857922492c99fba4dccccdf93",
+    "platform/wab/src/wab/server/routes/appctx.ts": "52fa48fbc86f273d69945def8a1c3cbf46239a02a428f91d4f6e314b2efded13",
+    "platform/wab/src/wab/server/routes/project-startup.ts": "7c89dcf3193a70f49a3f65841fd1070a311fd6ade110e7f56492f8f5dc243521"
+  },
+  "tests": {
+    "files": 4,
+    "passed": 28,
+    "typecheckPassed": true,
+    "strictProductionBuilds": 3
+  },
+  "sampling": {
+    "finalCandidateOrder": "ABBA per project per metric",
+    "processes": 16,
+    "opens": 96,
+    "warmupOpensPerProcess": 2,
+    "warmTimingSamples": 32,
+    "warmMemorySamples": 32,
+    "forcedGc": false,
+    "debugger": false,
+    "trace": false,
+    "memoryWaitMs": 1500,
+    "peakSampleIntervalMs": 100
+  },
+  "privateReplayRoot": "/tmp/plasmic-context-fonts-20261109"
+}

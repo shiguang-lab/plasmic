@@ -5,7 +5,7 @@ import { lintInvisibleElements } from "@/wab/shared/linting/lint-invisible-eleme
 import { lintLinkedProps } from "@/wab/shared/linting/lint-linked-props";
 import { lintScreenVariantOverrides } from "@/wab/shared/linting/lint-screen-variant-overrides";
 import { LintIssue } from "@/wab/shared/linting/lint-types";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import { Site } from "@/wab/shared/model/classes";
 
 export function lintIssuesEquals(prev: LintIssue[], next: LintIssue[]) {
@@ -20,8 +20,7 @@ export function lintIssuesEquals(prev: LintIssue[], next: LintIssue[]) {
   return true;
 }
 
-export const lintSite = maybeComputedFn(
-  function lintSite(site: Site, studioCtx: StudioCtx) {
+export const lintSite = memoizeModelQuery(function lintSite(site: Site, studioCtx: StudioCtx) {
     const issues: LintIssue[] = [];
     issues.push(...lintScreenVariantOverrides(site));
     issues.push(...lintInvalidNesting(site));
@@ -29,10 +28,4 @@ export const lintSite = maybeComputedFn(
     issues.push(...lintChoicePropValues(site, studioCtx));
     issues.push(...lintLinkedProps(site));
     return issues;
-  },
-  {
-    keepAlive: false,
-    equals: lintIssuesEquals,
-    name: "lintSite",
-  },
-);
+  }, {equals: lintIssuesEquals});

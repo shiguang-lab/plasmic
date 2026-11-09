@@ -113,7 +113,9 @@ test.each([{ selected: true, slot: "expandedRowRender" }, { editing: true }])("c
   rerender(table({ expandable, onExpand, onExpandedRowsChange, __canvas: { selected: false } }, "canvas"));
   expect(visibleDetails(container)).toEqual([]);
   rerender(table({ expandable, onExpand, onExpandedRowsChange, __canvas: selection }, "interactive"));
-  expect(visibleDetails(container)).toEqual([]);
+  expect(visibleDetails(container)).toEqual(["First detail:0:1:true", "Second detail:1:1:true"]);
+  expect(onExpand).not.toHaveBeenCalled();
+  expect(onExpandedRowsChange).not.toHaveBeenCalled();
   expect(expandable.expandedRowKeys).toEqual([]);
 });
 
@@ -155,7 +157,7 @@ test("editing row choices live only in the canvas session and are absent after r
   view.rerender(table(ps, "canvas", session));
   expect(visibleDetails(view.container)).toEqual(["First detail:0:1:true", "Second detail:1:1:true"]);
   view.rerender(table(ps, "interactive", session));
-  expect(visibleDetails(view.container)).toEqual([]);
+  expect(visibleDetails(view.container)).toHaveLength(2);
   view.rerender(table(ps, "canvas", session));
   expect(visibleDetails(view.container)).toHaveLength(2);
   expect(expandable.expandedRowKeys).toEqual([]);

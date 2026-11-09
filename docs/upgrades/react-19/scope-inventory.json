@@ -41,7 +41,7 @@
       "path": "package.json",
       "name": "plasmic-monorepo",
       "scope": "other",
-      "sha256": "aaf51f9267a48bfa464280dffdfdf8fae531b4b04a844d5c8e701b0f2c0da105",
+      "sha256": "5dd1a2fecbdb384675b9611c80aeca9d15c01807073afb23dba2218e16f48938",
       "reactRequirements": {}
     },
     {
@@ -234,7 +234,7 @@
       "path": "packages/host/package.json",
       "name": "@plasmicapp/host",
       "scope": "sdk-and-tools",
-      "sha256": "13a3b18d43b0342cf61d8491a0b3db57893061ca816a0e531b3db530cbaed684",
+      "sha256": "11e216ec7e566f3704841302ec0083a07f4b1e2bb4b2b31b266c9ae4ced2baea",
       "reactRequirements": {
         "devDependencies.@types/react": "catalog:",
         "devDependencies.@types/react-dom": "catalog:",
@@ -426,7 +426,7 @@
       "path": "packages/react-web/package.json",
       "name": "@plasmicapp/react-web",
       "scope": "sdk-and-tools",
-      "sha256": "b69615277443efdf39b6aa5c136fe32fc1403f5770023974532bd290b8e738c9",
+      "sha256": "11d298576aa5bbf77bd51023ae3a12eb7e7cffc176f1d7529e79007981285603",
       "reactRequirements": {
         "dependencies.valtio": "^2.3.2",
         "devDependencies.@types/react": "catalog:",
@@ -509,7 +509,7 @@
       "path": "plasmicpkgs/antd5/package.json",
       "name": "@plasmicpkgs/antd5",
       "scope": "component-package",
-      "sha256": "be7709cb69deda945eeb5ee6cd88976ea7982d06fa0e5e16a0f2fb2d917839e2",
+      "sha256": "35d5b6b022cf8c3a3563b4217304063ca874f25de3eb67c38ee1a1e9a89ef8bc",
       "reactRequirements": {
         "devDependencies.@types/react": "catalog:",
         "devDependencies.@types/react-dom": "catalog:",
@@ -529,7 +529,7 @@
       "path": "plasmicpkgs/antd6/package.json",
       "name": "@shiguang-lab/plasmic-antd6",
       "scope": "component-package",
-      "sha256": "270cda447d8c0fdd28acaf595132e77b9447f83527a461623ffc8786abdc0817",
+      "sha256": "5e342a9771d9e391a25099103b82d2d0cdd5f7a0be26cd9f0c2b889dabd7c0f4",
       "reactRequirements": {
         "devDependencies.@types/react": "catalog:",
         "devDependencies.@types/react-dom": "catalog:",
@@ -543,14 +543,14 @@
       "path": "plasmicpkgs/cms/package.json",
       "name": "@plasmicpkgs/cms",
       "scope": "component-package",
-      "sha256": "41bf410c5830d7cf9781fc43f5f97930cb3dd2f21fde2c113bf7c865e40a083f",
+      "sha256": "0da000d34af259cfac1628ac17ca81f78fba49ba906149f594916fa233899c42",
       "reactRequirements": {}
     },
     {
       "path": "plasmicpkgs/commerce-providers/commerce/package.json",
       "name": "@plasmicpkgs/commerce",
       "scope": "component-package",
-      "sha256": "ac60255d242035804fc09f6961e8b63750968e49b4f0638b2b5a4d611f0fa9cb",
+      "sha256": "078b9b749f6fb829fadece0071e604aafe4a4117f74a3cc5247ed1b4c6f87c95",
       "reactRequirements": {
         "devDependencies.@types/react": "catalog:",
         "devDependencies.react": "19.3.1",
@@ -612,7 +612,7 @@
       "path": "plasmicpkgs/commerce-providers/swell/package.json",
       "name": "@plasmicpkgs/commerce-swell",
       "scope": "component-package",
-      "sha256": "1f0a8d7c81bf87f7976ba87cc8dcdaf5b2bf35f8fb09df2067d58f19dcc5b614",
+      "sha256": "7d4f71cb2e99385944483989579d4d915083ccca3025ff6e105507628612559a",
       "reactRequirements": {
         "devDependencies.@types/react": "catalog:",
         "devDependencies.react": "19.3.1",
@@ -624,7 +624,7 @@
       "path": "plasmicpkgs/contentful/package.json",
       "name": "@plasmicpkgs/contentful",
       "scope": "component-package",
-      "sha256": "3c2383c9c4669bd6478a64908c58d67a54c3cbbe535e1e413a8de95f8c635c1a",
+      "sha256": "130002d4edf7e245ac767dd8a2146af93ed02e9696554785364b690100c44c49",
       "reactRequirements": {}
     },
     {
@@ -747,7 +747,7 @@
       "path": "plasmicpkgs/plasmic-cms/package.json",
       "name": "@plasmicpkgs/plasmic-cms",
       "scope": "component-package",
-      "sha256": "f298087b07c44abb5f1ddcfcec11d1317cf929382bb8feb1de5be6cc019d9fb9",
+      "sha256": "898bb8d0331db935a7da2d8d486e929ad8a01642f137d65c0701b31b89d32cb3",
       "reactRequirements": {
         "devDependencies.@types/react": "catalog:",
         "peerDependencies.react": "^19.3.1",
@@ -1008,7 +1008,7 @@
       "path": "plasmicpkgs/radix-ui/package.json",
       "name": "@plasmicpkgs/radix-ui",
       "scope": "component-package",
-      "sha256": "12b0b92d8870703ba513d1994162fe807bddf7057d8d26aaab7b9486efd740f2",
+      "sha256": "d8afcdd9bc3ce9f46ae9fd037cee5de1b778515636c451954884eeac1ddb44e8",
       "reactRequirements": {
         "devDependencies.@types/react": "19.3.0",
         "peerDependencies.react": "^19.3.1",
@@ -1089,7 +1089,7 @@
       "path": "plasmicpkgs/react-slick/package.json",
       "name": "@plasmicpkgs/react-slick",
       "scope": "component-package",
-      "sha256": "135225ec9d4795a9d3a5252801554c40607dc0f76183f43f64ae2f15d34a8030",
+      "sha256": "3fa9f5fbed284f2c56f88b76ef1d0210b161af0fd4f5b83db27eef00d114f55d",
       "reactRequirements": {
         "devDependencies.@types/react": "catalog:",
         "peerDependencies.react": "^19.3.1",
@@ -1111,7 +1111,7 @@
       "path": "plasmicpkgs/react-ui/package.json",
       "name": "@shiguang-lab/plasmic-react-ui",
       "scope": "component-package",
-      "sha256": "c20be0174bccc0fb5c388ddd20504bb7ed01a9f98958ff01a380687a9f84cb77",
+      "sha256": "f67635028199f17b6bbdcaf10b3c811d012ea663928ae5e3af321392e09cf417",
       "reactRequirements": {
         "devDependencies.@types/react": "19.3.0",
         "devDependencies.@types/react-dom": "19.3.0",
@@ -1138,7 +1138,7 @@
       "path": "plasmicpkgs/strapi/package.json",
       "name": "@plasmicpkgs/strapi",
       "scope": "component-package",
-      "sha256": "8733924daddc3e83fca841aa3542e0e416bdd5538f936ddfd47aa4c4fb6b2537",
+      "sha256": "3972844ce7e8ba6a2dbca0ef54378f1e42d40f5215a9d58ede1fa161c5daf753",
       "reactRequirements": {}
     },
     {
@@ -1165,7 +1165,7 @@
       "path": "plasmicpkgs/wordpress/package.json",
       "name": "@plasmicpkgs/wordpress",
       "scope": "component-package",
-      "sha256": "3f4939184c62a3fd2ff453c529aa2aeb11c89fea6f0cce8d5e49c1208cfc6da1",
+      "sha256": "0e0f2168e79866e46b47937246ab946cca8e34ef7a5f8db835fa0223265e6b99",
       "reactRequirements": {}
     },
     {
@@ -1182,7 +1182,7 @@
       "path": "platform/canvas-packages/package.json",
       "name": "canvas-packages",
       "scope": "platform",
-      "sha256": "f7ec358ffd8348b364ad61c0327c1b62a5c69c95b620a248308e69b6caedd9b2",
+      "sha256": "e925fe20433062a90cad46de2b81e7f2428d89bb8c637431a2aa14d4aae23c21",
       "reactRequirements": {
         "devDependencies.@types/react": "19.3.0",
         "devDependencies.@types/react-dom": "19.3.0",
@@ -1214,17 +1214,18 @@
       "path": "platform/live-frame/package.json",
       "name": "live-frame",
       "scope": "platform",
-      "sha256": "b83195678c151c96653805c8cc0403fb3b449149e69797ff8f7e4b57bd451f3c",
+      "sha256": "d569465b92b6506cf43c8fd8a9b43451436b56b20de849299e8b0372d77c2009",
       "reactRequirements": {
         "devDependencies.@types/react": "19.3.0",
-        "devDependencies.@types/react-dom": "19.3.0"
+        "devDependencies.@types/react-dom": "19.3.0",
+        "devDependencies.react": "19.3.1"
       }
     },
     {
       "path": "platform/loader-bundle-env/internal_pkgs/enquire-js/package.json",
-      "name": "enquire.js",
+      "name": "enquire-js",
       "scope": "platform",
-      "sha256": "b2c4a2b27952c9fd83af682b31665bd224a463786533d81e8cf0bd2b43225cc5",
+      "sha256": "cee05b604e89c86ac36d09c67f67d4ab3aa262dcb859d1acbf2b4ee3231df77e",
       "reactRequirements": {}
     },
     {
@@ -1245,7 +1246,7 @@
       "path": "platform/loader-bundle-env/package.json",
       "name": "loader-bundle-env",
       "scope": "platform",
-      "sha256": "057750c38d8fd1880f2f2a0fa1ca49ba415df0d34fd8473512866b187b7920ab",
+      "sha256": "0fba971eb9e032ae9a00ddf9471bbec739f0617caa511ae71c02fbcad5f38d5e",
       "reactRequirements": {}
     },
     {
@@ -1387,7 +1388,7 @@
       "path": "platform/preview/package.json",
       "name": "plasmic-preview",
       "scope": "platform",
-      "sha256": "fda36ac78b5a50e9481fb5d32caf25d4c54fb35dcc679470faaa573d285b8fc8",
+      "sha256": "c248bd116d6ecee9b6353ebd4bb689fdebace49b641c0c6efb485ef7807a72cf",
       "reactRequirements": {
         "dependencies.next": "16.4.5",
         "dependencies.react": "19.3.1",
@@ -1400,7 +1401,7 @@
       "path": "platform/react-renderer/package.json",
       "name": "react-renderer",
       "scope": "platform",
-      "sha256": "0c45b1d4144602a94ab122e31933af6e4ea7ea01e718b8929bf028a3797b76ea",
+      "sha256": "811a7cb5557d2e07599d3c3dc0c20a37cc94fa2a120202fc8d9e425f13789c59",
       "reactRequirements": {
         "dependencies.react": "19.3.1",
         "dependencies.react-dom": "19.3.1",
@@ -1412,7 +1413,7 @@
       "path": "platform/react-web-bundle/package.json",
       "name": "react-web-bundle",
       "scope": "platform",
-      "sha256": "516a268dc8e5b98e5f7e596f7bae684f19e1567e6e7fd95bac445935a51e8148",
+      "sha256": "f1357f8cad51f2d2b183ca23ea68e9a3f80477172090c9f8ba372de949a5bceb",
       "reactRequirements": {
         "devDependencies.@types/react": "19.3.0",
         "devDependencies.@types/react-dom": "19.3.0"
@@ -1443,7 +1444,7 @@
       "path": "platform/sub/package.json",
       "name": "subwab",
       "scope": "platform",
-      "sha256": "82d996d47e6a8924054461caa2afadd2f4c2c9b748c3212d96ef60e0a84cc7c9",
+      "sha256": "4dbd3a34e86dab311a6eb89eefa44c5ebde742b977e8faa07d0b7e911496f7e8",
       "reactRequirements": {
         "dependencies.react": "19.3.1",
         "dependencies.react-dom": "19.3.1",
@@ -1455,10 +1456,9 @@
       "path": "platform/wab/package.json",
       "name": "wab",
       "scope": "platform",
-      "sha256": "5f0c8e177843c4eed5aae00d7d8f949ad35e7a8300cf9047dc6df854767e493f",
+      "sha256": "6e00f8036778921f59dd2c71df8fb51c988ce325bc112ef5f93b599f536a9368",
       "reactRequirements": {
         "dependencies.@types/react": "19.3.0",
-        "dependencies.mobx-react": "9.2.0",
         "dependencies.react": "19.3.1",
         "dependencies.react-dom": "19.3.1",
         "dependencies.react-is": "19.3.1",
@@ -1517,7 +1517,7 @@
     },
     {
       "path": "platform/live-frame/pnpm-lock.yaml",
-      "sha256": "961d76a37c1c7a224d9dd73f2b1f0852011e75b9813b72baf5ba902e3b166bb2"
+      "sha256": "c099a8daec4c5691ec13d4ddacfc12899191167e70307ffee8dbc209fc2c54a3"
     },
     {
       "path": "platform/live-frame/pnpm-workspace.yaml",
@@ -1605,15 +1605,15 @@
     },
     {
       "path": "platform/pnpm-lock.yaml",
-      "sha256": "2ef750151100f66905f921ea3f8fb9840a32df98cc8083bb59ef346e6d83d43b"
+      "sha256": "a8166d4c6dec0fc6be04c1ee09826d5a367e1e819c073d1e66eeeaf10c8b0cd9"
     },
     {
       "path": "platform/pnpm-workspace.yaml",
-      "sha256": "5f835d78e6758b5a3b9aed03adbbc7b64172ef6accb12fb2b1f1cf08dfcb1a83"
+      "sha256": "e81caa20e7476483ed41a5c36a600b88731c81bb90eb22f418e2eeefa005881e"
     },
     {
       "path": "platform/react-web-bundle/pnpm-lock.yaml",
-      "sha256": "763e63006617e0d0a6f1a2376ecd7b5d399f9495a5fce791b7465e6adaba3a70"
+      "sha256": "e73587ebb40573c67fb5890217bedc824958fb34791c19a82dee44f81309c987"
     },
     {
       "path": "platform/react-web-bundle/pnpm-workspace.yaml",
@@ -1621,7 +1621,7 @@
     },
     {
       "path": "platform/sub/pnpm-lock.yaml",
-      "sha256": "df5feb3feefe39e7b079d6c33816e1d60e6eb214ebcc345dfd06a5172562d659"
+      "sha256": "519d3823fd3cfb27f598b8e3c6c727bc0423fca9f55fb58d8713993c7bc7a66f"
     },
     {
       "path": "platform/sub/pnpm-workspace.yaml",
@@ -1637,11 +1637,11 @@
     },
     {
       "path": "pnpm-lock.yaml",
-      "sha256": "cad3a94c2a82d54dd9ed07fd467b0e60394983a0ad40420bc5a1fd1848a75a5a"
+      "sha256": "160805cccb3965b2c158b6cea6e739cf7920ffa1d5514b66746b75f40fcf59a5"
     },
     {
       "path": "pnpm-workspace.yaml",
-      "sha256": "4c4b93fc666e87432dbb8530ae176e2227f2a8ba366771742404c1451998be4c"
+      "sha256": "b0a54c9b7f5006bda8e155e617547490f800a8f77612f9036f935b769b7a5683"
     }
   ]
 }

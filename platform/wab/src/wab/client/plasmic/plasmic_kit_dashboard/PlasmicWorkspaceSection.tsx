@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
@@ -25,7 +25,7 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -36,8 +36,8 @@ import ShareButton from "../../components/dashboard/ShareButton"; // plasmic-imp
 import WorkspaceDataSources from "../../components/dashboard/WorkspaceDataSources"; // plasmic-import: O5AxABt3WN/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -156,11 +156,10 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "noProjects",
@@ -202,20 +201,22 @@ function PlasmicWorkspaceSection__RenderFunc(props: {
           $props.personalWorkspace,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -995,12 +996,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1010,42 +1007,149 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicWorkspaceSection__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicWorkspaceSection";
-  } else {
-    func.displayName = `PlasmicWorkspaceSection.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicWorkspaceSection__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicWorkspaceSection__root<T extends PlasmicWorkspaceSection__rootProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicWorkspaceSection__root.displayName = "PlasmicWorkspaceSection";
+
+type PlasmicWorkspaceSection__headerProps = NodeComponentProps<"header"> & {key?: React.Key};
+function PlasmicWorkspaceSection__header<T extends PlasmicWorkspaceSection__headerProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__headerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("header", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"header"} />;
+}
+PlasmicWorkspaceSection__header.displayName = "PlasmicWorkspaceSection.header";
+
+type PlasmicWorkspaceSection__editableNameProps = NodeComponentProps<"editableName"> & {key?: React.Key};
+function PlasmicWorkspaceSection__editableName<T extends PlasmicWorkspaceSection__editableNameProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__editableNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("editableName", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"editableName"} />;
+}
+PlasmicWorkspaceSection__editableName.displayName = "PlasmicWorkspaceSection.editableName";
+
+type PlasmicWorkspaceSection__actionsProps = NodeComponentProps<"actions"> & {key?: React.Key};
+function PlasmicWorkspaceSection__actions<T extends PlasmicWorkspaceSection__actionsProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__actionsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actions", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actions"} />;
+}
+PlasmicWorkspaceSection__actions.displayName = "PlasmicWorkspaceSection.actions";
+
+type PlasmicWorkspaceSection__newProjectButtonProps = NodeComponentProps<"newProjectButton"> & {key?: React.Key};
+function PlasmicWorkspaceSection__newProjectButton<T extends PlasmicWorkspaceSection__newProjectButtonProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__newProjectButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newProjectButton", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newProjectButton"} />;
+}
+PlasmicWorkspaceSection__newProjectButton.displayName = "PlasmicWorkspaceSection.newProjectButton";
+
+type PlasmicWorkspaceSection__shareButtonProps = NodeComponentProps<"shareButton"> & {key?: React.Key};
+function PlasmicWorkspaceSection__shareButton<T extends PlasmicWorkspaceSection__shareButtonProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__shareButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("shareButton", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"shareButton"} />;
+}
+PlasmicWorkspaceSection__shareButton.displayName = "PlasmicWorkspaceSection.shareButton";
+
+type PlasmicWorkspaceSection__projectsFilterProps = NodeComponentProps<"projectsFilter"> & {key?: React.Key};
+function PlasmicWorkspaceSection__projectsFilter<T extends PlasmicWorkspaceSection__projectsFilterProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__projectsFilterProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("projectsFilter", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"projectsFilter"} />;
+}
+PlasmicWorkspaceSection__projectsFilter.displayName = "PlasmicWorkspaceSection.projectsFilter";
+
+type PlasmicWorkspaceSection__moreButtonProps = NodeComponentProps<"moreButton"> & {key?: React.Key};
+function PlasmicWorkspaceSection__moreButton<T extends PlasmicWorkspaceSection__moreButtonProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__moreButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("moreButton", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"moreButton"} />;
+}
+PlasmicWorkspaceSection__moreButton.displayName = "PlasmicWorkspaceSection.moreButton";
+
+type PlasmicWorkspaceSection__projectsSectionProps = NodeComponentProps<"projectsSection"> & {key?: React.Key};
+function PlasmicWorkspaceSection__projectsSection<T extends PlasmicWorkspaceSection__projectsSectionProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__projectsSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("projectsSection", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"projectsSection"} />;
+}
+PlasmicWorkspaceSection__projectsSection.displayName = "PlasmicWorkspaceSection.projectsSection";
+
+type PlasmicWorkspaceSection__projectsTabProps = NodeComponentProps<"projectsTab"> & {key?: React.Key};
+function PlasmicWorkspaceSection__projectsTab<T extends PlasmicWorkspaceSection__projectsTabProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__projectsTabProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("projectsTab", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"projectsTab"} />;
+}
+PlasmicWorkspaceSection__projectsTab.displayName = "PlasmicWorkspaceSection.projectsTab";
+
+type PlasmicWorkspaceSection__dataSourcesTabProps = NodeComponentProps<"dataSourcesTab"> & {key?: React.Key};
+function PlasmicWorkspaceSection__dataSourcesTab<T extends PlasmicWorkspaceSection__dataSourcesTabProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__dataSourcesTabProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dataSourcesTab", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dataSourcesTab"} />;
+}
+PlasmicWorkspaceSection__dataSourcesTab.displayName = "PlasmicWorkspaceSection.dataSourcesTab";
+
+type PlasmicWorkspaceSection__h3Props = NodeComponentProps<"h3"> & {key?: React.Key};
+function PlasmicWorkspaceSection__h3<T extends PlasmicWorkspaceSection__h3Props>(props: T & StrictProps<T, PlasmicWorkspaceSection__h3Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("h3", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"h3"} />;
+}
+PlasmicWorkspaceSection__h3.displayName = "PlasmicWorkspaceSection.h3";
+
+type PlasmicWorkspaceSection__newCmsButton2Props = NodeComponentProps<"newCmsButton2"> & {key?: React.Key};
+function PlasmicWorkspaceSection__newCmsButton2<T extends PlasmicWorkspaceSection__newCmsButton2Props>(props: T & StrictProps<T, PlasmicWorkspaceSection__newCmsButton2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newCmsButton2", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newCmsButton2"} />;
+}
+PlasmicWorkspaceSection__newCmsButton2.displayName = "PlasmicWorkspaceSection.newCmsButton2";
+
+type PlasmicWorkspaceSection__databasesProps = NodeComponentProps<"databases"> & {key?: React.Key};
+function PlasmicWorkspaceSection__databases<T extends PlasmicWorkspaceSection__databasesProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__databasesProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("databases", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"databases"} />;
+}
+PlasmicWorkspaceSection__databases.displayName = "PlasmicWorkspaceSection.databases";
+
+type PlasmicWorkspaceSection__dataSourcesProps = NodeComponentProps<"dataSources"> & {key?: React.Key};
+function PlasmicWorkspaceSection__dataSources<T extends PlasmicWorkspaceSection__dataSourcesProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__dataSourcesProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dataSources", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dataSources"} />;
+}
+PlasmicWorkspaceSection__dataSources.displayName = "PlasmicWorkspaceSection.dataSources";
+
+type PlasmicWorkspaceSection__cmsSectionProps = NodeComponentProps<"cmsSection"> & {key?: React.Key};
+function PlasmicWorkspaceSection__cmsSection<T extends PlasmicWorkspaceSection__cmsSectionProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__cmsSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cmsSection", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cmsSection"} />;
+}
+PlasmicWorkspaceSection__cmsSection.displayName = "PlasmicWorkspaceSection.cmsSection";
+
+type PlasmicWorkspaceSection__newCmsButtonProps = NodeComponentProps<"newCmsButton"> & {key?: React.Key};
+function PlasmicWorkspaceSection__newCmsButton<T extends PlasmicWorkspaceSection__newCmsButtonProps>(props: T & StrictProps<T, PlasmicWorkspaceSection__newCmsButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newCmsButton", props);
+  return <PlasmicWorkspaceSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newCmsButton"} />;
+}
+PlasmicWorkspaceSection__newCmsButton.displayName = "PlasmicWorkspaceSection.newCmsButton";
+
 
 export const PlasmicWorkspaceSection = Object.assign(
   // Top-level PlasmicWorkspaceSection renders the root element
-  makeNodeComponent("root"),
+  PlasmicWorkspaceSection__root,
   {
     // Helper components rendering sub-elements
-    header: makeNodeComponent("header"),
-    editableName: makeNodeComponent("editableName"),
-    actions: makeNodeComponent("actions"),
-    newProjectButton: makeNodeComponent("newProjectButton"),
-    shareButton: makeNodeComponent("shareButton"),
-    projectsFilter: makeNodeComponent("projectsFilter"),
-    moreButton: makeNodeComponent("moreButton"),
-    projectsSection: makeNodeComponent("projectsSection"),
-    projectsTab: makeNodeComponent("projectsTab"),
-    dataSourcesTab: makeNodeComponent("dataSourcesTab"),
-    h3: makeNodeComponent("h3"),
-    newCmsButton2: makeNodeComponent("newCmsButton2"),
-    databases: makeNodeComponent("databases"),
-    dataSources: makeNodeComponent("dataSources"),
-    cmsSection: makeNodeComponent("cmsSection"),
-    newCmsButton: makeNodeComponent("newCmsButton"),
+    header: PlasmicWorkspaceSection__header,
+    editableName: PlasmicWorkspaceSection__editableName,
+    actions: PlasmicWorkspaceSection__actions,
+    newProjectButton: PlasmicWorkspaceSection__newProjectButton,
+    shareButton: PlasmicWorkspaceSection__shareButton,
+    projectsFilter: PlasmicWorkspaceSection__projectsFilter,
+    moreButton: PlasmicWorkspaceSection__moreButton,
+    projectsSection: PlasmicWorkspaceSection__projectsSection,
+    projectsTab: PlasmicWorkspaceSection__projectsTab,
+    dataSourcesTab: PlasmicWorkspaceSection__dataSourcesTab,
+    h3: PlasmicWorkspaceSection__h3,
+    newCmsButton2: PlasmicWorkspaceSection__newCmsButton2,
+    databases: PlasmicWorkspaceSection__databases,
+    dataSources: PlasmicWorkspaceSection__dataSources,
+    cmsSection: PlasmicWorkspaceSection__cmsSection,
+    newCmsButton: PlasmicWorkspaceSection__newCmsButton,
 
     // Metadata about props expected for PlasmicWorkspaceSection
     internalVariantProps: PlasmicWorkspaceSection__VariantProps,

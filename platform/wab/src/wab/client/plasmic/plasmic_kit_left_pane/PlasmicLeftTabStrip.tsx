@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,14 +23,14 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import AddButton from "../../components/AddButton"; // plasmic-import: ss1yYyG4Pi/component
 import LeftTabButton from "../../components/studio/LeftTabButton"; // plasmic-import: 1q_JapBg7U/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -118,11 +118,10 @@ function PlasmicLeftTabStrip__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showAvatar",
@@ -131,18 +130,20 @@ function PlasmicLeftTabStrip__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.showAvatar,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -589,12 +590,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -604,34 +601,85 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftTabStrip__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftTabStrip";
-  } else {
-    func.displayName = `PlasmicLeftTabStrip.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftTabStrip__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftTabStrip__root<T extends PlasmicLeftTabStrip__rootProps>(props: T & StrictProps<T, PlasmicLeftTabStrip__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftTabStrip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftTabStrip__root.displayName = "PlasmicLeftTabStrip";
+
+type PlasmicLeftTabStrip__insertProps = NodeComponentProps<"insert"> & {key?: React.Key};
+function PlasmicLeftTabStrip__insert<T extends PlasmicLeftTabStrip__insertProps>(props: T & StrictProps<T, PlasmicLeftTabStrip__insertProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("insert", props);
+  return <PlasmicLeftTabStrip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"insert"} />;
+}
+PlasmicLeftTabStrip__insert.displayName = "PlasmicLeftTabStrip.insert";
+
+type PlasmicLeftTabStrip__dividerProps = NodeComponentProps<"divider"> & {key?: React.Key};
+function PlasmicLeftTabStrip__divider<T extends PlasmicLeftTabStrip__dividerProps>(props: T & StrictProps<T, PlasmicLeftTabStrip__dividerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("divider", props);
+  return <PlasmicLeftTabStrip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"divider"} />;
+}
+PlasmicLeftTabStrip__divider.displayName = "PlasmicLeftTabStrip.divider";
+
+type PlasmicLeftTabStrip__figmaProps = NodeComponentProps<"figma"> & {key?: React.Key};
+function PlasmicLeftTabStrip__figma<T extends PlasmicLeftTabStrip__figmaProps>(props: T & StrictProps<T, PlasmicLeftTabStrip__figmaProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("figma", props);
+  return <PlasmicLeftTabStrip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"figma"} />;
+}
+PlasmicLeftTabStrip__figma.displayName = "PlasmicLeftTabStrip.figma";
+
+type PlasmicLeftTabStrip__keyboardProps = NodeComponentProps<"keyboard"> & {key?: React.Key};
+function PlasmicLeftTabStrip__keyboard<T extends PlasmicLeftTabStrip__keyboardProps>(props: T & StrictProps<T, PlasmicLeftTabStrip__keyboardProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("keyboard", props);
+  return <PlasmicLeftTabStrip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"keyboard"} />;
+}
+PlasmicLeftTabStrip__keyboard.displayName = "PlasmicLeftTabStrip.keyboard";
+
+type PlasmicLeftTabStrip__slackProps = NodeComponentProps<"slack"> & {key?: React.Key};
+function PlasmicLeftTabStrip__slack<T extends PlasmicLeftTabStrip__slackProps>(props: T & StrictProps<T, PlasmicLeftTabStrip__slackProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("slack", props);
+  return <PlasmicLeftTabStrip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"slack"} />;
+}
+PlasmicLeftTabStrip__slack.displayName = "PlasmicLeftTabStrip.slack";
+
+type PlasmicLeftTabStrip__helpProps = NodeComponentProps<"help"> & {key?: React.Key};
+function PlasmicLeftTabStrip__help<T extends PlasmicLeftTabStrip__helpProps>(props: T & StrictProps<T, PlasmicLeftTabStrip__helpProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("help", props);
+  return <PlasmicLeftTabStrip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"help"} />;
+}
+PlasmicLeftTabStrip__help.displayName = "PlasmicLeftTabStrip.help";
+
+type PlasmicLeftTabStrip__playersProps = NodeComponentProps<"players"> & {key?: React.Key};
+function PlasmicLeftTabStrip__players<T extends PlasmicLeftTabStrip__playersProps>(props: T & StrictProps<T, PlasmicLeftTabStrip__playersProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("players", props);
+  return <PlasmicLeftTabStrip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"players"} />;
+}
+PlasmicLeftTabStrip__players.displayName = "PlasmicLeftTabStrip.players";
+
+type PlasmicLeftTabStrip__avatarProps = NodeComponentProps<"avatar"> & {key?: React.Key};
+function PlasmicLeftTabStrip__avatar<T extends PlasmicLeftTabStrip__avatarProps>(props: T & StrictProps<T, PlasmicLeftTabStrip__avatarProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("avatar", props);
+  return <PlasmicLeftTabStrip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"avatar"} />;
+}
+PlasmicLeftTabStrip__avatar.displayName = "PlasmicLeftTabStrip.avatar";
+
 
 export const PlasmicLeftTabStrip = Object.assign(
   // Top-level PlasmicLeftTabStrip renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftTabStrip__root,
   {
     // Helper components rendering sub-elements
-    insert: makeNodeComponent("insert"),
-    divider: makeNodeComponent("divider"),
-    figma: makeNodeComponent("figma"),
-    keyboard: makeNodeComponent("keyboard"),
-    slack: makeNodeComponent("slack"),
-    help: makeNodeComponent("help"),
-    players: makeNodeComponent("players"),
-    avatar: makeNodeComponent("avatar"),
+    insert: PlasmicLeftTabStrip__insert,
+    divider: PlasmicLeftTabStrip__divider,
+    figma: PlasmicLeftTabStrip__figma,
+    keyboard: PlasmicLeftTabStrip__keyboard,
+    slack: PlasmicLeftTabStrip__slack,
+    help: PlasmicLeftTabStrip__help,
+    players: PlasmicLeftTabStrip__players,
+    avatar: PlasmicLeftTabStrip__avatar,
 
     // Metadata about props expected for PlasmicLeftTabStrip
     internalVariantProps: PlasmicLeftTabStrip__VariantProps,

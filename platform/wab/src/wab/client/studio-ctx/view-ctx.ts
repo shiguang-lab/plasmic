@@ -42,6 +42,21 @@ import {
 import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { subscribeViewport } from "@/wab/client/studio-ctx/viewport-state";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
+import {
+  createCanvasMirrorStore,
+  setCanvasMirrorTarget,
+} from "@/wab/client/studio-ctx/canvas-mirror-state";
+import { createEditingTextStore } from "@/wab/client/studio-ctx/editing-text-state";
+import {
+  createDndInsertionStore,
+  setDndTentativeInsertion,
+} from "@/wab/client/studio-ctx/dnd-insertion-state";
+import { subscribeToSelector } from "@/wab/client/stores/store-kit";
+import {
+  modelKeys,
+} from "@/wab/shared/model-revisions";
+import { createAdopteeHighlightStore } from "@/wab/client/studio-ctx/adoptee-highlight-state";
+import { createAutoOpenStore } from "@/wab/client/studio-ctx/auto-open-state";
 import { trackEvent } from "@/wab/client/tracking";
 import { ViewStateSnapshot } from "@/wab/client/undo-log";
 import { mkTokenRef } from "@/wab/commons/StyleToken";
@@ -92,9 +107,6 @@ import {
 import { isTplAttachedToSite } from "@/wab/shared/core/sites";
 import { SlotSelection, isSlotSelection } from "@/wab/shared/core/slots";
 import {
-  StateVariableType,
-  getStateOnChangePropName,
-  getStateValuePropName,
   getStateVarName,
 } from "@/wab/shared/core/states";
 import { makeStyleExprClassName } from "@/wab/shared/core/styles";
@@ -116,9 +128,9 @@ import {
   tplFromSelectable,
 } from "@/wab/shared/core/vals";
 import { isDraggableSize } from "@/wab/shared/css-size";
-import { CanvasEnv, evalCodeWithEnv, tryEvalExpr } from "@/wab/shared/eval";
+import { CanvasEnv, tryEvalExpr } from "@/wab/shared/eval";
 import { Pt, rectsIntersect } from "@/wab/shared/geom";
-import { disposeOwnedComputedFns } from "@/wab/shared/mobx-util";
+import { disposeCanvasFactories } from "@/wab/client/components/canvas/canvas-factories";
 import {
   ArenaFrame,
   Component,
@@ -144,15 +156,11 @@ import {
   $State,
   generateStateOnChangeProp,
   generateStateValueProp,
-  useDollarState,
 } from "@plasmicapp/react-web";
 import asynclib from "async";
 import $ from "jquery";
 import L, { defer, head, isEqual, sortBy } from "lodash";
-import * as mobx from "mobx";
-import { computed, observable, runInAction } from "mobx";
 import { ok } from "neverthrow";
-import * as React from "react";
 import { CSSProperties } from "react";
 import type { Editor as SlateEditor } from "slate";
 
@@ -197,6 +205,8 @@ export interface SpotlightAndVariantsInfo {
   showDefaultSlotContents: boolean;
 }
 
+export interface CanvasObserverLease { dispose(): void; readonly isDisposed: boolean; }
+
 export class ViewCtx extends WithDbCtx {
   readonly studioCtx: StudioCtx;
   readonly viewportCtx: ViewportCtx;
@@ -226,7 +236,7 @@ export class ViewCtx extends WithDbCtx {
     },
   };
   readonly modelLifetime: AbortSignal;
-  private _canvasMirrorTarget = observable.box<string | undefined>(undefined);
+  readonly canvasMirrorStore = createCanvasMirrorStore();
   get initialRenderReady() {
     return this.initialRenderReadyStore.getState();
   }
@@ -261,7 +271,7 @@ export class ViewCtx extends WithDbCtx {
   get highlightParams() {
     return this.selection.highlight();
   }
-  set highlightParams(val: { params: Param[]; tpl: TplComponent } | undefined) {
+  setHighlightParams(val: { params: Param[]; tpl: TplComponent } | undefined) {
     this._highlightParamsDispose?.();
 
     this.selection.setHighlight(val);
@@ -282,7 +292,7 @@ export class ViewCtx extends WithDbCtx {
     editing: boolean | null;
     creating: ModelRef<DataToken> | null;
   }>>(() => Object.freeze({ editing: null, creating: null }));
-  _editingTextContext = observable.box<EditingTextContext | null>(null);
+  readonly editingTextStore = createEditingTextStore();
 
   readonly selection = new ViewSelection(() => this.studioCtx.modelSnapshots);
   get selectionStore() { return this.selection.store; }
@@ -394,30 +404,27 @@ export class ViewCtx extends WithDbCtx {
   }
 
   // dnd state
-  private _dndTentativeInsertion = observable.box<InsertionSpec | undefined>(
-    undefined,
-    { name: "ViewCtx.dndTentativeInsertion" },
-  );
+  readonly dndInsertionStore = createDndInsertionStore();
   getDndTentativeInsertion() {
-    return this._dndTentativeInsertion.get();
+    return this.dndInsertionStore.getState().tentativeInsertion;
   }
   setDndTentativeInsertion(ins?: InsertionSpec) {
-    this._dndTentativeInsertion.set(ins);
+    setDndTentativeInsertion(this, ins);
   }
 
   refreshFetchedDataFromPlasmicQuery(invalidateKey?: string) {
     this.canvasCtx.refreshFetchedDataFromPlasmicQuery(invalidateKey);
   }
 
-  private _dndDraggedNode = observable.box<ValTag | ValComponent | undefined>(
-    undefined,
-    { name: "ViewCtx.dndDraggedNode" },
-  );
+  // Plain field: nothing subscribes to the dragged node (no `observer` reads
+  // it), so it does not need MobX reactivity. Kept as an observable box it would
+  // only add an atom and a dependency edge for nothing.
+  private _dndDraggedNode: ValTag | ValComponent | undefined = undefined;
   getDndDraggedNode() {
-    this._dndDraggedNode.get();
+    this._dndDraggedNode;
   }
   setDndDraggedNode(node?: ValTag | ValComponent) {
-    this._dndDraggedNode.set(node);
+    this._dndDraggedNode = node;
   }
 
   // focusedTpl: TplNode | null;
@@ -457,16 +464,16 @@ export class ViewCtx extends WithDbCtx {
         : [];
   }
 
-  private _autoOpenedUuid = observable.box<string | undefined>();
+  readonly autoOpenStore = createAutoOpenStore();
   private _autoOpenTransitioning = false;
 
   private _canvasExporting = false;
   get canvasExporting() { return this._canvasExporting; }
   setCanvasExporting(value: boolean) {
-    this.studioCtx.renderPolicy.deferPublication(() => runInAction(() => {
+    this.studioCtx.renderPolicy.deferPublication(() => (() => {
       this._canvasExporting = value;
       this.studioCtx.prepareRenderPolicyInputs();
-    }));
+    })());
   }
   readonly contentEditor = new CanvasContentEditor(this);
 
@@ -509,7 +516,7 @@ export class ViewCtx extends WithDbCtx {
   }
 
   get autoOpenedUuid() {
-    return this._autoOpenedUuid.get();
+    return this.autoOpenStore.getState().autoOpenedUuid;
   }
 
   set autoOpenedUuid(val: string | undefined) {
@@ -519,7 +526,7 @@ export class ViewCtx extends WithDbCtx {
     if (val && this._autoOpenTransitioning) {
       this._autoOpenTransitioning = false;
     }
-    this._autoOpenedUuid.set(val);
+    this.autoOpenStore.setState({ autoOpenedUuid: val });
   }
 
   resetAutoOpenState() {
@@ -647,14 +654,12 @@ export class ViewCtx extends WithDbCtx {
     }
   }
 
-  private _xHighlightedAdoptees = observable.box<Adoptee[]>([], {
-    name: "ViewCtx.highlightedAdoptees",
-  });
-  get _highlightedAdoptees() {
-    return this._xHighlightedAdoptees.get();
+  readonly adopteeHighlightStore = createAdopteeHighlightStore();
+  get _highlightedAdoptees(): readonly Adoptee[] {
+    return this.adopteeHighlightStore.getState().adoptees;
   }
-  set _highlightedAdoptees(adoptees: Adoptee[]) {
-    this._xHighlightedAdoptees.set(adoptees);
+  set _highlightedAdoptees(adoptees: readonly Adoptee[]) {
+    this.adopteeHighlightStore.setState({ adoptees });
   }
 
   get _currentComponentCtx() { return this.selection.context(); }
@@ -745,9 +750,9 @@ export class ViewCtx extends WithDbCtx {
     this._viewState = {};
 
     const mirrorRoot = document.documentElement;
-    const updateMirror = () => mobx.runInAction(() => {
-      this._canvasMirrorTarget.set(mirrorRoot.getAttribute("data-plasmic-canvas-mirror") ?? undefined);
-    });
+    const updateMirror = () => (() => {
+      setCanvasMirrorTarget(this, mirrorRoot.getAttribute("data-plasmic-canvas-mirror") ?? undefined);
+    })();
     const mirrorObserver = new MutationObserver(updateMirror);
     mirrorObserver.observe(mirrorRoot, { attributes: true, attributeFilter: ["data-plasmic-canvas-mirror"] });
     updateMirror();
@@ -789,19 +794,25 @@ export class ViewCtx extends WithDbCtx {
       subscribeStudioArena(this.studioCtx, (state) => state.frames.includes(visibilityFrame), updateViewportVisibility),
       subscribeStudioLiveMode(this.studioCtx, updateViewportVisibility),
       subscribeStudioSelection(this.studioCtx, (state) => state.view === this, updateViewportVisibility),
-      mobx.reaction(
-        () => ({ mirror: this._canvasMirrorTarget.get(), geometry: this.studioCtx.getArenaFrameScalerRect(this.arenaFrame()) }),
+      // Mirror target changes come from the DOM observer above; geometry changes
+      // come from model edits (the arena frame layout). Both used to be tracked
+      // by one MobX reaction.
+      subscribeToSelector(
+        this.canvasMirrorStore,
+        (state) => state.target,
         updateViewportVisibility,
-        { fireImmediately: true },
       ),
+      this.studioCtx.modelRevisions.subscribeModelKeys([modelKeys.site], updateViewportVisibility),
 
     );
+    // Replaces the reaction's `fireImmediately: true`.
+    updateViewportVisibility();
   }
 
-  canvasObservers = new Set<mobx.Reaction>();
-  private uncommittedCanvasObservers = new Map<mobx.Reaction, ReturnType<typeof setTimeout>>();
+  canvasObservers = new Set<CanvasObserverLease>();
+  private uncommittedCanvasObservers = new Map<CanvasObserverLease, ReturnType<typeof setTimeout>>();
 
-  trackCanvasObserver(reaction: mobx.Reaction) {
+  trackCanvasObserver(reaction: CanvasObserverLease) {
     if (this._isDisposed) {
       reaction.dispose();
       return;
@@ -814,19 +825,19 @@ export class ViewCtx extends WithDbCtx {
     }, 10000));
   }
 
-  commitCanvasObserver(reaction: mobx.Reaction) {
+  commitCanvasObserver(reaction: CanvasObserverLease) {
     clearTimeout(this.uncommittedCanvasObservers.get(reaction));
     this.uncommittedCanvasObservers.delete(reaction);
   }
 
-  disposeCanvasObserver(reaction: mobx.Reaction) {
+  disposeCanvasObserver(reaction: CanvasObserverLease) {
     this.commitCanvasObserver(reaction);
     this.canvasObservers.delete(reaction);
     reaction.dispose();
   }
 
   /**
-   * Disposes any mobx observers, and try to cut as many cyclic dependencies
+   * Disposes native render leases and cuts cyclic dependencies
    * as possible.
    */
   dispose() {
@@ -861,7 +872,7 @@ export class ViewCtx extends WithDbCtx {
     );
     this.canvasObservers.clear();
     this.canvasCtx.dispose();
-    disposeOwnedComputedFns(this);
+    disposeCanvasFactories(this);
     this.csEvaluator?.dispose();
     (this.csEvaluator as any) = null;
   }
@@ -929,7 +940,7 @@ export class ViewCtx extends WithDbCtx {
     this.setFocusedComponentPart(undefined);
     opts.appendToMultiSelection = !!opts.appendToMultiSelection;
 
-    mobx.runInAction(() => {
+    (() => {
       if (x != null) {
         const [valNode, doms] = this.maybeDomsForTpl(x, {
           anchorCloneKey,
@@ -982,7 +993,7 @@ export class ViewCtx extends WithDbCtx {
         this._focusedTpls = [];
         this._focusedCloneKeys = [];
       }
-    });
+    })();
     });
   }
 
@@ -1106,7 +1117,7 @@ export class ViewCtx extends WithDbCtx {
   }
 
   setEditingTextContext(x: EditingTextContext | null) {
-    this._editingTextContext.set(x);
+    this.editingTextStore.setState({ editingTextContext: x });
 
     // Update canvas overlay to exclude the area of the text editor, to allow interactions with it.
     this._editingTextResizeObserver?.disconnect();
@@ -1317,7 +1328,7 @@ export class ViewCtx extends WithDbCtx {
     }
     opts.appendToMultiSelection = !!opts.appendToMultiSelection;
 
-    mobx.runInAction(() => {
+    (() => {
       const {
         val: finalVal,
         focusedTpl,
@@ -1368,7 +1379,7 @@ export class ViewCtx extends WithDbCtx {
           this._focusedCloneKeys = [];
         }
       }
-    });
+    })();
     });
   }
   clearViewCtxFocus() {
@@ -1438,7 +1449,7 @@ export class ViewCtx extends WithDbCtx {
         return;
       }
       this.flushRerenderQueue();
-      mobx.runInAction(() => this.updateCtxPostChange());
+      (() => this.updateCtxPostChange())();
     });
   }
   flushRerenderQueue() {
@@ -1576,7 +1587,7 @@ export class ViewCtx extends WithDbCtx {
     await drainQueue(this.syncQueue);
     if (!this._isDisposed && this._canvasRerenderQueue.size) {
       this.flushRerenderQueue();
-      mobx.runInAction(() => this.updateCtxPostChange());
+      (() => this.updateCtxPostChange())();
     }
     this.refreshRenderReadyAttr();
   }
@@ -1615,7 +1626,7 @@ export class ViewCtx extends WithDbCtx {
   }
 
   editingTextContext() {
-    return this._editingTextContext.get();
+    return this.editingTextStore.getState().editingTextContext;
   }
 
   /**
@@ -1626,9 +1637,6 @@ export class ViewCtx extends WithDbCtx {
    * which we can't use for the dataRep collection field (it's like trying
    * to do `currentItem.map(currentItem => <Foo />)`).
    *
-   * Note: this isn't a `computedFn` because the render state is not mobx
-   * reactive as of now. Ideally the first rendered node won't be too far
-   * up in the tree from the node being edited.
    */
   getCanvasEnvForTpl = (
     tpl: TplNode,
@@ -1639,13 +1647,8 @@ export class ViewCtx extends WithDbCtx {
       ignoreFocusedCloneKey?: boolean;
     },
   ) => {
-    const closestEnv = computed(
-      () => {
-        // We find the closest val that has a canvas env for this tpl.
-        // We wrap it in computed(), because maybeTpl2ValsInContext()
-        // will make use of currently selected val node as anchor,
-        // which causes upstream recomputation for every tpl every time
-        // selection changes
+    const closestEnv = (() => {
+        // Resolve the closest rendered value using the requested clone anchor.
         let bestTpl = tpl;
         let vals = this.maybeTpl2ValsInContext(bestTpl, opts);
         while (
@@ -1692,11 +1695,7 @@ export class ViewCtx extends WithDbCtx {
             ? val.wrappingEnv
             : val.env;
         return canvasEnv;
-      },
-      {
-        name: "closestTplEnv",
-      },
-    ).get();
+      })();
 
     if (!closestEnv) {
       return undefined;
@@ -1777,7 +1776,7 @@ export class ViewCtx extends WithDbCtx {
     const env = this.getCanvasEnvForTpl(component.tplTree, {
       keep$StateRef: true,
     });
-    return env?.$state ?? {};
+    return this.canvasCtx.Sub.reactWeb.getStateCommandValue(env?.$state ?? {});
   }
 
   getCanvasStateValue(state: State) {
@@ -2644,15 +2643,15 @@ export class ViewCtx extends WithDbCtx {
       this.setViewCtxHoverBySelectable(newObj);
     }
 
-    if (this._editingTextContext.get()) {
+    const editingTextContext = this.editingTextContext();
+    if (editingTextContext) {
       const newVal =
-        getMatchingValInUpdatedTree(this._editingTextContext.get()?.val!) ??
-        null;
+        getMatchingValInUpdatedTree(editingTextContext.val!) ?? null;
       if (newVal) {
-        if (newVal !== this._editingTextContext.get()?.val) {
+        if (newVal !== editingTextContext.val) {
           this.setEditingTextContext({
             val: newVal,
-            targetVs: this._editingTextContext.get()?.targetVs!,
+            targetVs: editingTextContext.targetVs!,
             draftText: maybe(newVal.text, (text) =>
               ensureInstance(text, RawText, RawTextLike),
             ),
@@ -2718,7 +2717,7 @@ export class ViewCtx extends WithDbCtx {
   }
 
   isRenderActive() {
-    const target = this._canvasMirrorTarget.get();
+    const target = this.canvasMirrorStore.getState().target;
     return this.isVisible() || (target === "all" || target === this.arenaFrame().uuid) &&
       getArenaFrames(this.studioCtx.currentArena).includes(this.arenaFrame());
   }
@@ -2858,159 +2857,11 @@ export class ViewCtx extends WithDbCtx {
     return undefined;
   }
 
-  use$StateForRoot() {
-    const component = this.currentComponent();
-    const canvasEnv = this.getCanvasEnvForTpl(component.tplTree);
-    const stateSpecs = component.states.map((state) => ({
-      path: getStateVarName(state),
-      type: state.accessType as "private" | "readonly" | "writable",
-      ...(state.param.defaultExpr
-        ? {
-            initFunc: evalCodeWithEnv(
-              `($props, $state, $ctx) => (${getRawCode(
-                state.param.defaultExpr,
-                {
-                  projectFlags: this.projectFlags(),
-                  component,
-                  inStudio: true,
-                },
-              )})`,
-              {},
-              this.canvasCtx.win(),
-            ),
-          }
-        : {}),
-      ...(state.accessType !== "private"
-        ? { onChangeProp: getStateOnChangePropName(state) }
-        : {}),
-      ...(state.accessType === "writable"
-        ? { valueProp: getStateValuePropName(state) }
-        : {}),
-      variableType: state.variableType as StateVariableType,
-    }));
-    return useDollarState(stateSpecs, canvasEnv?.$props ?? {});
-  }
+
 }
 
 export interface ViewComponentProps {
   viewCtx: ViewCtx;
-}
-
-export abstract class ViewComponentBase<P = {}, S = {}> extends React.Component<
-  P,
-  S
-> {
-  baseApi() {
-    return this.dbCtx().api._siteApi._api;
-  }
-
-  site() {
-    return this.dbCtx().site;
-  }
-
-  app() {
-    return this.dbCtx().app;
-  }
-
-  abstract viewCtx(): ViewCtx;
-  dbCtx() {
-    return this.viewCtx().dbCtx();
-  }
-  postEval(f) {
-    return this.viewCtx().postEval(f);
-  }
-  viewOps() {
-    return this.viewCtx().viewOps;
-  }
-  currentCtxTplRoot() {
-    return this.viewCtx().currentCtxTplRoot();
-  }
-  change(f: () => void) {
-    return this.viewCtx().change(f);
-  }
-
-  /**
-   * Either the currently drilled component, or the root edited component.
-   */
-  currentComponent() {
-    return this.viewCtx().currentComponent();
-  }
-
-  valComponentStack() {
-    return this.viewCtx().valComponentStack();
-  }
-
-  tplRoot() {
-    return this.viewCtx().tplRoot();
-  }
-  tplUserRoot() {
-    return this.viewCtx().tplUserRoot();
-  }
-  tplSysRoot() {
-    return this.viewCtx().tplSysRoot();
-  }
-  component() {
-    return ensure(
-      this.maybeComponent(),
-      () => `ViewCtx always associated with a Component`,
-    );
-  }
-  maybeComponent() {
-    return this.viewCtx().component;
-  }
-  canvasCtx() {
-    return this.viewCtx().canvasCtx;
-  }
-  eltFinder() {
-    return this.viewCtx().eltFinder;
-  }
-  clipboard() {
-    return this.viewCtx().clipboard;
-  }
-  styleMgr() {
-    return this.viewCtx().styleMgr;
-  }
-  isLiveMode() {
-    return this.viewCtx().studioCtx.isLiveMode;
-  }
-  isDevMode() {
-    return !this.isLiveMode();
-  }
-  componentArgsContainer() {
-    return this.viewCtx().componentArgsContainer();
-  }
-  tagMeta() {
-    return this.viewCtx().tagMeta();
-  }
-
-  tplMgr() {
-    return this.viewCtx().tplMgr();
-  }
-
-  selectNewTpl(
-    newTpl: TplNode,
-    useParentAsAnchor = false,
-    initialFocusedSelectable = this.viewCtx().focusedSelectable(),
-  ) {
-    return this.viewCtx().selectNewTpl(
-      newTpl,
-      useParentAsAnchor,
-      initialFocusedSelectable,
-    );
-  }
-
-  valState() {
-    return this.viewCtx().valState();
-  }
-}
-
-export class ViewComponent<
-  P extends ViewComponentProps = ViewComponentProps,
-  S = {},
-> extends ViewComponentBase<P, S> {
-  viewCtx() {
-    return this.props.viewCtx;
-  }
 }
 
 export function ensureBaseRs(

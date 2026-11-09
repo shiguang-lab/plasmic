@@ -18,7 +18,6 @@ import { instUtil } from "@/wab/shared/model/InstUtil";
 import { Component, Site } from "@/wab/shared/model/classes";
 import { meta } from "@/wab/shared/model/classes-metas";
 import { uniqBy } from "lodash";
-import { IObservableValue, observable } from "mobx";
 
 class DbCtxArgs {
   app: App;
@@ -36,8 +35,8 @@ class DbCtxArgs {
 export class DbCtx {
   private readonly _tplMgr = new TplMgr(this);
   private _recorder: IChangeRecorder;
-  private _siteInfo: IObservableValue<SiteInfo>;
-  private _revisionNum: IObservableValue<number>;
+  private _siteInfo: SiteInfo;
+  private _revisionNum: number;
   private readonly versionInputListeners = new Set<() => void>();
   private versionPublicationDepth = 0;
   private versionInputsPending = false;
@@ -65,23 +64,20 @@ export class DbCtx {
   }
 
   // site, branchInfo, and pkgVersionInfoMeta should be set atomically in setSite only
-  private _site: IObservableValue<Site>;
+  private _site: Site;
   /** Branch, or undefined for main branch. */
-  private _branchInfo: IObservableValue<ApiBranch | undefined> =
-    observable.box(undefined);
+  private _branchInfo: ApiBranch | undefined;
   /** Project Revision, Pkg version or undefined for latest revision. */
-  private _projectVersionInfo: IObservableValue<
-    ProjectRevision | PkgVersionInfoMeta | undefined
-  > = observable.box(undefined);
+  private _projectVersionInfo: ProjectRevision | PkgVersionInfoMeta | undefined;
 
   constructor(private readonly args: DbCtxArgs) {
-    this._siteInfo = observable.box(args.siteInfo);
-    this._revisionNum = observable.box(args.revisionNum);
+    this._siteInfo = args.siteInfo;
+    this._revisionNum = args.revisionNum;
     this._recorder = args.appCtx.appConfig.noObserve
       ? new FakeChangeRecorder()
       : this.createRecorder(args.site);
-    this._site = observable.box(args.site);
-    this._branchInfo.set(args.branch);
+    this._site = args.site;
+    this._branchInfo = args.branch;
     for (const component of args.site.components) {
       trackComponentRoot(component);
       trackComponentSite(component, args.site);
@@ -99,23 +95,23 @@ export class DbCtx {
     return this.args.api;
   }
   get siteInfo() {
-    return this._siteInfo.get();
+    return this._siteInfo;
   }
   get branchInfo() {
-    return this._branchInfo.get();
+    return this._branchInfo;
   }
 
   get projectVersionInfo() {
-    return this._projectVersionInfo.get();
+    return this._projectVersionInfo;
   }
 
   get revisionInfo(): ProjectRevision | undefined {
-    const info = this._projectVersionInfo.get();
+    const info = this._projectVersionInfo;
     return info && isProjectRevision(info) ? info : undefined;
   }
 
   get pkgVersionInfoMeta(): PkgVersionInfoMeta | undefined {
-    const info = this._projectVersionInfo.get();
+    const info = this._projectVersionInfo;
     return info && isPkgVersionInfoMeta(info) ? info : undefined;
   }
 
@@ -126,17 +122,17 @@ export class DbCtx {
     return this.args.hostlessDataVersion;
   }
   get site() {
-    return this._site.get();
+    return this._site;
   }
   get appCtx() {
     return this.args.appCtx;
   }
   get revisionNum() {
-    return this._revisionNum.get();
+    return this._revisionNum;
   }
   set revisionNum(v: number) {
-    if (this._revisionNum.get() === v) { return; }
-    this._revisionNum.set(v);
+    if (this._revisionNum === v) { return; }
+    this._revisionNum = v;
     this.publishVersionInputs();
   }
   get recorder() {
@@ -150,9 +146,9 @@ export class DbCtx {
     branch: ApiBranch | undefined,
     projectVersion: PkgVersionInfoMeta | ProjectRevision | undefined,
   ) {
-    this._site.set(site);
-    this._branchInfo.set(branch);
-    this._projectVersionInfo.set(projectVersion);
+    this._site = site;
+    this._branchInfo = branch;
+    this._projectVersionInfo = projectVersion;
 
     if (this._recorder) {
       this._recorder.dispose();
@@ -174,7 +170,7 @@ export class DbCtx {
   }
 
   setSiteInfo(siteInfo: SiteInfo) {
-    this._siteInfo.set(siteInfo);
+    this._siteInfo = siteInfo;
     this.publishVersionInputs();
   }
 

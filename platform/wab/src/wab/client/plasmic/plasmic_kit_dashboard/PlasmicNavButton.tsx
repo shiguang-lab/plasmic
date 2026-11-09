@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,13 +24,13 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useFocusVisible, useFocusVisibleWithin,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -138,11 +138,10 @@ function PlasmicNavButton__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "disabled",
@@ -188,26 +187,26 @@ function PlasmicNavButton__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.smallIcon,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
   const [isRootFocusVisibleWithin, triggerRootFocusVisibleWithinProps] =
-    useTrigger("useFocusVisibleWithin", {
+    useFocusVisibleWithin({
       isTextInput: false,
     });
-  const [isRootFocusVisible, triggerRootFocusVisibleProps] = useTrigger(
-    "useFocusVisible",
-    {
+  const [isRootFocusVisible, triggerRootFocusVisibleProps] = useFocusVisible({
       isTextInput: false,
     }
   );
@@ -216,7 +215,7 @@ function PlasmicNavButton__RenderFunc(props: {
     focusVisible_root: isRootFocusVisible,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <PlasmicLink__
@@ -463,12 +462,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -478,29 +473,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicNavButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicNavButton";
-  } else {
-    func.displayName = `PlasmicNavButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicNavButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicNavButton__root<T extends PlasmicNavButton__rootProps>(props: T & StrictProps<T, PlasmicNavButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicNavButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicNavButton__root.displayName = "PlasmicNavButton";
+
+type PlasmicNavButton__startIconContainerProps = NodeComponentProps<"startIconContainer"> & {key?: React.Key};
+function PlasmicNavButton__startIconContainer<T extends PlasmicNavButton__startIconContainerProps>(props: T & StrictProps<T, PlasmicNavButton__startIconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("startIconContainer", props);
+  return <PlasmicNavButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"startIconContainer"} />;
+}
+PlasmicNavButton__startIconContainer.displayName = "PlasmicNavButton.startIconContainer";
+
+type PlasmicNavButton__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicNavButton__freeBox<T extends PlasmicNavButton__freeBoxProps>(props: T & StrictProps<T, PlasmicNavButton__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicNavButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicNavButton__freeBox.displayName = "PlasmicNavButton.freeBox";
+
+type PlasmicNavButton__endIconContainerProps = NodeComponentProps<"endIconContainer"> & {key?: React.Key};
+function PlasmicNavButton__endIconContainer<T extends PlasmicNavButton__endIconContainerProps>(props: T & StrictProps<T, PlasmicNavButton__endIconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("endIconContainer", props);
+  return <PlasmicNavButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"endIconContainer"} />;
+}
+PlasmicNavButton__endIconContainer.displayName = "PlasmicNavButton.endIconContainer";
+
 
 export const PlasmicNavButton = Object.assign(
   // Top-level PlasmicNavButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicNavButton__root,
   {
     // Helper components rendering sub-elements
-    startIconContainer: makeNodeComponent("startIconContainer"),
-    freeBox: makeNodeComponent("freeBox"),
-    endIconContainer: makeNodeComponent("endIconContainer"),
+    startIconContainer: PlasmicNavButton__startIconContainer,
+    freeBox: PlasmicNavButton__freeBox,
+    endIconContainer: PlasmicNavButton__endIconContainer,
 
     // Metadata about props expected for PlasmicNavButton
     internalVariantProps: PlasmicNavButton__VariantProps,

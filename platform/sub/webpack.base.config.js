@@ -24,8 +24,16 @@ module.exports = {
   },
   module: {
     rules: [
-      // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
-      { test: /\.tsx?$/, loader: "ts-loader" },
+      {
+        test: /\.tsx?$/,
+        include: path.resolve(__dirname, "src"),
+        // Webpack runs loaders from right to left. Type checking sees the
+        // original source; strict Compiler lowering receives JavaScript/JSX.
+        use: [
+          { loader: path.resolve(__dirname, "react-compiler-loader.cjs") },
+          { loader: "ts-loader", options: { compilerOptions: { jsx: "preserve" } } },
+        ],
+      },
       // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
       { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
     ],

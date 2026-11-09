@@ -17,10 +17,11 @@
 - 修复后的对照直接运行生产实现：`PLASMIC_PERF_DESKTOP=<beforeDesktopRoot>` 指向保留的基线源码，省略时使用当前实现；`PLASMIC_PERF_CANVAS=webgl` 验证 WebGL（默认 2D）。`seven-processes.cjs fixed-mcp <output.json>` 要求提供该基线路径，并比较旧 Electron transport 与 `build:mcp` 生成的实际 SEA helper。各性能场景串行执行，禁止同时运行构建或测试；结果见[修复收益](../../../docs/performance/2026-11-01/resource-fixes.md)。
 - `first-use.cjs <desktopRoot> <output.json> image`：首次/并发图片与循环延迟。
 - `reference-first-use.cjs <desktopRoot> <output.json> <absoluteNodeBinary>`：真实 SDK/stdio fixture，非真实 Pen 启动。
-- `retention-build.cjs current|<beforeSourceDirectory> <fixtureOutput>`：真实 DocsPortalEditor/Monaco、DeepMap 与抽取的 getEnvId；业务生成/RenderingCtx 为 fixture。
+- `retention-build.cjs current|<sourceDirectory> <fixtureOutput>`：真实 DocsPortalEditor/Monaco、DeepMap 与抽取的 getEnvId，使用 React 19 root 和当前 Monaco Workers；业务生成、RenderingCtx 和环境持有者为 fixture。
 - `retention.cjs <fixtureOutput> <reportDirectory> [--verify] [--summary-only]`：CDP 三快照和十次循环；verify 检查关闭一编辑器后另一编辑器输入/undo。快照交给 MemLab 离线分析。
 - `cache-pipeline.cjs <desktopRoot> <inventory.json> <reportDirectory>`：inventory 是 `{file,key,diskBytes}` 数组，指向正常 JSON/base64 缓存的只读副本。只处理真实正文，按原格式写入独立缓存，禁止远端补下载。
 - `studio-pipeline.cjs <extractedInstalledAppDirectory> <diagnosticProfile> <existingProjectId> <reportDirectory> [serialized]`：使用提取的匹配 renderer 和已独立登录的诊断 profile；阻止项目写入。先用 `PLASMIC_DESKTOP_PROFILE=<diagnosticProfile>` 启动开发 App，正常登录并打开目标项目，再退出 App 后运行诊断。脚本拒绝默认正常 App profile，并取得诊断 profile 的单实例锁；不读取其他 profile 的凭据，不在结束时删除诊断 profile。serialized 在旧 renderer 的草稿 API 边界注入当前源码的 JSON 字符串传输，使用当前实际 preload/主进程。普通新 renderer 无需此注入。
+- `node --test desktop/tests/performance/react19-rendering.browser.cjs`：构建并在 Chromium 验证上述两个 fixture 的挂载、更新、卸载、编辑器隔离与资源清理；不运行性能计时。
 - `skeleton-performance.cjs <privateOutputDirectory>`：生产 Ant Design Skeleton，12 个可见预览的动态/静态 2 秒窗口对照，另有单个动画的正向控制。测量主线程 TaskDuration，不是项目打开耗时。
 - `studio-optimization-fixture.cjs <privateFixtureDirectory> <buildVariant>`：从 `build-<buildVariant>` 运行生产 Studio，所有 HTTP(S) 使用离线响应、WebSocket 阻断；独立 profile。`PERF_FUNCTIONAL=1` 验证公开重命名操作及撤销/重做，`PERF_ENV_GC=1` 执行 20 轮编辑/撤销与诊断 GC；`PERF_KEEP_ALIVE=6|3|2` 比较六个内存画板的返回与进程 RSS。`PERF_RUN_ID` 为新 profile 添加区分，禁止指定正常 App 的 userData。完整边界见 [五项结果](../../../docs/performance/2026-10-31/five-optimizations-validation.md)。
 - `PERF_PREVIEW_CACHE=1` 调用 `preview-cache.cjs`：隔离构建额外入口必须包含 `preview-cache-entry.ts`，发布构建不得包含。复用私有 fixture 的五份模型/资源 JSON，实际保存并恢复 12 次（`PERF_PREVIEW_CACHE_CYCLES=36` 可延长），检查 Live/Docs 模块、保护消费者、暖缓存和弱引用；`PERF_PREVIEW_CACHE_SNAPSHOTS=1` 另轮采三快照。`PERF_FRAME_INTERACTIONS=1` 在该已创建的混合画布上执行双 Document 的销毁/保护/撤销重建行为验证，`PERF_FUNCTIONAL=1` 再检查模型编辑/undo/redo。正式 A/B 与构建、测试、MemLab 分轮串行执行。结果见 [缓存与画布生命周期验证](../../../docs/performance/2026-11-01/preview-cache-lifecycle-validation.md)。
@@ -61,6 +62,8 @@ MemLab 候选数不是已确认泄漏数。JS heap、原生/GPU 和 RSS 必须�
 从列表打开项目的候选对照使用 `real-project-open.cjs <privateFixtureDirectory> <runId>`。`PERF_BUILD_ROOT` 显式选择构建；使用 `PERF_OPENS=6`，前两次用于填充缓存及预热，其余四次计时。所有候选与基线必须串行执行，不能并行构建或分析。`open-build.config.ts` 要求提供独立的 `PERF_SOURCE_ROOT` 和 `PERF_BUILD_OUT`；从同一冻结源码建立基线和每个独立候选，并在冻结源码的 `platform/wab` 目录构建。`prepare-open-build.cjs <output> <matchingInstalledAssets> <frozenSourceRoot> <variant>` 仅补齐未生成且确认未变更的 runtime 资产，写入诊断构建身份与指纹；不能把它称为发布包。
 
 `PERF_OPEN_FUNCTIONAL=1 PERF_OPENS=1` 执行真实模型的编辑、撤销/重做、完整客户端保存和重新加载，保存仅由进程内 fixture 确认；`PERF_OPEN_COLD=1` 在复杂样本中额外检查销毁画板后的恢复。GP 样本另检查真实 Preview 表格分页。`PERF_OPEN_MEMORY=final` 在六次自然打开后返回列表，末尾才执行诊断 GC；RSS 为进程 working set 之和，不能视作实际物理内存。`PERF_OPEN_INPUT=1` 测 Layers 控件事件处理及两次 rAF 的往返时间，只是响应代理指标，不是操作系统输入延迟。功能、计时、响应代理和内存分轮运行。五项候选的保留/撤回及完整验收见 [画布打开候选结果](../../../docs/performance/2026-11-01/canvas-open-candidates.md)。
+
+在含精确 `antd-icons` 依赖、原生内容容器的 GP 回放中，加 `PERF_OPEN_HOSTLESS=1` 验证启动时未安装图标库、插入条件分支后加载、条件及插入撤销/重做、真实图标 DOM，以及保留新增引用后的完整保存和重开。加 `PERF_OPEN_CUSTOM_HOST=1` 使用隔离自定义 Host：它注册按名称动态查找图标的组件，模型不直接引用该图标，验收全量库加载和动态组件的编辑、撤销/重做及保存重开。此 Host 只由回放协议提供，所有保存仍在进程内；两个标记仅用于功能轮。
 
 `PERF_OPEN_COUNT_STYLES=1` 仅诊断轮统计各 Document 的计算样式调用，不与无采样计时混用。`PERF_OPEN_NATIVE=empty|restore|conflict PERF_OPENS=2` 启用 `open-native-bridge.cjs`，经原生 Electron IPC 执行生产草稿/工作区实现并恢复非默认视口；身份使用 fixture，仍不验收真实 IAM。恢复/冲突场景完整 reload 文档；加 `PERF_OPEN_FUNCTIONAL=1` 可在恢复后再执行原有编辑、Preview 和保存重开。`PERF_OPEN_NATIVE_OTHER=12` 在私有目录准备其他项目草稿；`PERF_DESKTOP_ROOT=<baselineDesktopSrc>` 可选择冻结的 Desktop 基线，省略时使用当前源码。
 

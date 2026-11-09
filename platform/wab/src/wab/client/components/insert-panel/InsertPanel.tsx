@@ -1,4 +1,10 @@
+import { useInsertPanelCatalogInputs, useInsertPanelTargetInputs } from "@/wab/client/components/insert-panel/insert-panel-inputs";
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useFocusedViewCtx } from "@/wab/client/studio-ctx/selection-state";
+import { useShallow } from "zustand/react/shallow";
 import { useFocusedViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useSyntheticSectionShown } from "@/wab/client/studio-ctx/synthetic-sections-state";
+import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
 import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { HighlightBlinker } from "@/wab/commons/components/HighlightBlinker";
 import { showError } from "@/wab/client/ErrorNotifications";
@@ -113,7 +119,8 @@ import {
   mergeSane,
   only,
   sliding,
-  spawnWrapper,
+  spawn,
+  uniqueKey,
 } from "@/wab/shared/common";
 import {
   CodeComponent,
@@ -173,8 +180,6 @@ import { Button as AntButton, message as antMessage, Empty, Flex, Input, InputRe
 import cn from "classnames";
 import { UseComboboxGetItemPropsOptions } from "downshift";
 import L, { groupBy, partition, sortBy, uniq } from "lodash";
-import memoizeOne from "memoize-one";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { useMemo, useState } from "react";
@@ -235,35 +240,40 @@ export interface InsertPanelProps extends DefaultInsertPanelProps {
   mode?: "insert" | "store";
 }
 
-export const InsertPanel = function InsertPanel_({
+export const InsertPanel = React.memo(function InsertPanel(props: InsertPanelProps) {
+  const studio = useStudioCtx();
+  const ready = useStore(studio.arenaState.readinessStore);
+  const activeLifetime = studio.arenaState.lifetime();
+  const subscribeLifetime = React.useCallback((listener: () => void) => {
+    const stop = studio.arenaState.readinessStore.subscribe(listener);
+    activeLifetime.addEventListener("abort", listener, { once: true });
+    return () => { stop(); activeLifetime.removeEventListener("abort", listener); };
+  }, [studio, activeLifetime]);
+  const readLifetime = React.useCallback(() => studio.arenaState.lifetime(), [studio]);
+  const lifetime = React.useSyncExternalStore(subscribeLifetime, readLifetime, readLifetime);
+  const owner = uniqueKey(lifetime);
+  return ready ? <InsertPanelContent key={owner} {...props} /> : null;
+});
+const InsertPanelContent = function InsertPanel_({
   onClose,
   mode = "insert",
   ...props
 }: InsertPanelProps) {
   const studioCtx = useStudioCtx();
   const { styles } = useResourcePanelStyles();
-  const recentItemsRef = React.useRef<AddTplItem[]>([]);
+  const [recentItems, setRecentItems] = React.useState<AddTplItem[]>([]);
+  const world = useVariantModelWorld(studioCtx, studioCtx.arenaState.lifetime());
 
   // Only save insertable items like elements and components.
   const saveRecentItem = (item: AddTplItem, tplNode: TplNode | null) => {
     const component =
       tplNode && isTplComponent(tplNode) ? tplNode.component : null;
-    if (component) {
-      // If the item resulted in inserting a component, create a fresh item,
-      // since the original item could have been the "pre-install" item,
-      // which has a different key than an "installed" item.
-      recentItemsRef.current.unshift(createAddTplComponent(component));
-    } else {
-      recentItemsRef.current.unshift(item);
-    }
-
-    recentItemsRef.current = L.uniqBy(recentItemsRef.current, (i) => i.key);
-    if (recentItemsRef.current.length > 3) {
-      recentItemsRef.current.length = 3;
-    }
+    const added = component ? createAddTplComponent(component) : item;
+    setRecentItems((previous) => L.uniqBy([added, ...previous], (entry) => entry.key).slice(0, 3));
   };
 
   const onInserted = (item: AddItem, tplNode: TplNode | null) => {
+    if (!world.isCurrent()) { return; }
     onClose();
 
     trackInsertFromAddDrawer(item, tplNode, {
@@ -289,11 +299,13 @@ export const InsertPanel = function InsertPanel_({
           onInserted={onInserted}
           onClose={onClose}
           onDragStart={() => {
+            if (!world.isCurrent()) { return; }
             if (mode === "insert") {
               onClose();
             }
           }}
           onDragEnd={(item, result) => {
+            if (!world.isCurrent()) { return; }
             if (result) {
               const [_viewCtx, tplNode] = result;
               trackInsertFromAddDrawer(item, tplNode, {
@@ -303,7 +315,7 @@ export const InsertPanel = function InsertPanel_({
               saveRecentItem(item, tplNode);
             }
           }}
-          recentItems={[...recentItemsRef.current]}
+          recentItems={recentItems}
         />
       </div>
     </FocusScope>
@@ -371,7 +383,7 @@ function itemsPerRow(virtualItem: VirtualItem): number {
   return shouldShowCompact(virtualItem) ? compactPerRow : 1;
 }
 
-const AddDrawerContent = observer(function AddDrawerContent(props: {
+const AddDrawerContent = React.memo(function AddDrawerContent(props: {
   storeMode: boolean;
   studioCtx: StudioCtx;
   onDragStart: DraggableInsertableProps["onDragStart"];
@@ -390,15 +402,19 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     onClose,
     recentItems,
   } = props;
+  const showPlumeSection = useSyntheticSectionShown(studioCtx, "plume");
+  const showUnstyledSection = useSyntheticSectionShown(studioCtx, "unstyled");
   useFocusedViewSelection(studioCtx, (state) => state.targets);
   const includeFrames = useStudioArena(studioCtx, (state) => state.kind === "mixed");
   const inputRef = React.useRef<InputRef | null>(null);
-  const contentRef = React.useRef<HTMLElement>(null);
   const listRef = React.useRef<VariableSizeList>(null);
   const focusManager = useFocusManager();
   const serverQueryModals = useServerQueryBottomModals();
 
-  const vc = studioCtx.focusedViewCtx();
+  const vc = useFocusedViewCtx(studioCtx);
+  const world = useVariantModelWorld(studioCtx, studioCtx.arenaState.lifetime());
+  const targetInputs = useInsertPanelTargetInputs(studioCtx, vc);
+  const functionsSchema = useCustomFunctionsSchema(studioCtx);
 
   const [highlightSection, setHighlightSection] = useState<string | undefined>(
     undefined,
@@ -411,13 +427,16 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
   const filterToTarget = !storeMode && showInlineAddDrawer;
   const [selectedPlacementIndex, setSelectedPlacementIndex] = useState(0);
   const insertLoc =
-    getPlacementOptions(studioCtx)[selectedPlacementIndex].insertLoc;
+    (getPlacementOptions(studioCtx)[selectedPlacementIndex] ?? getPlacementOptions(studioCtx)[0]).insertLoc;
 
   // We want to "fix" a snapshot of projectDependencies so that we do not change the list when we start dragging, since that somehow causes some drag operations that start below the "project dependencies" section of the menu to break. (Never bothered to get to the bottom of exactly where the confusion originates.)
   const [projectDependencies, setProjectDependencies] = useState(
     studioCtx.site.projectDependencies.slice(),
   );
 
+  const catalogInputs = useInsertPanelCatalogInputs(studioCtx, projectDependencies);
+  const menuInputs = useStore(studioCtx.uiEnvironment.store, useShallow((state) => [state.insertMenuConfig, state.contentEditorMode, state.hasAppAuth]));
+  useStore(studioCtx.leftPanelState.store, (state) => state.onboardingTourState);
   const canSavePermission = useStudioSaveState(
     studioCtx,
     (state) => state.canSave,
@@ -446,6 +465,10 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
 
   const availableFamilies = useMemo(() => {
     const allItemGroups = buildAddItemGroups({
+      showSyntheticSections: {
+        plume: showPlumeSection,
+        unstyled: showUnstyledSection,
+      },
       uiLocale: locale,
       studioCtx,
       matcher: new Matcher(""),
@@ -459,6 +482,8 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     return groupBy(allItemGroups, (group) => group.familyKey ?? "");
   }, [
     studioCtx,
+    catalogInputs, menuInputs, targetInputs,
+    showPlumeSection, showUnstyledSection,
     filterToTarget,
     insertLoc,
     projectDependencies,
@@ -538,6 +563,11 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     (query: string) => {
       const matcher = new Matcher(query, { matchMiddleOfWord: true });
       let groupedItems = buildAddItemGroups({
+        showSyntheticSections: {
+          plume: showPlumeSection,
+          unstyled: showUnstyledSection,
+        },
+
         uiLocale: locale,
         studioCtx: studioCtx,
         matcher: matcher,
@@ -598,42 +628,20 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
       // In search the left-nav is hidden, so each group needs a section label.
       const isSearchMode = !!query;
       let prevSectionKey: string | undefined = undefined;
-      const virtualItems: VirtualItem[] = groupedItems
-        .filter(
-          (group) =>
-            storeMode || query || (group.sectionKey ?? group.key) === section,
-        )
-        .flatMap((group, index) => {
-          const isFirstInSection =
-            !!group.sectionKey && group.sectionKey !== prevSectionKey;
-          prevSectionKey = group.sectionKey;
-          const showHeader =
-            !group.isHeaderLess || (isSearchMode && isFirstInSection);
-          const displayLabel = group.isHeaderLess
-            ? group.sectionLabel
-            : isSearchMode && group.sectionLabel
-              ? `${group.sectionLabel}  ›  ${group.label}`
-              : undefined;
-          return [
-            ...(showHeader
-              ? [{ type: "header", group, displayLabel } as const]
-              : []),
-
-            ...group.items.map(
-              (item) =>
-                ({
-                  type: "item",
-                  item,
-                  group,
-                  itemIndex: itemIndex++,
-                }) as const,
-            ),
-
-            ...(index < groupedItems.length - 1
-              ? [{ type: "separator", group } as const]
-              : []),
-          ];
-        });
+      const virtualItems: VirtualItem[] = [];
+      const visibleGroups = groupedItems.filter((group) => storeMode || query || (group.sectionKey ?? group.key) === section);
+      for (const [index, group] of visibleGroups.entries()) {
+        const isFirstInSection = !!group.sectionKey && group.sectionKey !== prevSectionKey;
+        prevSectionKey = group.sectionKey;
+        const showHeader = !group.isHeaderLess || (isSearchMode && isFirstInSection);
+        const displayLabel = group.isHeaderLess ? group.sectionLabel : isSearchMode && group.sectionLabel ? `${group.sectionLabel}  ›  ${group.label}` : undefined;
+        if (showHeader) { virtualItems.push({ type: "header", group, displayLabel }); }
+        for (const item of group.items) {
+          virtualItems.push({ type: "item", item, group, itemIndex });
+          itemIndex += 1;
+        }
+        if (index < groupedItems.length - 1) { virtualItems.push({ type: "separator", group }); }
+      }
 
       const items = groupedItems
         .filter(
@@ -651,7 +659,8 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
 
       return { virtualItems, items, virtualRows };
     },
-    [
+    [catalogInputs, menuInputs, targetInputs, showPlumeSection, showUnstyledSection,
+      filterToTarget, insertLoc,
       studioCtx,
       recentItems,
       section,
@@ -687,7 +696,10 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     listRef,
     buildItems,
     selectedItem: null,
-    onSelect: spawnWrapper(async (item) => {
+    onSelect: (item) => { spawn((async () => {
+      if (!item) {
+        return;
+      }
       if (
         item.key.startsWith("page-template-") ||
         item.key.startsWith("insertable-template-")
@@ -706,7 +718,8 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
       } else {
         await onInsert(item);
       }
-    }),
+    
+})()); },
     itemToString: (item) => item?.key ?? "",
     alwaysHighlight: true,
   });
@@ -736,6 +749,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     : undefined;
 
   const shouldInterceptOnInsert = (item: AddItem) => {
+    if (!world.isCurrent()) { return true; }
     if (
       studioCtx.onboardingTourState.triggers.includes(
         TutorialEventsType.TplInserted,
@@ -757,8 +771,9 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
 
   const pendingPageCreation = React.useRef(false);
   const [creatingPage, setCreatingPage] = React.useState(false);
-  const onInsert = spawnWrapper(async (item: AddItem) => {
-    if (!hasSavePermission() || item.isDisabled || shouldInterceptOnInsert(item)) {
+  const onInsert = (item: AddItem) => {
+    spawn((async () => {
+    if (!world.isCurrent() || !hasSavePermission() || item.isDisabled || shouldInterceptOnInsert(item)) {
       return;
     }
 
@@ -773,63 +788,26 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
         ) {
           studioCtx.showPresetsModal(component);
         } else {
-          onInserted(item, await studioCtx.tryInsertTplItem(item));
+          const inserted = await studioCtx.tryInsertTplItem(item);
+          if (world.isCurrent()) { onInserted(item, inserted); }
         }
         break;
       }
       case AddItemType.frame: {
         await studioCtx.changeUnsafe(() => {
+          if (!world.isCurrent()) { return; }
           item.onInsert(studioCtx);
         });
         onInserted(item, null);
         break;
       }
       case AddItemType.installable: {
-        const pageTemplate = item.key.startsWith("page-template-");
-        if (pageTemplate && pendingPageCreation.current) {
-          return;
-        }
-        if (pageTemplate) {
-          pendingPageCreation.current = true;
-          setCreatingPage(true);
-        }
-        try {
-          const installed = await DragInsertManager.install(studioCtx, item);
-          if (!installed) {
-            return;
-          }
-          await studioCtx.changeUnsafe(() => {
-            if (isKnownArena(installed)) {
-              if (!pageTemplate || installed !== studioCtx.currentArena) {
-                studioCtx.switchToArena(installed);
-              }
-            } else if (isKnownComponent(installed)) {
-              studioCtx.switchToComponentArena(installed);
-            }
-          });
-          if (pageTemplate) {
-            void antMessage.success(uiT("Page created"));
-          } else {
-            notifyInstallableSuccess(item.label);
-          }
-          onInserted(item, null);
-        } catch (error) {
-          if (pageTemplate) {
-            showError(error, { title: uiT("Failed to create page") });
-          } else {
-            notifyInstallableFailure(item.label, (error as any).message);
-          }
-        } finally {
-          if (pageTemplate) {
-            pendingPageCreation.current = false;
-            setCreatingPage(false);
-          }
-        }
+        await installDrawerItem({ item, studioCtx, world, pendingPageCreation, setCreatingPage, onInserted, uiT });
         break;
       }
       case AddItemType.fake: {
         const extraInfo_ = await studioCtx.runFakeItem(item);
-        if (item.isPackage && extraInfo_ !== false) {
+        if (world.isCurrent() && item.isPackage && extraInfo_ !== false) {
           const extraInfo: { dep: ProjectDependency[] } = extraInfo_;
           setProjectDependencies(studioCtx.site.projectDependencies.slice());
           if (storeMode && item.hostLessPackageInfo?.syntheticPackage) {
@@ -837,6 +815,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
           }
           if (!storeMode) {
             await delay(200);
+            if (!world.isCurrent()) { return; }
             const sectionKey = item.hostLessPackageInfo?.syntheticPackage
               ? "synthetic-" + item.hostLessPackageInfo.codeName
               : `hostless-packages--${extraInfo.dep[0].projectId}`;
@@ -852,6 +831,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
       }
       case AddItemType.customFunction: {
         const queryRef = await item.createDraftQuery(studioCtx);
+        if (!world.isCurrent()) { return; }
         if (!queryRef) {
           onClose();
           break;
@@ -868,28 +848,30 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
         };
         serverQueryModals.open(queryRef.uuid, {
           value: queryRef,
-          onSave: spawnWrapper(
-            async (newOp: ServerQueryOp, opExprName?: string) => {
+          onSave: (newOp: ServerQueryOp, opExprName?: string) => { spawn((async () => {
+              if (!world.isCurrent()) { return; }
               await studioCtx.change(() => {
+                if (!world.isCurrent()) { return ok(); }
                 queryRef.op = newOp;
                 if (opExprName) {
                   queryRef.name = opExprName;
                 }
                 return ok();
               });
-              serverQueryModals.close(queryRef.uuid);
-            },
-          ),
-          onCancel: () => serverQueryModals.close(queryRef.uuid),
+              if (world.isCurrent()) { serverQueryModals.close(queryRef.uuid); }
+            
+})()); },
+          onCancel: () => { if (world.isCurrent()) { serverQueryModals.close(queryRef.uuid); } },
           viewCtx: focusedViewCtx,
           tpl: focusedViewCtx.currentCtxTplRoot(),
-          schema: focusedViewCtx.customFunctionsSchema(),
+          schema: functionsSchema,
           exprCtx,
         });
         break;
       }
     }
-  });
+    })());
+  };
 
   function cycleSection(step: 1 | -1) {
     const index = allSectionKeysFlattened.findIndex((sec) => sec === section);
@@ -902,7 +884,9 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
   }
 
   const openInsert = () => {
+    if (!world.isCurrent()) { return; }
     void studioCtx.changeUnsafe(() => {
+      if (!world.isCurrent()) { return; }
       studioCtx.switchLeftTab(undefined);
       studioCtx.setShowAddDrawer(true);
     });
@@ -915,11 +899,12 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
         : "Search all components, templates and assets",
     ),
     autoFocus: true,
-    onKeyDown: spawnWrapper(async (e) => {
+    onKeyDown: (e) => { spawn((async () => {
       if (e.key === "Escape" && query.trim().length === 0) {
         onClose();
       }
-    }),
+    
+})()); },
   });
 
   const content = (
@@ -1189,7 +1174,6 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
           props: {
             ...getMenuProps({
               "aria-label": uiT("Insert"),
-              ref: contentRef,
             }),
 
             key: section,
@@ -1268,6 +1252,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
     <AddDrawerContext.Provider
       value={{
         studioCtx,
+        isCurrent: world.isCurrent,
         onDragStart,
         onDragEnd,
         matcher,
@@ -1312,6 +1297,7 @@ const AddDrawerContent = observer(function AddDrawerContent(props: {
 
 interface AddDrawerContextValue {
   studioCtx: StudioCtx;
+  isCurrent: () => boolean;
   onDragStart: DraggableInsertableProps["onDragStart"];
   onDragEnd: DraggableInsertableProps["onDragEnd"];
   matcher: Matcher;
@@ -1453,6 +1439,7 @@ const Row = React.memo(function Row(props: {
                     <Menu>
                       <Menu.Item
                         onClick={async () => {
+                          if (!context.isCurrent()) { return; }
                           // safe because of `cond={isTemplateComponent(item)}` check
                           const addTplItem = item as AddTplItem;
                           const tplNode = await studioCtx.tryInsertTplItem(
@@ -1461,7 +1448,7 @@ const Row = React.memo(function Row(props: {
                               skipDuplicateCheck: true,
                             },
                           );
-                          onInserted(addTplItem, tplNode);
+                          if (context.isCurrent()) { onInserted(addTplItem, tplNode); }
                         }}
                       >
                         <UiText
@@ -1564,14 +1551,14 @@ const Row = React.memo(function Row(props: {
   );
 }, areEqual);
 
-const getTemplateComponents = memoizeOne(function getTemplateComponent(
+function getTemplateComponents(
   studioCtx: StudioCtx,
 ) {
   return flattenInsertableTemplatesByType(
     studioCtx.appCtx.appConfig.insertableTemplates,
     "insertable-templates-component",
   );
-});
+}
 
 const groupByBundleName = (hostlessPackageMeta: HostLessPackageInfo[]) =>
   groupBy(
@@ -1582,8 +1569,7 @@ const groupByBundleName = (hostlessPackageMeta: HostLessPackageInfo[]) =>
 const isVisibleHostLessItem = (i: HostLessComponentInfo) =>
   !i.hidden && !i.hiddenOnStore && i.onlyShownIn !== "old";
 
-const getHostLess = memoizeOne(
-  (
+const getHostLess = (
     studioCtx: StudioCtx,
     projectDependencies: ProjectDependency[],
   ): AddItemGroup[] => {
@@ -1652,8 +1638,7 @@ const getHostLess = memoizeOne(
         };
         return newVar;
       });
-  },
-);
+  };
 
 /**
  * For hostless components and default components. Otherwise it's a built-in insertable.
@@ -1750,7 +1735,9 @@ export function buildAddItemGroups({
   insertLoc,
   projectDependencies,
   canSave,
+  showSyntheticSections,
 }: {
+  showSyntheticSections: { plume: boolean; unstyled: boolean };
   uiLocale: UiLocale;
   includeFrames?: boolean;
   studioCtx: StudioCtx;
@@ -2148,7 +2135,7 @@ export function buildAddItemGroups({
     // You can choose to show the package, but it's temporary to the session.
     // The section won't show when you re-open the project, you need to choose to re-show it.
     canInsertHostlessPackage(uiConfig, "plume", canInsertContext) &&
-      studioCtx.shownSyntheticSections.get("plume") && {
+      showSyntheticSections.plume && {
         key: "synthetic-plume",
         label: translate(getUiLocale(), 'Customizable "headless" components'),
         sectionLabel: "Headless components",
@@ -2171,6 +2158,7 @@ export function buildAddItemGroups({
     hasPlexus && canInsertHostlessPackage(uiConfig, "plume", canInsertContext)
       ? {
           key: "ui-kits",
+          label: "Design systems",
           sectionLabel: "Design systems",
           sectionKey: "Design systems",
           familyKey: "hostless-packages",
@@ -2181,7 +2169,7 @@ export function buildAddItemGroups({
         }
       : undefined,
     canInsertHostlessPackage(uiConfig, "unstyled", canInsertContext) &&
-      studioCtx.shownSyntheticSections.get("unstyled") && {
+      showSyntheticSections.unstyled && {
         key: "synthetic-unstyled",
         label: translate(getUiLocale(), "More HTML elements"),
         sectionLabel: "More HTML elements",
@@ -2546,4 +2534,56 @@ function trackInsertFromAddDrawer(
   }
 
   trackInsertItem(eventData);
+}
+
+async function installDrawerItem({ item, studioCtx, world, pendingPageCreation, setCreatingPage, onInserted, uiT }: {
+  item: Extract<AddItem, { type: AddItemType.installable }>;
+  studioCtx: StudioCtx;
+  world: ReturnType<typeof useVariantModelWorld>;
+  pendingPageCreation: React.RefObject<boolean>;
+  setCreatingPage: React.Dispatch<React.SetStateAction<boolean>>;
+  onInserted: (item: AddItem, tpl: TplNode | null) => void;
+  uiT: ReturnType<typeof useI18n>["t"];
+}) {
+        const pageTemplate = item.key.startsWith("page-template-");
+        if (pageTemplate && pendingPageCreation.current) {
+          return;
+        }
+        if (pageTemplate) {
+          pendingPageCreation.current = true;
+          setCreatingPage(true);
+        }
+        try {
+          const installed = await DragInsertManager.install(studioCtx, item);
+          if (!world.isCurrent() || !installed) {
+            return;
+          }
+          await studioCtx.changeUnsafe(() => {
+          if (!world.isCurrent()) { return; }
+            if (isKnownArena(installed)) {
+              if (!pageTemplate || installed !== studioCtx.currentArena) {
+                studioCtx.switchToArena(installed);
+              }
+            } else if (isKnownComponent(installed)) {
+              studioCtx.switchToComponentArena(installed);
+            }
+          });
+          if (pageTemplate) {
+            void antMessage.success(uiT("Page created"));
+          } else {
+            notifyInstallableSuccess(item.label);
+          }
+          onInserted(item, null);
+        } catch (error) {
+          if (pageTemplate) {
+            showError(error, { title: uiT("Failed to create page") });
+          } else {
+            notifyInstallableFailure(item.label, (error as any).message);
+          }
+        } finally {
+          if (pageTemplate) {
+            pendingPageCreation.current = false;
+            setCreatingPage(false);
+          }
+        }
 }

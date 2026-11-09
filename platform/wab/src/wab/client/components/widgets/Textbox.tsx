@@ -6,7 +6,7 @@ import {
 } from "@/wab/client/plasmic/plasmic_kit/PlasmicTextbox";
 import { ensure } from "@/wab/shared/common";
 import React, { ReactNode, useEffect } from "react";
-import { useMount, useMountedState } from "react-use";
+import { useMountedState } from "react-use";
 
 type TextboxProps = Omit<React.ComponentProps<"input">, "disabled"> & {
   prefixIcon?: ReactNode;
@@ -101,7 +101,7 @@ export const Textbox = React.forwardRef(
       dom: () => ensure(rootRef.current, "Must already be rendered"),
     }));
 
-    useMount(() => {
+    useEffect(() => {
       // React's autoFocus doesn't always work when rendered in an antd Modal.
       // Perhaps React's autoFocus code was run before antd Modal was attached to the DOM?
       // See https://blog.maisie.ink/react-ref-autofocus/#does-it-always-work
@@ -109,14 +109,16 @@ export const Textbox = React.forwardRef(
       // So we manually focus just in case.
       if (props.autoFocus) {
         if (props?.isDelayedFocus) {
-          setTimeout(() => {
+          const timer = setTimeout(() => {
             focus();
           }, 300);
+          return () => clearTimeout(timer);
         } else {
           focus();
         }
       }
-    });
+      return undefined;
+    }, []);
 
     // Must not use useUnmount due to React 17 cleanup: https://reactjs.org/blog/2020/08/10/react-v17-rc.html#effect-cleanup-timing
     useEffect(() => {

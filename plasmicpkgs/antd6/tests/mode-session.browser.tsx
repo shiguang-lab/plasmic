@@ -21,7 +21,6 @@ import type { Registerable } from "../src/utils";
 const Canvas = createSessionCanvas([registerTabs, registerModal, registerDrawer, registerCollapse, registerMenu, registerDatePicker, registerTable, registerTooltip]);
 const calls: string[] = [];
 const changed = () => { calls.push("business event"); };
-const selected = { __canvas: { selected: true, slot: "children" } };
 const initial = Object.freeze({ activeKey: undefined, defaultActiveKey: "first", open: false });
 (window as any).sessionCheck = { calls, initial };
 function Field() { return <input aria-label="Session draft" defaultValue="" />; }
@@ -33,9 +32,9 @@ for (const register of [registerTooltip, registerPopover, registerDropdown, regi
 }
 const overlays = { tooltip: AntdTooltip, popover: AntdPopover, popconfirm: AntdPopconfirm, dropdown: AntdDropdown };
 type OverlayKind = keyof typeof overlays;
-function DeviceCell({ kind, click, text, index, session, interactive, standalone, implicitOpen, onChange }: {
+function DeviceCell({ kind, click, text, index, session, interactive, standalone, implicitOpen, onChange, selection }: {
   kind: OverlayKind; click: boolean; text: string; index: number; session: CanvasSessionState; interactive: boolean; standalone: boolean;
-  implicitOpen: boolean; onChange: (open: boolean) => void;
+  implicitOpen: boolean; onChange: (open: boolean) => void; selection: boolean;
 }) {
   const instance = canvasSessionInstanceKey("table.column.overlay[0]", React.useId());
   const [, redraw] = React.useReducer((value) => value + 1, 0);
@@ -51,17 +50,15 @@ function DeviceCell({ kind, click, text, index, session, interactive, standalone
     // Every row evaluates one Studio render slot. Its generated implicit value
     // is shared, while mounted instance state and authored props stay separate.
     const sourceProps = { ...props };
-    props.__canvas = { selected: index === 4, slot: kind === "tooltip" ? "title" : kind === "popover" ? "content" : kind === "popconfirm" ? "description" : "menuItems" };
+    props.__canvas = { selected: selection && index === 4, slot: kind === "tooltip" ? "title" : kind === "popover" ? "content" : kind === "popconfirm" ? "description" : "menuItems" };
     const specs = Object.values<any>(meta.states ?? {}).filter((state) => state.type === "writable").map((state) => ({
       ...state,
       initialValueProp: state.initialValueProp ?? meta.props[state.valueProp]?.uncontrolledProp,
       controlled: false,
     }));
     if (specs.some((spec) => spec.valueProp === "open")) { props.open = implicitOpen; }
-    if (!interactive) {
-      session.resolve(instance, "open", undefined);
-      session.reveal(instance, "open", index === 4);
-    }
+    session.resolve(instance, "open", undefined);
+    session.reveal(instance, "open", selection && index === 4);
     props.__canvas.states = applyCanvasSessionState(session, instance, props,
       specs, interactive, redraw, !!meta.canvasOverlay, sourceProps);
   }
@@ -76,14 +73,14 @@ function DeviceCell({ kind, click, text, index, session, interactive, standalone
         : { title: content };
   return <Component {...businessProps} {...props}>{trigger}</Component>;
 }
-function TableOverlays({ kind, click, interactive, standalone }: { kind: OverlayKind; click: boolean; interactive: boolean; standalone: boolean }) {
+function TableOverlays({ kind, click, interactive, standalone, selection }: { kind: OverlayKind; click: boolean; interactive: boolean; standalone: boolean; selection: boolean }) {
   const [session] = React.useState(() => new CanvasSessionState());
   const [implicitOpen, setImplicitOpen] = React.useState(false);
   const content = <ConfigProvider theme={{ token: { motion: false } }}>
     <button data-outside style={{ marginLeft: 480 }}>Outside table</button>
     <AntdTable data={{ data: devices }} rowKey="id" pagination={false} style={{ width: 124 }}>
       <AntdColumn title="Device" dataIndex="text" width={124} ellipsis={{ showTitle: false }} render={(text: string, _row: any, index: number) =>
-        <DeviceCell kind={kind} click={click} text={text} index={index} session={session} interactive={interactive} standalone={standalone} implicitOpen={implicitOpen} onChange={setImplicitOpen} />} />
+        <DeviceCell kind={kind} click={click} text={text} index={index} session={session} interactive={interactive} standalone={standalone} implicitOpen={implicitOpen} onChange={setImplicitOpen} selection={selection} />} />
     </AntdTable>
   </ConfigProvider>;
   return standalone ? content : <PlasmicCanvasContext.Provider value={{ componentName: "table-test", globalVariants: {}, interactive }}>{content}</PlasmicCanvasContext.Provider>;
@@ -104,9 +101,13 @@ function SeoPagination() {
 
 function App() {
   const [mode, setMode] = React.useState({ interactive: false, standalone: false });
+  const [selection, setSelection] = React.useState(true);
+  const selected = { __canvas: { selected: selection, slot: "children" } };
   React.useEffect(() => {
     const handle = (event: MessageEvent) => {
-      if (event.source === parent && event.data?.sessionMode) {setMode(event.data.sessionMode);}
+      if (event.source !== parent) return;
+      if (event.data?.sessionMode) {setMode(event.data.sessionMode);}
+      if (typeof event.data?.sessionSelection === "boolean") {setSelection(event.data.sessionSelection);}
     };
     window.addEventListener("message", handle);
     return () => window.removeEventListener("message", handle);
@@ -123,13 +124,13 @@ function App() {
     case "table-dropdown":
     case "table-popover-click":
     case "table-dropdown-click":
-      content = <TableOverlays kind={widget.split("-")[1] as OverlayKind} click={widget.endsWith("-click")} interactive={mode.interactive} standalone={mode.standalone} />;
+      content = <TableOverlays kind={widget.split("-")[1] as OverlayKind} click={widget.endsWith("-click")} interactive={mode.interactive} standalone={mode.standalone} selection={selection} />;
       break;
     case "tooltip":
       content = <>{[0, 1].map((row) => <AntdTooltip key={row} title={`Full text ${row}`}
         onOpenChange={(open) => calls.push(`tooltip:${open}`)}
         afterOpenChange={(open) => calls.push(`after:${open}`)}
-        __canvas={{ selected: true, slot: "title" }}>
+        __canvas={{ selected: selection, slot: "title" }}>
         {row === 0 ? <input aria-label="Session draft" defaultValue="" /> : <button>Second tooltip</button>}
       </AntdTooltip>)}</>;
       break;
@@ -148,7 +149,7 @@ function App() {
     case "table":
       content = <AntdTable data={{ data: [{ id: "a", title: "Alpha" }] }} rowKey="id" pagination={false}
         expandable={{ expandedRowKeys: [] }} expandedRowRender={() => <Field />} onExpandedRowsChange={changed}
-        {...{ __canvas: { selected: true, slot: "expandedRowRender" } }}>
+        {...{ __canvas: { selected: selection, slot: "expandedRowRender" } }}>
         <AntdColumn title="Title" dataIndex="title" />
       </AntdTable>;
       break;

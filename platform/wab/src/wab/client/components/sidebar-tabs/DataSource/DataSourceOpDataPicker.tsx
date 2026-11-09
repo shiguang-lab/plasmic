@@ -93,7 +93,7 @@ export function DataSourceOpDataPicker({
               onChangeToQuery(query.name);
             }
           } else if (picked === "[[dynamic value]]") {
-            ctx.useDynamicValue();
+            ctx.editDynamicValue();
           } else {
             onChangeToQuery(picked);
           }

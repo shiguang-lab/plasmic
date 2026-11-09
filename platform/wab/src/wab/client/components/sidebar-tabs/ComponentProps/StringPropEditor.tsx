@@ -137,16 +137,11 @@ export const TemplatedStringPropEditor = React.forwardRef<
   TemplatedStringPropEditorProps
 >((props, outerRef) => {
   const { t: uiT } = useI18n();
-  const ref = React.useRef<PropEditorRef | null>(null);
+  const [handle, setHandle] = React.useState<PropEditorRef | null>(null);
   React.useImperativeHandle(
     outerRef,
-    () =>
-      ref.current || {
-        element: null,
-        focus: () => {},
-        isFocused: () => false,
-      },
-    [ref.current],
+    () => handle ?? { element: null, focus: () => {}, isFocused: () => false },
+    [handle],
   );
 
   const studioCtx = useStudioCtx();
@@ -208,7 +203,7 @@ export const TemplatedStringPropEditor = React.forwardRef<
       disabled={props.disabled}
       onChange={(value) => {
         setDraft(value);
-        if (!ref.current?.isFocused() && value !== undefined) {
+        if (!handle?.isFocused() && value !== undefined) {
           submitVal(value);
         }
       }}
@@ -226,7 +221,7 @@ export const TemplatedStringPropEditor = React.forwardRef<
           return;
         }
 
-        if (e.key === "Enter" && ref.current?.isFocused() && !e.shiftKey) {
+        if (e.key === "Enter" && handle?.isFocused() && !e.shiftKey) {
           if (props.control === "multiLine") {
             // Let the editor handle the Enter key
             return;
@@ -247,7 +242,7 @@ export const TemplatedStringPropEditor = React.forwardRef<
       readOnly={props.readOnly}
       showExpressionAsPreviewValue={props.showExpressionAsPreviewValue}
       scrollerContainerClassName="canvas-editor__right-pane__bottom__scroll"
-      ref={ref}
+      ref={setHandle}
       exprCtx={exprCtx}
     />
   );

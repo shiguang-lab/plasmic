@@ -4,8 +4,7 @@ import { TplMgr } from "@/wab/shared/TplMgr";
 import { ensure } from "@/wab/shared/common";
 import { ValComponent } from "@/wab/shared/core/val-nodes";
 import { CanvasFrameInfoOwner } from "@/wab/client/components/canvas/canvas-frame-info";
-import { mkCanvas } from "@/wab/client/components/canvas/canvas-rendering";
-import { SubDeps } from "@/wab/client/components/canvas/subdeps";
+import { CanvasFrame } from "../../../../../../canvas-packages/src/canvas-frame";
 import { ModelCommit } from "@/wab/client/studio-ctx/StudioCtx";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -151,9 +150,10 @@ it("follows only used token values and imported overrides through styles-only co
 
 it("updates the existing React frame through native inputs without canvas observers or wrapper nodes", () => {
   const f = fixture();
-  const Frame = mkCanvas({ React } as SubDeps, f.view);
   const child = <span data-testid="content">Content</span>;
-  const view = render(<React.StrictMode><Frame frameInfo={f.owner.store}>{child}</Frame></React.StrictMode>);
+  const lifetime = new AbortController();
+  const Provider = ({children}: React.PropsWithChildren<{value: unknown}>) => children;
+  const view = render(<React.StrictMode><CanvasFrame frameInfo={f.owner.store} currentUser={f.view.studioCtx.currentAppUserStore} lifetime={lifetime.signal} DataSourceProvider={Provider}>{child}</CanvasFrame></React.StrictMode>);
   const root = view.container.firstElementChild;
   expect(root?.classList.contains("__wab_root--full-height")).toBe(true);
   expect(root?.children).toHaveLength(1);

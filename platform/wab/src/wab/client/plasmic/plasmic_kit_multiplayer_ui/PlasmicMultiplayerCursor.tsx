@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,7 +26,7 @@ import {
 } from "@plasmicapp/react-web/lib/host";
 
 import MultiplayerLightDarkColorProvider from "../../components/canvas/Multiplayer/MultiplayerLightDarkColorProvider"; // plasmic-import: JH5l4wUr73/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: eyjDfHaWPk4awNJAqhg4Cb/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: eyjDfHaWPk4awNJAqhg4Cb/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -99,11 +99,10 @@ function PlasmicMultiplayerCursor__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -119,21 +118,10 @@ function PlasmicMultiplayerCursor__RenderFunc(props: {
         styleTokensClassNames,
         sty.root
       )}
-      style={(() => {
-        try {
-          return {
+      style={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+            e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ({
             color: $props.hexColor,
-          };
-        } catch (e) {
-          if (
-            e instanceof TypeError ||
-            e?.plasmicType === "PlasmicUndefinedDataError"
-          ) {
-            return undefined;
-          }
-          throw e;
-        }
-      })()}
+          }), () => (undefined))}
     >
       <MultiplayerLightDarkColorProvider
         data-plasmic-name={"multiplayerLightDarkColorProvider"}
@@ -156,43 +144,21 @@ function PlasmicMultiplayerCursor__RenderFunc(props: {
                 data-plasmic-override={overrides.cursorShape}
                 className={classNames("all", sty.cursorShape)}
                 role={"img"}
-                style={(() => {
-                  try {
-                    return {
+                style={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                      e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ({
                       color: $ctx.colors.backgroundColor,
-                    };
-                  } catch (e) {
-                    if (
-                      e instanceof TypeError ||
-                      e?.plasmicType === "PlasmicUndefinedDataError"
-                    ) {
-                      return undefined;
-                    }
-                    throw e;
-                  }
-                })()}
+                    }), () => (undefined))}
               />
 
               <div
                 data-plasmic-name={"nameContainer"}
                 data-plasmic-override={overrides.nameContainer}
                 className={classNames("all", sty.nameContainer)}
-                style={(() => {
-                  try {
-                    return {
+                style={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                      e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ({
                       backgroundColor: $ctx.colors.backgroundColor,
                       color: $ctx.colors.foregroundColor,
-                    };
-                  } catch (e) {
-                    if (
-                      e instanceof TypeError ||
-                      e?.plasmicType === "PlasmicUndefinedDataError"
-                    ) {
-                      return undefined;
-                    }
-                    throw e;
-                  }
-                })()}
+                    }), () => (undefined))}
               >
                 <div
                   data-plasmic-name={"text"}
@@ -200,19 +166,8 @@ function PlasmicMultiplayerCursor__RenderFunc(props: {
                   className={classNames("all", "__wab_text", sty.text)}
                 >
                   <React.Fragment>
-                    {(() => {
-                      try {
-                        return $props.name;
-                      } catch (e) {
-                        if (
-                          e instanceof TypeError ||
-                          e?.plasmicType === "PlasmicUndefinedDataError"
-                        ) {
-                          return "Name";
-                        }
-                        throw e;
-                      }
-                    })()}
+                    {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                          e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.name), () => ("Name"))}
                   </React.Fragment>
                 </div>
               </div>
@@ -283,12 +238,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -298,33 +249,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicMultiplayerCursor__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicMultiplayerCursor";
-  } else {
-    func.displayName = `PlasmicMultiplayerCursor.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicMultiplayerCursor__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicMultiplayerCursor__root<T extends PlasmicMultiplayerCursor__rootProps>(props: T & StrictProps<T, PlasmicMultiplayerCursor__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicMultiplayerCursor__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicMultiplayerCursor__root.displayName = "PlasmicMultiplayerCursor";
+
+type PlasmicMultiplayerCursor__multiplayerLightDarkColorProviderProps = NodeComponentProps<"multiplayerLightDarkColorProvider"> & {key?: React.Key};
+function PlasmicMultiplayerCursor__multiplayerLightDarkColorProvider<T extends PlasmicMultiplayerCursor__multiplayerLightDarkColorProviderProps>(props: T & StrictProps<T, PlasmicMultiplayerCursor__multiplayerLightDarkColorProviderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("multiplayerLightDarkColorProvider", props);
+  return <PlasmicMultiplayerCursor__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"multiplayerLightDarkColorProvider"} />;
+}
+PlasmicMultiplayerCursor__multiplayerLightDarkColorProvider.displayName = "PlasmicMultiplayerCursor.multiplayerLightDarkColorProvider";
+
+type PlasmicMultiplayerCursor__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicMultiplayerCursor__freeBox<T extends PlasmicMultiplayerCursor__freeBoxProps>(props: T & StrictProps<T, PlasmicMultiplayerCursor__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicMultiplayerCursor__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicMultiplayerCursor__freeBox.displayName = "PlasmicMultiplayerCursor.freeBox";
+
+type PlasmicMultiplayerCursor__cursorShapeProps = NodeComponentProps<"cursorShape"> & {key?: React.Key};
+function PlasmicMultiplayerCursor__cursorShape<T extends PlasmicMultiplayerCursor__cursorShapeProps>(props: T & StrictProps<T, PlasmicMultiplayerCursor__cursorShapeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cursorShape", props);
+  return <PlasmicMultiplayerCursor__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cursorShape"} />;
+}
+PlasmicMultiplayerCursor__cursorShape.displayName = "PlasmicMultiplayerCursor.cursorShape";
+
+type PlasmicMultiplayerCursor__nameContainerProps = NodeComponentProps<"nameContainer"> & {key?: React.Key};
+function PlasmicMultiplayerCursor__nameContainer<T extends PlasmicMultiplayerCursor__nameContainerProps>(props: T & StrictProps<T, PlasmicMultiplayerCursor__nameContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("nameContainer", props);
+  return <PlasmicMultiplayerCursor__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"nameContainer"} />;
+}
+PlasmicMultiplayerCursor__nameContainer.displayName = "PlasmicMultiplayerCursor.nameContainer";
+
+type PlasmicMultiplayerCursor__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicMultiplayerCursor__text<T extends PlasmicMultiplayerCursor__textProps>(props: T & StrictProps<T, PlasmicMultiplayerCursor__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicMultiplayerCursor__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicMultiplayerCursor__text.displayName = "PlasmicMultiplayerCursor.text";
+
 
 export const PlasmicMultiplayerCursor = Object.assign(
   // Top-level PlasmicMultiplayerCursor renders the root element
-  makeNodeComponent("root"),
+  PlasmicMultiplayerCursor__root,
   {
     // Helper components rendering sub-elements
-    multiplayerLightDarkColorProvider: makeNodeComponent(
-      "multiplayerLightDarkColorProvider"
-    ),
-    freeBox: makeNodeComponent("freeBox"),
-    cursorShape: makeNodeComponent("cursorShape"),
-    nameContainer: makeNodeComponent("nameContainer"),
-    text: makeNodeComponent("text"),
+    multiplayerLightDarkColorProvider: PlasmicMultiplayerCursor__multiplayerLightDarkColorProvider,
+    freeBox: PlasmicMultiplayerCursor__freeBox,
+    cursorShape: PlasmicMultiplayerCursor__cursorShape,
+    nameContainer: PlasmicMultiplayerCursor__nameContainer,
+    text: PlasmicMultiplayerCursor__text,
 
     // Metadata about props expected for PlasmicMultiplayerCursor
     internalVariantProps: PlasmicMultiplayerCursor__VariantProps,

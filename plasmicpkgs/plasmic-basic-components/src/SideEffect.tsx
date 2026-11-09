@@ -10,12 +10,28 @@ export interface SideEffectProps {
 }
 
 export function SideEffect({ deps, onMount, onUnmount }: SideEffectProps) {
+  const previous = React.useRef<{
+    deps: unknown[];
+    onUnmount: SideEffectProps["onUnmount"];
+  } | undefined>(undefined);
+  // The registered dependency array can change length. Preserve the cleanup
+  // captured by each setup while comparing business dependencies by value.
   React.useEffect(() => {
-    onMount?.();
-    return () => {
-      onUnmount?.();
-    };
-  }, deps ?? []);
+    const next = deps ?? [];
+    const current = previous.current;
+    if (current && current.deps.length === next.length && current.deps.every((value, index) => Object.is(value, next[index]))) {
+      return;
+    }
+    previous.current = undefined;
+    void current?.onUnmount?.();
+    void onMount?.();
+    previous.current = { deps: [...next], onUnmount };
+  });
+  React.useEffect(() => () => {
+    const current = previous.current;
+    previous.current = undefined;
+    void current?.onUnmount?.();
+  }, []);
   return null;
 }
 

@@ -3,7 +3,7 @@ import { filteredApi } from "@/wab/client/api";
 import { ensureIsTopFrame } from "@/wab/client/cli-routes";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
 import {
-  providesFrameCtx,
+  FrameCtxProvider,
   useFrameCtx,
   useFrameCtxMaybe,
 } from "@/wab/client/frame-ctx/frame-ctx";
@@ -35,6 +35,22 @@ export interface TopFrameCtxProviderProps {
   initialBranchId?: BranchId;
 }
 
+/** Transfers ownership of the one-shot bootstrap request to the host session. */
+function takeInitialProjectModel(appCtx: ReturnType<typeof useAppCtx>) {
+  const prefetched = appCtx.initialProjectModel;
+  appCtx.initialProjectModel = undefined;
+  return prefetched;
+}
+
+function retainSessionListener(disposers: Set<() => void>, stop: () => void) {
+  function dispose() {
+    disposers.delete(dispose);
+    stop();
+  }
+  disposers.add(dispose);
+  return dispose;
+}
+
 export function TopFrameCtxProvider({
   children,
   projectId,
@@ -63,8 +79,7 @@ export function TopFrameCtxProvider({
     );
     // Fetch the model while the trusted host boots, instead of starting this
     // request only after its scripts and frame bridge have initialized.
-    const prefetched = appCtx.initialProjectModel;
-    appCtx.initialProjectModel = undefined;
+    const prefetched = takeInitialProjectModel(appCtx);
     let initialSiteInfo: ReturnType<typeof api.getSiteInfo> | undefined =
       prefetched?.projectId === projectId && prefetched.branchId === initialBranchId
         ? prefetched.data
@@ -151,17 +166,13 @@ export function TopFrameCtxProvider({
           if (disposed) {
             return Comlink.proxy(() => {});
           }
-          const dispose = subscribeUiLocale(() =>
+          const dispose = retainSessionListener(sessionDisposers, subscribeUiLocale(() =>
             localeListener(getUiLocale()),
-          );
-          sessionDisposers.add(dispose);
+          ));
           // The callback crosses a MessagePort, while registration returns on
           // the window endpoint. Await it so the host mounts in the right locale.
           await localeListener(getUiLocale());
-          return Comlink.proxy(() => {
-            dispose();
-            sessionDisposers.delete(dispose);
-          });
+          return Comlink.proxy(dispose);
         },
         async registerUiAppearanceListener(
           appearanceListener,
@@ -169,27 +180,18 @@ export function TopFrameCtxProvider({
           if (disposed) {
             return Comlink.proxy(() => {});
           }
-          const dispose = subscribeUiAppearance(() =>
+          const dispose = retainSessionListener(sessionDisposers, subscribeUiAppearance(() =>
             appearanceListener(getUiAppearance()),
-          );
-          sessionDisposers.add(dispose);
+          ));
           await appearanceListener(getUiAppearance());
-          return Comlink.proxy(() => {
-            dispose();
-            sessionDisposers.delete(dispose);
-          });
+          return Comlink.proxy(dispose);
         },
         registerLocationListener(locationListener): () => void {
           if (disposed) {
             return Comlink.proxy(() => {});
           }
-          const unregister = topFrameApi.registerLocationListener(locationListener);
-          const dispose = () => {
-            sessionDisposers.delete(dispose);
-            unregister();
-          };
-          sessionDisposers.add(dispose);
-          return Comlink.proxy(dispose);
+          return Comlink.proxy(retainSessionListener(sessionDisposers,
+            topFrameApi.registerLocationListener(locationListener)));
         },
       } as TopFrameFullApi;
       Comlink.expose(topFrameCtxApi, {
@@ -238,7 +240,7 @@ export function TopFrameCtxProvider({
     };
   }, []);
 
-  return providesFrameCtx(topFrameCtx)(children);
+  return <FrameCtxProvider value={topFrameCtx}>{children}</FrameCtxProvider>;
 }
 
 /**

@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   MultiChoiceArg,
   PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
   PlasmicIcon as PlasmicIcon__,
@@ -36,8 +36,6 @@ import {
   generateStateValueProp,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
   makeFragment,
   omit,
   pick,
@@ -46,7 +44,6 @@ import {
   useCurrentUser,
   useDollarState,
   usePlasmicTranslator,
-  useTrigger,
   wrapWithClassName
 } from "@plasmicapp/react-web";
 import {
@@ -56,8 +53,8 @@ import {
 } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../Button"; // plasmic-import: TQcvW_pSKi3/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -114,11 +111,10 @@ function PlasmicRandomDynamicPageButton__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <Button
@@ -133,19 +129,8 @@ function PlasmicRandomDynamicPageButton__RenderFunc(props: {
         $steps["goToDynamicPage"] = true
           ? (() => {
               const actionArgs = {
-                destination: `/dynamic/${(() => {
-                  try {
-                    return Math.random().toString(36).slice(2);
-                  } catch (e) {
-                    if (
-                      e instanceof TypeError ||
-                      e?.plasmicType === "PlasmicUndefinedDataError"
-                    ) {
-                      return "value";
-                    }
-                    throw e;
-                  }
-                })()}`
+                destination: `/dynamic/${((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                      e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => (Math.random().toString(36).slice(2)), () => ("value"))}`
               };
               return (({ destination }) => {
                 if (
@@ -213,12 +198,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -228,24 +209,19 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicRandomDynamicPageButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicRandomDynamicPageButton";
-  } else {
-    func.displayName = `PlasmicRandomDynamicPageButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicRandomDynamicPageButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicRandomDynamicPageButton__root<T extends PlasmicRandomDynamicPageButton__rootProps>(props: T & StrictProps<T, PlasmicRandomDynamicPageButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicRandomDynamicPageButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicRandomDynamicPageButton__root.displayName = "PlasmicRandomDynamicPageButton";
+
 
 export const PlasmicRandomDynamicPageButton = Object.assign(
   // Top-level PlasmicRandomDynamicPageButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicRandomDynamicPageButton__root,
   {
     // Helper components rendering sub-elements
 

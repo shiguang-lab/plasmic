@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
   renderPlasmicSlot,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -32,8 +32,8 @@ import MarkComponent from "../../components/docs/MarkComponent"; // plasmic-impo
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
 import Select__Option from "../../components/widgets/Select__Option"; // plasmic-import: rr-LWdMni2G/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -108,11 +108,10 @@ function PlasmicDocsPortalHeader__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showCta",
@@ -121,20 +120,22 @@ function PlasmicDocsPortalHeader__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.showCta,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -347,12 +348,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -362,33 +359,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDocsPortalHeader__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDocsPortalHeader";
-  } else {
-    func.displayName = `PlasmicDocsPortalHeader.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDocsPortalHeader__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDocsPortalHeader__root<T extends PlasmicDocsPortalHeader__rootProps>(props: T & StrictProps<T, PlasmicDocsPortalHeader__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDocsPortalHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDocsPortalHeader__root.displayName = "PlasmicDocsPortalHeader";
+
+type PlasmicDocsPortalHeader__markComponentProps = NodeComponentProps<"markComponent"> & {key?: React.Key};
+function PlasmicDocsPortalHeader__markComponent<T extends PlasmicDocsPortalHeader__markComponentProps>(props: T & StrictProps<T, PlasmicDocsPortalHeader__markComponentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("markComponent", props);
+  return <PlasmicDocsPortalHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"markComponent"} />;
+}
+PlasmicDocsPortalHeader__markComponent.displayName = "PlasmicDocsPortalHeader.markComponent";
+
+type PlasmicDocsPortalHeader__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicDocsPortalHeader__freeBox<T extends PlasmicDocsPortalHeader__freeBoxProps>(props: T & StrictProps<T, PlasmicDocsPortalHeader__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicDocsPortalHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicDocsPortalHeader__freeBox.displayName = "PlasmicDocsPortalHeader.freeBox";
+
+type PlasmicDocsPortalHeader__rightButtonsProps = NodeComponentProps<"rightButtons"> & {key?: React.Key};
+function PlasmicDocsPortalHeader__rightButtons<T extends PlasmicDocsPortalHeader__rightButtonsProps>(props: T & StrictProps<T, PlasmicDocsPortalHeader__rightButtonsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("rightButtons", props);
+  return <PlasmicDocsPortalHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"rightButtons"} />;
+}
+PlasmicDocsPortalHeader__rightButtons.displayName = "PlasmicDocsPortalHeader.rightButtons";
+
+type PlasmicDocsPortalHeader__projectTokenButtonProps = NodeComponentProps<"projectTokenButton"> & {key?: React.Key};
+function PlasmicDocsPortalHeader__projectTokenButton<T extends PlasmicDocsPortalHeader__projectTokenButtonProps>(props: T & StrictProps<T, PlasmicDocsPortalHeader__projectTokenButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("projectTokenButton", props);
+  return <PlasmicDocsPortalHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"projectTokenButton"} />;
+}
+PlasmicDocsPortalHeader__projectTokenButton.displayName = "PlasmicDocsPortalHeader.projectTokenButton";
+
+type PlasmicDocsPortalHeader__studioButtonProps = NodeComponentProps<"studioButton"> & {key?: React.Key};
+function PlasmicDocsPortalHeader__studioButton<T extends PlasmicDocsPortalHeader__studioButtonProps>(props: T & StrictProps<T, PlasmicDocsPortalHeader__studioButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("studioButton", props);
+  return <PlasmicDocsPortalHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"studioButton"} />;
+}
+PlasmicDocsPortalHeader__studioButton.displayName = "PlasmicDocsPortalHeader.studioButton";
+
+type PlasmicDocsPortalHeader__buttonProps = NodeComponentProps<"button"> & {key?: React.Key};
+function PlasmicDocsPortalHeader__button<T extends PlasmicDocsPortalHeader__buttonProps>(props: T & StrictProps<T, PlasmicDocsPortalHeader__buttonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("button", props);
+  return <PlasmicDocsPortalHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"button"} />;
+}
+PlasmicDocsPortalHeader__button.displayName = "PlasmicDocsPortalHeader.button";
+
+type PlasmicDocsPortalHeader__codegenTypeProps = NodeComponentProps<"codegenType"> & {key?: React.Key};
+function PlasmicDocsPortalHeader__codegenType<T extends PlasmicDocsPortalHeader__codegenTypeProps>(props: T & StrictProps<T, PlasmicDocsPortalHeader__codegenTypeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("codegenType", props);
+  return <PlasmicDocsPortalHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"codegenType"} />;
+}
+PlasmicDocsPortalHeader__codegenType.displayName = "PlasmicDocsPortalHeader.codegenType";
+
 
 export const PlasmicDocsPortalHeader = Object.assign(
   // Top-level PlasmicDocsPortalHeader renders the root element
-  makeNodeComponent("root"),
+  PlasmicDocsPortalHeader__root,
   {
     // Helper components rendering sub-elements
-    markComponent: makeNodeComponent("markComponent"),
-    freeBox: makeNodeComponent("freeBox"),
-    rightButtons: makeNodeComponent("rightButtons"),
-    projectTokenButton: makeNodeComponent("projectTokenButton"),
-    studioButton: makeNodeComponent("studioButton"),
-    button: makeNodeComponent("button"),
-    codegenType: makeNodeComponent("codegenType"),
+    markComponent: PlasmicDocsPortalHeader__markComponent,
+    freeBox: PlasmicDocsPortalHeader__freeBox,
+    rightButtons: PlasmicDocsPortalHeader__rightButtons,
+    projectTokenButton: PlasmicDocsPortalHeader__projectTokenButton,
+    studioButton: PlasmicDocsPortalHeader__studioButton,
+    button: PlasmicDocsPortalHeader__button,
+    codegenType: PlasmicDocsPortalHeader__codegenType,
 
     // Metadata about props expected for PlasmicDocsPortalHeader
     internalVariantProps: PlasmicDocsPortalHeader__VariantProps,

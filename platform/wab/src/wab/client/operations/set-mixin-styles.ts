@@ -4,7 +4,7 @@ import {
   quoteProps,
   styleKeysForValue,
   unsafeStylesMessages,
-  useWrittenFont,
+  loadWrittenFont,
   type StyleChanges,
 } from "@/wab/client/operations/prepare-style-changes";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -61,7 +61,7 @@ function writeStyleChanges(
   rsh.merge(changes.set);
   messages.push(...unsafeStylesMessages(changes.unsafe));
   if (studioCtx) {
-    useWrittenFont(studioCtx, changes.set);
+    loadWrittenFont(studioCtx, changes.set);
   }
 
   return messages;

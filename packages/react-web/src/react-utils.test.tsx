@@ -129,7 +129,8 @@ describe("React 19 merged ref lifecycles", () => {
     const secondMerged = mergeRefs(second, object);
     const view = render(<button ref={firstMerged} />);
     const node = object.current;
-    view.rerender(<button ref={firstMerged} title="unchanged ref" />);
+    expect(mergeRefs(first, object)).toBe(firstMerged);
+    view.rerender(<button ref={mergeRefs(first, object)} title="unchanged ref" />);
     expect(first).toHaveBeenCalledTimes(1);
     expect(firstCleanup).not.toHaveBeenCalled();
     view.rerender(<button ref={secondMerged} />);
@@ -149,6 +150,7 @@ describe("React 19 merged ref lifecycles", () => {
         subscriptions.add(node);
         return () => { cleanup(node); };
       }
+      return undefined;
     });
     const object = React.createRef<HTMLButtonElement>();
     const view = render(<React.StrictMode><button ref={mergeRefs(callback, object)} /></React.StrictMode>);

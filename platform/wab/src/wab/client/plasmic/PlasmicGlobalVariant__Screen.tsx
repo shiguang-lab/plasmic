@@ -3,7 +3,7 @@
 // @ts-nocheck
 /* prettier-ignore-start */
 
-import { createUseScreenVariants } from "@plasmicapp/react-web";
+import { createScreenVariantStore, useScreenVariants as useProjectScreenVariants } from "@plasmicapp/react-web";
 import * as React from "react";
 
 export type ScreenValue = "mobile";
@@ -20,9 +20,10 @@ export function ScreenContextProvider(
   );
 }
 
-export const useScreenVariants = createUseScreenVariants(true, {
+const screenVariantStore = createScreenVariantStore({
   mobile: "(min-width:0px) and (max-width:768px)",
 });
+export function useScreenVariants() { return useProjectScreenVariants(screenVariantStore, true); }
 
 export default ScreenContext;
 /* prettier-ignore-end */

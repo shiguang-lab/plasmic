@@ -17,7 +17,7 @@ function CollapseWithChildren(props: React.ComponentProps<typeof Collapse> & Pla
   const canvas = usePlasmicCanvasContext();
   const state = usePlasmicCanvasComponentInfo(props)?.states?.activeKey;
   const panels = getCanvasItems(children, (item) => item.type === AntdCollapsePanel || item.type === Collapse.Panel).filter(React.isValidElement<React.ComponentProps<typeof Collapse.Panel> & PlasmicCanvasProps>);
-  const selectedKey = canvas && !canvas.interactive ? getSelectedCanvasItemKey(panels) : undefined;
+  const selectedKey = canvas ? getSelectedCanvasItemKey(panels) : undefined;
   const businessKeys = activeKey ?? defaultActiveKey ?? [];
   const revealKeys = selectedKey == null ? undefined : accordion ? String(selectedKey) : Array.from(new Set([...(Array.isArray(businessKeys) ? businessKeys : [businessKeys]), String(selectedKey)]));
   const openKeys = revealKeys === undefined ? activeKey : state ? state.reveal(revealKeys) as typeof activeKey : revealKeys;

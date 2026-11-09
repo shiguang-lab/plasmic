@@ -1,7 +1,7 @@
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { SpacingControl } from "@/wab/client/components/style-controls/SpacingControl";
-import { SingleRsExpsProvider, StyleComponent, StyleComponentContext } from "@/wab/client/components/style-controls/StyleComponent";
+import { SingleRsExpsProvider, StyleTarget, StyleTargetContext } from "@/wab/client/components/style-controls/StyleComponent";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
 import { AppContext } from "@/wab/client/components/top-view";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
@@ -32,8 +32,8 @@ async function setup() {
   for (const side of standardSides) { exp.set(`padding-${side}`, mkTokenRef(head)); exp.set(`margin-${side}`, "auto"); }
   const f = fakeStudioCtx({ site }); studios.add(f.studioCtx); await waitFor(() => expect(f.studioCtx.initialRouteReady).toBe(true));
   const studio = f.studioCtx, helper = new VariantedStylesHelper(site, [dark]);
-  const provider = new SingleRsExpsProvider(rs, exp, studio, [], { kind: "ruleSet", rs, forTag: "div" }), sc = new StyleComponent({ expsProvider: provider });
-  const wrap = (children: React.ReactNode) => <AppContext.Provider value={studio.app}><AppCtxContext.Provider value={f.appCtx}><StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={sc}><SidebarModalProvider>{children}</SidebarModalProvider></StyleComponentContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider></AppContext.Provider>;
+  const provider = new SingleRsExpsProvider(rs, exp, studio, [], { kind: "ruleSet", rs, forTag: "div" }), sc = new StyleTarget({ expsProvider: provider });
+  const wrap = (children: React.ReactNode) => <AppContext.Provider value={studio.app}><AppCtxContext.Provider value={f.appCtx}><StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={sc}><SidebarModalProvider>{children}</SidebarModalProvider></StyleTargetContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider></AppContext.Provider>;
   return { ...f, studio, site, exp, provider, helper, head, end, activeValue, dark, group, wrap };
 }
 function spacingInput(container: HTMLElement) { return ensure(container.querySelector<HTMLInputElement>('[data-test-id="Spacing-input"]'), "Original spacing input"); }
@@ -46,7 +46,7 @@ it("renders native alias changes and base measurements while preserving the cont
   expect([...document.querySelectorAll(".spacing-control__num")].map((element) => element.textContent)).toEqual(["8px", "8px", "8px", "8px"]);
   await act(async () => { await f.studio.changeUnsafe(() => { f.end.value = "12px"; f.activeValue.value = "24px"; }); });
   expect([...document.querySelectorAll(".spacing-control__num")].map((element) => element.textContent)).toEqual(["12px", "12px", "12px", "12px"]);
-  const retained = ensure(control.current, "Original class ref");
+  const retained = ensure(control.current, "Spacing command handle");
   const top = ensure(document.querySelector(".spacing-control__handle.ns-resize"), "Native draggable top side");
   fireEvent.click(top, { detail: 1 });
   await act(async () => { retained.setAllSelected("31px"); });

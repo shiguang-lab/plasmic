@@ -162,6 +162,18 @@ test("uncontrolled Table selections persist and clearSelection updates checkboxe
   ).toBe(true);
 });
 
+test("clearing uncontrolled selection while rowKey is absent stays cleared when rowKey returns", () => {
+  const ref = React.createRef<TableRef>();
+  const data = { data: [{ key: "one", id: "one", name: "One" }] };
+  const props = { data, isSelectable: "multiple" as const, defaultSelectedRowKeys: ["one"] };
+  const view = render(<AntdTable {...props} rowKey="id" ref={ref} />);
+  expect((screen.getAllByRole("checkbox").at(-1) as HTMLInputElement).checked).toBe(true);
+  view.rerender(<AntdTable {...props} ref={ref} />);
+  act(() => ref.current!.clearSelection());
+  view.rerender(<AntdTable {...props} rowKey="id" ref={ref} />);
+  expect((screen.getAllByRole("checkbox").at(-1) as HTMLInputElement).checked).toBe(false);
+});
+
 test("controlled Table selection follows supplied keys rather than internal clicks", () => {
   const onChange = vi.fn();
   const view = render(

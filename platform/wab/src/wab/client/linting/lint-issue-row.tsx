@@ -1,4 +1,5 @@
-import { useStore } from "zustand";
+import { useLintRowInputs } from "@/wab/client/linting/lint-row-inputs";
+import { useVariantLabelInputs } from "@/wab/client/components/variants/variant-label-inputs";
 import ListItem from "@/wab/client/components/ListItem";
 import { DataSourceOpExprSummary } from "@/wab/client/components/sidebar-tabs/DataSource/DataSourceOpPicker";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -9,10 +10,8 @@ import UnlockIcon from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicIc
 import ResponsivenessIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Responsiveness";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { joinReactNodes } from "@/wab/commons/components/ReactUtil";
-import { makeVariantName } from "@/wab/shared/Variants";
 import { spawn } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
-import { isTplNamable, isTplSlot, summarizeTpl } from "@/wab/shared/core/tpls";
 import {
   ChoicePropValuesLintIssue,
   InvalidDomNestingLintIssue,
@@ -25,9 +24,7 @@ import {
   UnprotectedDataQueryLintIssue,
 } from "@/wab/shared/linting/lint-types";
 import { Component, TplNode } from "@/wab/shared/model/classes";
-import { capitalizeFirst } from "@/wab/shared/strs";
 import { Popover } from "antd";
-import { observer } from "mobx-react";
 import React, { ReactNode } from "react";
 
 export function renderLintIssue(issue: LintIssue) {
@@ -195,12 +192,15 @@ const UnprotectedDataQueryInstructions = ({
   );
 };
 
-const ScreenVariantOverrideLintIssueRow = observer(
-  function ScreenVariantOverrideLintIssueRow(props: {
-    issue: NonCssScreenVariantOverrideLintIssue;
-  }) {
-    const { issue } = props;
+const ScreenVariantOverrideLintIssueRow = React.memo(function ScreenVariantOverrideLintIssueRow(props: {issue: NonCssScreenVariantOverrideLintIssue}) {
+  const studio = useStudioCtx(), issue = props.issue;
+  const inputs = useLintRowInputs(studio, issue.component, issue.tpl, issue.vs, issue.prop.type === "arg" ? issue.prop.param : undefined);
+  return inputs.data ? <ScreenVariantOverrideContent {...props} inputs={inputs.data} /> : null;
+});
+function ScreenVariantOverrideContent(props: {issue: NonCssScreenVariantOverrideLintIssue; inputs: NonNullable<ReturnType<typeof useLintRowInputs>["data"]>}) {
+    const { issue, inputs } = props;
     const studioCtx = useStudioCtx();
+    const labels = useVariantLabelInputs(studioCtx, inputs.variants, {component: issue.component});
     const content = (
       <UiText
         message="{element} overrides {property} in responsive variant {variant}."
@@ -215,27 +215,24 @@ const ScreenVariantOverrideLintIssueRow = observer(
             ) : issue.prop.type === "arg" ? (
               <UiText
                 message="prop {name}"
-                values={{ name: issue.prop.param.variable.name }}
+                values={{ name: inputs.paramName }}
               />
             ) : (
               <UiText message="text content" />
             ),
           variant:
-            issue.vs.variants.length === 1 ? (
+            labels.entries.length === 1 ? (
               <strong>
-                {makeVariantName({
-                  variant: issue.vs.variants[0],
-                  site: studioCtx.site,
-                })}
+                {labels.entries[0].name}
               </strong>
             ) : (
               <UiText
                 message="combination {variants}"
                 values={{
                   variants: joinReactNodes(
-                    issue.vs.variants.map((v) => (
-                      <strong key={v.uuid}>
-                        {makeVariantName({ variant: v, site: studioCtx.site })}
+                    labels.entries.map((entry) => (
+                      <strong key={entry.key}>
+                        {entry.name}
                       </strong>
                     )),
                     ", ",
@@ -254,8 +251,8 @@ const ScreenVariantOverrideLintIssueRow = observer(
         {SCREEN_VARIANT_OVERRIDE_INSTRUCTIONS}
       </>,
     );
-  },
-);
+  }
+
 
 const InvalidDomNestingLintIssueRow = 
   function InvalidDomNestingLintIssueRow(props: {
@@ -410,34 +407,37 @@ const UnprotectedDataQuerytLintIssueRow =
   }
 ;
 
-const TplLink = observer(function TplLink(props: {
+const TplLink = React.memo(function TplLink(props: {
   component: Component;
   tpl: TplNode;
 }) {
   const { component, tpl } = props;
   const studioCtx = useStudioCtx();
+  const inputs = useLintRowInputs(studioCtx, component, tpl);
+  const caption = inputs.data?.tplCaption;
+  if (!caption) {return null;}
   return (
     <a
       onClick={() => {
-        spawn(studioCtx.setStudioFocusOnTpl(component, tpl));
+        if (inputs.isCurrent()) {spawn(studioCtx.setStudioFocusOnTpl(component, tpl));}
       }}
     >
-      {isTplNamable(tpl) && tpl.name ? (
+      {caption.kind === "named" ? (
         <>
-          <UiText message={"Element"} /> <strong>{tpl.name}</strong>
+          <UiText message={"Element"} /> <strong>{caption.text}</strong>
         </>
-      ) : isTplSlot(tpl) ? (
+      ) : caption.kind === "slot" ? (
         <>
           <UiText
             message="Slot target {name}"
-            values={{ name: <strong>{tpl.param.variable.name}</strong> }}
+            values={{ name: <strong>{caption.text}</strong> }}
           />
         </>
       ) : (
         <UiText
           message="{part1} element"
           values={{
-            part1: <UiLabel text={capitalizeFirst(summarizeTpl(tpl))} />,
+            part1: <UiLabel text={caption.text} />,
           }}
         />
       )}
@@ -450,12 +450,13 @@ export const ComponentLink = function ComponentLink(props: {
 }) {
   const { component } = props;
   const studioCtx = useStudioCtx();
-  const name = useStore(studioCtx.modelSnapshots.field(component, "name"));
-  const type = useStore(studioCtx.modelSnapshots.field(component, "type"));
+  const inputs = useLintRowInputs(studioCtx, component);
+  if (!inputs.data) {return null;}
+  const {componentName: name, componentType: type} = inputs.data;
   return (
     <a
       onClick={() => {
-        spawn(studioCtx.setStudioFocusOnTpl(component, component.tplTree));
+        if (inputs.isCurrent()) {spawn(studioCtx.setStudioFocusOnTpl(component, component.tplTree));}
       }}
     >
       {type === ComponentType.Page ? (

@@ -40,7 +40,9 @@ import { Box } from "@/wab/shared/geom";
 import { Variant, isKnownArenaFrame } from "@/wab/shared/model/classes";
 import { Dropdown } from "antd";
 import last from "lodash/lodash";
-import { observer } from "mobx-react";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { useCanvasViewInputs, type CanvasViewFieldRecipe } from "@/wab/client/components/canvas/canvas-view-inputs";
+import { canvasVariantChromeFields, canvasVariantFrameFields } from "@/wab/client/components/canvas/canvas-variant-chrome-inputs";
 import React, {
   useCallback,
   useEffect,
@@ -120,6 +122,20 @@ function getFocusedElementRect(studioCtx: StudioCtx) {
   }
 }
 
+class FloatingBarPosition {
+  private pendingTask: number | undefined;
+  private inactive = false;
+  constructor(readonly models: StudioCtx["modelSnapshots"]) {}
+  get task() { return this.pendingTask; }
+  get closed() { return this.inactive; }
+  open() { this.inactive = false; }
+  cancelTask() {
+    if (this.pendingTask !== undefined) { window.cancelAnimationFrame(this.pendingTask); this.pendingTask = undefined; }
+  }
+  close = () => { this.inactive = true; this.cancelTask(); };
+  setTask(task: number | undefined) { this.pendingTask = task; }
+}
+
 function useFloatingBarForFocusedFrame({
   activeVariants,
   viewCtx,
@@ -129,9 +145,10 @@ function useFloatingBarForFocusedFrame({
   viewCtx: ViewCtx;
   contained?: boolean;
 }) {
-  useViewSelection(viewCtx, (state) => state.targets);
+  const selectionGeometry = useViewSelection(viewCtx, useShallow((state) => [state.targets, state.doms, state.context]));
   const { studioCtx } = usePlasmicCtx();
   const arenaKind = useStudioArena(studioCtx, (state) => state.kind);
+  useStudioSelection(studioCtx, useShallow((state) => [state.view, state.frames]));
   const stackOfParents = useStudioOverlayState(studioCtx, (state) => state.stackOfParents);
   const geometry = useCanvasGeometry(studioCtx);
   const contentScope = useContentEditorScope(studioCtx);
@@ -139,11 +156,11 @@ function useFloatingBarForFocusedFrame({
   const controlled = studioCtx.hoverBoxControlledObj;
   const heightFrames = isKnownArenaFrame(controlled) && controlled !== ownFrame ? [ownFrame, controlled] : [ownFrame];
   const heights = useFrameHeights(studioCtx, contained ? [] : heightFrames);
-  const position = useMemo<{ task?: number; closed: boolean }>(() => ({ closed: false }), [viewCtx]);
+  const position = useMemo(() => new FloatingBarPosition(studioCtx.modelSnapshots), [viewCtx, studioCtx]);
   useEffect(() => {
     if (contained) { return; }
-    position.closed = false;
-    const cancel = () => { position.closed = true; if (position.task !== undefined) { window.cancelAnimationFrame(position.task); position.task = undefined; } };
+    position.open();
+    const cancel = position.close;
     viewCtx.disposeSignal.addEventListener("abort", cancel, { once: true });
     if (viewCtx.disposeSignal.aborted) { cancel(); }
     return () => { viewCtx.disposeSignal.removeEventListener("abort", cancel); cancel(); };
@@ -152,27 +169,22 @@ function useFloatingBarForFocusedFrame({
   const panelRef = useRef<HTMLDivElement | null>(null);
   const [showPanel, setShowPanel] = useState(true);
 
-  if (contained) {
-    // NOTE this violates the rules of hooks! We are not calling all the hooks.
-    // This is okay because the same VariantsBar is always EITHER contained or
-    // not, and the same instance will never swap between the two modes.
-    return { showPanel, panelRef };
-  }
   const getFocusedComponentRect = useCallback(() => {
+    if (contained || position.closed || viewCtx.disposeSignal.aborted || position.models !== studioCtx.modelSnapshots) { return undefined; }
     const spotlightInfo = getSpotlightInfo(viewCtx!);
     const spotlightDOMInfo = getSpotlightDomInfo(viewCtx!);
 
     return spotlightInfo.shouldRender
       ? spotlightDOMInfo.focusedScalerRect
       : studioCtx.getArenaFrameScalerRect(viewCtx?.arenaFrame());
-  }, [viewCtx]);
+  }, [viewCtx, studioCtx, position, contained]);
 
   const updatePosition = useCallback(() => {
-    if (position.closed || viewCtx.disposeSignal.aborted) { return; }
-    if (position.task !== undefined) { window.cancelAnimationFrame(position.task); }
+    if (contained || position.closed || viewCtx.disposeSignal.aborted || position.models !== studioCtx.modelSnapshots) { return; }
+    position.cancelTask();
     const task = window.requestAnimationFrame(() => {
-      if (position.task !== task || position.closed || viewCtx.disposeSignal.aborted) { return; }
-      position.task = undefined;
+      if (position.task !== task || position.closed || viewCtx.disposeSignal.aborted || position.models !== studioCtx.modelSnapshots) { return; }
+      position.setTask(undefined);
       if (!panelRef.current) {
         return;
       }
@@ -239,18 +251,21 @@ function useFloatingBarForFocusedFrame({
 
       setShowPanel(clipperBox.intersects(componentBox, true));
     });
-    position.task = task;
+    position.setTask(task);
   }, [
     position,
-    viewCtx?.focusedSelectable(),
+    selectionGeometry,
     getFocusedComponentRect,
     studioCtx,
+    viewCtx,
     activeVariants.length,
     arenaKind,
     contentScope,
+    contained,
   ]);
 
   useEffect(() => {
+    if (contained) { return; }
     const frameListener = studioCtx.styleChanged.add(updatePosition);
     window.addEventListener(plasmicCanvasTransformEvent, updatePosition);
 
@@ -258,13 +273,26 @@ function useFloatingBarForFocusedFrame({
       frameListener.detach();
       window.removeEventListener(plasmicCanvasTransformEvent, updatePosition);
     };
-  }, [updatePosition]);
+  }, [updatePosition, studioCtx, contained]);
 
   useSignalListener(studioCtx.framesChanged, updatePosition, [
     studioCtx,
     updatePosition,
   ]);
 
+  useEffect(() => {
+    if (contained || position.closed || viewCtx.disposeSignal.aborted || position.models !== studioCtx.modelSnapshots) { return; }
+    const doc = viewCtx.canvasCtx.$doc()[0];
+    if (!doc) { return; }
+    const resize = new ResizeObserver(updatePosition);
+    resize.observe(doc.documentElement);
+    const focused = viewCtx.focusedDomElt()?.toArray() ?? [];
+    const spotlight = getSpotlightDomInfo(viewCtx).focusedElements ?? [];
+    [...focused, ...spotlight].forEach((element) => resize.observe(element));
+    if (panelRef.current) { resize.observe(panelRef.current); }
+    doc.addEventListener("scroll", updatePosition, true);
+    return () => { resize.disconnect(); doc.removeEventListener("scroll", updatePosition, true); };
+  }, [viewCtx, studioCtx, position, updatePosition, selectionGeometry, contained]);
   const focusedComponentRect = getFocusedComponentRect();
 
   useEffect(updatePosition, [
@@ -279,12 +307,12 @@ function useFloatingBarForFocusedFrame({
   useLayoutEffect(updatePosition, [updatePosition, heights, contentScope]);
 
   return {
-    showPanel: showPanel && !stackOfParents,
+    showPanel: showPanel && (contained || !stackOfParents),
     panelRef,
   };
 }
 
-export const VariantsBar = observer(function VariantsBar_({
+export const VariantsBar = React.memo(function VariantsBar_({
   contained,
 }: {
   contained?: boolean;
@@ -295,7 +323,14 @@ export const VariantsBar = observer(function VariantsBar_({
   const liveMode = useStudioLiveMode(studioCtx);
   const transforming = useCanvasTransforming(studioCtx);
 
-  if (liveMode) {
+  useCanvasRenderCount(viewCtx);
+  const recipe = React.useCallback<CanvasViewFieldRecipe>((field) => {
+    if (!viewCtx) { return; }
+    canvasVariantChromeFields(viewCtx.site, viewCtx.currentComponent(), viewCtx.focusedTpl(), field);
+    canvasVariantFrameFields(viewCtx, field);
+  }, [viewCtx]);
+  const { alive } = useCanvasViewInputs(viewCtx, recipe);
+  if (!alive || liveMode || viewCtx?.studioCtx !== studioCtx) {
     return null;
   }
 
@@ -337,7 +372,19 @@ export const VariantsBar = observer(function VariantsBar_({
   return <VariantsBarInner viewCtx={viewCtx} contained={contained} />;
 });
 
-const VariantsBarInner = observer(function VariantsBarInner_({
+const VariantsBarInner = React.memo(function VariantsBarInner_(props: { contained?: boolean; viewCtx: ViewCtx }) {
+  const { viewCtx } = props;
+  const selection = useViewSelection(viewCtx, (state) => state.context);
+  useCanvasRenderCount(viewCtx);
+  const recipe = React.useCallback<CanvasViewFieldRecipe>((field) => {
+    canvasVariantChromeFields(viewCtx.site, viewCtx.currentComponent(), viewCtx.focusedTpl(), field);
+    canvasVariantFrameFields(viewCtx, field);
+  }, [viewCtx, selection]);
+  const { alive } = useCanvasViewInputs(viewCtx, recipe);
+  return alive ? <VariantsBarActive {...props} /> : null;
+});
+
+function VariantsBarActive({
   contained,
   viewCtx,
 }: {
@@ -355,6 +402,7 @@ const VariantsBarInner = observer(function VariantsBarInner_({
 
   const { studioCtx } = usePlasmicCtx();
   const arenaKind = useStudioArena(studioCtx, (state) => state.kind);
+  const showVariantsDrawer = useStudioOverlayState(studioCtx, (state) => state.variantsDrawer);
   useFocusedViewSelection(studioCtx, (state) => state.targets);
   useStudioSelection(studioCtx, (state) => state.view);
   const { showPanel, panelRef } = useFloatingBarForFocusedFrame({
@@ -370,7 +418,7 @@ const VariantsBarInner = observer(function VariantsBarInner_({
   useEffect(
     /* Close variants drawer on unmount */ () => () =>
       studioCtx.setShowVariantsDrawer(false),
-    [],
+    [studioCtx],
   );
 
   useEffect(
@@ -414,11 +462,11 @@ const VariantsBarInner = observer(function VariantsBarInner_({
       e.preventDefault(); // prevent focus, keep focus on VariantDrawer's search input
     },
     onClick: () => {
-      studioCtx.setShowVariantsDrawer(!studioCtx.showVariantsDrawer);
+      studioCtx.setShowVariantsDrawer(!showVariantsDrawer);
     },
   };
 
-  useAutoFocus(studioCtx.showVariantsDrawer && searchInputRef);
+  useAutoFocus(showVariantsDrawer && searchInputRef);
 
   const handleClearVariants = () => {
     variantsController?.onClearVariants();
@@ -458,7 +506,7 @@ const VariantsBarInner = observer(function VariantsBarInner_({
               transitionName=""
               trigger={[]}
               placement={"bottomLeft"}
-              open={studioCtx.showVariantsDrawer}
+              open={showVariantsDrawer}
               popupRender={() => (
                 <VariantsDrawer
                   component={component}
@@ -514,4 +562,4 @@ const VariantsBarInner = observer(function VariantsBarInner_({
       />
     </>
   );
-});
+}

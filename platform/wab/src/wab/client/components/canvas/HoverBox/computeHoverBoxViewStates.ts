@@ -151,9 +151,11 @@ export function computeHoverBoxTargets(studioCtx: StudioCtx): HoverBoxTarget[] {
     "focusedDomElts and focusedSelectables should have same length.",
   );
 
-  return nodes.map((node, i) => ({
-    node,
-    focusObj: focusObjs[i] as Selectable,
+  // A newly inserted tpl can be selected before evaluation resolves its value.
+  // Keep that pending slot out of renderable targets without shifting DOM pairs.
+  return withoutNils(nodes.map((node, i) => {
+    const focusObj = focusObjs[i];
+    return !focusObj ? undefined : isKnownArenaFrame(focusObj) ? focusObj : { node, focusObj };
   }));
 }
 

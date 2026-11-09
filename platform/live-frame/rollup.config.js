@@ -1,3 +1,4 @@
+import { reactCompilerPlugin } from "./react-compiler.mjs";
 import postcss from "rollup-plugin-postcss";
 import sucrase from "@rollup/plugin-sucrase";
 import resolve from "@rollup/plugin-node-resolve";
@@ -9,18 +10,21 @@ const isProd = process.env.NODE_ENV === "production";
 
 export default {
   input: "src/index.ts",
+  external: ["react"],
   output: {
     file: "build/client.js",
     format: "iife",
     sourcemap: true,
+    globals: {react: "__Sub.React"},
   },
   plugins: [
+    reactCompilerPlugin(),
     resolve(),
     commonjs(),
     postcss(),
     sucrase({
       exclude: ["node_modules/**"],
-      transforms: ["typescript"],
+      transforms: ["typescript", "jsx"],
     }),
     replace({
       // Get production-mode react

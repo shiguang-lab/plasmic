@@ -185,6 +185,7 @@ let hasWarnedSSR = false;
  */
 export function useEnsureSSRProvider() {
   const hasRoot = useHasPlasmicRoot();
+  React.useEffect(() => {
   if (hasRoot || hasWarnedSSR || process.env.NODE_ENV !== "development") {
     return;
   }
@@ -193,6 +194,7 @@ export function useEnsureSSRProvider() {
   console.warn(
     `Plasmic: To ensure your components work correctly with server-side rendering, please use PlasmicRootProvider at the root of your application.  See https://docs.plasmic.app/learn/ssr`
   );
+  }, [hasRoot]);
 }
 
 function MaybeWrap(props: {

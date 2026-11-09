@@ -34,15 +34,13 @@ import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { equalColumnDistribution } from "@/wab/shared/columns-utils";
 import { NullOrUndefinedValueError, ensure } from "@/wab/shared/common";
 import { TplColumnTag, TplColumnsTag } from "@/wab/shared/core/tpls";
 import { LENGTH_PERCENTAGE_UNITS, NUMBER_UNITS } from "@/wab/shared/css/types";
 import { computeDefinedIndicator } from "@/wab/shared/defined-indicator";
-import { ColumnsConfig } from "@/wab/shared/model/classes";
 import { Menu } from "antd";
 import cn from "classnames";
-import { observer } from "mobx-react";
+import { useTargetedStylePanelInputs } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
 import { ok } from "neverthrow";
 import React from "react";
 
@@ -52,7 +50,7 @@ export interface ColumnsPanelProps {
   expsProvider: ExpsProvider;
 }
 
-export const ColumnsPanelSection = observer(function ColumnsPanelSection(
+export const ColumnsPanelSection = React.memo(function ColumnsPanelSection(
   props: ColumnsPanelProps,
 ) {
   const { t: uiT } = useI18n();
@@ -66,6 +64,8 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
   );
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   useViewSelection(viewCtx, (state) => state.context);
+  const inputs = useTargetedStylePanelInputs(studioCtx, { kind: "columns", view: viewCtx, tpl });
+  if (!inputs.active) { return null; }
   const effectiveVs = viewCtx.effectiveCurrentVariantSetting(tpl);
 
   if (!effectiveVs.columnsConfig) {
@@ -77,14 +77,7 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
     );
   }
 
-  // in case we don't have columns config, use an equal distribution
-  // this way the user can still access the columns section
-  const columnsConfig =
-    effectiveVs.columnsConfig ||
-    new ColumnsConfig({
-      breakUpRows: false,
-      colsSizes: equalColumnDistribution(tpl.children.length),
-    });
+  const columnsConfig = effectiveVs.columnsConfig;
 
   const definedIndicator = computeDefinedIndicator(
     studioCtx.site,
@@ -117,6 +110,7 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
             <Menu.Item
               onClick={async () => {
                 await studioCtx.change(() => {
+                  if (!inputs.active) { return ok(); }
                   expsProvider
                     .mergedExp()
                     .clearAll([
@@ -165,6 +159,7 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
                 onChange={async (val) => {
                   if (val && +val !== childrenLength && +val > 0) {
                     await studioCtx.changeUnsafe(() => {
+                      if (!inputs.isCurrent()) { return; }
                       let delta = +val - childrenLength;
                       if (delta > 0) {
                         while (delta--) {
@@ -192,6 +187,7 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
                   disabled={childrenLength <= 1}
                   onClick={async () =>
                     await studioCtx.change<never>(() => {
+                      if (!inputs.active) { return ok(); }
                       removeLastColumn(tpl, viewCtx);
                       return ok();
                     })
@@ -203,6 +199,7 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
                   disabled={childrenLength === 12}
                   onClick={async () =>
                     await studioCtx.change<never>(() => {
+                      if (!inputs.active) { return ok(); }
                       addNewColumn(tpl, viewCtx);
                       return ok();
                     })
@@ -217,7 +214,7 @@ export const ColumnsPanelSection = observer(function ColumnsPanelSection(
             expsProvider={expsProvider}
             studioCtx={studioCtx}
             isDisabled={isDisabled}
-            includeRowGap={columnsConfig.breakUpRows}
+            includeRowGap={columnsConfig?.breakUpRows ?? false}
           />
           {childrenLength > 0 && (
             <ColumnsWrapControls

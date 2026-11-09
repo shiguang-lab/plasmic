@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,14 +24,14 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
 import Select__Option from "../../components/widgets/Select__Option"; // plasmic-import: rr-LWdMni2G/component
 import Select__OptionGroup from "../../components/widgets/Select__OptionGroup"; // plasmic-import: _qMm1mtrqOi/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -107,11 +107,10 @@ function PlasmicLabeledSelect__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "withBottomBorder",
@@ -134,18 +133,20 @@ function PlasmicLabeledSelect__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.withInfo,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -301,12 +302,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -316,29 +313,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLabeledSelect__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLabeledSelect";
-  } else {
-    func.displayName = `PlasmicLabeledSelect.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLabeledSelect__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLabeledSelect__root<T extends PlasmicLabeledSelect__rootProps>(props: T & StrictProps<T, PlasmicLabeledSelect__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLabeledSelect__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLabeledSelect__root.displayName = "PlasmicLabeledSelect";
+
+type PlasmicLabeledSelect__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicLabeledSelect__freeBox<T extends PlasmicLabeledSelect__freeBoxProps>(props: T & StrictProps<T, PlasmicLabeledSelect__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicLabeledSelect__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicLabeledSelect__freeBox.displayName = "PlasmicLabeledSelect.freeBox";
+
+type PlasmicLabeledSelect__infoProps = NodeComponentProps<"info"> & {key?: React.Key};
+function PlasmicLabeledSelect__info<T extends PlasmicLabeledSelect__infoProps>(props: T & StrictProps<T, PlasmicLabeledSelect__infoProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("info", props);
+  return <PlasmicLabeledSelect__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"info"} />;
+}
+PlasmicLabeledSelect__info.displayName = "PlasmicLabeledSelect.info";
+
+type PlasmicLabeledSelect__selectProps = NodeComponentProps<"select"> & {key?: React.Key};
+function PlasmicLabeledSelect__select<T extends PlasmicLabeledSelect__selectProps>(props: T & StrictProps<T, PlasmicLabeledSelect__selectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("select", props);
+  return <PlasmicLabeledSelect__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"select"} />;
+}
+PlasmicLabeledSelect__select.displayName = "PlasmicLabeledSelect.select";
+
 
 export const PlasmicLabeledSelect = Object.assign(
   // Top-level PlasmicLabeledSelect renders the root element
-  makeNodeComponent("root"),
+  PlasmicLabeledSelect__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    info: makeNodeComponent("info"),
-    select: makeNodeComponent("select"),
+    freeBox: PlasmicLabeledSelect__freeBox,
+    info: PlasmicLabeledSelect__info,
+    select: PlasmicLabeledSelect__select,
 
     // Metadata about props expected for PlasmicLabeledSelect
     internalVariantProps: PlasmicLabeledSelect__VariantProps,

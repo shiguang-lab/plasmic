@@ -15,7 +15,6 @@ interface PreviewProps {
 }
 
 function Preview(props: PreviewProps) {
-  "use memo";
   const { studioCtx } = props;
   const { styles } = useEditorLayoutStyles();
   const previewCtx = usePreviewCtx();

@@ -93,6 +93,7 @@ import {
   maybeSerializeAsStringProp,
   renderPage,
   serializeComponentLocalVars,
+  serializeStateInitializerOwner,
   serializeCssRules,
   serializeDefaultExternalProps,
   serializeTplComponentBase,
@@ -246,7 +247,7 @@ ${
     ? `import { usePlasmicDataConfig, executePlasmicDataOp, usePlasmicDataOp } from "@plasmicapp/react-web/lib/data-sources";`
     : ""
 }
-${plumeType ? `import * as pp from "@plasmicapp/react-web";` : ""}
+${plumeType ? `import * as Plume from "@plasmicapp/react-web";` : ""}
 ${plumeImports ? plumeImports.imports : ""}
 
 ${referencedImports.join("\n")}
@@ -311,7 +312,7 @@ function ${componentName}_(props: ${makeComponentPropsTypeName(component)}${
 
   ${
     ctx.projectFlags.usePlasmicTranslation
-      ? `const $translator = usePlasmicTranslator?.();`
+      ? `const $translator = usePlasmicTranslator();`
       : ""
   }
 
@@ -335,7 +336,7 @@ function ${componentName}_(props: ${makeComponentPropsTypeName(component)}${
   ${serializeComponentLocalVars(ctx)}
 
   return (
-    ${renderBody}
+    ${serializeStateInitializerOwner(ctx, renderBody)}
   );
 }
 

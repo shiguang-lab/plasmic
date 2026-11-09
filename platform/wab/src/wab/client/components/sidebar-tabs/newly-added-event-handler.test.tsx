@@ -1,10 +1,10 @@
+import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { InteractionPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentPropsSection";
 import InteractionsSection from "@/wab/client/components/sidebar-tabs/StateManagement/InteractionsSection";
 import type { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
-import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import type { GetProjectResponse } from "@/wab/shared/ApiSchema";
 import { Bundler } from "@/wab/shared/bundler";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
@@ -26,11 +26,9 @@ vi.mock("@/wab/client/components/sidebar/SidebarSection", async (original) => ({
 vi.mock("@/wab/client/components/sidebar-tabs/PropEditorRow", () => ({ PropEditorRow: () => null }));
 vi.mock("antd", async (original) => ({ ...(await original<typeof import("antd")>()), Select: ({ options, onSelect }: { options: { value: string; label: string }[]; onSelect: (value: string) => void }) => <button onClick={() => onSelect(ensure(options.find((option) => option.value === "onSubmit"), "Submit event option").value)}>Add submit interaction</button> }));
 
-const studios = new Set<StudioCtx>(), selections = new Set<ViewSelection>();
+const studios = new Set<StudioCtx>();
 afterEach(async () => {
   await act(async () => { cleanup(); });
-  for (const selection of selections) { selection.dispose(); }
-  selections.clear();
   for (const studio of studios) { await studio.awaitEval(); studio.dispose(); }
   studios.clear(); vi.restoreAllMocks();
 });
@@ -42,17 +40,16 @@ function siteFixture(name: string) {
   const tpl = mkTplComponent(component, ensure(component.variants[0], "Event component base"));
   const owner = mkComponent({ name: `${name}Owner`, type: ComponentType.Plain, tplTree: () => tpl });
   site.components.push(owner);
-  return { site, component, owner, param, tpl };
+  const frame = mkArenaFrame({ site, component: owner, name, width: 400, height: 300 }); site.arenas.push(mkMixedArena(name, [frame]));
+  return { site, component, owner, param, tpl, frame };
 }
 async function setup(name = "Events") {
-  const data = siteFixture(name), f = fakeStudioCtx({ site: data.site, devFlagOverrides: { ccStubs: true } });
+  vi.spyOn(ViewCtx.prototype, "scheduleSync").mockImplementation(() => undefined); vi.spyOn(ViewCtx.prototype, "isVisible").mockReturnValue(false);
+  const data = siteFixture(name), f = fakeStudioCtx({ site: data.site, initialUrl: `/projects/test?arena_type=custom&arena=${name}`, devFlagOverrides: { ccStubs: true } });
   const studio = f.studioCtx; studios.add(studio);
   await waitFor(() => expect(studio.initialRouteReady).toBe(true));
   studio.observeComponents([data.component, data.owner]); studio.createViewStateUndoRecord();
-  const view = mock<ViewCtx>(), selection = new ViewSelection(() => studio.modelSnapshots);
-  selections.add(selection);
-  Object.defineProperties(view, { studioCtx: { value: studio }, selectionStore: { value: selection.store }, site: { get: () => studio.site } });
-  view.currentComponent.mockReturnValue(data.owner);
+  const view = ensure(studio.tryGetViewCtxForFrame(data.frame), "Event owner view");
   return { ...data, ...f, studio, view };
 }
 function editor(f: Awaited<ReturnType<typeof setup>>, key: EventHandlerKeyType, title = "Event editor") {
@@ -61,50 +58,50 @@ function editor(f: Awaited<ReturnType<typeof setup>>, key: EventHandlerKeyType, 
 
 it("consumes pending parameter requests before mount and repeats only after clearing", async () => {
   const f = await setup();
-  f.studio.newlyAddedEventHandlerKey = { param: f.param };
+  f.studio.setNewlyAddedEventHandlerKey({ param: f.param });
   const request = ensure(f.studio.newlyAddedEventHandlerKeyStore.getState(), "Pending event request");
   expect(Object.isFrozen(request)).toBe(true);
   expect("param" in request && request.param.uid).toBe(f.param.uid);
-  f.studio.newlyAddedEventHandlerKey = { param: f.param };
+  f.studio.setNewlyAddedEventHandlerKey({ param: f.param });
   expect(f.studio.newlyAddedEventHandlerKeyStore.getState()).toBe(request);
   render(editor(f, { param: f.param }));
   expect(await screen.findByRole("region", { name: "Event editor" })).toBeTruthy();
   expect(f.studio.newlyAddedEventHandlerKey).toBeUndefined();
   fireEvent.click(screen.getByRole("button", { name: "Close interaction" }));
-  act(() => { f.studio.newlyAddedEventHandlerKey = { param: f.param }; });
+  act(() => { f.studio.setNewlyAddedEventHandlerKey({ param: f.param }); });
   expect(await screen.findByRole("region", { name: "Event editor" })).toBeTruthy();
   expect(f.studio.newlyAddedEventHandlerKeyStore.getState()).toBeUndefined();
 });
 
 it("reads the latest layout-time request and detaches previous owners and unmounted editors", async () => {
   const first = await setup("First"), second = await setup("Second");
-  first.studio.newlyAddedEventHandlerKey = { attr: "onBlur" };
-  function ReplaceRequest() { React.useLayoutEffect(() => { first.studio.newlyAddedEventHandlerKey = { attr: "onClick" }; }, []); return null; }
+  first.studio.setNewlyAddedEventHandlerKey({ attr: "onBlur" });
+  function ReplaceRequest() { React.useLayoutEffect(() => { first.studio.setNewlyAddedEventHandlerKey({ attr: "onClick" }); }, []); return null; }
   const view = render(<>{editor(first, { attr: "onClick" })}<ReplaceRequest /></>);
   expect(await screen.findByRole("region", { name: "Event editor" })).toBeTruthy();
-  second.studio.newlyAddedEventHandlerKey = { attr: "onClick" };
+  second.studio.setNewlyAddedEventHandlerKey({ attr: "onClick" });
   view.rerender(editor(second, { attr: "onClick" }));
   expect(second.studio.newlyAddedEventHandlerKey).toBeUndefined();
-  act(() => { first.studio.newlyAddedEventHandlerKey = { attr: "onClick" }; });
+  act(() => { first.studio.setNewlyAddedEventHandlerKey({ attr: "onClick" }); });
   expect(first.studio.newlyAddedEventHandlerKey).toEqual({ attr: "onClick" });
   view.unmount();
-  second.studio.newlyAddedEventHandlerKey = { attr: "onClick" };
+  second.studio.setNewlyAddedEventHandlerKey({ attr: "onClick" });
   expect(second.studio.newlyAddedEventHandlerKey).toEqual({ attr: "onClick" });
 });
 
 it("keeps all canonical key branches and clears old refs before actual scope replacement and disposal", async () => {
   const f = await setup();
-  f.studio.newlyAddedEventHandlerKey = { attr: "onClick" };
+  f.studio.setNewlyAddedEventHandlerKey({ attr: "onClick" });
   const attr = f.studio.newlyAddedEventHandlerKeyStore.getState();
-  f.studio.newlyAddedEventHandlerKey = { attr: "onClick" };
+  f.studio.setNewlyAddedEventHandlerKey({ attr: "onClick" });
   expect(f.studio.newlyAddedEventHandlerKeyStore.getState()).toBe(attr);
   const functionKey = { funcType: ensureKnownFunctionType(f.param.type) };
-  f.studio.newlyAddedEventHandlerKey = functionKey;
+  f.studio.setNewlyAddedEventHandlerKey(functionKey);
   const generic = f.studio.newlyAddedEventHandlerKeyStore.getState();
   expect(f.studio.newlyAddedEventHandlerKey).toEqual(functionKey);
-  f.studio.newlyAddedEventHandlerKey = functionKey;
+  f.studio.setNewlyAddedEventHandlerKey(functionKey);
   expect(f.studio.newlyAddedEventHandlerKeyStore.getState()).toBe(generic);
-  f.studio.newlyAddedEventHandlerKey = { param: f.param };
+  f.studio.setNewlyAddedEventHandlerKey({ param: f.param });
   const pending = ensure(f.studio.newlyAddedEventHandlerKeyStore.getState(), "Pending parameter request");
   const oldModels = f.studio.modelSnapshots, resolved = vi.spyOn(oldModels, "resolve");
   const next = siteFixture("Replacement");
@@ -117,7 +114,7 @@ it("keeps all canonical key branches and clears old refs before actual scope rep
   expect(resolved.mock.calls.some(([ref]) => "param" in pending && ref === pending.param)).toBe(false);
   const tpl = ensureKnownTplComponent(ensure(f.studio.site.components.find((component) => component.name === "ReplacementOwner"), "Replacement owner").tplTree);
   const param = ensure(tpl.component.params.find((p) => p.variable.name === "onSubmit"), "Replacement event parameter");
-  f.studio.newlyAddedEventHandlerKey = { param };
+  f.studio.setNewlyAddedEventHandlerKey({ param });
   expect(f.studio.newlyAddedEventHandlerKey).toEqual({ param });
   f.studio.dispose(); studios.delete(f.studio);
   expect(f.studio.newlyAddedEventHandlerKeyStore.getState()).toBeUndefined();

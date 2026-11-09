@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,12 +24,12 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -98,11 +98,10 @@ function PlasmicDocsCollapsibleExplanation__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isExpanded",
@@ -111,18 +110,20 @@ function PlasmicDocsCollapsibleExplanation__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.isExpanded,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -256,12 +257,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -272,28 +269,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDocsCollapsibleExplanation__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDocsCollapsibleExplanation";
-  } else {
-    func.displayName = `PlasmicDocsCollapsibleExplanation.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDocsCollapsibleExplanation__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDocsCollapsibleExplanation__root<T extends PlasmicDocsCollapsibleExplanation__rootProps>(props: T & StrictProps<T, PlasmicDocsCollapsibleExplanation__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDocsCollapsibleExplanation__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDocsCollapsibleExplanation__root.displayName = "PlasmicDocsCollapsibleExplanation";
+
+type PlasmicDocsCollapsibleExplanation__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicDocsCollapsibleExplanation__freeBox<T extends PlasmicDocsCollapsibleExplanation__freeBoxProps>(props: T & StrictProps<T, PlasmicDocsCollapsibleExplanation__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicDocsCollapsibleExplanation__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicDocsCollapsibleExplanation__freeBox.displayName = "PlasmicDocsCollapsibleExplanation.freeBox";
+
+type PlasmicDocsCollapsibleExplanation__iconButtonProps = NodeComponentProps<"iconButton"> & {key?: React.Key};
+function PlasmicDocsCollapsibleExplanation__iconButton<T extends PlasmicDocsCollapsibleExplanation__iconButtonProps>(props: T & StrictProps<T, PlasmicDocsCollapsibleExplanation__iconButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconButton", props);
+  return <PlasmicDocsCollapsibleExplanation__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconButton"} />;
+}
+PlasmicDocsCollapsibleExplanation__iconButton.displayName = "PlasmicDocsCollapsibleExplanation.iconButton";
+
 
 export const PlasmicDocsCollapsibleExplanation = Object.assign(
   // Top-level PlasmicDocsCollapsibleExplanation renders the root element
-  makeNodeComponent("root"),
+  PlasmicDocsCollapsibleExplanation__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    iconButton: makeNodeComponent("iconButton"),
+    freeBox: PlasmicDocsCollapsibleExplanation__freeBox,
+    iconButton: PlasmicDocsCollapsibleExplanation__iconButton,
 
     // Metadata about props expected for PlasmicDocsCollapsibleExplanation
     internalVariantProps: PlasmicDocsCollapsibleExplanation__VariantProps,

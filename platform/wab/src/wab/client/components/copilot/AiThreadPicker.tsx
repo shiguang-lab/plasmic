@@ -1,3 +1,4 @@
+import { useAiSessionSnapshot } from "@/wab/client/copilot/ai-session-view";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import type { AiSessionView } from "@/wab/client/copilot/ai-session-view";
@@ -127,6 +128,7 @@ export function AiThreadPicker({
   onOpenChange?: (open: boolean) => void;
 }) {
   const { t, locale } = useI18n();
+  const view = useAiSessionSnapshot(session);
   const { styles } = useStyles();
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
@@ -136,7 +138,7 @@ export function AiThreadPicker({
     title: string;
   }>();
   const [saving, setSaving] = React.useState(false);
-  const title = session.activeThread?.title || t("New conversation");
+  const title = view.activeThread?.title || t("New conversation");
   React.useEffect(() => {
     onOpenChange?.(open && !disabled);
     return () => onOpenChange?.(false);
@@ -224,31 +226,31 @@ export function AiThreadPicker({
                     {t("Archived conversations")}
                   </Button>
                 </div>
-                <Spin spinning={session.threadListLoading} size="small">
+                <Spin spinning={view.threadListLoading} size="small">
                   <Scrollbar
                     className={styles.list}
                     scrollX={false}
                     defer={false}
                   >
-                    {session.threads.map((thread) => {
+                    {view.threads.map((thread) => {
                       const name =
                         thread.title ||
                         thread.draft?.slice(0, 60) ||
                         t("New conversation");
                       const running =
-                        session.activeRun?.threadId === thread.id ||
+                        view.activeRun?.threadId === thread.id ||
                         thread.lastTask?.status === "running";
                       return (
                         <div
                           key={thread.id}
                           className={styles.row}
-                          data-selected={thread.id === session.activeThreadId}
+                          data-selected={thread.id === view.activeThreadId}
                         >
                           <button
                             type="button"
                             className={styles.entry}
                             aria-current={
-                              thread.id === session.activeThreadId
+                              thread.id === view.activeThreadId
                                 ? "true"
                                 : undefined
                             }
@@ -337,7 +339,7 @@ export function AiThreadPicker({
                         </div>
                       );
                     })}
-                    {!session.threads.length && !session.threadListLoading && (
+                    {!view.threads.length && !view.threadListLoading && (
                       <Empty
                         image={Empty.PRESENTED_IMAGE_SIMPLE}
                         description={t("No conversations found")}
@@ -345,11 +347,11 @@ export function AiThreadPicker({
                     )}
                   </Scrollbar>
                 </Spin>
-                {session.threadListBefore && (
+                {view.threadListBefore && (
                   <Button
                     className={styles.more}
                     size="small"
-                    loading={session.threadListLoading}
+                    loading={view.threadListLoading}
                     onClick={() =>
                       void session.searchThreads(query, archived, true)
                     }
@@ -390,14 +392,14 @@ export function AiThreadPicker({
             return;
           }
           setSaving(true);
-          try {
+          return await (async () => {
             await session.updateThread(renaming.id, {
               title: renaming.title.trim(),
             });
             setRenaming(undefined);
-          } finally {
+          })().finally(() => {
             setSaving(false);
-          }
+          });
         }}
       >
         <Input
@@ -423,11 +425,12 @@ export function AiRunningNotice({
   onOpen?: () => void;
 }) {
   const { t } = useI18n();
-  const run = session.blockingTask;
-  if (!run || run.threadId === session.activeThreadId) {
+  const view = useAiSessionSnapshot(session);
+  const run = view.blockingTask;
+  if (!run || run.threadId === view.activeThreadId) {
     return null;
   }
-  const sameBranch = run.binding.branchId === session.branchId;
+  const sameBranch = run.binding.branchId === view.branchId;
   return (
     <div role="status" style={{ padding: "8px 0", fontSize: 12 }}>
       {t(

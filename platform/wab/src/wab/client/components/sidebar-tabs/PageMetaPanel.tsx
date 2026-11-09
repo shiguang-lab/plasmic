@@ -34,7 +34,6 @@ function PageMetaPanel(props: {
   viewCtx: ViewCtx;
   page: PageComponent;
 }) {
-  "use memo";
   const { t: uiT } = useI18n();
   const { page, viewCtx } = props;
   const sc = useStudioCtx();

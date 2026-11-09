@@ -2,7 +2,7 @@ import { isScreenVariant } from "@/wab/shared/Variants";
 import { flattenComponent } from "@/wab/shared/cached-selectors";
 import { NonCssScreenVariantOverrideLintIssue } from "@/wab/shared/linting/lint-types";
 import { lintIssuesEquals } from "@/wab/shared/linting/lint-utils";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import {
   Component,
   Site,
@@ -12,38 +12,23 @@ import {
 
 const TYPE = "non-css-screen-variant-override";
 
-export const lintScreenVariantOverrides = maybeComputedFn(
-  function lintScreenVariantOverrides(site: Site) {
+export const lintScreenVariantOverrides = memoizeModelQuery(function lintScreenVariantOverrides(site: Site) {
     const issues: NonCssScreenVariantOverrideLintIssue[] = [];
     for (const comp of site.components) {
       issues.push(...lintComponent(comp));
     }
     return issues;
-  },
-  {
-    keepAlive: false,
-    equals: lintIssuesEquals,
-    name: "lintScreenVariantOverrides",
-  },
-);
+  }, {equals: lintIssuesEquals});
 
-const lintComponent = maybeComputedFn(
-  function lintComponent(component: Component) {
+const lintComponent = memoizeModelQuery(function lintComponent(component: Component) {
     const issues: NonCssScreenVariantOverrideLintIssue[] = [];
     for (const tpl of flattenComponent(component)) {
       issues.push(...lintTpl(component, tpl));
     }
     return issues;
-  },
-  {
-    keepAlive: false,
-    equals: lintIssuesEquals,
-    name: "lintScreenVariantOverridesComponent",
-  },
-);
+  }, {equals: lintIssuesEquals});
 
-const lintTpl = maybeComputedFn(
-  function lintTpl(component: Component, tpl: TplNode) {
+const lintTpl = memoizeModelQuery(function lintTpl(component: Component, tpl: TplNode) {
     const issues: NonCssScreenVariantOverrideLintIssue[] = [];
     for (const vs of tpl.vsettings) {
       if (vs.variants.some((v) => isScreenVariant(v))) {
@@ -51,16 +36,9 @@ const lintTpl = maybeComputedFn(
       }
     }
     return issues;
-  },
-  {
-    keepAlive: false,
-    equals: lintIssuesEquals,
-    name: "lintScreenVariantOverridesTpl",
-  },
-);
+  }, {equals: lintIssuesEquals});
 
-const lintVs = maybeComputedFn(
-  function lintVs(component: Component, tpl: TplNode, vs: VariantSetting) {
+const lintVs = memoizeModelQuery(function lintVs(component: Component, tpl: TplNode, vs: VariantSetting) {
     const issues: NonCssScreenVariantOverrideLintIssue[] = [];
     for (const attr of Object.keys(vs.attrs)) {
       issues.push({
@@ -93,13 +71,7 @@ const lintVs = maybeComputedFn(
       });
     }
     return issues;
-  },
-  {
-    keepAlive: false,
-    equals: lintIssuesEquals,
-    name: "lintScreenVariantOverridesVs",
-  },
-);
+  }, {equals: lintIssuesEquals});
 
 function makeKeyPrefix(component: Component, tpl: TplNode, vs: VariantSetting) {
   return `${TYPE}-${component.uuid}-${tpl.uuid}-${vs.variants

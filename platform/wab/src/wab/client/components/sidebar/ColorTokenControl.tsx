@@ -6,7 +6,7 @@ import { ColorSwatch } from "@/wab/client/components/style-controls/ColorSwatch"
 import { TokenDefinedIndicator } from "@/wab/client/components/style-controls/TokenDefinedIndicator";
 import { Matcher } from "@/wab/client/components/view-common";
 import Checkbox from "@/wab/client/components/widgets/Checkbox";
-import { TriggerAnchor } from "@/wab/client/components/widgets/TriggerAnchor";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { PlasmicColorTokenControl } from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicColorTokenControl";
 import { StyleTokenValue } from "@/wab/commons/StyleToken";
@@ -52,40 +52,19 @@ function ColorTokenControl(props: ColorTokenControlProps) {
 
   return (
     <Tooltip title={tokenName} mouseEnterDelay={0.5}>
-      <TriggerAnchor>
-        {(ref, triggerProps) => (
-          <PlasmicColorTokenControl
-            {...triggerProps}
-            root={{ ref }}
-            icon={
-              <>
+      <TriggerTarget>
+<PlasmicColorTokenControl icon={<>
                 {/* Only mutable tokens can be multi-selected */}
-                {multiAssetsActions.isSelecting &&
-                token instanceof MutableToken ? (
-                  <Checkbox isChecked={isSelected}> </Checkbox>
-                ) : (
-                  <TokenDefinedIndicator
-                    token={token}
-                    vsh={vsh}
-                    studioCtx={studioCtx}
-                    className={classNames("mr-sm")}
-                    indicatorType={indicatorType}
-                  />
-                )}
+                {multiAssetsActions.isSelecting && token instanceof MutableToken ? <Checkbox isChecked={isSelected}> </Checkbox> : <TokenDefinedIndicator token={token} vsh={vsh} studioCtx={studioCtx} className={classNames("mr-sm")} indicatorType={indicatorType} />}
                 <ColorSwatch color={tokenValue} />
-              </>
-            }
-            value={matcher.boldSnippets(Chroma.stringify(tokenValue))}
-            rowItem={{
-              style,
-              menu,
-              onClick,
-            }}
-          >
+              </>} value={matcher.boldSnippets(Chroma.stringify(tokenValue))} rowItem={{
+  style,
+  menu,
+  onClick
+}}>
             {matcher.boldSnippets(tokenName)}
           </PlasmicColorTokenControl>
-        )}
-      </TriggerAnchor>
+</TriggerTarget>
     </Tooltip>
   );
 }

@@ -14,6 +14,7 @@
 import * as React from "react";
 
 import {
+  usePlasmicRefs,
   Flex as Flex__,
   PlasmicImg as PlasmicImg__,
   StrictProps,
@@ -88,9 +89,8 @@ function PlasmicFooterSocialIcon__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
   return (
     <EmailColumn
@@ -140,7 +140,7 @@ function PlasmicFooterSocialIcon__RenderFunc(props: {
             )}
             src={(() => {
               try {
-                return $props.logo?.src;
+                return $props.logo.src;
               } catch (e) {
                 if (
                   e instanceof TypeError ||
@@ -199,12 +199,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -214,28 +210,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicFooterSocialIcon__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicFooterSocialIcon";
-  } else {
-    func.displayName = `PlasmicFooterSocialIcon.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicFooterSocialIcon__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicFooterSocialIcon__root<T extends PlasmicFooterSocialIcon__rootProps>(props: T & StrictProps<T, PlasmicFooterSocialIcon__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicFooterSocialIcon__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicFooterSocialIcon__root.displayName = "PlasmicFooterSocialIcon";
+
+type PlasmicFooterSocialIcon__emailLinkProps = NodeComponentProps<"emailLink"> & {key?: React.Key};
+function PlasmicFooterSocialIcon__emailLink<T extends PlasmicFooterSocialIcon__emailLinkProps>(props: T & StrictProps<T, PlasmicFooterSocialIcon__emailLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emailLink", props);
+  return <PlasmicFooterSocialIcon__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emailLink"} />;
+}
+PlasmicFooterSocialIcon__emailLink.displayName = "PlasmicFooterSocialIcon.emailLink";
+
+type PlasmicFooterSocialIcon__emailImageProps = NodeComponentProps<"emailImage"> & {key?: React.Key};
+function PlasmicFooterSocialIcon__emailImage<T extends PlasmicFooterSocialIcon__emailImageProps>(props: T & StrictProps<T, PlasmicFooterSocialIcon__emailImageProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emailImage", props);
+  return <PlasmicFooterSocialIcon__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emailImage"} />;
+}
+PlasmicFooterSocialIcon__emailImage.displayName = "PlasmicFooterSocialIcon.emailImage";
+
 
 export const PlasmicFooterSocialIcon = Object.assign(
   // Top-level PlasmicFooterSocialIcon renders the root element
-  makeNodeComponent("root"),
+  PlasmicFooterSocialIcon__root,
   {
     // Helper components rendering sub-elements
-    emailLink: makeNodeComponent("emailLink"),
-    emailImage: makeNodeComponent("emailImage"),
+    emailLink: PlasmicFooterSocialIcon__emailLink,
+    emailImage: PlasmicFooterSocialIcon__emailImage,
 
     // Metadata about props expected for PlasmicFooterSocialIcon
     internalVariantProps: PlasmicFooterSocialIcon__VariantProps,

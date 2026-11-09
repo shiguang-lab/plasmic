@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicLink as PlasmicLink__,
   SingleBooleanChoiceArg,
   SingleChoiceArg,
@@ -25,15 +25,15 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import FreeTrial from "../../components/FreeTrial"; // plasmic-import: p3GgKAlaQe/component
 import NavButton from "../../components/dashboard/NavButton"; // plasmic-import: 82ZzbE4hazN/component
 import NavTeamSection from "../../components/dashboard/NavTeamSection"; // plasmic-import: VqaN_WL-stA/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -136,11 +136,10 @@ function PlasmicDefaultLayout__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "navigation",
@@ -156,20 +155,22 @@ function PlasmicDefaultLayout__RenderFunc(props: {
       },
     ],
 
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -646,12 +647,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -661,45 +658,173 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDefaultLayout__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDefaultLayout";
-  } else {
-    func.displayName = `PlasmicDefaultLayout.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDefaultLayout__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDefaultLayout__root<T extends PlasmicDefaultLayout__rootProps>(props: T & StrictProps<T, PlasmicDefaultLayout__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDefaultLayout__root.displayName = "PlasmicDefaultLayout";
+
+type PlasmicDefaultLayout__headerProps = NodeComponentProps<"header"> & {key?: React.Key};
+function PlasmicDefaultLayout__header<T extends PlasmicDefaultLayout__headerProps>(props: T & StrictProps<T, PlasmicDefaultLayout__headerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("header", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"header"} />;
+}
+PlasmicDefaultLayout__header.displayName = "PlasmicDefaultLayout.header";
+
+type PlasmicDefaultLayout__headerWrapperProps = NodeComponentProps<"headerWrapper"> & {key?: React.Key};
+function PlasmicDefaultLayout__headerWrapper<T extends PlasmicDefaultLayout__headerWrapperProps>(props: T & StrictProps<T, PlasmicDefaultLayout__headerWrapperProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("headerWrapper", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"headerWrapper"} />;
+}
+PlasmicDefaultLayout__headerWrapper.displayName = "PlasmicDefaultLayout.headerWrapper";
+
+type PlasmicDefaultLayout__headerLogoLinkProps = NodeComponentProps<"headerLogoLink"> & {key?: React.Key};
+function PlasmicDefaultLayout__headerLogoLink<T extends PlasmicDefaultLayout__headerLogoLinkProps>(props: T & StrictProps<T, PlasmicDefaultLayout__headerLogoLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("headerLogoLink", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"headerLogoLink"} />;
+}
+PlasmicDefaultLayout__headerLogoLink.displayName = "PlasmicDefaultLayout.headerLogoLink";
+
+type PlasmicDefaultLayout__headerLogoProps = NodeComponentProps<"headerLogo"> & {key?: React.Key};
+function PlasmicDefaultLayout__headerLogo<T extends PlasmicDefaultLayout__headerLogoProps>(props: T & StrictProps<T, PlasmicDefaultLayout__headerLogoProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("headerLogo", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"headerLogo"} />;
+}
+PlasmicDefaultLayout__headerLogo.displayName = "PlasmicDefaultLayout.headerLogo";
+
+type PlasmicDefaultLayout__headerActionsProps = NodeComponentProps<"headerActions"> & {key?: React.Key};
+function PlasmicDefaultLayout__headerActions<T extends PlasmicDefaultLayout__headerActionsProps>(props: T & StrictProps<T, PlasmicDefaultLayout__headerActionsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("headerActions", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"headerActions"} />;
+}
+PlasmicDefaultLayout__headerActions.displayName = "PlasmicDefaultLayout.headerActions";
+
+type PlasmicDefaultLayout__upgradeButtonProps = NodeComponentProps<"upgradeButton"> & {key?: React.Key};
+function PlasmicDefaultLayout__upgradeButton<T extends PlasmicDefaultLayout__upgradeButtonProps>(props: T & StrictProps<T, PlasmicDefaultLayout__upgradeButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("upgradeButton", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"upgradeButton"} />;
+}
+PlasmicDefaultLayout__upgradeButton.displayName = "PlasmicDefaultLayout.upgradeButton";
+
+type PlasmicDefaultLayout__freeTrialProps = NodeComponentProps<"freeTrial"> & {key?: React.Key};
+function PlasmicDefaultLayout__freeTrial<T extends PlasmicDefaultLayout__freeTrialProps>(props: T & StrictProps<T, PlasmicDefaultLayout__freeTrialProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeTrial", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeTrial"} />;
+}
+PlasmicDefaultLayout__freeTrial.displayName = "PlasmicDefaultLayout.freeTrial";
+
+type PlasmicDefaultLayout__wrapperProps = NodeComponentProps<"wrapper"> & {key?: React.Key};
+function PlasmicDefaultLayout__wrapper<T extends PlasmicDefaultLayout__wrapperProps>(props: T & StrictProps<T, PlasmicDefaultLayout__wrapperProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("wrapper", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"wrapper"} />;
+}
+PlasmicDefaultLayout__wrapper.displayName = "PlasmicDefaultLayout.wrapper";
+
+type PlasmicDefaultLayout__sidebarProps = NodeComponentProps<"sidebar"> & {key?: React.Key};
+function PlasmicDefaultLayout__sidebar<T extends PlasmicDefaultLayout__sidebarProps>(props: T & StrictProps<T, PlasmicDefaultLayout__sidebarProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sidebar", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sidebar"} />;
+}
+PlasmicDefaultLayout__sidebar.displayName = "PlasmicDefaultLayout.sidebar";
+
+type PlasmicDefaultLayout__navProps = NodeComponentProps<"nav"> & {key?: React.Key};
+function PlasmicDefaultLayout__nav<T extends PlasmicDefaultLayout__navProps>(props: T & StrictProps<T, PlasmicDefaultLayout__navProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("nav", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"nav"} />;
+}
+PlasmicDefaultLayout__nav.displayName = "PlasmicDefaultLayout.nav";
+
+type PlasmicDefaultLayout__allProjectsButtonProps = NodeComponentProps<"allProjectsButton"> & {key?: React.Key};
+function PlasmicDefaultLayout__allProjectsButton<T extends PlasmicDefaultLayout__allProjectsButtonProps>(props: T & StrictProps<T, PlasmicDefaultLayout__allProjectsButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("allProjectsButton", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"allProjectsButton"} />;
+}
+PlasmicDefaultLayout__allProjectsButton.displayName = "PlasmicDefaultLayout.allProjectsButton";
+
+type PlasmicDefaultLayout__spanProps = NodeComponentProps<"span"> & {key?: React.Key};
+function PlasmicDefaultLayout__span<T extends PlasmicDefaultLayout__spanProps>(props: T & StrictProps<T, PlasmicDefaultLayout__spanProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("span", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"span"} />;
+}
+PlasmicDefaultLayout__span.displayName = "PlasmicDefaultLayout.span";
+
+type PlasmicDefaultLayout__myProjectsButtonProps = NodeComponentProps<"myProjectsButton"> & {key?: React.Key};
+function PlasmicDefaultLayout__myProjectsButton<T extends PlasmicDefaultLayout__myProjectsButtonProps>(props: T & StrictProps<T, PlasmicDefaultLayout__myProjectsButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("myProjectsButton", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"myProjectsButton"} />;
+}
+PlasmicDefaultLayout__myProjectsButton.displayName = "PlasmicDefaultLayout.myProjectsButton";
+
+type PlasmicDefaultLayout__navFooterProps = NodeComponentProps<"navFooter"> & {key?: React.Key};
+function PlasmicDefaultLayout__navFooter<T extends PlasmicDefaultLayout__navFooterProps>(props: T & StrictProps<T, PlasmicDefaultLayout__navFooterProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("navFooter", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"navFooter"} />;
+}
+PlasmicDefaultLayout__navFooter.displayName = "PlasmicDefaultLayout.navFooter";
+
+type PlasmicDefaultLayout__newTeamButtonProps = NodeComponentProps<"newTeamButton"> & {key?: React.Key};
+function PlasmicDefaultLayout__newTeamButton<T extends PlasmicDefaultLayout__newTeamButtonProps>(props: T & StrictProps<T, PlasmicDefaultLayout__newTeamButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newTeamButton", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newTeamButton"} />;
+}
+PlasmicDefaultLayout__newTeamButton.displayName = "PlasmicDefaultLayout.newTeamButton";
+
+type PlasmicDefaultLayout__documentationButtonProps = NodeComponentProps<"documentationButton"> & {key?: React.Key};
+function PlasmicDefaultLayout__documentationButton<T extends PlasmicDefaultLayout__documentationButtonProps>(props: T & StrictProps<T, PlasmicDefaultLayout__documentationButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("documentationButton", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"documentationButton"} />;
+}
+PlasmicDefaultLayout__documentationButton.displayName = "PlasmicDefaultLayout.documentationButton";
+
+type PlasmicDefaultLayout__helpButtonProps = NodeComponentProps<"helpButton"> & {key?: React.Key};
+function PlasmicDefaultLayout__helpButton<T extends PlasmicDefaultLayout__helpButtonProps>(props: T & StrictProps<T, PlasmicDefaultLayout__helpButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("helpButton", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"helpButton"} />;
+}
+PlasmicDefaultLayout__helpButton.displayName = "PlasmicDefaultLayout.helpButton";
+
+type PlasmicDefaultLayout__userButtonProps = NodeComponentProps<"userButton"> & {key?: React.Key};
+function PlasmicDefaultLayout__userButton<T extends PlasmicDefaultLayout__userButtonProps>(props: T & StrictProps<T, PlasmicDefaultLayout__userButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("userButton", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"userButton"} />;
+}
+PlasmicDefaultLayout__userButton.displayName = "PlasmicDefaultLayout.userButton";
+
+type PlasmicDefaultLayout__mainProps = NodeComponentProps<"main"> & {key?: React.Key};
+function PlasmicDefaultLayout__main<T extends PlasmicDefaultLayout__mainProps>(props: T & StrictProps<T, PlasmicDefaultLayout__mainProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("main", props);
+  return <PlasmicDefaultLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"main"} />;
+}
+PlasmicDefaultLayout__main.displayName = "PlasmicDefaultLayout.main";
+
 
 export const PlasmicDefaultLayout = Object.assign(
   // Top-level PlasmicDefaultLayout renders the root element
-  makeNodeComponent("root"),
+  PlasmicDefaultLayout__root,
   {
     // Helper components rendering sub-elements
-    header: makeNodeComponent("header"),
-    headerWrapper: makeNodeComponent("headerWrapper"),
-    headerLogoLink: makeNodeComponent("headerLogoLink"),
-    headerLogo: makeNodeComponent("headerLogo"),
-    headerActions: makeNodeComponent("headerActions"),
-    upgradeButton: makeNodeComponent("upgradeButton"),
-    freeTrial: makeNodeComponent("freeTrial"),
-    wrapper: makeNodeComponent("wrapper"),
-    sidebar: makeNodeComponent("sidebar"),
-    nav: makeNodeComponent("nav"),
-    allProjectsButton: makeNodeComponent("allProjectsButton"),
-    span: makeNodeComponent("span"),
-    myProjectsButton: makeNodeComponent("myProjectsButton"),
-    navFooter: makeNodeComponent("navFooter"),
-    newTeamButton: makeNodeComponent("newTeamButton"),
-    documentationButton: makeNodeComponent("documentationButton"),
-    helpButton: makeNodeComponent("helpButton"),
-    userButton: makeNodeComponent("userButton"),
-    main: makeNodeComponent("main"),
+    header: PlasmicDefaultLayout__header,
+    headerWrapper: PlasmicDefaultLayout__headerWrapper,
+    headerLogoLink: PlasmicDefaultLayout__headerLogoLink,
+    headerLogo: PlasmicDefaultLayout__headerLogo,
+    headerActions: PlasmicDefaultLayout__headerActions,
+    upgradeButton: PlasmicDefaultLayout__upgradeButton,
+    freeTrial: PlasmicDefaultLayout__freeTrial,
+    wrapper: PlasmicDefaultLayout__wrapper,
+    sidebar: PlasmicDefaultLayout__sidebar,
+    nav: PlasmicDefaultLayout__nav,
+    allProjectsButton: PlasmicDefaultLayout__allProjectsButton,
+    span: PlasmicDefaultLayout__span,
+    myProjectsButton: PlasmicDefaultLayout__myProjectsButton,
+    navFooter: PlasmicDefaultLayout__navFooter,
+    newTeamButton: PlasmicDefaultLayout__newTeamButton,
+    documentationButton: PlasmicDefaultLayout__documentationButton,
+    helpButton: PlasmicDefaultLayout__helpButton,
+    userButton: PlasmicDefaultLayout__userButton,
+    main: PlasmicDefaultLayout__main,
 
     // Metadata about props expected for PlasmicDefaultLayout
     internalVariantProps: PlasmicDefaultLayout__VariantProps,

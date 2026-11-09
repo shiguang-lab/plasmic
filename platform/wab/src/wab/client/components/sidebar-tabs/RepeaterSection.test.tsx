@@ -11,25 +11,25 @@ import React from "react";
 import { createStore } from "zustand/vanilla";
 
 vi.mock("@/wab/client/components/style-controls/StyleComponent", () => {
-  class StyleComponent {}
+  class StyleTarget {}
   const passthrough = (value: any) => value;
   const Context = ({ children }: any) => children;
   return {
-    StyleComponent,
+    StyleTarget,
     TplExpsProvider: class {},
     SingleRsExpsProvider: class {},
     FlexControlHelper: class {},
     StylePanelSection: () => null,
     TabbedStylePanelSection: () => null,
     WithStyleContextMenu: () => null,
-    mkStyleComponent: () => ({}),
+    createStyleTarget: () => ({}),
     withStyleComponent: passthrough,
-    providesStyleComponent: () => passthrough,
-    useStyleComponent: () => ({}),
+    providesStyleTarget: () => passthrough,
+    useStyleTarget: () => ({}),
     getLabelForStyleName: (name: string) => name,
     createStyleContextMenu: () => null,
     makeMobxExpProxy: passthrough,
-    StyleComponentContext: { Provider: Context, Consumer: Context },
+    StyleTargetContext: { Provider: Context, Consumer: Context },
     SidebarPopupSettingContext: { Provider: Context, Consumer: Context },
     providesSidebarPopupSetting: () => passthrough,
     withSidebarPopupSetting: passthrough,

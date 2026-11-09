@@ -4249,8 +4249,7 @@ describe("merging", () => {
         // we can still force to trigger this behavior by having a child of
         // a text tpl with no markers pointing to it.
         // The main point of this test is to make sure the general mechanism to
-        // detect weak references to instances that have never been observed
-        // by mobx works (e.g., ensure that if observable-model fails to detect
+        // detect weak references to instances outside native model recording works (e.g., ensure that if observable-model fails to detect
         // it and `ChangeRecorder.getDeletedInstsWithDanglingRefs` always
         // returns an empty set will make this test fail).
         variantSetting.text = new RawText({

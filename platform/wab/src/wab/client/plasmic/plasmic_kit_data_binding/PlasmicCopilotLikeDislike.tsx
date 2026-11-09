@@ -13,42 +13,7 @@
 
 import * as React from "react";
 
-import {
-  Flex as Flex__,
-  MultiChoiceArg,
-  PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
-  PlasmicIcon as PlasmicIcon__,
-  PlasmicImg as PlasmicImg__,
-  PlasmicLink as PlasmicLink__,
-  PlasmicPageGuard as PlasmicPageGuard__,
-  SingleBooleanChoiceArg,
-  SingleChoiceArg,
-  Stack as Stack__,
-  StrictProps,
-  Trans as Trans__,
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  ensureGlobalVariants,
-  generateOnMutateForSpec,
-  generateStateOnChangeProp,
-  generateStateOnChangePropForCodeComponents,
-  generateStateValueProp,
-  get as $stateGet,
-  hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
-  makeFragment,
-  omit,
-  pick,
-  renderPlasmicSlot,
-  set as $stateSet,
-  useCurrentUser,
-  useDollarState,
-  usePlasmicTranslator,
-  useTrigger,
-  wrapWithClassName
-} from "@plasmicapp/react-web";
+import {usePlasmicRefs, Flex as Flex__, MultiChoiceArg, PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__, PlasmicIcon as PlasmicIcon__, PlasmicImg as PlasmicImg__, PlasmicLink as PlasmicLink__, PlasmicPageGuard as PlasmicPageGuard__, SingleBooleanChoiceArg, SingleChoiceArg, Stack as Stack__, StrictProps, Trans as Trans__, classNames, createPlasmicElementProxy, deriveRenderOpts, ensureGlobalVariants, generateOnMutateForSpec, generateStateOnChangeProp, generateStateOnChangePropForCodeComponents, generateStateValueProp, get as $stateGet, hasVariant, makeFragment, omit, pick, renderPlasmicSlot, set as $stateSet, useCurrentUser, useDollarState, useDollarStateSnapshot, usePlasmicTranslator, wrapWithClassName} from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
@@ -56,8 +21,8 @@ import {
 } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -121,11 +86,10 @@ function PlasmicCopilotLikeDislike__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "state",
@@ -134,18 +98,20 @@ function PlasmicCopilotLikeDislike__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.state
       }
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs
-  });
+    getRefs
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -254,12 +220,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -269,28 +231,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCopilotLikeDislike__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCopilotLikeDislike";
-  } else {
-    func.displayName = `PlasmicCopilotLikeDislike.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCopilotLikeDislike__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCopilotLikeDislike__root<T extends PlasmicCopilotLikeDislike__rootProps>(props: T & StrictProps<T, PlasmicCopilotLikeDislike__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCopilotLikeDislike__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCopilotLikeDislike__root.displayName = "PlasmicCopilotLikeDislike";
+
+type PlasmicCopilotLikeDislike__likeBtnProps = NodeComponentProps<"likeBtn"> & {key?: React.Key};
+function PlasmicCopilotLikeDislike__likeBtn<T extends PlasmicCopilotLikeDislike__likeBtnProps>(props: T & StrictProps<T, PlasmicCopilotLikeDislike__likeBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("likeBtn", props);
+  return <PlasmicCopilotLikeDislike__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"likeBtn"} />;
+}
+PlasmicCopilotLikeDislike__likeBtn.displayName = "PlasmicCopilotLikeDislike.likeBtn";
+
+type PlasmicCopilotLikeDislike__dislikeBtnProps = NodeComponentProps<"dislikeBtn"> & {key?: React.Key};
+function PlasmicCopilotLikeDislike__dislikeBtn<T extends PlasmicCopilotLikeDislike__dislikeBtnProps>(props: T & StrictProps<T, PlasmicCopilotLikeDislike__dislikeBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dislikeBtn", props);
+  return <PlasmicCopilotLikeDislike__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dislikeBtn"} />;
+}
+PlasmicCopilotLikeDislike__dislikeBtn.displayName = "PlasmicCopilotLikeDislike.dislikeBtn";
+
 
 export const PlasmicCopilotLikeDislike = Object.assign(
   // Top-level PlasmicCopilotLikeDislike renders the root element
-  makeNodeComponent("root"),
+  PlasmicCopilotLikeDislike__root,
   {
     // Helper components rendering sub-elements
-    likeBtn: makeNodeComponent("likeBtn"),
-    dislikeBtn: makeNodeComponent("dislikeBtn"),
+    likeBtn: PlasmicCopilotLikeDislike__likeBtn,
+    dislikeBtn: PlasmicCopilotLikeDislike__dislikeBtn,
 
     // Metadata about props expected for PlasmicCopilotLikeDislike
     internalVariantProps: PlasmicCopilotLikeDislike__VariantProps,

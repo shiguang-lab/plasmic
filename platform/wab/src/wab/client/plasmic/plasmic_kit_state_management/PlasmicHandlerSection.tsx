@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,7 +23,7 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -31,7 +31,7 @@ import ActionBuilder from "../../components/sidebar-tabs/StateManagement/ActionB
 import LabeledItem from "../../components/sidebar-tabs/StateManagement/LabeledItem"; // plasmic-import: EmZVqVuGE1/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -111,11 +111,10 @@ function PlasmicHandlerSection__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isCollapsed",
@@ -145,18 +144,20 @@ function PlasmicHandlerSection__RenderFunc(props: {
           $props.isEditingActionName,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -435,12 +436,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -450,27 +447,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicHandlerSection__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicHandlerSection";
-  } else {
-    func.displayName = `PlasmicHandlerSection.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicHandlerSection__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicHandlerSection__root<T extends PlasmicHandlerSection__rootProps>(props: T & StrictProps<T, PlasmicHandlerSection__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicHandlerSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicHandlerSection__root.displayName = "PlasmicHandlerSection";
+
+type PlasmicHandlerSection__addBtnProps = NodeComponentProps<"addBtn"> & {key?: React.Key};
+function PlasmicHandlerSection__addBtn<T extends PlasmicHandlerSection__addBtnProps>(props: T & StrictProps<T, PlasmicHandlerSection__addBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addBtn", props);
+  return <PlasmicHandlerSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addBtn"} />;
+}
+PlasmicHandlerSection__addBtn.displayName = "PlasmicHandlerSection.addBtn";
+
 
 export const PlasmicHandlerSection = Object.assign(
   // Top-level PlasmicHandlerSection renders the root element
-  makeNodeComponent("root"),
+  PlasmicHandlerSection__root,
   {
     // Helper components rendering sub-elements
-    addBtn: makeNodeComponent("addBtn"),
+    addBtn: PlasmicHandlerSection__addBtn,
 
     // Metadata about props expected for PlasmicHandlerSection
     internalVariantProps: PlasmicHandlerSection__VariantProps,

@@ -26,13 +26,14 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { Video } from "@plasmicpkgs/plasmic-basic-components";
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -123,11 +124,10 @@ function PlasmicAddDrawerCardItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "focused",
@@ -155,23 +155,25 @@ function PlasmicAddDrawerCardItem__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props._new,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -297,19 +299,8 @@ function PlasmicAddDrawerCardItem__RenderFunc(props: {
             displayWidth={"auto"}
             height={``}
             loading={"lazy"}
-            src={(() => {
-              try {
-                return $props.previewImageUrl;
-              } catch (e) {
-                if (
-                  e instanceof TypeError ||
-                  e?.plasmicType === "PlasmicUndefinedDataError"
-                ) {
-                  return undefined;
-                }
-                throw e;
-              }
-            })()}
+            src={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                  e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.previewImageUrl), () => (undefined))}
             width={``}
           />
 
@@ -328,9 +319,7 @@ function PlasmicAddDrawerCardItem__RenderFunc(props: {
             loop={true}
             muted={true}
             playsInline={true}
-            ref={(ref) => {
-              $refs["htmlVideo"] = ref;
-            }}
+            ref={registerRef("htmlVideo")}
             src={$props.previewVideoUrl}
           />
         </div>
@@ -394,19 +383,8 @@ function PlasmicAddDrawerCardItem__RenderFunc(props: {
       >
         <div className={classNames("all", "__wab_text", sty.text__swHcI)}>
           <React.Fragment>
-            {(() => {
-              try {
-                return $props.hoverText;
-              } catch (e) {
-                if (
-                  e instanceof TypeError ||
-                  e?.plasmicType === "PlasmicUndefinedDataError"
-                ) {
-                  return "Install package";
-                }
-                throw e;
-              }
-            })()}
+            {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                  e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.hoverText), () => ("Install package"))}
           </React.Fragment>
         </div>
       </div>
@@ -456,12 +434,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -471,29 +445,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicAddDrawerCardItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicAddDrawerCardItem";
-  } else {
-    func.displayName = `PlasmicAddDrawerCardItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicAddDrawerCardItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicAddDrawerCardItem__root<T extends PlasmicAddDrawerCardItem__rootProps>(props: T & StrictProps<T, PlasmicAddDrawerCardItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicAddDrawerCardItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicAddDrawerCardItem__root.displayName = "PlasmicAddDrawerCardItem";
+
+type PlasmicAddDrawerCardItem__imgProps = NodeComponentProps<"img"> & {key?: React.Key};
+function PlasmicAddDrawerCardItem__img<T extends PlasmicAddDrawerCardItem__imgProps>(props: T & StrictProps<T, PlasmicAddDrawerCardItem__imgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("img", props);
+  return <PlasmicAddDrawerCardItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"img"} />;
+}
+PlasmicAddDrawerCardItem__img.displayName = "PlasmicAddDrawerCardItem.img";
+
+type PlasmicAddDrawerCardItem__htmlVideoProps = NodeComponentProps<"htmlVideo"> & {key?: React.Key};
+function PlasmicAddDrawerCardItem__htmlVideo<T extends PlasmicAddDrawerCardItem__htmlVideoProps>(props: T & StrictProps<T, PlasmicAddDrawerCardItem__htmlVideoProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("htmlVideo", props);
+  return <PlasmicAddDrawerCardItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"htmlVideo"} />;
+}
+PlasmicAddDrawerCardItem__htmlVideo.displayName = "PlasmicAddDrawerCardItem.htmlVideo";
+
+type PlasmicAddDrawerCardItem__titleBoxProps = NodeComponentProps<"titleBox"> & {key?: React.Key};
+function PlasmicAddDrawerCardItem__titleBox<T extends PlasmicAddDrawerCardItem__titleBoxProps>(props: T & StrictProps<T, PlasmicAddDrawerCardItem__titleBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("titleBox", props);
+  return <PlasmicAddDrawerCardItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"titleBox"} />;
+}
+PlasmicAddDrawerCardItem__titleBox.displayName = "PlasmicAddDrawerCardItem.titleBox";
+
 
 export const PlasmicAddDrawerCardItem = Object.assign(
   // Top-level PlasmicAddDrawerCardItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicAddDrawerCardItem__root,
   {
     // Helper components rendering sub-elements
-    img: makeNodeComponent("img"),
-    htmlVideo: makeNodeComponent("htmlVideo"),
-    titleBox: makeNodeComponent("titleBox"),
+    img: PlasmicAddDrawerCardItem__img,
+    htmlVideo: PlasmicAddDrawerCardItem__htmlVideo,
+    titleBox: PlasmicAddDrawerCardItem__titleBox,
 
     // Metadata about props expected for PlasmicAddDrawerCardItem
     internalVariantProps: PlasmicAddDrawerCardItem__VariantProps,

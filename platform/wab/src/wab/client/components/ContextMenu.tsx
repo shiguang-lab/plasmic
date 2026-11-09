@@ -97,94 +97,46 @@ interface ContextMenuProps {
   onHide: () => void;
 }
 
-export default class ContextMenu extends React.Component<ContextMenuProps, {}> {
-  private root: HTMLElement;
-  private container: HTMLElement;
-
-  private onWheel: (e: Event) => void;
-
-  constructor(props: ContextMenuProps) {
-    super(props);
-    this.root = document.getElementsByTagName("body")[0];
-    this.container = document.createElement("div");
-    this.onWheel = (e) => {
-      // On scroll, only hide the context menu if we're scrolling outside the
-      // context menu
-      const shouldCloseOnScroll =
-        e.type === plasmicIFrameWheelEvent ||
-        (e.target instanceof HTMLElement &&
-          !hasAncestorElement(e.target, (x) =>
-            x.className.includes("ant-dropdown"),
-          ));
-      if (shouldCloseOnScroll && !e.cancelBubble) {
-        this.props.onHide();
-      }
+export default function ContextMenu({ overlay, pageX, pageY, onHide }: ContextMenuProps) {
+  const [container, setContainer] = React.useState<HTMLDivElement | null>(null);
+  const dismiss = React.useEffectEvent(onHide);
+  React.useLayoutEffect(() => {
+    const portal = document.createElement("div");
+    document.body.appendChild(portal);
+    setContainer(portal);
+    let closeTask: ReturnType<typeof setTimeout> | undefined;
+    const onClick = () => {
+      if (closeTask !== undefined) { clearTimeout(closeTask); }
+      // Let the selected item's action run before dismissing its portal.
+      closeTask = setTimeout(() => dismiss(), 0);
     };
-  }
-
-  componentDidMount() {
-    this.root.appendChild(this.container);
-
-    document.addEventListener("keydown", this.onDocumentKeyDown);
-    document.addEventListener("click", this.onClick, { capture: true });
-    document.addEventListener("wheel", this.onWheel);
-    document.addEventListener(plasmicIFrameWheelEvent, this.onWheel);
-  }
-
-  componentWillUnmount() {
-    this.root.removeChild(this.container);
-
-    document.removeEventListener("keydown", this.onDocumentKeyDown);
-    document.removeEventListener("wheel", this.onWheel);
-    document.removeEventListener("click", this.onClick, { capture: true });
-    document.removeEventListener(plasmicIFrameWheelEvent, this.onWheel);
-  }
-
-  // We need to do this because in React 17, something in rc-dropdown stops propagating the click events.
-  // Also if we immediately call onHide then the actual menu item action won't have a chance to fire *its* onClick, so
-  // we wait to hide until after everything is done (since this is firing in the capture phase).
-  //
-  // This whole anomaly happens only in the main canvas right-clicks.
-  onClick = () => {
-    setTimeout(() => this.props.onHide?.(), 0);
-  };
-
-  onDocumentKeyDown = (e: KeyboardEvent) => {
-    // noinspection JSDeprecatedSymbols
-    if (e.keyCode === 27 /* ESCAPE */) {
-      this.props.onHide();
-    }
-  };
-
-  onDropdownVisible = (visible?: boolean) => {
-    if (!visible) {
-      this.props.onHide();
-    }
-  };
-
-  render() {
-    const popup = (
-      <Dropdown
-        open={true}
-        onOpenChange={this.onDropdownVisible}
-        popupRender={() =>
-          typeof this.props.overlay === "function"
-            ? this.props.overlay()
-            : this.props.overlay
-        }
-        trigger={["click"]}
-      >
-        <div
-          className={styles.ContextMenu}
-          style={{
-            left: `${this.props.pageX}px`,
-            top: `${this.props.pageY}px`,
-          }}
-        />
-      </Dropdown>
-    );
-    return ReactDOM.createPortal(popup, this.container);
-  }
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") { dismiss(); } };
+    const onWheel = (event: Event) => {
+      const outside = event.type === plasmicIFrameWheelEvent ||
+        (event.target instanceof HTMLElement && !hasAncestorElement(event.target, (element) => element.className.includes("ant-dropdown")));
+      if (outside && !event.cancelBubble) { dismiss(); }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("click", onClick, true);
+    document.addEventListener("wheel", onWheel);
+    document.addEventListener(plasmicIFrameWheelEvent, onWheel);
+    return () => {
+      if (closeTask !== undefined) { clearTimeout(closeTask); }
+      document.removeEventListener("keydown", onKeyDown);
+      document.removeEventListener("click", onClick, true);
+      document.removeEventListener("wheel", onWheel);
+      document.removeEventListener(plasmicIFrameWheelEvent, onWheel);
+      portal.remove();
+    };
+  }, []);
+  if (!container) { return null; }
+  return ReactDOM.createPortal(
+    <Dropdown open={true} onOpenChange={(visible) => { if (!visible) { onHide(); } }}
+      popupRender={() => typeof overlay === "function" ? overlay() : overlay} trigger={["click"]}>
+      <div className={styles.ContextMenu} style={{ left: `${pageX}px`, top: `${pageY}px` }} />
+    </Dropdown>,
+    container,
+  );
 }
 
 interface WithContextMenuProps {
@@ -196,62 +148,27 @@ interface WithContextMenuProps {
   as?: React.ElementType;
   onClick?: (e: React.MouseEvent) => void;
 }
-interface WithContextMenuState {
-  event?: MouseEvent;
-}
-
-/**
- * Component that wraps its children in a div that captures onContextMenu and
- * displays the overlay context menu in props.
- */
-export class WithContextMenu extends React.Component<
-  WithContextMenuProps,
-  WithContextMenuState
-> {
-  constructor(props: WithContextMenuProps) {
-    super(props);
-    this.state = {};
-  }
-  render() {
-    const { overlay, children, as, ...rest } = this.props;
-    if (!overlay) {
-      return React.createElement(as || "div", rest, children);
-    } else {
-      return React.createElement(
-        as || "div",
-        { ...rest, onContextMenu: this.onContextMenu },
-        children,
-        this.state.event && (
-          <ContextMenu
-            pageX={this.state.event.pageX}
-            pageY={this.state.event.pageY}
-            overlay={this.createMenu()}
-            onHide={this.onHide}
-          />
-        ),
-      );
-    }
-  }
-
-  private onContextMenu = (event: React.MouseEvent) => {
-    this.setState({ event: event.nativeEvent });
-    event.preventDefault();
-  };
-
-  private onHide = () => {
-    this.setState({ event: undefined });
-  };
-
-  private createMenu = () => {
-    const overlay = ensure(this.props.overlay, "Only called if overlay exists");
-    const menu = L.isFunction(overlay) ? overlay() : overlay;
+/** Owns the context menu for this mounted trigger. */
+export function WithContextMenu({ overlay, children, as, ...rest }: WithContextMenuProps) {
+  const [position, setPosition] = React.useState<{ pageX: number; pageY: number }>();
+  const hide = React.useCallback(() => setPosition(undefined), []);
+  const createMenu = () => {
+    const value = ensure(overlay, "Only called if overlay exists");
+    const menu = L.isFunction(value) ? value() : value;
     return React.cloneElement(menu, {
       onClick: (param) => {
-        if (menu.props.onClick) {
-          menu.props.onClick(param);
-        }
-        this.setState({ event: undefined });
+        menu.props.onClick?.(param);
+        hide();
       },
     });
   };
+  const Element = as || "div";
+  if (!overlay) { return <Element {...rest}>{children}</Element>; }
+  return <Element {...rest} onContextMenu={(event: React.MouseEvent) => {
+    event.preventDefault();
+    setPosition({ pageX: event.pageX, pageY: event.pageY });
+  }}>
+    {children}
+    {position && <ContextMenu {...position} overlay={createMenu} onHide={hide} />}
+  </Element>;
 }

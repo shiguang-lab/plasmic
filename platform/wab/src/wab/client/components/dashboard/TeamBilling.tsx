@@ -100,13 +100,13 @@ function TeamBilling_(props: TeamBillingProps, ref: HTMLElementRefOf<"div">) {
   }, [form, team.id, team.billingEmail]);
   const run = async (name: string, action: () => Promise<void>) => {
     setOperation(name);
-    try {
+    return await (async () => {
       await action();
-    } catch (error) {
+    })().catch(async (error) => {
       showError(error, { title: "Failed to update billing" });
-    } finally {
+    }).finally(() => {
       setOperation(null);
-    }
+    });
   };
   const [billingFreq, setBillingFreq] = React.useState<BillingFrequency>(
     team.billingFrequency ?? "year",

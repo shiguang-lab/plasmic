@@ -9,9 +9,9 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import { observable, runInAction } from "mobx";
 import * as React from "react";
 import { createStore } from "zustand/vanilla";
+import { useStore } from "zustand";
 
 const fixture = vi.hoisted(() => ({
   ctx: undefined as any,
@@ -58,7 +58,7 @@ vi.mock(
             <button
               key={name}
               onClick={() => {
-                runInAction(() => (fixture.ctx.currentArena = name));
+                (() => (fixture.ctx.currentArena = name))();
                 onClose();
               }}
             >
@@ -70,17 +70,12 @@ vi.mock(
     ),
   }),
 );
-vi.mock("@/wab/client/components/sidebar-tabs/outline-tab", async () => {
-  const { observer } = await import("mobx-react");
-  return {
-    OutlineTab: observer(() => (
-      <div>
-        <span>{fixture.ctx.currentArena} layers</span>
-        <input aria-label="Layer search" />
-      </div>
-    )),
-  };
-});
+vi.mock("@/wab/client/components/sidebar-tabs/outline-tab", () => ({
+  OutlineTab: () => {
+    const arena = useStore(fixture.ctx.arenaStore) as string;
+    return <div><span>{arena} layers</span><input aria-label="Layer search" /></div>;
+  },
+}));
 
 beforeAll(() => {
   vi.stubGlobal(
@@ -103,11 +98,13 @@ beforeEach(() => {
   );
   const leftPanelState = new StudioLeftPanelState();
   leftPanelState.setPanel({ type: "tab", tab: "outline" });
-  fixture.ctx = observable(
-    {
+  const arenaStore = createStore(() => "Artboard group");
+  fixture.ctx = ({
       navigationPanelStore,
       leftPanelState,
-      currentArena: "Artboard group",
+      arenaStore,
+      get currentArena() { return arenaStore.getState(); },
+      set currentArena(value: string) { arenaStore.setState(value, true); },
       projectSearchInputRef: React.createRef<HTMLInputElement>(),
       setNavigationPanel(panel: "pages" | "outline") {
         navigationPanelStore.setState(panel, true);
@@ -115,13 +112,7 @@ beforeEach(() => {
       focusOnProjectSearchInput: vi.fn(() =>
         fixture.ctx.projectSearchInputRef.current?.focus(),
       ),
-    },
-    {
-      leftPanelState: observable.ref,
-      projectSearchInputRef: observable.ref,
-      focusOnProjectSearchInput: false,
-    },
-  );
+    });
 });
 afterEach(cleanup);
 

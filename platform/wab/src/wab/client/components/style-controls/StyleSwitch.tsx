@@ -29,10 +29,10 @@ function StyleSwitch_(
     ref,
   );
 
-  plasmicProps.variants.valueSetState = undefined;
   let content = (
     <PlasmicStyleSwitch
       {...plasmicProps}
+      variants={{ ...plasmicProps.variants, valueSetState: undefined }}
       root={{
         style: undefined,
         "data-plasmic-prop": props["data-plasmic-prop"],

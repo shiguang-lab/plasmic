@@ -16,6 +16,12 @@ import { act, cleanup, render } from "@testing-library/react";
 import React from "react";
 import { mockDeep } from "vitest-mock-extended";
 import { useStore } from "zustand";
+import { createTranspiler } from "@/wab/client/components/live/preview-transpiler";
+import * as compilerRuntime from "react/compiler-runtime";
+import { createRoot } from "react-dom/client";
+import { createLiveRuntime } from "../../../../../../live-frame/src/runtime";
+import fs from "fs";
+import path from "path";
 
 function fixture() {
   const site = createSite();
@@ -380,4 +386,44 @@ it("owns multi-variant selections without retaining the caller's mutable array",
   ctx.setComponentToggle(first, group.param, selected);
   expect(snapshot.toggles.get(group.param)).toEqual([option]);
   expect(ctx.getComponentToggle(first, group.param)).toEqual([option, other]);
+});
+
+it.each(["codegen", "loader"] as const)("strictly compiles the Docs %s wrapper and preserves metadata, props and refs", async (mode) => {
+  const docsPreviewSource = fs.readFileSync(path.join(__dirname, "serialize-docs-preview.ts"), "utf8");
+  const start = docsPreviewSource.indexOf("function PlasmicComponent(");
+  const end = docsPreviewSource.indexOf("export function __run()", start);
+  expect(start).toBeGreaterThanOrEqual(0);
+  expect(end).toBeGreaterThan(start);
+  const wrapper = docsPreviewSource.slice(start, end);
+  const element = mode === "loader" ? '<PlasmicComponent component="Target" componentProps={props}/>' : '<Target {...props}/>';
+  const source = `import React from "react"; import Target from "test-target";
+    const componentsMap = {Target};
+    ${wrapper}
+    export function __run(props) { return <section data-plume={PlasmicComponent.getPlumeType({component:"Target"})}>${element}</section>; }`;
+  const transpile = createTranspiler();
+  const oldSource = source.replace("const Component = componentsMap[component];\n  return <Component {...componentProps} />;", "return React.createElement(componentsMap[component], componentProps);");
+  expect(oldSource).not.toBe(source);
+  await expect(transpile({name: "./old-docs.tsx", lang: "tsx", source: oldSource})).rejects.toThrow("React Compiler did not compile PlasmicComponent");
+  const compiled = await transpile({name: "./docs.tsx", lang: "tsx", source});
+  expect(compiled.type).toBe("code");
+  if (compiled.type === "code") { expect(compiled.code).toContain("react/compiler-runtime"); }
+  const Target = Object.assign(React.forwardRef<HTMLButtonElement, {label: string}>((props, ref) => <button ref={ref}>{props.label}</button>), {__plumeType: "target-contract"});
+  const runtime = createLiveRuntime({react: React, "react/compiler-runtime": compilerRuntime, "test-target": {__esModule: true, default: Target}});
+  runtime.update([compiled]);
+  const container = document.createElement("div");
+  document.body.append(container);
+  const root = createRoot(container);
+  const targetRef = React.createRef<HTMLButtonElement>();
+  try {
+    for (const label of ["initial", "edited"]) {
+      await act(async () => { root.render(runtime.require("./docs.tsx").__run({label, ref: targetRef})); });
+      expect(container.querySelector("button")?.textContent).toBe(label);
+      expect(targetRef.current).toBe(container.querySelector("button"));
+      expect(container.querySelector("section")?.getAttribute("data-plume")).toBe("target-contract");
+    }
+  } finally {
+    act(() => { root.unmount(); });
+    expect(targetRef.current).toBeNull();
+    container.remove();
+  }
 });

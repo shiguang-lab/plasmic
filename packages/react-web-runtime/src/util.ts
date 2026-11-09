@@ -10,6 +10,7 @@ export function jsxShim(
   props: any,
   key?: React.Key | null
 ) {
+  const hasChildren = props != null && Object.prototype.hasOwnProperty.call(props, "children");
   const { children, ...restProps } = props ?? {};
   if (key !== undefined) {
     restProps.key = key;
@@ -17,6 +18,6 @@ export function jsxShim(
   return createPlasmicElementProxy(
     type,
     restProps,
-    ...(Array.isArray(children) ? children : [children])
+    ...(hasChildren ? [children] : [])
   );
 }

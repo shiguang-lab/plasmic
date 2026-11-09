@@ -26,7 +26,7 @@ import {
   replaceVarWithProp,
   transformDataTokensInExpr,
 } from "@/wab/shared/eval/expression-parser";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import {
   Component,
   ComponentDataQuery,
@@ -538,15 +538,13 @@ function findQueryInvalidationExprs(site: Site) {
   );
 }
 
-export const findQueryInvalidationRefs = maybeComputedFn(
-  function findQueryInvalidationRefs(site: Site): QueryRef[] {
+export const findQueryInvalidationRefs = memoizeModelQuery(function findQueryInvalidationRefs(site: Site): QueryRef[] {
     return findQueryInvalidationExprs(site).flatMap((expr) =>
       expr.invalidationQueries.filter(
         (queryRef): queryRef is QueryRef => !isString(queryRef),
       ),
     );
-  },
-);
+  });
 
 /**
  * Number of references that may read the legacy `query`. `$queries.<name>` in its

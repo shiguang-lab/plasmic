@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicLink as PlasmicLink__,
   SingleBooleanChoiceArg,
   SingleChoiceArg,
@@ -28,7 +28,7 @@ import {
   generateStateValueProp,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -37,7 +37,7 @@ import WebhooksHistory from "../../components/webhooks/WebhooksHistory"; // plas
 import WebhooksItem from "../../components/webhooks/WebhooksItem"; // plasmic-import: mSgnlB96I5A/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Checkbox from "../../components/widgets/Checkbox"; // plasmic-import: W-rO7NZqPjZ/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -116,11 +116,10 @@ function PlasmicSubsectionWebhooks__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "collapse",
@@ -141,18 +140,20 @@ function PlasmicSubsectionWebhooks__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -209,9 +210,9 @@ function PlasmicSubsectionWebhooks__RenderFunc(props: {
                   generateStateValueProp($state, ["checkbox", "isChecked"]) ??
                   false
                 }
-                onChange={async (...eventArgs: any) => {
+                onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                   ((...eventArgs) => {
-                    generateStateOnChangeProp($state, [
+                    generateStateOnChangeProp($stateCommands, [
                       "checkbox",
                       "isChecked",
                     ])(eventArgs[0]);
@@ -224,7 +225,7 @@ function PlasmicSubsectionWebhooks__RenderFunc(props: {
                   ) {
                     return;
                   }
-                }}
+                })); })}
               />
             ) : null}
             {(hasVariant($state, "view", "status") ? true : false) ? (
@@ -590,12 +591,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -605,33 +602,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSubsectionWebhooks__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSubsectionWebhooks";
-  } else {
-    func.displayName = `PlasmicSubsectionWebhooks.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSubsectionWebhooks__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSubsectionWebhooks__root<T extends PlasmicSubsectionWebhooks__rootProps>(props: T & StrictProps<T, PlasmicSubsectionWebhooks__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSubsectionWebhooks__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSubsectionWebhooks__root.displayName = "PlasmicSubsectionWebhooks";
+
+type PlasmicSubsectionWebhooks__checkboxProps = NodeComponentProps<"checkbox"> & {key?: React.Key};
+function PlasmicSubsectionWebhooks__checkbox<T extends PlasmicSubsectionWebhooks__checkboxProps>(props: T & StrictProps<T, PlasmicSubsectionWebhooks__checkboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("checkbox", props);
+  return <PlasmicSubsectionWebhooks__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"checkbox"} />;
+}
+PlasmicSubsectionWebhooks__checkbox.displayName = "PlasmicSubsectionWebhooks.checkbox";
+
+type PlasmicSubsectionWebhooks__removeButtonProps = NodeComponentProps<"removeButton"> & {key?: React.Key};
+function PlasmicSubsectionWebhooks__removeButton<T extends PlasmicSubsectionWebhooks__removeButtonProps>(props: T & StrictProps<T, PlasmicSubsectionWebhooks__removeButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("removeButton", props);
+  return <PlasmicSubsectionWebhooks__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"removeButton"} />;
+}
+PlasmicSubsectionWebhooks__removeButton.displayName = "PlasmicSubsectionWebhooks.removeButton";
+
+type PlasmicSubsectionWebhooks__descriptionProps = NodeComponentProps<"description"> & {key?: React.Key};
+function PlasmicSubsectionWebhooks__description<T extends PlasmicSubsectionWebhooks__descriptionProps>(props: T & StrictProps<T, PlasmicSubsectionWebhooks__descriptionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("description", props);
+  return <PlasmicSubsectionWebhooks__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"description"} />;
+}
+PlasmicSubsectionWebhooks__description.displayName = "PlasmicSubsectionWebhooks.description";
+
+type PlasmicSubsectionWebhooks__learnMoreLinkProps = NodeComponentProps<"learnMoreLink"> & {key?: React.Key};
+function PlasmicSubsectionWebhooks__learnMoreLink<T extends PlasmicSubsectionWebhooks__learnMoreLinkProps>(props: T & StrictProps<T, PlasmicSubsectionWebhooks__learnMoreLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("learnMoreLink", props);
+  return <PlasmicSubsectionWebhooks__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"learnMoreLink"} />;
+}
+PlasmicSubsectionWebhooks__learnMoreLink.displayName = "PlasmicSubsectionWebhooks.learnMoreLink";
+
+type PlasmicSubsectionWebhooks__viewHistoryButtonProps = NodeComponentProps<"viewHistoryButton"> & {key?: React.Key};
+function PlasmicSubsectionWebhooks__viewHistoryButton<T extends PlasmicSubsectionWebhooks__viewHistoryButtonProps>(props: T & StrictProps<T, PlasmicSubsectionWebhooks__viewHistoryButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("viewHistoryButton", props);
+  return <PlasmicSubsectionWebhooks__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"viewHistoryButton"} />;
+}
+PlasmicSubsectionWebhooks__viewHistoryButton.displayName = "PlasmicSubsectionWebhooks.viewHistoryButton";
+
+type PlasmicSubsectionWebhooks__addButtonProps = NodeComponentProps<"addButton"> & {key?: React.Key};
+function PlasmicSubsectionWebhooks__addButton<T extends PlasmicSubsectionWebhooks__addButtonProps>(props: T & StrictProps<T, PlasmicSubsectionWebhooks__addButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addButton", props);
+  return <PlasmicSubsectionWebhooks__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addButton"} />;
+}
+PlasmicSubsectionWebhooks__addButton.displayName = "PlasmicSubsectionWebhooks.addButton";
+
+type PlasmicSubsectionWebhooks__historyProps = NodeComponentProps<"history"> & {key?: React.Key};
+function PlasmicSubsectionWebhooks__history<T extends PlasmicSubsectionWebhooks__historyProps>(props: T & StrictProps<T, PlasmicSubsectionWebhooks__historyProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("history", props);
+  return <PlasmicSubsectionWebhooks__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"history"} />;
+}
+PlasmicSubsectionWebhooks__history.displayName = "PlasmicSubsectionWebhooks.history";
+
 
 export const PlasmicSubsectionWebhooks = Object.assign(
   // Top-level PlasmicSubsectionWebhooks renders the root element
-  makeNodeComponent("root"),
+  PlasmicSubsectionWebhooks__root,
   {
     // Helper components rendering sub-elements
-    checkbox: makeNodeComponent("checkbox"),
-    removeButton: makeNodeComponent("removeButton"),
-    description: makeNodeComponent("description"),
-    learnMoreLink: makeNodeComponent("learnMoreLink"),
-    viewHistoryButton: makeNodeComponent("viewHistoryButton"),
-    addButton: makeNodeComponent("addButton"),
-    history: makeNodeComponent("history"),
+    checkbox: PlasmicSubsectionWebhooks__checkbox,
+    removeButton: PlasmicSubsectionWebhooks__removeButton,
+    description: PlasmicSubsectionWebhooks__description,
+    learnMoreLink: PlasmicSubsectionWebhooks__learnMoreLink,
+    viewHistoryButton: PlasmicSubsectionWebhooks__viewHistoryButton,
+    addButton: PlasmicSubsectionWebhooks__addButton,
+    history: PlasmicSubsectionWebhooks__history,
 
     // Metadata about props expected for PlasmicSubsectionWebhooks
     internalVariantProps: PlasmicSubsectionWebhooks__VariantProps,

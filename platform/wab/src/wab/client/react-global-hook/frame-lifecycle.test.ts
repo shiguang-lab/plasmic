@@ -13,7 +13,6 @@ import { buildValTree, TEST_GLOBAL_VARIANT } from "@/wab/__testonly__/tpls";
 import { globalHookCtx } from "@/wab/client/react-global-hook/globalHook";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
-import { runInAction } from "mobx";
 
 afterEach(() => {
   [...globalHookCtx.frames.values()].forEach((frame) => frame.dispose());
@@ -32,11 +31,11 @@ it("releases the closed frame's tree, context and renderer while preserving the 
   const root = buildValTree(mkTplComponent(component, TEST_GLOBAL_VARIANT));
   frame.renderState.registerVal(root);
   other.renderState.registerVal(root);
-  runInAction(() => {
+  (() => {
     frame.valRootStore.setState(root, true);
     frame.contextData.set("node", { value: 0 });
     other.contextData.set("node", { value: false });
-  });
+  })();
   expect(frame.renderState.fullKey2val(root.fullKey)).toBeTruthy();
   const dispose = vi.spyOn(frame.renderState, "dispose");
   frame.dispose();

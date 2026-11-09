@@ -24,12 +24,13 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ToggleButtonSwitch from "../../components/merge/ToggleButtonSwitch"; // plasmic-import: LCAZOUPfDDB/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: p8FkKgCnyuat1kHSEYAKfW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: p8FkKgCnyuat1kHSEYAKfW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -123,11 +124,10 @@ function PlasmicConflict__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "hasSubtext",
@@ -142,18 +142,20 @@ function PlasmicConflict__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.merged,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -316,9 +318,7 @@ function PlasmicConflict__RenderFunc(props: {
           className={classNames("all", "button", "button__p8FkK", sty.right, {
             [sty.rightmerged]: hasVariant($state, "merged", "merged"),
           })}
-          ref={(ref) => {
-            $refs["right"] = ref;
-          }}
+          ref={registerRef("right")}
         >
           {false ? (
             <div
@@ -521,12 +521,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -536,43 +532,157 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicConflict__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicConflict";
-  } else {
-    func.displayName = `PlasmicConflict.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicConflict__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicConflict__root<T extends PlasmicConflict__rootProps>(props: T & StrictProps<T, PlasmicConflict__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicConflict__root.displayName = "PlasmicConflict";
+
+type PlasmicConflict__button10Props = NodeComponentProps<"button10"> & {key?: React.Key};
+function PlasmicConflict__button10<T extends PlasmicConflict__button10Props>(props: T & StrictProps<T, PlasmicConflict__button10Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("button10", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"button10"} />;
+}
+PlasmicConflict__button10.displayName = "PlasmicConflict.button10";
+
+type PlasmicConflict__startIconsContainer10Props = NodeComponentProps<"startIconsContainer10"> & {key?: React.Key};
+function PlasmicConflict__startIconsContainer10<T extends PlasmicConflict__startIconsContainer10Props>(props: T & StrictProps<T, PlasmicConflict__startIconsContainer10Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("startIconsContainer10", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"startIconsContainer10"} />;
+}
+PlasmicConflict__startIconsContainer10.displayName = "PlasmicConflict.startIconsContainer10";
+
+type PlasmicConflict__iconProps = NodeComponentProps<"icon"> & {key?: React.Key};
+function PlasmicConflict__icon<T extends PlasmicConflict__iconProps>(props: T & StrictProps<T, PlasmicConflict__iconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("icon", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"icon"} />;
+}
+PlasmicConflict__icon.displayName = "PlasmicConflict.icon";
+
+type PlasmicConflict__labelsContainer10Props = NodeComponentProps<"labelsContainer10"> & {key?: React.Key};
+function PlasmicConflict__labelsContainer10<T extends PlasmicConflict__labelsContainer10Props>(props: T & StrictProps<T, PlasmicConflict__labelsContainer10Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelsContainer10", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelsContainer10"} />;
+}
+PlasmicConflict__labelsContainer10.displayName = "PlasmicConflict.labelsContainer10";
+
+type PlasmicConflict__labelText10Props = NodeComponentProps<"labelText10"> & {key?: React.Key};
+function PlasmicConflict__labelText10<T extends PlasmicConflict__labelText10Props>(props: T & StrictProps<T, PlasmicConflict__labelText10Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelText10", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelText10"} />;
+}
+PlasmicConflict__labelText10.displayName = "PlasmicConflict.labelText10";
+
+type PlasmicConflict__subtextProps = NodeComponentProps<"subtext"> & {key?: React.Key};
+function PlasmicConflict__subtext<T extends PlasmicConflict__subtextProps>(props: T & StrictProps<T, PlasmicConflict__subtextProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("subtext", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"subtext"} />;
+}
+PlasmicConflict__subtext.displayName = "PlasmicConflict.subtext";
+
+type PlasmicConflict__labelIconsContainer10Props = NodeComponentProps<"labelIconsContainer10"> & {key?: React.Key};
+function PlasmicConflict__labelIconsContainer10<T extends PlasmicConflict__labelIconsContainer10Props>(props: T & StrictProps<T, PlasmicConflict__labelIconsContainer10Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelIconsContainer10", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelIconsContainer10"} />;
+}
+PlasmicConflict__labelIconsContainer10.displayName = "PlasmicConflict.labelIconsContainer10";
+
+type PlasmicConflict__endIconsContainer10Props = NodeComponentProps<"endIconsContainer10"> & {key?: React.Key};
+function PlasmicConflict__endIconsContainer10<T extends PlasmicConflict__endIconsContainer10Props>(props: T & StrictProps<T, PlasmicConflict__endIconsContainer10Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("endIconsContainer10", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"endIconsContainer10"} />;
+}
+PlasmicConflict__endIconsContainer10.displayName = "PlasmicConflict.endIconsContainer10";
+
+type PlasmicConflict___switchProps = NodeComponentProps<"_switch"> & {key?: React.Key};
+function PlasmicConflict___switch<T extends PlasmicConflict___switchProps>(props: T & StrictProps<T, PlasmicConflict___switchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("_switch", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"_switch"} />;
+}
+PlasmicConflict___switch.displayName = "PlasmicConflict._switch";
+
+type PlasmicConflict__rightProps = NodeComponentProps<"right"> & {key?: React.Key};
+function PlasmicConflict__right<T extends PlasmicConflict__rightProps>(props: T & StrictProps<T, PlasmicConflict__rightProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("right", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"right"} />;
+}
+PlasmicConflict__right.displayName = "PlasmicConflict.right";
+
+type PlasmicConflict__startIconsContainer12Props = NodeComponentProps<"startIconsContainer12"> & {key?: React.Key};
+function PlasmicConflict__startIconsContainer12<T extends PlasmicConflict__startIconsContainer12Props>(props: T & StrictProps<T, PlasmicConflict__startIconsContainer12Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("startIconsContainer12", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"startIconsContainer12"} />;
+}
+PlasmicConflict__startIconsContainer12.displayName = "PlasmicConflict.startIconsContainer12";
+
+type PlasmicConflict__labelsContainer12Props = NodeComponentProps<"labelsContainer12"> & {key?: React.Key};
+function PlasmicConflict__labelsContainer12<T extends PlasmicConflict__labelsContainer12Props>(props: T & StrictProps<T, PlasmicConflict__labelsContainer12Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelsContainer12", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelsContainer12"} />;
+}
+PlasmicConflict__labelsContainer12.displayName = "PlasmicConflict.labelsContainer12";
+
+type PlasmicConflict__labelText12Props = NodeComponentProps<"labelText12"> & {key?: React.Key};
+function PlasmicConflict__labelText12<T extends PlasmicConflict__labelText12Props>(props: T & StrictProps<T, PlasmicConflict__labelText12Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelText12", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelText12"} />;
+}
+PlasmicConflict__labelText12.displayName = "PlasmicConflict.labelText12";
+
+type PlasmicConflict__label14Props = NodeComponentProps<"label14"> & {key?: React.Key};
+function PlasmicConflict__label14<T extends PlasmicConflict__label14Props>(props: T & StrictProps<T, PlasmicConflict__label14Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("label14", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"label14"} />;
+}
+PlasmicConflict__label14.displayName = "PlasmicConflict.label14";
+
+type PlasmicConflict__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicConflict__text<T extends PlasmicConflict__textProps>(props: T & StrictProps<T, PlasmicConflict__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicConflict__text.displayName = "PlasmicConflict.text";
+
+type PlasmicConflict__labelIconsContainer12Props = NodeComponentProps<"labelIconsContainer12"> & {key?: React.Key};
+function PlasmicConflict__labelIconsContainer12<T extends PlasmicConflict__labelIconsContainer12Props>(props: T & StrictProps<T, PlasmicConflict__labelIconsContainer12Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelIconsContainer12", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelIconsContainer12"} />;
+}
+PlasmicConflict__labelIconsContainer12.displayName = "PlasmicConflict.labelIconsContainer12";
+
+type PlasmicConflict__endIconsContainer12Props = NodeComponentProps<"endIconsContainer12"> & {key?: React.Key};
+function PlasmicConflict__endIconsContainer12<T extends PlasmicConflict__endIconsContainer12Props>(props: T & StrictProps<T, PlasmicConflict__endIconsContainer12Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("endIconsContainer12", props);
+  return <PlasmicConflict__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"endIconsContainer12"} />;
+}
+PlasmicConflict__endIconsContainer12.displayName = "PlasmicConflict.endIconsContainer12";
+
 
 export const PlasmicConflict = Object.assign(
   // Top-level PlasmicConflict renders the root element
-  makeNodeComponent("root"),
+  PlasmicConflict__root,
   {
     // Helper components rendering sub-elements
-    button10: makeNodeComponent("button10"),
-    startIconsContainer10: makeNodeComponent("startIconsContainer10"),
-    icon: makeNodeComponent("icon"),
-    labelsContainer10: makeNodeComponent("labelsContainer10"),
-    labelText10: makeNodeComponent("labelText10"),
-    subtext: makeNodeComponent("subtext"),
-    labelIconsContainer10: makeNodeComponent("labelIconsContainer10"),
-    endIconsContainer10: makeNodeComponent("endIconsContainer10"),
-    _switch: makeNodeComponent("_switch"),
-    right: makeNodeComponent("right"),
-    startIconsContainer12: makeNodeComponent("startIconsContainer12"),
-    labelsContainer12: makeNodeComponent("labelsContainer12"),
-    labelText12: makeNodeComponent("labelText12"),
-    label14: makeNodeComponent("label14"),
-    text: makeNodeComponent("text"),
-    labelIconsContainer12: makeNodeComponent("labelIconsContainer12"),
-    endIconsContainer12: makeNodeComponent("endIconsContainer12"),
+    button10: PlasmicConflict__button10,
+    startIconsContainer10: PlasmicConflict__startIconsContainer10,
+    icon: PlasmicConflict__icon,
+    labelsContainer10: PlasmicConflict__labelsContainer10,
+    labelText10: PlasmicConflict__labelText10,
+    subtext: PlasmicConflict__subtext,
+    labelIconsContainer10: PlasmicConflict__labelIconsContainer10,
+    endIconsContainer10: PlasmicConflict__endIconsContainer10,
+    _switch: PlasmicConflict___switch,
+    right: PlasmicConflict__right,
+    startIconsContainer12: PlasmicConflict__startIconsContainer12,
+    labelsContainer12: PlasmicConflict__labelsContainer12,
+    labelText12: PlasmicConflict__labelText12,
+    label14: PlasmicConflict__label14,
+    text: PlasmicConflict__text,
+    labelIconsContainer12: PlasmicConflict__labelIconsContainer12,
+    endIconsContainer12: PlasmicConflict__endIconsContainer12,
 
     // Metadata about props expected for PlasmicConflict
     internalVariantProps: PlasmicConflict__VariantProps,

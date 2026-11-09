@@ -52,14 +52,15 @@ export function useVirtualCombobox<I, V extends VirtualItem<I>>(opts: {
   const [query, setQuery_] = React.useState("");
   const [outsideQuery, setOutsideQuery] = React.useState("");
 
+  const debouncedSetOutsideQuery = React.useMemo(() => debounce((val: string) => {
+    setOutsideQuery(val);
+  }, debounceMs), [debounceMs]);
+  React.useEffect(() => () => debouncedSetOutsideQuery.cancel(), [debouncedSetOutsideQuery]);
+
   const setQuery = (val: string) => {
     setQuery_(val);
     debouncedSetOutsideQuery(val);
   };
-
-  const debouncedSetOutsideQuery = debounce((val: string) => {
-    setOutsideQuery(val);
-  }, debounceMs);
 
   const { virtualItems, virtualRows, items } = React.useMemo(
     () => buildItems(query),
@@ -158,7 +159,7 @@ export function useVirtualCombobox<I, V extends VirtualItem<I>>(opts: {
         }
       }
     }
-  }, [highlightedIndex, virtualItems, listRef]);
+  }, [highlightedIndex, virtualItems, listRef, items, virtualRows]);
 
   return {
     getInputProps: (options: UseComboboxGetInputPropsOptions) => {

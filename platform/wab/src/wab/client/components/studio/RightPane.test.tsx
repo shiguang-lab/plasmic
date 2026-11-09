@@ -1,3 +1,6 @@
+import { getDedicatedArena } from "@/wab/shared/core/sites";
+import { getArenaFrames } from "@/wab/shared/Arenas";
+import { ComponentType } from "@/wab/shared/core/components";
 import { StudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import { createSite } from "@/wab/shared/core/sites";
@@ -8,9 +11,11 @@ import { createStore } from "zustand/vanilla";
 import { RightPane } from "@/wab/client/components/studio/RightPane";
 import { RightTabKey, type StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { StudioLeftPanelState } from "@/wab/client/studio-ctx/left-panel-state";
+import { createRightPanelStore } from "@/wab/client/studio-ctx/right-panel-state";
+import { StudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { ensureInstance } from "@/wab/shared/common";
-import type { Component } from "@/wab/shared/model/classes";
+import { ensure, ensureInstance } from "@/wab/shared/common";
+import { TplMgr } from "@/wab/shared/TplMgr";
 import {
   act,
   cleanup,
@@ -18,7 +23,6 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import { observable, runInAction } from "mobx";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -92,9 +96,15 @@ const arenaOwners = new Set<{ dispose(): void }>();
 afterEach(() => { cleanup(); for (const owner of arenaOwners) { owner.dispose(); } arenaOwners.clear(); });
 
 it("resets header geometry when available tabs change, retaining the active page editor", async () => {
-  const state = observable({ tab: RightTabKey.component });
+  const rightPanelStore = createRightPanelStore();
+  rightPanelStore.setState({ tabKey: RightTabKey.component });
   const models = new ModelSnapshots();
-  const arenaState = new StudioArenaState({ site: createSite(), modelSnapshots: models });
+  const site = createSite();
+  const component = new TplMgr({ site }).addComponent({ type: ComponentType.Plain, name: "Page" });
+  const arena = ensure(getDedicatedArena(site, component), "Component arena fixture");
+  const frame = getArenaFrames(arena)[0];
+  const arenaState = new StudioArenaState({ site, modelSnapshots: models });
+  arenaState.setCurrent(arena);
   arenaOwners.add(arenaState);
   arenaOwners.add(models);
   const renderPolicy = new StudioRenderPolicy({ isLive: () => false, isDragging: () => false });
@@ -103,7 +113,7 @@ it("resets header geometry when available tabs change, retaining the active page
   const selection = new ViewSelection(() => models);
   const leftPanelState = new StudioLeftPanelState();
   const sc = mock<StudioCtx>();
-  const vc = mock<ViewCtx>({ component: mock<Component>({ name: "Page" }) });
+  const vc = mock<ViewCtx>({ component });
   vc.focusedTpl.mockReturnValue(null);
   vc.focusedSelectables.mockReturnValue([]);
   focus.set(vc, []);
@@ -114,18 +124,24 @@ it("resets header geometry when available tabs change, retaining the active page
   sc.showComments.mockReturnValue(false);
   Object.defineProperties(sc, {
     arenaState: { value: arenaState },
+    modelSnapshots: { value: models },
     selectionStore: { value: focus.store },
-    rightTabKey: { get: () => state.tab },
+    rightPanelStore: { value: rightPanelStore },
     showDevControls: { value: true },
     leftPanelState: { value: leftPanelState },
+    overlayState: { value: new StudioOverlayState() },
     inspectorStore: { value: createStore(() => ({ selection: undefined, pending: false })) },
     renderPolicy: { value: renderPolicy },
   });
   sc.switchRightTab.mockImplementation((tab) => {
-    runInAction(() => {
-      state.tab = tab;
-    });
+    rightPanelStore.setState({ tabKey: tab });
   });
+  Object.defineProperties(vc, {
+    studioCtx: { value: sc }, modelLifetime: { value: arenaState.lifetime() },
+    isDisposed: { value: false }, initialRenderReadyStore: { value: createStore(() => true) },
+  });
+  vc.arenaFrame.mockReturnValue(frame);
+  arenaState.viewRegistry.register(vc);
   const { container } = render(
     <RightPane studioCtx={sc} canvasLoading={false} />,
   );
@@ -141,9 +157,9 @@ it("resets header geometry when available tabs change, retaining the active page
   fireEvent.change(editor, { target: { value: "Unsaved title" } });
 
   await act(() =>
-    runInAction(() => {
+    (() => {
       focus.set(undefined, []);
-    }),
+    })(),
   );
   expect(screen.getAllByRole("tab")).toHaveLength(1);
   const singleTabHeader = header();
@@ -154,9 +170,9 @@ it("resets header geometry when available tabs change, retaining the active page
   expect(editor.value).toBe("Unsaved title");
 
   await act(() =>
-    runInAction(() => {
+    (() => {
       focus.set(vc, []);
-    }),
+    })(),
   );
   expect(screen.getAllByRole("tab")).toHaveLength(3);
   expect(header()).not.toBe(singleTabHeader);
@@ -166,9 +182,9 @@ it("resets header geometry when available tabs change, retaining the active page
   expect(editor.value).toBe("Unsaved title");
   const stableHeader = header();
   await act(() =>
-    runInAction(() => {
-      state.tab = RightTabKey.style;
-    }),
+    (() => {
+      rightPanelStore.setState({ tabKey: RightTabKey.style });
+    })(),
   );
   expect(header()).toBe(stableHeader);
 });

@@ -266,10 +266,8 @@ export function applyCanvasSessionState(
   // Generated implicit-state props may be shared by render-slot clones. Native
   // uncontrolled instances initialize from authored props, not another clone's event.
   const stateSource = (spec: CanvasStateSpec) => spec.controlled ? nativeProps : authoredProps;
-  const read = (name: string) => interactive && isOverlay && name === "open"
-    ? session.getRuntime(instance, name)
-    : session.get(instance, name);
-  const bindings: Record<string, { value: unknown; reveal: (value: unknown) => unknown }> = {};
+  const read = (name: string) => session.get(instance, name);
+  const bindings: Record<string, { value: unknown; readonly revealed: boolean; reveal: (value: unknown) => unknown }> = {};
   const events = new Map<string, CanvasStateSpec[]>();
   for (const spec of specs) {
     const { valueProp, onChangeProp, initialValueProp } = spec;
@@ -281,6 +279,7 @@ export function applyCanvasSessionState(
     props[valueProp] = value;
     bindings[valueProp] = {
       value,
+      get revealed() { return session.instanceStore(instance).getState()[valueProp]?.revealed ?? false; },
       reveal: (next) => session.reveal(instance, valueProp, next),
     };
     if (onChangeProp) {
@@ -323,7 +322,8 @@ export function applyCanvasSessionState(
     const initial = spec?.initialValueProp ? stateSource(spec)[spec.initialValueProp] : initialValue;
     session.resolve(instance, name, source, initial);
     return {
-      get value() { return interactive ? session.getRuntime(instance, name) : read(name); },
+      get value() { return read(name); },
+      get revealed() { return session.instanceStore(instance).getState()[name]?.revealed ?? false; },
       reveal: (value: unknown) => session.reveal(instance, name, value),
       set: (value: unknown) => { session.set(instance, name, value); onChange(); },
     };

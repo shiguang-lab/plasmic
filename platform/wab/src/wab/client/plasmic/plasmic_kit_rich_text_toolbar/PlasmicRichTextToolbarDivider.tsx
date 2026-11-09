@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,7 +22,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: uLddf5fC1aQbF7tmV1WQ1a/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: uLddf5fC1aQbF7tmV1WQ1a/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -75,11 +75,10 @@ function PlasmicRichTextToolbarDivider__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -135,12 +134,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -150,24 +145,19 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicRichTextToolbarDivider__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicRichTextToolbarDivider";
-  } else {
-    func.displayName = `PlasmicRichTextToolbarDivider.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicRichTextToolbarDivider__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicRichTextToolbarDivider__root<T extends PlasmicRichTextToolbarDivider__rootProps>(props: T & StrictProps<T, PlasmicRichTextToolbarDivider__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicRichTextToolbarDivider__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicRichTextToolbarDivider__root.displayName = "PlasmicRichTextToolbarDivider";
+
 
 export const PlasmicRichTextToolbarDivider = Object.assign(
   // Top-level PlasmicRichTextToolbarDivider renders the root element
-  makeNodeComponent("root"),
+  PlasmicRichTextToolbarDivider__root,
   {
     // Helper components rendering sub-elements
 

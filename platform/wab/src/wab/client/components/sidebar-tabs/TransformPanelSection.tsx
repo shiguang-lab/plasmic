@@ -86,13 +86,11 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
     };
 
     const updateTransforms = (newTransforms: CssTransform[]) => {
-      cssTransforms.transforms = newTransforms;
-      setsProp("transform", cssTransforms);
+      setsProp("transform", new CssTransforms(newTransforms, cssTransforms.perspective));
     };
 
     const updateSelfPerspective = (newSelfPerspective: string | undefined) => {
-      cssTransforms.perspective = newSelfPerspective;
-      setsProp("transform", cssTransforms);
+      setsProp("transform", new CssTransforms(transforms, newSelfPerspective));
     };
 
     const updateTransformOrigin = (
@@ -186,8 +184,7 @@ export function TransformPanelSection(props: { expsProvider: ExpsProvider }) {
                 <TransformPanel
                   transform={transforms[inspect]}
                   onChange={(newTransform) => {
-                    transforms[inspect] = newTransform;
-                    updateTransforms(transforms);
+                    updateTransforms(transforms.map((transform, index) => index === inspect ? newTransform : transform));
                   }}
                   studioCtx={studioCtx}
                 />

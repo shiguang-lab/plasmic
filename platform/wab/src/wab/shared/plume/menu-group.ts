@@ -37,19 +37,15 @@ const menuGroupConfig = {
 export const MenuGroupPlugin: PlumePlugin = {
   // PlumeCanvasPlugin
   genCanvasWrapperComponent: (sub, comp, observer, getCompMeta) => {
-    return (allProps) =>
-      observer(() => {
-        const internalProps = pick(allProps, internalCanvasElementProps);
-        const { plasmicProps } = sub.reactWeb.useMenuGroup(
-          Object.assign(comp, getCompMeta()),
-          omit(allProps, internalCanvasElementProps),
-          menuGroupConfig as any,
-        );
-        return sub.React.createElement(comp, {
-          ...plasmicProps,
-          ...internalProps,
-        });
-      });
+    return sub.createCanvasComponentType((allProps) =>
+      observer(() => sub.React.createElement(sub.CanvasPlume.CanvasPlumeMenuGroup, {
+        impl: comp,
+        metadata: getCompMeta(),
+        internalProps: pick(allProps, internalCanvasElementProps),
+        componentProps: omit(allProps, internalCanvasElementProps),
+        config: menuGroupConfig as any,
+
+      })));
   },
 
   // PlumeCodegenPlugin
@@ -58,8 +54,8 @@ export const MenuGroupPlugin: PlumePlugin = {
     const { component } = ctx;
 
     return `
-      function useBehavior<P extends pp.BaseMenuGroupProps>(props: P) {
-        return pp.useMenuGroup(
+      function useBehavior<P extends Plume.BaseMenuGroupProps>(props: P) {
+        return Plume.useMenuGroup(
           ${makePlasmicComponentName(component)},
           props,
           ${jsLiteral(menuGroupConfig)}
@@ -75,7 +71,7 @@ export const MenuGroupPlugin: PlumePlugin = {
     return `
       export interface ${
         opts?.typeName ?? makeDefaultExternalPropsName(component)
-      } extends pp.BaseMenuGroupProps {
+      } extends Plume.BaseMenuGroupProps {
         ${params
           .map(
             (param) =>

@@ -1,3 +1,7 @@
+import { useComponentParamValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/component-param-inputs";
+import { captureVariantModelWorld, useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useInspectorCanvasEnv, useInspectorStateValue } from "@/wab/client/studio-ctx/inspector-state";
+import type { State } from "@/wab/shared/model/classes";
 import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import RowGroup from "@/wab/client/components/RowGroup";
 import { ComponentPropModal } from "@/wab/client/components/modals/ComponentPropModal";
@@ -57,7 +61,6 @@ import {
 import { reorderLevelWithParams } from "@/wab/shared/folders/prop-tree";
 import { Component, Param, isKnownPropParam } from "@/wab/shared/model/classes";
 import { Menu, Tooltip } from "antd";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
 import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
@@ -76,16 +79,18 @@ const usePropsTreeCtx = () =>
 /**
  * The sidebar section for prop definitions. Delegates rendering to `PropsDefinitionSection`
  */
-export const ComponentPropsDefinitionSection = observer(
-  function ComponentParamsPanel(props: {
-    studioCtx: StudioCtx;
-    component: Component;
-    viewCtx: ViewCtx;
-    justOneSection?: "variants" | "slots" | "meta";
-  }) {
+interface ComponentPropsDefinitionProps { studioCtx: StudioCtx; component: Component; viewCtx: ViewCtx; justOneSection?: "variants" | "slots" | "meta"; }
+export const ComponentPropsDefinitionSection = React.memo(function ComponentPropsDefinitionSection(props: ComponentPropsDefinitionProps) {
+  const world = useVariantModelWorld(props.studioCtx, props.component, props.viewCtx);
+  return world.alive ? <ComponentPropsDefinitionContent {...props} /> : null;
+});
+const ComponentPropsDefinitionContent = React.memo(function ComponentPropsDefinitionContent(props: ComponentPropsDefinitionProps) {
     const { t: studioUiT } = useI18n();
 
     const { studioCtx, component, viewCtx } = props;
+    const selectParams = React.useCallback(() => Object.freeze({ slots: getSlotParams(component), real: getRealParams(component) }), [component]);
+    const { slots: slotParams, real: realParams } = useComponentParamValue(studioCtx, component, selectParams);
+    const world = React.useMemo(() => captureVariantModelWorld(studioCtx), [studioCtx, component]);
     const [newPropPrefix, setNewPropPrefix] = React.useState<string | null>(
       null,
     );
@@ -105,6 +110,7 @@ export const ComponentPropsDefinitionSection = observer(
     React.useEffect(() => {
       const { dispose } = studioCtx.uiActionBus.registerListener(
         (uiId, _type) => {
+          if (!world.isCurrent(viewCtx)) { return; }
           const parsed = parseUiId(uiId);
           if (parsed.type === "Model") {
             const param = component.params.find((p) => p.uuid === parsed.uuid);
@@ -115,10 +121,8 @@ export const ComponentPropsDefinitionSection = observer(
         },
       );
       return dispose;
-    }, [studioCtx, component]);
+    }, [studioCtx, component, viewCtx]);
 
-    const slotParams = getSlotParams(component);
-    const realParams = getRealParams(component);
 
     return (
       <PropsTreeCtx.Provider
@@ -172,6 +176,7 @@ export const ComponentPropsDefinitionSection = observer(
             visible
             suggestedName={newPropPrefix}
             onFinish={(newParam) => {
+              if (!world.isCurrent(viewCtx)) { return; }
               if (newParam) {
                 expandAncestorsOf(newParam);
               }
@@ -181,7 +186,7 @@ export const ComponentPropsDefinitionSection = observer(
         )}
       </PropsTreeCtx.Provider>
     );
-  },
+  }
 );
 
 /**
@@ -222,10 +227,12 @@ const PropsLevel = function PropsLevel(props: {
   draggable?: boolean;
 }) {
   const { studioCtx, component, viewCtx, siblings, models, draggable } = props;
+  const world = React.useMemo(() => captureVariantModelWorld(studioCtx), [studioCtx, component]);
   return (
     <SimpleReorderableList
       onReordered={(fromIndex, toIndex) =>
         studioCtx.change(() => {
+          if (!world.isCurrent(viewCtx) || models !== studioCtx.modelSnapshots) { return ok(); }
           reorderLevelWithParams(
             component,
             siblings,
@@ -344,7 +351,7 @@ const PropFolderRow = function PropFolderRow(props: {
 /**
  * A leaf prop row
  */
-const PropRow = observer(function ParamRow(props: {
+const PropRow = React.memo(function ParamRow(props: {
   studioCtx: StudioCtx;
   component: Component;
   viewCtx: ViewCtx;
@@ -354,18 +361,19 @@ const PropRow = observer(function ParamRow(props: {
   dragHandleProps?: DraggableProvidedDragHandleProps;
 }) {
   const { studioCtx, component, viewCtx, param, draggable } = props;
+  const selectRow = React.useCallback(() => Object.freeze({
+    name: getFolderDisplayName(getParamDisplayName(component, param)),
+    state: component.states.find((state) => state.param === param),
+    canRename: canRenameParam(component, param), advanced: isKnownPropParam(param) && param.advanced,
+  }), [component, param]);
+  const row = useComponentParamValue(studioCtx, component, selectRow, param);
+  const world = React.useMemo(() => captureVariantModelWorld(studioCtx), [studioCtx, component]);
   const { expandAncestorsOf } = usePropsTreeCtx();
 
-  const maybeState = component.states.find((s) => s.param === param);
-  const env = viewCtx.getCanvasEnvForTpl(component.tplTree);
-  const currentValue = maybeState
-    ? viewCtx.getCanvasStateValue(maybeState)
-    : env?.$props?.[toVarName(param.variable.name)];
 
   const [showModal, setShowModal] = React.useState(false);
-  const canRename = canRenameParam(component, param);
   const overlay = () =>
-    makeParamMenu(studioCtx, component, param, {
+    !world.isCurrent(viewCtx) ? <></> : makeParamMenu(studioCtx, component, param, {
       onConfigureParam: () => setShowModal(true),
     });
 
@@ -380,12 +388,11 @@ const PropRow = observer(function ParamRow(props: {
           label={
             <div>
               <EditableLabel
-                value={getFolderDisplayName(
-                  getParamDisplayName(component, param),
-                )}
+                value={row.name}
                 onEdit={(val) =>
                   spawn(
                     studioCtx.change(() => {
+                      if (!world.isCurrent(viewCtx)) { return ok(); }
                       if (val) {
                         const newName = renameFolderLeaf(
                           getParamDisplayName(component, param),
@@ -400,9 +407,9 @@ const PropRow = observer(function ParamRow(props: {
                     }),
                   )
                 }
-                disabled={!canRename}
+                disabled={!row.canRename}
               />
-              {isKnownPropParam(param) && param.advanced && (
+              {row.advanced && (
                 <div className="text-xsm dimfg">
                   <UiText message={"(advanced)"} />
                 </div>
@@ -411,7 +418,7 @@ const PropRow = observer(function ParamRow(props: {
           }
           menu={overlay}
         >
-          <ValuePreview val={currentValue} />
+          <ParamCurrentValue viewCtx={viewCtx} component={component} param={param} state={row.state} />
         </LabeledListItem>
       </WithContextMenu>
       {showModal && (
@@ -421,6 +428,7 @@ const PropRow = observer(function ParamRow(props: {
           component={component}
           existingParam={param}
           onFinish={(updatedParam) => {
+            if (!world.isCurrent(viewCtx)) { return; }
             if (updatedParam) {
               expandAncestorsOf(updatedParam);
             }
@@ -438,6 +446,7 @@ function makeParamMenu(
   param: Param,
   opts: { onConfigureParam: () => void },
 ) {
+  const world = captureVariantModelWorld(studioCtx);
   return (
     <Menu>
       <Menu.Item onClick={() => opts.onConfigureParam()}>
@@ -453,7 +462,7 @@ function makeParamMenu(
             <Menu.Item
               key={exportType}
               onClick={() =>
-                studioCtx.changeUnsafe(() => (param.exportType = exportType))
+                studioCtx.changeUnsafe(() => { if (world.isCurrent()) { param.exportType = exportType; } })
               }
             >
               {exportType}{" "}
@@ -465,6 +474,7 @@ function makeParamMenu(
       {!isCodeComponent(component) && canDeleteParam(component, param) && (
         <Menu.Item
           onClick={async () => {
+            if (!world.isCurrent()) { return; }
             const usages = findPropUsages(component, param);
             if (usages?.length > 0) {
               const confirmed = await confirm({
@@ -488,6 +498,7 @@ function makeParamMenu(
             }
 
             await studioCtx.changeUnsafe(() => {
+              if (!world.isCurrent()) { return; }
               removeComponentParam(studioCtx.site, component, param);
             });
           }}
@@ -497,4 +508,16 @@ function makeParamMenu(
       )}
     </Menu>
   );
+}
+
+function ParamCurrentValue(props: { viewCtx: ViewCtx; component: Component; param: Param; state?: State }) {
+  return props.state ? <StateParamCurrentValue viewCtx={props.viewCtx} state={props.state} /> : <OrdinaryParamCurrentValue {...props} />;
+}
+function StateParamCurrentValue({ viewCtx, state }: { viewCtx: ViewCtx; state: State }) {
+  const value = useInspectorStateValue(viewCtx, state);
+  return <ValuePreview val={value.value} />;
+}
+function OrdinaryParamCurrentValue({ viewCtx, component, param }: { viewCtx: ViewCtx; component: Component; param: Param }) {
+  const env = useInspectorCanvasEnv(viewCtx, component.tplTree);
+  return <ValuePreview val={env?.$props?.[toVarName(param.variable.name)]} />;
 }

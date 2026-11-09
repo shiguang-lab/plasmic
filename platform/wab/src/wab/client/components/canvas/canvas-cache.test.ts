@@ -1,3 +1,4 @@
+import { createAutoOpenStore } from "@/wab/client/studio-ctx/auto-open-state";
 import { StudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
@@ -9,7 +10,7 @@ import { setTplVisibility, TplVisibility } from "@/wab/shared/visibility-utils";
 import { CanvasContentEditor, CanvasContentEditorIndex } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { StudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { CanvasFrameInfoOwner } from "@/wab/client/components/canvas/canvas-frame-info";
-import { createStore } from "zustand/vanilla";
+import { createStore, type StoreApi } from "zustand/vanilla";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { ValComponent } from "@/wab/shared/core/val-nodes";
 import { clone } from "@/wab/shared/core/tpls";
@@ -20,6 +21,7 @@ import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { CodeComponentsRegistry, mkCodeComponent } from "@/wab/shared/code-components/code-components";
 import { ensure } from "@/wab/shared/common";
 import { CanvasRenderOwner } from "@/wab/client/components/canvas/canvas-cache";
+import { StatefulQueryResult } from "@/wab/shared/core/custom-functions";
 import { RenderingCtx, computeCanvasSessionKey, computeFullKey } from "@/wab/client/components/canvas/canvas-rendering";
 import { CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
 import { CanvasRegistrations } from "@/wab/client/components/canvas/canvas-registrations";
@@ -35,8 +37,13 @@ import { mkParam } from "@/wab/shared/core/lang";
 import { ensureKnownSlotParam } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { Table } from "antd";
-import { autorun, Reaction, observable, runInAction } from "mobx";
+
 import React from "react";
+
+function subscribeRedraw(store: StoreApi<number>, draw: () => void) {
+  draw();
+  return store.subscribe(draw);
+}
 
 function fixture() {
   const session = new CanvasSessionState(), snapshots = new ModelSnapshots();
@@ -72,7 +79,7 @@ function fixture() {
   };
   const initialRenderReadyStore = createStore<boolean>(() => false);
   const viewCtx = { studioCtx, canvasSessionState: session, canvasRenderOwner: owner,
-    modelLifetime: arenaState.lifetime(), initialRenderReadyStore, _isDisposed: false,
+    modelLifetime: arenaState.lifetime(), initialRenderReadyStore, autoOpenStore: createAutoOpenStore(), _isDisposed: false,
     canvasCtx: { registrations, isUpdatingCcRegistry: () => registrations.loadingStore.getState(), frameInfo: () => getFrameInfo().store, prepareFrameInfo: () => getFrameInfo().prepare() },
     site, arenaFrame: () => arenaFrame, variants, variantStore: variants.store,
     selection, selectionStore: selection.store, frameState,
@@ -95,8 +102,8 @@ function fixture() {
   let frameInfoOwner: CanvasFrameInfoOwner | undefined;
   const getFrameInfo = () => frameInfoOwner ??= new CanvasFrameInfoOwner(viewCtx);
   arenaState.viewRegistry.register(viewCtx);
-  const tick = observable.box(0);
-  const redraw = () => runInAction(() => tick.set(tick.get() + 1));
+  const tick = createStore<number>(() => 0);
+  const redraw = () => tick.setState(tick.getState() + 1, true);
   const env = { $ctx: {}, $props: {}, $queries: {}, $q: {} };
   const context = (valKey: string, renderSlotInstance?: string) => ({
     sub: { React }, viewCtx, site, valKey, renderSlotInstance,
@@ -120,7 +127,7 @@ it("invalidates the changed instance and its cached ancestors while preserving s
   const rootRender = vi.fn(() => React.createElement(Table, {},
     f.owner.render(child, childCtx, childRender), f.owner.render(other, otherCtx, otherRender)));
   let output: React.ReactElement<{ children?: React.ReactNode }> | undefined;
-  const stop = autorun(() => { f.tick.get(); output = f.owner.render(root, rootCtx, rootRender); });
+  const stop = subscribeRedraw(f.tick, () => {  output = f.owner.render(root, rootCtx, rootRender); });
   const before = output;
   const sibling = React.Children.toArray(output?.props.children)[1];
   f.session.set(instance, "open", true);
@@ -143,7 +150,7 @@ it("updates cached results for native model commits without observable model fie
   const node = mkTplTagX("div"), ctx = f.context("node");
   const render = vi.fn(() => ({ tag: node.tag }));
   let result: { tag: string } | undefined;
-  const stop = autorun(() => { f.tick.get(); result = f.owner.render(node, ctx, render); });
+  const stop = subscribeRedraw(f.tick, () => {  result = f.owner.render(node, ctx, render); });
   const before = result;
   node.tag = "section";
   f.snapshots.sync([{ type: "update", oldValue: "div", newValue: "section", changeNode: { inst: node, field: "tag" } }]);
@@ -164,16 +171,16 @@ it("isolates render-slot clones and releases owner subscriptions", () => {
   f.session.resolve(keyA, "open", false); f.session.resolve(keyB, "open", false);
   const first = vi.fn(() => ({ open: f.session.get(keyA, "open") }));
   const second = vi.fn(() => ({ open: f.session.get(keyB, "open") }));
-  const stop = autorun(() => {
-    f.tick.get(); f.owner.render(node, a, first); f.owner.render(node, b, second);
+  const stop = subscribeRedraw(f.tick, () => {
+     f.owner.render(node, a, first); f.owner.render(node, b, second);
   });
   f.session.set(keyA, "open", true);
   expect(first).toHaveBeenCalledTimes(2);
   expect(second).toHaveBeenCalledTimes(1);
   stop(); f.dispose();
-  const count = f.tick.get();
+  const count = f.tick.getState();
   f.session.set(keyB, "open", true);
-  expect(f.tick.get()).toBe(count);
+  expect(f.tick.getState()).toBe(count);
 });
 
 it("invalidates only instances whose native component-context inputs change", () => {
@@ -199,8 +206,8 @@ it("invalidates only instances whose native component-context inputs change", ()
   const third = { ...f.context("root.other.tag"), ownerComponent: unrelated, ownerKey: "root.other" };
   const firstNode = mkTplTagX("div"), secondNode = mkTplTagX("span"), thirdNode = mkTplTagX("i");
   const a = vi.fn(() => f.viewCtx.currentComponent().name), b = vi.fn(() => f.viewCtx.currentComponent().name), other = vi.fn(() => "unchanged");
-  const stop = autorun(() => {
-    f.tick.get();
+  const stop = subscribeRedraw(f.tick, () => {
+
     f.owner.render(firstNode, first, a); f.owner.render(secondNode, second, b); f.owner.render(thirdNode, third, other);
   });
   f.selection.setContext(new ComponentCtx({ valComponent: nestedVal }));
@@ -223,9 +230,9 @@ it("rebinds native model inputs when a runtime clone is replaced with the same u
   let node = original;
   const ctx = f.context("provider");
   const render = vi.fn(() => node.tag);
-  const stop = autorun(() => { f.tick.get(); f.owner.render(node, ctx, render); });
+  const stop = subscribeRedraw(f.tick, () => {  f.owner.render(node, ctx, render); });
   node = replacement;
-  runInAction(() => f.tick.set(f.tick.get() + 1));
+  f.tick.setState(f.tick.getState() + 1, true);
   replacement.tag = "article";
   f.snapshots.sync([{ type: "update", oldValue: "section", newValue: "article", changeNode: { inst: replacement, field: "tag" } }]);
   f.commits.forEach((listener) => listener({ type: "commit" }));
@@ -247,22 +254,99 @@ it("refreshes cached event handlers and wrapping context without changing the no
     ...ctx.triggerProps.button, locale: ctx.wrappingEnv.$ctx.locale, invalidate: ctx.plasmicInvalidate,
   }));
   let output: ReturnType<typeof render> | undefined;
-  const stop = autorun(() => { f.tick.get(); output = f.owner.render(node, ctx, render); });
+  const stop = subscribeRedraw(f.tick, () => {  output = f.owner.render(node, ctx, render); });
   const before = output;
-  runInAction(() => f.tick.set(f.tick.get() + 1));
+  f.tick.setState(f.tick.getState() + 1, true);
   expect(output).toBe(before);
   ctx.triggerProps.button.onClick = second;
-  runInAction(() => f.tick.set(f.tick.get() + 1));
+  f.tick.setState(f.tick.getState() + 1, true);
   expect(output?.onClick).toBe(second);
   expect(output?.locale).toBe("first");
   ctx.wrappingEnv.$ctx.locale = "second";
-  runInAction(() => f.tick.set(f.tick.get() + 1));
+  f.tick.setState(f.tick.getState() + 1, true);
   expect(output?.locale).toBe("second");
   ctx.plasmicInvalidate = second;
-  runInAction(() => f.tick.set(f.tick.get() + 1));
+  f.tick.setState(f.tick.getState() + 1, true);
   expect(output?.invalidate).toBe(second);
   expect(render).toHaveBeenCalledTimes(4);
   stop(); f.dispose();
+});
+
+it("captures a shared environment anew after in-place context, props and query updates", () => {
+  const f = fixture(), node = mkTplTagX("div"), ctx = f.context("shared-env");
+  const query = new StatefulQueryResult();
+  ctx.env.$ctx.locale = "first";
+  ctx.env.$props.label = "first";
+  ctx.env.$q.query = query;
+  expect(ctx.wrappingEnv).toBe(ctx.env);
+  const render = vi.fn(() => ({ locale: ctx.env.$ctx.locale, label: ctx.env.$props.label, query: query.current }));
+  try {
+    const first = f.owner.render(node, ctx, render);
+    expect(f.owner.render(node, ctx, render)).toBe(first);
+    ctx.env.$ctx.locale = "second";
+    expect(f.owner.render(node, ctx, render).locale).toBe("second");
+    ctx.env.$props.label = "second";
+    expect(f.owner.render(node, ctx, render).label).toBe("second");
+    query.resolvePromise("key", { value: "updated" });
+    const updated = f.owner.render(node, ctx, render);
+    expect(updated.query).toBe(query.current);
+    expect(f.owner.render(node, ctx, render)).toBe(updated);
+    expect(render).toHaveBeenCalledTimes(4);
+  } finally { f.dispose(); }
+});
+
+it("compares private environment entries independently of insertion order and inherited or symbol metadata", () => {
+  const f = fixture(), node = mkTplTagX("div"), ctx = f.context("entry-keys");
+  const metadata = Symbol("command metadata");
+  ctx.env.$ctx = Object.assign(Object.create({ inherited: "ignored" }), { first: 1, second: 2 });
+  Object.defineProperty(ctx.env.$ctx, metadata, { value: "first", enumerable: true, writable: true });
+  Object.defineProperty(ctx.env.$ctx, "private", { value: "first", enumerable: false, writable: true });
+  const render = vi.fn(() => ctx.env.$ctx.first);
+  try {
+    expect(f.owner.render(node, ctx, render)).toBe(1);
+    Reflect.set(ctx.env.$ctx, metadata, "second");
+    ctx.env.$ctx.private = "second";
+    expect(f.owner.render(node, ctx, render)).toBe(1);
+    ctx.env.$ctx = { second: 2, first: 1 };
+    expect(f.owner.render(node, ctx, render)).toBe(1);
+    expect(render).toHaveBeenCalledOnce();
+    ctx.env.$ctx.first = 3;
+    expect(f.owner.render(node, ctx, render)).toBe(3);
+    expect(render).toHaveBeenCalledTimes(2);
+  } finally { f.dispose(); }
+});
+
+it.each(["$ctx", "$props", "$queries"] as const)("retains own undefined and prototype-named keys in %s", (field) => {
+  const f = fixture(), node = mkTplTagX("div"), ctx = f.context("own-keys");
+  ctx.env[field] = { absent: undefined };
+  Object.defineProperty(ctx.env[field], "__proto__", { value: "first", enumerable: true, writable: true });
+  const render = vi.fn(() => [Object.prototype.hasOwnProperty.call(ctx.env[field], "absent"), ctx.env[field]["__proto__"]]);
+  try {
+    expect(f.owner.render(node, ctx, render)).toEqual([true, "first"]);
+    delete ctx.env[field].absent;
+    ctx.env[field].different = undefined;
+    expect(f.owner.render(node, ctx, render)).toEqual([false, "first"]);
+    ctx.env[field]["__proto__"] = "second";
+    expect(f.owner.render(node, ctx, render)).toEqual([false, "second"]);
+    expect(render).toHaveBeenCalledTimes(3);
+  } finally { f.dispose(); }
+});
+
+it("preserves shallow object and array equality for local values", () => {
+  const f = fixture(), node = mkTplTagX("div"), ctx = f.context("local-values");
+  ctx.env.item = { first: 1, second: 2 };
+  ctx.env.items = [1, 2];
+  const render = vi.fn(() => [ctx.env.item.first, ctx.env.items[0]]);
+  try {
+    const first = f.owner.render(node, ctx, render);
+    ctx.env.item = { second: 2, first: 1 };
+    ctx.env.items = [1, 2];
+    expect(f.owner.render(node, ctx, render)).toBe(first);
+    expect(render).toHaveBeenCalledOnce();
+    ctx.env.items = [3, 2];
+    expect(f.owner.render(node, ctx, render)).toEqual([1, 3]);
+    expect(render).toHaveBeenCalledTimes(2);
+  } finally { f.dispose(); }
 });
 
 it("uses the explicit state initialization hash and command identities as render inputs", () => {
@@ -273,16 +357,16 @@ it("uses the explicit state initialization hash and command identities as render
   ctx.stateSpecs = [spec("first")];
   const render = vi.fn(() => ({ hash: ctx.stateSpecs[0].initFuncHash, mutate: ctx.stateSpecs[0].onMutate }));
   let output: ReturnType<typeof render> | undefined;
-  const stop = autorun(() => { f.tick.get(); output = f.owner.render(node, ctx, render); });
+  const stop = subscribeRedraw(f.tick, () => {  output = f.owner.render(node, ctx, render); });
   const before = output;
   ctx.stateSpecs = [spec("first")];
-  runInAction(() => f.tick.set(f.tick.get() + 1));
+  f.tick.setState(f.tick.getState() + 1, true);
   expect(output).toBe(before);
   ctx.stateSpecs = [spec("second")];
-  runInAction(() => f.tick.set(f.tick.get() + 1));
+  f.tick.setState(f.tick.getState() + 1, true);
   expect(output?.hash).toBe("second");
   const otherMutate = vi.fn(); ctx.stateSpecs[0].onMutate = otherMutate;
-  runInAction(() => f.tick.set(f.tick.get() + 1));
+  f.tick.setState(f.tick.getState() + 1, true);
   expect(output?.mutate).toBe(otherMutate);
   expect(render).toHaveBeenCalledTimes(3);
   stop(); f.dispose();
@@ -296,8 +380,8 @@ it("subscribes tag instances to their shared owning component contract and paren
   const render = vi.fn(() => ({ owner: ctx.ownerComponent.name, parent: node.parent?.uid }));
   const renderOther = vi.fn(() => otherCtx.ownerComponent.name);
   let output: ReturnType<typeof render> | undefined;
-  const stop = autorun(() => {
-    f.tick.get(); output = f.owner.render(node, ctx, render); f.owner.render(other, otherCtx, renderOther);
+  const stop = subscribeRedraw(f.tick, () => {
+     output = f.owner.render(node, ctx, render); f.owner.render(other, otherCtx, renderOther);
   });
   f.component.name = "Renamed";
   const parent = mkTplComponent(f.component, f.component.variants[0]);
@@ -334,7 +418,7 @@ it("refreshes only the registered implementation's cached instance and preserves
     const render = vi.fn(() => React.createElement(ensure(f.viewCtx.canvasCtx.registrations.component("Registered").getState(), "Registration must be installed").runtime.impl));
     const renderOther = vi.fn(() => React.createElement("span"));
     let output: ReturnType<typeof render> | undefined;
-    const stop = autorun(() => { f.tick.get(); output = f.owner.render(tpl, ctx, render); f.owner.render(other, otherCtx, renderOther); });
+    const stop = subscribeRedraw(f.tick, () => {  output = f.owner.render(tpl, ctx, render); f.owner.render(other, otherCtx, renderOther); });
     expect(output?.type).toBe(first);
     registrations[0].component = second; source.clear(); f.viewCtx.canvasCtx.registrations.refresh();
     expect(output?.type).toBe(second);
@@ -360,7 +444,7 @@ it("invalidates slot ancestors before a synchronous native selector can read a c
   const root = mkTplTagX("div"), slot = mkSlot(ensureKnownSlotParam(mkParam({ name: "children", paramType: "slot", type: typeFactory.renderable() }))), other = mkTplTagX("span");
   const context = (key: string) => ({ ...f.context(key), ownerComponent: f.component, ownerKey: "root", forceValComponentKeysWithDefaultSlotContents: new Set<string>() });
   const rootCtx = context("root.tag"), slotCtx = context("root.tag.slot"), otherCtx = context("root.tag.other");
-  const draw = () => runInAction(() => f.tick.set(f.tick.get() + 1));
+  const draw = () => f.tick.setState(f.tick.getState() + 1, true);
   const observed: unknown[] = [];
   let output: unknown;
   // Install the UI subscriber first, before the Slot is retained in the cache.
@@ -371,7 +455,7 @@ it("invalidates slot ancestors before a synchronous native selector can read a c
   const renderSlot = vi.fn(() => slotCtx.forceValComponentKeysWithDefaultSlotContents.has("root") ? "default" : "arg");
   const renderOther = vi.fn(() => "sibling");
   const renderRoot = vi.fn(() => [f.owner.render(slot, slotCtx, renderSlot), f.owner.render(other, otherCtx, renderOther)]);
-  const stop = autorun(() => { f.tick.get(); output = f.owner.render(root, rootCtx, renderRoot); });
+  const stop = subscribeRedraw(f.tick, () => {  output = f.owner.render(root, rootCtx, renderRoot); });
   expect(output).toEqual(["arg", "sibling"]);
   f.viewCtx.variants.setShowDefaultSlots(true);
   expect(observed).toEqual([["default", "sibling"]]);
@@ -394,10 +478,10 @@ it("installs drag selection and clears selected cache paths before native UI pub
   const snapshots: (string[] | undefined)[] = [];
   // Register synchronous UI first; correctness must not depend on subscription order.
   const stopUi = f.draggingState.subscribe(() => {
-    runInAction(() => f.tick.set(f.tick.get() + 1));
+    f.tick.setState(f.tick.getState() + 1, true);
     snapshots.push(result);
   });
-  const stop = autorun(() => { f.tick.get(); result = f.owner.render(root, rootCtx, renderRoot); });
+  const stop = subscribeRedraw(f.tick, () => {  result = f.owner.render(root, rootCtx, renderRoot); });
   expect(result).toEqual(["open", "sibling"]);
   const publish = f.owner.prepareDraggingObject(true);
   expect(f.draggingState.getState()).toBe(false);
@@ -415,9 +499,9 @@ it("installs drag selection and clears selected cache paths before native UI pub
   expect(result).toEqual(["open", "sibling"]);
   expect(renderChild).toHaveBeenCalledTimes(3);
   expect(renderSibling).toHaveBeenCalledTimes(1);
-  runInAction(() => f.autoOpenRequested.set(false));
+  f.autoOpenRequested.set(false);
   expect(result).toEqual(["closed", "sibling"]);
-  runInAction(() => f.autoOpenRequested.set(true));
+  f.autoOpenRequested.set(true);
   expect(result).toEqual(["open", "sibling"]);
   expect(renderSibling).toHaveBeenCalledTimes(1);
   stopUi(); stop(); f.dispose();
@@ -433,12 +517,10 @@ it("invalidates only node kinds consuming the changed policy scalar before input
   const siblingRender = vi.fn(() => React.createElement(Table.Column, { title: "retained" }));
   const rootRender = vi.fn(() => React.createElement(Table, { children: [f.owner.render(child, childCtx, childRender), f.owner.render(sibling, siblingCtx, siblingRender)] }));
   let result: React.ReactElement | undefined;
-  const stop = autorun(() => { f.tick.get(); result = f.owner.render(root, rootCtx, rootRender); });
+  const stop = subscribeRedraw(f.tick, () => {  result = f.owner.render(root, rootCtx, rootRender); });
   const before = result;
-  const readReaction = new Reaction("Retained synchronous policy subscriber", () => undefined);
   const notify = vi.fn(() => {
-    let rendered: ReturnType<typeof rootRender> | undefined;
-    readReaction.track(() => { rendered = f.owner.render(root, rootCtx, rootRender); });
+    const rendered = f.owner.render(root, rootCtx, rootRender);
     const observed = ensure(rendered, "Synchronous policy render");
     expect(observed.type).toBe(Table);
     expect(React.Children.toArray(observed.props.children).map((element) => React.isValidElement(element) && element.type)).toEqual([Table.Column, Table.Column]);
@@ -468,20 +550,18 @@ it("invalidates only node kinds consuming the changed policy scalar before input
     expect(result).toBe(retained);
     expect(childRender).toHaveBeenCalledTimes(2);
     expect(siblingRender).toHaveBeenCalledTimes(1);
-  } finally { readReaction.dispose(); off(); stop(); f.dispose(); }
+  } finally { off(); stop(); f.dispose(); }
 });
 
 it("updates interactive render inputs even when the frame output is unchanged", () => {
   const f = fixture(), node = mkTplTagX("button"), ctx = f.context("button");
   const draw = vi.fn(() => f.renderPolicy.store.getState().interactive);
   let output: boolean | undefined;
-  const stop = autorun(() => { f.tick.get(); output = f.owner.render(node, ctx, draw); });
+  const stop = subscribeRedraw(f.tick, () => {  output = f.owner.render(node, ctx, draw); });
   const frameBefore = f.frameInfo.store.getState();
   const frameNotify = vi.fn(); const stopFrame = f.frameInfo.store.subscribe(frameNotify);
-  const readReaction = new Reaction("Retained synchronous interactive subscriber", () => undefined);
   const stopPolicy = f.renderPolicy.store.subscribe(() => {
-    let rendered: boolean | undefined;
-    readReaction.track(() => { rendered = f.owner.render(node, ctx, draw); });
+    const rendered = f.owner.render(node, ctx, draw);
     expect(rendered).toBe(true);
     expect(f.frameInfo.store.getState()).toBe(frameBefore);
   });
@@ -493,7 +573,7 @@ it("updates interactive render inputs even when the frame output is unchanged", 
     expect(output).toBe(true);
     expect(draw).toHaveBeenCalledTimes(2);
     expect(frameNotify).not.toHaveBeenCalled();
-  } finally { readReaction.dispose(); stopPolicy(); stopFrame(); stop(); f.dispose(); }
+  } finally { stopPolicy(); stopFrame(); stop(); f.dispose(); }
 });
 
 
@@ -509,7 +589,7 @@ it("invalidates native expanded component keys and their retained ancestors befo
   const siblingRender = vi.fn(() => React.createElement(Table.Column, { title: "stable" }));
   const rootRender = vi.fn(() => React.createElement(Table, {}, f.owner.render(target, targetCtx, targetRender), f.owner.render(sibling, siblingCtx, siblingRender)));
   let output: React.ReactElement<{ children?: React.ReactNode }> | undefined;
-  const stop = autorun(() => { f.tick.get(); output = f.owner.render(root, rootCtx, rootRender); });
+  const stop = subscribeRedraw(f.tick, () => {  output = f.owner.render(root, rootCtx, rootRender); });
   const before = output;
   const rawSibling = () => {
     const children = output?.props.children;
@@ -554,17 +634,16 @@ it("prepares export-sensitive native visibility and ancestor caches before the f
   const renderSibling = vi.fn(() => React.createElement(Table.Column, { title: "unchanged" }));
   const renderRoot = () => React.createElement(Table, {}, f.owner.render(hidden, hiddenCtx, renderHidden), f.owner.render(sibling, siblingCtx, renderSibling));
   let output: React.ReactElement<{ children?: React.ReactNode }> | undefined;
-  const stop = autorun(() => { f.tick.get(); output = f.owner.render(root, rootCtx, renderRoot); });
+  const stop = subscribeRedraw(f.tick, () => {  output = f.owner.render(root, rootCtx, renderRoot); });
   const beforeSibling = ensure(output, "Initial table").props.children;
   expect(renderHidden).toHaveBeenCalledTimes(1);
-  const probe = new Reaction("first-export-frame-reader", () => undefined);
-  const inspect = vi.fn(() => probe.track(() => {
+  const inspect = vi.fn(() => {
     const result = f.owner.render(root, rootCtx, renderRoot);
     const children = result.props.children;
     if (!Array.isArray(children) || !Array.isArray(beforeSibling)) { throw new Error("Unwrapped table child array"); }
     expect(React.isValidElement<{ title: string }>(children[0]) && children[0].props.title).toBe("true");
     expect(children[1]).toBe(beforeSibling[1]);
-  }));
+  });
   const off = f.frameInfo.store.subscribe(inspect);
   try {
     f.viewCtx.setCanvasExporting(false);
@@ -573,5 +652,39 @@ it("prepares export-sensitive native visibility and ancestor caches before the f
     const rendered = renderHidden.mock.calls.length;
     f.viewCtx.setCanvasExporting(false);
     expect(inspect).toHaveBeenCalledOnce(); expect(renderHidden).toHaveBeenCalledTimes(rendered);
-  } finally { off(); probe.dispose(); stop(); f.dispose(); }
+  } finally { off(); stop(); f.dispose(); }
+});
+
+it("retains cached descendant inputs across a committed hit and releases descendants removed by the next render", () => {
+  const f = fixture(), root = mkTplTagX("div"), child = mkTplTagX("span");
+  const invalidate = vi.fn();
+  const rootCtx = { ...f.context("lease"), onRenderInvalidated: invalidate };
+  const childCtx = { ...f.context("lease.child"), onRenderInvalidated: invalidate };
+  let include = true;
+  const childRender = vi.fn(() => React.createElement(child.tag));
+  const draw = vi.fn(() => React.createElement("div", {}, include ? f.owner.render(child, childCtx, childRender) : null));
+  const commit = () => {
+    const pass = f.owner.beginRender(invalidate);
+    try { f.owner.render(root, rootCtx, draw); }
+    finally { f.owner.endRender(pass); }
+    f.owner.commitRender(pass);
+  };
+  try {
+    commit(); commit(); expect(draw).toHaveBeenCalledOnce();
+    child.tag = "strong";
+    f.snapshots.sync([{ type: "update", oldValue: "span", newValue: "strong", changeNode: { inst: child, field: "tag" } }]);
+    f.commits.forEach((notify) => notify({ type: "commit" }));
+    expect(invalidate).toHaveBeenCalledOnce();
+    commit(); expect(childRender).toHaveBeenCalledTimes(2);
+    include = false; f.owner.invalidateInstance(computeCanvasSessionKey(rootCtx), false); commit(); invalidate.mockClear();
+    child.tag = "em";
+    f.snapshots.sync([{ type: "update", oldValue: "strong", newValue: "em", changeNode: { inst: child, field: "tag" } }]);
+    f.commits.forEach((notify) => notify({ type: "commit" }));
+    expect(invalidate).not.toHaveBeenCalled();
+    f.owner.releaseRenderListener(invalidate);
+    root.tag = "section";
+    f.snapshots.sync([{ type: "update", oldValue: "div", newValue: "section", changeNode: { inst: root, field: "tag" } }]);
+    f.commits.forEach((notify) => notify({ type: "commit" }));
+    expect(invalidate).not.toHaveBeenCalled();
+  } finally { f.dispose(); }
 });

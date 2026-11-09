@@ -1,3 +1,4 @@
+import { ensure } from "@/wab/shared/common";
 import { message, notification } from "antd";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { StudioUiEnvironment } from "@/wab/client/studio-ctx/studio-ui-environment";
@@ -100,4 +101,60 @@ it("publishes branch host and label metadata when loadVersion installs the branc
   await act(async () => { await studioCtx["loadVersion"](undefined, false, { ...branch, name: "After", hostUrl: "https://after.example/" }); });
   expect(studioCtx.uiEnvironment.store.getState()).toMatchObject({ branchId: branch.id, branchName: "After", hostUrl: "https://after.example/" });
   studioCtx.dispose();
+});
+
+it("publishes registered and imported token override policy through content-editor changes", async () => {
+  const { studioCtx: studio } = fakeStudioCtx({ siteInfo: {
+    uiConfig: { canOverrideRegisteredTokens: false, canOverrideImportedTokens: true },
+    contentCreatorConfig: { canOverrideRegisteredTokens: true, canOverrideImportedTokens: false },
+  } });
+  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  try {
+    const store = studio.uiEnvironment.store, changed = vi.fn(), stop = store.subscribe(changed);
+    expect(store.getState()).toMatchObject({ canOverrideRegisteredTokens: false, canOverrideImportedTokens: true });
+    const before = store.getState();
+    studio.toggleContentEditorMode();
+    expect(changed).toHaveBeenCalledOnce();
+    expect(store.getState()).toMatchObject({ canOverrideRegisteredTokens: true, canOverrideImportedTokens: false });
+    expect(before).toMatchObject({ canOverrideRegisteredTokens: false, canOverrideImportedTokens: true });
+    changed.mockClear();
+    studio.uiEnvironment.sync();
+    expect(changed).not.toHaveBeenCalled();
+    studio.toggleContentEditorMode();
+    expect(store.getState()).toMatchObject({ canOverrideRegisteredTokens: false, canOverrideImportedTokens: true });
+    stop();
+  } finally { studio.dispose(); }
+});
+
+
+it("captures Tag editing and token creation from the actual content-editor policy", async () => {
+  const { studioCtx: studio } = fakeStudioCtx({ siteInfo: {
+    uiConfig: { canCreateBasics: true },
+    contentCreatorConfig: { styleSectionVisibilities: { tag: false }, canCreateBasics: false },
+  } });
+  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  try {
+    expect(studio.uiEnvironment.store.getState()).toMatchObject({ canEditTag: true, canCreateTokens: true });
+    studio.toggleContentEditorMode();
+    expect(studio.uiEnvironment.store.getState()).toMatchObject({ canEditTag: false, canCreateTokens: false });
+    studio.toggleContentEditorMode();
+    expect(studio.uiEnvironment.store.getState()).toMatchObject({ canEditTag: true, canCreateTokens: true });
+  } finally { studio.dispose(); }
+});
+
+it("copies and freezes the actual insert-menu config and preserves structural snapshot identity", async () => {
+  const { studioCtx: studio } = fakeStudioCtx({ siteInfo: { uiConfig: { canInsertBasics: false, canInsertHostless: { example: false }, canInsertBuiltinComponent: true, insertableTemplates: [] } } });
+  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  try {
+    const store = studio.uiEnvironment.store, initial = store.getState().insertMenuConfig;
+    expect(initial).toMatchObject({ canInsertBasics: false, canInsertHostless: { example: false }, canInsertBuiltinComponent: true });
+    expect(Object.isFrozen(initial)).toBe(true); expect(Object.isFrozen(initial.canInsertHostless)).toBe(true); expect(Object.isFrozen(initial.insertableTemplates)).toBe(true);
+    studio.uiEnvironment.sync(); expect(store.getState().insertMenuConfig).toBe(initial);
+    const config = ensure(studio.siteInfo.uiConfig, "Actual project insert config");
+    config.canInsertHostless = { example: true }; config.canInsertBasics = true;
+    studio.uiEnvironment.sync();
+    const changed = store.getState().insertMenuConfig;
+    expect(changed).not.toBe(initial); expect(changed.canInsertHostless).toEqual({ example: true }); expect(changed.canInsertBasics).toBe(true);
+    expect(initial.canInsertHostless).toEqual({ example: false }); expect(initial.canInsertBasics).toBe(false);
+  } finally { studio.dispose(); }
 });

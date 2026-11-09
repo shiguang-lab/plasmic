@@ -80,7 +80,7 @@ function MenuWithChildren(props: React.ComponentProps<typeof NativeMenu> & Plasm
     if (data.__canvas?.selected) {selectedKeys.push(...path);}
     if (data.children) {visit(data.children, path);}
   });
-  if (canvas && !canvas.interactive) {visit(items, []);}
+  if (canvas) {visit(items, []);}
   const reveal = selectedKeys.length > 0;
   const revealedKeys = Array.from(new Set([...(openKeys ?? defaultOpenKeys ?? []), ...selectedKeys]));
   const keys = reveal ? state ? state.reveal(revealedKeys) : revealedKeys : state ? state.value : openKeys;

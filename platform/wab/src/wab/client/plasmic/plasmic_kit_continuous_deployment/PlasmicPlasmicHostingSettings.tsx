@@ -27,7 +27,8 @@ import {
   generateStateOnChangeProp,
   generateStateValueProp,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -37,7 +38,7 @@ import ErrorFeedback from "../../components/github/ErrorFeedback"; // plasmic-im
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import Switch from "../../components/widgets/Switch"; // plasmic-import: b35JDgXpbiF/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -137,11 +138,10 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "customDomain",
@@ -163,18 +163,20 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -342,9 +344,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                   }
                 )}
                 placeholder={"my-subdomain"}
-                ref={(ref) => {
-                  $refs["subdomainInput"] = ref;
-                }}
+                ref={registerRef("subdomainInput")}
                 size={1}
                 type={"text"}
                 value={""}
@@ -674,9 +674,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                 }
               )}
               placeholder={"my-domain.com"}
-              ref={(ref) => {
-                $refs["customDomainInput"] = ref;
-              }}
+              ref={registerRef("customDomainInput")}
               size={1}
               type={"text"}
               value={""}
@@ -939,9 +937,9 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                 generateStateValueProp($state, ["showBadge", "isChecked"]) ??
                 false
               }
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, ["showBadge", "isChecked"])(
+                  generateStateOnChangeProp($stateCommands, ["showBadge", "isChecked"])(
                     eventArgs[0]
                   );
                 }).apply(null, eventArgs);
@@ -953,7 +951,7 @@ function PlasmicPlasmicHostingSettings__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
             />
           </div>
           <div
@@ -1170,12 +1168,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1185,55 +1179,237 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPlasmicHostingSettings__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPlasmicHostingSettings";
-  } else {
-    func.displayName = `PlasmicPlasmicHostingSettings.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPlasmicHostingSettings__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__root<T extends PlasmicPlasmicHostingSettings__rootProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPlasmicHostingSettings__root.displayName = "PlasmicPlasmicHostingSettings";
+
+type PlasmicPlasmicHostingSettings__subdomainFormProps = NodeComponentProps<"subdomainForm"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__subdomainForm<T extends PlasmicPlasmicHostingSettings__subdomainFormProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__subdomainFormProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("subdomainForm", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"subdomainForm"} />;
+}
+PlasmicPlasmicHostingSettings__subdomainForm.displayName = "PlasmicPlasmicHostingSettings.subdomainForm";
+
+type PlasmicPlasmicHostingSettings__subdomainLabelProps = NodeComponentProps<"subdomainLabel"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__subdomainLabel<T extends PlasmicPlasmicHostingSettings__subdomainLabelProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__subdomainLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("subdomainLabel", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"subdomainLabel"} />;
+}
+PlasmicPlasmicHostingSettings__subdomainLabel.displayName = "PlasmicPlasmicHostingSettings.subdomainLabel";
+
+type PlasmicPlasmicHostingSettings__iconButtonProps = NodeComponentProps<"iconButton"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__iconButton<T extends PlasmicPlasmicHostingSettings__iconButtonProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__iconButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconButton", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconButton"} />;
+}
+PlasmicPlasmicHostingSettings__iconButton.displayName = "PlasmicPlasmicHostingSettings.iconButton";
+
+type PlasmicPlasmicHostingSettings__subdomainInputProps = NodeComponentProps<"subdomainInput"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__subdomainInput<T extends PlasmicPlasmicHostingSettings__subdomainInputProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__subdomainInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("subdomainInput", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"subdomainInput"} />;
+}
+PlasmicPlasmicHostingSettings__subdomainInput.displayName = "PlasmicPlasmicHostingSettings.subdomainInput";
+
+type PlasmicPlasmicHostingSettings__subdomainSuffixProps = NodeComponentProps<"subdomainSuffix"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__subdomainSuffix<T extends PlasmicPlasmicHostingSettings__subdomainSuffixProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__subdomainSuffixProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("subdomainSuffix", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"subdomainSuffix"} />;
+}
+PlasmicPlasmicHostingSettings__subdomainSuffix.displayName = "PlasmicPlasmicHostingSettings.subdomainSuffix";
+
+type PlasmicPlasmicHostingSettings__messageActions4Props = NodeComponentProps<"messageActions4"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__messageActions4<T extends PlasmicPlasmicHostingSettings__messageActions4Props>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__messageActions4Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("messageActions4", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"messageActions4"} />;
+}
+PlasmicPlasmicHostingSettings__messageActions4.displayName = "PlasmicPlasmicHostingSettings.messageActions4";
+
+type PlasmicPlasmicHostingSettings__subdomainErrorFeedbackProps = NodeComponentProps<"subdomainErrorFeedback"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__subdomainErrorFeedback<T extends PlasmicPlasmicHostingSettings__subdomainErrorFeedbackProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__subdomainErrorFeedbackProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("subdomainErrorFeedback", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"subdomainErrorFeedback"} />;
+}
+PlasmicPlasmicHostingSettings__subdomainErrorFeedback.displayName = "PlasmicPlasmicHostingSettings.subdomainErrorFeedback";
+
+type PlasmicPlasmicHostingSettings__domainErrorMessage7Props = NodeComponentProps<"domainErrorMessage7"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__domainErrorMessage7<T extends PlasmicPlasmicHostingSettings__domainErrorMessage7Props>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__domainErrorMessage7Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("domainErrorMessage7", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"domainErrorMessage7"} />;
+}
+PlasmicPlasmicHostingSettings__domainErrorMessage7.displayName = "PlasmicPlasmicHostingSettings.domainErrorMessage7";
+
+type PlasmicPlasmicHostingSettings__saveSubdomainButtonProps = NodeComponentProps<"saveSubdomainButton"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__saveSubdomainButton<T extends PlasmicPlasmicHostingSettings__saveSubdomainButtonProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__saveSubdomainButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("saveSubdomainButton", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"saveSubdomainButton"} />;
+}
+PlasmicPlasmicHostingSettings__saveSubdomainButton.displayName = "PlasmicPlasmicHostingSettings.saveSubdomainButton";
+
+type PlasmicPlasmicHostingSettings__messageActions5Props = NodeComponentProps<"messageActions5"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__messageActions5<T extends PlasmicPlasmicHostingSettings__messageActions5Props>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__messageActions5Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("messageActions5", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"messageActions5"} />;
+}
+PlasmicPlasmicHostingSettings__messageActions5.displayName = "PlasmicPlasmicHostingSettings.messageActions5";
+
+type PlasmicPlasmicHostingSettings__errorFeedbackProps = NodeComponentProps<"errorFeedback"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__errorFeedback<T extends PlasmicPlasmicHostingSettings__errorFeedbackProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__errorFeedbackProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("errorFeedback", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"errorFeedback"} />;
+}
+PlasmicPlasmicHostingSettings__errorFeedback.displayName = "PlasmicPlasmicHostingSettings.errorFeedback";
+
+type PlasmicPlasmicHostingSettings__domainErrorMessage8Props = NodeComponentProps<"domainErrorMessage8"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__domainErrorMessage8<T extends PlasmicPlasmicHostingSettings__domainErrorMessage8Props>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__domainErrorMessage8Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("domainErrorMessage8", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"domainErrorMessage8"} />;
+}
+PlasmicPlasmicHostingSettings__domainErrorMessage8.displayName = "PlasmicPlasmicHostingSettings.domainErrorMessage8";
+
+type PlasmicPlasmicHostingSettings__refreshButton7Props = NodeComponentProps<"refreshButton7"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__refreshButton7<T extends PlasmicPlasmicHostingSettings__refreshButton7Props>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__refreshButton7Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("refreshButton7", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"refreshButton7"} />;
+}
+PlasmicPlasmicHostingSettings__refreshButton7.displayName = "PlasmicPlasmicHostingSettings.refreshButton7";
+
+type PlasmicPlasmicHostingSettings__refreshButton8Props = NodeComponentProps<"refreshButton8"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__refreshButton8<T extends PlasmicPlasmicHostingSettings__refreshButton8Props>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__refreshButton8Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("refreshButton8", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"refreshButton8"} />;
+}
+PlasmicPlasmicHostingSettings__refreshButton8.displayName = "PlasmicPlasmicHostingSettings.refreshButton8";
+
+type PlasmicPlasmicHostingSettings__customDomainFormProps = NodeComponentProps<"customDomainForm"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__customDomainForm<T extends PlasmicPlasmicHostingSettings__customDomainFormProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__customDomainFormProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("customDomainForm", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"customDomainForm"} />;
+}
+PlasmicPlasmicHostingSettings__customDomainForm.displayName = "PlasmicPlasmicHostingSettings.customDomainForm";
+
+type PlasmicPlasmicHostingSettings__customDomainInputProps = NodeComponentProps<"customDomainInput"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__customDomainInput<T extends PlasmicPlasmicHostingSettings__customDomainInputProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__customDomainInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("customDomainInput", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"customDomainInput"} />;
+}
+PlasmicPlasmicHostingSettings__customDomainInput.displayName = "PlasmicPlasmicHostingSettings.customDomainInput";
+
+type PlasmicPlasmicHostingSettings__customDomainPreliminaryErrorFeedbackProps = NodeComponentProps<"customDomainPreliminaryErrorFeedback"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__customDomainPreliminaryErrorFeedback<T extends PlasmicPlasmicHostingSettings__customDomainPreliminaryErrorFeedbackProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__customDomainPreliminaryErrorFeedbackProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("customDomainPreliminaryErrorFeedback", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"customDomainPreliminaryErrorFeedback"} />;
+}
+PlasmicPlasmicHostingSettings__customDomainPreliminaryErrorFeedback.displayName = "PlasmicPlasmicHostingSettings.customDomainPreliminaryErrorFeedback";
+
+type PlasmicPlasmicHostingSettings__domainErrorMessage9Props = NodeComponentProps<"domainErrorMessage9"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__domainErrorMessage9<T extends PlasmicPlasmicHostingSettings__domainErrorMessage9Props>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__domainErrorMessage9Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("domainErrorMessage9", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"domainErrorMessage9"} />;
+}
+PlasmicPlasmicHostingSettings__domainErrorMessage9.displayName = "PlasmicPlasmicHostingSettings.domainErrorMessage9";
+
+type PlasmicPlasmicHostingSettings__addCustomDomainButtonProps = NodeComponentProps<"addCustomDomainButton"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__addCustomDomainButton<T extends PlasmicPlasmicHostingSettings__addCustomDomainButtonProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__addCustomDomainButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addCustomDomainButton", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addCustomDomainButton"} />;
+}
+PlasmicPlasmicHostingSettings__addCustomDomainButton.displayName = "PlasmicPlasmicHostingSettings.addCustomDomainButton";
+
+type PlasmicPlasmicHostingSettings__domainCardProps = NodeComponentProps<"domainCard"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__domainCard<T extends PlasmicPlasmicHostingSettings__domainCardProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__domainCardProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("domainCard", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"domainCard"} />;
+}
+PlasmicPlasmicHostingSettings__domainCard.displayName = "PlasmicPlasmicHostingSettings.domainCard";
+
+type PlasmicPlasmicHostingSettings__paidFeaturesInfoTextProps = NodeComponentProps<"paidFeaturesInfoText"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__paidFeaturesInfoText<T extends PlasmicPlasmicHostingSettings__paidFeaturesInfoTextProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__paidFeaturesInfoTextProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("paidFeaturesInfoText", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"paidFeaturesInfoText"} />;
+}
+PlasmicPlasmicHostingSettings__paidFeaturesInfoText.displayName = "PlasmicPlasmicHostingSettings.paidFeaturesInfoText";
+
+type PlasmicPlasmicHostingSettings__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__link<T extends PlasmicPlasmicHostingSettings__linkProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicPlasmicHostingSettings__link.displayName = "PlasmicPlasmicHostingSettings.link";
+
+type PlasmicPlasmicHostingSettings__upgradeNowLinkProps = NodeComponentProps<"upgradeNowLink"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__upgradeNowLink<T extends PlasmicPlasmicHostingSettings__upgradeNowLinkProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__upgradeNowLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("upgradeNowLink", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"upgradeNowLink"} />;
+}
+PlasmicPlasmicHostingSettings__upgradeNowLink.displayName = "PlasmicPlasmicHostingSettings.upgradeNowLink";
+
+type PlasmicPlasmicHostingSettings__badgeFormProps = NodeComponentProps<"badgeForm"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__badgeForm<T extends PlasmicPlasmicHostingSettings__badgeFormProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__badgeFormProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("badgeForm", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"badgeForm"} />;
+}
+PlasmicPlasmicHostingSettings__badgeForm.displayName = "PlasmicPlasmicHostingSettings.badgeForm";
+
+type PlasmicPlasmicHostingSettings__showBadgeProps = NodeComponentProps<"showBadge"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__showBadge<T extends PlasmicPlasmicHostingSettings__showBadgeProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__showBadgeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("showBadge", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"showBadge"} />;
+}
+PlasmicPlasmicHostingSettings__showBadge.displayName = "PlasmicPlasmicHostingSettings.showBadge";
+
+type PlasmicPlasmicHostingSettings__faviconFormProps = NodeComponentProps<"faviconForm"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__faviconForm<T extends PlasmicPlasmicHostingSettings__faviconFormProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__faviconFormProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("faviconForm", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"faviconForm"} />;
+}
+PlasmicPlasmicHostingSettings__faviconForm.displayName = "PlasmicPlasmicHostingSettings.faviconForm";
+
+type PlasmicPlasmicHostingSettings__faviconControlContainerProps = NodeComponentProps<"faviconControlContainer"> & {key?: React.Key};
+function PlasmicPlasmicHostingSettings__faviconControlContainer<T extends PlasmicPlasmicHostingSettings__faviconControlContainerProps>(props: T & StrictProps<T, PlasmicPlasmicHostingSettings__faviconControlContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("faviconControlContainer", props);
+  return <PlasmicPlasmicHostingSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"faviconControlContainer"} />;
+}
+PlasmicPlasmicHostingSettings__faviconControlContainer.displayName = "PlasmicPlasmicHostingSettings.faviconControlContainer";
+
 
 export const PlasmicPlasmicHostingSettings = Object.assign(
   // Top-level PlasmicPlasmicHostingSettings renders the root element
-  makeNodeComponent("root"),
+  PlasmicPlasmicHostingSettings__root,
   {
     // Helper components rendering sub-elements
-    subdomainForm: makeNodeComponent("subdomainForm"),
-    subdomainLabel: makeNodeComponent("subdomainLabel"),
-    iconButton: makeNodeComponent("iconButton"),
-    subdomainInput: makeNodeComponent("subdomainInput"),
-    subdomainSuffix: makeNodeComponent("subdomainSuffix"),
-    messageActions4: makeNodeComponent("messageActions4"),
-    subdomainErrorFeedback: makeNodeComponent("subdomainErrorFeedback"),
-    domainErrorMessage7: makeNodeComponent("domainErrorMessage7"),
-    saveSubdomainButton: makeNodeComponent("saveSubdomainButton"),
-    messageActions5: makeNodeComponent("messageActions5"),
-    errorFeedback: makeNodeComponent("errorFeedback"),
-    domainErrorMessage8: makeNodeComponent("domainErrorMessage8"),
-    refreshButton7: makeNodeComponent("refreshButton7"),
-    refreshButton8: makeNodeComponent("refreshButton8"),
-    customDomainForm: makeNodeComponent("customDomainForm"),
-    customDomainInput: makeNodeComponent("customDomainInput"),
-    customDomainPreliminaryErrorFeedback: makeNodeComponent(
-      "customDomainPreliminaryErrorFeedback"
-    ),
-    domainErrorMessage9: makeNodeComponent("domainErrorMessage9"),
-    addCustomDomainButton: makeNodeComponent("addCustomDomainButton"),
-    domainCard: makeNodeComponent("domainCard"),
-    paidFeaturesInfoText: makeNodeComponent("paidFeaturesInfoText"),
-    link: makeNodeComponent("link"),
-    upgradeNowLink: makeNodeComponent("upgradeNowLink"),
-    badgeForm: makeNodeComponent("badgeForm"),
-    showBadge: makeNodeComponent("showBadge"),
-    faviconForm: makeNodeComponent("faviconForm"),
-    faviconControlContainer: makeNodeComponent("faviconControlContainer"),
+    subdomainForm: PlasmicPlasmicHostingSettings__subdomainForm,
+    subdomainLabel: PlasmicPlasmicHostingSettings__subdomainLabel,
+    iconButton: PlasmicPlasmicHostingSettings__iconButton,
+    subdomainInput: PlasmicPlasmicHostingSettings__subdomainInput,
+    subdomainSuffix: PlasmicPlasmicHostingSettings__subdomainSuffix,
+    messageActions4: PlasmicPlasmicHostingSettings__messageActions4,
+    subdomainErrorFeedback: PlasmicPlasmicHostingSettings__subdomainErrorFeedback,
+    domainErrorMessage7: PlasmicPlasmicHostingSettings__domainErrorMessage7,
+    saveSubdomainButton: PlasmicPlasmicHostingSettings__saveSubdomainButton,
+    messageActions5: PlasmicPlasmicHostingSettings__messageActions5,
+    errorFeedback: PlasmicPlasmicHostingSettings__errorFeedback,
+    domainErrorMessage8: PlasmicPlasmicHostingSettings__domainErrorMessage8,
+    refreshButton7: PlasmicPlasmicHostingSettings__refreshButton7,
+    refreshButton8: PlasmicPlasmicHostingSettings__refreshButton8,
+    customDomainForm: PlasmicPlasmicHostingSettings__customDomainForm,
+    customDomainInput: PlasmicPlasmicHostingSettings__customDomainInput,
+    customDomainPreliminaryErrorFeedback: PlasmicPlasmicHostingSettings__customDomainPreliminaryErrorFeedback,
+    domainErrorMessage9: PlasmicPlasmicHostingSettings__domainErrorMessage9,
+    addCustomDomainButton: PlasmicPlasmicHostingSettings__addCustomDomainButton,
+    domainCard: PlasmicPlasmicHostingSettings__domainCard,
+    paidFeaturesInfoText: PlasmicPlasmicHostingSettings__paidFeaturesInfoText,
+    link: PlasmicPlasmicHostingSettings__link,
+    upgradeNowLink: PlasmicPlasmicHostingSettings__upgradeNowLink,
+    badgeForm: PlasmicPlasmicHostingSettings__badgeForm,
+    showBadge: PlasmicPlasmicHostingSettings__showBadge,
+    faviconForm: PlasmicPlasmicHostingSettings__faviconForm,
+    faviconControlContainer: PlasmicPlasmicHostingSettings__faviconControlContainer,
 
     // Metadata about props expected for PlasmicPlasmicHostingSettings
     internalVariantProps: PlasmicPlasmicHostingSettings__VariantProps,

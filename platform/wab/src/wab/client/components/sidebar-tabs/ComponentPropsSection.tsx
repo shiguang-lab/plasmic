@@ -1,3 +1,9 @@
+import { useTargetedStylePanelValue } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
+import { useElementPropInputs, useElementPropValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
+import { useModelRevisions } from "@/wab/client/stores/model-revisions-react";
+import { modelKeys } from "@/wab/shared/model-revisions";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useShallow } from "zustand/react/shallow";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
@@ -132,7 +138,6 @@ import { wabToTsType } from "@/wab/shared/model/model-util";
 import { getPlumeEditorPlugin } from "@/wab/shared/plume/plume-registry";
 import { Dropdown, Input, Menu, Tooltip, notification } from "antd";
 import L, { defer, isArray, sortBy } from "lodash";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
 import { useStore } from "zustand";
@@ -181,7 +186,7 @@ function getPropNodeKey(node: PropTreeNode): string | number {
   return node.kind === "param" ? node.param.uid : node.path;
 }
 
-const PropNode = observer(function PropNode(props: {
+const PropNode = React.memo(function PropNode(props: {
   node: PropTreeNode;
   ctx: TplComponentPropCtx;
 }): React.ReactNode {
@@ -211,7 +216,7 @@ const PropNode = observer(function PropNode(props: {
   return null;
 });
 
-const PropFolder = observer(function PropFolder(props: {
+const PropFolder = React.memo(function PropFolder(props: {
   node: PropTreeNode & { kind: "folder" };
   ctx: TplComponentPropCtx;
 }) {
@@ -239,8 +244,12 @@ const PropFolder = observer(function PropFolder(props: {
   );
 });
 
-export const ComponentPropsSection = observer(
-  function ComponentPropsSection(props: {
+export const ComponentPropsSection = React.memo(function ComponentPropsSection(props: React.ComponentProps<typeof ComponentPropsSectionContent>) {
+  const world = useVariantModelWorld(props.viewCtx.studioCtx, props.tpl, props.viewCtx);
+  return world.alive ? <ComponentPropsSectionContent {...props} /> : null;
+});
+const ComponentPropsSectionContent = React.memo(
+  function ComponentPropsSection_(props: {
     viewCtx: ViewCtx;
     tpl: TplComponent;
     customTitle?: React.ReactNode;
@@ -250,6 +259,10 @@ export const ComponentPropsSection = observer(
   }) {
     const { t: uiT } = useI18n();
     const { viewCtx, tpl, expsProvider, tab, includeVariants } = props;
+    const world = useVariantModelWorld(viewCtx.studioCtx, tpl, viewCtx);
+    const { componentPropValues, ccContextData } =
+      useInspectorComponentEvalContext(viewCtx, tpl);
+    const selectCatalog = React.useCallback(() => {
     const tplCtx = { tpl, viewCtx, expsProvider };
     const component = tpl.component;
     // For foreign components, we list all slot parameters too so that they can
@@ -272,8 +285,6 @@ export const ComponentPropsSection = observer(
       params = params.filter((p) => isKnownClassNamePropType(p.type));
     }
 
-    const { componentPropValues, ccContextData } =
-      useInspectorComponentEvalContext(viewCtx, tpl);
     const propTypes = getComponentPropTypes(viewCtx, component);
 
     // Primitive slot content is edited on its owning component, without a Tpl node.
@@ -336,6 +347,12 @@ export const ComponentPropsSection = observer(
       collectAdvancedParams(node, tplCtx),
     );
 
+    return Object.freeze({ tplCtx, tree, actions, slotParams, propTypes, advancedParams, componentName: getComponentDisplayName(component) });
+    }, [viewCtx, tpl, expsProvider, tab, includeVariants, componentPropValues, ccContextData]);
+    const catalog = useElementPropValue(viewCtx, tpl, selectCatalog);
+    if (!catalog) { return null; }
+    const { tplCtx, tree, actions, slotParams, propTypes, advancedParams, componentName } = catalog;
+
     return (
       <>
         {(tree.length > 0 || actions.length > 0) && (
@@ -345,13 +362,13 @@ export const ComponentPropsSection = observer(
               props.customTitle ??
               uiT(
                 tab === "settings" ? "{name} props" : "{name} nested styles",
-                { name: getComponentDisplayName(tpl.component) },
+                { name: componentName },
               )
             }
             hasCollapsibleContent={advancedParams.length > 0}
             onExtraContentExpanded={() => {
               if (advancedParams.length > 0) {
-                viewCtx.highlightParams = { tpl, params: advancedParams };
+                if (world.isCurrent()) { viewCtx.setHighlightParams({ tpl, params: advancedParams }); }
               }
             }}
             key={`main.${tpl.uid}`}
@@ -393,14 +410,10 @@ export const ComponentPropsSection = observer(
                     {expr.tpl.map((child) => (
                       <Button
                         key={child.uuid}
-                        onClick={() =>
-                          viewCtx.change(() =>
-                            viewCtx.setStudioFocusByTpl(
-                              child,
-                              viewCtx.focusedCloneKey(),
-                            ),
-                          )
-                        }
+                        onClick={() => {
+                          if (!world.isCurrent()) { return; }
+                          viewCtx.change(() => { if (world.isCurrent()) { viewCtx.setStudioFocusByTpl(child, viewCtx.focusedCloneKey()); } });
+                        }}
                       >
                         {("name" in child && child.name) ||
                           (isKnownTplComponent(child)
@@ -458,7 +471,7 @@ export const InteractionPropEditor =
           getDisplayNameOfEventHandlerKey(eventHandlerKey, { tpl }) ===
             getDisplayNameOfEventHandlerKey(request, { tpl })
         ) {
-          studioCtx.newlyAddedEventHandlerKey = undefined;
+          studioCtx.newlyAddedEventHandlerKeyStore.setState(undefined, true);
           setShowInteractionModal(true);
         }
       };
@@ -848,7 +861,11 @@ export function TargetPropEditor(props: {
   );
 }
 
-export const TplRefEditor = observer(function TplRefEditor(props: {
+export const TplRefEditor = React.memo(function TplRefEditor(props: React.ComponentProps<typeof TplRefEditorContent>) {
+  const world = useVariantModelWorld(props.viewCtx.studioCtx, props.value ?? props.viewCtx, props.viewCtx);
+  return world.alive ? <TplRefEditorContent {...props} /> : null;
+});
+const TplRefEditorContent = React.memo(function TplRefEditor_(props: {
   onChange: (value: TplRef | undefined) => void;
   value: TplRef | undefined;
   viewCtx: ViewCtx;
@@ -858,7 +875,11 @@ export const TplRefEditor = observer(function TplRefEditor(props: {
   const { value, onChange, viewCtx, valueSetState } = props;
   useViewSelection(viewCtx, (state) => state.context);
   const component = viewCtx.currentComponent();
-  const reffableTpls = flattenComponent(component)
+  const world = useVariantModelWorld(viewCtx.studioCtx, value ?? viewCtx, viewCtx);
+  const nodes = flattenComponent(component);
+  // Element action choices are a whole-component structural query, including code-component ref contracts.
+  useModelRevisions(viewCtx.studioCtx.modelRevisions, [modelKeys.component(component.uuid), ...nodes.filter(isKnownTplComponent).map((node) => modelKeys.component(node.component.uuid))]);
+  const reffableTpls = nodes
     .filter(isTplNamable)
     .filter((tpl) => !!tpl.name && tplHasRef(tpl));
   const uuidToTpl = Object.fromEntries(
@@ -868,6 +889,7 @@ export const TplRefEditor = observer(function TplRefEditor(props: {
     <StyleSelect
       value={value?.tpl.uuid ?? null}
       onChange={(newValue) => {
+        if (!world.isCurrent()) { return; }
         if (newValue) {
           onChange(new TplRef({ tpl: uuidToTpl[newValue] }));
         } else {
@@ -901,7 +923,11 @@ interface DataSourceEditorProps {
   defaultValueHint?: string;
 }
 
-export const DataSourceEditor = observer(function DataSourceEditor({
+export const DataSourceEditor = React.memo(function DataSourceEditor(props: DataSourceEditorProps) {
+  const studio = useStudioCtx(), world = useVariantModelWorld(studio, props.tpl);
+  return world.alive ? <DataSourceEditorContent {...props} /> : null;
+});
+const DataSourceEditorContent = React.memo(function DataSourceEditor_({
   dataSourceType,
   onChange,
   value,
@@ -913,27 +939,30 @@ export const DataSourceEditor = observer(function DataSourceEditor({
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const topFrameApi = useTopFrameApi();
+  const world = useVariantModelWorld(studioCtx, tpl);
 
   const existingSourceId = value?.id;
   const onClick = React.useCallback(async () => {
+    if (!world.isCurrent()) { return; }
     const maybeVal = await topFrameApi.pickDataSource({
       sourceType: dataSourceType,
       existingSourceId,
     });
-    if (maybeVal && maybeVal !== "CANCELED") {
+    if (world.isCurrent() && maybeVal && maybeVal !== "CANCELED") {
       onChange(maybeVal);
     }
-  }, [topFrameApi, dataSourceType, existingSourceId, onChange]);
+  }, [topFrameApi, dataSourceType, existingSourceId, onChange, world]);
 
   const targetComponent = useStore(studioCtx.modelSnapshots.field(tpl, "component"));
   React.useEffect(() => {
     const consumeRequest = () => {
+      if (!world.isCurrent()) { return; }
       const forceOpenProp = studioCtx.forceOpenProp;
       if (forceOpenProp) {
         const [c, p] = forceOpenProp;
         if (tpl.component === c && p === paramName) {
           spawn(onClick());
-          studioCtx.forceOpenProp = null;
+          studioCtx.forceOpenPropStore.setState(null, true);
         }
       }
     };
@@ -1183,15 +1212,26 @@ export async function promptForParamName(
   return validName;
 }
 
-export const TplComponentNameSection = observer(TplComponentNameSection_);
+export const TplComponentNameSection = React.memo(function TplComponentNameSection(props: Parameters<typeof TplComponentNameSection_>[0]) {
+  const world = useVariantModelWorld(props.viewCtx.studioCtx, props.tpl, props.viewCtx);
+  return world.alive ? <TplComponentNameSectionContent {...props} /> : null;
+});
+const TplComponentNameSectionContent = React.memo(TplComponentNameSection_);
 
 function TplComponentNameSection_(props: {
   tpl: TplComponent;
   viewCtx: ViewCtx;
-  buildMenu: () => React.ReactElement | null;
+  applyMenu: React.ReactElement | null;
 }) {
-  const { tpl, viewCtx, buildMenu } = props;
+  const { tpl, viewCtx, applyMenu } = props;
   const studioCtx = viewCtx.studioCtx;
+  const world = useVariantModelWorld(studioCtx, tpl, viewCtx);
+  useElementPropInputs(viewCtx, tpl);
+  useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
+  useViewVariants(viewCtx, useShallow((state) => [state.frames, state.global]));
+  const selectionContext = useViewSelection(viewCtx, (state) => state.context);
+  const provider = React.useMemo(() => new TplExpsProvider(viewCtx, tpl), [viewCtx, tpl, selectionContext]);
+  useStyleCells(provider, ["display", "flex-direction"]);
 
   const subtitle =
     viewCtx.tplMgr().isOwnedBySite(tpl.component) &&
@@ -1208,6 +1248,7 @@ function TplComponentNameSection_(props: {
         <a
           onClick={() =>
             studioCtx.change(() => {
+              if (!world.isCurrent()) { return ok(); }
               studioCtx.switchToComponentArena(tpl.component);
               return ok();
             })
@@ -1225,67 +1266,76 @@ function TplComponentNameSection_(props: {
       <ModelNameHeader
         icon={<Icon icon={ComponentIcon} className="component-fg" />}
         nameStore={studioCtx.modelSnapshots.field(tpl, "name")}
-        onChange={(name) =>
-          COMMANDS.element.rename.execute(
+        onChange={(name) => {
+          if (!world.isCurrent()) { return; }
+          return COMMANDS.element.rename.execute(
             studioCtx,
             {
               name,
             },
             { tpl, viewCtx },
-          )
-        }
+          );
+        }}
         placeholder={summarizeUnnamedTpl(
           tpl,
           viewCtx.effectiveCurrentVariantSetting(tpl).rsh(),
         )}
         subtitle={subtitle}
         description={tpl.component.codeComponentMeta?.description ?? undefined}
-        suffix={<ApplyMenu buildMenu={buildMenu} />}
+        suffix={<ApplyMenu menu={applyMenu} />}
       />
     </SidebarSection>
   );
 }
 
-export const TplTagNameSection = observer(TplTagNameSection_);
+export const TplTagNameSection = React.memo(function TplTagNameSection(props: Parameters<typeof TplTagNameSection_>[0]) {
+  const world = useVariantModelWorld(props.viewCtx.studioCtx, props.tpl, props.viewCtx);
+  return world.alive ? <TplTagNameSectionContent {...props} /> : null;
+});
+const TplTagNameSectionContent = React.memo(TplTagNameSection_);
 
 function TplTagNameSection_(props: {
   tpl: TplTag;
   viewCtx: ViewCtx;
-  buildMenu: () => React.ReactElement | null;
+  applyMenu: React.ReactElement | null;
 }) {
-  const { viewCtx, tpl, buildMenu } = props;
-  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
-  const vtm = viewCtx.variantTplMgr();
-  const effectiveVs = vtm.effectiveVariantSetting(tpl);
+  const { viewCtx, tpl, applyMenu } = props;
+  const world = useVariantModelWorld(viewCtx.studioCtx, tpl, viewCtx);
+  const select = React.useCallback(() => {
+    const effective = viewCtx.variantTplMgr().effectiveVariantSetting(tpl);
+    return Object.freeze({ icon: createNodeIcon(tpl, effective), placeholder: summarizeUnnamedTpl(tpl, effective.rsh()) });
+  }, [viewCtx, tpl]);
+  const heading = useTargetedStylePanelValue(viewCtx.studioCtx, { kind: "attributes", view: viewCtx, tpl }, select);
+  if (!heading.active || !heading.value) { return null; }
 
   return (
     <SidebarSection hasExtraContent={true}>
       <ModelNameHeader
         icon={
-          <span className="tag-fg">{createNodeIcon(tpl, effectiveVs)}</span>
+          <span className="tag-fg">{heading.value.icon}</span>
         }
         nameStore={viewCtx.studioCtx.modelSnapshots.field(tpl, "name")}
-        onChange={(name) =>
-          COMMANDS.element.rename.execute(
+        onChange={(name) => {
+          if (!world.isCurrent()) { return; }
+          return COMMANDS.element.rename.execute(
             viewCtx.studioCtx,
             {
               name,
             },
             { tpl, viewCtx },
-          )
-        }
-        placeholder={summarizeUnnamedTpl(tpl, effectiveVs.rsh())}
-        suffix={<ApplyMenu buildMenu={buildMenu} />}
+          );
+        }}
+        placeholder={heading.value.placeholder}
+        suffix={<ApplyMenu menu={applyMenu} />}
       />
     </SidebarSection>
   );
 }
 
-const ApplyMenu = observer(function ApplyMenu_(props: {
-  buildMenu: () => React.ReactElement | null;
+const ApplyMenu = React.memo(function ApplyMenu_(props: {
+  menu: React.ReactElement | null;
 }) {
-  const { buildMenu } = props;
-  const menu = buildMenu();
+  const { menu } = props;
 
   if (!menu) {
     return null;

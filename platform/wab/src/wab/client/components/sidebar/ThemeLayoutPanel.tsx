@@ -4,8 +4,8 @@ import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { LabeledStyleDimItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import {
   SingleRsExpsProvider,
-  StyleComponent,
-  providesStyleComponent,
+  StyleTarget,
+  providesStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { useI18n } from "@/wab/client/i18n";
 import {
@@ -73,7 +73,7 @@ function ThemeLayoutBody({ studio: studioCtx, theme, layout: storedLayout, panel
   }), [storedLayout]);
   const sc = React.useMemo(() => {
     const baseExpr = new ThemeLayoutRuleSetHelpers(layout, theme);
-    return new StyleComponent({
+    return new StyleTarget({
       expsProvider: new SingleRsExpsProvider(
         baseExpr.rs(),
         baseExpr,
@@ -83,7 +83,7 @@ function ThemeLayoutBody({ studio: studioCtx, theme, layout: storedLayout, panel
       ),
     });
   }, [theme, layout, studioCtx]);
-  return providesStyleComponent(sc)(
+  return providesStyleTarget(sc)(
     <PlasmicThemeLayoutPanel
       root={{ ref }}
       {...props}

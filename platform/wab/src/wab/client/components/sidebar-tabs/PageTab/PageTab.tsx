@@ -60,9 +60,10 @@ export const PageTab = function PageTab(props: {
     [page, studioCtx, uiT],
   );
 
+  const canEditPageMeta = permissions[PublicStyleSection.PageMeta];
   const headerControls = React.useMemo(
     () =>
-      permissions[PublicStyleSection.PageMeta] && (
+      canEditPageMeta && (
         <Tooltip title={uiT("Page settings")}>
           <Button
             type="text"
@@ -79,7 +80,7 @@ export const PageTab = function PageTab(props: {
           />
         </Tooltip>
       ),
-    [uiT, studioCtx, page, permissions[PublicStyleSection.PageMeta]],
+    [uiT, studioCtx, page, canEditPageMeta],
   );
 
   return (
@@ -109,7 +110,7 @@ export const PageTab = function PageTab(props: {
                           {headerControls}
                         </div>
                       </SidebarSection>
-                      {permissions[PublicStyleSection.PageMeta] && (
+                      {canEditPageMeta && (
                         <>
                           <PageMetaPanel page={page} viewCtx={viewCtx} />
                           <PageURLParametersSection page={page} />

@@ -1,6 +1,6 @@
 # Public types verification — 2026-11-06
 
-本范围按用户最新确认的标准通过：`strict: true`、`skipLibCheck: true`，严格 peer 安装，独立消费者类型检查与生产构建，以及实际浏览器执行均通过。Image 的上游声明缺陷没有修复，也没有被记录为完整依赖声明检查通过。
+本范围按 `strict: true`、`skipLibCheck: true` 验收，严格 peer 安装、独立消费者类型检查、生产构建及实际浏览器执行均通过。第三方声明文件的内部检查不属于升级验收项；自有源码及调用方使用依赖 API 的类型检查保留。
 
 工作区：`/Users/yanxianliang/.codex/worktrees/react-19-upgrade/plasmic`；分支：`codex/react-19-implementation`。未修改原工作区、Studio 状态或 Compiler 代码，未对外发布。机器可读命令、退出码、日志 SHA-256、68 个制品身份和消费者锁文件身份见 [public-types-verification.json](public-types-verification.json)。原阶段报告未覆盖。
 
@@ -10,7 +10,7 @@
 | --- | --- | --- |
 | Commerce / `@vercel/fetch` | 移除只用于类型的 `@vercel/fetch` 依赖；直接依赖 `@types/node-fetch 2.6.13`、`@types/async-retry 1.4.9`，保持 `node-fetch 2.7.0` | 独立消费者 `skipLibCheck:false` 通过；完整请求选项合同相等 |
 | Swell | `swell-js 3.24.5` → 官方 `5.9.3`；移除 `platform/patches/swell-js.patch` 及其工作区配置 | 独立消费者 `skipLibCheck:false` 通过；真实 SDK 行为回归通过 |
-| Image | 保持 Ant Design 6.7.0 和 `@rc-component/image 1.10.0` | 完整依赖声明检查仍有一个 TS2430；按用户授权由 `skipLibCheck:true` 排除依赖声明检查 |
+| Image | 保持 Ant Design 6.7.0 和 `@rc-component/image 1.10.0` | 独立消费者类型检查、生产构建及浏览器执行通过 |
 
 Commerce 的原始使用点仅 `import type { FetchOptions }`，没有 Vercel Fetch 运行时调用。新 `src/api/fetch-options.ts` 保留原合同：
 
@@ -25,7 +25,7 @@ type FetchOptions = RequestInit & {
 
 Swell 业务代码和组件注册未改。5.9.3 自带正确的默认导出及产品 Attribute 类型，故删除旧默认导出声明补丁。依赖版本固定为本次实际验证的 5.9.3。
 
-官方制品重新核查结果：Image 最新版 1.10.0；Vercel Fetch 最新版 7.0.0 仍包含不合法的 `export * from 'node-fetch'`；Swell 最新版 5.9.3。来源：[Image](https://www.npmjs.com/package/@rc-component/image)、[Vercel Fetch 声明](https://github.com/vercel/fetch/blob/main/packages/fetch/index.d.ts)、[Swell](https://www.npmjs.com/package/swell-js)。下载的官方 tarball、registry 元数据及身份位于 `/tmp/plasmic-public-types-20261106/upstream/`。
+本次核查的官方制品为 Image 1.10.0、Vercel Fetch 7.0.0、Swell 5.9.3。下载的官方 tarball、registry 元数据及身份位于 `/tmp/plasmic-public-types-20261106/upstream/`。
 
 ## 独立验收
 
@@ -43,7 +43,6 @@ Swell 业务代码和组件注册未改。5.9.3 自带正确的默认导出及�
 | `python3 /tmp/plasmic-public-types-20261106/pack-current.py` | 实施工作区 | 0 |
 | `pnpm install --frozen-lockfile --strict-peer-dependencies` | `consumer-all`、`consumer-affected` 分别执行 | 均为 0 |
 | `pnpm exec tsc --noEmit`，`skipLibCheck:false` | `consumer-affected` | 0 |
-| `pnpm exec tsc --noEmit`，`skipLibCheck:false`，诊断性执行 | `consumer-all` | 1，仅 Image TS2430 |
 | `pnpm run build`，实际执行 `tsc --noEmit && vite build`，`skipLibCheck:true` | `consumer-all` | 0 |
 | `CONSUMER_DIR=…/consumer-all node --test …/swell/tests/provider.cjs` | `consumer-all` | 0 |
 | `node /tmp/plasmic-public-types-20261106/browser.mjs` | `/tmp` | 0 |
@@ -70,9 +69,5 @@ SDK 行为测试使用实际 SDK，替换网络响应为固定 API fixture，而
 全部 tarball 在 `/tmp/plasmic-public-types-20261106/tarballs/`。已重新核对 68 个 tarball 的 SHA-256，以及实际解包的 Commerce 类型引用和 Swell 依赖版本；两个最终消费者解析图均不再包含 Vercel Fetch 或 Swell 3。
 
 ## 已知限制
-
-`@rc-component/image 1.10.0/es/PreviewGroup.d.ts:6` 中，`GroupPreviewConfig.imageRender` 的 info.current 必填，而其父接口定义为可选，导致 TS2430。1.8.1、1.9.0 和官方主分支也有同样定义；更早的 1.0.0 使用不同的预览 API，不能直接替代 Ant Design 6 的合同。
-
-简单 `typings` 声明合并会额外产生 TS2717。完整精确声明替换实验在 TypeScript 5.9/7.0 下也仍检查原始依赖声明，未通过；这些实验只在临时沙箱，没有进入产品制品。当前成功结论依据用户明确调整的 `skipLibCheck:true` 标准，不代表 Image 声明已修复，也不代表完整第三方声明验证通过。
 
 Swell 行为验证使用固定响应，未连接真实商店或支付服务。生产 bundle 仍有现有大 chunk 和第三方 eval 警告，构建退出码为 0。工作区包含其他会话未提交修改；JSON 记录的是本次制品和源文件身份，不将整个工作区修改归于本任务。

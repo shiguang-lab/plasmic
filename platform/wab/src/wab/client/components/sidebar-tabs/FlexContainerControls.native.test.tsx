@@ -1,8 +1,9 @@
+import { AppContext } from "@/wab/client/components/top-view";
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { ContentLayoutContainerControls } from "@/wab/client/components/sidebar-tabs/ContentLayoutControls";
 import { FlexContainerControls } from "@/wab/client/components/sidebar-tabs/FlexContainerControls";
-import { SingleRsExpsProvider, StyleComponent, StyleComponentContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { SingleRsExpsProvider, StyleTarget, StyleTargetContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -43,8 +44,8 @@ async function setup() {
   studio.setStudioFocusOnViewCtxContent(view); view.setStudioFocusByTpl(root);
   const propsProvider = new TplExpsProvider(view, root);
   const contextProvider = new SingleRsExpsProvider(contextRs, contextExp, studio, [], { kind: "ruleSet", rs: contextRs, forTag: "div" });
-  const styling = new StyleComponent({ expsProvider: contextProvider }), vsh = new VariantedStylesHelper(site);
-  const wrap = (children: React.ReactNode) => <AppCtxContext.Provider value={fixture.appCtx}><StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={styling}>{children}</StyleComponentContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider>;
+  const styling = new StyleTarget({ expsProvider: contextProvider }), vsh = new VariantedStylesHelper(site);
+  const wrap = (children: React.ReactNode) => <AppCtxContext.Provider value={fixture.appCtx}><AppContext.Provider value={studio.app}><StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={styling}>{children}</StyleTargetContext.Provider></StudioCtxContext.Provider></AppContext.Provider></AppCtxContext.Provider>;
   const panel = () => wrap(<FlexContainerControls expsProvider={propsProvider} vsh={vsh} renderMaybeCollapsibleRows={(rows) => rows.map((row, index) => row && <section key={index}>{row.content}</section>)} />);
   return { ...fixture, studio, site, root, base, frame, view, propsExp, contextRs, contextExp, propsProvider, contextProvider, wrap, panel };
 }

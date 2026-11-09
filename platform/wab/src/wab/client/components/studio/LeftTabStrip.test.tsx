@@ -1,3 +1,12 @@
+import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { createSite } from "@/wab/shared/core/sites";
+import { captureLeftTabPermissions } from "@/wab/client/studio-ctx/studio-ui-permissions";
+import { getLeftTabPermission, type UiConfig } from "@/wab/shared/ui-config-utils";
+import { ChangeRecorder } from "@/wab/shared/core/observable-model";
+import { instUtil } from "@/wab/shared/model/InstUtil";
+import { mkTplComponent } from "@/wab/shared/core/tpls";
+import { TplMgr } from "@/wab/shared/TplMgr";
+import { ComponentType } from "@/wab/shared/core/components";
 import LeftTabStrip from "@/wab/client/components/studio/LeftTabStrip";
 import "@testing-library/jest-dom/vitest";
 import {
@@ -8,7 +17,6 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { observable } from "mobx";
 import React from "react";
 import { createStore } from "zustand/vanilla";
 import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
@@ -72,11 +80,18 @@ beforeEach(() => {
   const tabs = createStore<"store" | "imports">(() => "imports");
   const leftPanelState = new StudioLeftPanelState();
   leftPanelState.setPanel({ type: "insert", inline: false });
-  mocks.ctx = observable(
-    {
-      ...createStudioUiEnvironmentFixture({ hasUserInfo: true }),
-      appCtx: { selfInfo: {} },
-      site: { globalContexts: [] },
+  const environment = createStudioUiEnvironmentFixture({ hasUserInfo: true });
+  const appUiListeners = new Set<() => void>();
+  let config: UiConfig = {};
+  mocks.ctx = ({
+      ...environment,
+      appCtx: {
+        selfInfo: {},
+        subscribeUiEnvironmentInputs: (listener: () => void) => { appUiListeners.add(listener); return () => { appUiListeners.delete(listener); }; },
+        publishUiEnvironmentInputs: () => appUiListeners.forEach((listener) => listener()),
+      },
+      site: createSite(),
+      modelSnapshots: new ModelSnapshots(),
       fontManager: { store: createStore(() => ({ missingUsedFonts: [] })) },
       contentEditorMode: false,
       leftPanelState,
@@ -134,7 +149,11 @@ beforeEach(() => {
           leftPanelState.setPanel(undefined);
         }
       },
-      config: {} as any,
+      get config() { return config; },
+      set config(value: UiConfig) {
+        config = value;
+        environment.uiEnvironment.store.setState({ leftTabPermissions: captureLeftTabPermissions((key) => getLeftTabPermission(value, key, { isContentCreator: false })) });
+      },
       getCurrentUiConfig: mocks.getUiConfig,
       showAddDrawer() {
         return leftPanelState.showAddDrawer();
@@ -159,11 +178,9 @@ beforeEach(() => {
       },
       toggleCopilotChat: mocks.toggleAi,
       chatCopilotEnabled: () => false,
-    },
-    { leftPanelState: observable.ref },
-  );
+    });
 });
-afterEach(cleanup);
+afterEach(() => { cleanup(); mocks.ctx.modelSnapshots.dispose(); });
 it.each([false, true])(
   "places Pen import immediately after Figma in web and Desktop (Desktop: %s)",
   async (desktop) => {
@@ -498,9 +515,10 @@ it("toggles panel closed only when rail button is clicked directly", async () =>
 });
 
 it("updates the native tool buttons without recomputing the menu rail", () => {
-  const getConfig = mocks.getUiConfig;
+  const getMenuAccess = vi.fn(() => false);
+  mocks.ctx.chatCopilotEnabled = getMenuAccess;
   render(<LeftTabStrip useVersionsCTA={false} />);
-  const count = getConfig.mock.calls.length;
+  const count = getMenuAccess.mock.calls.length;
   const select = screen.getByRole("button", { name: "Select" });
   const pan = screen.getByRole("button", { name: "Pan" });
   expect(select.getAttribute("aria-current")).toBe("true");
@@ -508,10 +526,57 @@ it("updates the native tool buttons without recomputing the menu rail", () => {
   expect(pan.getAttribute("aria-current")).toBe("true");
   expect(select.getAttribute("aria-current")).toBeNull();
   // Closing the initially-open Insert drawer is an existing menu update.
-  const afterDrawer = getConfig.mock.calls.length;
+  const afterDrawer = getMenuAccess.mock.calls.length;
   expect(afterDrawer).toBeGreaterThanOrEqual(count);
   fireEvent.click(select);
   expect(select.getAttribute("aria-current")).toBe("true");
   expect(pan.getAttribute("aria-current")).toBeNull();
-  expect(getConfig).toHaveBeenCalledTimes(afterDrawer);
+  expect(getMenuAccess).toHaveBeenCalledTimes(afterDrawer);
+});
+
+
+it("updates open navigation permissions and login from their published environment", async () => {
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  fireEvent.click(screen.getByRole("button", { name: "More" }));
+  expect(await screen.findByRole("button", { name: "Split content" })).toBeTruthy();
+  act(() => { mocks.ctx.uiEnvironment.store.setState({ hasUserInfo: false }); });
+  expect(screen.queryByRole("button", { name: "Split content" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Expressions" })).toBeTruthy();
+  act(() => { mocks.ctx.config = { leftTabs: { expressions: "hidden" } }; });
+  expect(screen.queryByRole("button", { name: "Expressions" })).toBeNull();
+});
+
+it("updates Project settings while More remains open after a committed global-context change", async () => {
+  const site = mocks.ctx.site;
+  const manager = new TplMgr({ site });
+  const component = manager.addComponent({ name: "Context", type: ComponentType.Plain });
+  const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  fireEvent.click(screen.getByRole("button", { name: "More" }));
+  await screen.findByRole("button", { name: "Expressions" });
+  expect(screen.queryByRole("button", { name: "Project settings" })).toBeNull();
+  try {
+    act(() => {
+      const changes = recorder.withRecording(() => { site.globalContexts.push(mkTplComponent(component, component.variants[0])); });
+      mocks.ctx.modelSnapshots.sync(changes.changes);
+    });
+    expect(await screen.findByRole("button", { name: "Project settings" })).toBeTruthy();
+    act(() => {
+      const changes = recorder.withRecording(() => { site.globalContexts.splice(0); });
+      mocks.ctx.modelSnapshots.sync(changes.changes);
+    });
+    expect(screen.queryByRole("button", { name: "Project settings" })).toBeNull();
+  } finally { recorder.dispose(); }
+});
+
+it("updates AI availability from app configuration and project access publications", () => {
+  let enabled = false;
+  mocks.ctx.chatCopilotEnabled = () => enabled && mocks.ctx.uiEnvironment.store.getState().canEditProject;
+  render(<LeftTabStrip useVersionsCTA={false} />);
+  const button = screen.getByRole("button", { name: "AI" });
+  expect(button).toBeDisabled();
+  act(() => { enabled = true; mocks.ctx.appCtx.publishUiEnvironmentInputs(); });
+  expect(button).not.toBeDisabled();
+  act(() => { mocks.ctx.uiEnvironment.store.setState({ canEditProject: false }); });
+  expect(button).toBeDisabled();
 });

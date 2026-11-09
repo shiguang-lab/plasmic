@@ -68,13 +68,14 @@ export function Tiptap(props: TiptapProps) {
 
   const isCanvas = usePlasmicCanvasContext();
   const defaultContent = useJson ? defaultContentJson : contentHtml;
+  const canvasContent = isCanvas ? defaultContent : undefined;
 
   // If you try to update the content via the content prop (as opposed to directly typing into the tiptap editor), the new content won't show. So we got to refresh the editor to make the default content appear.
   useEffect(() => {
     // only refresh key if the user is not typing
     if (activeRef.current) return;
     setRefreshKey(Math.random() * 1000000);
-  }, [...(isCanvas ? [defaultContent] : [])]);
+  }, [canvasContent]);
 
   if (!isClient) {
     return null;

@@ -1,15 +1,28 @@
 import { isUserProjectEditor, type StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isDataTokenPanelReadOnly, isTokenPanelReadOnly } from "@/wab/client/components/sidebar/token-utils";
 import type { ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
-import { MainBranchId, type BranchId } from "@/wab/shared/ApiSchema";
-import { type LeftTabUiKey, type UiAccess, type UiConfig, canEditStyleSection } from "@/wab/shared/ui-config-utils";
+import { PublicStyleSection, MainBranchId, type BranchId } from "@/wab/shared/ApiSchema";
+import { type LeftTabUiKey, type UiAccess, type UiConfig, canCreateAlias, canEditStyleSection, canOverrideImportedTokens, canOverrideRegisteredTokens } from "@/wab/shared/ui-config-utils";
 import { captureComponentSectionPermissions, type ComponentSectionPermissions, captureLeftTabPermissions } from "@/wab/client/studio-ctx/studio-ui-permissions";
 import { isEqual } from "lodash";
 import { shallow } from "zustand/shallow";
 import { createStore, type StoreApi } from "zustand/vanilla";
 
+export type StudioInsertMenuConfig = Readonly<Pick<UiConfig, "insertableTemplates" | "canInsertHostless" | "canInsertBuiltinComponent" | "canInsertBasics">>;
+function captureInsertMenuConfig(config: UiConfig): StudioInsertMenuConfig {
+  const templates = config.insertableTemplates?.map((template) => Object.freeze({ ...template }));
+  if (templates) { Object.freeze(templates); }
+  return Object.freeze({
+    insertableTemplates: templates,
+    canInsertHostless: typeof config.canInsertHostless === "object" ? Object.freeze({ ...config.canInsertHostless }) : config.canInsertHostless,
+    canInsertBuiltinComponent: typeof config.canInsertBuiltinComponent === "object" ? Object.freeze({ ...config.canInsertBuiltinComponent }) : config.canInsertBuiltinComponent,
+    canInsertBasics: typeof config.canInsertBasics === "object" ? Object.freeze({ ...config.canInsertBasics }) : config.canInsertBasics,
+  });
+}
+
 export interface StudioUiEnvironmentState {
   readonly hostUrl: string;
+  readonly insertMenuConfig: StudioInsertMenuConfig;
   readonly brand: Readonly<NonNullable<UiConfig["brand"]>> | undefined;
   readonly showBranching: boolean;
   readonly branchName: string;
@@ -18,10 +31,17 @@ export interface StudioUiEnvironmentState {
   readonly hasUserInfo: boolean;
   readonly contentEditorMode: boolean;
   readonly componentSectionPermissions: ComponentSectionPermissions;
+  readonly styleSectionVisibilities: Readonly<NonNullable<UiConfig["styleSectionVisibilities"]>> | undefined;
   readonly enableDataQueries: boolean;
   readonly isProjectEditor: boolean;
   readonly canEditProject: boolean;
+  readonly canEditTag: boolean;
+  readonly canComment: boolean;
+  readonly usePlasmicImg: boolean;
   readonly tokenPanelReadOnly: boolean;
+  readonly canCreateTokens: boolean;
+  readonly canOverrideImportedTokens: boolean;
+  readonly canOverrideRegisteredTokens: boolean;
   readonly dataTokenPanelReadOnly: boolean;
   readonly leftTabPermissions: Readonly<Record<LeftTabUiKey, UiAccess>>;
   readonly currentArenaEmpty: boolean;
@@ -54,6 +74,7 @@ export class StudioUiEnvironment {
       studio.appCtx.appConfig.brands?.[""];
     return Object.freeze({
       hostUrl: studio.getHostUrl(),
+      insertMenuConfig: captureInsertMenuConfig(uiConfig),
       brand: brand && Object.freeze({
         logoImgSrc: brand.logoImgSrc,
         logoHref: brand.logoHref,
@@ -69,10 +90,17 @@ export class StudioUiEnvironment {
       componentSectionPermissions: captureComponentSectionPermissions((section) => canEditStyleSection(uiConfig, section, {
         isContentCreator: studio.contentEditorMode, defaultContentEditorVisible: false,
       })),
+      styleSectionVisibilities: uiConfig.styleSectionVisibilities && Object.freeze({ ...uiConfig.styleSectionVisibilities }),
       enableDataQueries: !!studio.appCtx.appConfig.enableDataQueries,
       isProjectEditor: isUserProjectEditor(studio.appCtx.selfInfo, studio.siteInfo, studio.siteInfo.perms),
       canEditProject: studio.canEditProject(),
+      canComment: studio.showComments(),
+      usePlasmicImg: !!studio.appCtx.appConfig.usePlasmicImg,
+      canEditTag: canEditStyleSection(uiConfig, PublicStyleSection.Tag, { isContentCreator: studio.contentEditorMode, defaultContentEditorVisible: false }),
       tokenPanelReadOnly: isTokenPanelReadOnly(studio),
+      canCreateTokens: canCreateAlias(uiConfig, "token"),
+      canOverrideImportedTokens: canOverrideImportedTokens(uiConfig),
+      canOverrideRegisteredTokens: canOverrideRegisteredTokens(uiConfig),
       dataTokenPanelReadOnly: isDataTokenPanelReadOnly(studio),
       leftTabPermissions: captureLeftTabPermissions((key) => studio.getLeftTabPermission(key)),
       currentArenaEmpty: studio.currentArenaEmpty,
@@ -88,7 +116,7 @@ export class StudioUiEnvironment {
     this.studio.syncSaveAccess();
     const next = this.capture();
     const previous = this.snapshot;
-    const shared = Object.freeze({ ...next, brand: isEqual(previous.brand, next.brand) ? previous.brand : next.brand,
+    const shared = Object.freeze({ ...next, insertMenuConfig: isEqual(previous.insertMenuConfig, next.insertMenuConfig) ? previous.insertMenuConfig : next.insertMenuConfig, styleSectionVisibilities: shallow(previous.styleSectionVisibilities, next.styleSectionVisibilities) ? previous.styleSectionVisibilities : next.styleSectionVisibilities, brand: isEqual(previous.brand, next.brand) ? previous.brand : next.brand,
         leftTabPermissions: shallow(previous.leftTabPermissions, next.leftTabPermissions) ? previous.leftTabPermissions : next.leftTabPermissions,
         componentSectionPermissions: shallow(previous.componentSectionPermissions, next.componentSectionPermissions) ? previous.componentSectionPermissions : next.componentSectionPermissions });
     this.snapshot = shallow(previous, shared) ? previous : shared;

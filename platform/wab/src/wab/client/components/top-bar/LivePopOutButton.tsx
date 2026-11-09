@@ -57,7 +57,7 @@ function LivePopOutButton(
     spawn(
       (async () => {
         let launched = false;
-        try {
+        return await (async () => {
           await studioCtx.save();
           if (studioCtx.hasUnsavedChanges()) {
             notification.error({
@@ -76,13 +76,13 @@ function LivePopOutButton(
             browserWindow?.location.replace(url);
           }
           launched = true;
-        } finally {
+        })().finally(() => {
           if (!launched) {
             browserWindow?.close();
           }
           openingRef.current = false;
           setOpening(false);
-        }
+        });
       })(),
     );
   };

@@ -13,7 +13,7 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-// Like generated Plasmic components: spreads props onto its root, drops refs.
+// React 19 passes ref through the same root props as event handlers.
 function Plain(props: React.HTMLAttributes<HTMLDivElement>) {
   return <div data-testid="plain" {...props} />;
 }
@@ -23,7 +23,7 @@ const openPopup = () =>
     ".ant-tooltip:not(.ant-tooltip-hidden), .ant-popover:not(.ant-popover-hidden)",
   );
 
-it("anchors a trigger on a child that drops refs and keeps its handlers", async () => {
+it("anchors a trigger through native function props and keeps its handlers", async () => {
   vi.useFakeTimers();
   const ownEnter = vi.fn();
   const { getByTestId } = render(
@@ -117,7 +117,7 @@ it("keeps the trigger's handlers and class when the child passes undefined", () 
   expect(merged.className).toBe("ant-dropdown-open");
 });
 
-it("re-anchors when the child changes to a component that drops refs", () => {
+it("re-anchors when the child changes to a native ref-prop component", () => {
   const anchor = vi.fn();
   const { rerender, getByTestId } = render(
     <TriggerTarget ref={anchor}>

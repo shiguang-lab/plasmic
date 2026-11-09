@@ -15,14 +15,14 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -34,8 +34,8 @@ import DocsPortalIntro from "../../components/docs/DocsPortalIntro"; // plasmic-
 import DocsPortalTabs from "../../components/docs/DocsPortalTabs"; // plasmic-import: g_uMeV_Uh6/component
 import ImageListItem from "../../components/docs/ImageListItem"; // plasmic-import: tnA9SknzQ5/component
 import ImagesPanel from "../../components/docs/ImagesPanel"; // plasmic-import: p94ACk9Ka-/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -109,11 +109,10 @@ function PlasmicDocsPortal__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "activeTab",
@@ -122,20 +121,22 @@ function PlasmicDocsPortal__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.activeTab,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -532,12 +533,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -547,37 +544,109 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDocsPortal__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDocsPortal";
-  } else {
-    func.displayName = `PlasmicDocsPortal.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDocsPortal__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDocsPortal__root<T extends PlasmicDocsPortal__rootProps>(props: T & StrictProps<T, PlasmicDocsPortal__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDocsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDocsPortal__root.displayName = "PlasmicDocsPortal";
+
+type PlasmicDocsPortal__docsPortalHeaderProps = NodeComponentProps<"docsPortalHeader"> & {key?: React.Key};
+function PlasmicDocsPortal__docsPortalHeader<T extends PlasmicDocsPortal__docsPortalHeaderProps>(props: T & StrictProps<T, PlasmicDocsPortal__docsPortalHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("docsPortalHeader", props);
+  return <PlasmicDocsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"docsPortalHeader"} />;
+}
+PlasmicDocsPortal__docsPortalHeader.displayName = "PlasmicDocsPortal.docsPortalHeader";
+
+type PlasmicDocsPortal__bodyProps = NodeComponentProps<"body"> & {key?: React.Key};
+function PlasmicDocsPortal__body<T extends PlasmicDocsPortal__bodyProps>(props: T & StrictProps<T, PlasmicDocsPortal__bodyProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("body", props);
+  return <PlasmicDocsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"body"} />;
+}
+PlasmicDocsPortal__body.displayName = "PlasmicDocsPortal.body";
+
+type PlasmicDocsPortal__sidebarProps = NodeComponentProps<"sidebar"> & {key?: React.Key};
+function PlasmicDocsPortal__sidebar<T extends PlasmicDocsPortal__sidebarProps>(props: T & StrictProps<T, PlasmicDocsPortal__sidebarProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sidebar", props);
+  return <PlasmicDocsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sidebar"} />;
+}
+PlasmicDocsPortal__sidebar.displayName = "PlasmicDocsPortal.sidebar";
+
+type PlasmicDocsPortal__docsPortalTabsProps = NodeComponentProps<"docsPortalTabs"> & {key?: React.Key};
+function PlasmicDocsPortal__docsPortalTabs<T extends PlasmicDocsPortal__docsPortalTabsProps>(props: T & StrictProps<T, PlasmicDocsPortal__docsPortalTabsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("docsPortalTabs", props);
+  return <PlasmicDocsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"docsPortalTabs"} />;
+}
+PlasmicDocsPortal__docsPortalTabs.displayName = "PlasmicDocsPortal.docsPortalTabs";
+
+type PlasmicDocsPortal__itemsContainerProps = NodeComponentProps<"itemsContainer"> & {key?: React.Key};
+function PlasmicDocsPortal__itemsContainer<T extends PlasmicDocsPortal__itemsContainerProps>(props: T & StrictProps<T, PlasmicDocsPortal__itemsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("itemsContainer", props);
+  return <PlasmicDocsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"itemsContainer"} />;
+}
+PlasmicDocsPortal__itemsContainer.displayName = "PlasmicDocsPortal.itemsContainer";
+
+type PlasmicDocsPortal__componentsPanelProps = NodeComponentProps<"componentsPanel"> & {key?: React.Key};
+function PlasmicDocsPortal__componentsPanel<T extends PlasmicDocsPortal__componentsPanelProps>(props: T & StrictProps<T, PlasmicDocsPortal__componentsPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("componentsPanel", props);
+  return <PlasmicDocsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"componentsPanel"} />;
+}
+PlasmicDocsPortal__componentsPanel.displayName = "PlasmicDocsPortal.componentsPanel";
+
+type PlasmicDocsPortal__imagesPanelProps = NodeComponentProps<"imagesPanel"> & {key?: React.Key};
+function PlasmicDocsPortal__imagesPanel<T extends PlasmicDocsPortal__imagesPanelProps>(props: T & StrictProps<T, PlasmicDocsPortal__imagesPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("imagesPanel", props);
+  return <PlasmicDocsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"imagesPanel"} />;
+}
+PlasmicDocsPortal__imagesPanel.displayName = "PlasmicDocsPortal.imagesPanel";
+
+type PlasmicDocsPortal__bodyContentProps = NodeComponentProps<"bodyContent"> & {key?: React.Key};
+function PlasmicDocsPortal__bodyContent<T extends PlasmicDocsPortal__bodyContentProps>(props: T & StrictProps<T, PlasmicDocsPortal__bodyContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("bodyContent", props);
+  return <PlasmicDocsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"bodyContent"} />;
+}
+PlasmicDocsPortal__bodyContent.displayName = "PlasmicDocsPortal.bodyContent";
+
+type PlasmicDocsPortal__docsComponentsPortalProps = NodeComponentProps<"docsComponentsPortal"> & {key?: React.Key};
+function PlasmicDocsPortal__docsComponentsPortal<T extends PlasmicDocsPortal__docsComponentsPortalProps>(props: T & StrictProps<T, PlasmicDocsPortal__docsComponentsPortalProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("docsComponentsPortal", props);
+  return <PlasmicDocsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"docsComponentsPortal"} />;
+}
+PlasmicDocsPortal__docsComponentsPortal.displayName = "PlasmicDocsPortal.docsComponentsPortal";
+
+type PlasmicDocsPortal__docsImagesPortalProps = NodeComponentProps<"docsImagesPortal"> & {key?: React.Key};
+function PlasmicDocsPortal__docsImagesPortal<T extends PlasmicDocsPortal__docsImagesPortalProps>(props: T & StrictProps<T, PlasmicDocsPortal__docsImagesPortalProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("docsImagesPortal", props);
+  return <PlasmicDocsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"docsImagesPortal"} />;
+}
+PlasmicDocsPortal__docsImagesPortal.displayName = "PlasmicDocsPortal.docsImagesPortal";
+
+type PlasmicDocsPortal__docsPortalIntroProps = NodeComponentProps<"docsPortalIntro"> & {key?: React.Key};
+function PlasmicDocsPortal__docsPortalIntro<T extends PlasmicDocsPortal__docsPortalIntroProps>(props: T & StrictProps<T, PlasmicDocsPortal__docsPortalIntroProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("docsPortalIntro", props);
+  return <PlasmicDocsPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"docsPortalIntro"} />;
+}
+PlasmicDocsPortal__docsPortalIntro.displayName = "PlasmicDocsPortal.docsPortalIntro";
+
 
 export const PlasmicDocsPortal = Object.assign(
   // Top-level PlasmicDocsPortal renders the root element
-  makeNodeComponent("root"),
+  PlasmicDocsPortal__root,
   {
     // Helper components rendering sub-elements
-    docsPortalHeader: makeNodeComponent("docsPortalHeader"),
-    body: makeNodeComponent("body"),
-    sidebar: makeNodeComponent("sidebar"),
-    docsPortalTabs: makeNodeComponent("docsPortalTabs"),
-    itemsContainer: makeNodeComponent("itemsContainer"),
-    componentsPanel: makeNodeComponent("componentsPanel"),
-    imagesPanel: makeNodeComponent("imagesPanel"),
-    bodyContent: makeNodeComponent("bodyContent"),
-    docsComponentsPortal: makeNodeComponent("docsComponentsPortal"),
-    docsImagesPortal: makeNodeComponent("docsImagesPortal"),
-    docsPortalIntro: makeNodeComponent("docsPortalIntro"),
+    docsPortalHeader: PlasmicDocsPortal__docsPortalHeader,
+    body: PlasmicDocsPortal__body,
+    sidebar: PlasmicDocsPortal__sidebar,
+    docsPortalTabs: PlasmicDocsPortal__docsPortalTabs,
+    itemsContainer: PlasmicDocsPortal__itemsContainer,
+    componentsPanel: PlasmicDocsPortal__componentsPanel,
+    imagesPanel: PlasmicDocsPortal__imagesPanel,
+    bodyContent: PlasmicDocsPortal__bodyContent,
+    docsComponentsPortal: PlasmicDocsPortal__docsComponentsPortal,
+    docsImagesPortal: PlasmicDocsPortal__docsImagesPortal,
+    docsPortalIntro: PlasmicDocsPortal__docsPortalIntro,
 
     // Metadata about props expected for PlasmicDocsPortal
     internalVariantProps: PlasmicDocsPortal__VariantProps,

@@ -9,7 +9,7 @@ import { ensure } from "@/wab/shared/common";
 import { flattenTpls } from "@/wab/shared/core/tpls";
 import { Box, Pt } from "@/wab/shared/geom";
 import { Site, isKnownTplTag } from "@/wab/shared/model/classes";
-import { runInAction, when } from "mobx";
+import { act } from "@testing-library/react";
 import { mock } from "vitest-mock-extended";
 
 vi.mock("@/wab/client/components/coding/FullCodeEditor.tsx", () => ({
@@ -46,15 +46,13 @@ function data() {
 
 async function setup() {
   const { studioCtx } = fakeStudioCtx();
-  runInAction(() => {
-    studioCtx.viewportCtx = new ViewportCtx({
-      dom: mock<DomActions>(),
-      initialArena: null,
-      initialClipperBox: new Box(0, 0, 1024, 768),
-      initialClipperScroll: Pt.zero(),
-    });
+  studioCtx.viewportCtx = new ViewportCtx({
+    dom: mock<DomActions>(),
+    initialArena: null,
+    initialClipperBox: new Box(0, 0, 1024, 768),
+    initialClipperScroll: Pt.zero(),
   });
-  await when(() => studioCtx.initialRouteReady);
+  await vi.waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
   vi.spyOn(studioCtx, "tryZoomToFitArena").mockImplementation(() => undefined);
   vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(undefined);
   await studioCtx.changeUnsafe(() => undefined);
@@ -103,9 +101,10 @@ it("inserts editable layers into the Studio model, survives save/reopen, and is 
     expect(studioCtx.site.arenas).toHaveLength(before.arenas);
     expect(studioCtx.site.components).toHaveLength(before.components);
   } finally {
-    await new Promise((resolve) => setTimeout(resolve, 10));
-    studioCtx.viewportCtx?.dispose();
-    studioCtx.dispose();
+    await act(async () => {
+      studioCtx.viewportCtx?.dispose();
+      studioCtx.dispose();
+    });
   }
 });
 
@@ -126,8 +125,9 @@ it("rolls back an insertion with no convertible layers, leaving no empty canvas 
       before.map,
     );
   } finally {
-    await new Promise((resolve) => setTimeout(resolve, 10));
-    studioCtx.viewportCtx?.dispose();
-    studioCtx.dispose();
+    await act(async () => {
+      studioCtx.viewportCtx?.dispose();
+      studioCtx.dispose();
+    });
   }
 });

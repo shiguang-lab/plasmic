@@ -14,14 +14,14 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -30,7 +30,7 @@ import CmsLeftTabs from "../../components/cms/CmsLeftTabs"; // plasmic-import: k
 import CmsSchemaPage from "../../components/cms/CmsSchemaPage"; // plasmic-import: y1ZiXuS8BD/component
 import CmsSettingsPage from "../../components/cms/CmsSettingsPage"; // plasmic-import: a5viGetjMi/component
 import CmsTopBar from "../../components/cms/CmsTopBar"; // plasmic-import: FxC1c7NZtR/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -95,11 +95,10 @@ function PlasmicCmsRoot__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "activeTab",
@@ -108,18 +107,20 @@ function PlasmicCmsRoot__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.activeTab,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -311,12 +312,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -326,32 +323,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCmsRoot__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCmsRoot";
-  } else {
-    func.displayName = `PlasmicCmsRoot.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCmsRoot__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCmsRoot__root<T extends PlasmicCmsRoot__rootProps>(props: T & StrictProps<T, PlasmicCmsRoot__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCmsRoot__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCmsRoot__root.displayName = "PlasmicCmsRoot";
+
+type PlasmicCmsRoot__cmsTopBarProps = NodeComponentProps<"cmsTopBar"> & {key?: React.Key};
+function PlasmicCmsRoot__cmsTopBar<T extends PlasmicCmsRoot__cmsTopBarProps>(props: T & StrictProps<T, PlasmicCmsRoot__cmsTopBarProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cmsTopBar", props);
+  return <PlasmicCmsRoot__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cmsTopBar"} />;
+}
+PlasmicCmsRoot__cmsTopBar.displayName = "PlasmicCmsRoot.cmsTopBar";
+
+type PlasmicCmsRoot__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicCmsRoot__freeBox<T extends PlasmicCmsRoot__freeBoxProps>(props: T & StrictProps<T, PlasmicCmsRoot__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicCmsRoot__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicCmsRoot__freeBox.displayName = "PlasmicCmsRoot.freeBox";
+
+type PlasmicCmsRoot__cmsLeftTabsProps = NodeComponentProps<"cmsLeftTabs"> & {key?: React.Key};
+function PlasmicCmsRoot__cmsLeftTabs<T extends PlasmicCmsRoot__cmsLeftTabsProps>(props: T & StrictProps<T, PlasmicCmsRoot__cmsLeftTabsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cmsLeftTabs", props);
+  return <PlasmicCmsRoot__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cmsLeftTabs"} />;
+}
+PlasmicCmsRoot__cmsLeftTabs.displayName = "PlasmicCmsRoot.cmsLeftTabs";
+
+type PlasmicCmsRoot__cmsContentPageProps = NodeComponentProps<"cmsContentPage"> & {key?: React.Key};
+function PlasmicCmsRoot__cmsContentPage<T extends PlasmicCmsRoot__cmsContentPageProps>(props: T & StrictProps<T, PlasmicCmsRoot__cmsContentPageProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cmsContentPage", props);
+  return <PlasmicCmsRoot__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cmsContentPage"} />;
+}
+PlasmicCmsRoot__cmsContentPage.displayName = "PlasmicCmsRoot.cmsContentPage";
+
+type PlasmicCmsRoot__cmsSchemaPageProps = NodeComponentProps<"cmsSchemaPage"> & {key?: React.Key};
+function PlasmicCmsRoot__cmsSchemaPage<T extends PlasmicCmsRoot__cmsSchemaPageProps>(props: T & StrictProps<T, PlasmicCmsRoot__cmsSchemaPageProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cmsSchemaPage", props);
+  return <PlasmicCmsRoot__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cmsSchemaPage"} />;
+}
+PlasmicCmsRoot__cmsSchemaPage.displayName = "PlasmicCmsRoot.cmsSchemaPage";
+
+type PlasmicCmsRoot__cmsSettingsPageProps = NodeComponentProps<"cmsSettingsPage"> & {key?: React.Key};
+function PlasmicCmsRoot__cmsSettingsPage<T extends PlasmicCmsRoot__cmsSettingsPageProps>(props: T & StrictProps<T, PlasmicCmsRoot__cmsSettingsPageProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cmsSettingsPage", props);
+  return <PlasmicCmsRoot__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cmsSettingsPage"} />;
+}
+PlasmicCmsRoot__cmsSettingsPage.displayName = "PlasmicCmsRoot.cmsSettingsPage";
+
 
 export const PlasmicCmsRoot = Object.assign(
   // Top-level PlasmicCmsRoot renders the root element
-  makeNodeComponent("root"),
+  PlasmicCmsRoot__root,
   {
     // Helper components rendering sub-elements
-    cmsTopBar: makeNodeComponent("cmsTopBar"),
-    freeBox: makeNodeComponent("freeBox"),
-    cmsLeftTabs: makeNodeComponent("cmsLeftTabs"),
-    cmsContentPage: makeNodeComponent("cmsContentPage"),
-    cmsSchemaPage: makeNodeComponent("cmsSchemaPage"),
-    cmsSettingsPage: makeNodeComponent("cmsSettingsPage"),
+    cmsTopBar: PlasmicCmsRoot__cmsTopBar,
+    freeBox: PlasmicCmsRoot__freeBox,
+    cmsLeftTabs: PlasmicCmsRoot__cmsLeftTabs,
+    cmsContentPage: PlasmicCmsRoot__cmsContentPage,
+    cmsSchemaPage: PlasmicCmsRoot__cmsSchemaPage,
+    cmsSettingsPage: PlasmicCmsRoot__cmsSettingsPage,
 
     // Metadata about props expected for PlasmicCmsRoot
     internalVariantProps: PlasmicCmsRoot__VariantProps,

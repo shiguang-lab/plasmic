@@ -14,18 +14,18 @@
 import * as React from "react";
 
 import {
-  set as $stateSet,
+  usePlasmicRefs, set as $stateSet,
   classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import HiliteTabButton from "../../components/widgets/HiliteTabButton"; // plasmic-import: lHRivspQeB/component
-import { _useStyleTokens } from "../plasmic_kit_style_controls/PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_style_controls/PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -95,11 +95,10 @@ function PlasmicHiliteTabs__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "selectedTabKey",
@@ -110,18 +109,20 @@ function PlasmicHiliteTabs__RenderFunc(props: {
         onChangeProp: "onSelectedTabKeyChange",
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -140,19 +141,8 @@ function PlasmicHiliteTabs__RenderFunc(props: {
       role={"tablist"}
     >
       {((_par) => (!_par ? [] : Array.isArray(_par) ? _par : [_par]))(
-        (() => {
-          try {
-            return $props.tabs;
-          } catch (e) {
-            if (
-              e instanceof TypeError ||
-              e?.plasmicType === "PlasmicUndefinedDataError"
-            ) {
-              return [];
-            }
-            throw e;
-          }
-        })()
+        ((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+              e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.tabs), () => ([]))
       ).map((__plasmic_item_0, __plasmic_idx_0) => {
         const currentItem = __plasmic_item_0;
         const currentIndex = __plasmic_idx_0;
@@ -163,7 +153,7 @@ function PlasmicHiliteTabs__RenderFunc(props: {
             className={classNames("__wab_instance", sty.hiliteTabButton)}
             isSelected={currentItem.tabKey === $state.selectedTabKey}
             key={currentIndex}
-            onTabSelected={async (tabKey) => {
+            onTabSelected={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx), getStateCommandValue(currentItem)], ($state, $props, $ctx, currentItem) => { const $refs = getRefs(); return ((async (tabKey) => {
               const $steps = {};
 
               $steps["setSelectedTabKey"] = true
@@ -194,23 +184,12 @@ function PlasmicHiliteTabs__RenderFunc(props: {
               ) {
                 $steps["setSelectedTabKey"] = await $steps["setSelectedTabKey"];
               }
-            }}
+            })); })}
             tabKey={currentItem.tabKey}
           >
             <React.Fragment>
-              {(() => {
-                try {
-                  return currentItem.content;
-                } catch (e) {
-                  if (
-                    e instanceof TypeError ||
-                    e?.plasmicType === "PlasmicUndefinedDataError"
-                  ) {
-                    return "Tab";
-                  }
-                  throw e;
-                }
-              })()}
+              {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                    e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => (currentItem.content), () => ("Tab"))}
             </React.Fragment>
           </HiliteTabButton>
         );
@@ -256,12 +235,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -271,27 +246,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicHiliteTabs__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicHiliteTabs";
-  } else {
-    func.displayName = `PlasmicHiliteTabs.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicHiliteTabs__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicHiliteTabs__root<T extends PlasmicHiliteTabs__rootProps>(props: T & StrictProps<T, PlasmicHiliteTabs__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicHiliteTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicHiliteTabs__root.displayName = "PlasmicHiliteTabs";
+
+type PlasmicHiliteTabs__hiliteTabButtonProps = NodeComponentProps<"hiliteTabButton"> & {key?: React.Key};
+function PlasmicHiliteTabs__hiliteTabButton<T extends PlasmicHiliteTabs__hiliteTabButtonProps>(props: T & StrictProps<T, PlasmicHiliteTabs__hiliteTabButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("hiliteTabButton", props);
+  return <PlasmicHiliteTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"hiliteTabButton"} />;
+}
+PlasmicHiliteTabs__hiliteTabButton.displayName = "PlasmicHiliteTabs.hiliteTabButton";
+
 
 export const PlasmicHiliteTabs = Object.assign(
   // Top-level PlasmicHiliteTabs renders the root element
-  makeNodeComponent("root"),
+  PlasmicHiliteTabs__root,
   {
     // Helper components rendering sub-elements
-    hiliteTabButton: makeNodeComponent("hiliteTabButton"),
+    hiliteTabButton: PlasmicHiliteTabs__hiliteTabButton,
 
     // Metadata about props expected for PlasmicHiliteTabs
     internalVariantProps: PlasmicHiliteTabs__VariantProps,

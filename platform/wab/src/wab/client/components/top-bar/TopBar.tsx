@@ -1,3 +1,4 @@
+import { useTopBarInputs } from "@/wab/client/components/top-bar/top-bar-inputs";
 import { useStore } from "zustand";
 import { getUploadedFile } from "@/wab/client/dom-utils";
 import { BrandLink } from "@/wab/client/components/BrandLink";
@@ -35,6 +36,7 @@ import Select from "@/wab/client/components/widgets/Select";
 import { useAppCtx, useTopFrameApi } from "@/wab/client/contexts/AppContexts";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { selectIsCopilotChatOpen } from "@/wab/client/studio-ctx/left-panel-state";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
@@ -61,8 +63,7 @@ import {
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { fixPageHrefsToLocal } from "@/wab/shared/utils/split-site-utils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Button, Menu, Popover, Tooltip, theme, message } from "antd";
-import { observer } from "mobx-react";
+import { Button, Menu, Popover, Tooltip, theme as AntdTheme, message } from "antd";
 import { ok } from "neverthrow";
 import React from "react";
 import { useInteractOutside } from "react-aria";
@@ -74,11 +75,16 @@ interface TopBarProps {
   preview?: boolean;
 }
 
-function _TopBar({ preview }: TopBarProps) {
+function TopBarContent({ preview }: TopBarProps) {
   const { t } = useI18n();
-  const { token } = theme.useToken();
+  const { token } = AntdTheme.useToken();
   const { styles: popupStyles } = useEditorPopupStyles();
   const studioCtx = useStudioCtx();
+  useTopBarInputs(studioCtx, !!preview);
+  const commentsPanel = useStudioOverlayState(
+    studioCtx,
+    (state) => state.commentsPanel,
+  );
   const isCopilotChatOpen = useStore(
     studioCtx.leftPanelState.store,
     selectIsCopilotChatOpen,
@@ -261,7 +267,7 @@ function _TopBar({ preview }: TopBarProps) {
                 <Menu.Item
                   key="export-plasmic"
                   onClick={async () => {
-                    try {
+                    return await (async () => {
                       if (studioCtx.canEditProject()) {
                         await studioCtx.save();
                       }
@@ -269,11 +275,11 @@ function _TopBar({ preview }: TopBarProps) {
                         studioCtx.siteInfo.id,
                         studioCtx.siteInfo.name,
                       );
-                    } catch (err) {
+                    })().catch(async (err) => {
                       void message.error({
                         content: t("Failed to export .plasmic file"),
                       });
-                    }
+                    });
                   }}
                 >
                   {t("Export .plasmic")}
@@ -288,7 +294,7 @@ function _TopBar({ preview }: TopBarProps) {
                   onClick={() => {
                     getUploadedFile(
                       async (content: string, file?: File) => {
-                        try {
+                        return await (async () => {
                           if (!file?.name.toLowerCase().endsWith(".plasmic")) {
                             throw new Error(t("Please select a valid .plasmic file."));
                           }
@@ -319,7 +325,7 @@ function _TopBar({ preview }: TopBarProps) {
                           window.location.href = APP_ROUTES.project.fill({
                             projectId: result.projectId,
                           });
-                        } catch (error) {
+                        })().catch(async (error) => {
                           void message.error({
                             content:
                               error instanceof Error &&
@@ -329,7 +335,7 @@ function _TopBar({ preview }: TopBarProps) {
                                 ? t("Please select a valid .plasmic file.")
                                 : t("Failed to import .plasmic file"),
                           });
-                        }
+                        });
                       },
                       { accept: ".plasmic" },
                     );
@@ -683,7 +689,7 @@ function _TopBar({ preview }: TopBarProps) {
                     className="editor-icon-action"
                     disabled={!studioCtx.showComments()}
 
-                    aria-pressed={studioCtx.showCommentsPanel}
+                    aria-pressed={commentsPanel}
                     data-test-id="top-comment-icon"
                     onClick={() => studioCtx.toggleCommentsPanel()}
                   />
@@ -869,7 +875,7 @@ function _TopBar({ preview }: TopBarProps) {
           wrap: preview && studioCtx.showComments() ? undefined : () => null,
           props: {
             "aria-label": t("Comments"),
-            active: studioCtx.showCommentsPanel,
+            active: commentsPanel,
             onClick: () => studioCtx.toggleCommentsPanel(),
             "data-test-id": "top-comment-icon",
           },
@@ -959,4 +965,4 @@ function _TopBar({ preview }: TopBarProps) {
   );
 }
 
-export const TopBar = observer(_TopBar);
+export const TopBar = React.memo(TopBarContent);

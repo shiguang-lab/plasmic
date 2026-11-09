@@ -1,3 +1,4 @@
+import { type PreviewVariantGroup, usePreviewVariantModelInputs } from "@/wab/client/components/top-bar/preview-variant-inputs";
 import VariantRow from "@/wab/client/components/canvas/VariantsBar/VariantRow";
 import styles from "@/wab/client/components/canvas/VariantsBar/VariantsDrawer.module.scss";
 import VariantsGroupLabel from "@/wab/client/components/canvas/VariantsBar/VariantsGroupLabel";
@@ -12,48 +13,27 @@ import {
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import {
   getAllVariantsForTpl,
-  getVariantLabel,
   isBaseVariant,
   isScreenVariant,
   isStyleOrCodeComponentVariant,
 } from "@/wab/shared/Variants";
 import { ensure, mod, spawn } from "@/wab/shared/common";
-import { Variant } from "@/wab/shared/model/classes";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import defer = setTimeout;
 
-type VariantGroupData =
-  | {
-      name: undefined;
-      type: "standalone";
-      variants: Variant[];
-    }
-  | {
-      type: "single";
-      name: string;
-      variants: Variant[];
-    }
-  | {
-      type: "multi";
-      name: string;
-      variants: Variant[];
-    };
 
 interface VariantsMenuProps extends DefaultVariantsMenuProps {
   searchInputRef?: React.RefObject<HTMLInputElement | null>;
   targetedVariants: Set<string>;
-  variantGroupsData: VariantGroupData[];
+  variantGroupsData: readonly PreviewVariantGroup[];
   onDismiss: () => void;
   previewCtx: PreviewCtx;
   studioCtx: StudioCtx;
 }
 
-export const VariantsMenu = observer(VariantsMenu_);
-
-function VariantsMenu_({
+export const VariantsMenu = React.memo(function VariantsMenu({
   searchInputRef,
   targetedVariants,
   variantGroupsData,
@@ -64,7 +44,9 @@ function VariantsMenu_({
 }: VariantsMenuProps) {
   const { t } = useI18n();
   usePreviewSelector(previewCtx, (state) => state.previewData);
-  const searchInputRef_ = searchInputRef ?? useRef<HTMLInputElement>(null);
+  const model = usePreviewVariantModelInputs(studioCtx, previewCtx.component);
+  const localSearchInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef_ = searchInputRef ?? localSearchInputRef;
   const variantsListRef = useRef<HTMLDivElement>(null);
 
   const [query, setQuery] = useState("");
@@ -78,7 +60,7 @@ function VariantsMenu_({
           ? matcher.matches(v.name)
           : matcher.matches(v.name) ||
             matcher.matches(g.name) ||
-            matcher.matches(v.parent?.param.variable.name ?? ""),
+            matcher.matches(v.parentName ?? ""),
       ),
     }))
     .filter((g) => g.variants.length !== 0);
@@ -88,23 +70,9 @@ function VariantsMenu_({
   const preventDismissingRef = useRef(false);
   const [highlightIndex, setHighlightIndex] = useState(0);
 
-  const flattenedVariants = useMemo(
-    () => groupedVariants.flatMap((it) => it.variants),
-    [groupedVariants],
-  );
-  const groupByVariantUuid = useMemo(
-    () =>
-      new Map(
-        groupedVariants.flatMap((g) =>
-          g.variants.map((v) => [v.uuid, g] as const),
-        ),
-      ),
-    [groupedVariants],
-  );
-  const variantIndices = useMemo(
-    () => new Map(flattenedVariants.map((it, index) => [it, index])),
-    [flattenedVariants],
-  );
+  const flattenedVariants = groupedVariants.flatMap((it) => it.variants);
+  const groupByVariantUuid = new Map(groupedVariants.flatMap((g) => g.variants.map((v) => [v.uuid, g] as const)));
+  const variantIndices = new Map(flattenedVariants.map((it, index) => [it, index]));
 
   const handleDismiss = () => {
     if (!preventDismissingRef.current) {
@@ -221,6 +189,8 @@ function VariantsMenu_({
     }
   };
 
+  if (!model.alive) { return null; }
+
   return (
     <PlasmicVariantsMenu
       root={{
@@ -267,7 +237,7 @@ function VariantsMenu_({
               onMouseLeave={handleRowMouseEnter(-1)}
             >
               {matcher.boldSnippets(
-                getVariantLabel(studioCtx.site, variant) || "UnnamedVariant",
+                variant.label || "UnnamedVariant",
               )}
             </VariantRow>
           ))}
@@ -281,6 +251,6 @@ function VariantsMenu_({
       )}
     </PlasmicVariantsMenu>
   );
-}
+});
 
 export default VariantsMenu;

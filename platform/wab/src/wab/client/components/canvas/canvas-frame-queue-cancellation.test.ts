@@ -44,7 +44,7 @@ it("releases the real dequeued request on owner abort without removing it twice 
     expect(off).toHaveBeenCalledOnce();
     expect(lease.isActive()).toBe(false);
     expect(() => off()).not.toThrow();
-    expect(studioCtx.canvasLoadError.get()).toBeUndefined();
+    expect(studioCtx.canvasLoadStore.getState().error).toBeUndefined();
   } finally {
     lease.cancel();
     studioCtx.dispose();

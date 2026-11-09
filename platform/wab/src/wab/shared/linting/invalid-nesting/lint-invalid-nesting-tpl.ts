@@ -21,10 +21,10 @@ import {
 } from "@/wab/shared/linting/invalid-nesting/reactValidateDomNesting";
 import { InvalidTplNestingLintIssue } from "@/wab/shared/linting/lint-types";
 import { lintIssuesEquals } from "@/wab/shared/linting/lint-utils";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import { getSlotArgs } from "@/wab/shared/SlotUtils";
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { comparer } from "mobx";
+import isEqual from "lodash/isEqual";
 
 const TYPE = "invalid-tpl-nesting";
 
@@ -38,28 +38,20 @@ type AncestorTplInfo = AncestorInfo<TplInfo>;
 
 const emptyAncestorInfo: AncestorTplInfo = {};
 
-export const lintInvalidNesting = maybeComputedFn(
-  function lintInvalidNesting(site: Site) {
+export const lintInvalidNesting = memoizeModelQuery(function lintInvalidNesting(site: Site) {
     const issues: InvalidTplNestingLintIssue[] = [];
     for (const comp of site.components) {
       issues.push(...lintComponent(comp));
     }
     return issues;
-  },
-  {
-    keepAlive: false,
-    equals: lintIssuesEquals,
-    name: "lintTagNesting",
-  },
-);
+  }, {equals: lintIssuesEquals});
 
 interface ComponentAncestorInfo {
   infoByTag: Map<string, TplInfo>;
   infoBySlot: Map<string, AncestorTplInfo>;
 }
 
-const getAncestorInfoOfComponent = maybeComputedFn(
-  function getAncestorInfoOfComponent(
+const getAncestorInfoOfComponent = memoizeModelQuery(function getAncestorInfoOfComponent(
     component: Component,
   ): ComponentAncestorInfo {
     const infoByTag: Map<string, TplInfo> = new Map();
@@ -108,21 +100,14 @@ const getAncestorInfoOfComponent = maybeComputedFn(
       infoByTag,
       infoBySlot,
     };
-  },
-  {
-    keepAlive: false,
-    equals: comparer.structural,
-    name: "getAncestorInfoOfComponent",
-  },
-);
+  }, {equals: isEqual});
 
 /**
  * validate the nesting of the template tree of a given component
  * should only list issues that happen because of the structure of component.tplTree
  * so component.tplTree is what implies in the relation of ancestor/descendant
  */
-const lintComponent = maybeComputedFn(
-  function lintComponent(component: Component) {
+const lintComponent = memoizeModelQuery(function lintComponent(component: Component) {
     const issues: InvalidTplNestingLintIssue[] = [];
 
     const rec = (tpl: TplNode, ancestorInfo: AncestorTplInfo) => {
@@ -219,13 +204,7 @@ const lintComponent = maybeComputedFn(
 
     rec(component.tplTree, emptyAncestorInfo);
     return issues;
-  },
-  {
-    keepAlive: false,
-    equals: lintIssuesEquals,
-    name: "lintTagNestingComponent",
-  },
-);
+  }, {equals: lintIssuesEquals});
 
 function makeIssueKey(
   component: Component,

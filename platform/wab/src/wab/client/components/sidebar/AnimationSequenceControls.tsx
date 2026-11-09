@@ -39,8 +39,8 @@ import {
   ExpsProvider,
   SingleRsExpsProvider,
   StylePanelSection,
-  mkStyleComponent,
-  providesStyleComponent,
+  createStyleTarget,
+  providesStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { Matcher } from "@/wab/client/components/view-common";
 import DimTokenSpinner from "@/wab/client/components/widgets/DimTokenSelector";
@@ -80,7 +80,8 @@ import {
 } from "@/wab/shared/model/classes";
 import { naturalSort } from "@/wab/shared/sort";
 import { Menu, message } from "antd";
-import { observer } from "mobx-react";
+import { AnimationSequencePanelInputs, useAnimationSequenceCatalog, useAnimationSequenceUsage } from "@/wab/client/components/sidebar/animation-sequence-panel-inputs";
+import { useLibraryAppInputs } from "@/wab/client/components/sidebar/library-inputs";
 import { ok } from "neverthrow";
 import React from "react";
 
@@ -262,10 +263,10 @@ function AnimationSequenceStylePanelSections({
   vsh: VariantedStylesHelper;
 }) {
   const { t: uiT } = useI18n();
-  const styleComponent = mkStyleComponent({ expsProvider });
+  const styleComponent = createStyleTarget({ expsProvider });
   const isSet = isStylePropSet(expsProvider);
 
-  return providesStyleComponent(styleComponent)(
+  return providesStyleTarget(styleComponent)(
     <SidebarSection zeroBodyPadding>
       {(renderMaybeCollapsibleRows) => (
         <>
@@ -418,8 +419,7 @@ export function AnimationSequenceRow(
   );
 }
 
-export const AnimationSequencesPanel = observer(
-  function AnimationSequencesPanel() {
+function AnimationSequencesPanelContent({ inputs }: { inputs: AnimationSequencePanelInputs }) {
     const studioCtx = useStudioCtx();
     const [query, setQuery] = React.useState("");
     const { filterDeps, filterProps } = useDepFilterButton({
@@ -429,8 +429,7 @@ export const AnimationSequencesPanel = observer(
       ),
     });
 
-    const readOnly =
-      studioCtx.getLeftTabPermission("animationSequences") === "readable";
+    const readOnly = useStore(studioCtx.uiEnvironment.store, (state) => state.leftTabPermissions.animationSequences === "readable");
     const matcher = new Matcher(query);
 
     const [justAdded, setJustAdded] = React.useState<
@@ -442,6 +441,7 @@ export const AnimationSequencesPanel = observer(
     const [findReferenceAnimationSequence, setFindReferenceAnimationSequence] =
       React.useState<AnimationSequence | undefined>(undefined);
 
+    useAnimationSequenceUsage(studioCtx, findReferenceAnimationSequence);
     const listRef = React.useRef<VirtualGroupedListHandle>(null);
     useModelUiActionHandler("AnimationSequence", (uuid) => {
       listRef.current?.scrollTo(uuid);
@@ -449,6 +449,7 @@ export const AnimationSequencesPanel = observer(
 
     const addSequence = async () => {
       await studioCtx.change(() => {
+        if (!inputs.isActive()) { return ok(); }
         const animationSequence = studioCtx.tplMgr().addAnimationSequence();
         setJustAdded(animationSequence);
         setEditingSequence(animationSequence);
@@ -471,6 +472,7 @@ export const AnimationSequencesPanel = observer(
     const onDuplicate = (sequence: AnimationSequence) => {
       spawn(
         studioCtx.change(() => {
+          if (!inputs.isActive()) { return ok(); }
           const animationSequence = studioCtx
             .tplMgr()
             .duplicateAnimationSequence(sequence);
@@ -488,7 +490,7 @@ export const AnimationSequencesPanel = observer(
     };
 
     const onDelete = async (sequence: AnimationSequence) => {
-      await studioCtx.siteOps().tryDeleteAnimationSequences([sequence]);
+      if (inputs.isActive()) { await studioCtx.siteOps().tryDeleteAnimationSequences([sequence]); }
     };
 
     const onFindReferences = (animSeq: AnimationSequence) => {
@@ -652,5 +654,11 @@ export const AnimationSequencesPanel = observer(
         )}
       </>
     );
-  },
-);
+}
+
+export const AnimationSequencesPanel = React.memo(function AnimationSequencesPanel() {
+  const studio = useStudioCtx();
+  useLibraryAppInputs(studio);
+  const inputs = useAnimationSequenceCatalog(studio);
+  return inputs.isActive() ? <AnimationSequencesPanelContent key={inputs.key} inputs={inputs} /> : null;
+});

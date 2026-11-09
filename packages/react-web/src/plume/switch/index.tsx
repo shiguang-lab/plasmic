@@ -6,7 +6,6 @@ import { VisuallyHidden } from "@react-aria/visually-hidden";
 import { useToggleState } from "@react-stately/toggle";
 import * as React from "react";
 import { pick } from "../../common";
-import { mergeProps } from "../../react-utils";
 import { Overrides } from "../../render/elements";
 import { useEnsureSSRProvider } from "../../render/ssr";
 import {
@@ -96,9 +95,7 @@ export function useSwitch<P extends SwitchProps, C extends AnyPlasmicClass>(
   const overrides: Overrides = {
     [config.root]: {
       as: "label",
-      props: mergeProps(getStyleProps(props), {
-        ref: rootRef,
-      }),
+      props: { ...getStyleProps(props), ref: rootRef },
       wrapChildren: (renderedChildren: React.ReactNode) => (
         <>
           <VisuallyHidden>

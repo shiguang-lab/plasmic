@@ -62,10 +62,11 @@ export function DataSourceTablePicker(props: DataSourceTablePickerProps) {
     requireLookupValue,
     onlySchema,
     onChange,
-    draft = { sourceId: getPreferredDataSource(studioCtx.site) },
+    draft: _draftInput,
     requiredStandardQueries,
     exprCtx,
   } = props;
+  const draft = _draftInput === undefined ? ({ sourceId: getPreferredDataSource(studioCtx.site) }) : _draftInput;
   const sourceId = draft?.sourceId;
   const tableId = draft?.tableId;
   const lookupValue = draft?.lookupValue;
@@ -87,7 +88,7 @@ export function DataSourceTablePicker(props: DataSourceTablePickerProps) {
     () => (source ? getDataSourceMeta(source.source) : undefined),
     [source],
   );
-  const tableOptions = React.useMemo(() => {
+  const tableOptions = (() => {
     if (!sourceMeta || !sourceSchemaData) {
       return undefined;
     }
@@ -100,7 +101,7 @@ export function DataSourceTablePicker(props: DataSourceTablePickerProps) {
       }
     }
     return [];
-  }, [sourceMeta, sourceSchemaData]);
+  })();
   const table = React.useMemo(
     () =>
       sourceSchemaData?.tables.find((t) => t.id === tableId) as
@@ -128,7 +129,7 @@ export function DataSourceTablePicker(props: DataSourceTablePickerProps) {
         id: f.id,
       })),
     ];
-  }, [tableId, table]);
+  }, [tableId, table, sourceSchemaData]);
   const lookupFieldMeta = React.useMemo(() => {
     if (!lookupField) {
       return undefined;
@@ -147,7 +148,7 @@ export function DataSourceTablePicker(props: DataSourceTablePickerProps) {
       );
       return { [field.id]: field };
     }
-  }, [lookupField]);
+  }, [lookupField, table]);
   React.useEffect(() => {
     if (lookupField || !table || table.fields.length === 0) {
       return;

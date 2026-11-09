@@ -1,4 +1,4 @@
-import { CodeComponentMeta } from "@plasmicapp/host";
+import type { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 
 import React from "react";
 import useEventbrite from "./hooks/useEventBrite";
@@ -59,12 +59,16 @@ export function Eventbrite({ className, text, eventId }: EventbriteProps) {
     return <div>Please enter Event Id</div>;
   }
 
+  return <EventbriteCheckout key={eventId} className={className} text={text} eventId={eventId} />;
+}
+
+function EventbriteCheckout({ className, text, eventId }: EventbriteProps) {
   const handleOrderCompleted = React.useCallback(() => {
     console.log("Order was completed successfully");
   }, []);
 
   const modalButtonCheckout = useEventbrite({
-    eventId: `${eventId!}`,
+    eventId,
     modal: true,
     onOrderComplete: handleOrderCompleted,
   });

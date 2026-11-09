@@ -36,7 +36,7 @@ import {
   type TplType,
 } from "@/wab/shared/core/tpls";
 import { getEffectiveVariantSetting } from "@/wab/shared/effective-variant-setting";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import {
   Component,
   ProjectDependency,
@@ -154,7 +154,7 @@ function mkComponentMentionableResources(
   return resources;
 }
 
-const mkSiteMentionableResources = maybeComputedFn(
+const mkSiteMentionableResources = memoizeModelQuery(
   function mkSiteMentionableResources(
     site: Site,
     fromProject?: string,

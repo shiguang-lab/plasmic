@@ -69,7 +69,7 @@ import {
 } from "@/wab/shared/model/classes";
 import { getPlumeEditorPlugin } from "@/wab/shared/plume/plume-registry";
 import { ChoiceValue, DataMeta, mkMetaName } from "@plasmicapp/host";
-import { isArray, isPlainObject } from "lodash";
+import { cloneDeepWith, isArray, isPlainObject } from "lodash";
 
 export {
   dataPickerShouldHideKey,
@@ -283,21 +283,33 @@ export function prepareEnvForDataPicker(
   const isFocusedTplInTplSlot = tpl ? getAncestorTplSlot(tpl, true) : false;
   if (!isFocusedTplInTplSlot) {
     if ("$props" in fixedData) {
+      fixedData.$props = {...fixedData.$props};
       const realParams = getRealParams(component);
       realParams.forEach((param) => {
         const name = toVarName(param.variable.name);
-        if (!(name in data["$props"])) {
-          data["$props"][name] = undefined;
+        if (!(name in fixedData.$props)) {
+          fixedData.$props[name] = undefined;
         }
       });
     }
     if ("$state" in fixedData && viewCtx) {
       fixedData.$state = { ...fixedData.$state };
+      let copiedMetadataContainers = false;
       for (const state of component.states) {
         if (state.tplNode) {
           const { hidden, advanced } =
             getContextDependentValuesForImplicitState(viewCtx, state);
           if (advanced || hidden) {
+            if (!copiedMetadataContainers) {
+              // Picker annotations belong to its own ordinary data containers.
+              // Opaque runtime/query handles retain their original identities.
+              fixedData.$state = cloneDeepWith(fixedData.$state, (value) => {
+                if (typeof value === "function" || value && typeof value === "object" &&
+                  !Array.isArray(value) && (!isPlainObject(value) || "$$typeof" in value)) {return value;}
+                return undefined;
+              });
+              copiedMetadataContainers = true;
+            }
             for (const { obj, key } of findStateIn$State(
               state,
               fixedData.$state,

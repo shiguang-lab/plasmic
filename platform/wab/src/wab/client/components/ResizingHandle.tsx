@@ -54,7 +54,7 @@ export function ResizingHandle({
           return onDrag({ deltaX: -data.deltaX / zoom }, position);
       }
     },
-    [onDrag, position],
+    [onDrag, position, zoom],
   );
 
   const [offset, setOffset] = useState<{
@@ -69,6 +69,7 @@ export function ResizingHandle({
   const rootRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
+    let active = true;
     function updateSize(e?: Event) {
       const requestCallback =
         e?.type === resizingHandleDragEvent
@@ -76,6 +77,7 @@ export function ResizingHandle({
           : window.requestAnimationFrame;
 
       requestCallback(() => {
+        if (!active) { return; }
         const parent = rootRef.current?.parentElement;
         const clipper = studioCtx.maybeCanvasClipper();
 
@@ -129,10 +131,11 @@ export function ResizingHandle({
     window.addEventListener(resizingHandleDragEvent, updateSize);
 
     return () => {
+      active = false;
       window.removeEventListener(plasmicCanvasTransformEvent, updateSize);
       window.removeEventListener(resizingHandleDragEvent, updateSize);
     };
-  }, []);
+  }, [position, studioCtx, zoom]);
 
   return (
     <XDraggable

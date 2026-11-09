@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicIcon as PlasmicIcon__,
   SingleBooleanChoiceArg,
   SingleChoiceArg,
@@ -24,11 +24,11 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../../../../plasmic/plasmic_kit_continuous_deployment/PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "../../../../plasmic/plasmic_kit_continuous_deployment/PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 import IconButton from "../../../widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 
 import "@plasmicapp/react-web/lib/plasmic.css";
@@ -114,11 +114,10 @@ function PlasmicWebhookEvent__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "state",
@@ -133,18 +132,20 @@ function PlasmicWebhookEvent__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.expanded,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -389,12 +390,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -404,28 +401,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicWebhookEvent__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicWebhookEvent";
-  } else {
-    func.displayName = `PlasmicWebhookEvent.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicWebhookEvent__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicWebhookEvent__root<T extends PlasmicWebhookEvent__rootProps>(props: T & StrictProps<T, PlasmicWebhookEvent__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicWebhookEvent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicWebhookEvent__root.displayName = "PlasmicWebhookEvent";
+
+type PlasmicWebhookEvent__indicatorProps = NodeComponentProps<"indicator"> & {key?: React.Key};
+function PlasmicWebhookEvent__indicator<T extends PlasmicWebhookEvent__indicatorProps>(props: T & StrictProps<T, PlasmicWebhookEvent__indicatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("indicator", props);
+  return <PlasmicWebhookEvent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"indicator"} />;
+}
+PlasmicWebhookEvent__indicator.displayName = "PlasmicWebhookEvent.indicator";
+
+type PlasmicWebhookEvent__viewButtonProps = NodeComponentProps<"viewButton"> & {key?: React.Key};
+function PlasmicWebhookEvent__viewButton<T extends PlasmicWebhookEvent__viewButtonProps>(props: T & StrictProps<T, PlasmicWebhookEvent__viewButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("viewButton", props);
+  return <PlasmicWebhookEvent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"viewButton"} />;
+}
+PlasmicWebhookEvent__viewButton.displayName = "PlasmicWebhookEvent.viewButton";
+
 
 export const PlasmicWebhookEvent = Object.assign(
   // Top-level PlasmicWebhookEvent renders the root element
-  makeNodeComponent("root"),
+  PlasmicWebhookEvent__root,
   {
     // Helper components rendering sub-elements
-    indicator: makeNodeComponent("indicator"),
-    viewButton: makeNodeComponent("viewButton"),
+    indicator: PlasmicWebhookEvent__indicator,
+    viewButton: PlasmicWebhookEvent__viewButton,
 
     // Metadata about props expected for PlasmicWebhookEvent
     internalVariantProps: PlasmicWebhookEvent__VariantProps,

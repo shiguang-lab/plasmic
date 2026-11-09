@@ -908,7 +908,7 @@ const BORDER_SHORTHANDS = [
 export function preferShorthand(m: Map<string, string>): Map<string, string> {
   const res = new Map(m);
 
-  const useShorthand = (allProps: string[], shorthandProp: string) => {
+  const combineShorthand = (allProps: string[], shorthandProp: string) => {
     const vals: string[] = [];
     for (const prop of allProps) {
       const val = m.get(prop);
@@ -923,9 +923,9 @@ export function preferShorthand(m: Map<string, string>): Map<string, string> {
     }
   };
 
-  useShorthand(BORDER_RADIUS_PROPS, "border-radius");
-  useShorthand(PADDING_PROPS, "padding");
-  useShorthand(MARGIN_PROPS, "margin");
+  combineShorthand(BORDER_RADIUS_PROPS, "border-radius");
+  combineShorthand(PADDING_PROPS, "padding");
+  combineShorthand(MARGIN_PROPS, "margin");
 
   for (let i = 0; i < BORDER_PROPS.length; i++) {
     const keys = BORDER_SIDE_PROPS[i];
@@ -1892,7 +1892,7 @@ export const classNameToRuleSetUid = (className: string) =>
   )[1];
 
 export interface TriggerCondition {
-  hookName: string;
+  hookName: "useHover" | "usePressed" | "useFocused" | "useFocusVisible" | "useFocusedWithin" | "useFocusVisibleWithin";
   isOpposite?: boolean;
   alwaysByHook?: boolean;
 }

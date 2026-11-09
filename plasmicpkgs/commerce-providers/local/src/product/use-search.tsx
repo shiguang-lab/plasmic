@@ -53,7 +53,7 @@ export const handler: SWRHook<any> = {
   },
   useHook:
     ({ useData }) =>
-    (input = {}) => {
+    function useSearchHandler(input = {}) {
       return useData({
         input: [
           ["search", input.search],

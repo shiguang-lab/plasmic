@@ -15,18 +15,18 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   renderPlasmicSlot,
   StrictProps,
-  useTrigger,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -84,16 +84,15 @@ function PlasmicActionChip__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -189,12 +188,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -204,29 +199,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicActionChip__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicActionChip";
-  } else {
-    func.displayName = `PlasmicActionChip.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicActionChip__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicActionChip__root<T extends PlasmicActionChip__rootProps>(props: T & StrictProps<T, PlasmicActionChip__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicActionChip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicActionChip__root.displayName = "PlasmicActionChip";
+
+type PlasmicActionChip__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicActionChip__text<T extends PlasmicActionChip__textProps>(props: T & StrictProps<T, PlasmicActionChip__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicActionChip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicActionChip__text.displayName = "PlasmicActionChip.text";
+
+type PlasmicActionChip__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicActionChip__svg<T extends PlasmicActionChip__svgProps>(props: T & StrictProps<T, PlasmicActionChip__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicActionChip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicActionChip__svg.displayName = "PlasmicActionChip.svg";
+
+type PlasmicActionChip__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicActionChip__menuButton<T extends PlasmicActionChip__menuButtonProps>(props: T & StrictProps<T, PlasmicActionChip__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicActionChip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicActionChip__menuButton.displayName = "PlasmicActionChip.menuButton";
+
 
 export const PlasmicActionChip = Object.assign(
   // Top-level PlasmicActionChip renders the root element
-  makeNodeComponent("root"),
+  PlasmicActionChip__root,
   {
     // Helper components rendering sub-elements
-    text: makeNodeComponent("text"),
-    svg: makeNodeComponent("svg"),
-    menuButton: makeNodeComponent("menuButton"),
+    text: PlasmicActionChip__text,
+    svg: PlasmicActionChip__svg,
+    menuButton: PlasmicActionChip__menuButton,
 
     // Metadata about props expected for PlasmicActionChip
     internalVariantProps: PlasmicActionChip__VariantProps,

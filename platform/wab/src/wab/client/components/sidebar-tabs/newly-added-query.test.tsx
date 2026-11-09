@@ -6,14 +6,14 @@ import type { useDataSourceOpExprBottomModal } from "@/wab/client/components/sid
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
-import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import type { GetProjectResponse } from "@/wab/shared/ApiSchema";
+import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { Bundler } from "@/wab/shared/bundler";
 import { ensure } from "@/wab/shared/common";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
-import { mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
+import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { ComponentDataQuery } from "@/wab/shared/model/classes";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
@@ -28,11 +28,9 @@ vi.mock("@/wab/client/components/sidebar/SidebarSection", async (original) => ({
 vi.mock("@/wab/client/components/widgets/LabeledListItem", () => ({ LabeledListItem: ({ label, children, onClick }: React.PropsWithChildren<{ label: React.ReactNode; onClick: () => void }>) => { calls.row(label); return <div><button onClick={onClick}>{label}</button>{children}</div>; } }));
 vi.mock("@/wab/client/components/sidebar-tabs/DataBinding/DataPicker", async (original) => ({ ...(await original<typeof import("@/wab/client/components/sidebar-tabs/DataBinding/DataPicker")>()), default: ({ onAddQuery, withAddQuery }: React.ComponentProps<typeof DataPicker>) => withAddQuery ? <button onClick={onAddQuery}>Add query from picker</button> : null }));
 
-const studios = new Set<StudioCtx>(), selections = new Set<ViewSelection>();
+const studios = new Set<StudioCtx>();
 afterEach(async () => {
   await act(async () => { cleanup(); });
-  for (const selection of selections) { selection.dispose(); }
-  selections.clear();
   for (const studio of studios) { await studio.awaitEval(); studio.dispose(); }
   studios.clear(); calls.open.mockClear(); calls.row.mockClear(); vi.restoreAllMocks();
 });
@@ -43,20 +41,19 @@ function siteFixture(name: string, withQueries: boolean) {
   if (withQueries) {
     component.dataQueries.push(new ComponentDataQuery({ uuid: `${name}-first`, name: "FirstQuery", op: undefined }), new ComponentDataQuery({ uuid: `${name}-other`, name: "OtherQuery", op: undefined }));
   }
+  const frame = mkArenaFrame({ site, component, name, width: 400, height: 300 }); site.arenas.push(mkMixedArena(name, [frame]));
   return { site, component };
 }
 function viewFixture(studio: StudioCtx, component: ReturnType<typeof siteFixture>["component"]) {
-  const selection = new ViewSelection(() => studio.modelSnapshots); selections.add(selection);
-  const view = mock<ViewCtx>();
-  Object.defineProperties(view, { studioCtx: { value: studio }, component: { value: component }, selectionStore: { value: selection.store }, site: { get: () => studio.site }, siteInfo: { get: () => studio.siteInfo } });
-  view.getCanvasEnvForTpl.mockReturnValue({ $ctx: {}, $props: {}, $state: {}, $queries: {}, $q: {}, $refs: {}, $$: {} });
-  view.customFunctionsSchema.mockReturnValue({});
-  view.currentCtxTplRoot.mockReturnValue(component.tplTree);
-  view.currentTplComponent.mockReturnValue(mkTplComponent(component, ensure(component.variants[0], "Query component base")));
+  const frame = ensure(studio.site.arenas.flatMap((arena) => arena.children).find((candidate) => candidate.container.component === component), "Query component frame");
+  const view = ensure(studio.tryGetViewCtxForFrame(frame), "Query component view");
+  const env = { $ctx: {}, $props: {}, $state: {}, $queries: {}, $q: {}, $refs: {}, $$: {} };
+  vi.spyOn(view, "getCanvasEnvForTpl").mockReturnValue(env);
   return view;
 }
 async function setup(name = "Queries", withQueries = true) {
-  const data = siteFixture(name, withQueries), f = fakeStudioCtx({ site: data.site, devFlagOverrides: { ccStubs: true } });
+  vi.spyOn(ViewCtx.prototype, "scheduleSync").mockImplementation(() => undefined); vi.spyOn(ViewCtx.prototype, "isVisible").mockReturnValue(false);
+  const data = siteFixture(name, withQueries), f = fakeStudioCtx({ site: data.site, initialUrl: `/projects/test?arena_type=custom&arena=${name}`, devFlagOverrides: { ccStubs: true } });
   const studio = f.studioCtx; studios.add(studio);
   await waitFor(() => expect(studio.initialRouteReady).toBe(true));
   studio.observeComponents([data.component]); studio.createViewStateUndoRecord();
@@ -67,16 +64,16 @@ const wrap = (f: Awaited<ReturnType<typeof setup>>, children: React.ReactNode) =
 
 it("consumes a pending query before mount, permits repeats and only updates the requested row", async () => {
   const f = await setup(), first = ensure(f.component.dataQueries[0], "First query"), other = ensure(f.component.dataQueries[1], "Other query");
-  f.studio.newlyAddedQuery = first;
+  f.studio.setNewlyAddedQuery(first);
   const pending = f.studio.newlyAddedQueryStore.getState();
-  f.studio.newlyAddedQuery = first;
+  f.studio.setNewlyAddedQuery(first);
   expect(f.studio.newlyAddedQueryStore.getState()).toBe(pending);
   expect(Object.isFrozen(pending)).toBe(true);
   render(wrap(f, section(f)));
   await waitFor(() => expect(calls.open).toHaveBeenCalledWith(first.uuid, expect.objectContaining({ parent: first, readOpsOnly: true })));
   expect(f.studio.newlyAddedQuery).toBeUndefined();
   const otherRenders = calls.row.mock.calls.filter(([label]) => label === other.name).length;
-  act(() => { f.studio.newlyAddedQuery = first; });
+  act(() => { f.studio.setNewlyAddedQuery(first); });
   await waitFor(() => expect(calls.open).toHaveBeenCalledTimes(2));
   expect(calls.row.mock.calls.filter(([label]) => label === other.name)).toHaveLength(otherRenders);
   expect(f.studio.newlyAddedQueryStore.getState()).toBeUndefined();
@@ -111,15 +108,15 @@ it("detaches old owners and clears refs before actual loadVersion/dispose while 
   const first = await setup("Old"), second = await setup("New");
   const query = ensure(second.component.dataQueries[0], "New owner query"), oldQuery = ensure(first.component.dataQueries[0], "Old owner query");
   const view = render(wrap(first, section(first)));
-  second.studio.newlyAddedQuery = query;
+  second.studio.setNewlyAddedQuery(query);
   view.rerender(wrap(second, section(second)));
   await waitFor(() => expect(calls.open).toHaveBeenCalledWith(query.uuid, expect.objectContaining({ parent: query })));
   const opened = calls.open.mock.calls.length;
-  act(() => { first.studio.newlyAddedQuery = oldQuery; });
+  act(() => { first.studio.setNewlyAddedQuery(oldQuery); });
   expect(first.studio.newlyAddedQuery).toBe(oldQuery);
   expect(calls.open).toHaveBeenCalledTimes(opened);
   view.unmount();
-  second.studio.newlyAddedQuery = query;
+  second.studio.setNewlyAddedQuery(query);
   expect(second.studio.newlyAddedQuery).toBe(query);
   const pending = ensure(second.studio.newlyAddedQueryStore.getState(), "Pending query ref"), oldModels = second.studio.modelSnapshots, resolved = vi.spyOn(oldModels, "resolve");
   const replacement = siteFixture("Replacement", true);
@@ -133,9 +130,9 @@ it("detaches old owners and clears refs before actual loadVersion/dispose while 
   const component = ensure(second.studio.site.components[0], "Replacement component"), current = ensure(component.dataQueries[0], "Replacement query");
   const rebound = { ...second, component, view: viewFixture(second.studio, component) };
   const remount = render(wrap(rebound, section(rebound)));
-  act(() => { second.studio.newlyAddedQuery = current; });
+  act(() => { second.studio.setNewlyAddedQuery(current); });
   await waitFor(() => expect(calls.open).toHaveBeenCalledWith(current.uuid, expect.objectContaining({ parent: current })));
-  remount.unmount(); second.studio.newlyAddedQuery = current;
+  remount.unmount(); second.studio.setNewlyAddedQuery(current);
   second.studio.dispose(); studios.delete(second.studio);
   expect(second.studio.newlyAddedQuery).toBeUndefined();
 });

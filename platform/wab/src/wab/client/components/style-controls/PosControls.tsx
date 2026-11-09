@@ -6,7 +6,7 @@ import {
   createStyleContextMenu,
   ExpsProvider,
   getLabelForStyleName,
-  mkStyleComponent,
+  createStyleTarget,
   StyleComponentProps,
   useSidebarPopupSetting,
 } from "@/wab/client/components/style-controls/StyleComponent";
@@ -442,9 +442,9 @@ function PositionInputs(props: PosControlsProps) {
             () => exp,
             side,
           );
-          const sc = mkStyleComponent(props);
+          const sc = createStyleTarget(props);
           const menu = () =>
-            createStyleContextMenu(sc, [side], {
+            createStyleContextMenu(sc.props.expsProvider, [side], {
               initialMenuContent: manip().renderConvertMenuItems(),
             });
           const indicator = (

@@ -55,9 +55,9 @@ export const handler = {
   },
   useHook:
     ({ fetch }: MutationHookContext<CartType.RemoveItemHook>) =>
-    <T extends CartType.LineItem | undefined = undefined>(
+    function useRemoveItemHandler<T extends CartType.LineItem | undefined = undefined>(
       ctx: { item?: T } = {}
-    ) => {
+    ) {
       const { item } = ctx;
       const { mutate } = useCart();
       const removeItem: RemoveItemFn<CartType.LineItem> = async (input) => {
@@ -74,6 +74,6 @@ export const handler = {
         return data;
       };
 
-      return useCallback(removeItem as RemoveItemFn<T>, [fetch, mutate]);
+      return useCallback(removeItem as RemoveItemFn<T>, [fetch, mutate, item?.id]);
     },
 };

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6CrqkTcB6gSAHoA8c8zpNz/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6CrqkTcB6gSAHoA8c8zpNz/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -79,11 +79,10 @@ function PlasmicBranchSwitcher__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <Button
@@ -147,12 +146,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -162,27 +157,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicBranchSwitcher__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicBranchSwitcher";
-  } else {
-    func.displayName = `PlasmicBranchSwitcher.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicBranchSwitcher__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicBranchSwitcher__root<T extends PlasmicBranchSwitcher__rootProps>(props: T & StrictProps<T, PlasmicBranchSwitcher__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicBranchSwitcher__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicBranchSwitcher__root.displayName = "PlasmicBranchSwitcher";
+
+type PlasmicBranchSwitcher__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicBranchSwitcher__svg<T extends PlasmicBranchSwitcher__svgProps>(props: T & StrictProps<T, PlasmicBranchSwitcher__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicBranchSwitcher__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicBranchSwitcher__svg.displayName = "PlasmicBranchSwitcher.svg";
+
 
 export const PlasmicBranchSwitcher = Object.assign(
   // Top-level PlasmicBranchSwitcher renders the root element
-  makeNodeComponent("root"),
+  PlasmicBranchSwitcher__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
+    svg: PlasmicBranchSwitcher__svg,
 
     // Metadata about props expected for PlasmicBranchSwitcher
     internalVariantProps: PlasmicBranchSwitcher__VariantProps,

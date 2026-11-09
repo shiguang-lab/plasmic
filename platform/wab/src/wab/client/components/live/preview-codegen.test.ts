@@ -13,7 +13,7 @@ import type {
 import { ProjectId } from "@/wab/shared/ApiSchema";
 import { generateSiteFromBundle } from "@/wab/shared/__testonly__/site-tests-utils";
 import { Bundle, Bundler } from "@/wab/shared/bundler";
-import { ensure, jsonClone } from "@/wab/shared/common";
+import { assert, ensure, jsonClone } from "@/wab/shared/common";
 import { isCodeComponent, mkComponent, ComponentType } from "@/wab/shared/core/components";
 import type { ModelCommit, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ChangeSummary } from "@/wab/shared/model/model-change-util";
@@ -31,6 +31,7 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import fs from "fs";
 import path from "path";
 import { createStore } from "zustand/vanilla";
+import { parseSync, types } from "@babel/core";
 
 const fixtureDir = path.resolve(
   __dirname,
@@ -55,6 +56,14 @@ function loadFixture(name: string): PreviewCodegenContext {
     inStudio: true,
   });
   return { site, siteInfo };
+}
+
+function renderFunctionAsts(mod: SourceModule) {
+  const ast = ensure(parseSync(mod.source, { filename: mod.name, babelrc: false, configFile: false, parserOpts: { plugins: ["typescript", "jsx"] } }), "Parsed generated module");
+  return ast.program.body
+    .filter((node) => types.isFunctionDeclaration(node))
+    .filter((node) => node.id?.name.endsWith("__RenderFunc"))
+    .map((node) => types.removePropertiesDeep(types.cloneNode(node, true)));
 }
 
 function transpileAll(modules: SourceModule[]) {
@@ -106,12 +115,12 @@ it.each([
       const live = buildPreviewUpdate(ctx, route);
       const docs = buildDocsPreviewModules(ctx, component, false);
       expect(buildPreviewUpdate(ctx, route)).toEqual(live);
-      // Both consumers must receive the same component implementations and JSX pragma.
+      // Both consumers render the same business tree; Docs also exposes named-node components.
       const docsByName = new Map(docs.modules.map((mod) => [mod.name, mod]));
       for (const mod of live.modules.filter((m) =>
         m.name.includes("render__"),
       )) {
-        expect(docsByName.get(mod.name)).toEqual(mod);
+        expect(renderFunctionAsts(ensure(docsByName.get(mod.name), "Docs render module"))).toEqual(renderFunctionAsts(mod));
         expect(mod.jsxPragma).toBe("createPlasmicElementProxy");
       }
       const modules = [
@@ -123,7 +132,8 @@ it.each([
         live.modules.length,
       );
       // Exercise the actual transpiler over every emitted module.
-      expect(await transpileAll(modules)).toBeUndefined();
+      expect(await transpileAll(live.modules)).toBeUndefined();
+      expect(await transpileAll(docs.modules)).toBeUndefined();
       modules
         .filter((mod) => mod.name !== "./preview-props.tsx")
         .forEach((mod) => fixtureModules.set(mod.name, mod));
@@ -319,4 +329,42 @@ it("regenerates from native project name and authentication settings without a m
   stop();
   ctx.projectMetadataStore.setState({ ...ctx.projectMetadataStore.getState(), ...ctx.siteInfo, name: "Another project" }, true);
   expect(changed).toHaveBeenCalledOnce();
+});
+
+it.each(["live-first", "docs-first"] as const)("keeps named-node APIs in Docs and the full rendering tree in Preview (%s)", (order) => {
+  const ctx = loadFixture("counters-test");
+  const component = ensure(ctx.site.components.find((c) => !isCodeComponent(c)), "fixture component");
+  const buildLive = () => buildPreviewModules(ctx, component);
+  const buildDocs = () => buildDocsPreviewModules(ctx, component, false);
+  if (order === "live-first") { buildLive(); } else { buildDocs(); }
+  const live = buildLive();
+  const docs = buildDocs();
+  const liveModule = ensure(live.modules.find((mod) => mod.name === `./${ensure(live.rootOutput, "Live output").renderModuleFileName}`), "Live render module");
+  const docsModule = ensure(docs.modules.find((mod) => mod.name === liveModule.name), "Docs render module");
+  expect(renderFunctionAsts(liveModule)).toEqual(renderFunctionAsts(docsModule));
+  const parse = (mod: SourceModule) => ensure(parseSync(mod.source, { filename: mod.name, babelrc: false, configFile: false, parserOpts: { plugins: ["typescript", "jsx"] } }), "Parsed node API module");
+  const liveAst = parse(liveModule);
+  const docsAst = parse(docsModule);
+  const accessorNames = (ast: types.File) => ast.program.body.filter((node) => types.isFunctionDeclaration(node)).map((node) => node.id?.name).filter((name) => name?.startsWith("Plasmic") && !name.endsWith("__RenderFunc"));
+  const liveNames = accessorNames(liveAst);
+  const docsNames = accessorNames(docsAst);
+  expect(liveNames).toHaveLength(1);
+  expect(docsNames.length).toBeGreaterThan(liveNames.length);
+  expect(docsNames).toEqual(expect.arrayContaining(liveNames));
+  const lookup = (ast: types.File) => {
+    const binding = ast.program.body.filter((node) => types.isVariableDeclaration(node)).flatMap((node) => node.declarations).find((node) => types.isIdentifier(node.id, { name: "PlasmicDescendants" }));
+    const init = ensure(binding?.init, "Descendants lookup");
+    expect(types.isTSAsExpression(init)).toBe(true);
+    const expression = types.isTSAsExpression(init) ? init.expression : init;
+    assert(types.isObjectExpression(expression), "Object descendants lookup");
+    return expression.properties;
+  };
+  const liveLookup = lookup(liveAst);
+  const docsLookup = lookup(docsAst);
+  expect(liveLookup).toHaveLength(1);
+  expect(docsLookup.length).toBeGreaterThan(1);
+  expect(types.removePropertiesDeep(types.cloneNode(liveLookup[0], true))).toEqual(types.removePropertiesDeep(types.cloneNode(docsLookup[0], true)));
+  expect(buildLive().rootOutput).toBe(live.rootOutput);
+  expect(buildDocs().modules).toEqual(docs.modules);
+  expect(live.modules.filter((mod) => mod.lang === "css")).toEqual(docs.modules.filter((mod) => mod.lang === "css"));
 });

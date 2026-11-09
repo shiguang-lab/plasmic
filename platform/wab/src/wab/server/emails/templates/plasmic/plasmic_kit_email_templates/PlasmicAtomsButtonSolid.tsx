@@ -14,6 +14,7 @@
 import * as React from "react";
 
 import {
+  usePlasmicRefs,
   Flex as Flex__,
   StrictProps,
   classNames,
@@ -80,9 +81,8 @@ function PlasmicAtomsButtonSolid__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
   return (
     <EmailButton
@@ -148,12 +148,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -163,24 +159,19 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicAtomsButtonSolid__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicAtomsButtonSolid";
-  } else {
-    func.displayName = `PlasmicAtomsButtonSolid.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicAtomsButtonSolid__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicAtomsButtonSolid__root<T extends PlasmicAtomsButtonSolid__rootProps>(props: T & StrictProps<T, PlasmicAtomsButtonSolid__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicAtomsButtonSolid__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicAtomsButtonSolid__root.displayName = "PlasmicAtomsButtonSolid";
+
 
 export const PlasmicAtomsButtonSolid = Object.assign(
   // Top-level PlasmicAtomsButtonSolid renders the root element
-  makeNodeComponent("root"),
+  PlasmicAtomsButtonSolid__root,
   {
     // Helper components rendering sub-elements
 

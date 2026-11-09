@@ -2,7 +2,6 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { reviewComponents, shouldReviewRegion, componentDocuments } from "@/wab/client/copilot/component-reuse";
 import { mkComponent, ComponentType } from "@/wab/shared/core/components";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
-import { runInAction } from "mobx";
 import { getBaseVariant } from "@/wab/shared/Variants";
 import { mkTplTagX, mkTplComponentX, mkTplInlinedText } from "@/wab/shared/core/tpls";
 import { createSite } from "@/wab/shared/core/sites";
@@ -25,13 +24,13 @@ function fixture() {
   const native = { sync, review, cancel: vi.fn(), activity: vi.fn(), release: vi.fn().mockResolvedValue(undefined) };
   const wire = (studio: typeof studioCtx) => {
     const api = mock<TopFrameApi>({ componentReuse: vi.fn(async request => {
-    if (request.command === "status") return { available: true };
+    if (request.command === "status") { return { available: true }; }
     if (request.command === "sync" || request.command === "review") { const { command, ...input } = request; return native[command](input); }
-    if (request.command === "cancel") return native.cancel(request.id);
-    if (request.command === "activity") return native.activity();
+    if (request.command === "cancel") { return native.cancel(request.id); }
+    if (request.command === "activity") { return native.activity(); }
     return native.release(request.projectId);
     }) });
-    runInAction(() => { studio.appCtx.topFrameApi = api; });
+    (() => { studio.appCtx.topFrameApi = api; })();
     return api;
   };
   const api = wire(studioCtx);
@@ -43,7 +42,7 @@ afterEach(() => { delete (window as any).desktopComponentReuse; });
 describe("component advisory preflight", () => {
   it("skips presentation, copy and layout changes without inspecting their prose", () => {
     const root = customRegion();
-    for (const input of [{ styles: { color: "red" } }, { text: "New copy" }, { name: "Controls" }]) expect(shouldReviewRegion([{ name: "changeElement", input }], root)).toBe(false);
+    for (const input of [{ styles: { color: "red" } }, { text: "New copy" }, { name: "Controls" }]) { expect(shouldReviewRegion([{ name: "changeElement", input }], root)).toBe(false); }
     expect(shouldReviewRegion([{ name: "moveElement", input: {} }], root)).toBe(false);
     expect(shouldReviewRegion([{ name: "insertHtml", input: {} }], mkTplTagX("div", {}, [mkTplTagX("p")]))).toBe(false);
     expect(shouldReviewRegion([{ name: "insertHtml", input: {} }], mkTplTagX("div", {}, [mkTplTagX("div"), mkTplTagX("div"), mkTplTagX("div"), mkTplTagX("div")]))).toBe(false);
@@ -103,7 +102,7 @@ describe("component advisory preflight", () => {
     const suggestion = { componentUuid: f.page.uuid, elementUuid: f.root.uuid, intent: purpose.purpose, candidates: [candidate], guidance: "Read contract" };
     f.review.mockResolvedValue({ status: "completed", indexed: 1, total: 1, elapsedMs: 1, suggestions: [suggestion] });
     await reviewComponents(f.studioCtx, f.operations, f.receipts, purpose);
-    const root = customRegion(); runInAction(() => { f.page.tplTree = root; });
+    const root = customRegion(); (() => { f.page.tplTree = root; })();
     const child = { ...candidate, componentUuid: "tab-item", name: "TabItem", contract: { ...candidate.contract, parent: "Tabs" } };
     f.review.mockResolvedValue({ status: "completed", indexed: 2, total: 2, elapsedMs: 1, suggestions: [{ ...suggestion, elementUuid: root.uuid, candidates: [{ ...candidate, requiredBy: [child.componentUuid] }, child] }] });
     const result = await reviewComponents(f.studioCtx, f.operations, [{ name: "insertHtml", componentUuid: f.page.uuid, created: [{ kind: "Element", uuid: root.uuid, componentUuid: f.page.uuid }] }], purpose);
@@ -112,7 +111,7 @@ describe("component advisory preflight", () => {
   it("keeps local AI recovery within its bound page and never saves or mutates the design", async () => {
     const f = fixture();
     const outside = mkComponent({ name: "Outside", type: ComponentType.Page, tplTree: customRegion() });
-    runInAction(() => { f.studioCtx.site.components.push(outside); });
+    (() => { f.studioCtx.site.components.push(outside); })();
     const context = JSON.parse(await COPILOT_TOOLS.getEditorContext.execute(f.studioCtx, {}));
     const binding = { projectId: context.projectId, branchId: context.branchId, sessionId: context.sessionId, changeCounter: context.changeCounter, componentUuid: f.page.uuid, elementUuids: [] };
     const save = vi.spyOn(f.studioCtx, "save").mockRejectedValue(new Error("Review must not save"));
@@ -160,7 +159,7 @@ describe("component advisory preflight", () => {
     f.review.mockResolvedValue({ status: "completed", indexed: 1, total: 1, elapsedMs: 1, suggestions: [{ componentUuid: f.page.uuid, elementUuid: f.root.uuid, intent: "Switch content", candidates: [candidate], guidance: "Reassess once" }] });
     const context = purpose;
     await reviewComponents(f.studioCtx, f.operations, f.receipts, context, "agent");
-    const replacement = customRegion(); runInAction(() => { f.page.tplTree = replacement; });
+    const replacement = customRegion(); (() => { f.page.tplTree = replacement; })();
     await reviewComponents(f.studioCtx, [{ name: "insertHtml", input: { componentUuid: f.page.uuid, elementUuid: f.root.uuid, location: "replace" } }],
       [{ name: "insertHtml", componentUuid: f.page.uuid, replacedElementUuid: f.root.uuid, created: [{ kind: "Element", uuid: replacement.uuid, componentUuid: f.page.uuid }] }], context, "agent");
     expect(f.review).toHaveBeenCalledOnce();
@@ -203,7 +202,7 @@ describe("component advisory preflight", () => {
     }));
     await reviewComponents(f.studioCtx, f.operations, f.receipts, purpose, "agent");
     const replacement = customRegion();
-    runInAction(() => { f.page.tplTree = replacement; });
+    (() => { f.page.tplTree = replacement; })();
     const other = { ...candidate, componentUuid: "registered-button", name: "Button" };
     f.review.mockImplementation(async input => ({ status: "completed", indexed: 2, total: 2, elapsedMs: 1,
       suggestions: input.regions.map((region: any) => ({ ...region, candidates: [candidate, other], guidance: "Reassess once" })),
@@ -215,7 +214,7 @@ describe("component advisory preflight", () => {
   it("can offer the same candidate on another page in the same session", async () => {
     const f = fixture(); const root = customRegion();
     const page = mkComponent({ name: "AnotherPage", type: ComponentType.Page, tplTree: root });
-    runInAction(() => { f.studioCtx.site.components.push(page); });
+    (() => { f.studioCtx.site.components.push(page); })();
     f.review.mockImplementation(async input => ({ status: "completed", indexed: 1, total: 1, elapsedMs: 1,
       suggestions: input.regions.map((region: any) => ({ ...region, candidates: [candidate], guidance: "Reassess once" })),
     }));
@@ -227,7 +226,7 @@ describe("component advisory preflight", () => {
   });
   it("drops stale advice if the model changed during the query", async () => {
     const f = fixture();
-    f.review.mockImplementation(async () => { runInAction(() => { f.studioCtx._changeCounter++; }); return { status: "completed", indexed: 1, total: 1, elapsedMs: 10, suggestions: [] }; });
+    f.review.mockImplementation(async () => { (() => { f.studioCtx._changeCounter++; })(); return { status: "completed", indexed: 1, total: 1, elapsedMs: 10, suggestions: [] }; });
     const result = await reviewComponents(f.studioCtx, f.operations, f.receipts, purpose);
     expect(result.status).toBe("partial"); expect(result.suggestions).toEqual([]);
   });
@@ -244,7 +243,7 @@ describe("component advisory preflight", () => {
   it("derives separate targets across definitions from receipts without agent mappings", async () => {
     const f = fixture(); const secondRoot = customRegion();
     const second = mkComponent({ name: "AnotherPage", type: ComponentType.Page, tplTree: secondRoot });
-    runInAction(() => { f.studioCtx.site.components.push(second); });
+    (() => { f.studioCtx.site.components.push(second); })();
     await reviewComponents(f.studioCtx, [...f.operations, { name: "insertHtml", input: { componentUuid: second.uuid } }],
       [...f.receipts, { name: "insertHtml", componentUuid: second.uuid, created: [{ kind: "Element", uuid: secondRoot.uuid, componentUuid: second.uuid }] }], purpose);
     expect(f.review).toHaveBeenCalledOnce();
@@ -254,7 +253,7 @@ describe("component advisory preflight", () => {
   });
   it("covers all inserted sibling roots and deduplicates repeated operations", async () => {
     const f = fixture(); const first = customRegion(); const second = customRegion();
-    runInAction(() => { f.page.tplTree = mkTplTagX("div", {}, [first, second]); });
+    (() => { f.page.tplTree = mkTplTagX("div", {}, [first, second]); })();
     const receipt = { name: "insertHtml", componentUuid: f.page.uuid, created: [first, second].map(node => ({ kind: "Element", uuid: node.uuid, componentUuid: f.page.uuid })) };
     await reviewComponents(f.studioCtx, [...f.operations, ...f.operations], [receipt, receipt], purpose);
     expect(f.review).toHaveBeenCalledOnce();
@@ -262,7 +261,7 @@ describe("component advisory preflight", () => {
   });
   it("reports partial coverage when actual changed scopes exceed the five-region budget", async () => {
     const f = fixture(); const roots = Array.from({ length: 6 }, customRegion);
-    runInAction(() => { f.page.tplTree = mkTplTagX("div", {}, roots); });
+    (() => { f.page.tplTree = mkTplTagX("div", {}, roots); })();
     const result = await reviewComponents(f.studioCtx, f.operations, [{ name: "insertHtml", componentUuid: f.page.uuid, created: roots.map(node => ({ kind: "Element", uuid: node.uuid, componentUuid: f.page.uuid })) }], purpose);
     expect(f.review.mock.calls[0][0].regions).toHaveLength(5);
     expect(result.status).toBe("partial");

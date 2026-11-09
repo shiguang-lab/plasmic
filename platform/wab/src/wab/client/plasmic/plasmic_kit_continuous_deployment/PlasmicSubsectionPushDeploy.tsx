@@ -29,7 +29,8 @@ import {
   generateStateOnChangeProp,
   generateStateValueProp,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -38,7 +39,7 @@ import Checkbox from "../../components/widgets/Checkbox"; // plasmic-import: W-r
 import ExpandButton from "../../components/widgets/ExpandButton"; // plasmic-import: JJhv0MV9DH/component
 import GitJobStep from "../../components/widgets/GitJobStep"; // plasmic-import: JzpEJAQTjPX/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -148,11 +149,10 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "collapse",
@@ -204,18 +204,20 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -307,9 +309,9 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                   generateStateValueProp($state, ["checkbox", "isChecked"]) ??
                   false
                 }
-                onChange={async (...eventArgs: any) => {
+                onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                   ((...eventArgs) => {
-                    generateStateOnChangeProp($state, [
+                    generateStateOnChangeProp($stateCommands, [
                       "checkbox",
                       "isChecked",
                     ])(eventArgs[0]);
@@ -322,7 +324,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                   ) {
                     return;
                   }
-                }}
+                })); })}
               />
             ) : null}
             {(hasVariant($state, "view", "status") ? true : false) ? (
@@ -1031,9 +1033,9 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                             role={"img"}
                           />
                         }
-                        onChange={async (...eventArgs: any) => {
+                        onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                           ((...eventArgs) => {
-                            generateStateOnChangeProp($state, [
+                            generateStateOnChangeProp($stateCommands, [
                               "pushAs",
                               "value",
                             ])(eventArgs[0]);
@@ -1046,7 +1048,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                           ) {
                             return;
                           }
-                        }}
+                        })); })}
                         type={"bordered"}
                         value={generateStateValueProp($state, [
                           "pushAs",
@@ -1127,9 +1129,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                             }
                           )}
                           placeholder={uiT("Title (optional)")}
-                          ref={(ref) => {
-                            $refs["title"] = ref;
-                          }}
+                          ref={registerRef("title")}
                           size={1}
                           type={"text"}
                           value={""}
@@ -1155,9 +1155,7 @@ function PlasmicSubsectionPushDeploy__RenderFunc(props: {
                             sty.description
                           )}
                           placeholder={uiT("Description (optional)")}
-                          ref={(ref) => {
-                            $refs["description"] = ref;
-                          }}
+                          ref={registerRef("description")}
                           rows={3}
                           value={""}
                         />
@@ -1390,12 +1388,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1405,42 +1399,149 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSubsectionPushDeploy__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSubsectionPushDeploy";
-  } else {
-    func.displayName = `PlasmicSubsectionPushDeploy.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSubsectionPushDeploy__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__root<T extends PlasmicSubsectionPushDeploy__rootProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSubsectionPushDeploy__root.displayName = "PlasmicSubsectionPushDeploy";
+
+type PlasmicSubsectionPushDeploy__checkboxProps = NodeComponentProps<"checkbox"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__checkbox<T extends PlasmicSubsectionPushDeploy__checkboxProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__checkboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("checkbox", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"checkbox"} />;
+}
+PlasmicSubsectionPushDeploy__checkbox.displayName = "PlasmicSubsectionPushDeploy.checkbox";
+
+type PlasmicSubsectionPushDeploy__imgProps = NodeComponentProps<"img"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__img<T extends PlasmicSubsectionPushDeploy__imgProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__imgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("img", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"img"} />;
+}
+PlasmicSubsectionPushDeploy__img.displayName = "PlasmicSubsectionPushDeploy.img";
+
+type PlasmicSubsectionPushDeploy__removeButtonProps = NodeComponentProps<"removeButton"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__removeButton<T extends PlasmicSubsectionPushDeploy__removeButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__removeButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("removeButton", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"removeButton"} />;
+}
+PlasmicSubsectionPushDeploy__removeButton.displayName = "PlasmicSubsectionPushDeploy.removeButton";
+
+type PlasmicSubsectionPushDeploy__viewGithubButtonProps = NodeComponentProps<"viewGithubButton"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__viewGithubButton<T extends PlasmicSubsectionPushDeploy__viewGithubButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__viewGithubButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("viewGithubButton", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"viewGithubButton"} />;
+}
+PlasmicSubsectionPushDeploy__viewGithubButton.displayName = "PlasmicSubsectionPushDeploy.viewGithubButton";
+
+type PlasmicSubsectionPushDeploy__learnMoreLinkProps = NodeComponentProps<"learnMoreLink"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__learnMoreLink<T extends PlasmicSubsectionPushDeploy__learnMoreLinkProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__learnMoreLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("learnMoreLink", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"learnMoreLink"} />;
+}
+PlasmicSubsectionPushDeploy__learnMoreLink.displayName = "PlasmicSubsectionPushDeploy.learnMoreLink";
+
+type PlasmicSubsectionPushDeploy__repoNameProps = NodeComponentProps<"repoName"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__repoName<T extends PlasmicSubsectionPushDeploy__repoNameProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__repoNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("repoName", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"repoName"} />;
+}
+PlasmicSubsectionPushDeploy__repoName.displayName = "PlasmicSubsectionPushDeploy.repoName";
+
+type PlasmicSubsectionPushDeploy__retryButtonProps = NodeComponentProps<"retryButton"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__retryButton<T extends PlasmicSubsectionPushDeploy__retryButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__retryButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("retryButton", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"retryButton"} />;
+}
+PlasmicSubsectionPushDeploy__retryButton.displayName = "PlasmicSubsectionPushDeploy.retryButton";
+
+type PlasmicSubsectionPushDeploy__removeGithubButtonProps = NodeComponentProps<"removeGithubButton"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__removeGithubButton<T extends PlasmicSubsectionPushDeploy__removeGithubButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__removeGithubButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("removeGithubButton", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"removeGithubButton"} />;
+}
+PlasmicSubsectionPushDeploy__removeGithubButton.displayName = "PlasmicSubsectionPushDeploy.removeGithubButton";
+
+type PlasmicSubsectionPushDeploy__connectGithubButtonProps = NodeComponentProps<"connectGithubButton"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__connectGithubButton<T extends PlasmicSubsectionPushDeploy__connectGithubButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__connectGithubButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("connectGithubButton", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"connectGithubButton"} />;
+}
+PlasmicSubsectionPushDeploy__connectGithubButton.displayName = "PlasmicSubsectionPushDeploy.connectGithubButton";
+
+type PlasmicSubsectionPushDeploy__showOptionsButtonProps = NodeComponentProps<"showOptionsButton"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__showOptionsButton<T extends PlasmicSubsectionPushDeploy__showOptionsButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__showOptionsButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("showOptionsButton", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"showOptionsButton"} />;
+}
+PlasmicSubsectionPushDeploy__showOptionsButton.displayName = "PlasmicSubsectionPushDeploy.showOptionsButton";
+
+type PlasmicSubsectionPushDeploy__showOptionsIconButtonProps = NodeComponentProps<"showOptionsIconButton"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__showOptionsIconButton<T extends PlasmicSubsectionPushDeploy__showOptionsIconButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__showOptionsIconButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("showOptionsIconButton", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"showOptionsIconButton"} />;
+}
+PlasmicSubsectionPushDeploy__showOptionsIconButton.displayName = "PlasmicSubsectionPushDeploy.showOptionsIconButton";
+
+type PlasmicSubsectionPushDeploy__pushAsProps = NodeComponentProps<"pushAs"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__pushAs<T extends PlasmicSubsectionPushDeploy__pushAsProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__pushAsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("pushAs", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"pushAs"} />;
+}
+PlasmicSubsectionPushDeploy__pushAs.displayName = "PlasmicSubsectionPushDeploy.pushAs";
+
+type PlasmicSubsectionPushDeploy__titleProps = NodeComponentProps<"title"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__title<T extends PlasmicSubsectionPushDeploy__titleProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__titleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("title", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"title"} />;
+}
+PlasmicSubsectionPushDeploy__title.displayName = "PlasmicSubsectionPushDeploy.title";
+
+type PlasmicSubsectionPushDeploy__descriptionProps = NodeComponentProps<"description"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__description<T extends PlasmicSubsectionPushDeploy__descriptionProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__descriptionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("description", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"description"} />;
+}
+PlasmicSubsectionPushDeploy__description.displayName = "PlasmicSubsectionPushDeploy.description";
+
+type PlasmicSubsectionPushDeploy__stepsProps = NodeComponentProps<"steps"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__steps<T extends PlasmicSubsectionPushDeploy__stepsProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__stepsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("steps", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"steps"} />;
+}
+PlasmicSubsectionPushDeploy__steps.displayName = "PlasmicSubsectionPushDeploy.steps";
+
+type PlasmicSubsectionPushDeploy__githubPagesDelayNoticeProps = NodeComponentProps<"githubPagesDelayNotice"> & {key?: React.Key};
+function PlasmicSubsectionPushDeploy__githubPagesDelayNotice<T extends PlasmicSubsectionPushDeploy__githubPagesDelayNoticeProps>(props: T & StrictProps<T, PlasmicSubsectionPushDeploy__githubPagesDelayNoticeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("githubPagesDelayNotice", props);
+  return <PlasmicSubsectionPushDeploy__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"githubPagesDelayNotice"} />;
+}
+PlasmicSubsectionPushDeploy__githubPagesDelayNotice.displayName = "PlasmicSubsectionPushDeploy.githubPagesDelayNotice";
+
 
 export const PlasmicSubsectionPushDeploy = Object.assign(
   // Top-level PlasmicSubsectionPushDeploy renders the root element
-  makeNodeComponent("root"),
+  PlasmicSubsectionPushDeploy__root,
   {
     // Helper components rendering sub-elements
-    checkbox: makeNodeComponent("checkbox"),
-    img: makeNodeComponent("img"),
-    removeButton: makeNodeComponent("removeButton"),
-    viewGithubButton: makeNodeComponent("viewGithubButton"),
-    learnMoreLink: makeNodeComponent("learnMoreLink"),
-    repoName: makeNodeComponent("repoName"),
-    retryButton: makeNodeComponent("retryButton"),
-    removeGithubButton: makeNodeComponent("removeGithubButton"),
-    connectGithubButton: makeNodeComponent("connectGithubButton"),
-    showOptionsButton: makeNodeComponent("showOptionsButton"),
-    showOptionsIconButton: makeNodeComponent("showOptionsIconButton"),
-    pushAs: makeNodeComponent("pushAs"),
-    title: makeNodeComponent("title"),
-    description: makeNodeComponent("description"),
-    steps: makeNodeComponent("steps"),
-    githubPagesDelayNotice: makeNodeComponent("githubPagesDelayNotice"),
+    checkbox: PlasmicSubsectionPushDeploy__checkbox,
+    img: PlasmicSubsectionPushDeploy__img,
+    removeButton: PlasmicSubsectionPushDeploy__removeButton,
+    viewGithubButton: PlasmicSubsectionPushDeploy__viewGithubButton,
+    learnMoreLink: PlasmicSubsectionPushDeploy__learnMoreLink,
+    repoName: PlasmicSubsectionPushDeploy__repoName,
+    retryButton: PlasmicSubsectionPushDeploy__retryButton,
+    removeGithubButton: PlasmicSubsectionPushDeploy__removeGithubButton,
+    connectGithubButton: PlasmicSubsectionPushDeploy__connectGithubButton,
+    showOptionsButton: PlasmicSubsectionPushDeploy__showOptionsButton,
+    showOptionsIconButton: PlasmicSubsectionPushDeploy__showOptionsIconButton,
+    pushAs: PlasmicSubsectionPushDeploy__pushAs,
+    title: PlasmicSubsectionPushDeploy__title,
+    description: PlasmicSubsectionPushDeploy__description,
+    steps: PlasmicSubsectionPushDeploy__steps,
+    githubPagesDelayNotice: PlasmicSubsectionPushDeploy__githubPagesDelayNotice,
 
     // Metadata about props expected for PlasmicSubsectionPushDeploy
     internalVariantProps: PlasmicSubsectionPushDeploy__VariantProps,

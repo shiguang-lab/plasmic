@@ -1,10 +1,11 @@
+import { resolveStore } from "@/wab/client/stores/store-kit";
 import { emptyViewSelection, type ViewSelectionSnapshot } from "@/wab/client/studio-ctx/view-selection";
 import { useShallow } from "zustand/react/shallow";
-import type { InspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
+import type { InspectorSelection, StateValueSnapshot } from "@/wab/client/studio-ctx/inspector-selection";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import type { ComponentEvalContext } from "@/wab/shared/core/val-nodes";
-import type { Param, TplComponent, TplNode, TplTag } from "@/wab/shared/model/classes";
+import type { Param, State, TplComponent, TplNode, TplTag } from "@/wab/shared/model/classes";
 import { useStore } from "zustand";
 import { createStore } from "zustand/vanilla";
 
@@ -15,7 +16,7 @@ const emptyFocus = createStore<ViewSelectionSnapshot>(() => emptyViewSelection);
 const emptyDom = createStore<ReturnType<ViewCtx["selectionDom"]> | null>(() => null);
 
 export function useInspectorSelection(studio: StudioCtx | undefined) {
-  return useStore(studio?.inspectorStore ?? emptyInspector, (state) => state.selection);
+  return useStore(resolveStore(studio?.inspectorStore, emptyInspector), (state) => state.selection);
 }
 
 export function useInspectorPending(studio: StudioCtx) {
@@ -25,7 +26,7 @@ export function useInspectorPending(studio: StudioCtx) {
 function useInspectorReadOwner(view: ViewCtx | undefined) {
   const selection = useInspectorSelection(view?.studioCtx);
   useStore(view && selection?.viewCtx !== view ? view.selectionStore ?? emptyFocus : emptyFocus, useShallow((state) => [state.tpls, state.targets, state.cloneKeys, state.context, state.disabledAutoOpenUuid]));
-  return view && !view.isDisposed ? view.getInspectorReadOwner() : undefined;
+  return view && !view.isDisposed ? selection?.viewCtx === view ? selection : view.getInspectorReadOwner() : undefined;
 }
 
 export function useInspectorComponentEvalContext(view: ViewCtx | undefined, tpl: TplTag | TplComponent | undefined, param?: Param) {
@@ -41,4 +42,11 @@ export function useInspectorCanvasEnv(view: ViewCtx | undefined, tpl: TplNode | 
 export function useInspectorDom(view: ViewCtx | undefined) {
   const selection = useInspectorSelection(view?.studioCtx);
   return useStore(selection && selection.viewCtx === view ? selection.domStore() : emptyDom);
+}
+
+const emptyStateValue = createStore<StateValueSnapshot>(() => Object.freeze({ value: undefined, hasTempValue: false, hasUnstableInitializer: false }));
+
+export function useInspectorStateValue(view: ViewCtx | undefined, state: State) {
+  const owner = useInspectorReadOwner(view);
+  return useStore(owner ? owner.stateValueStore(state) : emptyStateValue);
 }

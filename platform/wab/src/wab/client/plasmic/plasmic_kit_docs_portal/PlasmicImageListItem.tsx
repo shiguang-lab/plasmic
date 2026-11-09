@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,12 +24,12 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ListItem from "../../components/ListItem"; // plasmic-import: v31d9_ANqk/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -99,11 +99,10 @@ function PlasmicImageListItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isSelected",
@@ -112,18 +111,20 @@ function PlasmicImageListItem__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.isSelected,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <PlasmicLink__
@@ -221,12 +222,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -236,27 +233,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicImageListItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicImageListItem";
-  } else {
-    func.displayName = `PlasmicImageListItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicImageListItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicImageListItem__root<T extends PlasmicImageListItem__rootProps>(props: T & StrictProps<T, PlasmicImageListItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicImageListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicImageListItem__root.displayName = "PlasmicImageListItem";
+
+type PlasmicImageListItem__listItemProps = NodeComponentProps<"listItem"> & {key?: React.Key};
+function PlasmicImageListItem__listItem<T extends PlasmicImageListItem__listItemProps>(props: T & StrictProps<T, PlasmicImageListItem__listItemProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("listItem", props);
+  return <PlasmicImageListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"listItem"} />;
+}
+PlasmicImageListItem__listItem.displayName = "PlasmicImageListItem.listItem";
+
 
 export const PlasmicImageListItem = Object.assign(
   // Top-level PlasmicImageListItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicImageListItem__root,
   {
     // Helper components rendering sub-elements
-    listItem: makeNodeComponent("listItem"),
+    listItem: PlasmicImageListItem__listItem,
 
     // Metadata about props expected for PlasmicImageListItem
     internalVariantProps: PlasmicImageListItem__VariantProps,

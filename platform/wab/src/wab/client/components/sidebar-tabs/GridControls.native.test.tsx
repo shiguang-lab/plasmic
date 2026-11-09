@@ -1,7 +1,8 @@
+import { AppContext } from "@/wab/client/components/top-view";
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { GridControls } from "@/wab/client/components/sidebar-tabs/GridControls";
-import { SingleRsExpsProvider, StyleComponent, StyleComponentContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { SingleRsExpsProvider, StyleTarget, StyleTargetContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -42,8 +43,8 @@ it("updates actual Grid controls from original base-only mixin/token references,
   const studio = f.studioCtx, view = ensure(studio.tryGetViewCtxForFrame(frame), "Grid view");
   studio.setStudioFocusOnViewCtxContent(view); view.setStudioFocusByTpl(component.tplTree);
   const context = new SingleRsExpsProvider(rs, exp, studio, [], { kind: "ruleSet", rs, forTag: "div" });
-  const propsProvider = new TplExpsProvider(view, component.tplTree), styling = new StyleComponent({ expsProvider: context });
-  const panel = () => <AppCtxContext.Provider value={f.appCtx}><StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={styling}><GridControls expsProvider={propsProvider} /></StyleComponentContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider>;
+  const propsProvider = new TplExpsProvider(view, component.tplTree), styling = new StyleTarget({ expsProvider: context });
+  const panel = () => <AppCtxContext.Provider value={f.appCtx}><AppContext.Provider value={studio.app}><StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={styling}><GridControls expsProvider={propsProvider} /></StyleTargetContext.Provider></StudioCtxContext.Provider></AppContext.Provider></AppCtxContext.Provider>;
   const mounted = render(panel());
   try {
     expect(screen.getByDisplayValue("2")).toBeTruthy();

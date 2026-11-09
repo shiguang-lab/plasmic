@@ -4,7 +4,7 @@
   "description": "Plasmic main codebase",
   "private": true,
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.15.0"
   },
   "homepage": "https://studio.plasmic.app",
   "scripts": {
@@ -33,7 +33,7 @@
     "db:upgrade-stale-bundle": "npm run run-ts -- src/wab/server/scripts/upgrade-stale-bundle.ts",
     "email:host": "cd src/wab/server/emails/host && vite --port 54789",
     "email:sync": "cd src/wab/server/emails/templates && plasmic sync -p taNK5uwsoPrzfpYmBVwUwX --skip-upgrade-check && vite-node ../tools/remove-css-imports.ts",
-    "email:generate": "cd src/wab/server/emails/host && vite-node ../tools/test-email.mts",
+    "email:generate": "cd src/wab/server/emails/host && node -r ../../../../../tools/backend-register.cjs -r dotenv/config ../tools/test-email.ts",
     "prepare": "if [ -n \"$PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD\" ]; then echo \"Skipping Playwright download (PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD set)\"; else playwright install chromium; fi",
     "i18n:audit": "node tools/i18n/audit-studio.cjs",
     "i18n:audit-errors": "node tools/i18n/audit-business-errors.cjs",
@@ -49,7 +49,7 @@
     "gen:component-metas": "npm run run-ts -- tools/gen-react-meta.ts",
     "gen:plasmic-tokens-sass": "npm run run-ts -- tools/gen-theo.ts src/wab/styles/plasmic-tokens.theo.json src/wab/styles/_tokens.sass",
     "gen:plasmic-tokens-ts": "npm run run-ts -- tools/gen-theo.ts src/wab/styles/plasmic-tokens.theo.json src/wab/styles/_tokens.ts",
-    "start-backend": "pm2 start tsx -i 1 --wait-ready --listen-timeout 19999 --kill-timeout 7999 -- -T -P tsconfig.tools.json src/wab/server/main.ts",
+    "start-backend": "pm2 start src/wab/server/main.ts --interpreter node --node-args=\"-r ./tools/backend-register.cjs -r dotenv/config\" -i 1 --wait-ready --listen-timeout 19999 --kill-timeout 7999",
     "perftool": "npm run run-ts -- tools/perf.ts",
     "build-css": "sass src/wab/styles/canvas/:dev-build/static/styles/canvas/",
     "watch-css": "npm run build-css && sass src/wab/styles/canvas/:dev-build/static/styles/canvas/ -w",
@@ -74,7 +74,6 @@
   "author": "Plasmic Team",
   "gitHead": "14cfee473c6a27212c54d536a8bd531c84e9fb68",
   "devDependencies": {
-    "@babel/core": "7.29.7",
     "@plasmicapp/cli": "link:../../packages/cli",
     "@rsbuild/core": "1.7.6",
     "@rsbuild/plugin-babel": "1.2.1",
@@ -132,7 +131,6 @@
     "@types/workerpool": "6.0.0",
     "@vitejs/plugin-react": "^4.7.0",
     "@vitest/coverage-v8": "4.1.10",
-    "babel-plugin-react-compiler": "1.0.0",
     "concurrently": "^5.3.0",
     "fake-indexeddb": "^6.2.5",
     "graphql-ws": "5.16.0",
@@ -165,6 +163,7 @@
     "@aws-sdk/client-dynamodb": "3.1030.0",
     "@aws-sdk/client-s3": "^3.1127.0",
     "@aws-sdk/lib-storage": "^3.1127.0",
+    "@babel/core": "7.29.7",
     "@babel/generator": "7.29.1",
     "@babel/parser": "7.29.3",
     "@babel/types": "7.29.0",
@@ -211,6 +210,7 @@
     "@qualifyze/airtable-formulator": "^1.3.1",
     "@react-email/components": "^0.0.38",
     "@react-querybuilder/antd": "8.26.0",
+    "@react-querybuilder/core": "8.26.0",
     "@react-querybuilder/dnd": "8.26.0",
     "@react-spring/web": "10.1.0",
     "@sentry/browser": "6.6.0",
@@ -242,9 +242,11 @@
     "airtable": "0.12.2",
     "antd": "6.7.0",
     "antd-style": "4.1.0",
+    "assert": "2.1.0",
     "async": "^3.2.6",
     "async-mutex": "0.4.0",
     "axios": "1.15.0",
+    "babel-plugin-react-compiler": "1.0.0",
     "bcrypt": "^6.0.0",
     "body-parser": "1.20.4",
     "buffer": "^6.0.3",
@@ -314,9 +316,6 @@
     "memoize-one": "^6.0.0",
     "mime": "^2.4.6",
     "mime-types": "^2.1.35",
-    "mobx": "6.13.6",
-    "mobx-react": "9.2.0",
-    "mobx-utils": "6.1.1",
     "moize": "^6.1.7",
     "moment": "catalog:",
     "monaco-editor": "0.57.0",
@@ -341,6 +340,7 @@
     "passport-okta-oauth20": "^1.1.0",
     "passport-strategy": "^1.0.0",
     "path": "0.12.7",
+    "path-browserify": "1.0.1",
     "path-to-regexp": "8.4.2",
     "perfect-cursors": "^1.0.5",
     "pg": "8.21.0",
@@ -423,8 +423,7 @@
     "workerpool": "^6.5.1",
     "yargs": "16.2.0",
     "zod": "3.25.76",
-    "zustand": "5.0.16",
-    "@react-querybuilder/core": "8.26.0"
+    "zustand": "5.0.16"
   },
   "browserslist": [
     ">0.2%",

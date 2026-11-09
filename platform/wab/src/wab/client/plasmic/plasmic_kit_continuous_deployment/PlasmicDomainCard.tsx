@@ -24,14 +24,15 @@ import {
   createPlasmicElementProxy,
   deriveRenderOpts,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ErrorFeedback from "../../components/github/ErrorFeedback"; // plasmic-import: 6ztKJ9-EG9Y/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -119,11 +120,10 @@ function PlasmicDomainCard__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "refreshing",
@@ -144,18 +144,20 @@ function PlasmicDomainCard__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.secondary,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -530,9 +532,7 @@ function PlasmicDomainCard__RenderFunc(props: {
                 [sty.cnameTaberror_cname]: hasVariant($state, "error", "cname"),
               }
             )}
-            ref={(ref) => {
-              $refs["cnameTab"] = ref;
-            }}
+            ref={registerRef("cnameTab")}
           >
             <React.Fragment>
               <React.Fragment>{<><UiText message={"CNAME Record"} />{" "}</>}</React.Fragment>
@@ -560,9 +560,7 @@ function PlasmicDomainCard__RenderFunc(props: {
                 [sty.apexTaberror_cname]: hasVariant($state, "error", "cname"),
               }
             )}
-            ref={(ref) => {
-              $refs["apexTab"] = ref;
-            }}
+            ref={registerRef("apexTab")}
           >
             <React.Fragment>
               <React.Fragment>{<><UiText message={"A Record"} />{" "}</>}</React.Fragment>
@@ -823,12 +821,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -838,39 +832,125 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDomainCard__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDomainCard";
-  } else {
-    func.displayName = `PlasmicDomainCard.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDomainCard__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDomainCard__root<T extends PlasmicDomainCard__rootProps>(props: T & StrictProps<T, PlasmicDomainCard__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDomainCard__root.displayName = "PlasmicDomainCard";
+
+type PlasmicDomainCard__labelProps = NodeComponentProps<"label"> & {key?: React.Key};
+function PlasmicDomainCard__label<T extends PlasmicDomainCard__labelProps>(props: T & StrictProps<T, PlasmicDomainCard__labelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("label", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"label"} />;
+}
+PlasmicDomainCard__label.displayName = "PlasmicDomainCard.label";
+
+type PlasmicDomainCard__customDomainLabelProps = NodeComponentProps<"customDomainLabel"> & {key?: React.Key};
+function PlasmicDomainCard__customDomainLabel<T extends PlasmicDomainCard__customDomainLabelProps>(props: T & StrictProps<T, PlasmicDomainCard__customDomainLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("customDomainLabel", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"customDomainLabel"} />;
+}
+PlasmicDomainCard__customDomainLabel.displayName = "PlasmicDomainCard.customDomainLabel";
+
+type PlasmicDomainCard__openButtonProps = NodeComponentProps<"openButton"> & {key?: React.Key};
+function PlasmicDomainCard__openButton<T extends PlasmicDomainCard__openButtonProps>(props: T & StrictProps<T, PlasmicDomainCard__openButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("openButton", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"openButton"} />;
+}
+PlasmicDomainCard__openButton.displayName = "PlasmicDomainCard.openButton";
+
+type PlasmicDomainCard__errorFeedbackProps = NodeComponentProps<"errorFeedback"> & {key?: React.Key};
+function PlasmicDomainCard__errorFeedback<T extends PlasmicDomainCard__errorFeedbackProps>(props: T & StrictProps<T, PlasmicDomainCard__errorFeedbackProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("errorFeedback", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"errorFeedback"} />;
+}
+PlasmicDomainCard__errorFeedback.displayName = "PlasmicDomainCard.errorFeedback";
+
+type PlasmicDomainCard__domainErrorMessage4Props = NodeComponentProps<"domainErrorMessage4"> & {key?: React.Key};
+function PlasmicDomainCard__domainErrorMessage4<T extends PlasmicDomainCard__domainErrorMessage4Props>(props: T & StrictProps<T, PlasmicDomainCard__domainErrorMessage4Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("domainErrorMessage4", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"domainErrorMessage4"} />;
+}
+PlasmicDomainCard__domainErrorMessage4.displayName = "PlasmicDomainCard.domainErrorMessage4";
+
+type PlasmicDomainCard__refreshButtonProps = NodeComponentProps<"refreshButton"> & {key?: React.Key};
+function PlasmicDomainCard__refreshButton<T extends PlasmicDomainCard__refreshButtonProps>(props: T & StrictProps<T, PlasmicDomainCard__refreshButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("refreshButton", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"refreshButton"} />;
+}
+PlasmicDomainCard__refreshButton.displayName = "PlasmicDomainCard.refreshButton";
+
+type PlasmicDomainCard__removeButtonProps = NodeComponentProps<"removeButton"> & {key?: React.Key};
+function PlasmicDomainCard__removeButton<T extends PlasmicDomainCard__removeButtonProps>(props: T & StrictProps<T, PlasmicDomainCard__removeButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("removeButton", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"removeButton"} />;
+}
+PlasmicDomainCard__removeButton.displayName = "PlasmicDomainCard.removeButton";
+
+type PlasmicDomainCard__cnameTabProps = NodeComponentProps<"cnameTab"> & {key?: React.Key};
+function PlasmicDomainCard__cnameTab<T extends PlasmicDomainCard__cnameTabProps>(props: T & StrictProps<T, PlasmicDomainCard__cnameTabProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cnameTab", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cnameTab"} />;
+}
+PlasmicDomainCard__cnameTab.displayName = "PlasmicDomainCard.cnameTab";
+
+type PlasmicDomainCard__apexTabProps = NodeComponentProps<"apexTab"> & {key?: React.Key};
+function PlasmicDomainCard__apexTab<T extends PlasmicDomainCard__apexTabProps>(props: T & StrictProps<T, PlasmicDomainCard__apexTabProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("apexTab", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"apexTab"} />;
+}
+PlasmicDomainCard__apexTab.displayName = "PlasmicDomainCard.apexTab";
+
+type PlasmicDomainCard__apexRowProps = NodeComponentProps<"apexRow"> & {key?: React.Key};
+function PlasmicDomainCard__apexRow<T extends PlasmicDomainCard__apexRowProps>(props: T & StrictProps<T, PlasmicDomainCard__apexRowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("apexRow", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"apexRow"} />;
+}
+PlasmicDomainCard__apexRow.displayName = "PlasmicDomainCard.apexRow";
+
+type PlasmicDomainCard__nameProps = NodeComponentProps<"name"> & {key?: React.Key};
+function PlasmicDomainCard__name<T extends PlasmicDomainCard__nameProps>(props: T & StrictProps<T, PlasmicDomainCard__nameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("name", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"name"} />;
+}
+PlasmicDomainCard__name.displayName = "PlasmicDomainCard.name";
+
+type PlasmicDomainCard__valueProps = NodeComponentProps<"value"> & {key?: React.Key};
+function PlasmicDomainCard__value<T extends PlasmicDomainCard__valueProps>(props: T & StrictProps<T, PlasmicDomainCard__valueProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("value", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"value"} />;
+}
+PlasmicDomainCard__value.displayName = "PlasmicDomainCard.value";
+
+type PlasmicDomainCard__cnameRowProps = NodeComponentProps<"cnameRow"> & {key?: React.Key};
+function PlasmicDomainCard__cnameRow<T extends PlasmicDomainCard__cnameRowProps>(props: T & StrictProps<T, PlasmicDomainCard__cnameRowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cnameRow", props);
+  return <PlasmicDomainCard__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cnameRow"} />;
+}
+PlasmicDomainCard__cnameRow.displayName = "PlasmicDomainCard.cnameRow";
+
 
 export const PlasmicDomainCard = Object.assign(
   // Top-level PlasmicDomainCard renders the root element
-  makeNodeComponent("root"),
+  PlasmicDomainCard__root,
   {
     // Helper components rendering sub-elements
-    label: makeNodeComponent("label"),
-    customDomainLabel: makeNodeComponent("customDomainLabel"),
-    openButton: makeNodeComponent("openButton"),
-    errorFeedback: makeNodeComponent("errorFeedback"),
-    domainErrorMessage4: makeNodeComponent("domainErrorMessage4"),
-    refreshButton: makeNodeComponent("refreshButton"),
-    removeButton: makeNodeComponent("removeButton"),
-    cnameTab: makeNodeComponent("cnameTab"),
-    apexTab: makeNodeComponent("apexTab"),
-    apexRow: makeNodeComponent("apexRow"),
-    _name: makeNodeComponent("name"),
-    value: makeNodeComponent("value"),
-    cnameRow: makeNodeComponent("cnameRow"),
+    label: PlasmicDomainCard__label,
+    customDomainLabel: PlasmicDomainCard__customDomainLabel,
+    openButton: PlasmicDomainCard__openButton,
+    errorFeedback: PlasmicDomainCard__errorFeedback,
+    domainErrorMessage4: PlasmicDomainCard__domainErrorMessage4,
+    refreshButton: PlasmicDomainCard__refreshButton,
+    removeButton: PlasmicDomainCard__removeButton,
+    cnameTab: PlasmicDomainCard__cnameTab,
+    apexTab: PlasmicDomainCard__apexTab,
+    apexRow: PlasmicDomainCard__apexRow,
+    _name: PlasmicDomainCard__name,
+    value: PlasmicDomainCard__value,
+    cnameRow: PlasmicDomainCard__cnameRow,
 
     // Metadata about props expected for PlasmicDomainCard
     internalVariantProps: PlasmicDomainCard__VariantProps,

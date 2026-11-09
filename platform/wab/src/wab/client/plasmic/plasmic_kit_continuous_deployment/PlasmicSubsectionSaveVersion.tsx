@@ -29,14 +29,15 @@ import {
   generateStateValueProp,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Checkbox from "../../components/widgets/Checkbox"; // plasmic-import: W-rO7NZqPjZ/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -134,11 +135,10 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "collapse",
@@ -178,18 +178,20 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -251,9 +253,9 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
                   generateStateValueProp($state, ["checkbox", "isChecked"]) ??
                   false
                 }
-                onChange={async (...eventArgs: any) => {
+                onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                   ((...eventArgs) => {
-                    generateStateOnChangeProp($state, [
+                    generateStateOnChangeProp($stateCommands, [
                       "checkbox",
                       "isChecked",
                     ])(eventArgs[0]);
@@ -266,7 +268,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
                   ) {
                     return;
                   }
-                }}
+                })); })}
               />
             ) : null}
             {(hasVariant($state, "view", "status") ? true : false) ? (
@@ -733,9 +735,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
                     }
                   )}
                   placeholder={uiT("Enter description here (optional)…")}
-                  ref={(ref) => {
-                    $refs["description"] = ref;
-                  }}
+                  ref={registerRef("description")}
                   rows={2}
                   value={""}
                 />
@@ -803,9 +803,9 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
                       role={"img"}
                     />
                   }
-                  onChange={async (...eventArgs: any) => {
+                  onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                     ((...eventArgs) => {
-                      generateStateOnChangeProp($state, [
+                      generateStateOnChangeProp($stateCommands, [
                         "tagsSelector",
                         "value",
                       ])(eventArgs[0]);
@@ -818,7 +818,7 @@ function PlasmicSubsectionSaveVersion__RenderFunc(props: {
                     ) {
                       return;
                     }
-                  }}
+                  })); })}
                   type={"bordered"}
                   value={generateStateValueProp($state, [
                     "tagsSelector",
@@ -955,12 +955,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -970,34 +966,85 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSubsectionSaveVersion__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSubsectionSaveVersion";
-  } else {
-    func.displayName = `PlasmicSubsectionSaveVersion.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSubsectionSaveVersion__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSubsectionSaveVersion__root<T extends PlasmicSubsectionSaveVersion__rootProps>(props: T & StrictProps<T, PlasmicSubsectionSaveVersion__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSubsectionSaveVersion__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSubsectionSaveVersion__root.displayName = "PlasmicSubsectionSaveVersion";
+
+type PlasmicSubsectionSaveVersion__checkboxProps = NodeComponentProps<"checkbox"> & {key?: React.Key};
+function PlasmicSubsectionSaveVersion__checkbox<T extends PlasmicSubsectionSaveVersion__checkboxProps>(props: T & StrictProps<T, PlasmicSubsectionSaveVersion__checkboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("checkbox", props);
+  return <PlasmicSubsectionSaveVersion__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"checkbox"} />;
+}
+PlasmicSubsectionSaveVersion__checkbox.displayName = "PlasmicSubsectionSaveVersion.checkbox";
+
+type PlasmicSubsectionSaveVersion__imgProps = NodeComponentProps<"img"> & {key?: React.Key};
+function PlasmicSubsectionSaveVersion__img<T extends PlasmicSubsectionSaveVersion__imgProps>(props: T & StrictProps<T, PlasmicSubsectionSaveVersion__imgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("img", props);
+  return <PlasmicSubsectionSaveVersion__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"img"} />;
+}
+PlasmicSubsectionSaveVersion__img.displayName = "PlasmicSubsectionSaveVersion.img";
+
+type PlasmicSubsectionSaveVersion__learnMoreLinkProps = NodeComponentProps<"learnMoreLink"> & {key?: React.Key};
+function PlasmicSubsectionSaveVersion__learnMoreLink<T extends PlasmicSubsectionSaveVersion__learnMoreLinkProps>(props: T & StrictProps<T, PlasmicSubsectionSaveVersion__learnMoreLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("learnMoreLink", props);
+  return <PlasmicSubsectionSaveVersion__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"learnMoreLink"} />;
+}
+PlasmicSubsectionSaveVersion__learnMoreLink.displayName = "PlasmicSubsectionSaveVersion.learnMoreLink";
+
+type PlasmicSubsectionSaveVersion__reviewChangesButtonProps = NodeComponentProps<"reviewChangesButton"> & {key?: React.Key};
+function PlasmicSubsectionSaveVersion__reviewChangesButton<T extends PlasmicSubsectionSaveVersion__reviewChangesButtonProps>(props: T & StrictProps<T, PlasmicSubsectionSaveVersion__reviewChangesButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("reviewChangesButton", props);
+  return <PlasmicSubsectionSaveVersion__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"reviewChangesButton"} />;
+}
+PlasmicSubsectionSaveVersion__reviewChangesButton.displayName = "PlasmicSubsectionSaveVersion.reviewChangesButton";
+
+type PlasmicSubsectionSaveVersion__viewHistoryButtonProps = NodeComponentProps<"viewHistoryButton"> & {key?: React.Key};
+function PlasmicSubsectionSaveVersion__viewHistoryButton<T extends PlasmicSubsectionSaveVersion__viewHistoryButtonProps>(props: T & StrictProps<T, PlasmicSubsectionSaveVersion__viewHistoryButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("viewHistoryButton", props);
+  return <PlasmicSubsectionSaveVersion__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"viewHistoryButton"} />;
+}
+PlasmicSubsectionSaveVersion__viewHistoryButton.displayName = "PlasmicSubsectionSaveVersion.viewHistoryButton";
+
+type PlasmicSubsectionSaveVersion__descriptionProps = NodeComponentProps<"description"> & {key?: React.Key};
+function PlasmicSubsectionSaveVersion__description<T extends PlasmicSubsectionSaveVersion__descriptionProps>(props: T & StrictProps<T, PlasmicSubsectionSaveVersion__descriptionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("description", props);
+  return <PlasmicSubsectionSaveVersion__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"description"} />;
+}
+PlasmicSubsectionSaveVersion__description.displayName = "PlasmicSubsectionSaveVersion.description";
+
+type PlasmicSubsectionSaveVersion__tagsStackProps = NodeComponentProps<"tagsStack"> & {key?: React.Key};
+function PlasmicSubsectionSaveVersion__tagsStack<T extends PlasmicSubsectionSaveVersion__tagsStackProps>(props: T & StrictProps<T, PlasmicSubsectionSaveVersion__tagsStackProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("tagsStack", props);
+  return <PlasmicSubsectionSaveVersion__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tagsStack"} />;
+}
+PlasmicSubsectionSaveVersion__tagsStack.displayName = "PlasmicSubsectionSaveVersion.tagsStack";
+
+type PlasmicSubsectionSaveVersion__tagsSelectorProps = NodeComponentProps<"tagsSelector"> & {key?: React.Key};
+function PlasmicSubsectionSaveVersion__tagsSelector<T extends PlasmicSubsectionSaveVersion__tagsSelectorProps>(props: T & StrictProps<T, PlasmicSubsectionSaveVersion__tagsSelectorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("tagsSelector", props);
+  return <PlasmicSubsectionSaveVersion__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tagsSelector"} />;
+}
+PlasmicSubsectionSaveVersion__tagsSelector.displayName = "PlasmicSubsectionSaveVersion.tagsSelector";
+
 
 export const PlasmicSubsectionSaveVersion = Object.assign(
   // Top-level PlasmicSubsectionSaveVersion renders the root element
-  makeNodeComponent("root"),
+  PlasmicSubsectionSaveVersion__root,
   {
     // Helper components rendering sub-elements
-    checkbox: makeNodeComponent("checkbox"),
-    img: makeNodeComponent("img"),
-    learnMoreLink: makeNodeComponent("learnMoreLink"),
-    reviewChangesButton: makeNodeComponent("reviewChangesButton"),
-    viewHistoryButton: makeNodeComponent("viewHistoryButton"),
-    description: makeNodeComponent("description"),
-    tagsStack: makeNodeComponent("tagsStack"),
-    tagsSelector: makeNodeComponent("tagsSelector"),
+    checkbox: PlasmicSubsectionSaveVersion__checkbox,
+    img: PlasmicSubsectionSaveVersion__img,
+    learnMoreLink: PlasmicSubsectionSaveVersion__learnMoreLink,
+    reviewChangesButton: PlasmicSubsectionSaveVersion__reviewChangesButton,
+    viewHistoryButton: PlasmicSubsectionSaveVersion__viewHistoryButton,
+    description: PlasmicSubsectionSaveVersion__description,
+    tagsStack: PlasmicSubsectionSaveVersion__tagsStack,
+    tagsSelector: PlasmicSubsectionSaveVersion__tagsSelector,
 
     // Metadata about props expected for PlasmicSubsectionSaveVersion
     internalVariantProps: PlasmicSubsectionSaveVersion__VariantProps,

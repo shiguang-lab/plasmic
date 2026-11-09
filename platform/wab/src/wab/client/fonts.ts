@@ -530,7 +530,7 @@ export class FontManager {
 
   missingUsedFonts = () => this.store.getState().missingUsedFonts;
 
-  useFont = (studioCtx: StudioCtx, fontFamily: string) => {
+  loadFont = (studioCtx: StudioCtx, fontFamily: string) => {
     fontFamily = derefTokenRefs(
       siteFinalStyleTokensAllDeps(studioCtx.site),
       fontFamily,
@@ -586,7 +586,7 @@ export class FontManager {
       dep.site.components,
     );
     for (const usage of usages) {
-      this.useFont(studioCtx, usage.fontFamily);
+      this.loadFont(studioCtx, usage.fontFamily);
     }
   }
 }

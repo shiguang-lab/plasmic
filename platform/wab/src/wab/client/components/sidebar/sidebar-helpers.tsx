@@ -1,3 +1,6 @@
+import { isReadonlyArray } from "@/wab/shared/collections";
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
 import { useStyleCells, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
 import { useContextMenu } from "@/wab/client/components/ContextMenu";
 import { useLabel } from "@/wab/client/components/aria-utils";
@@ -9,8 +12,9 @@ import {
 import StyleCheckbox from "@/wab/client/components/style-controls/StyleCheckbox";
 import {
   ExpsProvider,
+  TplExpsProvider,
   createStyleContextMenu,
-  useStyleComponent,
+  useStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleSelect from "@/wab/client/components/style-controls/StyleSelect";
 import StyleSwitch from "@/wab/client/components/style-controls/StyleSwitch";
@@ -31,7 +35,7 @@ import { PlasmicStyleToggleButtonGroup__VariantsArgs } from "@/wab/client/plasmi
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { UiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
-import { StyleTokenType, tryParseTokenRef } from "@/wab/commons/StyleToken";
+import { StyleTokenType } from "@/wab/commons/StyleToken";
 import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import { XDraggable } from "@/wab/commons/components/XDraggable";
 import { IRuleSetHelpersX } from "@/wab/shared/RuleSetHelpers";
@@ -45,7 +49,6 @@ import {
   spawn,
   withoutNils,
 } from "@/wab/shared/common";
-import { siteFinalStyleTokensAllDeps } from "@/wab/shared/core/site-style-tokens";
 import { parseCssNumericNew, roundedCssNumeric } from "@/wab/shared/css";
 import { isDraggableSize } from "@/wab/shared/css-size";
 import {
@@ -54,11 +57,14 @@ import {
 } from "@/wab/shared/defined-indicator";
 import { Select, Tooltip } from "antd";
 import cn from "classnames";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { CSSProperties, ReactNode } from "react";
 import type { SetOptional } from "type-fest";
+
+function indicatorList(value: DefinedIndicatorType | readonly DefinedIndicatorType[] | undefined): DefinedIndicatorType[] {
+  return value === undefined ? [] : isReadonlyArray<DefinedIndicatorType>(value) ? [...value] : [value];
+}
 
 export function LabeledItem(props: {
   uiId?: UiId;
@@ -70,7 +76,7 @@ export function LabeledItem(props: {
   children: React.ReactNode;
   menu?: React.ReactElement | (() => React.ReactElement);
   tooltip?: React.ReactNode | (() => React.ReactNode);
-  definedIndicator?: DefinedIndicatorType | DefinedIndicatorType[];
+  definedIndicator?: DefinedIndicatorType | readonly DefinedIndicatorType[];
   rightExtras?: React.ReactNode;
   labelAriaProps?: { id?: string; htmlFor?: string };
   isDisabled?: boolean;
@@ -104,7 +110,7 @@ export function LabeledItem(props: {
     icon,
     noContent,
   } = props;
-  const indicators = ensureArray(props.definedIndicator);
+  const indicators = indicatorList(props.definedIndicator);
   const contextMenuProps = useContextMenu({ menu });
   const mergedSource = mergedIndicatorSource(indicators);
   // TODO: display themeTag in indicator UI
@@ -195,7 +201,7 @@ export function LabeledItem(props: {
   );
 }
 
-export const LabeledStyleItem = observer(function LabeledStyleItem_(
+export const LabeledStyleItem = React.memo(function LabeledStyleItem_(
   props: Omit<React.ComponentProps<typeof LabeledItem>, "menu"> & {
     styleName: string | string[];
     displayStyleName?: string;
@@ -205,22 +211,19 @@ export const LabeledStyleItem = observer(function LabeledStyleItem_(
   },
 ) {
   const { label: localizeLabel } = useI18n();
-  const sc = useStyleComponent();
+  const sc = useStyleTarget();
   const { styleName, hideIndicator, ...rest } = props;
   const styleNames = ensureArray(styleName);
   const makeMenu = () =>
-    createStyleContextMenu(sc, styleNames, {
+    createStyleContextMenu(sc.props.expsProvider, styleNames, {
       displayStyleName:
         props.displayStyleName ??
         (typeof props.label === "string" ? props.label : undefined),
       initialMenuContent: props.initialMenuItems,
       noExtract: props.noExtract,
     });
-  const indicator = hideIndicator
-    ? undefined
-    : ensureArray(
-        props.definedIndicator || sc.definedIndicators(...styleNames),
-      );
+  const nativeIndicators = useStyleIndicators(sc.props.expsProvider, props.definedIndicator || hideIndicator ? [] : styleNames);
+  const indicator = hideIndicator ? undefined : props.definedIndicator ? indicatorList(props.definedIndicator) : [...nativeIndicators];
   return (
     <LabeledItem
       {...rest}
@@ -238,7 +241,7 @@ export const LabeledStyleItem = observer(function LabeledStyleItem_(
   );
 });
 
-export const DraggableDimLabel = observer(function DraggableDimLabel(props: {
+export const DraggableDimLabel = React.memo(function DraggableDimLabel(props: {
   studioCtx: StudioCtx;
   label: React.ReactNode;
   expsProvider: ExpsProvider;
@@ -267,30 +270,25 @@ export const DraggableDimLabel = observer(function DraggableDimLabel(props: {
     onChange,
   } = props;
   const axis = props.axis ?? "x";
+  const owner = expsProvider.getNativeStyleSource().inputs;
+  const world = useVariantModelWorld(studioCtx, expsProvider, expsProvider instanceof TplExpsProvider ? expsProvider.viewCtx : undefined);
+  const retired = !world.alive || owner.isDisposed;
   const exp = props.exp || expsProvider.mergedExp();
   const [init, setInit] = React.useState<string[] | undefined>(undefined);
   const ref = React.useRef<HTMLDivElement | null>(null);
-  const isDraggingDisabledFromStyles = React.useMemo(() => {
-    let isDisabled = false;
-    styleNames.forEach((styleName) => {
-      const rawValue = exp.get(styleName);
-      const maybeToken = tryParseTokenRef(rawValue, () =>
-        siteFinalStyleTokensAllDeps(studioCtx.site),
-      );
-      if (!isDraggableSize((maybeToken && maybeToken.value) || rawValue)) {
-        isDisabled = true;
-        return;
-      }
-    });
-    return isDisabled;
-  }, [styleNames]);
-  const isDraggingDisabled = disabledDragging || isDraggingDisabledFromStyles;
+  const cells = useStyleCells(expsProvider, styleNames);
+  const rawValues = styleNames.map((styleName) => cells.find((cell) => cell.key === styleName)?.value ?? "");
+  const helper = React.useMemo(() => new VariantedStylesHelper(), []);
+  const { selected: tokenRows } = useStyleTokenRefs(studioCtx, retired ? [] : rawValues, helper, "allHead", (state) => state.rows);
+  const isDraggingDisabledFromStyles = rawValues.some((rawValue, index) => !isDraggableSize(tokenRows[index]?.resolved?.value || rawValue));
+  const isDraggingDisabled = retired || disabledDragging || isDraggingDisabledFromStyles;
   return (
     <XDraggable
       nodeRef={ref}
       useMovement={true}
       disabled={isDraggingDisabled}
       onStart={() => {
+        if (owner.isDisposed || !world.isCurrent()) { return; }
         if (ref.current) {
           spawn(ref.current.requestPointerLock());
         }
@@ -314,8 +312,10 @@ export const DraggableDimLabel = observer(function DraggableDimLabel(props: {
         );
       }}
       onDrag={(e) => {
+        if (owner.isDisposed || !world.isCurrent()) { return; }
         spawn(
           studioCtx.changeUnsafe(() => {
+            if (owner.isDisposed || !world.isCurrent()) { return; }
             let delta = axis === "x" ? e.data.deltaX : -e.data.deltaY;
             if (dragScale === "10") {
               delta /= 5.0;
@@ -369,7 +369,7 @@ export const DraggableDimLabel = observer(function DraggableDimLabel(props: {
   );
 });
 
-export const LabeledStyleDimItem = observer(function LabeledStyleDimItem(
+export const LabeledStyleDimItem = React.memo(function LabeledStyleDimItem(
   props: Omit<React.ComponentProps<typeof LabeledStyleItem>, "children"> & {
     dimOpts: SetOptional<
       Omit<React.ComponentProps<typeof DimTokenSpinner>, "studioCtx">,
@@ -382,24 +382,28 @@ export const LabeledStyleDimItem = observer(function LabeledStyleDimItem(
   },
 ) {
   const { labelProps, fieldProps } = useLabel(props);
-  const sc = useStyleComponent();
+  const sc = useStyleTarget();
+  const provider = sc.props.expsProvider;
+  const world = useVariantModelWorld(provider.studioCtx, provider, provider instanceof TplExpsProvider ? provider.viewCtx : undefined);
+  const retired = !world.alive || provider.getNativeStyleSource().inputs.isDisposed;
   const {
     dimOpts,
     label,
     tokenType,
-    vsh = new VariantedStylesHelper(),
+    vsh: _vshInput,
     disabledDragging,
     ...rest
   } = props;
+  const vsh = _vshInput === undefined ? (new VariantedStylesHelper()) : _vshInput;
 
   const styleName = ensureArray(props.styleName);
-  const indicators = ensureArray(
-    props.definedIndicator || sc.definedIndicators(...styleName),
-  );
+  const nativeIndicators = useStyleIndicators(sc.props.expsProvider, props.definedIndicator ? [] : styleName);
+  const indicators = props.definedIndicator ? indicatorList(props.definedIndicator) : [...nativeIndicators];
+  const nativeValues = useStyleCells(sc.props.expsProvider, styleName.length === 1 && !("value" in dimOpts) ? styleName : []);
   const value =
     styleName.length > 1 || "value" in dimOpts
       ? ensure(dimOpts.value, "Should have value prop")
-      : sc.exp().get(styleName[0]);
+      : nativeValues[0]?.value;
   const onChange =
     styleName.length > 1 || dimOpts.onChange
       ? ensure(dimOpts.onChange, "Should have onChange handler")
@@ -421,7 +425,7 @@ export const LabeledStyleDimItem = observer(function LabeledStyleDimItem(
   });
 
   const draggableLabel =
-    label && !isDisabled ? (
+    label && !isDisabled && !retired ? (
       <DraggableDimLabel
         styleNames={styleName}
         studioCtx={sc.studioCtx()}
@@ -465,20 +469,20 @@ export const LabeledStyleDimItem = observer(function LabeledStyleDimItem(
         {...dimOpts}
         noClear={dimOpts.noClear || valueSetState !== "isSet"}
         fieldAriaProps={fieldProps}
-        studioCtx={studioCtx}
-        tokenType={tokenType}
+        studioCtx={retired ? undefined : studioCtx}
+        tokenType={retired ? undefined : tokenType}
         valueSetState={valueSetState}
-        disabled={isDisabled}
+        disabled={isDisabled || retired}
         disabledTooltip={disabledTooltip}
         data-plasmic-prop={styleName[0]}
         tooltip={dimOpts.tooltip}
-        vsh={vsh}
+        vsh={retired ? undefined : vsh}
       />
     </LabeledStyleItem>
   );
 });
 
-export const VerticalLabeledStyleDimItem = observer(
+export const VerticalLabeledStyleDimItem = React.memo(
   function VerticalLabeledStyleDimItem(props: {
     expsProvider: ExpsProvider;
     styleName: string;
@@ -488,13 +492,13 @@ export const VerticalLabeledStyleDimItem = observer(
   }) {
     const { expsProvider, styleName, label } = props;
 
-    const sc = useStyleComponent();
+    const sc = useStyleTarget();
     const studioCtx = sc.studioCtx();
     const exp = sc.exp();
 
-    const value = exp.get(styleName);
-
-    const indicators = sc.definedIndicators(styleName);
+    const nativeValues = useStyleCells(sc.props.expsProvider, [styleName]);
+    const value = nativeValues[0]?.value;
+    const indicators = [...useStyleIndicators(sc.props.expsProvider, [styleName])];
 
     const { isDisabled } = shouldBeDisabled({
       props,
@@ -538,7 +542,7 @@ export const VerticalLabeledStyleDimItem = observer(
   },
 );
 
-export const LabeledStyleColorItem = observer(function LabeledStyleColorItem(
+export const LabeledStyleColorItem = React.memo(function LabeledStyleColorItem(
   props: Omit<React.ComponentProps<typeof LabeledStyleItem>, "children"> & {
     colorOpts?: Omit<
       SetOptional<
@@ -550,16 +554,18 @@ export const LabeledStyleColorItem = observer(function LabeledStyleColorItem(
     vsh?: VariantedStylesHelper;
   },
 ) {
-  const sc = useStyleComponent();
-  const { colorOpts = {}, vsh = new VariantedStylesHelper(), ...rest } = props;
+  const sc = useStyleTarget();
+  const { colorOpts: _colorOptsInput, vsh: _vshInput2, ...rest } = props;
+  const colorOpts = _colorOptsInput === undefined ? ({}) : _colorOptsInput;
+  const vsh = _vshInput2 === undefined ? (new VariantedStylesHelper()) : _vshInput2;
   const styleName = ensureArray(props.styleName);
-  const indicators = ensureArray(
-    props.definedIndicator || sc.definedIndicators(...styleName),
-  );
+  const nativeIndicators = useStyleIndicators(sc.props.expsProvider, props.definedIndicator ? [] : styleName);
+  const indicators = props.definedIndicator ? indicatorList(props.definedIndicator) : [...nativeIndicators];
+  const nativeValues = useStyleCells(sc.props.expsProvider, styleName.length === 1 && !("color" in colorOpts) ? styleName : []);
   const color =
     styleName.length > 1 || "color" in colorOpts
       ? colorOpts.color
-      : sc.exp().get(styleName[0]);
+      : nativeValues[0]?.value;
   const onChange =
     styleName.length > 1 || colorOpts.onChange
       ? ensure(colorOpts.onChange, "Should have onChange handler")
@@ -600,7 +606,7 @@ export type StyleSelectOption = {
   label: React.ReactNode;
   isDisabled?: boolean;
 };
-export const LabeledStyleSelectItem = observer(function LabeledStyleSelectItem(
+export const LabeledStyleSelectItem = React.memo(function LabeledStyleSelectItem(
   props: Omit<React.ComponentProps<typeof LabeledStyleItem>, "children"> & {
     textRight?: boolean;
     selectOpts: {
@@ -615,20 +621,20 @@ export const LabeledStyleSelectItem = observer(function LabeledStyleSelectItem(
   const { label: localizeLabel } = useI18n();
   const { selectOpts, textRight = true, ...rest } = props;
   const { labelProps, fieldProps } = useLabel(props);
-  const sc = useStyleComponent();
+  const sc = useStyleTarget();
   const styleName = ensureArray(props.styleName);
-  const indicators = ensureArray(
-    props.definedIndicator || sc.definedIndicators(...styleName),
-  );
+  const nativeIndicators = useStyleIndicators(sc.props.expsProvider, props.definedIndicator ? [] : styleName);
+  const indicators = props.definedIndicator ? indicatorList(props.definedIndicator) : [...nativeIndicators];
   const { isDisabled, disabledTooltip } = shouldBeDisabled({
     props,
     label: rest.label,
     indicators,
   });
+  const nativeValues = useStyleCells(sc.props.expsProvider, styleName.length === 1 && !("value" in selectOpts) ? styleName : []);
   const value =
     styleName.length > 1 || "value" in selectOpts
       ? selectOpts.value
-      : sc.exp().get(styleName[0]);
+      : nativeValues[0]?.value;
   const onChange =
     styleName.length > 1 || selectOpts.onChange
       ? ensure(selectOpts.onChange, "Should have onChange handler")
@@ -668,7 +674,7 @@ export const LabeledStyleSelectItem = observer(function LabeledStyleSelectItem(
   );
 });
 
-export const LabeledStyleComboBoxItem = observer(
+export const LabeledStyleComboBoxItem = React.memo(
   function LabeledStyleComboBoxItem(
     props: Omit<React.ComponentProps<typeof LabeledStyleItem>, "children"> & {
       textRight?: boolean;
@@ -687,20 +693,20 @@ export const LabeledStyleComboBoxItem = observer(
   ) {
     const { selectOpts, textRight = true, ...rest } = props;
     const { labelProps, fieldProps } = useLabel(props);
-    const sc = useStyleComponent();
+    const sc = useStyleTarget();
     const styleName = ensureArray(props.styleName);
-    const indicators = ensureArray(
-      props.definedIndicator || sc.definedIndicators(...styleName),
-    );
+    const nativeIndicators = useStyleIndicators(sc.props.expsProvider, props.definedIndicator ? [] : styleName);
+    const indicators = props.definedIndicator ? indicatorList(props.definedIndicator) : [...nativeIndicators];
     const { isDisabled, disabledTooltip } = shouldBeDisabled({
       props,
       label: rest.label,
       indicators,
     });
+    const nativeValues = useStyleCells(sc.props.expsProvider, styleName.length === 1 && !("value" in selectOpts) ? styleName : []);
     const value =
       styleName.length > 1 || "value" in selectOpts
         ? selectOpts.value
-        : sc.exp().get(styleName[0]);
+        : nativeValues[0]?.value;
     const onChange =
       styleName.length > 1 || selectOpts.onChange
         ? ensure(selectOpts.onChange, "Should have onChange handler")
@@ -768,10 +774,10 @@ export const LabeledFontFamilySelector =
   ) {
     const { selectOpts, "data-test-id": dataTestId, ...rest } = props;
     const { labelProps } = useLabel(props);
-    const sc = useStyleComponent();
+    const sc = useStyleTarget();
     const styleName = ensureArray(props.styleName);
     const nativeIndicators = useStyleIndicators(sc.props.expsProvider, props.definedIndicator ? [] : styleName);
-    const indicators = props.definedIndicator ? ensureArray(props.definedIndicator) : [...nativeIndicators];
+    const indicators = props.definedIndicator ? indicatorList(props.definedIndicator) : [...nativeIndicators];
     const nativeValues = useStyleCells(sc.props.expsProvider, styleName.length === 1 && !("value" in selectOpts) ? styleName : []);
     const { isDisabled, disabledTooltip } = shouldBeDisabled({
       props,
@@ -827,10 +833,10 @@ export const LabeledStyleCheckboxItem =
     },
   ) {
     const { label, value, onChange, tooltip, ...rest } = props;
-    const sc = useStyleComponent();
+    const sc = useStyleTarget();
     const styleName = ensureArray(props.styleName);
     const nativeIndicators = useStyleIndicators(sc.props.expsProvider, props.definedIndicator ? [] : styleName);
-    const indicators = props.definedIndicator ? ensureArray(props.definedIndicator) : [...nativeIndicators];
+    const indicators = props.definedIndicator ? indicatorList(props.definedIndicator) : [...nativeIndicators];
     const { isDisabled, disabledTooltip } = shouldBeDisabled({
       props,
       label: props.label,
@@ -858,7 +864,7 @@ export const LabeledStyleCheckboxItem =
   }
 ;
 
-export const LabeledStyleSwitchItem = observer(function LabeledStyleSwitchItem(
+export const LabeledStyleSwitchItem = React.memo(function LabeledStyleSwitchItem(
   props: Omit<React.ComponentProps<typeof LabeledStyleItem>, "children"> & {
     value: boolean;
     onChange: (isSelected: boolean) => void;
@@ -868,11 +874,10 @@ export const LabeledStyleSwitchItem = observer(function LabeledStyleSwitchItem(
 ) {
   const { label, value, onChange, tooltip, valueSlot, ...rest } = props;
   const { labelProps, fieldProps } = useLabel(props);
-  const sc = useStyleComponent();
+  const sc = useStyleTarget();
   const styleName = ensureArray(props.styleName);
-  const indicators = ensureArray(
-    props.definedIndicator || sc.definedIndicators(...styleName),
-  );
+  const nativeIndicators = useStyleIndicators(sc.props.expsProvider, props.definedIndicator ? [] : styleName);
+  const indicators = props.definedIndicator ? indicatorList(props.definedIndicator) : [...nativeIndicators];
   const { isDisabled, disabledTooltip } = shouldBeDisabled({
     props,
     label: props.label,
@@ -925,10 +930,10 @@ function LabeledToggleButtonGroup_(
   },
 ) {
   const { children, styleType, className, autoWidth, ...rest } = props;
-  const sc = useStyleComponent();
+  const sc = useStyleTarget();
   const styleName = ensureArray(props.styleName);
   const nativeIndicators = useStyleIndicators(sc.props.expsProvider, props.definedIndicator ? [] : styleName);
-  const indicators = props.definedIndicator ? ensureArray(props.definedIndicator) : [...nativeIndicators];
+  const indicators = props.definedIndicator ? indicatorList(props.definedIndicator) : [...nativeIndicators];
   const nativeValues = useStyleCells(sc.props.expsProvider, styleName.length === 1 && !("value" in props) ? styleName : []);
   const value = styleName.length > 1 || "value" in props ? props.value : nativeValues[0]?.value;
   const onChange =
@@ -1071,9 +1076,8 @@ export const FullRow = React.forwardRef(function FullRow(
 ) {
   return (
     <div
-      className={cx({
+      className={cx(props.className, {
         "panel-row": true,
-        [props.className || ""]: true,
         "panel-row--autoHeight": props.autoHeight,
       })}
       ref={outerRef}

@@ -1,4 +1,6 @@
-import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useDataPickerSourceInputs } from "@/wab/client/components/sidebar-tabs/DataBinding/data-picker-source-inputs";
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import sty from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerColumn.module.scss";
 import DataPickerColumnItem from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerColumnItem";
 import {
@@ -34,8 +36,8 @@ import { mkMetaName } from "@plasmicapp/host";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { notification } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
+import { useStore } from "zustand";
 
 export interface DataPickerColumnProps extends DefaultDataPickerColumnProps {
   data: Record<string, any> | undefined;
@@ -68,11 +70,17 @@ function ColumnErrorNotice(props: { columnIndex: number; message: string }) {
 
 function DataPickerColumn_(props: DataPickerColumnProps, ref: HTMLElementRefOf<"div">) {
   return props.data
-    ? <DataPickerColumnContent {...props} data={props.data} rootRef={ref} />
+    ? <BoundDataPickerColumn {...props} data={props.data} rootRef={ref} />
     : <PlasmicDataPickerColumn root={{ ref }} children={undefined} />;
 }
 
-const DataPickerColumnContent = observer(function DataPickerColumnContent({ rootRef: ref, ...props }: Omit<DataPickerColumnProps, "data"> & { data: Record<string, any>; rootRef: HTMLElementRefOf<"div"> }) {
+type BoundColumnProps = Omit<DataPickerColumnProps, "data"> & { data: Record<string, any>; rootRef: HTMLElementRefOf<"div"> };
+function BoundDataPickerColumn(props: BoundColumnProps) {
+  const studio = useStudioCtx(), view = useViewCtxMaybe();
+  const world = useVariantModelWorld(studio, props.data, view);
+  return world.alive ? <DataPickerColumnContent {...props} /> : null;
+}
+const DataPickerColumnContent = React.memo(function DataPickerColumnContent({ rootRef: ref, ...props }: Omit<DataPickerColumnProps, "data"> & { data: Record<string, any>; rootRef: HTMLElementRefOf<"div"> }) {
   const {
     data,
     columnIndex,
@@ -87,24 +95,24 @@ const DataPickerColumnContent = observer(function DataPickerColumnContent({ root
   } = props;
   const studioCtx = useStudioCtx();
   const viewCtx = useViewCtxMaybe();
-  useViewSelection(viewCtx, (state) => state.context);
-  const getInteraction = React.useCallback(
-    (key: string) => {
-      return data["$steps"]?.[mkMetaName(key)]?.interaction;
-    },
-    [data, studioCtx],
-  );
-  const wasStepExecuted = React.useCallback(
-    (key: string) => {
-      const interaction = getInteraction(key);
-      return interaction && studioCtx.hasCached$stepValue(interaction.uuid);
-    },
-    [data, studioCtx, getInteraction],
-  );
-  const isStepsColumn = React.useMemo(() => {
-    const pathPrefix = columnItems.find((item) => item.pathPrefix)?.pathPrefix;
-    return pathPrefix && pathPrefix.length === 1 && pathPrefix[0] === "$steps";
-  }, [columnItems]);
+  const componentRef = useViewVariants(viewCtx, (state) => state.frames.at(-1)?.component);
+  const component = componentRef ? studioCtx.modelSnapshots.resolve(componentRef) : viewCtx?.component;
+  const paths = columnItems.map(getItemPath);
+  const sourceLinks = useDataPickerSourceInputs(studioCtx, component, paths,
+    () => Object.freeze(paths.map((path) => component ? getSourceUiId(path, studioCtx.site, component) : undefined)));
+  const world = useVariantModelWorld(studioCtx, data, viewCtx);
+  const getInteraction = (key: string) => data["$steps"]?.[mkMetaName(key)]?.interaction;
+  // Rebuild the per-row lookup whenever the cache changes; a keyed hook per row
+  // is not possible inside the render map.
+  const stepValues = useStore(studioCtx.stepsCacheStore, (state) => state.values);
+  const wasStepExecuted = (key: string) => {
+    const interaction = getInteraction(key);
+    return interaction && stepValues[interaction.uuid] !== undefined;
+  };
+  const pathPrefix = columnItems.find((item) => item.pathPrefix)?.pathPrefix;
+  const isStepsColumn = pathPrefix && pathPrefix.length === 1 && pathPrefix[0] === "$steps";
+  const subscribeFlags = React.useCallback((listener: () => void) => studioCtx.appCtx.subscribeUiEnvironmentInputs(listener), [studioCtx]);
+  React.useSyncExternalStore(subscribeFlags, () => `${DEVFLAGS.previewSteps}:${DEVFLAGS.demo}`, () => `${DEVFLAGS.previewSteps}:${DEVFLAGS.demo}`);
   const enabledPreviewSteps = DEVFLAGS.previewSteps;
 
   return (
@@ -154,9 +162,7 @@ const DataPickerColumnContent = observer(function DataPickerColumnContent({ root
                     ? keyCount + ` item${keyCount === 1 ? "" : "s"}`
                     : undefined);
               const isSelected = index === selectedItem;
-              const sourceUiId = viewCtx
-                ? getSourceUiId(path, viewCtx.site, viewCtx.currentComponent())
-                : undefined;
+              const sourceUiId = sourceLinks?.[index];
               return (
                 <DataPickerColumnItem
                   ref={
@@ -184,6 +190,7 @@ const DataPickerColumnContent = observer(function DataPickerColumnContent({ root
                   onJumpToSource={
                     sourceUiId
                       ? () => {
+                          if (!world.isCurrent(viewCtx)) { return; }
                           onCancelDataPicker?.();
                           studioCtx.uiActionBus.dispatch(sourceUiId, "jump");
                         }
@@ -206,6 +213,7 @@ const DataPickerColumnContent = observer(function DataPickerColumnContent({ root
       }
       runAllSteps={{
         onClick: () => {
+          if (!world.isCurrent(viewCtx)) { return; }
           const currentInteraction = ensureKnownInteraction(
             data[mkMetaName("$steps")]?.currentInteraction,
           );

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,11 +23,11 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -101,11 +101,10 @@ function PlasmicActivityRow__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "withoutBorder",
@@ -115,18 +114,20 @@ function PlasmicActivityRow__RenderFunc(props: {
           $props.withoutBorder,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -240,12 +241,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -255,28 +252,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicActivityRow__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicActivityRow";
-  } else {
-    func.displayName = `PlasmicActivityRow.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicActivityRow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicActivityRow__root<T extends PlasmicActivityRow__rootProps>(props: T & StrictProps<T, PlasmicActivityRow__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicActivityRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicActivityRow__root.displayName = "PlasmicActivityRow";
+
+type PlasmicActivityRow__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicActivityRow__svg<T extends PlasmicActivityRow__svgProps>(props: T & StrictProps<T, PlasmicActivityRow__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicActivityRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicActivityRow__svg.displayName = "PlasmicActivityRow.svg";
+
+type PlasmicActivityRow__columnsProps = NodeComponentProps<"columns"> & {key?: React.Key};
+function PlasmicActivityRow__columns<T extends PlasmicActivityRow__columnsProps>(props: T & StrictProps<T, PlasmicActivityRow__columnsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("columns", props);
+  return <PlasmicActivityRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"columns"} />;
+}
+PlasmicActivityRow__columns.displayName = "PlasmicActivityRow.columns";
+
 
 export const PlasmicActivityRow = Object.assign(
   // Top-level PlasmicActivityRow renders the root element
-  makeNodeComponent("root"),
+  PlasmicActivityRow__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
-    columns: makeNodeComponent("columns"),
+    svg: PlasmicActivityRow__svg,
+    columns: PlasmicActivityRow__columns,
 
     // Metadata about props expected for PlasmicActivityRow
     internalVariantProps: PlasmicActivityRow__VariantProps,

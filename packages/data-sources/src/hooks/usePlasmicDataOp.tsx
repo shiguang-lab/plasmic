@@ -211,5 +211,5 @@ export function usePlasmicDataMutationOp<
         user: ctx?.user,
       }
     );
-  }, [getRealDataOp, userToken]);
+  }, [ctx?.user, getRealDataOp, userToken]);
 }

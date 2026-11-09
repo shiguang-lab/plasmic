@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -24,7 +24,7 @@ import {
   generateStateOnChangeProp,
   generateStateValueProp,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -33,7 +33,7 @@ import { BaseDialogTrigger } from "@plasmicpkgs/react-aria/skinny/registerDialog
 import { BasePopover } from "@plasmicpkgs/react-aria/skinny/registerPopover";
 import OverlayArrow from "../../components/plexus/OverlayArrow"; // plasmic-import: FRA2fXjcDHo2/component
 import { PlexusButton } from "../../components/plexus/PlexusButton"; // plasmic-import: sbyrU_8SkoWY/component
-import { _useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -117,11 +117,10 @@ function PlasmicPopover__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "ariaDialogTrigger.isOpen",
@@ -132,18 +131,20 @@ function PlasmicPopover__RenderFunc(props: {
         onChangeProp: "onOpenChange",
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <BaseDialogTrigger
@@ -215,12 +216,12 @@ function PlasmicPopover__RenderFunc(props: {
         </BasePopover>
       }
       isOpen={generateStateValueProp($state, ["ariaDialogTrigger", "isOpen"])}
-      onOpenChange={async (...eventArgs: any) => {
-        generateStateOnChangeProp($state, [
+      onOpenChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+        generateStateOnChangeProp($stateCommands, [
           "ariaDialogTrigger",
           "isOpen",
         ]).apply(null, eventArgs);
-      }}
+      })); })}
       trigger={renderPlasmicSlot({
         defaultContents: (
           <PlexusButton
@@ -281,12 +282,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -296,29 +293,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPopover__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "ariaDialogTrigger") {
-    func.displayName = "PlasmicPopover";
-  } else {
-    func.displayName = `PlasmicPopover.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPopover__ariaDialogTriggerProps = NodeComponentProps<"ariaDialogTrigger"> & {key?: React.Key};
+function PlasmicPopover__ariaDialogTrigger<T extends PlasmicPopover__ariaDialogTriggerProps>(props: T & StrictProps<T, PlasmicPopover__ariaDialogTriggerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("ariaDialogTrigger", props);
+  return <PlasmicPopover__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaDialogTrigger"} />;
+}
+PlasmicPopover__ariaDialogTrigger.displayName = "PlasmicPopover";
+
+type PlasmicPopover__ariaPopoverProps = NodeComponentProps<"ariaPopover"> & {key?: React.Key};
+function PlasmicPopover__ariaPopover<T extends PlasmicPopover__ariaPopoverProps>(props: T & StrictProps<T, PlasmicPopover__ariaPopoverProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("ariaPopover", props);
+  return <PlasmicPopover__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaPopover"} />;
+}
+PlasmicPopover__ariaPopover.displayName = "PlasmicPopover.ariaPopover";
+
+type PlasmicPopover__overlayArrowProps = NodeComponentProps<"overlayArrow"> & {key?: React.Key};
+function PlasmicPopover__overlayArrow<T extends PlasmicPopover__overlayArrowProps>(props: T & StrictProps<T, PlasmicPopover__overlayArrowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("overlayArrow", props);
+  return <PlasmicPopover__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"overlayArrow"} />;
+}
+PlasmicPopover__overlayArrow.displayName = "PlasmicPopover.overlayArrow";
+
+type PlasmicPopover__ariaDialogProps = NodeComponentProps<"ariaDialog"> & {key?: React.Key};
+function PlasmicPopover__ariaDialog<T extends PlasmicPopover__ariaDialogProps>(props: T & StrictProps<T, PlasmicPopover__ariaDialogProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("ariaDialog", props);
+  return <PlasmicPopover__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaDialog"} />;
+}
+PlasmicPopover__ariaDialog.displayName = "PlasmicPopover.ariaDialog";
+
 
 export const PlasmicPopover = Object.assign(
   // Top-level PlasmicPopover renders the root element
-  makeNodeComponent("ariaDialogTrigger"),
+  PlasmicPopover__ariaDialogTrigger,
   {
     // Helper components rendering sub-elements
-    ariaPopover: makeNodeComponent("ariaPopover"),
-    overlayArrow: makeNodeComponent("overlayArrow"),
-    ariaDialog: makeNodeComponent("ariaDialog"),
+    ariaPopover: PlasmicPopover__ariaPopover,
+    overlayArrow: PlasmicPopover__overlayArrow,
+    ariaDialog: PlasmicPopover__ariaDialog,
 
     // Metadata about props expected for PlasmicPopover
     internalVariantProps: PlasmicPopover__VariantProps,

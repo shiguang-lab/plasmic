@@ -7,12 +7,12 @@ export function activateTheme(studioCtx: StudioCtx, theme: Theme) {
     return;
   }
   studioCtx.site.activeTheme = theme;
-  // get() would fall back to "initial", which useFont registers as a missing
+  // get() would fall back to "initial", which loadFont registers as a missing
   // font.
   const fontFamily = new RuleSetHelpers(theme.defaultStyle.rs, "div").getRaw(
     "font-family",
   );
   if (fontFamily) {
-    studioCtx.fontManager.useFont(studioCtx, fontFamily);
+    studioCtx.fontManager.loadFont(studioCtx, fontFamily);
   }
 }

@@ -1,3 +1,5 @@
+import { useVariableRowInputs, type VariableRowSnapshot } from "@/wab/client/studio-ctx/state-management-inputs";
+import { useInspectorStateValue } from "@/wab/client/studio-ctx/inspector-state";
 import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { COMMANDS } from "@/wab/client/commands/command";
 import { MenuBuilder } from "@/wab/client/components/menu-builder";
@@ -12,31 +14,26 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { CONFIGURE_ACTION, DELETE_ACTION } from "@/wab/shared/Labels";
 import { assert, ensure, spawn } from "@/wab/shared/common";
-import { canDeleteState } from "@/wab/shared/core/components";
 import {
   StateVariableType,
-  getStateDisplayName,
-  isPrivateState,
 } from "@/wab/shared/core/states";
-import { Component, State, isKnownTplSlot } from "@/wab/shared/model/classes";
+import { Component, State } from "@/wab/shared/model/classes";
 import { Menu } from "antd";
 import React from "react";
 
-function useVariableMenu({
+function buildVariableMenu({
   showVariableConfigModal,
   showValueModal,
   hasTempValue,
   handleTempValueReset,
-  component,
-  state,
+  canDelete,
   onRemove,
 }: {
   showVariableConfigModal: (e?: MouseEvent) => void;
   showValueModal: (e?: MouseEvent) => void;
   hasTempValue: boolean;
   handleTempValueReset: () => void;
-  component: Component;
-  state: State;
+  canDelete: boolean;
   onRemove?: { (e?: MouseEvent): void | undefined };
 }) {
   const builder = new MenuBuilder();
@@ -64,7 +61,7 @@ function useVariableMenu({
   });
 
   builder.genSection(undefined, (push) => {
-    if (canDeleteState(component, state)) {
+    if (canDelete) {
       push(
         <Menu.Item key="remove-state" onClick={() => onRemove?.()}>
           {<UiLabel text={DELETE_ACTION} />}
@@ -91,6 +88,7 @@ export function useVariableRow({
 }): {
   menu: React.JSX.Element;
   modals: React.JSX.Element;
+  inputs: VariableRowSnapshot;
   props: {
     hasTempValue?: boolean;
     showValueConfigModal: () => void;
@@ -114,15 +112,11 @@ export function useVariableRow({
   const [settingsModalVisible, setSettingsModalVisible] =
     React.useState<boolean>(false);
 
-  const initialValue = vc.getStateCurrentInitialValue(state);
-  const value = vc.getCanvasStateValue(state);
-  const hasTempValue = initialValue !== value;
+  const inputs = useVariableRowInputs(vc, component, state);
+  const { value, hasTempValue } = useInspectorStateValue(vc, state);
 
-  assert(
-    !isKnownTplSlot(component.tplTree),
-    "slots or tpl groups can't be root of a component",
-  );
-  const onRemove = state.implicitState
+  assert(!inputs.invalidRoot, "slots or tpl groups can't be root of a component");
+  const onRemove = inputs.implicit
     ? undefined
     : (e?: MouseEvent) => {
         e?.stopPropagation();
@@ -162,13 +156,12 @@ export function useVariableRow({
     );
   };
 
-  const menu = useVariableMenu({
+  const menu = buildVariableMenu({
     showVariableConfigModal,
     showValueModal,
     hasTempValue,
     handleTempValueReset,
-    component,
-    state,
+    canDelete: inputs.canDelete,
     onRemove,
   });
 
@@ -180,7 +173,7 @@ export function useVariableRow({
         title={
           <UiText
             message={'Edit "{part1}" values'}
-            values={{ part1: state.param.variable.name }}
+            values={{ part1: inputs.parameterName }}
           />
         }
       >
@@ -190,11 +183,11 @@ export function useVariableRow({
             component={component}
             studioCtx={studioCtx}
             viewCtx={vc}
-            disableInitialValue={!!state.implicitState}
+            disableInitialValue={inputs.implicit}
             initialValueAbout={
-              state.implicitState
+              inputs.implicitAccessType
                 ? PREVIEW_DISABLED_TOOLTIP_MESSAGE[
-                    state.implicitState.accessType
+                    inputs.implicitAccessType
                   ]
                 : undefined
             }
@@ -215,15 +208,16 @@ export function useVariableRow({
   return {
     menu,
     modals,
+    inputs,
     props: {
       hasTempValue: hasTempValue,
       onRemove,
       showValueConfigModal: showValueModal,
       showVariableConfigModal,
-      name: getStateDisplayName(state, "short"),
+      name: inputs.name,
       value: value,
-      isExternal: !isPrivateState(state),
-      variableType: state.variableType as StateVariableType,
+      isExternal: inputs.isExternal,
+      variableType: inputs.variableType,
       menuButton: { menu },
     },
   };

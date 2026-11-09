@@ -45,8 +45,9 @@ export function useLocalAiContextInputs(studio: StudioCtx): void {
   useStore(studio.uiEnvironment.store, (state) => state.branchId);
 }
 
-/** Subscribe only to the native inputs consumed by the context getter and
- * its access gate. The caller owns any remaining model reaction. */
+/** Native inputs cover scope labels, selection/context identities, save counters
+ * and access. UUIDs in the published binding belong to those captured identities;
+ * the imperative bridge needs no additional model reaction. */
 export function subscribeLocalAiContextInputs(studio: StudioCtx, listener: () => void): () => void {
   const stops = [
     subscribeStudioArena(studio, (state) => state.current, listener),

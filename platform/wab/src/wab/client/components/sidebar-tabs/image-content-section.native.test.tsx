@@ -1,7 +1,8 @@
+import { AppContext } from "@/wab/client/components/top-view";
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { ContentPanelSection } from "@/wab/client/components/sidebar-tabs/image-content-section";
-import { StyleComponent, StyleComponentContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { StyleTarget, StyleTargetContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -35,8 +36,8 @@ async function setup() {
   await waitFor(() => expect(fixture.studioCtx.initialRouteReady).toBe(true));
   const studio = fixture.studioCtx, view = ensure(studio.tryGetViewCtxForFrame(frame), "Image content view");
   studio.setStudioFocusOnViewCtxContent(view); view.setStudioFocusByTpl(root);
-  const provider = new TplExpsProvider(view, root), styling = new StyleComponent({ expsProvider: provider });
-  const wrap = (children: React.ReactNode) => <AppCtxContext.Provider value={fixture.appCtx}><StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={styling}>{children}</StyleComponentContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider>;
+  const provider = new TplExpsProvider(view, root), styling = new StyleTarget({ expsProvider: provider });
+  const wrap = (children: React.ReactNode) => <AppCtxContext.Provider value={fixture.appCtx}><AppContext.Provider value={studio.app}><StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={styling}>{children}</StyleTargetContext.Provider></StudioCtxContext.Provider></AppContext.Provider></AppCtxContext.Provider>;
   const panel = () => wrap(<ContentPanelSection expsProvider={provider} />);
   return { ...fixture, studio, site, root, exp, view, provider, wrap, panel };
 }

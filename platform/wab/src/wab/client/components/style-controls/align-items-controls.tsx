@@ -1,6 +1,5 @@
 import { LabeledToggleButtonGroupItemRow } from "@/wab/client/components/sidebar/sidebar-helpers";
 import {
-  StyleComponent,
   StyleComponentProps,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
@@ -18,17 +17,14 @@ import RowAlignStartIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Row
 import RowAlignStretchIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__RowAlignStretch";
 import React from "react";
 
-export class AlignItemsControls extends StyleComponent<
-    StyleComponentProps & {
+export function AlignItemsControls(props: StyleComponentProps & {
       prop: "align-items" | "align-self" | "justify-self" | "justify-items";
       dir: string;
       includeAuto: boolean;
       isFlex: boolean;
       label?: React.ReactNode;
-    }
-  > {
-    render() {
-      const { prop, dir, includeAuto, label } = this.props;
+    }) {
+      const { prop, dir, includeAuto, label } = props;
       const options = [
         ...(includeAuto ? ["auto"] : []),
         "flex-start",
@@ -50,7 +46,6 @@ export class AlignItemsControls extends StyleComponent<
           ))}
         </LabeledToggleButtonGroupItemRow>
       );
-    }
 }
 
 // TODO fix icons when introducing grid

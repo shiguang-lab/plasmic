@@ -13,7 +13,6 @@ export default function RootComment({
   commentThread: TplCommentThread;
   showLocation?: boolean;
 }) {
-  "use memo";
   const studioCtx = useStudioCtx();
   const { t } = useI18n();
   const [comment] = commentThread.comments;

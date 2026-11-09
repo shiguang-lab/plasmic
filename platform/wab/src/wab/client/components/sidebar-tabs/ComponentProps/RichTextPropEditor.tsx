@@ -14,6 +14,11 @@ export function RichTextPropEditor({
   value: string | undefined;
 }) {
   const [draft, setDraft] = useState(value);
+  const [previousValue, setPreviousValue] = useState(value);
+  if (previousValue !== value) {
+    setPreviousValue(value);
+    setDraft(value);
+  }
 
   function save() {
     if (value !== draft) {
@@ -22,9 +27,11 @@ export function RichTextPropEditor({
   }
 
   const debounced = useDebounce(draft, 1500);
-
+  const saveDebounced = React.useEffectEvent(() => {
+    if (debounced === draft && debounced !== value) { onChange(debounced); }
+  });
   useEffect(() => {
-    save();
+    saveDebounced();
   }, [debounced]);
 
   // We must save on blur or click away, or else we can trigger a save too late (e.g. if we're in a popover and you click out, unmounting).

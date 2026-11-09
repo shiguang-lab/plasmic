@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -88,11 +88,10 @@ function PlasmicCodePreviewSnippet__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -192,12 +191,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -207,29 +202,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCodePreviewSnippet__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCodePreviewSnippet";
-  } else {
-    func.displayName = `PlasmicCodePreviewSnippet.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCodePreviewSnippet__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCodePreviewSnippet__root<T extends PlasmicCodePreviewSnippet__rootProps>(props: T & StrictProps<T, PlasmicCodePreviewSnippet__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCodePreviewSnippet__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCodePreviewSnippet__root.displayName = "PlasmicCodePreviewSnippet";
+
+type PlasmicCodePreviewSnippet__viewportProps = NodeComponentProps<"viewport"> & {key?: React.Key};
+function PlasmicCodePreviewSnippet__viewport<T extends PlasmicCodePreviewSnippet__viewportProps>(props: T & StrictProps<T, PlasmicCodePreviewSnippet__viewportProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("viewport", props);
+  return <PlasmicCodePreviewSnippet__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"viewport"} />;
+}
+PlasmicCodePreviewSnippet__viewport.displayName = "PlasmicCodePreviewSnippet.viewport";
+
+type PlasmicCodePreviewSnippet__editorProps = NodeComponentProps<"editor"> & {key?: React.Key};
+function PlasmicCodePreviewSnippet__editor<T extends PlasmicCodePreviewSnippet__editorProps>(props: T & StrictProps<T, PlasmicCodePreviewSnippet__editorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("editor", props);
+  return <PlasmicCodePreviewSnippet__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"editor"} />;
+}
+PlasmicCodePreviewSnippet__editor.displayName = "PlasmicCodePreviewSnippet.editor";
+
+type PlasmicCodePreviewSnippet__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicCodePreviewSnippet__text<T extends PlasmicCodePreviewSnippet__textProps>(props: T & StrictProps<T, PlasmicCodePreviewSnippet__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicCodePreviewSnippet__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicCodePreviewSnippet__text.displayName = "PlasmicCodePreviewSnippet.text";
+
 
 export const PlasmicCodePreviewSnippet = Object.assign(
   // Top-level PlasmicCodePreviewSnippet renders the root element
-  makeNodeComponent("root"),
+  PlasmicCodePreviewSnippet__root,
   {
     // Helper components rendering sub-elements
-    viewport: makeNodeComponent("viewport"),
-    editor: makeNodeComponent("editor"),
-    text: makeNodeComponent("text"),
+    viewport: PlasmicCodePreviewSnippet__viewport,
+    editor: PlasmicCodePreviewSnippet__editor,
+    text: PlasmicCodePreviewSnippet__text,
 
     // Metadata about props expected for PlasmicCodePreviewSnippet
     internalVariantProps: PlasmicCodePreviewSnippet__VariantProps,

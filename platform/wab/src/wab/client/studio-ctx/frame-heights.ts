@@ -6,7 +6,7 @@ import type { ArenaFrame, ObjInst } from "@/wab/shared/model/classes";
 import { createStore, type StoreApi } from "zustand/vanilla";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
-import { useMemo, useRef } from "react";
+import { useMemo, useState } from "react";
 
 interface HeightInput {
   readonly frame: ArenaFrame;
@@ -201,10 +201,18 @@ export function useFrameHeight(studio: StudioCtx, frame: ArenaFrame | undefined)
 }
 
 export function useFrameHeights(studio: StudioCtx, frames: readonly ArenaFrame[]) {
-  const roster = useRef<readonly ArenaFrame[]>(frames.slice());
-  if (!arrayEq(roster.current, frames)) { roster.current = frames.slice(); }
-  const stableFrames = roster.current;
-  const store = useMemo<ModelFieldStore<readonly number[]>>(() => {
+  const [stableFrames, setStableFrames] = useState(() => frames.slice());
+  if (!arrayEq(stableFrames, frames)) { setStableFrames(frames.slice()); }
+  const store = useMemo<ModelFieldStore<readonly number[]>>(() => createFrameHeightsSource(stableFrames, studio), [studio, stableFrames]);
+  return useStore(store, useShallow((heights) => heights));
+}
+
+export function subscribeFrameHeights(studio: StudioCtx, frames: readonly ArenaFrame[], listener: () => void) {
+  const stops = frames.map((frame) => studio.frameHeights.frameStore(frame).subscribe(listener));
+  return () => stops.forEach((stop) => stop());
+}
+
+function createFrameHeightsSource(stableFrames: readonly import("@/wab/shared/model/classes").ArenaFrame[], studio: Parameters<typeof useFrameHeights>[0]): ModelFieldStore<readonly number[]> {
     const sources = stableFrames.map((frame) => studio.frameHeights.frameStore(frame));
     const initial = Object.freeze(sources.map((source) => source.getInitialState()));
     let current = Object.freeze(sources.map((source) => source.getState()));
@@ -224,11 +232,4 @@ export function useFrameHeights(studio: StudioCtx, frames: readonly ArenaFrame[]
         const stops = sources.map((source) => source.subscribe(notify)); return () => stops.forEach((stop) => stop());
       },
     };
-  }, [studio, stableFrames]);
-  return useStore(store, useShallow((heights) => heights));
-}
-
-export function subscribeFrameHeights(studio: StudioCtx, frames: readonly ArenaFrame[], listener: () => void) {
-  const stops = frames.map((frame) => studio.frameHeights.frameStore(frame).subscribe(listener));
-  return () => stops.forEach((stop) => stop());
-}
+  }

@@ -14,6 +14,7 @@
 import * as React from "react";
 
 import {
+  usePlasmicRefs,
   Flex as Flex__,
   SingleBooleanChoiceArg,
   StrictProps,
@@ -21,7 +22,7 @@ import {
   createPlasmicElementProxy,
   deriveRenderOpts,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -114,11 +115,10 @@ function PlasmicCommentsComment__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "withLink",
@@ -127,14 +127,16 @@ function PlasmicCommentsComment__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $ctx }) => $props.withLink,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
   return (
     <EmailRow
@@ -158,19 +160,8 @@ function PlasmicCommentsComment__RenderFunc(props: {
         }
       )}
     >
-      {(() => {
-        try {
-          return $props.aboutCommentText;
-        } catch (e) {
-          if (
-            e instanceof TypeError ||
-            e?.plasmicType === "PlasmicUndefinedDataError"
-          ) {
-            return true;
-          }
-          throw e;
-        }
-      })() ? (
+      {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+            e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.aboutCommentText), () => (true)) ? (
         <EmailText
           children={args.aboutCommentText}
           className={classNames(
@@ -214,19 +205,8 @@ function PlasmicCommentsComment__RenderFunc(props: {
           style={{ width: 56 }}
           valign={"top"}
         >
-          {(() => {
-            try {
-              return !$props.emoji;
-            } catch (e) {
-              if (
-                e instanceof TypeError ||
-                e?.plasmicType === "PlasmicUndefinedDataError"
-              ) {
-                return true;
-              }
-              throw e;
-            }
-          })() ? (
+          {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => (!$props.emoji), () => (true)) ? (
             <EmailImage
               data-plasmic-name={"emailImage"}
               data-plasmic-override={overrides.emailImage}
@@ -234,39 +214,15 @@ function PlasmicCommentsComment__RenderFunc(props: {
                 "__wab_instance",
                 "CommentsComment__emailImage___3CGp2"
               )}
-              src={(() => {
-                try {
-                  return (
-                    $props.avatarUrl ??
-                    "https://img.plasmic.app/img-optimizer/v1/img/f86d5d7ae700c37dd8db36806074f231.png"
-                  );
-                } catch (e) {
-                  if (
-                    e instanceof TypeError ||
-                    e?.plasmicType === "PlasmicUndefinedDataError"
-                  ) {
-                    return undefined;
-                  }
-                  throw e;
-                }
-              })()}
+              src={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                    e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.avatarUrl ??
+                    "https://img.plasmic.app/img-optimizer/v1/img/f86d5d7ae700c37dd8db36806074f231.png"), () => (undefined))}
               style={{ borderRadius: "100%" }}
               width={"48"}
             />
           ) : null}
-          {(() => {
-            try {
-              return $props.emoji;
-            } catch (e) {
-              if (
-                e instanceof TypeError ||
-                e?.plasmicType === "PlasmicUndefinedDataError"
-              ) {
-                return true;
-              }
-              throw e;
-            }
-          })() ? (
+          {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.emoji), () => (true)) ? (
             <EmailText
               children={args.emoji}
               className={classNames(
@@ -382,12 +338,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -397,30 +349,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCommentsComment__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCommentsComment";
-  } else {
-    func.displayName = `PlasmicCommentsComment.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCommentsComment__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCommentsComment__root<T extends PlasmicCommentsComment__rootProps>(props: T & StrictProps<T, PlasmicCommentsComment__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCommentsComment__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCommentsComment__root.displayName = "PlasmicCommentsComment";
+
+type PlasmicCommentsComment__emailRowProps = NodeComponentProps<"emailRow"> & {key?: React.Key};
+function PlasmicCommentsComment__emailRow<T extends PlasmicCommentsComment__emailRowProps>(props: T & StrictProps<T, PlasmicCommentsComment__emailRowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emailRow", props);
+  return <PlasmicCommentsComment__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emailRow"} />;
+}
+PlasmicCommentsComment__emailRow.displayName = "PlasmicCommentsComment.emailRow";
+
+type PlasmicCommentsComment__emailImageProps = NodeComponentProps<"emailImage"> & {key?: React.Key};
+function PlasmicCommentsComment__emailImage<T extends PlasmicCommentsComment__emailImageProps>(props: T & StrictProps<T, PlasmicCommentsComment__emailImageProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emailImage", props);
+  return <PlasmicCommentsComment__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emailImage"} />;
+}
+PlasmicCommentsComment__emailImage.displayName = "PlasmicCommentsComment.emailImage";
+
+type PlasmicCommentsComment__emailMarkdownProps = NodeComponentProps<"emailMarkdown"> & {key?: React.Key};
+function PlasmicCommentsComment__emailMarkdown<T extends PlasmicCommentsComment__emailMarkdownProps>(props: T & StrictProps<T, PlasmicCommentsComment__emailMarkdownProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emailMarkdown", props);
+  return <PlasmicCommentsComment__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emailMarkdown"} />;
+}
+PlasmicCommentsComment__emailMarkdown.displayName = "PlasmicCommentsComment.emailMarkdown";
+
+type PlasmicCommentsComment__atomsButtonOutlineProps = NodeComponentProps<"atomsButtonOutline"> & {key?: React.Key};
+function PlasmicCommentsComment__atomsButtonOutline<T extends PlasmicCommentsComment__atomsButtonOutlineProps>(props: T & StrictProps<T, PlasmicCommentsComment__atomsButtonOutlineProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("atomsButtonOutline", props);
+  return <PlasmicCommentsComment__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"atomsButtonOutline"} />;
+}
+PlasmicCommentsComment__atomsButtonOutline.displayName = "PlasmicCommentsComment.atomsButtonOutline";
+
 
 export const PlasmicCommentsComment = Object.assign(
   // Top-level PlasmicCommentsComment renders the root element
-  makeNodeComponent("root"),
+  PlasmicCommentsComment__root,
   {
     // Helper components rendering sub-elements
-    emailRow: makeNodeComponent("emailRow"),
-    emailImage: makeNodeComponent("emailImage"),
-    emailMarkdown: makeNodeComponent("emailMarkdown"),
-    atomsButtonOutline: makeNodeComponent("atomsButtonOutline"),
+    emailRow: PlasmicCommentsComment__emailRow,
+    emailImage: PlasmicCommentsComment__emailImage,
+    emailMarkdown: PlasmicCommentsComment__emailMarkdown,
+    atomsButtonOutline: PlasmicCommentsComment__atomsButtonOutline,
 
     // Metadata about props expected for PlasmicCommentsComment
     internalVariantProps: PlasmicCommentsComment__VariantProps,

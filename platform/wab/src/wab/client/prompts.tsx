@@ -16,6 +16,7 @@ import NewPageModal, {
 } from "@/wab/client/components/widgets/NewPageModal";
 import Textbox from "@/wab/client/components/widgets/Textbox";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { providesAppCtx } from "@/wab/client/contexts/AppContexts";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { isHostLessPackage } from "@/wab/shared/core/sites";
 import { Site } from "@/wab/shared/model/classes";
@@ -59,21 +60,21 @@ export async function promptComponentTemplate(
   return await showTemporaryPrompt<NewComponentInfo>((onSubmit, onCancel) => (
     <Modal
       open={true}
+      title={null}
+      footer={null}
+      closable={false}
+      styles={{ container: { padding: 0 } }}
       onCancel={onCancel}
-      style={{
-        top: 32,
-      }}
+      style={{ top: 32 }}
       data-test-id="new-component-modal"
-      modalRender={() => (
-        <NewComponentModal
-          className="ant-modal-content"
-          onSubmit={onSubmit}
-          onCancel={onCancel}
-          studioCtx={studioCtx}
-          folderPath={folderPath}
-        />
-      )}
-    />
+    >
+      <NewComponentModal
+        onSubmit={onSubmit}
+        onCancel={onCancel}
+        studioCtx={studioCtx}
+        folderPath={folderPath}
+      />
+    </Modal>
   ));
 }
 
@@ -81,25 +82,27 @@ export async function promptPageTemplate(
   studioCtx: StudioCtx,
   folderPath?: string,
 ) {
-  return await showTemporaryPrompt<NewPageInfo>((onSubmit, onCancel) => (
-    <Modal
-      width={775}
-      open={true}
-      style={{
-        top: 32,
-      }}
-      onCancel={onCancel}
-      modalRender={() => (
+  return await showTemporaryPrompt<NewPageInfo>((onSubmit, onCancel) =>
+    providesAppCtx(studioCtx.appCtx)(
+      <Modal
+        width={775}
+        open={true}
+        title={null}
+        footer={null}
+        closable={false}
+        styles={{ container: { padding: 0 } }}
+        style={{ top: 32 }}
+        onCancel={onCancel}
+      >
         <NewPageModal
-          className="ant-modal-content"
           onSubmit={onSubmit}
           onCancel={onCancel}
           studioCtx={studioCtx}
           folderPath={folderPath}
         />
-      )}
-    />
-  ));
+      </Modal>,
+    ),
+  );
 }
 
 export async function promptChooseInstallableDependencies(

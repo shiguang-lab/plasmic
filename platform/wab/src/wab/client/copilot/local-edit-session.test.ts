@@ -93,7 +93,7 @@ describe("AI event synchronization", () => {
   it("does not start chat reads or a socket for project setup, branch changes or drafts", async () => {
     session.userId = "user";
     await session.setBranch(null);
-    session.draft = {prompt: "Local draft", attachments: []};
+    session.setThreadDraft(session.activeThreadId, {prompt: "Local draft", attachments: []});
     await session.setBranch("branch");
     await vi.advanceTimersByTimeAsync(60000);
     expect(request).not.toHaveBeenCalled();
@@ -101,7 +101,7 @@ describe("AI event synchronization", () => {
   });
 
   it("shares the connection between views, closes when idle, and refreshes on reopening without losing drafts", async () => {
-    session.draft = {prompt: "Keep draft", attachments: []};
+    session.setThreadDraft(session.activeThreadId, {prompt: "Keep draft", attachments: []});
     const closePanel = session.retain();
     const closePicker = session.retain();
     await vi.advanceTimersByTimeAsync(0);
@@ -432,17 +432,17 @@ it("keeps drafts and model preferences local and notifies subscribers", () => {
   const session = new LocalEditSession("project");
   const notify = vi.fn();
   const unsubscribe = session.subscribe(notify);
-  session.selectedModel = "model";
-  session.selectedModel = "model";
+  session.setSelectedModel("model");
+  session.setSelectedModel("model");
   expect(notify).toHaveBeenCalledTimes(1);
-  session.draft = {
+  session.setThreadDraft(session.activeThreadId, {
     prompt: "Draft",
     attachments: [{ type: "text", name: "spec.md", text: "spec" }],
-  };
+  });
   expect(session.draft.prompt).toBe("Draft");
   expect(session.tasks).toEqual([]);
   unsubscribe();
-  session.draft = { prompt: "", attachments: [] };
+  session.setThreadDraft(session.activeThreadId, { prompt: "", attachments: [] });
   expect(notify).toHaveBeenCalledTimes(2);
 });
 
@@ -452,11 +452,11 @@ it("switches topics without moving the editor, losing drafts or stopping another
   session.userId = "user";
   session.newThread("topic-a");
   const first = session.activeThreadId;
-  session.draft = {prompt: "A draft", attachments: [{type: "text", name: "a.md", text: "Requirements A"}]};
-  session.scrollTop = 120;
+  session.setThreadDraft(session.activeThreadId, {prompt: "A draft", attachments: [{type: "text", name: "a.md", text: "Requirements A"}]});
+  session.setThreadScroll(session.activeThreadId, 120);
   session.tasks = [{...task, threadId: first}];
   session.newThread("topic-b");
-  session.draft = {prompt: "B draft", attachments: []};
+  session.setThreadDraft(session.activeThreadId, {prompt: "B draft", attachments: []});
   expect(session.running).toBe(true);
   expect(session.visibleTasks).toEqual([]);
   session.stop();
@@ -474,9 +474,9 @@ it("switches topics without moving the editor, losing drafts or stopping another
 it("routes late attachment results to their originating topic while preserving newer text", async () => {
   const session = new LocalEditSession("project");
   session.newThread("topic-a");
-  session.draft = {prompt: "Updated while reading", attachments: []};
+  session.setThreadDraft(session.activeThreadId, {prompt: "Updated while reading", attachments: []});
   session.newThread("topic-b");
-  session.draft = {prompt: "Unrelated draft", attachments: []};
+  session.setThreadDraft(session.activeThreadId, {prompt: "Unrelated draft", attachments: []});
   session.setThreadAttachments("topic-a", [{type: "text", name: "a.md", text: "A requirements"}]);
   expect(session.draft).toEqual({prompt: "Unrelated draft", attachments: []});
   await session.selectThread("topic-a");
@@ -503,7 +503,7 @@ it("pins an in-flight send to its original topic and clears only that topic's su
   const session = new LocalEditSession("project", () => tools);
   session.userId = "user";
   session.newThread("topic-a");
-  session.draft = {prompt: "Send A", attachments: []};
+  session.setThreadDraft(session.activeThreadId, {prompt: "Send A", attachments: []});
   const response = Promise.withResolvers<unknown>();
   const request = vi.fn((url: string, options: RequestInit) => options.method === "POST"
     ? response.promise
@@ -513,7 +513,7 @@ it("pins an in-flight send to its original topic and clears only that topic's su
     const sending = session.run("Send A", task.binding);
     await vi.waitFor(() => expect(request.mock.calls.some(([, options]) => options.method === "POST")).toBe(true));
     session.newThread("topic-b");
-    session.draft = {prompt: "Keep B", attachments: []};
+    session.setThreadDraft(session.activeThreadId, {prompt: "Keep B", attachments: []});
     response.resolve({ok: true, json: async () => ({...task, prompt: "Send A", threadId: "topic-a"})});
     await sending;
     expect(JSON.parse(request.mock.calls.find(([, options]) => options.method === "POST")?.[1].body as string).threadId).toBe("topic-a");
@@ -530,7 +530,7 @@ it("pins an in-flight send to its original topic and clears only that topic's su
 it("applies a late history page to its own topic without replacing the visible conversation", async () => {
   const session = new LocalEditSession("project");
   session.newThread("topic-a");
-  session.draft = {prompt: "Keep A", attachments: []};
+  session.setThreadDraft(session.activeThreadId, {prompt: "Keep A", attachments: []});
   session.before = "cursor-a";
   const pending = Promise.withResolvers<unknown>();
   vi.stubGlobal("fetch", vi.fn().mockReturnValue(pending.promise));
@@ -836,7 +836,7 @@ it("preserves an early prompt and attachments when the initial branch arrives", 
   const session = new LocalEditSession("early-draft");
   const threadId = session.activeThreadId;
   const draft = { prompt: "Build this page", attachments: [{ type: "text" as const, name: "requirements.md", text: "Use a table" }] };
-  session.draft = draft;
+  session.setThreadDraft(session.activeThreadId, draft);
   await session.setBranch("feature");
   expect(session.activeThreadId).toBe(threadId);
   expect(session.draft).toEqual(draft);
@@ -844,4 +844,22 @@ it("preserves an early prompt and attachments when the initial branch arrives", 
   await session.setBranch("other");
   expect(session.activeThreadId).not.toBe(threadId);
   expect(session.draft.prompt).toBe("");
+});
+
+it("publishes stable complete snapshots without changing earlier draft or model values", () => {
+  const session = new LocalEditSession("snapshot-project");
+  const initial = session.snapshot();
+  expect(session.snapshot()).toBe(initial);
+  expect(Object.isFrozen(initial)).toBe(true);
+  session.setThreadDraft(session.activeThreadId, { prompt: "Published draft", attachments: [] });
+  const edited = session.snapshot();
+  expect(edited).not.toBe(initial);
+  expect(edited.draft.prompt).toBe("Published draft");
+  expect(initial.draft.prompt).toBe("");
+  session.setSelectedModel("chosen-model");
+  const selected = session.snapshot();
+  expect(selected.selectedModel).toBe("chosen-model");
+  expect(edited.selectedModel).toBeUndefined();
+  expect(selected.tasks).toEqual([]);
+  expect(session.snapshot()).toBe(selected);
 });

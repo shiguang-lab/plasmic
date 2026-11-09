@@ -25,8 +25,16 @@ export type HeadMetadata = {
     canonical?: string;
 };
 
+// @public
+export class HeadMetadataCollector {
+    // (undocumented)
+    collect(metadata: HeadMetadata): void;
+    // (undocumented)
+    getMetadata(): HeadMetadata;
+}
+
 // @public (undocumented)
-export const HeadMetadataContext: React_2.Context<HeadMetadata>;
+export const HeadMetadataContext: React_2.Context<HeadMetadataCollector | undefined>;
 
 // @public (undocumented)
 export type LoadingStateListener = (isLoading: boolean) => void;

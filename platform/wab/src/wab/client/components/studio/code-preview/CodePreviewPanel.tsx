@@ -1,34 +1,28 @@
+import { useModelSelector } from "@/wab/client/stores/model-revisions-react";
+import { modelKeys } from "@/wab/shared/model-revisions";
 import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { CodeDisplay } from "@/wab/client/components/coding/CodeDisplay";
 import sty from "@/wab/client/components/studio/code-preview/CodePreviewPanel.module.css";
-import { ObserverLoadable } from "@/wab/client/components/widgets";
+import { Loadable } from "@/wab/client/components/widgets";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { exportReactPlainTypical } from "@/wab/shared/codegen/react-p/plain";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const CodePreviewPanel = observer(function CodePreviewPanel(props: {
+function loadCodeFormatters() {
+  return Promise.all([import("prettier/standalone"), import("prettier/plugins/typescript"), import("prettier/plugins/estree")]);
+}
+
+export const CodePreviewPanel = React.memo(function CodePreviewPanel(props: {
   studioCtx: StudioCtx;
 }) {
   const { studioCtx } = props;
-  useStudioSelection(studioCtx, (state) => state.view);
-  const vc = studioCtx.focusedViewCtx();
-  if (!vc) {
-    return null;
-  }
-  const module = exportReactPlainTypical(
-    studioCtx.site,
-    studioCtx.siteInfo.name,
-    studioCtx.siteInfo.id,
-    vc.component,
-  );
+  const vc = useStudioSelection(studioCtx, (state) => state.view);
+  const query = React.useCallback(() => vc ? exportReactPlainTypical(studioCtx.site, studioCtx.siteInfo.name, studioCtx.siteInfo.id, vc.component) : undefined, [studioCtx, vc]);
+  const module = useModelSelector(studioCtx.modelRevisions, [modelKeys.site], query);
+  if (module === undefined) { return null; }
 
   const loader = async () => {
-    const [Prettier, parserTypeScript, printerEstree] = await Promise.all([
-      import("prettier/standalone"),
-      import("prettier/plugins/typescript"),
-      import("prettier/plugins/estree"),
-    ]);
+    const [Prettier, parserTypeScript, printerEstree] = await loadCodeFormatters();
     return Prettier.format(module, {
       parser: "typescript",
       plugins: [parserTypeScript, printerEstree],
@@ -46,5 +40,5 @@ export const CodePreviewPanel = observer(function CodePreviewPanel(props: {
     );
   };
 
-  return <ObserverLoadable<string> loader={loader} contents={contents} />;
+  return <Loadable<string> loader={loader} contents={contents} />;
 });

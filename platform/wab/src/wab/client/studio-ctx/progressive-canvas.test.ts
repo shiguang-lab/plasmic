@@ -442,7 +442,7 @@ it("ends canvas initialization on a library failure and stops pending frames ins
     vi.spyOn(studioCtx, "focusedFrame").mockReturnValue(arena.children[0]);
     const load = vi.fn().mockRejectedValue(new Error("Unable to load component library antd6: 404"));
     studioCtx.queueCanvasFrame({ arena, frame: arena.children[0], name: "Customers", load });
-    await waitFor(() => expect(studioCtx.canvasLoadError.get()).toBe("Unable to load component library antd6: 404"));
+    await waitFor(() => expect(studioCtx.canvasLoadStore.getState().error).toBe("Unable to load component library antd6: 404"));
     expect(load).toHaveBeenCalledTimes(1);
     const next = vi.fn().mockResolvedValue(undefined);
     studioCtx.queueCanvasFrame({ arena, frame: arena.children[1], name: "Details", load: next });
@@ -467,6 +467,6 @@ it("times out a host that never finishes initialization instead of waiting indef
     await vi.advanceTimersByTimeAsync(1);
     expect(load).toHaveBeenCalledOnce();
     await vi.advanceTimersByTimeAsync(180_000);
-    expect(studioCtx.canvasLoadError.get()).toContain("Unable to load artboard: Customers");
+    expect(studioCtx.canvasLoadStore.getState().error).toContain("Unable to load artboard: Customers");
   } finally { finish(); studioCtx.dispose(); }
 });

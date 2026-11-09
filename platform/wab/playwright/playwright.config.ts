@@ -48,7 +48,8 @@ export default defineConfig({
     {
       name: "chromium",
       testIgnore: /global-setup\.spec\.ts/,
-      use: { ...devices["Desktop Chrome"] },
+      // Keyboard helpers use the host modifier; keep Chromium's real host UA.
+      use: { ...devices["Desktop Chrome"], userAgent: undefined },
     },
   ],
 });

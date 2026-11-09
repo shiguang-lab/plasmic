@@ -14,6 +14,7 @@
 import * as React from "react";
 
 import {
+  usePlasmicRefs,
   Flex as Flex__,
   StrictProps,
   classNames,
@@ -80,9 +81,8 @@ function PlasmicTemplateTestEmail__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
   return (
     <Layout
@@ -182,12 +182,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -197,27 +193,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTemplateTestEmail__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTemplateTestEmail";
-  } else {
-    func.displayName = `PlasmicTemplateTestEmail.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTemplateTestEmail__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTemplateTestEmail__root<T extends PlasmicTemplateTestEmail__rootProps>(props: T & StrictProps<T, PlasmicTemplateTestEmail__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTemplateTestEmail__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTemplateTestEmail__root.displayName = "PlasmicTemplateTestEmail";
+
+type PlasmicTemplateTestEmail__emailHeadingProps = NodeComponentProps<"emailHeading"> & {key?: React.Key};
+function PlasmicTemplateTestEmail__emailHeading<T extends PlasmicTemplateTestEmail__emailHeadingProps>(props: T & StrictProps<T, PlasmicTemplateTestEmail__emailHeadingProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emailHeading", props);
+  return <PlasmicTemplateTestEmail__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emailHeading"} />;
+}
+PlasmicTemplateTestEmail__emailHeading.displayName = "PlasmicTemplateTestEmail.emailHeading";
+
 
 export const PlasmicTemplateTestEmail = Object.assign(
   // Top-level PlasmicTemplateTestEmail renders the root element
-  makeNodeComponent("root"),
+  PlasmicTemplateTestEmail__root,
   {
     // Helper components rendering sub-elements
-    emailHeading: makeNodeComponent("emailHeading"),
+    emailHeading: PlasmicTemplateTestEmail__emailHeading,
 
     // Metadata about props expected for PlasmicTemplateTestEmail
     internalVariantProps: PlasmicTemplateTestEmail__VariantProps,

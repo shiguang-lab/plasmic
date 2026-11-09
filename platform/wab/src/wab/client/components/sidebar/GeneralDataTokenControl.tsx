@@ -2,7 +2,7 @@ import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useMultiAssetsActions } from "@/wab/client/components/sidebar/MultiAssetsActions";
 import { Matcher } from "@/wab/client/components/view-common";
 import Checkbox from "@/wab/client/components/widgets/Checkbox";
-import { TriggerAnchor } from "@/wab/client/components/widgets/TriggerAnchor";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import PlasmicGeneralTokenControl from "@/wab/client/plasmic/plasmic_kit_left_pane/PlasmicGeneralTokenControl";
 import { DataTokenValue, getDataTokenType } from "@/wab/commons/DataToken";
 import { FinalToken, MutableToken } from "@/wab/shared/core/tokens";
@@ -51,31 +51,18 @@ function GeneralDataTokenControl(
 
   return (
     <Tooltip title={tokenName} mouseEnterDelay={0.5}>
-      <TriggerAnchor>
-        {(ref, triggerProps) => (
-          <PlasmicGeneralTokenControl
-            {...triggerProps}
-            root={{ ref }}
-            value={matcher.boldSnippets(displayValue)}
-            rowItem={{
-              style,
-              menu,
-              onClick,
-              icon: (
-                <>
-                  {multiAssetsActions.isSelecting &&
-                    token instanceof MutableToken && (
-                      <Checkbox isChecked={isSelected}> </Checkbox>
-                    )}
+      <TriggerTarget>
+<PlasmicGeneralTokenControl value={matcher.boldSnippets(displayValue)} rowItem={{
+  style,
+  menu,
+  onClick,
+  icon: <>
+                  {multiAssetsActions.isSelecting && token instanceof MutableToken && <Checkbox isChecked={isSelected}> </Checkbox>}
                 </>
-              ),
-            }}
-            showIcon
-          >
+}} showIcon>
             {matcher.boldSnippets(tokenName)}
           </PlasmicGeneralTokenControl>
-        )}
-      </TriggerAnchor>
+</TriggerTarget>
     </Tooltip>
   );
 }

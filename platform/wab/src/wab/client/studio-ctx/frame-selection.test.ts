@@ -10,7 +10,6 @@ import { DomActions, ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
 import { ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
 import { Box, Pt } from "@/wab/shared/geom";
-import { runInAction } from "mobx";
 import { mock } from "vitest-mock-extended";
 
 async function setup() {
@@ -98,7 +97,7 @@ it("selects all artboards from blank canvas or an artboard selection and combine
 
 it("keeps the inspector stable when all selected artboards are selected again", async () => {
   const { studioCtx, frames, dispose } = await setup();
-  runInAction(() => selectAllInCanvas(studioCtx));
+  (() => selectAllInCanvas(studioCtx))();
   const vc = ensure(studioCtx.focusedViewCtx(), "Focused view context");
   const update = vi.fn();
   const readSelection = () => update(studioCtx.focusedFrames(), studioCtx.focusedViewCtx(), vc.focusedTpls());
@@ -106,14 +105,14 @@ it("keeps the inspector stable when all selected artboards are selected again", 
   const disposeObserver = () => stops.forEach((stop) => stop());
   try {
     update.mockClear();
-    runInAction(() => selectAllInCanvas(studioCtx));
-    runInAction(() => studioCtx.setStudioFocusOnFrames([...frames, frames[0]]));
+    (() => selectAllInCanvas(studioCtx))();
+    (() => studioCtx.setStudioFocusOnFrames([...frames, frames[0]]))();
     expect(studioCtx.focusedFrames()).toEqual(frames);
     expect(update).not.toHaveBeenCalled();
-    runInAction(() => studioCtx.setStudioFocusOnFrames([frames[1]]));
+    (() => studioCtx.setStudioFocusOnFrames([frames[1]]))();
     expect(studioCtx.focusedFrames()).toEqual([frames[1]]);
     expect(update).toHaveBeenCalledTimes(1);
-    runInAction(() => studioCtx.setStudioFocusOnFrameContents(frames[1]));
+    (() => studioCtx.setStudioFocusOnFrameContents(frames[1]))();
     expect(studioCtx.focusedFrames()).toEqual([]);
     expect(update).toHaveBeenCalledTimes(2);
   } finally {

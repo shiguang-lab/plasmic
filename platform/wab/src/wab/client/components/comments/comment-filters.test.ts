@@ -5,7 +5,7 @@ import {
 } from "@/wab/client/components/comments/utils";
 import { toOpaque } from "@/wab/commons/types";
 import { ApiComment, ApiUser } from "@/wab/shared/ApiSchema";
-import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
+import { getArenaFrames, mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { assert, ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
@@ -129,7 +129,7 @@ it.each<[CommentFilters["scope"], CommentFilters["status"], boolean, string[]]>(
       filterCommentThreads(
         threads,
         { scope, status, onlyRelated },
-        arena,
+        new Set([home.uid]),
         self,
       ).map((t) => t.id),
     ).toEqual(ids);
@@ -147,7 +147,7 @@ it("finds comments for every component in a mixed arena without loaded view cont
     filterCommentThreads(
       threads,
       { scope: "current", status: "unresolved", onlyRelated: false },
-      mixed,
+      new Set(getArenaFrames(mixed).map((frame) => frame.container.component.uid)),
       self,
     ).map((t) => t.id),
   ).toEqual(["other-mine", "home-other", "home-mine"]);
@@ -167,7 +167,7 @@ it("ignores mentions and participation in deleted replies", () => {
     filterCommentThreads(
       [item],
       { scope: "current", status: "all", onlyRelated: true },
-      arena,
+      new Set([home.uid]),
       self,
     ),
   ).toEqual([]);
@@ -195,7 +195,7 @@ it("sorts by the latest reply edit or resolution activity without mutating the s
     filterCommentThreads(
       source,
       { scope: "project", status: "all", onlyRelated: false },
-      arena,
+      new Set([home.uid]),
       self,
     ).map((t) => t.id),
   ).toEqual(["resolved", "replied"]);

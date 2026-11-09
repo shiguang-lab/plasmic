@@ -1,7 +1,10 @@
+import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
+import { useCommittedValue } from "@/wab/commons/components/ReactUtil";
 import { LabeledStyleDimItem } from "@/wab/client/components/sidebar/sidebar-helpers";
 import {
   getLabelForStyleName,
-  StyleComponent,
+  changeStyle,
+  createStyleContextMenu,
   StyleComponentProps,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { DimTokenSpinnerRef } from "@/wab/client/components/widgets/DimTokenSelector";
@@ -21,7 +24,6 @@ import { XDraggable } from "@/wab/commons/components/XDraggable";
 import { derefTokenRefs } from "@/wab/commons/StyleToken";
 import {
   ensure,
-  hackyCast,
   simpleWords,
   toggleSet,
   tuple,
@@ -45,20 +47,12 @@ import { Popover, Tooltip } from "antd";
 import { TooltipPlacement } from "antd/lib/tooltip";
 import cn from "classnames";
 import * as Immutable from "immutable";
-import { createRef, default as React, ReactNode } from "react";
+import React, { ReactNode } from "react";
 import defer = setTimeout;
 
 function closeLoop(pointsStr: /*TWZ*/ string) {
   const points = simpleWords(pointsStr);
   return tuple(...[...points], points[0]).join(" ");
-}
-
-interface SpacingControlState {
-  justDragged: boolean;
-  showPopover: boolean;
-  xThickness?: number;
-  yThickness?: number;
-  selection: { sides: Immutable.Set<Side> };
 }
 
 interface SpacingControlProps extends StyleComponentProps {
@@ -80,227 +74,120 @@ interface SpacingRenderProps extends SpacingControlProps {
   readonly activeVsh: VariantedStylesHelper;
 }
 
-class SpacingControl_ extends StyleComponent<
-  SpacingRenderProps,
-  SpacingControlState
-> {
-  private toFocus = false;
-  private spinner = createRef<DimTokenSpinnerRef>();
-  private popoverContainer = createRef<HTMLDivElement>();
-  private container = createRef<HTMLDivElement>();
-  private topPart = createRef<SVGPolylineElement>();
-  private leftPart = createRef<SVGPolylineElement>();
+export interface SpacingControlHandle {
+  setAllSelected: (value: string) => void;
+  clearAllSelected: () => void;
+}
 
-  private shouldIgnoreSpinnerBlur = false;
-  private clearSidesIfSelectionChanges = false;
+function SpacingControlContent({ ref, ...props }: SpacingRenderProps & { ref?: React.Ref<SpacingControlHandle> }) {
+  const studio = props.expsProvider.studioCtx;
+  const { spacingStyleProp, popoverPlacement = "top", label, subtitle } = props;
+  const spacingLabel = label || getLabelForStyleName(spacingStyleProp);
+  const vsh = props.activeVsh;
+  const [selection, setSelection] = React.useState(() => Immutable.Set<Side>());
+  const [justDragged, setJustDragged] = React.useState(false);
+  const [showPopover, setShowPopover] = React.useState(false);
+  const [xThickness, setXThickness] = React.useState<number>();
+  const [yThickness, setYThickness] = React.useState<number>();
+  const spinner = React.useRef<DimTokenSpinnerRef | null>(null);
+  const popoverContainer = React.useRef<HTMLDivElement | null>(null);
+  const container = React.useRef<HTMLDivElement | null>(null);
+  const topPart = React.useRef<SVGPolylineElement | null>(null);
+  const leftPart = React.useRef<SVGPolylineElement | null>(null);
+  const focusPending = React.useRef(false);
+  const ignoreSpinnerBlur = React.useRef(false);
+  const clearSidesOnSelection = React.useRef(false);
 
-  constructor(props) {
-    super(props);
+  React.useLayoutEffect(() => {
+    if (topPart.current) { setYThickness(topPart.current.getBoundingClientRect().height); }
+    if (leftPart.current) { setXThickness(leftPart.current.getBoundingClientRect().width); }
+  }, [showPopover]);
+  React.useLayoutEffect(() => {
+    if (focusPending.current && spinner.current) { focusPending.current = false; spinner.current.focus(); }
+  });
 
-    this.state = {
-      justDragged: false,
-      showPopover: false,
-      selection: {
-        sides: Immutable.Set<Side>(),
-      },
-    };
-  }
-
-  componentDidMount() {
-    if (this.topPart.current && !this.state.yThickness) {
-      const yThickness = this.topPart.current.getBoundingClientRect().height;
-      this.setState({ yThickness });
-    }
-    if (this.leftPart.current && !this.state.xThickness) {
-      const xThickness = this.leftPart.current.getBoundingClientRect().width;
-      this.setState({ xThickness });
-    }
-  }
-  componentDidUpdate() {
-    if (this.toFocus && this.spinner.current) {
-      this.toFocus = false;
-      this.spinner.current.focus();
-    }
-  }
-
-  private handleSpinnerFocus = () => {
-    this.setState({ showPopover: true });
+  const handleSpinnerFocus = () => setShowPopover(true);
+  const handleSpinnerBlur = () => { if (!ignoreSpinnerBlur.current) { setShowPopover(false); } };
+  const changeSelection = (sides: Immutable.Set<Side>) => {
+    if (sides.size > 0) { focusPending.current = true; }
+    setSelection(sides);
   };
-
-  private handleSpinnerBlur = () => {
-    if (!this.shouldIgnoreSpinnerBlur) {
-      this.setState({ showPopover: false });
-    }
+  const changeSelectionSingle = (side: Side, { mode }: { mode: "toggle" | "add" }) => {
+    changeSelection(mode === "toggle" ? toggleSet(selection, side)
+      : selection.has(side) ? selection : Immutable.Set([side]));
   };
-
-  private changeSelectionSingle = (
-    side: /*TWZ*/ Side,
-    { mode }: /*TWZ*/ { mode: string },
-  ) => {
-    const oldSel = this.state.selection;
-    // Toggle selection state
-    const sides: Immutable.Set<Side> = (() => {
-      switch (mode) {
-        case "toggle":
-          return toggleSet(oldSel.sides, side);
-        case "add":
-          if (!oldSel.sides.has(side)) {
-            return Immutable.Set([side]);
-          } else {
-            return oldSel.sides;
-          }
-        default:
-          return unexpected();
-      }
-    })();
-    this.changeSelection(sides);
-  };
-
-  private changeSelection(sides: Immutable.Set<Side>) {
-    if (sides.size > 0) {
-      this.toFocus = true;
+  const handleClick = (event: React.MouseEvent<SVGPolylineElement>, side: Side) => {
+    if (clearSidesOnSelection.current) {
+      clearSidesOnSelection.current = false;
+      changeSelection(Immutable.Set([side]));
+      return;
     }
-    this.setState({
-      selection: {
-        sides: sides,
-      },
-    });
-  }
-
-  handleClick = (e: React.MouseEvent<SVGPolylineElement>, side: Side) => {
-    if (this.clearSidesIfSelectionChanges) {
-      this.clearSidesIfSelectionChanges = false;
-      return this.changeSelection(Immutable.Set([side]));
-    }
-
-    switch (hackyCast(e).detail) {
+    switch (event.detail) {
       case 1:
-        if (!this.state.justDragged) {
-          this.changeSelectionSingle(side, { mode: "toggle" });
-        } else {
-          this.setState({ justDragged: false });
-        }
+        if (!justDragged) { changeSelectionSingle(side, { mode: "toggle" }); }
+        else { setJustDragged(false); }
         break;
-      case 2:
-        this.changeSelection(Immutable.Set([side, oppSide(side)]));
-        break;
-      default:
-        this.changeSelection(Immutable.Set(standardSides));
-        break;
+      case 2: changeSelection(Immutable.Set([side, oppSide(side)])); break;
+      default: changeSelection(Immutable.Set(standardSides));
     }
   };
-
-  private selectedStyleProps() {
-    return this.selectedSides().map(
-      (side) => `${this.props.spacingStyleProp}-${side}`,
-    );
-  }
-
-  private selectedSides() {
-    return this.state.selection.sides.isEmpty()
-      ? [...standardSides]
-      : [...this.state.selection.sides];
-  }
-
-  showSelectedValues() {
-    const isAll = this.state.selection.sides.isEmpty();
-    const values = this.selectedSides().map((side) => this.props.values[side]);
-    if (isAll) {
-      return showCssShorthand(values);
-    } else if (new Set(values).size === 1) {
-      return values[0];
-    } else {
-      return "";
+  const selectedSides = () => selection.isEmpty() ? [...standardSides] : [...selection];
+  const selectedStyleProps = () => selectedSides().map((side) => `${spacingStyleProp}-${side}`);
+  const showSelectedValues = () => {
+    const values = selectedSides().map((side) => props.values[side]);
+    return selection.isEmpty() ? showCssShorthand(values) : new Set(values).size === 1 ? values[0] : "";
+  };
+  const change = (command: () => void) => changeStyle(props.expsProvider, command);
+  const setAllSelected = (value: string) => {
+    const names = selectedStyleProps();
+    change(() => {
+      const exp = props.expsProvider.mergedExp();
+      if (selection.isEmpty()) {
+        const values = parseCssShorthand(value);
+        names.forEach((name, index) => exp.set(name, values[index]));
+      } else { names.forEach((name) => exp.set(name, value)); }
+    });
+  };
+  const clearAllSelected = () => {
+    const names = selectedStyleProps();
+    change(() => { const exp = props.expsProvider.mergedExp(); names.forEach((name) => exp.clear(name)); });
+  };
+  const readCommands = useCommittedValue({ setAllSelected, clearAllSelected });
+  const commands = React.useMemo<SpacingControlHandle>(() => ({
+    setAllSelected: (value) => readCommands().setAllSelected(value),
+    clearAllSelected: () => readCommands().clearAllSelected(),
+  }), [readCommands]);
+  React.useImperativeHandle(ref, () => commands, [commands]);
+  const showStyleContextMenu = (event: React.MouseEvent<SVGPolylineElement>, name: string) => {
+    if (!props.expsProvider.getNativeStyleSource().inputs.isDisposed) {
+      maybeShowContextMenu(event.nativeEvent, createStyleContextMenu(props.expsProvider, [name]));
     }
-  }
-
-  setAllSelected = (val: string) => {
-    const isAll = this.state.selection.sides.isEmpty();
-    const props = this.selectedStyleProps();
-    return this.change(() => {
-      if (isAll) {
-        const newVals = parseCssShorthand(val);
-        props.forEach((prop, i) => this.exp().set(prop, newVals[i]));
-      } else {
-        props.forEach((prop) => this.exp().set(prop, val));
-      }
-    });
   };
-
-  clearAllSelected = () => {
-    const props = this.selectedStyleProps();
-    return this.change(() => {
-      props.forEach((prop) => this.exp().clear(prop));
-    });
-  };
-
-  /**
-   * Returns the value that all selected sides are equal to, or undefined if
-   * no sides selected or if not all sides have the same value.
-   */
-  getMultiSelectedValue() {
-    const sel = this.state.selection;
-    const values = sel.sides
-      .toArray()
-      .map((side) => this.exp().get(`${this.props.spacingStyleProp}-${side}`));
-    return new Set(values).size === 1 ? values[0] : undefined;
-  }
-
-  render() {
-    const {
-      spacingStyleProp,
-      popoverPlacement = "top",
-      label,
-      subtitle,
-    } = this.props;
-    const spacingLabel = label || getLabelForStyleName(spacingStyleProp);
-    const vsh = this.props.activeVsh;
 
     return (
       <OnClickAwayExcept
-        getAllowedContainers={() => {
-          const container = this.container.current;
-          const popoverContainer = this.popoverContainer.current;
-          function* gen() {
-            if (popoverContainer) {
-              yield* Array.from(
-                popoverContainer.querySelectorAll(
-                  "polyline.spacing-control__handle",
-                ),
-              );
-            }
-            if (container) {
-              yield* Array.from(
-                container.querySelectorAll(
-                  `[data-plasmic-role="labeled-item"]`,
-                ),
-              );
-            }
-            yield* Array.from(
-              document.querySelectorAll(
-                INTERACT_OUTSIDE_EXCEPTION_SELECTORS.join(","),
-              ),
-            );
-          }
-          return Array.from(gen());
-        }}
+        getAllowedContainers={() => [
+          ...Array.from(popoverContainer.current?.querySelectorAll("polyline.spacing-control__handle") ?? []),
+          ...Array.from(container.current?.querySelectorAll('[data-plasmic-role="labeled-item"]') ?? []),
+          ...Array.from(document.querySelectorAll(INTERACT_OUTSIDE_EXCEPTION_SELECTORS.join(","))),
+        ]}
         callback={() => {
-          if (this.state.selection.sides.size > 0) {
-            this.changeSelection(Immutable.Set<Side>());
-            this.handleSpinnerBlur();
+          if (selection.size > 0) {
+            changeSelection(Immutable.Set<Side>());
+            handleSpinnerBlur();
           }
         }}
       >
-        <div className="spacing-control__container" ref={this.container}>
+        <div className="spacing-control__container" ref={container}>
           <Popover
-            open={this.state.showPopover}
+            open={showPopover}
             placement={popoverPlacement}
             content={
               <div
                 className="spacing-control__handles-container"
-                onMouseEnter={() => (this.shouldIgnoreSpinnerBlur = true)}
-                onMouseLeave={() => (this.shouldIgnoreSpinnerBlur = false)}
-                ref={this.popoverContainer}
+                onMouseEnter={() => (ignoreSpinnerBlur.current = true)}
+                onMouseLeave={() => (ignoreSpinnerBlur.current = false)}
+                ref={popoverContainer}
               >
                 <svg className="spacing-control__svg" viewBox="0 0 130 64">
                   {(() => {
@@ -369,7 +256,7 @@ class SpacingControl_ extends StyleComponent<
                             return unexpected();
                         }
                       })();
-                      const maybeTokenValue = this.props.dragValues[side];
+                      const maybeTokenValue = props.dragValues[side];
                       const isDraggingDisabled =
                         !isDraggableSize(maybeTokenValue);
                       return (
@@ -386,32 +273,28 @@ class SpacingControl_ extends StyleComponent<
                             >
                               {(initDim, setInitDim) => (
                                 <XDraggable
-                                  nodeRef={side === "top" ? this.topPart : side === "left" ? this.leftPart : undefined}
+                                  nodeRef={side === "top" ? topPart : side === "left" ? leftPart : undefined}
                                   disabled={isDraggingDisabled}
                                   onStart={() => {
-                                    this.studioCtx().startUnlogged();
-                                    this.changeSelectionSingle(side, {
+                                    studio.startUnlogged();
+                                    changeSelectionSingle(side, {
                                       mode: "add",
                                     });
-                                    this.setState(() => ({
-                                      justDragged: false,
-                                    }));
+                                    setJustDragged(false);
                                     setInitDim(
                                       parseNumericSize(maybeTokenValue),
                                     );
                                   }}
                                   onDrag={(e) => {
-                                    this.change(() => {
+                                    change(() => {
                                       const { num, unit } = ensure(
                                         initDim,
                                         "onDrag listener expects a initDim",
                                       );
-                                      if (!this.state.justDragged) {
-                                        this.setState({
-                                          justDragged: true,
-                                        });
+                                      if (!justDragged) {
+                                        setJustDragged(true);
                                       }
-                                      this.setAllSelected(
+                                      setAllSelected(
                                         showSizeCss(
                                           createNumericSize(
                                             num +
@@ -425,18 +308,19 @@ class SpacingControl_ extends StyleComponent<
                                   }}
                                   onStop={() => {
                                     defer(() => {
-                                      this.toFocus = true;
-                                      this.setState({ justDragged: false });
+                                      focusPending.current = true;
+                                      setJustDragged(false);
+                                      spinner.current?.focus();
                                     });
-                                    this.studioCtx().stopUnlogged();
+                                    studio.stopUnlogged();
                                     setInitDim(undefined);
                                   }}
                                 >
                                   <polyline
                                     className={cn({
-                                      [`spacing-control__handle`]: true,
+                                      "spacing-control__handle": true,
                                       "spacing-control__handle--selected":
-                                        this.state.selection.sides.has(side),
+                                        selection.has(side),
                                       "ew-resize":
                                         ["left", "right"].includes(side) &&
                                         !isDraggingDisabled,
@@ -446,16 +330,16 @@ class SpacingControl_ extends StyleComponent<
                                     })}
                                     ref={
                                       side === "top"
-                                        ? this.topPart
+                                        ? topPart
                                         : side === "left"
-                                          ? this.leftPart
+                                          ? leftPart
                                           : undefined
                                     }
                                     transform={`translate(${left},${top})`}
                                     points={points}
-                                    onClick={(e) => this.handleClick(e, side)}
+                                    onClick={(e) => handleClick(e, side)}
                                     onContextMenu={(ev) =>
-                                      this.showStyleContextMenu(
+                                      showStyleContextMenu(
                                         ev,
                                         `${spacingStyleProp}-${side}`,
                                       )
@@ -477,19 +361,19 @@ class SpacingControl_ extends StyleComponent<
                       className={`spacing-control__${side}`}
                       style={
                         ["top", "bottom"].includes(side)
-                          ? this.state.yThickness
-                            ? { height: this.state.yThickness }
+                          ? yThickness
+                            ? { height: yThickness }
                             : undefined
-                          : this.state.xThickness
-                            ? { width: this.state.xThickness }
+                          : xThickness
+                            ? { width: xThickness }
                             : undefined
                       }
                     >
                       <div className={"spacing-control__num"}>
-                        <UnloggedDragCatcher sc={this.studioCtx()}>
+                        <UnloggedDragCatcher sc={studio}>
                           <XDraggable onStart={() => undefined}>
-                            <div className={this.props.overrides[side] ? "overriding" : undefined}>
-                              {this.props.measures[side]}
+                            <div className={props.overrides[side] ? "overriding" : undefined}>
+                              {props.measures[side]}
                             </div>
                           </XDraggable>
                         </UnloggedDragCatcher>
@@ -504,28 +388,28 @@ class SpacingControl_ extends StyleComponent<
                 anchors the popover on its root element. */}
             <TriggerTarget>
               <LabeledStyleDimItem
-                styleName={this.selectedStyleProps()}
-                displayStyleName={this.props.spacingStyleProp}
+                styleName={selectedStyleProps()}
+                displayStyleName={props.spacingStyleProp}
                 label={spacingLabel}
                 subtitle={subtitle}
                 tokenType={"Spacing"}
                 vsh={vsh}
                 dimOpts={{
-                  ref: this.spinner,
-                  value: this.showSelectedValues(),
+                  ref: spinner,
+                  value: showSelectedValues(),
                   onChange: (val) => {
-                    this.clearSidesIfSelectionChanges = true;
+                    clearSidesOnSelection.current = true;
                     if (val === undefined) {
-                      this.clearAllSelected();
+                      clearAllSelected();
                     } else {
-                      this.setAllSelected(val);
+                      setAllSelected(val);
                     }
-                    defer(() => this.spinner.current?.focus());
+                    defer(() => spinner.current?.focus());
                   },
-                  onFocus: this.handleSpinnerFocus,
-                  onBlur: this.handleSpinnerBlur,
-                  shorthand: this.state.selection.sides.isEmpty(),
-                  extraOptions: this.props.allowAuto ? ["auto"] : [],
+                  onFocus: handleSpinnerFocus,
+                  onBlur: handleSpinnerBlur,
+                  shorthand: selection.isEmpty(),
+                  extraOptions: props.allowAuto ? ["auto"] : [],
                   dragScale: "10",
                   min: spacingStyleProp === "padding" ? 0 : undefined,
                   allowedUnits: LENGTH_PERCENTAGE_UNITS,
@@ -537,24 +421,21 @@ class SpacingControl_ extends StyleComponent<
         </div>
       </OnClickAwayExcept>
     );
-  }
 }
 
-export const SpacingControl = React.forwardRef<SpacingControl_, SpacingControlProps>(
-  function SpacingControl(props, ref) {
-    const studio = props.expsProvider.studioCtx;
-    const lifetime = React.useMemo(() => studio.arenaState.lifetime(), [studio, props.expsProvider]);
-    const subscribe = React.useCallback((notify: () => void) => {
-      lifetime.addEventListener("abort", notify);
-      return () => lifetime.removeEventListener("abort", notify);
-    }, [lifetime]);
-    const readActive = React.useCallback(() => !lifetime.aborted, [lifetime]);
-    const active = React.useSyncExternalStore(subscribe, readActive, readActive);
-    return active ? <SpacingInputs {...props} controlRef={ref} /> : null;
-  },
-);
+export function SpacingControl({ ref, ...props }: SpacingControlProps & { ref?: React.Ref<SpacingControlHandle> }) {
+  const studio = props.expsProvider.studioCtx;
+  const lifetime = React.useMemo(() => studio.arenaState.lifetime(), [studio, props.expsProvider]);
+  const subscribe = React.useCallback((notify: () => void) => {
+    lifetime.addEventListener("abort", notify);
+    return () => lifetime.removeEventListener("abort", notify);
+  }, [lifetime]);
+  const readActive = React.useCallback(() => !lifetime.aborted, [lifetime]);
+  const active = React.useSyncExternalStore(subscribe, readActive, readActive);
+  return active ? <SpacingInputs {...props} controlRef={ref} /> : null;
+}
 
-function SpacingInputs(props: SpacingControlProps & { controlRef: React.ForwardedRef<SpacingControl_> }) {
+function SpacingInputs({ controlRef, ...props }: SpacingControlProps & { controlRef: React.Ref<SpacingControlHandle> | undefined }) {
   const studio = props.expsProvider.studioCtx;
   const keys = standardSides.map((side) => `${props.spacingStyleProp}-${side}`);
   const cells = useStyleCells(props.expsProvider, keys);
@@ -579,7 +460,7 @@ function SpacingInputs(props: SpacingControlProps & { controlRef: React.Forwarde
     left: ensure(items[standardSides.indexOf("left")], "Left spacing input"),
   });
   if (!complete) { return null; }
-  return <SpacingControl_ {...props} ref={props.controlRef} activeVsh={vsh}
+  return <SpacingControlContent {...props} ref={controlRef} activeVsh={vsh}
     values={sides(values)} dragValues={sides(dragValues.selected)} measures={sides(measures.selected)}
     overrides={sides(indicators.map((indicator) => indicator.source === "set"))} />;
 }

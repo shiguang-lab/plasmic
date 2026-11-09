@@ -22,7 +22,6 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import { observable, runInAction } from "mobx";
 import * as React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -65,7 +64,7 @@ function commitArena(ctx: StudioCtx, command: () => void) {
 }
 
 it("toggles canvas interaction and reflects changes from other entry points", async () => {
-  const state = observable({ focused: true });
+  const state = ({ focused: true });
   const ctx = createContext();
   Object.defineProperties(ctx, {
     viewCtxs: { value: [] },
@@ -79,7 +78,7 @@ it("toggles canvas interaction and reflects changes from other entry points", as
       },
     },
   });
-  ctx.change.mockImplementation(async (fn) => runInAction(fn));
+  ctx.change.mockImplementation(async (fn) => (fn)());
   ctx.toggleInteractiveMode.mockImplementation(() => {
     ctx.isInteractiveMode = !ctx.isInteractiveMode;
   });
@@ -103,7 +102,7 @@ it("toggles canvas interaction and reflects changes from other entry points", as
   expect(ctx.refreshFocusedFrameArena).not.toHaveBeenCalled();
   expect(ctx.toggleFocusedMode).not.toHaveBeenCalled();
 
-  await act(() => runInAction(() => { state.focused = false; }));
+  await act(() => (() => { state.focused = false; })());
   expect(screen.getByRole("button", { name: "Interactive" })).toBe(toggle);
   await act(async () => fireEvent.click(toggle));
   expect(ctx.isInteractiveMode).toBe(false);
@@ -126,7 +125,7 @@ it("keeps canvas interaction visible and disabled in an empty artboard group", (
 });
 
 it("locates the current artboard repeatedly without toggling modes or selection", async () => {
-  const state = observable({ focused: false });
+  const state = ({ focused: false });
   const input = scene();
   const ctx = createContext(input);
   Object.defineProperty(ctx, "viewCtxs", { value: [] });
@@ -145,9 +144,9 @@ it("locates the current artboard repeatedly without toggling modes or selection"
   fireEvent.click(locate);
   expect(ctx.tryZoomToFitFrame).toHaveBeenCalledWith(frame, 1);
   await act(() =>
-    runInAction(() => {
+    (() => {
       state.focused = true;
-    }),
+    })(),
   );
   fireEvent.click(locate);
   expect(ctx.tryZoomToFitFrame).toHaveBeenCalledTimes(2);

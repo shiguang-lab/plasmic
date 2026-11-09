@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   StrictProps,
   classNames,
@@ -25,7 +25,7 @@ import {
   generateStateOnChangeProp,
   generateStateValueProp,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -34,7 +34,7 @@ import LeftSearchPanel from "../../components/studio/LeftSearchPanel"; // plasmi
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
 import Select__Option from "../../components/widgets/Select__Option"; // plasmic-import: rr-LWdMni2G/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -106,11 +106,10 @@ function PlasmicLeftGeneralTokensPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isTargeting",
@@ -126,18 +125,20 @@ function PlasmicLeftGeneralTokensPanel__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => "",
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -240,9 +241,9 @@ function PlasmicLeftGeneralTokensPanel__RenderFunc(props: {
                 />
               }
               name={""}
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, [
+                  generateStateOnChangeProp($stateCommands, [
                     "globalVariantSelect",
                     "value",
                   ])(eventArgs[0]);
@@ -255,7 +256,7 @@ function PlasmicLeftGeneralTokensPanel__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
               placeholder={
                 <div
                   className={classNames("all", "__wab_text", sty.text__hDqR6)}
@@ -364,12 +365,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -379,35 +376,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftGeneralTokensPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftGeneralTokensPanel";
-  } else {
-    func.displayName = `PlasmicLeftGeneralTokensPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftGeneralTokensPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftGeneralTokensPanel__root<T extends PlasmicLeftGeneralTokensPanel__rootProps>(props: T & StrictProps<T, PlasmicLeftGeneralTokensPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftGeneralTokensPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftGeneralTokensPanel__root.displayName = "PlasmicLeftGeneralTokensPanel";
+
+type PlasmicLeftGeneralTokensPanel__leftSearchPanelProps = NodeComponentProps<"leftSearchPanel"> & {key?: React.Key};
+function PlasmicLeftGeneralTokensPanel__leftSearchPanel<T extends PlasmicLeftGeneralTokensPanel__leftSearchPanelProps>(props: T & StrictProps<T, PlasmicLeftGeneralTokensPanel__leftSearchPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftSearchPanel", props);
+  return <PlasmicLeftGeneralTokensPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftSearchPanel"} />;
+}
+PlasmicLeftGeneralTokensPanel__leftSearchPanel.displayName = "PlasmicLeftGeneralTokensPanel.leftSearchPanel";
+
+type PlasmicLeftGeneralTokensPanel__leftPaneHeaderProps = NodeComponentProps<"leftPaneHeader"> & {key?: React.Key};
+function PlasmicLeftGeneralTokensPanel__leftPaneHeader<T extends PlasmicLeftGeneralTokensPanel__leftPaneHeaderProps>(props: T & StrictProps<T, PlasmicLeftGeneralTokensPanel__leftPaneHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftPaneHeader", props);
+  return <PlasmicLeftGeneralTokensPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftPaneHeader"} />;
+}
+PlasmicLeftGeneralTokensPanel__leftPaneHeader.displayName = "PlasmicLeftGeneralTokensPanel.leftPaneHeader";
+
+type PlasmicLeftGeneralTokensPanel__importTokensButtonProps = NodeComponentProps<"importTokensButton"> & {key?: React.Key};
+function PlasmicLeftGeneralTokensPanel__importTokensButton<T extends PlasmicLeftGeneralTokensPanel__importTokensButtonProps>(props: T & StrictProps<T, PlasmicLeftGeneralTokensPanel__importTokensButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("importTokensButton", props);
+  return <PlasmicLeftGeneralTokensPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"importTokensButton"} />;
+}
+PlasmicLeftGeneralTokensPanel__importTokensButton.displayName = "PlasmicLeftGeneralTokensPanel.importTokensButton";
+
+type PlasmicLeftGeneralTokensPanel__globalVariantsSelectContainerProps = NodeComponentProps<"globalVariantsSelectContainer"> & {key?: React.Key};
+function PlasmicLeftGeneralTokensPanel__globalVariantsSelectContainer<T extends PlasmicLeftGeneralTokensPanel__globalVariantsSelectContainerProps>(props: T & StrictProps<T, PlasmicLeftGeneralTokensPanel__globalVariantsSelectContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("globalVariantsSelectContainer", props);
+  return <PlasmicLeftGeneralTokensPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"globalVariantsSelectContainer"} />;
+}
+PlasmicLeftGeneralTokensPanel__globalVariantsSelectContainer.displayName = "PlasmicLeftGeneralTokensPanel.globalVariantsSelectContainer";
+
+type PlasmicLeftGeneralTokensPanel__globalVariantSelectProps = NodeComponentProps<"globalVariantSelect"> & {key?: React.Key};
+function PlasmicLeftGeneralTokensPanel__globalVariantSelect<T extends PlasmicLeftGeneralTokensPanel__globalVariantSelectProps>(props: T & StrictProps<T, PlasmicLeftGeneralTokensPanel__globalVariantSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("globalVariantSelect", props);
+  return <PlasmicLeftGeneralTokensPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"globalVariantSelect"} />;
+}
+PlasmicLeftGeneralTokensPanel__globalVariantSelect.displayName = "PlasmicLeftGeneralTokensPanel.globalVariantSelect";
+
+type PlasmicLeftGeneralTokensPanel__optionProps = NodeComponentProps<"option"> & {key?: React.Key};
+function PlasmicLeftGeneralTokensPanel__option<T extends PlasmicLeftGeneralTokensPanel__optionProps>(props: T & StrictProps<T, PlasmicLeftGeneralTokensPanel__optionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("option", props);
+  return <PlasmicLeftGeneralTokensPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"option"} />;
+}
+PlasmicLeftGeneralTokensPanel__option.displayName = "PlasmicLeftGeneralTokensPanel.option";
+
+type PlasmicLeftGeneralTokensPanel__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicLeftGeneralTokensPanel__content<T extends PlasmicLeftGeneralTokensPanel__contentProps>(props: T & StrictProps<T, PlasmicLeftGeneralTokensPanel__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicLeftGeneralTokensPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicLeftGeneralTokensPanel__content.displayName = "PlasmicLeftGeneralTokensPanel.content";
+
 
 export const PlasmicLeftGeneralTokensPanel = Object.assign(
   // Top-level PlasmicLeftGeneralTokensPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftGeneralTokensPanel__root,
   {
     // Helper components rendering sub-elements
-    leftSearchPanel: makeNodeComponent("leftSearchPanel"),
-    leftPaneHeader: makeNodeComponent("leftPaneHeader"),
-    importTokensButton: makeNodeComponent("importTokensButton"),
-    globalVariantsSelectContainer: makeNodeComponent(
-      "globalVariantsSelectContainer"
-    ),
-    globalVariantSelect: makeNodeComponent("globalVariantSelect"),
-    option: makeNodeComponent("option"),
-    content: makeNodeComponent("content"),
+    leftSearchPanel: PlasmicLeftGeneralTokensPanel__leftSearchPanel,
+    leftPaneHeader: PlasmicLeftGeneralTokensPanel__leftPaneHeader,
+    importTokensButton: PlasmicLeftGeneralTokensPanel__importTokensButton,
+    globalVariantsSelectContainer: PlasmicLeftGeneralTokensPanel__globalVariantsSelectContainer,
+    globalVariantSelect: PlasmicLeftGeneralTokensPanel__globalVariantSelect,
+    option: PlasmicLeftGeneralTokensPanel__option,
+    content: PlasmicLeftGeneralTokensPanel__content,
 
     // Metadata about props expected for PlasmicLeftGeneralTokensPanel
     internalVariantProps: PlasmicLeftGeneralTokensPanel__VariantProps,

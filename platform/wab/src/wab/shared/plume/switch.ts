@@ -50,37 +50,18 @@ const switchConfig = {
 export const SwitchPlugin: PlumePlugin = {
   // PlumeCanvasPlugin
   genCanvasWrapperComponent: (sub, impl, observer, getCompMeta, component) => {
-    const Comp = sub.React.forwardRef((allProps, ref: SwitchRef) =>
+    const Comp = sub.createCanvasComponentType((allProps, ref: SwitchRef) =>
       observer(() => {
-        const internalProps = pick(allProps, internalCanvasElementProps);
-        let usingDefaultChildren: false | React.ReactElement = false;
-        let componentProps = omit(allProps, internalCanvasElementProps);
-        if (
-          !("children" in componentProps) &&
-          getTplSlotByName(component, "children")?.defaultContents.length
-        ) {
-          usingDefaultChildren = createDefaultSlotContentsStub(sub);
-          componentProps = {
-            ...componentProps,
-            children: usingDefaultChildren,
-          };
-        }
-        const { plasmicProps } = sub.reactWeb.useSwitch(
-          Object.assign(impl, getCompMeta()),
-          componentProps,
-          switchConfig as any,
-          ref,
-        );
-        if (usingDefaultChildren) {
-          assert(
-            plasmicProps.args.children === usingDefaultChildren,
-            () => `Expected children to match slot stub`,
-          );
-          delete plasmicProps.args.children;
-        }
-        return sub.React.createElement(impl, {
-          ...plasmicProps,
-          ...internalProps,
+        const componentProps = omit(allProps, internalCanvasElementProps);
+        const hasDefault = !("children" in componentProps) && !!getTplSlotByName(component, "children")?.defaultContents.length;
+        return sub.React.createElement(sub.CanvasPlume.CanvasPlumeSwitch, {
+          impl,
+          metadata: getCompMeta(),
+          internalProps: pick(allProps, internalCanvasElementProps),
+          componentProps: hasDefault ? { ...componentProps, children: createDefaultSlotContentsStub(sub) } : componentProps,
+          config: switchConfig as any,
+          forwardedRef: ref,
+          defaultSlot: hasDefault ? "children" : undefined,
         });
       }),
     );
@@ -92,12 +73,12 @@ export const SwitchPlugin: PlumePlugin = {
   genHook(ctx: SerializerBaseContext) {
     const { component } = ctx;
     return `
-      function useBehavior<P extends pp.SwitchProps>(props: P, ref: pp.SwitchRef) {
+      function useBehavior<P extends Plume.SwitchProps>(props: P, ref: Plume.SwitchRef) {
         ${serializeComponentSubstitutionCallsForDefaultContents(ctx, [
           "children",
         ])}
         ${maybeIncludeSerializedDefaultSlotContent(ctx, "children")}
-        return pp.useSwitch<P, typeof ${makePlasmicComponentName(component)}>(
+        return Plume.useSwitch<P, typeof ${makePlasmicComponentName(component)}>(
           ${makePlasmicComponentName(component)},
           props,
           ${jsLiteral(switchConfig)},
@@ -114,7 +95,7 @@ export const SwitchPlugin: PlumePlugin = {
     return `
       export interface ${
         opts?.typeName ?? makeDefaultExternalPropsName(component)
-      } extends pp.SwitchProps {
+      } extends Plume.SwitchProps {
         ${params
           .map(
             (param) =>

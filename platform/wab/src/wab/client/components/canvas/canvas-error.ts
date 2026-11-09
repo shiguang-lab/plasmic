@@ -5,18 +5,10 @@ import {
 import { handleError } from "@/wab/client/ErrorNotifications";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
-import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import {
-  classNameProp,
-  dataCanvasEnvsProp,
-  valKeyProp,
-  valOwnerProp,
-} from "@/wab/shared/canvas-constants";
 import { getExportedComponentName } from "@/wab/shared/codegen/react-p/serialize-utils";
 import { getComponentDisplayName } from "@/wab/shared/core/components";
 import { summarizeTpl } from "@/wab/shared/core/tpls";
 import { assert } from "@/wab/shared/common";
-import type { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import {
   Component,
   isKnownComponent,
@@ -33,119 +25,41 @@ export interface CanvasErrorBoundaryProps {
   ctx: RenderingCtx;
 }
 
-interface CanvasErrorBoundaryState {
-  error?: Error | null;
+/** Native error capture keeps model context on props for the canvas collector. */
+export function wrapCanvasErrorBoundary(props: CanvasErrorBoundaryProps) {
+  const { ctx, nodeOrComponent, nodeProps, children } = props;
+  const view = ctx.viewCtx;
+  assert(!view.disposeSignal.aborted, "Cannot create a canvas error boundary for a disposed view");
+  return view.canvasCtx.Sub.React.createElement(view.canvasCtx.Sub.CanvasErrorBoundary, {
+    ...props,
+    lifetime: view.disposeSignal,
+    subscribeToChanges: (listener) => view.subscribeToCanvasChanges(listener),
+    isPendingError: isPlasmicUndefinedDataErrorPromise,
+    renderError: (error) => {
+      const errorElement = deriveOffendingElement(error);
+      const title = isKnownComponent(nodeOrComponent)
+        ? `Error in ${getExportedComponentName(nodeOrComponent)}${errorElement ? ` when rendering ${errorElement}` : ""}:`
+        : `Error in ${summarizeTpl(nodeOrComponent)}:`;
+      return renderCanvasErrorDisplay(ctx, title, error, nodeOrComponent, nodeProps);
+    },
+    children,
+  });
 }
 
-function createCanvasErrorBoundary(viewCtx: ViewCtx, react: typeof React, dataContext: SubDeps["DataContext"]) {
-    const ReactComponent = react.Component;
-    return class CanvasErrorBoundary extends ReactComponent<
-      CanvasErrorBoundaryProps,
-      CanvasErrorBoundaryState
-    > {
-      static contextType = dataContext;
-
-      constructor(props) {
-        super(props);
-        this.state = {};
-      }
-
-      static getDerivedStateFromError(error: Error) {
-        return { error };
-      }
-
-      componentDidMount() {
-        viewCtx.disposeSignal.addEventListener("abort", this.stopWatchingOwner, { once: true });
-        this.componentDidMountOrUpdate();
-      }
-
-      componentDidUpdate() {
-        this.componentDidMountOrUpdate();
-      }
-
-      private stopWatching?: () => void;
-
-      private resetError = () => {
-        if (this.stopWatching && !viewCtx.disposeSignal.aborted) {
-          this.setState({ error: null });
-        }
-      };
-
-      private stopWatchingOwner = () => {
-        this.stopWatching?.();
-        this.stopWatching = undefined;
-      };
-
-      private componentDidMountOrUpdate() {
-        if (viewCtx.disposeSignal.aborted) { return; }
-        if (this.state.error && !isPlasmicUndefinedDataErrorPromise(this.state.error)) {
-          // Subscribe without scheduling work: a persistent error must not
-          // drive its own retry loop. Model/dependency evaluation flushes this.
-          this.stopWatching ??= viewCtx.subscribeToCanvasChanges(this.resetError);
-        } else {
-          this.stopWatching?.();
-          this.stopWatching = undefined;
-        }
-      }
-
-      componentWillUnmount() {
-        this.stopWatchingOwner();
-        viewCtx.disposeSignal.removeEventListener("abort", this.stopWatchingOwner);
-      }
-
-      render() {
-        const r = react.createElement;
-        const { ctx, children, nodeOrComponent, nodeProps } = this.props;
-        if (this.state.error != null) {
-          if (isPlasmicUndefinedDataErrorPromise(this.state.error)) {
-            throw this.state.error;
-          }
-
-          const deriveTitle = () => {
-            if (isKnownComponent(nodeOrComponent)) {
-              // Error boundary at the root of a component
-              const errorElement = deriveOffendingElement(this.state.error);
-              if (errorElement) {
-                return `Error in ${getExportedComponentName(
-                  nodeOrComponent,
-                )} when rendering ${errorElement}:`;
-              } else {
-                return `Error in ${getExportedComponentName(nodeOrComponent)}:`;
-              }
-            } else {
-              // Error boundary for a specific element
-              return `Error in ${summarizeTpl(nodeOrComponent)}:`;
-            }
-          };
-
-          return r(mkCanvasErrorDisplay(react), {
-            ctx: ctx,
-            error: this.state.error,
-            nodeOrComponent,
-            nodeProps,
-            title: deriveTitle(),
-          });
-        } else {
-          return children;
-        }
-      }
-    };
-  }
-
-interface CanvasErrorDisplayProps {
-  ctx: RenderingCtx;
-  nodeOrComponent: TplNode | Component;
-  /**
-   * The props used to instantiate nodeOrComponent with. We don't actually use this,
-   * but it is read by globalHook to gather component props
-   */
-  nodeProps?: Record<string, any>;
-  title: React.ReactNode;
-  error: any;
+function renderCanvasErrorDisplay(ctx: RenderingCtx, title: React.ReactNode, error: unknown, nodeOrComponent: TplNode | Component, nodeProps?: Record<string, any>) {
+  return ctx.viewCtx.canvasCtx.Sub.React.createElement(ctx.viewCtx.canvasCtx.Sub.CanvasErrorDisplay, {
+    ctx,
+    nodeOrComponent,
+    nodeProps,
+    title,
+    message: String(error),
+    valKey: ctx.valKey,
+    ownerKey: ctx.ownerKey,
+    envId: getEnvId(ctx),
+  });
 }
 
 export function withErrorDisplayFallback<T>(
-  react: typeof React,
   ctx: RenderingCtx,
   nodeOrComponent: TplNode | Component,
   fn: () => T,
@@ -169,76 +83,12 @@ export function withErrorDisplayFallback<T>(
       // rerender observer that loops indefinitely while queries are pending.
       return null as unknown as T;
     }
-    return react.createElement(mkCanvasErrorDisplay(react), {
-      ctx,
-      nodeOrComponent,
-      error,
-      title: translate(getUiLocale(), "Error in {part1}:", {
-        part1: String(
-          isKnownComponent(nodeOrComponent)
-            ? getComponentDisplayName(nodeOrComponent)
-            : summarizeTpl(nodeOrComponent),
-        ),
-      }),
-    });
+    return renderCanvasErrorDisplay(ctx, translate(getUiLocale(), "Error in {part1}:", {
+      part1: String(isKnownComponent(nodeOrComponent)
+        ? getComponentDisplayName(nodeOrComponent)
+        : summarizeTpl(nodeOrComponent)),
+    }), error, nodeOrComponent);
   }
-}
-
-function createCanvasErrorDisplay(react: typeof React) {
-  const ReactComponent = react.Component;
-  return class CanvasErrorDisplay extends ReactComponent<CanvasErrorDisplayProps> {
-    render() {
-      const { ctx, title, error } = this.props;
-
-      const valKey = ctx.valKey;
-      const ownerKey = ctx.ownerKey;
-      const envId = getEnvId(ctx);
-
-      const r = react.createElement;
-      return r(
-        "div",
-        {
-          className: "__wab_error-display",
-          [valKeyProp]: valKey,
-          [dataCanvasEnvsProp]: envId,
-          [valOwnerProp]: ownerKey,
-          [classNameProp]: "__wab_error-display",
-        },
-        r(
-          "div",
-          { className: "__wab_error-display__inner" },
-          r("div", { className: "__wab_error-display__heading" }, title),
-          r("div", { className: "__wab_error-display__code" }, `${error}`),
-        ),
-      );
-    }
-  };
-}
-
-type BoundaryType = ReturnType<typeof createCanvasErrorBoundary>;
-const boundaryTypes = new WeakMap<ViewCtx, WeakMap<typeof React, WeakMap<SubDeps["DataContext"], BoundaryType>>>();
-
-/** Boundary types capture one view and one iframe module graph. */
-export function mkCanvasErrorBoundary(view: ViewCtx, react: typeof React) {
-  assert(!view.disposeSignal.aborted, "Cannot create a canvas error boundary for a disposed view");
-  let byReact = boundaryTypes.get(view);
-  if (!byReact) {
-    byReact = new WeakMap(); boundaryTypes.set(view, byReact);
-    view.disposeSignal.addEventListener("abort", () => boundaryTypes.delete(view), { once: true });
-  }
-  let byContext = byReact.get(react);
-  if (!byContext) { byContext = new WeakMap(); byReact.set(react, byContext); }
-  const context = view.canvasCtx.Sub.DataContext;
-  let boundary = byContext.get(context);
-  if (!boundary) { boundary = createCanvasErrorBoundary(view, react, context); byContext.set(context, boundary); }
-  return boundary;
-}
-
-const errorDisplays = new WeakMap<typeof React, ReturnType<typeof createCanvasErrorDisplay>>();
-function mkCanvasErrorDisplay(react: typeof React) {
-  let display = errorDisplays.get(react);
-  if (!display) { display = createCanvasErrorDisplay(react); errorDisplays.set(react, display); }
-  return display;
 }
 
 function deriveOffendingElement(error: Error | null | undefined) {

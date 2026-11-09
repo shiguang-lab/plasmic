@@ -1,5 +1,9 @@
-import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
-import { useShallow } from "zustand/react/shallow";
+import { useVariantLabelInputs } from "@/wab/client/components/variants/variant-label-inputs";
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { useTplStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useCurrentSharedVariantCombo } from "@/wab/client/studio-ctx/variant-state";
 import { VariantAnimations } from "@/wab/client/components/sidebar-tabs/VariantAnimations";
 import { SelectorTags } from "@/wab/client/components/sidebar/RuleSetControls";
 import VariantRow from "@/wab/client/components/variants/VariantRow";
@@ -8,7 +12,6 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { getBaseVariant } from "@/wab/shared/Variants";
 import { TplTag } from "@/wab/shared/model/classes";
-import { observer } from "mobx-react";
 import React from "react";
 
 interface BaseVariantRowProps {
@@ -19,15 +22,22 @@ interface BaseVariantRowProps {
   onClick: () => void;
 }
 
-export const BaseVariantRow = observer(function BaseVariantRow(
+export const BaseVariantRow = React.memo(function BaseVariantRow(props: BaseVariantRowProps) {
+  const world = useVariantModelWorld(props.studioCtx, props.tpl, props.viewCtx);
+  return world.alive ? <BaseVariantRowContent {...props} /> : null;
+});
+const BaseVariantRowContent = React.memo(function BaseVariantRowContent(
   props: BaseVariantRowProps,
 ) {
   const { tpl, studioCtx, viewCtx, pinState, onClick } = props;
-  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+
+  const context = useViewSelection(viewCtx, (state) => state.context);
+  const provider = React.useMemo(() => new TplExpsProvider(viewCtx, tpl), [viewCtx, tpl, context]);
+  useTplStyleIndicators(provider, ["animation"]);
 
   // Get the target RuleSet for the non-private variant combo
-  const vtm = viewCtx.variantTplMgr();
-  const variantCombo = vtm.getCurrentSharedVariantComboForNode(tpl);
+  const variantCombo = useCurrentSharedVariantCombo(viewCtx, tpl);
+  useVariantLabelInputs(studioCtx, variantCombo, { node: tpl });
 
   return (
     <VariantAnimations variants={variantCombo} tpl={tpl} viewCtx={viewCtx}>

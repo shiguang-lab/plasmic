@@ -21,6 +21,8 @@ import fs from "fs";
 import path from "path";
 import process from "process";
 import { promisify } from "util";
+import { transformSync } from "@babel/core";
+import { reactCompilerOptions } from "../../../../../tools/react-compiler.mjs";
 
 export async function codegen(
   dir: string,
@@ -226,6 +228,9 @@ declare module '*.module.css' {
       [
         "declare module 'next/link';",
         "declare module 'next/router';",
+        "declare module 'next/compat/router' {",
+        "  export function useRouter(): { pathname: string; query: Record<string, string | string[] | undefined>; push(href: string): Promise<boolean> } | null;",
+        "}",
         "declare module 'next/navigation';",
         // Declare types from 'next' used in generated skeletons
         "declare module 'next' {",
@@ -246,6 +251,28 @@ declare module '*.module.css' {
     throw new Error(
       `Typescript compilation failed: ${err.stdout || err.stderr || err}`,
     );
+  }
+  const clientModules = [
+    ...componentBundles.flatMap((bundle) => [
+      { fileName: bundle.renderModuleFileName, module: bundle.renderModule },
+      { fileName: bundle.skeletonModuleFileName, module: bundle.skeletonModule },
+    ]),
+    ...globalVariantBundles.map((bundle) => ({ fileName: bundle.contextFileName, module: bundle.contextModule })),
+    ...iconAssets.map((bundle) => ({ fileName: bundle.fileName, module: bundle.module })),
+    ...(projectConfig.styleTokensProviderBundle ? [projectConfig.styleTokensProviderBundle] : []),
+    ...(projectConfig.projectModuleBundle ? [projectConfig.projectModuleBundle] : []),
+  ];
+  for (const source of clientModules) {
+    if (!source.fileName || !source.module) { continue; }
+    const result = transformSync(source.module, {
+      filename: path.join(dir, source.fileName),
+      babelrc: false,
+      configFile: false,
+      presets: ["@babel/preset-typescript", ["@babel/preset-react", { runtime: "classic" }]],
+      plugins: [["babel-plugin-react-compiler", reactCompilerOptions()]],
+    });
+    if (!result?.code) { throw new Error(`Compiler returned no generated code for ${source.fileName}`); }
+    fs.writeFileSync(path.join(dir, source.fileName.replace(/\.tsx?$/, ".js")), result.code);
   }
   return { importFromProject, readFromProject, existsInProject };
 }

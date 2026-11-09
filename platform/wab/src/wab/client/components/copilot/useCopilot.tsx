@@ -1,5 +1,6 @@
 import { useAsyncFnStrict } from "@/wab/client/hooks/useAsyncStrict";
-import { CopilotInteraction, CopilotPrompt, CopilotType } from "@/wab/client/studio-ctx/StudioCtx";
+import { CopilotPrompt, CopilotType } from "@/wab/client/studio-ctx/StudioCtx";
+import { useCopilotHistory } from "@/wab/client/studio-ctx/copilot-state";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { trackEvent } from "@/wab/client/tracking";
 import { CopilotInteractionId } from "@/wab/shared/ApiSchema";
@@ -36,48 +37,29 @@ export function useCopilot<Response>({
   const studioCtx = useStudioCtx();
 
   const [copilotResponse, submitPrompt] = useAsyncFnStrict(
-    async (copilotPrompt: CopilotPrompt) => {
-      try {
-        const result = await onCopilotSubmit(copilotPrompt);
-        const {
-          response,
-          displayMessage,
-          copilotInteractionId,
-          data,
-          context,
-          currentValue,
-        } = result;
-
+    (copilotPrompt: CopilotPrompt) => onCopilotSubmit(copilotPrompt)
+      .then((result) => {
+        const { response, displayMessage, copilotInteractionId, data, context, currentValue } = result;
         if (response && copilotInteractionId) {
           studioCtx.addToCopilotHistory(type, {
             prompt: copilotPrompt.prompt,
-            response: response,
-            displayMessage: displayMessage,
+            response,
+            displayMessage,
             id: copilotInteractionId,
           });
         }
-
-        trackCopilotQuery({
-          data,
-          context,
-          currentValue,
-          prompt: copilotPrompt.prompt,
-          result: JSON.stringify(response),
-        });
-
+        trackCopilotQuery({ data, context, currentValue, prompt: copilotPrompt.prompt, result: JSON.stringify(response) });
         return result;
-      } catch (err) {
+      })
+      .catch((err) => {
         if (err.name === "CopilotRateLimitExceededError") {
-          return "CopilotRateLimitExceededError";
+          return "CopilotRateLimitExceededError" as const;
         }
         throw err;
-      }
-    },
+      }),
   );
 
-  const suggestionHistory = studioCtx.getCopilotHistory(
-    type,
-  ) as CopilotInteraction<Response>[];
+  const suggestionHistory = useCopilotHistory<Response>(studioCtx, type);
 
   const state: CopilotState = showHistory
     ? suggestionHistory.length > 0

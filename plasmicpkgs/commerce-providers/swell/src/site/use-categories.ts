@@ -66,7 +66,7 @@ export const handler: SWRHook<GetCategoriesHook> = {
   },
   useHook:
     ({ useData }) =>
-    (input) => {
+    function useCategoriesHandler(input) {
       const response = useData({
         input: [
           ["addIsEmptyField", input?.addIsEmptyField],

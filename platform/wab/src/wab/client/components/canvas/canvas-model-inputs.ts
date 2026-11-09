@@ -1,3 +1,6 @@
+import { computedNodeNamer } from "@/wab/shared/cached-selectors";
+import { flattenTpls } from "@/wab/shared/core/tpls";
+import { isKnownTplTag, isKnownTplSlot, isKnownTplComponent } from "@/wab/shared/model/classes";
 import { ModelFieldStore, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { assert, switchType } from "@/wab/shared/common";
 import { instUtil } from "@/wab/shared/model/InstUtil";
@@ -27,7 +30,7 @@ const renderFields: Record<string, Declaration> = {
   ColorPropType: { fields: ["name", "noDeref"], follow: [] },
   ColumnsConfig: { fields: ["breakUpRows", "colsSizes"], follow: [] },
   ColumnsSetting: { fields: ["screenBreakpoint"], follow: [] },
-  Component: { fields: ["uuid", "name", "params", "states", "tplTree", "variants", "variantGroups", "pageMeta", "codeComponentMeta", "type", "superComp", "plumeInfo", "metadata", "dataQueries", "serverQueries", "alwaysAutoName", "trapsFocus"], follow: ["params", "states", "variants", "variantGroups", "pageMeta", "codeComponentMeta", "plumeInfo", "dataQueries", "serverQueries"] },
+  Component: { fields: ["uuid", "name", "params", "states", "tplTree", "variants", "variantGroups", "pageMeta", "codeComponentMeta", "type", "superComp", "subComps", "plumeInfo", "metadata", "dataQueries", "serverQueries", "alwaysAutoName", "trapsFocus"], follow: ["params", "states", "variants", "variantGroups", "pageMeta", "codeComponentMeta", "plumeInfo", "dataQueries", "serverQueries"] },
   ComponentDataQuery: { fields: ["uuid", "name", "op"], follow: ["op"] },
   ComponentInstance: { fields: ["name", "component"], follow: [] },
   ComponentServerQuery: { fields: ["uuid", "name", "op"], follow: ["op"] },
@@ -246,11 +249,61 @@ export class CanvasModelInputs {
           for (const key of declaration.fields) {
             addField(this.models.declaredField(current, key));
           }
+          if (isKnownComponent(current)) {
+            // Plume wrappers choose their concrete child implementations by
+            // subtype; the child's own mounted contract owns its other fields.
+            current.subComps.forEach((child) => {
+              addField(this.models.declaredField(child, "plumeInfo"));
+              if (child.plumeInfo) { addField(this.models.declaredField(child.plumeInfo, "type")); }
+            });
+          }
           for (const key of declaration.follow) {
             followValue(Reflect.get(current, key));
           }
         };
         visit(model);
+        const namingComponent: Component | TplNode = model;
+        if (isKnownComponent<Component | TplNode>(namingComponent)) {
+          // Contexts retain one namer for the owning component. Observe its
+          // explicit naming/topology inputs, but publish only the derived namer
+          // identity, so a CSS edit cannot invalidate every sibling contract.
+          const watched = new Set<ObjInst>();
+          const nameField = (value: ObjInst, ...keys: string[]) => keys.forEach((key) => fields.add(this.models.declaredField(value, key)));
+          const nameValue = (value: unknown) => {
+            if (Array.isArray(value)) { value.forEach(nameValue); }
+            else if (value && instUtil.isObjInst(value)) { nameModel(value); }
+            else if (value && typeof value === "object") { Object.values(value).forEach(nameValue); }
+          };
+          const nameModel = (value: ObjInst) => {
+            if (watched.has(value) || isKnownTplNode(value)) { return; } watched.add(value);
+            if (isKnownComponent(value)) {
+              nameField(value, "name", "type", "codeComponentMeta");
+              if (value.codeComponentMeta) { nameField(value.codeComponentMeta, "displayName"); }
+              return;
+            }
+            const declaration = renderFields[instUtil.getInstClassName(value)];
+            assert(declaration, () => `Missing canvas name declaration for ${instUtil.getInstClassName(value)}`);
+            declaration.fields.forEach((key) => nameField(value, key));
+            declaration.follow.forEach((key) => nameValue(Reflect.get(value, key)));
+          };
+          flattenTpls(namingComponent.tplTree).forEach((tpl) => {
+            nameField(tpl, "parent");
+            if (isKnownTplTag(tpl)) {
+              nameField(tpl, "name", "tag", "type", "children", "codeGenType");
+              if (tpl.tag === "input" || (tpl.type === "text" && isKnownTplComponent(tpl.parent))) {
+                nameField(tpl, "vsettings"); tpl.vsettings.forEach(nameModel);
+              }
+            } else if (isKnownTplComponent(tpl)) {
+              nameField(tpl, "name", "component", "vsettings"); nameModel(tpl.component);
+              tpl.vsettings.forEach((setting) => {
+                nameField(setting, "args"); setting.args.forEach((arg) => { nameField(arg, "expr"); nameValue(arg.expr); });
+              });
+            } else if (isKnownTplSlot(tpl)) {
+              nameField(tpl, "param", "defaultContents"); nameField(tpl.param, "variable"); nameField(tpl.param.variable, "name");
+            }
+          });
+          sources.push(() => computedNodeNamer(namingComponent));
+        }
         for (const [field, stop] of subscriptions) {
           if (!fields.has(field)) {
             stop();

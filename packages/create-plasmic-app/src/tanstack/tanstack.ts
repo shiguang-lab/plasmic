@@ -49,7 +49,7 @@ export const tanstackStrategy: CPAStrategy = {
       "--no-examples",
       "--yes",
       // Berry must install into the project we set up below, not the default PnP one
-      ...(packageManager === "yarn2" ? ["--no-install"] : []),
+      ...(["yarn2", "pnpm"].includes(packageManager) ? ["--no-install"] : []),
     ].join(" ");
 
     await spawnOrFail(createCommand);
@@ -58,11 +58,6 @@ export const tanstackStrategy: CPAStrategy = {
       await initYarnBerryProject(fullProjectPath);
     }
 
-    // Install peer-dep of @tanstack/react-router-with-query
-    await installUpgrade("@tanstack/react-query", {
-      workingDir: projectPath,
-      packageManager,
-    });
   },
   installDeps: async ({ scheme, projectPath, packageManager }) => {
     if (scheme === "loader") {
@@ -70,6 +65,11 @@ export const tanstackStrategy: CPAStrategy = {
         "Plasmic loader scheme is not supported for TanStack platform. Please use the codegen scheme instead."
       );
     } else {
+      // Install after the scaffold has its selected package-manager settings.
+      await installUpgrade("@tanstack/react-query", {
+        workingDir: projectPath,
+        packageManager,
+      });
       return await installCodegenDeps({ projectPath, packageManager });
     }
   },

@@ -1,39 +1,30 @@
 import { useVirtualCombobox } from "@/wab/client/hooks/useVirtualCombobox";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import React from "react";
-import { VariableSizeList } from "react-window";
+import { act, renderHook } from "@testing-library/react";
 
-afterEach(cleanup);
-it("dispatches repeated keyboard selections when used as an action menu", () => {
-  const selected = vi.fn();
-  const item = { key: "page-template-project-Page" };
-  function Menu() {
-    const ref = React.useRef<VariableSizeList>(null);
-    const menu = useVirtualCombobox({
-      listRef: ref,
-      buildItems: () => ({
-        items: [item],
-        virtualItems: [{ item, itemIndex: 0 }],
-      }),
-      selectedItem: null,
-      alwaysHighlight: true,
-      onSelect: selected,
-      itemToString: (value) => value?.key ?? "",
-    });
-    return (
-      <div {...menu.getComboboxProps()}>
-        <input {...menu.getInputProps({ "aria-label": "Resource search" })} />
-        <ul {...menu.getMenuProps()}>
-          <li {...menu.getItemProps({ item, index: 0 })}>Template</li>
-        </ul>
-      </div>
-    );
-  }
-  render(<Menu />);
-  const input = screen.getByRole("textbox", { name: "Resource search" });
-  fireEvent.keyDown(input, { key: "Enter" });
-  expect(selected).toHaveBeenCalledWith(item);
-  fireEvent.keyDown(input, { key: "ArrowDown" });
-  fireEvent.keyDown(input, { key: "Enter" });
-  expect(selected).toHaveBeenCalledTimes(2);
+vi.mock("downshift", () => ({ useCombobox: () => ({ highlightedIndex: -1 }) }));
+afterEach(() => vi.useRealTimers());
+
+it("debounces across rerenders and cancels work when its delay or owner changes", () => {
+  vi.useFakeTimers();
+  const buildItems = () => ({ items: [], virtualItems: [] });
+  const listRef = { current: null };
+  const onSelect = vi.fn();
+  const view = renderHook(({ debounceMs }) => useVirtualCombobox({ buildItems, listRef, onSelect, debounceMs }), {
+    initialProps: { debounceMs: 100 },
+  });
+  act(() => view.result.current.setQuery("first"));
+  act(() => vi.advanceTimersByTime(50));
+  view.rerender({ debounceMs: 100 });
+  act(() => view.result.current.setQuery("latest"));
+  act(() => vi.advanceTimersByTime(50));
+  expect(view.result.current.query).toBe("");
+  act(() => vi.advanceTimersByTime(50));
+  expect(view.result.current.query).toBe("latest");
+  act(() => view.result.current.setQuery("retired"));
+  view.rerender({ debounceMs: 200 });
+  act(() => vi.advanceTimersByTime(100));
+  expect(view.result.current.query).toBe("latest");
+  act(() => view.result.current.setQuery("unmounted"));
+  view.unmount();
+  expect(vi.getTimerCount()).toBe(0);
 });

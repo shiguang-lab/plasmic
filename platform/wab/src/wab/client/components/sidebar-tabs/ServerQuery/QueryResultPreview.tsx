@@ -1,3 +1,4 @@
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useStore } from "zustand";
 import styles from "@/wab/client/components/sidebar-tabs/ServerQuery/QueryResultPreview.module.scss";
@@ -12,7 +13,6 @@ import { Modal } from "@/wab/client/components/widgets/Modal";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
-import { observer } from "@/wab/client/utils/mobx-client-util";
 import { ServerQueryOp } from "@/wab/shared/codegen/react-p/server-queries/utils";
 import { StatefulQueryState } from "@/wab/shared/core/custom-functions";
 import { ExprCtx } from "@/wab/shared/core/exprs";
@@ -38,14 +38,17 @@ export const CustomFunctionExprPreview =
     exprCtx: ExprCtx;
     currGlobalThis?: typeof globalThis;
   }) {
-    if (!props.env) {
-      return null;
-    }
-    return <CustomFunctionExprPreviewInner {...props} env={props.env} />;
+    if (!props.env) { return null; }
+    return <BoundCustomFunctionPreview {...props} env={props.env} />;
   }
 ;
 
-const CustomFunctionExprPreviewInner = observer(
+function BoundCustomFunctionPreview(props: Parameters<typeof CustomFunctionExprPreview>[0] & { env: Record<string, any> }) {
+  const studio = useStudioCtx(), world = useVariantModelWorld(studio, props.exprCtx.component ?? props.expr);
+  return world.alive ? <CustomFunctionExprPreviewInner {...props} /> : null;
+}
+
+const CustomFunctionExprPreviewInner = React.memo(
   function CustomFunctionExprPreviewInner(props: {
     expr: CustomFunctionExpr;
     title?: React.ReactNode;
@@ -134,13 +137,16 @@ export const CustomCodePreview = function CustomCodePreview(props: {
   title?: React.ReactNode;
   env?: Record<string, any>;
 }) {
-  if (!props.env) {
-    return null;
-  }
-  return <CustomCodePreviewInner {...props} env={props.env} />;
+  if (!props.env) { return null; }
+  return <BoundCustomCodePreview {...props} env={props.env} />;
 };
 
-const CustomCodePreviewInner = observer(function CustomCodePreviewInner(props: {
+function BoundCustomCodePreview(props: Parameters<typeof CustomCodePreview>[0] & { env: Record<string, any> }) {
+  const studio = useStudioCtx(), world = useVariantModelWorld(studio, props.expr);
+  return world.alive ? <CustomCodePreviewInner {...props} /> : null;
+}
+
+const CustomCodePreviewInner = React.memo(function CustomCodePreviewInner(props: {
   queryUuid: string;
   expr: CustomCode;
   title?: React.ReactNode;
@@ -199,7 +205,14 @@ export function CustomFunctionExprPreviewModal(props: {
   );
 }
 
-export function ServerQueryOpSummary(props: { expr: ServerQueryOp }) {
+export const ServerQueryOpSummary = React.memo(function ServerQueryOpSummary(props: { expr: ServerQueryOp }) {
+  return isKnownCustomFunctionExpr(props.expr) ? <BoundFunctionSummary {...props} /> : <ServerQueryOpSummaryContent {...props} />;
+});
+function BoundFunctionSummary(props: { expr: ServerQueryOp }) {
+  const studio = useStudioCtx(), world = useVariantModelWorld(studio, props.expr);
+  return world.alive ? <ServerQueryOpSummaryContent {...props} /> : null;
+}
+function ServerQueryOpSummaryContent(props: { expr: ServerQueryOp }) {
   const { t: studioUiT } = useI18n();
   const { expr } = props;
   return (

@@ -14,19 +14,19 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -89,11 +89,10 @@ function PlasmicAddCommentMarker__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isRecording",
@@ -103,18 +102,20 @@ function PlasmicAddCommentMarker__RenderFunc(props: {
           $props.isRecording,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <IconButton
@@ -187,12 +188,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -202,28 +199,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicAddCommentMarker__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "icon") {
-    func.displayName = "PlasmicAddCommentMarker";
-  } else {
-    func.displayName = `PlasmicAddCommentMarker.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicAddCommentMarker__iconProps = NodeComponentProps<"icon"> & {key?: React.Key};
+function PlasmicAddCommentMarker__icon<T extends PlasmicAddCommentMarker__iconProps>(props: T & StrictProps<T, PlasmicAddCommentMarker__iconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("icon", props);
+  return <PlasmicAddCommentMarker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"icon"} />;
+}
+PlasmicAddCommentMarker__icon.displayName = "PlasmicAddCommentMarker";
+
+type PlasmicAddCommentMarker__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicAddCommentMarker__freeBox<T extends PlasmicAddCommentMarker__freeBoxProps>(props: T & StrictProps<T, PlasmicAddCommentMarker__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicAddCommentMarker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicAddCommentMarker__freeBox.displayName = "PlasmicAddCommentMarker.freeBox";
+
+type PlasmicAddCommentMarker__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicAddCommentMarker__svg<T extends PlasmicAddCommentMarker__svgProps>(props: T & StrictProps<T, PlasmicAddCommentMarker__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicAddCommentMarker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicAddCommentMarker__svg.displayName = "PlasmicAddCommentMarker.svg";
+
 
 export const PlasmicAddCommentMarker = Object.assign(
   // Top-level PlasmicAddCommentMarker renders the root element
-  makeNodeComponent("icon"),
+  PlasmicAddCommentMarker__icon,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    svg: makeNodeComponent("svg"),
+    freeBox: PlasmicAddCommentMarker__freeBox,
+    svg: PlasmicAddCommentMarker__svg,
 
     // Metadata about props expected for PlasmicAddCommentMarker
     internalVariantProps: PlasmicAddCommentMarker__VariantProps,

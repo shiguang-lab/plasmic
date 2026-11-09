@@ -52,7 +52,7 @@ function ExperimentCanvasButton(props: ExperimentCanvasButtonProps) {
 
   const handleClick = () => {
     studioCtx.switchLeftTab("splits");
-    studioCtx.forceOpenSplit = match;
+    studioCtx.forceOpenSplitStore.setState(studioCtx.modelSnapshots.ref(match), true);
   };
 
   return (

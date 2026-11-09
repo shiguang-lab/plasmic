@@ -11,7 +11,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { DefaultChartViewProps } from "@/wab/client/plasmic/plasmic_kit_analytics/PlasmicChartView";
 import { ensure } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Button, Card, Empty, theme } from "antd";
+import { Button, Card, Empty, theme as AntdTheme } from "antd";
 import { sortBy, uniqBy } from "lodash";
 import moment from "moment";
 import * as React from "react";
@@ -39,7 +39,7 @@ function AnalyticsChartResult(
   props: ReturnType<typeof useChartData> & ChartFilters,
 ) {
   const { event, splitId, analyticsQuery, projectMeta } = props;
-  const { token } = theme.useToken();
+  const { token } = AntdTheme.useToken();
   const { t } = useI18n();
 
   if (!analyticsQuery || !projectMeta) {

@@ -1,75 +1,57 @@
-import { expect, Locator } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { test } from "../fixtures/test";
 import { modifierKey } from "../utils/key-utils";
 import { goToProject } from "../utils/studio-utils";
+import { createAuditPage, selectedOpacity, setSelectedOpacity, showAuditLayers } from "../utils/migration-live";
 
 test.describe("left-panel", () => {
   let projectId: string;
+  let errors: string[];
   test.beforeEach(async ({ apiClient, page }) => {
+    errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    page.on("console", message => {
+      if (message.type() === "error" && message.text().startsWith("Studio operation failed")) { errors.push(message.text()); }
+    });
     projectId = await apiClient.setupNewProject({ name: "left-panel" });
     await goToProject(page, `/projects/${projectId}`);
+    await createAuditPage(page, "OutlineAudit");
   });
-
   test.afterEach(async ({ apiClient }) => {
     await apiClient.removeProjectAfterTest(projectId, "user2@example.com");
+    expect(errors).toEqual([]);
   });
 
-  test("shows a blue indicator and popover to the left of an element if any non-default property", async ({
-    models,
-  }) => {
-    await models.studio.leftPanel.addAndSelectNewArtboard();
-
+  test("shows the non-default style in the outline popover and clears its actual rendered value", async ({ models, page }) => {
     await models.studio.leftPanel.insertNode("Text");
-
-    await models.studio.leftPanel.switchToTreeTab();
-    const selectedNode = models.studio.leftPanel.focusedTreeNode;
-    await selectedNode
-      .locator('[data-test-class="left-panel-indicator"] > div')
-      .hover();
-
-    const indicators = models.studio.frame.locator(
-      '[data-test-class="indicator-clear"]',
-    );
-    const count = await indicators.count();
-    for (let i = count - 1; i >= 0; i -= 1) {
-      await indicators.nth(i).click();
-    }
-
-    await expect(
-      selectedNode.locator('[data-test-class="left-panel-indicator"] > div'),
-    ).toBeVisible();
+    await setSelectedOpacity(page, "0.42");
+    await showAuditLayers(page);
+    const node = models.studio.leftPanel.focusedTreeNode;
+    const indicator = node.locator('[data-test-class="left-panel-indicator"] > div');
+    await expect(indicator).toBeVisible();
+    await indicator.hover();
+    const opacity = models.studio.frame.locator(".defined-indicator__source").filter({ hasText: /Opacity|不透明度/ });
+    await expect(opacity).toContainText("0.42");
+    await opacity.locator('[data-test-class="indicator-clear"]').click();
+    await expect.poll(() => selectedOpacity(page)).toBe("1");
+    await expect(opacity).toHaveCount(0);
   });
 
-  test("should allow copy and paste from outline", async ({ page, models }) => {
-    // Click a Tpl element selector `el`, wait for it to be selected, and press a key
-    const selectElementAndPress = async (el: Locator, key: string) => {
-      await el.click();
-      await models.studio.frame
-        .locator(".HoverBox__Dims")
-        .waitFor({ state: "visible" });
-      await page.keyboard.press(key);
-    };
-
-    await models.studio.leftPanel.addAndSelectNewArtboard();
-
+  test("copies and pastes actual nodes from the outline", async ({ page, models }) => {
     await models.studio.leftPanel.insertNode("Vertical stack");
-
-    await models.studio.leftPanel.switchToTreeTab();
-    const selectedNode = models.studio.leftPanel.focusedTreeNode;
-
-    await selectElementAndPress(selectedNode, `${modifierKey}+c`);
-
-    const PASTES_COUNT = 10;
-    for (let i = 0; i < PASTES_COUNT; i++) {
-      await selectElementAndPress(selectedNode, `${modifierKey}+v`);
+    await showAuditLayers(page);
+    const labels = models.studio.leftPanel.treeLabels;
+    const original = models.studio.leftPanel.focusedTreeNode;
+    await original.click();
+    const initialCount = await labels.count();
+    await page.keyboard.press(`${modifierKey}+c`);
+    for (let i = 1; i <= 10; i++) {
+      await page.keyboard.press(`${modifierKey}+v`);
+      await expect(labels).toHaveCount(initialCount + i);
     }
-
-    await selectElementAndPress(selectedNode, `${modifierKey}+c`);
-
+    await models.studio.leftPanel.focusedTreeNode.click();
+    await page.keyboard.press(`${modifierKey}+c`);
     await page.keyboard.press(`${modifierKey}+v`);
-    const treeLabels = models.studio.leftPanel.treeLabels;
-    const labelCount = await treeLabels.count();
-    expect(labelCount).toBe(1 + 1 + PASTES_COUNT + 1);
-    // free box + original + multiple pastes + 1 paste
+    await expect(labels).toHaveCount(initialCount + 11);
   });
 });

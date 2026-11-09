@@ -4,7 +4,7 @@ import { PublicLink } from "@/wab/client/components/PublicLink";
 import { useI18n } from "@/wab/client/i18n";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { UiConfig } from "@/wab/shared/ui-config-utils";
-import { Tooltip, theme } from "antd";
+import { Tooltip, theme as AntdTheme } from "antd";
 import * as React from "react";
 
 export function BrandLink({
@@ -13,7 +13,7 @@ export function BrandLink({
   ...props
 }: React.ComponentProps<"a"> & { brand?: UiConfig["brand"] }) {
   const { t } = useI18n();
-  const { token } = theme.useToken();
+  const { token } = AntdTheme.useToken();
   const label = brand.logoTooltip ?? t("Back to dashboard");
   return (
     <Tooltip title={label}>

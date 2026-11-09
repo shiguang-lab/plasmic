@@ -31,7 +31,11 @@ import { lintSite } from "@/wab/shared/linting/lint-utils";
 import { Component, isKnownComponent } from "@/wab/shared/model/classes";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Button, Empty, Popover, Space, notification } from "antd";
-import { observer } from "mobx-react";
+import { LintDocumentInputs } from "@/wab/client/linting/lint-document-inputs";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { useFocusedViewCtx, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useViewRegistry } from "@/wab/client/studio-ctx/arena-state";
+import { useStore } from "zustand";
 import * as React from "react";
 import { useState } from "react";
 
@@ -83,13 +87,35 @@ for (const [type, label] of Object.entries(issueTypeToLabel)) {
 const LeftLintIssuesPanel = React.forwardRef(LeftLintIssuesPanel_);
 export default LeftLintIssuesPanel;
 
-const SiteIssuesList = observer(function SiteIssuesList() {
+const SiteIssuesList = React.memo(function SiteIssuesList() {
+  const studio = useStudioCtx();
+  const ready = useStore(studio.arenaState.readinessStore);
+  const lifetime = studio.arenaState.lifetime();
+  const inputs = React.useMemo(() => new LintDocumentInputs(studio), [studio, studio.modelSnapshots, studio.site, lifetime]);
+  const version = React.useSyncExternalStore(inputs.subscribe, inputs.getSnapshot, inputs.getSnapshot);
+  return ready && version >= 0 ? <SiteIssuesContent key={inputs.key} inputs={inputs} /> : null;
+});
+
+function SiteIssuesContent({inputs}: {inputs: LintDocumentInputs}) {
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   useStudioSelection(studioCtx, (state) => state.view);
   useStudioArena(studioCtx, (state) => state.current);
   useStudioArena(studioCtx, (state) => state.frames[0]);
   const site = studioCtx.site;
+  const view = useFocusedViewCtx(studioCtx);
+  useCanvasRenderCount(view);
+  useViewSelection(view, (state) => state.context);
+  useViewRegistry(studioCtx, (entries) => entries);
+  const [, refreshRegistration] = React.useReducer((value: number) => value + 1, 0);
+  React.useEffect(() => {
+    if (!view || view.disposeSignal.aborted || !inputs.isCurrent()) {return;}
+    let connected = true;
+    const stop = view.canvasCtx.registrations.subscribeBeforePublish(() => () => {
+      if (connected && inputs.isCurrent() && !view.disposeSignal.aborted) {refreshRegistration();}
+    });
+    return () => {connected = false; stop();};
+  }, [view, inputs]);
 
   const { roles: appRoles } = useAppRoles(
     studioCtx.appCtx,
@@ -148,6 +174,7 @@ const SiteIssuesList = observer(function SiteIssuesList() {
         <Button
           className="fill-width"
           onClick={() => {
+            if (!inputs.isCurrent()) {return;}
             const viewCtx = studioCtx.focusedOrFirstViewCtx();
             if (!viewCtx) {
               return;
@@ -251,4 +278,4 @@ const SiteIssuesList = observer(function SiteIssuesList() {
       )}
     </>
   );
-});
+}

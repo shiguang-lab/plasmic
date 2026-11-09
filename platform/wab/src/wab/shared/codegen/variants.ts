@@ -92,13 +92,14 @@ export function ${makeGlobalVariantGroupUseName(vg)}() {
     );
 
     serializedHook = `
-export const useScreenVariants = createUseScreenVariants(${jsLiteral(
-      vg.multi,
-    )},{
+const screenVariantStore = createScreenVariantStore({
   ${variants
     .map((v) => `"${toVarName(v.name)}": "${v.mediaQuery}"`)
     .join(",\n")}
 });
+export function useScreenVariants() {
+  return useProjectScreenVariants(screenVariantStore, ${jsLiteral(vg.multi)});
+}
     `;
   } else {
     if (opts.useGlobalVariantsSubstitutionApi) {
@@ -124,7 +125,7 @@ export function ${makeGlobalVariantGroupUseName(vg)}() {
     ${makeUseClient(opts)}
 
     import * as React from "react";
-    import { createUseScreenVariants } from "${getReactWebPackageName(opts)}";
+    import { createScreenVariantStore, useScreenVariants as useProjectScreenVariants } from "${getReactWebPackageName(opts)}";
 
     export type ${valueTypeName} = ${serializeVariantGroupMembersType(vg)};
     export const ${contextName} = React.createContext<${contextType}>("${DEFAULT_CONTEXT_VALUE}" as any);

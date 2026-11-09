@@ -203,3 +203,76 @@ export function useSuperComponentVariantInputs(studio: StudioCtx, component: Com
   const snapshot = React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
   return { snapshot, resolve: (ref: ModelRef<Variant>) => source.resolve(ref) };
 }
+
+interface StandaloneVariantSnapshot {
+  readonly active: boolean;
+  readonly fields: readonly unknown[];
+}
+const noStandaloneVariant: StandaloneVariantSnapshot = Object.freeze({ active: false, fields: Object.freeze([]) });
+
+/** Standalone row metadata. Its menu callbacks retain the original group and
+ * command targets; only the fields read while rendering are demanded here. */
+export class StandaloneVariantInputs {
+  private current = noStandaloneVariant;
+  private readonly fields = new Map<ModelFieldStore<unknown>, () => void>();
+  private readonly listeners = new Set<() => void>();
+  private connected = false;
+  constructor(private readonly studio: StudioCtx, private readonly component: Component,
+    private readonly group: ComponentVariantGroup,
+    private readonly world = bindComponentWorld(studio, component)) {
+    this.getSnapshot();
+  }
+  private isClosed() { return this.world.lifetime.aborted || this.world.models !== this.studio.modelSnapshots; }
+  private disconnect = () => {
+    this.connected = false;
+    this.world.lifetime.removeEventListener("abort", this.close);
+    this.fields.forEach((stop) => stop()); this.fields.clear();
+  };
+  private close = () => {
+    this.current = noStandaloneVariant; this.disconnect();
+    this.listeners.forEach((listener) => listener());
+  };
+  private sync = () => {
+    const previous = this.current; this.getSnapshot();
+    if (previous !== this.current) { this.listeners.forEach((listener) => listener()); }
+  };
+  getSnapshot = (): StandaloneVariantSnapshot => {
+    if (this.isClosed()) { this.current = noStandaloneVariant; this.disconnect(); return this.current; }
+    const used = new Set<ModelFieldStore<unknown>>();
+    const field = (model: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(this.world.models.declaredField(model, key)));
+    field(this.component, "plumeInfo");
+    if (this.component.plumeInfo) { field(this.component.plumeInfo, "type"); }
+    field(this.group, "variants", "param"); field(this.group.param, "defaultExpr");
+    const variant = this.group.variants[0];
+    if (variant) {
+      field(variant, "name", "parent");
+      if (variant.parent) {
+        field(variant.parent, "param"); field(variant.parent.param, "variable");
+        field(variant.parent.param.variable, "name");
+      }
+    }
+    const values = [...used].map((store) => store.getState());
+    if (this.current.active !== !!variant || !arrayEq(this.current.fields, values)) {
+      this.current = Object.freeze({ active: !!variant, fields: Object.freeze(values) });
+    }
+    if (this.connected) {
+      for (const store of used) { if (!this.fields.has(store)) { this.fields.set(store, store.subscribe(this.sync)); } }
+      for (const [store, stop] of this.fields) { if (!used.has(store)) { stop(); this.fields.delete(store); } }
+    }
+    return this.current;
+  };
+  subscribe = (listener: () => void) => {
+    if (this.isClosed()) { return () => undefined; }
+    this.listeners.add(listener);
+    if (!this.connected) {
+      this.connected = true; this.world.lifetime.addEventListener("abort", this.close, { once: true }); this.sync();
+    }
+    return () => { this.listeners.delete(listener); if (!this.listeners.size) { this.disconnect(); } };
+  };
+}
+
+export function useStandaloneVariantInputs(studio: StudioCtx, component: Component, group: ComponentVariantGroup) {
+  const world = React.useMemo(() => bindComponentWorld(studio, component), [studio, component]);
+  const source = React.useMemo(() => new StandaloneVariantInputs(studio, component, group, world), [studio, component, group, world]);
+  return React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot).active;
+}

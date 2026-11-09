@@ -1,3 +1,5 @@
+import { usePropExpressionValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
+import { useCurrentModelWorld, useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useInspectorComponentEvalContext } from "@/wab/client/studio-ctx/inspector-state";
 import { ArrayPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/ArrayPropEditor";
@@ -144,7 +146,6 @@ import { smartHumanize } from "@/wab/shared/strs";
 import { ComponentContextConfig } from "@plasmicapp/host";
 import type { RulesLogic } from "json-logic-js";
 import L, { isNil, isNumber } from "lodash";
-import { observer } from "mobx-react";
 import React from "react";
 
 /**
@@ -209,10 +210,9 @@ const PropValueEditor_ = (
   } = usePropValueEditorContext();
   useViewSelection(viewCtx, (state) => state.context);
   const studioCtx = useStudioCtx();
-  const litValue = React.useMemo(
-    () => (isKnownExpr(value) ? tryExtractJson(value) : value),
-    [value, env],
-  );
+  const identity = tpl ?? component ?? exprCtx?.component ?? (isKnownExpr(value) ? value : studioCtx);
+  const litValue = usePropExpressionValue(studioCtx, identity, value, exprCtx?.component ?? component,
+    () => isKnownExpr(value) ? tryExtractJson(value) : value);
   const [isDataPickerVisible, setIsDataPickerVisible] =
     React.useState<boolean>(false);
 
@@ -1281,11 +1281,10 @@ const PropValueEditor_ = (
       />
     );
   } else if (getPropTypeType(propType) === "imageUrl") {
-    const sc = useStudioCtx();
     return (
       <ImagePropEditor
         attr={attr}
-        studioCtx={sc}
+        studioCtx={studioCtx}
         value={
           isKnownImageAssetRef(value)
             ? value.asset
@@ -1360,7 +1359,17 @@ const PropValueEditor_ = (
   }
 };
 
-export const PropValueEditor = observer(React.forwardRef(PropValueEditor_));
+const PropValueEditorContent = React.memo(React.forwardRef(PropValueEditor_));
+export const PropValueEditor = React.memo(React.forwardRef(function PropValueEditor(props: Parameters<typeof PropValueEditor_>[0], ref) {
+  const studio = useStudioCtx(), context = usePropValueEditorContext();
+  const liveIdentity = useCurrentModelWorld(studio);
+  const identity = context.tpl ?? props.component ?? context.exprCtx?.component ?? (isKnownExpr(props.value) ? props.value : liveIdentity);
+  const world = useVariantModelWorld(studio, identity, context.viewCtx);
+  return world.alive ? <PropValueEditorContent {...props} ref={ref}
+    onChange={(value) => { if (world.isCurrent()) { props.onChange(value); } }}
+    onDelete={props.onDelete ? () => { if (world.isCurrent()) { props.onDelete?.(); } } : undefined}
+  /> : null;
+}));
 
 export function shouldEditAsTemplatedString(
   propType: StudioPropType<any>,

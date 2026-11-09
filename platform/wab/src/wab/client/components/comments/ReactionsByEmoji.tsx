@@ -1,6 +1,6 @@
 import { Icon as IconComponent } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
-import { TriggerAnchor } from "@/wab/client/components/widgets/TriggerAnchor";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import PlasmicReactionButton from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicReactionButton";
 import EmojiPlusSvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__EmojiPlusSvg";
@@ -111,29 +111,18 @@ export function ReactionsByEmoji(props: {
               )
               .join(", ")}
           >
-            <TriggerAnchor>
-              {(ref, triggerProps) => (
-                <PlasmicReactionButton
-                  {...triggerProps}
-                  root={{ ref }}
-                  includesSelf={!!currentUsersReaction}
-                  emoji={<Emoji size={20} unified={emojiName} />}
-                  count={<>{reactions.length}</>}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (currentUsersReaction) {
-                      commentsCtx.removeReactionFromComment(
-                        currentUsersReaction.id,
-                      );
-                    } else {
-                      commentsCtx.addReactionToComment(commentId, {
-                        emojiName,
-                      });
-                    }
-                  }}
-                />
-              )}
-            </TriggerAnchor>
+            <TriggerTarget>
+<PlasmicReactionButton includesSelf={!!currentUsersReaction} emoji={<Emoji size={20} unified={emojiName} />} count={<>{reactions.length}</>} onClick={e => {
+  e.stopPropagation();
+  if (currentUsersReaction) {
+    commentsCtx.removeReactionFromComment(currentUsersReaction.id);
+  } else {
+    commentsCtx.addReactionToComment(commentId, {
+      emojiName
+    });
+  }
+}} />
+</TriggerTarget>
           </Tooltip>
         );
       })}

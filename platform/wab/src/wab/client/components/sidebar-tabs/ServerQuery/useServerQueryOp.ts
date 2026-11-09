@@ -1,7 +1,10 @@
+import { useServerFunctionRegistration } from "@/wab/client/components/sidebar-tabs/ServerQuery/server-function-registration-inputs";
+import { usePropExpressionValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   buildCustomCodePlasmicQuery,
-  getCustomFunctionParams,
+  captureCustomFunctionParams,
+  evaluateCapturedCustomFunctionParams,
   getInvalidFunctionArgs,
   wrapPlasmicQueryFetch,
 } from "@/wab/shared/core/custom-functions";
@@ -23,7 +26,6 @@ import {
   _StatefulQueryState as StatefulQueryState,
   usePlasmicQueries,
 } from "@plasmicapp/data-sources";
-import type { CustomFunctionRegistration } from "@plasmicapp/host";
 import type { SWRResponse } from "@plasmicapp/query";
 import { usePlasmicDataConfig } from "@plasmicapp/query";
 import React from "react";
@@ -56,6 +58,8 @@ function isCustomCodeOpArgs(args: ServerQueryOpArgs): args is CustomCodeOpArgs {
 // NOOP_QUERY is used when we don't want to execute anything, but we still
 // need to supply valid inputs for usePlasmicQueries, since it renders a
 // different number of hooks depending on the number of queries.
+const EMPTY_ENV = Object.freeze({}) as Record<string, any>;
+
 const NOOP_QUERY: PlasmicQuery = {
   id: "__noop__",
   fn: async () => undefined,
@@ -73,55 +77,41 @@ export function useServerQueryOp(
   args: ServerQueryOpArgs | undefined,
 ): ServerQueryOpResult<unknown> {
   const studioCtx = useStudioCtx();
+  const expression = args ? (isCustomCodeOpArgs(args) ? args.code : args.expr) : undefined;
+  const incomingFunction = args && !isCustomCodeOpArgs(args) ? args.expr : undefined;
+  const incomingCode = args && isCustomCodeOpArgs(args) ? args.code : undefined;
+  const component = args && !isCustomCodeOpArgs(args) ? args.exprCtx.component : undefined;
+  const expressionCtx = args && !isCustomCodeOpArgs(args) ? args.exprCtx : undefined;
+  const customCodeId = args && isCustomCodeOpArgs(args) ? args.fnId : undefined;
+  const capture = React.useCallback(() => incomingFunction && expressionCtx
+    ? { kind: "function" as const, fnId: customFunctionId(incomingFunction.func), func: incomingFunction.func, params: captureCustomFunctionParams(incomingFunction, expressionCtx) }
+    : incomingCode && customCodeId ? { kind: "code" as const, fnId: customCodeId, code: incomingCode.code } : undefined,
+    [incomingFunction, incomingCode, customCodeId, expressionCtx]);
+  const input = usePropExpressionValue(studioCtx, expression ?? studioCtx, expression, component, capture);
+  const func = input?.kind === "function" ? input.func : undefined;
+  const params = input?.kind === "function" ? input.params : undefined;
+  const registration = useServerFunctionRegistration(studioCtx, func);
+  const fnReg = registration?.runtime;
   const wrapFetch = studioCtx.executeServerQuery;
-  const env = args?.env ?? {};
-  const envRef = React.useRef(env);
-  envRef.current = env;
-
-  // Unpack args into stable values for the useMemo deps array.
-  // Common:
-  let fnId: string;
-  // Custom code:
-  let code: string | undefined;
-  // Custom function:
-  let fnReg: CustomFunctionRegistration | undefined;
-  let expr: CustomFunctionExpr | undefined;
-  let exprCtx: ExprCtx | undefined;
-  let currGlobalThis: typeof globalThis | undefined;
-
-  if (!args) {
-    fnId = NOOP_QUERY.id;
-    // everything remains undefined
-  } else if (isCustomCodeOpArgs(args)) {
-    fnId = args.fnId;
-    code = args.code.code;
-  } else {
-    expr = args.expr;
-    exprCtx = args.exprCtx;
-    currGlobalThis = args.currGlobalThis;
-    fnId = customFunctionId(args.expr.func);
-    fnReg = studioCtx.getRegisteredFunction(args.expr.func);
-  }
+  const env = args?.env ?? EMPTY_ENV;
+  const fnId = input?.fnId ?? NOOP_QUERY.id;
+  const code = input?.kind === "code" ? input.code : undefined;
+  const currGlobalThis = args && !isCustomCodeOpArgs(args) ? args.currGlobalThis : undefined;
 
   // Memoized so stable inputs (e.g. the modal's executeArgs snapshot) don't
   // re-evaluate params on every render; the sidebar previews rebuild `env`
   // from canvas data, so validation recomputes there as that data changes.
   const invalidArgs = React.useMemo(() => {
-    if (!expr || !exprCtx || !fnReg) {
+    if (!params || !func || !fnReg) {
       return undefined;
     }
     try {
-      const fnArgs = getCustomFunctionParams(
-        expr,
-        env,
-        exprCtx,
-        currGlobalThis,
-      );
-      return getInvalidFunctionArgs(fnArgs, expr.func, fnReg.meta.params);
+      const fnArgs = evaluateCapturedCustomFunctionParams(params, env, currGlobalThis);
+      return getInvalidFunctionArgs(fnArgs, func, fnReg.meta.params);
     } catch {
       return undefined;
     }
-  }, [env, fnReg, expr, exprCtx, currGlobalThis]);
+  }, [env, fnReg, params, func, currGlobalThis]);
   const hasInvalidArgs = !!invalidArgs;
 
   const queryTree = React.useMemo((): QueryComponentNode => {
@@ -133,23 +123,22 @@ export function useServerQueryOp(
       query = buildCustomCodePlasmicQuery(
         fnId,
         code,
-        () => envRef.current ?? {},
+        () => env,
       );
-    } else if (fnReg && expr && exprCtx && !hasInvalidArgs) {
+    } else if (fnReg && params && !hasInvalidArgs) {
       query = {
         id: fnId,
         fn: fnReg.function,
         args: ({ $q, $props, $ctx, $state }: QueryExecutionContext) =>
-          getCustomFunctionParams(
-            expr!,
+          evaluateCapturedCustomFunctionParams(
+            params,
             {
-              ...(envRef.current ?? {}),
-              $q: { ...(envRef.current?.$q ?? {}), ...$q },
+              ...env,
+              $q: { ...(env.$q ?? {}), ...$q },
               $props,
               $ctx,
               $state,
             },
-            exprCtx!,
             currGlobalThis,
           ),
       };
@@ -175,10 +164,10 @@ export function useServerQueryOp(
     hasInvalidArgs,
     code,
     fnReg,
-    expr,
-    exprCtx,
+    params,
     currGlobalThis,
     wrapFetch,
+    env,
   ]);
 
   const $queries = usePlasmicQueries(queryTree, {
@@ -187,17 +176,19 @@ export function useServerQueryOp(
     $state: env.$state ?? {},
   });
 
-  // $query is a mutable object and will not trigger React updates as normal,
-  // so we secretly use the internal state which is guaranteed to change.
   const $query =
     fnId === NOOP_QUERY.id
       ? undefined
       : ($queries[fnId] as StatefulQueryResult);
-  const queryState = $query?.current;
+  const subscribeQuery = React.useCallback((listener: () => void) => {
+    $query?.addListener(listener);
+    return () => $query?.removeListener(listener);
+  }, [$query]);
+  const readQuery = () => $query?.current;
+  const queryState = React.useSyncExternalStore(subscribeQuery, readQuery, readQuery);
 
   const { mutate } = usePlasmicDataConfig();
-  const swrResponse = React.useMemo(
-    () => ({
+  const swrResponse = {
       mutate: async () => {
         const key = $query?.current.key;
         if (!key) {
@@ -208,9 +199,7 @@ export function useServerQueryOp(
         studioCtx.mutateDataOp(key);
         return mutate(key);
       },
-    }),
-    [$query, mutate, studioCtx],
-  );
+    };
 
   return {
     queryState,

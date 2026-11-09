@@ -154,7 +154,7 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
       viewCtx.site,
       viewCtx.siteInfo.id,
     );
-  }, [value, viewCtx?.site, viewCtx?.siteInfo]);
+  }, [value, viewCtx]);
 
   const { t } = useI18n();
   const [codeEditing, setCodeEditing] = React.useState(
@@ -172,6 +172,7 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
   );
   const selection = useInspectorSelection(viewCtx?.studioCtx);
   const focusedTpl = selection?.viewCtx === viewCtx && selection?.tplCount === 1 ? selection.tpl ?? undefined : undefined;
+  const currentComponent = viewCtx?.currentComponent();
   const fixedData = React.useMemo(
     // If schema is given, then include schema, mapped to undefined, in the
     // data env, even if it's not present in `data`
@@ -182,10 +183,10 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
           ...(schema ? mapValues(schema, () => undefined) : undefined),
           ...data,
         },
-        viewCtx?.currentComponent(),
+        currentComponent,
         focusedTpl,
       ),
-    [data, schema, viewCtx?.currentComponent(), focusedTpl, componentContext],
+    [data, schema, viewCtx, currentComponent, focusedTpl, componentContext],
   );
   // fixedData unwraps `$q` with `unwrapStatefulQueryResult`, but the code
   // editor preview needs real query results so `$q.x.data` throws on error.
@@ -303,15 +304,12 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
     return searchResults;
   };
 
-  const searchResults = React.useMemo(
-    () => sortBy(getSearchResults(), (x) => x.depth),
-    [query, data],
-  );
+  const searchResults = sortBy(getSearchResults(), (x) => x.depth);
 
   const onItemSelectedHandle = React.useCallback(
     (column: number, item: number) => {
       const oldColumns = columns.slice(0, column + 1);
-      oldColumns[column].selectedItem = item;
+      oldColumns[column] = { ...oldColumns[column], selectedItem: item };
       const curSelectedItem = oldColumns[column].columnItems[item];
       setColumns([
         ...oldColumns,
@@ -321,7 +319,7 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
       setQuery("");
       searchboxRef.current?.focus();
     },
-    [columns],
+    [columns, opts],
   );
 
   const addQueryProps =

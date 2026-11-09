@@ -1,3 +1,5 @@
+import { useResponsivePanelInputs, type ResponsivePanelSnapshot } from "@/wab/client/hooks/responsive-panel-inputs";
+import { useStore } from "zustand";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { NewScreenVariantForm } from "@/wab/client/components/sidebar-tabs/ResponsivenessPanel/NewScreenVariantForm";
 import styles from "@/wab/client/components/sidebar-tabs/ResponsivenessPanel/ResponsivenessPanel.module.scss";
@@ -7,7 +9,6 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import Select from "@/wab/client/components/widgets/Select";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { useResponsiveBreakpoints } from "@/wab/client/hooks/useResponsiveBreakpoints";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { translateUiLabel } from "@/wab/client/i18n/locales";
@@ -20,8 +21,7 @@ import { UiActionsWrapper } from "@/wab/client/studio-ctx/ui/studio-ui-actions";
 import { mkModelUiId } from "@/wab/client/studio-ctx/ui/studio-ui-ids";
 import { FRAMES_LOWER, FRAME_LOWER } from "@/wab/shared/Labels";
 import { areEquivalentScreenVariants } from "@/wab/shared/Variants";
-import { ensure, spawn, xGroupBy } from "@/wab/shared/common";
-import { getSiteScreenSizes } from "@/wab/shared/core/sites";
+import { spawn, xGroupBy } from "@/wab/shared/common";
 import { ScreenSizeSpec } from "@/wab/shared/css-size";
 import { Variant } from "@/wab/shared/model/classes";
 import {
@@ -42,10 +42,12 @@ import SubMenu from "antd/es/menu/SubMenu";
 import cn from "classnames";
 import { findLast } from "lodash";
 import startCase from "lodash/startCase";
-import { observer } from "mobx-react";
 import React, { useState } from "react";
 
-export const ResponsivenessPanel = observer(ResponsivenessPanel_);
+export const ResponsivenessPanel = React.memo(function ResponsivenessPanel() {
+  const studio = useStudioCtx(), source = useResponsivePanelInputs(studio);
+  return source.active ? <ResponsivenessPanel_ key={source.key} breakpoints={source.value} /> : null;
+});
 
 const MissingFrameWarning = MissingFrameWarning_;
 function MissingFrameWarning_({
@@ -86,13 +88,12 @@ function MissingFrameWarning_({
   );
 }
 
-export function ResponsivenessPanel_() {
+export function ResponsivenessPanel_({ breakpoints }: { breakpoints: ResponsivePanelSnapshot }) {
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const site = studioCtx.site;
 
-  const readOnly =
-    studioCtx.getLeftTabPermission("responsiveness") === "readable";
+  const readOnly = useStore(studioCtx.uiEnvironment.store, (state) => state.leftTabPermissions.responsiveness === "readable");
   const [showAddForm, setShowAddForm] = useState(false);
 
   const {
@@ -102,11 +103,9 @@ export function ResponsivenessPanel_() {
     allScreenVariantGroups,
     isActiveOwnedBySite,
     orderedScreenVariants,
-  } = useResponsiveBreakpoints();
+    screenSizes, hasAnyPageArena, activeScreenGroupId, groupOptions,
+  } = breakpoints;
 
-  const screenSizes = getSiteScreenSizes(studioCtx.site);
-
-  const hasAnyPageArena = studioCtx.site.pageArenas.length > 0;
   const screenSizesByVariant = xGroupBy(
     screenSizes.map((it) => ({
       screenSize: it,
@@ -278,24 +277,13 @@ export function ResponsivenessPanel_() {
             {allScreenVariantGroups.length > 1 && (
               <Select
                 aria-label={uiT("Select breakpoints to use")}
-                value={site.activeScreenVariantGroup?.uuid}
+                value={activeScreenGroupId}
                 onChange={handleBreakpointsGroupChange}
                 isDisabled={readOnly}
               >
-                {allScreenVariantGroups.map((group) => (
+                {groupOptions.map((group) => (
                   <Select.Option value={group.uuid} key={group.uuid}>
-                    {site.globalVariantGroups.includes(group)
-                      ? uiT("This project's breakpoints")
-                      : uiT('Breakpoints from "{part1}"', {
-                          part1: String(
-                            ensure(
-                              studioCtx.projectDependencyManager.getOwnerDep(
-                                group,
-                              ),
-                              `Missing dependency for ${group.uuid}`,
-                            ).name,
-                          ),
-                        })}
+                    {group.owned ? uiT("This project's breakpoints") : uiT('Breakpoints from "{part1}"', { part1: String(group.ownerName) })}
                   </Select.Option>
                 ))}
               </Select>
@@ -353,10 +341,10 @@ export function ResponsivenessPanel_() {
             </div>
           )}
           <div className={styles.breakpointsContainer}>
-            {orderedScreenVariants?.map(({ screenSpec, variant }) => {
+            {orderedScreenVariants?.map(({ screenSpec, variant, name }) => {
               const variantNameFieldProps = {
                 placeholder: uiT("Name"),
-                defaultValue: variant.name,
+                defaultValue: name,
                 onBlur: async (e) => {
                   if (e.target.value) {
                     await studioCtx.changeUnsafe(
@@ -375,10 +363,12 @@ export function ResponsivenessPanel_() {
                       <Col span={isActiveOwnedBySite && !readOnly ? 21 : 24}>
                         <Input.Group compact>
                           <Input
+                            key={name}
                             style={{ width: "40%" }}
                             {...variantNameFieldProps}
                           />
                           <InputNumber
+                            key={`min:${screenSpec.minWidth}`}
                             style={{ width: "30%" }}
                             placeholder={uiT("Min W")}
                             formatter={(v) => (v ? `≥ ${v}` : "")}
@@ -393,6 +383,7 @@ export function ResponsivenessPanel_() {
                             disabled={!isActiveOwnedBySite || readOnly}
                           />
                           <InputNumber
+                            key={`max:${screenSpec.maxWidth}`}
                             style={{ width: "30%" }}
                             placeholder={uiT("Max W")}
                             formatter={(v) => (v ? `≤ ${v}` : "")}
@@ -411,7 +402,7 @@ export function ResponsivenessPanel_() {
                     ) : (
                       <>
                         <Col span={isActiveOwnedBySite && !readOnly ? 12 : 15}>
-                          <Input {...variantNameFieldProps} />
+                          <Input key={name} {...variantNameFieldProps} />
                           {hasAnyPageArena &&
                             !screenSizesByVariant.has(variant) && (
                               <MissingFrameWarning
@@ -422,6 +413,7 @@ export function ResponsivenessPanel_() {
                         </Col>
                         <Col span={9}>
                           <InputNumber
+                            key={`${screenSpec.minWidth}:${screenSpec.maxWidth}`}
                             style={{ width: "100%" }}
                             placeholder={
                               isMobileFirst

@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -29,8 +29,8 @@ import Modal from "../../components/Modal"; // plasmic-import: rD0wOVzSnE/compon
 import StarterGroup from "../../components/StarterGroup"; // plasmic-import: u6dq5eydCj/component
 import StarterProject from "../../components/StarterProject"; // plasmic-import: CCsDeqqYeoM/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -98,13 +98,12 @@ function PlasmicNewProjectModal__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <Modal
@@ -708,12 +707,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -723,29 +718,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicNewProjectModal__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicNewProjectModal";
-  } else {
-    func.displayName = `PlasmicNewProjectModal.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicNewProjectModal__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicNewProjectModal__root<T extends PlasmicNewProjectModal__rootProps>(props: T & StrictProps<T, PlasmicNewProjectModal__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicNewProjectModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicNewProjectModal__root.displayName = "PlasmicNewProjectModal";
+
+type PlasmicNewProjectModal__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicNewProjectModal__freeBox<T extends PlasmicNewProjectModal__freeBoxProps>(props: T & StrictProps<T, PlasmicNewProjectModal__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicNewProjectModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicNewProjectModal__freeBox.displayName = "PlasmicNewProjectModal.freeBox";
+
+type PlasmicNewProjectModal__cancelButtonProps = NodeComponentProps<"cancelButton"> & {key?: React.Key};
+function PlasmicNewProjectModal__cancelButton<T extends PlasmicNewProjectModal__cancelButtonProps>(props: T & StrictProps<T, PlasmicNewProjectModal__cancelButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelButton", props);
+  return <PlasmicNewProjectModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelButton"} />;
+}
+PlasmicNewProjectModal__cancelButton.displayName = "PlasmicNewProjectModal.cancelButton";
+
+type PlasmicNewProjectModal__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicNewProjectModal__text<T extends PlasmicNewProjectModal__textProps>(props: T & StrictProps<T, PlasmicNewProjectModal__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicNewProjectModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicNewProjectModal__text.displayName = "PlasmicNewProjectModal.text";
+
 
 export const PlasmicNewProjectModal = Object.assign(
   // Top-level PlasmicNewProjectModal renders the root element
-  makeNodeComponent("root"),
+  PlasmicNewProjectModal__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    cancelButton: makeNodeComponent("cancelButton"),
-    text: makeNodeComponent("text"),
+    freeBox: PlasmicNewProjectModal__freeBox,
+    cancelButton: PlasmicNewProjectModal__cancelButton,
+    text: PlasmicNewProjectModal__text,
 
     // Metadata about props expected for PlasmicNewProjectModal
     internalVariantProps: PlasmicNewProjectModal__VariantProps,

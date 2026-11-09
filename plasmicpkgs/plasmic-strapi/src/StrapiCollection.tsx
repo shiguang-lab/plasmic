@@ -107,7 +107,14 @@ export const strapiCollectionMeta: CodeComponentMeta<StrapiCollectionProps> = {
   },
 };
 
-export function StrapiCollection({
+export function StrapiCollection(props: StrapiCollectionProps) {
+  const { host } = useStrapiCredentials();
+  if (!host) { return <div>Please specify a host.</div>; }
+  if (!props.name) { return <div>Please specify a collection.</div>; }
+  return <StrapiCollectionContent {...props} />;
+}
+
+function StrapiCollectionContent({
   name,
   filterParameter,
   filterValue,
@@ -120,14 +127,6 @@ export function StrapiCollection({
   setControlContextData,
 }: StrapiCollectionProps) {
   const { host, token } = useStrapiCredentials();
-
-  if (!host) {
-    return <div>Please specify a host.</div>;
-  }
-
-  if (!name) {
-    return <div>Please specify a collection.</div>;
-  }
 
   const cacheKey = JSON.stringify({
     host,

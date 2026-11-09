@@ -31,7 +31,6 @@ import {
   TplNode,
 } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
-import { observable, runInAction } from "mobx";
 import { mock } from "vitest-mock-extended";
 import { createStore } from "zustand/vanilla";
 
@@ -109,7 +108,7 @@ function setup() {
     vc.focusedSelectable.mockReturnValue(null);
     vc.focusedTpl.mockImplementation(() => selection.tpls()[0] ?? null);
     vc.hoveredSelectable.mockReturnValue(null);
-    vc.componentStackFrames.mockReturnValue(observable.array([]));
+    vc.componentStackFrames.mockReturnValue([]);
     views.set(frame, vc);
   }
   const ctx = mock<StudioCtx>();
@@ -140,18 +139,18 @@ function setup() {
     };
     focus.transaction(() => run(0));
   };
-  const select = (frame: ArenaFrame, node: TplNode | null) => runInAction(() => transact(() => {
+  const select = (frame: ArenaFrame, node: TplNode | null) => transact(() => {
     const selectedView = ensure(views.get(frame), "Selected artboard");
     focus.set(selectedView, []);
     for (const [view, selection] of selectionByView) {
       selection.setTpls(view === selectedView && node ? [node] : []);
       selection.setTargets(view === selectedView && node ? [null] : []);
     }
-  }));
-  const deselect = () => runInAction(() => transact(() => {
+  });
+  const deselect = () => transact(() => {
     focus.clear();
     for (const selection of selectionByView.values()) { selection.clear(); }
-  }));
+  });
   return {
     site,
     arena,
@@ -215,9 +214,9 @@ it("does not reuse the retained artboard in another arena or after it is removed
   f.deselect();
   const other = new Arena({ name: "Other", children: [] });
   f.site.arenas.push(other);
-  runInAction(() => f.arenaState.setCurrent(other));
+  f.arenaState.setCurrent(other);
   expect(f.outline.viewCtx()).toBeUndefined();
-  runInAction(() => f.arenaState.setCurrent(f.arena));
+  f.arenaState.setCurrent(f.arena);
   expect(f.outline.viewCtx()).toBe(f.views.get(f.frames[1]));
   f.arena.children.splice(1, 1);
   expect(f.outline.viewCtx()).toBeUndefined();
@@ -257,7 +256,7 @@ it("disposes artboard outlines when leaving their arena", () => {
   const dispose = vi.spyOn(child, "dispose");
   const other = new Arena({ name: "Other", children: [] });
   f.site.arenas.push(other);
-  runInAction(() => f.arenaState.setCurrent(other));
+  f.arenaState.setCurrent(other);
   expect(dispose).toHaveBeenCalledOnce();
   f.outline.dispose();
   expect(dispose).toHaveBeenCalledOnce();
@@ -275,4 +274,26 @@ it("allows page sections to default open while keeping explicit fold state", () 
   f.deselect();
   expect(f.outline.isFrameExpanded(frame, true)).toBe(true);
   f.outline.dispose();
+});
+
+it("retires departed frame outlines in one bounded publication despite a synchronous old-frame reader", () => {
+  const f = setup();
+  const first = f.outline.getFrameOutline(f.frames[0]);
+  const second = f.outline.getFrameOutline(f.frames[1]);
+  const firstDispose = vi.spyOn(first, "dispose"), secondDispose = vi.spyOn(second, "dispose");
+  const next = new Arena({ name: "Other", children: [] });
+  f.site.arenas.push(next);
+  let reads = 0;
+  const stop = f.outline.stateStore.subscribe(() => {
+    if (f.ctx.currentArena !== next) { return; }
+    if (++reads > 5) { throw new Error("Unbounded departed-frame reentry"); }
+    f.outline.getFrameOutline(f.frames[0]);
+  });
+  try {
+    expect(() => f.arenaState.setCurrent(next)).not.toThrow();
+    expect(reads).toBe(1);
+    expect(firstDispose).toHaveBeenCalledTimes(1);
+    expect(secondDispose).toHaveBeenCalledTimes(1);
+    expect(f.outline.isFrameExpanded(f.frames[0])).toBe(false);
+  } finally { stop(); f.outline.dispose(); }
 });

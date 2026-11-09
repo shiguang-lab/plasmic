@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,7 +26,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import OptimizationOption from "../../components/analytics/OptimizationOption"; // plasmic-import: yvny0cDy_e/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -89,11 +89,10 @@ function PlasmicOptimizationsSelect__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -206,12 +205,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -221,28 +216,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicOptimizationsSelect__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicOptimizationsSelect";
-  } else {
-    func.displayName = `PlasmicOptimizationsSelect.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicOptimizationsSelect__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicOptimizationsSelect__root<T extends PlasmicOptimizationsSelect__rootProps>(props: T & StrictProps<T, PlasmicOptimizationsSelect__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicOptimizationsSelect__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicOptimizationsSelect__root.displayName = "PlasmicOptimizationsSelect";
+
+type PlasmicOptimizationsSelect__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicOptimizationsSelect__text<T extends PlasmicOptimizationsSelect__textProps>(props: T & StrictProps<T, PlasmicOptimizationsSelect__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicOptimizationsSelect__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicOptimizationsSelect__text.displayName = "PlasmicOptimizationsSelect.text";
+
+type PlasmicOptimizationsSelect__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicOptimizationsSelect__freeBox<T extends PlasmicOptimizationsSelect__freeBoxProps>(props: T & StrictProps<T, PlasmicOptimizationsSelect__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicOptimizationsSelect__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicOptimizationsSelect__freeBox.displayName = "PlasmicOptimizationsSelect.freeBox";
+
 
 export const PlasmicOptimizationsSelect = Object.assign(
   // Top-level PlasmicOptimizationsSelect renders the root element
-  makeNodeComponent("root"),
+  PlasmicOptimizationsSelect__root,
   {
     // Helper components rendering sub-elements
-    text: makeNodeComponent("text"),
-    freeBox: makeNodeComponent("freeBox"),
+    text: PlasmicOptimizationsSelect__text,
+    freeBox: PlasmicOptimizationsSelect__freeBox,
 
     // Metadata about props expected for PlasmicOptimizationsSelect
     internalVariantProps: PlasmicOptimizationsSelect__VariantProps,

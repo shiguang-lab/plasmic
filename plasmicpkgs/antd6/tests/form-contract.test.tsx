@@ -9,6 +9,20 @@ import { registerForm } from "../src/form/registerForm";
 import { commonFormItemProps } from "../src/form/sharedRegistration";
 import { FormWrapper as SchemaForm } from "../src/form/SchemaForm";
 
+test("the registered reset action resets every field and publishes the complete initial values", () => {
+  const ref = React.createRef<FormRefActions>();
+  const changed = vi.fn();
+  render(<FormWrapper ref={ref} initialValues={{ first: "First", second: "Second" }} extendedOnValuesChange={changed}>
+    <FormItemWrapper name="first"><Input aria-label="First field" /></FormItemWrapper>
+    <FormItemWrapper name="second"><Input aria-label="Second field" /></FormItemWrapper>
+  </FormWrapper>);
+  act(() => ref.current!.setFieldsValue({ first: "Changed first", second: "Changed second" }));
+  act(() => ref.current!.resetFields());
+  expect(changed).toHaveBeenLastCalledWith({ first: "First", second: "Second" });
+  expect((screen.getByRole("textbox", { name: "First field" }) as HTMLInputElement).value).toBe("First");
+  expect((screen.getByRole("textbox", { name: "Second field" }) as HTMLInputElement).value).toBe("Second");
+});
+
 test("custom validation metadata exposes the same rule kinds accepted by the wrapper", () => {
   const rules = commonFormItemProps("advanced-form-item").rules as any;
   expect(rules.type).toBe("formValidationRules");

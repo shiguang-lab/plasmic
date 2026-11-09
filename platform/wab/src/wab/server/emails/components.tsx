@@ -29,19 +29,33 @@ function applyCommonStyles({ style, ...rest }: any) {
   };
 }
 
-function withCommonStyles<P extends object>(Component: React.ComponentType<P>) {
-  return (props: P) => <Component {...applyCommonStyles(props)} />;
+export function EmailButton(props: React.ComponentProps<typeof Button>) {
+  return <Button {...applyCommonStyles(props)} />;
 }
-
-export const EmailButton = withCommonStyles(Button);
-export const EmailContainer = withCommonStyles(Container);
-export const EmailText = withCommonStyles(Text);
-export const EmailImage = withCommonStyles(Img);
-export const EmailHr = withCommonStyles(Hr);
-export const EmailHeading = withCommonStyles(Heading);
-export const EmailRow = withCommonStyles(Row);
-export const EmailColumn = withCommonStyles(Column);
-export const EmailSection = withCommonStyles(Section);
+export function EmailContainer(props: React.ComponentProps<typeof Container>) {
+  return <Container {...applyCommonStyles(props)} />;
+}
+export function EmailText(props: React.ComponentProps<typeof Text>) {
+  return <Text {...applyCommonStyles(props)} />;
+}
+export function EmailImage(props: React.ComponentProps<typeof Img>) {
+  return <Img {...applyCommonStyles(props)} />;
+}
+export function EmailHr(props: React.ComponentProps<typeof Hr>) {
+  return <Hr {...applyCommonStyles(props)} />;
+}
+export function EmailHeading(props: React.ComponentProps<typeof Heading>) {
+  return <Heading {...applyCommonStyles(props)} />;
+}
+export function EmailRow(props: React.ComponentProps<typeof Row>) {
+  return <Row {...applyCommonStyles(props)} />;
+}
+export function EmailColumn(props: React.ComponentProps<typeof Column>) {
+  return <Column {...applyCommonStyles(props)} />;
+}
+export function EmailSection(props: React.ComponentProps<typeof Section>) {
+  return <Section {...applyCommonStyles(props)} />;
+}
 
 export const EmailMarkdown = ({ children, ...props }: MarkdownProps) => {
   return <Markdown {...applyCommonStyles(props)}>{children ?? ""}</Markdown>;

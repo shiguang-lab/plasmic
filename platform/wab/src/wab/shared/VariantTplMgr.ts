@@ -85,7 +85,7 @@ import {
   adaptEffectiveVariantSetting,
 } from "@/wab/shared/effective-variant-setting";
 import { CanvasEnv, tryEvalExpr } from "@/wab/shared/eval";
-import { ensureComponentsObserved } from "@/wab/shared/mobx-util";
+import { ensureComponentsRecorded } from "@/wab/shared/core/component-recording";
 import {
   Animation,
   Arg,
@@ -622,7 +622,7 @@ export class VariantTplMgr {
       component === this.getOwningComponentForNewNode(),
       `Cannot to edit element outside of current component context`,
     );
-    ensureComponentsObserved([component]);
+    ensureComponentsRecorded([component]);
 
     variantCombo = ensureValidCombo(component, variantCombo);
     this._ensureBaseRuleVariantSetting(tpl, variantCombo, component);

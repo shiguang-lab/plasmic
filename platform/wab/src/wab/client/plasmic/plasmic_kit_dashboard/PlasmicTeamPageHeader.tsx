@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleChoiceArg,
   StrictProps,
   classNames,
@@ -23,15 +23,15 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import EditableResourceName from "../../components/EditableResourceName"; // plasmic-import: UttGK3xVrb/component
 import ProjectsFilter from "../../components/dashboard/ProjectsFilter"; // plasmic-import: mdX7wFJOmP/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -106,11 +106,10 @@ function PlasmicTeamPageHeader__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "accessLevel",
@@ -120,20 +119,22 @@ function PlasmicTeamPageHeader__RenderFunc(props: {
           $props.accessLevel,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -417,12 +418,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -432,30 +429,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTeamPageHeader__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTeamPageHeader";
-  } else {
-    func.displayName = `PlasmicTeamPageHeader.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTeamPageHeader__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTeamPageHeader__root<T extends PlasmicTeamPageHeader__rootProps>(props: T & StrictProps<T, PlasmicTeamPageHeader__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTeamPageHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTeamPageHeader__root.displayName = "PlasmicTeamPageHeader";
+
+type PlasmicTeamPageHeader__editableNameProps = NodeComponentProps<"editableName"> & {key?: React.Key};
+function PlasmicTeamPageHeader__editableName<T extends PlasmicTeamPageHeader__editableNameProps>(props: T & StrictProps<T, PlasmicTeamPageHeader__editableNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("editableName", props);
+  return <PlasmicTeamPageHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"editableName"} />;
+}
+PlasmicTeamPageHeader__editableName.displayName = "PlasmicTeamPageHeader.editableName";
+
+type PlasmicTeamPageHeader__newWorkspaceButtonProps = NodeComponentProps<"newWorkspaceButton"> & {key?: React.Key};
+function PlasmicTeamPageHeader__newWorkspaceButton<T extends PlasmicTeamPageHeader__newWorkspaceButtonProps>(props: T & StrictProps<T, PlasmicTeamPageHeader__newWorkspaceButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newWorkspaceButton", props);
+  return <PlasmicTeamPageHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newWorkspaceButton"} />;
+}
+PlasmicTeamPageHeader__newWorkspaceButton.displayName = "PlasmicTeamPageHeader.newWorkspaceButton";
+
+type PlasmicTeamPageHeader__settingsButtonProps = NodeComponentProps<"settingsButton"> & {key?: React.Key};
+function PlasmicTeamPageHeader__settingsButton<T extends PlasmicTeamPageHeader__settingsButtonProps>(props: T & StrictProps<T, PlasmicTeamPageHeader__settingsButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("settingsButton", props);
+  return <PlasmicTeamPageHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"settingsButton"} />;
+}
+PlasmicTeamPageHeader__settingsButton.displayName = "PlasmicTeamPageHeader.settingsButton";
+
+type PlasmicTeamPageHeader__filterProps = NodeComponentProps<"filter"> & {key?: React.Key};
+function PlasmicTeamPageHeader__filter<T extends PlasmicTeamPageHeader__filterProps>(props: T & StrictProps<T, PlasmicTeamPageHeader__filterProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("filter", props);
+  return <PlasmicTeamPageHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"filter"} />;
+}
+PlasmicTeamPageHeader__filter.displayName = "PlasmicTeamPageHeader.filter";
+
 
 export const PlasmicTeamPageHeader = Object.assign(
   // Top-level PlasmicTeamPageHeader renders the root element
-  makeNodeComponent("root"),
+  PlasmicTeamPageHeader__root,
   {
     // Helper components rendering sub-elements
-    editableName: makeNodeComponent("editableName"),
-    newWorkspaceButton: makeNodeComponent("newWorkspaceButton"),
-    settingsButton: makeNodeComponent("settingsButton"),
-    filter: makeNodeComponent("filter"),
+    editableName: PlasmicTeamPageHeader__editableName,
+    newWorkspaceButton: PlasmicTeamPageHeader__newWorkspaceButton,
+    settingsButton: PlasmicTeamPageHeader__settingsButton,
+    filter: PlasmicTeamPageHeader__filter,
 
     // Metadata about props expected for PlasmicTeamPageHeader
     internalVariantProps: PlasmicTeamPageHeader__VariantProps,

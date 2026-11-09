@@ -1,11 +1,10 @@
+import { MultiSelectionInputs } from "@/wab/client/components/sidebar-tabs/multi-selection-inputs";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useShallow } from "zustand/react/shallow";
 import { useSelectionBounds } from "@/wab/client/components/canvas/selection-bounds";
-import { getNodeSummary } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
 import {
   MultiSelectionProp,
-  getMultiSelectionFieldState,
-  getMultiSelectionProviders,
   multiSelectionFields,
   setMultiSelectionStyle,
 } from "@/wab/client/components/sidebar-tabs/multi-selection";
@@ -18,13 +17,10 @@ import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { isTokenRef, tokenTypeDimOpts } from "@/wab/commons/StyleToken";
 import { spawn } from "@/wab/shared/common";
-import { getTplTextBlockContent } from "@/wab/shared/core/tpls";
 import { PERCENTAGE_UNITS } from "@/wab/shared/css/types";
-import { isKnownTplSlot } from "@/wab/shared/model/classes";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Typography } from "antd";
 import { createStyles } from "antd-style";
-import { observer } from "mobx-react";
 import React from "react";
 import { useStore } from "zustand";
 
@@ -58,12 +54,14 @@ export const useMultiSelectionStyles = createStyles(({ token }) => ({
   },
 }));
 
-export const MultiSelectionPanel = observer(function MultiSelectionPanel({
+export const MultiSelectionPanel = React.memo(function MultiSelectionPanel({
   viewCtx,
 }: {
   viewCtx: ViewCtx;
 }) {
-  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  const variantInputs = useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  const selectionInputs = useViewSelection(viewCtx, useShallow((state) => [state.tpls, state.targets, state.context, state.doms]));
+  const permissions = useStore(viewCtx.studioCtx.uiEnvironment.store, (state) => state.componentSectionPermissions);
   const { t } = useI18n();
   const panelId = React.useId();
   const { styles } = useMultiSelectionStyles();
@@ -76,14 +74,11 @@ export const MultiSelectionPanel = observer(function MultiSelectionPanel({
     viewCtx.studioCtx,
     (state) => state.canEditBranch,
   );
-  const editAccess = { canEditProject, canEditBranch };
-  const providers = getMultiSelectionProviders(viewCtx);
-  const fieldStates = (
-    Object.keys(multiSelectionFields) as MultiSelectionProp[]
-  ).map((prop) => ({
-    prop,
-    ...getMultiSelectionFieldState(viewCtx, providers, prop, editAccess),
-  }));
+  const scope = React.useMemo(() => ({ models: viewCtx.studioCtx.modelSnapshots, styles: viewCtx.styleInputs }), [viewCtx]);
+  const source = React.useMemo(() => new MultiSelectionInputs(viewCtx, { canEditProject, canEditBranch }, scope), [viewCtx, scope, selectionInputs, variantInputs, canEditProject, canEditBranch, permissions]);
+  const snapshot = React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
+  const providers = source.providers, fieldStates = snapshot.fields;
+  if (!snapshot.active) { return null; }
   const renderFields = (props: MultiSelectionProp[]) =>
     fieldStates
       .filter((field) => props.includes(field.prop) && field.supported)
@@ -194,12 +189,8 @@ export const MultiSelectionPanel = observer(function MultiSelectionPanel({
               </div>
             )}
             <ul className={styles.layers}>
-              {providers.map((provider) => {
-                const tpl = provider.tpl;
-                const name =
-                  (!isKnownTplSlot(tpl) && tpl.name) ||
-                  getTplTextBlockContent(tpl, viewCtx) ||
-                  getNodeSummary(tpl, provider.effectiveVs().rsh());
+              {providers.map((provider, index) => {
+                const tpl = provider.tpl, name = snapshot.names[index];
                 return (
                   <li key={tpl.uuid} title={name}>
                     {name}

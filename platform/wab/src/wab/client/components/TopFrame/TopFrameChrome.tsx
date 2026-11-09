@@ -668,7 +668,7 @@ export function useTopFrameState({
         await promptTeamUpgrade(appCtx, team);
       },
     }),
-    [appCtx, project],
+    [appCtx, project, history, forceUpdate],
   );
 
   return {

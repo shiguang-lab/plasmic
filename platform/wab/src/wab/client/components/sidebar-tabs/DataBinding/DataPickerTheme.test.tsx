@@ -6,7 +6,7 @@ import codeStyles from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDat
 import { setAppearancePreference } from "@/wab/client/ui-theme";
 import { ensure } from "@/wab/shared/common";
 import { act, cleanup, render, screen } from "@testing-library/react";
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 import * as React from "react";
 import { createPortal } from "react-dom";
 
@@ -57,7 +57,7 @@ it("themes the portaled code picker, context panel and preview through appearanc
   );
   for (const appearance of ["dark", "light", "dark"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const expected = document.createElement("div");
     expected.style.backgroundColor = token.colorBgContainer;
     expected.style.color = token.colorText;

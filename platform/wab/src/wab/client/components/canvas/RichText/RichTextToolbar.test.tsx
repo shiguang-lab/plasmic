@@ -1,3 +1,7 @@
+import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
+import { SingleRsStyleInputs } from "@/wab/client/studio-ctx/style-inputs";
+import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import { createSite } from "@/wab/shared/core/sites";
@@ -6,24 +10,22 @@ import { dispatchFrameInteraction } from "@/wab/client/frame-ctx/frame-interacti
 import type { EditingTextContext } from "@/wab/client/studio-ctx/view-ctx";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
+import { createEditor } from "slate";
 import { mock } from "vitest-mock-extended";
 
 let arenaState: StudioArenaState;
 let models: ModelSnapshots;
+let studioCtx: StudioCtx;
+let styleInputs: SingleRsStyleInputs;
 const state = vi.hoisted(() => ({ blur: vi.fn() }));
 vi.mock("@/wab/client/contexts/StudioContexts", async (original) => ({
   ...(await original<typeof import("@/wab/client/contexts/StudioContexts")>()),
-  useStudioCtx: () => ({
-    focusedViewCtx: () => ({ tryBlurEditingText: state.blur }),
-    getCurrentUiConfig: () => ({}),
-    contentEditorMode: false,
-    arenaState,
-  }),
+  useStudioCtx: () => studioCtx,
 }));
 vi.mock(
   "@/wab/client/components/widgets/ColorPicker/client-token-resolver",
   () => ({
-    useClientTokenResolver: () => ({}),
+    useClientTokenValue: () => undefined,
   }),
 );
 vi.mock("@/wab/client/components/sidebar/SidebarModal", () => ({
@@ -35,11 +37,12 @@ vi.mock(
   "@/wab/client/plasmic/plasmic_kit_rich_text_toolbar/PlasmicRichTextToolbar",
   () => ({
     PlasmicRichTextToolbar: ({
-      root,
+      root, fontWeight,
     }: {
       root: { ref: React.Ref<HTMLDivElement> };
+      fontWeight: { props: { type: string | string[] } };
     }) => (
-      <div ref={root.ref} data-testid="toolbar">
+      <div ref={root.ref} data-testid="toolbar" data-bold={fontWeight.props.type.includes("secondary")}>
         Toolbar
       </div>
     ),
@@ -47,12 +50,23 @@ vi.mock(
 );
 beforeEach(() => {
   models = new ModelSnapshots();
-  arenaState = new StudioArenaState({ site: createSite(), modelSnapshots: models });
+  const site = createSite();
+  arenaState = new StudioArenaState({ site, modelSnapshots: models });
+  styleInputs = new SingleRsStyleInputs(() => models, arenaState.lifetime());
+  const studio = mock<StudioCtx>(), view = mock<ViewCtx>();
+  view.tryBlurEditingText.mockImplementation(state.blur);
+  studio.focusedViewCtx.mockReturnValue(view);
+  studio.subscribeModelChanges.mockReturnValue(() => undefined);
+  Object.defineProperties(studio, {
+    arenaState: { value: arenaState }, modelSnapshots: { value: models }, site: { value: site },
+    singleRsStyleInputs: { value: styleInputs }, uiEnvironment: { value: createStudioUiEnvironmentFixture().uiEnvironment },
+  });
+  studioCtx = studio;
 });
 afterEach(() => {
   cleanup();
   state.blur.mockClear();
-  arenaState.dispose(); models.dispose();
+  styleInputs.dispose(); arenaState.dispose(); models.dispose();
 });
 function setup() {
   render(
@@ -92,4 +106,19 @@ it("commits for real outside studio clicks while preserving toolbar and popup in
   popup.remove();
   press(document.body);
   expect(state.blur).toHaveBeenCalledTimes(1);
+});
+
+
+it("updates formatting when the selection changes on the same Slate editor", () => {
+  const editor = createEditor();
+  editor.children = [{ type: "TplTag", tag: "p", children: [
+    { text: "bold", "font-weight": "700" }, { text: "plain" },
+  ] }] as any;
+  editor.selection = { anchor: { path: [0, 0], offset: 0 }, focus: { path: [0, 0], offset: 4 } };
+  const context = () => mock<EditingTextContext>({ editor });
+  const view = render(<RichTextToolbar ctx={context()} />);
+  expect(screen.getByTestId("toolbar").getAttribute("data-bold")).toBe("true");
+  editor.selection = { anchor: { path: [0, 1], offset: 0 }, focus: { path: [0, 1], offset: 5 } };
+  view.rerender(<RichTextToolbar ctx={context()} />);
+  expect(screen.getByTestId("toolbar").getAttribute("data-bold")).toBe("false");
 });

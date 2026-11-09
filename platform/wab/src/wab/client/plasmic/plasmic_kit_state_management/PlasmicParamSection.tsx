@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -27,7 +27,7 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -38,7 +38,7 @@ import CollapsableSection from "../../components/widgets/CollapsableSection"; //
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
 import Switch from "../../components/widgets/Switch"; // plasmic-import: b35JDgXpbiF/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -156,11 +156,10 @@ function PlasmicParamSection__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "specialParamType",
@@ -228,18 +227,20 @@ function PlasmicParamSection__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -362,9 +363,9 @@ function PlasmicParamSection__RenderFunc(props: {
                   role={"img"}
                 />
               }
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, ["paramType", "value"])(
+                  generateStateOnChangeProp($stateCommands, ["paramType", "value"])(
                     eventArgs[0]
                   );
                 }).apply(null, eventArgs);
@@ -376,7 +377,7 @@ function PlasmicParamSection__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
               type={"bordered"}
               value={generateStateValueProp($state, ["paramType", "value"])}
             />
@@ -743,9 +744,9 @@ function PlasmicParamSection__RenderFunc(props: {
           generateStateValueProp($state, ["localizableSwitch", "isChecked"]) ??
           false
         }
-        onChange={async (...eventArgs: any) => {
+        onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
           ((...eventArgs) => {
-            generateStateOnChangeProp($state, [
+            generateStateOnChangeProp($stateCommands, [
               "localizableSwitch",
               "isChecked",
             ])(eventArgs[0]);
@@ -758,7 +759,7 @@ function PlasmicParamSection__RenderFunc(props: {
           ) {
             return;
           }
-        }}
+        })); })}
       >
         {<UiText message={"Localizable"} />}
       </Switch>
@@ -908,12 +909,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -923,37 +920,109 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicParamSection__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicParamSection";
-  } else {
-    func.displayName = `PlasmicParamSection.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicParamSection__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicParamSection__root<T extends PlasmicParamSection__rootProps>(props: T & StrictProps<T, PlasmicParamSection__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicParamSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicParamSection__root.displayName = "PlasmicParamSection";
+
+type PlasmicParamSection__nameProps = NodeComponentProps<"name"> & {key?: React.Key};
+function PlasmicParamSection__name<T extends PlasmicParamSection__nameProps>(props: T & StrictProps<T, PlasmicParamSection__nameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("name", props);
+  return <PlasmicParamSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"name"} />;
+}
+PlasmicParamSection__name.displayName = "PlasmicParamSection.name";
+
+type PlasmicParamSection__paramNameProps = NodeComponentProps<"paramName"> & {key?: React.Key};
+function PlasmicParamSection__paramName<T extends PlasmicParamSection__paramNameProps>(props: T & StrictProps<T, PlasmicParamSection__paramNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("paramName", props);
+  return <PlasmicParamSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"paramName"} />;
+}
+PlasmicParamSection__paramName.displayName = "PlasmicParamSection.paramName";
+
+type PlasmicParamSection__paramTypeProps = NodeComponentProps<"paramType"> & {key?: React.Key};
+function PlasmicParamSection__paramType<T extends PlasmicParamSection__paramTypeProps>(props: T & StrictProps<T, PlasmicParamSection__paramTypeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("paramType", props);
+  return <PlasmicParamSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"paramType"} />;
+}
+PlasmicParamSection__paramType.displayName = "PlasmicParamSection.paramType";
+
+type PlasmicParamSection__existingParamTypeProps = NodeComponentProps<"existingParamType"> & {key?: React.Key};
+function PlasmicParamSection__existingParamType<T extends PlasmicParamSection__existingParamTypeProps>(props: T & StrictProps<T, PlasmicParamSection__existingParamTypeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("existingParamType", props);
+  return <PlasmicParamSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"existingParamType"} />;
+}
+PlasmicParamSection__existingParamType.displayName = "PlasmicParamSection.existingParamType";
+
+type PlasmicParamSection__defaultValueProps = NodeComponentProps<"defaultValue"> & {key?: React.Key};
+function PlasmicParamSection__defaultValue<T extends PlasmicParamSection__defaultValueProps>(props: T & StrictProps<T, PlasmicParamSection__defaultValueProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("defaultValue", props);
+  return <PlasmicParamSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"defaultValue"} />;
+}
+PlasmicParamSection__defaultValue.displayName = "PlasmicParamSection.defaultValue";
+
+type PlasmicParamSection__previewValueProps = NodeComponentProps<"previewValue"> & {key?: React.Key};
+function PlasmicParamSection__previewValue<T extends PlasmicParamSection__previewValueProps>(props: T & StrictProps<T, PlasmicParamSection__previewValueProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("previewValue", props);
+  return <PlasmicParamSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"previewValue"} />;
+}
+PlasmicParamSection__previewValue.displayName = "PlasmicParamSection.previewValue";
+
+type PlasmicParamSection__localizableSwitchProps = NodeComponentProps<"localizableSwitch"> & {key?: React.Key};
+function PlasmicParamSection__localizableSwitch<T extends PlasmicParamSection__localizableSwitchProps>(props: T & StrictProps<T, PlasmicParamSection__localizableSwitchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("localizableSwitch", props);
+  return <PlasmicParamSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"localizableSwitch"} />;
+}
+PlasmicParamSection__localizableSwitch.displayName = "PlasmicParamSection.localizableSwitch";
+
+type PlasmicParamSection__advancedSectionProps = NodeComponentProps<"advancedSection"> & {key?: React.Key};
+function PlasmicParamSection__advancedSection<T extends PlasmicParamSection__advancedSectionProps>(props: T & StrictProps<T, PlasmicParamSection__advancedSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("advancedSection", props);
+  return <PlasmicParamSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"advancedSection"} />;
+}
+PlasmicParamSection__advancedSection.displayName = "PlasmicParamSection.advancedSection";
+
+type PlasmicParamSection__advancedContentProps = NodeComponentProps<"advancedContent"> & {key?: React.Key};
+function PlasmicParamSection__advancedContent<T extends PlasmicParamSection__advancedContentProps>(props: T & StrictProps<T, PlasmicParamSection__advancedContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("advancedContent", props);
+  return <PlasmicParamSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"advancedContent"} />;
+}
+PlasmicParamSection__advancedContent.displayName = "PlasmicParamSection.advancedContent";
+
+type PlasmicParamSection__cancelBtnProps = NodeComponentProps<"cancelBtn"> & {key?: React.Key};
+function PlasmicParamSection__cancelBtn<T extends PlasmicParamSection__cancelBtnProps>(props: T & StrictProps<T, PlasmicParamSection__cancelBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelBtn", props);
+  return <PlasmicParamSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelBtn"} />;
+}
+PlasmicParamSection__cancelBtn.displayName = "PlasmicParamSection.cancelBtn";
+
+type PlasmicParamSection__confirmBtnProps = NodeComponentProps<"confirmBtn"> & {key?: React.Key};
+function PlasmicParamSection__confirmBtn<T extends PlasmicParamSection__confirmBtnProps>(props: T & StrictProps<T, PlasmicParamSection__confirmBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("confirmBtn", props);
+  return <PlasmicParamSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"confirmBtn"} />;
+}
+PlasmicParamSection__confirmBtn.displayName = "PlasmicParamSection.confirmBtn";
+
 
 export const PlasmicParamSection = Object.assign(
   // Top-level PlasmicParamSection renders the root element
-  makeNodeComponent("root"),
+  PlasmicParamSection__root,
   {
     // Helper components rendering sub-elements
-    _name: makeNodeComponent("name"),
-    paramName: makeNodeComponent("paramName"),
-    paramType: makeNodeComponent("paramType"),
-    existingParamType: makeNodeComponent("existingParamType"),
-    defaultValue: makeNodeComponent("defaultValue"),
-    previewValue: makeNodeComponent("previewValue"),
-    localizableSwitch: makeNodeComponent("localizableSwitch"),
-    advancedSection: makeNodeComponent("advancedSection"),
-    advancedContent: makeNodeComponent("advancedContent"),
-    cancelBtn: makeNodeComponent("cancelBtn"),
-    confirmBtn: makeNodeComponent("confirmBtn"),
+    _name: PlasmicParamSection__name,
+    paramName: PlasmicParamSection__paramName,
+    paramType: PlasmicParamSection__paramType,
+    existingParamType: PlasmicParamSection__existingParamType,
+    defaultValue: PlasmicParamSection__defaultValue,
+    previewValue: PlasmicParamSection__previewValue,
+    localizableSwitch: PlasmicParamSection__localizableSwitch,
+    advancedSection: PlasmicParamSection__advancedSection,
+    advancedContent: PlasmicParamSection__advancedContent,
+    cancelBtn: PlasmicParamSection__cancelBtn,
+    confirmBtn: PlasmicParamSection__confirmBtn,
 
     // Metadata about props expected for PlasmicParamSection
     internalVariantProps: PlasmicParamSection__VariantProps,

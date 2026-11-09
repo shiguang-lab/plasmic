@@ -33,9 +33,9 @@ export const handler = {
     });
     return checkoutToCart(data.checkoutLineDelete);
   },
-  useHook: ({ fetch }: MutationHookContext<RemoveItemHook>) => <
+  useHook: ({ fetch }: MutationHookContext<RemoveItemHook>) => function useRemoveItemHandler<
     T extends LineItem | undefined = undefined
-  >() => {
+  >() {
     const { mutate } = useCart();
 
     return useCallback(

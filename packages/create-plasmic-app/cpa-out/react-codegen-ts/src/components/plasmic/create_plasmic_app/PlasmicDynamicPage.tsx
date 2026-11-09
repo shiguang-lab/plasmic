@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   MultiChoiceArg,
   PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
   PlasmicIcon as PlasmicIcon__,
@@ -36,8 +36,6 @@ import {
   generateStateValueProp,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
   makeFragment,
   omit,
   pick,
@@ -46,7 +44,6 @@ import {
   useCurrentUser,
   useDollarState,
   usePlasmicTranslator,
-  useTrigger,
   wrapWithClassName
 } from "@plasmicapp/react-web";
 import {
@@ -65,8 +62,8 @@ import type {
 import type { QueryComponentNode } from "@plasmicapp/react-web/lib/data-sources";
 
 import RandomDynamicPageButton from "../../RandomDynamicPageButton"; // plasmic-import: Q23H1_1M_P/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -185,13 +182,12 @@ function PlasmicDynamicPage__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
   const $q = usePlasmicQueries(serverQueryTree, { $ctx, $props, $state: null });
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <React.Fragment>
@@ -301,12 +297,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -316,30 +308,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDynamicPage__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDynamicPage";
-  } else {
-    func.displayName = `PlasmicDynamicPage.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDynamicPage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDynamicPage__root<T extends PlasmicDynamicPage__rootProps>(props: T & StrictProps<T, PlasmicDynamicPage__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDynamicPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDynamicPage__root.displayName = "PlasmicDynamicPage";
+
+type PlasmicDynamicPage__sectionProps = NodeComponentProps<"section"> & {key?: React.Key};
+function PlasmicDynamicPage__section<T extends PlasmicDynamicPage__sectionProps>(props: T & StrictProps<T, PlasmicDynamicPage__sectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("section", props);
+  return <PlasmicDynamicPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"section"} />;
+}
+PlasmicDynamicPage__section.displayName = "PlasmicDynamicPage.section";
+
+type PlasmicDynamicPage__h2Props = NodeComponentProps<"h2"> & {key?: React.Key};
+function PlasmicDynamicPage__h2<T extends PlasmicDynamicPage__h2Props>(props: T & StrictProps<T, PlasmicDynamicPage__h2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("h2", props);
+  return <PlasmicDynamicPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"h2"} />;
+}
+PlasmicDynamicPage__h2.displayName = "PlasmicDynamicPage.h2";
+
+type PlasmicDynamicPage__spanProps = NodeComponentProps<"span"> & {key?: React.Key};
+function PlasmicDynamicPage__span<T extends PlasmicDynamicPage__spanProps>(props: T & StrictProps<T, PlasmicDynamicPage__spanProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("span", props);
+  return <PlasmicDynamicPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"span"} />;
+}
+PlasmicDynamicPage__span.displayName = "PlasmicDynamicPage.span";
+
+type PlasmicDynamicPage__randomDynamicPageButtonProps = NodeComponentProps<"randomDynamicPageButton"> & {key?: React.Key};
+function PlasmicDynamicPage__randomDynamicPageButton<T extends PlasmicDynamicPage__randomDynamicPageButtonProps>(props: T & StrictProps<T, PlasmicDynamicPage__randomDynamicPageButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("randomDynamicPageButton", props);
+  return <PlasmicDynamicPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"randomDynamicPageButton"} />;
+}
+PlasmicDynamicPage__randomDynamicPageButton.displayName = "PlasmicDynamicPage.randomDynamicPageButton";
+
 
 export const PlasmicDynamicPage = Object.assign(
   // Top-level PlasmicDynamicPage renders the root element
-  makeNodeComponent("root"),
+  PlasmicDynamicPage__root,
   {
     // Helper components rendering sub-elements
-    section: makeNodeComponent("section"),
-    h2: makeNodeComponent("h2"),
-    span: makeNodeComponent("span"),
-    randomDynamicPageButton: makeNodeComponent("randomDynamicPageButton"),
+    section: PlasmicDynamicPage__section,
+    h2: PlasmicDynamicPage__h2,
+    span: PlasmicDynamicPage__span,
+    randomDynamicPageButton: PlasmicDynamicPage__randomDynamicPageButton,
 
     // Metadata about props expected for PlasmicDynamicPage
     internalVariantProps: PlasmicDynamicPage__VariantProps,

@@ -123,7 +123,14 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
   const appOps = ensure(appCtx.ops, "Unexpected nullish AppOps");
   const [configProjectId, setConfigProjectId] = React.useState<string>();
   const [editing, setEditing] = React.useState(false);
-  const [draftName, setDraftName] = React.useState(project.name);
+  const [renamedProject, setRenamedProject] = React.useState<{
+    project: ApiProject;
+    name: string;
+  }>();
+  const projectName = renamedProject?.project === project
+    ? renamedProject.name
+    : project.name;
+  const [draftName, setDraftName] = React.useState(projectName);
   const [submitting, setSubmitting] = React.useState(false);
   const editingSession = React.useRef(false);
   const saving = React.useRef(false);
@@ -136,23 +143,23 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
       return;
     }
     const name = draftName.trim();
-    if (!name || name === project.name) {
+    if (!name || name === projectName) {
       finishEditing();
       return;
     }
     saving.current = true;
     setSubmitting(true);
-    try {
+    return await (async () => {
       await appOps.renameSite(project.id, name);
-      project.name = name;
+      setRenamedProject({ project, name });
       finishEditing();
       await onUpdate?.();
-    } catch (error) {
+    })().catch(async (error) => {
       reportError(error as Error);
-    } finally {
+    }).finally(() => {
       saving.current = false;
       setSubmitting(false);
-    }
+    });
   };
 
   const projectAccessLevel = getAccessLevelToResource(
@@ -177,7 +184,7 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
       null,
       false,
       "Duplicate",
-      project.name,
+      projectName,
     );
     if (response === undefined) {
       return;
@@ -210,7 +217,7 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
         className={cx(styles.projectCard, props.className)}
         role="link"
         tabIndex={0}
-        aria-label={t("Open project") + ": " + project.name}
+        aria-label={t("Open project") + ": " + projectName}
         onClick={editing ? undefined : openProject}
         onKeyDown={(event) => {
           if (event.target === event.currentTarget && event.key === "Enter") {
@@ -229,7 +236,7 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
           ) : (
             <>
               <FileOutlined />
-              <ProjectTitle name={project.name}>{project.name}</ProjectTitle>
+              <ProjectTitle name={projectName}>{projectName}</ProjectTitle>
             </>
           )}
         </div>
@@ -256,9 +263,9 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
                   }}
                 />
               ) : (
-                <ProjectTitle name={project.name}>
-                  {matcher?.boldSnippets(project.name, "yellow-snippet") ||
-                    project.name}
+                <ProjectTitle name={projectName}>
+                  {matcher?.boldSnippets(projectName, "yellow-snippet") ||
+                    projectName}
                 </ProjectTitle>
               )}
               {!editing &&
@@ -270,7 +277,7 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
                     aria-label={t("Rename project")}
                     onClick={(event) => {
                       event.stopPropagation();
-                      setDraftName(project.name);
+                      setDraftName(projectName);
                       editingSession.current = true;
                       setEditing(true);
                     }}
@@ -296,7 +303,7 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
                     <Menu.Item
                       key="export-plasmic"
                       onClick={() => {
-                        void appOps.exportPlasmicFile(project.id, project.name);
+                        void appOps.exportPlasmicFile(project.id, projectName);
                       }}
                     >
                       {t("Export .plasmic")}
@@ -355,7 +362,7 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
                               project.isUserStarter
                                 ? 'Project "{name}" removed as workspace starter.'
                                 : 'Project "{name}" set as workspace starter.',
-                              { name: project.name },
+                              { name: projectName },
                             ),
                           });
 
@@ -383,7 +390,7 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
                                 <>
                                   {t(
                                     'Remove project "{name}" from your dashboard? This removes your current permissions.',
-                                    { name: project.name },
+                                    { name: projectName },
                                   )}
                                 </>
                               ),
@@ -407,7 +414,7 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
                             message: (
                               <>
                                 {t('Delete project "{name}"?', {
-                                  name: project.name,
+                                  name: projectName,
                                 })}
                               </>
                             ),

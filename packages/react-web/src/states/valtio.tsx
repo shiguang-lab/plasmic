@@ -6,10 +6,9 @@ import {
   ref as createValtioRef,
   getVersion as isValtioProxy,
   subscribe,
-  useSnapshot,
 } from "valtio";
 import { ensure } from "../common";
-import { useIsomorphicLayoutEffect } from "../react-utils";
+import { getStateCommandValue } from "./command-values";
 import {
   CyclicStatesReferencesError,
   InvalidOperation,
@@ -25,7 +24,6 @@ import {
 import { arrayEq, deepEqual, getStateCells, isNum, set } from "./helpers";
 import {
   $State,
-  $StateSpec,
   DollarStateEnv,
   InitFunc,
   InitFuncEnv,
@@ -34,9 +32,9 @@ import {
   ObjectPath,
   PLASMIC_STATE_PROXY_SYMBOL,
   StateCell,
+  StateInitializerDeclaration,
   UNINITIALIZED,
 } from "./types";
-import defer = setTimeout;
 
 function canProxy(value: any) {
   return typeof value === "object" && value != null;
@@ -50,6 +48,10 @@ export const valtioSubscriptions = new WeakMap<
   object,
   ReturnType<typeof subscribe>[]
 >();
+
+// The command proxy owns the mutable engine; render readers subscribe to its
+// values and capture a separate immutable view.
+export const dollarStateStores = new WeakMap<$State, Internal$State>();
 
 function ensureStateCell(
   target: any,
@@ -111,7 +113,7 @@ export function subscribeToValtio(
 ) {
   const spec = node.getSpec();
   const maybeValtioProxy = spec.valueProp
-    ? $$state.env.$props[spec.valueProp]
+    ? getStateCommandValue($$state.env.$props[spec.valueProp])
     : get($$state.stateValues, statePath);
   if (
     isValtioProxy(maybeValtioProxy) &&
@@ -121,12 +123,12 @@ export function subscribeToValtio(
       if (spec.onMutate && node.isLeaf()) {
         spec.onMutate(
           maybeValtioProxy,
-          spec.refName ? $$state.env.$refs[spec.refName] : undefined
+          spec.refName ? $$state.env.getRefs()[spec.refName] : undefined
         );
       }
       $$state.env.$props[spec.onChangeProp!]?.(
         spec.valueProp
-          ? $$state.env.$props[spec.valueProp]
+          ? getStateCommandValue($$state.env.$props[spec.valueProp])
           : get($$state.stateValues, statePath)
       );
     });
@@ -186,6 +188,15 @@ function initializeStateValue(
     $state,
     ...(initialStateCell.overrideEnv ?? $$state.env),
   });
+  installInitialStateValue(initialStateCell, proxyRoot, initialValue);
+
+  $$state.stateInitializationEnv.visited.delete(initialStateName);
+  $$state.stateInitializationEnv.stack.pop();
+
+  return initialValue;
+}
+
+function installInitialStateValue(initialStateCell: StateCell<any>, proxyRoot: $State, initialValue: any) {
   const initialSpec = initialStateCell.node.getSpec();
 
   // Try to clone initialValue. It can fail if it's a PlasmicUndefinedDataProxy
@@ -205,10 +216,6 @@ function initializeStateValue(
     set(proxyRoot, initialStateCell.path, undefined);
   }
 
-  $$state.stateInitializationEnv.visited.delete(initialStateName);
-  $$state.stateInitializationEnv.stack.pop();
-
-  return initialValue;
 }
 
 function create$StateProxy(
@@ -268,13 +275,6 @@ function create$StateProxy(
         const nextNode = currNode.makeTransition(property);
         const nextSpec = nextNode?.getSpec();
 
-        if (
-          (property === "registerInitFunc" ||
-            property === "eagerInitializeStates") &&
-          currPath.length === 0
-        ) {
-          return Reflect.set(target, property, value, receiver);
-        }
         if (!nextNode && currNode.hasArrayTransition()) {
           set($$state.stateValues, nextPath, value);
           //array can set his own properties such as length, map, ...
@@ -305,7 +305,14 @@ function create$StateProxy(
           }
         }
         if (!nextNode) {
-          // can't set an unknown field in $state
+          if (!$$state.activeRender) {
+            // A child's layout initializer can publish before its parent's first
+            // schema commit. Preserve immediate reads; validate and replay the
+            // write against the first schema that actually commits.
+            set($$state.initialCommands, nextPath, value);
+            return Reflect.set(target, property, value, receiver);
+          }
+          // Committed schemas continue rejecting unknown fields.
           return false;
         }
         if (canProxy(value) && !nextNode.isLeaf()) {
@@ -347,6 +354,9 @@ function create$StateProxy(
 const mkUntrackedValue = (o: any) =>
   o != null && typeof o === "object" ? createValtioRef(o) : o;
 
+const emptyRefs = Object.freeze({});
+const getEmptyRefs = () => emptyRefs;
+
 const envFieldsAreNonNill = (
   env: DollarStateEnv
 ): NoUndefinedField<DollarStateEnv> => ({
@@ -354,45 +364,9 @@ const envFieldsAreNonNill = (
   $ctx: env.$ctx ?? {},
   $queries: env.$queries ?? {},
   $q: env.$q ?? {},
-  $refs: env.$refs ?? {},
+  getRefs: env.getRefs ?? getEmptyRefs,
 });
 
-/**
- * We need to support two versions with different parameters to be backward compatible
- *    {
- *       specs: $StateSpec<any>[],
- *       props: Record<string, any>,
- *       $ctx?: Record<string, any>,
- *       opts?: { inCanvas: boolean; }
- *    }
- *    {
- *       specs: $StateSpec<any>[],
- *       env: { $props; $queries; $ctx },
- *       opts?: { inCanvas: boolean }
- *    }
- */
-function extractDollarStateParametersBackwardCompatible(...rest: any[]): {
-  env: DollarStateEnv;
-  opts?: { inCanvas: boolean };
-} {
-  if ("$props" in rest[0]) {
-    // latest version
-    return {
-      env: rest[0],
-      opts: rest[1],
-    };
-  } else {
-    return {
-      env: {
-        $props: rest[0],
-        $ctx: rest[1],
-        $queries: {},
-        $q: {},
-      },
-      opts: rest[2],
-    };
-  }
-}
 
 function invokeInitFunc<T>(
   initFunc: InitFunc<T>,
@@ -406,29 +380,11 @@ function initFuncEnv(
   stateCell: StateCell<any>,
   $state: $State
 ): NoUndefinedField<InitFuncEnv> {
-  return { $state, ...(stateCell.overrideEnv ?? $$state.env) };
+  const env = stateCell.overrideEnv ?? $$state.env;
+  return { $state, $props: env.$props, $ctx: env.$ctx, $queries: env.$queries, $q: env.$q };
 }
 
-// Pure check with no effect on the reset budget; the layout scan decides.
-function initValueChanged(
-  $$state: Internal$State,
-  stateCell: StateCell<any>,
-  $state: $State
-) {
-  try {
-    return !deepEqual(
-      invokeInitFunc(
-        stateCell.initFunc!,
-        initFuncEnv($$state, stateCell, $state)
-      ),
-      stateCell.initialValue
-    );
-  } catch {
-    return false;
-  }
-}
 
-// Bound consecutive resets without a settled evaluation, even on slow renders.
 const MAX_UNSETTLED_RESETS = 5;
 
 function warnUnstableInitFunc(stateCell: StateCell<any>, reason: string) {
@@ -501,214 +457,165 @@ function shouldReInitialize<T>(
   return !reason;
 }
 
-export function useDollarState(
-  specs: $StateSpec<any>[],
-  ...rest: any[]
-): $State {
-  const { env, opts } = extractDollarStateParametersBackwardCompatible(...rest);
-  const [, setState] = React.useState<[]>();
-  // Set for the whole render pass and cleared by the layout effect, which applies
-  // registrations. One that arrives outside a render must schedule a render to be applied.
-  const rendering = React.useRef(false);
-  rendering.current = true;
+/** Validate the complete pre-commit command record before replaying any leaf. */
+function collectInitialCommands(values: Record<PropertyKey, any>, tree: StateSpecNode<any>, path: ObjectPath = []): { path: ObjectPath; value: any }[] {
+  if (tree.isLeaf()) { return [{ path, value: values }]; }
+  if (!canProxy(values)) { throw new InvalidOperation("Inserting a primitive value into a non-leaf state"); }
+  return Reflect.ownKeys(values).filter((key) => !(Array.isArray(values) && key === "length")).flatMap((key) => {
+    const node = tree.makeTransition(key);
+    if (!node) { throw new InvalidOperation(`Unknown state field during initial commit: ${[...path, String(key)].join(".")}`); }
+    return collectInitialCommands(values[key], node, [...path, isNum(key) ? +key : String(key)]);
+  });
+}
 
-  const mountedRef = React.useRef<boolean>(false);
-  const isMounted = React.useCallback(() => mountedRef.current, []);
-
-  React.useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-    };
-  }, []);
-
-  const pendingUpdate = React.useRef(false);
-
-  const forceUpdate = React.useCallback(
-    () =>
-      defer(() => {
-        if (isMounted()) {
-          setState([]);
-          pendingUpdate.current = false;
+function createDollarStateEngine() {
+  const commandListeners = new Set<() => void>();
+  const $$state: Internal$State = {
+    rootSpecTree: buildTree([]),
+    specTreeLeaves: [],
+    stateValues: createValtioProxy({}),
+    env: envFieldsAreNonNill({ $props: {} }),
+    stateInitializationEnv: { stack: [], visited: new Set<string>() },
+    initializedLeafPaths: new Set(),
+    initialCommands: {},
+    getCommands: () => $state,
+    subscribeCommands(listener) { commandListeners.add(listener); return () => commandListeners.delete(listener); },
+    applyInitializers(owner, declarations) {
+      for (const declaration of declarations) { applyInitializer({ ...declaration, owner }); }
+      resetInitializedCells();
+      initializeDeclaredPaths(declarations);
+    },
+    releaseInitializers(owner) {
+      for (const cell of getStateCells($state, $$state.rootSpecTree)) {
+        if (cell.initializerOwner === owner) {
+          cell.initializerOwner = undefined;
+          cell.initFunc = cell.node.getSpec().initFunc;
+          cell.overrideEnv = undefined;
+          cell.pendingInit = undefined;
         }
-      }),
-    []
-  );
-
-  const $$state = React.useRef<Internal$State>(
-    (() => {
-      const rootSpecTree = buildTree(specs);
-      return {
-        rootSpecTree: rootSpecTree,
-        specTreeLeaves: getSpecTreeLeaves(rootSpecTree),
-        stateValues: createValtioProxy({}),
-        env: envFieldsAreNonNill(env),
-        stateInitializationEnv: { stack: [], visited: new Set<string>() },
-        initializedLeafPaths: new Set(),
-      };
-    })()
-  ).current;
-  $$state.env = envFieldsAreNonNill(env);
-
-  const create$State = React.useCallback(() => {
-    const $state = Object.assign(
-      create$StateProxy($$state, (stateCell) => {
-        const spec = stateCell.node.getSpec();
-        if (stateCell.initialValue === UNINITIALIZED && spec.initFunc) {
-          initializeStateValue($$state, stateCell, $state);
-        } else if (
-          stateCell.initialValue === UNINITIALIZED &&
-          !spec.valueProp
-        ) {
-          stateCell.initialValue = spec.initVal;
-          set($state, stateCell.path, spec.initVal);
-        }
-        return {
-          get() {
-            const currSpec = stateCell.node.getSpec();
-            if (currSpec.valueProp) {
-              const valueProp = $$state.env.$props[currSpec.valueProp];
-              subscribeToValtio($$state, stateCell.path, stateCell.node);
-              return valueProp;
-            } else {
-              return get($$state.stateValues, stateCell.path);
-            }
-          },
-        };
-      }),
-      {
-        registerInitFunc: function <T>(
-          pathStr: string,
-          f: InitFunc<T>,
-          repetitionIndex?: number[],
-          overrideEnv?: DollarStateEnv
-        ) {
-          const { realPath } = findStateCell(
-            $$state.rootSpecTree,
-            pathStr,
-            repetitionIndex
-          );
-          const stateCell = getStateCellFrom$StateRoot($state, realPath);
-          // The first initializer always applies, even if unstable, like the
-          // lazy initialization of a spec initFunc.
-          stateCell.pendingInit ||= !stateCell.initFunc;
-          stateCell.initFunc = f;
-          stateCell.overrideEnv = overrideEnv
-            ? envFieldsAreNonNill(overrideEnv)
-            : undefined;
-          if (
-            !rendering.current &&
-            !pendingUpdate.current &&
-            (stateCell.pendingInit ||
-              initValueChanged($$state, stateCell, $state))
-          ) {
-            pendingUpdate.current = true;
-            forceUpdate();
-          }
-        },
-        ...(opts?.inCanvas
-          ? {
-              eagerInitializeStates: (stateSpecs: $StateSpec<any>[]) => {
-                // we need to eager initialize all states in canvas to populate the data picker
-                $$state.specTreeLeaves.forEach((node) => {
-                  const spec = node.getSpec();
-                  if (spec.isRepeated) {
-                    return;
-                  }
-                  const stateCell = getStateCellFrom$StateRoot(
-                    $state,
-                    spec.pathObj as string[]
-                  );
-                  const newSpec = stateSpecs.find(
-                    (sp) => sp.path === spec.path
-                  );
-                  if (
-                    !newSpec ||
-                    (stateCell.initFuncHash === (newSpec?.initFuncHash ?? "") &&
-                      stateCell.initialValue !== UNINITIALIZED)
-                  ) {
-                    return;
-                  }
-                  stateCell.initFunc = newSpec.initFunc;
-                  stateCell.initFuncHash = newSpec.initFuncHash ?? "";
-                  stateCell.unsettledResetCount = undefined;
-                  stateCell.warnedUnstableInitFunc = undefined;
-                  stateCell.rejectedInitProbe = undefined;
-                  const init = spec.valueProp
-                    ? $$state.env.$props[spec.valueProp]
-                    : spec.initFunc
-                    ? initializeStateValue($$state, stateCell, $state)
-                    : spec.initVal;
-                  set($state, spec.pathObj, init);
-                });
-              },
-            }
-          : {}),
       }
-    );
-    return $state;
-  }, [opts?.inCanvas]);
-  const ref = React.useRef<undefined | $State>(undefined);
-  if (!ref.current) {
-    ref.current = create$State();
-  }
-  let $state = ref.current as $State;
-  if (opts?.inCanvas) {
-    $$state.rootSpecTree = updateTree($$state.rootSpecTree, specs);
-    const newLeaves = getSpecTreeLeaves($$state.rootSpecTree);
-    if (!arrayEq(newLeaves, $$state.specTreeLeaves)) {
-      const old$state = $state;
-      $state = ref.current = create$State();
-      $$state.specTreeLeaves = newLeaves;
-      getStateCells(old$state, $$state.rootSpecTree).forEach(({ path }) => {
-        const oldStateCell = tryGetStateCellFrom$StateRoot(old$state, path);
-        if (oldStateCell) {
-          set($state, path, get(old$state, path));
-          const newStateCell = getStateCellFrom$StateRoot($state, path);
-          newStateCell.initialValue = oldStateCell.initialValue;
+    },
+    commit: (owner, env, specs, declarations, initialValues) => {
+      $$state.activeRender = owner;
+      $$state.env = envFieldsAreNonNill(env);
+      const previousLeaves = $$state.specTreeLeaves;
+      $$state.rootSpecTree = updateTree($$state.rootSpecTree, specs);
+      $$state.specTreeLeaves = getSpecTreeLeaves($$state.rootSpecTree);
+      const initialCommands = collectInitialCommands($$state.initialCommands, $$state.rootSpecTree);
+      $$state.initialCommands = {};
+      if (!arrayEq(previousLeaves, $$state.specTreeLeaves)) {
+        const previous = $state;
+        $state = create$State();
+        for (const { path } of getStateCells(previous, $$state.rootSpecTree)) {
+          const oldCell = tryGetStateCellFrom$StateRoot(previous, path);
+          if (oldCell) {
+            set($state, path, get(previous, path));
+            const cell = getCellForRegistration($state, path);
+            cell.initialValue = oldCell.initialValue;
+            cell.initFunc = oldCell.initFunc;
+            cell.overrideEnv = oldCell.overrideEnv;
+            cell.initFuncHash = oldCell.initFuncHash;
+          }
         }
-      });
+      }
+      for (const cell of getStateCells($state, $$state.rootSpecTree)) {
+        const spec = cell.node.getSpec();
+        if (cell.initFuncHash !== (spec.initFuncHash ?? "")) {
+          cell.initFuncHash = spec.initFuncHash ?? "";
+          cell.unsettledResetCount = undefined;
+          cell.warnedUnstableInitFunc = undefined;
+          cell.rejectedInitProbe = undefined;
+        }
+        if (!cell.initializerOwner) { cell.initFunc = spec.initFunc; }
+      }
+      for (const declaration of declarations) { applyInitializer({ ...declaration, owner: declaration.owner ?? owner }); }
+      for (const initial of initialValues) {
+        const cell = getCellForRegistration($state, initial.path);
+        if (cell.initialValue === UNINITIALIZED && cell.initFunc === initial.initFunc && !cell.node.getSpec().valueProp) {
+          cell.pendingInit = undefined;
+          installInitialStateValue(cell, $state, initial.value);
+        }
+      }
+      resetInitializedCells();
+      initializeDeclaredPaths(declarations);
+      for (const node of $$state.specTreeLeaves) {
+        const spec = node.getSpec();
+        if (!spec.isRepeated && spec.type !== "private") {
+          getStateCellFrom$StateRoot($state, spec.pathObj as ObjectPath);
+        }
+      }
+      for (const { path, value } of initialCommands) { set($state, path, value); }
+      if (!arrayEq(previousLeaves, $$state.specTreeLeaves)) {
+        commandListeners.forEach((listener) => listener());
+      }
+    },
+  };
+
+  function getCellForRegistration(commands: $State, path: ObjectPath) {
+    const parent = get(commands, path.slice(0, -1));
+    const { node } = parent[PLASMIC_STATE_PROXY_SYMBOL] as { node: StateSpecNode<any> };
+    const property = path[path.length - 1];
+    const next = ensure(node.makeTransition(property));
+    return ensureStateCell(parent, property, path, next);
+  }
+
+  function applyInitializer(declaration: StateInitializerDeclaration) {
+    const { realPath } = findStateCell($$state.rootSpecTree, declaration.path, declaration.repetitionIndex);
+    const cell = getCellForRegistration($state, realPath);
+    if (!declaration.initFunc) { return; }
+    cell.pendingInit ||= !cell.initFunc;
+    cell.initializerOwner = declaration.owner;
+    cell.initFunc = declaration.initFunc;
+    cell.overrideEnv = declaration.env ? envFieldsAreNonNill(declaration.env) : undefined;
+  }
+
+  function initializeDeclaredPaths(declarations: readonly StateInitializerDeclaration[]) {
+    for (const declaration of declarations) {
+      const { realPath } = findStateCell($$state.rootSpecTree, declaration.path, declaration.repetitionIndex);
+      getStateCellFrom$StateRoot($state, realPath);
     }
   }
 
-  useIsomorphicLayoutEffect(() => {
-    rendering.current = false;
-    // Scan every cell before resetting any, so each initFunc sees the same
-    // pre-reset state.
-    const resetCells = getStateCells($state, $$state.rootSpecTree).filter(
-      (stateCell) =>
-        stateCell.pendingInit ||
-        (stateCell.initFunc &&
-          shouldReInitialize(
-            stateCell,
-            stateCell.initFunc,
-            initFuncEnv($$state, stateCell, $state)
-          ))
-    );
-    resetCells.forEach((stateCell) => {
-      stateCell.pendingInit = undefined;
-      const newInit = initializeStateValue($$state, stateCell, $state);
-      const spec = stateCell.node.getSpec();
-      if (spec.onChangeProp) {
-        $$state.env.$props[spec.onChangeProp]?.(newInit);
-      }
-    });
-  });
-  // immediately initialize exposed non-private states
-  useIsomorphicLayoutEffect(() => {
-    $$state.specTreeLeaves.forEach((node) => {
-      const spec = node.getSpec();
-      if (!spec.isRepeated && spec.type !== "private") {
-        // We only need to attempt to access the state cell to trigger initialization,
-        // Check create$StateProxy for more details on how this works.
-        getStateCellFrom$StateRoot($state, spec.pathObj as ObjectPath);
-      }
-    });
-  }, []);
+  function resetInitializedCells() {
+    const cells = getStateCells($state, $$state.rootSpecTree).filter((cell) => cell.pendingInit ||
+      (cell.initFunc && shouldReInitialize(cell, cell.initFunc, initFuncEnv($$state, cell, $state))));
+    for (const cell of cells) {
+      cell.pendingInit = undefined;
+      const initial = initializeStateValue($$state, cell, $state);
+      const spec = cell.node.getSpec();
+      if (spec.onChangeProp) { $$state.env.$props[spec.onChangeProp]?.(initial); }
+    }
+  }
 
-  // Re-render if any value changed in one of these objects
-  useSnapshot($$state.stateValues, { sync: true });
-  return $state;
+  function create$State(): $State {
+    const commands = create$StateProxy($$state, (cell) => {
+      const spec = cell.node.getSpec();
+      if (cell.initialValue === UNINITIALIZED && cell.initFunc) {
+        initializeStateValue($$state, cell, commands);
+      } else if (cell.initialValue === UNINITIALIZED && !spec.valueProp) {
+        cell.initialValue = spec.initVal;
+        set(commands, cell.path, spec.initVal);
+      }
+      return { get() {
+        const current = cell.node.getSpec();
+        if (current.valueProp) {
+          subscribeToValtio($$state, cell.path, cell.node);
+          return getStateCommandValue($$state.env.$props[current.valueProp]);
+        }
+        return get($$state.stateValues, cell.path);
+      } };
+    });
+    dollarStateStores.set(commands, $$state);
+    return commands;
+  }
+  let $state = create$State();
+  return $$state;
+}
+
+/** Create a command engine. Its render snapshot owns configuration and commits. */
+export function useDollarState(): $State {
+  const [engine] = React.useState(createDollarStateEngine);
+  return React.useSyncExternalStore(engine.subscribeCommands, engine.getCommands, engine.getCommands);
 }
 
 export default useDollarState;

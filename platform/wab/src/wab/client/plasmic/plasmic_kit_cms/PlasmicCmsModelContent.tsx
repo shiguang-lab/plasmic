@@ -14,21 +14,21 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import CmsEntriesList from "../../components/cms/CmsEntriesList"; // plasmic-import: k2vc2stl18/component
 import CmsEntryDetails from "../../components/cms/CmsEntryDetails"; // plasmic-import: 9vM3ZFGR4eV/component
 import CmsEntryItem from "../../components/cms/CmsEntryItem"; // plasmic-import: girCdMST6R/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -90,11 +90,10 @@ function PlasmicCmsModelContent__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "noEntries",
@@ -103,18 +102,20 @@ function PlasmicCmsModelContent__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.noEntries,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -223,12 +224,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -238,29 +235,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCmsModelContent__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCmsModelContent";
-  } else {
-    func.displayName = `PlasmicCmsModelContent.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCmsModelContent__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCmsModelContent__root<T extends PlasmicCmsModelContent__rootProps>(props: T & StrictProps<T, PlasmicCmsModelContent__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCmsModelContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCmsModelContent__root.displayName = "PlasmicCmsModelContent";
+
+type PlasmicCmsModelContent__entriesListProps = NodeComponentProps<"entriesList"> & {key?: React.Key};
+function PlasmicCmsModelContent__entriesList<T extends PlasmicCmsModelContent__entriesListProps>(props: T & StrictProps<T, PlasmicCmsModelContent__entriesListProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("entriesList", props);
+  return <PlasmicCmsModelContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"entriesList"} />;
+}
+PlasmicCmsModelContent__entriesList.displayName = "PlasmicCmsModelContent.entriesList";
+
+type PlasmicCmsModelContent__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicCmsModelContent__text<T extends PlasmicCmsModelContent__textProps>(props: T & StrictProps<T, PlasmicCmsModelContent__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicCmsModelContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicCmsModelContent__text.displayName = "PlasmicCmsModelContent.text";
+
+type PlasmicCmsModelContent__entryDetailProps = NodeComponentProps<"entryDetail"> & {key?: React.Key};
+function PlasmicCmsModelContent__entryDetail<T extends PlasmicCmsModelContent__entryDetailProps>(props: T & StrictProps<T, PlasmicCmsModelContent__entryDetailProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("entryDetail", props);
+  return <PlasmicCmsModelContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"entryDetail"} />;
+}
+PlasmicCmsModelContent__entryDetail.displayName = "PlasmicCmsModelContent.entryDetail";
+
 
 export const PlasmicCmsModelContent = Object.assign(
   // Top-level PlasmicCmsModelContent renders the root element
-  makeNodeComponent("root"),
+  PlasmicCmsModelContent__root,
   {
     // Helper components rendering sub-elements
-    entriesList: makeNodeComponent("entriesList"),
-    text: makeNodeComponent("text"),
-    entryDetail: makeNodeComponent("entryDetail"),
+    entriesList: PlasmicCmsModelContent__entriesList,
+    text: PlasmicCmsModelContent__text,
+    entryDetail: PlasmicCmsModelContent__entryDetail,
 
     // Metadata about props expected for PlasmicCmsModelContent
     internalVariantProps: PlasmicCmsModelContent__VariantProps,

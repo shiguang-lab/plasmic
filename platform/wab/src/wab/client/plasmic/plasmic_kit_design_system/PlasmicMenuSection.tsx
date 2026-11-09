@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -26,7 +26,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { BaseSection } from "@plasmicpkgs/react-aria/skinny/registerSection";
 import MenuItem from "../../components/plexus/MenuItem"; // plasmic-import: HuWzUuHGp49C/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -87,11 +87,10 @@ function PlasmicMenuSection__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <BaseSection
@@ -174,12 +173,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -189,27 +184,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicMenuSection__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicMenuSection";
-  } else {
-    func.displayName = `PlasmicMenuSection.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicMenuSection__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicMenuSection__root<T extends PlasmicMenuSection__rootProps>(props: T & StrictProps<T, PlasmicMenuSection__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicMenuSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicMenuSection__root.displayName = "PlasmicMenuSection";
+
+type PlasmicMenuSection__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicMenuSection__freeBox<T extends PlasmicMenuSection__freeBoxProps>(props: T & StrictProps<T, PlasmicMenuSection__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicMenuSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicMenuSection__freeBox.displayName = "PlasmicMenuSection.freeBox";
+
 
 export const PlasmicMenuSection = Object.assign(
   // Top-level PlasmicMenuSection renders the root element
-  makeNodeComponent("root"),
+  PlasmicMenuSection__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
+    freeBox: PlasmicMenuSection__freeBox,
 
     // Metadata about props expected for PlasmicMenuSection
     internalVariantProps: PlasmicMenuSection__VariantProps,

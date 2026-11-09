@@ -24,7 +24,7 @@ import {
 } from "@/wab/shared/model/classes";
 import { Tooltip } from "antd";
 import L from "lodash";
-import { observer } from "mobx-react";
+import { useTargetedStylePanelInputs } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
 import React from "react";
 
 interface CreateOption {
@@ -32,21 +32,24 @@ interface CreateOption {
   text: string;
 }
 
-export const MixinsSection = observer(function (props: {
+export const MixinsSection = React.memo(function (props: {
   tpl: TplNode;
   viewCtx: ViewCtx;
 }) {
   const { tpl, viewCtx } = props;
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
 
+  const inputs = useTargetedStylePanelInputs(viewCtx.studioCtx, { kind: "mixins", view: viewCtx, tpl });
+  const [editMixin, setEditMixin] = React.useState<Mixin | undefined>(
+    undefined,
+  );
+  if (!inputs.active) { return null; }
   const vtm = viewCtx.variantTplMgr();
   const activeVariants = [...vtm.getActivatedVariantsForNode(tpl)];
   const targetCombo = vtm.getTargetVariantComboForNode(tpl);
   const effectiveVs = vtm.effectiveVariantSetting(tpl, activeVariants);
   const targetVs = tryGetVariantSetting(tpl, targetCombo);
-  const [editMixin, setEditMixin] = React.useState<Mixin | undefined>(
-    undefined,
-  );
+
 
   const adoptParentContainerStyle = () => {
     if (isTplTag(tpl)) {
@@ -64,6 +67,7 @@ export const MixinsSection = observer(function (props: {
 
   const onMixinEdited = () => {
     viewCtx.change(() => {
+      if (!inputs.isCurrent()) { return; }
       vtm.applyMixin(
         tpl,
         ensure(editMixin, "Unexpected undefined editMixin"),
@@ -74,7 +78,7 @@ export const MixinsSection = observer(function (props: {
     });
   };
 
-  if (!targetVs) {
+  if (!inputs.active || !targetVs) {
     return null;
   }
 
@@ -167,12 +171,14 @@ export const MixinsSection = observer(function (props: {
         onSelect={(item) => {
           if (isKnownMixin(item)) {
             viewCtx.change(() => {
+      if (!inputs.isCurrent()) { return; }
               vtm.applyMixin(tpl, item, targetCombo);
               adoptParentContainerStyle();
             });
             return false;
           } else {
             viewCtx.change(() => {
+      if (!inputs.isCurrent()) { return; }
               const mixin = viewCtx.studioCtx.tplMgr().addMixin(item.text);
               setEditMixin(mixin);
             });
@@ -181,6 +187,7 @@ export const MixinsSection = observer(function (props: {
         }}
         onUnselect={(item) =>
           viewCtx.change(() => {
+      if (!inputs.isCurrent()) { return; }
             vtm.removeMixin(tpl, ensureKnownMixin(item), targetCombo);
             adoptParentContainerStyle();
           })
@@ -189,6 +196,7 @@ export const MixinsSection = observer(function (props: {
         onFocusItem={(item) => setEditMixin(ensureKnownMixin(item))}
         onReorder={(fromIndex, toIndex) => {
           viewCtx.change(() => {
+      if (!inputs.isCurrent()) { return; }
             const moved = removeAt(targetVs.rs.mixins, fromIndex);
             arrayInsert(
               targetVs.rs.mixins,

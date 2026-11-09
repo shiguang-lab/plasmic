@@ -95,7 +95,7 @@ export const AntdTable = React.forwardRef(function AntdTable(
         }
       },
     }),
-    [data, onSelectedRowKeysChange, onSelectedRowsChange, isSelectable, rowKey]
+    [data, onSelectedRowKeysChange, onSelectedRowsChange, isSelectable, rowKey, isControlled]
   );
   return (
     <Table

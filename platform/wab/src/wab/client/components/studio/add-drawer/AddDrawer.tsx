@@ -721,8 +721,8 @@ export function createInstallOnlyPackage(
       if (!ctx || checkAndNotifyUnsupportedHostVersion()) {
         return false;
       }
-      if (packageMeta.syntheticPackage) {
-        sc.shownSyntheticSections.set(packageMeta.codeName, true);
+      if (packageMeta.syntheticPackage && packageMeta.codeName) {
+        sc.showSyntheticSection(packageMeta.codeName);
       }
       return true;
     },

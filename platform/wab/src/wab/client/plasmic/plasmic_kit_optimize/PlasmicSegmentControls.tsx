@@ -15,19 +15,19 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -93,11 +93,10 @@ function PlasmicSegmentControls__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "hasRules",
@@ -106,18 +105,20 @@ function PlasmicSegmentControls__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.hasRules,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -246,12 +247,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -261,31 +258,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSegmentControls__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSegmentControls";
-  } else {
-    func.displayName = `PlasmicSegmentControls.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSegmentControls__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSegmentControls__root<T extends PlasmicSegmentControls__rootProps>(props: T & StrictProps<T, PlasmicSegmentControls__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSegmentControls__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSegmentControls__root.displayName = "PlasmicSegmentControls";
+
+type PlasmicSegmentControls__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicSegmentControls__freeBox<T extends PlasmicSegmentControls__freeBoxProps>(props: T & StrictProps<T, PlasmicSegmentControls__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicSegmentControls__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicSegmentControls__freeBox.displayName = "PlasmicSegmentControls.freeBox";
+
+type PlasmicSegmentControls__targetBtnProps = NodeComponentProps<"targetBtn"> & {key?: React.Key};
+function PlasmicSegmentControls__targetBtn<T extends PlasmicSegmentControls__targetBtnProps>(props: T & StrictProps<T, PlasmicSegmentControls__targetBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("targetBtn", props);
+  return <PlasmicSegmentControls__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"targetBtn"} />;
+}
+PlasmicSegmentControls__targetBtn.displayName = "PlasmicSegmentControls.targetBtn";
+
+type PlasmicSegmentControls__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicSegmentControls__svg<T extends PlasmicSegmentControls__svgProps>(props: T & StrictProps<T, PlasmicSegmentControls__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicSegmentControls__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicSegmentControls__svg.displayName = "PlasmicSegmentControls.svg";
+
+type PlasmicSegmentControls__targetRulesProps = NodeComponentProps<"targetRules"> & {key?: React.Key};
+function PlasmicSegmentControls__targetRules<T extends PlasmicSegmentControls__targetRulesProps>(props: T & StrictProps<T, PlasmicSegmentControls__targetRulesProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("targetRules", props);
+  return <PlasmicSegmentControls__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"targetRules"} />;
+}
+PlasmicSegmentControls__targetRules.displayName = "PlasmicSegmentControls.targetRules";
+
+type PlasmicSegmentControls__rulesContentProps = NodeComponentProps<"rulesContent"> & {key?: React.Key};
+function PlasmicSegmentControls__rulesContent<T extends PlasmicSegmentControls__rulesContentProps>(props: T & StrictProps<T, PlasmicSegmentControls__rulesContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("rulesContent", props);
+  return <PlasmicSegmentControls__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"rulesContent"} />;
+}
+PlasmicSegmentControls__rulesContent.displayName = "PlasmicSegmentControls.rulesContent";
+
 
 export const PlasmicSegmentControls = Object.assign(
   // Top-level PlasmicSegmentControls renders the root element
-  makeNodeComponent("root"),
+  PlasmicSegmentControls__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    targetBtn: makeNodeComponent("targetBtn"),
-    svg: makeNodeComponent("svg"),
-    targetRules: makeNodeComponent("targetRules"),
-    rulesContent: makeNodeComponent("rulesContent"),
+    freeBox: PlasmicSegmentControls__freeBox,
+    targetBtn: PlasmicSegmentControls__targetBtn,
+    svg: PlasmicSegmentControls__svg,
+    targetRules: PlasmicSegmentControls__targetRules,
+    rulesContent: PlasmicSegmentControls__rulesContent,
 
     // Metadata about props expected for PlasmicSegmentControls
     internalVariantProps: PlasmicSegmentControls__VariantProps,

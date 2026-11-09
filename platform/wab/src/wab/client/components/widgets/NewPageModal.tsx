@@ -191,7 +191,7 @@ function NewPageModal(props: NewPageModalProps) {
                           preview.opener = null;
                         }
                         let launched = false;
-                        try {
+                        return await (async () => {
                           await studioCtx.projectDependencyManager.fetchInsertableTemplate(
                             comp.projectId,
                           );
@@ -232,11 +232,11 @@ function NewPageModal(props: NewPageModalProps) {
                             preview?.location.replace(url);
                           }
                           launched = true;
-                        } finally {
+                        })().finally(() => {
                           if (!launched) {
                             preview?.close();
                           }
-                        }
+                        });
                       }}
                     />
                   </Tooltip>

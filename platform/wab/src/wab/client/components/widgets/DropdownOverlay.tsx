@@ -6,7 +6,7 @@ import {
 } from "@/wab/client/plasmic/plasmic_kit_design_system/PlasmicDropdownOverlay";
 import { useProductThemeStyles } from "@/wab/client/product-ui-theme.styles";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 import * as React from "react";
 
 interface DropdownOverlayProps extends DefaultDropdownOverlayProps {
@@ -19,7 +19,7 @@ const DropdownOverlay = React.forwardRef(function DropdownOverlay(
   ref: React.Ref<HTMLDivElement>,
 ) {
   const { scrollable = true, ...rest } = props;
-  const { token } = theme.useToken();
+  const { token } = AntdTheme.useToken();
   const { styles, cx } = useProductThemeStyles(token);
   return (
     <PlasmicDropdownOverlay

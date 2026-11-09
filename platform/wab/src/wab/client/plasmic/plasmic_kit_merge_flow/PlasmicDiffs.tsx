@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,7 +25,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: p8FkKgCnyuat1kHSEYAKfW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: p8FkKgCnyuat1kHSEYAKfW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -88,11 +88,10 @@ function PlasmicDiffs__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -264,12 +263,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -279,33 +274,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDiffs__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDiffs";
-  } else {
-    func.displayName = `PlasmicDiffs.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDiffs__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDiffs__root<T extends PlasmicDiffs__rootProps>(props: T & StrictProps<T, PlasmicDiffs__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDiffs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDiffs__root.displayName = "PlasmicDiffs";
+
+type PlasmicDiffs__backButtonProps = NodeComponentProps<"backButton"> & {key?: React.Key};
+function PlasmicDiffs__backButton<T extends PlasmicDiffs__backButtonProps>(props: T & StrictProps<T, PlasmicDiffs__backButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("backButton", props);
+  return <PlasmicDiffs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"backButton"} />;
+}
+PlasmicDiffs__backButton.displayName = "PlasmicDiffs.backButton";
+
+type PlasmicDiffs__labelTextProps = NodeComponentProps<"labelText"> & {key?: React.Key};
+function PlasmicDiffs__labelText<T extends PlasmicDiffs__labelTextProps>(props: T & StrictProps<T, PlasmicDiffs__labelTextProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelText", props);
+  return <PlasmicDiffs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelText"} />;
+}
+PlasmicDiffs__labelText.displayName = "PlasmicDiffs.labelText";
+
+type PlasmicDiffs__labelProps = NodeComponentProps<"label"> & {key?: React.Key};
+function PlasmicDiffs__label<T extends PlasmicDiffs__labelProps>(props: T & StrictProps<T, PlasmicDiffs__labelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("label", props);
+  return <PlasmicDiffs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"label"} />;
+}
+PlasmicDiffs__label.displayName = "PlasmicDiffs.label";
+
+type PlasmicDiffs__branchLabelProps = NodeComponentProps<"branchLabel"> & {key?: React.Key};
+function PlasmicDiffs__branchLabel<T extends PlasmicDiffs__branchLabelProps>(props: T & StrictProps<T, PlasmicDiffs__branchLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("branchLabel", props);
+  return <PlasmicDiffs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"branchLabel"} />;
+}
+PlasmicDiffs__branchLabel.displayName = "PlasmicDiffs.branchLabel";
+
+type PlasmicDiffs__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicDiffs__text<T extends PlasmicDiffs__textProps>(props: T & StrictProps<T, PlasmicDiffs__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicDiffs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicDiffs__text.displayName = "PlasmicDiffs.text";
+
+type PlasmicDiffs__labelIconsContainerProps = NodeComponentProps<"labelIconsContainer"> & {key?: React.Key};
+function PlasmicDiffs__labelIconsContainer<T extends PlasmicDiffs__labelIconsContainerProps>(props: T & StrictProps<T, PlasmicDiffs__labelIconsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelIconsContainer", props);
+  return <PlasmicDiffs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelIconsContainer"} />;
+}
+PlasmicDiffs__labelIconsContainer.displayName = "PlasmicDiffs.labelIconsContainer";
+
+type PlasmicDiffs__diffContentProps = NodeComponentProps<"diffContent"> & {key?: React.Key};
+function PlasmicDiffs__diffContent<T extends PlasmicDiffs__diffContentProps>(props: T & StrictProps<T, PlasmicDiffs__diffContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("diffContent", props);
+  return <PlasmicDiffs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"diffContent"} />;
+}
+PlasmicDiffs__diffContent.displayName = "PlasmicDiffs.diffContent";
+
 
 export const PlasmicDiffs = Object.assign(
   // Top-level PlasmicDiffs renders the root element
-  makeNodeComponent("root"),
+  PlasmicDiffs__root,
   {
     // Helper components rendering sub-elements
-    backButton: makeNodeComponent("backButton"),
-    labelText: makeNodeComponent("labelText"),
-    label: makeNodeComponent("label"),
-    branchLabel: makeNodeComponent("branchLabel"),
-    text: makeNodeComponent("text"),
-    labelIconsContainer: makeNodeComponent("labelIconsContainer"),
-    diffContent: makeNodeComponent("diffContent"),
+    backButton: PlasmicDiffs__backButton,
+    labelText: PlasmicDiffs__labelText,
+    label: PlasmicDiffs__label,
+    branchLabel: PlasmicDiffs__branchLabel,
+    text: PlasmicDiffs__text,
+    labelIconsContainer: PlasmicDiffs__labelIconsContainer,
+    diffContent: PlasmicDiffs__diffContent,
 
     // Metadata about props expected for PlasmicDiffs
     internalVariantProps: PlasmicDiffs__VariantProps,

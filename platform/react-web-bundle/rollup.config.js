@@ -1,3 +1,4 @@
+import { reactCompilerPlugin } from "./react-compiler.mjs";
 import babel from "@rollup/plugin-babel";
 import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
@@ -25,6 +26,7 @@ export default {
     },
   },
   plugins: [
+    reactCompilerPlugin(),
     resolve({
       browser: true,
     }),
@@ -32,7 +34,7 @@ export default {
     postcss(),
     sucrase({
       exclude: ["node_modules/**"],
-      transforms: ["typescript"],
+      transforms: ["typescript", "jsx"],
     }),
     babel({
       presets: [["@babel/react", { runtime: "automatic" }]],

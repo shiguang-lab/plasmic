@@ -210,7 +210,7 @@ function DomainCard_(
               disabled: removing,
               onClick: spawnWrapper(async () => {
                 setRemoving(true);
-                try {
+                return await (async () => {
                   const response = await api.setCustomDomainForProject(
                     undefined,
                     projectId,
@@ -228,14 +228,14 @@ function DomainCard_(
                   }
                   setRemoveError(undefined);
                   onRemoved?.();
-                } catch (err) {
+                })().catch(async (err) => {
                   setRemoveError({
                     message: getErrorMessage(err),
                     operation: "remove",
                   });
-                } finally {
+                }).finally(() => {
                   setRemoving(false);
-                }
+                });
               }),
             }
       }

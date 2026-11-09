@@ -49,7 +49,6 @@ import {
   makeVariantName,
 } from "@/wab/shared/Variants";
 import { orderBy } from "lodash";
-import type { IObservableArray } from "mobx";
 
 export function mkPageArena({
   component,
@@ -314,7 +313,7 @@ export function reorderPageArenaCols(site: Site) {
 
   site.pageArenas.forEach((arena) => {
     arena.matrix.rows.forEach((arenaRow) => {
-      const originalCols = arenaRow.cols as IObservableArray;
+      const originalCols = arenaRow.cols;
 
       const orderedCols = orderBy(originalCols, (it) => it.frame.width, [
         direction,
@@ -337,7 +336,7 @@ export function reorderPageArenaCols(site: Site) {
         }
       });
 
-      originalCols.replace(orderedCols);
+      originalCols.splice(0, originalCols.length, ...orderedCols);
     });
   });
 

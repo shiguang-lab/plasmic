@@ -176,7 +176,7 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
       (async () => {
         if (loadingVersion) {
           setVersionError(false);
-          try {
+          return await (async () => {
             const next = await hostFrameApi.calculateNextPublishVersion();
             setNextVersion(next);
             if (website || view !== "status") {
@@ -194,12 +194,12 @@ function PublishFlowDialog(props: PublishFlowDialogProps) {
                 );
               }
             }
-          } catch (error) {
+          })().catch(async (error) => {
             showError(error, { title: "Failed to load publishing settings" });
             setVersionError(true);
-          } finally {
+          }).finally(() => {
             setLoadingVersion(false);
-          }
+          });
         }
       })(),
     );

@@ -11,7 +11,6 @@ import { createSite, getDedicatedArena } from "@/wab/shared/core/sites";
 import { Pt } from "@/wab/shared/geom";
 import { $State } from "@plasmicapp/react-web";
 import { waitFor } from "@testing-library/react";
-import { runInAction } from "mobx";
 
 async function fixture() {
   // This fixture has no browser viewport; leave canvas rendering paused.
@@ -66,18 +65,18 @@ it("keeps each artboard's state independent and retains it for editing without p
     f.views[0].canvasSessionState.resolve("instance[0]", "open", false);
     f.views[0].canvasSessionState.reveal("instance[0]", "open", true);
     f.views[1].canvasSessionState.resolve("instance[0]", "open", false);
-    runInAction(() => {
+    (() => {
       f.studioCtx.isInteractiveMode = true;
       f.views[0].syncInteractiveVariants(f.state("second"));
       f.views[1].syncInteractiveVariants(f.state("second"));
-    });
+    })();
     expect(makeClientPinManager(f.views[0]).isActive(f.second)).toBe(true);
     expect(makeClientPinManager(f.views[0]).isActive(f.first)).not.toBe(true);
     expect(makeClientPinManager(f.views[1]).isActive(f.second)).toBe(true);
-    runInAction(() => f.views[1].syncInteractiveVariants(f.state("first")));
+    (() => f.views[1].syncInteractiveVariants(f.state("first")))();
     expect(makeClientPinManager(f.views[0]).isActive(f.second)).toBe(true);
     expect(makeClientPinManager(f.views[1]).isActive(f.first)).toBe(true);
-    runInAction(() => { f.studioCtx.isInteractiveMode = false; });
+    (() => { f.studioCtx.isInteractiveMode = false; })();
     expect(f.views[0].canvasSessionState.get("instance[0]", "open")).toBe(true);
     expect(f.views[1].canvasSessionState.get("instance[0]", "open")).toBe(false);
     expect(f.views[0].componentStackFrames()[0]).toBeInstanceOf(TransientComponentVariantFrame);
@@ -92,7 +91,7 @@ it("keeps each artboard's state independent and retains it for editing without p
 it("keeps interaction enabled when navigating between dedicated editors and artboard groups", async () => {
   const f = await fixture();
   try {
-    runInAction(() => { f.studioCtx.isInteractiveMode = true; });
+    (() => { f.studioCtx.isInteractiveMode = true; })();
     const dedicated = getDedicatedArena(f.studioCtx.site, f.component);
     await f.studioCtx.changeUnsafe(() => f.studioCtx.switchToArena(dedicated));
     expect(f.studioCtx.isInteractiveMode).toBe(true);

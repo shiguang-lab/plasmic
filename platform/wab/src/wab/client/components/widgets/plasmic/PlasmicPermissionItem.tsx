@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicIcon as PlasmicIcon__,
   SingleBooleanChoiceArg,
   SingleChoiceArg,
@@ -27,12 +27,12 @@ import {
   generateStateValueProp,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../../../plasmic/plasmic_kit_share_dialog/PlasmicStyleTokensProvider"; // plasmic-import: kA1Hysr5ZeimtATHTDJz5B/styleTokensProvider
+import { useStyleTokens } from "../../../plasmic/plasmic_kit_share_dialog/PlasmicStyleTokensProvider"; // plasmic-import: kA1Hysr5ZeimtATHTDJz5B/styleTokensProvider
 import IconButton from "../IconButton"; // plasmic-import: LPry-TF4j22a/component
 import Select from "../Select"; // plasmic-import: j_4IQyOWK2b/component
 import Select__Option from "../Select__Option"; // plasmic-import: rr-LWdMni2G/component
@@ -115,11 +115,10 @@ function PlasmicPermissionItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "role",
@@ -140,23 +139,25 @@ function PlasmicPermissionItem__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => "viewer",
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -254,9 +255,9 @@ function PlasmicPermissionItem__RenderFunc(props: {
             isDisabled={
               hasVariant($state, "loading", "loading") ? true : undefined
             }
-            onChange={async (...eventArgs: any) => {
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
               ((...eventArgs) => {
-                generateStateOnChangeProp($state, ["roleDropdown", "value"])(
+                generateStateOnChangeProp($stateCommands, ["roleDropdown", "value"])(
                   eventArgs[0]
                 );
               }).apply(null, eventArgs);
@@ -268,7 +269,7 @@ function PlasmicPermissionItem__RenderFunc(props: {
               ) {
                 return;
               }
-            }}
+            })); })}
             textAlign={"right"}
             type={"seamless"}
             value={generateStateValueProp($state, ["roleDropdown", "value"])}
@@ -348,12 +349,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -363,30 +360,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPermissionItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPermissionItem";
-  } else {
-    func.displayName = `PlasmicPermissionItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPermissionItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPermissionItem__root<T extends PlasmicPermissionItem__rootProps>(props: T & StrictProps<T, PlasmicPermissionItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPermissionItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPermissionItem__root.displayName = "PlasmicPermissionItem";
+
+type PlasmicPermissionItem__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicPermissionItem__freeBox<T extends PlasmicPermissionItem__freeBoxProps>(props: T & StrictProps<T, PlasmicPermissionItem__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicPermissionItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicPermissionItem__freeBox.displayName = "PlasmicPermissionItem.freeBox";
+
+type PlasmicPermissionItem__ownerProps = NodeComponentProps<"owner"> & {key?: React.Key};
+function PlasmicPermissionItem__owner<T extends PlasmicPermissionItem__ownerProps>(props: T & StrictProps<T, PlasmicPermissionItem__ownerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("owner", props);
+  return <PlasmicPermissionItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"owner"} />;
+}
+PlasmicPermissionItem__owner.displayName = "PlasmicPermissionItem.owner";
+
+type PlasmicPermissionItem__deleteBtnProps = NodeComponentProps<"deleteBtn"> & {key?: React.Key};
+function PlasmicPermissionItem__deleteBtn<T extends PlasmicPermissionItem__deleteBtnProps>(props: T & StrictProps<T, PlasmicPermissionItem__deleteBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("deleteBtn", props);
+  return <PlasmicPermissionItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"deleteBtn"} />;
+}
+PlasmicPermissionItem__deleteBtn.displayName = "PlasmicPermissionItem.deleteBtn";
+
+type PlasmicPermissionItem__roleDropdownProps = NodeComponentProps<"roleDropdown"> & {key?: React.Key};
+function PlasmicPermissionItem__roleDropdown<T extends PlasmicPermissionItem__roleDropdownProps>(props: T & StrictProps<T, PlasmicPermissionItem__roleDropdownProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("roleDropdown", props);
+  return <PlasmicPermissionItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"roleDropdown"} />;
+}
+PlasmicPermissionItem__roleDropdown.displayName = "PlasmicPermissionItem.roleDropdown";
+
 
 export const PlasmicPermissionItem = Object.assign(
   // Top-level PlasmicPermissionItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicPermissionItem__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    owner: makeNodeComponent("owner"),
-    deleteBtn: makeNodeComponent("deleteBtn"),
-    roleDropdown: makeNodeComponent("roleDropdown"),
+    freeBox: PlasmicPermissionItem__freeBox,
+    owner: PlasmicPermissionItem__owner,
+    deleteBtn: PlasmicPermissionItem__deleteBtn,
+    roleDropdown: PlasmicPermissionItem__roleDropdown,
 
     // Metadata about props expected for PlasmicPermissionItem
     internalVariantProps: PlasmicPermissionItem__VariantProps,

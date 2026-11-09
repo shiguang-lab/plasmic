@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -27,7 +27,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import InlineEditable from "../../components/InlineEditable"; // plasmic-import: btpz7A3thO/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -95,11 +95,10 @@ function PlasmicCmsEntryDetails__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -284,12 +283,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -299,35 +294,93 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCmsEntryDetails__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCmsEntryDetails";
-  } else {
-    func.displayName = `PlasmicCmsEntryDetails.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCmsEntryDetails__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCmsEntryDetails__root<T extends PlasmicCmsEntryDetails__rootProps>(props: T & StrictProps<T, PlasmicCmsEntryDetails__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCmsEntryDetails__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCmsEntryDetails__root.displayName = "PlasmicCmsEntryDetails";
+
+type PlasmicCmsEntryDetails__leftProps = NodeComponentProps<"left"> & {key?: React.Key};
+function PlasmicCmsEntryDetails__left<T extends PlasmicCmsEntryDetails__leftProps>(props: T & StrictProps<T, PlasmicCmsEntryDetails__leftProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("left", props);
+  return <PlasmicCmsEntryDetails__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"left"} />;
+}
+PlasmicCmsEntryDetails__left.displayName = "PlasmicCmsEntryDetails.left";
+
+type PlasmicCmsEntryDetails__entryNameProps = NodeComponentProps<"entryName"> & {key?: React.Key};
+function PlasmicCmsEntryDetails__entryName<T extends PlasmicCmsEntryDetails__entryNameProps>(props: T & StrictProps<T, PlasmicCmsEntryDetails__entryNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("entryName", props);
+  return <PlasmicCmsEntryDetails__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"entryName"} />;
+}
+PlasmicCmsEntryDetails__entryName.displayName = "PlasmicCmsEntryDetails.entryName";
+
+type PlasmicCmsEntryDetails__entryNameValueProps = NodeComponentProps<"entryNameValue"> & {key?: React.Key};
+function PlasmicCmsEntryDetails__entryNameValue<T extends PlasmicCmsEntryDetails__entryNameValueProps>(props: T & StrictProps<T, PlasmicCmsEntryDetails__entryNameValueProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("entryNameValue", props);
+  return <PlasmicCmsEntryDetails__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"entryNameValue"} />;
+}
+PlasmicCmsEntryDetails__entryNameValue.displayName = "PlasmicCmsEntryDetails.entryNameValue";
+
+type PlasmicCmsEntryDetails__saveStatusProps = NodeComponentProps<"saveStatus"> & {key?: React.Key};
+function PlasmicCmsEntryDetails__saveStatus<T extends PlasmicCmsEntryDetails__saveStatusProps>(props: T & StrictProps<T, PlasmicCmsEntryDetails__saveStatusProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("saveStatus", props);
+  return <PlasmicCmsEntryDetails__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"saveStatus"} />;
+}
+PlasmicCmsEntryDetails__saveStatus.displayName = "PlasmicCmsEntryDetails.saveStatus";
+
+type PlasmicCmsEntryDetails__rightProps = NodeComponentProps<"right"> & {key?: React.Key};
+function PlasmicCmsEntryDetails__right<T extends PlasmicCmsEntryDetails__rightProps>(props: T & StrictProps<T, PlasmicCmsEntryDetails__rightProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("right", props);
+  return <PlasmicCmsEntryDetails__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"right"} />;
+}
+PlasmicCmsEntryDetails__right.displayName = "PlasmicCmsEntryDetails.right";
+
+type PlasmicCmsEntryDetails__historyButtonProps = NodeComponentProps<"historyButton"> & {key?: React.Key};
+function PlasmicCmsEntryDetails__historyButton<T extends PlasmicCmsEntryDetails__historyButtonProps>(props: T & StrictProps<T, PlasmicCmsEntryDetails__historyButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("historyButton", props);
+  return <PlasmicCmsEntryDetails__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"historyButton"} />;
+}
+PlasmicCmsEntryDetails__historyButton.displayName = "PlasmicCmsEntryDetails.historyButton";
+
+type PlasmicCmsEntryDetails__previewButtonProps = NodeComponentProps<"previewButton"> & {key?: React.Key};
+function PlasmicCmsEntryDetails__previewButton<T extends PlasmicCmsEntryDetails__previewButtonProps>(props: T & StrictProps<T, PlasmicCmsEntryDetails__previewButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("previewButton", props);
+  return <PlasmicCmsEntryDetails__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"previewButton"} />;
+}
+PlasmicCmsEntryDetails__previewButton.displayName = "PlasmicCmsEntryDetails.previewButton";
+
+type PlasmicCmsEntryDetails__publishButtonProps = NodeComponentProps<"publishButton"> & {key?: React.Key};
+function PlasmicCmsEntryDetails__publishButton<T extends PlasmicCmsEntryDetails__publishButtonProps>(props: T & StrictProps<T, PlasmicCmsEntryDetails__publishButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("publishButton", props);
+  return <PlasmicCmsEntryDetails__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"publishButton"} />;
+}
+PlasmicCmsEntryDetails__publishButton.displayName = "PlasmicCmsEntryDetails.publishButton";
+
+type PlasmicCmsEntryDetails__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicCmsEntryDetails__menuButton<T extends PlasmicCmsEntryDetails__menuButtonProps>(props: T & StrictProps<T, PlasmicCmsEntryDetails__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicCmsEntryDetails__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicCmsEntryDetails__menuButton.displayName = "PlasmicCmsEntryDetails.menuButton";
+
 
 export const PlasmicCmsEntryDetails = Object.assign(
   // Top-level PlasmicCmsEntryDetails renders the root element
-  makeNodeComponent("root"),
+  PlasmicCmsEntryDetails__root,
   {
     // Helper components rendering sub-elements
-    left: makeNodeComponent("left"),
-    entryName: makeNodeComponent("entryName"),
-    entryNameValue: makeNodeComponent("entryNameValue"),
-    saveStatus: makeNodeComponent("saveStatus"),
-    right: makeNodeComponent("right"),
-    historyButton: makeNodeComponent("historyButton"),
-    previewButton: makeNodeComponent("previewButton"),
-    publishButton: makeNodeComponent("publishButton"),
-    menuButton: makeNodeComponent("menuButton"),
+    left: PlasmicCmsEntryDetails__left,
+    entryName: PlasmicCmsEntryDetails__entryName,
+    entryNameValue: PlasmicCmsEntryDetails__entryNameValue,
+    saveStatus: PlasmicCmsEntryDetails__saveStatus,
+    right: PlasmicCmsEntryDetails__right,
+    historyButton: PlasmicCmsEntryDetails__historyButton,
+    previewButton: PlasmicCmsEntryDetails__previewButton,
+    publishButton: PlasmicCmsEntryDetails__publishButton,
+    menuButton: PlasmicCmsEntryDetails__menuButton,
 
     // Metadata about props expected for PlasmicCmsEntryDetails
     internalVariantProps: PlasmicCmsEntryDetails__VariantProps,

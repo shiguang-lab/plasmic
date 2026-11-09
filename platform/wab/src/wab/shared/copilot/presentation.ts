@@ -6,7 +6,7 @@ export const toolPresentationSchema = z.object({
   elementUuid: z.string(),
   frameUuid: z.string().optional(),
   phase: z.enum(["before", "after"]).optional(),
-  visible: z.boolean(),
+  visible: z.boolean().nullable().describe("null while background presentation is pending; model execution does not wait for visibility"),
   reason: z.string(),
   message: z.string(),
 });

@@ -14,8 +14,8 @@ import Downshift, {
   DownshiftProps,
 } from "downshift";
 import L from "lodash";
-import * as React from "react";
-import { createRef } from "react";
+import React from "react";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import type { SetOptional } from "type-fest";
 
 interface _XMultiSelectProps<Item> {
@@ -66,18 +66,12 @@ function AutoFocuser(props: {
   return null;
 }
 
-class _XMultiSelect<Item> extends React.Component<
-  _XMultiSelectProps<Item>,
-  _XMultiSelectState<Item>
-> {
-  private inputBox = createRef<HTMLInputElement>();
-
-  static defaultProps = {
+const defaults = {
     onSelect: L.noop,
     onUnselect: L.noop,
     itemKey: (item: any) => (item === null ? "" : `${item}`),
     options: [],
-    renderInput: (props) => <input {...props} className="transparent" />,
+    renderInput: (props: React.ComponentProps<"input">) => <input {...props} className="transparent" />,
     renderOption: (item: any) => `${item}`,
     renderSelectedItem: (item: any) => `${item}`,
     selectedItems: [],
@@ -86,12 +80,70 @@ class _XMultiSelect<Item> extends React.Component<
     pillsFocusable: false,
   };
 
-  constructor(props: _XMultiSelectProps<Item>) {
-    super(props);
-    this.state = {};
+function HighlightFirstOption({ highlightedIndex, isInputEmpty, highlight }: { highlightedIndex: number | null; isInputEmpty: boolean; highlight: (index: number) => void }) {
+  React.useEffect(() => { if (highlightedIndex === null && !isInputEmpty) { highlight(0); } }, [highlightedIndex, isInputEmpty, highlight]);
+  return null;
+}
+
+function XMultiSelectContent<Item>(props: _XMultiSelectProps<Item>) {
+  const [state, updateState] = React.useState<_XMultiSelectState<Item>>({});
+  const setState = (values: Partial<_XMultiSelectState<Item>>) => updateState((previous) => ({ ...previous, ...values }));
+  const [inputElement, setInputElement] = React.useState<HTMLInputElement | null>(null);
+  const inputBox = React.useMemo(() => ({ current: inputElement }), [inputElement]);
+  const handleDragStart = (e: React.DragEvent, item: Item, index: number) => {
+    setState({ draggedItem: item, draggedFromIndex: index });
+    return true;
+  };
+
+  const handleDragOverOrEnter = (
+    e: React.DragEvent,
+    item: Item,
+    index: number,
+  ) => {
+    if (index !== state.draggedToIndex) {
+      e.stopPropagation();
+      e.preventDefault();
+      setState({
+        draggedToIndex: index,
+      });
+    }
+  };
+
+  const handleDragEnd = (_e: React.DragEvent) => {
+    const fromIndex = ensure(
+      state.draggedFromIndex,
+      "Unexpected undefined draggedFromIndex. Should be not null to handle drag end",
+    );
+    const toIndex = state.draggedToIndex;
+    setState({
+      draggedItem: undefined,
+      draggedToIndex: undefined,
+      draggedFromIndex: undefined,
+    });
+    if (toIndex !== undefined && fromIndex !== toIndex) {
+      ensure(
+        props.onReorder,
+        "Unexpected undefined onReorder. If drag is enable should have onReorder method",
+      )(fromIndex, toIndex);
+    }
+  };
+
+  function dragReorderedItems() {
+    const selectedItems = props.selectedItems;
+    if (state.draggedItem && state.draggedToIndex !== undefined) {
+      return arrayMoveIndex(
+        selectedItems,
+        ensure(
+          state.draggedFromIndex,
+          "Unexpected undefined draggedFromIndex. Should be not null to drag reordered items",
+        ),
+        state.draggedToIndex,
+      );
+    } else {
+      return selectedItems;
+    }
   }
 
-  render() {
     const {
       downshiftProps,
       fixedValues,
@@ -116,8 +168,8 @@ class _XMultiSelect<Item> extends React.Component<
       isDisabled,
       disabledTooltip,
       onClick,
-    } = this.props;
-    const reorderedItems = this.dragReorderedItems();
+    } = props;
+    const reorderedItems = dragReorderedItems();
     const handleSelect = (
       item: Item | null,
       downshift: ControllerStateAndHelpers<Item>,
@@ -144,9 +196,6 @@ class _XMultiSelect<Item> extends React.Component<
           const { getInputProps, getRootProps } = downshift;
           const isInputEmpty =
             !downshift.inputValue || downshift.inputValue.trim().length === 0;
-          if (downshift.highlightedIndex == null && !isInputEmpty) {
-            downshift.setHighlightedIndex(0);
-          }
           const renderOptions = filterOptions(options, downshift.inputValue);
           const curItem =
             renderOptions.length > 0 && downshift.highlightedIndex !== null
@@ -162,24 +211,21 @@ class _XMultiSelect<Item> extends React.Component<
               )}
             >
               <div
-                className={cx({
-                  "dropdown-container flex": true,
-                  [this.props.className || ""]: true,
-                  "dropdown-container--focused": this.state.focused,
-                  [this.props.focusedClassName || ""]: this.state.focused,
-                })}
-                data-plasmic-prop={this.props["data-plasmic-prop"]}
+                className={cx("dropdown-container flex", props.className, { "dropdown-container--focused": state.focused }, state.focused && props.focusedClassName)}
+                data-plasmic-prop={props["data-plasmic-prop"]}
                 {...getRootProps(undefined, { suppressRefError: true })}
               >
-                <AutoFocuser inputBox={this.inputBox} autoFocus={autoFocus} />
+                <AutoFocuser inputBox={inputBox} autoFocus={autoFocus} />
+                <HighlightFirstOption highlightedIndex={downshift.highlightedIndex} isInputEmpty={isInputEmpty} highlight={downshift.setHighlightedIndex} />
                 <Dropdown
                   open={downshift.isOpen && renderOptions.length > 0}
                   // We compartmentalize the Ant dropdown menu item padding style tweaks into .xselect.
                   // Don't want to globally affect all Ant dropdown menus.
                   overlayClassName="xselect"
                   popupRender={() => (
-                    <Menu
+                    <Scrollbar style={{ maxHeight: "30vh" }}><Menu
                       className={"ant-select-dropdown-menu"}
+                      style={{ overflow: "visible", maxHeight: "none" }}
                       selectedKeys={[curItem ? itemKey(curItem) : ""]}
                     >
                       {renderOptions.map((item: Item, index: number) => {
@@ -197,7 +243,7 @@ class _XMultiSelect<Item> extends React.Component<
                           </Menu.Item>
                         );
                       })}
-                    </Menu>
+                    </Menu></Scrollbar>
                   )}
                 >
                   <div
@@ -215,7 +261,7 @@ class _XMultiSelect<Item> extends React.Component<
                       // should be able to steal focus.
                       if (e.target === e.currentTarget) {
                         ensure(
-                          this.inputBox.current,
+                          inputElement,
                           "Unexpected undefined inputBox.current",
                         ).focus();
                         e.preventDefault();
@@ -228,30 +274,23 @@ class _XMultiSelect<Item> extends React.Component<
                       return (
                         <div
                           key={itemKey(item)}
-                          className={cx({
-                            "dropdown-pill": true,
-                            "dropdown-pill--selected":
-                              isFocusedItem || item === this.state.draggedItem,
-                            [this.props.pillClassName || ""]: true,
-                            [this.props.pillSelectedClassName || ""]:
-                              isFocusedItem || item === this.state.draggedItem,
-                          })}
+                          className={cx("dropdown-pill", props.pillClassName, { "dropdown-pill--selected": isFocusedItem || item === state.draggedItem }, (isFocusedItem || item === state.draggedItem) && props.pillSelectedClassName)}
                           draggable={
-                            !!onReorder && this.state.draggedItem !== item
+                            !!onReorder && state.draggedItem !== item
                           }
                           onDragStart={
                             onReorder &&
-                            ((e) => this.handleDragStart(e, item, index))
+                            ((e) => handleDragStart(e, item, index))
                           }
                           onDragOver={
                             onReorder &&
-                            ((e) => this.handleDragOverOrEnter(e, item, index))
+                            ((e) => handleDragOverOrEnter(e, item, index))
                           }
                           onDragEnter={
                             onReorder &&
-                            ((e) => this.handleDragOverOrEnter(e, item, index))
+                            ((e) => handleDragOverOrEnter(e, item, index))
                           }
-                          onDragEnd={onReorder && this.handleDragEnd}
+                          onDragEnd={onReorder && handleDragEnd}
                           onDrop={
                             onReorder &&
                             (() => {
@@ -279,7 +318,7 @@ class _XMultiSelect<Item> extends React.Component<
                           </span>
 
                           {!fixedValues.includes(item) &&
-                            !this.props.hideCloseButton && (
+                            !props.hideCloseButton && (
                               <>
                                 <IconLinkButton
                                   className={cx({
@@ -309,7 +348,7 @@ class _XMultiSelect<Item> extends React.Component<
                     <div className={"dropdown-input-container"}>
                       {renderInput(
                         getInputProps({
-                          ref: this.inputBox,
+                          ref: setInputElement,
                           disabled: isDisabled,
                           onClick: (e: React.MouseEvent) => {
                             // Always open the menu when clicked, even if already focused
@@ -317,7 +356,7 @@ class _XMultiSelect<Item> extends React.Component<
                             onClick?.(e);
                           },
                           onBlur: (e) => {
-                            this.setState({ focused: false });
+                            setState({ focused: false });
                             if (onBlur) {
                               onBlur(e);
                             }
@@ -325,7 +364,7 @@ class _XMultiSelect<Item> extends React.Component<
                           autoFocus,
                           onFocus: () => {
                             downshift.openMenu();
-                            this.setState({ focused: true });
+                            setState({ focused: true });
                           },
                           placeholder:
                             selectedItems.length === 0
@@ -333,8 +372,8 @@ class _XMultiSelect<Item> extends React.Component<
                               : undefined,
                           className: "textbox--transparent",
                           onKeyDown: (e: React.KeyboardEvent) => {
-                            if (e.key === "Escape" && this.inputBox.current) {
-                              this.inputBox.current.blur();
+                            if (e.key === "Escape" && inputElement) {
+                              inputElement.blur();
                               e.stopPropagation();
                             }
                             if (
@@ -349,14 +388,14 @@ class _XMultiSelect<Item> extends React.Component<
                             if (
                               e.key === "Enter" &&
                               !curItem &&
-                              this.inputBox.current
+                              inputElement
                             ) {
-                              this.inputBox.current.blur();
+                              inputElement.blur();
                             }
                           },
                         }),
                       )}{" "}
-                      {this.props.showDropdownArrow ? (
+                      {props.showDropdownArrow ? (
                         <div className="xmultiselect-arrow flex-center">
                           {/* NOTE: We pass an explicit style to Icon so the inline width/height override the default square 16×16 size of the Icon component */}
                           <Icon
@@ -374,65 +413,9 @@ class _XMultiSelect<Item> extends React.Component<
         }}
       </Downshift>
     );
-  }
-
-  private handleDragStart = (e: React.DragEvent, item: Item, index: number) => {
-    this.setState({ draggedItem: item, draggedFromIndex: index });
-    return true;
-  };
-
-  private handleDragOverOrEnter = (
-    e: React.DragEvent,
-    item: Item,
-    index: number,
-  ) => {
-    console.log("DRAG OVER", item, index, this.state);
-    if (index !== this.state.draggedToIndex) {
-      e.stopPropagation();
-      e.preventDefault();
-      this.setState({
-        draggedToIndex: index,
-      });
-    }
-  };
-
-  private handleDragEnd = (_e: React.DragEvent) => {
-    const fromIndex = ensure(
-      this.state.draggedFromIndex,
-      "Unexpected undefined draggedFromIndex. Should be not null to handle drag end",
-    );
-    const toIndex = this.state.draggedToIndex;
-    this.setState({
-      draggedItem: undefined,
-      draggedToIndex: undefined,
-      draggedFromIndex: undefined,
-    });
-    if (toIndex !== undefined && fromIndex !== toIndex) {
-      ensure(
-        this.props.onReorder,
-        "Unexpected undefined onReorder. If drag is enable should have onReorder method",
-      )(fromIndex, toIndex);
-    }
-  };
-
-  private dragReorderedItems() {
-    const selectedItems = this.props.selectedItems;
-    if (this.state.draggedItem && this.state.draggedToIndex !== undefined) {
-      return arrayMoveIndex(
-        selectedItems,
-        ensure(
-          this.state.draggedFromIndex,
-          "Unexpected undefined draggedFromIndex. Should be not null to drag reordered items",
-        ),
-        this.state.draggedToIndex,
-      );
-    } else {
-      return selectedItems;
-    }
-  }
 }
 
-type RawProps = typeof _XMultiSelect.defaultProps;
+type RawProps = typeof defaults;
 
 type XMultiSelectProps<Item> = SetOptional<
   _XMultiSelectProps<Item>,
@@ -446,39 +429,24 @@ type XMultiSelectProps<Item> = SetOptional<
   defaultFocusedItem?: Item;
 };
 
-interface XMultiSelectState<Item> {
-  selectedItems: Item[];
-  focusedItem: Item | undefined;
-}
-
-export class XMultiSelect<Item> extends React.Component<
-  XMultiSelectProps<Item>,
-  XMultiSelectState<Item>
-> {
-  constructor(props: XMultiSelectProps<Item>) {
-    super(props);
-    this.state = {
-      selectedItems: props.defaultSelectedItems || [],
-      focusedItem: props.defaultFocusedItem,
-    };
-  }
-  render() {
-    const props: XMultiSelectProps<Item> = Object.assign({}, this.props);
-    if (!this.props.selectedItems) {
-      props.onSelect = (item: Item) =>
-        this.setState(({ selectedItems }) => ({
-          selectedItems: tuple(...selectedItems, item),
-        }));
-      props.onUnselect = (item: Item) =>
-        this.setState(({ selectedItems }) => ({
-          selectedItems: L.without(selectedItems, item),
-        }));
-      props.selectedItems = this.state.selectedItems;
-    }
-    if (!this.props.onFocusItem) {
-      props.onFocusItem = (item: Item) => this.setState({ focusedItem: item });
-      props.focusedItem = this.state.focusedItem;
-    }
-    return <_XMultiSelect<Item> {...props} />;
-  }
+export function XMultiSelect<Item>(props: XMultiSelectProps<Item>) {
+  const [selectedItems, setSelectedItems] = React.useState<Item[]>(() => props.defaultSelectedItems ?? []);
+  const [focusedItem, setFocusedItem] = React.useState<Item | undefined>(() => props.defaultFocusedItem);
+  const controlledSelection = props.selectedItems !== undefined;
+  return <XMultiSelectContent<Item>
+    {...props}
+    fixedValues={props.fixedValues ?? defaults.fixedValues}
+    options={props.options ?? defaults.options}
+    itemKey={props.itemKey ?? defaults.itemKey}
+    renderInput={props.renderInput ?? defaults.renderInput}
+    renderOption={props.renderOption ?? defaults.renderOption}
+    renderSelectedItem={props.renderSelectedItem ?? defaults.renderSelectedItem}
+    showDropdownArrow={props.showDropdownArrow ?? false}
+    pillsFocusable={props.pillsFocusable ?? false}
+    selectedItems={props.selectedItems ?? selectedItems}
+    onSelect={controlledSelection ? props.onSelect ?? L.noop : (item) => setSelectedItems((previous) => tuple(...previous, item))}
+    onUnselect={controlledSelection ? props.onUnselect ?? L.noop : (item) => setSelectedItems((previous) => L.without(previous, item))}
+    onFocusItem={props.onFocusItem ?? setFocusedItem}
+    focusedItem={props.onFocusItem ? props.focusedItem : focusedItem}
+  />;
 }

@@ -14,18 +14,18 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -84,11 +84,10 @@ function PlasmicListSectionSeparator__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "center",
@@ -97,18 +96,20 @@ function PlasmicListSectionSeparator__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.center,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -177,12 +178,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -192,27 +189,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicListSectionSeparator__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicListSectionSeparator";
-  } else {
-    func.displayName = `PlasmicListSectionSeparator.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicListSectionSeparator__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicListSectionSeparator__root<T extends PlasmicListSectionSeparator__rootProps>(props: T & StrictProps<T, PlasmicListSectionSeparator__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicListSectionSeparator__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicListSectionSeparator__root.displayName = "PlasmicListSectionSeparator";
+
+type PlasmicListSectionSeparator__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicListSectionSeparator__freeBox<T extends PlasmicListSectionSeparator__freeBoxProps>(props: T & StrictProps<T, PlasmicListSectionSeparator__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicListSectionSeparator__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicListSectionSeparator__freeBox.displayName = "PlasmicListSectionSeparator.freeBox";
+
 
 export const PlasmicListSectionSeparator = Object.assign(
   // Top-level PlasmicListSectionSeparator renders the root element
-  makeNodeComponent("root"),
+  PlasmicListSectionSeparator__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
+    freeBox: PlasmicListSectionSeparator__freeBox,
 
     // Metadata about props expected for PlasmicListSectionSeparator
     internalVariantProps: PlasmicListSectionSeparator__VariantProps,

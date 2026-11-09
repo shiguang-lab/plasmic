@@ -1,3 +1,9 @@
+import { useCommittedValue } from "@/wab/commons/components/ReactUtil";
+import { useElementPropInputs, useElementPropValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
+import { usePropExpressionValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
+import { useStore } from "zustand";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useShallow } from "zustand/react/shallow";
@@ -184,7 +190,6 @@ import {
   isRenderableType,
   typeFactory,
 } from "@/wab/shared/model/model-util";
-import { hashExpr } from "@/wab/shared/site-diffs";
 import { getTplComponentArg, unsetTplComponentArg } from "@/wab/shared/TplMgr";
 import { $$$ } from "@/wab/shared/TplQuery";
 import {
@@ -200,8 +205,7 @@ import { ensureBaseVariantSetting } from "@/wab/shared/VariantTplMgr";
 import { ChoiceValue } from "@plasmicapp/host";
 import { Menu, Tooltip } from "antd";
 import { capitalize, isString, keyBy } from "lodash";
-import { observer } from "mobx-react";
-import React, { useMemo } from "react";
+import React from "react";
 
 export type PropValuePath = (number | string)[];
 
@@ -471,7 +475,11 @@ export const inferPropTypeFromAttr = (
   return undefined;
 };
 
-export const PropEditorRowWrapper = observer(PropEditorRowWrapper_);
+export const PropEditorRowWrapper = React.memo(function PropEditorRowWrapper(props: Parameters<typeof PropEditorRowWrapper_>[0]) {
+  const world = useVariantModelWorld(props.viewCtx.studioCtx, props.tpl, props.viewCtx);
+  return world.alive ? <PropEditorRowWrapperContent {...props} /> : null;
+});
+const PropEditorRowWrapperContent = React.memo(PropEditorRowWrapper_);
 
 function PropEditorRowWrapper_(props: {
   viewCtx: ViewCtx;
@@ -480,37 +488,36 @@ function PropEditorRowWrapper_(props: {
   expsProvider: TplExpsProvider;
 }) {
   const { viewCtx, param, tpl, expsProvider } = props;
-  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
-  useViewSelection(viewCtx, useShallow((state) => [state.context, state.highlight]));
-
+  const world = useVariantModelWorld(viewCtx.studioCtx, tpl, viewCtx);
+  const highlightParams = useViewSelection(viewCtx, (state) => state.highlight);
+  const selectMetadata = React.useCallback(() => {
+    const effective = expsProvider.effectiveVs();
+    const arg = effective.args.find((arg) => arg.param === param);
+    const propType = inferPropTypeFromParam(viewCtx.studioCtx, viewCtx, tpl, param);
+    const fullDisplayName = getParamDisplayName(tpl.component, param);
+    return Object.freeze({
+      attr: param.variable.name, enumValues: param.enumValues?.slice(),
+      label: getFolderDisplayName(fullDisplayName), fullDisplayName, propType,
+      expr: arg?.expr || param.defaultExpr || undefined,
+      defined: computeDefinedIndicator(viewCtx.site, viewCtx.currentComponent(), effective.getArgSource(param), expsProvider.targetIndicatorCombo),
+      disabled: !!(isPlainObjectPropType(propType) && hackyCast(propType).invariantable && !isBaseVariant(expsProvider.targetIndicatorCombo)),
+    });
+  }, [viewCtx, tpl, param, expsProvider]);
+  const metadata = useElementPropValue(viewCtx, tpl, selectMetadata);
   const vtm = viewCtx.variantTplMgr();
-  const effectiveVs = expsProvider.effectiveVs();
-  const arg = effectiveVs.args.find((_arg) => _arg.param === param);
-  const argSource = effectiveVs.getArgSource(param);
-  const defined = computeDefinedIndicator(
-    viewCtx.site,
-    viewCtx.currentComponent(),
-    argSource,
-    expsProvider.targetIndicatorCombo,
-  );
   const onDeleteArg = () =>
     viewCtx.change(() => {
+      if (!world.isCurrent()) { return; }
       if (!expsProvider.canEdit()) {
         return;
       }
       vtm.delArg(tpl, param.variable);
     });
-  const origExpr = maybe(arg, (x) => x.expr) || param.defaultExpr || undefined;
-
-  const propType = inferPropTypeFromParam(
-    viewCtx.studioCtx,
-    viewCtx,
-    tpl,
-    param,
-  );
   const { componentPropValues, ccContextData, invalidArgs } =
     useInspectorComponentEvalContext(viewCtx, tpl, param);
-  const controlExtras: ControlExtras = { path: [param.variable.name] };
+  if (!metadata) { return null; }
+  const { expr: origExpr, propType, defined, disabled: isDisabled } = metadata;
+  const controlExtras: ControlExtras = { path: [metadata.attr] };
   if (
     isPlainObjectPropType(propType) &&
     !isPropShown(propType, componentPropValues, ccContextData, controlExtras)
@@ -518,27 +525,17 @@ function PropEditorRowWrapper_(props: {
     return null;
   }
 
-  const highlightParams = viewCtx.highlightParams;
-  const highlight: boolean | HighlightOptions =
-    highlightParams &&
-    highlightParams.tpl === tpl &&
-    highlightParams.params.includes(param)
-      ? { focusAndScroll: highlightParams.params.length === 1 }
-      : false;
-
-  const isDisabled =
-    isPlainObjectPropType(propType) &&
-    hackyCast(propType).invariantable &&
-    !isBaseVariant(expsProvider.targetIndicatorCombo);
+  const highlight: boolean | HighlightOptions = highlightParams && highlightParams.tpl.uid === tpl.uid && highlightParams.params.some((ref) => ref.uid === param.uid)
+    ? { focusAndScroll: highlightParams.params.length === 1 } : false;
 
   return (
     <PropEditorRow
-      key={param.variable.name}
-      attr={param.variable.name}
-      enumValues={param.enumValues}
+      key={metadata.attr}
+      attr={metadata.attr}
+      enumValues={metadata.enumValues}
       expr={origExpr}
-      label={getFolderDisplayName(getParamDisplayName(tpl.component, param))}
-      fullDisplayName={getParamDisplayName(tpl.component, param)}
+      label={metadata.label}
+      fullDisplayName={metadata.fullDisplayName}
       definedIndicator={defined}
       onDelete={defined.source === "set" ? onDeleteArg : undefined}
       propType={propType}
@@ -547,15 +544,14 @@ function PropEditorRowWrapper_(props: {
       tooltip={
         isDisabled && (
           <InvariantablePropTooltip
-            propName={getFolderDisplayName(
-              getParamDisplayName(tpl.component, param),
-            )}
+            propName={metadata.label}
           />
         )
       }
       onChange={(expr) => {
         assert(!isDisabled, "Trying to override an invariantable prop");
         viewCtx.change(() => {
+      if (!world.isCurrent()) { return; }
           if (!expsProvider.canEdit()) {
             return;
           }
@@ -684,18 +680,27 @@ export interface PropEditorRef {
   isFocused: () => boolean;
   element: HTMLElement | null;
   /** For editors that may implement dynamic values internally. */
-  useDynamicValue?: () => void;
+  editDynamicValue?: () => void;
 }
 
-export const InnerPropEditorRow = observer(InnerPropEditorRow_);
+export const InnerPropEditorRow = React.memo(function InnerPropEditorRow(props: PropEditorRowProps) {
+  const studio = useStudioCtx(), context = usePropValueEditorContext();
+  const identity = context.tpl ?? context.exprCtx?.component ?? props.expr ?? studio.site;
+  const world = useVariantModelWorld(studio, identity, context.viewCtx);
+  return world.alive ? <InnerPropEditorRowContent {...props}
+    onChange={(value) => { if (world.isCurrent()) { props.onChange(value); } }}
+    onDelete={props.onDelete ? () => { if (world.isCurrent()) { props.onDelete?.(); } } : undefined}
+  /> : null;
+});
+const InnerPropEditorRowContent = React.memo(InnerPropEditorRow_);
 
 function InnerPropEditorRow_(props: PropEditorRowProps) {
   const { t: uiT } = useI18n();
   const {
-    about = maybePropTypeToAbout(props.propType),
+    about: _aboutInput,
     label,
     labelType = "prop",
-    fullDisplayName = props.label,
+    fullDisplayName: _fullDisplayNameInput,
     subtitle,
     attr,
     enumValues,
@@ -707,12 +712,15 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
     disabled,
     valueSetState,
     isNested = false,
-    controlExtras = { path: [props.attr] },
+    controlExtras: _controlExtrasInput,
     icon,
     highlight,
     onChange,
     onDelete,
   } = props;
+  const about = _aboutInput === undefined ? (maybePropTypeToAbout(props.propType)) : _aboutInput;
+  const fullDisplayName = _fullDisplayNameInput === undefined ? (props.label) : _fullDisplayNameInput;
+  const controlExtras = _controlExtrasInput === undefined ? ({ path: [props.attr] }) : _controlExtrasInput;
   const highlightOptions =
     typeof highlight === "object" ? highlight : undefined;
 
@@ -745,10 +753,11 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
     getExprTransformationBasedOnPropType(propType);
   const expr = maybeUnwrapExpr(origExpr);
 
-  const exprRef = React.useRef(expr);
-  exprRef.current = expr;
+  const readCurrentExpr = useCommittedValue(expr);
 
   const studioCtx = useStudioCtx();
+  const world = useVariantModelWorld(studioCtx, tpl ?? currValueEditorCtx.exprCtx?.component ?? origExpr ?? studioCtx.site, viewCtx);
+  const contentEditorMode = useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
   const [newParamModalVisible, setNewParamModalVisible] = React.useState(false);
   const [isDataPickerVisible, setIsDataPickerVisible] = React.useState(false);
   const [editDataToken, setEditDataToken] = React.useState<
@@ -801,7 +810,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
     (!wabType ||
       (!isKnownClassNamePropType(wabType) && !isRenderableType(wabType)));
 
-  const schema = studioCtx.customFunctionsSchema();
+  const schema = useCustomFunctionsSchema(studioCtx);
 
   const exprCtx: ExprCtx = {
     projectFlags: studioCtx.projectFlags(),
@@ -810,13 +819,21 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
     inStudio: true,
   };
 
-  const evaluated = useMemo(
-    () =>
-      expr && canvasEnv && isDynamicExpr(expr)
-        ? tryEvalExpr(asCode(expr, exprCtx).code, canvasEnv)
-        : undefined,
-    [expr ? hashExpr(studioCtx.site, expr, exprCtx) : undefined, canvasEnv],
+  const evaluatedCode = usePropExpressionValue(
+    studioCtx,
+    tpl ?? origExpr ?? studioCtx.site,
+    origExpr,
+    tpl ? $$$(tpl).tryGetOwningComponent() : undefined,
+    () => {
+      const currentExpr = maybeUnwrapExpr(origExpr);
+      return currentExpr && isDynamicExpr(currentExpr)
+        ? asCode(currentExpr, exprCtx).code
+        : undefined;
+    },
   );
+  const evaluated = evaluatedCode !== undefined && canvasEnv
+    ? tryEvalExpr(evaluatedCode, canvasEnv)
+    : undefined;
 
   const readOnly = !!(
     isPlainObjectPropType(propType) &&
@@ -841,7 +858,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
   const showDynamicValueButton =
     allowDynamicValue &&
     allowPointerInteractions &&
-    !studioCtx.contentEditorMode &&
+    !contentEditorMode &&
     !isCustomCode;
 
   /**
@@ -851,8 +868,8 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
    * and falls back to switching the entire value to expr.
    */
   const onUseDynamicValueClick = () => {
-    if (ref.current?.useDynamicValue) {
-      ref.current.useDynamicValue();
+    if (ref.current?.editDynamicValue) {
+      ref.current.editDynamicValue();
     } else {
       switchToDynamicValue();
     }
@@ -870,7 +887,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
       : ["undefined"];
 
     // Keep the previous value as the fallback, except for string props.
-    const currentExpr = exprRef.current;
+    const currentExpr = readCurrentExpr();
     const fallback =
       currentExpr && !isStringPropType ? clone(currentExpr) : undefined;
 
@@ -899,7 +916,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
   }
 
   async function createDataToken() {
-    const currentExpr = exprRef.current;
+    const currentExpr = readCurrentExpr();
     const dataType: DataTokenType =
       propTypeType === "number" || propTypeType === "string"
         ? propTypeType
@@ -912,6 +929,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
       currentExpr &&
       !(isKnownCustomCode(currentExpr) && currentExpr.code === "undefined");
     await studioCtx.change(() => {
+      if (!world.isCurrent()) { return ok(); }
       let tokenValue = defaultValue;
       if (isExprDefined) {
         const extractedJson = tryExtractJson(currentExpr);
@@ -956,7 +974,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
         ownerComponent && (
           <Menu.Item
             onClick={() =>
-              viewCtx.change(() => (referencedParam.defaultExpr = null))
+              viewCtx.change(() => { if (world.isCurrent()) { referencedParam.defaultExpr = null; } })
             }
           >
             <span>
@@ -1130,14 +1148,16 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
     wabType &&
     isOptionsType(wabType) &&
     isOptionsType(referencedParam.type)
-      ? () =>
+      ? () => {
+          if (!world.isCurrent()) { return; }
           void reconcileLinkedProp({
             viewCtx,
             innerType: wabType,
             innerName: label,
             outerParam: referencedParam,
             outerComponent: ownerComponent,
-          })
+          });
+        }
       : undefined;
 
   const renderDefaultEditor = () => {
@@ -1161,6 +1181,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
           if (isRenderableType(wabType)) {
             assert(viewCtx, "viewCtx is required for renderable type");
             viewCtx.change(() => {
+      if (!world.isCurrent()) { return; }
               const newExpr = updateOrCreateExpr(
                 expr,
                 wabType,
@@ -1185,7 +1206,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
     );
   };
 
-  const panelRowRef = React.useRef<HTMLDivElement>(null);
+  const [panelRowElement, setPanelRowElement] = React.useState<HTMLDivElement | null>(null);
 
   return (
     <>
@@ -1194,12 +1215,12 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
           studioCtx={studioCtx}
           token={editDataToken}
           onClose={() => setEditDataToken(undefined)}
-          triggerElement={panelRowRef.current ?? undefined}
+          triggerElement={panelRowElement ?? undefined}
           popoverFrameValuePath={controlExtras.path}
         />
       )}
       <div
-        ref={panelRowRef}
+        ref={setPanelRowElement}
         className="panel-row"
         style={{ position: "relative" }}
       >
@@ -1325,9 +1346,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                   if (!newParam) {
                     return;
                   }
-                  viewCtx.change(() =>
-                    onChange(new VarRef({ variable: newParam.variable })),
-                  );
+                  viewCtx.change(() => { if (world.isCurrent()) { onChange(new VarRef({ variable: newParam.variable })); } });
                 }}
               />
             )}
@@ -1359,6 +1378,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                     isSet={isFallbackSet(codeExpr)}
                     onUnset={() => {
                       viewCtx.change(() => {
+      if (!world.isCurrent()) { return; }
                         const newExpr = isKnownCustomCode(codeExpr)
                           ? new CustomCode({
                               code: codeExpr.code,
@@ -1389,6 +1409,7 @@ function InnerPropEditorRow_(props: PropEditorRowProps) {
                         }
 
                         viewCtx.change(() => {
+      if (!world.isCurrent()) { return; }
                           const fallbackExpr = updateOrCreateExpr(
                             expr,
                             wabType,
@@ -1767,7 +1788,11 @@ function getExprTransformationBasedOnPropType(propType: StudioPropType<any>): {
   };
 }
 
-export const PropEditorRow = observer(PropEditorRow_);
+export const PropEditorRow = React.memo(function PropEditorRow(props: Parameters<typeof PropEditorRow_>[0]) {
+  const world = useVariantModelWorld(props.viewCtx.studioCtx, props.tpl, props.viewCtx);
+  return world.alive ? <PropEditorRowContent {...props} /> : null;
+});
+const PropEditorRowContent = React.memo(PropEditorRow_);
 
 function PropEditorRow_(
   props: PropEditorRowProps & {
@@ -1781,6 +1806,9 @@ function PropEditorRow_(
   },
 ) {
   const { tpl, viewCtx, ...rest } = props;
+  const world = useVariantModelWorld(viewCtx.studioCtx, tpl, viewCtx);
+  useElementPropInputs(viewCtx, tpl);
+  const functionSchema = useCustomFunctionsSchema(props.schema ? undefined : viewCtx.studioCtx);
   const selection = useInspectorSelection(viewCtx.studioCtx);
   const context = useInspectorComponentEvalContext(viewCtx, "componentPropValues" in props || "ccContextData" in props || !!props.invalidArgs ? undefined : tpl);
   const canvasEnv = useInspectorCanvasEnv(viewCtx, props.env ? undefined : tpl);
@@ -1807,7 +1835,7 @@ function PropEditorRow_(
   const { componentPropValues, ccContextData, invalidArgs } =
     getCurrentComponentEvalContext();
   const env = !props.env ? canvasEnv : props.env;
-  const schema = !props.schema ? viewCtx.customFunctionsSchema() : props.schema;
+  const schema = props.schema ?? functionSchema;
   const owningComponent = $$$(tpl).tryGetOwningComponent();
 
   return (
@@ -1833,12 +1861,12 @@ function PropEditorRow_(
     >
       <InnerPropEditorRow {...rest}
         onChange={(value) => {
-          if (canEditInspectorSelection(viewCtx.studioCtx, selection)) {
+          if (world.isCurrent() && canEditInspectorSelection(viewCtx.studioCtx, selection)) {
             rest.onChange(value);
           }
         }}
         onDelete={rest.onDelete ? () => {
-          if (canEditInspectorSelection(viewCtx.studioCtx, selection)) {
+          if (world.isCurrent() && canEditInspectorSelection(viewCtx.studioCtx, selection)) {
             rest.onDelete?.();
           }
         } : undefined}

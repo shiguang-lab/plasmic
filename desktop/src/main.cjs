@@ -211,7 +211,10 @@ async function startDesktop() {
       desktopIdentity.invalidate();
       studioWindow?.invalidateDashboard();
     });
-    desktopIdentity.on("changed", () => workspace?.clearStartupData());
+    desktopIdentity.on("changed", () => {
+      workspace?.clearStartupData();
+      dashboardPreviews?.cancelFor(studioWindow?.dashboard?.webContents);
+    });
     app.once("will-quit", () => desktopIdentity.dispose());
     const proxy = process.env.HTTPS_PROXY || process.env.HTTP_PROXY;
     if (proxy) {
@@ -365,7 +368,7 @@ async function startDesktop() {
     controller?.cancelPending(contents, "Desktop view deactivated");
     controller?.browser?.hide();
     drafts?.reset();
-    dashboardPreviews?.cancelFor(contents);
+    dashboardPreviews?.cancelQueuedFor(contents);
   });
   studio.on("contents-released", contents => {
     controller?.cancelPending(contents, "Desktop view closed");
@@ -927,7 +930,8 @@ function bootstrap() {
         // Only the GUI instance holding the lock becomes a regular Dock app.
         app.setActivationPolicy?.("regular");
         await app.dock?.show();
-        if (app.isPackaged) {
+        // Isolated profiles must not replace the user's system login handler.
+        if (app.isPackaged && !process.env.PLASMIC_DESKTOP_PROFILE) {
           app.setAsDefaultProtocolClient("plasmic-desktop");
         }
         return ensureDesktop().then((win) => {

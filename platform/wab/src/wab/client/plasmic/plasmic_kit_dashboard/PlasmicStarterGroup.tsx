@@ -23,7 +23,6 @@ import {
   SingleChoiceArg,
   pick,
   omit,
-  useTrigger,
   StrictProps,
   deriveRenderOpts,
 } from "@plasmicapp/react-web";
@@ -396,46 +395,92 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = deriveRenderOpts(props, {
+function deriveNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return deriveRenderOpts(props, {
       name: nodeName,
       descendantNames: [...PlasmicDescendants[nodeName]],
       internalArgPropNames: PlasmicStarterGroup__ArgProps,
       internalVariantPropNames: PlasmicStarterGroup__VariantProps,
     });
-
-    return PlasmicStarterGroup__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicStarterGroup";
-  } else {
-    func.displayName = `PlasmicStarterGroup.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicStarterGroup__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicStarterGroup__root<T extends PlasmicStarterGroup__rootProps>(props: T & StrictProps<T, PlasmicStarterGroup__rootProps>) {
+  const {variants, args, overrides} = deriveNodeRenderOpts("root", props);
+  return <PlasmicStarterGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicStarterGroup__root.displayName = "PlasmicStarterGroup";
+
+type PlasmicStarterGroup__infoIconProps = NodeComponentProps<"infoIcon"> & {key?: React.Key};
+function PlasmicStarterGroup__infoIcon<T extends PlasmicStarterGroup__infoIconProps>(props: T & StrictProps<T, PlasmicStarterGroup__infoIconProps>) {
+  const {variants, args, overrides} = deriveNodeRenderOpts("infoIcon", props);
+  return <PlasmicStarterGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"infoIcon"} />;
+}
+PlasmicStarterGroup__infoIcon.displayName = "PlasmicStarterGroup.infoIcon";
+
+type PlasmicStarterGroup__viewDocsProps = NodeComponentProps<"viewDocs"> & {key?: React.Key};
+function PlasmicStarterGroup__viewDocs<T extends PlasmicStarterGroup__viewDocsProps>(props: T & StrictProps<T, PlasmicStarterGroup__viewDocsProps>) {
+  const {variants, args, overrides} = deriveNodeRenderOpts("viewDocs", props);
+  return <PlasmicStarterGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"viewDocs"} />;
+}
+PlasmicStarterGroup__viewDocs.displayName = "PlasmicStarterGroup.viewDocs";
+
+type PlasmicStarterGroup__moreProps = NodeComponentProps<"more"> & {key?: React.Key};
+function PlasmicStarterGroup__more<T extends PlasmicStarterGroup__moreProps>(props: T & StrictProps<T, PlasmicStarterGroup__moreProps>) {
+  const {variants, args, overrides} = deriveNodeRenderOpts("more", props);
+  return <PlasmicStarterGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"more"} />;
+}
+PlasmicStarterGroup__more.displayName = "PlasmicStarterGroup.more";
+
+type PlasmicStarterGroup__containerProps = NodeComponentProps<"container"> & {key?: React.Key};
+function PlasmicStarterGroup__container<T extends PlasmicStarterGroup__containerProps>(props: T & StrictProps<T, PlasmicStarterGroup__containerProps>) {
+  const {variants, args, overrides} = deriveNodeRenderOpts("container", props);
+  return <PlasmicStarterGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"container"} />;
+}
+PlasmicStarterGroup__container.displayName = "PlasmicStarterGroup.container";
+
+type PlasmicStarterGroup__preview2Props = NodeComponentProps<"preview2"> & {key?: React.Key};
+function PlasmicStarterGroup__preview2<T extends PlasmicStarterGroup__preview2Props>(props: T & StrictProps<T, PlasmicStarterGroup__preview2Props>) {
+  const {variants, args, overrides} = deriveNodeRenderOpts("preview2", props);
+  return <PlasmicStarterGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"preview2"} />;
+}
+PlasmicStarterGroup__preview2.displayName = "PlasmicStarterGroup.preview2";
+
+type PlasmicStarterGroup__preview3Props = NodeComponentProps<"preview3"> & {key?: React.Key};
+function PlasmicStarterGroup__preview3<T extends PlasmicStarterGroup__preview3Props>(props: T & StrictProps<T, PlasmicStarterGroup__preview3Props>) {
+  const {variants, args, overrides} = deriveNodeRenderOpts("preview3", props);
+  return <PlasmicStarterGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"preview3"} />;
+}
+PlasmicStarterGroup__preview3.displayName = "PlasmicStarterGroup.preview3";
+
+type PlasmicStarterGroup__preview4Props = NodeComponentProps<"preview4"> & {key?: React.Key};
+function PlasmicStarterGroup__preview4<T extends PlasmicStarterGroup__preview4Props>(props: T & StrictProps<T, PlasmicStarterGroup__preview4Props>) {
+  const {variants, args, overrides} = deriveNodeRenderOpts("preview4", props);
+  return <PlasmicStarterGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"preview4"} />;
+}
+PlasmicStarterGroup__preview4.displayName = "PlasmicStarterGroup.preview4";
+
+type PlasmicStarterGroup__previewProps = NodeComponentProps<"preview"> & {key?: React.Key};
+function PlasmicStarterGroup__preview<T extends PlasmicStarterGroup__previewProps>(props: T & StrictProps<T, PlasmicStarterGroup__previewProps>) {
+  const {variants, args, overrides} = deriveNodeRenderOpts("preview", props);
+  return <PlasmicStarterGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"preview"} />;
+}
+PlasmicStarterGroup__preview.displayName = "PlasmicStarterGroup.preview";
+
 
 export const PlasmicStarterGroup = Object.assign(
   // Top-level PlasmicStarterGroup renders the root element
-  makeNodeComponent("root"),
+  PlasmicStarterGroup__root,
   {
     // Helper components rendering sub-elements
-    infoIcon: makeNodeComponent("infoIcon"),
-    viewDocs: makeNodeComponent("viewDocs"),
-    more: makeNodeComponent("more"),
-    container: makeNodeComponent("container"),
-    preview2: makeNodeComponent("preview2"),
-    preview3: makeNodeComponent("preview3"),
-    preview4: makeNodeComponent("preview4"),
-    preview: makeNodeComponent("preview"),
+    infoIcon: PlasmicStarterGroup__infoIcon,
+    viewDocs: PlasmicStarterGroup__viewDocs,
+    more: PlasmicStarterGroup__more,
+    container: PlasmicStarterGroup__container,
+    preview2: PlasmicStarterGroup__preview2,
+    preview3: PlasmicStarterGroup__preview3,
+    preview4: PlasmicStarterGroup__preview4,
+    preview: PlasmicStarterGroup__preview,
 
     // Metadata about props expected for PlasmicStarterGroup
     internalVariantProps: PlasmicStarterGroup__VariantProps,

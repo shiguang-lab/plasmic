@@ -82,18 +82,7 @@ const EditableLabel_: ForwardRefRenderFunction<
     inputBoxPlaceholder = "",
     value,
     inputBoxFactory = createInputBoxFactory,
-    labelFactory = ({ value: _value, ...labelProps }) => (
-      <MaybeWrap
-        cond={showTooltip}
-        wrapper={(content) => (
-          <Tooltip title={value} placement="topLeft">
-            <TriggerTarget>{content}</TriggerTarget>
-          </Tooltip>
-        )}
-      >
-        <span {...labelProps} ref={labelRef} />
-      </MaybeWrap>
-    ),
+    labelFactory: _labelFactoryInput,
     disabled = false,
     onEdit = L.noop,
     doubleClickToEdit = false,
@@ -111,6 +100,18 @@ const EditableLabel_: ForwardRefRenderFunction<
     rows,
     ...restProps
   } = props;
+  const labelFactory = _labelFactoryInput === undefined ? (({ value: _value, ...labelProps }) => (
+      <MaybeWrap
+        cond={showTooltip}
+        wrapper={(content) => (
+          <Tooltip title={value} placement="topLeft">
+            <TriggerTarget>{content}</TriggerTarget>
+          </Tooltip>
+        )}
+      >
+        <span {...labelProps} ref={labelRef} />
+      </MaybeWrap>
+    )) : _labelFactoryInput;
 
   React.useLayoutEffect(() => {
     if (!labelRef.current) {
@@ -120,12 +121,18 @@ const EditableLabel_: ForwardRefRenderFunction<
       (labelRef.current as HTMLSpanElement).scrollWidth >
         (labelRef.current as HTMLSpanElement).offsetWidth,
     );
-  }, [value, labelRef.current]);
+  }, [value]);
 
   const [_editing, _setEditing] = useState(defaultEditing);
   const [_value, _setValue] = useState(value);
   const inputBoxRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
-  const labelBoxRef = useRef<HTMLElement>(null);
+  const [labelElement, setLabelElement] = useState<HTMLElement | null>(null);
+  const [labelWidth, setLabelWidth] = useState<number>();
+  React.useLayoutEffect(() => {
+    if (labelElement) {
+      setLabelWidth(labelElement.offsetWidth);
+    }
+  }, [labelElement, _editing]);
 
   useImperativeHandle(ref, () => ({
     setEditing: (e) => {
@@ -161,8 +168,8 @@ const EditableLabel_: ForwardRefRenderFunction<
     }
   }, [value, _setValue, _setEditing, disabled]);
 
-  const handleDebouncedClick = useCallback(
-    L.debounce(
+  const handleDebouncedClick = React.useMemo(
+    () => L.debounce(
       (target: EventTarget, e: MouseEvent) => {
         target.dispatchEvent(e);
       },
@@ -198,7 +205,7 @@ const EditableLabel_: ForwardRefRenderFunction<
         doEditing();
       }
     },
-    [doEditing, handleDebouncedClick],
+    [doEditing, handleDebouncedClick, programmaticallyTriggered, doubleClickToEdit],
   );
 
   const handleDoubleClick = useCallback(
@@ -209,7 +216,7 @@ const EditableLabel_: ForwardRefRenderFunction<
         doEditing();
       }
     },
-    [handleDebouncedClick, doEditing],
+    [handleDebouncedClick, doEditing, doubleClickToEdit],
   );
 
   React.useEffect(() => {
@@ -236,7 +243,7 @@ const EditableLabel_: ForwardRefRenderFunction<
     ),
     onClick: handleClick,
     onDoubleClick: handleDoubleClick,
-    ref: labelBoxRef,
+    ref: setLabelElement,
     children: _editing ? (
       <OnClickAway onDone={finish}>
         {inputBoxFactory(
@@ -266,9 +273,9 @@ const EditableLabel_: ForwardRefRenderFunction<
             },
             onClick: (e) => e.stopPropagation(),
             tabIndex: 1,
-            ...(labelBoxRef.current && {
+            ...(labelWidth !== undefined && {
               style: {
-                width: labelBoxRef.current.offsetWidth,
+                width: labelWidth,
               },
             }),
           },

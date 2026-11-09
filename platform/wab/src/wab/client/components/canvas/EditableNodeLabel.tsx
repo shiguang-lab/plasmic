@@ -5,7 +5,7 @@ import { useI18n } from "@/wab/client/i18n";
 import RepeatingsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__RepeatingSvg";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { InlineEdit } from "@/wab/commons/components/InlineEdit";
+import { InlineEdit, type InlineEditHelpers } from "@/wab/commons/components/InlineEdit";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
 import { cx, ensure, spawn } from "@/wab/shared/common";
 import * as Tpls from "@/wab/shared/core/tpls";
@@ -20,7 +20,7 @@ import { useStore } from "zustand";
 import * as React from "react";
 import { useEffect } from "react";
 
-export function EditableNodeLabel(props: {
+type EditableNodeLabelProps = {
   studioCtx: StudioCtx;
   viewCtx?: ViewCtx;
   className?: string;
@@ -29,7 +29,14 @@ export function EditableNodeLabel(props: {
   isRepeated?: boolean;
   nameable?: ArenaFrame | Tpls.TplNamable | TplSlot;
   onChangeEditing?: (editing: boolean) => void;
-}) {
+};
+
+export function EditableNodeLabel(props: EditableNodeLabelProps) {
+  return <InlineEdit render={(helpers) => <EditableNodeLabelContent {...props} {...helpers} />} />;
+}
+
+function EditableNodeLabelContent(props: EditableNodeLabelProps & InlineEditHelpers) {
+  const { editing, onStart, onDone } = props;
   const { t: uiT } = useI18n();
   const {
     studioCtx,
@@ -45,9 +52,6 @@ export function EditableNodeLabel(props: {
   const textRef = React.useRef<HTMLSpanElement>(null);
   const [editWidth, setEditWidth] = React.useState(75);
 
-  return (
-    <InlineEdit
-      render={({ editing, onStart, onDone }) => {
         const startEditing = () => {
           setEditWidth(Math.max(75, (textRef.current?.offsetWidth ?? 0) + 2));
           onStart();
@@ -134,9 +138,6 @@ export function EditableNodeLabel(props: {
             </>
           </div>
         );
-      }}
-    />
-  );
 }
 
 /** Capture the input default once for each editing target; drafts own subsequent text. */

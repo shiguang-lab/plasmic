@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,7 +26,7 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -38,7 +38,7 @@ import DataPickerGlobalSearchResultsItem from "../../components/sidebar-tabs/Dat
 import DataPickerSelectedItem from "../../components/sidebar-tabs/DataBinding/DataPickerSelectedItem"; // plasmic-import: PZbWryjVVD/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Searchbox from "../../components/widgets/Searchbox"; // plasmic-import: po7gr0PX4_gWo/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -176,11 +176,10 @@ function PlasmicDataPicker__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "withSearchResult",
@@ -264,18 +263,20 @@ function PlasmicDataPicker__RenderFunc(props: {
           $props.isRunCodeInteraction,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -1782,12 +1783,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1797,44 +1794,165 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDataPicker__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDataPicker";
-  } else {
-    func.displayName = `PlasmicDataPicker.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDataPicker__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDataPicker__root<T extends PlasmicDataPicker__rootProps>(props: T & StrictProps<T, PlasmicDataPicker__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDataPicker__root.displayName = "PlasmicDataPicker";
+
+type PlasmicDataPicker__headerProps = NodeComponentProps<"header"> & {key?: React.Key};
+function PlasmicDataPicker__header<T extends PlasmicDataPicker__headerProps>(props: T & StrictProps<T, PlasmicDataPicker__headerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("header", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"header"} />;
+}
+PlasmicDataPicker__header.displayName = "PlasmicDataPicker.header";
+
+type PlasmicDataPicker__titleProps = NodeComponentProps<"title"> & {key?: React.Key};
+function PlasmicDataPicker__title<T extends PlasmicDataPicker__titleProps>(props: T & StrictProps<T, PlasmicDataPicker__titleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("title", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"title"} />;
+}
+PlasmicDataPicker__title.displayName = "PlasmicDataPicker.title";
+
+type PlasmicDataPicker__stateSwitchProps = NodeComponentProps<"stateSwitch"> & {key?: React.Key};
+function PlasmicDataPicker__stateSwitch<T extends PlasmicDataPicker__stateSwitchProps>(props: T & StrictProps<T, PlasmicDataPicker__stateSwitchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("stateSwitch", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"stateSwitch"} />;
+}
+PlasmicDataPicker__stateSwitch.displayName = "PlasmicDataPicker.stateSwitch";
+
+type PlasmicDataPicker__advancedSwitchProps = NodeComponentProps<"advancedSwitch"> & {key?: React.Key};
+function PlasmicDataPicker__advancedSwitch<T extends PlasmicDataPicker__advancedSwitchProps>(props: T & StrictProps<T, PlasmicDataPicker__advancedSwitchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("advancedSwitch", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"advancedSwitch"} />;
+}
+PlasmicDataPicker__advancedSwitch.displayName = "PlasmicDataPicker.advancedSwitch";
+
+type PlasmicDataPicker__unlinkButtonProps = NodeComponentProps<"unlinkButton"> & {key?: React.Key};
+function PlasmicDataPicker__unlinkButton<T extends PlasmicDataPicker__unlinkButtonProps>(props: T & StrictProps<T, PlasmicDataPicker__unlinkButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("unlinkButton", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"unlinkButton"} />;
+}
+PlasmicDataPicker__unlinkButton.displayName = "PlasmicDataPicker.unlinkButton";
+
+type PlasmicDataPicker__addQueryBtnProps = NodeComponentProps<"addQueryBtn"> & {key?: React.Key};
+function PlasmicDataPicker__addQueryBtn<T extends PlasmicDataPicker__addQueryBtnProps>(props: T & StrictProps<T, PlasmicDataPicker__addQueryBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addQueryBtn", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addQueryBtn"} />;
+}
+PlasmicDataPicker__addQueryBtn.displayName = "PlasmicDataPicker.addQueryBtn";
+
+type PlasmicDataPicker__addVariableBtnProps = NodeComponentProps<"addVariableBtn"> & {key?: React.Key};
+function PlasmicDataPicker__addVariableBtn<T extends PlasmicDataPicker__addVariableBtnProps>(props: T & StrictProps<T, PlasmicDataPicker__addVariableBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addVariableBtn", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addVariableBtn"} />;
+}
+PlasmicDataPicker__addVariableBtn.displayName = "PlasmicDataPicker.addVariableBtn";
+
+type PlasmicDataPicker__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicDataPicker__link<T extends PlasmicDataPicker__linkProps>(props: T & StrictProps<T, PlasmicDataPicker__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicDataPicker__link.displayName = "PlasmicDataPicker.link";
+
+type PlasmicDataPicker__searchboxProps = NodeComponentProps<"searchbox"> & {key?: React.Key};
+function PlasmicDataPicker__searchbox<T extends PlasmicDataPicker__searchboxProps>(props: T & StrictProps<T, PlasmicDataPicker__searchboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchbox", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchbox"} />;
+}
+PlasmicDataPicker__searchbox.displayName = "PlasmicDataPicker.searchbox";
+
+type PlasmicDataPicker__itemsProps = NodeComponentProps<"items"> & {key?: React.Key};
+function PlasmicDataPicker__items<T extends PlasmicDataPicker__itemsProps>(props: T & StrictProps<T, PlasmicDataPicker__itemsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("items", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"items"} />;
+}
+PlasmicDataPicker__items.displayName = "PlasmicDataPicker.items";
+
+type PlasmicDataPicker__searchResultsProps = NodeComponentProps<"searchResults"> & {key?: React.Key};
+function PlasmicDataPicker__searchResults<T extends PlasmicDataPicker__searchResultsProps>(props: T & StrictProps<T, PlasmicDataPicker__searchResultsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchResults", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchResults"} />;
+}
+PlasmicDataPicker__searchResults.displayName = "PlasmicDataPicker.searchResults";
+
+type PlasmicDataPicker__dataPickerColumnItemProps = NodeComponentProps<"dataPickerColumnItem"> & {key?: React.Key};
+function PlasmicDataPicker__dataPickerColumnItem<T extends PlasmicDataPicker__dataPickerColumnItemProps>(props: T & StrictProps<T, PlasmicDataPicker__dataPickerColumnItemProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dataPickerColumnItem", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dataPickerColumnItem"} />;
+}
+PlasmicDataPicker__dataPickerColumnItem.displayName = "PlasmicDataPicker.dataPickerColumnItem";
+
+type PlasmicDataPicker__codeEditorProps = NodeComponentProps<"codeEditor"> & {key?: React.Key};
+function PlasmicDataPicker__codeEditor<T extends PlasmicDataPicker__codeEditorProps>(props: T & StrictProps<T, PlasmicDataPicker__codeEditorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("codeEditor", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"codeEditor"} />;
+}
+PlasmicDataPicker__codeEditor.displayName = "PlasmicDataPicker.codeEditor";
+
+type PlasmicDataPicker__footerProps = NodeComponentProps<"footer"> & {key?: React.Key};
+function PlasmicDataPicker__footer<T extends PlasmicDataPicker__footerProps>(props: T & StrictProps<T, PlasmicDataPicker__footerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("footer", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"footer"} />;
+}
+PlasmicDataPicker__footer.displayName = "PlasmicDataPicker.footer";
+
+type PlasmicDataPicker__deleteButtonProps = NodeComponentProps<"deleteButton"> & {key?: React.Key};
+function PlasmicDataPicker__deleteButton<T extends PlasmicDataPicker__deleteButtonProps>(props: T & StrictProps<T, PlasmicDataPicker__deleteButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("deleteButton", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"deleteButton"} />;
+}
+PlasmicDataPicker__deleteButton.displayName = "PlasmicDataPicker.deleteButton";
+
+type PlasmicDataPicker__runButtonProps = NodeComponentProps<"runButton"> & {key?: React.Key};
+function PlasmicDataPicker__runButton<T extends PlasmicDataPicker__runButtonProps>(props: T & StrictProps<T, PlasmicDataPicker__runButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("runButton", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"runButton"} />;
+}
+PlasmicDataPicker__runButton.displayName = "PlasmicDataPicker.runButton";
+
+type PlasmicDataPicker__cancelButtonProps = NodeComponentProps<"cancelButton"> & {key?: React.Key};
+function PlasmicDataPicker__cancelButton<T extends PlasmicDataPicker__cancelButtonProps>(props: T & StrictProps<T, PlasmicDataPicker__cancelButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelButton", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelButton"} />;
+}
+PlasmicDataPicker__cancelButton.displayName = "PlasmicDataPicker.cancelButton";
+
+type PlasmicDataPicker__saveButtonProps = NodeComponentProps<"saveButton"> & {key?: React.Key};
+function PlasmicDataPicker__saveButton<T extends PlasmicDataPicker__saveButtonProps>(props: T & StrictProps<T, PlasmicDataPicker__saveButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("saveButton", props);
+  return <PlasmicDataPicker__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"saveButton"} />;
+}
+PlasmicDataPicker__saveButton.displayName = "PlasmicDataPicker.saveButton";
+
 
 export const PlasmicDataPicker = Object.assign(
   // Top-level PlasmicDataPicker renders the root element
-  makeNodeComponent("root"),
+  PlasmicDataPicker__root,
   {
     // Helper components rendering sub-elements
-    header: makeNodeComponent("header"),
-    title: makeNodeComponent("title"),
-    stateSwitch: makeNodeComponent("stateSwitch"),
-    advancedSwitch: makeNodeComponent("advancedSwitch"),
-    unlinkButton: makeNodeComponent("unlinkButton"),
-    addQueryBtn: makeNodeComponent("addQueryBtn"),
-    addVariableBtn: makeNodeComponent("addVariableBtn"),
-    link: makeNodeComponent("link"),
-    searchbox: makeNodeComponent("searchbox"),
-    items: makeNodeComponent("items"),
-    searchResults: makeNodeComponent("searchResults"),
-    dataPickerColumnItem: makeNodeComponent("dataPickerColumnItem"),
-    codeEditor: makeNodeComponent("codeEditor"),
-    footer: makeNodeComponent("footer"),
-    deleteButton: makeNodeComponent("deleteButton"),
-    runButton: makeNodeComponent("runButton"),
-    cancelButton: makeNodeComponent("cancelButton"),
-    saveButton: makeNodeComponent("saveButton"),
+    header: PlasmicDataPicker__header,
+    title: PlasmicDataPicker__title,
+    stateSwitch: PlasmicDataPicker__stateSwitch,
+    advancedSwitch: PlasmicDataPicker__advancedSwitch,
+    unlinkButton: PlasmicDataPicker__unlinkButton,
+    addQueryBtn: PlasmicDataPicker__addQueryBtn,
+    addVariableBtn: PlasmicDataPicker__addVariableBtn,
+    link: PlasmicDataPicker__link,
+    searchbox: PlasmicDataPicker__searchbox,
+    items: PlasmicDataPicker__items,
+    searchResults: PlasmicDataPicker__searchResults,
+    dataPickerColumnItem: PlasmicDataPicker__dataPickerColumnItem,
+    codeEditor: PlasmicDataPicker__codeEditor,
+    footer: PlasmicDataPicker__footer,
+    deleteButton: PlasmicDataPicker__deleteButton,
+    runButton: PlasmicDataPicker__runButton,
+    cancelButton: PlasmicDataPicker__cancelButton,
+    saveButton: PlasmicDataPicker__saveButton,
 
     // Metadata about props expected for PlasmicDataPicker
     internalVariantProps: PlasmicDataPicker__VariantProps,

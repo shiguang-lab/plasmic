@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
@@ -24,7 +24,7 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -32,7 +32,7 @@ import ListItem from "../../components/ListItem"; // plasmic-import: v31d9_ANqk/
 import ListSectionHeader from "../../components/ListSectionHeader"; // plasmic-import: wNvxk7eOak/component
 import ListSectionSeparator from "../../components/ListSectionSeparator"; // plasmic-import: uG5_fPM0sK/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -113,11 +113,10 @@ function PlasmicListSection__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isLast",
@@ -133,18 +132,20 @@ function PlasmicListSection__RenderFunc(props: {
           $props.collapseState,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -368,12 +369,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -383,30 +380,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicListSection__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicListSection";
-  } else {
-    func.displayName = `PlasmicListSection.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicListSection__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicListSection__root<T extends PlasmicListSection__rootProps>(props: T & StrictProps<T, PlasmicListSection__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicListSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicListSection__root.displayName = "PlasmicListSection";
+
+type PlasmicListSection__listSectionHeaderProps = NodeComponentProps<"listSectionHeader"> & {key?: React.Key};
+function PlasmicListSection__listSectionHeader<T extends PlasmicListSection__listSectionHeaderProps>(props: T & StrictProps<T, PlasmicListSection__listSectionHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("listSectionHeader", props);
+  return <PlasmicListSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"listSectionHeader"} />;
+}
+PlasmicListSection__listSectionHeader.displayName = "PlasmicListSection.listSectionHeader";
+
+type PlasmicListSection__iconButtonProps = NodeComponentProps<"iconButton"> & {key?: React.Key};
+function PlasmicListSection__iconButton<T extends PlasmicListSection__iconButtonProps>(props: T & StrictProps<T, PlasmicListSection__iconButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconButton", props);
+  return <PlasmicListSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconButton"} />;
+}
+PlasmicListSection__iconButton.displayName = "PlasmicListSection.iconButton";
+
+type PlasmicListSection__itemsContainerProps = NodeComponentProps<"itemsContainer"> & {key?: React.Key};
+function PlasmicListSection__itemsContainer<T extends PlasmicListSection__itemsContainerProps>(props: T & StrictProps<T, PlasmicListSection__itemsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("itemsContainer", props);
+  return <PlasmicListSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"itemsContainer"} />;
+}
+PlasmicListSection__itemsContainer.displayName = "PlasmicListSection.itemsContainer";
+
+type PlasmicListSection__listSectionSeparatorProps = NodeComponentProps<"listSectionSeparator"> & {key?: React.Key};
+function PlasmicListSection__listSectionSeparator<T extends PlasmicListSection__listSectionSeparatorProps>(props: T & StrictProps<T, PlasmicListSection__listSectionSeparatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("listSectionSeparator", props);
+  return <PlasmicListSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"listSectionSeparator"} />;
+}
+PlasmicListSection__listSectionSeparator.displayName = "PlasmicListSection.listSectionSeparator";
+
 
 export const PlasmicListSection = Object.assign(
   // Top-level PlasmicListSection renders the root element
-  makeNodeComponent("root"),
+  PlasmicListSection__root,
   {
     // Helper components rendering sub-elements
-    listSectionHeader: makeNodeComponent("listSectionHeader"),
-    iconButton: makeNodeComponent("iconButton"),
-    itemsContainer: makeNodeComponent("itemsContainer"),
-    listSectionSeparator: makeNodeComponent("listSectionSeparator"),
+    listSectionHeader: PlasmicListSection__listSectionHeader,
+    iconButton: PlasmicListSection__iconButton,
+    itemsContainer: PlasmicListSection__itemsContainer,
+    listSectionSeparator: PlasmicListSection__listSectionSeparator,
 
     // Metadata about props expected for PlasmicListSection
     internalVariantProps: PlasmicListSection__VariantProps,

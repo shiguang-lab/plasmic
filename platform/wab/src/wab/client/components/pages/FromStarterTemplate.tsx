@@ -23,6 +23,7 @@ export function FromStarterTemplate(props: {
   const { t } = useI18n();
 
   React.useEffect(() => {
+    let active = true;
     const createProject = async () => {
       if (projectId) {
         const { projectId: newProjectId } = await appCtx.api.cloneProject(
@@ -45,7 +46,7 @@ export function FromStarterTemplate(props: {
     if (appCtx.selfInfo) {
       spawn(
         createProject().then((newProjectId) => {
-          if (newProjectId) {
+          if (active && newProjectId) {
             location.href = APP_ROUTES.project.fill({
               projectId: newProjectId,
             });
@@ -55,6 +56,7 @@ export function FromStarterTemplate(props: {
     } else {
       appCtx.router.routeTo(APP_ROUTES.login.fill({}, { continueTo: path }));
     }
+    return () => { active = false; };
   }, [projectId, baseProjectId, appCtx, name]);
 
   return (

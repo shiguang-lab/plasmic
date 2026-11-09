@@ -5,12 +5,11 @@ import { omit, pick } from "../common";
 // These props are used internally by PlasmicLink to determine how to render the link
 const INTERNAL_PROPS = ["component", "platform", "legacyBehavior"] as const;
 
-export const PlasmicLink = React.forwardRef(function PlasmicLink(
+export const PlasmicLink = React.forwardRef(function PlasmicLinkContent(
   props: any,
   ref: React.Ref<any>
 ) {
-  // The usePlasmicLinkMaybe function may be undefined, if host is not up-to-date
-  const Link = usePlasmicLinkMaybe?.() ?? PlasmicLinkInternal;
+  const Link = usePlasmicLinkMaybe() ?? PlasmicLinkInternal;
   if (Link === PlasmicLink || Link === PlasmicLinkInternal) {
     // Just in case, break the cycle
     return <PlasmicLinkInternal {...props} ref={ref} />;
@@ -23,6 +22,7 @@ export const PlasmicLink = React.forwardRef(function PlasmicLink(
 
 export const PlasmicLinkInternal = React.forwardRef(
   function PlasmicLinkInternal(props: any, ref: React.Ref<any>) {
+    const Component = props.component;
     // props.href is required for nextjs; if no props.href,
     // then we just render the default anchor element
     if (props.platform === "nextjs" && props.href) {
@@ -57,19 +57,12 @@ export const PlasmicLinkInternal = React.forwardRef(
       }
 
       // pass props directly to Link (no nested <a>)
-      return React.createElement(props.component, {
-        scroll: !isFragment,
-        ...omit(props, ...INTERNAL_PROPS),
-        ref,
-      });
+      return <Component scroll={!isFragment} {...omit(props, ...INTERNAL_PROPS)} ref={ref} />;
     }
 
 
     if (props.platform === "tanstack" && isInternalHref(props.href)) {
-      return React.createElement(props.component, {
-        ...omit(props, ...INTERNAL_PROPS, "href"),
-        ...{ to: props.href, ref },
-      });
+      return <Component {...omit(props, ...INTERNAL_PROPS, "href")} to={props.href} ref={ref} />;
     }
 
     return <a {...omit(props, ...INTERNAL_PROPS)} ref={ref} />;

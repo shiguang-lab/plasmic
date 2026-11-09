@@ -1,7 +1,8 @@
+import { AppContext } from "@/wab/client/components/top-view";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { ContentLayoutContainerControls } from "@/wab/client/components/sidebar-tabs/ContentLayoutControls";
 import { AlignItemsControls } from "@/wab/client/components/style-controls/align-items-controls";
-import { SingleRsExpsProvider, StyleComponent, StyleComponentContext } from "@/wab/client/components/style-controls/StyleComponent";
+import { SingleRsExpsProvider, StyleTarget, StyleTargetContext } from "@/wab/client/components/style-controls/StyleComponent";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import toggleStyles from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleToggleButton.module.css";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -13,7 +14,6 @@ import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
-import { runInAction } from "mobx";
 
 const studios = new Set<StudioCtx>();
 afterEach(async () => {
@@ -25,7 +25,7 @@ async function setup(values: Record<string, string>) {
   const site = createSite();
   const component = new TplMgr({ site }).addComponent({ name: "Layout controls", type: ComponentType.Plain });
   const rs = ensureBaseVariantSetting(component.tplTree).rs;
-  runInAction(() => Object.assign(rs.values, values));
+  (() => Object.assign(rs.values, values))();
   const { studioCtx: studio } = fakeStudioCtx({ site });
   studios.add(studio);
   await waitFor(() => expect(studio.initialRouteReady).toBe(true));
@@ -33,8 +33,8 @@ async function setup(values: Record<string, string>) {
   studio.createViewStateUndoRecord();
   const exp = RSH(rs, component.tplTree);
   const provider = new SingleRsExpsProvider(rs, exp, studio, [], { kind: "ruleSet", rs, forTag: "div" });
-  const styling = new StyleComponent({ expsProvider: provider });
-  const wrap = (children: React.ReactNode) => <StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={styling}>{children}</StyleComponentContext.Provider></StudioCtxContext.Provider>;
+  const styling = new StyleTarget({ expsProvider: provider });
+  const wrap = (children: React.ReactNode) => <AppContext.Provider value={studio.app}><StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={styling}>{children}</StyleTargetContext.Provider></StudioCtxContext.Provider></AppContext.Provider>;
   return { studio, rs, provider, wrap };
 }
 

@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,7 +23,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconTogglesPanel from "../../components/docs/IconTogglesPanel"; // plasmic-import: 9qTu7qylBlP/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -85,11 +85,10 @@ function PlasmicDocsImagesPortal__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -212,12 +211,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -227,33 +222,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDocsImagesPortal__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDocsImagesPortal";
-  } else {
-    func.displayName = `PlasmicDocsImagesPortal.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDocsImagesPortal__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDocsImagesPortal__root<T extends PlasmicDocsImagesPortal__rootProps>(props: T & StrictProps<T, PlasmicDocsImagesPortal__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDocsImagesPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDocsImagesPortal__root.displayName = "PlasmicDocsImagesPortal";
+
+type PlasmicDocsImagesPortal__togglesContainerProps = NodeComponentProps<"togglesContainer"> & {key?: React.Key};
+function PlasmicDocsImagesPortal__togglesContainer<T extends PlasmicDocsImagesPortal__togglesContainerProps>(props: T & StrictProps<T, PlasmicDocsImagesPortal__togglesContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("togglesContainer", props);
+  return <PlasmicDocsImagesPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"togglesContainer"} />;
+}
+PlasmicDocsImagesPortal__togglesContainer.displayName = "PlasmicDocsImagesPortal.togglesContainer";
+
+type PlasmicDocsImagesPortal__iconTogglesPanelProps = NodeComponentProps<"iconTogglesPanel"> & {key?: React.Key};
+function PlasmicDocsImagesPortal__iconTogglesPanel<T extends PlasmicDocsImagesPortal__iconTogglesPanelProps>(props: T & StrictProps<T, PlasmicDocsImagesPortal__iconTogglesPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconTogglesPanel", props);
+  return <PlasmicDocsImagesPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconTogglesPanel"} />;
+}
+PlasmicDocsImagesPortal__iconTogglesPanel.displayName = "PlasmicDocsImagesPortal.iconTogglesPanel";
+
+type PlasmicDocsImagesPortal__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicDocsImagesPortal__freeBox<T extends PlasmicDocsImagesPortal__freeBoxProps>(props: T & StrictProps<T, PlasmicDocsImagesPortal__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicDocsImagesPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicDocsImagesPortal__freeBox.displayName = "PlasmicDocsImagesPortal.freeBox";
+
+type PlasmicDocsImagesPortal__viewportProps = NodeComponentProps<"viewport"> & {key?: React.Key};
+function PlasmicDocsImagesPortal__viewport<T extends PlasmicDocsImagesPortal__viewportProps>(props: T & StrictProps<T, PlasmicDocsImagesPortal__viewportProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("viewport", props);
+  return <PlasmicDocsImagesPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"viewport"} />;
+}
+PlasmicDocsImagesPortal__viewport.displayName = "PlasmicDocsImagesPortal.viewport";
+
+type PlasmicDocsImagesPortal__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicDocsImagesPortal__svg<T extends PlasmicDocsImagesPortal__svgProps>(props: T & StrictProps<T, PlasmicDocsImagesPortal__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicDocsImagesPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicDocsImagesPortal__svg.displayName = "PlasmicDocsImagesPortal.svg";
+
+type PlasmicDocsImagesPortal__editorProps = NodeComponentProps<"editor"> & {key?: React.Key};
+function PlasmicDocsImagesPortal__editor<T extends PlasmicDocsImagesPortal__editorProps>(props: T & StrictProps<T, PlasmicDocsImagesPortal__editorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("editor", props);
+  return <PlasmicDocsImagesPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"editor"} />;
+}
+PlasmicDocsImagesPortal__editor.displayName = "PlasmicDocsImagesPortal.editor";
+
+type PlasmicDocsImagesPortal__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicDocsImagesPortal__text<T extends PlasmicDocsImagesPortal__textProps>(props: T & StrictProps<T, PlasmicDocsImagesPortal__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicDocsImagesPortal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicDocsImagesPortal__text.displayName = "PlasmicDocsImagesPortal.text";
+
 
 export const PlasmicDocsImagesPortal = Object.assign(
   // Top-level PlasmicDocsImagesPortal renders the root element
-  makeNodeComponent("root"),
+  PlasmicDocsImagesPortal__root,
   {
     // Helper components rendering sub-elements
-    togglesContainer: makeNodeComponent("togglesContainer"),
-    iconTogglesPanel: makeNodeComponent("iconTogglesPanel"),
-    freeBox: makeNodeComponent("freeBox"),
-    viewport: makeNodeComponent("viewport"),
-    svg: makeNodeComponent("svg"),
-    editor: makeNodeComponent("editor"),
-    text: makeNodeComponent("text"),
+    togglesContainer: PlasmicDocsImagesPortal__togglesContainer,
+    iconTogglesPanel: PlasmicDocsImagesPortal__iconTogglesPanel,
+    freeBox: PlasmicDocsImagesPortal__freeBox,
+    viewport: PlasmicDocsImagesPortal__viewport,
+    svg: PlasmicDocsImagesPortal__svg,
+    editor: PlasmicDocsImagesPortal__editor,
+    text: PlasmicDocsImagesPortal__text,
 
     // Metadata about props expected for PlasmicDocsImagesPortal
     internalVariantProps: PlasmicDocsImagesPortal__VariantProps,

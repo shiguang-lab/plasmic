@@ -1,3 +1,4 @@
+import { createCanvasComponentType, CanvasWrapper, CanvasIcon } from "./canvas-component-type";
 // This package is for bundling packages that should run in the canvas frames.
 // Those packages need to use the same React as the code components, provided by
 // artboardWindow.__Sub.React, so we bundle all those packages here taking
@@ -21,10 +22,35 @@ import * as slateHistory from "slate-history";
 import * as slateReact from "slate-react";
 import { GenericErrorBoundary } from "./error-boundary";
 import { createModal } from "./modals";
+import { SlateString } from "./slate-string";
+import { CanvasFrame } from "./canvas-frame";
+import { CanvasRoot } from "./canvas-root";
+import { CanvasRenderSlot } from "./canvas-render-slot";
+import { CanvasRichTextFrame, CanvasPlaceholder } from "./canvas-rich-text-frame";
+import { CanvasTextEditor, CanvasSlateChildren, CanvasStoreProjection } from "./canvas-text";
+import { CanvasObserver } from "./canvas-observer";
+import { CanvasErrorBoundary, CanvasErrorDisplay } from "./canvas-error";
+import { CustomPropValueEcho } from "./custom-prop-value-echo";
 
 // Types copied from subdeps.ts to verify compatibility
 // TODO: wab should depend on canvas-packages
 interface CanvasPkgs {
+  SlateString: typeof SlateString;
+  CanvasFrame: typeof CanvasFrame;
+  createCanvasComponentType: typeof createCanvasComponentType;
+  CanvasWrapper: typeof CanvasWrapper;
+  CanvasIcon: typeof CanvasIcon;
+  CanvasRoot: typeof CanvasRoot;
+  CanvasRenderSlot: typeof CanvasRenderSlot;
+  CanvasRichTextFrame: typeof CanvasRichTextFrame;
+  CanvasPlaceholder: typeof CanvasPlaceholder;
+  CanvasTextEditor: typeof CanvasTextEditor;
+  CanvasSlateChildren: typeof CanvasSlateChildren;
+  CanvasStoreProjection: typeof CanvasStoreProjection;
+  CanvasObserver: typeof CanvasObserver;
+  CanvasErrorBoundary: typeof CanvasErrorBoundary;
+  CanvasErrorDisplay: typeof CanvasErrorDisplay;
+  CustomPropValueEcho: typeof CustomPropValueEcho;
   StudioControlsProvider: React.ComponentType<{ studioDocument: Document; theme: ThemeConfig | undefined; children?: React.ReactNode }>;
   Antd6: typeof nativeAntd6 & {
     localeZhCN: typeof nativeAntd6ZhCN;
@@ -73,6 +99,20 @@ interface ModalProps {
 }
 
 const __CanvasPkgs: CanvasPkgs = {
+  SlateString,
+  CanvasFrame,
+  createCanvasComponentType,
+  CanvasWrapper,
+  CanvasIcon,
+  CanvasRoot,
+  CanvasRenderSlot,
+  CanvasRichTextFrame,
+  CanvasPlaceholder,
+  CanvasTextEditor, CanvasSlateChildren, CanvasStoreProjection,
+  CanvasObserver,
+  CanvasErrorBoundary,
+  CanvasErrorDisplay,
+  CustomPropValueEcho,
   StudioControlsProvider: (window as any).__Sub.StudioControlsProvider,
   Antd6: (window as any).__Sub.Antd6,
   ResizeObserver,

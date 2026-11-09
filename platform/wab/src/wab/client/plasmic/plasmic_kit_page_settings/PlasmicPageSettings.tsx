@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,14 +25,14 @@ import {
   PlasmicLink as PlasmicLink__,
   renderPlasmicSlot,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Switch from "../../components/Switch"; // plasmic-import: ntKkcfMNg2s/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6BCq4vMow1yqGKFdcP68Rz/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6BCq4vMow1yqGKFdcP68Rz/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -114,11 +114,10 @@ function PlasmicPageSettings__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "loginRequiredSwitch.isChecked",
@@ -139,18 +138,20 @@ function PlasmicPageSettings__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -409,9 +410,9 @@ function PlasmicPageSettings__RenderFunc(props: {
             data-plasmic-name={"renderModeSelect"}
             data-plasmic-override={overrides.renderModeSelect}
             className={classNames("__wab_instance", sty.renderModeSelect)}
-            onChange={async (...eventArgs: any) => {
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
               ((...eventArgs) => {
-                generateStateOnChangeProp($state, [
+                generateStateOnChangeProp($stateCommands, [
                   "renderModeSelect",
                   "value",
                 ])(eventArgs[0]);
@@ -424,7 +425,7 @@ function PlasmicPageSettings__RenderFunc(props: {
               ) {
                 return;
               }
-            }}
+            })); })}
             value={generateStateValueProp($state, [
               "renderModeSelect",
               "value",
@@ -455,9 +456,9 @@ function PlasmicPageSettings__RenderFunc(props: {
                 "isChecked",
               ]) ?? false
             }
-            onChange={async (...eventArgs: any) => {
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
               ((...eventArgs) => {
-                generateStateOnChangeProp($state, [
+                generateStateOnChangeProp($stateCommands, [
                   "loginRequiredSwitch",
                   "isChecked",
                 ])(eventArgs[0]);
@@ -470,7 +471,7 @@ function PlasmicPageSettings__RenderFunc(props: {
               ) {
                 return;
               }
-            }}
+            })); })}
           >
             {""}
           </Switch>
@@ -493,9 +494,9 @@ function PlasmicPageSettings__RenderFunc(props: {
             data-plasmic-name={"roleRequiredSelect"}
             data-plasmic-override={overrides.roleRequiredSelect}
             className={classNames("__wab_instance", sty.roleRequiredSelect)}
-            onChange={async (...eventArgs: any) => {
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
               ((...eventArgs) => {
-                generateStateOnChangeProp($state, [
+                generateStateOnChangeProp($stateCommands, [
                   "roleRequiredSelect",
                   "value",
                 ])(eventArgs[0]);
@@ -508,7 +509,7 @@ function PlasmicPageSettings__RenderFunc(props: {
               ) {
                 return;
               }
-            }}
+            })); })}
             value={generateStateValueProp($state, [
               "roleRequiredSelect",
               "value",
@@ -608,12 +609,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -623,40 +620,133 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPageSettings__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPageSettings";
-  } else {
-    func.displayName = `PlasmicPageSettings.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPageSettings__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPageSettings__root<T extends PlasmicPageSettings__rootProps>(props: T & StrictProps<T, PlasmicPageSettings__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPageSettings__root.displayName = "PlasmicPageSettings";
+
+type PlasmicPageSettings__routeInputProps = NodeComponentProps<"routeInput"> & {key?: React.Key};
+function PlasmicPageSettings__routeInput<T extends PlasmicPageSettings__routeInputProps>(props: T & StrictProps<T, PlasmicPageSettings__routeInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("routeInput", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"routeInput"} />;
+}
+PlasmicPageSettings__routeInput.displayName = "PlasmicPageSettings.routeInput";
+
+type PlasmicPageSettings__characterCountProps = NodeComponentProps<"characterCount"> & {key?: React.Key};
+function PlasmicPageSettings__characterCount<T extends PlasmicPageSettings__characterCountProps>(props: T & StrictProps<T, PlasmicPageSettings__characterCountProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("characterCount", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"characterCount"} />;
+}
+PlasmicPageSettings__characterCount.displayName = "PlasmicPageSettings.characterCount";
+
+type PlasmicPageSettings__spanProps = NodeComponentProps<"span"> & {key?: React.Key};
+function PlasmicPageSettings__span<T extends PlasmicPageSettings__spanProps>(props: T & StrictProps<T, PlasmicPageSettings__spanProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("span", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"span"} />;
+}
+PlasmicPageSettings__span.displayName = "PlasmicPageSettings.span";
+
+type PlasmicPageSettings__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicPageSettings__link<T extends PlasmicPageSettings__linkProps>(props: T & StrictProps<T, PlasmicPageSettings__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicPageSettings__link.displayName = "PlasmicPageSettings.link";
+
+type PlasmicPageSettings__imageAssetPickerProps = NodeComponentProps<"imageAssetPicker"> & {key?: React.Key};
+function PlasmicPageSettings__imageAssetPicker<T extends PlasmicPageSettings__imageAssetPickerProps>(props: T & StrictProps<T, PlasmicPageSettings__imageAssetPickerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("imageAssetPicker", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"imageAssetPicker"} />;
+}
+PlasmicPageSettings__imageAssetPicker.displayName = "PlasmicPageSettings.imageAssetPicker";
+
+type PlasmicPageSettings__propsControlProps = NodeComponentProps<"propsControl"> & {key?: React.Key};
+function PlasmicPageSettings__propsControl<T extends PlasmicPageSettings__propsControlProps>(props: T & StrictProps<T, PlasmicPageSettings__propsControlProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("propsControl", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"propsControl"} />;
+}
+PlasmicPageSettings__propsControl.displayName = "PlasmicPageSettings.propsControl";
+
+type PlasmicPageSettings__renderModeLabelProps = NodeComponentProps<"renderModeLabel"> & {key?: React.Key};
+function PlasmicPageSettings__renderModeLabel<T extends PlasmicPageSettings__renderModeLabelProps>(props: T & StrictProps<T, PlasmicPageSettings__renderModeLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("renderModeLabel", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"renderModeLabel"} />;
+}
+PlasmicPageSettings__renderModeLabel.displayName = "PlasmicPageSettings.renderModeLabel";
+
+type PlasmicPageSettings__renderModeSelectProps = NodeComponentProps<"renderModeSelect"> & {key?: React.Key};
+function PlasmicPageSettings__renderModeSelect<T extends PlasmicPageSettings__renderModeSelectProps>(props: T & StrictProps<T, PlasmicPageSettings__renderModeSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("renderModeSelect", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"renderModeSelect"} />;
+}
+PlasmicPageSettings__renderModeSelect.displayName = "PlasmicPageSettings.renderModeSelect";
+
+type PlasmicPageSettings__loginRequiredRowProps = NodeComponentProps<"loginRequiredRow"> & {key?: React.Key};
+function PlasmicPageSettings__loginRequiredRow<T extends PlasmicPageSettings__loginRequiredRowProps>(props: T & StrictProps<T, PlasmicPageSettings__loginRequiredRowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("loginRequiredRow", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"loginRequiredRow"} />;
+}
+PlasmicPageSettings__loginRequiredRow.displayName = "PlasmicPageSettings.loginRequiredRow";
+
+type PlasmicPageSettings__loginRequiredLabelProps = NodeComponentProps<"loginRequiredLabel"> & {key?: React.Key};
+function PlasmicPageSettings__loginRequiredLabel<T extends PlasmicPageSettings__loginRequiredLabelProps>(props: T & StrictProps<T, PlasmicPageSettings__loginRequiredLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("loginRequiredLabel", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"loginRequiredLabel"} />;
+}
+PlasmicPageSettings__loginRequiredLabel.displayName = "PlasmicPageSettings.loginRequiredLabel";
+
+type PlasmicPageSettings__loginRequiredSwitchProps = NodeComponentProps<"loginRequiredSwitch"> & {key?: React.Key};
+function PlasmicPageSettings__loginRequiredSwitch<T extends PlasmicPageSettings__loginRequiredSwitchProps>(props: T & StrictProps<T, PlasmicPageSettings__loginRequiredSwitchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("loginRequiredSwitch", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"loginRequiredSwitch"} />;
+}
+PlasmicPageSettings__loginRequiredSwitch.displayName = "PlasmicPageSettings.loginRequiredSwitch";
+
+type PlasmicPageSettings__roleRequiredRowProps = NodeComponentProps<"roleRequiredRow"> & {key?: React.Key};
+function PlasmicPageSettings__roleRequiredRow<T extends PlasmicPageSettings__roleRequiredRowProps>(props: T & StrictProps<T, PlasmicPageSettings__roleRequiredRowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("roleRequiredRow", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"roleRequiredRow"} />;
+}
+PlasmicPageSettings__roleRequiredRow.displayName = "PlasmicPageSettings.roleRequiredRow";
+
+type PlasmicPageSettings__roleRequiredLabelProps = NodeComponentProps<"roleRequiredLabel"> & {key?: React.Key};
+function PlasmicPageSettings__roleRequiredLabel<T extends PlasmicPageSettings__roleRequiredLabelProps>(props: T & StrictProps<T, PlasmicPageSettings__roleRequiredLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("roleRequiredLabel", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"roleRequiredLabel"} />;
+}
+PlasmicPageSettings__roleRequiredLabel.displayName = "PlasmicPageSettings.roleRequiredLabel";
+
+type PlasmicPageSettings__roleRequiredSelectProps = NodeComponentProps<"roleRequiredSelect"> & {key?: React.Key};
+function PlasmicPageSettings__roleRequiredSelect<T extends PlasmicPageSettings__roleRequiredSelectProps>(props: T & StrictProps<T, PlasmicPageSettings__roleRequiredSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("roleRequiredSelect", props);
+  return <PlasmicPageSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"roleRequiredSelect"} />;
+}
+PlasmicPageSettings__roleRequiredSelect.displayName = "PlasmicPageSettings.roleRequiredSelect";
+
 
 export const PlasmicPageSettings = Object.assign(
   // Top-level PlasmicPageSettings renders the root element
-  makeNodeComponent("root"),
+  PlasmicPageSettings__root,
   {
     // Helper components rendering sub-elements
-    routeInput: makeNodeComponent("routeInput"),
-    characterCount: makeNodeComponent("characterCount"),
-    span: makeNodeComponent("span"),
-    link: makeNodeComponent("link"),
-    imageAssetPicker: makeNodeComponent("imageAssetPicker"),
-    propsControl: makeNodeComponent("propsControl"),
-    renderModeLabel: makeNodeComponent("renderModeLabel"),
-    renderModeSelect: makeNodeComponent("renderModeSelect"),
-    loginRequiredRow: makeNodeComponent("loginRequiredRow"),
-    loginRequiredLabel: makeNodeComponent("loginRequiredLabel"),
-    loginRequiredSwitch: makeNodeComponent("loginRequiredSwitch"),
-    roleRequiredRow: makeNodeComponent("roleRequiredRow"),
-    roleRequiredLabel: makeNodeComponent("roleRequiredLabel"),
-    roleRequiredSelect: makeNodeComponent("roleRequiredSelect"),
+    routeInput: PlasmicPageSettings__routeInput,
+    characterCount: PlasmicPageSettings__characterCount,
+    span: PlasmicPageSettings__span,
+    link: PlasmicPageSettings__link,
+    imageAssetPicker: PlasmicPageSettings__imageAssetPicker,
+    propsControl: PlasmicPageSettings__propsControl,
+    renderModeLabel: PlasmicPageSettings__renderModeLabel,
+    renderModeSelect: PlasmicPageSettings__renderModeSelect,
+    loginRequiredRow: PlasmicPageSettings__loginRequiredRow,
+    loginRequiredLabel: PlasmicPageSettings__loginRequiredLabel,
+    loginRequiredSwitch: PlasmicPageSettings__loginRequiredSwitch,
+    roleRequiredRow: PlasmicPageSettings__roleRequiredRow,
+    roleRequiredLabel: PlasmicPageSettings__roleRequiredLabel,
+    roleRequiredSelect: PlasmicPageSettings__roleRequiredSelect,
 
     // Metadata about props expected for PlasmicPageSettings
     internalVariantProps: PlasmicPageSettings__VariantProps,

@@ -1,4 +1,6 @@
 import { FullRow } from "@/wab/client/components/sidebar/sidebar-helpers";
+import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { useColumnsAlignment } from "@/wab/client/studio-ctx/columns-alignment-inputs";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
 import { alignItemsIcons } from "@/wab/client/components/style-controls/align-items-controls";
@@ -7,11 +9,9 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import { UiText } from "@/wab/client/i18n/UiText";
 import InfoIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Info";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { RSH } from "@/wab/shared/RuleSetHelpers";
 import { TplColumnsTag } from "@/wab/shared/core/tpls";
 import { TplNode } from "@/wab/shared/model/classes";
 import { Popover } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
 
 export interface ColumnsAlignProps {
@@ -20,11 +20,13 @@ export interface ColumnsAlignProps {
   isDisabled?: boolean;
 }
 
-export const ColumnsAlignControls = observer(function ColumnsAlignControls(
+export const ColumnsAlignControls = React.memo(function ColumnsAlignControls(
   props: ColumnsAlignProps,
 ) {
   const { tpl, viewCtx, isDisabled } = props;
   const studioCtx = viewCtx.studioCtx;
+  const provider = React.useCallback((node: TplNode) => new TplExpsProvider(viewCtx, node), [viewCtx]);
+  const alignment = useColumnsAlignment(viewCtx, tpl, provider);
   const alignItemsOptions = [
     "flex-start",
     "center",
@@ -40,23 +42,6 @@ export const ColumnsAlignControls = observer(function ColumnsAlignControls(
     "space-evenly",
   ];
   const columnDir = "column";
-  const getAllColumnsProp = (prop: string) => {
-    const childrenExp = tpl.children.map((node) =>
-      RSH(
-        viewCtx.effectiveCurrentVariantSetting(node as TplNode).rs,
-        node as TplNode,
-      ),
-    );
-    if (childrenExp.length === 0) {
-      return "";
-    }
-    const firstValue = childrenExp[0].get(prop);
-    if (childrenExp.every((exp) => firstValue === exp.get(prop))) {
-      return firstValue;
-    }
-    return "";
-  };
-
   const setAllColumnsProp = (prop: string, value: string | undefined) => {
     if (tpl.children.length > 0) {
       tpl.children.forEach((node) => {
@@ -68,14 +53,6 @@ export const ColumnsAlignControls = observer(function ColumnsAlignControls(
         }
       });
     }
-  };
-
-  const isBreakpointFlexReverse = () => {
-    const flexDir = RSH(
-      viewCtx.effectiveCurrentVariantSetting(tpl).rs,
-      tpl,
-    ).get("flex-direction");
-    return flexDir.endsWith("-reverse");
   };
 
   const createToolip = (content: string) => {
@@ -105,7 +82,7 @@ export const ColumnsAlignControls = observer(function ColumnsAlignControls(
               setAllColumnsProp("justify-content", val),
             )
           }
-          value={getAllColumnsProp("justify-content") || undefined}
+          value={alignment.justifyContent || undefined}
         >
           {justifyContentOptions.map((option) => (
             <StyleToggleButton
@@ -125,7 +102,7 @@ export const ColumnsAlignControls = observer(function ColumnsAlignControls(
             val &&
             studioCtx.changeUnsafe(() => setAllColumnsProp("align-items", val))
           }
-          value={getAllColumnsProp("align-items") || undefined}
+          value={alignment.alignItems || undefined}
         >
           {alignItemsOptions.map((option) => (
             <StyleToggleButton

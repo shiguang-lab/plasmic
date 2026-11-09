@@ -48,8 +48,14 @@ import {
   isKnownProjectDependency,
   isKnownSite,
 } from "@/wab/shared/model/classes";
+import {
+  createProjectDependenciesStore,
+  getDependencyMap,
+  removeDependency,
+  setDependency,
+  setPlumeSite,
+} from "@/wab/client/studio-ctx/project-dependencies-state";
 import L, { last } from "lodash";
-import { computed, observable, runInAction } from "mobx";
 
 export interface ProjectDependencyData {
   // `model` is the object stored in the Site
@@ -60,9 +66,12 @@ export interface ProjectDependencyData {
 
 export class ProjectDependencyManager {
   // Stores only direct dependencies of the project
-  // These are reactive so that ProjectDependenciesPanel can be reactive.
   // { pkgId => ProjectDependencyData }
-  private _dependencyMap = observable.object<Dict<ProjectDependencyData>>({});
+  readonly dependencyStateStore = createProjectDependenciesStore();
+
+  private get _dependencyMap(): Readonly<Record<string, ProjectDependencyData>> {
+    return getDependencyMap(this);
+  }
 
   // Stores the Sites of "Insertable Templates" projects, keyed by projectId
   insertableSites: Record<string, Site> = {};
@@ -72,9 +81,8 @@ export class ProjectDependencyManager {
   insertableSiteScreenVariant: Variant | undefined;
 
   // Stores the Site of the Plume project
-  private _plumeSite = observable.box<Site | undefined>(undefined, { deep: false });
   get plumeSite() {
-    return this._plumeSite.get();
+    return this.dependencyStateStore.getState().plumeSite;
   }
   private _plumeSitePromise: Promise<Site> | undefined;
 
@@ -125,7 +133,9 @@ export class ProjectDependencyManager {
       data.forEach((d) => {
         const dep = this._dependencyMap[d.pkgId];
         if (dep) {
-          dep.latestPkgVersionMeta = d.latestPkgVersionMeta;
+          if (dep.latestPkgVersionMeta !== d.latestPkgVersionMeta) {
+            setDependency(this, d.pkgId, { ...dep, latestPkgVersionMeta: d.latestPkgVersionMeta });
+          }
         }
       });
     });
@@ -154,7 +164,7 @@ export class ProjectDependencyManager {
         plumePkg.depPkgs,
       ).projectDependency.site;
       const inlinedSite = this.inlineAssets(plumeSite);
-      this._plumeSite.set(inlinedSite);
+      setPlumeSite(this, inlinedSite);
       return inlinedSite;
   }
 
@@ -182,7 +192,7 @@ export class ProjectDependencyManager {
     dep: ProjectDependency,
     latestPkgVersionMeta?: PkgVersionInfoMeta,
   ) {
-    this._dependencyMap[dep.pkgId] = { model: dep, latestPkgVersionMeta };
+    setDependency(this, dep.pkgId, { model: dep, latestPkgVersionMeta });
     this._trackDepObjs(dep);
   }
 
@@ -191,7 +201,7 @@ export class ProjectDependencyManager {
    * @param pkgId
    */
   private _untrackDep(dep: ProjectDependency) {
-    delete this._dependencyMap[dep.pkgId];
+    removeDependency(this, dep.pkgId);
   }
 
   /**
@@ -261,20 +271,14 @@ export class ProjectDependencyManager {
     return depMap[pkgId] ? depMap[pkgId].version : undefined;
   }
 
-  // mobx computed value of direct dependencies
-  private directDeps = computed(() => {
-    const result: ProjectDependencyData[] = [];
-    this._sc.site.projectDependencies.forEach((dep) => {
-      result.push(this._dependencyMap[dep.pkgId]);
-    });
-    return result;
-  });
+  // Commands need current values before asynchronous UI revision publication.
+  private directDeps = () => this._sc.site.projectDependencies.map((dep) => this._dependencyMap[dep.pkgId]);
 
   /**
    * Returns a list of dependencies sorted by name
    **/
   getDependencies = (): ProjectDependencyData[] => {
-    const unsorted = this.directDeps.get();
+    const unsorted = this.directDeps();
     if (unsorted.some((v) => v == null)) {
       // _dependencyMap is missing some entries - needs to refresh
       spawn(this._fetchData());
@@ -482,7 +486,7 @@ export class ProjectDependencyManager {
   ensureCanUpgradeDeps(targetDeps: ProjectDependency[]) {
     const result: Dict<ProjectDependency> = {};
     const targetMap = new Map(targetDeps.map((t) => [t.pkgId, t]));
-    const queue = this.directDeps.get().map((d) => {
+    const queue = this.directDeps().map((d) => {
       return targetMap.get(d.model.pkgId) ?? d.model;
     });
     while (queue.length > 0) {
@@ -490,13 +494,11 @@ export class ProjectDependencyManager {
       if (
         isHostLessPackage(dep.site) &&
         (targetMap.has(dep.pkgId) ||
-          this.directDeps.get().some((d) => d.model.pkgId === dep.pkgId))
+          this.directDeps().some((d) => d.model.pkgId === dep.pkgId))
       ) {
         dep =
           targetMap.get(dep.pkgId) ??
-          this.directDeps
-            .get()
-            .find((d) => d.model.pkgId === dep.pkgId)!.model;
+          this.directDeps().find((d) => d.model.pkgId === dep.pkgId)!.model;
       }
       // If we've already seen this pkgId, make sure its the right version
       if (result[dep.pkgId]) {
@@ -556,35 +558,33 @@ export class ProjectDependencyManager {
    * in site.projectDependencies
    */
   syncDirectDeps() {
-    return runInAction(() => {
-      const updatedDeps: ProjectDependency[] = [];
-      const deletedDeps: ProjectDependency[] = [];
-      for (const dep of this._sc.site.projectDependencies) {
-        if (!L.has(this._dependencyMap, dep.pkgId)) {
-          updatedDeps.push(dep);
+    const updatedDeps: ProjectDependency[] = [];
+    const deletedDeps: ProjectDependency[] = [];
+    for (const dep of this._sc.site.projectDependencies) {
+      if (!L.has(this._dependencyMap, dep.pkgId)) {
+        updatedDeps.push(dep);
+        this._trackDep(dep);
+      } else {
+        const prevDep = this._dependencyMap[dep.pkgId].model;
+        if (prevDep !== dep) {
+          this._untrackDep(prevDep);
           this._trackDep(dep);
-        } else {
-          const prevDep = this._dependencyMap[dep.pkgId].model;
-          if (prevDep !== dep) {
-            this._untrackDep(prevDep);
-            this._trackDep(dep);
-          }
         }
       }
+    }
 
-      for (const key of L.keys(this._dependencyMap)) {
-        if (!this._sc.site.projectDependencies.find((d) => d.pkgId === key)) {
-          const dep = this._dependencyMap[key].model;
-          this._untrackDep(dep);
-          deletedDeps.push(dep);
-        }
+    for (const key of L.keys(this._dependencyMap)) {
+      if (!this._sc.site.projectDependencies.find((d) => d.pkgId === key)) {
+        const dep = this._dependencyMap[key].model;
+        this._untrackDep(dep);
+        deletedDeps.push(dep);
       }
+    }
 
-      return {
-        updatedDeps,
-        deletedDeps,
-      };
-    });
+    return {
+      updatedDeps,
+      deletedDeps,
+    };
   }
 
   async fetchInsertableTemplate(projectId: string) {

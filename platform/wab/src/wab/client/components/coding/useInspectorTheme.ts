@@ -1,9 +1,9 @@
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 import { chromeLight } from "react-inspector";
 
 /** Share the active control theme with query, expression, and value previews. */
 export function useInspectorTheme() {
-  const { token } = theme.useToken();
+  const { token } = AntdTheme.useToken();
   return {
     ...chromeLight,
     BASE_BACKGROUND_COLOR: "transparent",

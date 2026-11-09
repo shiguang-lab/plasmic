@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,12 +23,12 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import DocsPropsTableRow from "../../components/docs/DocsPropsTableRow"; // plasmic-import: MQ5YoyUM0K/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -98,11 +98,10 @@ function PlasmicDocsPropsTable__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showControls",
@@ -112,18 +111,20 @@ function PlasmicDocsPropsTable__RenderFunc(props: {
           $props.showControls,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -345,12 +346,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -360,29 +357,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDocsPropsTable__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDocsPropsTable";
-  } else {
-    func.displayName = `PlasmicDocsPropsTable.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDocsPropsTable__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDocsPropsTable__root<T extends PlasmicDocsPropsTable__rootProps>(props: T & StrictProps<T, PlasmicDocsPropsTable__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDocsPropsTable__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDocsPropsTable__root.displayName = "PlasmicDocsPropsTable";
+
+type PlasmicDocsPropsTable__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicDocsPropsTable__freeBox<T extends PlasmicDocsPropsTable__freeBoxProps>(props: T & StrictProps<T, PlasmicDocsPropsTable__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicDocsPropsTable__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicDocsPropsTable__freeBox.displayName = "PlasmicDocsPropsTable.freeBox";
+
+type PlasmicDocsPropsTable__rowsProps = NodeComponentProps<"rows"> & {key?: React.Key};
+function PlasmicDocsPropsTable__rows<T extends PlasmicDocsPropsTable__rowsProps>(props: T & StrictProps<T, PlasmicDocsPropsTable__rowsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("rows", props);
+  return <PlasmicDocsPropsTable__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"rows"} />;
+}
+PlasmicDocsPropsTable__rows.displayName = "PlasmicDocsPropsTable.rows";
+
+type PlasmicDocsPropsTable__rowsWithControlProps = NodeComponentProps<"rowsWithControl"> & {key?: React.Key};
+function PlasmicDocsPropsTable__rowsWithControl<T extends PlasmicDocsPropsTable__rowsWithControlProps>(props: T & StrictProps<T, PlasmicDocsPropsTable__rowsWithControlProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("rowsWithControl", props);
+  return <PlasmicDocsPropsTable__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"rowsWithControl"} />;
+}
+PlasmicDocsPropsTable__rowsWithControl.displayName = "PlasmicDocsPropsTable.rowsWithControl";
+
 
 export const PlasmicDocsPropsTable = Object.assign(
   // Top-level PlasmicDocsPropsTable renders the root element
-  makeNodeComponent("root"),
+  PlasmicDocsPropsTable__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    rows: makeNodeComponent("rows"),
-    rowsWithControl: makeNodeComponent("rowsWithControl"),
+    freeBox: PlasmicDocsPropsTable__freeBox,
+    rows: PlasmicDocsPropsTable__rows,
+    rowsWithControl: PlasmicDocsPropsTable__rowsWithControl,
 
     // Metadata about props expected for PlasmicDocsPropsTable
     internalVariantProps: PlasmicDocsPropsTable__VariantProps,

@@ -3,7 +3,7 @@
 import * as React from "react";
 import { PageParamsProvider as PageParamsProvider__ } from "@plasmicapp/react-web/lib/host";
 import { PlasmicDynamicPage } from "../../components/plasmic/create_plasmic_app/PlasmicDynamicPage";
-import { useRouter } from "next/router";
+import { useRouter } from "next/compat/router";
 import { PlasmicQueryDataProvider } from "@plasmicapp/react-web/lib/query";
 import { extractPlasmicQueryData } from "@plasmicapp/react-web/lib/prepass";
 

@@ -1,4 +1,6 @@
 import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { useEditingTextContext } from "@/wab/client/studio-ctx/editing-text-state";
+import { useAutoOpenedUuid } from "@/wab/client/studio-ctx/auto-open-state";
 import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
@@ -122,8 +124,16 @@ import { notification } from "antd";
 import { ArgsProps } from "antd/lib/notification";
 import cn from "classnames";
 import { throttle } from "lodash";
-import { Observer, observer } from "mobx-react";
-import { ok, Result, safeTry } from "neverthrow";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { hoverBoxModelFields, hoverBoxStyleKeys } from "@/wab/client/components/canvas/HoverBox/hover-box-inputs";
+import { parentStackStyleProvider } from "@/wab/client/components/canvas/HoverBox/parent-stack-inputs";
+import { useCanvasViewInputs, noCanvasModelFields, type CanvasViewFieldRecipe } from "@/wab/client/components/canvas/canvas-view-inputs";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
+import type { NativeStyleProvider } from "@/wab/client/studio-ctx/style-inputs";
+import { useCanvasGeometry } from "@/wab/client/studio-ctx/viewport-state";
+import { $$$ } from "@/wab/shared/TplQuery";
+import { isTplVariantable } from "@/wab/shared/core/tpls";
+import { ok, Result } from "neverthrow";
 import * as React from "react";
 import { memo, useEffect, useRef, useState } from "react";
 import { useLocalStorage } from "react-use";
@@ -190,12 +200,13 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
   const arenaKind = useStudioArena(studioCtx, (state) => state.kind);
   const draggingObject = useStore(studioCtx.draggingObjectStore);
   const commentCtx = studioCtx.commentsCtx;
-  const viewCtx =
-    plasmicCtx.viewCtx && !plasmicCtx.viewCtx.isDisposed
-      ? plasmicCtx.viewCtx
-      : undefined;
+  useStore(studioCtx.uiEnvironment.store, (state) => state.componentSectionPermissions);
+  const scope = useCanvasViewInputs(plasmicCtx.viewCtx, noCanvasModelFields);
+  const viewCtx = scope.alive && plasmicCtx.viewCtx && !plasmicCtx.viewCtx.isDisposed ? plasmicCtx.viewCtx : undefined;
   useViewSelection(viewCtx, useShallow((state) => [state.doms, state.measure, state.targets]));
   const revealed = useCanvasReveals(viewCtx);
+  const autoOpenedUuid = useAutoOpenedUuid(viewCtx);
+  const editingTextContext = useEditingTextContext(viewCtx);
   const [resizePart, setResizePart] = useState<Side | Corner | undefined>();
   const [manipState, setManipState] = useState<ManipState>();
   const dimsBoxRef = useRef<HTMLDivElement>(null);
@@ -249,9 +260,9 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
   const dragResize = async (part: Corner | Side, e: XDraggableEvent) => {
     if (manipState) {
       const maybeAborted = await studioCtx.change<ManipulatorAbortedError>(() =>
-        safeTry(function* () {
+        mkFreestyleManip().andThen((manipulator) => {
           setManipState(
-            (yield* mkFreestyleManip()).resize(manipState, part, {
+            manipulator.resize(manipState, part, {
               deltaFrameX: Math.round(e.data.deltaX / viewportZoom),
               deltaFrameY: Math.round(e.data.deltaY / viewportZoom),
               shiftKey: e.mouseEvent.shiftKey,
@@ -316,7 +327,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
       return;
     }
     if (studioCtx.showStackOfParents) {
-      studioCtx.showStackOfParents = false;
+      studioCtx.setShowStackOfParents(false);
     }
 
     const clientPt = new Pt(e.data.initX, e.data.initY);
@@ -453,7 +464,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
       !!SQ(selection, viewCtx!.valState(), false).parents().toArray().length;
 
     if (hasParents && !isEditingLabel) {
-      studioCtx.showStackOfParents = true;
+      studioCtx.setShowStackOfParents(true);
     }
   };
 
@@ -464,13 +475,13 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
       tryShowingStackOfParents();
     } else if (studioCtx.showStackOfParents) {
       // Hide with simple click
-      studioCtx.showStackOfParents = false;
+      studioCtx.setShowStackOfParents(false);
     }
   };
 
   const onChangeEditingLabel = (editing: boolean) => {
     setEditingLabel(editing);
-    studioCtx.showStackOfParents = false;
+    studioCtx.setShowStackOfParents(false);
   };
 
   const [isHoveringTag, hoverTagRef] = useHoverIntent<HTMLDivElement>({
@@ -505,12 +516,21 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
     tagPlacement.visibility === "visible" &&
     typeof tagPlacement.top === "number" &&
     tagPlacement.top > 0;
+  const [tagHeight, setTagHeight] = useState(0);
+  React.useLayoutEffect(() => {
+    const tag = hoverTagRef.current;
+    if (!tag) { return; }
+    const measure = () => setTagHeight(tag.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure); observer.observe(tag);
+    return () => observer.disconnect();
+  }, [hoverTagRef, shouldShowHoverTag]);
   const dimsStyle: React.CSSProperties | undefined =
     tagIsBelow && typeof tagPlacement.left === "number"
       ? {
           top:
             (tagPlacement.top as number) +
-            (hoverTagRef.current?.offsetHeight ?? 0) +
+            tagHeight +
             3,
           left: tagPlacement.left,
           transform: "none",
@@ -533,19 +553,14 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
     !(controlledSpacingObj instanceof ValSlot) &&
     !isLocked &&
     !isMultiSelection &&
-    !viewCtx?.editingTextContext();
+    !editingTextContext;
 
   // TASK #27926: Show corner resizers for arena scratch artboards
   // and for component artboard when their viewmode is set to FrameViewMode.Centered.
   const canShowCornerResizers = false;
 
+  const showingMeasurements = !!viewCtx?.$measureToolDomElt() && !spacingDragState;
   return (
-    <Observer>
-      {() => {
-        const showingMeasurements =
-          !!viewCtx?.$measureToolDomElt() && !spacingDragState;
-
-        return (
           <div
             className="hoverbox"
             onContextMenu={(e) => {
@@ -676,12 +691,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                                   >
                                     <div
                                       onDoubleClick={() => clearSize(corner)}
-                                      className={cn({
-                                        HoverBox__Resizer: true,
-                                        [`HoverBox__Resizer__${styleCase(
-                                          corner,
-                                        )}`]: true,
-                                      })}
+                                      className={cn("HoverBox__Resizer", `HoverBox__Resizer__${styleCase(corner)}`)}
                                     />
                                   </XDraggable>
                                 ),
@@ -854,12 +864,12 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                                   const maybeAborted =
                                     await studioCtx.change<ManipulatorAbortedError>(
                                       () =>
-                                        safeTry(function* () {
+                                        mkFreestyleManip().andThen((manipulator) => {
                                           const isVertical2 =
                                             side2 === "left" ||
                                             side2 === "right";
                                           setManipState(
-                                            (yield* mkFreestyleManip()).resize(
+                                            manipulator.resize(
                                               manipState,
                                               side2,
                                               {
@@ -1017,7 +1027,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                 )}
                 {state &&
                   shouldShowDimBadge &&
-                  !(viewCtx?.autoOpenedUuid || revealed) && (
+                  !(autoOpenedUuid || revealed) && (
                     // Real element size, even when the drawn box is clipped.
                     <div
                       ref={dimsBoxRef}
@@ -1044,10 +1054,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                   )}
                 {resizePart && (
                   <div
-                    className={cn({
-                      HoverBox__DragGuard: true,
-                      [`HoverBox__DragGuard__${styleCase(resizePart)}`]: true,
-                    })}
+                    className={cn("HoverBox__DragGuard", `HoverBox__DragGuard__${styleCase(resizePart)}`)}
                   />
                 )}
                 {state &&
@@ -1093,14 +1100,38 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
               />
             )}
           </div>
-        );
-      }}
-    </Observer>
   );
 }
 
-export const HoverBox = observer(HoverBox_);
-function HoverBox_({
+export const HoverBox = memo(HoverBox_);
+function HoverBox_(props: { viewCtx: ViewCtx; target: HoverBoxTarget }) {
+  const { viewCtx, target } = props;
+  const renderCount = useCanvasRenderCount(viewCtx);
+  const root = useStore(viewCtx.frameState.valRootStore);
+  const variants = useViewVariants(viewCtx, useShallow((state) => [state.frames, state.global]));
+  const recipe = React.useCallback<CanvasViewFieldRecipe>((field) => hoverBoxModelFields(viewCtx, target, field), [viewCtx, target, renderCount, root, variants]);
+  const input = useCanvasViewInputs(viewCtx, recipe);
+  const providers = React.useMemo(() => {
+    if (!input.alive) { return []; }
+    const spacing = getControlledSpacingObj(isKnownArenaFrame(target) ? target : target.focusObj, viewCtx);
+    const tpl = spacing?.tpl;
+    const parent = tpl ? $$$(tpl).layoutParent().maybeOneTpl() : undefined;
+    return [tpl, parent].filter((node): node is TplNode => !!node && isTplVariantable(node))
+      .map((node) => parentStackStyleProvider(viewCtx, node));
+  }, [viewCtx, target, input, renderCount, root, variants]);
+  if (!input.alive) { return null; }
+  return <HoverBoxStyles {...props} providers={providers} />;
+}
+function HoverBoxStyles(props: { viewCtx: ViewCtx; target: HoverBoxTarget; providers: NativeStyleProvider[] }) {
+  const [provider, ...rest] = props.providers;
+  return provider ? <HoverBoxStyleSubscriber provider={provider} render={() => <HoverBoxStyles {...props} providers={rest} />} />
+    : <HoverBoxGeometry viewCtx={props.viewCtx} target={props.target} />;
+}
+function HoverBoxStyleSubscriber(props: { provider: NativeStyleProvider; render: () => React.ReactElement }) {
+  useStyleCells(props.provider, hoverBoxStyleKeys);
+  return props.render();
+}
+function HoverBoxGeometry({
   viewCtx,
   target,
 }: {
@@ -1111,6 +1142,7 @@ function HoverBox_({
   useViewSelection(viewCtx, useShallow((state) => [state.part, state.doms, state.context, state.cloneKeys]));
   useContentEditorScope(viewCtx.studioCtx);
   const forceUpdate = useFrameForceUpdate(viewCtx.disposeSignal);
+  useCanvasGeometry(viewCtx.studioCtx);
 
   const focusedElt = !isKnownArenaFrame(target) ? target.node : undefined;
   const transformingObject = useStore(viewCtx.studioCtx.transformingObjectStore);
@@ -1170,7 +1202,7 @@ function HoverBox_({
   return <HoverBoxInner viewProps={viewProps} />;
 }
 
-export const HoverBoxes = observer(HoverBoxes_);
+export const HoverBoxes = memo(HoverBoxes_);
 function HoverBoxes_(props: { studioCtx: StudioCtx }) {
   const { studioCtx } = props;
   useContentEditorScope(studioCtx);
@@ -1182,13 +1214,20 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
   useViewRegistry(studioCtx, (entries) => entries);
 
   const viewCtx = studioCtx.focusedViewCtx();
+  useCanvasRenderCount(viewCtx);
+  const targetRecipe = React.useCallback<CanvasViewFieldRecipe>((field) => {
+    if (!viewCtx) { return; }
+    const frame = viewCtx.arenaFrame(); field(frame, "viewMode", "container");
+    field(frame.container, "component"); field(frame.container.component, "tplTree");
+  }, [viewCtx]);
+  const scope = useCanvasViewInputs(viewCtx, targetRecipe);
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   useViewSelection(viewCtx, (state) => state.doms);
   useViewSelection(viewCtx, (state) => state.targets);
 
   useStudioRenderPolicy(studioCtx, (policy) => policy.devMode);
   useStudioOverlayState(studioCtx, (state) => state.screenshotting);
-  const shouldHideHoverBox = studioCtx.shouldHideUIOverlay(false) || !viewCtx;
+  const shouldHideHoverBox = studioCtx.shouldHideUIOverlay(false) || !viewCtx || !scope.alive;
 
   const forceUpdate = useFrameForceUpdate(viewCtx?.disposeSignal);
 
@@ -1198,7 +1237,7 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
   // rendered.
   // https://app.shortcut.com/plasmic/story/23379/urgent-selection-is-not-appearing-for-newly-inserted-pasted-moved-elements
   // Portaled overlays mount next to the user root, so include the canvas body.
-  const canvasBody = viewCtx?.canvasCtx.doc().body;
+  const canvasBody = scope.alive ? viewCtx?.canvasCtx.doc().body : undefined;
   React.useEffect(() => {
     if (!canvasBody || !viewCtx) {
       return;
@@ -1237,7 +1276,7 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
   if (viewCtx && viewCtx.focusedSelectables().length > 1) {
     return shouldHideHoverBox ? null : <MultiSelectionBox viewCtx={viewCtx} />;
   }
-  const targets = computeHoverBoxTargets(studioCtx);
+  const targets = scope.alive ? computeHoverBoxTargets(studioCtx) : [];
   return shouldHideHoverBox ? null : (
     <>
       {targets.map((target, i) => (

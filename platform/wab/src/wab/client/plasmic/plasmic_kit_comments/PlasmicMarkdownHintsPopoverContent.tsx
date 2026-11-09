@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,7 +25,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { MarkdownHintRow } from "../../components/comments/MarkdownHintRow"; // plasmic-import: T7mVQBFEWA-V/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -85,11 +85,10 @@ function PlasmicMarkdownHintsPopoverContent__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -194,12 +193,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -210,30 +205,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicMarkdownHintsPopoverContent__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicMarkdownHintsPopoverContent";
-  } else {
-    func.displayName = `PlasmicMarkdownHintsPopoverContent.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicMarkdownHintsPopoverContent__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicMarkdownHintsPopoverContent__root<T extends PlasmicMarkdownHintsPopoverContent__rootProps>(props: T & StrictProps<T, PlasmicMarkdownHintsPopoverContent__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicMarkdownHintsPopoverContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicMarkdownHintsPopoverContent__root.displayName = "PlasmicMarkdownHintsPopoverContent";
+
+type PlasmicMarkdownHintsPopoverContent__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicMarkdownHintsPopoverContent__freeBox<T extends PlasmicMarkdownHintsPopoverContent__freeBoxProps>(props: T & StrictProps<T, PlasmicMarkdownHintsPopoverContent__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicMarkdownHintsPopoverContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicMarkdownHintsPopoverContent__freeBox.displayName = "PlasmicMarkdownHintsPopoverContent.freeBox";
+
+type PlasmicMarkdownHintsPopoverContent__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicMarkdownHintsPopoverContent__link<T extends PlasmicMarkdownHintsPopoverContent__linkProps>(props: T & StrictProps<T, PlasmicMarkdownHintsPopoverContent__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicMarkdownHintsPopoverContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicMarkdownHintsPopoverContent__link.displayName = "PlasmicMarkdownHintsPopoverContent.link";
+
+type PlasmicMarkdownHintsPopoverContent__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicMarkdownHintsPopoverContent__svg<T extends PlasmicMarkdownHintsPopoverContent__svgProps>(props: T & StrictProps<T, PlasmicMarkdownHintsPopoverContent__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicMarkdownHintsPopoverContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicMarkdownHintsPopoverContent__svg.displayName = "PlasmicMarkdownHintsPopoverContent.svg";
+
+type PlasmicMarkdownHintsPopoverContent__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicMarkdownHintsPopoverContent__content<T extends PlasmicMarkdownHintsPopoverContent__contentProps>(props: T & StrictProps<T, PlasmicMarkdownHintsPopoverContent__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicMarkdownHintsPopoverContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicMarkdownHintsPopoverContent__content.displayName = "PlasmicMarkdownHintsPopoverContent.content";
+
 
 export const PlasmicMarkdownHintsPopoverContent = Object.assign(
   // Top-level PlasmicMarkdownHintsPopoverContent renders the root element
-  makeNodeComponent("root"),
+  PlasmicMarkdownHintsPopoverContent__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    link: makeNodeComponent("link"),
-    svg: makeNodeComponent("svg"),
-    content: makeNodeComponent("content"),
+    freeBox: PlasmicMarkdownHintsPopoverContent__freeBox,
+    link: PlasmicMarkdownHintsPopoverContent__link,
+    svg: PlasmicMarkdownHintsPopoverContent__svg,
+    content: PlasmicMarkdownHintsPopoverContent__content,
 
     // Metadata about props expected for PlasmicMarkdownHintsPopoverContent
     internalVariantProps: PlasmicMarkdownHintsPopoverContent__VariantProps,

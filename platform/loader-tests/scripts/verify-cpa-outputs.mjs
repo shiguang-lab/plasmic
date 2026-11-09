@@ -190,7 +190,7 @@ async function verify(name) {
 try {
   let next = 0;
   const worker = async () => { while (next < names.length) {await verify(names[next++]);} };
-  await Promise.all([worker(), worker()]);
+  await worker();
   await writeFile(path.join(output, "results.json"), JSON.stringify({ scope, results, fixtureRequests: api.requests }, null, 2) + "\n");
   if (results.some((result) => result.status !== "passed")) {process.exitCode = 1;}
 } finally {

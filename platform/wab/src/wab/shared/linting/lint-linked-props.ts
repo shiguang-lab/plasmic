@@ -8,7 +8,7 @@ import {
 import { isLinkCompatible } from "@/wab/shared/linked-props";
 import { LinkedPropDriftLintIssue } from "@/wab/shared/linting/lint-types";
 import { lintIssuesEquals } from "@/wab/shared/linting/lint-utils";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import {
   Arg,
   Component,
@@ -20,23 +20,15 @@ import {
 
 const TYPE = "linked-prop-drift";
 
-export const lintLinkedProps = maybeComputedFn(
-  function lintLinkedProps(site: Site) {
+export const lintLinkedProps = memoizeModelQuery(function lintLinkedProps(site: Site) {
     const issues: LinkedPropDriftLintIssue[] = [];
     for (const comp of site.components) {
       issues.push(...lintComponent(comp));
     }
     return issues;
-  },
-  {
-    keepAlive: false,
-    equals: lintIssuesEquals,
-    name: "lintLinkedProps",
-  },
-);
+  }, {equals: lintIssuesEquals});
 
-const lintComponent = maybeComputedFn(
-  function lintComponent(component: Component) {
+const lintComponent = memoizeModelQuery(function lintComponent(component: Component) {
     const issues: LinkedPropDriftLintIssue[] = [];
     for (const tpl of flattenComponent(component)) {
       if (!isTplComponent(tpl)) {
@@ -52,13 +44,7 @@ const lintComponent = maybeComputedFn(
       }
     }
     return issues;
-  },
-  {
-    keepAlive: false,
-    equals: lintIssuesEquals,
-    name: "lintLinkedPropsComponent",
-  },
-);
+  }, {equals: lintIssuesEquals});
 
 function makeIssueKey(component: Component, tpl: TplNode, propName: string) {
   return `${TYPE}-${component.uuid}-${tpl.uuid}-${propName}`;

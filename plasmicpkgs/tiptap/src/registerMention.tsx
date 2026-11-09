@@ -5,7 +5,7 @@ import {
 } from "@plasmicapp/host";
 import TiptapMention, { MentionOptions } from "@tiptap/extension-mention";
 import { ReactRenderer } from "@tiptap/react";
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useEffectEvent, useMemo } from "react";
 import tippy, { GetReferenceClientRect, Instance, Props } from "tippy.js";
 import MentionList from "./components/MentionList";
 import { useTiptapContext } from "./contexts";
@@ -46,19 +46,25 @@ export function Mention(props: MentionProps) {
     maxSuggestionCount = 5,
   } = props;
 
-  /**
-   * Although refs should be sparingly used, we need all these refs here due to the way tiptap works:
-   *
-   * It needs to be passed the async function that returns the suggestion items, when the extension is initialized (ie. in the .configure() call). Whenever there is a need for new suggestions, the same async callback is called. Without refs, that callback would always use stale data. That is why we absolutely need these here.
-   */
-  const dataDynamicRef = useRef(dataDynamic);
-  const hasDataDynamicRef = useRef(hasDataDynamic);
-  const maxSuggestionCountRef = useRef(maxSuggestionCount);
-  dataDynamicRef.current = dataDynamic;
-  hasDataDynamicRef.current = hasDataDynamic;
-  maxSuggestionCountRef.current = maxSuggestionCount;
-
   const { setMention } = useTiptapContext();
+  const getItems = useEffectEvent((query: string) => {
+    if (!query) return [];
+    if (!hasDataDynamic) {
+      return dataStatic?.filter((item) =>
+        item[searchField].toLowerCase?.()?.includes(query.toLowerCase())
+      ).slice(0, maxSuggestionCount) || [];
+    }
+    if (!dataDynamic) return [];
+    if (dataDynamic.isLoading === false) {
+      const data = dataDynamic.data?.response;
+      if (!Array.isArray(data)) return [];
+      return data?.filter((item) =>
+        item[searchField].toLowerCase?.()?.includes(query.toLowerCase())
+      ).slice(0, maxSuggestionCount) || [];
+    }
+    return [];
+  });
+  const getPresentation = useEffectEvent(() => ({ suggestionItem, searchField, popupClassName, itemClassName, selectedItemClassName }));
   useEffect(() => {
     setMention(
       TiptapMention.configure({
@@ -69,86 +75,20 @@ export function Mention(props: MentionProps) {
           return `${options.suggestion.char}${node.attrs.id}`;
         },
         suggestion: {
-          /**
-           * This function below only does static filtering. It can't give query parameters to the Plasmic query for filtering at the server side to avoid some complexities.
-           *
-           * Before we move on to the issues, lets first explain how it could have supported server-side filtering via query params:
-           * - The user creates a plasmic query to fetch the suggestions. These suggestions are filtered by some query parameter. The value of the query parameter is bound to the currentMention state.
-           *
-           * - When the user types `@abc` for example, the following async function `items` is triggered. It knows the query and returns the new set of suggestions. The returned array is rendered in the suggestions popup
-           *
-           * Issues:
-           * 1. Stale Query issue:
-           * The same async function is responsible for setting the currentMention state, and also return the new suggestion results. We can't await the Plasmic query after it is triggered by the currentMention state change. So query results it has are stale.
-           *
-           * Solution: We poll the Plasmic query's isLoading field (indefinitely)
-           *
-           * For simplicity, therefore, we are just supporting static filtering for now, and may consider the approach highlighted above for filtering via query params.
-           *
-           * 2. The async function is provided at the time of extension initialization. That async function only knows the state/props in its render cycle, so these props are outdated at the time the async function is triggered.
-           *
-           * We can't put all of them in the useEffect dependencies array, because change in any of them will cause the Mention extension to be removed/re-added, resulting in a flicker on every keystroke + lost input focus (which causes the suggestion popup to never show)
-           *
-           * Solution: Use refs
-           *
-           * @param param0
-           * @returns
-           */
-          items: ({ query }: { query: string }) => {
-            if (!query) return [];
-
-            if (!hasDataDynamicRef.current) {
-              // for static data, just filter the static array and return results
-              const res =
-                dataStatic
-                  ?.filter((item) =>
-                    item[searchField]
-                      .toLowerCase?.()
-                      ?.includes(query.toLowerCase())
-                  )
-                  .slice(0, maxSuggestionCountRef.current) || [];
-              return res;
-            }
-
-            if (!dataDynamicRef.current) return [];
-
-            if (dataDynamicRef.current?.isLoading === false) {
-              const data = dataDynamicRef.current.data?.response;
-              if (!Array.isArray(data)) return [];
-              return (
-                data
-                  ?.filter((item) =>
-                    item[searchField]
-                      .toLowerCase?.()
-                      ?.includes(query.toLowerCase())
-                  )
-                  .slice(0, maxSuggestionCountRef.current) || []
-              );
-            }
-
-            return [];
-          },
+          items: ({ query }: { query: string }) => getItems(query),
           render: () => {
             let component: ReactRenderer<
               { onKeyDown: (e: KeyboardEvent) => boolean },
               typeof MentionList
             >;
             let popup: Instance<Props>[];
-            const otherProps = {
-              suggestionItem,
-              searchField,
-              popupClassName,
-              itemClassName,
-              selectedItemClassName,
-            };
-
             return {
               // eslint-disable-next-line no-shadow
               onStart: (props) => {
                 component = new ReactRenderer<any, any>(MentionList, {
                   props: {
                     ...props,
-                    ...otherProps,
+                    ...getPresentation(),
                   },
                   editor: props.editor,
                 });
@@ -173,7 +113,7 @@ export function Mention(props: MentionProps) {
               onUpdate(props) {
                 component.updateProps({
                   ...props,
-                  ...otherProps,
+                  ...getPresentation(),
                 });
 
                 if (!props.clientRect) {
@@ -209,7 +149,6 @@ export function Mention(props: MentionProps) {
     return () => {
       setMention(undefined);
     };
-    // add only those dependencies that are OK to trigger a flicker in the tiptap editor, while it re-initializes. ie. changes that are one-time (or not frequent / not per keystroke)
   }, [
     searchField,
     mentionClassName,
@@ -235,6 +174,7 @@ export function Mention(props: MentionProps) {
     if (!Array.isArray(data)) return noData;
     return data.slice(0, maxSuggestionCount);
   }, [
+    inCanvas,
     dataDynamic,
     searchField,
     hasDataDynamic,

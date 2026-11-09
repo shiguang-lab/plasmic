@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,7 +23,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -85,11 +85,10 @@ function PlasmicSplitRow__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -170,12 +169,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -185,28 +180,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSplitRow__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSplitRow";
-  } else {
-    func.displayName = `PlasmicSplitRow.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSplitRow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSplitRow__root<T extends PlasmicSplitRow__rootProps>(props: T & StrictProps<T, PlasmicSplitRow__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSplitRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSplitRow__root.displayName = "PlasmicSplitRow";
+
+type PlasmicSplitRow__leftContainerProps = NodeComponentProps<"leftContainer"> & {key?: React.Key};
+function PlasmicSplitRow__leftContainer<T extends PlasmicSplitRow__leftContainerProps>(props: T & StrictProps<T, PlasmicSplitRow__leftContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftContainer", props);
+  return <PlasmicSplitRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftContainer"} />;
+}
+PlasmicSplitRow__leftContainer.displayName = "PlasmicSplitRow.leftContainer";
+
+type PlasmicSplitRow__rightContainerProps = NodeComponentProps<"rightContainer"> & {key?: React.Key};
+function PlasmicSplitRow__rightContainer<T extends PlasmicSplitRow__rightContainerProps>(props: T & StrictProps<T, PlasmicSplitRow__rightContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("rightContainer", props);
+  return <PlasmicSplitRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"rightContainer"} />;
+}
+PlasmicSplitRow__rightContainer.displayName = "PlasmicSplitRow.rightContainer";
+
 
 export const PlasmicSplitRow = Object.assign(
   // Top-level PlasmicSplitRow renders the root element
-  makeNodeComponent("root"),
+  PlasmicSplitRow__root,
   {
     // Helper components rendering sub-elements
-    leftContainer: makeNodeComponent("leftContainer"),
-    rightContainer: makeNodeComponent("rightContainer"),
+    leftContainer: PlasmicSplitRow__leftContainer,
+    rightContainer: PlasmicSplitRow__rightContainer,
 
     // Metadata about props expected for PlasmicSplitRow
     internalVariantProps: PlasmicSplitRow__VariantProps,

@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -32,7 +32,7 @@ import Modal from "../../components/Modal"; // plasmic-import: rD0wOVzSnE/compon
 import CardPickerItem from "../../components/sidebar-tabs/ComponentProps/CardPickerItem"; // plasmic-import: -ZWJykIq5V-3F/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 783YKJdyRRPxZbx3qiNi5Q/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 783YKJdyRRPxZbx3qiNi5Q/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -113,11 +113,10 @@ function PlasmicCardPickerModal__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showInput",
@@ -126,18 +125,20 @@ function PlasmicCardPickerModal__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.showInput,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <Modal
@@ -236,24 +237,13 @@ function PlasmicCardPickerModal__RenderFunc(props: {
           data-plasmic-name={"items"}
           data-plasmic-override={overrides.items}
           className={classNames("all", sty.items)}
-          style={(() => {
-            try {
-              return {
+          style={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ({
                 display: "grid",
                 gridTemplateColumns: `repeat(${$props.columns}, minmax(0, 1fr))`,
                 gridRowGap: "16px",
                 gridColumnGap: "16px",
-              };
-            } catch (e) {
-              if (
-                e instanceof TypeError ||
-                e?.plasmicType === "PlasmicUndefinedDataError"
-              ) {
-                return undefined;
-              }
-              throw e;
-            }
-          })()}
+              }), () => (undefined))}
         >
           {renderPlasmicSlot({
             defaultContents: (
@@ -392,12 +382,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -407,31 +393,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCardPickerModal__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCardPickerModal";
-  } else {
-    func.displayName = `PlasmicCardPickerModal.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCardPickerModal__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCardPickerModal__root<T extends PlasmicCardPickerModal__rootProps>(props: T & StrictProps<T, PlasmicCardPickerModal__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCardPickerModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCardPickerModal__root.displayName = "PlasmicCardPickerModal";
+
+type PlasmicCardPickerModal__textboxProps = NodeComponentProps<"textbox"> & {key?: React.Key};
+function PlasmicCardPickerModal__textbox<T extends PlasmicCardPickerModal__textboxProps>(props: T & StrictProps<T, PlasmicCardPickerModal__textboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("textbox", props);
+  return <PlasmicCardPickerModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"textbox"} />;
+}
+PlasmicCardPickerModal__textbox.displayName = "PlasmicCardPickerModal.textbox";
+
+type PlasmicCardPickerModal__itemsProps = NodeComponentProps<"items"> & {key?: React.Key};
+function PlasmicCardPickerModal__items<T extends PlasmicCardPickerModal__itemsProps>(props: T & StrictProps<T, PlasmicCardPickerModal__itemsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("items", props);
+  return <PlasmicCardPickerModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"items"} />;
+}
+PlasmicCardPickerModal__items.displayName = "PlasmicCardPickerModal.items";
+
+type PlasmicCardPickerModal__cancelButtonProps = NodeComponentProps<"cancelButton"> & {key?: React.Key};
+function PlasmicCardPickerModal__cancelButton<T extends PlasmicCardPickerModal__cancelButtonProps>(props: T & StrictProps<T, PlasmicCardPickerModal__cancelButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelButton", props);
+  return <PlasmicCardPickerModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelButton"} />;
+}
+PlasmicCardPickerModal__cancelButton.displayName = "PlasmicCardPickerModal.cancelButton";
+
+type PlasmicCardPickerModal__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicCardPickerModal__text<T extends PlasmicCardPickerModal__textProps>(props: T & StrictProps<T, PlasmicCardPickerModal__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicCardPickerModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicCardPickerModal__text.displayName = "PlasmicCardPickerModal.text";
+
+type PlasmicCardPickerModal__saveButtonProps = NodeComponentProps<"saveButton"> & {key?: React.Key};
+function PlasmicCardPickerModal__saveButton<T extends PlasmicCardPickerModal__saveButtonProps>(props: T & StrictProps<T, PlasmicCardPickerModal__saveButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("saveButton", props);
+  return <PlasmicCardPickerModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"saveButton"} />;
+}
+PlasmicCardPickerModal__saveButton.displayName = "PlasmicCardPickerModal.saveButton";
+
 
 export const PlasmicCardPickerModal = Object.assign(
   // Top-level PlasmicCardPickerModal renders the root element
-  makeNodeComponent("root"),
+  PlasmicCardPickerModal__root,
   {
     // Helper components rendering sub-elements
-    textbox: makeNodeComponent("textbox"),
-    items: makeNodeComponent("items"),
-    cancelButton: makeNodeComponent("cancelButton"),
-    text: makeNodeComponent("text"),
-    saveButton: makeNodeComponent("saveButton"),
+    textbox: PlasmicCardPickerModal__textbox,
+    items: PlasmicCardPickerModal__items,
+    cancelButton: PlasmicCardPickerModal__cancelButton,
+    text: PlasmicCardPickerModal__text,
+    saveButton: PlasmicCardPickerModal__saveButton,
 
     // Metadata about props expected for PlasmicCardPickerModal
     internalVariantProps: PlasmicCardPickerModal__VariantProps,

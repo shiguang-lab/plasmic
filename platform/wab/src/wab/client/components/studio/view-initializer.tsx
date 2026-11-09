@@ -3,7 +3,7 @@ import { isTopFrame } from "@/wab/client/cli-routes";
 import importAndRetry from "@/wab/client/components/dynamic-import";
 import { StudioChrome } from "@/wab/client/components/studio/StudioChrome";
 import { StudioFrame } from "@/wab/client/components/studio/studio-frame";
-import { ObserverLoadable } from "@/wab/client/components/widgets";
+import { Loadable } from "@/wab/client/components/widgets";
 import { useHostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
 import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
 import { ProjectId } from "@/wab/shared/ApiSchema";
@@ -46,6 +46,10 @@ function TopFrameViewInitializer({ projectId }: ViewInitializerProps) {
   );
 }
 
+function loadStudioInitializer() {
+  return importAndRetry(() => import("./studio-initializer"));
+}
+
 function HostFrameViewInitializer({
   appCtx,
   onRefreshUi,
@@ -55,7 +59,7 @@ function HostFrameViewInitializer({
   const loader = () => {
     const loadTimings = new StudioLoadTimings();
     const importDone = loadTimings.begin("studio-module-import");
-    return importAndRetry(() => import("./studio-initializer")).then(
+    return loadStudioInitializer().then(
       ({ StudioInitializer }) => {
         importDone();
         return (
@@ -72,7 +76,7 @@ function HostFrameViewInitializer({
   };
   const contents = (studioInitializer: React.ReactElement) => studioInitializer;
   return (
-    <ObserverLoadable
+    <Loadable
       loader={loader}
       contents={contents}
       loadingContents={() => <StudioChrome />}

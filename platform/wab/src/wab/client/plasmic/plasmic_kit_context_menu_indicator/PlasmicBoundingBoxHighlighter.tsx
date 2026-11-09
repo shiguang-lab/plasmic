@@ -14,18 +14,18 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fuzE93KTc4ZKNBYf3LAfy/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fuzE93KTc4ZKNBYf3LAfy/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -86,11 +86,10 @@ function PlasmicBoundingBoxHighlighter__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isRecording",
@@ -100,18 +99,20 @@ function PlasmicBoundingBoxHighlighter__RenderFunc(props: {
           $props.isRecording,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -197,12 +198,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -212,29 +209,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicBoundingBoxHighlighter__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicBoundingBoxHighlighter";
-  } else {
-    func.displayName = `PlasmicBoundingBoxHighlighter.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicBoundingBoxHighlighter__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicBoundingBoxHighlighter__root<T extends PlasmicBoundingBoxHighlighter__rootProps>(props: T & StrictProps<T, PlasmicBoundingBoxHighlighter__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicBoundingBoxHighlighter__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicBoundingBoxHighlighter__root.displayName = "PlasmicBoundingBoxHighlighter";
+
+type PlasmicBoundingBoxHighlighter__outerBorderProps = NodeComponentProps<"outerBorder"> & {key?: React.Key};
+function PlasmicBoundingBoxHighlighter__outerBorder<T extends PlasmicBoundingBoxHighlighter__outerBorderProps>(props: T & StrictProps<T, PlasmicBoundingBoxHighlighter__outerBorderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("outerBorder", props);
+  return <PlasmicBoundingBoxHighlighter__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"outerBorder"} />;
+}
+PlasmicBoundingBoxHighlighter__outerBorder.displayName = "PlasmicBoundingBoxHighlighter.outerBorder";
+
+type PlasmicBoundingBoxHighlighter__outerBorder2Props = NodeComponentProps<"outerBorder2"> & {key?: React.Key};
+function PlasmicBoundingBoxHighlighter__outerBorder2<T extends PlasmicBoundingBoxHighlighter__outerBorder2Props>(props: T & StrictProps<T, PlasmicBoundingBoxHighlighter__outerBorder2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("outerBorder2", props);
+  return <PlasmicBoundingBoxHighlighter__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"outerBorder2"} />;
+}
+PlasmicBoundingBoxHighlighter__outerBorder2.displayName = "PlasmicBoundingBoxHighlighter.outerBorder2";
+
+type PlasmicBoundingBoxHighlighter__innerBorderProps = NodeComponentProps<"innerBorder"> & {key?: React.Key};
+function PlasmicBoundingBoxHighlighter__innerBorder<T extends PlasmicBoundingBoxHighlighter__innerBorderProps>(props: T & StrictProps<T, PlasmicBoundingBoxHighlighter__innerBorderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("innerBorder", props);
+  return <PlasmicBoundingBoxHighlighter__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"innerBorder"} />;
+}
+PlasmicBoundingBoxHighlighter__innerBorder.displayName = "PlasmicBoundingBoxHighlighter.innerBorder";
+
 
 export const PlasmicBoundingBoxHighlighter = Object.assign(
   // Top-level PlasmicBoundingBoxHighlighter renders the root element
-  makeNodeComponent("root"),
+  PlasmicBoundingBoxHighlighter__root,
   {
     // Helper components rendering sub-elements
-    outerBorder: makeNodeComponent("outerBorder"),
-    outerBorder2: makeNodeComponent("outerBorder2"),
-    innerBorder: makeNodeComponent("innerBorder"),
+    outerBorder: PlasmicBoundingBoxHighlighter__outerBorder,
+    outerBorder2: PlasmicBoundingBoxHighlighter__outerBorder2,
+    innerBorder: PlasmicBoundingBoxHighlighter__innerBorder,
 
     // Metadata about props expected for PlasmicBoundingBoxHighlighter
     internalVariantProps: PlasmicBoundingBoxHighlighter__VariantProps,

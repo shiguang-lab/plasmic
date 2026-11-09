@@ -14,11 +14,14 @@ function createDashboardPreviews({ session, studioOrigin, trustedSender }) {
   let queue = Promise.resolve();
 
   function render(id, src, request, scale) {
-    let cancel = () => {};
+    const cancellation = Promise.withResolvers();
+    let cancel = () => cancellation.reject(abortError());
     let cancelled = false;
-    jobs.set(id, () => { cancelled = true; cancel(); });
-    const result = queue.then(() => {
+    const job = { started: false, cancel: () => { cancelled = true; cancel(); } };
+    jobs.set(id, job);
+    const work = queue.then(() => {
       if (cancelled) {throw abortError();}
+      job.started = true;
       return new Promise((resolve, reject) => {
         const win = new BrowserWindow({
           show: false,
@@ -39,6 +42,8 @@ function createDashboardPreviews({ session, studioOrigin, trustedSender }) {
           },
         });
         const contents = win.webContents;
+        // PNGs come from the page's DOM/SVG canvas pipeline, not OSR video frames.
+        contents.stopPainting();
         let settled = false;
         const finish = (error, bytes) => {
           if (settled) {return;}
@@ -72,8 +77,8 @@ function createDashboardPreviews({ session, studioOrigin, trustedSender }) {
         );
       });
     });
-    queue = result.catch(() => {});
-    return result.finally(() => jobs.delete(id));
+    queue = work.catch(() => {});
+    return Promise.race([work, cancellation.promise]).finally(() => jobs.delete(id));
   }
 
   ipcMain.handle("desktop:dashboard-preview", (event, id, src, request, scale) => {
@@ -89,7 +94,7 @@ function createDashboardPreviews({ session, studioOrigin, trustedSender }) {
     // like removing the Dashboard document destroyed its preview iframe.
     const sender = event.sender;
     const abandon = (_event, _url, isSameDocument, isMainFrame) => {
-      if (isMainFrame === undefined || (isMainFrame && !isSameDocument)) {jobs.get(id)?.();}
+      if (isMainFrame === undefined || (isMainFrame && !isSameDocument)) {jobs.get(id)?.cancel();}
     };
     sender.once("destroyed", abandon);
     sender.on("did-start-navigation", abandon);
@@ -102,17 +107,27 @@ function createDashboardPreviews({ session, studioOrigin, trustedSender }) {
       });
   });
   const onCancel = (event, id) => {
-    if (trustedSender(event)) {jobs.get(id)?.();}
+    // The owner can release its own subscription after being hidden. New
+    // renders still require the active trusted page above.
+    if (owners.get(id) === event.sender && event.senderFrame === event.sender.mainFrame) {jobs.get(id)?.cancel();}
   };
   ipcMain.on("desktop:dashboard-preview-cancel", onCancel);
   return {
+    cancelQueuedFor(contents) {
+      for (const [id, owner] of owners) {
+        const job = jobs.get(id);
+        if (owner === contents && job && !job.started) {job.cancel();}
+      }
+    },
     cancelFor(contents) {
-      for (const [id, owner] of owners) if (owner === contents) jobs.get(id)?.();
+      for (const [id, owner] of owners) {
+        if (owner === contents) {jobs.get(id)?.cancel();}
+      }
     },
     dispose() {
       ipcMain.removeHandler("desktop:dashboard-preview");
       ipcMain.removeListener("desktop:dashboard-preview-cancel", onCancel);
-      for (const cancelJob of jobs.values()) {cancelJob();}
+      for (const job of jobs.values()) {job.cancel();}
     },
   };
 }

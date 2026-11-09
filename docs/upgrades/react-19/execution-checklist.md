@@ -62,14 +62,14 @@
 - [ ] **U2.11** 完成所有组件包／vendor UI／plasmicpkgs-dev 的依赖处置；覆盖 React Aria/Stately、Antd rc-*、Tiptap/Slate、Radix、图表／支付／AI SDK／邮件／高亮／元素展平工具。Chakra 集成按用户确认完整退役，核对其源码、注册、依赖与构建产物均已移除。升级有补丁的家族时重审补丁归属，不遗失现有功能修复。
 - [ ] **U2.12** 升级 Next 14/13/12 路线并改造 adapter 的实际 API；按用户确认完整退役 Gatsby 与 deprecated nextjs-app-router 并清理调用方，不隐式新增双实现。
 - [ ] **U2.13** 审核 React 19 ref prop、Context／元素符号、Fragment 和 useId 行为，更新 canComponentTakeRef 及注册模型的判断方案；函数接收 ref 不等于实现实际转发 DOM，不能直接把所有函数判为可定位。
-- [ ] **U2.14** 同步必要的工具链、types／API 快照、tsconfig／JSX／Babel／SWC、Storybook 和 Hooks lint 配置；保留无关工具版本，既有 skipLibCheck 之外用真实 consumer 编译验证公开 d.ts。
+- [ ] **U2.14** 同步必要的工具链、types／API 快照、tsconfig／JSX／Babel／SWC、Storybook 和 Hooks lint 配置；保留无关工具版本，采用 `skipLibCheck: true`，用真实 consumer 编译验证自有声明及 API 使用。
 
 退出证据：依赖处置表每行有结果；19 类型修复有文件范围；React 18 可运行的准备项已验证。只验证元数据的依赖不得标记“运行兼容”。
 
 ## U3：切换 React 19 运行链
 
 - [ ] **U3.1** 同步所有控制范围的 React、ReactDOM、19 类型声明、catalog、override 和独立锁文件；检查间接引用 SDK 是否使用本次本地／新版本制品。
-- [ ] **U3.2** 安装并核查实际解析版本，清楚区分各安装根；保留安装日志。不得用 --force、伪造 peer、忽略不兼容警告或 skipLibCheck 来宣称修复。
+- [ ] **U3.2** 安装并核查实际解析版本，清楚区分各安装根；保留安装日志。不得用 --force、伪造 peer 或忽略不兼容警告来宣称修复。
 - [ ] **U3.3** 核对 Studio、sub、react-web-bundle、live-frame、组件包、SDK、SSR 和 codegen 的 JSX 转换与产物。React.createElement 仍合法，不为升级强行重写动态渲染器。
 - [ ] **U3.4** 同一 renderer 验证 React／DOM／JSX runtime 归属；检查 __Sub、Loader builtinModules、external/global 映射和别名。不同 window 独立运行，不共享整个 React 状态。
 - [ ] **U3.5** 核对目标 React Fiber 结构及遍历分支，验证 Suspense／隐藏／恢复／卸载、alternate、DOM→Fiber→Val 及重复实例身份。不得仅扩大类型 union 或吞异常。
@@ -121,16 +121,16 @@
 ## C0–C3：Compiler 必需验收
 
 - [ ] **C0.1** 选择有重复更新成本的纯展示热点，写出当前 render 次数／耗时、输入合同和目标指标。首批不含 MobX 读取、画布内核、SDK／codegen 产物。
-- [ ] **C0.2** 明确未编译 observer 容器与编译叶子的边界；确认没有 observable Proxy、类实例、动态 getter／方法或可变数组泄漏为“纯输入”。
-- [ ] **C0.3** 固定白名单与被排除的组件／Hook／包装器，检查嵌套函数、render callback 和间接读取；lint 通过不能替代审查。
-- [ ] **C1.1** 在独立改动接入锁定版本的 Compiler 与 Hooks lint；使用明确 include 和 annotation 模式。React 18 实验配置 target 18；19 配置 target 19。
+- [ ] **C0.2** 确认编译组件消费不可变快照或普通值，稳定模型实例、动态 getter／方法的隐藏变化不能作为缓存失效合同。
+- [ ] **C0.3** 审计全量源码的实际转换与跳过诊断，检查嵌套函数、render callback 和间接读取；lint 通过不能替代审查。
+- [ ] **C1.1** 标准构建使用锁定的 Compiler、React 19 target 和全量 infer；Studio、Dashboard Preview、Storybook 与 Vitest 使用同一配置。
 - [ ] **C1.2** 保存输出检查：哪些函数实际转换、跳过原因、runtime 导入、chunk 归属、React 实例。不要把编译配置文件存在当作已生效。
 - [ ] **C1.3** 验证单测／集成测试使用生产等价 Compiler 转换；至少一个生产构建的真实交互验证。记录测试配置差异。
 - [ ] **C1.4** 若扩大到 Host／Loader／SDK，先新增对应 runtime 模块解析与发布合同设计并修订本方案；首批试点不执行该扩展。
 - [ ] **C2.1** 执行 M01–M10 正确性检查，特别测试同引用内部变更、动态依赖切换、快速选择与丢弃渲染。
 - [ ] **C2.2** 按 B/C 进行同条件性能对照，必要时增加相同 Babel 管线控制组；记录首次渲染、更新、首用、包体、构建和内存成本。
 - [ ] **C3.1** 完成正确性、兼容性和生命周期验收；失败时修正状态订阅和输入合同，不以关闭 Compiler 作为交付方案。性能对比按当前用户要求暂停。
-- [ ] **C3.2** 每次扩展白名单重新执行 C0–C2；不因一个叶子通过而扩展到整个属性面板或 Canvas。
+- [ ] **C3.2** 新增组件或修复跳过诊断后重新执行受影响的 C0–C2 检查；不能把全量启用等同于所有函数都已优化。
 
 ## O1–O4：后续优化候选
 

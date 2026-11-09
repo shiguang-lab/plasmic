@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,13 +26,13 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -127,11 +127,10 @@ function PlasmicExperimentPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isBase",
@@ -152,18 +151,20 @@ function PlasmicExperimentPanel__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.type,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -685,12 +686,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -700,38 +697,117 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicExperimentPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicExperimentPanel";
-  } else {
-    func.displayName = `PlasmicExperimentPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicExperimentPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicExperimentPanel__root<T extends PlasmicExperimentPanel__rootProps>(props: T & StrictProps<T, PlasmicExperimentPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicExperimentPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicExperimentPanel__root.displayName = "PlasmicExperimentPanel";
+
+type PlasmicExperimentPanel__baseVersionIconProps = NodeComponentProps<"baseVersionIcon"> & {key?: React.Key};
+function PlasmicExperimentPanel__baseVersionIcon<T extends PlasmicExperimentPanel__baseVersionIconProps>(props: T & StrictProps<T, PlasmicExperimentPanel__baseVersionIconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("baseVersionIcon", props);
+  return <PlasmicExperimentPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"baseVersionIcon"} />;
+}
+PlasmicExperimentPanel__baseVersionIcon.displayName = "PlasmicExperimentPanel.baseVersionIcon";
+
+type PlasmicExperimentPanel__actionBtnProps = NodeComponentProps<"actionBtn"> & {key?: React.Key};
+function PlasmicExperimentPanel__actionBtn<T extends PlasmicExperimentPanel__actionBtnProps>(props: T & StrictProps<T, PlasmicExperimentPanel__actionBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionBtn", props);
+  return <PlasmicExperimentPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionBtn"} />;
+}
+PlasmicExperimentPanel__actionBtn.displayName = "PlasmicExperimentPanel.actionBtn";
+
+type PlasmicExperimentPanel__variantNameRowProps = NodeComponentProps<"variantNameRow"> & {key?: React.Key};
+function PlasmicExperimentPanel__variantNameRow<T extends PlasmicExperimentPanel__variantNameRowProps>(props: T & StrictProps<T, PlasmicExperimentPanel__variantNameRowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("variantNameRow", props);
+  return <PlasmicExperimentPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"variantNameRow"} />;
+}
+PlasmicExperimentPanel__variantNameRow.displayName = "PlasmicExperimentPanel.variantNameRow";
+
+type PlasmicExperimentPanel__distribution2Props = NodeComponentProps<"distribution2"> & {key?: React.Key};
+function PlasmicExperimentPanel__distribution2<T extends PlasmicExperimentPanel__distribution2Props>(props: T & StrictProps<T, PlasmicExperimentPanel__distribution2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("distribution2", props);
+  return <PlasmicExperimentPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"distribution2"} />;
+}
+PlasmicExperimentPanel__distribution2.displayName = "PlasmicExperimentPanel.distribution2";
+
+type PlasmicExperimentPanel__control2Props = NodeComponentProps<"control2"> & {key?: React.Key};
+function PlasmicExperimentPanel__control2<T extends PlasmicExperimentPanel__control2Props>(props: T & StrictProps<T, PlasmicExperimentPanel__control2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("control2", props);
+  return <PlasmicExperimentPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"control2"} />;
+}
+PlasmicExperimentPanel__control2.displayName = "PlasmicExperimentPanel.control2";
+
+type PlasmicExperimentPanel__variantName2Props = NodeComponentProps<"variantName2"> & {key?: React.Key};
+function PlasmicExperimentPanel__variantName2<T extends PlasmicExperimentPanel__variantName2Props>(props: T & StrictProps<T, PlasmicExperimentPanel__variantName2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("variantName2", props);
+  return <PlasmicExperimentPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"variantName2"} />;
+}
+PlasmicExperimentPanel__variantName2.displayName = "PlasmicExperimentPanel.variantName2";
+
+type PlasmicExperimentPanel__variantNameProps = NodeComponentProps<"variantName"> & {key?: React.Key};
+function PlasmicExperimentPanel__variantName<T extends PlasmicExperimentPanel__variantNameProps>(props: T & StrictProps<T, PlasmicExperimentPanel__variantNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("variantName", props);
+  return <PlasmicExperimentPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"variantName"} />;
+}
+PlasmicExperimentPanel__variantName.displayName = "PlasmicExperimentPanel.variantName";
+
+type PlasmicExperimentPanel__distributionProps = NodeComponentProps<"distribution"> & {key?: React.Key};
+function PlasmicExperimentPanel__distribution<T extends PlasmicExperimentPanel__distributionProps>(props: T & StrictProps<T, PlasmicExperimentPanel__distributionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("distribution", props);
+  return <PlasmicExperimentPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"distribution"} />;
+}
+PlasmicExperimentPanel__distribution.displayName = "PlasmicExperimentPanel.distribution";
+
+type PlasmicExperimentPanel__controlProps = NodeComponentProps<"control"> & {key?: React.Key};
+function PlasmicExperimentPanel__control<T extends PlasmicExperimentPanel__controlProps>(props: T & StrictProps<T, PlasmicExperimentPanel__controlProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("control", props);
+  return <PlasmicExperimentPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"control"} />;
+}
+PlasmicExperimentPanel__control.displayName = "PlasmicExperimentPanel.control";
+
+type PlasmicExperimentPanel__percentageProps = NodeComponentProps<"percentage"> & {key?: React.Key};
+function PlasmicExperimentPanel__percentage<T extends PlasmicExperimentPanel__percentageProps>(props: T & StrictProps<T, PlasmicExperimentPanel__percentageProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("percentage", props);
+  return <PlasmicExperimentPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"percentage"} />;
+}
+PlasmicExperimentPanel__percentage.displayName = "PlasmicExperimentPanel.percentage";
+
+type PlasmicExperimentPanel__controlContainerProps = NodeComponentProps<"controlContainer"> & {key?: React.Key};
+function PlasmicExperimentPanel__controlContainer<T extends PlasmicExperimentPanel__controlContainerProps>(props: T & StrictProps<T, PlasmicExperimentPanel__controlContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("controlContainer", props);
+  return <PlasmicExperimentPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"controlContainer"} />;
+}
+PlasmicExperimentPanel__controlContainer.displayName = "PlasmicExperimentPanel.controlContainer";
+
+type PlasmicExperimentPanel__promoteBtnProps = NodeComponentProps<"promoteBtn"> & {key?: React.Key};
+function PlasmicExperimentPanel__promoteBtn<T extends PlasmicExperimentPanel__promoteBtnProps>(props: T & StrictProps<T, PlasmicExperimentPanel__promoteBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("promoteBtn", props);
+  return <PlasmicExperimentPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"promoteBtn"} />;
+}
+PlasmicExperimentPanel__promoteBtn.displayName = "PlasmicExperimentPanel.promoteBtn";
+
 
 export const PlasmicExperimentPanel = Object.assign(
   // Top-level PlasmicExperimentPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicExperimentPanel__root,
   {
     // Helper components rendering sub-elements
-    baseVersionIcon: makeNodeComponent("baseVersionIcon"),
-    actionBtn: makeNodeComponent("actionBtn"),
-    variantNameRow: makeNodeComponent("variantNameRow"),
-    distribution2: makeNodeComponent("distribution2"),
-    control2: makeNodeComponent("control2"),
-    variantName2: makeNodeComponent("variantName2"),
-    variantName: makeNodeComponent("variantName"),
-    distribution: makeNodeComponent("distribution"),
-    control: makeNodeComponent("control"),
-    percentage: makeNodeComponent("percentage"),
-    controlContainer: makeNodeComponent("controlContainer"),
-    promoteBtn: makeNodeComponent("promoteBtn"),
+    baseVersionIcon: PlasmicExperimentPanel__baseVersionIcon,
+    actionBtn: PlasmicExperimentPanel__actionBtn,
+    variantNameRow: PlasmicExperimentPanel__variantNameRow,
+    distribution2: PlasmicExperimentPanel__distribution2,
+    control2: PlasmicExperimentPanel__control2,
+    variantName2: PlasmicExperimentPanel__variantName2,
+    variantName: PlasmicExperimentPanel__variantName,
+    distribution: PlasmicExperimentPanel__distribution,
+    control: PlasmicExperimentPanel__control,
+    percentage: PlasmicExperimentPanel__percentage,
+    controlContainer: PlasmicExperimentPanel__controlContainer,
+    promoteBtn: PlasmicExperimentPanel__promoteBtn,
 
     // Metadata about props expected for PlasmicExperimentPanel
     internalVariantProps: PlasmicExperimentPanel__VariantProps,

@@ -8,7 +8,7 @@ import {
 } from "@/wab/client/components/sidebar/SidebarModal";
 import {
   FileUploadLink,
-  ObserverLoadable,
+  Loadable,
 } from "@/wab/client/components/widgets";
 import Button from "@/wab/client/components/widgets/Button";
 import { Modal } from "@/wab/client/components/widgets/Modal";
@@ -27,12 +27,15 @@ import { hasUnexpected$$Usage } from "@/wab/shared/utils/regex-dollardollar";
 import { Tooltip, notification } from "antd";
 import { default as classNames } from "classnames";
 import { jsonrepair } from "jsonrepair";
-import { observer } from "mobx-react";
 import React from "react";
 import { FocusScope } from "react-aria";
 
 const softStrSizeLimit = 500 * 1024; // 500KB
 const hardStrSizeLimit = 5000 * 1024; // 5MB
+
+function loadFullCodeEditor() {
+  return import("@/wab/client/components/coding/FullCodeEditor").then(({ FullCodeEditor }) => FullCodeEditor);
+}
 
 export function checkStrSizeLimit(val: string) {
   if (val.length > hardStrSizeLimit) {
@@ -131,7 +134,7 @@ export function checkWindowGlobalUsage(val: string) {
   return true;
 }
 
-export const CodeEditor = observer(function CodeEditor(props: {
+export const CodeEditor = React.memo(function CodeEditor(props: {
   title: string;
   value: string | {} | null | undefined;
   onChange: (value: string | null | undefined) => void;
@@ -177,7 +180,7 @@ export const CodeEditor = observer(function CodeEditor(props: {
 
   const CodeModal = useSidebarModal ? SidebarModal : Modal;
   const codeModalRef = React.useRef(CodeModal);
-  codeModalRef.current = CodeModal;
+  React.useLayoutEffect(() => { codeModalRef.current = CodeModal; }, [CodeModal]);
   let evaluatedValue: string | null | undefined = "";
   if (isCustomCode && data && value && typeof value !== "object") {
     const evalExpr = tryEvalExpr(value as string, data);
@@ -331,12 +334,8 @@ export const CodeEditor = observer(function CodeEditor(props: {
                 ))}
               </div>
             )}
-            <ObserverLoadable
-              loader={() =>
-                import("@/wab/client/components/coding/FullCodeEditor").then(
-                  ({ FullCodeEditor }) => FullCodeEditor,
-                )
-              }
+            <Loadable
+              loader={loadFullCodeEditor}
               contents={(FullCodeEditor) => (
                 <FullCodeEditor
                   ref={editor}

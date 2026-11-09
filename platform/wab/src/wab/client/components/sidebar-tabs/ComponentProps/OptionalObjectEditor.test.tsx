@@ -1,16 +1,17 @@
+import "@/wab/client/components/sidebar/MixinControls";
+import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
+import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { InnerPropEditorRow, PropValueEditorContext } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { ExprCtx, getRawCode } from "@/wab/shared/core/exprs";
 import { createSite } from "@/wab/shared/core/sites";
 import { getProjectFlags } from "@/wab/shared/devflags";
 import { tryEvalExpr } from "@/wab/shared/eval";
 import { Expr, ensureKnownExpr } from "@/wab/shared/model/classes";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render as rtlRender, screen } from "@testing-library/react";
 import React from "react";
 
-vi.mock("@/wab/client/contexts/StudioContexts", async () => ({
-  useStudioCtx: () => ({ site: createSite(), siteInfo: { id: "test" }, customFunctionsSchema: () => ({}), projectFlags: () => ({}) }),
-  StudioCtxContext: (await import("react")).createContext(undefined),
-}));
+
 vi.mock("@/wab/client/components/sidebar-tabs/ComponentProps/CodeEditor", () => ({
   checkStrSizeLimit: () => true,
   CodeEditor: ({ title, value, onChange, templateVariables, lang }: any) => (
@@ -28,7 +29,16 @@ const showCount = {
   fields: { formatter: { type: "string" as const, control: "large" as const, templateVariables: ["count", "maxLength"] } },
 };
 
-afterEach(cleanup);
+let nativeFixture: ReturnType<typeof fakeStudioCtx>;
+beforeEach(async () => {
+  nativeFixture = fakeStudioCtx();
+  await vi.waitFor(() => expect(nativeFixture.studioCtx.initialRouteReady).toBe(true));
+});
+function render(ui: React.ReactElement) {
+  return rtlRender(<AppCtxContext.Provider value={nativeFixture.appCtx}><StudioCtxContext.Provider value={nativeFixture.studioCtx}>{ui}</StudioCtxContext.Provider></AppCtxContext.Provider>);
+}
+
+afterEach(async () => { cleanup(); await nativeFixture.studioCtx.awaitEval(); nativeFixture.studioCtx.dispose(); });
 
 it("enables an object, edits the nested template with the code editor and clears it through the switch", () => {
   const saved = vi.fn();

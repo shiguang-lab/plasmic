@@ -1,8 +1,12 @@
-import { useStudioArena, useViewRegistry } from "@/wab/client/studio-ctx/arena-state";
-import { useViewVariantsList } from "@/wab/client/studio-ctx/variant-state";
-import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
-import { matchesSelectionTarget, useFocusedViewSelection, useHoveredViewCtx, useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
-import { useShallow } from "zustand/react/shallow";
+import { getOutlineModelInput, useOutlineModelValue } from "@/wab/client/components/sidebar-tabs/outline-model-inputs";
+import { useVariantModelWorld, type VariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import type { CanvasObserverInput } from "@/wab/client/components/canvas/canvas-observer";
+import { CanvasViewInputs } from "@/wab/client/components/canvas/canvas-view-inputs";
+import { outlineTabFields } from "@/wab/client/components/sidebar-tabs/outline-tab-inputs";
+import { useCanvasComponentValue, useCanvasViewInputs, noCanvasModelFields, type CanvasViewFieldRecipe } from "@/wab/client/components/canvas/canvas-view-inputs";
+import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { matchesSelectionTarget, useFocusedViewSelection, useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { revealCanvasElement } from "@/wab/client/components/canvas/canvas-scroll";
 import {
   getPreferredInsertLocs,
@@ -61,6 +65,7 @@ import {
 } from "@/wab/shared/Arenas";
 import {
   assert,
+  arrayEq,
   ensure,
   ensureHTMLElt,
   maybe,
@@ -91,6 +96,8 @@ import {
   ArenaFrame,
   Expr,
   isKnownTplNode,
+  isKnownTplTag,
+  isKnownTplComponent,
   isKnownTplSlot,
   TplNode,
 } from "@/wab/shared/model/classes";
@@ -121,13 +128,10 @@ import { Button, notification, Tooltip } from "antd";
 import cx from "classnames";
 import $ from "jquery";
 import L, { isArray } from "lodash";
-import * as mobx from "mobx";
-import { computed } from "mobx";
-import { observer } from "mobx-react";
-import { computedFn } from "mobx-utils";
 
 import * as React from "react";
 import { FixedSizeList } from "react-window";
+import { createStudioStore } from "@/wab/client/stores/store-kit";
 import { useStore } from "zustand";
 
 import { TplClip } from "@/wab/client/clipboard/local";
@@ -176,7 +180,99 @@ function ActionIcon() {
   );
 }
 
-const TplTreeNode = observer(function TplTreeNode(props: {
+function createOutlineNodePresentation(viewCtx: ViewCtx, item: TplNode | SlotSelection) {
+  const component = $$$(item).owningComponent();
+  const isFocusedView = viewCtx.studioCtx.selectionStore.getState().view === viewCtx;
+  const effectiveVs = (() =>
+      isTplTagOrComponent(item)
+        ? viewCtx.variantTplMgr().effectiveVariantSetting(item)
+        : undefined)();
+
+  const indicatedVs = (() => {
+      if (isTplVariantable(item) && isFocusedView) {
+        const vtm = viewCtx.variantTplMgr();
+        const getRelevantVs = () => {
+          if (getAncestorTplSlot(item, true)) {
+            // This tpl is a default slot content; only show indicator if we are
+            // targeting hte base variant
+            if (isBaseVariant(vtm.getCurrentVariantCombo())) {
+              return vtm.ensureBaseVariantSetting(item);
+            } else {
+              return undefined;
+            }
+          } else {
+            return viewCtx.variantTplMgr().tryGetTargetVariantSetting(item);
+          }
+        };
+
+        const vs = getRelevantVs();
+        return !!vs && !isVariantSettingEmptyExcludingDefaultIgnorableStyles(vs)
+          ? vs
+          : undefined;
+      }
+      return undefined;
+    })();
+
+
+
+  const hasRep = (() => {
+      if (Tpls.isTplVariantable(item)) {
+        const vs = effectiveVs;
+        return !!vs && !!vs.dataRep;
+      }
+      return false;
+    })();
+
+  const hasInteraction = (() => {
+      if (isKnownTplNode(item)) {
+        return Tpls.hasEventHandlers(item);
+      }
+      return false;
+    })();
+
+  const visibilityDataCond = effectiveVs?.dataCond;
+  const canvasEnv = isKnownTplNode(item)
+    ? viewCtx.getCanvasEnvForTpl(item)
+    : undefined;
+
+  const isRoot = isKnownTplNode(item) && !item.parent;
+
+  const getTextContent = function getTextContent(n: TplNode) {
+    const text = Tpls.getTplTextBlockContent(n, viewCtx);
+    return text
+      ? `"${transformDataTokensToDisplay(
+          text,
+          viewCtx.site,
+          viewCtx.siteInfo.id,
+        )}"`
+      : undefined;
+  };
+
+  const customLabel = Tpls.isTplCodeComponent(item) && canvasEnv ? (() => {
+    const meta = viewCtx.studioCtx.getCodeComponentMeta(item.component);
+    if (meta && (meta as any).treeLabel) { const { componentPropValues, ccContextData } = viewCtx.getComponentEvalContext(item); return (meta as any).treeLabel(componentPropValues, ccContextData); }
+    return null;
+  })() : null;
+  const plumeDef = isKnownTplSlot(item) ? getPlumeSlotDef(component, item.param) : isKnownTplNode(item) ? getPlumeElementDef(component, item) : undefined;
+  return Object.freeze({
+    commentSubjectId: isKnownTplNode(item) ? item.uuid : undefined,
+    commentVariantKey: isKnownTplNode(item) ? getSubjectVariantsKey(item, getSetOfPinnedVariantsForViewCtx(viewCtx, viewCtx.bundler())) : undefined,
+    component, effectiveVs, indicatedVs, hasRep, hasInteraction, visibilityDataCond, canvasEnv, isRoot, customLabel, plumeDef,
+    name: item instanceof SlotSelection ? "" : isKnownTplSlot(item) ? item.param.variable.name : isKnownTplTag(item) || isKnownTplComponent(item) ? item.name ?? "" : "",
+    summary: item instanceof SlotSelection ? "" : getNodeSummary(item, effectiveVs?.rsh()),
+    slotSelectionLabel: item instanceof SlotSelection ? getSlotSelectionDisplayName(item, viewCtx) : undefined,
+    text: item instanceof SlotSelection ? undefined : getTextContent(item),
+    slotText: isKnownTplSlot(item) && isPlainTextTplSlot(item) && !isCodeComponent(component) ? getTextContent(item.defaultContents[0]) : undefined,
+    codeComponentRoot: isKnownTplNode(item) && isCodeComponentRoot(item),
+    codeComponentSlot: isKnownTplSlot(item) && isCodeComponentSlot(item),
+    locked: isKnownTplNode(item) ? item.locked : undefined,
+    canToggleVisibility: !(item instanceof SlotSelection) && Tpls.canToggleVisibility(item, viewCtx),
+    nodeIcon: createNodeIcon(item, effectiveVs),
+  });
+}
+
+const TplTreeNodeContent = React.memo(function TplTreeNodeContent(props: {
+  presentation: ReturnType<typeof createOutlineNodePresentation>;
   id: OutlineNodeKey;
   item: TplNode | SlotSelection;
   viewCtx: ViewCtx;
@@ -209,19 +305,13 @@ const TplTreeNode = observer(function TplTreeNode(props: {
     parentId,
     isDropParent,
   } = props;
-  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
 
 
 
 
   const commentsCtx = useStudioCtx().commentsCtx;
-  const commentSubjectId = isKnownTplNode(item) ? item.uuid : undefined;
-  const commentVariantKey = isKnownTplNode(item)
-    ? getSubjectVariantsKey(
-        item,
-        getSetOfPinnedVariantsForViewCtx(viewCtx, viewCtx.bundler()),
-      )
-    : undefined;
+  const commentsPanel = useStudioOverlayState(viewCtx.studioCtx, (state) => state.commentsPanel);
+  const { commentSubjectId, commentVariantKey } = props.presentation;
   const subjectCommentStats = useStore(commentsCtx.store, (state) =>
     commentSubjectId
       ? state.commentStatsBySubject.get(commentSubjectId)
@@ -233,10 +323,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
       : undefined,
   );
 
-  const component = $$$(item).owningComponent();
-  const isInFrame = !!viewCtx
-    .componentStackFrames()
-    .find((f) => f.tplComponent.component === component);
+  const component = props.presentation.component;
   const itemIdentity = item instanceof SlotSelection ? { tplUid: item.getTpl().uid, paramUid: item.slotParam.uid } : { tplUid: item.uid, paramUid: undefined };
   const isFocusedView = useStudioSelection(viewCtx.studioCtx, (state) => state.view === viewCtx);
   const isFocused = useViewSelection(viewCtx, (state) => isFocusedView && (itemIdentity.paramUid === undefined && state.tpls.some((ref) => ref?.uid === itemIdentity.tplUid) || state.targets.some((target) => matchesSelectionTarget(target, itemIdentity))));
@@ -258,88 +345,9 @@ const TplTreeNode = observer(function TplTreeNode(props: {
     return !(item instanceof SlotSelection) && !!context && context.tpl.uid === item.uid && !!state.targets[0]?.owners.some((owner) => owner.tpl.uid === context.tpl.uid && owner.fullKey === context.valFullKey);
   });
   const isDrilledDescendant = useViewSelection(viewCtx, (state) => state.context?.component.uid === component.uid);
-  if (!isInFrame) {
-    return null;
-  }
 
-  const effectiveVs = computed(
-    () =>
-      isTplTagOrComponent(item)
-        ? viewCtx.variantTplMgr().effectiveVariantSetting(item)
-        : undefined,
-    { name: "TreeNode.effectiveVs" },
-  );
-
-  const indicatedVs = computed(
-    () => {
-      if (isTplVariantable(item) && isFocusedView) {
-        const vtm = viewCtx.variantTplMgr();
-        const getRelevantVs = () => {
-          if (getAncestorTplSlot(item, true)) {
-            // This tpl is a default slot content; only show indicator if we are
-            // targeting hte base variant
-            if (isBaseVariant(vtm.getCurrentVariantCombo())) {
-              return vtm.ensureBaseVariantSetting(item);
-            } else {
-              return undefined;
-            }
-          } else {
-            return viewCtx.variantTplMgr().tryGetTargetVariantSetting(item);
-          }
-        };
-
-        const vs = getRelevantVs();
-        return !!vs && !isVariantSettingEmptyExcludingDefaultIgnorableStyles(vs)
-          ? vs
-          : undefined;
-      }
-      return undefined;
-    },
-    { name: "indicatedVs" },
-  ).get();
-
-
-
-  const hasRep = computed(
-    () => {
-      if (Tpls.isTplVariantable(item)) {
-        const vs = effectiveVs.get();
-        return !!vs && !!vs.dataRep;
-      }
-      return false;
-    },
-    { name: "hasRep" },
-  ).get();
-
-  const hasInteraction = computed(
-    () => {
-      if (isKnownTplNode(item)) {
-        return Tpls.hasEventHandlers(item);
-      }
-      return false;
-    },
-    {
-      name: "hasInteraction",
-    },
-  ).get();
-
-  const visibilityDataCond = effectiveVs.get()?.dataCond;
-  const canvasEnv = isKnownTplNode(item)
-    ? viewCtx.getCanvasEnvForTpl(item)
-    : undefined;
-
-  const isRoot = isKnownTplNode(item) && !item.parent;
-
-  const getTextContent = computedFn(function getTextContent(n: TplNode) {
-    const text = Tpls.getTplTextBlockContent(n, viewCtx);
-    return text
-      ? `"${transformDataTokensToDisplay(
-          text,
-          viewCtx.site,
-          viewCtx.siteInfo.id,
-        )}"`
-      : undefined;
-  });
+  const { effectiveVs, indicatedVs, hasRep, hasInteraction, visibilityDataCond, canvasEnv, isRoot, customLabel, plumeDef, codeComponentRoot, codeComponentSlot } = props.presentation;
+  const matcher = useStore(outlineCtx.stateStore, (state) => state.matcher);
 
   const renderExpander = () => {
     if (isLeaf || isRoot) {
@@ -381,7 +389,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
         </Tooltip>
       );
     }
-    if (isSlotSelection(item) || !Tpls.canToggleVisibility(item, viewCtx)) {
+    if (isSlotSelection(item) || !props.presentation.canToggleVisibility) {
       // Can only toggle visibility for tags, components.  But we still want to
       // take up space here so things line up vertically.
       return (
@@ -431,7 +439,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
     return (
       <Tooltip
         title={
-          item.locked || props.ancestorLocked ? (
+          props.presentation.locked || props.ancestorLocked ? (
             <UiText message="Unlock to enable editing from canvas" />
           ) : (
             <UiText message="Lock to disable editing from canvas" />
@@ -480,10 +488,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
     );
   };
 
-  const summarizeTpl = (node: TplNode) => {
-    const label = getNodeSummary(node, effectiveVs.get()?.rsh());
-    return outlineCtx.matcher.boldSnippets(label);
-  };
+  const summarizeTpl = (_node: TplNode) => matcher.boldSnippets(props.presentation.summary);
 
   const renderRep = () => {
     if (hasRep) {
@@ -507,27 +512,13 @@ const TplTreeNode = observer(function TplTreeNode(props: {
     return null;
   };
 
-  const customLabel = computed(
-    () => {
-      if (Tpls.isTplCodeComponent(item) && canvasEnv) {
-        const meta = viewCtx.studioCtx.getCodeComponentMeta(item.component);
-        if (meta && (meta as any).treeLabel) {
-          const { componentPropValues, ccContextData } =
-            viewCtx.getComponentEvalContext(item);
-          return (meta as any).treeLabel(componentPropValues, ccContextData);
-        }
-      }
-      return null;
-    },
-    { name: "customLabel" },
-  ).get();
 
   const renderContent = () => {
     if (item instanceof SlotSelection) {
       return (
         <TplTreeNodeLabel
-          summary={outlineCtx.matcher.boldSnippets(
-            getSlotSelectionDisplayName(item, viewCtx),
+          summary={matcher.boldSnippets(
+            props.presentation.slotSelectionLabel ?? "",
           )}
         />
       );
@@ -535,7 +526,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
       return <TplTreeNodeLabel summary={summarizeTpl(item)} />;
     } else if (Tpls.isTplNamable(item)) {
 
-      const itemName = item.name || "";
+      const itemName = props.presentation.name;
       return (
         <EditableLabel
           labelFactory={(_props) => (
@@ -565,10 +556,10 @@ const TplTreeNode = observer(function TplTreeNode(props: {
           allowEmptyString
         >
           <TplTreeNodeLabel
-            name={outlineCtx.matcher.boldSnippets(itemName)}
+            name={matcher.boldSnippets(itemName)}
             summary={Tpls.isTplTextBlock(item) ? undefined : summarizeTpl(item)}
-            content={outlineCtx.matcher.boldSnippets(
-              getTextContent(item) || "",
+            content={matcher.boldSnippets(
+              props.presentation.text || "",
             )}
             customLabel={customLabel}
           />
@@ -578,8 +569,8 @@ const TplTreeNode = observer(function TplTreeNode(props: {
       assert(isKnownTplSlot(item), "Expected item to be a TplSlot");
       const text =
         isPlainTextTplSlot(item) && !isCodeComponent(component)
-          ? outlineCtx.matcher.boldSnippets(
-              getTextContent(item.defaultContents[0]) || "",
+          ? matcher.boldSnippets(
+              props.presentation.slotText || "",
             )
           : undefined;
 
@@ -588,7 +579,7 @@ const TplTreeNode = observer(function TplTreeNode(props: {
           labelFactory={(_props) => (
             <span {..._props} className={"tpltree__nodeLabelContainer"} />
           )}
-          value={item.param.variable.name}
+          value={props.presentation.name}
           doubleClickToEdit={!(codeComponentRoot || codeComponentSlot)}
           defaultEditing={defaultEditing}
           key={`${defaultEditing}`}
@@ -607,11 +598,6 @@ const TplTreeNode = observer(function TplTreeNode(props: {
     }
   };
 
-  const plumeDef = isKnownTplSlot(item)
-    ? getPlumeSlotDef(component, item.param)
-    : isKnownTplNode(item)
-      ? getPlumeElementDef(component, item)
-      : undefined;
 
   const getCommentStatsForTpl = () => {
     const commentStatsBySubject = subjectCommentStats;
@@ -642,9 +628,8 @@ const TplTreeNode = observer(function TplTreeNode(props: {
     return result;
   };
 
-  const icon = computed(
-    () => {
-      if (isKnownTplNode(item) && viewCtx.studioCtx.showCommentsPanel) {
+  const icon = (() => {
+      if (isKnownTplNode(item) && commentsPanel) {
         const commentStats = getCommentStatsForTpl();
         if (commentStats) {
           return (
@@ -657,21 +642,17 @@ const TplTreeNode = observer(function TplTreeNode(props: {
         }
       }
 
-      const node = createNodeIcon(item, effectiveVs.get());
+      const node = props.presentation.nodeIcon;
       if (plumeDef) {
         return <PlumyIcon def={plumeDef}>{node}</PlumyIcon>;
       } else {
         return node;
       }
-    },
-    { name: "icon" },
-  ).get();
+    })();
 
-  const codeComponentRoot = isKnownTplNode(item) && isCodeComponentRoot(item);
-  const codeComponentSlot = isKnownTplSlot(item) && isCodeComponentSlot(item);
 
   const showLockIcon =
-    props.ancestorLocked || (isKnownTplNode(item) && !L.isNil(item.locked));
+    props.ancestorLocked || !L.isNil(props.presentation.locked);
 
   const visibleChangeCallback = React.useCallback(
     (visible: boolean) => {
@@ -869,7 +850,15 @@ const TplTreeNode = observer(function TplTreeNode(props: {
   );
 });
 
-const DraggableTreeNode = observer(function DraggableTreeNode(props: {
+const TplTreeNode = React.memo(function TplTreeNode(props: Omit<React.ComponentProps<typeof TplTreeNodeContent>, "presentation">) {
+  const select = React.useCallback(() => createOutlineNodePresentation(props.viewCtx, props.item), [props.viewCtx, props.item]);
+  const presentation = useOutlineModelValue(props.viewCtx, select);
+  if (!presentation || props.viewCtx.disposeSignal.aborted || props.viewCtx.isDisposed) { return null; }
+  if (!props.viewCtx.componentStackFrames().some((frame) => frame.tplComponent.component === presentation.component)) { return null; }
+  return <TplTreeNodeContent {...props} presentation={presentation} />;
+});
+
+const DraggableTreeNode = React.memo(function DraggableTreeNode(props: {
   id: OutlineNodeKey;
   item: TplNode | SlotSelection;
   dndManager: TreeDndManager;
@@ -894,27 +883,30 @@ const DraggableTreeNode = observer(function DraggableTreeNode(props: {
     style,
   } = props;
 
-  const insertionMarker = dndManager.getInsertionMarker(item);
+  const lifetime = useCanvasViewInputs(viewCtx, noCanvasModelFields);
+  const insertionMarker = useStore(dndManager.store, () => lifetime.alive ? dndManager.getInsertionMarker(item) : undefined);
   const insertion = maybe(insertionMarker, (x) => x.insertion);
   const insertionRef = React.useRef<DragInsertion | undefined>(insertion);
   const isOpenRef = React.useRef<boolean>(isOpen);
-  const isDropParent = dndManager.isDropParent(item);
+  const isDropParent = useStore(dndManager.store, () => dndManager.isDropParent(item));
   const [labelTarget, setLabelTarget] = React.useState<HTMLElement>();
 
   React.useEffect(() => {
     insertionRef.current = insertion;
     isOpenRef.current = isOpen;
     // If we can expand, then expand after hovering for 500ms
-    if (insertion === "insert-as-child" && !isOpen && !isLeaf) {
+    if (lifetime.alive && insertion === "insert-as-child" && !isOpen && !isLeaf) {
       const timerId = setTimeout(() => {
-        if (insertion === insertionRef.current && !isOpenRef.current) {
+        if (!viewCtx.disposeSignal.aborted && insertion === insertionRef.current && !isOpenRef.current) {
           setOpen(true);
         }
       }, 500);
       return () => clearTimeout(timerId);
     }
     return undefined;
-  }, [insertion, isOpen, isLeaf, setOpen]);
+  }, [insertion, isOpen, isLeaf, setOpen, viewCtx, lifetime.alive]);
+
+  if (!lifetime.alive) { return null; }
 
   return (
     <DragItem
@@ -1216,34 +1208,45 @@ export class TreeDndManager {
         outcome: InsertionOutcome;
       }
     | undefined = undefined;
-  constructor(private studioCtx: StudioCtx) {
-    mobx.makeObservable(this, {
-      draggedItems: mobx.observable,
-      target: mobx.observable,
-      onDragStart: mobx.action,
-      onDragEnd: mobx.action,
-      onDragEnter: mobx.action,
-      onDragLeave: mobx.action,
-      onDragOver: mobx.action,
-      onDrop: mobx.action,
-    });
+
+  /** Native drag commands publish a version after updating their plain fields. */
+  readonly store = createStudioStore<{ version: number }>(() => ({ version: 0 }), {
+    name: "studio-tpl-tree-dnd",
+  });
+
+  constructor(private studioCtx: StudioCtx) {}
+
+  private bump() {
+    this.store.setState({ version: this.store.getState().version + 1 });
   }
 
-  isDraggedNode = computedFn((item: TplNode | SlotSelection) => {
+  setDraggedItems(items: TplClip[]) {
+    this.draggedItems = items;
+    this.bump();
+  }
+
+  setTarget(
+    target: { viewCtx: ViewCtx; outcome: InsertionOutcome } | undefined,
+  ) {
+    this.target = target;
+    this.bump();
+  }
+
+  isDraggedNode = (item: TplNode | SlotSelection) => {
     if (item instanceof SlotSelection) {
       return false;
     }
     return this.draggedItems.find((draggedItem) => draggedItem.node === item);
-  });
+  };
 
-  isDropTarget = computedFn((item: TplNode | SlotSelection) => {
+  isDropTarget = (item: TplNode | SlotSelection) => {
     if (!this.target) {
       return false;
     }
     return this.target.outcome.item === item;
-  });
+  };
 
-  getInsertionMarker = computedFn((item: TplNode | SlotSelection) => {
+  getInsertionMarker = (item: TplNode | SlotSelection) => {
     if (!this.target) {
       return undefined;
     }
@@ -1251,9 +1254,9 @@ export class TreeDndManager {
     return this.target.outcome.marker.item === item
       ? this.target.outcome.marker
       : undefined;
-  });
+  };
 
-  isDropParent = computedFn((item: TplNode | SlotSelection) => {
+  isDropParent = (item: TplNode | SlotSelection) => {
     if (!this.target) {
       return false;
     }
@@ -1285,7 +1288,7 @@ export class TreeDndManager {
       }
       return false;
     }
-  });
+  };
 
   onDragStart(
     e: Pick<MouseEvent, "preventDefault" | "clientX" | "clientY">,
@@ -1302,7 +1305,7 @@ export class TreeDndManager {
       return false;
     }
 
-    this.draggedItems = items;
+    this.setDraggedItems(items);
     this.initialPos = {
       clientX: e.clientX,
       clientY: e.clientY,
@@ -1331,10 +1334,10 @@ export class TreeDndManager {
     if (insertion) {
       // Save the new target.  This is so that in onDragEnd(), we can do the
       // actual drop.
-      this.target = {
+      this.setTarget({
         viewCtx,
         outcome: insertion,
-      };
+      });
     }
   }
 
@@ -1439,8 +1442,8 @@ export class TreeDndManager {
   }
 
   onDragEnd() {
-    this.target = undefined;
-    this.draggedItems = [];
+    this.setTarget(undefined);
+    this.setDraggedItems([]);
     this.initialPos = undefined;
   }
 
@@ -1611,31 +1614,33 @@ export type OutlineTreeRow =
       type: "node";
       key: string;
       indent: number;
-      node: OutlineNodeData;
+      node: OutlineNodeData & { readonly isOpen: boolean };
       outlineCtx: OutlineCtx;
     };
 
 interface TreeRowItemData {
-  nodes: OutlineTreeRow[];
+  nodes: readonly OutlineTreeRow[];
   outlineCtx: OutlineCtx;
   dndManager: TreeDndManager;
   studioCtx: StudioCtx;
 }
 
-const OutlineLayerRow = observer(function OutlineLayerRow(props: {
-  node: OutlineNodeData;
+const OutlineLayerRow = React.memo(function OutlineLayerRow(props: {
+  node: OutlineNodeData & { readonly isOpen: boolean };
   outlineCtx: OutlineCtx;
   dndManager: TreeDndManager;
   style?: React.CSSProperties;
 }) {
   const { node, outlineCtx, dndManager, style } = props;
   const viewCtx = ensure(outlineCtx.viewCtx(), "ViewCtx missing");
-  const isOpen = outlineCtx.isExpanded(node.key);
+  const lifetime = useCanvasViewInputs(viewCtx, noCanvasModelFields);
+  const isOpen = node.isOpen;
   const setOpen = React.useCallback(
     (open: boolean) => outlineCtx.setExpanded(node.key, open),
     [outlineCtx, node.key],
   );
-  const isDropParent = dndManager.isDropParent(node.item);
+  const isDropParent = useStore(dndManager.store, () => dndManager.isDropParent(node.item));
+  if (!lifetime.alive) { return null; }
   return (
     <DraggableTreeNode
       id={node.key}
@@ -1669,21 +1674,23 @@ const OutlineLayerRow = observer(function OutlineLayerRow(props: {
   );
 });
 
-const ArtboardOutlineRow = observer(function ArtboardOutlineRow(props: {
+const ArtboardOutlineRow = React.memo(function ArtboardOutlineRow(props: {
   frame: ArenaFrame;
   outlineCtx: OutlineCtx;
   studioCtx: StudioCtx;
   style?: React.CSSProperties;
 }) {
   const { frame, outlineCtx, studioCtx, style } = props;
-  useStudioSelection(studioCtx, (state) => state.view);
+  const selectedView = useStudioSelection(studioCtx, (state) => state.view);
   const { styles } = useStructurePanelStyles();
   const { t } = useI18n();
   const arenaRef = useStudioArena(studioCtx, (state) => state.frames.some((ref) => studioCtx.modelSnapshots.resolve(ref) === frame) ? state.current : null);
-  if (!arenaRef) { return null; }
-  const arena = studioCtx.modelSnapshots.resolve(arenaRef);
-  const label = getArenaFrameDesc(arena, frame, studioCtx.site);
-  const expanded = outlineCtx.isFrameExpanded(frame);
+  const arena = arenaRef ? studioCtx.modelSnapshots.resolve(arenaRef) : null;
+  const recipe = React.useCallback<CanvasViewFieldRecipe>((field) => outlineTabFields(studioCtx.site, arena, field), [studioCtx, arena]);
+  const readLabel = React.useCallback(() => arena ? getArenaFrameDesc(arena, frame, studioCtx.site) : undefined, [studioCtx, arena, frame]);
+  const label = useCanvasComponentValue(studioCtx, frame, recipe, readLabel);
+  const expanded = useStore(outlineCtx.stateStore, (state) => state.expandedFrames.get(frame) ?? false);
+  if (!arena || label === undefined) { return null; }
   return (
     <div className={styles.artboardRow} style={style}>
       <button
@@ -1698,7 +1705,7 @@ const ArtboardOutlineRow = observer(function ArtboardOutlineRow(props: {
       <button
         type="button"
         className={styles.artboardLabel}
-        aria-current={studioCtx.focusedViewCtx()?.arenaFrame() === frame}
+        aria-current={selectedView?.arenaFrame() === frame}
         title={label}
         onClick={() => {
           outlineCtx.setFrameExpanded(frame, true);
@@ -1771,7 +1778,7 @@ const OutlineTreeInner = React.forwardRef<
   );
 });
 
-export const ArenaTree = observer(
+export const ArenaTree = React.memo(
   React.forwardRef(function ArenaTree(
     props: {
       studioCtx: StudioCtx;
@@ -1782,28 +1789,18 @@ export const ArenaTree = observer(
     outerRef: React.Ref<ArenaTreeRef>,
   ) {
     const { studioCtx, arena, outlineCtx, dndManager } = props;
-  useStudioSelection(studioCtx, (state) => state.view);
     const { ref: listRef, onRef } = useForwardedRef(outerRef);
 
-    const { visibleNodes } = useTreeData(
+    const { visibleNodes, focusedKey } = useTreeData(
       studioCtx,
       arena,
       outlineCtx,
-      dndManager,
     );
 
     const getKeyIndex = React.useCallback(
       (key: string) => visibleNodes.findIndex((row) => row.key === key),
       [visibleNodes],
     );
-    const focusedNodeKey = outlineCtx.focusedNodeKeyPath()[0];
-    const focusedFrame = studioCtx.focusedViewCtx()?.arenaFrame();
-    const focusedKey =
-      isMixedArena(arena) && focusedFrame && focusedNodeKey
-        ? focusedNodeKey === makeNodeKey(focusedFrame)
-          ? focusedFrame.uuid
-          : `${focusedFrame.uuid}:${focusedNodeKey}`
-        : focusedNodeKey;
     useRevealOnFocus({ listRef, getKeyIndex, focusedKey });
 
     const itemData: TreeRowItemData = React.useMemo(
@@ -1872,44 +1869,86 @@ export const ArenaTree = observer(
   }),
 );
 
-function useTreeData(
-  studioCtx: StudioCtx,
-  arena: AnyArena | null,
-  outlineCtx: OutlineCtx,
-  dndManager: TreeDndManager,
-) {
-  useStudioSelection(studioCtx, (state) => state.view);
-  const view = outlineCtx.viewCtx();
-  const focus = useViewSelection(view, useShallow((state) => [state.context, state.tpls, state.targets]));
-  const entries = useViewRegistry(studioCtx, (snapshot) => snapshot);
-  const views = React.useMemo(
-    () =>
-      arena
-        ? withoutNils(
-            getArenaFrames(arena).map(
-              (frame) =>
-                studioCtx.arenaState.viewRegistry.selectFrame(entries, frame)
-                  ?.view,
-            ),
-          )
-        : view
-          ? [view]
-          : [],
-    [studioCtx, arena, view, entries],
-  );
-  const variantInputs = useViewVariantsList(views);
-  React.useLayoutEffect(() => { outlineCtx.refreshVariantSearch(); }, [outlineCtx, variantInputs]);
-  const hoveredView = useHoveredViewCtx(studioCtx);
-  const hover = useViewSelection(hoveredView, (state) => state.hover);
-  const buildVisibleNodes = React.useMemo(
-    () =>
-      computedFn(function _buildVisibleNodes() {
-        return buildVisibleOutlineRows(arena, outlineCtx);
-      }),
-    [studioCtx, arena, outlineCtx, dndManager, focus, hoveredView, hover, variantInputs],
-  );
-
-  return { visibleNodes: buildVisibleNodes() };
+const emptyOutlineRows: readonly OutlineTreeRow[] = Object.freeze([]);
+interface OutlineRowsSnapshot { readonly visibleNodes: readonly OutlineTreeRow[]; readonly focusedKey: string | undefined; }
+const emptyOutlineSnapshot: OutlineRowsSnapshot = Object.freeze({ visibleNodes: emptyOutlineRows, focusedKey: undefined });
+/** Native input ownership ends at the readonly row projection. Tree renderers
+ * never use a discarded invalidation to reopen mutable models. */
+class OutlineRowsInput {
+  private readonly metadata: CanvasViewInputs;
+  private current = emptyOutlineSnapshot;
+  private previous: readonly unknown[] | undefined;
+  private connected = false;
+  private capture: object | undefined;
+  private readonly stops = new Map<CanvasObserverInput | CanvasViewInputs, () => void>();
+  private readonly outlineSources = new Set<CanvasObserverInput>();
+  private readonly listeners = new Set<() => void>();
+  constructor(private readonly studio: StudioCtx, private readonly arena: AnyArena | null, private readonly outline: OutlineCtx, private readonly world: VariantModelWorld) {
+    this.metadata = new CanvasViewInputs({ studio, models: world.models, signal: world.lifetime }, (field) => outlineTabFields(world.site, arena, field));
+  }
+  private sources() {
+    const sources = new Set<CanvasObserverInput | CanvasViewInputs>([this.studio.arenaState.store, this.metadata, this.outline.stateStore, this.studio.selectionStore, this.studio.hoveredViewStore, this.studio.arenaState.viewRegistry.store]);
+    this.outlineSources.clear(); this.outlineSources.add(this.outline.stateStore);
+    const contexts = isMixedArena(this.arena) ? getArenaFrames(this.arena).map((frame) => this.outline.getFrameOutline(frame)) : [this.outline];
+    for (const context of contexts) {
+      sources.add(context.stateStore); this.outlineSources.add(context.stateStore);
+      const view = context.viewCtx();
+      if (view) { sources.add(getOutlineModelInput(view)); }
+    }
+    return sources;
+  }
+  private disconnect = () => {
+    this.connected = false;
+    this.world.lifetime.removeEventListener("abort", this.changed);
+    this.stops.forEach((stop) => stop()); this.stops.clear();
+  };
+  read = (): OutlineRowsSnapshot => {
+    const capture = {}; this.capture = capture;
+    if (!this.world.isCurrent()) { this.current = emptyOutlineSnapshot; this.disconnect(); return this.current; }
+    const active = this.studio.currentArena === this.arena;
+    if (active && !this.metadata.getSnapshot().alive) { this.current = emptyOutlineSnapshot; this.disconnect(); return this.current; }
+    // Keep the arena signal during a temporary A-B-A switch, but never reopen
+    // frame resources belonging to an inactive arena's still-mounted UI.
+    const sources = active ? this.sources() : new Set<CanvasObserverInput | CanvasViewInputs>([this.studio.arenaState.store]);
+    if (!active) {
+      this.outlineSources.clear(); this.previous = undefined; this.current = emptyOutlineSnapshot;
+    } else {
+      const values = [...sources].map((source) => "getSnapshot" in source ? source.getSnapshot() : source.getState());
+      if (!this.previous || !arrayEq(this.previous, values)) {
+        this.previous = values;
+        const focusedNodeKey = this.outline.focusedNodeKeyPath()[0];
+        const focusedFrame = this.studio.selectionStore.getState().view?.arenaFrame();
+        const focusedKey = isMixedArena(this.arena) && focusedFrame && focusedNodeKey ? focusedNodeKey === makeNodeKey(focusedFrame) ? focusedFrame.uuid : `${focusedFrame.uuid}:${focusedNodeKey}` : focusedNodeKey;
+        this.current = Object.freeze({ visibleNodes: Object.freeze(buildVisibleOutlineRows(this.arena, this.outline)), focusedKey });
+      }
+    }
+    if (this.connected) {
+      for (const source of sources) {
+        if (!this.stops.has(source)) {
+          const pending = () => undefined;
+          this.stops.set(source, pending);
+          const stop = source.subscribe(() => { if (this.world.isCurrent() && this.studio.currentArena === this.arena && (!("getState" in source) || !this.outlineSources.has(source))) { this.outline.refreshVariantSearch(); } this.changed(); });
+          if (this.connected && this.stops.get(source) === pending) { this.stops.set(source, stop); } else { stop(); }
+        }
+        if (this.capture !== capture) { return this.current; }
+      }
+      for (const [source, stop] of this.stops) { if (!sources.has(source)) { stop(); this.stops.delete(source); } }
+    }
+    return this.current;
+  };
+  private changed = () => { const previous = this.current; this.read(); if (previous !== this.current) { this.listeners.forEach((listener) => listener()); } };
+  subscribe = (listener: () => void) => {
+    this.listeners.add(listener);
+    if (!this.connected && this.world.isCurrent()) { this.connected = true; this.world.lifetime.addEventListener("abort", this.changed, { once: true }); this.read(); }
+    return () => { this.listeners.delete(listener); if (!this.listeners.size) { this.disconnect(); } };
+  };
+}
+function useTreeData(studioCtx: StudioCtx, arena: AnyArena | null, outlineCtx: OutlineCtx) {
+  const world = useVariantModelWorld(studioCtx, arena ?? studioCtx.site);
+  const source = React.useMemo(() => new OutlineRowsInput(studioCtx, arena, outlineCtx, world), [studioCtx, arena, outlineCtx, world]);
+  const snapshot = React.useSyncExternalStore(source.subscribe, source.read, source.read);
+  React.useLayoutEffect(() => { outlineCtx.refreshVariantSearch(); }, [outlineCtx, source]);
+  return snapshot;
 }
 
 export function buildVisibleOutlineRows(
@@ -1930,7 +1969,7 @@ export function buildVisibleOutlineRows(
       type: "node",
       key: frame ? `${frame.uuid}:${node.self.key}` : node.self.key,
       indent,
-      node: { ...node.self, indent },
+      node: { ...node.self, indent, isOpen: context.isExpanded(node.self.key) },
       outlineCtx: context,
     });
     if (context.isExpanded(node.self.key)) {

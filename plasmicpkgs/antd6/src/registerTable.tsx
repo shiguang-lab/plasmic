@@ -360,7 +360,7 @@ export const AntdTable = React.forwardRef(function AntdTable(
         ...(onExpandedRowsChange ? { onExpandedRowsChange } : {}),
       }
     : undefined;
-  const revealRows = isEditing && !!rowExpansion?.expandedRowRender &&
+  const revealRows = !!canvas && !!rowExpansion?.expandedRowRender &&
     (info?.editing || (info?.selected &&
       info.slot === "expandedRowRender"));
   const canvasRowKeys: React.Key[] = [];
@@ -382,7 +382,7 @@ export const AntdTable = React.forwardRef(function AntdTable(
     "expandable.expandedRowKeys", rowExpansion.expandedRowKeys,
     rowExpansion.defaultExpandedRowKeys ?? (rowExpansion.defaultExpandAllRows ? canvasRowKeys : []),
   ) : undefined;
-  if (isEditing && expansionState) {
+  if (expansionState) {
     expansionState.reveal(revealRows ? canvasRowKeys : initialCanvasKeys);
   }
   const resolvedExpansion = canvas && rowExpansion

@@ -1,10 +1,12 @@
+import { mkVariant } from "@/wab/shared/Variants";
+import { fireEvent } from "@testing-library/react";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { EmptyTabPlaceholder } from "@/wab/client/components/sidebar-tabs/EmptyTabPlaceholder";
 import { GlobalCssVariables } from "@/wab/client/components/studio/GlobalCssVariables";
 import { makeVariantsController } from "@/wab/client/components/variants/VariantsController";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { useVariantsControllerInputs } from "@/wab/client/studio-ctx/variant-state";
+import { useVariantsController } from "@/wab/client/studio-ctx/variant-controller-inputs";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { cloneArenaFrame, getArenaFrames } from "@/wab/shared/Arenas";
 import { TplMgr } from "@/wab/shared/TplMgr";
@@ -85,9 +87,9 @@ it("keeps an explicit View subscribed to actual arena factory choices without se
   const selection = f.studio.selectionStore.getState();
   const rendered = vi.fn();
   function Factory() {
-    useVariantsControllerInputs(f.studio, view);
+    const input = useVariantsController(f.studio, view);
     rendered();
-    return <output aria-label="Controller factory">{makeVariantsController(f.studio, view)?.constructor.name}</output>;
+    return <output aria-label="Controller factory">{input?.commands.constructor.name}</output>;
   }
   render(<Factory />);
   expect(screen.getByLabelText("Controller factory").textContent).toBe("ComponentArenaVariantsController");
@@ -119,8 +121,8 @@ it("rebinds no-selection focused fallback when only the actual first-frame ident
   let chosen: ViewCtx | undefined;
   vi.spyOn(f.studio, "focusedOrFirstViewCtx").mockImplementation(() => { chosen = original(); return chosen; });
   function Inputs() {
-    const inputs = useVariantsControllerInputs(f.studio);
-    return <output aria-label="Variant inputs">{chosen?.arenaFrame().uid}:{JSON.stringify(inputs)}</output>;
+    const inputs = useVariantsController(f.studio);
+    return <output aria-label="Variant inputs">{chosen?.arenaFrame().uid}:{JSON.stringify({ active: inputs?.activeVariants.map((variant) => variant.uid), targets: inputs?.targetedVariants.map((variant) => variant.uid), owner: inputs?.ownerFrameUid })}</output>;
   }
   render(<Inputs />);
   expect(chosen?.arenaFrame()).toBe(first);
@@ -131,4 +133,27 @@ it("rebinds no-selection focused fallback when only the actual first-frame ident
   expect(chosen?.arenaFrame()).not.toBe(first);
   expect(disconnected).toHaveBeenCalled();
   expect(screen.getByLabelText("Variant inputs").textContent).not.toBe(before);
+});
+
+it("projects actual variant targets as immutable render data while events use canonical commands", async () => {
+  const f = await setup();
+  const variant = mkVariant({ name: "Active" });
+  await f.studio.changeUnsafe(() => { f.component.variants.push(variant); });
+  f.studio.currentArena = f.mixed;
+  const frame = ensure(f.mixed.children[0], "Mixed native frame");
+  f.studio.setStudioFocusOnFrameContents(frame);
+  const view = ensure(f.studio.tryGetViewCtxForFrame(frame), "Native command owner");
+  let input: ReturnType<typeof useVariantsController>;
+  function NativeController() {
+    input = useVariantsController(f.studio, view);
+    return <button onClick={() => { void f.studio.changeUnsafe(() => { input?.commands.onClickVariant(variant); }); }}>{String(input?.variants[variant.uid]?.targeted)}</button>;
+  }
+  render(<NativeController />);
+  const before = ensure(input, "Initial controller projection");
+  expect(screen.getByRole("button").textContent).toBe("false");
+  await act(async () => { fireEvent.click(screen.getByRole("button")); await f.studio.awaitEval(); });
+  expect(screen.getByRole("button").textContent).toBe("true");
+  expect(before.variants[variant.uid]?.targeted).toBe(false);
+  expect(Object.isFrozen(ensure(input, "Updated projection").targetedVariants)).toBe(true);
+  expect(Object.isFrozen(input?.variants)).toBe(true);
 });

@@ -90,6 +90,9 @@ it("opens another page's settings without invoking row navigation or changing th
     <NavigationDropdownContext.Provider value={{ onClose: vi.fn() }}>
       <NavigationArenaRow
         arena={targetArena}
+        name={targetPage.name}
+        pathName={targetPage.pageMeta?.path}
+        componentId={targetPage.uuid}
         matcher={new Matcher("")}
         indentMultiplier={0}
         onClick={navigate}

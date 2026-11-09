@@ -14,7 +14,7 @@ import { TplMgr } from "@/wab/shared/TplMgr";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { createSite } from "@/wab/shared/core/sites";
 import { MutableToken, OverrideableToken } from "@/wab/shared/core/tokens";
-import { ProjectDependency, StyleToken, VariantedValue } from "@/wab/shared/model/classes";
+import { ProjectDependency, StyleToken, StyleTokenOverride, VariantedValue } from "@/wab/shared/model/classes";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import * as React from "react";
@@ -185,6 +185,7 @@ it.each(["loadVersion", "dispose"] as const)("keeps the actual General modal's d
   } else {
     await act(async () => { await f.studio.awaitEval(); f.studio.dispose(); });
   }
+  expect(ensure(document.querySelector<HTMLInputElement>('input[value="32px"]'), "Retired modal value").disabled).toBe(true);
   document.documentElement.style.setProperty("--native-size", "80px");
   const fields = vi.spyOn(f.studio.modelSnapshots, "declaredField");
   mounted.rerender(contents());
@@ -244,4 +245,30 @@ it("rejects a new active foreign command handle before it can declare model fiel
   const fields = vi.spyOn(f.studio.modelSnapshots, "declaredField");
   expect(() => new StyleTokenInputs(f.studio, new MutableToken(foreign), new VariantedStylesHelper(f.site))).toThrow("another model world");
   expect(fields).not.toHaveBeenCalled();
+});
+
+it("publishes override ownership changes even when base and active values are equal", async () => {
+  const f = await setup("12px");
+  await f.studio.changeUnsafe(() => { f.base.isRegistered = true; });
+  const token = new OverrideableToken(f.base, f.site);
+  const baseSource = new StyleTokenInputs(f.studio, token, new VariantedStylesHelper(f.site));
+  const changed = vi.fn(), stop = baseSource.store.subscribe(changed);
+  expect(baseSource.store.getState()).toMatchObject({ activeValue: "12px", indicatorType: "inherited", hasOverride: false });
+  await f.studio.changeUnsafe(() => { f.site.styleTokenOverrides.push(new StyleTokenOverride({ token: f.base, value: "12px", variantedValues: [] })); });
+  expect(changed).toHaveBeenCalledOnce();
+  expect(baseSource.store.getState()).toMatchObject({ activeValue: "12px", indicatorType: "set", hasOverride: true, hasOverrideValue: true });
+  await f.studio.changeUnsafe(() => { f.site.styleTokenOverrides.splice(0); });
+  const manager = new TplMgr({ site: f.site });
+  let helper = new VariantedStylesHelper(f.site);
+  await f.studio.changeUnsafe(() => {
+    const group = manager.createGlobalVariantGroup("Theme"), dark = manager.createGlobalVariant(group, "Dark");
+    f.base.variantedValues.push(new VariantedValue({ variants: [dark], value: "12px" }));
+    helper = new VariantedStylesHelper(f.site, [dark], [dark]);
+  });
+  const variantSource = new StyleTokenInputs(f.studio, token, helper), variantChanged = vi.fn(), stopVariant = variantSource.store.subscribe(variantChanged);
+  expect(variantSource.store.getState()).toMatchObject({ activeValue: "12px", indicatorType: "inherited", styleInherited: false });
+  await f.studio.changeUnsafe(() => { f.site.styleTokenOverrides.push(new StyleTokenOverride({ token: f.base, value: null, variantedValues: [new VariantedValue({ variants: ensure(helper.globalVariants(), "Active variants"), value: "12px" })] })); });
+  expect(variantChanged).toHaveBeenCalledOnce();
+  expect(variantSource.store.getState()).toMatchObject({ activeValue: "12px", indicatorType: "overriding", styleInherited: false, hasOverride: true, hasOverrideValue: false });
+  stopVariant(); stop();
 });

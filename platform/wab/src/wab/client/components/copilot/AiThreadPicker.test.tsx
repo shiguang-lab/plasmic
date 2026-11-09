@@ -109,7 +109,7 @@ it("selects a topic, preserves its draft and supports rename, archive and restor
   );
   await waitFor(() => expect(session.activeThreadId).toBe(first));
   act(() => {
-    session.draft = { prompt: "Keep this request", attachments: [] };
+    session.setThreadDraft(session.activeThreadId, { prompt: "Keep this request", attachments: [] });
   });
   fireEvent.click(screen.getByRole("button", { name: "New conversation" }));
   expect(session.activeThreadId).not.toBe(first);
@@ -208,7 +208,7 @@ it.each([false, true])(
 it("offers a route back to a conversation requiring saved-design verification", () => {
   const session = new LocalEditSession("project");
   session.newThread(first);
-  session.draft = { prompt: "Original task", attachments: [] };
+  session.setThreadDraft(session.activeThreadId, { prompt: "Original task", attachments: [] });
   session.newThread(second);
   session.tasks = [
     mock<AiTask>({

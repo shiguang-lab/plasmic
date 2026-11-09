@@ -18,6 +18,7 @@ export interface GridCssRead {
   readonly hasTemplate: boolean;
   readonly template: string | undefined;
 }
+export interface CssVariableRead { readonly value: string | undefined; }
 export interface GridCssSnapshot { readonly active: boolean; readonly value: string | undefined; }
 const empty: GridCssSnapshot = Object.freeze({ active: false, value: undefined });
 type AssetInput = ReturnType<typeof createImageAssetDictionaryInputs>;
@@ -44,7 +45,7 @@ export class GridCssInputs {
   private readonly assets = new Map<number, AssetPhase>();
   private readonly tokens = new Map<number, TokenPhase>();
 
-  constructor(provider: ExpsProvider, private readonly input: GridCssRead, private readonly lifetime: AbortSignal) {
+  constructor(provider: ExpsProvider, private readonly input: GridCssRead | CssVariableRead, private readonly lifetime: AbortSignal) {
     this.studio = provider.studioCtx;
     const native = provider.getNativeStyleSource(); this.owner = native.inputs;
     this.models = this.studio.modelSnapshots; this.site = native.kind === "tpl" ? native.source.site : this.studio.site;
@@ -104,7 +105,7 @@ export class GridCssInputs {
       return this.current;
     }
     // Evaluate the original display check before any variable lookup.
-    ensure(this.input.display === "grid", "Grid element is expected to have display:grid");
+    if ("display" in this.input) { ensure(this.input.display === "grid", "Grid element is expected to have display:grid"); }
     let phase = 0;
     const usedAssets = new Set<number>(), usedTokens = new Set<number>();
     const resolveTokens = (value: string) => {
@@ -134,8 +135,8 @@ export class GridCssInputs {
       });
     };
     try {
-      const value = this.input.hasTemplate ? resolveCssVarInput(ensure(this.input.template, "Grid template CSS must exist"),
-        (ref) => resolveTokens(this.readMixin(ref)), resolveTokens) : undefined;
+      const raw = "display" in this.input ? this.input.hasTemplate ? ensure(this.input.template, "Grid template CSS must exist") : undefined : this.input.value;
+      const value = raw === undefined ? undefined : resolveCssVarInput(raw, (ref) => resolveTokens(this.readMixin(ref)), resolveTokens);
       if (!this.current.active || value !== this.current.value) { this.current = Object.freeze({ active: true, value }); }
       return this.current;
     } finally {
@@ -160,6 +161,14 @@ export class GridCssInputs {
 }
 
 export function useGridCssInputs(provider: ExpsProvider, input: GridCssRead, lifetime: AbortSignal) {
-  const source = React.useMemo(() => new GridCssInputs(provider, input, lifetime), [provider, input.display, input.hasTemplate, input.template, lifetime]);
+  const { display, hasTemplate, template } = input;
+  const source = React.useMemo(() => new GridCssInputs(provider, { display, hasTemplate, template }, lifetime), [provider, display, hasTemplate, template, lifetime]);
+  return React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
+}
+
+
+/** The same CssVarResolver variable pipeline for an actual non-grid CSS value. */
+export function useCssVariableInputs(provider: ExpsProvider, value: string | undefined, lifetime: AbortSignal) {
+  const source = React.useMemo(() => new GridCssInputs(provider, { value }, lifetime), [provider, value, lifetime]);
   return React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
 }

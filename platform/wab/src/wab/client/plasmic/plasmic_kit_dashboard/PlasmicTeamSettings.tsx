@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   StrictProps,
   classNames,
@@ -23,7 +23,7 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -32,8 +32,8 @@ import TeamBilling from "../../components/dashboard/TeamBilling"; // plasmic-imp
 import TeamMemberList from "../../components/dashboard/TeamMemberList"; // plasmic-import: 3jXSiWKc1-/component
 import TeamMemberListItem from "../../components/dashboard/TeamMemberListItem"; // plasmic-import: gdLJj97tYt/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -106,11 +106,10 @@ function PlasmicTeamSettings__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "hideNewButton",
@@ -120,20 +119,22 @@ function PlasmicTeamSettings__RenderFunc(props: {
           $props.hideNewButton,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -317,12 +318,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -332,32 +329,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTeamSettings__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTeamSettings";
-  } else {
-    func.displayName = `PlasmicTeamSettings.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTeamSettings__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTeamSettings__root<T extends PlasmicTeamSettings__rootProps>(props: T & StrictProps<T, PlasmicTeamSettings__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTeamSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTeamSettings__root.displayName = "PlasmicTeamSettings";
+
+type PlasmicTeamSettings__headerProps = NodeComponentProps<"header"> & {key?: React.Key};
+function PlasmicTeamSettings__header<T extends PlasmicTeamSettings__headerProps>(props: T & StrictProps<T, PlasmicTeamSettings__headerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("header", props);
+  return <PlasmicTeamSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"header"} />;
+}
+PlasmicTeamSettings__header.displayName = "PlasmicTeamSettings.header";
+
+type PlasmicTeamSettings__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicTeamSettings__freeBox<T extends PlasmicTeamSettings__freeBoxProps>(props: T & StrictProps<T, PlasmicTeamSettings__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicTeamSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicTeamSettings__freeBox.displayName = "PlasmicTeamSettings.freeBox";
+
+type PlasmicTeamSettings__teamMenuButtonProps = NodeComponentProps<"teamMenuButton"> & {key?: React.Key};
+function PlasmicTeamSettings__teamMenuButton<T extends PlasmicTeamSettings__teamMenuButtonProps>(props: T & StrictProps<T, PlasmicTeamSettings__teamMenuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("teamMenuButton", props);
+  return <PlasmicTeamSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"teamMenuButton"} />;
+}
+PlasmicTeamSettings__teamMenuButton.displayName = "PlasmicTeamSettings.teamMenuButton";
+
+type PlasmicTeamSettings__memberListProps = NodeComponentProps<"memberList"> & {key?: React.Key};
+function PlasmicTeamSettings__memberList<T extends PlasmicTeamSettings__memberListProps>(props: T & StrictProps<T, PlasmicTeamSettings__memberListProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("memberList", props);
+  return <PlasmicTeamSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"memberList"} />;
+}
+PlasmicTeamSettings__memberList.displayName = "PlasmicTeamSettings.memberList";
+
+type PlasmicTeamSettings__navSeparatorProps = NodeComponentProps<"navSeparator"> & {key?: React.Key};
+function PlasmicTeamSettings__navSeparator<T extends PlasmicTeamSettings__navSeparatorProps>(props: T & StrictProps<T, PlasmicTeamSettings__navSeparatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("navSeparator", props);
+  return <PlasmicTeamSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"navSeparator"} />;
+}
+PlasmicTeamSettings__navSeparator.displayName = "PlasmicTeamSettings.navSeparator";
+
+type PlasmicTeamSettings__teamBillingProps = NodeComponentProps<"teamBilling"> & {key?: React.Key};
+function PlasmicTeamSettings__teamBilling<T extends PlasmicTeamSettings__teamBillingProps>(props: T & StrictProps<T, PlasmicTeamSettings__teamBillingProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("teamBilling", props);
+  return <PlasmicTeamSettings__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"teamBilling"} />;
+}
+PlasmicTeamSettings__teamBilling.displayName = "PlasmicTeamSettings.teamBilling";
+
 
 export const PlasmicTeamSettings = Object.assign(
   // Top-level PlasmicTeamSettings renders the root element
-  makeNodeComponent("root"),
+  PlasmicTeamSettings__root,
   {
     // Helper components rendering sub-elements
-    header: makeNodeComponent("header"),
-    freeBox: makeNodeComponent("freeBox"),
-    teamMenuButton: makeNodeComponent("teamMenuButton"),
-    memberList: makeNodeComponent("memberList"),
-    navSeparator: makeNodeComponent("navSeparator"),
-    teamBilling: makeNodeComponent("teamBilling"),
+    header: PlasmicTeamSettings__header,
+    freeBox: PlasmicTeamSettings__freeBox,
+    teamMenuButton: PlasmicTeamSettings__teamMenuButton,
+    memberList: PlasmicTeamSettings__memberList,
+    navSeparator: PlasmicTeamSettings__navSeparator,
+    teamBilling: PlasmicTeamSettings__teamBilling,
 
     // Metadata about props expected for PlasmicTeamSettings
     internalVariantProps: PlasmicTeamSettings__VariantProps,

@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,13 +22,13 @@ import {
   renderPlasmicSlot,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import * as pp from "@plasmicapp/react-web";
+import * as Plume from "@plasmicapp/react-web";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -67,7 +67,7 @@ export type PlasmicSelect__Overlay__OverridesType = {
 };
 
 export interface DefaultSelect__OverlayProps
-  extends pp.BaseTriggeredOverlayProps {
+  extends Plume.BaseTriggeredOverlayProps {
   children?: React.ReactNode;
 }
 
@@ -97,11 +97,10 @@ function PlasmicSelect__Overlay__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "relativePlacement",
@@ -111,22 +110,24 @@ function PlasmicSelect__Overlay__RenderFunc(props: {
           $props.relativePlacement,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
   const superContexts = {
     Select: React.useContext(SUPER__PlasmicSelect.Context),
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -267,11 +268,11 @@ function PlasmicSelect__Overlay__RenderFunc(props: {
   ) as React.ReactElement | null;
 }
 
-function useBehavior<P extends pp.BaseTriggeredOverlayProps>(
+function useBehavior<P extends Plume.BaseTriggeredOverlayProps>(
   props: P,
-  ref: pp.TriggeredOverlayRef
+  ref: Plume.TriggeredOverlayRef
 ) {
-  return pp.useTriggeredOverlay(
+  return Plume.useTriggeredOverlay(
     PlasmicSelect__Overlay,
     props,
     {
@@ -334,12 +335,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -349,32 +346,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSelect__Overlay__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSelect__Overlay";
-  } else {
-    func.displayName = `PlasmicSelect__Overlay.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSelect__Overlay__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSelect__Overlay__root<T extends PlasmicSelect__Overlay__rootProps>(props: T & StrictProps<T, PlasmicSelect__Overlay__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSelect__Overlay__root.displayName = "PlasmicSelect__Overlay";
+
+type PlasmicSelect__Overlay__topProps = NodeComponentProps<"top"> & {key?: React.Key};
+function PlasmicSelect__Overlay__top<T extends PlasmicSelect__Overlay__topProps>(props: T & StrictProps<T, PlasmicSelect__Overlay__topProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("top", props);
+  return <PlasmicSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"top"} />;
+}
+PlasmicSelect__Overlay__top.displayName = "PlasmicSelect__Overlay.top";
+
+type PlasmicSelect__Overlay__middleProps = NodeComponentProps<"middle"> & {key?: React.Key};
+function PlasmicSelect__Overlay__middle<T extends PlasmicSelect__Overlay__middleProps>(props: T & StrictProps<T, PlasmicSelect__Overlay__middleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("middle", props);
+  return <PlasmicSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"middle"} />;
+}
+PlasmicSelect__Overlay__middle.displayName = "PlasmicSelect__Overlay.middle";
+
+type PlasmicSelect__Overlay__leftProps = NodeComponentProps<"left"> & {key?: React.Key};
+function PlasmicSelect__Overlay__left<T extends PlasmicSelect__Overlay__leftProps>(props: T & StrictProps<T, PlasmicSelect__Overlay__leftProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("left", props);
+  return <PlasmicSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"left"} />;
+}
+PlasmicSelect__Overlay__left.displayName = "PlasmicSelect__Overlay.left";
+
+type PlasmicSelect__Overlay__mainProps = NodeComponentProps<"main"> & {key?: React.Key};
+function PlasmicSelect__Overlay__main<T extends PlasmicSelect__Overlay__mainProps>(props: T & StrictProps<T, PlasmicSelect__Overlay__mainProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("main", props);
+  return <PlasmicSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"main"} />;
+}
+PlasmicSelect__Overlay__main.displayName = "PlasmicSelect__Overlay.main";
+
+type PlasmicSelect__Overlay__rightProps = NodeComponentProps<"right"> & {key?: React.Key};
+function PlasmicSelect__Overlay__right<T extends PlasmicSelect__Overlay__rightProps>(props: T & StrictProps<T, PlasmicSelect__Overlay__rightProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("right", props);
+  return <PlasmicSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"right"} />;
+}
+PlasmicSelect__Overlay__right.displayName = "PlasmicSelect__Overlay.right";
+
+type PlasmicSelect__Overlay__bottomProps = NodeComponentProps<"bottom"> & {key?: React.Key};
+function PlasmicSelect__Overlay__bottom<T extends PlasmicSelect__Overlay__bottomProps>(props: T & StrictProps<T, PlasmicSelect__Overlay__bottomProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("bottom", props);
+  return <PlasmicSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"bottom"} />;
+}
+PlasmicSelect__Overlay__bottom.displayName = "PlasmicSelect__Overlay.bottom";
+
 
 export const PlasmicSelect__Overlay = Object.assign(
   // Top-level PlasmicSelect__Overlay renders the root element
-  makeNodeComponent("root"),
+  PlasmicSelect__Overlay__root,
   {
     // Helper components rendering sub-elements
-    top: makeNodeComponent("top"),
-    middle: makeNodeComponent("middle"),
-    left: makeNodeComponent("left"),
-    main: makeNodeComponent("main"),
-    right: makeNodeComponent("right"),
-    bottom: makeNodeComponent("bottom"),
+    top: PlasmicSelect__Overlay__top,
+    middle: PlasmicSelect__Overlay__middle,
+    left: PlasmicSelect__Overlay__left,
+    main: PlasmicSelect__Overlay__main,
+    right: PlasmicSelect__Overlay__right,
+    bottom: PlasmicSelect__Overlay__bottom,
 
     // Metadata about props expected for PlasmicSelect__Overlay
     internalVariantProps: PlasmicSelect__Overlay__VariantProps,

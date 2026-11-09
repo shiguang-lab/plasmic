@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,7 +25,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import LabeledProp from "../../components/docs/LabeledProp"; // plasmic-import: 95ed9ODv12/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -94,11 +94,10 @@ function PlasmicLinkedProp__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -204,12 +203,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -219,28 +214,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLinkedProp__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLinkedProp";
-  } else {
-    func.displayName = `PlasmicLinkedProp.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLinkedProp__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLinkedProp__root<T extends PlasmicLinkedProp__rootProps>(props: T & StrictProps<T, PlasmicLinkedProp__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLinkedProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLinkedProp__root.displayName = "PlasmicLinkedProp";
+
+type PlasmicLinkedProp__labeledPropProps = NodeComponentProps<"labeledProp"> & {key?: React.Key};
+function PlasmicLinkedProp__labeledProp<T extends PlasmicLinkedProp__labeledPropProps>(props: T & StrictProps<T, PlasmicLinkedProp__labeledPropProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labeledProp", props);
+  return <PlasmicLinkedProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labeledProp"} />;
+}
+PlasmicLinkedProp__labeledProp.displayName = "PlasmicLinkedProp.labeledProp";
+
+type PlasmicLinkedProp__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicLinkedProp__svg<T extends PlasmicLinkedProp__svgProps>(props: T & StrictProps<T, PlasmicLinkedProp__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicLinkedProp__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicLinkedProp__svg.displayName = "PlasmicLinkedProp.svg";
+
 
 export const PlasmicLinkedProp = Object.assign(
   // Top-level PlasmicLinkedProp renders the root element
-  makeNodeComponent("root"),
+  PlasmicLinkedProp__root,
   {
     // Helper components rendering sub-elements
-    labeledProp: makeNodeComponent("labeledProp"),
-    svg: makeNodeComponent("svg"),
+    labeledProp: PlasmicLinkedProp__labeledProp,
+    svg: PlasmicLinkedProp__svg,
 
     // Metadata about props expected for PlasmicLinkedProp
     internalVariantProps: PlasmicLinkedProp__VariantProps,

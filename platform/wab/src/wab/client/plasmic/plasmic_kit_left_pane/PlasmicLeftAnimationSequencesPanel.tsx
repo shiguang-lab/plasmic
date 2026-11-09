@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicLink as PlasmicLink__,
   StrictProps,
   classNames,
@@ -28,7 +28,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import LeftPaneHeader from "../../components/studio/LeftPaneHeader"; // plasmic-import: XLa52PvduIy/component
 import LeftSearchPanel from "../../components/studio/LeftSearchPanel"; // plasmic-import: TqAPn0srTq/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -94,11 +94,10 @@ function PlasmicLeftAnimationSequencesPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -298,12 +297,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -314,35 +309,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftAnimationSequencesPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftAnimationSequencesPanel";
-  } else {
-    func.displayName = `PlasmicLeftAnimationSequencesPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftAnimationSequencesPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftAnimationSequencesPanel__root<T extends PlasmicLeftAnimationSequencesPanel__rootProps>(props: T & StrictProps<T, PlasmicLeftAnimationSequencesPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftAnimationSequencesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftAnimationSequencesPanel__root.displayName = "PlasmicLeftAnimationSequencesPanel";
+
+type PlasmicLeftAnimationSequencesPanel__leftSearchPanelProps = NodeComponentProps<"leftSearchPanel"> & {key?: React.Key};
+function PlasmicLeftAnimationSequencesPanel__leftSearchPanel<T extends PlasmicLeftAnimationSequencesPanel__leftSearchPanelProps>(props: T & StrictProps<T, PlasmicLeftAnimationSequencesPanel__leftSearchPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftSearchPanel", props);
+  return <PlasmicLeftAnimationSequencesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftSearchPanel"} />;
+}
+PlasmicLeftAnimationSequencesPanel__leftSearchPanel.displayName = "PlasmicLeftAnimationSequencesPanel.leftSearchPanel";
+
+type PlasmicLeftAnimationSequencesPanel__animationSequencesHeaderProps = NodeComponentProps<"animationSequencesHeader"> & {key?: React.Key};
+function PlasmicLeftAnimationSequencesPanel__animationSequencesHeader<T extends PlasmicLeftAnimationSequencesPanel__animationSequencesHeaderProps>(props: T & StrictProps<T, PlasmicLeftAnimationSequencesPanel__animationSequencesHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("animationSequencesHeader", props);
+  return <PlasmicLeftAnimationSequencesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"animationSequencesHeader"} />;
+}
+PlasmicLeftAnimationSequencesPanel__animationSequencesHeader.displayName = "PlasmicLeftAnimationSequencesPanel.animationSequencesHeader";
+
+type PlasmicLeftAnimationSequencesPanel__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicLeftAnimationSequencesPanel__link<T extends PlasmicLeftAnimationSequencesPanel__linkProps>(props: T & StrictProps<T, PlasmicLeftAnimationSequencesPanel__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicLeftAnimationSequencesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicLeftAnimationSequencesPanel__link.displayName = "PlasmicLeftAnimationSequencesPanel.link";
+
+type PlasmicLeftAnimationSequencesPanel__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicLeftAnimationSequencesPanel__freeBox<T extends PlasmicLeftAnimationSequencesPanel__freeBoxProps>(props: T & StrictProps<T, PlasmicLeftAnimationSequencesPanel__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicLeftAnimationSequencesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicLeftAnimationSequencesPanel__freeBox.displayName = "PlasmicLeftAnimationSequencesPanel.freeBox";
+
+type PlasmicLeftAnimationSequencesPanel__importAnimationSequenceButtonProps = NodeComponentProps<"importAnimationSequenceButton"> & {key?: React.Key};
+function PlasmicLeftAnimationSequencesPanel__importAnimationSequenceButton<T extends PlasmicLeftAnimationSequencesPanel__importAnimationSequenceButtonProps>(props: T & StrictProps<T, PlasmicLeftAnimationSequencesPanel__importAnimationSequenceButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("importAnimationSequenceButton", props);
+  return <PlasmicLeftAnimationSequencesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"importAnimationSequenceButton"} />;
+}
+PlasmicLeftAnimationSequencesPanel__importAnimationSequenceButton.displayName = "PlasmicLeftAnimationSequencesPanel.importAnimationSequenceButton";
+
+type PlasmicLeftAnimationSequencesPanel__newAnimationSequenceButtonProps = NodeComponentProps<"newAnimationSequenceButton"> & {key?: React.Key};
+function PlasmicLeftAnimationSequencesPanel__newAnimationSequenceButton<T extends PlasmicLeftAnimationSequencesPanel__newAnimationSequenceButtonProps>(props: T & StrictProps<T, PlasmicLeftAnimationSequencesPanel__newAnimationSequenceButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newAnimationSequenceButton", props);
+  return <PlasmicLeftAnimationSequencesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newAnimationSequenceButton"} />;
+}
+PlasmicLeftAnimationSequencesPanel__newAnimationSequenceButton.displayName = "PlasmicLeftAnimationSequencesPanel.newAnimationSequenceButton";
+
+type PlasmicLeftAnimationSequencesPanel__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicLeftAnimationSequencesPanel__content<T extends PlasmicLeftAnimationSequencesPanel__contentProps>(props: T & StrictProps<T, PlasmicLeftAnimationSequencesPanel__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicLeftAnimationSequencesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicLeftAnimationSequencesPanel__content.displayName = "PlasmicLeftAnimationSequencesPanel.content";
+
 
 export const PlasmicLeftAnimationSequencesPanel = Object.assign(
   // Top-level PlasmicLeftAnimationSequencesPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftAnimationSequencesPanel__root,
   {
     // Helper components rendering sub-elements
-    leftSearchPanel: makeNodeComponent("leftSearchPanel"),
-    animationSequencesHeader: makeNodeComponent("animationSequencesHeader"),
-    link: makeNodeComponent("link"),
-    freeBox: makeNodeComponent("freeBox"),
-    importAnimationSequenceButton: makeNodeComponent(
-      "importAnimationSequenceButton"
-    ),
-    newAnimationSequenceButton: makeNodeComponent("newAnimationSequenceButton"),
-    content: makeNodeComponent("content"),
+    leftSearchPanel: PlasmicLeftAnimationSequencesPanel__leftSearchPanel,
+    animationSequencesHeader: PlasmicLeftAnimationSequencesPanel__animationSequencesHeader,
+    link: PlasmicLeftAnimationSequencesPanel__link,
+    freeBox: PlasmicLeftAnimationSequencesPanel__freeBox,
+    importAnimationSequenceButton: PlasmicLeftAnimationSequencesPanel__importAnimationSequenceButton,
+    newAnimationSequenceButton: PlasmicLeftAnimationSequencesPanel__newAnimationSequenceButton,
+    content: PlasmicLeftAnimationSequencesPanel__content,
 
     // Metadata about props expected for PlasmicLeftAnimationSequencesPanel
     internalVariantProps: PlasmicLeftAnimationSequencesPanel__VariantProps,

@@ -1,3 +1,4 @@
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import { newTokenValueAllowed } from "@/wab/client/components/sidebar/token-utils";
 import { useClientTokenValue } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
@@ -32,7 +33,8 @@ export const GeneralTokenEditModal = function GeneralTokenModal(props: {
     } = props;
     const defaultVsh = React.useMemo(() => new VariantedStylesHelper(studioCtx.site), [studioCtx]);
     const vsh = suppliedVsh ?? defaultVsh;
-    const lifetime = React.useMemo(() => studioCtx.arenaState.lifetime(), [studioCtx, token]);
+    const world = useVariantModelWorld(studioCtx, token.base);
+    const { lifetime, alive } = world;
 
     const snapshot = useStyleTokenInputs(studioCtx, token, vsh, useShallow((state) => state && [state.name, state.type, state.activeValue, state.isRegistered, state.regKey] as const));
     const clientValue = useClientTokenValue(
@@ -49,7 +51,9 @@ export const GeneralTokenEditModal = function GeneralTokenModal(props: {
 
     const onChange = async (val: string | undefined) => {
       assert(val !== undefined);
+      if (!world.isCurrent()) { return; }
       return studioCtx.changeUnsafe(() => {
+        if (!world.isCurrent()) { return; }
         if (newTokenValueAllowed(token, studioCtx.site, val, vsh)) {
           vsh.updateToken(token, val);
         }
@@ -67,12 +71,14 @@ export const GeneralTokenEditModal = function GeneralTokenModal(props: {
             />
             <SimpleTextbox
               defaultValue={tokenName}
-              onValueChange={(name) =>
-                studioCtx.changeUnsafe(() => {
+              onValueChange={(name) => {
+                if (!world.isCurrent()) { return; }
+                return studioCtx.changeUnsafe(() => {
+                  if (!world.isCurrent()) { return; }
                   studioCtx.tplMgr().renameStyleToken(token.base, name);
-                })
-              }
-              readOnly={!(token instanceof MutableToken)}
+                });
+              }}
+              readOnly={!alive || !(token instanceof MutableToken)}
               placeholder={uiT("(unnamed token)")}
               autoFocus={defaultEditingName}
               selectAllOnFocus={true}
@@ -88,11 +94,12 @@ export const GeneralTokenEditModal = function GeneralTokenModal(props: {
             value={tokenRefOrRealColor}
             onChange={(val) => onChange(ensure(val, "new value is undefined"))}
             noClear
-            studioCtx={studioCtx}
-            tokenType={type}
+            studioCtx={alive ? studioCtx : undefined}
+            tokenType={alive ? type : undefined}
+            disabled={!alive}
             autoFocus={!defaultEditingName}
             {...tokenTypeDimOpts(type)}
-            vsh={vsh}
+            vsh={alive ? vsh : undefined}
           />
         </div>
       </SidebarModal>

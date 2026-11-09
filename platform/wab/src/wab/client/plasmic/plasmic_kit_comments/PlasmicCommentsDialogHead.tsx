@@ -15,21 +15,21 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { ThreadHistoryStatus } from "../../components/comments/ThreadHistoryStatus"; // plasmic-import: E0P_lFzVr70L/component
 import DialogHeader from "../../components/widgets/DialogHeader"; // plasmic-import: 5TapYEMkYCfR/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -98,11 +98,10 @@ function PlasmicCommentsDialogHead__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "canUpdateHistory",
@@ -118,18 +117,20 @@ function PlasmicCommentsDialogHead__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.grabbable,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <DialogHeader
@@ -271,12 +272,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -286,32 +283,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCommentsDialogHead__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCommentsDialogHead";
-  } else {
-    func.displayName = `PlasmicCommentsDialogHead.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCommentsDialogHead__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCommentsDialogHead__root<T extends PlasmicCommentsDialogHead__rootProps>(props: T & StrictProps<T, PlasmicCommentsDialogHead__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCommentsDialogHead__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCommentsDialogHead__root.displayName = "PlasmicCommentsDialogHead";
+
+type PlasmicCommentsDialogHead__nameProps = NodeComponentProps<"name"> & {key?: React.Key};
+function PlasmicCommentsDialogHead__name<T extends PlasmicCommentsDialogHead__nameProps>(props: T & StrictProps<T, PlasmicCommentsDialogHead__nameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("name", props);
+  return <PlasmicCommentsDialogHead__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"name"} />;
+}
+PlasmicCommentsDialogHead__name.displayName = "PlasmicCommentsDialogHead.name";
+
+type PlasmicCommentsDialogHead__typeProps = NodeComponentProps<"type"> & {key?: React.Key};
+function PlasmicCommentsDialogHead__type<T extends PlasmicCommentsDialogHead__typeProps>(props: T & StrictProps<T, PlasmicCommentsDialogHead__typeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("type", props);
+  return <PlasmicCommentsDialogHead__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"type"} />;
+}
+PlasmicCommentsDialogHead__type.displayName = "PlasmicCommentsDialogHead.type";
+
+type PlasmicCommentsDialogHead__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicCommentsDialogHead__freeBox<T extends PlasmicCommentsDialogHead__freeBoxProps>(props: T & StrictProps<T, PlasmicCommentsDialogHead__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicCommentsDialogHead__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicCommentsDialogHead__freeBox.displayName = "PlasmicCommentsDialogHead.freeBox";
+
+type PlasmicCommentsDialogHead__threadHistoryStatusProps = NodeComponentProps<"threadHistoryStatus"> & {key?: React.Key};
+function PlasmicCommentsDialogHead__threadHistoryStatus<T extends PlasmicCommentsDialogHead__threadHistoryStatusProps>(props: T & StrictProps<T, PlasmicCommentsDialogHead__threadHistoryStatusProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("threadHistoryStatus", props);
+  return <PlasmicCommentsDialogHead__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"threadHistoryStatus"} />;
+}
+PlasmicCommentsDialogHead__threadHistoryStatus.displayName = "PlasmicCommentsDialogHead.threadHistoryStatus";
+
+type PlasmicCommentsDialogHead__closeProps = NodeComponentProps<"close"> & {key?: React.Key};
+function PlasmicCommentsDialogHead__close<T extends PlasmicCommentsDialogHead__closeProps>(props: T & StrictProps<T, PlasmicCommentsDialogHead__closeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("close", props);
+  return <PlasmicCommentsDialogHead__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"close"} />;
+}
+PlasmicCommentsDialogHead__close.displayName = "PlasmicCommentsDialogHead.close";
+
+type PlasmicCommentsDialogHead__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicCommentsDialogHead__svg<T extends PlasmicCommentsDialogHead__svgProps>(props: T & StrictProps<T, PlasmicCommentsDialogHead__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicCommentsDialogHead__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicCommentsDialogHead__svg.displayName = "PlasmicCommentsDialogHead.svg";
+
 
 export const PlasmicCommentsDialogHead = Object.assign(
   // Top-level PlasmicCommentsDialogHead renders the root element
-  makeNodeComponent("root"),
+  PlasmicCommentsDialogHead__root,
   {
     // Helper components rendering sub-elements
-    _name: makeNodeComponent("name"),
-    type: makeNodeComponent("type"),
-    freeBox: makeNodeComponent("freeBox"),
-    threadHistoryStatus: makeNodeComponent("threadHistoryStatus"),
-    close: makeNodeComponent("close"),
-    svg: makeNodeComponent("svg"),
+    _name: PlasmicCommentsDialogHead__name,
+    type: PlasmicCommentsDialogHead__type,
+    freeBox: PlasmicCommentsDialogHead__freeBox,
+    threadHistoryStatus: PlasmicCommentsDialogHead__threadHistoryStatus,
+    close: PlasmicCommentsDialogHead__close,
+    svg: PlasmicCommentsDialogHead__svg,
 
     // Metadata about props expected for PlasmicCommentsDialogHead
     internalVariantProps: PlasmicCommentsDialogHead__VariantProps,

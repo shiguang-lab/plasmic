@@ -14,6 +14,7 @@
 import * as React from "react";
 
 import {
+  usePlasmicRefs,
   Flex as Flex__,
   StrictProps,
   classNames,
@@ -116,9 +117,8 @@ function PlasmicTemplateComments__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
   return (
     <Layout
@@ -450,12 +450,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -465,33 +461,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTemplateComments__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTemplateComments";
-  } else {
-    func.displayName = `PlasmicTemplateComments.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTemplateComments__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTemplateComments__root<T extends PlasmicTemplateComments__rootProps>(props: T & StrictProps<T, PlasmicTemplateComments__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTemplateComments__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTemplateComments__root.displayName = "PlasmicTemplateComments";
+
+type PlasmicTemplateComments__emailLinkProps = NodeComponentProps<"emailLink"> & {key?: React.Key};
+function PlasmicTemplateComments__emailLink<T extends PlasmicTemplateComments__emailLinkProps>(props: T & StrictProps<T, PlasmicTemplateComments__emailLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emailLink", props);
+  return <PlasmicTemplateComments__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emailLink"} />;
+}
+PlasmicTemplateComments__emailLink.displayName = "PlasmicTemplateComments.emailLink";
+
+type PlasmicTemplateComments__commentsMentionsProps = NodeComponentProps<"commentsMentions"> & {key?: React.Key};
+function PlasmicTemplateComments__commentsMentions<T extends PlasmicTemplateComments__commentsMentionsProps>(props: T & StrictProps<T, PlasmicTemplateComments__commentsMentionsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentsMentions", props);
+  return <PlasmicTemplateComments__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentsMentions"} />;
+}
+PlasmicTemplateComments__commentsMentions.displayName = "PlasmicTemplateComments.commentsMentions";
+
+type PlasmicTemplateComments__commentsRepliesProps = NodeComponentProps<"commentsReplies"> & {key?: React.Key};
+function PlasmicTemplateComments__commentsReplies<T extends PlasmicTemplateComments__commentsRepliesProps>(props: T & StrictProps<T, PlasmicTemplateComments__commentsRepliesProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentsReplies", props);
+  return <PlasmicTemplateComments__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentsReplies"} />;
+}
+PlasmicTemplateComments__commentsReplies.displayName = "PlasmicTemplateComments.commentsReplies";
+
+type PlasmicTemplateComments__commentsCommentsProps = NodeComponentProps<"commentsComments"> & {key?: React.Key};
+function PlasmicTemplateComments__commentsComments<T extends PlasmicTemplateComments__commentsCommentsProps>(props: T & StrictProps<T, PlasmicTemplateComments__commentsCommentsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentsComments", props);
+  return <PlasmicTemplateComments__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentsComments"} />;
+}
+PlasmicTemplateComments__commentsComments.displayName = "PlasmicTemplateComments.commentsComments";
+
+type PlasmicTemplateComments__commentsReactionsProps = NodeComponentProps<"commentsReactions"> & {key?: React.Key};
+function PlasmicTemplateComments__commentsReactions<T extends PlasmicTemplateComments__commentsReactionsProps>(props: T & StrictProps<T, PlasmicTemplateComments__commentsReactionsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentsReactions", props);
+  return <PlasmicTemplateComments__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentsReactions"} />;
+}
+PlasmicTemplateComments__commentsReactions.displayName = "PlasmicTemplateComments.commentsReactions";
+
+type PlasmicTemplateComments__commentsResolutionsProps = NodeComponentProps<"commentsResolutions"> & {key?: React.Key};
+function PlasmicTemplateComments__commentsResolutions<T extends PlasmicTemplateComments__commentsResolutionsProps>(props: T & StrictProps<T, PlasmicTemplateComments__commentsResolutionsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentsResolutions", props);
+  return <PlasmicTemplateComments__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentsResolutions"} />;
+}
+PlasmicTemplateComments__commentsResolutions.displayName = "PlasmicTemplateComments.commentsResolutions";
+
+type PlasmicTemplateComments__emailMarkdownProps = NodeComponentProps<"emailMarkdown"> & {key?: React.Key};
+function PlasmicTemplateComments__emailMarkdown<T extends PlasmicTemplateComments__emailMarkdownProps>(props: T & StrictProps<T, PlasmicTemplateComments__emailMarkdownProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emailMarkdown", props);
+  return <PlasmicTemplateComments__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emailMarkdown"} />;
+}
+PlasmicTemplateComments__emailMarkdown.displayName = "PlasmicTemplateComments.emailMarkdown";
+
 
 export const PlasmicTemplateComments = Object.assign(
   // Top-level PlasmicTemplateComments renders the root element
-  makeNodeComponent("root"),
+  PlasmicTemplateComments__root,
   {
     // Helper components rendering sub-elements
-    emailLink: makeNodeComponent("emailLink"),
-    commentsMentions: makeNodeComponent("commentsMentions"),
-    commentsReplies: makeNodeComponent("commentsReplies"),
-    commentsComments: makeNodeComponent("commentsComments"),
-    commentsReactions: makeNodeComponent("commentsReactions"),
-    commentsResolutions: makeNodeComponent("commentsResolutions"),
-    emailMarkdown: makeNodeComponent("emailMarkdown"),
+    emailLink: PlasmicTemplateComments__emailLink,
+    commentsMentions: PlasmicTemplateComments__commentsMentions,
+    commentsReplies: PlasmicTemplateComments__commentsReplies,
+    commentsComments: PlasmicTemplateComments__commentsComments,
+    commentsReactions: PlasmicTemplateComments__commentsReactions,
+    commentsResolutions: PlasmicTemplateComments__commentsResolutions,
+    emailMarkdown: PlasmicTemplateComments__emailMarkdown,
 
     // Metadata about props expected for PlasmicTemplateComments
     internalVariantProps: PlasmicTemplateComments__VariantProps,

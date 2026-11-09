@@ -16,22 +16,22 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   generateStateOnChangeProp,
   generateStateValueProp,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
 import Select__Option from "../../components/widgets/Select__Option"; // plasmic-import: rr-LWdMni2G/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -91,11 +91,10 @@ function PlasmicProjectsFilter__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "orderBySelect.value",
@@ -104,20 +103,22 @@ function PlasmicProjectsFilter__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => "updatedAt",
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -143,9 +144,9 @@ function PlasmicProjectsFilter__RenderFunc(props: {
             role={"img"}
           />
         }
-        onChange={async (...eventArgs: any) => {
+        onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
           ((...eventArgs) => {
-            generateStateOnChangeProp($state, ["orderBySelect", "value"])(
+            generateStateOnChangeProp($stateCommands, ["orderBySelect", "value"])(
               eventArgs[0]
             );
           }).apply(null, eventArgs);
@@ -157,7 +158,7 @@ function PlasmicProjectsFilter__RenderFunc(props: {
           ) {
             return;
           }
-        }}
+        })); })}
         placeholder={
           <div
             data-plasmic-name={"text"}
@@ -250,12 +251,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -265,29 +262,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicProjectsFilter__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicProjectsFilter";
-  } else {
-    func.displayName = `PlasmicProjectsFilter.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicProjectsFilter__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicProjectsFilter__root<T extends PlasmicProjectsFilter__rootProps>(props: T & StrictProps<T, PlasmicProjectsFilter__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicProjectsFilter__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicProjectsFilter__root.displayName = "PlasmicProjectsFilter";
+
+type PlasmicProjectsFilter__orderBySelectProps = NodeComponentProps<"orderBySelect"> & {key?: React.Key};
+function PlasmicProjectsFilter__orderBySelect<T extends PlasmicProjectsFilter__orderBySelectProps>(props: T & StrictProps<T, PlasmicProjectsFilter__orderBySelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("orderBySelect", props);
+  return <PlasmicProjectsFilter__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"orderBySelect"} />;
+}
+PlasmicProjectsFilter__orderBySelect.displayName = "PlasmicProjectsFilter.orderBySelect";
+
+type PlasmicProjectsFilter__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicProjectsFilter__text<T extends PlasmicProjectsFilter__textProps>(props: T & StrictProps<T, PlasmicProjectsFilter__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicProjectsFilter__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicProjectsFilter__text.displayName = "PlasmicProjectsFilter.text";
+
+type PlasmicProjectsFilter__searchBoxProps = NodeComponentProps<"searchBox"> & {key?: React.Key};
+function PlasmicProjectsFilter__searchBox<T extends PlasmicProjectsFilter__searchBoxProps>(props: T & StrictProps<T, PlasmicProjectsFilter__searchBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchBox", props);
+  return <PlasmicProjectsFilter__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchBox"} />;
+}
+PlasmicProjectsFilter__searchBox.displayName = "PlasmicProjectsFilter.searchBox";
+
 
 export const PlasmicProjectsFilter = Object.assign(
   // Top-level PlasmicProjectsFilter renders the root element
-  makeNodeComponent("root"),
+  PlasmicProjectsFilter__root,
   {
     // Helper components rendering sub-elements
-    orderBySelect: makeNodeComponent("orderBySelect"),
-    text: makeNodeComponent("text"),
-    searchBox: makeNodeComponent("searchBox"),
+    orderBySelect: PlasmicProjectsFilter__orderBySelect,
+    text: PlasmicProjectsFilter__text,
+    searchBox: PlasmicProjectsFilter__searchBox,
 
     // Metadata about props expected for PlasmicProjectsFilter
     internalVariantProps: PlasmicProjectsFilter__VariantProps,

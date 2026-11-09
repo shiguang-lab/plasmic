@@ -1,7 +1,8 @@
+import { AppContext } from "@/wab/client/components/top-view";
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { OutlinePanelSection } from "@/wab/client/components/style-controls/OutlineControls";
-import { SingleRsExpsProvider, StyleComponentContext, mkStyleComponent } from "@/wab/client/components/style-controls/StyleComponent";
+import { SingleRsExpsProvider, StyleTargetContext, createStyleTarget } from "@/wab/client/components/style-controls/StyleComponent";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -46,9 +47,9 @@ async function setup() {
   return { studio, view, variant, rsh, provider };
 }
 function section(f: Awaited<ReturnType<typeof setup>>, tail?: React.ReactNode) {
-  return <StudioCtxContext.Provider value={f.studio}><StyleComponentContext.Provider value={mkStyleComponent({ expsProvider: f.provider })}>
+  return <AppContext.Provider value={f.studio.app}><StudioCtxContext.Provider value={f.studio}><StyleTargetContext.Provider value={createStyleTarget({ expsProvider: f.provider })}>
     <OutlinePanelSection />{tail}
-  </StyleComponentContext.Provider></StudioCtxContext.Provider>;
+  </StyleTargetContext.Provider></StudioCtxContext.Provider></AppContext.Provider>;
 }
 function warning() { return screen.queryByText(/are typically used for styling the focused state/); }
 

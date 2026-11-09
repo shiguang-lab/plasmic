@@ -25,7 +25,7 @@ it("publishes actual Studio stack/resize changes after completed model inputs wh
   const { studioCtx: studio } = fakeStudioCtx();
   await waitFor(() => expect(studio.initialRouteReady).toBe(true));
   const arena = await studio.changeUnsafe(() => studio.addArena("Overlay inputs"));
-  studio.showStackOfParents = true;
+  studio.setShowStackOfParents(true);
   const name = studio.modelSnapshots.field(arena, "name");
   const read = vi.fn(() => {
     expect(name.getState()).toBe("Completed overlay inputs");
@@ -34,7 +34,7 @@ it("publishes actual Studio stack/resize changes after completed model inputs wh
   const stops = [name.subscribe(read), studio.overlayState.store.subscribe(read)];
   try {
     await studio.changeUnsafe(() => {
-      studio.showStackOfParents = false;
+      studio.setShowStackOfParents(false);
       studio.isResizeDragging = true;
       arena.name = "Completed overlay inputs";
     });

@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -22,13 +22,13 @@ import {
   generateStateOnChangeProp,
   generateStateValueProp,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { BaseTooltip } from "@plasmicpkgs/react-aria/skinny/registerTooltip";
 import OverlayArrow from "../../components/plexus/OverlayArrow"; // plasmic-import: FRA2fXjcDHo2/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -117,11 +117,10 @@ function PlasmicTooltip__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "ariaTooltip.isOpen",
@@ -130,18 +129,20 @@ function PlasmicTooltip__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => false,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <BaseTooltip
@@ -163,12 +164,12 @@ function PlasmicTooltip__RenderFunc(props: {
       isDisabled={args.isDisabled}
       isOpen={generateStateValueProp($state, ["ariaTooltip", "isOpen"])}
       offset={args.offset}
-      onOpenChange={async (...eventArgs: any) => {
-        generateStateOnChangeProp($state, ["ariaTooltip", "isOpen"]).apply(
+      onOpenChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+        generateStateOnChangeProp($stateCommands, ["ariaTooltip", "isOpen"]).apply(
           null,
           eventArgs
         );
-      }}
+      })); })}
       placement={args.placement}
       resetClassName={classNames(
         "root_reset_tXkSR39sgCDWSitZxC5xFV",
@@ -178,19 +179,8 @@ function PlasmicTooltip__RenderFunc(props: {
       )}
       tooltipContent={
         <React.Fragment>
-          {(() => {
-            try {
-              return $props.showArrow;
-            } catch (e) {
-              if (
-                e instanceof TypeError ||
-                e?.plasmicType === "PlasmicUndefinedDataError"
-              ) {
-                return true;
-              }
-              throw e;
-            }
-          })() ? (
+          {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.showArrow), () => (true)) ? (
             <OverlayArrow
               data-plasmic-name={"overlayArrow"}
               data-plasmic-override={overrides.overlayArrow}
@@ -279,12 +269,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -294,28 +280,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTooltip__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "ariaTooltip") {
-    func.displayName = "PlasmicTooltip";
-  } else {
-    func.displayName = `PlasmicTooltip.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTooltip__ariaTooltipProps = NodeComponentProps<"ariaTooltip"> & {key?: React.Key};
+function PlasmicTooltip__ariaTooltip<T extends PlasmicTooltip__ariaTooltipProps>(props: T & StrictProps<T, PlasmicTooltip__ariaTooltipProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("ariaTooltip", props);
+  return <PlasmicTooltip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaTooltip"} />;
+}
+PlasmicTooltip__ariaTooltip.displayName = "PlasmicTooltip";
+
+type PlasmicTooltip__overlayArrowProps = NodeComponentProps<"overlayArrow"> & {key?: React.Key};
+function PlasmicTooltip__overlayArrow<T extends PlasmicTooltip__overlayArrowProps>(props: T & StrictProps<T, PlasmicTooltip__overlayArrowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("overlayArrow", props);
+  return <PlasmicTooltip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"overlayArrow"} />;
+}
+PlasmicTooltip__overlayArrow.displayName = "PlasmicTooltip.overlayArrow";
+
+type PlasmicTooltip__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicTooltip__freeBox<T extends PlasmicTooltip__freeBoxProps>(props: T & StrictProps<T, PlasmicTooltip__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicTooltip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicTooltip__freeBox.displayName = "PlasmicTooltip.freeBox";
+
 
 export const PlasmicTooltip = Object.assign(
   // Top-level PlasmicTooltip renders the root element
-  makeNodeComponent("ariaTooltip"),
+  PlasmicTooltip__ariaTooltip,
   {
     // Helper components rendering sub-elements
-    overlayArrow: makeNodeComponent("overlayArrow"),
-    freeBox: makeNodeComponent("freeBox"),
+    overlayArrow: PlasmicTooltip__overlayArrow,
+    freeBox: PlasmicTooltip__freeBox,
 
     // Metadata about props expected for PlasmicTooltip
     internalVariantProps: PlasmicTooltip__VariantProps,

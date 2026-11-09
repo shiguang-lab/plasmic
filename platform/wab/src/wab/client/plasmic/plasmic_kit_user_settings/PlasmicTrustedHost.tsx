@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aaggSgVS8yYsAwQffVQB4p/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aaggSgVS8yYsAwQffVQB4p/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -82,11 +82,10 @@ function PlasmicTrustedHost__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -173,12 +172,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -188,29 +183,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTrustedHost__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTrustedHost";
-  } else {
-    func.displayName = `PlasmicTrustedHost.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTrustedHost__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTrustedHost__root<T extends PlasmicTrustedHost__rootProps>(props: T & StrictProps<T, PlasmicTrustedHost__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTrustedHost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTrustedHost__root.displayName = "PlasmicTrustedHost";
+
+type PlasmicTrustedHost__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicTrustedHost__freeBox<T extends PlasmicTrustedHost__freeBoxProps>(props: T & StrictProps<T, PlasmicTrustedHost__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicTrustedHost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicTrustedHost__freeBox.displayName = "PlasmicTrustedHost.freeBox";
+
+type PlasmicTrustedHost__deleteBtnProps = NodeComponentProps<"deleteBtn"> & {key?: React.Key};
+function PlasmicTrustedHost__deleteBtn<T extends PlasmicTrustedHost__deleteBtnProps>(props: T & StrictProps<T, PlasmicTrustedHost__deleteBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("deleteBtn", props);
+  return <PlasmicTrustedHost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"deleteBtn"} />;
+}
+PlasmicTrustedHost__deleteBtn.displayName = "PlasmicTrustedHost.deleteBtn";
+
+type PlasmicTrustedHost__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicTrustedHost__svg<T extends PlasmicTrustedHost__svgProps>(props: T & StrictProps<T, PlasmicTrustedHost__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicTrustedHost__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicTrustedHost__svg.displayName = "PlasmicTrustedHost.svg";
+
 
 export const PlasmicTrustedHost = Object.assign(
   // Top-level PlasmicTrustedHost renders the root element
-  makeNodeComponent("root"),
+  PlasmicTrustedHost__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    deleteBtn: makeNodeComponent("deleteBtn"),
-    svg: makeNodeComponent("svg"),
+    freeBox: PlasmicTrustedHost__freeBox,
+    deleteBtn: PlasmicTrustedHost__deleteBtn,
+    svg: PlasmicTrustedHost__svg,
 
     // Metadata about props expected for PlasmicTrustedHost
     internalVariantProps: PlasmicTrustedHost__VariantProps,

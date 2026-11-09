@@ -44,16 +44,16 @@ const content = (
 );
 const trigger = <button>Trigger</button>;
 
-test("Tooltip editing reveals stay out of interactive mode, and repeated native hover remains dismissible", async () => {
+test("Tooltip selection reveals remain visible during interaction, and native hover remains dismissible", async () => {
   const SessionCanvas = createSessionCanvas([registerTooltip]);
   const onOpenChange = vi.fn(), afterOpenChange = vi.fn();
-  const page = (interactive: boolean) => (
+  const page = (interactive: boolean, selected = true) => (
     <SessionCanvas interactive={interactive}>
       <ConfigProvider theme={{ token: { motion: false } }}>
         {[0, 1].map((row) => (
           <AntdTooltip key={row} title={`Full text ${row}`} mouseEnterDelay={0} mouseLeaveDelay={0}
             onOpenChange={onOpenChange} afterOpenChange={afterOpenChange}
-            __canvas={{ selected: true, slot: "title" }}>
+            __canvas={{ selected, slot: "title" }}>
             <button>{`Row ${row}`}</button>
           </AntdTooltip>
         ))}
@@ -65,9 +65,12 @@ test("Tooltip editing reveals stay out of interactive mode, and repeated native 
   await waitFor(() => expect(visible()).toHaveLength(2));
   for (const mode of [true, false, true]) {
     view.rerender(page(mode));
-    await waitFor(() => expect(visible()).toHaveLength(mode ? 0 : 2));
+    await waitFor(() => expect(visible()).toHaveLength(2));
   }
   expect(onOpenChange).not.toHaveBeenCalled();
+  expect(afterOpenChange).not.toHaveBeenCalled();
+  view.rerender(page(true, false));
+  await waitFor(() => expect(visible()).toHaveLength(0));
   expect(afterOpenChange).not.toHaveBeenCalled();
   for (const row of [0, 1, 0]) {
     const target = screen.getByRole("button", { name: `Row ${row}` });
@@ -290,7 +293,7 @@ for (const { name, Component, props, slot, triggerSlot, selector } of cases) {
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 
-  test(`${name}: interactive preview and published runtime ignore editing overrides`, async () => {
+  test(`${name}: interactive canvas reveals selection while published runtime keeps business props`, async () => {
     const notify = vi.fn();
     const element = (
       <Overlay
@@ -304,9 +307,11 @@ for (const { name, Component, props, slot, triggerSlot, selector } of cases) {
       />
     );
     const view = render(<Canvas interactive>{element}</Canvas>);
-    expect(document.querySelector(selector)).toBeFalsy();
+    await waitFor(() => expect(document.querySelector(selector)).toBeTruthy());
+    expect(notify).toHaveBeenCalled();
+    notify.mockClear();
     view.rerender(element);
-    expect(document.querySelector(selector)).toBeFalsy();
+    await waitFor(() => expect(document.querySelector(selector)).toBeFalsy());
     view.rerender(<Overlay {...props} open />);
     await waitFor(() => expect(document.querySelector(selector)).toBeTruthy());
     expect(notify).not.toHaveBeenCalled();
@@ -329,7 +334,7 @@ for (const { name, Component, props, slot, triggerSlot, selector } of cases) {
     view.rerender(element());
     await waitFor(() => expect(document.querySelector(selector)).toBeTruthy());
     view.rerender(element(true));
-    await waitFor(() => expect(document.querySelector(selector)).toBeFalsy());
+    await waitFor(() => expect(document.querySelector(selector)).toBeTruthy());
     view.rerender(element());
     await waitFor(() => expect(document.querySelector(selector)).toBeTruthy());
     session.set("root/overlay", "open", false, true);

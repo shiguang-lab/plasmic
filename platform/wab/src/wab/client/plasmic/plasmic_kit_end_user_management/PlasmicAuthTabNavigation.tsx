@@ -15,18 +15,18 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -87,11 +87,10 @@ function PlasmicAuthTabNavigation__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "selected",
@@ -100,18 +99,20 @@ function PlasmicAuthTabNavigation__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.selected,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -218,12 +219,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -233,29 +230,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicAuthTabNavigation__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicAuthTabNavigation";
-  } else {
-    func.displayName = `PlasmicAuthTabNavigation.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicAuthTabNavigation__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicAuthTabNavigation__root<T extends PlasmicAuthTabNavigation__rootProps>(props: T & StrictProps<T, PlasmicAuthTabNavigation__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicAuthTabNavigation__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicAuthTabNavigation__root.displayName = "PlasmicAuthTabNavigation";
+
+type PlasmicAuthTabNavigation__permissionsProps = NodeComponentProps<"permissions"> & {key?: React.Key};
+function PlasmicAuthTabNavigation__permissions<T extends PlasmicAuthTabNavigation__permissionsProps>(props: T & StrictProps<T, PlasmicAuthTabNavigation__permissionsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("permissions", props);
+  return <PlasmicAuthTabNavigation__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"permissions"} />;
+}
+PlasmicAuthTabNavigation__permissions.displayName = "PlasmicAuthTabNavigation.permissions";
+
+type PlasmicAuthTabNavigation__settingsProps = NodeComponentProps<"settings"> & {key?: React.Key};
+function PlasmicAuthTabNavigation__settings<T extends PlasmicAuthTabNavigation__settingsProps>(props: T & StrictProps<T, PlasmicAuthTabNavigation__settingsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("settings", props);
+  return <PlasmicAuthTabNavigation__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"settings"} />;
+}
+PlasmicAuthTabNavigation__settings.displayName = "PlasmicAuthTabNavigation.settings";
+
+type PlasmicAuthTabNavigation__activityProps = NodeComponentProps<"activity"> & {key?: React.Key};
+function PlasmicAuthTabNavigation__activity<T extends PlasmicAuthTabNavigation__activityProps>(props: T & StrictProps<T, PlasmicAuthTabNavigation__activityProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("activity", props);
+  return <PlasmicAuthTabNavigation__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"activity"} />;
+}
+PlasmicAuthTabNavigation__activity.displayName = "PlasmicAuthTabNavigation.activity";
+
 
 export const PlasmicAuthTabNavigation = Object.assign(
   // Top-level PlasmicAuthTabNavigation renders the root element
-  makeNodeComponent("root"),
+  PlasmicAuthTabNavigation__root,
   {
     // Helper components rendering sub-elements
-    permissions: makeNodeComponent("permissions"),
-    settings: makeNodeComponent("settings"),
-    activity: makeNodeComponent("activity"),
+    permissions: PlasmicAuthTabNavigation__permissions,
+    settings: PlasmicAuthTabNavigation__settings,
+    activity: PlasmicAuthTabNavigation__activity,
 
     // Metadata about props expected for PlasmicAuthTabNavigation
     internalVariantProps: PlasmicAuthTabNavigation__VariantProps,

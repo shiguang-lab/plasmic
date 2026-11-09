@@ -26,11 +26,12 @@ import {
   generateStateValueProp,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../../../../plasmic/plasmic_kit_continuous_deployment/PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "../../../../plasmic/plasmic_kit_continuous_deployment/PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 import Checkbox from "../../../widgets/Checkbox"; // plasmic-import: W-rO7NZqPjZ/component
 import MenuButton from "../../../widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
 import Select from "../../../widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
@@ -111,11 +112,10 @@ function PlasmicWebhooksItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "expanded",
@@ -142,18 +142,20 @@ function PlasmicWebhooksItem__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -199,9 +201,9 @@ function PlasmicWebhooksItem__RenderFunc(props: {
                 generateStateValueProp($state, ["checkbox", "isChecked"]) ??
                 false
               }
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, ["checkbox", "isChecked"])(
+                  generateStateOnChangeProp($stateCommands, ["checkbox", "isChecked"])(
                     eventArgs[0]
                   );
                 }).apply(null, eventArgs);
@@ -213,7 +215,7 @@ function PlasmicWebhooksItem__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
             />
 
             <Select
@@ -228,9 +230,9 @@ function PlasmicWebhooksItem__RenderFunc(props: {
                   role={"img"}
                 />
               }
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, ["method", "value"])(
+                  generateStateOnChangeProp($stateCommands, ["method", "value"])(
                     eventArgs[0]
                   );
                 }).apply(null, eventArgs);
@@ -242,7 +244,7 @@ function PlasmicWebhooksItem__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
               value={generateStateValueProp($state, ["method", "value"])}
             />
           </div>
@@ -251,9 +253,7 @@ function PlasmicWebhooksItem__RenderFunc(props: {
             data-plasmic-override={overrides.url}
             className={classNames("all", "input", "input__fpbcK", sty.url)}
             placeholder={uiT("URL…")}
-            ref={(ref) => {
-              $refs["url"] = ref;
-            }}
+            ref={registerRef("url")}
             size={1}
             type={"text"}
             value={""}
@@ -333,9 +333,7 @@ function PlasmicWebhooksItem__RenderFunc(props: {
                 }
               )}
               placeholder={uiT("Enter payload…")}
-              ref={(ref) => {
-                $refs["payload"] = ref;
-              }}
+              ref={registerRef("payload")}
               rows={5}
               value={""}
             />
@@ -384,9 +382,9 @@ function PlasmicWebhooksItem__RenderFunc(props: {
                   "isChecked",
                 ]) ?? false
               }
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, [
+                  generateStateOnChangeProp($stateCommands, [
                     "sendPlasmicDataSwitch",
                     "isChecked",
                   ])(eventArgs[0]);
@@ -399,7 +397,7 @@ function PlasmicWebhooksItem__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
             />
           </div>
         </div>
@@ -491,12 +489,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -506,38 +500,117 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicWebhooksItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicWebhooksItem";
-  } else {
-    func.displayName = `PlasmicWebhooksItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicWebhooksItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicWebhooksItem__root<T extends PlasmicWebhooksItem__rootProps>(props: T & StrictProps<T, PlasmicWebhooksItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicWebhooksItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicWebhooksItem__root.displayName = "PlasmicWebhooksItem";
+
+type PlasmicWebhooksItem__checkboxProps = NodeComponentProps<"checkbox"> & {key?: React.Key};
+function PlasmicWebhooksItem__checkbox<T extends PlasmicWebhooksItem__checkboxProps>(props: T & StrictProps<T, PlasmicWebhooksItem__checkboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("checkbox", props);
+  return <PlasmicWebhooksItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"checkbox"} />;
+}
+PlasmicWebhooksItem__checkbox.displayName = "PlasmicWebhooksItem.checkbox";
+
+type PlasmicWebhooksItem__methodProps = NodeComponentProps<"method"> & {key?: React.Key};
+function PlasmicWebhooksItem__method<T extends PlasmicWebhooksItem__methodProps>(props: T & StrictProps<T, PlasmicWebhooksItem__methodProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("method", props);
+  return <PlasmicWebhooksItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"method"} />;
+}
+PlasmicWebhooksItem__method.displayName = "PlasmicWebhooksItem.method";
+
+type PlasmicWebhooksItem__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicWebhooksItem__svg<T extends PlasmicWebhooksItem__svgProps>(props: T & StrictProps<T, PlasmicWebhooksItem__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicWebhooksItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicWebhooksItem__svg.displayName = "PlasmicWebhooksItem.svg";
+
+type PlasmicWebhooksItem__urlProps = NodeComponentProps<"url"> & {key?: React.Key};
+function PlasmicWebhooksItem__url<T extends PlasmicWebhooksItem__urlProps>(props: T & StrictProps<T, PlasmicWebhooksItem__urlProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("url", props);
+  return <PlasmicWebhooksItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"url"} />;
+}
+PlasmicWebhooksItem__url.displayName = "PlasmicWebhooksItem.url";
+
+type PlasmicWebhooksItem__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicWebhooksItem__menuButton<T extends PlasmicWebhooksItem__menuButtonProps>(props: T & StrictProps<T, PlasmicWebhooksItem__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicWebhooksItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicWebhooksItem__menuButton.displayName = "PlasmicWebhooksItem.menuButton";
+
+type PlasmicWebhooksItem__expandedContentProps = NodeComponentProps<"expandedContent"> & {key?: React.Key};
+function PlasmicWebhooksItem__expandedContent<T extends PlasmicWebhooksItem__expandedContentProps>(props: T & StrictProps<T, PlasmicWebhooksItem__expandedContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("expandedContent", props);
+  return <PlasmicWebhooksItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"expandedContent"} />;
+}
+PlasmicWebhooksItem__expandedContent.displayName = "PlasmicWebhooksItem.expandedContent";
+
+type PlasmicWebhooksItem__headerFieldProps = NodeComponentProps<"headerField"> & {key?: React.Key};
+function PlasmicWebhooksItem__headerField<T extends PlasmicWebhooksItem__headerFieldProps>(props: T & StrictProps<T, PlasmicWebhooksItem__headerFieldProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("headerField", props);
+  return <PlasmicWebhooksItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"headerField"} />;
+}
+PlasmicWebhooksItem__headerField.displayName = "PlasmicWebhooksItem.headerField";
+
+type PlasmicWebhooksItem__payloadFieldProps = NodeComponentProps<"payloadField"> & {key?: React.Key};
+function PlasmicWebhooksItem__payloadField<T extends PlasmicWebhooksItem__payloadFieldProps>(props: T & StrictProps<T, PlasmicWebhooksItem__payloadFieldProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("payloadField", props);
+  return <PlasmicWebhooksItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"payloadField"} />;
+}
+PlasmicWebhooksItem__payloadField.displayName = "PlasmicWebhooksItem.payloadField";
+
+type PlasmicWebhooksItem__payloadProps = NodeComponentProps<"payload"> & {key?: React.Key};
+function PlasmicWebhooksItem__payload<T extends PlasmicWebhooksItem__payloadProps>(props: T & StrictProps<T, PlasmicWebhooksItem__payloadProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("payload", props);
+  return <PlasmicWebhooksItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"payload"} />;
+}
+PlasmicWebhooksItem__payload.displayName = "PlasmicWebhooksItem.payload";
+
+type PlasmicWebhooksItem__sendDataFieldProps = NodeComponentProps<"sendDataField"> & {key?: React.Key};
+function PlasmicWebhooksItem__sendDataField<T extends PlasmicWebhooksItem__sendDataFieldProps>(props: T & StrictProps<T, PlasmicWebhooksItem__sendDataFieldProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sendDataField", props);
+  return <PlasmicWebhooksItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sendDataField"} />;
+}
+PlasmicWebhooksItem__sendDataField.displayName = "PlasmicWebhooksItem.sendDataField";
+
+type PlasmicWebhooksItem__sendDataInfoProps = NodeComponentProps<"sendDataInfo"> & {key?: React.Key};
+function PlasmicWebhooksItem__sendDataInfo<T extends PlasmicWebhooksItem__sendDataInfoProps>(props: T & StrictProps<T, PlasmicWebhooksItem__sendDataInfoProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sendDataInfo", props);
+  return <PlasmicWebhooksItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sendDataInfo"} />;
+}
+PlasmicWebhooksItem__sendDataInfo.displayName = "PlasmicWebhooksItem.sendDataInfo";
+
+type PlasmicWebhooksItem__sendPlasmicDataSwitchProps = NodeComponentProps<"sendPlasmicDataSwitch"> & {key?: React.Key};
+function PlasmicWebhooksItem__sendPlasmicDataSwitch<T extends PlasmicWebhooksItem__sendPlasmicDataSwitchProps>(props: T & StrictProps<T, PlasmicWebhooksItem__sendPlasmicDataSwitchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sendPlasmicDataSwitch", props);
+  return <PlasmicWebhooksItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sendPlasmicDataSwitch"} />;
+}
+PlasmicWebhooksItem__sendPlasmicDataSwitch.displayName = "PlasmicWebhooksItem.sendPlasmicDataSwitch";
+
 
 export const PlasmicWebhooksItem = Object.assign(
   // Top-level PlasmicWebhooksItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicWebhooksItem__root,
   {
     // Helper components rendering sub-elements
-    checkbox: makeNodeComponent("checkbox"),
-    method: makeNodeComponent("method"),
-    svg: makeNodeComponent("svg"),
-    url: makeNodeComponent("url"),
-    menuButton: makeNodeComponent("menuButton"),
-    expandedContent: makeNodeComponent("expandedContent"),
-    headerField: makeNodeComponent("headerField"),
-    payloadField: makeNodeComponent("payloadField"),
-    payload: makeNodeComponent("payload"),
-    sendDataField: makeNodeComponent("sendDataField"),
-    sendDataInfo: makeNodeComponent("sendDataInfo"),
-    sendPlasmicDataSwitch: makeNodeComponent("sendPlasmicDataSwitch"),
+    checkbox: PlasmicWebhooksItem__checkbox,
+    method: PlasmicWebhooksItem__method,
+    svg: PlasmicWebhooksItem__svg,
+    url: PlasmicWebhooksItem__url,
+    menuButton: PlasmicWebhooksItem__menuButton,
+    expandedContent: PlasmicWebhooksItem__expandedContent,
+    headerField: PlasmicWebhooksItem__headerField,
+    payloadField: PlasmicWebhooksItem__payloadField,
+    payload: PlasmicWebhooksItem__payload,
+    sendDataField: PlasmicWebhooksItem__sendDataField,
+    sendDataInfo: PlasmicWebhooksItem__sendDataInfo,
+    sendPlasmicDataSwitch: PlasmicWebhooksItem__sendPlasmicDataSwitch,
 
     // Metadata about props expected for PlasmicWebhooksItem
     internalVariantProps: PlasmicWebhooksItem__VariantProps,

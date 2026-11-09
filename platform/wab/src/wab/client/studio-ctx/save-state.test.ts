@@ -215,12 +215,12 @@ test("protection-only metadata installs access before DB listeners and keeps per
     api.getSiteInfo.mockResolvedValueOnce(response(true));
     await studio.refreshSiteInfo();
     expect(version).toHaveBeenCalledOnce(); stop();
-    studio.blockChanges = false;
+    studio.setBlockChanges(false);
     studio.appCtx.publishUiEnvironmentInputs();
     expect(studio.blockChanges).toBe(false);
     studio.editMode = false;
     expect(studio.blockChanges).toBe(true);
-    studio.blockChanges = false;
+    studio.setBlockChanges(false);
     api.getSiteInfo.mockResolvedValueOnce(response(false));
     await studio.refreshSiteInfo();
     expect(studio.blockChanges).toBe(false);
@@ -228,7 +228,7 @@ test("protection-only metadata installs access before DB listeners and keeps per
     expect(studio.canSave()).toBe(true);
     studio.isAtTip = false;
     expect(studio.blockChanges).toBe(true);
-    studio.blockChanges = false;
+    studio.setBlockChanges(false);
     // A new real permission input reruns its existing overwrite policy even
     // while tip remains false; canSave and block are deliberately distinct.
     api.getSiteInfo.mockResolvedValueOnce(response(false));

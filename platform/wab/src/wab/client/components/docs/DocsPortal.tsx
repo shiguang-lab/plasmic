@@ -32,10 +32,10 @@ function DocsPortal(props: DocsPortalProps) {
   React.useEffect(() => docsCtx.retainModelResources(), [docsCtx]);
 
   React.useEffect(() => {
-    studioCtx.isDocs = true;
+    studioCtx.setDocsMode(true);
     fixStudioIframePositionAndOverflow();
     return () => {
-      studioCtx.isDocs = false;
+      studioCtx.setDocsMode(false);
     };
   }, [studioCtx]);
 

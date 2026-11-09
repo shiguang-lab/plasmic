@@ -8,8 +8,8 @@ import {
 } from "@/wab/client/components/sidebar-tabs/TypographySection";
 import {
   TplExpsProvider,
-  mkStyleComponent,
-  providesStyleComponent,
+  createStyleTarget,
+  providesStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { useI18n } from "@/wab/client/i18n";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -21,104 +21,79 @@ import {
 } from "@/wab/shared/SlotUtils";
 import { $$$ } from "@/wab/shared/TplQuery";
 import { isPlainObjectPropType } from "@/wab/shared/code-components/code-components";
-import { hackyCast } from "@/wab/shared/common";
+import { ensure, hackyCast } from "@/wab/shared/common";
 import { getComponentPropTypes } from "@/wab/shared/component-props";
 import { getContextDependentValue } from "@/wab/shared/context-dependent-value";
 import { getComponentDisplayName } from "@/wab/shared/core/components";
 import { TplComponent } from "@/wab/shared/model/classes";
 import { smartHumanize } from "@/wab/shared/strs";
-import { observer } from "mobx-react";
+import { useMergedSlotInputs } from "@/wab/client/studio-ctx/merged-slot-inputs";
 import React from "react";
 
-export const MergedSlotsTextSection = observer(
-  function MergedSlotsSection(props: {
-    tpl: TplComponent;
-    viewCtx: ViewCtx;
-    tab: "settings" | "style";
-  }) {
-    const { t: studioUiT } = useI18n();
+export const MergedSlotsTextSection = React.memo(function MergedSlotsTextSection(props: {
+  tpl: TplComponent;
+  viewCtx: ViewCtx;
+  tab: "settings" | "style";
+}) {
+  const { t: studioUiT } = useI18n();
+  const { viewCtx, tpl, tab } = props;
+  const inputs = useMergedSlotInputs(viewCtx, tpl);
+  if (!inputs.active) { return null; }
+  const items = inputs.rows.filter((row) => row.text !== undefined);
 
-    const { viewCtx, tpl, tab } = props;
-  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  if (items.length === 0) {
+    return null;
+  }
 
-    const slotParams = getSlotParams(tpl.component).filter(
-      (p) => p.mergeWithParent,
-    );
-
-    if (slotParams.length === 0) {
-      return null;
-    }
-
-    return (
-      <>
-        {slotParams.map((param) => {
-          const arg = $$$(tpl).getSlotArg(param.variable.name);
-          const maybeTextTpl = getSingleTextBlockFromArg(arg);
-          if (maybeTextTpl) {
-            const textExpsProvider = new TplExpsProvider(viewCtx, maybeTextTpl);
-            const textStyleAncestorSlot = getAncestorTplSlot(
-              maybeTextTpl,
-              false,
-            );
-            const childSc = mkStyleComponent({
-              expsProvider: textExpsProvider,
-            });
-            return providesStyleComponent(childSc)(
-              tab === "settings" ? (
-                <TextOnlySection
-                  key={`${tpl.uuid}-component-text-slot-content-only`}
-                  expsProvider={textExpsProvider}
-                  viewCtx={viewCtx}
-                  title={studioUiT("{part1}: Text", {
-                    part1: String(smartHumanize(param.variable.name)),
-                  })}
-                />
-              ) : (
-                <TypographySection
-                  key={`${tpl.uuid}-component-text-slot`}
-                  title={studioUiT("{part1}: Text", {
-                    part1: String(smartHumanize(param.variable.name)),
-                  })}
-                  expsProvider={textExpsProvider as TplExpsProvider}
-                  ancestorSlot={textStyleAncestorSlot}
-                  inheritableOnly={false}
-                  viewCtx={viewCtx}
-                />
-              ),
-            );
-          }
-          return null;
-        })}
-      </>
-    );
-  },
-);
-
-export const MergedSlotsPropsSection = observer(
-  function MergedSlotsSection(props: {
-    tpl: TplComponent;
-    viewCtx: ViewCtx;
-    tab: "settings" | "style";
-  }) {
-    const { viewCtx, tpl, tab } = props;
-  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
-
-    const propTypes = getComponentPropTypes(viewCtx, tpl.component);
-    const { componentPropValues, ccContextData } =
-      useInspectorComponentEvalContext(viewCtx, tpl);
-
-    const slotParams = getSlotParams(tpl.component).filter((p) => {
-      if (!p.mergeWithParent || !(p.variable.name in propTypes)) {
-        return false;
-      }
-      const propType = propTypes[p.variable.name];
-      if (isPlainObjectPropType(propType) && "hiddenMergedProps" in propType) {
-        return !getContextDependentValue(
-          hackyCast(propType).hiddenMergedProps,
-          componentPropValues,
-          ccContextData,
-          { path: [] },
+  return (
+    <>
+      {items.map(({ key, label, text }) => {
+        const { provider: textExpsProvider, ancestorSlot: textStyleAncestorSlot } = ensure(text, "A text slot row requires its provider");
+        const childSc = createStyleTarget({ expsProvider: textExpsProvider });
+        return providesStyleTarget(childSc)(
+          tab === "settings" ? (
+            <TextOnlySection
+              key={`${key}-text-only`}
+              expsProvider={textExpsProvider}
+              viewCtx={viewCtx}
+              title={studioUiT("{part1}: Text", {
+                part1: label,
+              })}
+            />
+          ) : (
+            <TypographySection
+              key={`${key}-text`}
+              title={studioUiT("{part1}: Text", {
+                part1: label,
+              })}
+              expsProvider={textExpsProvider as TplExpsProvider}
+              ancestorSlot={textStyleAncestorSlot}
+              inheritableOnly={false}
+              viewCtx={viewCtx}
+            />
+          ),
         );
+      })}
+    </>
+  );
+});
+
+export const MergedSlotsPropsSection = React.memo(
+  function MergedSlotsSection(props: {
+    tpl: TplComponent;
+    viewCtx: ViewCtx;
+    tab: "settings" | "style";
+  }) {
+    const { viewCtx, tpl, tab } = props;
+
+    const inputs = useMergedSlotInputs(viewCtx, tpl);
+    const { componentPropValues, ccContextData } = useInspectorComponentEvalContext(viewCtx, tpl);
+    if (!inputs.active) { return null; }
+    const slotParams = inputs.rows.filter((row) => {
+      const propType = row.propType;
+      if (propType === undefined) { return false; }
+      if (isPlainObjectPropType(propType) && "hiddenMergedProps" in propType) {
+        return !getContextDependentValue(hackyCast(propType).hiddenMergedProps, componentPropValues, ccContextData, { path: [] });
       }
       return true;
     });
@@ -129,27 +104,16 @@ export const MergedSlotsPropsSection = observer(
 
     return (
       <>
-        {slotParams.map((param) => {
-          const arg = $$$(tpl).getSlotArg(param.variable.name);
-          const maybeTplComponent = getSingleTplComponentFromArg(arg);
-          if (maybeTplComponent) {
-            const childExpsProvider = new TplExpsProvider(
-              viewCtx,
-              maybeTplComponent,
-            );
-            const childSc = mkStyleComponent({
-              expsProvider: childExpsProvider,
-            });
-            return providesStyleComponent(childSc)(
+        {slotParams.map(({ key, label, component }) => {
+          if (component) {
+            const childExpsProvider = component.provider;
+            const childSc = createStyleTarget({ expsProvider: childExpsProvider });
+            return providesStyleTarget(childSc)(
               <ComponentPropsSection
-                key={`${tpl.uuid}-merged-props`}
+                key={`${key}-props`}
                 viewCtx={viewCtx}
-                tpl={maybeTplComponent}
-                customTitle={`${smartHumanize(
-                  param.variable.name,
-                )}: ${getComponentDisplayName(
-                  maybeTplComponent.component,
-                )} Props`}
+                tpl={component.tpl}
+                customTitle={`${label}: ${component.name} Props`}
                 expsProvider={childExpsProvider}
                 tab={tab}
                 includeVariants

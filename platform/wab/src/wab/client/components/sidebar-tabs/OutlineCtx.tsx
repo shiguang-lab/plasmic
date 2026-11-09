@@ -68,12 +68,10 @@ import {
 import * as Immutable from "immutable";
 import debounce from "lodash/debounce";
 import {
-  computed,
-  IObservableValue,
-  observable,
-  runInAction,
-} from "mobx";
-import { computedFn } from "mobx-utils";
+  createOutlineStateStore,
+  patchOutlineState,
+  type OutlineStateStore,
+} from "@/wab/client/components/sidebar-tabs/outline-state";
 import type { Opaque } from "type-fest";
 
 export type OutlineNodeKey = Opaque<string, "OutlineNodeKey">;
@@ -99,15 +97,24 @@ export interface OutlineNode {
 
 export class OutlineCtx {
   private frameOutlines = new Map<ArenaFrame, OutlineCtx>();
-  private expandedFrames = observable.map<ArenaFrame, boolean>();
-  private visible = observable.set<string>();
-  private expanded = observable.map<OutlineNodeKey, boolean>();
-  private _query = observable.box("");
-  private _matcher: IObservableValue<Matcher>;
+  readonly stateStore: OutlineStateStore;
 
-  private lastViewedArtboard = observable.box<
-    { arena: AnyArena; frame: ArenaFrame } | undefined
-  >(undefined, { deep: false });
+  private get expandedFrames(): ReadonlyMap<ArenaFrame, boolean> {
+    return this.stateStore.getState().expandedFrames;
+  }
+  private get visible(): ReadonlySet<string> {
+    return this.stateStore.getState().visible;
+  }
+  private get expanded(): ReadonlyMap<OutlineNodeKey, boolean> {
+    return this.stateStore.getState().expanded;
+  }
+  private get lastViewedArtboard() {
+    return {
+      get: () => this.stateStore.getState().lastViewedArtboard,
+      set: (value: { arena: AnyArena; frame: ArenaFrame } | undefined) =>
+        patchOutlineState(this.stateStore, { lastViewedArtboard: value }),
+    };
+  }
 
   viewCtx = () => {
     const arena = this.studioCtx.currentArena;
@@ -133,7 +140,16 @@ export class OutlineCtx {
       ? initial
       : undefined;
   };
-  private rootTreeForView = computedFn((view: ViewCtx, _context: ReturnType<ViewCtx["selectionStore"]["getState"]>["context"], _frames: ReturnType<ViewCtx["variantStore"]["getState"]>["frames"], _global: ReturnType<ViewCtx["variantStore"]["getState"]>["global"], _showDefaultSlots: boolean) => makeFrameRootNode(view, this));
+  // No longer memoized: the tree depends on outline expansion/visibility state,
+  // which is not part of the arguments. Callers re-render when the store version
+  // changes, and rebuilding is O(nodes).
+  private rootTreeForView = (
+    view: ViewCtx,
+    _context: ReturnType<ViewCtx["selectionStore"]["getState"]>["context"],
+    _frames: ReturnType<ViewCtx["variantStore"]["getState"]>["frames"],
+    _global: ReturnType<ViewCtx["variantStore"]["getState"]>["global"],
+    _showDefaultSlots: boolean,
+  ) => makeFrameRootNode(view, this);
   rootTreeNode = () => {
     const view = this.viewCtx();
     if (!view) { return null; }
@@ -187,9 +203,8 @@ export class OutlineCtx {
     query: string,
     private artboardFrame?: ArenaFrame,
   ) {
-    const matcher = new Matcher(query);
-    this._matcher = observable.box(matcher);
-    this._query.set(query);
+    this.stateStore = createOutlineStateStore(new Matcher(query));
+    patchOutlineState(this.stateStore, { query });
     this.fillVisibleSet();
 
     this.disposals.push(
@@ -202,11 +217,18 @@ export class OutlineCtx {
         }
       }),
       subscribeStudioArena(studioCtx, (state) => state.frames, (frames) => {
-        for (const [frame, outline] of this.frameOutlines) {
-          if (!frames.some((ref) => studioCtx.modelSnapshots.resolve(ref) === frame)) {
-            outline.dispose(); this.frameOutlines.delete(frame); this.expandedFrames.delete(frame);
-          }
+        const current = new Set(frames.map((ref) => studioCtx.modelSnapshots.resolve(ref)));
+        const departed = [...this.frameOutlines].filter(([frame]) => !current.has(frame));
+        if (!departed.length) { return; }
+        const expandedFrames = new Map(this.expandedFrames);
+        for (const [frame] of departed) {
+          this.frameOutlines.delete(frame);
+          expandedFrames.delete(frame);
         }
+        // Subscribers may synchronously read their previous arena. Publish only
+        // after the entire old roster is detached, never while iterating it.
+        try { patchOutlineState(this.stateStore, { expandedFrames }); }
+        finally { departed.forEach(([, outline]) => outline.dispose()); }
       }),
       subscribeStudioSelection(studioCtx, (state) => state.view, () => this.syncSelection()),
       subscribeFocusedViewSelection(studioCtx, (state) => state.targets[0] ?? state.tpls[0] ?? null, () => this.syncSelection()),
@@ -221,8 +243,7 @@ export class OutlineCtx {
   private lastFocusedKey: OutlineNodeKey | undefined;
   private lastFocusedPath: readonly OutlineNodeKey[] = [];
   private syncSelection() {
-    runInAction(() => {
-      const arena = this.studioCtx.currentArena;
+    const arena = this.studioCtx.currentArena;
       const view = this.studioCtx.focusedViewCtx();
       if (arena && view && getArenaFrames(arena).includes(view.arenaFrame())) {
         const previous = this.lastViewedArtboard.get();
@@ -233,15 +254,14 @@ export class OutlineCtx {
       const path = this.focusedNodeKeyPath();
       if (!arrayEq(path, this.lastFocusedPath) && path.length) {
         const frame = view?.arenaFrame();
-        if (frame) { this.expandedFrames.set(frame, true); }
-        for (const key of path) { this.expanded.set(key, true); }
+        if (frame) { this.setExpandedFrames(frame, true); }
+        for (const key of path) { this.setExpanded(key, true); }
       }
       this.lastFocusedPath = path;
       const focusedKey = path[0];
       const focusChanged = focusedKey !== this.lastFocusedKey;
       this.lastFocusedKey = focusedKey;
       if (focusChanged && this.hasQuery() && focusedKey && !this.isVisible(focusedKey)) { this.clearQuery(); }
-    });
   }
 
   dispose() {
@@ -265,7 +285,7 @@ export class OutlineCtx {
   }
 
   setFrameExpanded(frame: ArenaFrame, expanded: boolean) {
-    this.expandedFrames.set(frame, expanded);
+    this.setExpandedFrames(frame, expanded);
   }
 
   isVisible(key: OutlineNodeKey) {
@@ -303,16 +323,14 @@ export class OutlineCtx {
   }
 
   setExpanded(key: OutlineNodeKey, value: boolean) {
-    this.expanded.set(key, value);
+    this.setExpandedValue(key, value);
   }
 
   expandAll() {
-    runInAction(() => {
-      const tree = this.rootTreeNode();
+    const tree = this.rootTreeNode();
       if (tree) {
         this.expandTree(tree);
       }
-    });
   }
 
   private expandTree(tree: OutlineNode) {
@@ -321,21 +339,36 @@ export class OutlineCtx {
   }
 
   collapseAll() {
-    this.expanded.clear();
-    this.expandedFrames.clear();
+    patchOutlineState(this.stateStore, { expanded: new Map(), expandedFrames: new Map() });
     this.frameOutlines.forEach((outline) => outline.collapseAll());
   }
 
+  private setExpandedFrames(frame: ArenaFrame, value: boolean | undefined) {
+    const next = new Map(this.expandedFrames);
+    if (value === undefined) {
+      next.delete(frame);
+    } else {
+      next.set(frame, value);
+    }
+    patchOutlineState(this.stateStore, { expandedFrames: next });
+  }
+
+  private setExpandedValue(key: OutlineNodeKey, value: boolean) {
+    const next = new Map(this.expanded);
+    next.set(key, value);
+    patchOutlineState(this.stateStore, { expanded: next });
+  }
+
   get query() {
-    return this._query.get();
+    return this.stateStore.getState().query;
   }
 
   get matcher() {
-    return this._matcher.get();
+    return this.stateStore.getState().matcher;
   }
 
   setQuery(query: string) {
-    this._query.set(query);
+    patchOutlineState(this.stateStore, { query });
     this.updateVisible();
   }
 
@@ -344,10 +377,8 @@ export class OutlineCtx {
   }
 
   private updateVisible = debounce(() => {
-    runInAction(() => {
-      this._matcher.set(new Matcher(this.query));
+    patchOutlineState(this.stateStore, { matcher: new Matcher(this.query) });
       this.fillVisibleSet();
-    });
   }, 300);
 
   hasQuery() {
@@ -355,12 +386,13 @@ export class OutlineCtx {
   }
 
   refreshVariantSearch() {
-    if (this.hasQuery()) { runInAction(() => this.fillVisibleSet()); }
+    if (this.hasQuery()) { this.fillVisibleSet(); }
   }
 
   private fillVisibleSet() {
-    this.visible.clear();
+    const visible = new Set<string>();
     if (!this.hasQuery()) {
+      patchOutlineState(this.stateStore, { visible });
       return;
     }
     const matcher = this.matcher;
@@ -451,7 +483,7 @@ export class OutlineCtx {
       for (const anchor_ of [...[...(visibleAnchors as any)]]) {
         let anchor: TplComponent;
         if (anchor_ instanceof SlotSelection) {
-          this.visible.add(makeNodeKey(anchor_));
+          visible.add(makeNodeKey(anchor_));
           anchor = ensure(anchor_.tpl, "SlotSelection.tpl must exist");
         } else {
           anchor = anchor_;
@@ -461,7 +493,7 @@ export class OutlineCtx {
           // This can be short-circuited whenever we encounter an ancestor we've
           // previously visited, rather than visiting all ancestors.
           for (ancestor of [...Tpls.ancestors(anchor).reverse()]) {
-            this.visible.add(makeNodeKey(ancestor));
+            visible.add(makeNodeKey(ancestor));
             // Most of the time, children of a component are specifically arguments
             // passed to the "children" slot, but if there are other slots, we want
             // to make those visible in the outline as well.
@@ -469,7 +501,7 @@ export class OutlineCtx {
             if (slotArg != null) {
               let arg;
               ({ tpl: anchor, arg } = slotArg);
-              this.visible.add(
+              visible.add(
                 makeNodeKey(
                   new SlotSelection({
                     tpl: anchor,
@@ -491,6 +523,7 @@ export class OutlineCtx {
         }
       }
     }
+    patchOutlineState(this.stateStore, { visible });
   }
 }
 
@@ -611,34 +644,16 @@ function makeNode(
   componentFrameNum: number,
   parentKey: OutlineNodeKey | undefined,
 ): OutlineNode | undefined {
-  const effectiveVs = computed(
-    () =>
-      isTplTagOrComponent(node)
-        ? viewCtx.variantTplMgr().effectiveVariantSetting(node)
-        : undefined,
-    { name: "TreeNode.effectiveVs" },
-  );
-
+  const effectiveVs = isTplTagOrComponent(node)
+    ? viewCtx.variantTplMgr().effectiveVariantSetting(node)
+    : undefined;
   const visibility = getTreeNodeVisibility(viewCtx, node);
-  const isHidden = computed(
-    () => {
-      const visibilityDataCond = effectiveVs.get()?.dataCond;
-      return isVisibilityHidden(
-        visibility,
-        visibilityDataCond,
-        () =>
-          isKnownTplNode(node) ? viewCtx.getCanvasEnvForTpl(node) : undefined,
-        {
-          projectFlags: viewCtx.projectFlags(),
-          component: ownerTplComponent.component,
-          inStudio: true,
-        },
-      );
-    },
-    {
-      name: "TreeNode.isHidden",
-    },
-  ).get();
+  const isHidden = isVisibilityHidden(
+    visibility,
+    effectiveVs?.dataCond,
+    () => isKnownTplNode(node) ? viewCtx.getCanvasEnvForTpl(node) : undefined,
+    { projectFlags: viewCtx.projectFlags(), component: ownerTplComponent.component, inStudio: true },
+  );
 
   const { children, childrenFrameNum } = getTreeNodeChildren(
     viewCtx,
@@ -732,8 +747,7 @@ export function getTreeNodeVisibility(
 /**
  * Returns children tree nodes and the children ComponentFrame to use.
  */
-const getTreeNodeChildren = computedFn(
-  function _getTreeNodeChildren(
+function getTreeNodeChildren(
     viewCtx: ViewCtx,
     item: TplNode | SlotSelection,
     componentFrameNum: number,
@@ -898,18 +912,12 @@ const getTreeNodeChildren = computedFn(
         };
       })
       .result();
-  },
-  { name: "getTreeNodeChildren()" },
-);
+}
 
 export const _testOnlyUtils = { getTreeNodeChildren };
 
-const getCachedSlotParams = computedFn(
-  function getCachedSlotParams(component: Component) {
-    return getSlotParams(component);
-  },
-  {
-    name: "getCachedSlotParams",
-    keepAlive: true,
-  },
-);
+function getCachedSlotParams(component: Component) {
+  // No MobX cache: `getSlotParams` is a cheap read and the outline re-renders
+  // when the component revision changes.
+  return getSlotParams(component);
+}

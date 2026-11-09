@@ -1,3 +1,4 @@
+import { useNavigationCatalogInputs, type NavigationArenaInput } from "@/wab/client/components/sidebar-tabs/ProjectPanel/navigation-catalog-inputs";
 import { useShallow } from "zustand/react/shallow";
 import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import { RenameArenaProps } from "@/wab/client/commands/arena/renameArena";
@@ -8,6 +9,7 @@ import {
   VirtualTreeHandle,
   getFolderKeyChanges,
   useTreeData,
+  TreeExpansion,
 } from "@/wab/client/components/grouping/VirtualTree";
 import { promptDeleteFolder } from "@/wab/client/components/modals/folderDeletionModal";
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
@@ -123,8 +125,6 @@ import { TableSchema } from "@plasmicapp/data-sources";
 import { executePlasmicDataOp } from "@plasmicapp/react-web/lib/data-sources";
 import { Button as AntdButton, Menu } from "antd";
 import { debounce } from "lodash";
-import { observer } from "mobx-react";
-import { computedFn } from "mobx-utils";
 import { ok } from "neverthrow";
 import React from "react";
 import { useStore } from "zustand";
@@ -138,28 +138,8 @@ import {
   FiSearch,
 } from "react-icons/fi";
 
-function mapToArenaData(arena: AnyArena): ArenaData {
-  return switchType(arena)
-    .when(Arena, (i) => ({
-      type: "custom" as const,
-      key: `${i.name}-${i.uid}`,
-      arena: i,
-    }))
-    .when(PageArena, (i) => ({
-      type: "page" as const,
-      key: i.component.uuid,
-      arena: i,
-    }))
-    .when(ComponentArena, (i) => ({
-      type: "component" as const,
-      key: i.component.uuid,
-      arena: i,
-    }))
-    .result();
-}
-
 interface ArenaToPanelRowProps {
-  item: AnyArena | InternalFolder<AnyArena>;
+  item: NavigationArenaInput | InternalFolder<NavigationArenaInput>;
   sectionType: ArenaType;
   actions: ArenaFolderActions;
 }
@@ -170,7 +150,7 @@ export function mapToArenaPanelRow({
   actions,
 }: ArenaToPanelRowProps): ArenaPanelRow {
   if (!isFolder(item)) {
-    return mapToArenaData(item);
+    return item;
   }
   const type = "folder-element" as const;
 
@@ -233,7 +213,7 @@ function DataSourceTablePickerWrapper({
       return;
     }
     onSubmit([ensureLookupSpecFromDraft(draft), table]);
-  }, [source, sourceSchemaData, draft]);
+  }, [sourceSchemaData, draft, onSubmit]);
 
   return (
     <div className="flex flex-col gap-xlg">
@@ -290,9 +270,7 @@ interface NavigationDropdownProps {
   onClose: () => void;
 }
 
-export const NavigationDropdown = observer(
-  React.forwardRef(NavigationDropdown_),
-);
+export const NavigationDropdown = React.memo(React.forwardRef(NavigationDropdown_));
 
 function isArenaRow(
   row: ArenaPanelRow,
@@ -309,7 +287,8 @@ function NavigationDropdown_(
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const navigationPanel = useStore(studioCtx.navigationPanelStore);
-  const contentEditorMode = studioCtx.contentEditorMode;
+  const contentEditorMode = useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
+  const catalog = useNavigationCatalogInputs(studioCtx, contentEditorMode);
   const { styles: panelStyles } = useStructurePanelStyles();
   const [searchVisible, setSearchVisible] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState("");
@@ -329,14 +308,24 @@ function NavigationDropdown_(
       : FiColumns;
 
   const treeRef = React.useRef<VirtualTreeHandle>(null);
-  const searchInputRef = studioCtx.projectSearchInputRef;
   const [debouncedQuery, setDebouncedQuery] = React.useState("");
-  const debouncedSetQuery = React.useCallback(
-    debounce((value: string) => {
+  const debouncedSetQuery = React.useMemo(
+    () => debounce((value: string) => {
       setDebouncedQuery(value);
     }, 500),
     [setDebouncedQuery],
   );
+
+  const navigateToArena = React.useCallback(
+    async (arena: AnyArena) => {
+      onClose();
+      await COMMANDS.navigation.switchArena.execute(studioCtx, { arena }, {});
+    },
+    [onClose, studioCtx],
+  );
+
+  const [expansion] = React.useState(() => new TreeExpansion(["$custom-folder", "$page-folder"]));
+  const { renameGroup } = expansion;
 
   const getRowKey = React.useCallback((row: ArenaPanelRow) => {
     return row.key;
@@ -345,7 +334,7 @@ function NavigationDropdown_(
     if (isArenaRow(row)) {
       await navigateToArena(row.arena);
     }
-  }, []);
+  }, [navigateToArena]);
   const getRowChildren = React.useCallback((row: ArenaPanelRow) => {
     if ("items" in row) {
       return row.items;
@@ -358,11 +347,11 @@ function NavigationDropdown_(
       case "folder-element":
         return typeof row.name === "string" ? row.name : row.key;
       case "custom":
-        return row.arena.name;
+        return row.name;
       case "page":
-        return `${row.arena.component.name}-${row.arena.component.pageMeta?.path}`;
+        return `${row.name}-${row.pathName}`;
       case "component":
-        return row.arena.component.name;
+        return row.name;
       default:
         unreachable(row);
     }
@@ -377,13 +366,6 @@ function NavigationDropdown_(
     return { onClose };
   }, [onClose]);
 
-  const navigateToArena = React.useCallback(
-    async (arena: AnyArena) => {
-      onClose();
-      await COMMANDS.navigation.switchArena.execute(studioCtx, { arena }, {});
-    },
-    [onClose, studioCtx],
-  );
 
   const onAddArena = async (arenaType: ArenaType, folderName?: string) => {
     onExpandedChange(true);
@@ -721,7 +703,7 @@ function NavigationDropdown_(
         renameGroup(keyChanges);
       }
     },
-    [studioCtx],
+    [studioCtx, renameGroup],
   );
 
   const actions: ArenaFolderActions = React.useMemo(
@@ -732,7 +714,7 @@ function NavigationDropdown_(
     }),
     [onAddArena, onDeleteFolder, onFolderRenamed],
   );
-  const items = buildItems(studioCtx, actions);
+  const items = React.useMemo(() => buildItems(actions, catalog), [actions, catalog]);
 
   const {
     nodeData,
@@ -741,7 +723,6 @@ function NavigationDropdown_(
     expandAll,
     collapseAll,
     expandTo,
-    renameGroup,
     selectNextRow,
   } = useTreeData<ArenaPanelRow>({
     nodes: items,
@@ -753,16 +734,17 @@ function NavigationDropdown_(
     getNodeHeight: getRowHeight,
     nodeAction: rowAction,
     isNodeSelectable: (row) => isArenaType(row.type),
-    defaultOpenKeys: ["$custom-folder", "$page-folder"],
+    expansion,
   });
 
   const revealedArena = React.useRef<AnyArena | null>(undefined);
   React.useEffect(() => {
     if (currentArena && currentArena !== revealedArena.current) {
-      expandTo(mapToArenaData(currentArena).key);
+      const row = [...catalog.mixed, ...catalog.pages, ...catalog.components].find((entry) => entry.arena === currentArena);
+      if (row) { expandTo(row.key); }
     }
     revealedArena.current = currentArena;
-  }, [currentArena, expandTo]);
+  }, [currentArena, expandTo, catalog]);
 
   const selectedIndex = nodeData.treeData.selectedIndex;
   const selectedKey =
@@ -778,9 +760,9 @@ function NavigationDropdown_(
   React.useEffect(() => () => debouncedSetQuery.cancel(), [debouncedSetQuery]);
   React.useEffect(() => {
     if (showSearch) {
-      searchInputRef.current?.focus();
+      studioCtx.focusOnProjectSearchInput();
     }
-  }, [showSearch]);
+  }, [showSearch, studioCtx]);
 
   return (
     <div
@@ -881,7 +863,7 @@ function NavigationDropdown_(
       >
         <FiSearch size={14} />
         <input
-          ref={studioCtx.bindProjectSearchInput}
+          ref={(node) => studioCtx.bindProjectSearchInput(node)}
           value={searchValue}
           aria-label={uiT("Go to page/component")}
           placeholder={uiT("Search…")}
@@ -956,16 +938,15 @@ function NavigationDropdown_(
   );
 }
 
-const buildItems = computedFn(
-  (studioCtx: StudioCtx, actions: ArenaFolderActions) => {
+function buildItems(actions: ArenaFolderActions, catalog: { mixed: readonly NavigationArenaInput[]; pages: readonly NavigationArenaInput[]; components: readonly NavigationArenaInput[] }) {
     const getSection = (
       title: React.ReactNode,
       arenaSection: ArenaType,
-      items: AnyArena[],
+      items: readonly NavigationArenaInput[],
     ): ArenaPanelRow => {
-      const tree = createFolderTreeStructure(items, {
+      const tree = createFolderTreeStructure([...items], {
         pathPrefix: arenaSection,
-        getName: (item) => getFolderTrimmed(getArenaName(item)),
+        getName: (item) => getFolderTrimmed(item.name),
         mapper: (item) =>
           mapToArenaPanelRow({ item, sectionType: arenaSection, actions }),
       });
@@ -985,22 +966,21 @@ const buildItems = computedFn(
           <UiText message={"Arenas"} />
         </LabelWithDetailedTooltip>,
         "custom",
-        studioCtx.getSortedMixedArenas(),
+        catalog.mixed,
       ),
       getSection(
         <UiText message={"Pages"} />,
         "page",
-        studioCtx.getSortedPageArenas(),
+        catalog.pages,
       ),
       getSection(
         <UiText message={"Components"} />,
         "component",
-        studioCtx.getSortedComponentArenas(),
+        catalog.components,
       ),
     ]);
     return items;
-  },
-);
+}
 
 function ArenaTreeRow(props: RenderElementProps<ArenaPanelRow>) {
   const { value, treeState } = props;
@@ -1032,6 +1012,9 @@ function ArenaTreeRow(props: RenderElementProps<ArenaPanelRow>) {
       return (
         <NavigationArenaRow
           arena={value.arena}
+          name={value.name}
+          pathName={value.pathName}
+          componentId={value.componentId}
           matcher={treeState.matcher}
           indentMultiplier={treeState.level}
           isSelected={treeState.isSelected}

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,13 +25,13 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import * as pp from "@plasmicapp/react-web";
+import * as Plume from "@plasmicapp/react-web";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -90,7 +90,7 @@ export type PlasmicStyleCheckbox__OverridesType = {
   labelContainer?: Flex__<"div">;
 };
 
-export interface DefaultStyleCheckboxProps extends pp.CheckboxProps {
+export interface DefaultStyleCheckboxProps extends Plume.CheckboxProps {
   "aria-label"?: string;
   "aria-labelledby"?: string;
   onChange?: (isChecked: boolean) => void;
@@ -123,11 +123,10 @@ function PlasmicStyleCheckbox__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "noLabel",
@@ -164,18 +163,20 @@ function PlasmicStyleCheckbox__RenderFunc(props: {
           $props.valueSetState,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -311,9 +312,9 @@ function PlasmicStyleCheckbox__RenderFunc(props: {
   ) as React.ReactElement | null;
 }
 
-function useBehavior<P extends pp.CheckboxProps>(
+function useBehavior<P extends Plume.CheckboxProps>(
   props: P,
-  ref: pp.CheckboxRef
+  ref: Plume.CheckboxRef
 ) {
   if (!("children" in props)) {
     props = {
@@ -322,7 +323,7 @@ function useBehavior<P extends pp.CheckboxProps>(
     };
   }
 
-  return pp.useCheckbox<P, typeof PlasmicStyleCheckbox>(
+  return Plume.useCheckbox<P, typeof PlasmicStyleCheckbox>(
     PlasmicStyleCheckbox,
     props,
     {
@@ -380,12 +381,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -395,28 +392,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicStyleCheckbox__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicStyleCheckbox";
-  } else {
-    func.displayName = `PlasmicStyleCheckbox.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicStyleCheckbox__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicStyleCheckbox__root<T extends PlasmicStyleCheckbox__rootProps>(props: T & StrictProps<T, PlasmicStyleCheckbox__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicStyleCheckbox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicStyleCheckbox__root.displayName = "PlasmicStyleCheckbox";
+
+type PlasmicStyleCheckbox__checkboxProps = NodeComponentProps<"checkbox"> & {key?: React.Key};
+function PlasmicStyleCheckbox__checkbox<T extends PlasmicStyleCheckbox__checkboxProps>(props: T & StrictProps<T, PlasmicStyleCheckbox__checkboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("checkbox", props);
+  return <PlasmicStyleCheckbox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"checkbox"} />;
+}
+PlasmicStyleCheckbox__checkbox.displayName = "PlasmicStyleCheckbox.checkbox";
+
+type PlasmicStyleCheckbox__labelContainerProps = NodeComponentProps<"labelContainer"> & {key?: React.Key};
+function PlasmicStyleCheckbox__labelContainer<T extends PlasmicStyleCheckbox__labelContainerProps>(props: T & StrictProps<T, PlasmicStyleCheckbox__labelContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelContainer", props);
+  return <PlasmicStyleCheckbox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelContainer"} />;
+}
+PlasmicStyleCheckbox__labelContainer.displayName = "PlasmicStyleCheckbox.labelContainer";
+
 
 export const PlasmicStyleCheckbox = Object.assign(
   // Top-level PlasmicStyleCheckbox renders the root element
-  makeNodeComponent("root"),
+  PlasmicStyleCheckbox__root,
   {
     // Helper components rendering sub-elements
-    checkbox: makeNodeComponent("checkbox"),
-    labelContainer: makeNodeComponent("labelContainer"),
+    checkbox: PlasmicStyleCheckbox__checkbox,
+    labelContainer: PlasmicStyleCheckbox__labelContainer,
 
     // Metadata about props expected for PlasmicStyleCheckbox
     internalVariantProps: PlasmicStyleCheckbox__VariantProps,

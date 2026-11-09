@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -26,8 +26,8 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import CmsListItem from "../../components/CmsListItem"; // plasmic-import: DEllwXrn27Q/component
 import CmsSection from "../../components/CmsSection"; // plasmic-import: 54ykx6A8G6T/component
 import DefaultLayout from "../../components/dashboard/DefaultLayout"; // plasmic-import: nSkQWLjK-B/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -113,13 +113,12 @@ function PlasmicCmsPage__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <React.Fragment>
@@ -244,12 +243,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -259,29 +254,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCmsPage__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCmsPage";
-  } else {
-    func.displayName = `PlasmicCmsPage.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCmsPage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCmsPage__root<T extends PlasmicCmsPage__rootProps>(props: T & StrictProps<T, PlasmicCmsPage__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCmsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCmsPage__root.displayName = "PlasmicCmsPage";
+
+type PlasmicCmsPage__defaultLayoutProps = NodeComponentProps<"defaultLayout"> & {key?: React.Key};
+function PlasmicCmsPage__defaultLayout<T extends PlasmicCmsPage__defaultLayoutProps>(props: T & StrictProps<T, PlasmicCmsPage__defaultLayoutProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("defaultLayout", props);
+  return <PlasmicCmsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"defaultLayout"} />;
+}
+PlasmicCmsPage__defaultLayout.displayName = "PlasmicCmsPage.defaultLayout";
+
+type PlasmicCmsPage__cmsSectionProps = NodeComponentProps<"cmsSection"> & {key?: React.Key};
+function PlasmicCmsPage__cmsSection<T extends PlasmicCmsPage__cmsSectionProps>(props: T & StrictProps<T, PlasmicCmsPage__cmsSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cmsSection", props);
+  return <PlasmicCmsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cmsSection"} />;
+}
+PlasmicCmsPage__cmsSection.displayName = "PlasmicCmsPage.cmsSection";
+
+type PlasmicCmsPage__noProjectsTextProps = NodeComponentProps<"noProjectsText"> & {key?: React.Key};
+function PlasmicCmsPage__noProjectsText<T extends PlasmicCmsPage__noProjectsTextProps>(props: T & StrictProps<T, PlasmicCmsPage__noProjectsTextProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("noProjectsText", props);
+  return <PlasmicCmsPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"noProjectsText"} />;
+}
+PlasmicCmsPage__noProjectsText.displayName = "PlasmicCmsPage.noProjectsText";
+
 
 export const PlasmicCmsPage = Object.assign(
   // Top-level PlasmicCmsPage renders the root element
-  makeNodeComponent("root"),
+  PlasmicCmsPage__root,
   {
     // Helper components rendering sub-elements
-    defaultLayout: makeNodeComponent("defaultLayout"),
-    cmsSection: makeNodeComponent("cmsSection"),
-    noProjectsText: makeNodeComponent("noProjectsText"),
+    defaultLayout: PlasmicCmsPage__defaultLayout,
+    cmsSection: PlasmicCmsPage__cmsSection,
+    noProjectsText: PlasmicCmsPage__noProjectsText,
 
     // Metadata about props expected for PlasmicCmsPage
     internalVariantProps: PlasmicCmsPage__VariantProps,

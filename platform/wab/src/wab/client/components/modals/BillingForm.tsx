@@ -139,12 +139,12 @@ export default function UpsellForm(
     }
 
     setWaiting(true);
-    try {
+    return await (async () => {
       const { meta } = await appCtx.api.getTeamMeta(target.team.id);
       setTeamMeta(meta);
-    } finally {
+    })().finally(() => {
       setWaiting(false);
-    }
+    });
   }, [teamMeta, target]);
 
   // true if team is on a valid active subscription already
@@ -214,7 +214,7 @@ export default function UpsellForm(
       return;
     }
     setWaiting(true);
-    try {
+    return await (async () => {
       const ensureTier = ensure(tier, "You must first select a tier");
 
       assert(
@@ -287,11 +287,11 @@ export default function UpsellForm(
         team,
         tier: ensureTier,
       });
-    } catch (error) {
+    })().catch((error) => {
       showError(error, { title: "Failed to update billing" });
-    } finally {
+    }).finally(() => {
       setWaiting(false);
-    }
+    });
   };
 
   const canUpdateBilling = canIEditTeam(appCtx, team);

@@ -1,3 +1,4 @@
+import { AppContext } from "@/wab/client/components/top-view";
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import ThemeLayoutPanel from "@/wab/client/components/sidebar/ThemeLayoutPanel";
@@ -23,7 +24,7 @@ async function setup() {
   theme.layout = new ThemeLayoutSettings({ rs }); theme.addItemPrefs[AddItemKey.box] = new RuleSet({ values: { width: "123px" }, mixins: [], animations: null });
   const second = cloneTheme(theme); ensure(second.layout, "Second layout").rs.values[CONTENT_LAYOUT_STANDARD_WIDTH_PROP] = "1101px"; ensure(second.addItemPrefs[AddItemKey.box], "Second box").values.width = "456px"; site.themes.push(second);
   const f = fakeStudioCtx({ site }); studios.add(f.studioCtx); await waitFor(() => expect(f.studioCtx.initialRouteReady).toBe(true));
-  return { ...f, studio: f.studioCtx, site, theme, second, rs, wrap: (children: React.ReactNode) => <StudioCtxContext.Provider value={f.studioCtx}>{children}</StudioCtxContext.Provider> };
+  return { ...f, studio: f.studioCtx, site, theme, second, rs, wrap: (children: React.ReactNode) => <AppContext.Provider value={f.studioCtx.app}><StudioCtxContext.Provider value={f.studioCtx}>{children}</StudioCtxContext.Provider></AppContext.Provider> };
 }
 function dimension(container: HTMLElement, value: string) { return ensure([...container.querySelectorAll<HTMLInputElement>("input")].find((input) => input.value === value), `Real dimension ${value}`); }
 

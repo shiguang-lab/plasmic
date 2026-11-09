@@ -210,7 +210,7 @@ import {
   parseExpr,
 } from "@/wab/shared/eval/expression-parser";
 import { Pt, Rect, findSpaceForRectSweepRight } from "@/wab/shared/geom";
-import { ensureComponentsObserved } from "@/wab/shared/mobx-util";
+import { ensureComponentsRecorded } from "@/wab/shared/core/component-recording";
 import { instUtil } from "@/wab/shared/model/InstUtil";
 import {
   Animation,
@@ -1523,7 +1523,7 @@ export class TplMgr {
       this.ensureDedicatedArena(comp, originalComp, originalComponentSite);
     }
 
-    ensureComponentsObserved([component, ...getSubComponents(component)]);
+    ensureComponentsRecorded([component, ...getSubComponents(component)]);
 
     if (isContextCodeComponent(component)) {
       this.attachGlobalContext(component);

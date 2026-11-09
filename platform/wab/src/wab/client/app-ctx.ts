@@ -60,7 +60,7 @@ export class NonAuthCtx {
   };
   readonly lastBundleVersion: string;
 
-  constructor(args: NonAuthCtx) {
+  constructor(args: Omit<NonAuthCtx, "attachApp">) {
     Object.assign(
       this,
       L.pick(
@@ -78,6 +78,10 @@ export class NonAuthCtx {
       ),
     );
   }
+
+  attachApp(app: App) {
+    this.app = app;
+  }
 }
 
 export const NonAuthCtxContext = React.createContext<NonAuthCtx | undefined>(
@@ -86,44 +90,6 @@ export const NonAuthCtxContext = React.createContext<NonAuthCtx | undefined>(
 
 export const useNonAuthCtx = () =>
   ensure(useContext(NonAuthCtxContext), "No NonAuthCtxContext provided");
-
-export interface NonAuthComponentProps {
-  nonAuthCtx: NonAuthCtx;
-}
-
-export abstract class NonAuthComponentBase<
-  P = {},
-  S = {},
-> extends React.Component<P, S> {
-  abstract nonAuthCtx(): NonAuthCtx;
-  api() {
-    return this.nonAuthCtx().api;
-  }
-  app() {
-    return this.nonAuthCtx().app;
-  }
-  router() {
-    return this.nonAuthCtx().router;
-  }
-  change(f) {
-    return this.nonAuthCtx().change(f);
-  }
-  routeTo(u) {
-    return this.router().routeTo(u);
-  }
-  bundler() {
-    return this.nonAuthCtx().bundler;
-  }
-}
-
-export class NonAuthComponent<
-  P extends NonAuthComponentProps = NonAuthComponentProps,
-  S = {},
-> extends NonAuthComponentBase<P, S> {
-  nonAuthCtx() {
-    return this.props.nonAuthCtx;
-  }
-}
 
 interface SelfInfo extends ApiUser {
   isObserver?: boolean;
@@ -178,6 +144,12 @@ export class AppCtx {
   appConfigOverrides: Partial<typeof DEVFLAGS>;
 
   initialProjectInfo?: ProjectStartupInfo;
+  takeInitialProjectInfo() {
+    const value = this.initialProjectInfo;
+    this.initialProjectInfo = undefined;
+    return value;
+  }
+
   initialProjectModel?: {
     projectId: string;
     branchId?: import("@/wab/shared/ApiSchema").BranchId;
@@ -270,86 +242,43 @@ export class AppCtx {
   }
 }
 
-interface AppComponentProps {
-  appCtx: AppCtx;
-  children?: React.ReactNode;
-}
-
-export class AppComponent<
-  P extends AppComponentProps = AppComponentProps,
-  S = {},
-> extends React.Component<P, S> {
-  appCtx() {
-    return this.props.appCtx;
-  }
-  api() {
-    return this.appCtx().api;
-  }
-  app() {
-    return this.appCtx().app;
-  }
-  bundler() {
-    return this.appCtx().bundler;
-  }
-  router() {
-    return this.appCtx().router;
-  }
-  change(f) {
-    return this.appCtx().change(f);
-  }
-  routeTo(u) {
-    return this.router().routeTo(u);
-  }
-  async logout() {
-    await this.appCtx().logout();
-  }
-  selfInfo() {
-    return this.appCtx().selfInfo;
-  }
-  reloadAll() {
-    return this.appCtx().reloadAll();
-  }
-  ops() {
-    return ensure(this.appCtx().ops, "appCtx has no ops");
-  }
-}
-
-export class AppOps extends AppComponent {
+export class AppOps {
+  constructor(private readonly context: AppCtx) {}
   async renameSite(siteId: string, name: string) {
     // Lazy since PricingModal reaches the whole pricing UI, and this the only use in app-ctx.
     const { maybeShowPaywall } =
       await import("@/wab/client/components/modals/PricingModal");
     await maybeShowPaywall(
-      this.appCtx(),
-      async () => await this.api().setSiteInfo(siteId, { name }),
+      this.context,
+      async () => await this.context.api.setSiteInfo(siteId, { name }),
     );
-    await this.reloadAll();
+    await this.context.reloadAll();
   }
   async deleteSite(siteId: string) {
-    await this.api().deleteSite(siteId);
-    await this.reloadAll();
+    await this.context.api.deleteSite(siteId);
+    await this.context.reloadAll();
     void message.success({
       content: translate(getUiLocale(), "Project deleted"),
     });
   }
   async createPersonalApiToken() {
-    const token = await this.api().createPersonalApiToken();
-    this.appCtx().setPersonalApiTokens(null);
+    const token = await this.context.api.createPersonalApiToken();
+    this.context.setPersonalApiTokens(null);
     return token;
   }
   async revokePersonalApiToken(token: string) {
-    await this.api().revokePersonalApiToken(token);
-    this.appCtx().setPersonalApiTokens(null);
+    await this.context.api.revokePersonalApiToken(token);
+    this.context.setPersonalApiTokens(null);
     return token;
   }
   async emitPersonalApiToken(initToken: string) {
-    const token = await this.api().emitPersonalApiToken(initToken);
-    this.appCtx().setPersonalApiTokens(null);
+    const token = await this.context.api.emitPersonalApiToken(initToken);
+    this.context.setPersonalApiTokens(null);
     return token;
   }
   private lastDownloadUrl: string | null = null;
   async download(projectId: string, opts?: { dontMigrateProject?: boolean }) {
-    const { project, rev, depPkgs } = await this.api().getSiteInfo(projectId, {
+    const { project, rev, depPkgs } = await this.context.api.getSiteInfo(projectId, {
       revisionNum: DEVFLAGS.revisionNum ? DEVFLAGS.revisionNum : undefined,
       dontMigrateProject: !!opts?.dontMigrateProject,
     });
@@ -385,7 +314,7 @@ export class AppOps extends AppComponent {
   }
 
   async downloadFullProjectData(projectId: string, branchIds: string[]) {
-    const data = await this.api().getFullProjectData(projectId, branchIds);
+    const data = await this.context.api.getFullProjectData(projectId, branchIds);
 
     const $link = $(".hidden-file-download");
     const blob = new Blob([JSON.stringify(data)], {
@@ -409,7 +338,7 @@ export class AppOps extends AppComponent {
   }
 
   async exportPlasmicFile(projectId: string, suggestedName?: string) {
-    const { project, rev, depPkgs } = await this.api().getSiteInfo(projectId, {
+    const { project, rev, depPkgs } = await this.context.api.getSiteInfo(projectId, {
       revisionNum: DEVFLAGS.revisionNum ? DEVFLAGS.revisionNum : undefined,
     });
     const projectName = suggestedName || project.name || "project";
@@ -439,7 +368,7 @@ export class AppOps extends AppComponent {
     data: string,
     opts?: { projectName?: string; workspaceId?: WorkspaceId },
   ) {
-    return await this.api().importProject(data, opts);
+    return await this.context.api.importProject(data, opts);
   }
 }
 
@@ -645,6 +574,6 @@ export async function loadAppCtx(
   });
   nonAuthCtx.initialProjectInfo = undefined;
   nonAuthCtx.initialProjectModel = undefined;
-  appCtx.ops = new AppOps({ appCtx });
+  appCtx.ops = new AppOps(appCtx);
   return appCtx;
 }

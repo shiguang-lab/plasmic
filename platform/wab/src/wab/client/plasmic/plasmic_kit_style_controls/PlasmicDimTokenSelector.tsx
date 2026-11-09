@@ -24,13 +24,14 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Chip from "../../components/widgets/Chip"; // plasmic-import: jW885tExwE/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -129,11 +130,10 @@ function PlasmicDimTokenSelector__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "disabled",
@@ -175,18 +175,20 @@ function PlasmicDimTokenSelector__RenderFunc(props: {
           $props.valueSetState,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -322,9 +324,7 @@ function PlasmicDimTokenSelector__RenderFunc(props: {
           ),
         })}
         placeholder={args.placeholder}
-        ref={(ref) => {
-          $refs["textbox"] = ref;
-        }}
+        ref={registerRef("textbox")}
         size={1}
         type={"text"}
         value={args.value}
@@ -446,12 +446,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -461,30 +457,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDimTokenSelector__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDimTokenSelector";
-  } else {
-    func.displayName = `PlasmicDimTokenSelector.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDimTokenSelector__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDimTokenSelector__root<T extends PlasmicDimTokenSelector__rootProps>(props: T & StrictProps<T, PlasmicDimTokenSelector__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDimTokenSelector__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDimTokenSelector__root.displayName = "PlasmicDimTokenSelector";
+
+type PlasmicDimTokenSelector__existingTokensContainerProps = NodeComponentProps<"existingTokensContainer"> & {key?: React.Key};
+function PlasmicDimTokenSelector__existingTokensContainer<T extends PlasmicDimTokenSelector__existingTokensContainerProps>(props: T & StrictProps<T, PlasmicDimTokenSelector__existingTokensContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("existingTokensContainer", props);
+  return <PlasmicDimTokenSelector__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"existingTokensContainer"} />;
+}
+PlasmicDimTokenSelector__existingTokensContainer.displayName = "PlasmicDimTokenSelector.existingTokensContainer";
+
+type PlasmicDimTokenSelector__textboxProps = NodeComponentProps<"textbox"> & {key?: React.Key};
+function PlasmicDimTokenSelector__textbox<T extends PlasmicDimTokenSelector__textboxProps>(props: T & StrictProps<T, PlasmicDimTokenSelector__textboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("textbox", props);
+  return <PlasmicDimTokenSelector__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"textbox"} />;
+}
+PlasmicDimTokenSelector__textbox.displayName = "PlasmicDimTokenSelector.textbox";
+
+type PlasmicDimTokenSelector__suffixContainerProps = NodeComponentProps<"suffixContainer"> & {key?: React.Key};
+function PlasmicDimTokenSelector__suffixContainer<T extends PlasmicDimTokenSelector__suffixContainerProps>(props: T & StrictProps<T, PlasmicDimTokenSelector__suffixContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("suffixContainer", props);
+  return <PlasmicDimTokenSelector__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"suffixContainer"} />;
+}
+PlasmicDimTokenSelector__suffixContainer.displayName = "PlasmicDimTokenSelector.suffixContainer";
+
+type PlasmicDimTokenSelector__dropdownToggleProps = NodeComponentProps<"dropdownToggle"> & {key?: React.Key};
+function PlasmicDimTokenSelector__dropdownToggle<T extends PlasmicDimTokenSelector__dropdownToggleProps>(props: T & StrictProps<T, PlasmicDimTokenSelector__dropdownToggleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dropdownToggle", props);
+  return <PlasmicDimTokenSelector__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dropdownToggle"} />;
+}
+PlasmicDimTokenSelector__dropdownToggle.displayName = "PlasmicDimTokenSelector.dropdownToggle";
+
 
 export const PlasmicDimTokenSelector = Object.assign(
   // Top-level PlasmicDimTokenSelector renders the root element
-  makeNodeComponent("root"),
+  PlasmicDimTokenSelector__root,
   {
     // Helper components rendering sub-elements
-    existingTokensContainer: makeNodeComponent("existingTokensContainer"),
-    textbox: makeNodeComponent("textbox"),
-    suffixContainer: makeNodeComponent("suffixContainer"),
-    dropdownToggle: makeNodeComponent("dropdownToggle"),
+    existingTokensContainer: PlasmicDimTokenSelector__existingTokensContainer,
+    textbox: PlasmicDimTokenSelector__textbox,
+    suffixContainer: PlasmicDimTokenSelector__suffixContainer,
+    dropdownToggle: PlasmicDimTokenSelector__dropdownToggle,
 
     // Metadata about props expected for PlasmicDimTokenSelector
     internalVariantProps: PlasmicDimTokenSelector__VariantProps,

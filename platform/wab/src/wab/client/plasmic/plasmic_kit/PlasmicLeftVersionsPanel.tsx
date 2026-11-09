@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
@@ -24,7 +24,7 @@ import {
   createPlasmicElementProxy,
   deriveRenderOpts,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -33,7 +33,7 @@ import VersionsListItem from "../../components/sidebar/VersionsListItem"; // pla
 import LeftPaneHeader from "../../components/studio/LeftPaneHeader"; // plasmic-import: XLa52PvduIy/component
 import LeftSearchPanel from "../../components/studio/LeftSearchPanel"; // plasmic-import: TqAPn0srTq/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "../plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -106,11 +106,10 @@ function PlasmicLeftVersionsPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showAlert",
@@ -125,18 +124,20 @@ function PlasmicLeftVersionsPanel__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.list,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -455,12 +456,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -470,33 +467,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftVersionsPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftVersionsPanel";
-  } else {
-    func.displayName = `PlasmicLeftVersionsPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftVersionsPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftVersionsPanel__root<T extends PlasmicLeftVersionsPanel__rootProps>(props: T & StrictProps<T, PlasmicLeftVersionsPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftVersionsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftVersionsPanel__root.displayName = "PlasmicLeftVersionsPanel";
+
+type PlasmicLeftVersionsPanel__leftSearchPanelProps = NodeComponentProps<"leftSearchPanel"> & {key?: React.Key};
+function PlasmicLeftVersionsPanel__leftSearchPanel<T extends PlasmicLeftVersionsPanel__leftSearchPanelProps>(props: T & StrictProps<T, PlasmicLeftVersionsPanel__leftSearchPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftSearchPanel", props);
+  return <PlasmicLeftVersionsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftSearchPanel"} />;
+}
+PlasmicLeftVersionsPanel__leftSearchPanel.displayName = "PlasmicLeftVersionsPanel.leftSearchPanel";
+
+type PlasmicLeftVersionsPanel__versionsHeaderProps = NodeComponentProps<"versionsHeader"> & {key?: React.Key};
+function PlasmicLeftVersionsPanel__versionsHeader<T extends PlasmicLeftVersionsPanel__versionsHeaderProps>(props: T & StrictProps<T, PlasmicLeftVersionsPanel__versionsHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("versionsHeader", props);
+  return <PlasmicLeftVersionsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"versionsHeader"} />;
+}
+PlasmicLeftVersionsPanel__versionsHeader.displayName = "PlasmicLeftVersionsPanel.versionsHeader";
+
+type PlasmicLeftVersionsPanel__publishButtonProps = NodeComponentProps<"publishButton"> & {key?: React.Key};
+function PlasmicLeftVersionsPanel__publishButton<T extends PlasmicLeftVersionsPanel__publishButtonProps>(props: T & StrictProps<T, PlasmicLeftVersionsPanel__publishButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("publishButton", props);
+  return <PlasmicLeftVersionsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"publishButton"} />;
+}
+PlasmicLeftVersionsPanel__publishButton.displayName = "PlasmicLeftVersionsPanel.publishButton";
+
+type PlasmicLeftVersionsPanel__filterButtonProps = NodeComponentProps<"filterButton"> & {key?: React.Key};
+function PlasmicLeftVersionsPanel__filterButton<T extends PlasmicLeftVersionsPanel__filterButtonProps>(props: T & StrictProps<T, PlasmicLeftVersionsPanel__filterButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("filterButton", props);
+  return <PlasmicLeftVersionsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"filterButton"} />;
+}
+PlasmicLeftVersionsPanel__filterButton.displayName = "PlasmicLeftVersionsPanel.filterButton";
+
+type PlasmicLeftVersionsPanel__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicLeftVersionsPanel__content<T extends PlasmicLeftVersionsPanel__contentProps>(props: T & StrictProps<T, PlasmicLeftVersionsPanel__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicLeftVersionsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicLeftVersionsPanel__content.displayName = "PlasmicLeftVersionsPanel.content";
+
+type PlasmicLeftVersionsPanel__revisionsContainerProps = NodeComponentProps<"revisionsContainer"> & {key?: React.Key};
+function PlasmicLeftVersionsPanel__revisionsContainer<T extends PlasmicLeftVersionsPanel__revisionsContainerProps>(props: T & StrictProps<T, PlasmicLeftVersionsPanel__revisionsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("revisionsContainer", props);
+  return <PlasmicLeftVersionsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"revisionsContainer"} />;
+}
+PlasmicLeftVersionsPanel__revisionsContainer.displayName = "PlasmicLeftVersionsPanel.revisionsContainer";
+
+type PlasmicLeftVersionsPanel__versionsContainerProps = NodeComponentProps<"versionsContainer"> & {key?: React.Key};
+function PlasmicLeftVersionsPanel__versionsContainer<T extends PlasmicLeftVersionsPanel__versionsContainerProps>(props: T & StrictProps<T, PlasmicLeftVersionsPanel__versionsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("versionsContainer", props);
+  return <PlasmicLeftVersionsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"versionsContainer"} />;
+}
+PlasmicLeftVersionsPanel__versionsContainer.displayName = "PlasmicLeftVersionsPanel.versionsContainer";
+
 
 export const PlasmicLeftVersionsPanel = Object.assign(
   // Top-level PlasmicLeftVersionsPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftVersionsPanel__root,
   {
     // Helper components rendering sub-elements
-    leftSearchPanel: makeNodeComponent("leftSearchPanel"),
-    versionsHeader: makeNodeComponent("versionsHeader"),
-    publishButton: makeNodeComponent("publishButton"),
-    filterButton: makeNodeComponent("filterButton"),
-    content: makeNodeComponent("content"),
-    revisionsContainer: makeNodeComponent("revisionsContainer"),
-    versionsContainer: makeNodeComponent("versionsContainer"),
+    leftSearchPanel: PlasmicLeftVersionsPanel__leftSearchPanel,
+    versionsHeader: PlasmicLeftVersionsPanel__versionsHeader,
+    publishButton: PlasmicLeftVersionsPanel__publishButton,
+    filterButton: PlasmicLeftVersionsPanel__filterButton,
+    content: PlasmicLeftVersionsPanel__content,
+    revisionsContainer: PlasmicLeftVersionsPanel__revisionsContainer,
+    versionsContainer: PlasmicLeftVersionsPanel__versionsContainer,
 
     // Metadata about props expected for PlasmicLeftVersionsPanel
     internalVariantProps: PlasmicLeftVersionsPanel__VariantProps,

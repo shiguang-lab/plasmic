@@ -214,19 +214,7 @@ function SettingsTab_(props: SettingsTabProps, ref: HTMLElementRefOf<"div">) {
     );
   }
 
-  async function createNewDirectory() {
-    const newDirectory = await appCtx.api.createEndUserDirectory(
-      project.teamId!,
-      uniqueName(
-        withoutNils(directories.map((d) => d.name)),
-        `App "${project.name}" directory`,
-      ),
-    );
-
-    await mutateDirectories();
-
-    await changeConfigDirectory(newDirectory.id);
-  }
+  
 
   async function changeConfigDirectory(directoryId: string) {
     const isUsingGroupAccess = accesses.some(
@@ -258,8 +246,22 @@ function SettingsTab_(props: SettingsTabProps, ref: HTMLElementRefOf<"div">) {
     );
   }
 
+  async function createNewDirectory() {
+    const newDirectory = await appCtx.api.createEndUserDirectory(
+      project.teamId!,
+      uniqueName(
+        withoutNils(directories.map((d) => d.name)),
+        `App "${project.name}" directory`,
+      ),
+    );
+
+    await mutateDirectories();
+
+    await changeConfigDirectory(newDirectory.id);
+  }
+
   if (!config) {
-    return (
+  return (
       <h1>
         <UiText message={"App is not configured for auth"} />
       </h1>

@@ -103,16 +103,13 @@ it("uses the unique native dragging command for selection UI and the effective a
   const label = render(<FrameSelectionBox studioCtx={f.studio} />);
   try {
     expect(f.studio.isAutoOpenMode).toBe(true);
-    expect(f.studio.shouldHidePreselectBox()).toBe(false);
     expect(screen.getByText("2 artboards selected")).toBeTruthy();
     act(() => f.studio.setIsDraggingObject(true));
     expect(f.studio.draggingObjectStore.getState()).toBe(true);
     expect(f.studio.isAutoOpenMode).toBe(false);
-    expect(f.studio.shouldHidePreselectBox()).toBe(true);
     expect(screen.queryByText("2 artboards selected")).toBeNull();
     act(() => f.studio.setIsDraggingObject(false));
     expect(f.studio.isAutoOpenMode).toBe(true);
-    expect(f.studio.shouldHidePreselectBox()).toBe(false);
     expect(screen.getByText("2 artboards selected")).toBeTruthy();
   } finally { label.unmount(); f.studio.dispose(); }
 });

@@ -1,7 +1,7 @@
-import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { ensure } from "@/wab/shared/common";
 import { showError } from "@/wab/client/ErrorNotifications";
 import RootComment from "@/wab/client/components/comments/RootComment";
-import { CommentFilters } from "@/wab/client/components/comments/utils";
+import { CommentFilters, filterCommentThreads } from "@/wab/client/components/comments/utils";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { DefaultCommentsTabProps } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicCommentsTab";
@@ -24,7 +24,6 @@ import {
   Typography,
 } from "antd";
 import { createStyles } from "antd-style";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -126,7 +125,7 @@ export const notifyAboutKeyToLabel = {
 
 export type CommentsTabProps = DefaultCommentsTabProps;
 
-export const CommentsTab = observer(function CommentsTab(
+export const CommentsTab = React.memo(function CommentsTab(
   _props: CommentsTabProps,
 ) {
   const { t: uiT } = useI18n();
@@ -136,9 +135,8 @@ export const CommentsTab = observer(function CommentsTab(
 
   const commentsCtx = studioCtx.commentsCtx;
   const filters = useStore(commentsCtx.filterStore, (state) => state);
-  useStudioArena(studioCtx, (state) => filters.scope === "current" ? state.current : null);
-  useStudioArena(studioCtx, (state) => filters.scope === "current" ? state.frames : undefined);
-  useStore(commentsCtx.store, (state) => state.allThreads);
+  const currentComponents = useStore(studioCtx.arenaState.observedComponentsStore, (state) => filters.scope === "current" ? state : undefined);
+  const allThreads = useStore(commentsCtx.store, (state) => state.allThreads);
   const { isLoading, loadFailed, hasLoaded, selfNotificationSettings } =
     useStore(
       commentsCtx.requestStore,
@@ -149,7 +147,9 @@ export const CommentsTab = observer(function CommentsTab(
         selfNotificationSettings: state.selfNotificationSettings,
       })),
     );
-  const threads = commentsCtx.filteredThreads();
+  const threads = filterCommentThreads(allThreads, filters,
+    new Set(currentComponents?.map((ref) => ref.uid)),
+    ensure(studioCtx.appCtx.selfInfo, "Comment filters require a signed-in user"));
 
   const projectId = studioCtx.siteInfo.id;
   const branchId = studioCtx.branchInfo()?.id;
@@ -161,7 +161,7 @@ export const CommentsTab = observer(function CommentsTab(
     notifyAbout: keyof typeof notifyAboutKeyToLabel,
   ) => {
     setSavingNotification(true);
-    try {
+    return await (async () => {
       await studioCtx.appCtx.api.updateNotificationSettings(
         projectId,
         branchId,
@@ -171,11 +171,11 @@ export const CommentsTab = observer(function CommentsTab(
         },
       );
       await commentsCtx.fetchComments();
-    } catch (error) {
+    })().catch(async (error) => {
       showError(error, { title: "Failed to update comment notifications" });
-    } finally {
+    }).finally(() => {
       setSavingNotification(false);
-    }
+    });
   };
 
   const renderThreads = (items: typeof threads) => (
@@ -363,6 +363,6 @@ export const CommentsTab = observer(function CommentsTab(
       </Scrollbar>
     </section>
   );
-});
+})
 
 export default CommentsTab;

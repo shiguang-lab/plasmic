@@ -1,4 +1,3 @@
-import { createViewVariantFixture } from "@/wab/client/__testonly__/view-variants";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { mkArenaFrame } from "@/wab/shared/Arenas";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
@@ -6,11 +5,8 @@ import { createSite } from "@/wab/shared/core/sites";
 import { ensureBaseVariantSetting } from "@/wab/shared/VariantTplMgr";
 import type { GetProjectResponse } from "@/wab/shared/ApiSchema";
 import { Bundler } from "@/wab/shared/bundler";
-import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
-import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
-import { InspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
-import { createStore } from "zustand/vanilla";
 import { TextContentRow } from "@/wab/client/components/sidebar-tabs/TypographySection";
+import { setEditingTextContext } from "@/wab/client/studio-ctx/editing-text-state";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -26,10 +22,8 @@ import {
   mkTplTagX,
 } from "@/wab/shared/core/tpls";
 import { ValTextTag } from "@/wab/shared/core/val-nodes";
-import type { EffectiveVariantSetting } from "@/wab/shared/effective-variant-setting";
-import { Arena, type DataToken, RawText, isKnownExprText } from "@/wab/shared/model/classes";
+import { Arena, type DataToken, RawText, type TplTag, isKnownRawText, isKnownExprText } from "@/wab/shared/model/classes";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
-import { observable, runInAction } from "mobx";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -56,55 +50,18 @@ afterEach(async () => {
   studios.clear(); vi.restoreAllMocks();
 });
 
-function setup() {
-  const tpl = mkTplTagX("span", { type: TplTagType.Text });
-  const text = new RawText({ text: "内部名称1", markers: [] });
-  const context = observable.box<EditingTextContext | null>(null);
-  const viewCtx = mock<ViewCtx>();
-  viewCtx.editingTextContext.mockImplementation(() => context.get());
-  const effectiveVs = mock<EffectiveVariantSetting>();
-  Object.defineProperty(effectiveVs, "text", { value: text });
-  viewCtx.effectiveCurrentVariantSetting.mockReturnValue(effectiveVs);
-  const studioCtx = mock<StudioCtx>();
-  const models = new ModelSnapshots();
-  const site = createSite();
-  const component = mkComponent({ name: "Text", type: ComponentType.Plain, tplTree: tpl });
-  site.components.push(component);
-  const frame = mkArenaFrame({ site, component, name: "Text", width: 100, height: 100 });
-  const variants = createViewVariantFixture(models, site, frame);
-  const immediateSelection = new ViewSelection(() => models);
-  immediateSelection.setTpls([tpl]);
-  viewCtx.currentComponentCtx.mockReturnValue(null);
-  viewCtx.focusedTpl.mockReturnValue(tpl);
-  viewCtx.focusedTpls.mockReturnValue([tpl]);
-  viewCtx.focusedSelectable.mockReturnValue(null);
-  viewCtx.focusedCloneKey.mockReturnValue(undefined);
-  Object.defineProperties(viewCtx, {
-    studioCtx: { value: studioCtx },
-    isDisposed: { value: false },
-    focusedComponentPart: { value: undefined },
-    selection: { value: immediateSelection },
-    selectionStore: { value: immediateSelection.store },
-    variantStore: { value: variants.store },
-    textDataRequestsStore: { value: createStore<ReturnType<ViewCtx["textDataRequestsStore"]["getState"]>>(() => Object.freeze({ editing: null, creating: null })) },
-  });
-  Object.defineProperty(studioCtx, "modelSnapshots", { value: models });
-  viewCtx.triggerEditingTextDataPicker.mockImplementation(() => ViewCtx.prototype.triggerEditingTextDataPicker.call(viewCtx));
-  viewCtx.getTriggerCreatingTextDataToken.mockImplementation(() => ViewCtx.prototype.getTriggerCreatingTextDataToken.call(viewCtx));
-  const selection = new InspectorSelection(viewCtx, 1);
-  Object.defineProperty(studioCtx, "inspectorStore", { value: createStore<{ selection: InspectorSelection | undefined; pending: boolean }>(() => ({ selection, pending: false })) });
-  viewCtx.getInspectorReadOwner.mockReturnValue(selection);
-  const expsProvider = mock<TplExpsProvider>();
-  Object.defineProperty(expsProvider, "tpl", { value: tpl });
-  render(
-    <StudioCtxContext.Provider value={studioCtx}>
-      <TextContentRow viewCtx={viewCtx} expsProvider={expsProvider} />
-    </StudioCtxContext.Provider>,
-  );
-  const startEditing = (node = tpl) => {
+async function setup() {
+  const fixture = await actualText("Draft text"), viewCtx = fixture.view, tpl = fixture.tpl;
+  await fixture.studio.changeUnsafe(() => { ensure(tpl.vsettings[0], "Real text setting").text = new RawText({ text: "内部名称1", markers: [] }); });
+  const text = ensure(tpl.vsettings[0].text, "Real model text");
+  assert(isKnownRawText(text), "Expected real raw text");
+  let current: EditingTextContext | null = null;
+  const context = { get: () => current, set: (value: EditingTextContext | null) => { current = value; } };
+  render(fixture.row());
+  vi.spyOn(viewCtx, "change");
+  const startEditing = (node: TplTag = tpl) => {
     assert(isTplTextBlock(node), "Expected a text template");
-    runInAction(() =>
-      context.set({
+    context.set({
         val: new ValTextTag({
           tpl: node,
           key: node.uuid,
@@ -122,19 +79,21 @@ function setup() {
         draftText: text,
         run: undefined,
         editor: undefined,
-      }),
-    );
+      });
+    syncEditingText();
   };
-  const draft = (value: string | undefined) =>
-    runInAction(() => {
-      ensure(context.get(), "Expected an active text edit").draftText =
-        value === undefined ? undefined : new RawTextLike(value, []);
-    });
+  const syncEditingText = () =>
+    setEditingTextContext(viewCtx, context.get() ? { ...ensure(context.get(), "Expected an active text edit") } : null);
+  const draft = (value: string | undefined) => {
+    ensure(context.get(), "Expected an active text edit").draftText =
+      value === undefined ? undefined : new RawTextLike(value, []);
+    syncEditingText();
+  };
   return { context, viewCtx, text, tpl, startEditing, draft };
 }
 
-it("shows typing, deletion and undo drafts immediately without committing the model", () => {
-  const f = setup();
+it("shows typing, deletion and undo drafts immediately without committing the model", async () => {
+  const f = await setup();
   const content = screen.getByRole("button", { name: "内部名称1" });
   act(() => f.startEditing());
   expect(f.context.get()?.val.tpl).toBe(f.tpl);
@@ -148,20 +107,23 @@ it("shows typing, deletion and undo drafts immediately without committing the mo
   expect(f.viewCtx.change).not.toHaveBeenCalled();
 });
 
-it("falls back to the model after the draft is cleared or editing ends", () => {
-  const f = setup();
+it("falls back to the model after the draft is cleared or editing ends", async () => {
+  const f = await setup();
   const content = screen.getByRole("button", { name: "内部名称1" });
   act(() => f.startEditing());
   act(() => f.draft("Draft"));
   act(() => f.draft(undefined));
   expect(content.textContent).toBe("内部名称1");
   act(() => f.draft("Draft"));
-  act(() => runInAction(() => f.context.set(null)));
+  act(() => {
+    f.context.set(null);
+    setEditingTextContext(f.viewCtx, null);
+  });
   expect(content.textContent).toBe("内部名称1");
 });
 
-it("does not display another text node's draft", () => {
-  const f = setup();
+it("does not display another text node's draft", async () => {
+  const f = await setup();
   act(() => f.startEditing(mkTplTagX("span", { type: TplTagType.Text })));
   act(() => f.draft("Other text"));
   expect(screen.getByRole("button", { name: "内部名称1" })).toBeTruthy();
@@ -170,6 +132,8 @@ it("does not display another text node's draft", () => {
 async function actualText(name = "Text requests") {
   // jsdom has no canvas viewport; keep actual ViewCtx evaluation paused.
   vi.spyOn(ViewCtx.prototype, "isVisible").mockReturnValue(false);
+  vi.spyOn(ViewCtx.prototype, "scheduleSync").mockImplementation(() => undefined);
+  vi.spyOn(ViewCtx.prototype, "awaitSync").mockResolvedValue();
   const site = createSite();
   const component = mkComponent({ name, type: ComponentType.Plain, tplTree: (baseVariant) => mkTplTagX("span", { type: TplTagType.Text, baseVariant }) });
   site.components.push(component);
@@ -185,8 +149,7 @@ async function actualText(name = "Text requests") {
   expect(studio.currentArena).toBe(arena);
   studio.observeComponents([component]); studio.createViewStateUndoRecord();
   const view = ensure(studio.tryGetViewCtxForFrame(frame), "Actual text ViewCtx");
-  // Rendering is paused above, so this unit fixture has no canvas sync worker.
-  vi.spyOn(view, "awaitSync").mockResolvedValue();
+  // The prototype seams also pause replacement views created after retirement.
   view.selection.setTpls([tpl]);
   const expsProvider = new TplExpsProvider(view, tpl);
   const row = () => <StudioCtxContext.Provider value={studio}><TextContentRow viewCtx={view} expsProvider={expsProvider} /></StudioCtxContext.Provider>;
@@ -268,4 +231,15 @@ it("clears pending text model refs when actual loadVersion replaces their scope"
   expect(f.view.textDataRequestsStore.getState()).toEqual({ editing: null, creating: null });
   expect(f.view.getTriggerCreatingTextDataToken()).toBeNull();
   expect(resolve.mock.calls.some(([ref]) => ref === request.creating)).toBe(false);
+});
+
+it("refreshes real raw text without a project revision subscription", async () => {
+  const f = await actualText("Native text fields");
+  const mounted = render(f.row());
+  const setting = ensure(f.tpl.vsettings[0], "Original text setting"), raw = ensure(setting.text, "Original raw text");
+  assert(isKnownRawText(raw), "Expected original raw text");
+  await act(async () => { await f.studio.changeUnsafe(() => { raw.text = "Changed business text"; }); });
+  expect(screen.getByRole("button", { name: "Changed business text" })).toBeTruthy(); expect(setting.text).toBe(raw);
+  act(() => f.studio.disposeViewCtx(f.view));
+  expect(screen.queryByRole("button", { name: "Changed business text" })).toBeNull(); mounted.unmount();
 });

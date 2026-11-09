@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,14 +24,14 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useFocusVisibleWithin,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import * as pp from "@plasmicapp/react-web";
+import * as Plume from "@plasmicapp/react-web";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -86,7 +86,7 @@ export type PlasmicStyleSwitch__OverridesType = {
   labelContainer?: Flex__<"div">;
 };
 
-export interface DefaultStyleSwitchProps extends pp.SwitchProps {
+export interface DefaultStyleSwitchProps extends Plume.SwitchProps {
   "aria-label"?: string;
   "aria-labelledby"?: string;
   onChange?: (isChecked: boolean) => void;
@@ -119,11 +119,10 @@ function PlasmicStyleSwitch__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "noLabel",
@@ -153,26 +152,28 @@ function PlasmicStyleSwitch__RenderFunc(props: {
           $props.valueSetState,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
   const [isRootFocusVisibleWithin, triggerRootFocusVisibleWithinProps] =
-    useTrigger("useFocusVisibleWithin", {
+    useFocusVisibleWithin({
       isTextInput: false,
     });
   const triggers = {
     focusVisibleWithin_root: isRootFocusVisibleWithin,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -297,7 +298,7 @@ function PlasmicStyleSwitch__RenderFunc(props: {
   ) as React.ReactElement | null;
 }
 
-function useBehavior<P extends pp.SwitchProps>(props: P, ref: pp.SwitchRef) {
+function useBehavior<P extends Plume.SwitchProps>(props: P, ref: Plume.SwitchRef) {
   if (!("children" in props)) {
     props = {
       ...props,
@@ -305,7 +306,7 @@ function useBehavior<P extends pp.SwitchProps>(props: P, ref: pp.SwitchRef) {
     };
   }
 
-  return pp.useSwitch<P, typeof PlasmicStyleSwitch>(
+  return Plume.useSwitch<P, typeof PlasmicStyleSwitch>(
     PlasmicStyleSwitch,
     props,
     {
@@ -363,12 +364,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -378,30 +375,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicStyleSwitch__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicStyleSwitch";
-  } else {
-    func.displayName = `PlasmicStyleSwitch.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicStyleSwitch__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicStyleSwitch__root<T extends PlasmicStyleSwitch__rootProps>(props: T & StrictProps<T, PlasmicStyleSwitch__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicStyleSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicStyleSwitch__root.displayName = "PlasmicStyleSwitch";
+
+type PlasmicStyleSwitch__toggleProps = NodeComponentProps<"toggle"> & {key?: React.Key};
+function PlasmicStyleSwitch__toggle<T extends PlasmicStyleSwitch__toggleProps>(props: T & StrictProps<T, PlasmicStyleSwitch__toggleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("toggle", props);
+  return <PlasmicStyleSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"toggle"} />;
+}
+PlasmicStyleSwitch__toggle.displayName = "PlasmicStyleSwitch.toggle";
+
+type PlasmicStyleSwitch__trackProps = NodeComponentProps<"track"> & {key?: React.Key};
+function PlasmicStyleSwitch__track<T extends PlasmicStyleSwitch__trackProps>(props: T & StrictProps<T, PlasmicStyleSwitch__trackProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("track", props);
+  return <PlasmicStyleSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"track"} />;
+}
+PlasmicStyleSwitch__track.displayName = "PlasmicStyleSwitch.track";
+
+type PlasmicStyleSwitch__thumbProps = NodeComponentProps<"thumb"> & {key?: React.Key};
+function PlasmicStyleSwitch__thumb<T extends PlasmicStyleSwitch__thumbProps>(props: T & StrictProps<T, PlasmicStyleSwitch__thumbProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("thumb", props);
+  return <PlasmicStyleSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"thumb"} />;
+}
+PlasmicStyleSwitch__thumb.displayName = "PlasmicStyleSwitch.thumb";
+
+type PlasmicStyleSwitch__labelContainerProps = NodeComponentProps<"labelContainer"> & {key?: React.Key};
+function PlasmicStyleSwitch__labelContainer<T extends PlasmicStyleSwitch__labelContainerProps>(props: T & StrictProps<T, PlasmicStyleSwitch__labelContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelContainer", props);
+  return <PlasmicStyleSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelContainer"} />;
+}
+PlasmicStyleSwitch__labelContainer.displayName = "PlasmicStyleSwitch.labelContainer";
+
 
 export const PlasmicStyleSwitch = Object.assign(
   // Top-level PlasmicStyleSwitch renders the root element
-  makeNodeComponent("root"),
+  PlasmicStyleSwitch__root,
   {
     // Helper components rendering sub-elements
-    toggle: makeNodeComponent("toggle"),
-    track: makeNodeComponent("track"),
-    thumb: makeNodeComponent("thumb"),
-    labelContainer: makeNodeComponent("labelContainer"),
+    toggle: PlasmicStyleSwitch__toggle,
+    track: PlasmicStyleSwitch__track,
+    thumb: PlasmicStyleSwitch__thumb,
+    labelContainer: PlasmicStyleSwitch__labelContainer,
 
     // Metadata about props expected for PlasmicStyleSwitch
     internalVariantProps: PlasmicStyleSwitch__VariantProps,

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,12 +23,12 @@ import {
   PlasmicIcon as PlasmicIcon__,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6CrqkTcB6gSAHoA8c8zpNz/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6CrqkTcB6gSAHoA8c8zpNz/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -95,11 +95,10 @@ function PlasmicArenaSwitcher__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "arenaType",
@@ -108,18 +107,20 @@ function PlasmicArenaSwitcher__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.arenaType,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <Button
@@ -219,12 +220,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -234,29 +231,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicArenaSwitcher__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicArenaSwitcher";
-  } else {
-    func.displayName = `PlasmicArenaSwitcher.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicArenaSwitcher__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicArenaSwitcher__root<T extends PlasmicArenaSwitcher__rootProps>(props: T & StrictProps<T, PlasmicArenaSwitcher__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicArenaSwitcher__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicArenaSwitcher__root.displayName = "PlasmicArenaSwitcher";
+
+type PlasmicArenaSwitcher__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicArenaSwitcher__svg<T extends PlasmicArenaSwitcher__svgProps>(props: T & StrictProps<T, PlasmicArenaSwitcher__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicArenaSwitcher__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicArenaSwitcher__svg.displayName = "PlasmicArenaSwitcher.svg";
+
+type PlasmicArenaSwitcher__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicArenaSwitcher__freeBox<T extends PlasmicArenaSwitcher__freeBoxProps>(props: T & StrictProps<T, PlasmicArenaSwitcher__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicArenaSwitcher__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicArenaSwitcher__freeBox.displayName = "PlasmicArenaSwitcher.freeBox";
+
+type PlasmicArenaSwitcher__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicArenaSwitcher__text<T extends PlasmicArenaSwitcher__textProps>(props: T & StrictProps<T, PlasmicArenaSwitcher__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicArenaSwitcher__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicArenaSwitcher__text.displayName = "PlasmicArenaSwitcher.text";
+
 
 export const PlasmicArenaSwitcher = Object.assign(
   // Top-level PlasmicArenaSwitcher renders the root element
-  makeNodeComponent("root"),
+  PlasmicArenaSwitcher__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
-    freeBox: makeNodeComponent("freeBox"),
-    text: makeNodeComponent("text"),
+    svg: PlasmicArenaSwitcher__svg,
+    freeBox: PlasmicArenaSwitcher__freeBox,
+    text: PlasmicArenaSwitcher__text,
 
     // Metadata about props expected for PlasmicArenaSwitcher
     internalVariantProps: PlasmicArenaSwitcher__VariantProps,

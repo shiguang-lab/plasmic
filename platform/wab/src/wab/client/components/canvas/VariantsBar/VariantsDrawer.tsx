@@ -40,7 +40,9 @@ import {
   isKnownVariant,
 } from "@/wab/shared/model/classes";
 import { defer } from "lodash";
-import { observer } from "mobx-react";
+import { useCanvasComponentInputs, type CanvasViewFieldRecipe } from "@/wab/client/components/canvas/canvas-view-inputs";
+import { canvasVariantChromeFields } from "@/wab/client/components/canvas/canvas-variant-chrome-inputs";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
 import * as React from "react";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 
@@ -62,7 +64,7 @@ interface VariantsDrawerProps extends DefaultVariantsDrawerProps {
   component: Component;
 }
 
-export const VariantsDrawer = observer(VariantsDrawer_);
+export const VariantsDrawer = React.memo(VariantsDrawer_);
 
 function VariantsDrawer_({
   searchInputRef,
@@ -82,18 +84,23 @@ function VariantsDrawer_({
   const studioCtx = useStudioCtx();
   useStudioSelection(studioCtx, (state) => state.view);
   const viewCtx = studioCtx.focusedViewCtx();
-  useViewSelection(viewCtx, (state) => state.tpls);
-  const focusedTpl = viewCtx?.focusedTpl();
+  const selection = useViewSelection(viewCtx, (state) => state.tpls);
+  useCanvasRenderCount(viewCtx);
+  const recipe = React.useCallback<CanvasViewFieldRecipe>((field) => canvasVariantChromeFields(studioCtx.site, component, viewCtx?.isDisposed ? undefined : viewCtx?.focusedTpl(), field, true), [studioCtx, component, viewCtx, selection]);
+  const { alive } = useCanvasComponentInputs(studioCtx, component, recipe);
+  const commandWorld = React.useMemo(() => ({ models: studioCtx.modelSnapshots, signal: studioCtx.arenaState.lifetime() }), [studioCtx, component]);
+  const focusedTpl = alive && !viewCtx?.isDisposed ? viewCtx?.focusedTpl() : undefined;
 
   const targetedVariantsSet = new Set(targetedVariants);
-  const searchInputRef_ = searchInputRef ?? useRef<HTMLInputElement>(null);
+  const localSearchInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef_ = searchInputRef ?? localSearchInputRef;
   const variantsListRef = useRef<HTMLDivElement>(null);
 
-  const allVariants = getAllVariantsForTpl({
+  const allVariants = alive ? getAllVariantsForTpl({
     component,
     tpl: focusedTpl,
     site: studioCtx.site,
-  });
+  }) : [];
 
   const [query, setQuery] = useState("");
   const matcher = new Matcher(query, { matchMiddleOfWord: true });
@@ -140,12 +147,8 @@ function VariantsDrawer_({
     !hideScreen,
   );
 
-  const flattenedVariants = useMemo(
-    () =>
-      groupedVariants.flatMap<string | Variant | undefined>((it) =>
-        it.isBase ? "base" : it.variants,
-      ),
-    [groupedVariants, shouldShowBase],
+  const flattenedVariants = groupedVariants.flatMap<string | Variant | undefined>((it) =>
+    it.isBase ? "base" : it.variants,
   );
   const variantIndices = useMemo(
     () => new Map(flattenedVariants.map((v, index) => [v, index])),
@@ -218,9 +221,11 @@ function VariantsDrawer_({
   const handleVariantClick = (variant: Variant | string | undefined) => {
     return (e?: React.MouseEvent) => {
       e?.preventDefault(); // prevent focus, keep focus on search input
+      if (commandWorld.signal.aborted || commandWorld.models !== studioCtx.modelSnapshots) { return; }
 
       spawn(
         studioCtx.changeUnsafe(() => {
+          if (commandWorld.signal.aborted || commandWorld.models !== studioCtx.modelSnapshots) { return; }
           if (isKnownVariant(variant)) {
             targetedVariantsSet.has(variant)
               ? onRemoveVariant?.(variant)
@@ -254,6 +259,7 @@ function VariantsDrawer_({
     }
   };
 
+  if (!alive) { return null; }
   return (
     <PlasmicVariantsDrawer
       root={{
@@ -372,9 +378,7 @@ function useGroupedVariants(
       {
         show: shouldShowBase,
         key: "base",
-        get withDivider() {
-          return groupedVariants.length > 1;
-        },
+        withDivider: false,
         isBase: true,
       },
       {
@@ -447,12 +451,13 @@ function useGroupedVariants(
         variants: variants as Variant[],
       })),
     ].filter((it: any) => it.show || it.variants?.length);
-    return groupedVariants;
+    return groupedVariants.map((group) => group.key === "base" ? { ...group, withDivider: groupedVariants.length > 1 } : group);
   }, [
     privateStyleVariants,
     codeComponentVariants,
     compStyleVariants,
     compVariants,
+    splitVariants,
     globalVariants,
     shouldShowBase,
     shouldShowInteractions,

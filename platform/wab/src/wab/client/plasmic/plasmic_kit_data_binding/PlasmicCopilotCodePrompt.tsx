@@ -15,42 +15,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
-import {
-  Flex as Flex__,
-  MultiChoiceArg,
-  PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
-  PlasmicIcon as PlasmicIcon__,
-  PlasmicImg as PlasmicImg__,
-  PlasmicLink as PlasmicLink__,
-  PlasmicPageGuard as PlasmicPageGuard__,
-  SingleBooleanChoiceArg,
-  SingleChoiceArg,
-  Stack as Stack__,
-  StrictProps,
-  Trans as Trans__,
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  ensureGlobalVariants,
-  generateOnMutateForSpec,
-  generateStateOnChangeProp,
-  generateStateOnChangePropForCodeComponents,
-  generateStateValueProp,
-  get as $stateGet,
-  hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
-  makeFragment,
-  omit,
-  pick,
-  renderPlasmicSlot,
-  set as $stateSet,
-  useCurrentUser,
-  useDollarState,
-  usePlasmicTranslator,
-  useTrigger,
-  wrapWithClassName
-} from "@plasmicapp/react-web";
+import {usePlasmicRefs, Flex as Flex__, MultiChoiceArg, PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__, PlasmicIcon as PlasmicIcon__, PlasmicImg as PlasmicImg__, PlasmicLink as PlasmicLink__, PlasmicPageGuard as PlasmicPageGuard__, SingleBooleanChoiceArg, SingleChoiceArg, Stack as Stack__, StrictProps, Trans as Trans__, classNames, createPlasmicElementProxy, deriveRenderOpts, ensureGlobalVariants, generateOnMutateForSpec, generateStateOnChangeProp, generateStateOnChangePropForCodeComponents, generateStateValueProp, get as $stateGet, hasVariant, makeFragment, omit, pick, renderPlasmicSlot, set as $stateSet, useCurrentUser, useDollarState, usePlasmicTranslator, wrapWithClassName} from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
@@ -58,8 +23,8 @@ import {
 } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -122,11 +87,10 @@ function PlasmicCopilotCodePrompt__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -224,12 +188,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -239,30 +199,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCopilotCodePrompt__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCopilotCodePrompt";
-  } else {
-    func.displayName = `PlasmicCopilotCodePrompt.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCopilotCodePrompt__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCopilotCodePrompt__root<T extends PlasmicCopilotCodePrompt__rootProps>(props: T & StrictProps<T, PlasmicCopilotCodePrompt__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCopilotCodePrompt__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCopilotCodePrompt__root.displayName = "PlasmicCopilotCodePrompt";
+
+type PlasmicCopilotCodePrompt__openCopilotBtnProps = NodeComponentProps<"openCopilotBtn"> & {key?: React.Key};
+function PlasmicCopilotCodePrompt__openCopilotBtn<T extends PlasmicCopilotCodePrompt__openCopilotBtnProps>(props: T & StrictProps<T, PlasmicCopilotCodePrompt__openCopilotBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("openCopilotBtn", props);
+  return <PlasmicCopilotCodePrompt__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"openCopilotBtn"} />;
+}
+PlasmicCopilotCodePrompt__openCopilotBtn.displayName = "PlasmicCopilotCodePrompt.openCopilotBtn";
+
+type PlasmicCopilotCodePrompt__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicCopilotCodePrompt__freeBox<T extends PlasmicCopilotCodePrompt__freeBoxProps>(props: T & StrictProps<T, PlasmicCopilotCodePrompt__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicCopilotCodePrompt__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicCopilotCodePrompt__freeBox.displayName = "PlasmicCopilotCodePrompt.freeBox";
+
+type PlasmicCopilotCodePrompt__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicCopilotCodePrompt__text<T extends PlasmicCopilotCodePrompt__textProps>(props: T & StrictProps<T, PlasmicCopilotCodePrompt__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicCopilotCodePrompt__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicCopilotCodePrompt__text.displayName = "PlasmicCopilotCodePrompt.text";
+
+type PlasmicCopilotCodePrompt__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicCopilotCodePrompt__svg<T extends PlasmicCopilotCodePrompt__svgProps>(props: T & StrictProps<T, PlasmicCopilotCodePrompt__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicCopilotCodePrompt__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicCopilotCodePrompt__svg.displayName = "PlasmicCopilotCodePrompt.svg";
+
 
 export const PlasmicCopilotCodePrompt = Object.assign(
   // Top-level PlasmicCopilotCodePrompt renders the root element
-  makeNodeComponent("root"),
+  PlasmicCopilotCodePrompt__root,
   {
     // Helper components rendering sub-elements
-    openCopilotBtn: makeNodeComponent("openCopilotBtn"),
-    freeBox: makeNodeComponent("freeBox"),
-    text: makeNodeComponent("text"),
-    svg: makeNodeComponent("svg"),
+    openCopilotBtn: PlasmicCopilotCodePrompt__openCopilotBtn,
+    freeBox: PlasmicCopilotCodePrompt__freeBox,
+    text: PlasmicCopilotCodePrompt__text,
+    svg: PlasmicCopilotCodePrompt__svg,
 
     // Metadata about props expected for PlasmicCopilotCodePrompt
     internalVariantProps: PlasmicCopilotCodePrompt__VariantProps,

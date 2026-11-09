@@ -120,7 +120,7 @@ export enum PositionLayoutType {
 }
 
 export function getRshContainerType(
-  rsh: ReadonlyIRuleSetHelpersX,
+  rsh: Pick<ReadonlyIRuleSetHelpersX, "get">,
 ): ContainerLayoutType {
   return getContainerLayoutType(rsh.get("display"), rsh.get("flex-direction"));
 }

@@ -44,8 +44,8 @@ it("keeps sidebar portal siblings inert and restores the shell after unmount", (
     </div>,
   );
   const root = container.querySelector<HTMLElement>(".style-tab");
-  expect(root?.inert).toBe(true);
+  expect(root?.hasAttribute("inert")).toBe(true);
   expect(screen.queryByRole("button")).toBeNull();
   unmount();
-  expect(root?.inert).toBe(false);
+  expect(root?.hasAttribute("inert")).toBe(false);
 });

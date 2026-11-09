@@ -25,8 +25,8 @@ function ListSection(props: ListSectionProps) {
     collapsedState,
     ...rest
   } = props;
-  const [collapsed, setCollapsed] =
-    collapsedState ?? React.useState(isCollapsible ? defaultCollapsed : false);
+  const localCollapsedState = React.useState(isCollapsible ? defaultCollapsed : false);
+  const [collapsed, setCollapsed] = collapsedState ?? localCollapsedState;
 
   const collapseState = isCollapsible
     ? collapsed

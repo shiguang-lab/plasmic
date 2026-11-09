@@ -11,7 +11,6 @@ export function ModelNameHeader({
 }: Omit<ComponentProps<typeof NamedPanelHeader>, "value"> & {
   nameStore: ModelFieldStore<string | null | undefined>;
 }) {
-  "use memo";
   const name = useStore(nameStore);
   return <NamedPanelHeader {...props} value={name || ""} />;
 }

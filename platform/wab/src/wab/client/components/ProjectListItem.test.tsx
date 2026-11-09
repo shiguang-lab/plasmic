@@ -199,7 +199,7 @@ it("saves a trimmed name once when Enter and blur happen together, without navig
         complete = resolve;
       }),
   );
-  const item = { ...project };
+  const item = Object.freeze({ ...project });
   render(<ProjectListItem project={item} perms={[]} />);
   fireEvent.click(screen.getByRole("button", { name: "Rename project" }));
   const input = screen.getByRole("textbox", { name: "Rename project" });
@@ -210,7 +210,8 @@ it("saves a trimmed name once when Enter and blur happen together, without navig
   expect(mocks.rename).toHaveBeenCalledWith("project1", "Renamed project");
   complete();
   await vi.waitFor(() => expect(screen.queryByRole("textbox")).toBeNull());
-  expect(item.name).toBe("Renamed project");
+  expect(item.name).toBe("Example project");
+  expect(screen.getByRole("link", { name: "Open project: Renamed project" })).toBeTruthy();
   expect(mocks.push).not.toHaveBeenCalled();
 });
 

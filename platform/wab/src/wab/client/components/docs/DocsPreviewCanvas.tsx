@@ -29,6 +29,62 @@ import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
 import React from "react";
 import { useStore } from "zustand";
 
+async function loadDocsPreviewRuntime(
+  studioCtx: DocsPortalCtx["studioCtx"],
+  iframe: HTMLIFrameElement,
+  packages: Parameters<typeof getSortedHostLessPkgs>[2],
+) {
+            const frameWindow = ensure(
+              iframe.contentWindow,
+              `currentTarget must be attached to window`,
+            );
+            const onAnchorClick = (href) =>
+              showCanvasPageNavigationNotification(studioCtx, href);
+            await onLoadInjectLiveRuntime(
+              studioCtx,
+              frameWindow,
+              false,
+              onAnchorClick,
+            );
+            (frameWindow as any).__PlasmicWrapUserFunction = (
+              loc: InteractionLoc | InteractionArgLoc,
+              fn: () => any,
+              args: Record<string, any>,
+            ) => {
+              try {
+                if (isInteractionLoc(loc) && loc.actionName === "navigation") {
+                  onAnchorClick(`${args.destination}`);
+                  return;
+                }
+                return fn();
+              } catch (e) {
+                trapInteractionError(studioCtx, loc, e);
+                throw e;
+              }
+            };
+            (frameWindow as any).__PlasmicWrapUserPromise = async (
+              loc: InteractionLoc | InteractionArgLoc,
+              promise: Promise<any>,
+            ) => {
+              try {
+                return await promise;
+              } catch (e) {
+                trapInteractionError(studioCtx, loc, e);
+                throw e;
+              }
+            };
+
+            const modules = await getSortedHostLessPkgs(
+              frameWindow,
+              studioCtx.appCtx.api,
+              packages,
+              getVersionForCanvasPackages(frameWindow),
+              studioCtx.site,
+            );
+            for (const [_pkg, pkgModule] of modules) { scriptExec(frameWindow, pkgModule); }
+  return { frameWindow, identities: modules.map(([identity]) => identity) };
+}
+
 export function DocsPreviewCanvas(props: {
   docsCtx: DocsPortalCtx;
   codePreviewCtx?: CodePreviewCtx;
@@ -117,70 +173,21 @@ export function DocsPreviewCanvas(props: {
           `&origin=${encodeURIComponent(getPublicUrl())}` +
           `&staticBaseUrl=${encodeURIComponent(getStaticBaseUrl())}`
         }
-        onLoad={async (event) => {
-          try {
-            const frameWindow = ensure(
-              event.currentTarget.contentWindow,
-              `currentTarget must be attached to window`,
-            );
-            const onAnchorClick = (href) =>
-              showCanvasPageNavigationNotification(studioCtx, href);
-            await onLoadInjectLiveRuntime(
-              studioCtx,
-              frameWindow,
-              false,
-              onAnchorClick,
-            );
-            (frameWindow as any).__PlasmicWrapUserFunction = (
-              loc: InteractionLoc | InteractionArgLoc,
-              fn: () => any,
-              args: Record<string, any>,
-            ) => {
-              try {
-                if (isInteractionLoc(loc) && loc.actionName === "navigation") {
-                  onAnchorClick(`${args.destination}`);
-                  return;
-                }
-                return fn();
-              } catch (e) {
-                trapInteractionError(studioCtx, loc, e);
-                throw e;
-              }
-            };
-            (frameWindow as any).__PlasmicWrapUserPromise = async (
-              loc: InteractionLoc | InteractionArgLoc,
-              promise: Promise<any>,
-            ) => {
-              try {
-                return await promise;
-              } catch (e) {
-                trapInteractionError(studioCtx, loc, e);
-                throw e;
-              }
-            };
-
-            const modules = await getSortedHostLessPkgs(
-              frameWindow,
-              studioCtx.appCtx.api,
-              packages.packages.slice(),
-              getVersionForCanvasPackages(frameWindow),
-              studioCtx.site,
-            );
-            for (const [_pkg, pkgModule] of modules) { scriptExec(frameWindow, pkgModule); }
-            setInstalledPackages(modules.map(([identity]) => identity));
+        onLoad={(event) => loadDocsPreviewRuntime(studioCtx, event.currentTarget, packages.packages.slice())
+          .then(({ frameWindow, identities }) => {
+            setInstalledPackages(identities);
             setFrameLoaded(true);
             setDoc(frameWindow.document);
-          } catch (err: any) {
-            if (!toggleTrailingSlash && err?.name === "SecurityError") {
-              console.log(
-                "SecurityError while accessing Docs Preview. Trying again...",
-              );
+          })
+          .catch((err: unknown) => {
+            if (!toggleTrailingSlash && err != null && typeof err === "object" && "name" in err && err.name === "SecurityError") {
+              console.log("SecurityError while accessing Docs Preview. Trying again...");
               setToggleTrailingSlash(true);
               return;
             }
             throw err;
-          }
-        }}
+          })}
+
         style={{
           width: "100%",
           height: "100%",

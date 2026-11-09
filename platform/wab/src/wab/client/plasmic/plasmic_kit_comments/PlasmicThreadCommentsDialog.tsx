@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,7 +26,7 @@ import CommentPostForm from "../../components/comments/CommentPostForm"; // plas
 import { CommentsDialogHead } from "../../components/comments/CommentsDialogHead"; // plasmic-import: tccr1SFVw_AY/component
 import ThreadComments from "../../components/comments/ThreadComments"; // plasmic-import: QY53tkpvLv/component
 import { Dialog } from "../../components/widgets/Dialog"; // plasmic-import: en2IIw2C3_aI/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -82,11 +82,10 @@ function PlasmicThreadCommentsDialog__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <Dialog
@@ -169,12 +168,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -184,29 +179,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicThreadCommentsDialog__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicThreadCommentsDialog";
-  } else {
-    func.displayName = `PlasmicThreadCommentsDialog.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicThreadCommentsDialog__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicThreadCommentsDialog__root<T extends PlasmicThreadCommentsDialog__rootProps>(props: T & StrictProps<T, PlasmicThreadCommentsDialog__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicThreadCommentsDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicThreadCommentsDialog__root.displayName = "PlasmicThreadCommentsDialog";
+
+type PlasmicThreadCommentsDialog__commentsDialogHeadProps = NodeComponentProps<"commentsDialogHead"> & {key?: React.Key};
+function PlasmicThreadCommentsDialog__commentsDialogHead<T extends PlasmicThreadCommentsDialog__commentsDialogHeadProps>(props: T & StrictProps<T, PlasmicThreadCommentsDialog__commentsDialogHeadProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentsDialogHead", props);
+  return <PlasmicThreadCommentsDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentsDialogHead"} />;
+}
+PlasmicThreadCommentsDialog__commentsDialogHead.displayName = "PlasmicThreadCommentsDialog.commentsDialogHead";
+
+type PlasmicThreadCommentsDialog__threadCommentsProps = NodeComponentProps<"threadComments"> & {key?: React.Key};
+function PlasmicThreadCommentsDialog__threadComments<T extends PlasmicThreadCommentsDialog__threadCommentsProps>(props: T & StrictProps<T, PlasmicThreadCommentsDialog__threadCommentsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("threadComments", props);
+  return <PlasmicThreadCommentsDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"threadComments"} />;
+}
+PlasmicThreadCommentsDialog__threadComments.displayName = "PlasmicThreadCommentsDialog.threadComments";
+
+type PlasmicThreadCommentsDialog__replyFormProps = NodeComponentProps<"replyForm"> & {key?: React.Key};
+function PlasmicThreadCommentsDialog__replyForm<T extends PlasmicThreadCommentsDialog__replyFormProps>(props: T & StrictProps<T, PlasmicThreadCommentsDialog__replyFormProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("replyForm", props);
+  return <PlasmicThreadCommentsDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"replyForm"} />;
+}
+PlasmicThreadCommentsDialog__replyForm.displayName = "PlasmicThreadCommentsDialog.replyForm";
+
 
 export const PlasmicThreadCommentsDialog = Object.assign(
   // Top-level PlasmicThreadCommentsDialog renders the root element
-  makeNodeComponent("root"),
+  PlasmicThreadCommentsDialog__root,
   {
     // Helper components rendering sub-elements
-    commentsDialogHead: makeNodeComponent("commentsDialogHead"),
-    threadComments: makeNodeComponent("threadComments"),
-    replyForm: makeNodeComponent("replyForm"),
+    commentsDialogHead: PlasmicThreadCommentsDialog__commentsDialogHead,
+    threadComments: PlasmicThreadCommentsDialog__threadComments,
+    replyForm: PlasmicThreadCommentsDialog__replyForm,
 
     // Metadata about props expected for PlasmicThreadCommentsDialog
     internalVariantProps: PlasmicThreadCommentsDialog__VariantProps,

@@ -198,7 +198,7 @@ function PlasmicHostingSettings_(
 
     setAdding(true);
 
-    try {
+    return await (async () => {
       const response = await api.setCustomDomainForProject(
         customDomain || undefined,
         projectId,
@@ -221,7 +221,7 @@ function PlasmicHostingSettings_(
       setError(null);
 
       await mutate(apiKey("getDomainsForProject", projectId));
-    } catch (err) {
+    })().catch(async (err) => {
       // The request threw, so the server never said which domain the failure
       // is about; pin it to the attempted one, or the error would track
       // whatever is typed into the input next.
@@ -235,9 +235,9 @@ function PlasmicHostingSettings_(
       if (failedDomain) {
         spawn(mutate(apiKey("checkDomain", failedDomain)));
       }
-    } finally {
+    }).finally(() => {
       setAdding(false);
-    }
+    });
   }
 
   return (
@@ -259,7 +259,7 @@ function PlasmicHostingSettings_(
           const subdomain = data.subdomain
             ? data.subdomain.toLowerCase()
             : undefined;
-          try {
+          return await (async () => {
             await api.setSubdomainForProject(
               subdomain
                 ? `${subdomain}.${appConfig.plasmicHostingSubdomainSuffix}`
@@ -267,9 +267,9 @@ function PlasmicHostingSettings_(
               projectId,
             );
             await mutate(apiKey("getDomainsForProject", projectId));
-          } finally {
+          })().finally(() => {
             setSaving(false);
-          }
+          });
         }),
       }}
       subdomainInput={{

@@ -1,4 +1,5 @@
 import { useCanvasGeometry } from "@/wab/client/studio-ctx/viewport-state";
+import { useFreestyleState } from "@/wab/client/studio-ctx/canvas-insert-state";
 import { NodeTargeter } from "@/wab/client/Dnd";
 import { resizeRect } from "@/wab/client/FreestyleManipulator";
 import { clientToFramePt, clientToFrameRect } from "@/wab/client/coords";
@@ -23,14 +24,13 @@ import { Box, Pt, Rect, rectTopLeft } from "@/wab/shared/geom";
 import { ensureKnownTplTag } from "@/wab/shared/model/classes";
 import { notification } from "antd";
 import $ from "jquery";
-import { observer } from "mobx-react";
 import React, { useState } from "react";
 
-export function _FreestyleBox() {
+export function FreestyleBoxContent() {
   const [targeter, setTargeter] = useState<NodeTargeter | undefined>(undefined);
   const studioCtx = useStudioCtx();
   const { scale: viewportZoom } = useCanvasGeometry(studioCtx);
-  const freestyleState = studioCtx.freestyleState();
+  const freestyleState = useFreestyleState(studioCtx);
   if (!freestyleState) {
     return null;
   }
@@ -283,4 +283,4 @@ function insertFreestyleAsWrapper(viewCtx: ViewCtx, e: React.MouseEvent): void {
   studioCtx.setFreestyleState(undefined);
 }
 
-export const FreestyleBox = observer(_FreestyleBox);
+export const FreestyleBox = React.memo(FreestyleBoxContent);

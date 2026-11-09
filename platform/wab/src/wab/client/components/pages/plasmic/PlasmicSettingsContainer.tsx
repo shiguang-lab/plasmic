@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
@@ -25,11 +25,11 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../../../plasmic/plasmic_kit_user_settings/PlasmicStyleTokensProvider"; // plasmic-import: aaggSgVS8yYsAwQffVQB4p/styleTokensProvider
+import { useStyleTokens } from "../../../plasmic/plasmic_kit_user_settings/PlasmicStyleTokensProvider"; // plasmic-import: aaggSgVS8yYsAwQffVQB4p/styleTokensProvider
 import TrustedHost from "../../TrustedHost"; // plasmic-import: 0O5nMBdoCe/component
 import Button from "../../widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import MenuButton from "../../widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
@@ -129,11 +129,10 @@ function PlasmicSettingsContainer__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "tokenState",
@@ -156,18 +155,20 @@ function PlasmicSettingsContainer__RenderFunc(props: {
           $props.hideChangePassword,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -951,12 +952,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -966,35 +963,93 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSettingsContainer__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSettingsContainer";
-  } else {
-    func.displayName = `PlasmicSettingsContainer.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSettingsContainer__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSettingsContainer__root<T extends PlasmicSettingsContainer__rootProps>(props: T & StrictProps<T, PlasmicSettingsContainer__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSettingsContainer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSettingsContainer__root.displayName = "PlasmicSettingsContainer";
+
+type PlasmicSettingsContainer__imgProps = NodeComponentProps<"img"> & {key?: React.Key};
+function PlasmicSettingsContainer__img<T extends PlasmicSettingsContainer__imgProps>(props: T & StrictProps<T, PlasmicSettingsContainer__imgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("img", props);
+  return <PlasmicSettingsContainer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"img"} />;
+}
+PlasmicSettingsContainer__img.displayName = "PlasmicSettingsContainer.img";
+
+type PlasmicSettingsContainer__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicSettingsContainer__menuButton<T extends PlasmicSettingsContainer__menuButtonProps>(props: T & StrictProps<T, PlasmicSettingsContainer__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicSettingsContainer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicSettingsContainer__menuButton.displayName = "PlasmicSettingsContainer.menuButton";
+
+type PlasmicSettingsContainer__changePasswordButtonProps = NodeComponentProps<"changePasswordButton"> & {key?: React.Key};
+function PlasmicSettingsContainer__changePasswordButton<T extends PlasmicSettingsContainer__changePasswordButtonProps>(props: T & StrictProps<T, PlasmicSettingsContainer__changePasswordButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("changePasswordButton", props);
+  return <PlasmicSettingsContainer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"changePasswordButton"} />;
+}
+PlasmicSettingsContainer__changePasswordButton.displayName = "PlasmicSettingsContainer.changePasswordButton";
+
+type PlasmicSettingsContainer__newTokenButtonProps = NodeComponentProps<"newTokenButton"> & {key?: React.Key};
+function PlasmicSettingsContainer__newTokenButton<T extends PlasmicSettingsContainer__newTokenButtonProps>(props: T & StrictProps<T, PlasmicSettingsContainer__newTokenButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newTokenButton", props);
+  return <PlasmicSettingsContainer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newTokenButton"} />;
+}
+PlasmicSettingsContainer__newTokenButton.displayName = "PlasmicSettingsContainer.newTokenButton";
+
+type PlasmicSettingsContainer__existingTokensProps = NodeComponentProps<"existingTokens"> & {key?: React.Key};
+function PlasmicSettingsContainer__existingTokens<T extends PlasmicSettingsContainer__existingTokensProps>(props: T & StrictProps<T, PlasmicSettingsContainer__existingTokensProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("existingTokens", props);
+  return <PlasmicSettingsContainer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"existingTokens"} />;
+}
+PlasmicSettingsContainer__existingTokens.displayName = "PlasmicSettingsContainer.existingTokens";
+
+type PlasmicSettingsContainer__tokenInstanceProps = NodeComponentProps<"tokenInstance"> & {key?: React.Key};
+function PlasmicSettingsContainer__tokenInstance<T extends PlasmicSettingsContainer__tokenInstanceProps>(props: T & StrictProps<T, PlasmicSettingsContainer__tokenInstanceProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("tokenInstance", props);
+  return <PlasmicSettingsContainer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tokenInstance"} />;
+}
+PlasmicSettingsContainer__tokenInstance.displayName = "PlasmicSettingsContainer.tokenInstance";
+
+type PlasmicSettingsContainer__personalAccessTokenProps = NodeComponentProps<"personalAccessToken"> & {key?: React.Key};
+function PlasmicSettingsContainer__personalAccessToken<T extends PlasmicSettingsContainer__personalAccessTokenProps>(props: T & StrictProps<T, PlasmicSettingsContainer__personalAccessTokenProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("personalAccessToken", props);
+  return <PlasmicSettingsContainer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"personalAccessToken"} />;
+}
+PlasmicSettingsContainer__personalAccessToken.displayName = "PlasmicSettingsContainer.personalAccessToken";
+
+type PlasmicSettingsContainer__newTrustedHostBtnProps = NodeComponentProps<"newTrustedHostBtn"> & {key?: React.Key};
+function PlasmicSettingsContainer__newTrustedHostBtn<T extends PlasmicSettingsContainer__newTrustedHostBtnProps>(props: T & StrictProps<T, PlasmicSettingsContainer__newTrustedHostBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newTrustedHostBtn", props);
+  return <PlasmicSettingsContainer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newTrustedHostBtn"} />;
+}
+PlasmicSettingsContainer__newTrustedHostBtn.displayName = "PlasmicSettingsContainer.newTrustedHostBtn";
+
+type PlasmicSettingsContainer__hostsListProps = NodeComponentProps<"hostsList"> & {key?: React.Key};
+function PlasmicSettingsContainer__hostsList<T extends PlasmicSettingsContainer__hostsListProps>(props: T & StrictProps<T, PlasmicSettingsContainer__hostsListProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("hostsList", props);
+  return <PlasmicSettingsContainer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"hostsList"} />;
+}
+PlasmicSettingsContainer__hostsList.displayName = "PlasmicSettingsContainer.hostsList";
+
 
 export const PlasmicSettingsContainer = Object.assign(
   // Top-level PlasmicSettingsContainer renders the root element
-  makeNodeComponent("root"),
+  PlasmicSettingsContainer__root,
   {
     // Helper components rendering sub-elements
-    img: makeNodeComponent("img"),
-    menuButton: makeNodeComponent("menuButton"),
-    changePasswordButton: makeNodeComponent("changePasswordButton"),
-    newTokenButton: makeNodeComponent("newTokenButton"),
-    existingTokens: makeNodeComponent("existingTokens"),
-    tokenInstance: makeNodeComponent("tokenInstance"),
-    personalAccessToken: makeNodeComponent("personalAccessToken"),
-    newTrustedHostBtn: makeNodeComponent("newTrustedHostBtn"),
-    hostsList: makeNodeComponent("hostsList"),
+    img: PlasmicSettingsContainer__img,
+    menuButton: PlasmicSettingsContainer__menuButton,
+    changePasswordButton: PlasmicSettingsContainer__changePasswordButton,
+    newTokenButton: PlasmicSettingsContainer__newTokenButton,
+    existingTokens: PlasmicSettingsContainer__existingTokens,
+    tokenInstance: PlasmicSettingsContainer__tokenInstance,
+    personalAccessToken: PlasmicSettingsContainer__personalAccessToken,
+    newTrustedHostBtn: PlasmicSettingsContainer__newTrustedHostBtn,
+    hostsList: PlasmicSettingsContainer__hostsList,
 
     // Metadata about props expected for PlasmicSettingsContainer
     internalVariantProps: PlasmicSettingsContainer__VariantProps,

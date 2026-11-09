@@ -1,29 +1,15 @@
 import {
   PlasmicTranslatorContext as HostPlasmicTranslatorContext,
-  PlasmicI18NContextValue,
-  PlasmicTranslator,
   usePlasmicTranslator as useHostPlasmicTranslator,
 } from "@plasmicapp/host";
 import React from "react";
 
-// Make the refactor to host backwards compatible for loader
-export const PlasmicTranslatorContext =
-  HostPlasmicTranslatorContext ??
-  React.createContext<PlasmicI18NContextValue | PlasmicTranslator | undefined>(
-    undefined
-  );
+export { HostPlasmicTranslatorContext as PlasmicTranslatorContext };
+const PlasmicTranslatorContext = HostPlasmicTranslatorContext;
 
-export const usePlasmicTranslator =
-  useHostPlasmicTranslator ??
-  (() => {
-    const _t = React.useContext(PlasmicTranslatorContext);
-    const translator = _t
-      ? typeof _t === "function"
-        ? _t
-        : _t.translator
-      : undefined;
-    return translator;
-  });
+export function usePlasmicTranslator() {
+  return useHostPlasmicTranslator();
+}
 
 export interface TransProps {
   transKey?: string;

@@ -25,13 +25,14 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -103,11 +104,10 @@ function PlasmicEditableResourceName__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "state",
@@ -128,25 +128,27 @@ function PlasmicEditableResourceName__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.size,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -211,9 +213,7 @@ function PlasmicEditableResourceName__RenderFunc(props: {
               [sty.editButtonstate_hover]: hasVariant($state, "state", "hover"),
             }
           )}
-          ref={(ref) => {
-            $refs["editButton"] = ref;
-          }}
+          ref={registerRef("editButton")}
           title={uiT("Rename")}
           type={"button"}
         >
@@ -270,12 +270,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -285,28 +281,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicEditableResourceName__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicEditableResourceName";
-  } else {
-    func.displayName = `PlasmicEditableResourceName.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicEditableResourceName__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicEditableResourceName__root<T extends PlasmicEditableResourceName__rootProps>(props: T & StrictProps<T, PlasmicEditableResourceName__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicEditableResourceName__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicEditableResourceName__root.displayName = "PlasmicEditableResourceName";
+
+type PlasmicEditableResourceName__editButtonProps = NodeComponentProps<"editButton"> & {key?: React.Key};
+function PlasmicEditableResourceName__editButton<T extends PlasmicEditableResourceName__editButtonProps>(props: T & StrictProps<T, PlasmicEditableResourceName__editButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("editButton", props);
+  return <PlasmicEditableResourceName__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"editButton"} />;
+}
+PlasmicEditableResourceName__editButton.displayName = "PlasmicEditableResourceName.editButton";
+
+type PlasmicEditableResourceName__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicEditableResourceName__svg<T extends PlasmicEditableResourceName__svgProps>(props: T & StrictProps<T, PlasmicEditableResourceName__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicEditableResourceName__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicEditableResourceName__svg.displayName = "PlasmicEditableResourceName.svg";
+
 
 export const PlasmicEditableResourceName = Object.assign(
   // Top-level PlasmicEditableResourceName renders the root element
-  makeNodeComponent("root"),
+  PlasmicEditableResourceName__root,
   {
     // Helper components rendering sub-elements
-    editButton: makeNodeComponent("editButton"),
-    svg: makeNodeComponent("svg"),
+    editButton: PlasmicEditableResourceName__editButton,
+    svg: PlasmicEditableResourceName__svg,
 
     // Metadata about props expected for PlasmicEditableResourceName
     internalVariantProps: PlasmicEditableResourceName__VariantProps,

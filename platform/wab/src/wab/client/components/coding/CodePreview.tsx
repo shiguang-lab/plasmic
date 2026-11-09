@@ -63,7 +63,7 @@ function formatError(error: Error): Partial<Error> {
   return formatted;
 }
 
-export const CodePreview = function _CodePreview(props: {
+export const CodePreview = function CodePreviewContent(props: {
   viewCtx?: ViewCtx;
   value: string;
   data: Record<string, any>;
@@ -81,8 +81,8 @@ export const CodePreview = function _CodePreview(props: {
 
   const [error, setError] = useState<Partial<Error> | undefined>(undefined);
 
-  const debouncedSetError = useCallback(
-    debounce((err: Partial<Error> | undefined) => {
+  const debouncedSetError = React.useMemo(
+    () => debounce((err: Partial<Error> | undefined) => {
       setError(err);
     }, 500),
     [],
@@ -96,7 +96,11 @@ export const CodePreview = function _CodePreview(props: {
 
     const err = formatError(evaluated.err);
     // Clear the error immediately if it's no longer the same as the one currently displayed (which means the displayed error is possibly resolved)
-    setError((prev) => (prev?.message !== err?.message ? undefined : prev));
+    setError((prev) => {
+      const previousMessage = prev?.message;
+      const nextMessage = err?.message;
+      return previousMessage !== nextMessage ? undefined : prev;
+    });
     debouncedSetError(err);
     return () => {
       debouncedSetError.cancel();

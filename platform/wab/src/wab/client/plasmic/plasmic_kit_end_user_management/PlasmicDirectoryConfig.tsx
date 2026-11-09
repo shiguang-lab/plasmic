@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -27,7 +27,7 @@ import DirectoryUserRow from "../../components/app-auth/DirectoryUserRow"; // pl
 import GroupItem from "../../components/app-auth/GroupItem"; // plasmic-import: rF43GtStPO/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -104,11 +104,10 @@ function PlasmicDirectoryConfig__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -429,12 +428,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -444,37 +439,109 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDirectoryConfig__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDirectoryConfig";
-  } else {
-    func.displayName = `PlasmicDirectoryConfig.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDirectoryConfig__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDirectoryConfig__root<T extends PlasmicDirectoryConfig__rootProps>(props: T & StrictProps<T, PlasmicDirectoryConfig__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDirectoryConfig__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDirectoryConfig__root.displayName = "PlasmicDirectoryConfig";
+
+type PlasmicDirectoryConfig__directoryNameProps = NodeComponentProps<"directoryName"> & {key?: React.Key};
+function PlasmicDirectoryConfig__directoryName<T extends PlasmicDirectoryConfig__directoryNameProps>(props: T & StrictProps<T, PlasmicDirectoryConfig__directoryNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("directoryName", props);
+  return <PlasmicDirectoryConfig__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"directoryName"} />;
+}
+PlasmicDirectoryConfig__directoryName.displayName = "PlasmicDirectoryConfig.directoryName";
+
+type PlasmicDirectoryConfig__backBtnProps = NodeComponentProps<"backBtn"> & {key?: React.Key};
+function PlasmicDirectoryConfig__backBtn<T extends PlasmicDirectoryConfig__backBtnProps>(props: T & StrictProps<T, PlasmicDirectoryConfig__backBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("backBtn", props);
+  return <PlasmicDirectoryConfig__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"backBtn"} />;
+}
+PlasmicDirectoryConfig__backBtn.displayName = "PlasmicDirectoryConfig.backBtn";
+
+type PlasmicDirectoryConfig__gearIconProps = NodeComponentProps<"gearIcon"> & {key?: React.Key};
+function PlasmicDirectoryConfig__gearIcon<T extends PlasmicDirectoryConfig__gearIconProps>(props: T & StrictProps<T, PlasmicDirectoryConfig__gearIconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("gearIcon", props);
+  return <PlasmicDirectoryConfig__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"gearIcon"} />;
+}
+PlasmicDirectoryConfig__gearIcon.displayName = "PlasmicDirectoryConfig.gearIcon";
+
+type PlasmicDirectoryConfig__closeIconProps = NodeComponentProps<"closeIcon"> & {key?: React.Key};
+function PlasmicDirectoryConfig__closeIcon<T extends PlasmicDirectoryConfig__closeIconProps>(props: T & StrictProps<T, PlasmicDirectoryConfig__closeIconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("closeIcon", props);
+  return <PlasmicDirectoryConfig__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"closeIcon"} />;
+}
+PlasmicDirectoryConfig__closeIcon.displayName = "PlasmicDirectoryConfig.closeIcon";
+
+type PlasmicDirectoryConfig__groupsLabelProps = NodeComponentProps<"groupsLabel"> & {key?: React.Key};
+function PlasmicDirectoryConfig__groupsLabel<T extends PlasmicDirectoryConfig__groupsLabelProps>(props: T & StrictProps<T, PlasmicDirectoryConfig__groupsLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("groupsLabel", props);
+  return <PlasmicDirectoryConfig__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"groupsLabel"} />;
+}
+PlasmicDirectoryConfig__groupsLabel.displayName = "PlasmicDirectoryConfig.groupsLabel";
+
+type PlasmicDirectoryConfig__groupsListProps = NodeComponentProps<"groupsList"> & {key?: React.Key};
+function PlasmicDirectoryConfig__groupsList<T extends PlasmicDirectoryConfig__groupsListProps>(props: T & StrictProps<T, PlasmicDirectoryConfig__groupsListProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("groupsList", props);
+  return <PlasmicDirectoryConfig__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"groupsList"} />;
+}
+PlasmicDirectoryConfig__groupsList.displayName = "PlasmicDirectoryConfig.groupsList";
+
+type PlasmicDirectoryConfig__addGroupBtnProps = NodeComponentProps<"addGroupBtn"> & {key?: React.Key};
+function PlasmicDirectoryConfig__addGroupBtn<T extends PlasmicDirectoryConfig__addGroupBtnProps>(props: T & StrictProps<T, PlasmicDirectoryConfig__addGroupBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addGroupBtn", props);
+  return <PlasmicDirectoryConfig__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addGroupBtn"} />;
+}
+PlasmicDirectoryConfig__addGroupBtn.displayName = "PlasmicDirectoryConfig.addGroupBtn";
+
+type PlasmicDirectoryConfig__addUserBtnProps = NodeComponentProps<"addUserBtn"> & {key?: React.Key};
+function PlasmicDirectoryConfig__addUserBtn<T extends PlasmicDirectoryConfig__addUserBtnProps>(props: T & StrictProps<T, PlasmicDirectoryConfig__addUserBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addUserBtn", props);
+  return <PlasmicDirectoryConfig__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addUserBtn"} />;
+}
+PlasmicDirectoryConfig__addUserBtn.displayName = "PlasmicDirectoryConfig.addUserBtn";
+
+type PlasmicDirectoryConfig__directoryUsersProps = NodeComponentProps<"directoryUsers"> & {key?: React.Key};
+function PlasmicDirectoryConfig__directoryUsers<T extends PlasmicDirectoryConfig__directoryUsersProps>(props: T & StrictProps<T, PlasmicDirectoryConfig__directoryUsersProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("directoryUsers", props);
+  return <PlasmicDirectoryConfig__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"directoryUsers"} />;
+}
+PlasmicDirectoryConfig__directoryUsers.displayName = "PlasmicDirectoryConfig.directoryUsers";
+
+type PlasmicDirectoryConfig__importFromBtnProps = NodeComponentProps<"importFromBtn"> & {key?: React.Key};
+function PlasmicDirectoryConfig__importFromBtn<T extends PlasmicDirectoryConfig__importFromBtnProps>(props: T & StrictProps<T, PlasmicDirectoryConfig__importFromBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("importFromBtn", props);
+  return <PlasmicDirectoryConfig__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"importFromBtn"} />;
+}
+PlasmicDirectoryConfig__importFromBtn.displayName = "PlasmicDirectoryConfig.importFromBtn";
+
+type PlasmicDirectoryConfig__uploadCsvBtnProps = NodeComponentProps<"uploadCsvBtn"> & {key?: React.Key};
+function PlasmicDirectoryConfig__uploadCsvBtn<T extends PlasmicDirectoryConfig__uploadCsvBtnProps>(props: T & StrictProps<T, PlasmicDirectoryConfig__uploadCsvBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("uploadCsvBtn", props);
+  return <PlasmicDirectoryConfig__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"uploadCsvBtn"} />;
+}
+PlasmicDirectoryConfig__uploadCsvBtn.displayName = "PlasmicDirectoryConfig.uploadCsvBtn";
+
 
 export const PlasmicDirectoryConfig = Object.assign(
   // Top-level PlasmicDirectoryConfig renders the root element
-  makeNodeComponent("root"),
+  PlasmicDirectoryConfig__root,
   {
     // Helper components rendering sub-elements
-    directoryName: makeNodeComponent("directoryName"),
-    backBtn: makeNodeComponent("backBtn"),
-    gearIcon: makeNodeComponent("gearIcon"),
-    closeIcon: makeNodeComponent("closeIcon"),
-    groupsLabel: makeNodeComponent("groupsLabel"),
-    groupsList: makeNodeComponent("groupsList"),
-    addGroupBtn: makeNodeComponent("addGroupBtn"),
-    addUserBtn: makeNodeComponent("addUserBtn"),
-    directoryUsers: makeNodeComponent("directoryUsers"),
-    importFromBtn: makeNodeComponent("importFromBtn"),
-    uploadCsvBtn: makeNodeComponent("uploadCsvBtn"),
+    directoryName: PlasmicDirectoryConfig__directoryName,
+    backBtn: PlasmicDirectoryConfig__backBtn,
+    gearIcon: PlasmicDirectoryConfig__gearIcon,
+    closeIcon: PlasmicDirectoryConfig__closeIcon,
+    groupsLabel: PlasmicDirectoryConfig__groupsLabel,
+    groupsList: PlasmicDirectoryConfig__groupsList,
+    addGroupBtn: PlasmicDirectoryConfig__addGroupBtn,
+    addUserBtn: PlasmicDirectoryConfig__addUserBtn,
+    directoryUsers: PlasmicDirectoryConfig__directoryUsers,
+    importFromBtn: PlasmicDirectoryConfig__importFromBtn,
+    uploadCsvBtn: PlasmicDirectoryConfig__uploadCsvBtn,
 
     // Metadata about props expected for PlasmicDirectoryConfig
     internalVariantProps: PlasmicDirectoryConfig__VariantProps,

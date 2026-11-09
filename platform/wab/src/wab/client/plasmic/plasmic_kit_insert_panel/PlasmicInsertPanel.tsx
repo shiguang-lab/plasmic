@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -34,7 +34,7 @@ import Separator from "../../components/insert-panel/Separator"; // plasmic-impo
 import Spacer from "../../components/insert-panel/Spacer"; // plasmic-import: ae4tx4K7hb/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 4B48dRthR8uGgyaBYpWthR/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 4B48dRthR8uGgyaBYpWthR/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -108,11 +108,10 @@ function PlasmicInsertPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -376,9 +375,8 @@ function PlasmicInsertPanel__RenderFunc(props: {
             className={classNames("all", sty.content)}
           >
             {((_par) => (!_par ? [] : Array.isArray(_par) ? _par : [_par]))(
-              (() => {
-                try {
-                  return (() => {
+              ((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                    e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ((() => {
                     function returnValue(items) {
                       const nonPageTemplates = items.filter(
                         (section) => !section.isPageTemplatesGroup
@@ -1214,17 +1212,7 @@ function PlasmicInsertPanel__RenderFunc(props: {
                       },
                     };
                     return returnValue(data.insertableTemplates.items);
-                  })();
-                } catch (e) {
-                  if (
-                    e instanceof TypeError ||
-                    e?.plasmicType === "PlasmicUndefinedDataError"
-                  ) {
-                    return [];
-                  }
-                  throw e;
-                }
-              })()
+                  })()), () => ([]))
             ).map((__plasmic_item_0, __plasmic_idx_0) => {
               const currentSection = __plasmic_item_0;
               const currentSectionIndex = __plasmic_idx_0;
@@ -1236,57 +1224,24 @@ function PlasmicInsertPanel__RenderFunc(props: {
                   key={currentSectionIndex}
                   title={
                     <React.Fragment>
-                      {(() => {
-                        try {
-                          return currentSection.name;
-                        } catch (e) {
-                          if (
-                            e instanceof TypeError ||
-                            e?.plasmicType === "PlasmicUndefinedDataError"
-                          ) {
-                            return "Section Title";
-                          }
-                          throw e;
-                        }
-                      })()}
+                      {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                            e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => (currentSection.name), () => ("Section Title"))}
                     </React.Fragment>
                   }
                 >
                   <div
                     className={classNames("all", sty.freeBox__wvcPn)}
-                    style={(() => {
-                      try {
-                        return {
+                    style={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                          e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ({
                           gridTemplateColumns: `repeat(${
                             currentSection.numberOfColumns ?? 1
                           }, minmax(0, 1fr))`,
-                        };
-                      } catch (e) {
-                        if (
-                          e instanceof TypeError ||
-                          e?.plasmicType === "PlasmicUndefinedDataError"
-                        ) {
-                          return undefined;
-                        }
-                        throw e;
-                      }
-                    })()}
+                        }), () => (undefined))}
                   >
                     {((_par) =>
                       !_par ? [] : Array.isArray(_par) ? _par : [_par])(
-                      (() => {
-                        try {
-                          return currentSection.items ?? [];
-                        } catch (e) {
-                          if (
-                            e instanceof TypeError ||
-                            e?.plasmicType === "PlasmicUndefinedDataError"
-                          ) {
-                            return [];
-                          }
-                          throw e;
-                        }
-                      })()
+                      ((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                            e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => (currentSection.items ?? []), () => ([]))
                     ).map((__plasmic_item_1, __plasmic_idx_1) => {
                       const currentItem = __plasmic_item_1;
                       const currentIndex = __plasmic_idx_1;
@@ -1295,19 +1250,8 @@ function PlasmicInsertPanel__RenderFunc(props: {
                           data-plasmic-name={"card"}
                           data-plasmic-override={overrides.card}
                           className={classNames("__wab_instance", sty.card)}
-                          imageUrl={(() => {
-                            try {
-                              return currentItem.imageUrl;
-                            } catch (e) {
-                              if (
-                                e instanceof TypeError ||
-                                e?.plasmicType === "PlasmicUndefinedDataError"
-                              ) {
-                                return undefined;
-                              }
-                              throw e;
-                            }
-                          })()}
+                          imageUrl={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                                e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => (currentItem.imageUrl), () => (undefined))}
                           key={currentIndex}
                         />
                       );
@@ -1404,12 +1348,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1419,37 +1359,109 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicInsertPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicInsertPanel";
-  } else {
-    func.displayName = `PlasmicInsertPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicInsertPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicInsertPanel__root<T extends PlasmicInsertPanel__rootProps>(props: T & StrictProps<T, PlasmicInsertPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicInsertPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicInsertPanel__root.displayName = "PlasmicInsertPanel";
+
+type PlasmicInsertPanel__searchContainerProps = NodeComponentProps<"searchContainer"> & {key?: React.Key};
+function PlasmicInsertPanel__searchContainer<T extends PlasmicInsertPanel__searchContainerProps>(props: T & StrictProps<T, PlasmicInsertPanel__searchContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchContainer", props);
+  return <PlasmicInsertPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchContainer"} />;
+}
+PlasmicInsertPanel__searchContainer.displayName = "PlasmicInsertPanel.searchContainer";
+
+type PlasmicInsertPanel__leftSearchPanelProps = NodeComponentProps<"leftSearchPanel"> & {key?: React.Key};
+function PlasmicInsertPanel__leftSearchPanel<T extends PlasmicInsertPanel__leftSearchPanelProps>(props: T & StrictProps<T, PlasmicInsertPanel__leftSearchPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftSearchPanel", props);
+  return <PlasmicInsertPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftSearchPanel"} />;
+}
+PlasmicInsertPanel__leftSearchPanel.displayName = "PlasmicInsertPanel.leftSearchPanel";
+
+type PlasmicInsertPanel__addButtonProps = NodeComponentProps<"addButton"> & {key?: React.Key};
+function PlasmicInsertPanel__addButton<T extends PlasmicInsertPanel__addButtonProps>(props: T & StrictProps<T, PlasmicInsertPanel__addButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addButton", props);
+  return <PlasmicInsertPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addButton"} />;
+}
+PlasmicInsertPanel__addButton.displayName = "PlasmicInsertPanel.addButton";
+
+type PlasmicInsertPanel__sectionsContainerProps = NodeComponentProps<"sectionsContainer"> & {key?: React.Key};
+function PlasmicInsertPanel__sectionsContainer<T extends PlasmicInsertPanel__sectionsContainerProps>(props: T & StrictProps<T, PlasmicInsertPanel__sectionsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sectionsContainer", props);
+  return <PlasmicInsertPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sectionsContainer"} />;
+}
+PlasmicInsertPanel__sectionsContainer.displayName = "PlasmicInsertPanel.sectionsContainer";
+
+type PlasmicInsertPanel__sectionsProps = NodeComponentProps<"sections"> & {key?: React.Key};
+function PlasmicInsertPanel__sections<T extends PlasmicInsertPanel__sectionsProps>(props: T & StrictProps<T, PlasmicInsertPanel__sectionsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sections", props);
+  return <PlasmicInsertPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sections"} />;
+}
+PlasmicInsertPanel__sections.displayName = "PlasmicInsertPanel.sections";
+
+type PlasmicInsertPanel__insertPanelTabGroupProps = NodeComponentProps<"insertPanelTabGroup"> & {key?: React.Key};
+function PlasmicInsertPanel__insertPanelTabGroup<T extends PlasmicInsertPanel__insertPanelTabGroupProps>(props: T & StrictProps<T, PlasmicInsertPanel__insertPanelTabGroupProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("insertPanelTabGroup", props);
+  return <PlasmicInsertPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"insertPanelTabGroup"} />;
+}
+PlasmicInsertPanel__insertPanelTabGroup.displayName = "PlasmicInsertPanel.insertPanelTabGroup";
+
+type PlasmicInsertPanel__separatorProps = NodeComponentProps<"separator"> & {key?: React.Key};
+function PlasmicInsertPanel__separator<T extends PlasmicInsertPanel__separatorProps>(props: T & StrictProps<T, PlasmicInsertPanel__separatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("separator", props);
+  return <PlasmicInsertPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"separator"} />;
+}
+PlasmicInsertPanel__separator.displayName = "PlasmicInsertPanel.separator";
+
+type PlasmicInsertPanel__contentContainerProps = NodeComponentProps<"contentContainer"> & {key?: React.Key};
+function PlasmicInsertPanel__contentContainer<T extends PlasmicInsertPanel__contentContainerProps>(props: T & StrictProps<T, PlasmicInsertPanel__contentContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("contentContainer", props);
+  return <PlasmicInsertPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"contentContainer"} />;
+}
+PlasmicInsertPanel__contentContainer.displayName = "PlasmicInsertPanel.contentContainer";
+
+type PlasmicInsertPanel__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicInsertPanel__content<T extends PlasmicInsertPanel__contentProps>(props: T & StrictProps<T, PlasmicInsertPanel__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicInsertPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicInsertPanel__content.displayName = "PlasmicInsertPanel.content";
+
+type PlasmicInsertPanel__sectionProps = NodeComponentProps<"section"> & {key?: React.Key};
+function PlasmicInsertPanel__section<T extends PlasmicInsertPanel__sectionProps>(props: T & StrictProps<T, PlasmicInsertPanel__sectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("section", props);
+  return <PlasmicInsertPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"section"} />;
+}
+PlasmicInsertPanel__section.displayName = "PlasmicInsertPanel.section";
+
+type PlasmicInsertPanel__cardProps = NodeComponentProps<"card"> & {key?: React.Key};
+function PlasmicInsertPanel__card<T extends PlasmicInsertPanel__cardProps>(props: T & StrictProps<T, PlasmicInsertPanel__cardProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("card", props);
+  return <PlasmicInsertPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"card"} />;
+}
+PlasmicInsertPanel__card.displayName = "PlasmicInsertPanel.card";
+
 
 export const PlasmicInsertPanel = Object.assign(
   // Top-level PlasmicInsertPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicInsertPanel__root,
   {
     // Helper components rendering sub-elements
-    searchContainer: makeNodeComponent("searchContainer"),
-    leftSearchPanel: makeNodeComponent("leftSearchPanel"),
-    addButton: makeNodeComponent("addButton"),
-    sectionsContainer: makeNodeComponent("sectionsContainer"),
-    sections: makeNodeComponent("sections"),
-    insertPanelTabGroup: makeNodeComponent("insertPanelTabGroup"),
-    separator: makeNodeComponent("separator"),
-    contentContainer: makeNodeComponent("contentContainer"),
-    content: makeNodeComponent("content"),
-    section: makeNodeComponent("section"),
-    card: makeNodeComponent("card"),
+    searchContainer: PlasmicInsertPanel__searchContainer,
+    leftSearchPanel: PlasmicInsertPanel__leftSearchPanel,
+    addButton: PlasmicInsertPanel__addButton,
+    sectionsContainer: PlasmicInsertPanel__sectionsContainer,
+    sections: PlasmicInsertPanel__sections,
+    insertPanelTabGroup: PlasmicInsertPanel__insertPanelTabGroup,
+    separator: PlasmicInsertPanel__separator,
+    contentContainer: PlasmicInsertPanel__contentContainer,
+    content: PlasmicInsertPanel__content,
+    section: PlasmicInsertPanel__section,
+    card: PlasmicInsertPanel__card,
 
     // Metadata about props expected for PlasmicInsertPanel
     internalVariantProps: PlasmicInsertPanel__VariantProps,

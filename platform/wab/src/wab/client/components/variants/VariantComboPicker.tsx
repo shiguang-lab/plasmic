@@ -85,11 +85,9 @@ function VariantComboPicker_({
 
   useAutoFocus(showDropdown && inputRef);
 
-  if (autoFocus) {
-    useLayoutEffect(() => {
-      setShowDropdown(true);
-    }, []);
-  }
+  useLayoutEffect(() => {
+    if (autoFocus) { setShowDropdown(true); }
+  }, [autoFocus]);
 
   return (
     <Dropdown
@@ -156,7 +154,15 @@ function useBaseVariantFlags(
   models: ModelSnapshots,
   variants: readonly Variant[],
 ): readonly boolean[] {
-  const source = useMemo(() => {
+  const source = useMemo(() => createBaseVariantFlagSource(models, variants), [models, variants]);
+  return useSyncExternalStore(
+    source.subscribe,
+    source.getSnapshot,
+    source.getServerSnapshot,
+  );
+}
+
+function createBaseVariantFlagSource(models: ModelSnapshots, variants: readonly Variant[]) {
     const nameStores = variants.map((variant) => models.field(variant, "name"));
     const initialSnapshot = Object.freeze(
       nameStores.map((store) => store.getState() === BASE_VARIANT_NAME),
@@ -177,10 +183,4 @@ function useBaseVariantFlags(
       return () => stops.forEach((stop) => stop());
     };
     return { getSnapshot, getServerSnapshot, subscribe };
-  }, [models, variants]);
-  return useSyncExternalStore(
-    source.subscribe,
-    source.getSnapshot,
-    source.getServerSnapshot,
-  );
 }

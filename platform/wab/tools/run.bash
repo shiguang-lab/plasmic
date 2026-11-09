@@ -17,4 +17,4 @@ then NODE_OPTIONS="$NODE_OPTIONS --experimental-repl-await"
 fi
 
 #NQ_SQLJS=1 NODE_OPTIONS="--max-old-space-size=10000 $debug_args ${NODE_OPTIONS:-}" tsx --tsconfig tsconfig.tools.json "$@"
-NQ_SQLJS=1 NODE_OPTIONS="--max-old-space-size=$MAX_HEAP_SIZE $debug_args ${NODE_OPTIONS:-}" node -r esbuild-register -r dotenv/config "$@"
+NQ_SQLJS=1 NODE_OPTIONS="--max-old-space-size=$MAX_HEAP_SIZE $debug_args ${NODE_OPTIONS:-}" node -r ./tools/backend-register.cjs -r dotenv/config "$@"

@@ -28,6 +28,7 @@ export class RemoteAiSessionView implements AiSessionView {
     stoppable: [],
     undoable: [],
   };
+  private scrollPosition = -1;
   private pendingDrafts = new Map<string, AiSessionView["draft"]>();
   private pendingThreadId?: string;
   private pendingModel: { value: string | undefined } | undefined;
@@ -50,7 +51,7 @@ export class RemoteAiSessionView implements AiSessionView {
           draft: this.state.draft,
           before: this.state.before,
           historyLoading: this.state.historyLoading,
-          scrollTop: this.state.scrollTop,
+          scrollTop: this.scrollPosition,
         };
       }
     }
@@ -69,7 +70,8 @@ export class RemoteAiSessionView implements AiSessionView {
         state = { ...state, selectedModel: this.pendingModel.value };
       }
     }
-    this.state = state;
+    this.state = Object.freeze(state);
+    this.scrollPosition = state.scrollTop;
     this.notify();
   };
   subscribe = (listener: () => void) => {
@@ -81,7 +83,7 @@ export class RemoteAiSessionView implements AiSessionView {
   private notify() {
     this.listeners.forEach((listener) => listener());
   }
-  snapshot = () => this.state.tasks;
+  snapshot = (): AiSessionSnapshot => this.state;
   get tasks() {
     return this.state.tasks;
   }
@@ -123,11 +125,11 @@ export class RemoteAiSessionView implements AiSessionView {
     return this.state.historyLoading;
   }
   get scrollTop() {
-    return this.state.scrollTop;
+    return this.scrollPosition;
   }
-  set scrollTop(value: number) {
-    this.state = { ...this.state, scrollTop: value };
-    void this.send({ type: "scroll", value, threadId: this.activeThreadId });
+  setThreadScroll(threadId: string, value: number) {
+    if (threadId === this.activeThreadId) { this.scrollPosition = value; }
+    void this.send({ type: "scroll", value, threadId });
   }
   get error() {
     return this.state.error;
@@ -144,16 +146,18 @@ export class RemoteAiSessionView implements AiSessionView {
   get draft() {
     return this.state.draft;
   }
-  set draft(value: AiSessionView["draft"]) {
-    this.pendingDrafts.set(this.activeThreadId, value);
-    this.state = { ...this.state, draft: value, tasks: [...this.state.tasks] };
-    this.notify();
-    void this.send({ type: "draft", value, threadId: this.activeThreadId });
+  setThreadDraft(threadId: string, value: AiSessionView["draft"]) {
+    this.pendingDrafts.set(threadId, value);
+    if (threadId === this.activeThreadId) {
+      this.state = Object.freeze({ ...this.state, draft: value });
+      this.notify();
+    }
+    void this.send({ type: "draft", value, threadId });
   }
   get selectedModel() {
     return this.state.selectedModel;
   }
-  set selectedModel(value: string | undefined) {
+  setSelectedModel(value: string | undefined) {
     if (value === this.state.selectedModel) {
       return;
     }
@@ -161,7 +165,6 @@ export class RemoteAiSessionView implements AiSessionView {
     this.state = {
       ...this.state,
       selectedModel: value,
-      tasks: [...this.state.tasks],
     };
     this.notify();
     void this.send({ type: "model", value });
@@ -186,6 +189,7 @@ export class RemoteAiSessionView implements AiSessionView {
     });
   private beginSelection(id: string) {
     this.pendingThreadId = id;
+    this.scrollPosition = 0;
     this.state = {
       ...this.state,
       activeThreadId: id,
@@ -194,7 +198,6 @@ export class RemoteAiSessionView implements AiSessionView {
       before: undefined,
       historyLoading: true,
       scrollTop: 0,
-      tasks: [...this.tasks],
     };
     this.notify();
   }
@@ -217,7 +220,6 @@ export class RemoteAiSessionView implements AiSessionView {
       this.state = {
         ...this.state,
         draft: { ...this.state.draft, attachments },
-        tasks: [...this.tasks],
       };
       this.notify();
     }

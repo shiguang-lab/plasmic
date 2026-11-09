@@ -2,7 +2,7 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { AnimationSequenceEditModal } from "@/wab/client/components/sidebar/AnimationSequenceControls";
 import type { SidebarModal } from "@/wab/client/components/sidebar/SidebarModal";
 import type { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
-import { StyleComponentContext } from "@/wab/client/components/style-controls/StyleComponent";
+import { StyleTargetContext } from "@/wab/client/components/style-controls/StyleComponent";
 import type { KeyFrameStops } from "@/wab/client/components/style-controls/KeyFrameStops";
 import type { DimTokenSpinner } from "@/wab/client/components/widgets/DimTokenSelector";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
@@ -15,6 +15,7 @@ import { KeyFrame } from "@/wab/shared/model/classes";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom/vitest";
 import React from "react";
+import { useStore } from "zustand";
 
 vi.mock("@/wab/client/components/sidebar/SidebarModal", async (original) => ({
   ...(await original<typeof import("@/wab/client/components/sidebar/SidebarModal")>()),
@@ -23,9 +24,9 @@ vi.mock("@/wab/client/components/sidebar/SidebarModal", async (original) => ({
 vi.mock("@/wab/client/components/sidebar/SidebarSection", async (original) => ({
   ...(await original<typeof import("@/wab/client/components/sidebar/SidebarSection")>()),
   SidebarSection: ({title,children}: React.ComponentProps<typeof SidebarSection>) => {
-    const component=React.useContext(StyleComponentContext);
+    const component=React.useContext(StyleTargetContext);
     // The style editor keeps its own graph. Observe only which opaque RuleSet
-    // the existing StyleComponent provider supplies to this presentation boundary.
+    // the existing StyleTarget provider supplies to this presentation boundary.
     if (typeof children === "function") {
       const rs=ensure(component,"Style provider").props.expsProvider.targetRs();
       return <output aria-label="Keyframe style owner">{rs.uid}</output>;
@@ -40,7 +41,11 @@ vi.mock("@/wab/client/components/widgets/DimTokenSelector", () => {
   return {default:Spinner,DimTokenSpinner:Spinner};
 });
 vi.mock("@/wab/client/components/style-controls/KeyFrameStops", () => ({
-  KeyFrameStops: ({sequence,onSelectKeyframe,onDeleteKeyframe}: React.ComponentProps<typeof KeyFrameStops>) => <div>{sequence.keyframes.map(keyframe => <React.Fragment key={keyframe.uid}><button onClick={() => onSelectKeyframe(keyframe)}>Select keyframe {keyframe.uid}</button>{sequence.keyframes.length>1 && <button onClick={() => onDeleteKeyframe?.(keyframe)}>Delete keyframe {keyframe.uid}</button>}</React.Fragment>)}</div>,
+  KeyFrameStops: ({sequence,studioCtx,onSelectKeyframe,onDeleteKeyframe}: React.ComponentProps<typeof KeyFrameStops>) => {
+    // The real stops component owns this exact native keyframe-list subscription.
+    const refs = useStore(studioCtx.modelSnapshots.field(sequence, "keyframes"));
+    return <div>{refs.map(ref => <React.Fragment key={ref.uid}><button onClick={() => onSelectKeyframe(studioCtx.modelSnapshots.resolve(ref))}>Select keyframe {ref.uid}</button>{refs.length>1 && <button onClick={() => onDeleteKeyframe?.(studioCtx.modelSnapshots.resolve(ref))}>Delete keyframe {ref.uid}</button>}</React.Fragment>)}</div>;
+  },
 }));
 beforeAll(() => vi.stubGlobal("IntersectionObserver",class {observe=vi.fn();unobserve=vi.fn();disconnect=vi.fn();}));
 afterAll(() => vi.unstubAllGlobals());

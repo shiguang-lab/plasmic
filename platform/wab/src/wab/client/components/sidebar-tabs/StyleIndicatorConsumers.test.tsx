@@ -3,8 +3,8 @@ import { EffectsPanelSection } from "@/wab/client/components/sidebar-tabs/Effect
 import { TransformPanelSection } from "@/wab/client/components/sidebar-tabs/TransformPanelSection";
 import {
   SingleRsExpsProvider,
-  StyleComponent,
-  StyleComponentContext,
+  StyleTarget,
+  StyleTargetContext,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
@@ -107,12 +107,12 @@ async function fixture(values: Record<string, string> = {}) {
     [],
     { kind: "ruleSet", rs, forTag: "div" },
   );
-  const sc = new StyleComponent({ expsProvider: provider });
+  const sc = new StyleTarget({ expsProvider: provider });
   const wrap = (children: React.ReactNode) => (
     <StudioCtxContext.Provider value={studio}>
-      <StyleComponentContext.Provider value={sc}>
+      <StyleTargetContext.Provider value={sc}>
         {children}
-      </StyleComponentContext.Provider>
+      </StyleTargetContext.Provider>
     </StudioCtxContext.Provider>
   );
   return { studio, rs, provider, wrap };

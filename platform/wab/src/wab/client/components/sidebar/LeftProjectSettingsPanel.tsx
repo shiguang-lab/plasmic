@@ -1,3 +1,4 @@
+import { ContextRowData, useContextSettingsModelInputs } from "@/wab/client/components/sidebar/context-settings-inputs";
 import ListItem from "@/wab/client/components/ListItem";
 import { promptDeleteDep } from "@/wab/client/components/modals/UpgradeDepModal";
 import { PropValueEditorContext } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
@@ -55,59 +56,17 @@ import { isRenderFuncParam, isSlot } from "@/wab/shared/SlotUtils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Menu, notification, Tooltip } from "antd";
 import L from "lodash";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { useStore } from "zustand";
 import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
-type ContextRowData = {
-  tpl: TplComponent;
-  component: Component;
-  projectDependency: ProjectDependency | undefined;
-};
-
-const LeftProjectSettingsPanel = observer(function LeftProjectSettingsPanel_() {
+const LeftProjectSettingsPanel = React.memo(function LeftProjectSettingsPanel() {
   const studioCtx = useStudioCtx();
+  const rows = useContextSettingsModelInputs(studioCtx);
+  useStore(studioCtx.hostlessPkgsStore, (state) => state.installed);
   const [query, setQuery] = React.useState("");
   const matcher = new Matcher(query);
-
-  const globalContextDependencies = walkDependencyTree(studioCtx.site, "all")
-    .filter(
-      (dep) =>
-        dep.site.components.filter((c) => isContextCodeComponent(c)).length > 0,
-    )
-    .map((dep) => {
-      return {
-        dep,
-        globalContexts: dep.site.components.filter((c) =>
-          isContextCodeComponent(c),
-        ),
-      };
-    });
-
-  const contexts = L.uniqWith(
-    [
-      ...studioCtx.site.components.filter((c) => isContextCodeComponent(c)),
-      ...globalContextDependencies.flatMap((dep) => dep.globalContexts),
-    ],
-    (a, b) => a.name === b.name,
-  );
-
-  const rows: ContextRowData[] = [];
-  for (const tpl of studioCtx.site.globalContexts) {
-    const component = contexts.find((c) => c === tpl.component);
-    if (!component) {
-      continue;
-    }
-    rows.push({
-      tpl,
-      component,
-      projectDependency: globalContextDependencies.find((dep) =>
-        dep.globalContexts.find((c) => c === tpl.component),
-      )?.dep,
-    });
-  }
 
   return (
     <PlasmicLeftSettingsPanel
@@ -141,27 +100,30 @@ const LeftProjectSettingsPanel = observer(function LeftProjectSettingsPanel_() {
   );
 });
 
-const ContextsList = observer(function ContextsList_(props: {
+const ContextsList = React.memo(function ContextsList(props: {
   studioCtx: StudioCtx;
-  rows: ContextRowData[];
+  rows: readonly ContextRowData[];
   matcher: Matcher;
 }) {
   const { studioCtx, matcher, rows } = props;
 
-  const readOnly = studioCtx.getLeftTabPermission("settings") === "readable";
+  const readOnly = useStore(studioCtx.uiEnvironment.store, (state) => state.leftTabPermissions.settings === "readable");
   const filteredRows = rows.filter((row) =>
-    matcher.matches(getComponentDisplayName(row.component)),
+    matcher.matches(row.displayName),
   );
 
   return (
     <SimpleReorderableList
       onReordered={(fromIndex, toIndex) =>
         studioCtx.changeUnsafe(() => {
+          const from = ensure(filteredRows[fromIndex], "Expected the dragged context row");
+          const to = ensure(filteredRows[toIndex], "Expected the target context row");
+          if (!from.isCurrent() || !to.isCurrent()) { return; }
           const globalContexts = studioCtx.site.globalContexts;
           moveIndex(
             globalContexts,
-            globalContexts.indexOf(filteredRows[fromIndex].tpl),
-            globalContexts.indexOf(filteredRows[toIndex].tpl),
+            globalContexts.indexOf(from.tpl),
+            globalContexts.indexOf(to.tpl),
           );
         })
       }
@@ -180,7 +142,7 @@ const ContextsList = observer(function ContextsList_(props: {
   );
 });
 
-const ContextRow = observer(function ContextRow_(props: {
+const ContextRow = React.memo(function ContextRow(props: {
   studioCtx: StudioCtx;
   context: ContextRowData;
   matcher: Matcher;
@@ -192,11 +154,8 @@ const ContextRow = observer(function ContextRow_(props: {
     props;
   const tplComponent = context.tpl;
   const [isVisible, setIsVisible] = React.useState(false);
-  const hasParams =
-    getRealParams(tplComponent.component).filter(
-      (param) => param.origin !== ComponentPropOrigin.ReactHTMLAttributes,
-    ).length > 0;
-  const componentName = getComponentDisplayName(context.component);
+  const hasParams = context.hasParams;
+  const componentName = context.displayName;
 
   const targetComponent = useStore(studioCtx.modelSnapshots.field(tplComponent, "component"));
   React.useEffect(() => {
@@ -296,7 +255,7 @@ const ContextRow = observer(function ContextRow_(props: {
   );
 });
 
-const ContextPropEditor = observer(function ContextPropEditor_(props: {
+const ContextPropEditor = React.memo(function ContextPropEditor(props: {
   studioCtx: StudioCtx;
   tpl: TplComponent;
   readOnly?: boolean;

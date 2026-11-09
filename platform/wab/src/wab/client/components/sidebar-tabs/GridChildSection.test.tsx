@@ -1,7 +1,7 @@
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { GridChildSection } from "@/wab/client/components/sidebar-tabs/GridChildSection";
-import { mkStyleComponent, StyleComponentContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { createStyleTarget, StyleTargetContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
@@ -36,10 +36,10 @@ it("updates grid placement from native model commits and preserves the real span
     const view = ensure(studio.tryGetViewCtxForFrame(frame), "Grid view");
     vi.spyOn(view, "awaitSync").mockResolvedValue(undefined);
     const provider = new TplExpsProvider(view, tpl);
-    const sc = mkStyleComponent({ expsProvider: provider });
-    const mounted = render(<StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={sc}>
+    const sc = createStyleTarget({ expsProvider: provider });
+    const mounted = render(<StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={sc}>
       <GridChildSection expsProvider={provider} />
-    </StyleComponentContext.Provider></StudioCtxContext.Provider>);
+    </StyleTargetContext.Provider></StudioCtxContext.Provider>);
     const inputs = () => [...mounted.container.querySelectorAll<HTMLInputElement>("input")];
     expect(inputs().map((input) => input.value)).toEqual(["2", "3", "4", "5"]);
     await act(async () => { await studio.changeUnsafe(() => { rsh.set("grid-row-start", "6"); rsh.clear("grid-column-end"); }); });

@@ -2,7 +2,7 @@ import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { TransitionsPanelSection } from "@/wab/client/components/sidebar-tabs/TransitionsSection";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
-import { SingleRsExpsProvider, StyleComponent, StyleComponentContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { SingleRsExpsProvider, StyleTarget, StyleTargetContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { BaseTransitionInputs } from "@/wab/client/studio-ctx/transition-inputs";
@@ -42,8 +42,8 @@ async function setup(single = false) {
   const studio = fixture.studioCtx, view = ensure(studio.tryGetViewCtxForFrame(frame), "Transition view");
   studio.setStudioFocusOnViewCtxContent(view); view.setStudioFocusByTpl(root);
   const provider = single ? new SingleRsExpsProvider(rs, exp, studio, [], { kind: "ruleSet", rs, forTag: "div" }) : new TplExpsProvider(view, root);
-  const styling = new StyleComponent({ expsProvider: provider });
-  const wrap = (children: React.ReactNode) => <AppCtxContext.Provider value={fixture.appCtx}><StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={styling}><SidebarModalProvider containerSelector="#transition-test-sidebar"><div id="transition-test-sidebar" />{children}</SidebarModalProvider></StyleComponentContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider>;
+  const styling = new StyleTarget({ expsProvider: provider });
+  const wrap = (children: React.ReactNode) => <AppCtxContext.Provider value={fixture.appCtx}><StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={styling}><SidebarModalProvider containerSelector="#transition-test-sidebar"><div id="transition-test-sidebar" />{children}</SidebarModalProvider></StyleTargetContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider>;
   const panel = () => wrap(<TransitionsPanelSection expsProvider={provider} />);
   return { ...fixture, studio, site, component, root, variant, base, rs, exp, activeExp, frame, view, provider, panel, wrap };
 }

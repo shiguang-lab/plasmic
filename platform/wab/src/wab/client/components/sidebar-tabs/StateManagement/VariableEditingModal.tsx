@@ -68,7 +68,7 @@ export function VariableEditingModal({
       return;
     }
     confirming.current = true;
-    try {
+    return await (async () => {
       const result = await studioCtx.change(() =>
         createComponentState({
           site: studioCtx.site,
@@ -82,9 +82,9 @@ export function VariableEditingModal({
         return;
       }
       onClose();
-    } finally {
+    })().finally(() => {
       confirming.current = false;
-    }
+    });
   };
   return (
     <SidebarModal

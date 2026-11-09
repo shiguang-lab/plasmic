@@ -1,6 +1,6 @@
 # React 19 检查与验收清单
 
-状态：部分执行，隔离工作区已安装 React/ReactDOM 19.3.1、类型 19.3.0，Compiler 默认开启（当前为审查后的组件范围）；证据见 [实施记录](implementation-report.md)，React 19 全范围验收未完成。对应 [主方案](README.md)与[执行清单](execution-checklist.md)。
+状态：当前工作区已统一 React/ReactDOM 19.3.1、类型 19.3.0，Compiler 1.0.0 按 Studio／Canvas／SDK 运行链的全量合同开启；本轮合同已完成冻结审计、严格制品构建和完整 Studio 测试加修后逐项复验，React 19 全范围验收未据此宣称完成。当前架构、精确范围和复验入口见 [Compiler 接入](compiler-rollout.md)。服务端邮件 SSR／邮件 Host 未接 Compiler，不包含在该前端合同的零跳过声明内。对应 [主方案](README.md)与[执行清单](execution-checklist.md)。
 
 必需检查为 I01–I12、Q01–Q26、P01–P10，以及基础升级的 M01–M04／M07–M09；最终交付要求 Compiler 保持开启并完成全部 M01–M10。范围按 [S01–S10](coverage-matrix.md) 逐项关闭。可选阶段未开展记为“未开展”，不是“通过”。
 
@@ -36,7 +36,6 @@ pnpm --version
 npm --version
 npm view react@19.3.1 version --json
 npm view react-dom@19.3.1 version peerDependencies --json
-npm view mobx-react@9.2.0 version peerDependencies --json
 node docs/upgrades/react-19/inventory.mjs --check
 ```
 
@@ -67,6 +66,8 @@ pnpm --filter @plasmicapp/loader-react test
 pnpm --filter @plasmicapp/query test
 pnpm --dir platform/canvas-packages test
 pnpm --dir platform/canvas-packages test:preview-runtime
+pnpm --dir platform/canvas-packages test:canvas-runtime
+pnpm --dir platform/live-frame test:runtime
 pnpm --dir plasmicpkgs/antd6 test:interactions
 ```
 
@@ -91,26 +92,7 @@ pnpm --dir plasmicpkgs/overseas test
 pnpm --dir plasmicpkgs/react-ui test:interactions
 ```
 
-auth／context／CPA 等入口含 passWithNoTests，必须记录真实计数。react-web-runtime 没有 test 脚本，验证生成代码的真实 consumer；不能以根 Vitest 未发现用例为通过。每个维护组件包按其实际 scripts 执行 test／test:interactions／typecheck，无脚本时记录交互 fixture 对应关系。
-
-补充已核实入口，按 U0 决定的维护范围全部执行；无 test 脚本的包用实际 consumer 验证，不编造脚本：
-
-```sh
-pnpm --filter @plasmicapp/loader-nextjs test
-pnpm --filter @plasmicapp/auth-react test
-pnpm --filter @plasmicapp/data-sources test
-pnpm --filter @plasmicapp/data-sources-context test
-pnpm --filter @plasmicapp/cli test
-pnpm --filter create-plasmic-app test
-pnpm --dir platform/preview typecheck
-pnpm --dir platform/preview test
-pnpm --dir platform/integration-tests typecheck
-pnpm --dir platform/integration-tests test
-pnpm --dir plasmicpkgs/overseas test
-pnpm --dir plasmicpkgs/react-ui test:interactions
-```
-
-auth／context／CPA 等入口含 passWithNoTests，必须记录真实计数。react-web-runtime 与 loader-gatsby 没有 test 脚本，分别验生成代码、真实 framework consumer；不能以根 Vitest 未发现用例为通过。每个维护组件包按其实际 scripts 执行 test／test:interactions／typecheck，无脚本时记录交互 fixture 对应关系。
+auth／context／CPA 等入口含 passWithNoTests，必须记录真实计数。react-web-runtime 没有 test 脚本，使用真实生成代码 consumer 验证；不能以根 Vitest 未发现用例为通过。每个维护组件包按其实际 scripts 执行 test／test:interactions／typecheck，无脚本时记录交互 fixture 对应关系。
 
 ### 2.4 安装与构建顺序
 
@@ -137,7 +119,7 @@ pnpm setup:loader-html-hydrate
 pnpm --dir platform/sub build
 pnpm --dir platform/react-web-bundle build
 pnpm --dir platform/live-frame build
-pnpm --dir platform --filter canvas-packages build
+pnpm setup:canvas-packages
 pnpm --dir platform --filter 'loader-bundle-env...' build
 pnpm make
 pnpm --dir platform/wab build-css
@@ -146,7 +128,9 @@ pnpm --dir platform/wab storybook:build
 pnpm --dir platform/preview build
 ```
 
-顺序依据现有根 setup 与 hydration 构建入口；重新安装 platform 用于更新 file／workspace 注入包，pnpm make 生成解析器、模型和静态样式输入，不得因本地遗留产物省略。不要使用 setup-all／bootstrap:platform 代替构建，它们包含数据库迁移或 reset；本方案不需要数据库结构变更。
+Canvas 前置由 `setup:canvas-packages` 读取真实 manifest links 并按 workspace 拓扑构建，不维护第二套手工包清单。顺序依据现有根 setup 与 hydration 构建入口；重新安装 platform 用于更新 file／workspace 注入包，pnpm make 生成解析器、模型和静态样式输入，不得因本地遗留产物省略。不要使用 setup-all／bootstrap:platform 代替构建，它们包含数据库迁移或 reset；本方案不需要数据库结构变更。
+
+本地 Studio／Dashboard 生产构建可使用 [Compiler 接入](compiler-rollout.md) 中已有 self-hosted 环境变量组合；云部署的凭据缺失不能记为 Compiler 失败。
 
 以上不是全部消费者自动构建脚本：维护的所有组件包与 CPA 输出须按范围矩阵另逐包安装、构建和启动。nextjs-app-router 若继续维护，执行其实际 build 并验证消费者；退役则清理入口。platform/host-test 的 build 存在，但需先升级 Next／旧 Host alias；platform/react-renderer 的 build 为 node-gyp rebuild，必须在匹配部署的隔离 Linux 环境执行并验证渲染请求；不要启动 start-prod。
 
@@ -206,21 +190,21 @@ Desktop 按受影响范围执行现有 `test:preview-navigation`、`test:preview
 - [ ] **Q22** 自定义 JSX runtime 的 jsx/jsxs/jsxDEV、Fragment、key、0/false/数组 children、cloneElement／ref、Context 与元素类型识别正确；canComponentTakeRef 的判断与真实组件 DOM 定位及注册元数据一致。
 - [ ] **Q23** 所有维护组件家族和直接／传递 UI peer 缺口逐项通过真实交互；包括 GraphiQL、Refine、TinyMCE、Monaco、inspector、auto-sizer、motion、Aria／Radix、图表及各自 Portal／ref 清理，不能只通过 antd6 替代。Chakra 及 Rich Components、Sortable、Quill、Rive、YouTube 按用户确认退役，验证活跃依赖闭包和可选组件入口中均不存在这些集成；保留 Studio 内置拖拽、Slate 和数据源／表单测试。
 - [ ] **Q24** CPA 生成源与全部 11 套输出、CLI init/sync/codegen/RSC 以及所有维护 examples 完成真实 install/build/运行，默认 React／类型与 SDK 合同一致，JS/TS 产物均通过。
-- [ ] **Q25** react-web 的 Valtio Proxy snapshot、深层状态／数组、重复实例、派生值、受控输入和 reset；auth-react 登录／会话、data-sources/context 请求与 SSR，均在对象身份不变的更新下正确。
+- [ ] **Q25** react-web 的稳定命令状态与只读渲染 snapshot、深层状态／数组、重复实例、派生值、受控输入和 reset；auth-react 登录／会话、data-sources/context 请求与 SSR，均在对象身份不变的更新下正确。
 - [ ] **Q26** 已有页面的 metadata/style/script 提升／去重／顺序、CSP nonce、useId／aria、表单提交与重置、邮件 SSR 的 HTML／主题／链接不发生未解释变化；不为了新 API 盲目改造业务。
 
 ## 4. Zustand／Compiler 正确性检查
 
-除下列检查外，必须完成 [Zustand 检查清单](zustand-migration.md#检查清单)。迁移期间仍有 Reaction 的模块执行原跟踪回归，最终移除旧实现。只有 Compiler 实验可不开展 M05／M06／M10。
+除下列检查外，必须完成 [Zustand 检查清单](zustand-migration.md#检查清单)。产品组件与 Hooks 使用实际原生订阅／模型快照，M01–M10 均属于当前 Compiler 验收合同。三个 React 必需的最薄捕错 class 按 [Compiler 接入](compiler-rollout.md) 单独计数，业务 class 不在例外内。
 
-- [ ] **M01** 保持同一个 StudioCtx／ViewCtx／模型／observable 数组引用，连续改变内部字段，属性值和画布正确更新；通过更新祖先 props 触发额外刷新不能掩盖漏订阅。
+- [ ] **M01** 保持同一个 StudioCtx／ViewCtx／模型／数组引用，连续改变内部字段，属性值和画布正确更新；通过更新祖先 props 触发额外刷新不能掩盖漏订阅。
 - [ ] **M02** 动态条件从读取 A 切到 B 后，B 能触发更新；不再相关的 A 不造成无效更新。分别验证新增／删除数组项和嵌套字段。
 - [ ] **M03** InspectorSelection 暂停／恢复和 canvasDomVersion 失效正确；缓存旧选择不保留编辑权限，连续选择最终只提交最新目标。
 - [ ] **M04** 修改→撤销重做→切画板→恢复后数据与显示一致；无需手工刷新页面才能同步。
-- [ ] **M05** 编译叶子接收普通不可变输入；无 observable／Proxy、类实例、动态 getter 或可变数组穿透，且变化能反映到叶子输入。
-- [ ] **M06** 白名单、嵌套函数、包装器和自定义 Hook 的编译产物与设计一致；已排除的 MobX 组件未因命名推断／导入路径再次参与编译。
-- [ ] **M07** StrictMode、Suspense、render throw／放弃、commit 延后和卸载后 Reaction 不丢更新、不重复订阅；超时清理后的恢复能重建跟踪。
-- [ ] **M08** ViewCtx.dispose 后定时器、Reaction、待刷新队列及旧 Fiber 关联释放；另一个活跃画板与后台显式同步不受影响。
+- [ ] **M05** 编译叶子的渲染消费真实不可变输入／原生 source 投影；模型、Proxy 和控制器仅保留不透明命令身份，不能把其隐藏可变读取当作显示输入。快照变化必须实际反映到 UI。
+- [ ] **M06** 独立盘点组件／Hook 候选、嵌套函数、包装器和工厂，核对实际转换与 runtime 归属；无关闭指令、文件白名单、未转换候选或未盘点业务 class。测试及类型声明按产品合同排除，三个必需捕错 class 单独计数。
+- [ ] **M07** StrictMode、Suspense、render throw／放弃、commit 延后和卸载后的原生订阅不丢更新、不重复安装；退休 owner 不再准入旧模型或接收命令，恢复使用正确 owner。
+- [ ] **M08** ViewCtx.dispose 后定时器、原生订阅、待刷新队列及旧 Fiber 关联释放；另一个活跃画板与后台显式同步不受影响。
 - [ ] **M09** 主题／语言、Context、异步数据、组件包注册变更及全局失效源正确传播；不得只测局部 useState。
 - [ ] **M10** 测试确实经过生产等价 Compiler 转换，并有真实生产制品交互；比较 render／计算次数与实际耗时，缓存命中不能以错误旧值取得。
 
@@ -232,12 +216,12 @@ Desktop 按受影响范围执行现有 `test:preview-navigation`、`test:preview
 - [ ] 启动与暖开、首画布与全部画板、首次功能与持续更新、hydrate 完成与可交互分开测量。
 - [ ] 中位数／p95、全部样本、失败／离群、环境干扰保留；没有把一段内部计时或 CPU inclusive 样本当成端到端节省。
 - [ ] 正常计时、CPU 归因与 GC 生命周期分轮执行，20 轮后无新增持续保留链；RSS／GPU／原生峰值独立报告。
-- [ ] Compiler 满足目标更新收益，且首用／包体／构建／内存成本已披露；未达门槛不扩大白名单。
+- [ ] Compiler 满足目标更新收益，且首用／包体／构建／内存成本已披露；性能门槛与正确性验收分别记录，不引入编译白名单规避结果。
 - [ ] 已有动画／属性优化的历史收益未重复计入本轮；基础升级只无退化时报告事实。
 
 ## 6. 发布检查
 
-- [ ] **P01** I／Q 必需项及基础 Reaction 检查通过；Compiler 若发布则 M01–M10 通过；平台未覆盖范围明确。
+- [ ] **P01** I／Q 必需项及原生订阅／生命周期检查通过；Compiler 若发布则 M01–M10 通过；平台未覆盖范围明确。
 - [ ] **P02** SDK 最低 React、包版本策略、外部 Host 与消费者顺序具名；组件注册合同和保存模型不出现隐式迁移。
 - [ ] **P03** frozen 安装和干净重建通过，SDK／Canvas／Host／hydration／Studio／Desktop manifest 与实际字节一致。
 - [ ] **P04** 性能和内存门槛通过，原始样本可追溯，宣传措辞与测量范围一致。

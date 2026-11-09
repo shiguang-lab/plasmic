@@ -117,11 +117,11 @@ function NewPriceTier_(props: PriceTierProps, ref: HTMLElementRefOf<"div">) {
               loading={busy}
               onClick={async () => {
                 setBusy(true);
-                try {
+                return await (async () => {
                   await onClick?.();
-                } finally {
+                })().finally(() => {
                   setBusy(false);
-                }
+                });
               }}
             >
               {t(buttonLabel)}

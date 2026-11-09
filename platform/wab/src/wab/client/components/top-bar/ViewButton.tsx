@@ -33,7 +33,6 @@ import {
 } from "@ant-design/icons";
 import { Menu, Tooltip } from "antd";
 import { createStyles } from "antd-style";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
 
@@ -128,7 +127,7 @@ const contentCreatorModeHelp = (
   </>
 );
 
-const ViewButton = observer(function ViewButton(props: ViewButtonProps) {
+const ViewButton = React.memo(function ViewButton(props: ViewButtonProps) {
   const { t } = useI18n();
   const { styles } = useStyles();
   const { styles: popupStyles } = useEditorPopupStyles();

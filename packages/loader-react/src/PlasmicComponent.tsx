@@ -35,6 +35,12 @@ export function PlasmicComponent(props: {
     );
   }
 
+  const Component = usePlasmicComponent(
+    { name: component, projectId, isCode: false },
+    { forceOriginal }
+  );
+
+  const element = React.useMemo(() => {
   const {
     loader,
     globalContextsProps,
@@ -45,12 +51,7 @@ export function PlasmicComponent(props: {
     ...rest
   } = rootContext;
 
-  const Component = usePlasmicComponent(
-    { name: component, projectId, isCode: false },
-    { forceOriginal }
-  );
 
-  const element = React.useMemo(() => {
     if (!Component) {
       return null;
     }
@@ -113,17 +114,6 @@ export function PlasmicComponent(props: {
       );
     }
     return elt;
-  }, [
-    Component,
-    componentProps,
-    loader,
-    isRootLoader,
-    component,
-    projectId,
-    globalContextsProps,
-    userAuthToken, // Just use the token to memo, `user` should be derived from it
-    isUserLoading,
-    authRedirectUri,
-  ]);
+  }, [Component, componentProps, isRootLoader, component, projectId, rootContext]);
   return element;
 }

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   StrictProps,
   classNames,
@@ -23,13 +23,13 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import * as pp from "@plasmicapp/react-web";
+import * as Plume from "@plasmicapp/react-web";
 import Select__Option from "../../components/widgets/Select__Option"; // plasmic-import: rr-LWdMni2G/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -72,7 +72,7 @@ export type PlasmicSelect__OptionGroup__OverridesType = {
 };
 
 export interface DefaultSelect__OptionGroupProps
-  extends pp.BaseSelectOptionGroupProps {
+  extends Plume.BaseSelectOptionGroupProps {
   title?: React.ReactNode;
   noTitle?: SingleBooleanChoiceArg<"noTitle">;
   isLast?: SingleBooleanChoiceArg<"isLast">;
@@ -104,11 +104,10 @@ function PlasmicSelect__OptionGroup__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "noTitle",
@@ -129,22 +128,24 @@ function PlasmicSelect__OptionGroup__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.isLast,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
   const superContexts = {
     Select: React.useContext(SUPER__PlasmicSelect.Context),
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -226,8 +227,8 @@ function PlasmicSelect__OptionGroup__RenderFunc(props: {
   ) as React.ReactElement | null;
 }
 
-function useBehavior<P extends pp.BaseSelectOptionGroupProps>(props: P) {
-  return pp.useSelectOptionGroup(PlasmicSelect__OptionGroup, props, {
+function useBehavior<P extends Plume.BaseSelectOptionGroupProps>(props: P) {
+  return Plume.useSelectOptionGroup(PlasmicSelect__OptionGroup, props, {
     noTitleVariant: { group: "noTitle", variant: "noTitle" },
     isFirstVariant: { group: "isFirst", variant: "isFirst" },
     optionsSlot: "children",
@@ -281,12 +282,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -296,29 +293,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSelect__OptionGroup__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSelect__OptionGroup";
-  } else {
-    func.displayName = `PlasmicSelect__OptionGroup.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSelect__OptionGroup__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSelect__OptionGroup__root<T extends PlasmicSelect__OptionGroup__rootProps>(props: T & StrictProps<T, PlasmicSelect__OptionGroup__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSelect__OptionGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSelect__OptionGroup__root.displayName = "PlasmicSelect__OptionGroup";
+
+type PlasmicSelect__OptionGroup__titleContainerProps = NodeComponentProps<"titleContainer"> & {key?: React.Key};
+function PlasmicSelect__OptionGroup__titleContainer<T extends PlasmicSelect__OptionGroup__titleContainerProps>(props: T & StrictProps<T, PlasmicSelect__OptionGroup__titleContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("titleContainer", props);
+  return <PlasmicSelect__OptionGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"titleContainer"} />;
+}
+PlasmicSelect__OptionGroup__titleContainer.displayName = "PlasmicSelect__OptionGroup.titleContainer";
+
+type PlasmicSelect__OptionGroup__optionsContainerProps = NodeComponentProps<"optionsContainer"> & {key?: React.Key};
+function PlasmicSelect__OptionGroup__optionsContainer<T extends PlasmicSelect__OptionGroup__optionsContainerProps>(props: T & StrictProps<T, PlasmicSelect__OptionGroup__optionsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("optionsContainer", props);
+  return <PlasmicSelect__OptionGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"optionsContainer"} />;
+}
+PlasmicSelect__OptionGroup__optionsContainer.displayName = "PlasmicSelect__OptionGroup.optionsContainer";
+
+type PlasmicSelect__OptionGroup__separator2Props = NodeComponentProps<"separator2"> & {key?: React.Key};
+function PlasmicSelect__OptionGroup__separator2<T extends PlasmicSelect__OptionGroup__separator2Props>(props: T & StrictProps<T, PlasmicSelect__OptionGroup__separator2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("separator2", props);
+  return <PlasmicSelect__OptionGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"separator2"} />;
+}
+PlasmicSelect__OptionGroup__separator2.displayName = "PlasmicSelect__OptionGroup.separator2";
+
 
 export const PlasmicSelect__OptionGroup = Object.assign(
   // Top-level PlasmicSelect__OptionGroup renders the root element
-  makeNodeComponent("root"),
+  PlasmicSelect__OptionGroup__root,
   {
     // Helper components rendering sub-elements
-    titleContainer: makeNodeComponent("titleContainer"),
-    optionsContainer: makeNodeComponent("optionsContainer"),
-    separator2: makeNodeComponent("separator2"),
+    titleContainer: PlasmicSelect__OptionGroup__titleContainer,
+    optionsContainer: PlasmicSelect__OptionGroup__optionsContainer,
+    separator2: PlasmicSelect__OptionGroup__separator2,
 
     // Metadata about props expected for PlasmicSelect__OptionGroup
     internalVariantProps: PlasmicSelect__OptionGroup__VariantProps,

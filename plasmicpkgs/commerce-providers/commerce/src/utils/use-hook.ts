@@ -56,7 +56,7 @@ export function useMutationHook<H extends MutationHook<any>>(
           provider
         })
       },
-      [fetcher, hook.fetchOptions]
+      [fetcher, hook.fetcher, hook.fetchOptions, provider]
     ),
   })
 }

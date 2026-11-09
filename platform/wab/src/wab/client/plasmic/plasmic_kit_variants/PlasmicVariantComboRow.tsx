@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,15 +22,15 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Indicator from "../../components/style-controls/Indicator"; // plasmic-import: KRNHR6lpj1/component
 import Chip from "../../components/widgets/Chip"; // plasmic-import: jW885tExwE/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: wT5BWZPEc2fYxyqbTLXMt2/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: wT5BWZPEc2fYxyqbTLXMt2/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -103,11 +103,10 @@ function PlasmicVariantComboRow__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isIndicated",
@@ -117,23 +116,25 @@ function PlasmicVariantComboRow__RenderFunc(props: {
           $props.isIndicated,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -280,12 +281,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -295,31 +292,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVariantComboRow__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicVariantComboRow";
-  } else {
-    func.displayName = `PlasmicVariantComboRow.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVariantComboRow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicVariantComboRow__root<T extends PlasmicVariantComboRow__rootProps>(props: T & StrictProps<T, PlasmicVariantComboRow__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicVariantComboRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicVariantComboRow__root.displayName = "PlasmicVariantComboRow";
+
+type PlasmicVariantComboRow__iconContainerProps = NodeComponentProps<"iconContainer"> & {key?: React.Key};
+function PlasmicVariantComboRow__iconContainer<T extends PlasmicVariantComboRow__iconContainerProps>(props: T & StrictProps<T, PlasmicVariantComboRow__iconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconContainer", props);
+  return <PlasmicVariantComboRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconContainer"} />;
+}
+PlasmicVariantComboRow__iconContainer.displayName = "PlasmicVariantComboRow.iconContainer";
+
+type PlasmicVariantComboRow__labelContainerProps = NodeComponentProps<"labelContainer"> & {key?: React.Key};
+function PlasmicVariantComboRow__labelContainer<T extends PlasmicVariantComboRow__labelContainerProps>(props: T & StrictProps<T, PlasmicVariantComboRow__labelContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelContainer", props);
+  return <PlasmicVariantComboRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelContainer"} />;
+}
+PlasmicVariantComboRow__labelContainer.displayName = "PlasmicVariantComboRow.labelContainer";
+
+type PlasmicVariantComboRow__actionsContainerProps = NodeComponentProps<"actionsContainer"> & {key?: React.Key};
+function PlasmicVariantComboRow__actionsContainer<T extends PlasmicVariantComboRow__actionsContainerProps>(props: T & StrictProps<T, PlasmicVariantComboRow__actionsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionsContainer", props);
+  return <PlasmicVariantComboRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionsContainer"} />;
+}
+PlasmicVariantComboRow__actionsContainer.displayName = "PlasmicVariantComboRow.actionsContainer";
+
+type PlasmicVariantComboRow__visibleButtonProps = NodeComponentProps<"visibleButton"> & {key?: React.Key};
+function PlasmicVariantComboRow__visibleButton<T extends PlasmicVariantComboRow__visibleButtonProps>(props: T & StrictProps<T, PlasmicVariantComboRow__visibleButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("visibleButton", props);
+  return <PlasmicVariantComboRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"visibleButton"} />;
+}
+PlasmicVariantComboRow__visibleButton.displayName = "PlasmicVariantComboRow.visibleButton";
+
+type PlasmicVariantComboRow__indicatorProps = NodeComponentProps<"indicator"> & {key?: React.Key};
+function PlasmicVariantComboRow__indicator<T extends PlasmicVariantComboRow__indicatorProps>(props: T & StrictProps<T, PlasmicVariantComboRow__indicatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("indicator", props);
+  return <PlasmicVariantComboRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"indicator"} />;
+}
+PlasmicVariantComboRow__indicator.displayName = "PlasmicVariantComboRow.indicator";
+
 
 export const PlasmicVariantComboRow = Object.assign(
   // Top-level PlasmicVariantComboRow renders the root element
-  makeNodeComponent("root"),
+  PlasmicVariantComboRow__root,
   {
     // Helper components rendering sub-elements
-    iconContainer: makeNodeComponent("iconContainer"),
-    labelContainer: makeNodeComponent("labelContainer"),
-    actionsContainer: makeNodeComponent("actionsContainer"),
-    visibleButton: makeNodeComponent("visibleButton"),
-    indicator: makeNodeComponent("indicator"),
+    iconContainer: PlasmicVariantComboRow__iconContainer,
+    labelContainer: PlasmicVariantComboRow__labelContainer,
+    actionsContainer: PlasmicVariantComboRow__actionsContainer,
+    visibleButton: PlasmicVariantComboRow__visibleButton,
+    indicator: PlasmicVariantComboRow__indicator,
 
     // Metadata about props expected for PlasmicVariantComboRow
     internalVariantProps: PlasmicVariantComboRow__VariantProps,

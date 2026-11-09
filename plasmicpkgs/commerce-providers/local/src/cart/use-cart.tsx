@@ -17,7 +17,7 @@ export const handler: SWRHook<any> = {
   async fetcher({ input, options, fetch }) {
     return getCart(input.cartId);
   },
-  useHook: ({ useData }) => (input) => {
+  useHook: ({ useData }) => function useCartHandler(input) {
     const response = useData({
       swrOptions: { revalidateOnFocus: false, ...input?.swrOptions },
     });

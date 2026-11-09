@@ -14,20 +14,20 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import BoundingBoxHighlighter from "../../components/ContextMenuIndicator/BoundingBoxHighlighter"; // plasmic-import: iKmOjRERju/component
 import MenuIndicator from "../../components/ContextMenuIndicator/MenuIndicator"; // plasmic-import: 5RLoIE7-j5/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fuzE93KTc4ZKNBYf3LAfy/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fuzE93KTc4ZKNBYf3LAfy/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -95,11 +95,10 @@ function PlasmicContextMenuIndicatorInner__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "interactive",
@@ -122,18 +121,20 @@ function PlasmicContextMenuIndicatorInner__RenderFunc(props: {
           $props.isRecording,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -263,12 +264,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -279,29 +276,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicContextMenuIndicatorInner__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicContextMenuIndicatorInner";
-  } else {
-    func.displayName = `PlasmicContextMenuIndicatorInner.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicContextMenuIndicatorInner__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicContextMenuIndicatorInner__root<T extends PlasmicContextMenuIndicatorInner__rootProps>(props: T & StrictProps<T, PlasmicContextMenuIndicatorInner__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicContextMenuIndicatorInner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicContextMenuIndicatorInner__root.displayName = "PlasmicContextMenuIndicatorInner";
+
+type PlasmicContextMenuIndicatorInner__menuIndicatorProps = NodeComponentProps<"menuIndicator"> & {key?: React.Key};
+function PlasmicContextMenuIndicatorInner__menuIndicator<T extends PlasmicContextMenuIndicatorInner__menuIndicatorProps>(props: T & StrictProps<T, PlasmicContextMenuIndicatorInner__menuIndicatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuIndicator", props);
+  return <PlasmicContextMenuIndicatorInner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuIndicator"} />;
+}
+PlasmicContextMenuIndicatorInner__menuIndicator.displayName = "PlasmicContextMenuIndicatorInner.menuIndicator";
+
+type PlasmicContextMenuIndicatorInner__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicContextMenuIndicatorInner__freeBox<T extends PlasmicContextMenuIndicatorInner__freeBoxProps>(props: T & StrictProps<T, PlasmicContextMenuIndicatorInner__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicContextMenuIndicatorInner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicContextMenuIndicatorInner__freeBox.displayName = "PlasmicContextMenuIndicatorInner.freeBox";
+
+type PlasmicContextMenuIndicatorInner__boundingBoxHighlighterProps = NodeComponentProps<"boundingBoxHighlighter"> & {key?: React.Key};
+function PlasmicContextMenuIndicatorInner__boundingBoxHighlighter<T extends PlasmicContextMenuIndicatorInner__boundingBoxHighlighterProps>(props: T & StrictProps<T, PlasmicContextMenuIndicatorInner__boundingBoxHighlighterProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("boundingBoxHighlighter", props);
+  return <PlasmicContextMenuIndicatorInner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"boundingBoxHighlighter"} />;
+}
+PlasmicContextMenuIndicatorInner__boundingBoxHighlighter.displayName = "PlasmicContextMenuIndicatorInner.boundingBoxHighlighter";
+
 
 export const PlasmicContextMenuIndicatorInner = Object.assign(
   // Top-level PlasmicContextMenuIndicatorInner renders the root element
-  makeNodeComponent("root"),
+  PlasmicContextMenuIndicatorInner__root,
   {
     // Helper components rendering sub-elements
-    menuIndicator: makeNodeComponent("menuIndicator"),
-    freeBox: makeNodeComponent("freeBox"),
-    boundingBoxHighlighter: makeNodeComponent("boundingBoxHighlighter"),
+    menuIndicator: PlasmicContextMenuIndicatorInner__menuIndicator,
+    freeBox: PlasmicContextMenuIndicatorInner__freeBox,
+    boundingBoxHighlighter: PlasmicContextMenuIndicatorInner__boundingBoxHighlighter,
 
     // Metadata about props expected for PlasmicContextMenuIndicatorInner
     internalVariantProps: PlasmicContextMenuIndicatorInner__VariantProps,

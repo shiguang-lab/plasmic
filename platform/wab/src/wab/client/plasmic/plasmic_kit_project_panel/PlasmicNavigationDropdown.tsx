@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -27,7 +27,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import FolderItem from "../../components/sidebar-tabs/ProjectPanel/FolderItem"; // plasmic-import: iWeSjEMdI3/component
 import SearchInput from "../../components/sidebar-tabs/ProjectPanel/SearchInput"; // plasmic-import: CHoUJxFMpo/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: m8VxGcigeLAEXFe8c12w5Q/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: m8VxGcigeLAEXFe8c12w5Q/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -99,11 +99,10 @@ function PlasmicNavigationDropdown__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -346,12 +345,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -361,33 +356,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicNavigationDropdown__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicNavigationDropdown";
-  } else {
-    func.displayName = `PlasmicNavigationDropdown.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicNavigationDropdown__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicNavigationDropdown__root<T extends PlasmicNavigationDropdown__rootProps>(props: T & StrictProps<T, PlasmicNavigationDropdown__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicNavigationDropdown__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicNavigationDropdown__root.displayName = "PlasmicNavigationDropdown";
+
+type PlasmicNavigationDropdown__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicNavigationDropdown__text<T extends PlasmicNavigationDropdown__textProps>(props: T & StrictProps<T, PlasmicNavigationDropdown__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicNavigationDropdown__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicNavigationDropdown__text.displayName = "PlasmicNavigationDropdown.text";
+
+type PlasmicNavigationDropdown__plusButtonContainerProps = NodeComponentProps<"plusButtonContainer"> & {key?: React.Key};
+function PlasmicNavigationDropdown__plusButtonContainer<T extends PlasmicNavigationDropdown__plusButtonContainerProps>(props: T & StrictProps<T, PlasmicNavigationDropdown__plusButtonContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("plusButtonContainer", props);
+  return <PlasmicNavigationDropdown__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"plusButtonContainer"} />;
+}
+PlasmicNavigationDropdown__plusButtonContainer.displayName = "PlasmicNavigationDropdown.plusButtonContainer";
+
+type PlasmicNavigationDropdown__plusButtonProps = NodeComponentProps<"plusButton"> & {key?: React.Key};
+function PlasmicNavigationDropdown__plusButton<T extends PlasmicNavigationDropdown__plusButtonProps>(props: T & StrictProps<T, PlasmicNavigationDropdown__plusButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("plusButton", props);
+  return <PlasmicNavigationDropdown__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"plusButton"} />;
+}
+PlasmicNavigationDropdown__plusButton.displayName = "PlasmicNavigationDropdown.plusButton";
+
+type PlasmicNavigationDropdown__searchInputProps = NodeComponentProps<"searchInput"> & {key?: React.Key};
+function PlasmicNavigationDropdown__searchInput<T extends PlasmicNavigationDropdown__searchInputProps>(props: T & StrictProps<T, PlasmicNavigationDropdown__searchInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchInput", props);
+  return <PlasmicNavigationDropdown__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchInput"} />;
+}
+PlasmicNavigationDropdown__searchInput.displayName = "PlasmicNavigationDropdown.searchInput";
+
+type PlasmicNavigationDropdown__expandButtonProps = NodeComponentProps<"expandButton"> & {key?: React.Key};
+function PlasmicNavigationDropdown__expandButton<T extends PlasmicNavigationDropdown__expandButtonProps>(props: T & StrictProps<T, PlasmicNavigationDropdown__expandButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("expandButton", props);
+  return <PlasmicNavigationDropdown__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"expandButton"} />;
+}
+PlasmicNavigationDropdown__expandButton.displayName = "PlasmicNavigationDropdown.expandButton";
+
+type PlasmicNavigationDropdown__collapseButtonProps = NodeComponentProps<"collapseButton"> & {key?: React.Key};
+function PlasmicNavigationDropdown__collapseButton<T extends PlasmicNavigationDropdown__collapseButtonProps>(props: T & StrictProps<T, PlasmicNavigationDropdown__collapseButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("collapseButton", props);
+  return <PlasmicNavigationDropdown__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"collapseButton"} />;
+}
+PlasmicNavigationDropdown__collapseButton.displayName = "PlasmicNavigationDropdown.collapseButton";
+
+type PlasmicNavigationDropdown__sortButtonProps = NodeComponentProps<"sortButton"> & {key?: React.Key};
+function PlasmicNavigationDropdown__sortButton<T extends PlasmicNavigationDropdown__sortButtonProps>(props: T & StrictProps<T, PlasmicNavigationDropdown__sortButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sortButton", props);
+  return <PlasmicNavigationDropdown__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sortButton"} />;
+}
+PlasmicNavigationDropdown__sortButton.displayName = "PlasmicNavigationDropdown.sortButton";
+
 
 export const PlasmicNavigationDropdown = Object.assign(
   // Top-level PlasmicNavigationDropdown renders the root element
-  makeNodeComponent("root"),
+  PlasmicNavigationDropdown__root,
   {
     // Helper components rendering sub-elements
-    text: makeNodeComponent("text"),
-    plusButtonContainer: makeNodeComponent("plusButtonContainer"),
-    plusButton: makeNodeComponent("plusButton"),
-    searchInput: makeNodeComponent("searchInput"),
-    expandButton: makeNodeComponent("expandButton"),
-    collapseButton: makeNodeComponent("collapseButton"),
-    sortButton: makeNodeComponent("sortButton"),
+    text: PlasmicNavigationDropdown__text,
+    plusButtonContainer: PlasmicNavigationDropdown__plusButtonContainer,
+    plusButton: PlasmicNavigationDropdown__plusButton,
+    searchInput: PlasmicNavigationDropdown__searchInput,
+    expandButton: PlasmicNavigationDropdown__expandButton,
+    collapseButton: PlasmicNavigationDropdown__collapseButton,
+    sortButton: PlasmicNavigationDropdown__sortButton,
 
     // Metadata about props expected for PlasmicNavigationDropdown
     internalVariantProps: PlasmicNavigationDropdown__VariantProps,

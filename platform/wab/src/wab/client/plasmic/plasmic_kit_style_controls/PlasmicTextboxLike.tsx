@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,11 +23,11 @@ import {
   renderPlasmicSlot,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../plasmic_kit_style_controls/PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_style_controls/PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -87,11 +87,10 @@ function PlasmicTextboxLike__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "color",
@@ -100,18 +99,20 @@ function PlasmicTextboxLike__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.color,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -189,12 +190,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -204,24 +201,19 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTextboxLike__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "controlContainer") {
-    func.displayName = "PlasmicTextboxLike";
-  } else {
-    func.displayName = `PlasmicTextboxLike.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTextboxLike__controlContainerProps = NodeComponentProps<"controlContainer"> & {key?: React.Key};
+function PlasmicTextboxLike__controlContainer<T extends PlasmicTextboxLike__controlContainerProps>(props: T & StrictProps<T, PlasmicTextboxLike__controlContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("controlContainer", props);
+  return <PlasmicTextboxLike__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"controlContainer"} />;
+}
+PlasmicTextboxLike__controlContainer.displayName = "PlasmicTextboxLike";
+
 
 export const PlasmicTextboxLike = Object.assign(
   // Top-level PlasmicTextboxLike renders the root element
-  makeNodeComponent("controlContainer"),
+  PlasmicTextboxLike__controlContainer,
   {
     // Helper components rendering sub-elements
 

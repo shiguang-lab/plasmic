@@ -1,6 +1,6 @@
 import { plasmicIFrameWheelEvent } from "@/wab/client/definitions/events";
 import { isContextMenuDescendant, isDescendant } from "@/wab/client/dom-utils";
-import { RefObject, useCallback, useEffect, useMemo, useRef } from "react";
+import { RefObject, useEffect, useEffectEvent, useMemo } from "react";
 
 /**
  * Makes it possible to monitor dismissing events on the
@@ -20,17 +20,12 @@ export function useDismissibleStudioOverlay({
   overlayRef?: RefObject<HTMLElement | null>;
 }) {
   const studio = useMemo(() => document.querySelector(".studio"), []);
-  const _onDismissRef = useRef(onDismiss);
-  const _activeRef = useRef(isOpen);
-  _onDismissRef.current = onDismiss;
-  _activeRef.current = isOpen;
-
-  const _onDismiss = useCallback((e: Event) => {
+  const onDismissEvent = useEffectEvent((e: Event) => {
     if (e.type === "keydown" && (e as any).key !== "Escape") {
       return;
     }
 
-    if (!_activeRef.current) {
+    if (!isOpen) {
       return;
     }
 
@@ -53,31 +48,17 @@ export function useDismissibleStudioOverlay({
       return e.stopPropagation();
     }
 
-    const currentOnDismissFn = _onDismissRef.current;
-    currentOnDismissFn(e);
-  }, []);
+    onDismiss(e);
+  });
 
-  const addListeners = useCallback(() => {
-    studio?.addEventListener("wheel", _onDismiss);
-    document.addEventListener("mousedown", _onDismiss);
-    document.addEventListener("keydown", _onDismiss); // for Escape only
-    document.addEventListener("wheel", _onDismiss);
-    document.addEventListener("contextmenu", _onDismiss);
-    document.addEventListener(plasmicIFrameWheelEvent, _onDismiss);
-  }, []);
-
-  const removeListeners = useCallback(() => {
-    studio?.removeEventListener("wheel", _onDismiss);
-    document.removeEventListener("keydown", _onDismiss);
-    document.removeEventListener("wheel", _onDismiss);
-    document.removeEventListener("mousedown", _onDismiss);
-    document.removeEventListener("contextmenu", _onDismiss);
-    document.removeEventListener(plasmicIFrameWheelEvent, _onDismiss);
-  }, []);
-
-  return useEffect(() => {
-    addListeners();
-
-    return removeListeners;
-  }, []);
+  useEffect(() => {
+    const dismiss = (event: Event) => onDismissEvent(event);
+    studio?.addEventListener("wheel", dismiss);
+    const events = ["mousedown", "keydown", "wheel", "contextmenu", plasmicIFrameWheelEvent];
+    events.forEach((name) => document.addEventListener(name, dismiss));
+    return () => {
+      studio?.removeEventListener("wheel", dismiss);
+      events.forEach((name) => document.removeEventListener(name, dismiss));
+    };
+  }, [studio]);
 }

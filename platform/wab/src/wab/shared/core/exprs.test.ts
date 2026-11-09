@@ -13,6 +13,7 @@ import {
   deserCompositeExpr,
   deserCompositeExprMaybe,
   getCodeExpressionWithFallback,
+  getCodeExpressionWithFallbackExpr,
   serCompositeExprMaybe,
   tryExtractJson,
 } from "@/wab/shared/core/exprs";
@@ -28,6 +29,8 @@ import {
   QueryRef,
   TemplatedString,
 } from "@/wab/shared/model/classes";
+import { transformSync } from "@babel/core";
+import { reactCompilerOptions } from "../../../../tools/react-compiler.mjs";
 
 describe("asCode", () => {
   const exprCtxFixture: ExprCtx = {
@@ -35,6 +38,24 @@ describe("asCode", () => {
     inStudio: true,
     projectFlags: getProjectFlags(createSite()),
   };
+
+  it("compiles conditional expression fallbacks and evaluates the fallback only for supported errors", () => {
+    const expression = getCodeExpressionWithFallbackExpr("enabled ? source.value : source.other", "fallback()", exprCtxFixture);
+    expect(() => transformSync(`function Example({enabled, source, fallback}) { return <span>{${expression}}</span>; }`, {
+      filename: "ExpressionFallback.tsx", babelrc: false, configFile: false,
+      parserOpts: { plugins: ["typescript", "jsx"] },
+      plugins: [["babel-plugin-react-compiler", reactCompilerOptions()]],
+    })).not.toThrow();
+    const read = new Function("enabled", "source", "fallback", `return ${expression}`);
+    const fallback = vi.fn(() => "fallback");
+    expect(read(true, { value: "value" }, fallback)).toBe("value");
+    expect(fallback).not.toHaveBeenCalled();
+    expect(read(true, undefined, fallback)).toBe("fallback");
+    expect(fallback).toHaveBeenCalledTimes(1);
+    const source = { get value() { throw new RangeError("unhandled"); } };
+    expect(() => read(true, source, fallback)).toThrow("unhandled");
+    expect(fallback).toHaveBeenCalledTimes(1);
+  });
 
   it("works for TemplatedString with only CustomCode fallback", () => {
     const wrongExpr = '"test".not.possible';

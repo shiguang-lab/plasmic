@@ -1,4 +1,5 @@
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useProjectData } from "@/wab/client/studio-ctx/project-data-react";
 import { useShallow } from "zustand/react/shallow";
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { useStudioOps } from "@/wab/client/components/sidebar-tabs/ComponentActionsSection";
@@ -49,14 +50,14 @@ function InnerCustomPropEditorWithViewCtx({
   propName,
 }: CustomPropEditorProps & { viewCtx: ViewCtx }) {
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
-  const actionRef = React.useRef<HTMLDivElement>(null);
-  const propRef = React.useRef<HTMLDivElement>(null);
+  const [actionElement, setActionElement] = React.useState<HTMLDivElement | null>(null);
+  const [propElement, setPropElement] = React.useState<HTMLDivElement | null>(null);
   const expsProvider = new TplExpsProvider(viewCtx, tpl);
   const sub = viewCtx.canvasCtx.Sub;
-  const studioOps = useStudioOps(viewCtx, actionRef.current, tpl, expsProvider);
+  const studioOps = useStudioOps(viewCtx, actionElement, tpl, expsProvider);
   useCustomPropEditor(
     sub,
-    propRef,
+    propElement,
     studioOps,
     value,
     onChange,
@@ -68,8 +69,8 @@ function InnerCustomPropEditorWithViewCtx({
 
   return (
     <>
-      <div ref={actionRef} style={{ display: "contents" }} />
-      <div ref={propRef} style={{ display: "contents" }} />
+      <div ref={setActionElement} style={{ display: "contents" }} />
+      <div ref={setPropElement} style={{ display: "contents" }} />
     </>
   );
 }
@@ -82,11 +83,11 @@ function InnerCustomPropEditor({
   ccContextData,
   propName,
 }: CustomPropEditorProps) {
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [container, setContainer] = React.useState<HTMLDivElement | null>(null);
   const sub = getRootSub();
   useCustomPropEditor(
     sub,
-    containerRef,
+    container,
     null,
     value,
     onChange,
@@ -96,59 +97,16 @@ function InnerCustomPropEditor({
     propName,
   );
 
-  return <div ref={containerRef} style={{ display: "contents" }} />;
+  return <div ref={setContainer} style={{ display: "contents" }} />;
 }
 
 // updateValue round trips asynchronously through the studio model before `value`
 // reflects it, so rendering the control directly from `value` clobbers controlled
 // inputs mid-flight. ValueEcho instead drives the control from local state, echoes
 // of pending writes are ignored, while external `value` changes reset it.
-function makeValueEcho(sub: SubDeps) {
-  return function ValueEcho(props: {
-    impl: CustomControl<any>;
-    value: any;
-    onChange: (v: any) => void;
-    controlProps: any;
-  }) {
-    const R = sub.React;
-    const [local, setLocal] = R.useState(props.value);
-    // Writes sent via updateValue (in send order) not yet seen back in `value`.
-    const pending = R.useRef(new Set<string | undefined>());
-    const lastPropKey = R.useRef(JSON.stringify(props.value));
-    const key = JSON.stringify(props.value);
-    if (key !== lastPropKey.current) {
-      lastPropKey.current = key;
-      if (pending.current.has(key)) {
-        // An echo also supersedes earlier writes, whose own echoes may have
-        // been coalesced into this one.
-        for (const k of pending.current) {
-          pending.current.delete(k);
-          if (k === key) {
-            break;
-          }
-        }
-      } else {
-        pending.current.clear();
-        setLocal(props.value);
-      }
-    }
-    return R.createElement(props.impl, {
-      ...props.controlProps,
-      value: local,
-      updateValue: (v: any) => {
-        pending.current.add(JSON.stringify(v));
-        setLocal(v);
-        props.onChange(v);
-      },
-    });
-  };
-}
-
-export const _testonly = { makeValueEcho };
-
 function useCustomPropEditor(
   sub: SubDeps,
-  containerRef: React.RefObject<HTMLDivElement | null>,
+  container: HTMLDivElement | null,
   studioOps: StudioOps | null,
   value: any,
   onChange: (v: any) => void,
@@ -160,8 +118,7 @@ function useCustomPropEditor(
   const root = React.useRef<Root | null>(null);
   const { theme } = React.useContext(ConfigProvider.ConfigContext);
   const studioCtx = useStudioCtx();
-  const projectData = studioCtx.getProjectData();
-  const ValueEcho = React.useMemo(() => makeValueEcho(sub), [sub]);
+  const projectData = useProjectData(studioCtx);
   const FullscreenModal = React.useMemo(
     () =>
       sub.createModal({
@@ -172,7 +129,7 @@ function useCustomPropEditor(
         domAlign,
         popupWidth: 520,
       }),
-    [sub],
+    [sub, propName],
   );
   const SideModal = React.useMemo(
     () =>
@@ -183,33 +140,33 @@ function useCustomPropEditor(
         studioDocument: document,
         domAlign,
       }),
-    [sub],
+    [sub, propName],
   );
 
   React.useEffect(() => {
-    return () => {
-      if (root.current) {
-        root.current.unmount();
-        root.current = null;
-      }
-    };
-  }, []);
-
-  React.useEffect(() => {
-    if (!containerRef.current) {
+    if (!container) {
       return;
     }
-    if (!root.current) {
-      root.current = sub.ReactDOMClient.createRoot(containerRef.current);
+    const mountedRoot = sub.ReactDOMClient.createRoot(container);
+    root.current = mountedRoot;
+    return () => {
+      mountedRoot.unmount();
+      root.current = null;
+    };
+  }, [sub, container]);
+
+  React.useEffect(() => {
+    if (!container) {
+      return;
     }
     const renderElement = sub.React.createElement(
       sub.StudioControlsProvider,
-      { studioDocument: containerRef.current.ownerDocument, theme },
+      { studioDocument: container.ownerDocument, theme },
       sub.React.createElement(sub.GenericErrorBoundary,
       {
         className: "error-boundary",
       },
-      sub.React.createElement(ValueEcho, {
+      sub.React.createElement(sub.CustomPropValueEcho, {
         impl,
         value,
         onChange,
@@ -224,14 +181,19 @@ function useCustomPropEditor(
         },
       })),
     );
-    root.current.render(renderElement);
+    root.current?.render(renderElement);
   }, [
-    containerRef.current,
+    container,
     value,
     componentPropValues,
     ccContextData,
     onChange,
     sub,
     theme,
+    impl,
+    FullscreenModal,
+    SideModal,
+    studioOps,
+    projectData,
   ]);
 }

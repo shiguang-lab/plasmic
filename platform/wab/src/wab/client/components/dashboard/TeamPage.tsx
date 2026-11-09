@@ -130,10 +130,11 @@ function TeamPageContent_(
       return;
     }
     const storageKey = freeTrialKey(team.id);
+    let active = true;
     const hasFreeTrialStorage = async () => {
       const firstTimeRender = !(await appCtx.api.getStorageItem(storageKey));
       if (
-        team.onTrial &&
+        active && team.onTrial &&
         firstTimeRender &&
         appCtx.selfInfo?.id === team.createdById
       ) {
@@ -143,6 +144,7 @@ function TeamPageContent_(
     };
 
     void hasFreeTrialStorage();
+    return () => { active = false; };
   }, [team]);
 
   const {

@@ -10,7 +10,7 @@ import XMarkdown from "@shiguang2/components/esm/x-markdown";
 import Highlighter from "@shiguang2/components/esm/x-markdown/components/Highlighter";
 import type { ComponentProps } from "@shiguang2/components/esm/x-markdown/interface";
 import { copyToClipboard } from "@shiguang2/components/esm/x-markdown/utils/clipboard";
-import { Button, Tooltip, theme } from "antd";
+import { Button, Tooltip, theme as AntdTheme } from "antd";
 import { createStyles } from "antd-style";
 import React from "react";
 
@@ -145,7 +145,7 @@ const NodeContext = React.createContext<{
 function CodeBlock({ children, block, lang, rawText }: ComponentProps) {
   const { t } = useI18n();
   const { styles } = useStyles();
-  const { token } = theme.useToken();
+  const { token } = AntdTheme.useToken();
   const [copied, setCopied] = React.useState(false);
   const [fullscreen, setFullscreen] = React.useState(false);
   const { nodes, onLocate } = React.useContext(NodeContext);

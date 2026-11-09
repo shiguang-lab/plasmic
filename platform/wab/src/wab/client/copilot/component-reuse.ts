@@ -7,7 +7,7 @@ import { walkDependencyTree } from "@/wab/shared/core/project-deps";
 import { tryExtractJson } from "@/wab/shared/core/exprs";
 import { ancestorsUp, flattenTpls } from "@/wab/shared/core/tpls";
 import { isKnownEventHandler, isKnownFunctionType, isKnownSlotParam, isKnownTplComponent, isKnownTplTag, type Component, type TplNode } from "@/wab/shared/model/classes";
-import { comparer, reaction } from "mobx";
+import isEqual from "lodash/isEqual";
 
 type Operation = { name: string; input: Record<string, unknown> };
 const coverageSnapshots = new WeakMap<StudioCtx, Pick<ComponentReviewResult, "indexed" | "total">>();
@@ -27,11 +27,11 @@ export function reviewInput(name: string, input: Record<string, unknown>) {
 export function componentDocuments(studio: StudioCtx) {
   const documents: ReviewComponentDocument[] = []; let unavailable = 0;
   const registrations = new Map<string, ReturnType<StudioCtx["getCodeComponentMeta"]>>();
-  for (const entry of studio.getCodeComponentsRegistration()) if (!registrations.has(entry.meta.name)) registrations.set(entry.meta.name, entry.meta);
+  for (const entry of studio.getCodeComponentsRegistration()) {if (!registrations.has(entry.meta.name)) {registrations.set(entry.meta.name, entry.meta);}}
   const sources = [{ site: studio.site, projectId: studio.siteInfo.id, version: "local" }, ...walkDependencyTree(studio.site, "all")];
   const seen = new Set<string>();
-  for (const source of sources) for (const component of source.site.components) {
-    if (seen.has(component.uuid) || isPageComponent(component) || isFrameComponent(component) || isContextCodeComponent(component)) continue;
+  for (const source of sources) {for (const component of source.site.components) {
+    if (seen.has(component.uuid) || isPageComponent(component) || isFrameComponent(component) || isContextCodeComponent(component)) {continue;}
     seen.add(component.uuid);
     const meta = isCodeComponent(component) ? registrations.get(component.name) : undefined;
     if (isCodeComponent(component) && !meta) { unavailable++; continue; }
@@ -42,7 +42,7 @@ export function componentDocuments(studio: StudioCtx) {
     const props: string[] = []; const slots: string[] = []; const events: string[] = []; const lines: string[] = [];
     for (const param of getRealParams(component, { includeSlots: true })) {
       const name = param.variable.name;
-      if (["className", "style", "ref", "key"].includes(name)) continue;
+      if (["className", "style", "ref", "key"].includes(name)) {continue;}
       const kind = isKnownSlotParam(param) ? "slot" : isKnownFunctionType(param.type) ? "eventHandler" : "prop";
       (kind === "slot" ? slots : kind === "eventHandler" ? events : props).push(name);
       lines.push(`${name}: ${kind}${param.description ? " — " + param.description : ""}`);
@@ -53,23 +53,36 @@ export function componentDocuments(studio: StudioCtx) {
       [composition.length ? "Composition uses: " + composition.join(", ") : "", ...lines].filter(Boolean).join("\n")].filter(Boolean);
     documents.push({ componentUuid: component.uuid, name: component.name, fromProject: source.projectId, version: source.version,
       description, sections, props, slots, events });
-  }
+  }}
   documents.sort((a, b) => a.componentUuid.localeCompare(b.componentUuid)); return { documents, unavailable };
 }
 
 /** One editor lifetime; tracked contract fields do not include instance styles/text. */
 export function startComponentReuse(studio: StudioCtx) {
-  if (!studio.appCtx.appConfig.enableComponentReuseAdvisory) return () => {};
+  if (!studio.appCtx.appConfig.enableComponentReuseAdvisory) {return () => {};}
   const api = studio.appCtx.topFrameApi;
-  if (!api) return () => {};
+  if (!api) {return () => {};}
   let closed = false; let lastActivity = 0; let dispose = () => {};
   const activity = () => { if (Date.now() - lastActivity > 350) { lastActivity = Date.now(); void api.componentReuse({ command: "activity" }).catch(() => {}); } };
   const events = ["pointermove", "keydown", "wheel"] as const;
   void api.componentReuse({ command: "status" }).then(status => {
-    if (closed || !(status && typeof status === "object" && "available" in status && status.available === true)) return;
-    dispose = reaction(() => componentDocuments(studio), catalogue => {
-      if (!closed) { void api.componentReuse({ command: "sync", projectId: studio.siteInfo.id, ...catalogue }).then(value => { if (!closed) { rememberCoverage(studio, value); } }).catch(() => {}); }
-    }, { fireImmediately: true, equals: comparer.structural, delay: 250 });
+    if (closed || !(status && typeof status === "object" && "available" in status && status.available === true)) {return;}
+    let previous: ReturnType<typeof componentDocuments> | undefined;
+    let pending: ReturnType<typeof setTimeout> | undefined;
+    const publish = () => {
+      pending = undefined;
+      if (closed) { return; }
+      const catalogue = componentDocuments(studio);
+      if (isEqual(previous, catalogue)) { return; }
+      previous = catalogue;
+      void api.componentReuse({ command: "sync", projectId: studio.siteInfo.id, ...catalogue }).then(value => { if (!closed) { rememberCoverage(studio, value); } }).catch(() => {});
+    };
+    const schedule = () => { if (!closed && !pending) { pending = setTimeout(publish, 250); } };
+    const stopModel = studio.subscribeModelChanges(schedule);
+    const stopVersion = studio.dbCtx().subscribeVersionInputs(schedule);
+    const stopRegistrations = studio.subscribeCodeRegistrations(schedule);
+    dispose = () => { stopModel(); stopVersion(); stopRegistrations(); clearTimeout(pending); };
+    publish();
     events.forEach(name => window.addEventListener(name, activity, { passive: true }));
   }).catch(() => {});
   return () => { closed = true; dispose(); events.forEach(name => window.removeEventListener(name, activity)); void api.componentReuse({ command: "release", projectId: studio.siteInfo.id }).catch(() => {}); };
@@ -98,7 +111,7 @@ export function shouldReviewRegion(operations: Operation[], root: TplNode) {
     op.name === "changeElement" && ["props", "resetProps", "visibleIf", "repeat"].some(key => key in op.input));
   if (!relevant.length) { return false; }
   const { nodes } = nodesAndUsed(root);
-  if (nodes.some(hasNativeWidget)) return true;
+  if (nodes.some(hasNativeWidget)) {return true;}
   // Registered components do not establish that adjacent or Slot content is
   // covered. Inspect the authored custom structure, including inside Card Slots.
   const native = nodes.filter(isKnownTplTag);
@@ -120,23 +133,23 @@ const prompted = new WeakMap<StudioCtx, Map<string, { regions: Set<string>; cand
 export async function reviewComponents(studio: StudioCtx, operations: Operation[], receipts: MutationReceipt[], context: ComponentReviewContext, callerId = "local", signal?: AbortSignal, retry = false): Promise<ComponentReviewResult> {
   const skipped: ComponentReviewResult = { status: "skipped", indexed: null, total: null, ...coverageSnapshots.get(studio), elapsedMs: 0, suggestions: [] };
   const api = studio.appCtx.topFrameApi;
-  if (!studio.appCtx.appConfig.enableComponentReuseAdvisory || !api) return { ...skipped, status: "unavailable" };
+  if (!studio.appCtx.appConfig.enableComponentReuseAdvisory || !api) {return { ...skipped, status: "unavailable" };}
   let sessions = prompted.get(studio); if (!sessions) { sessions = new Map(); prompted.set(studio, sessions); }
   const sessionKey = studio.aiSessionId + ":" + callerId;
   let history = sessions.get(sessionKey); if (!history) { history = { regions: new Set(), candidates: new Set() }; sessions.set(sessionKey, history); }
   const sent = history.regions; const offered = history.candidates;
-  if (sessions.size > 32) sessions.delete(sessions.keys().next().value as string);
+  if (sessions.size > 32) {sessions.delete(sessions.keys().next().value as string);}
   for (const receipt of receipts) {
     if (receipt.componentUuid && receipt.replacedElementUuid && sent.has(receipt.componentUuid + ":" + receipt.replacedElementUuid)) {
-      for (const created of receipt.created) if (created.kind === "Element") sent.add(receipt.componentUuid + ":" + created.uuid);
+      for (const created of receipt.created) {if (created.kind === "Element") {sent.add(receipt.componentUuid + ":" + created.uuid);}}
     }
   }
   const regions: ReviewRegion[] = []; const snapshots = new Set<string>();
   const skippedRegions: NonNullable<ComponentReviewResult["skippedRegions"]> = [];
-  if (context.customOnly) return { ...skipped, skippedRegions: [{ reason: "user-choice-agent-reported" }] };
+  if (context.customOnly) {return { ...skipped, skippedRegions: [{ reason: "user-choice-agent-reported" }] };}
   const targets: { component: Component; node: TplNode }[] = [];
   const recordSkip = (reason: NonNullable<ComponentReviewResult["skippedRegions"]>[number]["reason"], component?: Component, node?: TplNode) => {
-    if (skippedRegions.length < 5) skippedRegions.push({ ...(component ? { componentUuid: component.uuid } : {}), ...(node ? { elementUuid: node.uuid } : {}), reason });
+    if (skippedRegions.length < 5) {skippedRegions.push({ ...(component ? { componentUuid: component.uuid } : {}), ...(node ? { elementUuid: node.uuid } : {}), reason });}
   };
   for (const [index, operation] of operations.entries()) {
     const receipt = receipts[index];
@@ -150,8 +163,8 @@ export async function reviewComponents(studio: StudioCtx, operations: Operation[
       if (!node) { recordSkip("target-unresolved", component); continue; }
       if (!shouldReviewRegion([operation], node)) { recordSkip("component-owned-or-presentation", component, node); continue; }
       // Deduplicate actual changed scopes without asking the agent to map operations.
-      if (targets.some(target => target.component === component && ancestorsUp(node).includes(target.node))) continue;
-      for (let i = targets.length - 1; i >= 0; i--) if (targets[i].component === component && ancestorsUp(targets[i].node).includes(node)) targets.splice(i, 1);
+      if (targets.some(target => target.component === component && ancestorsUp(node).includes(target.node))) {continue;}
+      for (let i = targets.length - 1; i >= 0; i--) {if (targets[i].component === component && ancestorsUp(targets[i].node).includes(node)) {targets.splice(i, 1);}}
       targets.push({ component, node });
     }
   }
@@ -163,7 +176,7 @@ export async function reviewComponents(studio: StudioCtx, operations: Operation[
     snapshots.add(component.uuid + ":" + node.uuid);
     regions.push({ componentUuid: component.uuid, elementUuid: node.uuid, intent: context.purpose, usedComponentUuids: [...used], ancestorComponentUuids: ancestorsUp(node).filter(isKnownTplComponent).map(ancestor => ancestor.component.uuid), facts: [...new Set(nodes.filter(isKnownTplTag).map(item => item.tag))] });
   }
-  if (!regions.length) return { ...skipped, skippedRegions };
+  if (!regions.length) {return { ...skipped, skippedRegions };}
   const started = performance.now(); const id = crypto.randomUUID(); const counter = studio._changeCounter;
   let ended = false; let interrupted: (result: ComponentReviewResult) => void = () => {};
   const retryCall = (afterMs: number) => ({ tool: "execute" as const, arguments: { name: "reviewComponentReuse" as const, input: { targets: regions.map(({ componentUuid, elementUuid }) => ({ componentUuid, elementUuid })), reviewContext: context } }, afterMs });
@@ -172,18 +185,18 @@ export async function reviewComponents(studio: StudioCtx, operations: Operation[
   const timeout = new Promise<ComponentReviewResult>(resolve => { interrupted = resolve; });
   const timer = setTimeout(() => stop("timeout"), 5000);
   try {
-    if (signal?.aborted) return { ...skipped, status: "cancelled" };
+    if (signal?.aborted) {return { ...skipped, status: "cancelled" };}
     const work = (async (): Promise<ComponentReviewResult> => {
       const status = await api.componentReuse({ command: "status" });
-      if (ended) return { ...skipped, status: "timeout" };
-      if (!(status && typeof status === "object" && "available" in status && status.available === true)) return { ...skipped, status: "unavailable" };
+      if (ended) {return { ...skipped, status: "timeout" };}
+      if (!(status && typeof status === "object" && "available" in status && status.available === true)) {return { ...skipped, status: "unavailable" };}
       const catalogue = componentDocuments(studio);
       rememberCoverage(studio, await api.componentReuse({ command: "sync", projectId: studio.siteInfo.id, ...catalogue, ...(retry ? { retry: true } : {}) }));
-      if (ended) return { ...skipped, status: "timeout" };
+      if (ended) {return { ...skipped, status: "timeout" };}
       const result = componentReviewResultSchema.parse(await api.componentReuse({ command: "review", projectId: studio.siteInfo.id, id, regions }));
       rememberCoverage(studio, result);
-      if (ended || signal?.aborted) return { ...skipped, status: "cancelled", elapsedMs: performance.now() - started };
-      if (studio._changeCounter !== counter || JSON.stringify(componentDocuments(studio)) !== JSON.stringify(catalogue)) return { ...result, status: "partial", issues: ["catalogue-changed"], suggestions: [], skippedRegions, retry: retryCall(0) };
+      if (ended || signal?.aborted) {return { ...skipped, status: "cancelled", elapsedMs: performance.now() - started };}
+      if (studio._changeCounter !== counter || JSON.stringify(componentDocuments(studio)) !== JSON.stringify(catalogue)) {return { ...result, status: "partial", issues: ["catalogue-changed"], suggestions: [], skippedRegions, retry: retryCall(0) };}
       const suggestions = result.suggestions.flatMap(suggestion => {
         const key = suggestion.componentUuid + ":" + suggestion.elementUuid;
         assert(snapshots.has(key), "Unexpected component advisory target");

@@ -256,7 +256,7 @@ export function DataSourceModal({
 
   const testDataSourceConnection = React.useCallback(
     async (dsWorkspaceId: WorkspaceId) => {
-      try {
+      return await (async () => {
         const values = form.getFieldsValue();
 
         if (!isValidValuesData(values)) {
@@ -336,12 +336,12 @@ export function DataSourceModal({
         }
 
         return connectionTest;
-      } catch (err) {
+      })().catch((err) => {
         showError(err, { title: uiT("Connection failed") });
         return { result: { connected: false } };
-      }
+      });
     },
-    [form, appCtx, successfulConnections, isValidValuesData, uiT],
+    [form, appCtx, successfulConnections, isValidValuesData, uiT, selectedDataSourceType, editingDataSource],
   );
 
   return (

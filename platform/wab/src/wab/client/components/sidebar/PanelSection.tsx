@@ -27,7 +27,7 @@ export function PanelSection({
   zeroBodyPadding,
 }: PanelSectionProps) {
   const [openState, setOpenState] = useState(defaultOpen);
-  open = open ?? openState;
+  const isOpen = open ?? openState;
 
   // eslint-disable-next-line @typescript-eslint/no-shadow
   function handleChangeOpen(open: boolean) {
@@ -39,8 +39,8 @@ export function PanelSection({
     <SidebarSection
       title={title}
       controls={
-        <IconLinkButton onClick={() => handleChangeOpen(!open)}>
-          {open ? (
+        <IconLinkButton onClick={() => handleChangeOpen(!isOpen)}>
+          {isOpen ? (
             <Icon icon={ChevronDownsvgIcon} />
           ) : (
             <Icon icon={ChevronLeftsvgIcon} />
@@ -50,7 +50,7 @@ export function PanelSection({
       emptyBody={emptyBody}
       zeroBodyPadding={zeroBodyPadding}
     >
-      {open && (L.isFunction(children) ? children() : children)}
+      {isOpen && (L.isFunction(children) ? children() : children)}
     </SidebarSection>
   );
 }

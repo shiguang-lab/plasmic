@@ -25,12 +25,13 @@ import {
   renderPlasmicSlot,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -106,11 +107,10 @@ function PlasmicPublishDialogContent__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "state",
@@ -119,18 +119,20 @@ function PlasmicPublishDialogContent__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.state,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -325,9 +327,7 @@ function PlasmicPublishDialogContent__RenderFunc(props: {
               hasVariant($state, "state", "disabled") ? true : undefined
             }
             placeholder={uiT("Description (optional)…")}
-            ref={(ref) => {
-              $refs["title"] = ref;
-            }}
+            ref={registerRef("title")}
             size={1}
             type={"text"}
           />
@@ -483,12 +483,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -498,33 +494,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPublishDialogContent__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPublishDialogContent";
-  } else {
-    func.displayName = `PlasmicPublishDialogContent.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPublishDialogContent__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPublishDialogContent__root<T extends PlasmicPublishDialogContent__rootProps>(props: T & StrictProps<T, PlasmicPublishDialogContent__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPublishDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPublishDialogContent__root.displayName = "PlasmicPublishDialogContent";
+
+type PlasmicPublishDialogContent__closeButtonProps = NodeComponentProps<"closeButton"> & {key?: React.Key};
+function PlasmicPublishDialogContent__closeButton<T extends PlasmicPublishDialogContent__closeButtonProps>(props: T & StrictProps<T, PlasmicPublishDialogContent__closeButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("closeButton", props);
+  return <PlasmicPublishDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"closeButton"} />;
+}
+PlasmicPublishDialogContent__closeButton.displayName = "PlasmicPublishDialogContent.closeButton";
+
+type PlasmicPublishDialogContent__hintProps = NodeComponentProps<"hint"> & {key?: React.Key};
+function PlasmicPublishDialogContent__hint<T extends PlasmicPublishDialogContent__hintProps>(props: T & StrictProps<T, PlasmicPublishDialogContent__hintProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("hint", props);
+  return <PlasmicPublishDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"hint"} />;
+}
+PlasmicPublishDialogContent__hint.displayName = "PlasmicPublishDialogContent.hint";
+
+type PlasmicPublishDialogContent__titleProps = NodeComponentProps<"title"> & {key?: React.Key};
+function PlasmicPublishDialogContent__title<T extends PlasmicPublishDialogContent__titleProps>(props: T & StrictProps<T, PlasmicPublishDialogContent__titleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("title", props);
+  return <PlasmicPublishDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"title"} />;
+}
+PlasmicPublishDialogContent__title.displayName = "PlasmicPublishDialogContent.title";
+
+type PlasmicPublishDialogContent__publishHintProps = NodeComponentProps<"publishHint"> & {key?: React.Key};
+function PlasmicPublishDialogContent__publishHint<T extends PlasmicPublishDialogContent__publishHintProps>(props: T & StrictProps<T, PlasmicPublishDialogContent__publishHintProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("publishHint", props);
+  return <PlasmicPublishDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"publishHint"} />;
+}
+PlasmicPublishDialogContent__publishHint.displayName = "PlasmicPublishDialogContent.publishHint";
+
+type PlasmicPublishDialogContent__openButtonProps = NodeComponentProps<"openButton"> & {key?: React.Key};
+function PlasmicPublishDialogContent__openButton<T extends PlasmicPublishDialogContent__openButtonProps>(props: T & StrictProps<T, PlasmicPublishDialogContent__openButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("openButton", props);
+  return <PlasmicPublishDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"openButton"} />;
+}
+PlasmicPublishDialogContent__openButton.displayName = "PlasmicPublishDialogContent.openButton";
+
+type PlasmicPublishDialogContent__imgProps = NodeComponentProps<"img"> & {key?: React.Key};
+function PlasmicPublishDialogContent__img<T extends PlasmicPublishDialogContent__imgProps>(props: T & StrictProps<T, PlasmicPublishDialogContent__imgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("img", props);
+  return <PlasmicPublishDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"img"} />;
+}
+PlasmicPublishDialogContent__img.displayName = "PlasmicPublishDialogContent.img";
+
+type PlasmicPublishDialogContent__publishButtonProps = NodeComponentProps<"publishButton"> & {key?: React.Key};
+function PlasmicPublishDialogContent__publishButton<T extends PlasmicPublishDialogContent__publishButtonProps>(props: T & StrictProps<T, PlasmicPublishDialogContent__publishButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("publishButton", props);
+  return <PlasmicPublishDialogContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"publishButton"} />;
+}
+PlasmicPublishDialogContent__publishButton.displayName = "PlasmicPublishDialogContent.publishButton";
+
 
 export const PlasmicPublishDialogContent = Object.assign(
   // Top-level PlasmicPublishDialogContent renders the root element
-  makeNodeComponent("root"),
+  PlasmicPublishDialogContent__root,
   {
     // Helper components rendering sub-elements
-    closeButton: makeNodeComponent("closeButton"),
-    hint: makeNodeComponent("hint"),
-    title: makeNodeComponent("title"),
-    publishHint: makeNodeComponent("publishHint"),
-    openButton: makeNodeComponent("openButton"),
-    img: makeNodeComponent("img"),
-    publishButton: makeNodeComponent("publishButton"),
+    closeButton: PlasmicPublishDialogContent__closeButton,
+    hint: PlasmicPublishDialogContent__hint,
+    title: PlasmicPublishDialogContent__title,
+    publishHint: PlasmicPublishDialogContent__publishHint,
+    openButton: PlasmicPublishDialogContent__openButton,
+    img: PlasmicPublishDialogContent__img,
+    publishButton: PlasmicPublishDialogContent__publishButton,
 
     // Metadata about props expected for PlasmicPublishDialogContent
     internalVariantProps: PlasmicPublishDialogContent__VariantProps,

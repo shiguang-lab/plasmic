@@ -14,6 +14,7 @@
 import * as React from "react";
 
 import {
+  usePlasmicRefs,
   Flex as Flex__,
   StrictProps,
   classNames,
@@ -87,9 +88,8 @@ function PlasmicCommentsMentions__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
   return (
     <EmailSection
@@ -287,12 +287,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -302,30 +298,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCommentsMentions__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCommentsMentions";
-  } else {
-    func.displayName = `PlasmicCommentsMentions.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCommentsMentions__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCommentsMentions__root<T extends PlasmicCommentsMentions__rootProps>(props: T & StrictProps<T, PlasmicCommentsMentions__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCommentsMentions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCommentsMentions__root.displayName = "PlasmicCommentsMentions";
+
+type PlasmicCommentsMentions__commentsHeaderProps = NodeComponentProps<"commentsHeader"> & {key?: React.Key};
+function PlasmicCommentsMentions__commentsHeader<T extends PlasmicCommentsMentions__commentsHeaderProps>(props: T & StrictProps<T, PlasmicCommentsMentions__commentsHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentsHeader", props);
+  return <PlasmicCommentsMentions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentsHeader"} />;
+}
+PlasmicCommentsMentions__commentsHeader.displayName = "PlasmicCommentsMentions.commentsHeader";
+
+type PlasmicCommentsMentions__emailRowProps = NodeComponentProps<"emailRow"> & {key?: React.Key};
+function PlasmicCommentsMentions__emailRow<T extends PlasmicCommentsMentions__emailRowProps>(props: T & StrictProps<T, PlasmicCommentsMentions__emailRowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emailRow", props);
+  return <PlasmicCommentsMentions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emailRow"} />;
+}
+PlasmicCommentsMentions__emailRow.displayName = "PlasmicCommentsMentions.emailRow";
+
+type PlasmicCommentsMentions__atomsCardProps = NodeComponentProps<"atomsCard"> & {key?: React.Key};
+function PlasmicCommentsMentions__atomsCard<T extends PlasmicCommentsMentions__atomsCardProps>(props: T & StrictProps<T, PlasmicCommentsMentions__atomsCardProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("atomsCard", props);
+  return <PlasmicCommentsMentions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"atomsCard"} />;
+}
+PlasmicCommentsMentions__atomsCard.displayName = "PlasmicCommentsMentions.atomsCard";
+
+type PlasmicCommentsMentions__commentsCommentProps = NodeComponentProps<"commentsComment"> & {key?: React.Key};
+function PlasmicCommentsMentions__commentsComment<T extends PlasmicCommentsMentions__commentsCommentProps>(props: T & StrictProps<T, PlasmicCommentsMentions__commentsCommentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentsComment", props);
+  return <PlasmicCommentsMentions__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentsComment"} />;
+}
+PlasmicCommentsMentions__commentsComment.displayName = "PlasmicCommentsMentions.commentsComment";
+
 
 export const PlasmicCommentsMentions = Object.assign(
   // Top-level PlasmicCommentsMentions renders the root element
-  makeNodeComponent("root"),
+  PlasmicCommentsMentions__root,
   {
     // Helper components rendering sub-elements
-    commentsHeader: makeNodeComponent("commentsHeader"),
-    emailRow: makeNodeComponent("emailRow"),
-    atomsCard: makeNodeComponent("atomsCard"),
-    commentsComment: makeNodeComponent("commentsComment"),
+    commentsHeader: PlasmicCommentsMentions__commentsHeader,
+    emailRow: PlasmicCommentsMentions__emailRow,
+    atomsCard: PlasmicCommentsMentions__atomsCard,
+    commentsComment: PlasmicCommentsMentions__commentsComment,
 
     // Metadata about props expected for PlasmicCommentsMentions
     internalVariantProps: PlasmicCommentsMentions__VariantProps,

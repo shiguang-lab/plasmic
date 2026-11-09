@@ -8,7 +8,6 @@ import { StudioLeftPanelState } from "@/wab/client/studio-ctx/left-panel-state";
 import { TutorialEventsType } from "@/wab/client/tours/tutorials/tutorials-events";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import type { LeftTabKey } from "@/wab/shared/ui-config-utils";
-import { runInAction } from "mobx";
 import { mock } from "vitest-mock-extended";
 
 async function readyStudioCtx() {
@@ -263,14 +262,14 @@ it.each(exclusivePanels)(
   "does not publish a new state when the %s panel is already open",
   async (_name, open) => {
     const { studioCtx } = await readyStudioCtx();
-    runInAction(() => open(studioCtx));
+    (() => open(studioCtx))();
     const panel = studioCtx.leftPanel;
     const update = vi.fn();
     const stop = studioCtx.leftPanelState.store.subscribe(update);
     try {
       update.mockClear();
-      runInAction(() => open(studioCtx));
-      runInAction(() => open(studioCtx));
+      (() => open(studioCtx))();
+      (() => open(studioCtx))();
       expect(studioCtx.leftPanel).toBe(panel);
       expect(update).not.toHaveBeenCalled();
     } finally {

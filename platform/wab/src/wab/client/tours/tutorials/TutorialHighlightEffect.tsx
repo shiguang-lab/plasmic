@@ -31,7 +31,7 @@ export function TutorialHighlightEffect({
     } else {
       return document.querySelector(targetContainer);
     }
-  }, []);
+  }, [targetContainer, target]);
   if (!targetContainerEl) {
     throw new Error(
       `targetContainer element with selector '${targetContainer}' not found`,
@@ -48,7 +48,7 @@ export function TutorialHighlightEffect({
       modifiers: [popperOffsetsOrigin, matchSize],
     });
     return popperInstance.destroy;
-  }, [popperRef.current, targetEl]);
+  }, [targetEl]);
 
   return (
     <div

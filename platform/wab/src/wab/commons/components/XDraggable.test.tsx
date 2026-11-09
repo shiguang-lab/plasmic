@@ -4,7 +4,7 @@ import React from "react";
 
 const fixture = vi.hoisted(() => ({ app: { setIsDragging: vi.fn() } }));
 vi.mock("@/wab/client/components/top-view", () => ({
-  withAppContext: (Component: React.ComponentType<any>) => (props: any) => <Component {...props} app={fixture.app} />,
+  useApp: () => fixture.app,
 }));
 afterEach(() => {
   cleanup();
@@ -63,4 +63,16 @@ it("preserves the threshold and emits one aborted stop for Escape", () => {
   view.unmount();
   fireEvent.mouseMove(document, { clientX: 24, clientY: 0 });
   expect(onDrag).toHaveBeenCalledTimes(1);
+});
+
+it("ends an active drag once when its native owner unmounts", () => {
+  const onStop = vi.fn();
+  const mounted = render(<XDraggable minPx={0} onStop={onStop}><div data-testid="handle" /></XDraggable>);
+  fireEvent.mouseDown(screen.getByTestId("handle"), { clientX: 0, clientY: 0 });
+  mounted.unmount();
+  expect(onStop).toHaveBeenCalledOnce();
+  expect(onStop.mock.lastCall?.[0].data).toMatchObject({ aborted: true, started: false });
+  expect(fixture.app.setIsDragging.mock.calls).toEqual([[true], [false]]);
+  fireEvent.mouseUp(document, { clientX: 20, clientY: 20 });
+  expect(onStop).toHaveBeenCalledOnce();
 });

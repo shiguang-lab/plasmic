@@ -13,11 +13,9 @@ import {
   PlasmicClassArgs,
   PlasmicClassOverrides,
   PlasmicClassVariants,
-  PLUME_STRICT_MODE,
   VariantDef,
 } from "../plume-utils";
 import {
-  getDefaultPlasmicProps,
   getStyleProps,
   StyleProps,
 } from "../props-utils";
@@ -50,23 +48,17 @@ export function useSelectOption<
   const state = React.useContext(SelectContext);
 
   if (!state) {
-    // If no context, then we are being incorrectly used.  Complain or just don't
-    // bother installing any hooks.  It's okay to violate rules of hooks here
-    // because this instance won't suddenly be used correctly in another render.
-    if (PLUME_STRICT_MODE) {
-      throw new Error(
-        "You can only use a Select.Option within a Select component."
-      );
-    }
-
-    return getDefaultPlasmicProps(plasmicClass, props);
+    throw new Error("You can only use a Select.Option within a Select component.");
   }
 
   const { children } = props;
 
   const canvasCtx = usePlasmicCanvasContext();
   const rootRef = React.useRef<HTMLElement>(null);
-  const onRef = mergeRefs(rootRef, outerRef);
+  const onRef = React.useCallback<React.RefCallback<HTMLElement>>(
+    (value) => mergeRefs(rootRef, outerRef)(value),
+    [rootRef, outerRef]
+  );
 
   // We pass in the Node secretly as an undocumented prop from <Select />
   const node = (props as any)._node as Node<
@@ -110,14 +102,13 @@ export function useSelectOption<
 
   const overrides: Overrides = {
     [config.root]: {
-      props: mergeProps(
+      props: { ...mergeProps(
         canvasCtx && !canvasCtx.interactive ? {} : optionProps,
         getStyleProps(props),
         {
-          ref: onRef,
           style: noOutline(),
         }
-      ),
+      ), ref: onRef },
     },
     [config.labelContainer]: {
       props: labelProps,

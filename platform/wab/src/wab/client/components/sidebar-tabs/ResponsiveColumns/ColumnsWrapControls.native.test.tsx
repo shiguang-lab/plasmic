@@ -1,9 +1,13 @@
+import { AppContext } from "@/wab/client/components/top-view";
 import "@/wab/client/components/sidebar/MixinControls";
+import { ColumnsSizeControls } from "@/wab/client/components/sidebar-tabs/ResponsiveColumns/ColumnsSizeControls";
+import { ColumnsAlignmentInputs, useColumnsAlignment } from "@/wab/client/studio-ctx/columns-alignment-inputs";
+import { ColumnsAlignControls } from "@/wab/client/components/sidebar-tabs/ResponsiveColumns/ColumnsAlignControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { ColumnsPanelSection } from "@/wab/client/components/sidebar-tabs/columns-section";
 import { ColumnsWrapControls } from "@/wab/client/components/sidebar-tabs/ResponsiveColumns/ColumnsWrapControls";
 import { addNewColumn } from "@/wab/client/components/sidebar-tabs/ResponsiveColumns/tpl-columns-utils";
-import { StyleComponent, StyleComponentContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { StyleTarget, StyleTargetContext, TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { ColumnsWrapInputs } from "@/wab/client/studio-ctx/columns-wrap-inputs";
@@ -18,7 +22,7 @@ import { assert, ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
 import { isTplColumns, mkTplTagX, TplTagType } from "@/wab/shared/core/tpls";
-import { ColumnsConfig } from "@/wab/shared/model/classes";
+import { ColumnsConfig, type TplNode } from "@/wab/shared/model/classes";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { mock } from "vitest-mock-extended";
@@ -45,9 +49,9 @@ async function setup() {
   await waitFor(() => expect(fixture.studioCtx.initialRouteReady).toBe(true));
   const studio = fixture.studioCtx, view = ensure(studio.tryGetViewCtxForFrame(frame), "Columns view");
   studio.setStudioFocusOnViewCtxContent(view); view.setStudioFocusByTpl(root);
-  const provider = new TplExpsProvider(view, root), styling = new StyleComponent({ expsProvider: provider });
-  const wrap = (children: React.ReactNode) => <AppCtxContext.Provider value={fixture.appCtx}><StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={styling}>{children}</StyleComponentContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider>;
-  const panel = (input = provider) => wrap(<StyleComponentContext.Provider value={new StyleComponent({ expsProvider: input })}><ColumnsPanelSection studioCtx={studio} tpl={root} expsProvider={input} /></StyleComponentContext.Provider>);
+  const provider = new TplExpsProvider(view, root), styling = new StyleTarget({ expsProvider: provider });
+  const wrap = (children: React.ReactNode) => <AppContext.Provider value={studio.app}><AppCtxContext.Provider value={fixture.appCtx}><StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={styling}>{children}</StyleTargetContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider></AppContext.Provider>;
+  const panel = (input = provider) => wrap(<StyleTargetContext.Provider value={new StyleTarget({ expsProvider: input })}><ColumnsPanelSection studioCtx={studio} tpl={root} expsProvider={input} /></StyleTargetContext.Provider>);
   return { ...fixture, site, studio, view, root, component, config, base, exp, variant, frame, provider, panel, wrap };
 }
 
@@ -120,4 +124,75 @@ it("keeps abandoned renders lease-free and a captured config safe after a real m
     expect(fields.mock.calls.some(([model]) => model === f.root || model === f.config)).toBe(false);
     expect(changed).not.toHaveBeenCalled(); late();
   } finally { stop(); mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
+});
+
+
+it("keeps column alignment consensus committed across edits, variants and child changes", async () => {
+  const f = await setup(), source = new ColumnsAlignmentInputs(f.view, f.root, (node) => new TplExpsProvider(f.view, node));
+  const changed = vi.fn(), stop = source.subscribe(changed);
+  const mounted = render(f.wrap(<ColumnsAlignControls viewCtx={f.view} tpl={f.root} />));
+  try {
+    expect(source.getSnapshot().alignItems).toBe("stretch");
+    const before = source.getSnapshot();
+    await act(async () => { await f.studio.changeUnsafe(() => {
+      for (const child of f.root.children) { f.view.variantTplMgr().targetRshForNode(child).set("align-items", "center"); }
+      expect(source.getSnapshot()).toBe(before);
+    }); });
+    expect(source.getSnapshot().alignItems).toBe("center");
+    expect(changed).toHaveBeenCalledOnce();
+    changed.mockClear();
+    await f.studio.changeUnsafe(() => { f.component.name = "Unrelated metadata"; });
+    expect(changed).not.toHaveBeenCalled();
+    await act(async () => { await f.studio.changeUnsafe(() => {
+      const first = ensure(f.root.children[0], "First column");
+      f.view.variantTplMgr().targetRshForNode(first).set("align-items", "flex-end");
+    }); });
+    expect(source.getSnapshot().alignItems).toBe("");
+    await act(async () => { await f.studio.changeUnsafe(() => {
+      f.view.currentComponentStackFrame().setTargetVariants([f.variant]);
+      for (const child of f.root.children) { f.view.variantTplMgr().targetRshForNode(child).set("align-items", "stretch"); }
+    }); });
+    expect(source.getSnapshot().alignItems).toBe("stretch");
+    await act(async () => { await f.studio.changeUnsafe(() => {
+      f.view.currentComponentStackFrame().setTargetVariants([]);
+      f.root.children = f.root.children.slice(1);
+    }); });
+    expect(source.getSnapshot().alignItems).toBe("center");
+  } finally { mounted.unmount(); stop(); await f.studio.awaitEval(); f.studio.dispose(); }
+});
+
+
+it("updates column size previews from the canonical config and the non-model equal fallback", async () => {
+  const f = await setup();
+  const panel = (config: ColumnsConfig | undefined) => f.wrap(<ColumnsSizeControls viewCtx={f.view} tpl={f.root} config={config} />);
+  const mounted = render(panel(f.config));
+  try {
+    expect(screen.getAllByText("4")).toHaveLength(3);
+    await act(async () => { await f.studio.changeUnsafe(() => { f.config.colsSizes = [6, 6]; }); });
+    expect(screen.getAllByText("6")).toHaveLength(2);
+    mounted.rerender(panel(undefined));
+    expect(screen.getAllByText("4")).toHaveLength(3);
+    await act(async () => { await f.studio.changeUnsafe(() => { addNewColumn(f.root, f.view); }); });
+    expect(screen.getAllByText("3")).toHaveLength(4);
+  } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
+});
+
+
+it("retires retained alignment props without reopening model field subscriptions", async () => {
+  const f = await setup();
+  function Probe() {
+    const provider = React.useCallback((node: TplNode) => new TplExpsProvider(f.view, node), []);
+    const alignment = useColumnsAlignment(f.view, f.root, provider);
+    return <output aria-label="Column alignment">{alignment.alignItems}</output>;
+  }
+  const mounted = render(<Probe />);
+  try {
+    expect(screen.getByRole("status", { name: "Column alignment" }).textContent).toBe("stretch");
+    const fields = vi.spyOn(f.studio.modelSnapshots, "declaredField");
+    act(() => { f.view.dispose(); });
+    fields.mockClear();
+    expect(() => mounted.rerender(<Probe />)).not.toThrow();
+    expect(fields).not.toHaveBeenCalled();
+    expect(screen.getByRole("status", { name: "Column alignment" }).textContent).toBe("stretch");
+  } finally { mounted.unmount(); await f.studio.awaitEval(); f.studio.dispose(); }
 });

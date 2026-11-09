@@ -147,7 +147,7 @@ it("refreshes the compiled token list after the actual create and revoke API act
     displayName: "Token User",
     email: "tokens@example.com",
   });
-  appCtx.ops = new AppOps({ appCtx });
+  appCtx.ops = new AppOps(appCtx);
   const existing = { token: "existing-test-token", createdDate: new Date(100) };
   const created = { token: "created-test-token", createdDate: new Date(200) };
   api.getTrustedHostsList.mockResolvedValue({ trustedHosts: [] });

@@ -56,7 +56,9 @@ import {
   isKnownVariantsRef,
 } from "@/wab/shared/model/classes";
 import { Radio } from "antd";
-import { observer } from "mobx-react";
+import { arrayEq } from "@/wab/shared/common";
+import { shallow } from "zustand/shallow";
+import { useStore } from "zustand";
 import * as React from "react";
 
 const ExprTypes = {
@@ -88,6 +90,7 @@ interface ExpressionListItemProps {
   studioCtx: StudioCtx;
   matcher?: Matcher;
   maxChars: number;
+  isCurrent: () => boolean;
 }
 
 function getExprDisplayText(expr?: Expr, text?: RichText): string {
@@ -175,6 +178,7 @@ const ExpressionListItem = function ExpressionListItem({
   studioCtx,
   matcher,
   maxChars,
+  isCurrent,
 }: ExpressionListItemProps) {
   const {
     component,
@@ -187,6 +191,7 @@ const ExpressionListItem = function ExpressionListItem({
   } = item;
 
   const handleNavigate = React.useCallback(async () => {
+    if (!isCurrent()) { return; }
     if (!component || !tpl) {
       console.warn("No component or tpl found for expression item");
       return;
@@ -202,17 +207,20 @@ const ExpressionListItem = function ExpressionListItem({
       variantSetting?.variants,
     );
 
+    if (!isCurrent()) { return; }
+
     // After the Tpl is focused, highlight param
     const viewCtx = studioCtx.focusedViewCtx();
     if (viewCtx && isKnownTplComponent(tpl) && param) {
       viewCtx.postEval(() => {
+        if (!isCurrent() || viewCtx.isDisposed) { return; }
         const focusedTpl = viewCtx.focusedTpl();
         if (focusedTpl === tpl) {
-          viewCtx.highlightParams = { tpl, params: [param] };
+          viewCtx.setHighlightParams({ tpl, params: [param] });
         }
       });
     }
-  }, [item, studioCtx]);
+  }, [component, tpl, variantSetting?.variants, param, studioCtx, isCurrent]);
 
   return (
     <ListItem
@@ -416,21 +424,82 @@ function collectAllExprs(site: Site): ExpressionItem[] {
   });
 }
 
-const getUsedExprTypes = (exprs: ExpressionItem[]): ExprTypeValue[] => {
+const getUsedExprTypes = (exprs: readonly ExpressionItem[]): ExprTypeValue[] => {
   const types = new Set(exprs.map((e) => e.exprType));
   return Array.from(types);
 };
 
-const LeftExprsSearchPanel = observer(function LeftExprsSearchPanel() {
+const noExpressions: readonly ExpressionItem[] = Object.freeze([]);
+const inactiveSearch = Object.freeze({ active: false, items: noExpressions });
+let nextSearchOwner = 0;
+
+/** This panel searches the entire document, so completed document commits are
+ * its query input. It subscribes only while mounted, in one captured world. */
+class ExpressionSearchInputs {
+  readonly key = ++nextSearchOwner;
+  private readonly models;
+  private readonly site;
+  private readonly lifetime;
+  private closed = false;
+  private current: { readonly active: boolean; readonly items: readonly ExpressionItem[] } = inactiveSearch;
+  private readonly listeners = new Set<() => void>();
+  private stopCommits: (() => void) | undefined;
+  constructor(private readonly studio: StudioCtx) {
+    this.models = studio.modelSnapshots; this.site = studio.site; this.lifetime = studio.arenaState.lifetime();
+    this.capture();
+  }
+  isActive = () => !this.closed && !this.lifetime.aborted && this.studio.arenaState.readinessStore.getState() && this.models === this.studio.modelSnapshots && this.site === this.studio.site;
+  canNavigate = () => this.isActive() && this.listeners.size > 0;
+  private capture = () => {
+    if (!this.isActive()) { this.close(); return; }
+    const next = collectAllExprs(this.site);
+    if (!this.current.active || !arrayEq(this.current.items, next, shallow)) {
+      this.current = Object.freeze({ active: true, items: Object.freeze(next.map((item) => Object.freeze(item))) });
+    }
+  };
+  private sync = () => {
+    if (!this.isActive()) { this.close(); return; }
+    const previous = this.current; this.capture();
+    if (previous !== this.current) { this.listeners.forEach((listener) => listener()); }
+  };
+  private disconnect = () => {
+    this.stopCommits?.(); this.stopCommits = undefined;
+    this.lifetime.removeEventListener("abort", this.close);
+  };
+  private close = () => {
+    if (this.closed) { return; }
+    this.closed = true; this.current = inactiveSearch; this.disconnect();
+    this.listeners.forEach((listener) => listener());
+  };
+  getSnapshot = () => this.isActive() ? this.current : inactiveSearch;
+  subscribe = (listener: () => void) => {
+    if (!this.isActive()) { return () => undefined; }
+    this.listeners.add(listener);
+    if (!this.stopCommits) {
+      this.stopCommits = this.studio.subscribeModelChanges((event) => {
+        if (event.type === "site-replaced" || event.summary.changes.length) { this.sync(); }
+      });
+      this.lifetime.addEventListener("abort", this.close, {once: true});
+      this.sync();
+    }
+    return () => {this.listeners.delete(listener); if (!this.listeners.size) {this.disconnect();}};
+  };
+}
+
+const LeftExprsSearchPanel = React.memo(function LeftExprsSearchPanel() {
+  const studio = useStudioCtx();
+  const ready = useStore(studio.arenaState.readinessStore);
+  const lifetime = studio.arenaState.lifetime();
+  const source = React.useMemo(() => new ExpressionSearchInputs(studio), [studio, studio.modelSnapshots, studio.site, lifetime, ready]);
+  const snapshot = React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
+  return snapshot.active ? <ExpressionSearchContent key={source.key} source={source} expressions={snapshot.items} /> : null;
+});
+
+function ExpressionSearchContent({source, expressions}: {source: ExpressionSearchInputs; expressions: readonly ExpressionItem[]}) {
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [groupBy, setGroupBy] = React.useState<"none" | "component" | "type">(
-    "component",
-  );
-  const [expressions, setExpressions] = React.useState<ExpressionItem[]>(() =>
-    collectAllExprs(studioCtx.site),
-  );
+  const [groupBy, setGroupBy] = React.useState<"none" | "component" | "type">("component");
 
   // Initialize with all available types from the current expressions
   const [selectedExprTypes, setSelectedExprTypes] = React.useState<
@@ -479,12 +548,9 @@ const LeftExprsSearchPanel = observer(function LeftExprsSearchPanel() {
     [debouncedSearch],
   );
 
-  // Update expressions when revisionNum changes (site is updated)
   React.useEffect(() => {
-    const newExpressions = collectAllExprs(studioCtx.site);
-    setExpressions(newExpressions);
-    setSelectedExprTypes(getUsedExprTypes(newExpressions));
-  }, [studioCtx.dbCtx().revisionNum]);
+    setSelectedExprTypes(getUsedExprTypes(expressions));
+  }, [expressions]);
 
   const filteredExprs = React.useMemo(() => {
     let filtered = expressions;
@@ -656,6 +722,7 @@ const LeftExprsSearchPanel = observer(function LeftExprsSearchPanel() {
                   studioCtx={studioCtx}
                   matcher={matcher}
                   maxChars={maxChars}
+                  isCurrent={source.canNavigate}
                 />
               )}
               itemHeight={50}
@@ -686,6 +753,6 @@ const LeftExprsSearchPanel = observer(function LeftExprsSearchPanel() {
       }
     />
   );
-});
+}
 
 export default LeftExprsSearchPanel;

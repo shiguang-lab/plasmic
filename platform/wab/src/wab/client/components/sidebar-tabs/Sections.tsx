@@ -59,7 +59,7 @@ import {
 import { OutlinePanelSection } from "@/wab/client/components/style-controls/OutlineControls";
 import {
   TplExpsProvider,
-  mkStyleComponent,
+  createStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -324,6 +324,7 @@ function getRenderBySection(
   tpl: TplNode,
   viewCtx: ViewCtx,
   renderOpts: Map<Section, boolean>,
+  contentEditorMode: boolean,
 ) {
   const isSlot = isTplSlot(tpl);
   const isTag = isTplTag(tpl);
@@ -365,10 +366,9 @@ function getRenderBySection(
   );
 
   const expsProvider = new TplExpsProvider(viewCtx, tpl as TplNode);
-  const sc = mkStyleComponent({
+  const sc = createStyleTarget({
     expsProvider,
   });
-  const contentEditorMode = viewCtx.studioCtx.contentEditorMode;
   const contentCreatorConfig = viewCtx.studioCtx.getCurrentUiConfig();
 
   const getEnabledStyleSections = (tplInner: TplNode) => {
@@ -1094,8 +1094,9 @@ export function getOrderedSectionRender(
   viewCtx: ViewCtx,
   renderOpts: Map<Section, boolean>,
   styleTabFilter: StyleTabFilter,
+  contentEditorMode: boolean,
 ) {
-  const renderBySection = getRenderBySection(tpl, viewCtx, renderOpts);
+  const renderBySection = getRenderBySection(tpl, viewCtx, renderOpts, contentEditorMode);
   const orderedSections = getOrderedSections(tpl, viewCtx);
   return [...orderedSections]
     .filter(

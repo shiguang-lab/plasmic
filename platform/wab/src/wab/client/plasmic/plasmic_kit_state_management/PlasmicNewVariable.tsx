@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -27,7 +27,7 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -37,7 +37,7 @@ import StyleSelect__Option from "../../components/style-controls/StyleSelect__Op
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Switch from "../../components/widgets/Switch"; // plasmic-import: b35JDgXpbiF/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -133,11 +133,10 @@ function PlasmicNewVariable__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isExternal",
@@ -194,18 +193,20 @@ function PlasmicNewVariable__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -338,9 +339,9 @@ function PlasmicNewVariable__RenderFunc(props: {
                 "isExternal"
               ),
             })}
-            onChange={async (...eventArgs: any) => {
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
               ((...eventArgs) => {
-                generateStateOnChangeProp($state, ["variableType", "value"])(
+                generateStateOnChangeProp($stateCommands, ["variableType", "value"])(
                   eventArgs[0]
                 );
               }).apply(null, eventArgs);
@@ -352,7 +353,7 @@ function PlasmicNewVariable__RenderFunc(props: {
               ) {
                 return;
               }
-            }}
+            })); })}
             placeholder={uiT("Placeholder…")}
             value={generateStateValueProp($state, ["variableType", "value"])}
             valueSetState={"isSet"}
@@ -483,9 +484,9 @@ function PlasmicNewVariable__RenderFunc(props: {
               "isChecked",
             ]) ?? false
           }
-          onChange={async (...eventArgs: any) => {
+          onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
             ((...eventArgs) => {
-              generateStateOnChangeProp($state, [
+              generateStateOnChangeProp($stateCommands, [
                 "allowExternalAccess",
                 "isChecked",
               ])(eventArgs[0]);
@@ -498,7 +499,7 @@ function PlasmicNewVariable__RenderFunc(props: {
             ) {
               return;
             }
-          }}
+          })); })}
         >
           {"允许外部访问"}
         </Switch>
@@ -533,9 +534,9 @@ function PlasmicNewVariable__RenderFunc(props: {
                   "isExternal"
                 ),
               })}
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, [
+                  generateStateOnChangeProp($stateCommands, [
                     "accessTypeSelect",
                     "value",
                   ])(eventArgs[0]);
@@ -548,7 +549,7 @@ function PlasmicNewVariable__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
               placeholder={uiT("Placeholder…")}
               value={generateStateValueProp($state, [
                 "accessTypeSelect",
@@ -680,12 +681,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -695,31 +692,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicNewVariable__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicNewVariable";
-  } else {
-    func.displayName = `PlasmicNewVariable.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicNewVariable__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicNewVariable__root<T extends PlasmicNewVariable__rootProps>(props: T & StrictProps<T, PlasmicNewVariable__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicNewVariable__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicNewVariable__root.displayName = "PlasmicNewVariable";
+
+type PlasmicNewVariable__variableTypeProps = NodeComponentProps<"variableType"> & {key?: React.Key};
+function PlasmicNewVariable__variableType<T extends PlasmicNewVariable__variableTypeProps>(props: T & StrictProps<T, PlasmicNewVariable__variableTypeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("variableType", props);
+  return <PlasmicNewVariable__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"variableType"} />;
+}
+PlasmicNewVariable__variableType.displayName = "PlasmicNewVariable.variableType";
+
+type PlasmicNewVariable__allowExternalAccessProps = NodeComponentProps<"allowExternalAccess"> & {key?: React.Key};
+function PlasmicNewVariable__allowExternalAccess<T extends PlasmicNewVariable__allowExternalAccessProps>(props: T & StrictProps<T, PlasmicNewVariable__allowExternalAccessProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("allowExternalAccess", props);
+  return <PlasmicNewVariable__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"allowExternalAccess"} />;
+}
+PlasmicNewVariable__allowExternalAccess.displayName = "PlasmicNewVariable.allowExternalAccess";
+
+type PlasmicNewVariable__accessTypeSelectProps = NodeComponentProps<"accessTypeSelect"> & {key?: React.Key};
+function PlasmicNewVariable__accessTypeSelect<T extends PlasmicNewVariable__accessTypeSelectProps>(props: T & StrictProps<T, PlasmicNewVariable__accessTypeSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("accessTypeSelect", props);
+  return <PlasmicNewVariable__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"accessTypeSelect"} />;
+}
+PlasmicNewVariable__accessTypeSelect.displayName = "PlasmicNewVariable.accessTypeSelect";
+
+type PlasmicNewVariable__cancelButtonProps = NodeComponentProps<"cancelButton"> & {key?: React.Key};
+function PlasmicNewVariable__cancelButton<T extends PlasmicNewVariable__cancelButtonProps>(props: T & StrictProps<T, PlasmicNewVariable__cancelButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelButton", props);
+  return <PlasmicNewVariable__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelButton"} />;
+}
+PlasmicNewVariable__cancelButton.displayName = "PlasmicNewVariable.cancelButton";
+
+type PlasmicNewVariable__confirmButtonProps = NodeComponentProps<"confirmButton"> & {key?: React.Key};
+function PlasmicNewVariable__confirmButton<T extends PlasmicNewVariable__confirmButtonProps>(props: T & StrictProps<T, PlasmicNewVariable__confirmButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("confirmButton", props);
+  return <PlasmicNewVariable__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"confirmButton"} />;
+}
+PlasmicNewVariable__confirmButton.displayName = "PlasmicNewVariable.confirmButton";
+
 
 export const PlasmicNewVariable = Object.assign(
   // Top-level PlasmicNewVariable renders the root element
-  makeNodeComponent("root"),
+  PlasmicNewVariable__root,
   {
     // Helper components rendering sub-elements
-    variableType: makeNodeComponent("variableType"),
-    allowExternalAccess: makeNodeComponent("allowExternalAccess"),
-    accessTypeSelect: makeNodeComponent("accessTypeSelect"),
-    cancelButton: makeNodeComponent("cancelButton"),
-    confirmButton: makeNodeComponent("confirmButton"),
+    variableType: PlasmicNewVariable__variableType,
+    allowExternalAccess: PlasmicNewVariable__allowExternalAccess,
+    accessTypeSelect: PlasmicNewVariable__accessTypeSelect,
+    cancelButton: PlasmicNewVariable__cancelButton,
+    confirmButton: PlasmicNewVariable__confirmButton,
 
     // Metadata about props expected for PlasmicNewVariable
     internalVariantProps: PlasmicNewVariable__VariantProps,

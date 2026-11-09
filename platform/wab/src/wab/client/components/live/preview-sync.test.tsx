@@ -3,7 +3,9 @@ import * as codegen from "@/wab/client/components/live/preview-codegen";
 import {
   showPreviewLoadError,
   syncPreview,
+  type PreviewBatchCompiler,
 } from "@/wab/client/components/live/preview-sync";
+import { createTranspiler } from "@/wab/client/components/live/preview-transpiler";
 import {
   LiveFrame,
   PreviewRender,
@@ -11,11 +13,13 @@ import {
 } from "@/wab/client/components/live/preview-types";
 import type { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import React from "react";
+import * as reactCompilerRuntime from "react/compiler-runtime";
 import { Root, createRoot } from "react-dom/client";
 import { createStore } from "zustand/vanilla";
 import {
   createDiagnostics,
   installErrorHandlers,
+  type PreviewErrorLocation,
 } from "../../../../../../live-frame/src/diagnostics";
 import { createPreview } from "../../../../../../live-frame/src/preview";
 import { createRenderer } from "../../../../../../live-frame/src/render";
@@ -26,6 +30,7 @@ let root: Root;
 let frame: LiveFrame;
 let runtime: ReturnType<typeof createLiveRuntime>;
 const listeners = new Set<(error: Error) => void>();
+const boundaryAttempts = vi.fn();
 
 class ErrorBoundary extends React.Component<
   React.PropsWithChildren<{}>,
@@ -46,6 +51,7 @@ class ErrorBoundary extends React.Component<
 }
 
 beforeEach(() => {
+  boundaryAttempts.mockClear();
   container = document.createElement("div");
   document.body.append(container);
   root = createRoot(container);
@@ -65,7 +71,12 @@ beforeEach(() => {
   const renderer = createRenderer(Sub);
   runtime = createLiveRuntime({
     react: React,
-    "test-renderer": renderer,
+    "react/compiler-runtime": reactCompilerRuntime,
+    "test-renderer": {
+      ...renderer,
+      renderBoundary: (render: () => React.ReactNode, location: PreviewErrorLocation) =>
+        renderer.renderBoundary(() => { boundaryAttempts(); return render(); }, location),
+    },
     "@plasmicapp/react-web": {
       PlasmicDataSourceContextProvider: ({
         children,
@@ -116,7 +127,7 @@ const update = (
   ],
   render: spec,
 });
-function deliver(value: PreviewUpdate) {
+function deliver(value: PreviewUpdate, compileModules?: PreviewBatchCompiler) {
   return new Promise<{ error?: unknown; text: string }>((resolve) => {
     const dispose = syncPreview(
       { __plasmicLive: frame } as unknown as Window,
@@ -125,6 +136,7 @@ function deliver(value: PreviewUpdate) {
         resolve({ error, text: container.textContent ?? "" });
         dispose();
       },
+      { compileModules },
     );
   });
 }
@@ -135,6 +147,64 @@ it("reports completion only after the live preview commits", async () => {
     text: "Fresh preview",
   });
   expect(listeners.size).toBe(0);
+});
+
+it("commits a custom compiled batch through the same runtime and completion queue", async () => {
+  const transpile = createTranspiler();
+  const compile = vi.fn<PreviewBatchCompiler>((modules) => Promise.all(modules.map(transpile)));
+  expect(await deliver(update(), compile)).toEqual({ error: undefined, text: "Fresh preview" });
+  expect(compile).toHaveBeenCalledOnce();
+  expect(compile.mock.calls[0][1].aborted).toBe(true);
+});
+
+it("reports custom batch compiler failures through the shared visible error path", async () => {
+  const failure = new Error("Isolated compiler failed");
+  const compile = vi.fn<PreviewBatchCompiler>(async () => { throw failure; });
+  const result = await deliver(update(), compile);
+  expect(result.error).toBe(failure);
+  expect(result.text).toContain("Isolated compiler failed");
+  expect(compile.mock.calls[0][1].aborted).toBe(true);
+});
+
+it("aborts a custom compiler on disposal without updating a retired runtime", async () => {
+  const pending = Promise.withResolvers<Awaited<ReturnType<PreviewBatchCompiler>>>();
+  const compile = vi.fn<PreviewBatchCompiler>(() => pending.promise);
+  const fake = { ...frame, update: vi.fn(), showError: vi.fn() };
+  const onDone = vi.fn();
+  const dispose = syncPreview({ __plasmicLive: fake } as unknown as Window, () => update(), onDone, { compileModules: compile });
+  await vi.waitFor(() => expect(compile).toHaveBeenCalledOnce());
+  const signal = compile.mock.calls[0][1];
+  expect(signal.aborted).toBe(false);
+  dispose();
+  expect(signal.aborted).toBe(true);
+  pending.resolve([]);
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  expect(fake.update).not.toHaveBeenCalled();
+  expect(fake.showError).not.toHaveBeenCalled();
+  expect(onDone).not.toHaveBeenCalled();
+});
+
+it("keeps a custom compiler serial and coalesces queued updates to the latest batch", async () => {
+  const first = Promise.withResolvers<Awaited<ReturnType<PreviewBatchCompiler>>>();
+  const value = createStore(() => ({ color: "first" }));
+  const calls: string[] = [];
+  const fake = { update: vi.fn(async (modules) => { calls.push(modules[0].source); }) };
+  const compile = vi.fn<PreviewBatchCompiler>((modules) => compile.mock.calls.length === 1
+    ? first.promise
+    : Promise.resolve(modules.map((mod) => ({ type: "asset" as const, fileName: mod.name, source: mod.source }))));
+  const dispose = syncPreview({ __plasmicLive: fake } as unknown as Window,
+    () => ({ modules: [{ name: "./value.css", lang: "css", source: value.getState().color }] }),
+    vi.fn(), { compileModules: compile, subscribe: (invalidate) => value.subscribe(invalidate) });
+  await vi.waitFor(() => expect(compile).toHaveBeenCalledOnce());
+  value.setState({ color: "intermediate" });
+  await Promise.resolve();
+  value.setState({ color: "latest" });
+  await Promise.resolve();
+  expect(compile).toHaveBeenCalledOnce();
+  first.resolve([{ type: "asset", fileName: "./value.css", source: "first" }]);
+  await vi.waitFor(() => expect(calls).toEqual(["first", "latest"]));
+  expect(compile).toHaveBeenCalledTimes(2);
+  dispose();
 });
 
 it("waits for docs entry modules to commit before measuring their DOM", async () => {
@@ -322,23 +392,23 @@ it.each(["data", "hide", "unmount"])(
     window.addEventListener("error", preventRenderErrorReport);
     const disposeErrors = installErrorHandlers(window, frame.reportError);
     try {
-      await deliver(
+      const result = await deliver(
         update(`import React from "react"; import { renderBoundary } from "test-renderer";
       export default function Page() {
         const [mode, setMode] = React.useState("broken");
         return <div>
           <button onClick={() => setMode("${recovery}")}>Recover</button>
           {mode !== "unmount" && renderBoundary(() => {
-            window.boundaryAttempts = (window.boundaryAttempts || 0) + 1;
             if (mode === "broken") throw new Error("render failed");
             return mode === "hide" ? null : <span>Valid data</span>;
           }, { elementUuid: "records" })}
         </div>;
       }`),
       );
-      const attempts = (window as any).boundaryAttempts;
+      expect(result.error).toBeUndefined();
+      const attempts = boundaryAttempts.mock.calls.length;
       await new Promise((resolve) => setTimeout(resolve, 40));
-      expect((window as any).boundaryAttempts).toBe(attempts);
+      expect(boundaryAttempts).toHaveBeenCalledTimes(attempts);
       expect(frame.getDiagnostics().status).toBe("degraded");
       const unrelated = new Error("Unrelated action failed");
       frame.reportError(unrelated, { kind: "interaction", fatal: false });
@@ -357,7 +427,6 @@ it.each(["data", "hide", "unmount"])(
     } finally {
       disposeErrors();
       window.removeEventListener("error", preventRenderErrorReport);
-      delete (window as any).boundaryAttempts;
     }
   },
 );
@@ -656,6 +725,37 @@ it("keeps variant changes made before the first render commits", async () => {
   }
 });
 
+it("receives native preview commands before the first fiber renders and survives StrictMode replay", async () => {
+  const Theme = React.createContext("light");
+  function Counter({variant}: {variant: string}) {
+    const [count, setCount] = React.useState(0);
+    const theme = React.useContext(Theme);
+    return <button onClick={() => setCount(value => value + 1)}>{count}/{variant}/{theme}</button>;
+  }
+  let node: React.ReactNode;
+  let complete = () => {};
+  const committed = new Promise<void>(resolve => {complete = resolve;});
+  const modules: Record<string, unknown> = {
+    "./root.tsx": {default: Counter},
+    "./props.ts": {default: {variant: "initial"}},
+    "./theme.tsx": {Provider: Theme.Provider},
+    "@plasmicapp/react-web": {PlasmicDataSourceContextProvider: ({children}: React.PropsWithChildren) => children},
+  };
+  const preview = createPreview({}, name => modules[name], child => {node = child; return committed;});
+  const rendering = preview.render({...spec, globals: {theme: "light"}, globalVariants: [{module: "./theme.tsx", provider: "Provider", prop: "theme"}]});
+  preview.setProps({variant: "queued"});
+  preview.setGlobals({theme: "dark"});
+  root.render(<React.StrictMode>{node}</React.StrictMode>);
+  await vi.waitFor(() => expect(container.textContent).toBe("0/queued/dark"));
+  complete();
+  await rendering;
+  container.querySelector("button")?.click();
+  await vi.waitFor(() => expect(container.textContent).toBe("1/queued/dark"));
+  preview.setProps({variant: "next"});
+  preview.setGlobals({theme: "light"});
+  await vi.waitFor(() => expect(container.textContent).toBe("1/next/light"));
+});
+
 it("commits a Suspense fallback without blocking the render queue", async () => {
   const result = await deliver(
     update("export default function Pending(){throw new Promise(() => {});}"),
@@ -673,7 +773,7 @@ it("commits an escaped 404 and recovers to a component", async () => {
     render: { notFound: "/<script>bad()</script>" },
   });
   expect(result.error).toBeUndefined();
-  expect(container.querySelector("tt")?.textContent).toBe(
+  expect(container.querySelector("code")?.textContent).toBe(
     "/<script>bad()</script>",
   );
   expect(container.querySelector("script")).toBeNull();

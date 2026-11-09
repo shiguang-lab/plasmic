@@ -72,7 +72,10 @@ beforeEach(async () => {
     opts: { name: "Hero.png", type: ImageAssetType.Picture },
   });
 });
-afterEach(async () => { cleanup(); await studioCtx.awaitEval(); studioCtx.dispose(); message.destroy(); vi.restoreAllMocks(); });
+afterEach(async () => {
+  await act(async () => { cleanup(); await studioCtx.awaitEval(); studioCtx.dispose(); });
+  vi.restoreAllMocks();
+});
 it("shows progress on the selected icon upload and locks the image action until it finishes", async () => {
   let finish: (() => void) | undefined;
   mocks.read.mockImplementationOnce(

@@ -1,9 +1,12 @@
+import { previewCompilerBrowserRule } from "./preview-compiler-resolve.cjs";
 import type { RsbuildConfig } from "@rsbuild/core";
+import { pluginBabel } from "@rsbuild/plugin-babel";
 import { pluginReact } from "@rsbuild/plugin-react";
 import { pluginSass } from "@rsbuild/plugin-sass";
-import { DefinePlugin, ProvidePlugin } from "@rspack/core";
+import { DefinePlugin, ProvidePlugin, type SwcLoaderOptions } from "@rspack/core";
 import { execSync } from "child_process";
 import { dirname } from "path";
+import { reactCompilerInclude, reactCompilerOptions } from "../react-compiler.mjs";
 import {
   OPTIONAL_VAR,
   REQUIRED_VAR,
@@ -28,6 +31,7 @@ export function mkSharedRsbuildConfig(opts: {
   commitHash: string;
 }): RsbuildConfig {
   const { commitHash } = opts;
+  const desktopChromiumMajor = process.env.PLASMIC_DESKTOP_CHROMIUM_VERSION?.split(".")[0];
   return {
     resolve: {
       alias: {
@@ -41,9 +45,40 @@ export function mkSharedRsbuildConfig(opts: {
         "@sentry/node": false,
       },
     },
-    plugins: [pluginReact(), pluginSass()],
+    plugins: [
+      pluginBabel({
+        include: reactCompilerInclude,
+        babelLoaderOptions: {
+          babelrc: false,
+          configFile: false,
+          plugins: [["babel-plugin-react-compiler", reactCompilerOptions({
+            logEvent: (filename, event) => {
+              if (event.kind === "CompileSuccess") {
+                console.info("React Compiler", filename, event.fnName, {
+                  memoSlots: event.memoSlots,
+                  memoBlocks: event.memoBlocks,
+                });
+              } else if (event.kind === "CompileError" || event.kind === "PipelineError") {
+                console.error("React Compiler rejected", filename, event);
+              }
+            },
+          })]],
+        },
+      }),
+      pluginReact(),
+      pluginSass(),
+    ],
     tools: {
+      ...(desktopChromiumMajor ? {
+        // Only the Desktop build supplies its pinned renderer's actual version.
+        // Run after Rsbuild resolves Web Browserslist targets, retaining all
+        // other SWC options and the ordinary Web build's browser contract.
+        swc: (config: SwcLoaderOptions) => {
+          config.env = { ...config.env, targets: { chrome: desktopChromiumMajor } };
+        },
+      } : {}),
       rspack: {
+        module: { rules: [previewCompilerBrowserRule] },
         plugins: [
           new ProvidePlugin({
             process: [require.resolve("process/browser")],

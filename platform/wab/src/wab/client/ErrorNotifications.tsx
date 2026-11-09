@@ -38,10 +38,6 @@ export function logError(error: unknown, title = "Studio operation failed", desc
   }));
 }
 
-// Note that sometimes you will see double errors, due to React rethrowing
-// errors and/or mobx rethrowing errors.  I don't fully understand the mechanics
-// (there is some magic that React does across execution contexts) but this only
-// happens in development and not production.
 export function showError(
   error: unknown,
   opts?: {

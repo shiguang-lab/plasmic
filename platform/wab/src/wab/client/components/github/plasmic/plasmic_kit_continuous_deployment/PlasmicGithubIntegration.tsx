@@ -28,11 +28,12 @@ import {
   generateStateOnChangeProp,
   generateStateValueProp,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../../../../plasmic/plasmic_kit_continuous_deployment/PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "../../../../plasmic/plasmic_kit_continuous_deployment/PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 import Button from "../../../widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Select from "../../../widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
 import Switch from "../../../widgets/Switch"; // plasmic-import: b35JDgXpbiF/component
@@ -194,11 +195,10 @@ function PlasmicGithubIntegration__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "view",
@@ -296,18 +296,20 @@ function PlasmicGithubIntegration__RenderFunc(props: {
             : undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -525,9 +527,9 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                     role={"img"}
                   />
                 }
-                onChange={async (...eventArgs: any) => {
+                onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                   ((...eventArgs) => {
-                    generateStateOnChangeProp($state, ["org", "value"])(
+                    generateStateOnChangeProp($stateCommands, ["org", "value"])(
                       eventArgs[0]
                     );
                   }).apply(null, eventArgs);
@@ -539,7 +541,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   ) {
                     return;
                   }
-                }}
+                })); })}
                 placeholder={uiT("Select a GitHub organization...")}
                 type={"bordered"}
                 value={generateStateValueProp($state, ["org", "value"])}
@@ -679,9 +681,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   }
                 )}
                 placeholder={uiT("Enter name…")}
-                ref={(ref) => {
-                  $refs["name"] = ref;
-                }}
+                ref={registerRef("name")}
                 size={1}
                 type={"text"}
                 value={""}
@@ -797,9 +797,9 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                       "isChecked",
                     ]) ?? false
                   }
-                  onChange={async (...eventArgs: any) => {
+                  onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                     ((...eventArgs) => {
-                      generateStateOnChangeProp($state, [
+                      generateStateOnChangeProp($stateCommands, [
                         "privateRepo",
                         "isChecked",
                       ])(eventArgs[0]);
@@ -812,7 +812,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                     ) {
                       return;
                     }
-                  }}
+                  })); })}
                 />
               </div>
             </div>
@@ -873,9 +873,9 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                     role={"img"}
                   />
                 }
-                onChange={async (...eventArgs: any) => {
+                onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                   ((...eventArgs) => {
-                    generateStateOnChangeProp($state, ["repository", "value"])(
+                    generateStateOnChangeProp($stateCommands, ["repository", "value"])(
                       eventArgs[0]
                     );
                   }).apply(null, eventArgs);
@@ -887,7 +887,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   ) {
                     return;
                   }
-                }}
+                })); })}
                 value={generateStateValueProp($state, ["repository", "value"])}
               />
             </div>
@@ -1001,9 +1001,9 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                     role={"img"}
                   />
                 }
-                onChange={async (...eventArgs: any) => {
+                onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                   ((...eventArgs) => {
-                    generateStateOnChangeProp($state, ["branch", "value"])(
+                    generateStateOnChangeProp($stateCommands, ["branch", "value"])(
                       eventArgs[0]
                     );
                   }).apply(null, eventArgs);
@@ -1015,7 +1015,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   ) {
                     return;
                   }
-                }}
+                })); })}
                 value={generateStateValueProp($state, ["branch", "value"])}
               />
             </div>
@@ -1068,9 +1068,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   }
                 )}
                 placeholder={uiT("Enter directory if not repository root...")}
-                ref={(ref) => {
-                  $refs["directory"] = ref;
-                }}
+                ref={registerRef("directory")}
                 size={1}
                 type={"text"}
                 value={""}
@@ -1182,9 +1180,9 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   role={"img"}
                 />
               }
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, ["framework", "value"])(
+                  generateStateOnChangeProp($stateCommands, ["framework", "value"])(
                     eventArgs[0]
                   );
                 }).apply(null, eventArgs);
@@ -1196,7 +1194,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
               type={"bordered"}
               value={generateStateValueProp($state, ["framework", "value"])}
             />
@@ -1233,9 +1231,9 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   role={"img"}
                 />
               }
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, ["language", "value"])(
+                  generateStateOnChangeProp($stateCommands, ["language", "value"])(
                     eventArgs[0]
                   );
                 }).apply(null, eventArgs);
@@ -1247,7 +1245,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
               type={"bordered"}
               value={generateStateValueProp($state, ["language", "value"])}
             />
@@ -1310,9 +1308,9 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   role={"img"}
                 />
               }
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, ["mode", "value"])(
+                  generateStateOnChangeProp($stateCommands, ["mode", "value"])(
                     eventArgs[0]
                   );
                 }).apply(null, eventArgs);
@@ -1324,7 +1322,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
               type={"bordered"}
               value={generateStateValueProp($state, ["mode", "value"])}
             />
@@ -1388,9 +1386,9 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                     role={"img"}
                   />
                 }
-                onChange={async (...eventArgs: any) => {
+                onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                   ((...eventArgs) => {
-                    generateStateOnChangeProp($state, ["action", "value"])(
+                    generateStateOnChangeProp($stateCommands, ["action", "value"])(
                       eventArgs[0]
                     );
                   }).apply(null, eventArgs);
@@ -1402,7 +1400,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                   ) {
                     return;
                   }
-                }}
+                })); })}
                 type={"bordered"}
                 value={generateStateValueProp($state, ["action", "value"])}
               />
@@ -1635,9 +1633,9 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                         "isChecked",
                       ]) ?? false
                     }
-                    onChange={async (...eventArgs: any) => {
+                    onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                       ((...eventArgs) => {
-                        generateStateOnChangeProp($state, [
+                        generateStateOnChangeProp($stateCommands, [
                           "publishSite",
                           "isChecked",
                         ])(eventArgs[0]);
@@ -1650,7 +1648,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                       ) {
                         return;
                       }
-                    }}
+                    })); })}
                   />
 
                   {(
@@ -1922,9 +1920,7 @@ function PlasmicGithubIntegration__RenderFunc(props: {
                           }
                         )}
                         placeholder={uiT("Enter name...")}
-                        ref={(ref) => {
-                          $refs["subdomainInput"] = ref;
-                        }}
+                        ref={registerRef("subdomainInput")}
                         size={1}
                         type={"text"}
                         value={""}
@@ -2364,12 +2360,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -2379,67 +2371,349 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicGithubIntegration__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicGithubIntegration";
-  } else {
-    func.displayName = `PlasmicGithubIntegration.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicGithubIntegration__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicGithubIntegration__root<T extends PlasmicGithubIntegration__rootProps>(props: T & StrictProps<T, PlasmicGithubIntegration__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicGithubIntegration__root.displayName = "PlasmicGithubIntegration";
+
+type PlasmicGithubIntegration__newRepoButtonProps = NodeComponentProps<"newRepoButton"> & {key?: React.Key};
+function PlasmicGithubIntegration__newRepoButton<T extends PlasmicGithubIntegration__newRepoButtonProps>(props: T & StrictProps<T, PlasmicGithubIntegration__newRepoButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newRepoButton", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newRepoButton"} />;
+}
+PlasmicGithubIntegration__newRepoButton.displayName = "PlasmicGithubIntegration.newRepoButton";
+
+type PlasmicGithubIntegration__existingRepoButtonProps = NodeComponentProps<"existingRepoButton"> & {key?: React.Key};
+function PlasmicGithubIntegration__existingRepoButton<T extends PlasmicGithubIntegration__existingRepoButtonProps>(props: T & StrictProps<T, PlasmicGithubIntegration__existingRepoButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("existingRepoButton", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"existingRepoButton"} />;
+}
+PlasmicGithubIntegration__existingRepoButton.displayName = "PlasmicGithubIntegration.existingRepoButton";
+
+type PlasmicGithubIntegration__newBoxProps = NodeComponentProps<"newBox"> & {key?: React.Key};
+function PlasmicGithubIntegration__newBox<T extends PlasmicGithubIntegration__newBoxProps>(props: T & StrictProps<T, PlasmicGithubIntegration__newBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newBox", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newBox"} />;
+}
+PlasmicGithubIntegration__newBox.displayName = "PlasmicGithubIntegration.newBox";
+
+type PlasmicGithubIntegration__orgBoxProps = NodeComponentProps<"orgBox"> & {key?: React.Key};
+function PlasmicGithubIntegration__orgBox<T extends PlasmicGithubIntegration__orgBoxProps>(props: T & StrictProps<T, PlasmicGithubIntegration__orgBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("orgBox", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"orgBox"} />;
+}
+PlasmicGithubIntegration__orgBox.displayName = "PlasmicGithubIntegration.orgBox";
+
+type PlasmicGithubIntegration__orgProps = NodeComponentProps<"org"> & {key?: React.Key};
+function PlasmicGithubIntegration__org<T extends PlasmicGithubIntegration__orgProps>(props: T & StrictProps<T, PlasmicGithubIntegration__orgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("org", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"org"} />;
+}
+PlasmicGithubIntegration__org.displayName = "PlasmicGithubIntegration.org";
+
+type PlasmicGithubIntegration__missingOrgProps = NodeComponentProps<"missingOrg"> & {key?: React.Key};
+function PlasmicGithubIntegration__missingOrg<T extends PlasmicGithubIntegration__missingOrgProps>(props: T & StrictProps<T, PlasmicGithubIntegration__missingOrgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("missingOrg", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"missingOrg"} />;
+}
+PlasmicGithubIntegration__missingOrg.displayName = "PlasmicGithubIntegration.missingOrg";
+
+type PlasmicGithubIntegration__nameBoxProps = NodeComponentProps<"nameBox"> & {key?: React.Key};
+function PlasmicGithubIntegration__nameBox<T extends PlasmicGithubIntegration__nameBoxProps>(props: T & StrictProps<T, PlasmicGithubIntegration__nameBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("nameBox", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"nameBox"} />;
+}
+PlasmicGithubIntegration__nameBox.displayName = "PlasmicGithubIntegration.nameBox";
+
+type PlasmicGithubIntegration__nameProps = NodeComponentProps<"name"> & {key?: React.Key};
+function PlasmicGithubIntegration__name<T extends PlasmicGithubIntegration__nameProps>(props: T & StrictProps<T, PlasmicGithubIntegration__nameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("name", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"name"} />;
+}
+PlasmicGithubIntegration__name.displayName = "PlasmicGithubIntegration.name";
+
+type PlasmicGithubIntegration__nameErrorProps = NodeComponentProps<"nameError"> & {key?: React.Key};
+function PlasmicGithubIntegration__nameError<T extends PlasmicGithubIntegration__nameErrorProps>(props: T & StrictProps<T, PlasmicGithubIntegration__nameErrorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("nameError", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"nameError"} />;
+}
+PlasmicGithubIntegration__nameError.displayName = "PlasmicGithubIntegration.nameError";
+
+type PlasmicGithubIntegration__privateBoxProps = NodeComponentProps<"privateBox"> & {key?: React.Key};
+function PlasmicGithubIntegration__privateBox<T extends PlasmicGithubIntegration__privateBoxProps>(props: T & StrictProps<T, PlasmicGithubIntegration__privateBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("privateBox", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"privateBox"} />;
+}
+PlasmicGithubIntegration__privateBox.displayName = "PlasmicGithubIntegration.privateBox";
+
+type PlasmicGithubIntegration__privateRepoProps = NodeComponentProps<"privateRepo"> & {key?: React.Key};
+function PlasmicGithubIntegration__privateRepo<T extends PlasmicGithubIntegration__privateRepoProps>(props: T & StrictProps<T, PlasmicGithubIntegration__privateRepoProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("privateRepo", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"privateRepo"} />;
+}
+PlasmicGithubIntegration__privateRepo.displayName = "PlasmicGithubIntegration.privateRepo";
+
+type PlasmicGithubIntegration__existingBoxProps = NodeComponentProps<"existingBox"> & {key?: React.Key};
+function PlasmicGithubIntegration__existingBox<T extends PlasmicGithubIntegration__existingBoxProps>(props: T & StrictProps<T, PlasmicGithubIntegration__existingBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("existingBox", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"existingBox"} />;
+}
+PlasmicGithubIntegration__existingBox.displayName = "PlasmicGithubIntegration.existingBox";
+
+type PlasmicGithubIntegration__repositoryBoxProps = NodeComponentProps<"repositoryBox"> & {key?: React.Key};
+function PlasmicGithubIntegration__repositoryBox<T extends PlasmicGithubIntegration__repositoryBoxProps>(props: T & StrictProps<T, PlasmicGithubIntegration__repositoryBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("repositoryBox", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"repositoryBox"} />;
+}
+PlasmicGithubIntegration__repositoryBox.displayName = "PlasmicGithubIntegration.repositoryBox";
+
+type PlasmicGithubIntegration__repositoryProps = NodeComponentProps<"repository"> & {key?: React.Key};
+function PlasmicGithubIntegration__repository<T extends PlasmicGithubIntegration__repositoryProps>(props: T & StrictProps<T, PlasmicGithubIntegration__repositoryProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("repository", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"repository"} />;
+}
+PlasmicGithubIntegration__repository.displayName = "PlasmicGithubIntegration.repository";
+
+type PlasmicGithubIntegration__missingRepoProps = NodeComponentProps<"missingRepo"> & {key?: React.Key};
+function PlasmicGithubIntegration__missingRepo<T extends PlasmicGithubIntegration__missingRepoProps>(props: T & StrictProps<T, PlasmicGithubIntegration__missingRepoProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("missingRepo", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"missingRepo"} />;
+}
+PlasmicGithubIntegration__missingRepo.displayName = "PlasmicGithubIntegration.missingRepo";
+
+type PlasmicGithubIntegration__branchBoxProps = NodeComponentProps<"branchBox"> & {key?: React.Key};
+function PlasmicGithubIntegration__branchBox<T extends PlasmicGithubIntegration__branchBoxProps>(props: T & StrictProps<T, PlasmicGithubIntegration__branchBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("branchBox", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"branchBox"} />;
+}
+PlasmicGithubIntegration__branchBox.displayName = "PlasmicGithubIntegration.branchBox";
+
+type PlasmicGithubIntegration__branchProps = NodeComponentProps<"branch"> & {key?: React.Key};
+function PlasmicGithubIntegration__branch<T extends PlasmicGithubIntegration__branchProps>(props: T & StrictProps<T, PlasmicGithubIntegration__branchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("branch", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"branch"} />;
+}
+PlasmicGithubIntegration__branch.displayName = "PlasmicGithubIntegration.branch";
+
+type PlasmicGithubIntegration__directoryBoxProps = NodeComponentProps<"directoryBox"> & {key?: React.Key};
+function PlasmicGithubIntegration__directoryBox<T extends PlasmicGithubIntegration__directoryBoxProps>(props: T & StrictProps<T, PlasmicGithubIntegration__directoryBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("directoryBox", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"directoryBox"} />;
+}
+PlasmicGithubIntegration__directoryBox.displayName = "PlasmicGithubIntegration.directoryBox";
+
+type PlasmicGithubIntegration__directoryProps = NodeComponentProps<"directory"> & {key?: React.Key};
+function PlasmicGithubIntegration__directory<T extends PlasmicGithubIntegration__directoryProps>(props: T & StrictProps<T, PlasmicGithubIntegration__directoryProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("directory", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"directory"} />;
+}
+PlasmicGithubIntegration__directory.displayName = "PlasmicGithubIntegration.directory";
+
+type PlasmicGithubIntegration__directoryErrorProps = NodeComponentProps<"directoryError"> & {key?: React.Key};
+function PlasmicGithubIntegration__directoryError<T extends PlasmicGithubIntegration__directoryErrorProps>(props: T & StrictProps<T, PlasmicGithubIntegration__directoryErrorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("directoryError", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"directoryError"} />;
+}
+PlasmicGithubIntegration__directoryError.displayName = "PlasmicGithubIntegration.directoryError";
+
+type PlasmicGithubIntegration__optsProps = NodeComponentProps<"opts"> & {key?: React.Key};
+function PlasmicGithubIntegration__opts<T extends PlasmicGithubIntegration__optsProps>(props: T & StrictProps<T, PlasmicGithubIntegration__optsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("opts", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"opts"} />;
+}
+PlasmicGithubIntegration__opts.displayName = "PlasmicGithubIntegration.opts";
+
+type PlasmicGithubIntegration__frameworkBoxProps = NodeComponentProps<"frameworkBox"> & {key?: React.Key};
+function PlasmicGithubIntegration__frameworkBox<T extends PlasmicGithubIntegration__frameworkBoxProps>(props: T & StrictProps<T, PlasmicGithubIntegration__frameworkBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("frameworkBox", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"frameworkBox"} />;
+}
+PlasmicGithubIntegration__frameworkBox.displayName = "PlasmicGithubIntegration.frameworkBox";
+
+type PlasmicGithubIntegration__frameworkProps = NodeComponentProps<"framework"> & {key?: React.Key};
+function PlasmicGithubIntegration__framework<T extends PlasmicGithubIntegration__frameworkProps>(props: T & StrictProps<T, PlasmicGithubIntegration__frameworkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("framework", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"framework"} />;
+}
+PlasmicGithubIntegration__framework.displayName = "PlasmicGithubIntegration.framework";
+
+type PlasmicGithubIntegration__languageBoxProps = NodeComponentProps<"languageBox"> & {key?: React.Key};
+function PlasmicGithubIntegration__languageBox<T extends PlasmicGithubIntegration__languageBoxProps>(props: T & StrictProps<T, PlasmicGithubIntegration__languageBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("languageBox", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"languageBox"} />;
+}
+PlasmicGithubIntegration__languageBox.displayName = "PlasmicGithubIntegration.languageBox";
+
+type PlasmicGithubIntegration__languageProps = NodeComponentProps<"language"> & {key?: React.Key};
+function PlasmicGithubIntegration__language<T extends PlasmicGithubIntegration__languageProps>(props: T & StrictProps<T, PlasmicGithubIntegration__languageProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("language", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"language"} />;
+}
+PlasmicGithubIntegration__language.displayName = "PlasmicGithubIntegration.language";
+
+type PlasmicGithubIntegration__modeBoxProps = NodeComponentProps<"modeBox"> & {key?: React.Key};
+function PlasmicGithubIntegration__modeBox<T extends PlasmicGithubIntegration__modeBoxProps>(props: T & StrictProps<T, PlasmicGithubIntegration__modeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("modeBox", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"modeBox"} />;
+}
+PlasmicGithubIntegration__modeBox.displayName = "PlasmicGithubIntegration.modeBox";
+
+type PlasmicGithubIntegration__modeInfoProps = NodeComponentProps<"modeInfo"> & {key?: React.Key};
+function PlasmicGithubIntegration__modeInfo<T extends PlasmicGithubIntegration__modeInfoProps>(props: T & StrictProps<T, PlasmicGithubIntegration__modeInfoProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("modeInfo", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"modeInfo"} />;
+}
+PlasmicGithubIntegration__modeInfo.displayName = "PlasmicGithubIntegration.modeInfo";
+
+type PlasmicGithubIntegration__modeProps = NodeComponentProps<"mode"> & {key?: React.Key};
+function PlasmicGithubIntegration__mode<T extends PlasmicGithubIntegration__modeProps>(props: T & StrictProps<T, PlasmicGithubIntegration__modeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("mode", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"mode"} />;
+}
+PlasmicGithubIntegration__mode.displayName = "PlasmicGithubIntegration.mode";
+
+type PlasmicGithubIntegration__actionBoxProps = NodeComponentProps<"actionBox"> & {key?: React.Key};
+function PlasmicGithubIntegration__actionBox<T extends PlasmicGithubIntegration__actionBoxProps>(props: T & StrictProps<T, PlasmicGithubIntegration__actionBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionBox", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionBox"} />;
+}
+PlasmicGithubIntegration__actionBox.displayName = "PlasmicGithubIntegration.actionBox";
+
+type PlasmicGithubIntegration__actionInfoProps = NodeComponentProps<"actionInfo"> & {key?: React.Key};
+function PlasmicGithubIntegration__actionInfo<T extends PlasmicGithubIntegration__actionInfoProps>(props: T & StrictProps<T, PlasmicGithubIntegration__actionInfoProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionInfo", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionInfo"} />;
+}
+PlasmicGithubIntegration__actionInfo.displayName = "PlasmicGithubIntegration.actionInfo";
+
+type PlasmicGithubIntegration__actionProps = NodeComponentProps<"action"> & {key?: React.Key};
+function PlasmicGithubIntegration__action<T extends PlasmicGithubIntegration__actionProps>(props: T & StrictProps<T, PlasmicGithubIntegration__actionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("action", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"action"} />;
+}
+PlasmicGithubIntegration__action.displayName = "PlasmicGithubIntegration.action";
+
+type PlasmicGithubIntegration__deploymentProps = NodeComponentProps<"deployment"> & {key?: React.Key};
+function PlasmicGithubIntegration__deployment<T extends PlasmicGithubIntegration__deploymentProps>(props: T & StrictProps<T, PlasmicGithubIntegration__deploymentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("deployment", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"deployment"} />;
+}
+PlasmicGithubIntegration__deployment.displayName = "PlasmicGithubIntegration.deployment";
+
+type PlasmicGithubIntegration__publishSiteLabelProps = NodeComponentProps<"publishSiteLabel"> & {key?: React.Key};
+function PlasmicGithubIntegration__publishSiteLabel<T extends PlasmicGithubIntegration__publishSiteLabelProps>(props: T & StrictProps<T, PlasmicGithubIntegration__publishSiteLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("publishSiteLabel", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"publishSiteLabel"} />;
+}
+PlasmicGithubIntegration__publishSiteLabel.displayName = "PlasmicGithubIntegration.publishSiteLabel";
+
+type PlasmicGithubIntegration__publishSiteProps = NodeComponentProps<"publishSite"> & {key?: React.Key};
+function PlasmicGithubIntegration__publishSite<T extends PlasmicGithubIntegration__publishSiteProps>(props: T & StrictProps<T, PlasmicGithubIntegration__publishSiteProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("publishSite", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"publishSite"} />;
+}
+PlasmicGithubIntegration__publishSite.displayName = "PlasmicGithubIntegration.publishSite";
+
+type PlasmicGithubIntegration__publishSiteErrorProps = NodeComponentProps<"publishSiteError"> & {key?: React.Key};
+function PlasmicGithubIntegration__publishSiteError<T extends PlasmicGithubIntegration__publishSiteErrorProps>(props: T & StrictProps<T, PlasmicGithubIntegration__publishSiteErrorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("publishSiteError", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"publishSiteError"} />;
+}
+PlasmicGithubIntegration__publishSiteError.displayName = "PlasmicGithubIntegration.publishSiteError";
+
+type PlasmicGithubIntegration__domainError2Props = NodeComponentProps<"domainError2"> & {key?: React.Key};
+function PlasmicGithubIntegration__domainError2<T extends PlasmicGithubIntegration__domainError2Props>(props: T & StrictProps<T, PlasmicGithubIntegration__domainError2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("domainError2", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"domainError2"} />;
+}
+PlasmicGithubIntegration__domainError2.displayName = "PlasmicGithubIntegration.domainError2";
+
+type PlasmicGithubIntegration__apparentSubdomainInputProps = NodeComponentProps<"apparentSubdomainInput"> & {key?: React.Key};
+function PlasmicGithubIntegration__apparentSubdomainInput<T extends PlasmicGithubIntegration__apparentSubdomainInputProps>(props: T & StrictProps<T, PlasmicGithubIntegration__apparentSubdomainInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("apparentSubdomainInput", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"apparentSubdomainInput"} />;
+}
+PlasmicGithubIntegration__apparentSubdomainInput.displayName = "PlasmicGithubIntegration.apparentSubdomainInput";
+
+type PlasmicGithubIntegration__subdomainInputProps = NodeComponentProps<"subdomainInput"> & {key?: React.Key};
+function PlasmicGithubIntegration__subdomainInput<T extends PlasmicGithubIntegration__subdomainInputProps>(props: T & StrictProps<T, PlasmicGithubIntegration__subdomainInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("subdomainInput", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"subdomainInput"} />;
+}
+PlasmicGithubIntegration__subdomainInput.displayName = "PlasmicGithubIntegration.subdomainInput";
+
+type PlasmicGithubIntegration__domainErrorProps = NodeComponentProps<"domainError"> & {key?: React.Key};
+function PlasmicGithubIntegration__domainError<T extends PlasmicGithubIntegration__domainErrorProps>(props: T & StrictProps<T, PlasmicGithubIntegration__domainErrorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("domainError", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"domainError"} />;
+}
+PlasmicGithubIntegration__domainError.displayName = "PlasmicGithubIntegration.domainError";
+
+type PlasmicGithubIntegration__moreProvidersLinkProps = NodeComponentProps<"moreProvidersLink"> & {key?: React.Key};
+function PlasmicGithubIntegration__moreProvidersLink<T extends PlasmicGithubIntegration__moreProvidersLinkProps>(props: T & StrictProps<T, PlasmicGithubIntegration__moreProvidersLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("moreProvidersLink", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"moreProvidersLink"} />;
+}
+PlasmicGithubIntegration__moreProvidersLink.displayName = "PlasmicGithubIntegration.moreProvidersLink";
+
+type PlasmicGithubIntegration__pushButtonProps = NodeComponentProps<"pushButton"> & {key?: React.Key};
+function PlasmicGithubIntegration__pushButton<T extends PlasmicGithubIntegration__pushButtonProps>(props: T & StrictProps<T, PlasmicGithubIntegration__pushButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("pushButton", props);
+  return <PlasmicGithubIntegration__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"pushButton"} />;
+}
+PlasmicGithubIntegration__pushButton.displayName = "PlasmicGithubIntegration.pushButton";
+
 
 export const PlasmicGithubIntegration = Object.assign(
   // Top-level PlasmicGithubIntegration renders the root element
-  makeNodeComponent("root"),
+  PlasmicGithubIntegration__root,
   {
     // Helper components rendering sub-elements
-    newRepoButton: makeNodeComponent("newRepoButton"),
-    existingRepoButton: makeNodeComponent("existingRepoButton"),
-    newBox: makeNodeComponent("newBox"),
-    orgBox: makeNodeComponent("orgBox"),
-    org: makeNodeComponent("org"),
-    missingOrg: makeNodeComponent("missingOrg"),
-    nameBox: makeNodeComponent("nameBox"),
-    _name: makeNodeComponent("name"),
-    nameError: makeNodeComponent("nameError"),
-    privateBox: makeNodeComponent("privateBox"),
-    privateRepo: makeNodeComponent("privateRepo"),
-    existingBox: makeNodeComponent("existingBox"),
-    repositoryBox: makeNodeComponent("repositoryBox"),
-    repository: makeNodeComponent("repository"),
-    missingRepo: makeNodeComponent("missingRepo"),
-    branchBox: makeNodeComponent("branchBox"),
-    branch: makeNodeComponent("branch"),
-    directoryBox: makeNodeComponent("directoryBox"),
-    directory: makeNodeComponent("directory"),
-    directoryError: makeNodeComponent("directoryError"),
-    opts: makeNodeComponent("opts"),
-    frameworkBox: makeNodeComponent("frameworkBox"),
-    framework: makeNodeComponent("framework"),
-    languageBox: makeNodeComponent("languageBox"),
-    language: makeNodeComponent("language"),
-    modeBox: makeNodeComponent("modeBox"),
-    modeInfo: makeNodeComponent("modeInfo"),
-    mode: makeNodeComponent("mode"),
-    actionBox: makeNodeComponent("actionBox"),
-    actionInfo: makeNodeComponent("actionInfo"),
-    action: makeNodeComponent("action"),
-    deployment: makeNodeComponent("deployment"),
-    publishSiteLabel: makeNodeComponent("publishSiteLabel"),
-    publishSite: makeNodeComponent("publishSite"),
-    publishSiteError: makeNodeComponent("publishSiteError"),
-    domainError2: makeNodeComponent("domainError2"),
-    apparentSubdomainInput: makeNodeComponent("apparentSubdomainInput"),
-    subdomainInput: makeNodeComponent("subdomainInput"),
-    domainError: makeNodeComponent("domainError"),
-    moreProvidersLink: makeNodeComponent("moreProvidersLink"),
-    pushButton: makeNodeComponent("pushButton"),
+    newRepoButton: PlasmicGithubIntegration__newRepoButton,
+    existingRepoButton: PlasmicGithubIntegration__existingRepoButton,
+    newBox: PlasmicGithubIntegration__newBox,
+    orgBox: PlasmicGithubIntegration__orgBox,
+    org: PlasmicGithubIntegration__org,
+    missingOrg: PlasmicGithubIntegration__missingOrg,
+    nameBox: PlasmicGithubIntegration__nameBox,
+    _name: PlasmicGithubIntegration__name,
+    nameError: PlasmicGithubIntegration__nameError,
+    privateBox: PlasmicGithubIntegration__privateBox,
+    privateRepo: PlasmicGithubIntegration__privateRepo,
+    existingBox: PlasmicGithubIntegration__existingBox,
+    repositoryBox: PlasmicGithubIntegration__repositoryBox,
+    repository: PlasmicGithubIntegration__repository,
+    missingRepo: PlasmicGithubIntegration__missingRepo,
+    branchBox: PlasmicGithubIntegration__branchBox,
+    branch: PlasmicGithubIntegration__branch,
+    directoryBox: PlasmicGithubIntegration__directoryBox,
+    directory: PlasmicGithubIntegration__directory,
+    directoryError: PlasmicGithubIntegration__directoryError,
+    opts: PlasmicGithubIntegration__opts,
+    frameworkBox: PlasmicGithubIntegration__frameworkBox,
+    framework: PlasmicGithubIntegration__framework,
+    languageBox: PlasmicGithubIntegration__languageBox,
+    language: PlasmicGithubIntegration__language,
+    modeBox: PlasmicGithubIntegration__modeBox,
+    modeInfo: PlasmicGithubIntegration__modeInfo,
+    mode: PlasmicGithubIntegration__mode,
+    actionBox: PlasmicGithubIntegration__actionBox,
+    actionInfo: PlasmicGithubIntegration__actionInfo,
+    action: PlasmicGithubIntegration__action,
+    deployment: PlasmicGithubIntegration__deployment,
+    publishSiteLabel: PlasmicGithubIntegration__publishSiteLabel,
+    publishSite: PlasmicGithubIntegration__publishSite,
+    publishSiteError: PlasmicGithubIntegration__publishSiteError,
+    domainError2: PlasmicGithubIntegration__domainError2,
+    apparentSubdomainInput: PlasmicGithubIntegration__apparentSubdomainInput,
+    subdomainInput: PlasmicGithubIntegration__subdomainInput,
+    domainError: PlasmicGithubIntegration__domainError,
+    moreProvidersLink: PlasmicGithubIntegration__moreProvidersLink,
+    pushButton: PlasmicGithubIntegration__pushButton,
 
     // Metadata about props expected for PlasmicGithubIntegration
     internalVariantProps: PlasmicGithubIntegration__VariantProps,

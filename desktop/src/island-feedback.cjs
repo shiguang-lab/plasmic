@@ -22,7 +22,7 @@ function inspectTargets(targets, mode, expectedComponent) {
     if (target.viewport || target.componentUuid && target.componentUuid !== component || target.frameUuid && target.frameUuid !== frame) continue;
     if (target.ref) {
       const store = globalThis.__plasmicRuntimeInspection;
-      if (mode === 'preview' && store && target.ref.startsWith(store.id + ':')) bounds(store.nodes.get(target.ref));
+      if (store && target.ref.startsWith(store.id + ':')) bounds(store.nodes.get(target.ref));
     } else if (target.elementUuid) {
       for (const el of document.querySelectorAll('[data-plasmic-valkey]')) {
         if (el.getAttribute('data-plasmic-valkey').split('.').at(-1) === target.elementUuid) bounds(el);
@@ -44,7 +44,7 @@ function clipRegion(rect, viewport) {
 function feedbackOperation(operation, context, url, now = Date.now()) {
   if (!operation || !['read','write','preview'].includes(operation.kind) || !['running','completed'].includes(operation.phase)
     || operation.projectId !== context.projectId || operation.sessionId !== context.sessionId || operation.mode !== context.mode
-    || operation.url !== url || operation.arenaId !== context.arenaId
+    || operation.url !== url || operation.arenaId !== context.arenaId || operation.previewKind !== context.previewKind
     || operation.phase === 'completed' && now - operation.finishedAt >= 1600) return null;
   return operation;
 }

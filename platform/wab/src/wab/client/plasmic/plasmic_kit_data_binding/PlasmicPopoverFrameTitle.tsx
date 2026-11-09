@@ -14,42 +14,7 @@
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
-import {
-  Flex as Flex__,
-  MultiChoiceArg,
-  PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
-  PlasmicIcon as PlasmicIcon__,
-  PlasmicImg as PlasmicImg__,
-  PlasmicLink as PlasmicLink__,
-  PlasmicPageGuard as PlasmicPageGuard__,
-  SingleBooleanChoiceArg,
-  SingleChoiceArg,
-  Stack as Stack__,
-  StrictProps,
-  Trans as Trans__,
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  ensureGlobalVariants,
-  generateOnMutateForSpec,
-  generateStateOnChangeProp,
-  generateStateOnChangePropForCodeComponents,
-  generateStateValueProp,
-  get as $stateGet,
-  hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
-  makeFragment,
-  omit,
-  pick,
-  renderPlasmicSlot,
-  set as $stateSet,
-  useCurrentUser,
-  useDollarState,
-  usePlasmicTranslator,
-  useTrigger,
-  wrapWithClassName
-} from "@plasmicapp/react-web";
+import {usePlasmicRefs, Flex as Flex__, MultiChoiceArg, PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__, PlasmicIcon as PlasmicIcon__, PlasmicImg as PlasmicImg__, PlasmicLink as PlasmicLink__, PlasmicPageGuard as PlasmicPageGuard__, SingleBooleanChoiceArg, SingleChoiceArg, Stack as Stack__, StrictProps, Trans as Trans__, classNames, createPlasmicElementProxy, deriveRenderOpts, ensureGlobalVariants, generateOnMutateForSpec, generateStateOnChangeProp, generateStateOnChangePropForCodeComponents, generateStateValueProp, get as $stateGet, hasVariant, makeFragment, omit, pick, renderPlasmicSlot, set as $stateSet, useCurrentUser, useDollarState, usePlasmicTranslator, wrapWithClassName} from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
@@ -57,8 +22,8 @@ import {
 } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -128,11 +93,10 @@ function PlasmicPopoverFrameTitle__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -149,19 +113,8 @@ function PlasmicPopoverFrameTitle__RenderFunc(props: {
         sty.popoverFrameTitle
       )}
     >
-      {(() => {
-        try {
-          return $props.showBack;
-        } catch (e) {
-          if (
-            e instanceof TypeError ||
-            e?.plasmicType === "PlasmicUndefinedDataError"
-          ) {
-            return false;
-          }
-          throw e;
-        }
-      })() ? (
+      {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+            e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.showBack), () => (false)) ? (
         <IconButton
           data-plasmic-name={"back"}
           data-plasmic-override={overrides.back}
@@ -244,12 +197,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -259,29 +208,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPopoverFrameTitle__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "popoverFrameTitle") {
-    func.displayName = "PlasmicPopoverFrameTitle";
-  } else {
-    func.displayName = `PlasmicPopoverFrameTitle.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPopoverFrameTitle__popoverFrameTitleProps = NodeComponentProps<"popoverFrameTitle"> & {key?: React.Key};
+function PlasmicPopoverFrameTitle__popoverFrameTitle<T extends PlasmicPopoverFrameTitle__popoverFrameTitleProps>(props: T & StrictProps<T, PlasmicPopoverFrameTitle__popoverFrameTitleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("popoverFrameTitle", props);
+  return <PlasmicPopoverFrameTitle__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"popoverFrameTitle"} />;
+}
+PlasmicPopoverFrameTitle__popoverFrameTitle.displayName = "PlasmicPopoverFrameTitle";
+
+type PlasmicPopoverFrameTitle__backProps = NodeComponentProps<"back"> & {key?: React.Key};
+function PlasmicPopoverFrameTitle__back<T extends PlasmicPopoverFrameTitle__backProps>(props: T & StrictProps<T, PlasmicPopoverFrameTitle__backProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("back", props);
+  return <PlasmicPopoverFrameTitle__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"back"} />;
+}
+PlasmicPopoverFrameTitle__back.displayName = "PlasmicPopoverFrameTitle.back";
+
+type PlasmicPopoverFrameTitle__titleWrapProps = NodeComponentProps<"titleWrap"> & {key?: React.Key};
+function PlasmicPopoverFrameTitle__titleWrap<T extends PlasmicPopoverFrameTitle__titleWrapProps>(props: T & StrictProps<T, PlasmicPopoverFrameTitle__titleWrapProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("titleWrap", props);
+  return <PlasmicPopoverFrameTitle__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"titleWrap"} />;
+}
+PlasmicPopoverFrameTitle__titleWrap.displayName = "PlasmicPopoverFrameTitle.titleWrap";
+
+type PlasmicPopoverFrameTitle__closeProps = NodeComponentProps<"close"> & {key?: React.Key};
+function PlasmicPopoverFrameTitle__close<T extends PlasmicPopoverFrameTitle__closeProps>(props: T & StrictProps<T, PlasmicPopoverFrameTitle__closeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("close", props);
+  return <PlasmicPopoverFrameTitle__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"close"} />;
+}
+PlasmicPopoverFrameTitle__close.displayName = "PlasmicPopoverFrameTitle.close";
+
 
 export const PlasmicPopoverFrameTitle = Object.assign(
   // Top-level PlasmicPopoverFrameTitle renders the root element
-  makeNodeComponent("popoverFrameTitle"),
+  PlasmicPopoverFrameTitle__popoverFrameTitle,
   {
     // Helper components rendering sub-elements
-    back: makeNodeComponent("back"),
-    titleWrap: makeNodeComponent("titleWrap"),
-    close: makeNodeComponent("close"),
+    back: PlasmicPopoverFrameTitle__back,
+    titleWrap: PlasmicPopoverFrameTitle__titleWrap,
+    close: PlasmicPopoverFrameTitle__close,
 
     // Metadata about props expected for PlasmicPopoverFrameTitle
     internalVariantProps: PlasmicPopoverFrameTitle__VariantProps,

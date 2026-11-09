@@ -1,3 +1,5 @@
+import { useContentEditorMode } from "@/wab/client/studio-ctx/content-editor-mode-state";
+import { useTargetedStylePanelInputs, useTargetedStylePanelValue } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
 import { useStore } from "zustand";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
@@ -23,8 +25,8 @@ import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import { NamedPanelHeader } from "@/wab/client/components/sidebar/sidebar-helpers";
 import {
   TplExpsProvider,
-  mkStyleComponent,
-  providesStyleComponent,
+  createStyleTarget,
+  providesStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { makeVariantsController } from "@/wab/client/components/variants/VariantsController";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -79,8 +81,6 @@ import {
 import { selectionControlsColor } from "@/wab/styles/css-variables";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert, Button, Menu } from "antd";
-import * as mobx from "mobx";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { createContext, useContext } from "react";
@@ -109,75 +109,58 @@ export function useNewAnimationContext() {
   return useContext(NewAnimationContext);
 }
 
-const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
-  tpl: TplNode;
-  viewCtx: ViewCtx;
-}) {
-  const { tpl, viewCtx } = props;
-  const variantInputs = useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+function readStyleTab(view: ViewCtx, tpl: TplNode) {
+  const component = view.currentTplComponent().component;
+  return Object.freeze({
+    hasMixins: isMixinSet(tpl, view),
+    hasPrivateStyleVariants: shouldShowPrivateStyleVariantsSection(tpl, view),
+    isTag: isTplTag(tpl), isComponent: isTplComponent(tpl),
+    ancestorSlot: getAncestorTplSlot(tpl, true),
+    isBase: isBaseVariant(view.variantTplMgr().getCurrentVariantCombo()),
+    privateStylesAvailable: canRenderPrivateStyleVariants(tpl, view),
+    mixinsAvailable: canRenderMixins(tpl, view),
+    applicableSelectors: isKnownTplTag(tpl) ? Object.freeze(getApplicableSelectors(tpl.tag, true, tpl === component.tplTree)) : Object.freeze([]),
+  });
+}
+const StyleTabForTpl = React.memo(function StyleTabForTpl(props: { tpl: TplNode; viewCtx: ViewCtx }) {
+  const select = React.useCallback(() => readStyleTab(props.viewCtx, props.tpl), [props.viewCtx, props.tpl]);
+  const source = useTargetedStylePanelValue(props.viewCtx.studioCtx, { kind: "style-tab", view: props.viewCtx, tpl: props.tpl }, select);
+  return source.active && source.value ? <StyleTabForTplBody {...props} styleInput={source.value} /> : null;
+});
+function StyleTabForTplBody(props: { tpl: TplNode; viewCtx: ViewCtx; styleInput: ReturnType<typeof readStyleTab> }) {
+  const { tpl, viewCtx, styleInput } = props;
   const studioCtx = viewCtx.studioCtx;
   useInspectorDom(viewCtx);
   const styleTabFilter = useContext(StyleTabContext);
-  const [showMixins, setShowMixins] = React.useState(isMixinSet(tpl, viewCtx));
+  const [showMixins, setShowMixins] = React.useState(styleInput.hasMixins);
   const [showPrivateStyleVariants, setShowPrivateStyleVariants] =
-    React.useState(shouldShowPrivateStyleVariantsSection(tpl, viewCtx));
+    React.useState(styleInput.hasPrivateStyleVariants);
   const [newAnimation, setNewAnimation] = React.useState<NewAnimation>(null);
   const clearNewAnimation = React.useCallback(() => setNewAnimation(null), []);
-  React.useEffect(() => {
-    const mixinDisposal = mobx.reaction(
-      () => {
-        // Read the committed inspector target instead of the captured tpl,
-        // and this reaction may be running before the surrounding component
-        // has been re-rendered.
-        const curTpl = tpl;
-        return !!curTpl && isMixinSet(curTpl, viewCtx);
-      },
-      (mixinVisible) => setShowMixins(mixinVisible),
-      {
-        fireImmediately: true,
-      },
-    );
-    const privateStyleVariantsDisposal = mobx.reaction(
-      () => {
-        const curTpl = tpl;
-        return (
-          !!curTpl && shouldShowPrivateStyleVariantsSection(curTpl, viewCtx)
-        );
-      },
-      (privateStyleVariantsVisible) =>
-        setShowPrivateStyleVariants(privateStyleVariantsVisible),
-      {
-        fireImmediately: true,
-      },
-    );
-    return () => {
-      mixinDisposal();
-      privateStyleVariantsDisposal();
-    };
-  }, [tpl, viewCtx, variantInputs]);
-  const isTag = isTplTag(tpl);
-  const isComponent = isTplComponent(tpl);
-  const ancestorSlot = getAncestorTplSlot(tpl, true);
+  const { hasMixins, hasPrivateStyleVariants, isTag, isComponent, ancestorSlot, isBase } = styleInput;
+  React.useEffect(() => setShowMixins(hasMixins), [hasMixins]);
+  React.useEffect(() => setShowPrivateStyleVariants(hasPrivateStyleVariants), [hasPrivateStyleVariants]);
+  useStore(studioCtx.uiEnvironment.store, (state) => state.componentSectionPermissions);
+  useStore(studioCtx.uiEnvironment.store, (state) => state.styleSectionVisibilities);
+  const contentEditorMode = useContentEditorMode(studioCtx);
 
   const expsProvider = new TplExpsProvider(viewCtx, tpl as TplNode);
-  const sc = mkStyleComponent({
+  const sc = createStyleTarget({
     expsProvider,
   });
-  const currentCombo = viewCtx.variantTplMgr().getCurrentVariantCombo();
-  const isBase = isBaseVariant(currentCombo);
 
   const showStyleSections = styleTabFilter === "design";
 
   const vcontroller = makeVariantsController(studioCtx, viewCtx);
   // Compute checks for ApplyMenu visibility
   const canShowAnimations =
-    isTag && canRenderPrivateStyleVariants(tpl, viewCtx) && showStyleSections;
+    isTag && styleInput.privateStylesAvailable && showStyleSections;
   const canShowElementVariants =
-    canRenderPrivateStyleVariants(tpl, viewCtx) &&
+    styleInput.privateStylesAvailable &&
     !showPrivateStyleVariants &&
     showStyleSections;
   const canShowMixins =
-    canRenderMixins(tpl, viewCtx) && !showMixins && showStyleSections;
+    styleInput.mixinsAvailable && !showMixins && showStyleSections;
 
   const buildApplyMenu = (): React.ReactElement | null => {
     if (!canShowAnimations && !canShowElementVariants && !canShowMixins) {
@@ -189,8 +172,7 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
     // Animations submenu (only for TplTag elements)
     if (canShowAnimations && isKnownTplTag(tpl)) {
       const component = viewCtx.currentTplComponent().component;
-      const isRoot = tpl === component.tplTree;
-      const applicableSelectors = getApplicableSelectors(tpl.tag, true, isRoot);
+      const applicableSelectors = styleInput.applicableSelectors;
 
       builder.genSub(<UiText message={"Animations"} />, (push) => {
         push(
@@ -281,6 +263,7 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
       [Section.PrivateStyleVariants, showPrivateStyleVariants],
     ]),
     styleTabFilter,
+    contentEditorMode,
   );
 
   const newAnimationContextValue = React.useMemo(
@@ -291,7 +274,7 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
     [newAnimation, clearNewAnimation],
   );
 
-  return providesStyleComponent(sc)(
+  return providesStyleTarget(sc)(
     <NewAnimationContext.Provider value={newAnimationContextValue}>
       {isTplSlot(tpl) && <TplSlotMessage tpl={tpl} viewCtx={viewCtx} />}
       {ancestorSlot && !isBase && !isCodeComponentSlot(ancestorSlot) && (
@@ -304,20 +287,20 @@ const StyleTabForTpl = observer(function _StyleTabForTpl(props: {
         <TplTagNameSection
           viewCtx={viewCtx}
           tpl={tpl as TplTag}
-          buildMenu={buildApplyMenu}
+          applyMenu={buildApplyMenu()}
         />
       )}
       {isComponent && (
         <TplComponentNameSection
           viewCtx={viewCtx}
           tpl={tpl as TplComponent}
-          buildMenu={buildApplyMenu}
+          applyMenu={buildApplyMenu()}
         />
       )}
       {orderedSections.map((render) => render())}
     </NewAnimationContext.Provider>,
   );
-});
+}
 
 /** Get the focused component, either from the ViewCtx (focused arena frame), or from the arena itself (so, even if you have nothing selected but are on a dedicated page/component arena. */
 export function getFocusedComponentFromViewCtxOrArena(
@@ -332,7 +315,7 @@ export function getFocusedComponentFromViewCtxOrArena(
   );
 }
 
-export const ComponentOrPageTab = observer(function ComponentOrPageTab(props: {
+export const ComponentOrPageTab = React.memo(function ComponentOrPageTab(props: {
   studioCtx: StudioCtx;
   viewCtx: ViewCtx;
   isHalf?: boolean;
@@ -340,11 +323,12 @@ export const ComponentOrPageTab = observer(function ComponentOrPageTab(props: {
   const { studioCtx, viewCtx, isHalf } = props;
   useViewSelection(viewCtx, useShallow((state) => [state.context, state.targets, state.tpls]));
   const component = viewCtx.currentComponent();
+  const modelInputs = useTargetedStylePanelInputs(studioCtx, { kind: "style-tab", view: viewCtx, tpl: component.tplTree });
   const focused = viewCtx.focusedSelectable();
   const tpl = viewCtx.focusedTpl(false);
   const hasElementPanel =
     (focused || tpl) && component && !isFrameComponent(component);
-  if (!component) {
+  if (!component || !modelInputs.active) {
     return null;
   }
 
@@ -394,7 +378,7 @@ export const ComponentOrPageTab = observer(function ComponentOrPageTab(props: {
   );
 });
 
-export const StyleTab = observer(function StyleTab(props: {
+export const StyleTab = React.memo(function StyleTab(props: {
   studioCtx: StudioCtx;
   viewCtx?: ViewCtx;
 }) {
@@ -438,7 +422,7 @@ export const StyleTab = observer(function StyleTab(props: {
   return <StyleTabBottomPanel studioCtx={studioCtx} viewCtx={viewCtx} />;
 });
 
-const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
+const StyleTabBottomPanel = React.memo(function StyleTabBottomPanel(props: {
   studioCtx: StudioCtx;
   viewCtx: ViewCtx;
 }) {
@@ -452,7 +436,9 @@ const StyleTabBottomPanel = observer(function StyleTabBottomPanel(props: {
   const tpl = selection?.viewCtx === viewCtx ? selection.tpl : null;
   const component = viewCtx.currentComponent();
 
+  const modelInputs = useTargetedStylePanelInputs(props.studioCtx, { kind: "style-tab", view: viewCtx, tpl: component.tplTree });
   const currentTarget = useCurrentRecordingTarget();
+  if (!modelInputs.active) { return null; }
 
   return (
     <PopoverFrameProvider containerSelector=".style-tab">
@@ -552,13 +538,15 @@ function CodeComponentTplSlotMessage(props: { component: Component }) {
   );
 }
 
-const SlotSelectionMessage = observer(function SlotSelectionMessage(props: {
+const SlotSelectionMessage = React.memo(function SlotSelectionMessage(props: {
   viewCtx: ViewCtx;
   node: SlotSelection;
 }) {
   const { viewCtx, node } = props;
   const tplComponent = node.getTpl();
   const component = tplComponent.component;
+  const modelInputs = useTargetedStylePanelInputs(viewCtx.studioCtx, { kind: "style-tab", view: viewCtx, tpl: tplComponent, param: node.slotParam });
+  if (!modelInputs.active) { return null; }
   const arg = $$$(tplComponent).getSlotArgForParam(node.slotParam);
   return (
     <div className="canvas-editor__right-float-pane">
@@ -605,7 +593,7 @@ const SlotSelectionMessage = observer(function SlotSelectionMessage(props: {
   );
 });
 
-const TplSlotMessage = observer(function TplSlotMessage(props: {
+const TplSlotMessage = React.memo(function TplSlotMessage(props: {
   viewCtx: ViewCtx;
   tpl: TplSlot;
 }) {
@@ -613,6 +601,8 @@ const TplSlotMessage = observer(function TplSlotMessage(props: {
 
   const { viewCtx, tpl } = props;
   const component = $$$(tpl).owningComponent();
+  const modelInputs = useTargetedStylePanelInputs(viewCtx.studioCtx, { kind: "style-tab", view: viewCtx, tpl });
+  if (!modelInputs.active) { return null; }
   return (
     <SidebarSection>
       {

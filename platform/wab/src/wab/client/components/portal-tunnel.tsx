@@ -1,36 +1,21 @@
-import { useForceUpdate } from "@/wab/client/useForceUpdate";
-import React from "react";
+import * as React from "react";
 import { createPortal } from "react-dom";
+import { useStore } from "zustand";
+import { createStore } from "zustand/vanilla";
 
+/** The destination belongs to this tunnel and is published only by DOM commits. */
 export function createPortalTunnel() {
-  let containerElement: HTMLElement | undefined = undefined;
-  let forceUpdateOut: (() => void) | undefined = undefined;
+  return createStore<HTMLElement | null>(() => null);
+}
 
-  const Out = (props: { className?: string }) => {
-    return (
-      <div
-        className={props.className}
-        ref={(ref) => {
-          containerElement = ref ?? undefined;
-          forceUpdateOut?.();
-        }}
-      />
-    );
-  };
-  const outRef = (ref: HTMLElement | null | undefined) => {
-    containerElement = ref ?? undefined;
-    forceUpdateOut?.();
-  };
+type PortalTunnel = ReturnType<typeof createPortalTunnel>;
 
-  const In = (props: { children?: React.ReactNode }) => {
-    const forceUpdate = useForceUpdate();
-    forceUpdateOut = forceUpdate;
-    if (containerElement) {
-      return createPortal(props.children, containerElement);
-    } else {
-      return null;
-    }
-  };
+export function PortalTunnelOut({ tunnel, className }: { tunnel: PortalTunnel; className?: string }) {
+  const attach = React.useCallback((element: HTMLDivElement | null) => tunnel.setState(element, true), [tunnel]);
+  return <div className={className} ref={attach} />;
+}
 
-  return { outRef, Out, In };
+export function PortalTunnelIn({ tunnel, children }: { tunnel: PortalTunnel; children?: React.ReactNode }) {
+  const container = useStore(tunnel);
+  return container ? createPortal(children, container) : null;
 }

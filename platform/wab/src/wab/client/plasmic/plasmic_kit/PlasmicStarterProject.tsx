@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,12 +24,12 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "../plasmic_kit_dashboard/plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "../plasmic_kit_dashboard/PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "../plasmic_kit_dashboard/plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "../plasmic_kit_dashboard/PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -132,11 +132,10 @@ function PlasmicStarterProject__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "type",
@@ -178,20 +177,22 @@ function PlasmicStarterProject__RenderFunc(props: {
           $props.withDropShadow,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -882,12 +883,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -897,31 +894,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicStarterProject__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicStarterProject";
-  } else {
-    func.displayName = `PlasmicStarterProject.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicStarterProject__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicStarterProject__root<T extends PlasmicStarterProject__rootProps>(props: T & StrictProps<T, PlasmicStarterProject__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicStarterProject__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicStarterProject__root.displayName = "PlasmicStarterProject";
+
+type PlasmicStarterProject__buttonProps = NodeComponentProps<"button"> & {key?: React.Key};
+function PlasmicStarterProject__button<T extends PlasmicStarterProject__buttonProps>(props: T & StrictProps<T, PlasmicStarterProject__buttonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("button", props);
+  return <PlasmicStarterProject__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"button"} />;
+}
+PlasmicStarterProject__button.displayName = "PlasmicStarterProject.button";
+
+type PlasmicStarterProject__dividerProps = NodeComponentProps<"divider"> & {key?: React.Key};
+function PlasmicStarterProject__divider<T extends PlasmicStarterProject__dividerProps>(props: T & StrictProps<T, PlasmicStarterProject__dividerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("divider", props);
+  return <PlasmicStarterProject__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"divider"} />;
+}
+PlasmicStarterProject__divider.displayName = "PlasmicStarterProject.divider";
+
+type PlasmicStarterProject__bordersOutlinesStrokesPlaceholderProps = NodeComponentProps<"bordersOutlinesStrokesPlaceholder"> & {key?: React.Key};
+function PlasmicStarterProject__bordersOutlinesStrokesPlaceholder<T extends PlasmicStarterProject__bordersOutlinesStrokesPlaceholderProps>(props: T & StrictProps<T, PlasmicStarterProject__bordersOutlinesStrokesPlaceholderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("bordersOutlinesStrokesPlaceholder", props);
+  return <PlasmicStarterProject__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"bordersOutlinesStrokesPlaceholder"} />;
+}
+PlasmicStarterProject__bordersOutlinesStrokesPlaceholder.displayName = "PlasmicStarterProject.bordersOutlinesStrokesPlaceholder";
+
 
 export const PlasmicStarterProject = Object.assign(
   // Top-level PlasmicStarterProject renders the root element
-  makeNodeComponent("root"),
+  PlasmicStarterProject__root,
   {
     // Helper components rendering sub-elements
-    button: makeNodeComponent("button"),
-    divider: makeNodeComponent("divider"),
-    bordersOutlinesStrokesPlaceholder: makeNodeComponent(
-      "bordersOutlinesStrokesPlaceholder"
-    ),
+    button: PlasmicStarterProject__button,
+    divider: PlasmicStarterProject__divider,
+    bordersOutlinesStrokesPlaceholder: PlasmicStarterProject__bordersOutlinesStrokesPlaceholder,
 
     // Metadata about props expected for PlasmicStarterProject
     internalVariantProps: PlasmicStarterProject__VariantProps,

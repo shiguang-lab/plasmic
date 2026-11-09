@@ -1,5 +1,6 @@
+import { useInsertActionComponent } from "@/wab/client/components/studio/add-drawer/insert-action-inputs";
 import { useFocusedViewCtx } from "@/wab/client/studio-ctx/selection-state";
-import { getComponentPresets } from "@/wab/client/code-components/code-presets";
+import { useComponentPresets } from "@/wab/client/studio-ctx/presets-state";
 import { InsertRelLoc } from "@/wab/client/components/canvas/view-ops";
 import { ResourceAssetActions } from "@/wab/client/components/insert-panel/ResourceAssetActions";
 import AddDrawerCardItem from "@/wab/client/components/studio/add-drawer/AddDrawerCardItem";
@@ -9,7 +10,7 @@ import { Matcher } from "@/wab/client/components/view-common";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import IconButton from "@/wab/client/components/widgets/IconButton";
 import { Modal } from "@/wab/client/components/widgets/Modal";
-import { TriggerAnchor } from "@/wab/client/components/widgets/TriggerAnchor";
+import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
 import {
   AddItem,
   AddTplItem,
@@ -30,7 +31,6 @@ import { isCodeComponent } from "@/wab/shared/core/components";
 import { TplNode } from "@/wab/shared/model/classes";
 import { EyeOutlined } from "@ant-design/icons";
 import { Button, Tooltip, Typography } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useOverlayTriggerState } from "react-stately";
 
@@ -262,54 +262,25 @@ function AddItemRow(props: AddDrawerItemProps) {
   const displayLabel = item.displayLabel ?? getAddItemLabel(item, locale);
   return (
     <Tooltip title={item.description}>
-      <TriggerAnchor>
-        {(ref, triggerProps) => (
-          <PlasmicAddDrawerItem
-            {...triggerProps}
-            root={{
-              props: {
-                ref,
-                "data-plasmic-class": "AddDrawerItem",
-                "data-drawer-item-name": item.label,
-              } as any,
-            }}
-            previewImage={
-              <ImagePreview
-                uri={item.type === "frame" ? item.addDrawerPreviewImage : ""}
-              />
-            }
-            listItem={{
-              style: {
-                paddingLeft: 16 + indent * 20,
-              },
-            }}
-            className="no-select"
-            icon={item.icon}
-            isHighlighted={isHighlighted}
-            actions={
-              isTplAddItem(item) ? (
-                <InsertActions
-                  studioCtx={studioCtx}
-                  item={item}
-                  onInserted={onInserted}
-                  validTplLocs={validTplLocs}
-                />
-              ) : null
-            }
-          >
-            {item.monospaced ? (
-              <code>{displayLabel}</code>
-            ) : (
-              <>{matcher ? matcher.boldSnippets(displayLabel) : displayLabel}</>
-            )}
+      <TriggerTarget>
+<PlasmicAddDrawerItem root={{
+  props: {
+    "data-plasmic-class": "AddDrawerItem",
+    "data-drawer-item-name": item.label
+  } as any
+}} previewImage={<ImagePreview uri={item.type === "frame" ? item.addDrawerPreviewImage : ""} />} listItem={{
+  style: {
+    paddingLeft: 16 + indent * 20
+  }
+}} className="no-select" icon={item.icon} isHighlighted={isHighlighted} actions={isTplAddItem(item) ? <InsertActions studioCtx={studioCtx} item={item} onInserted={onInserted} validTplLocs={validTplLocs} /> : null}>
+            {item.monospaced ? <code>{displayLabel}</code> : <>{matcher ? matcher.boldSnippets(displayLabel) : displayLabel}</>}
           </PlasmicAddDrawerItem>
-        )}
-      </TriggerAnchor>
+</TriggerTarget>
     </Tooltip>
   );
 }
 
-export const InsertActions = observer(function InsertActions(props: {
+export const InsertActions = React.memo(function InsertActions(props: {
   studioCtx: StudioCtx;
   item: AddTplItem;
   onInserted?: (tplNode: TplNode | null) => void;
@@ -318,11 +289,17 @@ export const InsertActions = observer(function InsertActions(props: {
   const { t: uiT } = useI18n();
   const { studioCtx, item, onInserted, validTplLocs } = props;
   const vc = useFocusedViewCtx(studioCtx);
+  const componentBinding = useInsertActionComponent(studioCtx, item.component);
+
+  const presetComponent =
+    item.component && isCodeComponent(item.component) ? item.component : undefined;
+  const presets = useComponentPresets(studioCtx, componentBinding.alive ? presetComponent : undefined);
+  if (!componentBinding.alive) { return null; }
 
   let preset: React.ReactElement | null = null;
   if (item.component && isCodeComponent(item.component)) {
     const component = item.component;
-    if (getComponentPresets(studioCtx, item.component).length > 0) {
+    if (presets.length > 0) {
       preset = (
         <Tooltip
           title={uiT("Insert a component template")}
@@ -330,7 +307,7 @@ export const InsertActions = observer(function InsertActions(props: {
         >
           <IconButton
             onClick={(e) => {
-              studioCtx.showPresetsModal(component);
+              if (componentBinding.isCurrent()) { studioCtx.showPresetsModal(component); }
               e.stopPropagation();
             }}
             aria-label={uiT("Insert presets...")}
@@ -350,10 +327,14 @@ export const InsertActions = observer(function InsertActions(props: {
     e: React.MouseEvent,
     loc: InsertRelLoc,
   ): Promise<void> => {
+    const models = studioCtx.modelSnapshots;
+    const lifetime = studioCtx.arenaState.lifetime();
+    const isCurrentTarget = () => !vc.isDisposed && !lifetime.aborted && vc.modelLifetime === lifetime && models === studioCtx.modelSnapshots && componentBinding.isCurrent();
+    if (!isCurrentTarget()) { return; }
     const extraInfo = item.asyncExtraInfo
       ? await item.asyncExtraInfo(studioCtx)
       : undefined;
-    if (extraInfo === false) {
+    if (extraInfo === false || !isCurrentTarget()) {
       return;
     }
     vc.change(() => {

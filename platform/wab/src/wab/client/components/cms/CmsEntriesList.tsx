@@ -142,8 +142,8 @@ function CmsEntriesList_(
     return sortConfig.sortFn(filtered);
   }, [rows, debouncedQuery, sortConfig]);
 
-  const debouncedSetQuery = React.useCallback(
-    debounce((q: string) => {
+  const debouncedSetQuery = React.useMemo(
+    () => debounce((q: string) => {
       setDebouncedQuery(q);
     }, 300),
     [setDebouncedQuery],
@@ -153,7 +153,7 @@ function CmsEntriesList_(
 
   const createEntry = async () => {
     setCreating(true);
-    try {
+    return await (async () => {
       const row = await api.createCmsRow(tableId, {
         identifier: undefined,
         data: null,
@@ -163,11 +163,11 @@ function CmsEntriesList_(
       history.push(
         APP_ROUTES.cmsEntry.fill({ databaseId, tableId, rowId: row.id }),
       );
-    } catch (error) {
+    })().catch(async (error) => {
       showError(error, { title: "Failed to create content entry" });
-    } finally {
+    }).finally(() => {
       setCreating(false);
-    }
+    });
   };
 
   return (

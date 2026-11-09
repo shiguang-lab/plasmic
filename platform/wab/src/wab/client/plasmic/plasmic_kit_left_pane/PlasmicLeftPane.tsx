@@ -14,14 +14,14 @@
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleChoiceArg,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -40,7 +40,7 @@ import { UserManagedFontsPanel as LeftFontsPanel } from "../../components/sideba
 import { ImageAssetsPanel as LeftImagesPanel } from "../../components/sidebar/image-asset-controls"; // plasmic-import: ECu8FUyP0f3/component
 import LeftTabButton from "../../components/studio/LeftTabButton"; // plasmic-import: 1q_JapBg7U/component
 import LeftTabStrip from "../../components/studio/LeftTabStrip"; // plasmic-import: l7y_rhJyMt2/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -185,11 +185,10 @@ function PlasmicLeftPane__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "type",
@@ -198,18 +197,20 @@ function PlasmicLeftPane__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.type,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -831,12 +832,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -846,50 +843,197 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftPane__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftPane";
-  } else {
-    func.displayName = `PlasmicLeftPane.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftPane__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftPane__root<T extends PlasmicLeftPane__rootProps>(props: T & StrictProps<T, PlasmicLeftPane__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftPane__root.displayName = "PlasmicLeftPane";
+
+type PlasmicLeftPane__leftTabStripProps = NodeComponentProps<"leftTabStrip"> & {key?: React.Key};
+function PlasmicLeftPane__leftTabStrip<T extends PlasmicLeftPane__leftTabStripProps>(props: T & StrictProps<T, PlasmicLeftPane__leftTabStripProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftTabStrip", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftTabStrip"} />;
+}
+PlasmicLeftPane__leftTabStrip.displayName = "PlasmicLeftPane.leftTabStrip";
+
+type PlasmicLeftPane__lintProps = NodeComponentProps<"lint"> & {key?: React.Key};
+function PlasmicLeftPane__lint<T extends PlasmicLeftPane__lintProps>(props: T & StrictProps<T, PlasmicLeftPane__lintProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("lint", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"lint"} />;
+}
+PlasmicLeftPane__lint.displayName = "PlasmicLeftPane.lint";
+
+type PlasmicLeftPane__outlineProps = NodeComponentProps<"outline"> & {key?: React.Key};
+function PlasmicLeftPane__outline<T extends PlasmicLeftPane__outlineProps>(props: T & StrictProps<T, PlasmicLeftPane__outlineProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("outline", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"outline"} />;
+}
+PlasmicLeftPane__outline.displayName = "PlasmicLeftPane.outline";
+
+type PlasmicLeftPane__assetsProps = NodeComponentProps<"assets"> & {key?: React.Key};
+function PlasmicLeftPane__assets<T extends PlasmicLeftPane__assetsProps>(props: T & StrictProps<T, PlasmicLeftPane__assetsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("assets", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"assets"} />;
+}
+PlasmicLeftPane__assets.displayName = "PlasmicLeftPane.assets";
+
+type PlasmicLeftPane__settingsGroupProps = NodeComponentProps<"settingsGroup"> & {key?: React.Key};
+function PlasmicLeftPane__settingsGroup<T extends PlasmicLeftPane__settingsGroupProps>(props: T & StrictProps<T, PlasmicLeftPane__settingsGroupProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("settingsGroup", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"settingsGroup"} />;
+}
+PlasmicLeftPane__settingsGroup.displayName = "PlasmicLeftPane.settingsGroup";
+
+type PlasmicLeftPane__moreProps = NodeComponentProps<"more"> & {key?: React.Key};
+function PlasmicLeftPane__more<T extends PlasmicLeftPane__moreProps>(props: T & StrictProps<T, PlasmicLeftPane__moreProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("more", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"more"} />;
+}
+PlasmicLeftPane__more.displayName = "PlasmicLeftPane.more";
+
+type PlasmicLeftPane__helpGroupProps = NodeComponentProps<"helpGroup"> & {key?: React.Key};
+function PlasmicLeftPane__helpGroup<T extends PlasmicLeftPane__helpGroupProps>(props: T & StrictProps<T, PlasmicLeftPane__helpGroupProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("helpGroup", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"helpGroup"} />;
+}
+PlasmicLeftPane__helpGroup.displayName = "PlasmicLeftPane.helpGroup";
+
+type PlasmicLeftPane__paneContainerProps = NodeComponentProps<"paneContainer"> & {key?: React.Key};
+function PlasmicLeftPane__paneContainer<T extends PlasmicLeftPane__paneContainerProps>(props: T & StrictProps<T, PlasmicLeftPane__paneContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("paneContainer", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"paneContainer"} />;
+}
+PlasmicLeftPane__paneContainer.displayName = "PlasmicLeftPane.paneContainer";
+
+type PlasmicLeftPane__paneContentProps = NodeComponentProps<"paneContent"> & {key?: React.Key};
+function PlasmicLeftPane__paneContent<T extends PlasmicLeftPane__paneContentProps>(props: T & StrictProps<T, PlasmicLeftPane__paneContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("paneContent", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"paneContent"} />;
+}
+PlasmicLeftPane__paneContent.displayName = "PlasmicLeftPane.paneContent";
+
+type PlasmicLeftPane__leftGeneralTokensPanelProps = NodeComponentProps<"leftGeneralTokensPanel"> & {key?: React.Key};
+function PlasmicLeftPane__leftGeneralTokensPanel<T extends PlasmicLeftPane__leftGeneralTokensPanelProps>(props: T & StrictProps<T, PlasmicLeftPane__leftGeneralTokensPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftGeneralTokensPanel", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftGeneralTokensPanel"} />;
+}
+PlasmicLeftPane__leftGeneralTokensPanel.displayName = "PlasmicLeftPane.leftGeneralTokensPanel";
+
+type PlasmicLeftPane__leftMixinsPanelProps = NodeComponentProps<"leftMixinsPanel"> & {key?: React.Key};
+function PlasmicLeftPane__leftMixinsPanel<T extends PlasmicLeftPane__leftMixinsPanelProps>(props: T & StrictProps<T, PlasmicLeftPane__leftMixinsPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftMixinsPanel", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftMixinsPanel"} />;
+}
+PlasmicLeftPane__leftMixinsPanel.displayName = "PlasmicLeftPane.leftMixinsPanel";
+
+type PlasmicLeftPane__leftImagesPanelProps = NodeComponentProps<"leftImagesPanel"> & {key?: React.Key};
+function PlasmicLeftPane__leftImagesPanel<T extends PlasmicLeftPane__leftImagesPanelProps>(props: T & StrictProps<T, PlasmicLeftPane__leftImagesPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftImagesPanel", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftImagesPanel"} />;
+}
+PlasmicLeftPane__leftImagesPanel.displayName = "PlasmicLeftPane.leftImagesPanel";
+
+type PlasmicLeftPane__leftThemesPanelProps = NodeComponentProps<"leftThemesPanel"> & {key?: React.Key};
+function PlasmicLeftPane__leftThemesPanel<T extends PlasmicLeftPane__leftThemesPanelProps>(props: T & StrictProps<T, PlasmicLeftPane__leftThemesPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftThemesPanel", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftThemesPanel"} />;
+}
+PlasmicLeftPane__leftThemesPanel.displayName = "PlasmicLeftPane.leftThemesPanel";
+
+type PlasmicLeftPane__leftFontsPanelProps = NodeComponentProps<"leftFontsPanel"> & {key?: React.Key};
+function PlasmicLeftPane__leftFontsPanel<T extends PlasmicLeftPane__leftFontsPanelProps>(props: T & StrictProps<T, PlasmicLeftPane__leftFontsPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftFontsPanel", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftFontsPanel"} />;
+}
+PlasmicLeftPane__leftFontsPanel.displayName = "PlasmicLeftPane.leftFontsPanel";
+
+type PlasmicLeftPane__leftImportsPanelProps = NodeComponentProps<"leftImportsPanel"> & {key?: React.Key};
+function PlasmicLeftPane__leftImportsPanel<T extends PlasmicLeftPane__leftImportsPanelProps>(props: T & StrictProps<T, PlasmicLeftPane__leftImportsPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftImportsPanel", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftImportsPanel"} />;
+}
+PlasmicLeftPane__leftImportsPanel.displayName = "PlasmicLeftPane.leftImportsPanel";
+
+type PlasmicLeftPane__leftVersionsPanelProps = NodeComponentProps<"leftVersionsPanel"> & {key?: React.Key};
+function PlasmicLeftPane__leftVersionsPanel<T extends PlasmicLeftPane__leftVersionsPanelProps>(props: T & StrictProps<T, PlasmicLeftPane__leftVersionsPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftVersionsPanel", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftVersionsPanel"} />;
+}
+PlasmicLeftPane__leftVersionsPanel.displayName = "PlasmicLeftPane.leftVersionsPanel";
+
+type PlasmicLeftPane__leftComponentsPanelProps = NodeComponentProps<"leftComponentsPanel"> & {key?: React.Key};
+function PlasmicLeftPane__leftComponentsPanel<T extends PlasmicLeftPane__leftComponentsPanelProps>(props: T & StrictProps<T, PlasmicLeftPane__leftComponentsPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftComponentsPanel", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftComponentsPanel"} />;
+}
+PlasmicLeftPane__leftComponentsPanel.displayName = "PlasmicLeftPane.leftComponentsPanel";
+
+type PlasmicLeftPane__leftSettingsPanelProps = NodeComponentProps<"leftSettingsPanel"> & {key?: React.Key};
+function PlasmicLeftPane__leftSettingsPanel<T extends PlasmicLeftPane__leftSettingsPanelProps>(props: T & StrictProps<T, PlasmicLeftPane__leftSettingsPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftSettingsPanel", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftSettingsPanel"} />;
+}
+PlasmicLeftPane__leftSettingsPanel.displayName = "PlasmicLeftPane.leftSettingsPanel";
+
+type PlasmicLeftPane__leftSplitsPanelProps = NodeComponentProps<"leftSplitsPanel"> & {key?: React.Key};
+function PlasmicLeftPane__leftSplitsPanel<T extends PlasmicLeftPane__leftSplitsPanelProps>(props: T & StrictProps<T, PlasmicLeftPane__leftSplitsPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftSplitsPanel", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftSplitsPanel"} />;
+}
+PlasmicLeftPane__leftSplitsPanel.displayName = "PlasmicLeftPane.leftSplitsPanel";
+
+type PlasmicLeftPane__leftLintIssuesPanelProps = NodeComponentProps<"leftLintIssuesPanel"> & {key?: React.Key};
+function PlasmicLeftPane__leftLintIssuesPanel<T extends PlasmicLeftPane__leftLintIssuesPanelProps>(props: T & StrictProps<T, PlasmicLeftPane__leftLintIssuesPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftLintIssuesPanel", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftLintIssuesPanel"} />;
+}
+PlasmicLeftPane__leftLintIssuesPanel.displayName = "PlasmicLeftPane.leftLintIssuesPanel";
+
+type PlasmicLeftPane__leftGeneralDataTokensPanelProps = NodeComponentProps<"leftGeneralDataTokensPanel"> & {key?: React.Key};
+function PlasmicLeftPane__leftGeneralDataTokensPanel<T extends PlasmicLeftPane__leftGeneralDataTokensPanelProps>(props: T & StrictProps<T, PlasmicLeftPane__leftGeneralDataTokensPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftGeneralDataTokensPanel", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftGeneralDataTokensPanel"} />;
+}
+PlasmicLeftPane__leftGeneralDataTokensPanel.displayName = "PlasmicLeftPane.leftGeneralDataTokensPanel";
+
+type PlasmicLeftPane__leftAnimationSequencesPanelProps = NodeComponentProps<"leftAnimationSequencesPanel"> & {key?: React.Key};
+function PlasmicLeftPane__leftAnimationSequencesPanel<T extends PlasmicLeftPane__leftAnimationSequencesPanelProps>(props: T & StrictProps<T, PlasmicLeftPane__leftAnimationSequencesPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftAnimationSequencesPanel", props);
+  return <PlasmicLeftPane__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftAnimationSequencesPanel"} />;
+}
+PlasmicLeftPane__leftAnimationSequencesPanel.displayName = "PlasmicLeftPane.leftAnimationSequencesPanel";
+
 
 export const PlasmicLeftPane = Object.assign(
   // Top-level PlasmicLeftPane renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftPane__root,
   {
     // Helper components rendering sub-elements
-    leftTabStrip: makeNodeComponent("leftTabStrip"),
-    lint: makeNodeComponent("lint"),
-    outline: makeNodeComponent("outline"),
-    assets: makeNodeComponent("assets"),
-    settingsGroup: makeNodeComponent("settingsGroup"),
-    more: makeNodeComponent("more"),
-    helpGroup: makeNodeComponent("helpGroup"),
-    paneContainer: makeNodeComponent("paneContainer"),
-    paneContent: makeNodeComponent("paneContent"),
-    leftGeneralTokensPanel: makeNodeComponent("leftGeneralTokensPanel"),
-    leftMixinsPanel: makeNodeComponent("leftMixinsPanel"),
-    leftImagesPanel: makeNodeComponent("leftImagesPanel"),
-    leftThemesPanel: makeNodeComponent("leftThemesPanel"),
-    leftFontsPanel: makeNodeComponent("leftFontsPanel"),
-    leftImportsPanel: makeNodeComponent("leftImportsPanel"),
-    leftVersionsPanel: makeNodeComponent("leftVersionsPanel"),
-    leftComponentsPanel: makeNodeComponent("leftComponentsPanel"),
-    leftSettingsPanel: makeNodeComponent("leftSettingsPanel"),
-    leftSplitsPanel: makeNodeComponent("leftSplitsPanel"),
-    leftLintIssuesPanel: makeNodeComponent("leftLintIssuesPanel"),
-    leftGeneralDataTokensPanel: makeNodeComponent("leftGeneralDataTokensPanel"),
-    leftAnimationSequencesPanel: makeNodeComponent(
-      "leftAnimationSequencesPanel"
-    ),
+    leftTabStrip: PlasmicLeftPane__leftTabStrip,
+    lint: PlasmicLeftPane__lint,
+    outline: PlasmicLeftPane__outline,
+    assets: PlasmicLeftPane__assets,
+    settingsGroup: PlasmicLeftPane__settingsGroup,
+    more: PlasmicLeftPane__more,
+    helpGroup: PlasmicLeftPane__helpGroup,
+    paneContainer: PlasmicLeftPane__paneContainer,
+    paneContent: PlasmicLeftPane__paneContent,
+    leftGeneralTokensPanel: PlasmicLeftPane__leftGeneralTokensPanel,
+    leftMixinsPanel: PlasmicLeftPane__leftMixinsPanel,
+    leftImagesPanel: PlasmicLeftPane__leftImagesPanel,
+    leftThemesPanel: PlasmicLeftPane__leftThemesPanel,
+    leftFontsPanel: PlasmicLeftPane__leftFontsPanel,
+    leftImportsPanel: PlasmicLeftPane__leftImportsPanel,
+    leftVersionsPanel: PlasmicLeftPane__leftVersionsPanel,
+    leftComponentsPanel: PlasmicLeftPane__leftComponentsPanel,
+    leftSettingsPanel: PlasmicLeftPane__leftSettingsPanel,
+    leftSplitsPanel: PlasmicLeftPane__leftSplitsPanel,
+    leftLintIssuesPanel: PlasmicLeftPane__leftLintIssuesPanel,
+    leftGeneralDataTokensPanel: PlasmicLeftPane__leftGeneralDataTokensPanel,
+    leftAnimationSequencesPanel: PlasmicLeftPane__leftAnimationSequencesPanel,
 
     // Metadata about props expected for PlasmicLeftPane
     internalVariantProps: PlasmicLeftPane__VariantProps,

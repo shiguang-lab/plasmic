@@ -1,4 +1,4 @@
-import { subscribeStudioSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import {
   MaybeCollapsibleRowsRenderer,
   SidebarSection,
@@ -14,8 +14,7 @@ import {
 } from "@/wab/client/components/style-controls/PosControls";
 import {
   ExpsProvider,
-  FlexControlHelper,
-  StyleComponent,
+  StyleComponentProps,
   StylePanelSection,
   TplExpsProvider,
 } from "@/wab/client/components/style-controls/StyleComponent";
@@ -34,32 +33,25 @@ import {
   parseGridChildAreaCss,
   showGridChildCss,
 } from "@/wab/shared/Grids";
-import { isBaseVariant } from "@/wab/shared/Variants";
-import { mapify, maybe } from "@/wab/shared/common";
-import { isCodeComponent } from "@/wab/shared/core/components";
-import { isTplComponent } from "@/wab/shared/core/tpls";
+import { mapify } from "@/wab/shared/common";
 import { LENGTH_PERCENTAGE_UNITS, NUMBER_UNITS } from "@/wab/shared/css/types";
 import { standardSides } from "@/wab/shared/geom";
 import { ContainerType } from "@/wab/shared/layoututils";
 import { produce } from "immer";
-import { observer } from "mobx-react";
+import { useStylePanelLayoutInputs, useStylePanelLayoutSnapshot } from "@/wab/client/studio-ctx/style-panel-layout-inputs";
 import React from "react";
 
-export const PositioningPanelSection = observer(
-  class extends StyleComponent {
-    private stopSelection?: () => void;
-    componentDidMount() {
-      this.stopSelection = subscribeStudioSelection(this.studioCtx(), (state) => state.view, () => this.forceUpdate());
-    }
-    componentWillUnmount() { this.stopSelection?.(); }
-    render() {
-      if (!this.props.expsProvider.showPositioningPanel()) {
+function PositioningPanelSectionBody(props: StyleComponentProps & { inputs: ReturnType<typeof useStylePanelLayoutSnapshot> }) {
+  const studio = props.expsProvider.studioCtx;
+  const focusedView = useStudioSelection(studio, (state) => state.view);
+  const inputs = props.inputs;
+      if (props.expsProvider instanceof TplExpsProvider && !inputs.layout?.showPositioning) {
         return (
           <SidebarSection
             title={
               <LabelWithDetailedTooltip
                 tooltip={
-                  this.studioCtx().focusedViewCtx()?.component.pageMeta ? (
+                  focusedView?.component.pageMeta ? (
                     <div>
                       <UiText
                         message={
@@ -90,24 +82,18 @@ export const PositioningPanelSection = observer(
         );
       }
 
-      const exps = this.props.expsProvider;
-      const h = new FlexControlHelper(exps);
-
-      const curPosition = h.getEffectivePosition();
-      const isAuto = h.getIsAuto();
-      const parentContainerType = h.getParentContainerType();
+      const exps = props.expsProvider;
+      const curPosition = inputs.position;
+      const isAuto = inputs.isAuto;
+      const parentContainerType = inputs.parentContainerType;
       const parentIsFlex = ["flex-row", "flex-column"].includes(
         parentContainerType || "",
       );
       const parentIsFree = parentContainerType === "free";
 
-      const parentIsCodeComponent =
-        exps instanceof TplExpsProvider &&
-        exps.tpl?.parent &&
-        isTplComponent(exps.tpl.parent) &&
-        isCodeComponent(exps.tpl.parent.component);
+      const parentIsCodeComponent = inputs.layout?.parentIsCodeComponent ?? false;
 
-      const expsProvider = this.props.expsProvider;
+      const expsProvider = props.expsProvider;
 
       let toggleButtons = [
         {
@@ -159,12 +145,12 @@ export const PositioningPanelSection = observer(
       return (
         <>
           <StylePanelSection
-            expsProvider={this.props.expsProvider}
+            expsProvider={props.expsProvider}
             title={<UiText message={"Position"} />}
             unremovableStyleProps={
               // You cannot remove "position" if you're a base variant
               exps instanceof TplExpsProvider &&
-              isBaseVariant(exps.targetVariantCombo) &&
+              inputs.layout?.isBaseTarget &&
               !parentIsCodeComponent
                 ? ["position"]
                 : []
@@ -177,8 +163,8 @@ export const PositioningPanelSection = observer(
                 value={curPosition}
                 autoWidth
                 onChange={(val) =>
-                  this.studioCtx().changeUnsafe(() => {
-                    this.props.expsProvider.onPositionChange(val);
+                  studio.changeUnsafe(() => {
+                    props.expsProvider.onPositionChange(val);
                   })
                 }
               >
@@ -203,20 +189,20 @@ export const PositioningPanelSection = observer(
                   <div>
                     {curPosition === "absolute" && (
                       <FreeChildSettings
-                        expsProvider={this.props.expsProvider}
+                        expsProvider={props.expsProvider}
                         renderMaybeCollapsibleRows={renderMaybeCollapsibleRows}
                       />
                     )}
                     {curPosition === "fixed" && (
                       <FixedChildSettings
-                        expsProvider={this.props.expsProvider}
+                        expsProvider={props.expsProvider}
                         renderMaybeCollapsibleRows={renderMaybeCollapsibleRows}
                       />
                     )}
                     {curPosition === "sticky" && (
                       <StickyChildSettings
                         flexParent={parentIsFlex}
-                        expsProvider={this.props.expsProvider}
+                        expsProvider={props.expsProvider}
                         renderMaybeCollapsibleRows={renderMaybeCollapsibleRows}
                       />
                     )}
@@ -234,9 +220,13 @@ export const PositioningPanelSection = observer(
           </StylePanelSection>
         </>
       );
-    }
-  },
-);
+}
+
+const positioningKeys = ["position", "z-index", "vertical-align", "top", "right", "bottom", "left", "align-self", "order", "grid-row", "grid-column", "justify-self"];
+export const PositioningPanelSection = React.memo(function PositioningPanelSection(props: StyleComponentProps) {
+  const inputs = useStylePanelLayoutSnapshot(props.expsProvider, positioningKeys, ["display", "flex-direction"]);
+  return inputs.active ? <PositioningPanelSectionBody {...props} inputs={inputs} /> : null;
+});
 
 function MiniLabel({
   label,
@@ -253,18 +243,16 @@ function MiniLabel({
   );
 }
 
-const AutoChildSettings = observer(function AutoChildSettings(props: {
+const AutoChildSettings = React.memo(function AutoChildSettings(props: {
   expsProvider: ExpsProvider;
   renderMaybeCollapsibleRows?: MaybeCollapsibleRowsRenderer;
   parentContainerType: ContainerType | undefined;
 }) {
   const { t: uiT } = useI18n();
   const { expsProvider, parentContainerType } = props;
-  const parentExp = expsProvider.getTargetDeepLayoutParentRsh();
-  const flexDir = maybe(
-    parentExp,
-    (exp) => exp.get("flex-direction").split("-")[0],
-  );
+  const inputs = useStylePanelLayoutSnapshot(expsProvider, positioningKeys, ["display", "flex-direction"]);
+  if (!inputs.active) { return null; }
+  const flexDir = inputs.parentCells.find((cell) => cell.key === "flex-direction")?.value.split("-")[0];
 
   const isSet = isStylePropSet(expsProvider);
 
@@ -444,11 +432,13 @@ const FixedChildSettings = function FixedChildSettings({
   );
 };
 
-const GridChildSettings = observer(function GridChildSettings(props: {
+const GridChildSettings = React.memo(function GridChildSettings(props: {
   expsProvider: ExpsProvider;
 }) {
   const { t: uiT } = useI18n();
   const { expsProvider } = props;
+  const active = useStylePanelLayoutInputs(expsProvider, ["grid-row", "grid-column"]);
+  if (!active) { return null; }
   const sc = expsProvider.studioCtx;
   const exp = () => expsProvider.mergedExp();
 
@@ -525,7 +515,7 @@ const GridChildSettings = observer(function GridChildSettings(props: {
   );
 });
 
-const StickyChildSettings = observer(function StickyChildSettings({
+const StickyChildSettings = React.memo(function StickyChildSettings({
   expsProvider,
   renderMaybeCollapsibleRows,
   flexParent,
@@ -535,11 +525,9 @@ const StickyChildSettings = observer(function StickyChildSettings({
   flexParent?: boolean;
 }) {
   const { t: uiT } = useI18n();
-  const parentExp = expsProvider.getTargetDeepLayoutParentRsh();
-  const flexDir = maybe(
-    parentExp,
-    (exp) => exp.get("flex-direction").split("-")[0],
-  );
+  const inputs = useStylePanelLayoutSnapshot(expsProvider, positioningKeys, ["display", "flex-direction"]);
+  if (!inputs.active) { return null; }
+  const flexDir = inputs.parentCells.find((cell) => cell.key === "flex-direction")?.value.split("-")[0];
 
   return (
     <>

@@ -197,7 +197,7 @@ export default function PreviewPublishSection(
                       disabled={busy || !canEdit || confirming || loading}
                       onClick={async () => {
                         setConfirming(true);
-                        try {
+                        return await (async () => {
                           if (
                             await reactConfirm({
                               title: t("Unpublish website"),
@@ -208,9 +208,9 @@ export default function PreviewPublishSection(
                           ) {
                             unpublish();
                           }
-                        } finally {
+                        })().finally(() => {
                           setConfirming(false);
-                        }
+                        });
                       }}
                     >
                       {t("Unpublish website")}…

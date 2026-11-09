@@ -63,7 +63,7 @@ export const handler: MutationHook<CartType.AddItemHook> = {
   },
   useHook:
     ({ fetch }) =>
-    () => {
+    function useAddItemHandler() {
       const { mutate } = useCart();
       return useCallback(
         async function addItem(input) {

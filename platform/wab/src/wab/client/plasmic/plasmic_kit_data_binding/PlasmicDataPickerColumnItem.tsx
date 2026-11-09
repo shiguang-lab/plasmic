@@ -15,42 +15,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
-import {
-  Flex as Flex__,
-  MultiChoiceArg,
-  PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
-  PlasmicIcon as PlasmicIcon__,
-  PlasmicImg as PlasmicImg__,
-  PlasmicLink as PlasmicLink__,
-  PlasmicPageGuard as PlasmicPageGuard__,
-  SingleBooleanChoiceArg,
-  SingleChoiceArg,
-  Stack as Stack__,
-  StrictProps,
-  Trans as Trans__,
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  ensureGlobalVariants,
-  generateOnMutateForSpec,
-  generateStateOnChangeProp,
-  generateStateOnChangePropForCodeComponents,
-  generateStateValueProp,
-  get as $stateGet,
-  hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
-  makeFragment,
-  omit,
-  pick,
-  renderPlasmicSlot,
-  set as $stateSet,
-  useCurrentUser,
-  useDollarState,
-  usePlasmicTranslator,
-  useTrigger,
-  wrapWithClassName
-} from "@plasmicapp/react-web";
+import {usePlasmicRefs, Flex as Flex__, MultiChoiceArg, PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__, PlasmicIcon as PlasmicIcon__, PlasmicImg as PlasmicImg__, PlasmicLink as PlasmicLink__, PlasmicPageGuard as PlasmicPageGuard__, SingleBooleanChoiceArg, SingleChoiceArg, Stack as Stack__, StrictProps, Trans as Trans__, classNames, createPlasmicElementProxy, deriveRenderOpts, ensureGlobalVariants, generateOnMutateForSpec, generateStateOnChangeProp, generateStateOnChangePropForCodeComponents, generateStateValueProp, get as $stateGet, hasVariant, makeFragment, omit, pick, renderPlasmicSlot, set as $stateSet, useCurrentUser, useDollarState, useDollarStateSnapshot, usePlasmicTranslator, useHover, wrapWithClassName} from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
@@ -58,8 +23,8 @@ import {
 } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -146,11 +111,10 @@ function PlasmicDataPickerColumnItem__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "variableType",
@@ -178,23 +142,25 @@ function PlasmicDataPickerColumnItem__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.hasLink
       }
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs
-  });
+    getRefs
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -696,12 +662,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -711,32 +673,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDataPickerColumnItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDataPickerColumnItem";
-  } else {
-    func.displayName = `PlasmicDataPickerColumnItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDataPickerColumnItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDataPickerColumnItem__root<T extends PlasmicDataPickerColumnItem__rootProps>(props: T & StrictProps<T, PlasmicDataPickerColumnItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDataPickerColumnItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDataPickerColumnItem__root.displayName = "PlasmicDataPickerColumnItem";
+
+type PlasmicDataPickerColumnItem__iconProps = NodeComponentProps<"icon"> & {key?: React.Key};
+function PlasmicDataPickerColumnItem__icon<T extends PlasmicDataPickerColumnItem__iconProps>(props: T & StrictProps<T, PlasmicDataPickerColumnItem__iconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("icon", props);
+  return <PlasmicDataPickerColumnItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"icon"} />;
+}
+PlasmicDataPickerColumnItem__icon.displayName = "PlasmicDataPickerColumnItem.icon";
+
+type PlasmicDataPickerColumnItem__itemNameProps = NodeComponentProps<"itemName"> & {key?: React.Key};
+function PlasmicDataPickerColumnItem__itemName<T extends PlasmicDataPickerColumnItem__itemNameProps>(props: T & StrictProps<T, PlasmicDataPickerColumnItem__itemNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("itemName", props);
+  return <PlasmicDataPickerColumnItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"itemName"} />;
+}
+PlasmicDataPickerColumnItem__itemName.displayName = "PlasmicDataPickerColumnItem.itemName";
+
+type PlasmicDataPickerColumnItem__previewValueProps = NodeComponentProps<"previewValue"> & {key?: React.Key};
+function PlasmicDataPickerColumnItem__previewValue<T extends PlasmicDataPickerColumnItem__previewValueProps>(props: T & StrictProps<T, PlasmicDataPickerColumnItem__previewValueProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("previewValue", props);
+  return <PlasmicDataPickerColumnItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"previewValue"} />;
+}
+PlasmicDataPickerColumnItem__previewValue.displayName = "PlasmicDataPickerColumnItem.previewValue";
+
+type PlasmicDataPickerColumnItem__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicDataPickerColumnItem__link<T extends PlasmicDataPickerColumnItem__linkProps>(props: T & StrictProps<T, PlasmicDataPickerColumnItem__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicDataPickerColumnItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicDataPickerColumnItem__link.displayName = "PlasmicDataPickerColumnItem.link";
+
+type PlasmicDataPickerColumnItem__playProps = NodeComponentProps<"play"> & {key?: React.Key};
+function PlasmicDataPickerColumnItem__play<T extends PlasmicDataPickerColumnItem__playProps>(props: T & StrictProps<T, PlasmicDataPickerColumnItem__playProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("play", props);
+  return <PlasmicDataPickerColumnItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"play"} />;
+}
+PlasmicDataPickerColumnItem__play.displayName = "PlasmicDataPickerColumnItem.play";
+
+type PlasmicDataPickerColumnItem__iconButtonProps = NodeComponentProps<"iconButton"> & {key?: React.Key};
+function PlasmicDataPickerColumnItem__iconButton<T extends PlasmicDataPickerColumnItem__iconButtonProps>(props: T & StrictProps<T, PlasmicDataPickerColumnItem__iconButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconButton", props);
+  return <PlasmicDataPickerColumnItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconButton"} />;
+}
+PlasmicDataPickerColumnItem__iconButton.displayName = "PlasmicDataPickerColumnItem.iconButton";
+
 
 export const PlasmicDataPickerColumnItem = Object.assign(
   // Top-level PlasmicDataPickerColumnItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicDataPickerColumnItem__root,
   {
     // Helper components rendering sub-elements
-    icon: makeNodeComponent("icon"),
-    itemName: makeNodeComponent("itemName"),
-    previewValue: makeNodeComponent("previewValue"),
-    link: makeNodeComponent("link"),
-    play: makeNodeComponent("play"),
-    iconButton: makeNodeComponent("iconButton"),
+    icon: PlasmicDataPickerColumnItem__icon,
+    itemName: PlasmicDataPickerColumnItem__itemName,
+    previewValue: PlasmicDataPickerColumnItem__previewValue,
+    link: PlasmicDataPickerColumnItem__link,
+    play: PlasmicDataPickerColumnItem__play,
+    iconButton: PlasmicDataPickerColumnItem__iconButton,
 
     // Metadata about props expected for PlasmicDataPickerColumnItem
     internalVariantProps: PlasmicDataPickerColumnItem__VariantProps,

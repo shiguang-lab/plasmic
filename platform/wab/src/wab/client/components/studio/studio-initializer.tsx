@@ -1,4 +1,7 @@
-import { subscribeStudioSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useStore } from "zustand";
+import { createStore } from "zustand/vanilla";
+import { useShallow } from "zustand/react/shallow";
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { plexusKey, storageViewAsKey } from "@/wab/client/LocalStorageKey";
 import { AppCtx } from "@/wab/client/app-ctx";
 import { isHostFrame } from "@/wab/client/cli-routes";
@@ -43,10 +46,8 @@ import { isUnownedProject } from "@/wab/shared/EntUtil";
 import { spawn } from "@/wab/shared/common";
 import { isHostLessPackage } from "@/wab/shared/core/sites";
 import { initBuiltinActions } from "@/wab/shared/core/states";
-import { makeGlobalObservable } from "@/wab/shared/mobx-util";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
 import { notification } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
 import { Helmet } from "react-helmet-async";
 
@@ -61,75 +62,50 @@ type StudioInitializerState = {
   studioCtx: StudioCtx | undefined;
   previewCtx: PreviewCtx | undefined;
 };
-class StudioInitializer_ extends React.Component<
-  StudioInitializerProps,
-  StudioInitializerState
-> {
-  _cleanups: (() => void)[];
-  _disposed = false;
-  private stopSelection?: () => void;
-  componentDidUpdate(_previousProps: StudioInitializerProps, previous: StudioInitializerState) {
-    if (previous.studioCtx !== this.state.studioCtx) {
-      this.stopSelection?.();
-      const studio = this.state.studioCtx;
-      this.stopSelection = studio ? subscribeStudioSelection(studio, (state) => state.view, () => this.forceUpdate()) : undefined;
-    }
-  }
-  constructor(props) {
-    super(props);
-    this._cleanups = [];
-    this.state = {
-      studioCtx: undefined,
-      previewCtx: undefined,
-    };
-  }
-  componentDidMount() {
+class StudioInitialization {
+  private _cleanups: (() => void)[] = [];
+  private stopPageListeners: (() => void) | undefined;
+  private _disposed = false;
+  private attempt = 0;
+  readonly store = createStore<StudioInitializerState>(() => ({ studioCtx: undefined, previewCtx: undefined }));
+  constructor(private props: StudioInitializerProps) {}
+  updateProps(props: StudioInitializerProps) { this.props = props; }
+  mount() {
+    this._disposed = false;
+    this.attempt += 1;
+    this.store.setState({ studioCtx: undefined, previewCtx: undefined }, true);
+
     window.addEventListener("pagehide", this.cleanup);
     window.addEventListener("unload", this.cleanup);
-    this._cleanups.push(() => {
+    this.stopPageListeners = () => {
       window.removeEventListener("pagehide", this.cleanup);
       window.removeEventListener("unload", this.cleanup);
-    });
-  }
+    };
 
-  componentWillUnmount() {
-    this.cleanup();
   }
-
   cleanup = () => {
-    if (this._disposed) {
-      return;
-    }
+    if (this._disposed) { return; }
     this._disposed = true;
-    this.stopSelection?.();
-    this.stopSelection = undefined;
-    const studioCtx = this.state.studioCtx;
-    if (studioCtx) {
-      try {
-        studioCtx.dispose();
-      } catch (e) {
-        console.warn("Failed to dispose studioCtx:", e);
-      }
-      const previewCtx = studioCtx.previewCtx;
-      if (previewCtx) {
-        try {
-          previewCtx.dispose();
-        } catch (e) {
-          console.warn("Failed to dispose previewCtx:", e);
-        }
-      }
-    }
-    this._cleanups.forEach((cleanup) => {
-      try {
-        cleanup();
-      } catch (e) {
-        console.warn("Error running cleanup:", e);
-      }
-    });
-    this._cleanups = [];
+    this.attempt += 1;
+    this.releaseAttempt();
+    this.stopPageListeners?.(); this.stopPageListeners = undefined;
   };
-
-  init = async () => {
+  private releaseAttempt() {
+    const {studioCtx, previewCtx} = this.store.getState();
+    if (previewCtx) {
+      try { previewCtx.dispose(); } catch (error) { console.warn("Failed to dispose previewCtx:", error); }
+    }
+    if (studioCtx) {
+      try { studioCtx.dispose(); } catch (error) { console.warn("Failed to dispose studioCtx:", error); }
+    }
+    this._cleanups.splice(0).forEach((cleanup) => {
+      try { cleanup(); } catch (error) { console.warn("Error running cleanup:", error); }
+    });
+    if (studioCtx || previewCtx) { this.store.setState({studioCtx: undefined, previewCtx: undefined}, true); }
+  }
+init = async () => {
+    this.releaseAttempt();
+    const attempt = ++this.attempt;
     const loadTimings = this.props.loadTimings ?? new StudioLoadTimings();
     const preferencesDone = loadTimings.begin("startup-preferences");
     initializePlasmicExtension();
@@ -153,7 +129,6 @@ class StudioInitializer_ extends React.Component<
     }
 
     preferencesDone();
-    makeGlobalObservable();
     const studioCtx = await initStudioCtx(
       appCtx,
       projectId,
@@ -161,10 +136,7 @@ class StudioInitializer_ extends React.Component<
       loadTimings,
     );
     const previewCtx = new PreviewCtx(hostFrameCtx, studioCtx);
-    this._cleanups.push(previewCtx.store.subscribe((next, previous) => {
-      if (next.isLive !== previous.isLive || next.previewData?.full !== previous.previewData?.full) { this.forceUpdate(); }
-    }));
-    if (this._disposed) {
+    if (this._disposed || attempt !== this.attempt) {
       previewCtx.dispose();
       studioCtx.dispose();
       return { studioCtx, previewCtx };
@@ -176,13 +148,13 @@ class StudioInitializer_ extends React.Component<
       studioCtx.alertBannerState.set(AlertSpec.WelcomeGuest);
     } else if (!appCtx.selfInfo) {
       studioCtx.alertBannerState.set(AlertSpec.Unlogged);
-      studioCtx.blockChanges = true;
+      studioCtx.setBlockChanges(true);
     } else if (!studioCtx.canEditProject()) {
       studioCtx.alertBannerState.set(AlertSpec.ReadOnly);
-      studioCtx.blockChanges = true;
+      studioCtx.setBlockChanges(true);
     } else if (!studioCtx.canEditBranch()) {
       studioCtx.alertBannerState.set(AlertSpec.ProtectedMainBranch);
-      studioCtx.blockChanges = true;
+      studioCtx.setBlockChanges(true);
     }
 
     initBuiltinActions({
@@ -192,7 +164,7 @@ class StudioInitializer_ extends React.Component<
       inStudio: true,
     });
 
-    this.setState({ studioCtx, previewCtx });
+    this.store.setState({ studioCtx, previewCtx });
 
     const listener = (e: BeforeUnloadEvent) => {
       if (
@@ -210,6 +182,7 @@ class StudioInitializer_ extends React.Component<
 
     studioCtx.finishedLoading();
     studioCtx.runAfterInitialCanvasReady(async () => {
+      if (this._disposed || attempt !== this.attempt) { return; }
       const request = requestIdleCallback(() => {
         // A failed speculative load is retried by the message's Loadable.
         void preloadAiMarkdown().catch(() => undefined);
@@ -228,6 +201,7 @@ class StudioInitializer_ extends React.Component<
       syncDone();
     }
 
+    if (this._disposed || attempt !== this.attempt) { return {studioCtx, previewCtx}; }
     spawn(studioCtx.maybeShowGlobalContextNotificationForStarters());
     checkRootSubHostVersion();
 
@@ -237,6 +211,7 @@ class StudioInitializer_ extends React.Component<
         storageViewAsKey(studioCtx.siteInfo.id),
       );
 
+      if (this._disposed || attempt !== this.attempt) { return {studioCtx, previewCtx}; }
       if (lastLoggedInAppUser) {
         const parsedLoggedInUser = JSON.parse(lastLoggedInAppUser);
         if (parsedLoggedInUser) {
@@ -250,6 +225,7 @@ class StudioInitializer_ extends React.Component<
           const { initialUser } = await appCtx.api.getInitialUserToViewAs(
             studioCtx.siteInfo.id,
           );
+          if (this._disposed || attempt !== this.attempt) { return {studioCtx, previewCtx}; }
           if (initialUser) {
             // Save the user in local storage so that we don't have to ask the server again
             // if the user reloads the page.
@@ -259,6 +235,7 @@ class StudioInitializer_ extends React.Component<
                 studioAppUser: initialUser,
               }),
             );
+            if (this._disposed || attempt !== this.attempt) { return {studioCtx, previewCtx}; }
             await studioCtx.logAsAppUser(initialUser);
           } else {
             // Saving null here will block the request to the server next time the user loads the page,
@@ -276,35 +253,28 @@ class StudioInitializer_ extends React.Component<
     studioCtx.loadTimings.mark("initializer-ready");
     return { studioCtx, previewCtx };
   };
+}
 
-  hideStudio() {
-    return <style>{`.studio { visibility: hidden; }`}</style>;
-  }
-
-  render() {
-    const { studioCtx: loadingStudioCtx, previewCtx: loadingPreviewCtx } =
-      this.state;
-    if (!isHostFrame()) {
-      notification.error({
-        message: translate(getUiLocale(), "Unknown URL"),
-        description: translate(
-          getUiLocale(),
-          "Please make sure you are accessing a valid URL",
-        ),
-        duration: 0,
-      });
-      return null;
-    }
-
-    const contents = (
-      {
-        previewCtx,
-        studioCtx,
-      }: { previewCtx: PreviewCtx; studioCtx: StudioCtx },
-      canvasLoading = false,
-    ) => {
-      const viewCtx = studioCtx.focusedViewCtx();
-      const isFullPreviewMode = previewCtx.full && previewCtx.isLive;
+export function StudioInitializer(props: StudioInitializerProps) {
+  const [initialization] = React.useState(() => new StudioInitialization(props));
+  React.useLayoutEffect(() => { initialization.updateProps(props); }, [initialization, props]);
+  React.useLayoutEffect(() => { initialization.mount(); return initialization.cleanup; }, [initialization]);
+  const { studioCtx: loadingStudioCtx, previewCtx: loadingPreviewCtx } = useStore(initialization.store);
+  const validHost = isHostFrame();
+  React.useEffect(() => { if (!validHost) { notification.error({ message: translate(getUiLocale(), "Unknown URL"), description: translate(getUiLocale(), "Please make sure you are accessing a valid URL"), duration: 0 }); } }, [validHost]);
+  if (!validHost) { return null; }
+  return <widgets.Loadable loader={initialization.init}
+    contents={({studioCtx, previewCtx}: {studioCtx: StudioCtx; previewCtx: PreviewCtx}) => <LoadedStudio studioCtx={studioCtx} previewCtx={previewCtx} />}
+    failureContents={(retry) => <StudioInitializationError retry={retry} />}
+    loadingContents={() => loadingStudioCtx && loadingPreviewCtx ? <LoadedStudio studioCtx={loadingStudioCtx} previewCtx={loadingPreviewCtx} canvasLoading /> : <StudioChrome />}
+  />;
+}
+function loadDocsPortal() { return importAndRetry(() => import("@/wab/client/components/docs/DocsPortal")).then(({default: DocsPortal}) => DocsPortal); }
+function loadPreview() { return importAndRetry(() => import("@/wab/client/components/live/Preview")).then(({default: Preview}) => Preview); }
+function LoadedStudio({studioCtx, previewCtx, canvasLoading = false}: {studioCtx: StudioCtx; previewCtx: PreviewCtx; canvasLoading?: boolean}) {
+      const viewCtx = useStudioSelection(studioCtx, (state) => state.view);
+      const {isLive, full} = useStore(previewCtx.store, useShallow((state) => ({ isLive: state.isLive, full: state.previewData?.full })));
+      const isFullPreviewMode = full && isLive;
       return providesStudioCtx(studioCtx)(
         providesViewCtx(viewCtx)(
           providesPreviewCtx(previewCtx)(
@@ -336,13 +306,10 @@ class StudioInitializer_ extends React.Component<
                     route: APP_ROUTES.projectDocs,
                     render: () => (
                       <>
-                        {this.hideStudio()}
-                        <widgets.ObserverLoadable
+                        {<style>{`.studio { visibility: hidden; }`}</style>}
+                        <widgets.Loadable
                           loader={() =>
-                            importAndRetry(
-                              () =>
-                                import("@/wab/client/components/docs/DocsPortal"),
-                            ).then(({ default: DocsPortal }) => DocsPortal)
+                            loadDocsPortal()
                           }
                           contents={(DocsPortal) => (
                             <DocsPortal
@@ -362,13 +329,10 @@ class StudioInitializer_ extends React.Component<
                     render: () => {
                       return (
                         <>
-                          {this.hideStudio()}
-                          <widgets.ObserverLoadable
+                          {<style>{`.studio { visibility: hidden; }`}</style>}
+                          <widgets.Loadable
                             loader={() =>
-                              importAndRetry(
-                                () =>
-                                  import("@/wab/client/components/live/Preview"),
-                              ).then(({ default: Preview }) => Preview)
+                              loadPreview()
                             }
                             contents={(Preview) => (
                               <Preview studioCtx={studioCtx} />
@@ -385,27 +349,8 @@ class StudioInitializer_ extends React.Component<
           ),
         ),
       );
-    };
-    return (
-      <widgets.ObserverLoadable
-        loader={this.init}
-        contents={contents}
-        failureContents={(retry) => <StudioInitializationError retry={retry} />}
-        loadingContents={() => {
-          return loadingStudioCtx && loadingPreviewCtx ? (
-            contents(
-              { studioCtx: loadingStudioCtx, previewCtx: loadingPreviewCtx },
-              true,
-            )
-          ) : (
-            <StudioChrome />
-          );
-        }}
-      />
-    );
-  }
 }
-export const StudioInitializer = observer(StudioInitializer_);
+
 
 function StudioInitializationError({ retry }: { retry: () => void }) {
   const { revealStudio } = useHostFrameCtx();

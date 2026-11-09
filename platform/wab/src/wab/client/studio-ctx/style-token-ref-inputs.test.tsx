@@ -1,3 +1,4 @@
+import { AppContext } from "@/wab/client/components/top-view";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { useShallow } from "zustand/react/shallow";
 import "@/wab/client/components/sidebar/MixinControls";
@@ -47,7 +48,7 @@ async function setup(registered = false) {
   return { ...f, studio: f.studioCtx, site, head, middle, end, other, helper: new VariantedStylesHelper(site) };
 }
 function wrap(f: Awaited<ReturnType<typeof setup>>, children: React.ReactNode) {
-  return <StudioCtxContext.Provider value={f.studio}><div className="app-container"><SidebarModalProvider>{children}</SidebarModalProvider></div></StudioCtxContext.Provider>;
+  return <AppContext.Provider value={f.studio.app}><StudioCtxContext.Provider value={f.studio}><div className="app-container"><SidebarModalProvider>{children}</SidebarModalProvider></div></StudioCtxContext.Provider></AppContext.Provider>;
 }
 
 it("leases only actual resolver nodes and presents the final chain result to the first public field subscriber", async () => {
@@ -312,4 +313,41 @@ it("reads all-style head name/base value without resolving aliases or adding mis
   expect(source.getSnapshot().rows[0]?.applied?.name).toBe("Head renamed");
   expect(source.getSnapshot().rows[0]?.resolved?.value).toBe("13px");
   stop();
+});
+
+
+it("sorts direct color heads by name while retaining all-style first-UUID alias resolution", async () => {
+  const f = await setup();
+  const duplicate = new StyleToken({ uuid: f.head.uuid, name: "A sorted head", type: "Color", value: "#ABCDEF", variantedValues: [], isRegistered: false, regKey: undefined });
+  const spacing = mkStyleToken({ name: "Cross-type alias", type: "Spacing", value: "#778899" });
+  await f.studio.changeUnsafe(() => { f.site.styleTokens.push(duplicate, spacing); f.head.value = mkTokenRef(spacing); });
+  const source = new StyleTokenRefInputs(f.studio, [mkTokenRef(f.head)], f.helper, "ColorDirectSorted"), changed = vi.fn();
+  let installed = source.getSnapshot();
+  const stop = source.subscribe(() => {
+    const next = source.getSnapshot();
+    if (next !== installed) { installed = next; changed(next); }
+  });
+  expect(source.getSnapshot().rows[0]?.applied?.name).toBe("A sorted head");
+  expect(source.getSnapshot().rows[0]?.resolved?.value).toBe("#ABCDEF");
+  await f.studio.changeUnsafe(() => { duplicate.name = "Z sorted head"; });
+  expect(changed).toHaveBeenCalledOnce();
+  expect(source.getSnapshot().rows[0]?.applied?.name).toBe("Head");
+  expect(source.getSnapshot().rows[0]?.resolved?.value).toBe("#778899");
+  stop();
+});
+
+it("keeps the mixin preview's last-UUID head and first-UUID alias contract", async () => {
+  const f = await setup();
+  const duplicateHead = new StyleToken({ uuid: f.head.uuid, name: "Last head", type: "Color", value: mkTokenRef(f.middle), variantedValues: [], isRegistered: false, regKey: undefined });
+  const duplicateAlias = new StyleToken({ uuid: f.middle.uuid, name: "Unused later alias", type: "Color", value: "#FF0000", variantedValues: [], isRegistered: false, regKey: undefined });
+  await f.studio.changeUnsafe(() => { f.site.styleTokens.push(duplicateHead, duplicateAlias); });
+  const source = new StyleTokenRefInputs(f.studio, [mkTokenRef(f.head)], f.helper, "allLastHead"), changed = vi.fn(), stop = source.subscribe(changed);
+  expect(source.getSnapshot().rows[0]?.applied?.ref).toBe(f.studio.modelSnapshots.ref(duplicateHead));
+  expect(source.getSnapshot().rows[0]?.resolved?.value).toBe("#123456");
+  const before = source.getSnapshot();
+  await f.studio.changeUnsafe(() => { duplicateAlias.value = "#00FFFF"; });
+  expect(source.getSnapshot()).toBe(before); expect(changed).not.toHaveBeenCalled();
+  await f.studio.changeUnsafe(() => { f.middle.value = mkTokenRef(f.other); });
+  expect(source.getSnapshot().rows[0]?.resolved?.value).toBe("#00FF00");
+  expect(changed).toHaveBeenCalledOnce(); stop();
 });

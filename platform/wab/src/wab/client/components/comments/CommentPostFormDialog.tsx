@@ -1,3 +1,4 @@
+import { CommentSubjectName, CommentSubjectType } from "@/wab/client/components/comments/CommentSubjectInputs";
 import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
 import CommentPostForm from "@/wab/client/components/comments/CommentPostForm";
 import { FloatingWindow } from "@/wab/client/components/widgets/FloatingWindow";
@@ -10,15 +11,13 @@ import { OpenedNewThread } from "@/wab/client/studio-ctx/comments-ctx";
 import { getSetOfPinnedVariantsForViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { OnClickAway } from "@/wab/commons/components/OnClickAway";
 import { ensure } from "@/wab/shared/common";
-import { summarizeTpl } from "@/wab/shared/core/tpls";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 export type CommentPostFormDialogProps = DefaultCommentPostFormDialogProps & {
   openedNewThread: OpenedNewThread;
 };
 
-export const CommentPostFormDialog = observer(function CommentPostFormDialog({
+export const CommentPostFormDialog = React.memo(function CommentPostFormDialog({
   openedNewThread,
   ...props
 }: CommentPostFormDialogProps) {
@@ -59,13 +58,8 @@ export const CommentPostFormDialog = observer(function CommentPostFormDialog({
           {...props}
           commentsDialogHead={{
             className: "CommentDialogDragHandle",
-            name: threadSubject.name || "Unnamed",
-            type: summarizeTpl(
-              threadSubject,
-              openedNewThread.viewCtx
-                .effectiveCurrentVariantSetting(threadSubject)
-                .rsh(),
-            ),
+            name: <CommentSubjectName studio={studioCtx} subject={threadSubject} fallback="Unnamed" />,
+            type: <CommentSubjectType view={openedNewThread.viewCtx} subject={threadSubject} />,
             close: {
               onClick: () => commentsCtx.closeNewThreadDialog(),
             },

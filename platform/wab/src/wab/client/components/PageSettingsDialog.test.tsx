@@ -1,10 +1,13 @@
+import { assert } from "@/wab/shared/common";
+import { ChangeRecorder } from "@/wab/shared/core/observable-model";
+import { instUtil } from "@/wab/shared/model/InstUtil";
 import { PageSettingsDialog } from "@/wab/client/components/PageSettingsDialog";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { mkArenaFrame } from "@/wab/shared/Arenas";
-import { ComponentType, PageComponent } from "@/wab/shared/core/components";
+import { ComponentType, isPageComponent, PageComponent } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
 import {
   act,
@@ -141,3 +144,21 @@ it.each(["Done", "Close"])(
     expect(screen.getByLabelText("Editing page")).toBe(field);
   },
 );
+
+
+it("updates the title after a model rename and when switching pages", () => {
+  const mgr = setup();
+  const first = mgr.addComponent({ name: "First", type: ComponentType.Page });
+  const second = mgr.addComponent({ name: "Second", type: ComponentType.Page });
+  assert(isPageComponent(first) && isPageComponent(second), "Expected pages");
+  const { rerender } = render(<PageSettingsDialog open page={first} onClose={vi.fn()} />);
+  expect(screen.getByText("Page settings: First")).toBeTruthy();
+  const recorder = new ChangeRecorder({ inst: first, _instUtil: instUtil });
+  act(() => {
+    fixture.modelSnapshots.sync(recorder.withRecording(() => { first.name = "Renamed"; }).changes);
+  });
+  recorder.dispose();
+  expect(screen.getByText("Page settings: Renamed")).toBeTruthy();
+  rerender(<PageSettingsDialog open page={second} onClose={vi.fn()} />);
+  expect(screen.getByText("Page settings: Second")).toBeTruthy();
+});

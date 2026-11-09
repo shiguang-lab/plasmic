@@ -9,14 +9,14 @@ export function SelectionInspector({
   children: React.ReactNode;
 }) {
   const content = React.useRef<HTMLDivElement>(null);
-  const height = React.useRef(0);
+  const [height, setHeight] = React.useState(0);
   React.useEffect(() => {
     if (!content.current || pending) {
       return;
     }
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        height.current = entry.contentRect.height;
+        setHeight(entry.contentRect.height);
       }
     });
     observer.observe(content.current);
@@ -28,16 +28,16 @@ export function SelectionInspector({
     if (!root) {
       return;
     }
-    root.inert = pending;
+    root.toggleAttribute("inert", pending);
     return () => {
-      root.inert = false;
+      root.removeAttribute("inert");
     };
   }, [pending]);
   return (
     <div
       ref={content}
       aria-busy={pending}
-      style={{ overflowAnchor: "none", ...(pending ? { minHeight: height.current, flexShrink: 0 } : {}) }}
+      style={{ overflowAnchor: "none", ...(pending ? { minHeight: height, flexShrink: 0 } : {}) }}
     >
       {pending ? null : children}
     </div>

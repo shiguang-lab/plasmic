@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,12 +24,12 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -101,11 +101,10 @@ function PlasmicMenuItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "selected",
@@ -114,20 +113,22 @@ function PlasmicMenuItem__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.selected,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <PlasmicLink__
@@ -231,12 +232,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -246,29 +243,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicMenuItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicMenuItem";
-  } else {
-    func.displayName = `PlasmicMenuItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicMenuItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicMenuItem__root<T extends PlasmicMenuItem__rootProps>(props: T & StrictProps<T, PlasmicMenuItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicMenuItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicMenuItem__root.displayName = "PlasmicMenuItem";
+
+type PlasmicMenuItem__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicMenuItem__freeBox<T extends PlasmicMenuItem__freeBoxProps>(props: T & StrictProps<T, PlasmicMenuItem__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicMenuItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicMenuItem__freeBox.displayName = "PlasmicMenuItem.freeBox";
+
+type PlasmicMenuItem__circleProps = NodeComponentProps<"circle"> & {key?: React.Key};
+function PlasmicMenuItem__circle<T extends PlasmicMenuItem__circleProps>(props: T & StrictProps<T, PlasmicMenuItem__circleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("circle", props);
+  return <PlasmicMenuItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"circle"} />;
+}
+PlasmicMenuItem__circle.displayName = "PlasmicMenuItem.circle";
+
+type PlasmicMenuItem__iconProps = NodeComponentProps<"icon"> & {key?: React.Key};
+function PlasmicMenuItem__icon<T extends PlasmicMenuItem__iconProps>(props: T & StrictProps<T, PlasmicMenuItem__iconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("icon", props);
+  return <PlasmicMenuItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"icon"} />;
+}
+PlasmicMenuItem__icon.displayName = "PlasmicMenuItem.icon";
+
 
 export const PlasmicMenuItem = Object.assign(
   // Top-level PlasmicMenuItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicMenuItem__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    circle: makeNodeComponent("circle"),
-    icon: makeNodeComponent("icon"),
+    freeBox: PlasmicMenuItem__freeBox,
+    circle: PlasmicMenuItem__circle,
+    icon: PlasmicMenuItem__icon,
 
     // Metadata about props expected for PlasmicMenuItem
     internalVariantProps: PlasmicMenuItem__VariantProps,

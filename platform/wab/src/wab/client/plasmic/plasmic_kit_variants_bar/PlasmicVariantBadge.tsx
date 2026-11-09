@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,11 +23,11 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: kdj5vahTyUKxznuR6rrtt6/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: kdj5vahTyUKxznuR6rrtt6/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -100,11 +100,10 @@ function PlasmicVariantBadge__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isRecording",
@@ -127,18 +126,20 @@ function PlasmicVariantBadge__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.isFocused,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -321,12 +322,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -336,28 +333,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVariantBadge__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicVariantBadge";
-  } else {
-    func.displayName = `PlasmicVariantBadge.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVariantBadge__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicVariantBadge__root<T extends PlasmicVariantBadge__rootProps>(props: T & StrictProps<T, PlasmicVariantBadge__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicVariantBadge__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicVariantBadge__root.displayName = "PlasmicVariantBadge";
+
+type PlasmicVariantBadge__removeIconProps = NodeComponentProps<"removeIcon"> & {key?: React.Key};
+function PlasmicVariantBadge__removeIcon<T extends PlasmicVariantBadge__removeIconProps>(props: T & StrictProps<T, PlasmicVariantBadge__removeIconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("removeIcon", props);
+  return <PlasmicVariantBadge__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"removeIcon"} />;
+}
+PlasmicVariantBadge__removeIcon.displayName = "PlasmicVariantBadge.removeIcon";
+
+type PlasmicVariantBadge__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicVariantBadge__svg<T extends PlasmicVariantBadge__svgProps>(props: T & StrictProps<T, PlasmicVariantBadge__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicVariantBadge__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicVariantBadge__svg.displayName = "PlasmicVariantBadge.svg";
+
 
 export const PlasmicVariantBadge = Object.assign(
   // Top-level PlasmicVariantBadge renders the root element
-  makeNodeComponent("root"),
+  PlasmicVariantBadge__root,
   {
     // Helper components rendering sub-elements
-    removeIcon: makeNodeComponent("removeIcon"),
-    svg: makeNodeComponent("svg"),
+    removeIcon: PlasmicVariantBadge__removeIcon,
+    svg: PlasmicVariantBadge__svg,
 
     // Metadata about props expected for PlasmicVariantBadge
     internalVariantProps: PlasmicVariantBadge__VariantProps,

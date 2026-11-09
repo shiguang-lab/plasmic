@@ -14,7 +14,7 @@ const esbuild = require(
 esbuild.buildSync({
   stdin: {
     contents:
-      'import React from "react";import ReactDOM from "react-dom";import {Skeleton} from "antd";\nwindow.renderFixture=(activeCount=12)=>ReactDOM.render(<div style={{display:"grid",gridTemplateColumns:"repeat(4,320px)",gap:16,padding:16}}>{Array.from({length:12},(_,i)=><div key={i} style={{background:"white",padding:20,height:190}}><Skeleton active={i<activeCount} paragraph={{rows:5}} /></div>)}</div>,document.getElementById(\'root\'));window.renderFixture();\n',
+      'import React from "react";import {createRoot} from "react-dom/client";import {flushSync} from "react-dom";import {Skeleton} from "antd";\nconst root=createRoot(document.getElementById(\'root\'));window.renderFixture=(activeCount=12)=>flushSync(()=>root.render(<div style={{display:"grid",gridTemplateColumns:"repeat(4,320px)",gap:16,padding:16}}>{Array.from({length:12},(_,i)=><div key={i} style={{background:"white",padding:20,height:190}}><Skeleton active={i<activeCount} paragraph={{rows:5}} /></div>)}</div>));window.unmountFixture=()=>flushSync(()=>root.unmount());window.renderFixture();\n',
     loader: "jsx",
     resolveDir: repo + "/platform/wab",
   },

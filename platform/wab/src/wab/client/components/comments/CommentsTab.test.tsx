@@ -4,6 +4,7 @@ import { ComponentType } from "@/wab/shared/core/components";
 import { getDedicatedArena } from "@/wab/shared/core/sites";
 import { isTplNamable } from "@/wab/shared/core/tpls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import type { TplCommentThread } from "@/wab/client/components/comments/utils";
 import CommentsTab from "@/wab/client/components/comments/CommentsTab";
 import { setLanguagePreference } from "@/wab/client/i18n";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -24,7 +25,7 @@ vi.mock("@/wab/client/contexts/StudioContexts", () => ({
   useStudioCtx: () => fixture.ctx,
 }));
 vi.mock("@/wab/client/components/comments/RootComment", () => ({
-  default: () => null,
+  default: ({ commentThread }: { commentThread: TplCommentThread }) => <span>{commentThread.comments[0]?.body}</span>,
 }));
 vi.mock("@/wab/client/ErrorNotifications", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/wab/client/ErrorNotifications")>()),
@@ -122,7 +123,7 @@ it("filters the real comment data when only the native current arena changes", a
   await studioCtx.commentsCtx.fetchComments();
   studioCtx.currentArena = ensure(getDedicatedArena(studioCtx.site, first), "First arena");
   const { unmount } = render(<CommentsTab />);
-  expect(studioCtx.commentsCtx.filteredThreads()).toHaveLength(1);
+  expect(screen.getByText("First page thread")).toBeTruthy();
   expect(screen.queryByText("No open comments")).toBeNull();
   act(() => { studioCtx.currentArena = ensure(getDedicatedArena(studioCtx.site, second), "Second arena"); });
   expect(screen.getByText("No open comments")).toBeTruthy();

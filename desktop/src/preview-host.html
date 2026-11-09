@@ -26,7 +26,20 @@
           frame.setAttribute("inert", "");
           frame.style.cssText =
             "position:fixed;left:0;top:0;width:1440px;height:1024px;border:0;pointer-events:none;opacity:0;z-index:-1";
-          window.addEventListener("message", (event) => {
+          let settled = false;
+          const finish = (error, bytes) => {
+            if (settled) { return; }
+            settled = true;
+            window.removeEventListener("message", onMessage);
+            frame.onerror = null;
+            // The transferred PNG now belongs to this host document. Detach
+            // the engine before the native bridge destroys the whole window.
+            frame.src = "about:blank";
+            frame.remove();
+            if (error === undefined) { host.result(bytes); }
+            else { host.fail(error); }
+          };
+          function onMessage(event) {
             if (
               event.source !== frame.contentWindow ||
               event.origin !== location.origin ||
@@ -43,12 +56,13 @@
               event.data.type === "result" &&
               event.data.bytes instanceof ArrayBuffer
             ) {
-              host.result(new Uint8Array(event.data.bytes));
+              finish(undefined, new Uint8Array(event.data.bytes));
             } else if (event.data.type === "error") {
-              host.fail(String(event.data.message));
+              finish(String(event.data.message));
             }
-          });
-          frame.onerror = () => host.fail("Canvas preview failed to load");
+          }
+          window.addEventListener("message", onMessage);
+          frame.onerror = () => finish("Canvas preview failed to load");
           frame.src = src;
           document.body.append(frame);
         });

@@ -22,7 +22,7 @@ import {
   STUDIO_ONBOARDING_TUTORIALS,
   TOPFRAME_ONBOARDING_TUTORIALS,
 } from "@/wab/client/tours/tutorials/tutorials-meta";
-import { TutorialStateFlags } from "@/wab/client/tours/tutorials/tutorials-types";
+import { TutorialStateFlags, StudioTutorialStep, TopFrameTutorialStep } from "@/wab/client/tours/tutorials/tutorials-types";
 import { trackEvent } from "@/wab/client/tracking";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { zIndex } from "@/wab/client/z-index";
@@ -31,7 +31,7 @@ import { ProjectId } from "@/wab/shared/ApiSchema";
 import { mkShortId, spawn, waitUntil } from "@/wab/shared/common";
 import * as Sentry from "@sentry/browser";
 import { notification } from "antd";
-import { observer } from "mobx-react";
+import { useTutorialAccountInputs } from "@/wab/client/tours/tutorials/tutorial-account-inputs";
 import React from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useStore } from "zustand";
@@ -168,21 +168,80 @@ function trackTourEvent(meta: TourStepMeta) {
 const USER_CHANGE_CHECK_INTERVAL = 250; // 0.25 seconds
 const USER_CHANGE_MAX_WAIT = 1000 * 60 * 45; // 45 minutes
 
-export const StudioTutorialTours = observer(function _StudioTutorialTours() {
-  const { t: studioUiT } = useI18n();
-
+export const StudioTutorialTours = React.memo(function StudioTutorialTours() {
   const studioCtx = useStudioCtx();
-  const liveMode = useStudioLiveMode(studioCtx);
+  const account = useTutorialAccountInputs(studioCtx.appCtx);
   const api = useApi();
   const topFrameApi = useTopFrameApi();
-
-  const tourState = useStore(
-    studioCtx.leftPanelState.store,
-    selectOnboardingTourState,
-  );
+  const tourState = useStore(studioCtx.leftPanelState.store, selectOnboardingTourState);
   const currentTutorial = STUDIO_ONBOARDING_TUTORIALS[tourState.tour];
   const currentStep = currentTutorial?.[tourState.stepIndex];
 
+  const isMounted = useMountedState();
+
+  React.useEffect(() => {
+    let current = true;
+    spawn(
+      (async function checkIfShouldStartTour() {
+        const templateTours = account.templateTours;
+        const { clonedFromProjectId, id: projectId } = studioCtx.siteInfo;
+
+        if (!clonedFromProjectId || !templateTours) {
+          return;
+        }
+
+        const templateTour = templateTours[clonedFromProjectId];
+
+        if (!templateTour) {
+          return;
+        }
+
+        const hasSeenTour = await api.getStorageItem(
+          tourSeenForProjectKey(projectId),
+        );
+
+        if (!hasSeenTour && isMounted() && current) {
+          trackTourEvent({
+            projectId,
+            tour: templateTour,
+            stepIndex: 0,
+            stepName: "",
+            prevStepName: "",
+            status: "started",
+          });
+
+          studioCtx.setOnboardingTourState({
+            run: true,
+            stepIndex: 0,
+            tour: templateTour,
+            flags: {},
+            triggers: [],
+          });
+        }
+      })(),
+    );
+    return () => {current = false;};
+  }, [studioCtx, isMounted, account.templateTours]);
+
+  return currentTutorial && currentStep ? (
+    <StudioTutorialStepTour key={tourState.tour} studioCtx={studioCtx} account={account}
+      api={api} topFrameApi={topFrameApi} tourState={tourState}
+      currentTutorial={currentTutorial} currentStep={currentStep} />
+  ) : null;
+});
+
+function StudioTutorialStepTour({ studioCtx, account, api, topFrameApi, tourState, currentTutorial, currentStep }: {
+  studioCtx: ReturnType<typeof useStudioCtx>;
+  account: ReturnType<typeof useTutorialAccountInputs>;
+  api: ReturnType<typeof useApi>;
+  topFrameApi: ReturnType<typeof useTopFrameApi>;
+  tourState: ReturnType<typeof selectOnboardingTourState>;
+  currentTutorial: readonly StudioTutorialStep[];
+  currentStep: StudioTutorialStep;
+}) {
+  const { t: studioUiT } = useI18n();
+  const liveMode = useStudioLiveMode(studioCtx);
+  const isMounted = useMountedState();
   function trackCurrentStepTourEvent(status: TourStepMeta["status"]) {
     trackTourEvent({
       projectId: studioCtx.siteInfo.id,
@@ -221,7 +280,7 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
         trackCurrentStepTourEvent("paused");
       }
     },
-    [tourState.run, studioUiT],
+    [tourState.run, studioUiT, studioCtx, trackCurrentStepTourEvent],
   );
 
   const { isTargetVisible } = useTourStepTargetVisibility(
@@ -250,7 +309,7 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
   const quitTour = async () => {
     trackCurrentStepTourEvent("quit");
     await markTourAsSeen();
-    closeTour();
+    if (isMounted()) { closeTour(); }
   };
 
   const finishTour = () => {
@@ -276,6 +335,7 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
   };
 
   const advanceToNextStep = async (flags: Partial<TutorialStateFlags> = {}) => {
+    if (!isMounted()) { return; }
     studioCtx.setOnboardingTourState({
       ...studioCtx.onboardingTourState,
       run: false, // sneakily disable the tour so that the tutorial is hidden while waiting
@@ -284,6 +344,7 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
     if (currentStep?.onNext) {
       await currentStep.onNext(stepCtx);
     }
+    if (!isMounted()) { return; }
 
     trackCurrentStepTourEvent("completed");
     if (tourState.stepIndex + 1 === currentTutorial.length) {
@@ -296,6 +357,7 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
       // this way if the user reloads the page the tour won't show up again if it had
       // some kind of interaction before
       await markTourAsSeen();
+      if (!isMounted()) { return; }
     }
     const nextStep = currentTutorial[tourState.stepIndex + 1];
     const currentFlags = {
@@ -307,6 +369,7 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
       try {
         await nextStep.waitFor(stepCtx);
       } catch (e) {
+        if (!isMounted()) { return; }
         // The nature of waitFor should be simple operation to wait for something to be visible
         // or wait for some animation to finish, small fixes at the studio zoom...
         //
@@ -317,15 +380,18 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
       }
     }
 
+    if (!isMounted()) { return; }
     try {
       await waitElementToBeVisible(nextStep.target);
     } catch (e) {
+      if (!isMounted()) { return; }
       // We won't stop the tour here, we will attempt to continue and let `clearFlagsOnVisibilityChange`
       // to pause the tour if the target is not visible
       trackCurrentStepTourEvent("error");
       captureTourError(e);
     }
 
+    if (!isMounted()) { return; }
     studioCtx.setOnboardingTourState({
       run: true,
       stepIndex: tourState.stepIndex + 1,
@@ -362,71 +428,31 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
       return;
     }
 
+    let current = true;
     const advanceOnUserChanges = currentStep.advanceOnUserChanges;
     if (advanceOnUserChanges) {
       const nonNullAdvanceOnUserChanges = advanceOnUserChanges;
       async function advanceToNextStepAfterUserChanges() {
         try {
-          await waitUntil(() => nonNullAdvanceOnUserChanges(stepCtx), {
+          await waitUntil(() => current ? nonNullAdvanceOnUserChanges(stepCtx) : true, {
             timeout: USER_CHANGE_CHECK_INTERVAL,
             maxTimeout: USER_CHANGE_MAX_WAIT,
           });
         } catch (e) {
+          if (!current || !isMounted()) { return; }
           console.log("Studio tour timed out", e);
           endTourByInactivity();
           captureTourError(e);
           return;
         }
 
-        await advanceToNextStep();
+        if (current && isMounted()) { await advanceToNextStep(); }
       }
       spawn(advanceToNextStepAfterUserChanges());
     }
+    return () => { current = false; };
   }, [tourState.run, tourState.stepIndex]);
 
-  const isMounted = useMountedState();
-
-  React.useEffect(() => {
-    spawn(
-      (async function checkIfShouldStartTour() {
-        const templateTours = studioCtx.appCtx.appConfig.templateTours;
-        const { clonedFromProjectId, id: projectId } = studioCtx.siteInfo;
-
-        if (!clonedFromProjectId || !templateTours) {
-          return;
-        }
-
-        const templateTour = templateTours[clonedFromProjectId];
-
-        if (!templateTour) {
-          return;
-        }
-
-        const hasSeenTour = await api.getStorageItem(
-          tourSeenForProjectKey(projectId),
-        );
-
-        if (!hasSeenTour && isMounted()) {
-          trackTourEvent({
-            projectId,
-            tour: templateTour,
-            stepIndex: 0,
-            stepName: "",
-            prevStepName: "",
-            status: "started",
-          });
-
-          studioCtx.setOnboardingTourState({
-            run: true,
-            stepIndex: 0,
-            tour: templateTour,
-            flags: {},
-            triggers: [],
-          });
-        }
-      })(),
-    );
-  }, [studioCtx, isMounted]);
 
   if (
     !tourState.run ||
@@ -450,7 +476,7 @@ export const StudioTutorialTours = observer(function _StudioTutorialTours() {
           onSecondary={async () => step.onSecondary?.(stepCtx)}
           onQuit={quitTour}
           tourInfo={{
-            userFirstName: studioCtx.appCtx.selfInfo?.displayName || "",
+            userFirstName: account.displayName,
             storeName: "Your Store",
           }}
         />
@@ -515,7 +541,7 @@ linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), url(/static/img/g
       </React.Suspense>
     </ErrorBoundary>
   );
-});
+}
 
 function UnexpectedTourError() {
   const { t: studioUiT } = useI18n();
@@ -541,17 +567,29 @@ function generateCustomDomain(appCtx: AppCtx, tour: string) {
   return `${tourPrefix}${uniqueId}.${appCtx.appConfig.plasmicHostingSubdomainSuffix}`;
 }
 
-export function TopFrameTours(props: {
+interface TopFrameToursProps {
   appCtx: AppCtx;
   tourState: TopFrameTourState;
   topFrameApi: TopFrameApi;
   changeTourState: (state: TopFrameTourState) => Promise<void>;
   projectId: ProjectId;
-}) {
-  const { appCtx, tourState, topFrameApi, changeTourState, projectId } = props;
+}
 
-  const currentTutorial = TOPFRAME_ONBOARDING_TUTORIALS[tourState.tour];
-  const currentStep = currentTutorial?.[tourState.stepIndex];
+export function TopFrameTours(props: TopFrameToursProps) {
+  const currentTutorial = TOPFRAME_ONBOARDING_TUTORIALS[props.tourState.tour];
+  const currentStep = currentTutorial?.[props.tourState.stepIndex];
+  return currentTutorial && currentStep ? (
+    <TopFrameTutorialStepTour key={props.tourState.tour} {...props}
+      currentTutorial={currentTutorial} currentStep={currentStep} />
+  ) : null;
+}
+
+function TopFrameTutorialStepTour(props: TopFrameToursProps & {
+  currentTutorial: readonly TopFrameTutorialStep[];
+  currentStep: TopFrameTutorialStep;
+}) {
+  const { appCtx, tourState, topFrameApi, changeTourState, projectId, currentTutorial, currentStep } = props;
+  const isMounted = useMountedState();
   const { isTargetVisible } = useTourStepTargetVisibility(
     tourState.run,
     currentStep?.target,
@@ -584,7 +622,7 @@ export function TopFrameTours(props: {
   const quitTour = async () => {
     trackCurrentStepTourEvent("quit");
     await topFrameApi.setKeepPublishModalOpen(false);
-    await closeTour();
+    if (isMounted()) { await closeTour(); }
   };
 
   const onNextCtx = {
@@ -595,11 +633,13 @@ export function TopFrameTours(props: {
   };
 
   const advanceToNextStep = async () => {
+    if (!isMounted()) { return; }
     // If we have both onNext and onSecondary, we assume that we shouldn't trigger onNext/onSecondary
     // as it's expected that the user will trigger it manually.
     if (currentStep?.onNext && !currentStep?.onSecondary) {
       await currentStep.onNext(onNextCtx);
     }
+    if (!isMounted()) { return; }
 
     // Track user completing a step
     trackCurrentStepTourEvent("completed");
@@ -615,11 +655,14 @@ export function TopFrameTours(props: {
       stepIndex: tourState.stepIndex + 1,
       tour: tourState.tour,
     });
+    if (!isMounted()) { return; }
 
     if (nextStep.waitFor) {
       await nextStep.waitFor(onNextCtx);
     }
+    if (!isMounted()) { return; }
     await waitElementToBeVisible(nextStep.target);
+    if (!isMounted()) { return; }
 
     await changeTourState({
       run: true,

@@ -116,7 +116,7 @@ import {
   replaceTplTreeByEmptyBox,
 } from "@/wab/shared/core/tpls";
 import { HostLessPackageInfo } from "@/wab/shared/devflags";
-import { ensureComponentsObserved } from "@/wab/shared/mobx-util";
+import { ensureComponentsRecorded } from "@/wab/shared/core/component-recording";
 import {
   AnimationSequence,
   ArenaFrame,
@@ -902,7 +902,7 @@ function upgradeProjectDep(
     if (!newComp) {
       const componentName = tplMgr.getUniqueComponentName(oldComp.name);
       const res = tplMgr.cloneComponent(oldComp, componentName, true);
-      ensureComponentsObserved([res.component]);
+      ensureComponentsRecorded([res.component]);
       newComp = res.component;
       oldToNewComp.set(oldComp, newComp);
       mapParams(oldComp, newComp);

@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,7 +22,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: kdj5vahTyUKxznuR6rrtt6/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: kdj5vahTyUKxznuR6rrtt6/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -76,11 +76,10 @@ function PlasmicVariantsSectionDivider__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -144,12 +143,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -159,27 +154,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVariantsSectionDivider__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicVariantsSectionDivider";
-  } else {
-    func.displayName = `PlasmicVariantsSectionDivider.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVariantsSectionDivider__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicVariantsSectionDivider__root<T extends PlasmicVariantsSectionDivider__rootProps>(props: T & StrictProps<T, PlasmicVariantsSectionDivider__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicVariantsSectionDivider__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicVariantsSectionDivider__root.displayName = "PlasmicVariantsSectionDivider";
+
+type PlasmicVariantsSectionDivider__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicVariantsSectionDivider__freeBox<T extends PlasmicVariantsSectionDivider__freeBoxProps>(props: T & StrictProps<T, PlasmicVariantsSectionDivider__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicVariantsSectionDivider__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicVariantsSectionDivider__freeBox.displayName = "PlasmicVariantsSectionDivider.freeBox";
+
 
 export const PlasmicVariantsSectionDivider = Object.assign(
   // Top-level PlasmicVariantsSectionDivider renders the root element
-  makeNodeComponent("root"),
+  PlasmicVariantsSectionDivider__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
+    freeBox: PlasmicVariantsSectionDivider__freeBox,
 
     // Metadata about props expected for PlasmicVariantsSectionDivider
     internalVariantProps: PlasmicVariantsSectionDivider__VariantProps,

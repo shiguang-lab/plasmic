@@ -103,7 +103,7 @@ it.each([false, true])("shows synchronization failures inside the assistant with
   vi.mocked(showError).mockClear();
   const session = ensure(state.session, "Missing test AI session");
   session.userId = "user";
-  session.draft = {prompt: "Keep my draft", attachments: []};
+  session.setThreadDraft(session.activeThreadId, {prompt: "Keep my draft", attachments: []});
   session.syncError = new NetworkError({method: "GET", url: "/ai/chat/events?afterSeq=0"});
   if (running) {
     session.tasks = [{id: "running", threadId: session.activeThreadId, status: "running", parts: [], messages: [], records: [], operations: [], files: [], prompt: "Edit", phase: "Thinking", binding: {projectId: "project", branchId: null, sessionId: "session", changeCounter: 0, componentUuid: null, elementUuids: []}, authorId: "user", createdAt: "2026-10-29T00:00:00Z"}];
@@ -122,7 +122,7 @@ it.each([false, true])("shows synchronization failures inside the assistant with
   }
   act(() => {
     session.syncError = undefined;
-    session.draft = {...session.draft};
+    session.setThreadDraft(session.activeThreadId, {...session.draft});
   });
   await waitFor(() => expect(screen.queryByRole("status")).toBeNull());
   expect(session.draft.prompt).toBe("Keep my draft");
@@ -132,7 +132,7 @@ it("renders a working Web composer and submits once through the session", async 
     .spyOn(state.session as LocalEditSession, "run")
     .mockImplementation(async () => {
       if (state.session) {
-        state.session.draft = { prompt: "", attachments: [] };
+        state.session.setThreadDraft(state.session.activeThreadId, { prompt: "", attachments: [] });
       }
     });
   mount();
@@ -242,7 +242,7 @@ it("submits natural language with automatic targeting and no mode or identity fi
     .spyOn(state.session as LocalEditSession, "run")
     .mockImplementation(async () => {
       if (state.session) {
-        state.session.draft = { prompt: "", attachments: [] };
+        state.session.setThreadDraft(state.session.activeThreadId, { prompt: "", attachments: [] });
       }
     });
   mount();
@@ -280,7 +280,7 @@ it("uses the chosen model and remembers it when reopening the panel", async () =
     .spyOn(state.session as LocalEditSession, "run")
     .mockImplementation(async () => {
       if (state.session) {
-        state.session.draft = { prompt: "", attachments: [] };
+        state.session.setThreadDraft(state.session.activeThreadId, { prompt: "", attachments: [] });
       }
     });
   const first = mount();
@@ -332,10 +332,10 @@ it("keeps the panel mounted when the running server omits the model list", async
 
 it("shares the canvas draft and attachments across panel close and reopen", () => {
   const session = state.session as LocalEditSession;
-  session.draft = {
+  session.setThreadDraft(session.activeThreadId, {
     prompt: "Canvas draft",
     attachments: [{ type: "text", name: "requirements.md", text: "A table" }],
-  };
+  });
   const first = mount();
   expect(screen.getByRole("textbox")).toHaveProperty(
     "innerText",
@@ -360,10 +360,10 @@ it("starts an explicit prompt once using the shared attachments and clears its d
   const attachments = [
     { type: "text" as const, name: "requirements.md", text: "A table" },
   ];
-  session.draft = { prompt: "Canvas request", attachments };
+  session.setThreadDraft(session.activeThreadId, { prompt: "Canvas request", attachments });
   const run = vi.spyOn(session, "run").mockImplementation(async () => {
     if (state.session) {
-      state.session.draft = { prompt: "", attachments: [] };
+      state.session.setThreadDraft(state.session.activeThreadId, { prompt: "", attachments: [] });
     }
   });
   mount({ prompt: "Canvas request", mode: undefined });
@@ -393,7 +393,7 @@ const selection: LocalAiContext = {
 
 it("shows the canvas model before app context loads without enabling submission or refetching on readiness", async () => {
   const session = ensure(state.session, "Missing test AI session");
-  session.draft = { prompt: "Change padding", attachments: [] };
+  session.setThreadDraft(session.activeThreadId, { prompt: "Change padding", attachments: [] });
   const run = vi.spyOn(session, "run").mockResolvedValue(undefined);
   const appCtx = mock<AppCtx>();
   Object.defineProperty(appCtx, "appConfig", { value: config });
@@ -563,7 +563,7 @@ it("submits from the top-frame entry into panel mode once with the selected node
   const session = state.session as LocalEditSession;
   const run = vi.spyOn(session, "run").mockImplementation(async () => {
     if (state.session) {
-      state.session.draft = { prompt: "", attachments: [] };
+      state.session.setThreadDraft(state.session.activeThreadId, { prompt: "", attachments: [] });
     }
   });
   render(<AiModes />);

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,7 +25,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -80,11 +80,10 @@ function PlasmicSegmentModal__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -165,12 +164,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -180,28 +175,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSegmentModal__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSegmentModal";
-  } else {
-    func.displayName = `PlasmicSegmentModal.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSegmentModal__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSegmentModal__root<T extends PlasmicSegmentModal__rootProps>(props: T & StrictProps<T, PlasmicSegmentModal__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSegmentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSegmentModal__root.displayName = "PlasmicSegmentModal";
+
+type PlasmicSegmentModal__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicSegmentModal__freeBox<T extends PlasmicSegmentModal__freeBoxProps>(props: T & StrictProps<T, PlasmicSegmentModal__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicSegmentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicSegmentModal__freeBox.displayName = "PlasmicSegmentModal.freeBox";
+
+type PlasmicSegmentModal__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicSegmentModal__link<T extends PlasmicSegmentModal__linkProps>(props: T & StrictProps<T, PlasmicSegmentModal__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicSegmentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicSegmentModal__link.displayName = "PlasmicSegmentModal.link";
+
 
 export const PlasmicSegmentModal = Object.assign(
   // Top-level PlasmicSegmentModal renders the root element
-  makeNodeComponent("root"),
+  PlasmicSegmentModal__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    link: makeNodeComponent("link"),
+    freeBox: PlasmicSegmentModal__freeBox,
+    link: PlasmicSegmentModal__link,
 
     // Metadata about props expected for PlasmicSegmentModal
     internalVariantProps: PlasmicSegmentModal__VariantProps,

@@ -1,3 +1,4 @@
+import { useInspectorTitle } from "@/wab/client/components/studio/inspector-title-inputs";
 import PageSettings from "@/wab/client/components/PageSettings";
 import { PopoverFrameProvider } from "@/wab/client/components/sidebar/PopoverFrame";
 import { Modal } from "@/wab/client/components/widgets/Modal";
@@ -7,10 +8,9 @@ import { useViewEntryForComponent } from "@/wab/client/studio-ctx/arena-state";
 import { PageComponent } from "@/wab/shared/core/components";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Button, Typography } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const PageSettingsDialog = observer(function PageSettingsDialog({
+export const PageSettingsDialog = React.memo(function PageSettingsDialog({
   open,
   page,
   onClose,
@@ -21,6 +21,7 @@ export const PageSettingsDialog = observer(function PageSettingsDialog({
 }) {
   const { t } = useI18n();
   const studioCtx = useStudioCtx();
+  const pageName = useInspectorTitle(studioCtx, undefined, page);
   const viewCtx = useViewEntryForComponent(studioCtx, page)?.view;
   return (
     <Modal
@@ -29,7 +30,7 @@ export const PageSettingsDialog = observer(function PageSettingsDialog({
       width={640}
       title={
         page
-          ? t("Page settings: {name}", { name: page.name })
+          ? t("Page settings: {name}", { name: pageName ?? "" })
           : t("Page settings")
       }
       onCancel={onClose}

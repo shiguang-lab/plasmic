@@ -24,13 +24,12 @@ export function useModelUiActionHandler(
   handler: (uuid: string, type: UiActionType) => void,
 ) {
   const studioCtx = useStudioCtx();
-  const handlerRef = React.useRef(handler);
-  handlerRef.current = handler;
+  const onAction = React.useEffectEvent(handler);
   React.useEffect(() => {
     const { dispose } = studioCtx.uiActionBus.registerListener((uiId, type) => {
       const parsed = parseUiId(uiId);
       if (parsed.type === "Model" && parsed.typeTag === typeTag) {
-        handlerRef.current(parsed.uuid, type);
+        onAction(parsed.uuid, type);
       }
     });
     return dispose;

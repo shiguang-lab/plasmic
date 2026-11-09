@@ -130,7 +130,8 @@ it("uses native React 19 hooks and the server external-store snapshot", async ()
 it("keeps head metadata, JSON-safe values and client-only query filtering", async () => {
   function Metadata() {
     const head = React.use(HeadMetadataContext);
-    head.title = "Saved page";
+    if (!head) { throw new Error("Missing request metadata collector"); }
+    head.collect({ title: "Saved page" });
     usePlasmicQueryData("$csq$client", async () => "private");
     usePlasmicQueryData("$swr$internal", async () => "internal");
     usePlasmicQueryData("empty", async () => undefined);
@@ -156,4 +157,24 @@ it("reads prepass only from the current provider, without leaking into ordinary 
   await extractPlasmicQueryData(<Status />);
   renderToStaticMarkup(<Status />);
   expect(seen).toEqual([false, true, false]);
+});
+
+it("isolates head metadata and identical query keys across concurrent requests", async () => {
+  let resolveFirst: (title: string) => void = () => { throw new Error("First request not initialized"); };
+  let resolveSecond: (title: string) => void = () => { throw new Error("Second request not initialized"); };
+  const firstTitle = new Promise<string>((resolve) => { resolveFirst = resolve; });
+  const secondTitle = new Promise<string>((resolve) => { resolveSecond = resolve; });
+  function Page({title}: {title: Promise<string>}) {
+    const head = React.use(HeadMetadataContext);
+    const result = usePlasmicQueryData("request-title", () => title);
+    if (!head) throw new Error("Missing request collector");
+    if (result.data) head.collect({title: result.data});
+    return null;
+  }
+  const first = plasmicPrepassExtract(<Page title={firstTitle} />);
+  const second = plasmicPrepassExtract(<Page title={secondTitle} />);
+  resolveSecond("Second page");
+  expect(await second).toEqual({queryData: {"request-title": "Second page"}, headMetadata: {title: "Second page"}});
+  resolveFirst("First page");
+  expect(await first).toEqual({queryData: {"request-title": "First page"}, headMetadata: {title: "First page"}});
 });

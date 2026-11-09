@@ -9,6 +9,7 @@ import {
   makePlasmicComponentName,
 } from "@/wab/shared/codegen/react-p/serialize-utils";
 import { SerializerBaseContext } from "@/wab/shared/codegen/react-p/types";
+import { getPlumePackageName, getReactWebPackageName } from "@/wab/shared/codegen/react-p/utils";
 import {
   jsLiteral,
   paramToVarName,
@@ -38,19 +39,15 @@ const menuItemConfig = {
 export const MenuItemPlugin: PlumePlugin = {
   // PlumeCanvasPlugin
   genCanvasWrapperComponent: (sub, comp, observer, getCompMeta) => {
-    return (allProps) =>
-      observer(() => {
-        const internalProps = pick(allProps, internalCanvasElementProps);
-        const { plasmicProps } = sub.reactWeb.useMenuItem(
-          Object.assign(comp, getCompMeta()),
-          omit(allProps, internalCanvasElementProps),
-          menuItemConfig as any,
-        );
-        return sub.React.createElement(comp, {
-          ...plasmicProps,
-          ...internalProps,
-        });
-      });
+    return sub.createCanvasComponentType((allProps) =>
+      observer(() => sub.React.createElement(sub.CanvasPlume.CanvasPlumeMenuItem, {
+        impl: comp,
+        metadata: getCompMeta(),
+        internalProps: pick(allProps, internalCanvasElementProps),
+        componentProps: omit(allProps, internalCanvasElementProps),
+        config: menuItemConfig as any,
+
+      })));
   },
 
   // PlumeCodegenPlugin
@@ -59,8 +56,8 @@ export const MenuItemPlugin: PlumePlugin = {
     const { component } = ctx;
 
     return `
-      function useBehavior<P extends pp.BaseSelectOptionProps>(props: P) {
-        return pp.useMenuItem(
+      function useBehavior<P extends Plume.BaseSelectOptionProps>(props: P) {
+        return Plume.useMenuItem(
           ${makePlasmicComponentName(component)},
           props,
           ${jsLiteral(menuItemConfig)}
@@ -76,7 +73,7 @@ export const MenuItemPlugin: PlumePlugin = {
     return `
       export interface ${
         opts?.typeName ?? makeDefaultExternalPropsName(component)
-      } extends pp.BaseMenuItemProps {
+      } extends Plume.BaseMenuItemProps {
         ${params
           .map(
             (param) =>
@@ -121,6 +118,16 @@ export const MenuItemPlugin: PlumePlugin = {
       }
 
       function ${componentName}(props: ${propsName}) {
+        const context = React.useContext(MenuContext);
+        if (!context) {
+          if (PLUME_STRICT_MODE) { throw new Error("You can only use a Menu.Item within a Menu component."); }
+          const { plasmicProps } = getDefaultPlasmicProps(${plasmicComponentName}, props);
+          return <${plasmicComponentName} {...plasmicProps} />;
+        }
+        return <${componentName}WithContext props={props} />;
+      }
+
+      function ${componentName}WithContext({props}: {props: ${propsName}}) {
         const { plasmicProps } = ${plasmicComponentName}.useBehavior(props);
         return <${plasmicComponentName} {...plasmicProps} />;
       }
@@ -133,7 +140,8 @@ export const MenuItemPlugin: PlumePlugin = {
   },
   genSkeletonImports(ctx) {
     return {
-      imports: "",
+      imports: `import {MenuContext} from "${getPlumePackageName(ctx.exportOpts, "menu-item")}";
+        import {getDefaultPlasmicProps, PLUME_STRICT_MODE} from "${getReactWebPackageName(ctx.exportOpts)}";`,
     };
   },
   genSerializedSkeletonFields(ctx) {

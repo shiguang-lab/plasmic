@@ -1,3 +1,5 @@
+import { useModelSelector } from "@/wab/client/stores/model-revisions-react";
+import { modelKeys } from "@/wab/shared/model-revisions";
 import { SiteDiffs } from "@/wab/client/components/modals/SiteDiffs";
 import { getCustomFunctionDisplayName } from "@/wab/client/components/modals/customFunctionModals";
 import { showTemporaryPrompt } from "@/wab/client/components/quick-modals";
@@ -50,6 +52,7 @@ import {
   ImageAsset,
   Mixin,
   ProjectDependency,
+  Site,
   StyleToken,
 } from "@/wab/shared/model/classes";
 import {
@@ -60,7 +63,6 @@ import {
 import { filterUsefulDiffs } from "@/wab/shared/site-diffs/filter-useful-diffs";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert, Form, Select } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
 
 const { Option } = Select;
@@ -458,16 +460,7 @@ export async function promptPublishProj(props: { studioCtx: StudioCtx }) {
   ));
 }
 
-const WarnChangeDep = observer(function WarnChangeDep_(props: {
-  studioCtx: StudioCtx;
-  curDep: ProjectDependency;
-  targetDep?: ProjectDependency;
-  heading: React.ReactElement;
-}) {
-  const { t: uiT } = useI18n();
-
-  const { studioCtx, curDep, targetDep, heading } = props;
-  const site = studioCtx.site;
+function captureDependencyWarning(site: Site, curDep: ProjectDependency, targetDep?: ProjectDependency) {
   const diffs = targetDep
     ? filterUsefulDiffs(compareSites(curDep.site, targetDep.site))
     : filterUsefulDiffs(compareSites(curDep.site, createSite()));
@@ -645,31 +638,51 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
       objDepMap,
     ),
   ]);
+  return Object.freeze({
+    diffs,
+    componentNames: Object.freeze([...removedReferencedComponents].map(getComponentDisplayName)),
+    tokenNames: Object.freeze([...removedReferencedTokens].map((token) => token.name)),
+    mixinNames: Object.freeze([...removedReferencedMixins].map((mixin) => mixin.name)),
+    imageNames: Object.freeze([...removedReferencedImageAssets].map((asset) => asset.name)),
+    functionNames: Object.freeze([...removedReferencedFunctions].map(getCustomFunctionDisplayName)),
+    dependencyNames: Object.freeze([...transitiveDeps].map((dependency) => dependency.name)),
+    hostless: isHostLessPackage(curDep.site),
+  });
+}
+
+const WarnChangeDep = React.memo(function WarnChangeDep(props: {
+  studioCtx: StudioCtx;
+  curDep: ProjectDependency;
+  targetDep?: ProjectDependency;
+  heading: React.ReactElement;
+}) {
+  const { t: uiT } = useI18n();
+
+  const { studioCtx, curDep, targetDep, heading } = props;
+  // An open warning owns this whole-document reference scan and renders its result.
+  const capture = React.useCallback(() => captureDependencyWarning(studioCtx.site, curDep, targetDep), [studioCtx, curDep, targetDep]);
+  const {diffs, componentNames, tokenNames, mixinNames, imageNames, functionNames, dependencyNames, hostless} = useModelSelector(studioCtx.modelRevisions, [modelKeys.site], capture);
   const functionsList =
-    removedReferencedFunctions.size > 0 ? (
+    functionNames.length > 0 ? (
       <div>
         <Icon className="function-fg mr-sm" icon={CodeIcon} />{" "}
         <UiText message={"Functions"} />{" "}
-        {[...removedReferencedFunctions]
-          .map((fn) => getCustomFunctionDisplayName(fn))
-          .join(", ")}
+        {functionNames.join(", ")}
       </div>
     ) : null;
-  const functionsNote = removedReferencedFunctions.size > 0 && (
+  const functionsNote = functionNames.length > 0 && (
     <div className="mt-m">
       <UiText
         message={"These functions will no longer be available: {part1}"}
         values={{
-          part1: [...removedReferencedFunctions]
-            .map((fn) => getCustomFunctionDisplayName(fn))
-            .join(", "),
+          part1: functionNames.join(", "),
         }}
       />
     </div>
   );
   const removedHostlessArtifactTypes = withoutNils([
-    removedReferencedComponents.size > 0 ? uiT("components") : undefined,
-    removedReferencedFunctions.size > 0 ? uiT("functions") : undefined,
+    componentNames.length > 0 ? uiT("components") : undefined,
+    functionNames.length > 0 ? uiT("functions") : undefined,
   ]);
   const removedHostlessArtifactLabel =
     removedHostlessArtifactTypes.length === 0
@@ -718,18 +731,18 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
           <SiteDiffs diffs={diffs} />
         </div>
       )}
-      {(removedReferencedTokens.size > 0 ||
-        removedReferencedMixins.size > 0 ||
-        removedReferencedComponents.size > 0 ||
-        removedReferencedImageAssets.size > 0 ||
-        removedReferencedFunctions.size > 0) && (
+      {(tokenNames.length > 0 ||
+        mixinNames.length > 0 ||
+        componentNames.length > 0 ||
+        imageNames.length > 0 ||
+        functionNames.length > 0) && (
         <Alert
           type="warning"
           showIcon
           message={uiT("Some things you are using have been removed!")}
           className="mv-m"
           description={
-            isHostLessPackage(curDep.site) ? (
+            hostless ? (
               <div>
                 <div>
                   <UiText
@@ -739,13 +752,11 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
                     values={{ part1: removedHostlessArtifactLabel }}
                   />
                 </div>
-                {removedReferencedComponents.size > 0 && (
+                {componentNames.length > 0 && (
                   <div>
                     <Icon className="component-fg mr-sm" icon={ComponentIcon} />{" "}
                     <UiText message={"Components"} />{" "}
-                    {[...removedReferencedComponents]
-                      .map((t) => getComponentDisplayName(t))
-                      .join(", ")}
+                    {componentNames.join(", ")}
                   </div>
                 )}
                 {functionsList}
@@ -759,48 +770,42 @@ const WarnChangeDep = observer(function WarnChangeDep_(props: {
                     }
                   />
                 </div>
-                {removedReferencedComponents.size > 0 && (
+                {componentNames.length > 0 && (
                   <div>
                     <Icon className="component-fg mr-sm" icon={ComponentIcon} />{" "}
                     <UiText message={"Components"} />{" "}
-                    {[...removedReferencedComponents]
-                      .map((t) => getComponentDisplayName(t))
-                      .join(", ")}
+                    {componentNames.join(", ")}
                   </div>
                 )}
-                {removedReferencedTokens.size > 0 && (
+                {tokenNames.length > 0 && (
                   <div>
                     <Icon className="token-fg mr-sm" icon={TokenIcon} />{" "}
                     <UiText message={"Style tokens"} />{" "}
-                    {[...removedReferencedTokens].map((t) => t.name).join(", ")}
+                    {tokenNames.join(", ")}
                   </div>
                 )}
-                {removedReferencedMixins.size > 0 && (
+                {mixinNames.length > 0 && (
                   <div>
                     <Icon className="mixin-fg mr-sm" icon={MixinIcon} />{" "}
                     <UiText message={"Mixins"} />{" "}
-                    {[...removedReferencedMixins].map((t) => t.name).join(", ")}
+                    {mixinNames.join(", ")}
                   </div>
                 )}
-                {removedReferencedImageAssets.size > 0 && (
+                {imageNames.length > 0 && (
                   <div>
                     <Icon className="mixin-fg mr-sm" icon={ImageBlockIcon} />{" "}
                     <UiText message={"Images and icons"} />{" "}
-                    {[...removedReferencedImageAssets]
-                      .map((t) => t.name)
-                      .join(", ")}
+                    {imageNames.join(", ")}
                   </div>
                 )}
-                {transitiveDeps.size > 0 && (
+                {dependencyNames.length > 0 && (
                   <div className="mt-m">
                     <UiText
                       message={
                         "To copy these objects, we will also need to import these projects: {part1}"
                       }
                       values={{
-                        part1: [...transitiveDeps]
-                          .map((dep) => dep.name)
-                          .join(", "),
+                        part1: dependencyNames.join(", "),
                       }}
                     />
                   </div>

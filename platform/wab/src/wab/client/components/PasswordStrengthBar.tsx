@@ -7,7 +7,6 @@ import {
 import { spawn } from "@/wab/shared/common";
 import { ratePasswordStrength } from "@/wab/shared/password-strength";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { debounce } from "lodash";
 import * as React from "react";
 
 export type PasswordStrengthBarProps = DefaultPasswordStrengthBarProps;
@@ -18,19 +17,14 @@ function PasswordStrengthBar_(
 ) {
   const { password } = props;
   const [passwordStrength, setPasswordStrength] = React.useState(0);
-  const ratePasswordStrengthDebounce = React.useCallback(
-    debounce(
-      async (newPassword) =>
-        setPasswordStrength(await ratePasswordStrength(newPassword)),
-      500,
-    ),
-    [],
-  );
   React.useEffect(() => {
-    const asyncSetPasswordStrength = async () => {
-      await ratePasswordStrengthDebounce(password);
-    };
-    spawn(asyncSetPasswordStrength());
+    let active = true;
+    const timer = setTimeout(() => {
+      spawn(ratePasswordStrength(password ?? "").then((strength) => {
+        if (active) { setPasswordStrength(strength); }
+      }));
+    }, 500);
+    return () => { active = false; clearTimeout(timer); };
   }, [password]);
   return (
     <PlasmicPasswordStrengthBar

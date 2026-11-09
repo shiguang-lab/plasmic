@@ -1,16 +1,9 @@
-import { useVariantsControllerInputs } from "@/wab/client/studio-ctx/variant-state";
-import { makeVariantsController } from "@/wab/client/components/variants/VariantsController";
+import { useVariantsController } from "@/wab/client/studio-ctx/variant-controller-inputs";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 
 export function useCurrentRecordingTarget(): "baseVariant" | "nonBaseVariant" {
   const studioCtx = useStudioCtx();
 
-  useVariantsControllerInputs(studioCtx);
-  const variantsController = makeVariantsController(studioCtx);
-  const activeVariants = variantsController?.getActiveNonBaseVariants() ?? [];
-  const targetedVariants = activeVariants?.filter((it) =>
-    variantsController?.isTargeted(it),
-  );
-
-  return targetedVariants.length > 0 ? "nonBaseVariant" : "baseVariant";
+  const input = useVariantsController(studioCtx);
+  return input?.activeVariants.some((variant) => input.variants[variant.uid]?.targeted) ? "nonBaseVariant" : "baseVariant";
 }

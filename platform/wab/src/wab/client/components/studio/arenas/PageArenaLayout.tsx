@@ -1,3 +1,4 @@
+import { useDedicatedArenaInputs } from "@/wab/client/components/studio/arenas/dedicated-arena-inputs";
 import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { makeFrameSizeMenu } from "@/wab/client/components/menus/FrameSizeMenu";
@@ -19,14 +20,18 @@ import {
   PageArena,
 } from "@/wab/shared/model/classes";
 import { isBaseVariant, isStandaloneVariant } from "@/wab/shared/Variants";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const PageArenaLayout = observer(function PageArenaLayout(props: {
+type PageArenaLayoutProps = {
   studioCtx: StudioCtx;
   arena: PageArena;
   onFrameLoad: (frame: ArenaFrame, canvasCtx: CanvasCtx) => void;
-}) {
+};
+export const PageArenaLayout = React.memo(function PageArenaLayout(props: PageArenaLayoutProps) {
+  const inputs = useDedicatedArenaInputs(props.studioCtx, props.arena);
+  return inputs.isCurrent() ? <PageArenaLayoutContent {...props} isCurrent={inputs.isCurrent} /> : null;
+});
+function PageArenaLayoutContent(props: PageArenaLayoutProps & { isCurrent: () => boolean }) {
   const { t: uiT } = useI18n();
   const { studioCtx, arena, onFrameLoad } = props;
   const viewportZoom = useCanvasZoom(studioCtx);
@@ -80,9 +85,10 @@ export const PageArenaLayout = observer(function PageArenaLayout(props: {
                 makeFrameSizeMenu({
                   studioCtx,
                   onClick: (size) => {
+                    if (!props.isCurrent()) { return; }
                     spawn(
                       studioCtx.changeUnsafe(() => {
-                        studioCtx.siteOps().addScreenSizeToPageArenas(size);
+                        if (props.isCurrent()) { studioCtx.siteOps().addScreenSizeToPageArenas(size); }
                       }),
                     );
                   },
@@ -113,4 +119,4 @@ export const PageArenaLayout = observer(function PageArenaLayout(props: {
       )}
     </div>
   );
-});
+}

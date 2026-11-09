@@ -1,5 +1,6 @@
 const modelReads = new Set(["identify", "read", "listLibraries", "getLibrary", "searchLibraryComponents", "reviewComponentReuse", "queryElements", "readVector", "getEditorContext", "validate", "findEmptySpace"]);
 const viewOperations = new Set(["navigate", "navigateCanvas", "restoreEditorView", "selectElement", "scrollElementIntoView", "setCanvasPageHeight", "setInteractiveMode"]);
+const editableContext = { surface: "editor", previewKind: [null, "interactive"], canEdit: true };
 
 function requiredContext(method, input = {}) {
   if (method === "browser" && input.action === "close") return null;
@@ -7,10 +8,12 @@ function requiredContext(method, input = {}) {
     if (input.name === "setInteractiveMode") return { surface: "editor", previewKind: [null, "interactive"] };
     if (["preview", "executeBatch"].includes(input.name)) return null;
     if (modelReads.has(input.name) || input.name === "endCanvasInspection") return { surface: "editor" };
-    if (input.name === "beginCanvasInspection") return { surface: "editor", ...(input.input?.componentUuid ? {} : { mode: "edit" }) };
-    return { surface: "editor", mode: "edit", ...(["selectElement", "scrollElementIntoView"].includes(input.name) ? { canvas: true } : {}), ...(viewOperations.has(input.name) ? {} : { canEdit: true }) };
+    if (input.name === "beginCanvasInspection") return { surface: "editor", ...(input.input?.componentUuid ? {} : { previewKind: [null, "interactive"] }) };
+    return viewOperations.has(input.name)
+      ? { surface: "editor", previewKind: [null, "interactive"], ...(["selectElement", "scrollElementIntoView"].includes(input.name) ? { canvas: true } : {}) }
+      : { ...editableContext };
   }
-  if (method === "execute_batch") return input.operations?.some((op) => ["preview", "executeBatch"].includes(op.name)) ? null : { surface: "editor", mode: "edit", canEdit: true };
+  if (method === "execute_batch") return input.operations?.some((op) => ["preview", "executeBatch"].includes(op.name)) ? null : { ...editableContext };
   if (method === "preview") {
     return { surface: "editor", ...(input.action === "state" ? {}
       : input.action === "open" ? { previewKind: [null, "in-app"] }
@@ -19,14 +22,14 @@ function requiredContext(method, input = {}) {
   }
   if (["get_editor_view"].includes(method)) return { surface: "editor" };
   if (["snapshot_layout", "get_screenshot", "export_design", "export_pages"].includes(method)) {
-    return { surface: "editor", ...(input.componentUuid || method === "export_pages" ? {} : { mode: "edit", ...(!input.frameUuid ? { canvas: true } : {}) }) };
+    return { surface: "editor", ...(input.componentUuid || method === "export_pages" ? {} : { previewKind: [null, "interactive"], ...(!input.frameUuid ? { canvas: true } : {}) }) };
   }
   if (["import_image", "import_svg", "export_code", "import_reference", "capture_browser", "browser"].includes(method)
     || method === "reference_browser" && input.action !== "close"
     || ["make_vector", "vectorize_image"].includes(method) && input.componentUuid) {
-    return { surface: "editor", mode: "edit", canEdit: true };
+    return { ...editableContext };
   }
-  if (method === "read_image") return { surface: "editor", mode: "edit" };
+  if (method === "read_image") return { surface: "editor", previewKind: [null, "interactive"] };
   return null;
 }
 
@@ -51,7 +54,7 @@ function currentContext(state, studioOrigin) {
     branchId: editor.branchId ?? null, sessionId: editor.sessionId ?? null,
     mode,
     previewKind: editor.previewKind || (routeMode ? "in-app" : null),
-    canEdit: state.ready === true && surface === "editor" && mode === "edit" && editor.canEdit === true,
+    canEdit: state.ready === true && surface === "editor" && (mode === "edit" || mode === "preview" && editor.previewKind === "interactive") && editor.canEdit === true,
     arenaId: editor.editorView?.arenaId ?? null,
     componentUuid: editor.componentUuid ?? null, frameUuid: editor.frameUuid ?? null,
     ...(editor.projectId && editor.projectId !== state.projectId ? { sessionProjectId: editor.projectId } : {}),
@@ -70,7 +73,7 @@ function contextError(required, actual, message, operationExecuted = false) {
   } else if (actual.surface === "editor" && actual.ready && required.mode === "preview") {
     recovery = [...(actual.previewKind === "interactive" ? [{ tool: "preview", arguments: { action: "close" } }] : []),
       { tool: "preview", arguments: { action: "open" }, requiresInput: ["componentUuid"] }, { tool: "preview", arguments: { action: "snapshot" } }];
-  } else if (["interactive", "in-app"].includes(actual.previewKind) && Array.isArray(required.previewKind)) {
+  } else if (["interactive", "in-app"].includes(actual.previewKind) && Array.isArray(required.previewKind) && !required.previewKind.includes(actual.previewKind)) {
     recovery = [{ tool: "preview", arguments: { action: "close" } }];
   } else if (required.canvas && actual.mode === "edit" && actual.ready) {
     recovery = [{ tool: "execute", arguments: { name: "read", input: { collection: "components", fields: ["uuid", "name", "type", "pageMeta"] } } }];

@@ -25,15 +25,16 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import * as pp from "@plasmicapp/react-web";
+import * as Plume from "@plasmicapp/react-web";
 import StyleSelect__Option from "../../components/style-controls/StyleSelect__Option"; // plasmic-import: fVzKJ6hzd6u/component
 import StyleSelect__OptionGroup from "../../components/style-controls/StyleSelect__OptionGroup"; // plasmic-import: pQfj4ZYSnAW/component
 import StyleSelect__Overlay from "../../components/style-controls/StyleSelect__Overlay"; // plasmic-import: 4xhJ1XtuOem/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -101,7 +102,7 @@ export type PlasmicStyleSelect__OverridesType = {
   optionsContainer?: Flex__<"div">;
 };
 
-export interface DefaultStyleSelectProps extends pp.BaseSelectProps {
+export interface DefaultStyleSelectProps extends Plume.BaseSelectProps {
   options?: any;
   "aria-label"?: string;
   "aria-labelledby"?: string;
@@ -143,11 +144,10 @@ function PlasmicStyleSelect__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showPlaceholder",
@@ -195,18 +195,20 @@ function PlasmicStyleSelect__RenderFunc(props: {
         onChangeProp: "onChange",
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <PlasmicStyleSelectContext.Provider value={{ variants, args }}>
@@ -263,9 +265,7 @@ function PlasmicStyleSelect__RenderFunc(props: {
               "isSet"
             ),
           })}
-          ref={(ref) => {
-            $refs["trigger"] = ref;
-          }}
+          ref={registerRef("trigger")}
         >
           <div
             data-plasmic-name={"contentContainer"}
@@ -409,13 +409,13 @@ function PlasmicStyleSelect__RenderFunc(props: {
   ) as React.ReactElement | null;
 }
 
-function useBehavior<P extends pp.BaseSelectProps>(
+function useBehavior<P extends Plume.BaseSelectProps>(
   props: P,
-  ref: pp.SelectRef
+  ref: Plume.SelectRef
 ) {
   if (!("options" in props)) {
   }
-  return pp.useSelect(
+  return Plume.useSelect(
     PlasmicStyleSelect,
     props,
     {
@@ -494,12 +494,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -509,31 +505,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicStyleSelect__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicStyleSelect";
-  } else {
-    func.displayName = `PlasmicStyleSelect.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicStyleSelect__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicStyleSelect__root<T extends PlasmicStyleSelect__rootProps>(props: T & StrictProps<T, PlasmicStyleSelect__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicStyleSelect__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicStyleSelect__root.displayName = "PlasmicStyleSelect";
+
+type PlasmicStyleSelect__triggerProps = NodeComponentProps<"trigger"> & {key?: React.Key};
+function PlasmicStyleSelect__trigger<T extends PlasmicStyleSelect__triggerProps>(props: T & StrictProps<T, PlasmicStyleSelect__triggerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("trigger", props);
+  return <PlasmicStyleSelect__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"trigger"} />;
+}
+PlasmicStyleSelect__trigger.displayName = "PlasmicStyleSelect.trigger";
+
+type PlasmicStyleSelect__contentContainerProps = NodeComponentProps<"contentContainer"> & {key?: React.Key};
+function PlasmicStyleSelect__contentContainer<T extends PlasmicStyleSelect__contentContainerProps>(props: T & StrictProps<T, PlasmicStyleSelect__contentContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("contentContainer", props);
+  return <PlasmicStyleSelect__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"contentContainer"} />;
+}
+PlasmicStyleSelect__contentContainer.displayName = "PlasmicStyleSelect.contentContainer";
+
+type PlasmicStyleSelect__dropdownIconProps = NodeComponentProps<"dropdownIcon"> & {key?: React.Key};
+function PlasmicStyleSelect__dropdownIcon<T extends PlasmicStyleSelect__dropdownIconProps>(props: T & StrictProps<T, PlasmicStyleSelect__dropdownIconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dropdownIcon", props);
+  return <PlasmicStyleSelect__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dropdownIcon"} />;
+}
+PlasmicStyleSelect__dropdownIcon.displayName = "PlasmicStyleSelect.dropdownIcon";
+
+type PlasmicStyleSelect__overlayProps = NodeComponentProps<"overlay"> & {key?: React.Key};
+function PlasmicStyleSelect__overlay<T extends PlasmicStyleSelect__overlayProps>(props: T & StrictProps<T, PlasmicStyleSelect__overlayProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("overlay", props);
+  return <PlasmicStyleSelect__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"overlay"} />;
+}
+PlasmicStyleSelect__overlay.displayName = "PlasmicStyleSelect.overlay";
+
+type PlasmicStyleSelect__optionsContainerProps = NodeComponentProps<"optionsContainer"> & {key?: React.Key};
+function PlasmicStyleSelect__optionsContainer<T extends PlasmicStyleSelect__optionsContainerProps>(props: T & StrictProps<T, PlasmicStyleSelect__optionsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("optionsContainer", props);
+  return <PlasmicStyleSelect__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"optionsContainer"} />;
+}
+PlasmicStyleSelect__optionsContainer.displayName = "PlasmicStyleSelect.optionsContainer";
+
 
 export const PlasmicStyleSelect = Object.assign(
   // Top-level PlasmicStyleSelect renders the root element
-  makeNodeComponent("root"),
+  PlasmicStyleSelect__root,
   {
     // Helper components rendering sub-elements
-    trigger: makeNodeComponent("trigger"),
-    contentContainer: makeNodeComponent("contentContainer"),
-    dropdownIcon: makeNodeComponent("dropdownIcon"),
-    overlay: makeNodeComponent("overlay"),
-    optionsContainer: makeNodeComponent("optionsContainer"),
+    trigger: PlasmicStyleSelect__trigger,
+    contentContainer: PlasmicStyleSelect__contentContainer,
+    dropdownIcon: PlasmicStyleSelect__dropdownIcon,
+    overlay: PlasmicStyleSelect__overlay,
+    optionsContainer: PlasmicStyleSelect__optionsContainer,
 
     // Metadata about props expected for PlasmicStyleSelect
     internalVariantProps: PlasmicStyleSelect__VariantProps,

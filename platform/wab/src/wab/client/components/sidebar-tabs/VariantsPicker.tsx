@@ -1,4 +1,9 @@
+import { captureVariantModelWorld, useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useVariantPickerInputs } from "@/wab/client/components/sidebar-tabs/variant-picker-inputs";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useContentEditorMode } from "@/wab/client/studio-ctx/content-editor-mode-state";
 import { useShallow } from "zustand/react/shallow";
 import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
 import ContextMenuIndicator from "@/wab/client/components/ContextMenuIndicator/ContextMenuIndicator";
@@ -71,15 +76,20 @@ import {
 } from "@/wab/shared/Variants";
 import { Menu } from "antd";
 import L from "lodash";
-import { observer } from "mobx-react";
 import React from "react";
 
 export interface VariantsPickerPanelProps {
   tpl: TplComponent;
 }
 
-export function _VariantsPickerPanel({ tpl }: VariantsPickerPanelProps) {
+function VariantsPickerPanelRoot({ tpl }: VariantsPickerPanelProps) {
   const viewCtx = useViewCtx();
+  const world = useVariantModelWorld(viewCtx.studioCtx, tpl, viewCtx);
+  return world.alive ? <VariantsPickerPanelContent tpl={tpl} viewCtx={viewCtx} /> : null;
+}
+const VariantsPickerPanelContent = React.memo(function VariantsPickerPanelContent({ tpl, viewCtx }: VariantsPickerPanelProps & { viewCtx: ViewCtx }) {
+  useViewSelection(viewCtx, (state) => state.context);
+  useVariantPickerInputs(viewCtx, tpl);
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const component = tpl.component;
   let variantGroups = component.variantGroups;
@@ -120,20 +130,24 @@ export function _VariantsPickerPanel({ tpl }: VariantsPickerPanelProps) {
       ))}
     </SidebarSection>
   );
-}
+});
 
-export const VariantsPickerPanel = observer(_VariantsPickerPanel);
-
-export const VariantPicker = observer(function VariantPicker(props: {
-  viewCtx: ViewCtx;
-  group: VariantGroup;
-  tpl: TplComponent;
-}) {
+export const VariantsPickerPanel = React.memo(VariantsPickerPanelRoot);
+interface VariantPickerProps { viewCtx: ViewCtx; group: VariantGroup; tpl: TplComponent; }
+export const VariantPicker = React.memo(function VariantPicker(props: VariantPickerProps) {
+  const world = useVariantModelWorld(props.viewCtx.studioCtx, props.tpl, props.viewCtx);
+  return world.alive ? <VariantPickerContent {...props} /> : null;
+});
+const VariantPickerContent = React.memo(function VariantPickerContent(props: VariantPickerProps) {
   const { viewCtx, group, tpl } = props;
+  useViewSelection(viewCtx, (state) => state.context);
+  useVariantPickerInputs(viewCtx, tpl, group);
+  const world = React.useMemo(() => captureVariantModelWorld(viewCtx.studioCtx), [viewCtx.studioCtx, tpl]);
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl);
 
   const studioCtx = useStudioCtx();
+  const contentEditorMode = useContentEditorMode(studioCtx);
 
   const variantsByName = new Map<string, Variant>(
     group.variants.map((v) => [v.name, v]),
@@ -169,7 +183,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
     ownerComponent &&
     isOptionsType(referencedParam.type)
       ? () =>
-          void reconcileLinkedProp({
+          world.isCurrent(viewCtx) && void reconcileLinkedProp({
             viewCtx,
             innerType: variantGroupToLinkedPropType(group),
             innerName: group.param.variable.name,
@@ -229,6 +243,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
 
   const linkToOwnerParam = (param: Param) => {
     viewCtx.change(() => {
+      if (!world.isCurrent(viewCtx)) { return; }
       viewCtx
         .variantTplMgr()
         .setArg(
@@ -241,17 +256,20 @@ export const VariantPicker = observer(function VariantPicker(props: {
 
   const unlinkFromOwnerParam = () => {
     viewCtx.change(() => {
+      if (!world.isCurrent(viewCtx)) { return; }
       viewCtx.variantTplMgr().delArg(tpl, group.param.variable);
     });
   };
 
   const linkToDynamicValue = () => {
+    if (!world.isCurrent(viewCtx)) { return; }
     const variantTplMgr = viewCtx.variantTplMgr();
     const newExpr = new ObjectPath({
       path: ["undefined"],
       fallback: currentExpr ?? new VariantsRef({ variants: [] }),
     });
     viewCtx.change(() => {
+      if (!world.isCurrent(viewCtx)) { return; }
       variantTplMgr.setArg(tpl, group.param.variable, newExpr);
       setShowFallback(true);
       setIsDataPickerVisible(true);
@@ -259,6 +277,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
   };
 
   const unlinkFromDynamicValue = () => {
+    if (!world.isCurrent(viewCtx)) { return; }
     assert(
       currentExpr,
       "Unexpected undefined value, currentExpr must be defined when data binding",
@@ -269,6 +288,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
     );
     const fallback = currentExpr.fallback;
     viewCtx.change(() => {
+      if (!world.isCurrent(viewCtx)) { return; }
       const variantTplMgr = viewCtx.variantTplMgr();
       if (isKnownVariantsRef(fallback)) {
         variantTplMgr.setArg(tpl, group.param.variable, fallback);
@@ -296,6 +316,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
 
     const onUnselect = (removedVariantName: string) => {
       viewCtx.change(() => {
+      if (!world.isCurrent(viewCtx)) { return; }
         updateActiveVariants(
           L.without(
             activeVariants,
@@ -309,6 +330,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
     };
     const onSelect = (addVariantName: string) => {
       viewCtx.change(() =>
+        world.isCurrent(viewCtx) &&
         updateActiveVariants([
           ...activeVariants,
           ensure(
@@ -357,6 +379,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
       <StyleSelect
         onChange={(valName) =>
           viewCtx.change(() =>
+        world.isCurrent(viewCtx) &&
             updateActiveVariants(
               valName
                 ? [
@@ -394,6 +417,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
               key={"clear"}
               onClick={() =>
                 viewCtx.change(() =>
+        world.isCurrent(viewCtx) &&
                   viewCtx.variantTplMgr().delArg(tpl, group.param.variable),
                 )
               }
@@ -445,7 +469,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
         <ContextMenuIndicator
           menu={contextMenu}
           showDynamicValueButton={
-            arg.valueType === "literal" && !studioCtx.contentEditorMode
+            arg.valueType === "literal" && !contentEditorMode
           }
           onIndicatorClickDefault={() => {
             linkToDynamicValue();
@@ -467,7 +491,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
               onWarningClick={onReconcileLink}
             />
           ) : arg.valueType === "dynamic" ? (
-            <DataPickerEditor
+            <VariantPickerDataEditor
               viewCtx={viewCtx}
               value={extractValueSavedFromDataPicker(currentExpr, {
                 projectFlags: studioCtx.projectFlags(),
@@ -475,6 +499,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
                 inStudio: true,
               })}
               onChange={(val) => {
+                if (!world.isCurrent(viewCtx)) { return; }
                 if (!val) {
                   return;
                 }
@@ -488,6 +513,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
                   : undefined;
                 const newExpr = createExprForDataPickerValue(val, fallbackExpr);
                 viewCtx.change(() => {
+      if (!world.isCurrent(viewCtx)) { return; }
                   const variantTplMgr = viewCtx.variantTplMgr();
                   variantTplMgr.setArg(tpl, group.param.variable, newExpr);
                 });
@@ -498,7 +524,6 @@ export const VariantPicker = observer(function VariantPicker(props: {
               isDisabled={isDisabled}
               disabledTooltip={disabledTooltip}
               data={canvasEnv}
-              schema={viewCtx.customFunctionsSchema()}
               key={tpl.uid}
               expectedValues={getExpectedValuesForVariantGroup(group)}
             />
@@ -544,6 +569,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
                 (newActiveVariants: Variant[]) => {
                   const newExpr = mkVariantGroupArgExpr(newActiveVariants);
                   viewCtx.change(() => {
+      if (!world.isCurrent(viewCtx)) { return; }
                     codeExpr.fallback = newExpr;
                   });
                 },
@@ -566,6 +592,7 @@ export const VariantPicker = observer(function VariantPicker(props: {
               return;
             }
             viewCtx.change(() =>
+        world.isCurrent(viewCtx) &&
               viewCtx
                 .variantTplMgr()
                 .setArg(
@@ -580,3 +607,9 @@ export const VariantPicker = observer(function VariantPicker(props: {
     </>
   );
 });
+
+function VariantPickerDataEditor(props: Omit<React.ComponentProps<typeof DataPickerEditor>, "schema">) {
+  const studio = useStudioCtx();
+  const schema = useCustomFunctionsSchema(studio);
+  return <DataPickerEditor {...props} schema={schema} />;
+}

@@ -49,7 +49,7 @@ vi.mock("@/wab/client/components/copilot/AiComposer", () => ({
 afterEach(cleanup);
 beforeEach(() => {
   state.session = new LocalEditSession("project");
-  state.session.draft = {prompt: "Create page", attachments: []};
+  state.session.setThreadDraft(state.session.activeThreadId, {prompt: "Create page", attachments: []});
   vi.spyOn(state.session, "run").mockResolvedValue(undefined);
 });
 it.each([new Arena({ name: "Pages", children: [] })])(

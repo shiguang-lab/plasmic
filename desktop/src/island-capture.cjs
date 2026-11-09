@@ -89,13 +89,14 @@ function createIslandCapture() {
     surface?.destroy(); surface = undefined; releaseFrame();
   }
   async function capture(win, context, operation, operations) {
-    if (context.mode === "preview" && activeFrame) closeSurface();
+    const mode = context.previewKind === "interactive" ? "edit" : context.mode;
+    if (mode === "preview" && activeFrame) closeSurface();
     const version = epoch, url = win.webContents.getURL(), frames = win.webContents.mainFrame.framesInSubtree;
     const active = feedbackOperation(operation, context, url);
     const signal = AbortSignal.any([captureAbort.signal, AbortSignal.timeout(10_000)]);
     for (const frame of frames) {
       if (frame.isDestroyed?.()) continue;
-      let scene = await abortable(signal, () => frame.executeJavaScript(`(${inspectScene.toString()})(${JSON.stringify(context.mode)},${JSON.stringify(context.previewContext?.componentUuid)})`));
+      let scene = await abortable(signal, () => frame.executeJavaScript(`(${inspectScene.toString()})(${JSON.stringify(mode)},${JSON.stringify(context.previewContext?.componentUuid)})`));
       if (!scene) continue;
       if (!await presentationRect(frame, {x:0,y:0,width:scene.width,height:scene.height})) continue;
       if (version !== epoch || win.window.isDestroyed() || url !== win.webContents.getURL()) return null;

@@ -1,0 +1,2950 @@
+{
+  "measuredAt": "2026-11-09T03:43:02.568351+00:00",
+  "scope": "Frozen current source; native isolated Desktop fixture replay; no live authentication/server writes or installation. Working-set sums are not private footprint.",
+  "environment": {
+    "chip": "Apple M4",
+    "memoryGiB": 24,
+    "macOS": "26.6.2",
+    "electron": "45.2.1",
+    "chromium": "156.0.8078.75",
+    "react": "19.3.1",
+    "head": "a475f219bfae530ba61900e8e5b310020cbb8292"
+  },
+  "delivery": {
+    "product": "startup-owner fix only",
+    "libraries": "private independent prototype",
+    "viewportAndBudget": "private independent prototype; resource tradeoffs do not justify default enablement"
+  },
+  "variants": {
+    "baseline": {
+      "kind": "diagnostic",
+      "variant": "baseline",
+      "sourceRoot": "/tmp/plasmic-open-review-20261109/source",
+      "runtimeRevision": "a475f219bfae530ba61900e8e5b310020cbb8292",
+      "rendererHash": "e97d212a82ee09b3ca60e71f9e741a07b50d68943947e301f06a5edda13c4c79",
+      "sources": {
+        "platform/wab/src/wab/client/components/root-view.tsx": "5570c623c5a13ce0caca6539936d4fc832b7ad3b8a3c4450b10815e442eebbdd",
+        "platform/wab/src/wab/client/app-ctx.ts": "068f0eddd6230045ef5e341af0f2afccdb33e0a698685dac22b62cd694cba2f2",
+        "platform/wab/src/wab/client/components/canvas/canvas-hostless-inputs.ts": "7f8baa6415f0e96eda7eef9234945ae4bf4143e35c8abdb69314cdfb1b6ee9dd",
+        "platform/wab/src/wab/client/components/canvas/canvas-ctx.ts": "83d5ba671742090b40bfd1a8b9fba7b8a7bfb03094b6b01539a60f49af1086df",
+        "platform/wab/src/wab/client/components/studio/arenas/FreeFramesLayout.tsx": "b9e8ef5664722f07fefad308632c2769f0d43494cc279c77709661064c64dc43"
+      }
+    },
+    "fix": {
+      "kind": "diagnostic",
+      "variant": "fix",
+      "sourceRoot": "/tmp/plasmic-open-review-20261109/source",
+      "runtimeRevision": "a475f219bfae530ba61900e8e5b310020cbb8292",
+      "rendererHash": "cb7a2cfc1a3f41d9164f3b22d7b3f0e0dbc681b0efe981b783dc332d1fa42f53",
+      "sources": {
+        "platform/wab/src/wab/client/components/root-view.tsx": "917421e37b1e22993e85350139db0a9084935003e6ea0e3175ba68833c0706b7",
+        "platform/wab/src/wab/client/app-ctx.ts": "08fa2d1b6161ad01b341e1a9fe127c86792546a20f85cadc13d6c194d9ea592b",
+        "platform/wab/src/wab/client/components/canvas/canvas-hostless-inputs.ts": "7f8baa6415f0e96eda7eef9234945ae4bf4143e35c8abdb69314cdfb1b6ee9dd",
+        "platform/wab/src/wab/client/components/canvas/canvas-ctx.ts": "83d5ba671742090b40bfd1a8b9fba7b8a7bfb03094b6b01539a60f49af1086df",
+        "platform/wab/src/wab/client/components/studio/arenas/FreeFramesLayout.tsx": "b9e8ef5664722f07fefad308632c2769f0d43494cc279c77709661064c64dc43"
+      }
+    },
+    "libraries": {
+      "kind": "diagnostic",
+      "variant": "libraries",
+      "sourceRoot": "/tmp/plasmic-open-review-20261109/source",
+      "runtimeRevision": "a475f219bfae530ba61900e8e5b310020cbb8292",
+      "rendererHash": "f3f8d5345e7b093283b07e8584cb0ebca93d0b69abbf2448ce17f177c45eacdc",
+      "sources": {
+        "platform/wab/src/wab/client/components/root-view.tsx": "917421e37b1e22993e85350139db0a9084935003e6ea0e3175ba68833c0706b7",
+        "platform/wab/src/wab/client/app-ctx.ts": "08fa2d1b6161ad01b341e1a9fe127c86792546a20f85cadc13d6c194d9ea592b",
+        "platform/wab/src/wab/client/components/canvas/canvas-hostless-inputs.ts": "f2561254351084b882304b1bf29da473701002fb79175f3b55a510d19dcbfe83",
+        "platform/wab/src/wab/client/components/canvas/canvas-ctx.ts": "4046584bc067cc2066e7f04190a04954dc334212de7f6a85ebcf86bb2ce6e5d7",
+        "platform/wab/src/wab/client/components/studio/arenas/FreeFramesLayout.tsx": "b9e8ef5664722f07fefad308632c2769f0d43494cc279c77709661064c64dc43"
+      }
+    },
+    "viewport": {
+      "kind": "diagnostic",
+      "variant": "viewport",
+      "sourceRoot": "/tmp/plasmic-open-review-20261109/source",
+      "runtimeRevision": "a475f219bfae530ba61900e8e5b310020cbb8292",
+      "rendererHash": "b9bb63587f179bba138f12fc3bf16e6d5aef541a79b640582121fa6b7aef9076",
+      "sources": {
+        "platform/wab/src/wab/client/components/root-view.tsx": "917421e37b1e22993e85350139db0a9084935003e6ea0e3175ba68833c0706b7",
+        "platform/wab/src/wab/client/app-ctx.ts": "08fa2d1b6161ad01b341e1a9fe127c86792546a20f85cadc13d6c194d9ea592b",
+        "platform/wab/src/wab/client/components/canvas/canvas-hostless-inputs.ts": "7f8baa6415f0e96eda7eef9234945ae4bf4143e35c8abdb69314cdfb1b6ee9dd",
+        "platform/wab/src/wab/client/components/canvas/canvas-ctx.ts": "83d5ba671742090b40bfd1a8b9fba7b8a7bfb03094b6b01539a60f49af1086df",
+        "platform/wab/src/wab/client/components/studio/arenas/FreeFramesLayout.tsx": "f3a4910f4ed3c0a95e3d1275f6260a2bce97af4692205748f2cb690497a80e44",
+        "platform/wab/src/wab/client/studio-ctx/studio-arena-state.ts": "716267d971c77971b396810550689f93a39b722e79d569052d91077c43a512fa"
+      }
+    }
+  },
+  "sharedRuntimeAssets": {
+    "static/sub/build/client.a475f2.js": "2ef024b74e23ff828f3071eac6f2c464eb8760710150be69e91e58c174dc849a",
+    "static/canvas-packages/build/client.a475f2.js": "98f0bc26798dbe6c388534616d8f87bbea67ded49b003b42b53186f22e450a0d",
+    "static/react-web-bundle/build/client.a475f2.js": "6f77ff9cbd7d45525d415ef3bb70d0ec815fa95d9b22adfa63daffa7879c0e66"
+  },
+  "comparisons": [
+    {
+      "comparison": "startup-owner",
+      "timing": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1509.55,
+          "allFramesMs": 1465.8,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 732.76,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1513.75,
+          "allFramesMs": 1470.1,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 719.8,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      },
+      "memory": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1500.65,
+          "allFramesMs": 1459.05,
+          "activeWorkingSetMiB": 1349.76,
+          "settledWorkingSetMiB": null,
+          "activeViews": 1.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1349.8,
+          "returnedWorkingSetMiB": 736.38,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1528.35,
+          "allFramesMs": 1484.7,
+          "activeWorkingSetMiB": 1343.64,
+          "settledWorkingSetMiB": null,
+          "activeViews": 1.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1343.48,
+          "returnedWorkingSetMiB": 734.6,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      }
+    },
+    {
+      "comparison": "libraries-gp",
+      "timing": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1515.45,
+          "allFramesMs": 1471.75,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 729.66,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1515.1,
+          "allFramesMs": 1472.5,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 725.24,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      },
+      "memory": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1525.2,
+          "allFramesMs": 1481.3,
+          "activeWorkingSetMiB": 1331.85,
+          "settledWorkingSetMiB": null,
+          "activeViews": 1.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1331.66,
+          "returnedWorkingSetMiB": 702.94,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1576.8,
+          "allFramesMs": 1531.35,
+          "activeWorkingSetMiB": 1312.52,
+          "settledWorkingSetMiB": null,
+          "activeViews": 1.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1312.8,
+          "returnedWorkingSetMiB": 722.65,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      }
+    },
+    {
+      "comparison": "libraries-complex",
+      "timing": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1362.6,
+          "allFramesMs": 3639.25,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 734.93,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1351.5,
+          "allFramesMs": 3504.05,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 731.88,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      },
+      "memory": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1365.4,
+          "allFramesMs": 3701.75,
+          "activeWorkingSetMiB": 1557.59,
+          "settledWorkingSetMiB": null,
+          "activeViews": 10.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1562.27,
+          "returnedWorkingSetMiB": 703.87,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1350.2,
+          "allFramesMs": 3495.85,
+          "activeWorkingSetMiB": 1516.73,
+          "settledWorkingSetMiB": null,
+          "activeViews": 10.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1526.38,
+          "returnedWorkingSetMiB": 714.43,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      }
+    },
+    {
+      "comparison": "viewport-overview",
+      "timing": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1372.35,
+          "allFramesMs": 3645.35,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 732.99,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1355.95,
+          "allFramesMs": 3608.3,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 729.12,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      },
+      "memory": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1396.15,
+          "allFramesMs": 3666.9,
+          "activeWorkingSetMiB": 1492.81,
+          "settledWorkingSetMiB": null,
+          "activeViews": 10.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1502.55,
+          "returnedWorkingSetMiB": 645.03,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1340.45,
+          "allFramesMs": 3578.85,
+          "activeWorkingSetMiB": 1569.0,
+          "settledWorkingSetMiB": null,
+          "activeViews": 10.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1576.17,
+          "returnedWorkingSetMiB": 727.23,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      }
+    },
+    {
+      "comparison": "viewport-focus",
+      "timing": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1380.8,
+          "allFramesMs": null,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 761.09,
+          "viewsBeforeOverview": 4.5,
+          "overviewDetectedMs": 1663.4
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1341.0,
+          "allFramesMs": null,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 735.27,
+          "viewsBeforeOverview": 2.0,
+          "overviewDetectedMs": 2029.42
+        }
+      },
+      "memory": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1396.6,
+          "allFramesMs": null,
+          "activeWorkingSetMiB": 1397.14,
+          "settledWorkingSetMiB": 1393.59,
+          "activeViews": 10.0,
+          "settledViews": 10.0,
+          "openPeakWorkingSetMiB": 1413.63,
+          "returnedWorkingSetMiB": 708.58,
+          "viewsBeforeOverview": 10.0,
+          "overviewDetectedMs": 1164.14
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1369.35,
+          "allFramesMs": null,
+          "activeWorkingSetMiB": 1290.38,
+          "settledWorkingSetMiB": 1286.3,
+          "activeViews": 2.0,
+          "settledViews": 2.0,
+          "openPeakWorkingSetMiB": 1298.84,
+          "returnedWorkingSetMiB": 705.08,
+          "viewsBeforeOverview": 2.0,
+          "overviewDetectedMs": 1989.53
+        }
+      }
+    }
+  ],
+  "formalRuns": [
+    {
+      "fixture": "gp",
+      "mode": "a1",
+      "variant": "baseline",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1501.300048828125,
+          "allFramesMs": 1458.39990234375,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1535.300048828125,
+          "allFramesMs": 1489.60009765625,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1489,
+          "allFramesMs": 1445.89990234375,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1477.89990234375,
+          "allFramesMs": 1433.099853515625,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "a2",
+      "variant": "baseline",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1508.900146484375,
+          "allFramesMs": 1464.500244140625,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1554.39990234375,
+          "allFramesMs": 1512.60009765625,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1564.500244140625,
+          "allFramesMs": 1520.60009765625,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1510.2001953125,
+          "allFramesMs": 1467.10009765625,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "b1",
+      "variant": "fix",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1503.5,
+          "allFramesMs": 1461.800048828125,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1520.60009765625,
+          "allFramesMs": 1476.400146484375,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1495.2998046875,
+          "allFramesMs": 1452.5,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1516.099853515625,
+          "allFramesMs": 1472.2998046875,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "b2",
+      "variant": "fix",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1524.800048828125,
+          "allFramesMs": 1482.199951171875,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1504.499755859375,
+          "allFramesMs": 1461.7998046875,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1511.400146484375,
+          "allFramesMs": 1467.900146484375,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1556.7998046875,
+          "allFramesMs": 1513.499755859375,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "l-a1",
+      "variant": "fix",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1531.599853515625,
+          "allFramesMs": 1489.800048828125,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1515.699951171875,
+          "allFramesMs": 1471.699951171875,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1551.2001953125,
+          "allFramesMs": 1505.300048828125,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1614.300048828125,
+          "allFramesMs": 1564.7001953125,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "l-a2",
+      "variant": "fix",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1499.199951171875,
+          "allFramesMs": 1457.099853515625,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1515.2001953125,
+          "allFramesMs": 1471.800048828125,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1509.7001953125,
+          "allFramesMs": 1466.000244140625,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1502.5,
+          "allFramesMs": 1456.900146484375,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "l-b1",
+      "variant": "libraries",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1525.89990234375,
+          "allFramesMs": 1482.5,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1512.800048828125,
+          "allFramesMs": 1470.199951171875,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1517.400146484375,
+          "allFramesMs": 1474.800048828125,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1519.39990234375,
+          "allFramesMs": 1477.7998046875,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "l-b2",
+      "variant": "libraries",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1491.300048828125,
+          "allFramesMs": 1448,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1511,
+          "allFramesMs": 1468.7998046875,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1503.699951171875,
+          "allFramesMs": 1461.5,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1518.7001953125,
+          "allFramesMs": 1476.60009765625,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "complex",
+      "mode": "l-a1",
+      "variant": "fix",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1349.60009765625,
+          "allFramesMs": 3651.2001953125,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1353.7998046875,
+          "allFramesMs": 3620.599853515625,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1381.699951171875,
+          "allFramesMs": 3681.39990234375,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1358.39990234375,
+          "allFramesMs": 3615.60009765625,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "l-a2",
+      "variant": "fix",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1388.500244140625,
+          "allFramesMs": 3654.500244140625,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1364.30029296875,
+          "allFramesMs": 3605.7001953125,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1366.39990234375,
+          "allFramesMs": 3665.5,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1360.900146484375,
+          "allFramesMs": 3627.300048828125,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "l-b1",
+      "variant": "libraries",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1366.900146484375,
+          "allFramesMs": 3511.400146484375,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1378.7998046875,
+          "allFramesMs": 3533,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1342.60009765625,
+          "allFramesMs": 3461.300048828125,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1359.900146484375,
+          "allFramesMs": 3513.300048828125,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "l-b2",
+      "variant": "libraries",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1353.699951171875,
+          "allFramesMs": 3496.699951171875,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1334,
+          "allFramesMs": 3491.599853515625,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1349.2998046875,
+          "allFramesMs": 3530.099853515625,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1338.099853515625,
+          "allFramesMs": 3471.599853515625,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "v-a1",
+      "variant": "fix",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1372.600341796875,
+          "allFramesMs": 3670.600341796875,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1389.800048828125,
+          "allFramesMs": 3631.5,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1354.400146484375,
+          "allFramesMs": 3609.400146484375,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1393.400146484375,
+          "allFramesMs": 3683,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "v-a2",
+      "variant": "fix",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1380.999755859375,
+          "allFramesMs": 3654.2998046875,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1357.300048828125,
+          "allFramesMs": 3636.400146484375,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1361.5,
+          "allFramesMs": 3672.599853515625,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1372.099853515625,
+          "allFramesMs": 3614.599853515625,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "v-b1",
+      "variant": "viewport",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1353.10009765625,
+          "allFramesMs": 3609.800048828125,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1355.30029296875,
+          "allFramesMs": 3626.2001953125,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1374.2001953125,
+          "allFramesMs": 3685.60009765625,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1360.099853515625,
+          "allFramesMs": 3655.999755859375,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "v-b2",
+      "variant": "viewport",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1358.89990234375,
+          "allFramesMs": 3606.699951171875,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1334,
+          "allFramesMs": 3601.7001953125,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1331.500244140625,
+          "allFramesMs": 3583.7001953125,
+          "openPeakWorkingSetKiB": null
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1356.600341796875,
+          "allFramesMs": 3606.80029296875,
+          "openPeakWorkingSetKiB": null
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "v-focus-r-a1",
+      "variant": "fix",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1356.800048828125,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 1601.19384765625,
+          "viewsBeforeOverview": 5,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1390.10009765625,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 1636.616455078125,
+          "viewsBeforeOverview": 4,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1358.199951171875,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 1638.134765625,
+          "viewsBeforeOverview": 4,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1363.699951171875,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 1725.373291015625,
+          "viewsBeforeOverview": 4,
+          "viewsAfterOverview": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "v-focus-r-a2",
+      "variant": "fix",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1450.60009765625,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 1789.117431640625,
+          "viewsBeforeOverview": 5,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1499.2998046875,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 1774.0048828125,
+          "viewsBeforeOverview": 5,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1480.39990234375,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 1670.20166015625,
+          "viewsBeforeOverview": 4,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1371.5,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 1656.594970703125,
+          "viewsBeforeOverview": 5,
+          "viewsAfterOverview": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "v-focus-r-b1",
+      "variant": "viewport",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1379.300048828125,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 1987.948974609375,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1321.600341796875,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 1947.66943359375,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1358.000244140625,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 1986.40576171875,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1342.000244140625,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 2125.41943359375,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "v-focus-r-b2",
+      "variant": "viewport",
+      "category": "timing",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1333.699951171875,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 2037.01318359375,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1340,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 2021.830810546875,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1339.10009765625,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 2090.7900390625,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1353.5,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": null,
+          "overviewDetectedMs": 2070.783203125,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "gp",
+      "mode": "memory-f-a1",
+      "variant": "baseline",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1498.599853515625,
+          "allFramesMs": 1457.69970703125,
+          "openPeakWorkingSetKiB": 1394720,
+          "activeWorkingSetKiB": 1395024,
+          "activeViews": 1
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1502.699951171875,
+          "allFramesMs": 1460.39990234375,
+          "openPeakWorkingSetKiB": 1372512,
+          "activeWorkingSetKiB": 1372720,
+          "activeViews": 1
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1495.5,
+          "allFramesMs": 1453.099853515625,
+          "openPeakWorkingSetKiB": 1386256,
+          "activeWorkingSetKiB": 1386240,
+          "activeViews": 1
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1606.60009765625,
+          "allFramesMs": 1529.60009765625,
+          "openPeakWorkingSetKiB": 1364480,
+          "activeWorkingSetKiB": 1364400,
+          "activeViews": 1
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "memory-f-a2",
+      "variant": "baseline",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1489.300048828125,
+          "allFramesMs": 1445.699951171875,
+          "openPeakWorkingSetKiB": 1396592,
+          "activeWorkingSetKiB": 1396544,
+          "activeViews": 1
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1505.300048828125,
+          "allFramesMs": 1463.5,
+          "openPeakWorkingSetKiB": 1380432,
+          "activeWorkingSetKiB": 1380400,
+          "activeViews": 1
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1498.60009765625,
+          "allFramesMs": 1453.699951171875,
+          "openPeakWorkingSetKiB": 1376224,
+          "activeWorkingSetKiB": 1376416,
+          "activeViews": 1
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1511.000244140625,
+          "allFramesMs": 1466.80029296875,
+          "openPeakWorkingSetKiB": 1383968,
+          "activeWorkingSetKiB": 1383904,
+          "activeViews": 1
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "memory-f-b1",
+      "variant": "fix",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1642.80029296875,
+          "allFramesMs": 1595.7001953125,
+          "openPeakWorkingSetKiB": 1339920,
+          "activeWorkingSetKiB": 1340016,
+          "activeViews": 1
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1538.400146484375,
+          "allFramesMs": 1493.699951171875,
+          "openPeakWorkingSetKiB": 1371264,
+          "activeWorkingSetKiB": 1371520,
+          "activeViews": 1
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1518.300048828125,
+          "allFramesMs": 1475.7001953125,
+          "openPeakWorkingSetKiB": 1385280,
+          "activeWorkingSetKiB": 1385376,
+          "activeViews": 1
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1762.5,
+          "allFramesMs": 1718.199951171875,
+          "openPeakWorkingSetKiB": 1386432,
+          "activeWorkingSetKiB": 1386560,
+          "activeViews": 1
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "memory-f-b2",
+      "variant": "fix",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1513.89990234375,
+          "allFramesMs": 1471.099853515625,
+          "openPeakWorkingSetKiB": 1367616,
+          "activeWorkingSetKiB": 1367856,
+          "activeViews": 1
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1506.599853515625,
+          "allFramesMs": 1464.69970703125,
+          "openPeakWorkingSetKiB": 1362688,
+          "activeWorkingSetKiB": 1362576,
+          "activeViews": 1
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1655.800048828125,
+          "allFramesMs": 1611.199951171875,
+          "openPeakWorkingSetKiB": 1382288,
+          "activeWorkingSetKiB": 1382272,
+          "activeViews": 1
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1515.2998046875,
+          "allFramesMs": 1471.2998046875,
+          "openPeakWorkingSetKiB": 1380192,
+          "activeWorkingSetKiB": 1380256,
+          "activeViews": 1
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "memory-l-a1",
+      "variant": "fix",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1522.199951171875,
+          "allFramesMs": 1477.5,
+          "openPeakWorkingSetKiB": 1364784,
+          "activeWorkingSetKiB": 1364864,
+          "activeViews": 1
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1817.699951171875,
+          "allFramesMs": 1766.39990234375,
+          "openPeakWorkingSetKiB": 1147456,
+          "activeWorkingSetKiB": 1147440,
+          "activeViews": 1
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1735.7998046875,
+          "allFramesMs": 1679.199951171875,
+          "openPeakWorkingSetKiB": 1173184,
+          "activeWorkingSetKiB": 1172272,
+          "activeViews": 1
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1681.000244140625,
+          "allFramesMs": 1630.900146484375,
+          "openPeakWorkingSetKiB": 1185536,
+          "activeWorkingSetKiB": 1185664,
+          "activeViews": 1
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "memory-l-a2",
+      "variant": "fix",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1486.099853515625,
+          "allFramesMs": 1442.69970703125,
+          "openPeakWorkingSetKiB": 1362448,
+          "activeWorkingSetKiB": 1362768,
+          "activeViews": 1
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1502.10009765625,
+          "allFramesMs": 1457.900146484375,
+          "openPeakWorkingSetKiB": 1373904,
+          "activeWorkingSetKiB": 1374064,
+          "activeViews": 1
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1496.300048828125,
+          "allFramesMs": 1454.400146484375,
+          "openPeakWorkingSetKiB": 1369968,
+          "activeWorkingSetKiB": 1369968,
+          "activeViews": 1
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1528.2001953125,
+          "allFramesMs": 1485.10009765625,
+          "openPeakWorkingSetKiB": 1372912,
+          "activeWorkingSetKiB": 1372960,
+          "activeViews": 1
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "memory-l-b1",
+      "variant": "libraries",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1613.7001953125,
+          "allFramesMs": 1564.900146484375,
+          "openPeakWorkingSetKiB": 1325904,
+          "activeWorkingSetKiB": 1325888,
+          "activeViews": 1
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1591.60009765625,
+          "allFramesMs": 1546.800048828125,
+          "openPeakWorkingSetKiB": 1359264,
+          "activeWorkingSetKiB": 1359264,
+          "activeViews": 1
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1561.999755859375,
+          "allFramesMs": 1515.89990234375,
+          "openPeakWorkingSetKiB": 1323056,
+          "activeWorkingSetKiB": 1323248,
+          "activeViews": 1
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1707.10009765625,
+          "allFramesMs": 1659.400146484375,
+          "openPeakWorkingSetKiB": 1346208,
+          "activeWorkingSetKiB": 1345488,
+          "activeViews": 1
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "gp",
+      "mode": "memory-l-b2",
+      "variant": "libraries",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1628.60009765625,
+          "allFramesMs": 1581,
+          "openPeakWorkingSetKiB": 1355952,
+          "activeWorkingSetKiB": 1356112,
+          "activeViews": 1
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1508.2998046875,
+          "allFramesMs": 1466.199951171875,
+          "openPeakWorkingSetKiB": 1356656,
+          "activeWorkingSetKiB": 1356512,
+          "activeViews": 1
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1542.5,
+          "allFramesMs": 1499.599853515625,
+          "openPeakWorkingSetKiB": 1342400,
+          "activeWorkingSetKiB": 1342544,
+          "activeViews": 1
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1497.39990234375,
+          "allFramesMs": 1454.800048828125,
+          "openPeakWorkingSetKiB": 1330192,
+          "activeWorkingSetKiB": 1330256,
+          "activeViews": 1
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "e420dfbc049a0aa9597f50dbfc089791a2611edb8eea04eeaac4dacf083f9c97"
+    },
+    {
+      "fixture": "complex",
+      "mode": "memory-l-a1",
+      "variant": "fix",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1363.89990234375,
+          "allFramesMs": 3637.2998046875,
+          "openPeakWorkingSetKiB": 1620144,
+          "activeWorkingSetKiB": 1618816,
+          "activeViews": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1350.5,
+          "allFramesMs": 3753.60009765625,
+          "openPeakWorkingSetKiB": 1602928,
+          "activeWorkingSetKiB": 1594832,
+          "activeViews": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1372.599853515625,
+          "allFramesMs": 3649.899658203125,
+          "openPeakWorkingSetKiB": 1627200,
+          "activeWorkingSetKiB": 1600992,
+          "activeViews": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1341.099853515625,
+          "allFramesMs": 3593.2998046875,
+          "openPeakWorkingSetKiB": 1596592,
+          "activeWorkingSetKiB": 1595104,
+          "activeViews": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "memory-l-a2",
+      "variant": "fix",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1365.10009765625,
+          "allFramesMs": 3626.60009765625,
+          "openPeakWorkingSetKiB": 1634672,
+          "activeWorkingSetKiB": 1633424,
+          "activeViews": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1365.699951171875,
+          "allFramesMs": 3993.300048828125,
+          "openPeakWorkingSetKiB": 1590032,
+          "activeWorkingSetKiB": 1038720,
+          "activeViews": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1502.500244140625,
+          "allFramesMs": 4427.10009765625,
+          "openPeakWorkingSetKiB": 1223984,
+          "activeWorkingSetKiB": 758320,
+          "activeViews": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 2859.2001953125,
+          "allFramesMs": 8045.800048828125,
+          "openPeakWorkingSetKiB": 960672,
+          "activeWorkingSetKiB": 483424,
+          "activeViews": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "memory-l-b1",
+      "variant": "libraries",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1357.7001953125,
+          "allFramesMs": 3489.60009765625,
+          "openPeakWorkingSetKiB": 1558896,
+          "activeWorkingSetKiB": 1557504,
+          "activeViews": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1342.7001953125,
+          "allFramesMs": 3488.500244140625,
+          "openPeakWorkingSetKiB": 1554496,
+          "activeWorkingSetKiB": 1553648,
+          "activeViews": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1336.60009765625,
+          "allFramesMs": 3444.2001953125,
+          "openPeakWorkingSetKiB": 1578528,
+          "activeWorkingSetKiB": 1542112,
+          "activeViews": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1332.900146484375,
+          "allFramesMs": 3502.100341796875,
+          "openPeakWorkingSetKiB": 1548080,
+          "activeWorkingSetKiB": 1546816,
+          "activeViews": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "memory-l-b2",
+      "variant": "libraries",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1497.60009765625,
+          "allFramesMs": 3839.400146484375,
+          "openPeakWorkingSetKiB": 1573264,
+          "activeWorkingSetKiB": 1573104,
+          "activeViews": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1410,
+          "allFramesMs": 3715.60009765625,
+          "openPeakWorkingSetKiB": 1553984,
+          "activeWorkingSetKiB": 1552624,
+          "activeViews": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1406.60009765625,
+          "allFramesMs": 3592.800048828125,
+          "openPeakWorkingSetKiB": 1569344,
+          "activeWorkingSetKiB": 1534912,
+          "activeViews": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1338.7001953125,
+          "allFramesMs": 3434.000244140625,
+          "openPeakWorkingSetKiB": 1567120,
+          "activeWorkingSetKiB": 1566544,
+          "activeViews": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "memory-v-a1",
+      "variant": "fix",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1466.500244140625,
+          "allFramesMs": 3857.500244140625,
+          "openPeakWorkingSetKiB": 1469104,
+          "activeWorkingSetKiB": 1469392,
+          "activeViews": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1468.2001953125,
+          "allFramesMs": 3745.2001953125,
+          "openPeakWorkingSetKiB": 1446864,
+          "activeWorkingSetKiB": 1438576,
+          "activeViews": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1425.60009765625,
+          "allFramesMs": 3708.800048828125,
+          "openPeakWorkingSetKiB": 1466176,
+          "activeWorkingSetKiB": 1456832,
+          "activeViews": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1366.699951171875,
+          "allFramesMs": 3625,
+          "openPeakWorkingSetKiB": 1477248,
+          "activeWorkingSetKiB": 1475712,
+          "activeViews": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "memory-v-a2",
+      "variant": "fix",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1362.10009765625,
+          "allFramesMs": 3572.300048828125,
+          "openPeakWorkingSetKiB": 1599968,
+          "activeWorkingSetKiB": 1594432,
+          "activeViews": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1352.400146484375,
+          "allFramesMs": 3575.400146484375,
+          "openPeakWorkingSetKiB": 1618128,
+          "activeWorkingSetKiB": 1617168,
+          "activeViews": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1351.5,
+          "allFramesMs": 3621.60009765625,
+          "openPeakWorkingSetKiB": 1608160,
+          "activeWorkingSetKiB": 1581568,
+          "activeViews": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1587.89990234375,
+          "allFramesMs": 3827.5,
+          "openPeakWorkingSetKiB": 1615808,
+          "activeWorkingSetKiB": 1607552,
+          "activeViews": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "memory-v-b1",
+      "variant": "viewport",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1379.400146484375,
+          "allFramesMs": 3661.800048828125,
+          "openPeakWorkingSetKiB": 1613856,
+          "activeWorkingSetKiB": 1605088,
+          "activeViews": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1344.499755859375,
+          "allFramesMs": 3718.69970703125,
+          "openPeakWorkingSetKiB": 1623120,
+          "activeWorkingSetKiB": 1614720,
+          "activeViews": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1341.5,
+          "allFramesMs": 3573.800048828125,
+          "openPeakWorkingSetKiB": 1608704,
+          "activeWorkingSetKiB": 1582224,
+          "activeViews": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1322.60009765625,
+          "allFramesMs": 3524.300048828125,
+          "openPeakWorkingSetKiB": 1609600,
+          "activeWorkingSetKiB": 1608224,
+          "activeViews": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "memory-v-b2",
+      "variant": "viewport",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1352.800048828125,
+          "allFramesMs": 3583.89990234375,
+          "openPeakWorkingSetKiB": 1625136,
+          "activeWorkingSetKiB": 1624240,
+          "activeViews": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1339.39990234375,
+          "allFramesMs": 3606.89990234375,
+          "openPeakWorkingSetKiB": 1614144,
+          "activeWorkingSetKiB": 1612880,
+          "activeViews": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1333,
+          "allFramesMs": 3568.89990234375,
+          "openPeakWorkingSetKiB": 1618768,
+          "activeWorkingSetKiB": 1591616,
+          "activeViews": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1326.7998046875,
+          "allFramesMs": 3537.7998046875,
+          "openPeakWorkingSetKiB": 1597904,
+          "activeWorkingSetKiB": 1596352,
+          "activeViews": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "memory-v-focus-a1",
+      "variant": "fix",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1396.39990234375,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1446768,
+          "activeWorkingSetKiB": 1429232,
+          "activeViews": 10,
+          "settledWorkingSetKiB": 1428992,
+          "settledViews": 10,
+          "overviewDetectedMs": 1152.501220703125,
+          "viewsBeforeOverview": 10,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1385.60009765625,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1441536,
+          "activeWorkingSetKiB": 1432112,
+          "activeViews": 10,
+          "settledWorkingSetKiB": 1432176,
+          "settledViews": 10,
+          "overviewDetectedMs": 1175.7783203125,
+          "viewsBeforeOverview": 10,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1391.000244140625,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1446208,
+          "activeWorkingSetKiB": 1438032,
+          "activeViews": 10,
+          "settledWorkingSetKiB": 1437824,
+          "settledViews": 10,
+          "overviewDetectedMs": 1223.147216796875,
+          "viewsBeforeOverview": 10,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1437,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1428688,
+          "activeWorkingSetKiB": 1405488,
+          "activeViews": 10,
+          "settledWorkingSetKiB": 1421696,
+          "settledViews": 10,
+          "overviewDetectedMs": 1194.59423828125,
+          "viewsBeforeOverview": 10,
+          "viewsAfterOverview": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "memory-v-focus-a2",
+      "variant": "fix",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1420.499755859375,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1458512,
+          "activeWorkingSetKiB": 1425168,
+          "activeViews": 10,
+          "settledWorkingSetKiB": 1425072,
+          "settledViews": 10,
+          "overviewDetectedMs": 1141.3974609375,
+          "viewsBeforeOverview": 10,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1396.7998046875,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1456304,
+          "activeWorkingSetKiB": 1446704,
+          "activeViews": 10,
+          "settledWorkingSetKiB": 1446640,
+          "settledViews": 10,
+          "overviewDetectedMs": 1145.15234375,
+          "viewsBeforeOverview": 10,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1448.5,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1454944,
+          "activeWorkingSetKiB": 1446848,
+          "activeViews": 10,
+          "settledWorkingSetKiB": 1421840,
+          "settledViews": 10,
+          "overviewDetectedMs": 1181.9765625,
+          "viewsBeforeOverview": 10,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1382.699951171875,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1448352,
+          "activeWorkingSetKiB": 1418160,
+          "activeViews": 10,
+          "settledWorkingSetKiB": 1417968,
+          "settledViews": 10,
+          "overviewDetectedMs": 1141.917236328125,
+          "viewsBeforeOverview": 10,
+          "viewsAfterOverview": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "memory-v-focus-b1",
+      "variant": "viewport",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1403.600341796875,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1349536,
+          "activeWorkingSetKiB": 1343136,
+          "activeViews": 2,
+          "settledWorkingSetKiB": 1338896,
+          "settledViews": 2,
+          "overviewDetectedMs": 2317.139404296875,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1547.300048828125,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1314592,
+          "activeWorkingSetKiB": 1306000,
+          "activeViews": 2,
+          "settledWorkingSetKiB": 1305280,
+          "settledViews": 2,
+          "overviewDetectedMs": 1990.18505859375,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1439.2001953125,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1356048,
+          "activeWorkingSetKiB": 1355184,
+          "activeViews": 2,
+          "settledWorkingSetKiB": 1348192,
+          "settledViews": 2,
+          "overviewDetectedMs": 1988.867919921875,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1367.800048828125,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1336080,
+          "activeWorkingSetKiB": 1328864,
+          "activeViews": 2,
+          "settledWorkingSetKiB": 1321264,
+          "settledViews": 2,
+          "overviewDetectedMs": 1937.86279296875,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    },
+    {
+      "fixture": "complex",
+      "mode": "memory-v-focus-b2",
+      "variant": "viewport",
+      "category": "memory",
+      "warmSamples": [
+        {
+          "iteration": 2,
+          "revealMs": 1366.800048828125,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1319824,
+          "activeWorkingSetKiB": 1318672,
+          "activeViews": 2,
+          "settledWorkingSetKiB": 1311328,
+          "settledViews": 2,
+          "overviewDetectedMs": 1930.142333984375,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 3,
+          "revealMs": 1370.89990234375,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1323936,
+          "activeWorkingSetKiB": 1322848,
+          "activeViews": 2,
+          "settledWorkingSetKiB": 1314592,
+          "settledViews": 2,
+          "overviewDetectedMs": 1927.967041015625,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 4,
+          "revealMs": 1328.599853515625,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1314368,
+          "activeWorkingSetKiB": 1314368,
+          "activeViews": 2,
+          "settledWorkingSetKiB": 1305376,
+          "settledViews": 2,
+          "overviewDetectedMs": 2089.564697265625,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        },
+        {
+          "iteration": 5,
+          "revealMs": 1332.39990234375,
+          "allFramesMs": null,
+          "openPeakWorkingSetKiB": 1338880,
+          "activeWorkingSetKiB": 1319856,
+          "activeViews": 2,
+          "settledWorkingSetKiB": 1319744,
+          "settledViews": 2,
+          "overviewDetectedMs": 2017.96875,
+          "viewsBeforeOverview": 2,
+          "viewsAfterOverview": 10
+        }
+      ],
+      "rendererErrors": 0,
+      "blockedWrites": 0,
+      "previewErrors": 0,
+      "returnedEditorPidsGone": true,
+      "modelSha256": "10281222e847d69dcec1f7f019e5608ebb2a70ccb7324fd9e4b9105427423517"
+    }
+  ],
+  "retention": [
+    {
+      "fixture": "gp",
+      "variant": "baseline",
+      "repeat": 1,
+      "owners": [
+        {
+          "hasModel": true,
+          "hasStartup": true
+        }
+      ],
+      "heapAfterDiagnosticGcBytes": 130721948
+    },
+    {
+      "fixture": "gp",
+      "variant": "baseline",
+      "repeat": 2,
+      "owners": [
+        {
+          "hasModel": true,
+          "hasStartup": true
+        }
+      ],
+      "heapAfterDiagnosticGcBytes": 130467156
+    },
+    {
+      "fixture": "gp",
+      "variant": "fix",
+      "repeat": 1,
+      "owners": [
+        {
+          "hasModel": false,
+          "hasStartup": false
+        }
+      ],
+      "heapAfterDiagnosticGcBytes": 126147736
+    },
+    {
+      "fixture": "gp",
+      "variant": "fix",
+      "repeat": 2,
+      "owners": [
+        {
+          "hasModel": false,
+          "hasStartup": false
+        }
+      ],
+      "heapAfterDiagnosticGcBytes": 125688984
+    },
+    {
+      "fixture": "complex",
+      "variant": "baseline",
+      "repeat": 1,
+      "owners": [
+        {
+          "hasModel": true,
+          "hasStartup": true
+        }
+      ],
+      "heapAfterDiagnosticGcBytes": 259902688
+    },
+    {
+      "fixture": "complex",
+      "variant": "baseline",
+      "repeat": 2,
+      "owners": [
+        {
+          "hasModel": true,
+          "hasStartup": true
+        }
+      ],
+      "heapAfterDiagnosticGcBytes": 259897068
+    },
+    {
+      "fixture": "complex",
+      "variant": "fix",
+      "repeat": 1,
+      "owners": [
+        {
+          "hasModel": false,
+          "hasStartup": false
+        }
+      ],
+      "heapAfterDiagnosticGcBytes": 255312492
+    },
+    {
+      "fixture": "complex",
+      "variant": "fix",
+      "repeat": 2,
+      "owners": [
+        {
+          "hasModel": false,
+          "hasStartup": false
+        }
+      ],
+      "heapAfterDiagnosticGcBytes": 254886956
+    }
+  ],
+  "functional": [
+    {
+      "fixture": "gp",
+      "mode": "qual-baseline-gp",
+      "variant": "baseline",
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "outline-dom-rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "preview-business-pagination-return",
+          "passed": true
+        }
+      ],
+      "savedReopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    {
+      "fixture": "gp",
+      "mode": "qual-final-fix-gp",
+      "variant": "fix",
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "outline-dom-rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "preview-business-pagination-return",
+          "passed": true
+        }
+      ],
+      "savedReopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    {
+      "fixture": "gp",
+      "mode": "qual-fix-gp",
+      "variant": "fix",
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "outline-dom-rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "preview-business-pagination-return",
+          "passed": true
+        }
+      ],
+      "savedReopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    {
+      "fixture": "gp",
+      "mode": "qual-libraries-gp",
+      "variant": "libraries",
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "outline-dom-rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "preview-business-pagination-return",
+          "passed": true
+        }
+      ],
+      "savedReopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    {
+      "fixture": "gp",
+      "mode": "qual-libraries-insert-gp",
+      "variant": "libraries",
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "insert-unused-library-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "outline-dom-rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "preview-business-pagination-return",
+          "passed": true
+        }
+      ],
+      "savedReopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    {
+      "fixture": "gp",
+      "mode": "qual-viewport-gp",
+      "variant": "viewport",
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "outline-dom-rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "preview-business-pagination-return",
+          "passed": true
+        }
+      ],
+      "savedReopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    {
+      "fixture": "complex",
+      "mode": "qual-baseline-complex",
+      "variant": "baseline",
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "outline-dom-rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-undo-selection-style",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-redo-rendered-style",
+          "passed": true
+        }
+      ],
+      "savedReopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    {
+      "fixture": "complex",
+      "mode": "qual-final-fix-complex",
+      "variant": "fix",
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "outline-dom-rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-undo-selection-style",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-redo-rendered-style",
+          "passed": true
+        }
+      ],
+      "savedReopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    {
+      "fixture": "complex",
+      "mode": "qual-fix-complex",
+      "variant": "fix",
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "outline-dom-rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-undo-selection-style",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-redo-rendered-style",
+          "passed": true
+        }
+      ],
+      "savedReopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    {
+      "fixture": "complex",
+      "mode": "qual-fix-focus-complex",
+      "variant": "fix",
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "outline-dom-rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-undo-selection-style",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-redo-rendered-style",
+          "passed": true
+        }
+      ],
+      "savedReopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    {
+      "fixture": "complex",
+      "mode": "qual-libraries-complex",
+      "variant": "libraries",
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "outline-dom-rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-undo-selection-style",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-redo-rendered-style",
+          "passed": true
+        }
+      ],
+      "savedReopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    {
+      "fixture": "complex",
+      "mode": "qual-viewport-complex",
+      "variant": "viewport",
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "outline-dom-rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-undo-selection-style",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-redo-rendered-style",
+          "passed": true
+        }
+      ],
+      "savedReopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    },
+    {
+      "fixture": "complex",
+      "mode": "qual-viewport-focus-complex",
+      "variant": "viewport",
+      "cases": [
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "switch-artboard",
+          "rendered": true
+        },
+        {
+          "case": "rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "outline-dom-rename-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "rendered-style-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "frame-position-undo-redo",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-undo-selection-style",
+          "passed": true
+        },
+        {
+          "case": "cold-frame-redo-rendered-style",
+          "passed": true
+        }
+      ],
+      "savedReopen": true,
+      "rendererErrors": 0,
+      "previewErrors": 0
+    }
+  ],
+  "checks": {
+    "productUnitTests": {
+      "files": 3,
+      "passed": 32,
+      "command": "node_modules/.bin/vitest run src/wab/client/components/root-view.test.tsx src/wab/client/app-ctx.test.ts src/wab/client/frame-ctx/project-model-transfer.test.ts --maxWorkers=1 (cwd platform/wab)"
+    },
+    "candidateUnitTests": {
+      "files": 4,
+      "passed": 19
+    },
+    "productTypecheck": {
+      "command": "node_modules/.bin/tsc --noEmit --incremental false (cwd platform/wab)",
+      "exit": 0
+    },
+    "candidateTypechecks": {
+      "libraries": 0,
+      "viewport": 0
+    },
+    "lint": {
+      "errors": 0,
+      "existingWarnings": 2
+    },
+    "regressionControl": {
+      "previousImplementation": "failed owner-identity assertion",
+      "fixedImplementation": "passed"
+    },
+    "productionSourcesMatchVerifiedBuild": true,
+    "sharedRuntimeAssetsMatch": true,
+    "gitDiffCheck": 0
+  },
+  "failures": [
+    {
+      "fixture": "complex",
+      "mode": "v-focus-a2",
+      "recordedSamples": 0,
+      "error": "Harness deadline exceeded (240000 ms); phase=first-list-open; currentStep={\"at\":\"2026-11-09T03:07:05.932Z\",\"phase\":\"first-list-open\",\"step\":\"wait-complete\",\"description\":\"all visible artboards rendered\"}",
+      "rendererErrors": [],
+      "includedInFormalComparison": false
+    },
+    {
+      "fixture": "complex",
+      "mode": "cache-b1",
+      "recordedSamples": 3,
+      "error": "Error: Timeout: real dashboard card; phase=return-list-2; step=wait-start\n    at until (/private/tmp/plasmic-open-review-20261109/source/desktop/tests/performance/real-project-open.cjs:192:9)\n    at async /private/tmp/plasmic-open-review-20261109/source/desktop/tests/performance/real-project-open.cjs:486:5",
+      "rendererErrors": [
+        "Studio operation failed {\"title\":\"Studio operation failed\",\"name\":\"Error\",\"message\":\"Error invoking remote method 'desktop:navigate': reply was never sent\",\"stack\":\"Error: Error invoking remote method 'desktop:navigate': reply was never sent\"}"
+      ],
+      "includedInFormalComparison": false
+    }
+  ],
+  "excludedFocusRuns": [
+    "v-focus-a1",
+    "v-focus-b1",
+    "v-focus-b2",
+    "v-focus-a2"
+  ],
+  "cacheBudgetComparison": {
+    "complete": true,
+    "separateFromStartupComparisons": true,
+    "processes": 4,
+    "opensPerProcess": 4,
+    "warmOpensPerProcess": 2,
+    "runs": [
+      {
+        "mode": "cache-r-a1",
+        "variant": "fix",
+        "rendererErrors": 0,
+        "returnedEditorPidsGone": true,
+        "warmSamples": [
+          {
+            "iteration": 2,
+            "views": 14,
+            "reentryDetectedMs": 63.919921875,
+            "workingSetKiB": 1889776
+          },
+          {
+            "iteration": 3,
+            "views": 14,
+            "reentryDetectedMs": 64.9013671875,
+            "workingSetKiB": 1858544
+          }
+        ]
+      },
+      {
+        "mode": "cache-r-a2",
+        "variant": "fix",
+        "rendererErrors": 0,
+        "returnedEditorPidsGone": true,
+        "warmSamples": [
+          {
+            "iteration": 2,
+            "views": 14,
+            "reentryDetectedMs": 45.0068359375,
+            "workingSetKiB": 1721872
+          },
+          {
+            "iteration": 3,
+            "views": 14,
+            "reentryDetectedMs": 40.31982421875,
+            "workingSetKiB": 1731744
+          }
+        ]
+      },
+      {
+        "mode": "cache-r-b1",
+        "variant": "viewport",
+        "rendererErrors": 0,
+        "returnedEditorPidsGone": true,
+        "warmSamples": [
+          {
+            "iteration": 2,
+            "views": 4,
+            "reentryDetectedMs": 404.7421875,
+            "workingSetKiB": 1904944
+          },
+          {
+            "iteration": 3,
+            "views": 4,
+            "reentryDetectedMs": 394.6513671875,
+            "workingSetKiB": 1857712
+          }
+        ]
+      },
+      {
+        "mode": "cache-r-b2",
+        "variant": "viewport",
+        "rendererErrors": 0,
+        "returnedEditorPidsGone": true,
+        "warmSamples": [
+          {
+            "iteration": 2,
+            "views": 4,
+            "reentryDetectedMs": 379.3916015625,
+            "workingSetKiB": 1855568
+          },
+          {
+            "iteration": 3,
+            "views": 4,
+            "reentryDetectedMs": 370.7509765625,
+            "workingSetKiB": 1855248
+          }
+        ]
+      }
+    ],
+    "qualification": "All return/PID assertions passed after correcting the draft-owner diagnostic. Working-set benefit was not stable; reentry became slower."
+  },
+  "privateEvidenceDirectory": "/tmp/plasmic-open-review-20261109",
+  "followUpDecision": {
+    "item3": "abandoned at user request",
+    "items4and5": "See startup-context-scans.json; private validation only"
+  }
+}

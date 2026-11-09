@@ -6,7 +6,7 @@ import {
   ExpsProvider,
   StylePanelSection,
   TplExpsProvider,
-  useStyleComponent,
+  useStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
@@ -38,7 +38,7 @@ export function LayoutSection(
   props: LayoutSectionProps,
 ) {
   const { t: uiT } = useI18n();
-  const styling = useStyleComponent();
+  const styling = useStyleTarget();
   const [displayCell, directionCell] = useStyleCells(styling.props.expsProvider, [
     "display", "flex-direction",
   ]);

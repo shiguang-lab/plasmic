@@ -1,6 +1,6 @@
 import { useFrameWidth } from "@/wab/client/studio-ctx/frame-width";
 import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
-import { useStudioArena, useViewEntryForFrame } from "@/wab/client/studio-ctx/arena-state";
+import { useStudioArena, useViewEntryForFrame, useViewRegistry } from "@/wab/client/studio-ctx/arena-state";
 import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useShallow } from "zustand/react/shallow";
 import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
@@ -22,13 +22,15 @@ export function CanvasConfigButton(props: {
   showDims?: boolean;
 }) {
   const { studioCtx, frame, showDims } = props;
-  useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view]));
+  const [selectedFrames, selectedView] = useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view] as const));
   const viewportZoom = useCanvasZoom(studioCtx);
   const frameHeight = useFrameHeight(studioCtx, showDims ? frame : undefined);
   const frameWidth = useFrameWidth(studioCtx, showDims ? frame : undefined);
-  useStudioArena(studioCtx, (state) => state.frames);
+  const arenaFrames = useStudioArena(studioCtx, (state) => state.frames);
+  const focusedViewFrame = useViewRegistry(studioCtx, (entries) => entries.find((entry) => entry.view === selectedView)?.frame);
+  const focusedFrame = selectedFrames.find((selected) => arenaFrames.includes(selected)) ?? focusedViewFrame;
   const vc = useViewEntryForFrame(studioCtx, frame)?.view;
-  const isFocused = studioCtx.focusedContentFrame() === frame;
+  const isFocused = focusedFrame?.uid === frame.uid;
   const [visible, setVisible] = React.useState(false);
   const _gridSpacing = parseInt(getGlobalCssVariableValue(gridSpacing), 10);
   const _hoverBoxTagHeight = parseInt(

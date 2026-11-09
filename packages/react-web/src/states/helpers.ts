@@ -2,19 +2,19 @@ import type { ComponentHelpers } from "@plasmicapp/host";
 import get from "dlv";
 import { getVersion as isValtioProxy } from "valtio";
 import { ensure } from "../common";
+import { getStateCommandValue } from "./command-values";
 import { StateSpecNode } from "./graph";
 import {
   $State,
   ARRAY_SYMBOL,
-  InitFunc,
   ObjectPath,
   PLASMIC_STATE_PROXY_SYMBOL,
   StateCell,
+  StateInitializerDeclaration,
 } from "./types";
 import { proxyObjToStateCell, tryGetStateCellFrom$StateRoot } from "./valtio";
 
-export function initializeCodeComponentStates(
-  $state: $State,
+export function getCodeComponentStateInitializers(
   states: {
     name: string;
     plasmicStateName: string;
@@ -22,18 +22,20 @@ export function initializeCodeComponentStates(
   repetitionIndex: number[],
   componentHelpers: ComponentHelpers<any>,
   child$Props: Record<string, any>
-) {
+): StateInitializerDeclaration[] {
   const stateHelpers = componentHelpers?.states ?? {};
+  const declarations: StateInitializerDeclaration[] = [];
   for (const { name, plasmicStateName } of states) {
     if (name in stateHelpers && "initFunc" in stateHelpers[name]) {
-      $state.registerInitFunc?.(
-        plasmicStateName,
-        ({ $props }) => stateHelpers[name].initFunc?.($props),
-        repetitionIndex ?? [],
-        { $props: child$Props }
-      );
+      declarations.push({
+        path: plasmicStateName,
+        initFunc: ({ $props }) => stateHelpers[name].initFunc?.($props),
+        repetitionIndex,
+        env: { $props: child$Props },
+      });
     }
   }
+  return declarations;
 }
 
 export function generateOnMutateForSpec(
@@ -43,24 +45,11 @@ export function generateOnMutateForSpec(
   return componentHelpers?.states?.[stateName]?.onMutate;
 }
 
-export function initializePlasmicStates(
-  $state: $State,
-  states: {
-    name: string;
-    initFunc: InitFunc<any>;
-  }[],
-  repetitionIndex: number[]
-) {
-  for (const { name, initFunc } of states) {
-    $state.registerInitFunc?.(name, initFunc, repetitionIndex ?? []);
-  }
-}
-
 export function generateStateOnChangeProp(
   $state: $State,
   path: ObjectPath
 ): (val: any) => void {
-  return (val) => set($state, path, val);
+  return (val) => set(getStateCommandValue($state), path, val);
 }
 
 export function generateStateOnChangePropForCodeComponents(
@@ -86,12 +75,14 @@ export function generateStateValueProp($state: $State, path: ObjectPath) {
 }
 
 export function isPlasmicStateProxy(obj: any) {
+  obj = getStateCommandValue(obj);
   return (
     obj != null && typeof obj === "object" && !!obj[PLASMIC_STATE_PROXY_SYMBOL]
   );
 }
 
 export function is$StateProxy(obj: any) {
+  obj = getStateCommandValue(obj);
   return (
     obj != null &&
     typeof obj === "object" &&
@@ -103,6 +94,7 @@ export function getStateCells(
   $state: $State,
   root: StateSpecNode<any>
 ): StateCell<any>[] {
+  $state = getStateCommandValue($state);
   if ($state == null || typeof $state !== "object") {
     return [];
   }
@@ -132,6 +124,7 @@ export function getStateCells(
 export function getStateCellsInPlasmicProxy(
   obj: any
 ): { realPath: ObjectPath; path: string }[] {
+  obj = getStateCommandValue(obj);
   if (!isPlasmicStateProxy(obj)) {
     return [];
   }
@@ -150,6 +143,7 @@ export function getStateCellsInPlasmicProxy(
 }
 
 export function getStateSpecInPlasmicProxy(obj: any, path: ObjectPath) {
+  obj = getStateCommandValue(obj);
   obj = get(obj, path.slice(0, path.length - 1));
   if (!isPlasmicStateProxy(obj)) {
     return undefined;
@@ -168,6 +162,7 @@ export function getStateSpecInPlasmicProxy(obj: any, path: ObjectPath) {
 }
 
 export function getCurrentInitialValue(obj: any, path: ObjectPath) {
+  obj = getStateCommandValue(obj);
   if (!isPlasmicStateProxy(obj)) {
     return undefined;
   }
@@ -178,6 +173,7 @@ export function getCurrentInitialValue(obj: any, path: ObjectPath) {
  * Canvas edits clear the diagnostic when the initializer hash changes.
  */
 export function hasUnstableStateInitializer(obj: any, path: ObjectPath) {
+  obj = getStateCommandValue(obj);
   if (!isPlasmicStateProxy(obj)) {
     return false;
   }
@@ -185,6 +181,7 @@ export function hasUnstableStateInitializer(obj: any, path: ObjectPath) {
 }
 
 export function resetToInitialValue(obj: any, path: ObjectPath) {
+  obj = getStateCommandValue(obj);
   const stateCell = tryGetStateCellFrom$StateRoot(obj, path);
   if (stateCell) {
     set(obj, path, stateCell.initialValue);

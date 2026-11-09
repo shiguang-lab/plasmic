@@ -1,3 +1,4 @@
+import { useCommittedValue } from "@/wab/commons/components/ReactUtil";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { useI18n } from "@/wab/client/i18n";
 import {
@@ -68,12 +69,9 @@ export function useAiAttachments(
   const [reading, setReading] = React.useState(false);
   const [error, setError] = React.useState<string>();
   const readingRef = React.useRef(false);
-  const currentScope = React.useRef(scope);
-  if (currentScope.current !== scope) {
-    currentScope.current = scope;
+  const currentScope = useCommittedValue(scope);
+  React.useLayoutEffect(() => {
     readingRef.current = false;
-  }
-  React.useEffect(() => {
     setReading(false);
     setError(undefined);
   }, [scope]);
@@ -84,7 +82,7 @@ export function useAiAttachments(
     readingRef.current = true;
     setError(undefined);
     setReading(true);
-    try {
+    return await (async () => {
       const existingSize = attachments.reduce(
         (size, attachment) =>
           size +
@@ -113,18 +111,18 @@ export function useAiAttachments(
         throw new Error("Use up to 5 attachments, totaling at most 10 MB.");
       }
       setAttachments(next);
-    } catch (reason) {
-      if (currentScope.current === scope) { setError(
+    })().catch(async (reason) => {
+      if (currentScope() === scope) { setError(
         reason instanceof Error
           ? reason.message
           : "Could not read the attachment.",
       ); }
-    } finally {
-      if (currentScope.current === scope) {
+    }).finally(() => {
+      if (currentScope() === scope) {
         readingRef.current = false;
         setReading(false);
       }
-    }
+    });
   };
   return {
     attachments,

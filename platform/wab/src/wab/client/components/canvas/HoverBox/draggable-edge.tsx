@@ -360,7 +360,12 @@ export function SpaceEdgeArea(props: {
   );
   const [labelElt, setLabelElt] = React.useState<HTMLDivElement | null>(null);
   const orientation = sideEdgeToOrient(side);
-  return (
+  const growDirectionClass = `growDirection-${growDirection}`;
+const placementClass = `placement-${placement}`;
+const sizeClass = isAutoSized ? "autoSized" : "fixedSized";
+const childAlignClass = `childAlign-${childAlign}`;
+const spaceDimension = side === "top" || side === "bottom" ? "height" : "width";
+return (
     <div
       className={cx(sty.edgeArea, sty.edgeAreaShown, {
         [sty.padding]: edgeType === "padding",
@@ -370,13 +375,13 @@ export function SpaceEdgeArea(props: {
             innerSpace < MIN_INNER_SPACE_FOR_PADDING_EDGE) ||
           (edgeType === "margin" &&
             innerSpace < MIN_INNER_SPACE_FOR_MARGIN_EDGE),
-        [`growDirection-${growDirection}`]: true,
-        [`placement-${placement}`]: true,
-        [isAutoSized ? "autoSized" : "fixedSized"]: true,
-        [`childAlign-${childAlign}`]: true,
+        [growDirectionClass]: true,
+        [placementClass]: true,
+        [sizeClass]: true,
+        [childAlignClass]: true,
       })}
       style={{
-        [side === "top" || side === "bottom" ? "height" : "width"]:
+        [spaceDimension]:
           value * zoom,
       }}
     >
@@ -428,9 +433,10 @@ export function SpaceEdgeArea(props: {
           // because of hovering on the handle, then no need to render it at all.
           return null;
         }
-        const labelStyles: React.CSSProperties = {
+        const labelPositionDimension = orientation === "horiz" ? "top" : "left";
+const labelStyles: React.CSSProperties = {
           transform: "translate(-50%, -50%)",
-          [orientation === "horiz" ? "top" : "left"]: "50%",
+          [labelPositionDimension]: "50%",
         };
         if (labelElt) {
           const filledSpace = value * zoom;
@@ -563,7 +569,10 @@ export function DraggableEdge(props: {
       // then the draggable edge is also just flush against the hoverbox
       valuePositionOffset < thickness / 2);
 
-  return (
+  const handleDimension = orientation === "vert" ? "width" : "height";
+const edgeDimension = orientation === "vert" ? "width" : "height";
+const flushEdgeSide = placement === "outside" ? oppSide(side) : side;
+return (
     <XDraggable
       onStart={() => {
         setDragState({
@@ -606,7 +615,7 @@ export function DraggableEdge(props: {
           })}
           onDoubleClick={onDoubleClick}
           style={{
-            [orientation === "vert" ? "width" : "height"]: thickness,
+            [handleDimension]: thickness,
             // Now we need to position the draggable handle.  It is basically positioned
             // at the hoverbox edge, with some offset (for example, for margin-left, it's
             // positioned at hoverbox left edge, with some offset that accounts for the actual
@@ -643,7 +652,7 @@ export function DraggableEdge(props: {
               [sty.edgeHorizontal]: orientation === "horiz",
             })}
             style={{
-              [orientation === "vert" ? "width" : "height"]: EDGE_WIDTH,
+              [edgeDimension]: EDGE_WIDTH,
               transformOrigin: getEdgeTransformOrigin(
                 side,
                 isFlush
@@ -660,7 +669,7 @@ export function DraggableEdge(props: {
                     // |      draggable handle      |
                     // | edge |
                     // for, say, margin-right above.
-                    [placement === "outside" ? oppSide(side) : side]: 0,
+                    [flushEdgeSide]: 0,
                   }
                 : {
                     // If not flush, then we just place the visible edge at the middle
@@ -677,16 +686,19 @@ export function DraggableEdge(props: {
                   value < KNOB_AT_ZERO_OFFSET ? KNOB_AT_ZERO_OFFSET : 0;
               }
 
-              return (
+              const knobHeightDimension = orientation === "vert" ? "width" : "height";
+const knobWidthDimension = orientation === "horiz" ? "width" : "height";
+const knobSide = placement === "outside" ? oppSide(side) : side;
+return (
                 <div
                   className={cx(sty.knob2, {
                     [sty.knobHoriz]: orientation === "horiz",
                     [sty.knobVert]: orientation === "vert",
                   })}
                   style={{
-                    [orientation === "vert" ? "width" : "height"]: KNOB_HEIGHT,
-                    [orientation === "horiz" ? "width" : "height"]: KNOB_WIDTH,
-                    [placement === "outside" ? oppSide(side) : side]:
+                    [knobHeightDimension]: KNOB_HEIGHT,
+                    [knobWidthDimension]: KNOB_WIDTH,
+                    [knobSide]:
                       knobOffset + (isFlush ? 0 : thickness / 2),
                   }}
                 />

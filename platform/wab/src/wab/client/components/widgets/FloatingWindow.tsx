@@ -1,6 +1,6 @@
 import { isWithinPointerInteractiveElement } from "@/wab/client/dom-utils";
 import { LocalStorageKey } from "@/wab/client/LocalStorageKey";
-import { mergeRefs } from "@/wab/commons/components/ReactUtil";
+import { mergeRefs, useCommittedValue } from "@/wab/commons/components/ReactUtil";
 import { Box, Pt } from "@/wab/shared/geom";
 import cn from "classnames";
 import L from "lodash";
@@ -151,14 +151,13 @@ export const FloatingWindow = React.forwardRef(function FloatingWindow(
     setOffset(offset.plus(clampedDelta));
   }, [focusedMode, handleSelector, initialAnchor, loadedState]);
 
-  const lastWindowStateRef = React.useRef<WindowState>({
+  const readWindowState = useCommittedValue<WindowState>({
     offset,
     width,
     height,
   });
-  lastWindowStateRef.current = { offset, width, height };
   const storeLastState = () => {
-    storeWindowState(storageKey, lastWindowStateRef.current);
+    storeWindowState(storageKey, readWindowState());
   };
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {

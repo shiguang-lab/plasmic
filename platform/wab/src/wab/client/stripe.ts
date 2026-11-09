@@ -1,11 +1,11 @@
 import { ENV } from "@/wab/client/env";
 import type { StripeElementStyle } from "@stripe/stripe-js";
 import { loadStripe, Stripe } from "@stripe/stripe-js";
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 
 // Stripe fields render in isolated iframes and cannot inherit product CSS.
 export function useStripeElementStyle(): StripeElementStyle {
-  const { token } = theme.useToken();
+  const { token } = AntdTheme.useToken();
   return {
     base: {
       color: token.colorText,

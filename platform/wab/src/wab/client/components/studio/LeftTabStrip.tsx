@@ -38,11 +38,9 @@ import { spawn, unexpected } from "@/wab/shared/common";
 import {
   LeftTabKey,
   LeftTabUiKey,
-  getLeftTabPermission,
 } from "@/wab/shared/ui-config-utils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Popover } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { ReactNode } from "react";
 import { useStore } from "zustand";
@@ -50,6 +48,9 @@ import { useStore } from "zustand";
 interface LeftTabStripProps extends DefaultLeftTabStripProps {
   useVersionsCTA: boolean;
 }
+
+function loadPenImporter() { return import("@/wab/client/pen-importer/import-file"); }
+function loadFigmaImporter() { return import("@/wab/client/figma-importer/import-file"); }
 
 export interface NavMenuItem {
   type: "item";
@@ -107,14 +108,23 @@ const CanvasTools = React.memo(function CanvasTools() {
   );
 });
 
-const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
+const LeftTabStrip = React.memo(function LeftTabStrip(props: LeftTabStripProps) {
   const { t } = useI18n();
   const topFrameApi = useTopFrameApi();
   const { styles: popupStyles } = useEditorPopupStyles();
   const studioCtx = useStudioCtx();
   const libraryTab = useStore(studioCtx.libraryTabStore);
-  const canViewLibraryImports = useStore(studioCtx.uiEnvironment.store, (state) => state.hasUserInfo && state.leftTabPermissions.imports !== "hidden");
-  const figmaFileInput = React.useRef<HTMLInputElement>(null);
+  const isLoggedIn = useStore(studioCtx.uiEnvironment.store, (state) => state.hasUserInfo);
+  const contentEditorMode = useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
+  const leftTabPermissions = useStore(studioCtx.uiEnvironment.store, (state) => state.leftTabPermissions);
+  const canEditProject = useStore(studioCtx.uiEnvironment.store, (state) => state.canEditProject);
+  const canViewLibraryImports = isLoggedIn && leftTabPermissions.imports !== "hidden";
+  const globalContexts = React.useMemo(() => studioCtx.modelSnapshots.field(studioCtx.site, "globalContexts"), [studioCtx, studioCtx.modelSnapshots, studioCtx.site]);
+  const hasGlobalContexts = useStore(globalContexts, (contexts) => contexts.length > 0);
+  const subscribeChatConfig = React.useCallback((listener: () => void) => studioCtx.appCtx.subscribeUiEnvironmentInputs(listener), [studioCtx]);
+  const getChatEnabled = React.useCallback(() => studioCtx.chatCopilotEnabled(), [studioCtx, canEditProject]);
+  const chatEnabled = React.useSyncExternalStore(subscribeChatConfig, getChatEnabled, getChatEnabled);
+  const figmaFileInputId = React.useId();
   const [importingFigma, setImportingFigma] = React.useState(false);
   const [importingPen, setImportingPen] = React.useState(false);
   const leftTabKey = useStore(
@@ -159,23 +169,12 @@ const LeftTabStrip = observer(function LeftTabStrip(props: LeftTabStripProps) {
     document.addEventListener("keydown", close, true);
     return () => document.removeEventListener("keydown", close, true);
   }, [openGroup]);
-  const isLoggedIn = studioCtx.appCtx.selfInfo != null;
-  const contentEditorMode = studioCtx.contentEditorMode;
-  const hasGlobalContexts = studioCtx.site.globalContexts.length > 0;
   const missingUsedFonts = useStore(
     studioCtx.fontManager.store,
     (state) => state.missingUsedFonts,
   );
 
-  const uiConfig = studioCtx.getCurrentUiConfig();
-
-  const canViewTab = (tab: LeftTabUiKey) => {
-    return (
-      getLeftTabPermission(uiConfig, tab, {
-        isContentCreator: contentEditorMode,
-      }) !== "hidden"
-    );
-  };
+  const canViewTab = (tab: LeftTabUiKey) => leftTabPermissions[tab] !== "hidden";
 
   /*
   Outline
@@ -320,7 +319,7 @@ More
           cond: canViewTab("figma"),
           onClick: () => {
             if (!importingFigma && !importingPen) {
-              figmaFileInput.current?.click();
+              document.getElementById(figmaFileInputId)?.click();
             }
           },
         },
@@ -336,13 +335,13 @@ More
             setImportingPen(true);
             spawn(
               (async () => {
-                try {
+                return await (async () => {
                   const { importPenFile } =
-                    await import("@/wab/client/pen-importer/import-file");
+                    await loadPenImporter();
                   await importPenFile(studioCtx);
-                } finally {
+                })().finally(() => {
                   setImportingPen(false);
-                }
+                });
               })(),
             );
           },
@@ -516,7 +515,7 @@ More
       buttons={
         <>
           <input
-            ref={figmaFileInput}
+            id={figmaFileInputId}
             type="file"
             accept=".fig"
             hidden
@@ -530,13 +529,13 @@ More
               setImportingFigma(true);
               spawn(
                 (async () => {
-                  try {
+                  return await (async () => {
                     const { importFigmaFile } =
-                      await import("@/wab/client/figma-importer/import-file");
+                      await loadFigmaImporter();
                     await importFigmaFile(studioCtx, file);
-                  } finally {
+                  })().finally(() => {
                     setImportingFigma(false);
-                  }
+                  });
                 })(),
               );
             }}
@@ -624,7 +623,7 @@ More
             label={t("AI")}
             tooltip={t("AI assistant")}
             icon={<EditorToolIcon tool="AI" />}
-            disabled={!studioCtx.chatCopilotEnabled()}
+            disabled={!chatEnabled}
             isSelected={isCopilotChatOpen}
             onClick={() => {
               if (studioCtx.chatCopilotEnabled()) {

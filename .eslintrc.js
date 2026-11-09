@@ -74,6 +74,15 @@ const noEnterpriseImportPattern = {
 // Shared by the top-level rule and the public-import guard override (which replaces it per-file).
 const restrictedImportPaths = [
   {
+    name: "react-dom",
+    importNames: ["render", "hydrate", "unmountComponentAtNode", "findDOMNode"],
+    message: "React 19 removed these APIs. Use react-dom/client roots and explicit DOM refs.",
+  },
+  {
+    name: "react-dom/test-utils",
+    message: "Import act from react; use Testing Library for component tests.",
+  },
+  {
     name: "@plasmicapp/host",
     importNames: ["registerComponent", "CodeComponentMeta"],
     message: "Please import from @plasmicapp/host/registerComponent instead",
@@ -142,6 +151,15 @@ const noTestImportPattern = {
     "Only test files can import files in `__testonly__/`. Please move this file inside `__testonly__/`",
 };
 
+// `no-restricted-syntax` replaces the whole list per override, so this rule is
+// merged with `restrictedSyntaxRules` at the call site below.
+const noObjectSelectorRule = {
+  selector:
+    "CallExpression[callee.name=/^useStore/] > ArrowFunctionExpression[body.type='ObjectExpression']",
+  message:
+    "Selector builds a new object on every call, so the component re-renders on every store update. Wrap it in `useShallow(...)` from `zustand/react/shallow`, or select one field at a time.",
+};
+
 module.exports = {
   root: true,
   ignorePatterns: [
@@ -169,17 +187,22 @@ module.exports = {
     curly: "error",
     "no-restricted-properties": [
       "error",
+      ...["render", "hydrate", "unmountComponentAtNode", "findDOMNode"].map((property) => ({
+        object: "ReactDOM",
+        property,
+        message: "React 19 removed this API. Use react-dom/client roots and explicit DOM refs.",
+      })),
       {
         object: "L",
         property: "remove",
         message:
-          "Please use common.removeWhere() instead; L.remove() does not work well with mobx arrays",
+          "Please use common.removeWhere() instead; L.remove() mutates arrays outside model recording",
       },
       {
         object: "L",
         property: "pull",
         message:
-          "Please use common.remove() instead; L.pull() does not work well with mobx arrays",
+          "Please use common.remove() instead; L.pull() mutates arrays outside model recording",
       },
       {
         object: "req",
@@ -285,6 +308,21 @@ module.exports = {
   parser: "@typescript-eslint/parser",
   overrides: [
     {
+      files: [
+        "platform/wab/src/**/*.{ts,tsx}",
+        "platform/{sub,live-frame,canvas-packages,react-web-bundle}/src/**/*.{ts,tsx}",
+        "packages/host/src/**/*.{ts,tsx}",
+        "packages/react-web/src/**/*.{ts,tsx}",
+        "plasmicpkgs/**/src/**/*.{ts,tsx}",
+      ],
+      excludedFiles: [...testFiles, "**/*-stories.tsx"],
+      plugins: ["react-hooks"],
+      rules: {
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn",
+      },
+    },
+    {
       files: ["platform/wab/src/wab/client/components/coding/CodeDisplayContent.tsx"],
       plugins: ["react-hooks"],
       rules: require("eslint-plugin-react-hooks").configs.recommended.rules,
@@ -387,9 +425,9 @@ module.exports = {
                   },
                   noTestImportPattern,
                   {
-                    group: ["mobx"],
+                    group: ["mobx", "mobx-react", "mobx-react-lite", "mobx-utils"],
                     message:
-                      "Files in `server/` can only import mobx from `shared/import-mobx` or use `import type`",
+                      "Use native model recording and stores instead of MobX",
                   },
                 ],
               },
@@ -417,6 +455,39 @@ module.exports = {
           },
         },
         {
+          // Native stores own Studio state; prevent MobX from returning.
+          files: clientFiles,
+          excludedFiles: testFiles,
+          rules: {
+            "@typescript-eslint/no-restricted-imports": [
+              "error",
+              {
+                patterns: [
+                  {
+                    group: ["**/server/*"],
+                    message:
+                      "Files in `client/` cannot import from `server/`. Please move this file inside `server/` or use `import type`",
+                    allowTypeImports: true,
+                  },
+                  noTestImportPattern,
+                  {
+                    group: ["mobx", "mobx-react", "mobx-react-lite", "mobx-utils"],
+                    message:
+                      "Use native model inputs and the zustand stores in `client/stores/` (see docs/design/mobx-to-zustand-migration.md).",
+                  },
+                ],
+              },
+            ],
+            // Keep the existing severity and the shared rules, which this
+            // override would otherwise replace.
+            "no-restricted-syntax": [
+              "warn",
+              ...restrictedSyntaxRules,
+              noObjectSelectorRule,
+            ],
+          },
+        },
+        {
           files: ["platform/wab/src/**/*.ts", "platform/wab/src/**/*.tsx"],
           excludedFiles: [...clientFiles, ...serverFiles, ...testFiles],
           rules: {
@@ -439,10 +510,9 @@ module.exports = {
                   },
                   noTestImportPattern,
                   {
-                    group: ["mobx"],
+                    group: ["mobx", "mobx-react", "mobx-react-lite", "mobx-utils"],
                     message:
-                      "Server files (not in `client/` folder) can only import mobx from `shared/import-mobx` or use `import type`",
-                    allowTypeImports: true,
+                      "Use native model recording and stores instead of MobX",
                   },
                 ],
               },

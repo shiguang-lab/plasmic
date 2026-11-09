@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  set as $stateSet,
+  usePlasmicRefs, set as $stateSet,
   classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
@@ -24,11 +24,11 @@ import {
   renderPlasmicSlot,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../plasmic_kit_style_controls/PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_style_controls/PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -94,11 +94,10 @@ function PlasmicTooltip__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isOpen",
@@ -113,18 +112,20 @@ function PlasmicTooltip__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.placement,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -157,19 +158,8 @@ function PlasmicTooltip__RenderFunc(props: {
           ),
         })}
       >
-        {(() => {
-          try {
-            return $state.isOpen;
-          } catch (e) {
-            if (
-              e instanceof TypeError ||
-              e?.plasmicType === "PlasmicUndefinedDataError"
-            ) {
-              return true;
-            }
-            throw e;
-          }
-        })() ? (
+        {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+              e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($state.isOpen), () => (true)) ? (
           <div
             data-plasmic-name={"invisibleRegion"}
             data-plasmic-override={overrides.invisibleRegion}
@@ -185,7 +175,7 @@ function PlasmicTooltip__RenderFunc(props: {
                 "topLeft"
               ),
             })}
-            onMouseOut={async (event) => {
+            onMouseOut={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (event) => {
               const $steps = {};
 
               $steps["setIsOpen"] = true
@@ -216,7 +206,7 @@ function PlasmicTooltip__RenderFunc(props: {
               ) {
                 $steps["setIsOpen"] = await $steps["setIsOpen"];
               }
-            }}
+            })); })}
           >
             <div
               data-plasmic-name={"floatingWindow"}
@@ -282,7 +272,7 @@ function PlasmicTooltip__RenderFunc(props: {
             "topLeft"
           ),
         })}
-        onMouseOver={async (event) => {
+        onMouseOver={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (event) => {
           const $steps = {};
 
           $steps["setIsOpen"] = true
@@ -313,7 +303,7 @@ function PlasmicTooltip__RenderFunc(props: {
           ) {
             $steps["setIsOpen"] = await $steps["setIsOpen"];
           }
-        }}
+        })); })}
         role={"img"}
       />
     </div>
@@ -363,12 +353,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -378,30 +364,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTooltip__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTooltip";
-  } else {
-    func.displayName = `PlasmicTooltip.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTooltip__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTooltip__root<T extends PlasmicTooltip__rootProps>(props: T & StrictProps<T, PlasmicTooltip__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTooltip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTooltip__root.displayName = "PlasmicTooltip";
+
+type PlasmicTooltip__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicTooltip__freeBox<T extends PlasmicTooltip__freeBoxProps>(props: T & StrictProps<T, PlasmicTooltip__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicTooltip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicTooltip__freeBox.displayName = "PlasmicTooltip.freeBox";
+
+type PlasmicTooltip__invisibleRegionProps = NodeComponentProps<"invisibleRegion"> & {key?: React.Key};
+function PlasmicTooltip__invisibleRegion<T extends PlasmicTooltip__invisibleRegionProps>(props: T & StrictProps<T, PlasmicTooltip__invisibleRegionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("invisibleRegion", props);
+  return <PlasmicTooltip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"invisibleRegion"} />;
+}
+PlasmicTooltip__invisibleRegion.displayName = "PlasmicTooltip.invisibleRegion";
+
+type PlasmicTooltip__floatingWindowProps = NodeComponentProps<"floatingWindow"> & {key?: React.Key};
+function PlasmicTooltip__floatingWindow<T extends PlasmicTooltip__floatingWindowProps>(props: T & StrictProps<T, PlasmicTooltip__floatingWindowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("floatingWindow", props);
+  return <PlasmicTooltip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"floatingWindow"} />;
+}
+PlasmicTooltip__floatingWindow.displayName = "PlasmicTooltip.floatingWindow";
+
+type PlasmicTooltip__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicTooltip__svg<T extends PlasmicTooltip__svgProps>(props: T & StrictProps<T, PlasmicTooltip__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicTooltip__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicTooltip__svg.displayName = "PlasmicTooltip.svg";
+
 
 export const PlasmicTooltip = Object.assign(
   // Top-level PlasmicTooltip renders the root element
-  makeNodeComponent("root"),
+  PlasmicTooltip__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    invisibleRegion: makeNodeComponent("invisibleRegion"),
-    floatingWindow: makeNodeComponent("floatingWindow"),
-    svg: makeNodeComponent("svg"),
+    freeBox: PlasmicTooltip__freeBox,
+    invisibleRegion: PlasmicTooltip__invisibleRegion,
+    floatingWindow: PlasmicTooltip__floatingWindow,
+    svg: PlasmicTooltip__svg,
 
     // Metadata about props expected for PlasmicTooltip
     internalVariantProps: PlasmicTooltip__VariantProps,

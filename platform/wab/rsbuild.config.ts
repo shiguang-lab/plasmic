@@ -1,5 +1,3 @@
-import { pluginBabel } from "@rsbuild/plugin-babel";
-import { reactCompilerInclude, reactCompilerOptions } from "./tools/react-compiler.mjs";
 import { animateBrandLoading } from "./src/wab/client/components/widgets/brand-loading-animation";
 import { defineConfig, mergeRsbuildConfig } from "@rsbuild/core";
 import {
@@ -155,18 +153,6 @@ class AppendSourceMapWithHash implements RspackPluginInstance {
 }
 
 const appConfig = defineConfig({
-  plugins: [pluginBabel({
-    include: reactCompilerInclude,
-    babelLoaderOptions: {
-      babelrc: false,
-      configFile: false,
-      plugins: [["babel-plugin-react-compiler", reactCompilerOptions({
-        logEvent: (filename, event) => {
-          if (event.kind === "CompileSuccess") console.info("React Compiler", filename, event.fnName, { memoSlots: event.memoSlots, memoBlocks: event.memoBlocks });
-        },
-      })]],
-    },
-  })],
   dev: {
     // Compile routes before CI starts.
     ...(process.env.CI

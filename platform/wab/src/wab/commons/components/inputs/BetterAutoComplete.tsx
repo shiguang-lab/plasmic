@@ -1,23 +1,19 @@
-// TODO note that cursorPosition logic is broken / not correctly being
-//  tracked, since the use case hasn't come up.
-
 import {
-  KeyModifiers,
   callEventHandlers,
+  useCommittedValue,
 } from "@/wab/commons/components/ReactUtil";
 import sty from "@/wab/commons/components/inputs/BetterAutoComplete.module.css";
 import { Cancelable, ensure, makeCancelable, spawn } from "@/wab/shared/common";
 import { Dropdown, Menu, MenuRef } from "antd";
 import Downshift, {
   ControllerStateAndHelpers,
-  DownshiftProps,
   DownshiftState,
   StateChangeOptions,
 } from "downshift";
 import $ from "jquery";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import L, * as _ from "lodash";
 import * as React from "react";
-import { Component, createRef } from "react";
 
 export interface AutoCompleteSource<T> {
   query: (
@@ -108,19 +104,42 @@ export interface AutoCompleteProps<P = any> {
   scrollClipperAncestors?: string[];
 }
 
-interface AutoCompleteState<P> {
-  /**
-   * This is just a locally kept mirror of Downshift's inputValue state -
-   * only because we can't arbitrarily reach into Downshift to examine its
-   * state whenever we want.  Used to feed queryOptions when the component
-   * updates.
-   *
-   * This is only set when the value prop is unused, i.e. we're uncontrolled.
-   */
-  text: string;
-  queriedSource?: AutoCompleteSource<P>;
-  queriedItems: P[];
-  cursorPosition?: number;
+interface AutoCompleteQueryState<P> {
+  readonly source: AutoCompleteSource<P> | undefined;
+  readonly items: readonly P[];
+}
+
+class AutoCompleteQueries<P> {
+  private current: AutoCompleteQueryState<P> = Object.freeze({ source: undefined, items: Object.freeze([]) });
+  private pending: Cancelable<P[]> | undefined;
+  private queried = false;
+  private readonly listeners = new Set<() => void>();
+  read = () => this.current;
+  subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
+  hasQueried() { return this.queried; }
+  private publish(next: AutoCompleteQueryState<P>) {
+    this.current = Object.freeze(next);
+    this.listeners.forEach((listener) => listener());
+  }
+  clear() { this.publish({ ...this.current, items: Object.freeze([]) }); }
+  query(source: AutoCompleteSource<P>, text: string, limit: number) {
+    this.pending?.cancel();
+    const pending = makeCancelable(Promise.resolve().then(() => source.query(text, undefined, limit)));
+    this.pending = pending;
+    spawn(pending.promise.then((items) => {
+      if (this.pending !== pending) { return; }
+      this.pending = undefined;
+      this.queried = true;
+      this.publish({ source, items: Object.freeze([...items]) });
+    }, (error) => {
+      if (this.pending !== pending) { return; }
+      this.pending = undefined;
+      throw error;
+    }));
+    return () => {
+      if (this.pending === pending) { this.pending = undefined; pending.cancel(); }
+    };
+  }
 }
 
 function OverlayMenu(props: {
@@ -129,345 +148,111 @@ function OverlayMenu(props: {
   children: React.ReactNode;
 }) {
   const menuContainer = React.useRef<MenuRef | null>(null);
-  React.useEffect(() => {
-    if (
-      menuContainer.current &&
-      props.scrollClipperAncestors &&
-      props.scrollClipperAncestors.length > 0
-    ) {
-      const menuDom = menuContainer.current.menu?.list;
-      if (!menuDom) {
-        return;
-      }
-      const menu = menuDom as unknown as HTMLDivElement;
-      if (menu.style.height !== "") {
-        return;
-      }
-      const $menu = $(menu as HTMLDivElement);
-      // The bottom that the dropdown is clipped at
-      const menuTop = menu.getBoundingClientRect().top;
-      let clipBottom = menuTop + menu.scrollHeight;
-      props.scrollClipperAncestors.forEach((clipperClass) => {
-        const $ancestor = $menu.parents(clipperClass);
-        if ($ancestor.length > 0) {
-          // 8px as the padding
-          clipBottom = Math.min(
-            $ancestor.get(0).getBoundingClientRect().bottom - 8,
-            clipBottom,
-          );
-        }
-      });
-      menu.style.height = `${clipBottom - menuTop}px`;
-    }
-  });
-  return (
-    <Menu
-      prefixCls={"ant-dropdown-menu"}
-      ref={menuContainer}
-      selectedKeys={props.selectedKeys}
-      style={
-        props.scrollClipperAncestors && props.scrollClipperAncestors.length > 0
-          ? { overflowY: "auto" }
-          : {}
-      }
-    >
+  const [height, setHeight] = React.useState<number>();
+  React.useLayoutEffect(() => {
+    const menu = menuContainer.current?.menu?.list;
+    if (!menu || !props.scrollClipperAncestors?.length) { setHeight(undefined); return; }
+    const top = menu.getBoundingClientRect().top;
+    let bottom = top + menu.scrollHeight;
+    const $menu = $(menu);
+    props.scrollClipperAncestors.forEach((selector) => {
+      const ancestor = $menu.parents(selector).get(0);
+      if (ancestor) { bottom = Math.min(bottom, ancestor.getBoundingClientRect().bottom - 8); }
+    });
+    setHeight(Math.max(0, bottom - top));
+  }, [props.children, props.scrollClipperAncestors]);
+  return <Scrollbar scrollX={false} defer={false} style={{ height, maxHeight: "30vh", minHeight: 0, overflow: "hidden" }}>
+    <Menu prefixCls="ant-dropdown-menu" ref={menuContainer} selectedKeys={props.selectedKeys}>
       {props.children}
     </Menu>
-  );
+  </Scrollbar>;
 }
 
-/**
- * AutoComplete-like Component that looks similar to antd's AutoComplete,
- * but:
- *
- * 1. Supports more detailed information on how an item is selected (whether via
- *    Enter, Tab or Click, and whether any modifier keys were held down).
- * 2. Supports arbitrary items, not just strings.
- * 3. Supply an AutoCompleteSource, instead of list of options.  This can
- *    query for options asynchronously, so that a consuming component
- *    doesn't have to manage this lifecycle itself.
- *
- * See AutoCompleteProps for documentation.
- */
-export class BetterAutoComplete<P> extends React.Component<
-  AutoCompleteProps<P>,
-  AutoCompleteState<P>
-> {
-  /**
-   * Used to make sure that on the next update after a select, we update
-   * queryOptions, even if the text hasn't changed (and the source hasn't
-   * changed).
-   *
-   * This is important to make sure we are re-populating queryOptions if we
-   * select the same value twice (so the input text doesn't change).
-   */
-  justSelected = false;
-  curLimit = initialLimit;
-
-  constructor(props: AutoCompleteProps<P>) {
-    super(props);
-    this.state = {
-      text: props.defaultValue || "",
-      queriedItems: [],
-      cursorPosition: undefined,
-    };
-  }
-
-  private downshift =
-    createRef<Component<DownshiftProps<P>, DownshiftState<P>>>();
-
-  render() {
-    const items = this.state.queriedItems;
-    const source = this.state.queriedSource;
-    const { selectedItem, value, downshiftReducer } = this.props;
-    return (
-      <Downshift
-        ref={this.downshift}
-        onChange={this.onDownshiftChange}
-        inputValue={value}
-        itemToString={this.itemKey}
-        defaultHighlightedIndex={0}
-        defaultIsOpen={this.props.defaultIsOpen || this.props.alwaysOpen}
-        stateReducer={downshiftReducer}
-        selectedItem={selectedItem}
-        onStateChange={(changes) => {
-          if (changes.isOpen) {
-            spawn(this.queryOptions());
-          }
-          if (this.downshift.current && !this.downshift.current.state.isOpen) {
-            this.curLimit = initialLimit;
-          }
-          this.handleInputValueUpdated(changes);
-        }}
-      >
-        {(downshift) => {
-          const curItem =
-            items.length > 0 && downshift.highlightedIndex !== null
-              ? items[downshift.highlightedIndex]
-              : undefined;
-          const selectedKey = curItem ? this.itemKey(curItem) : "";
-          return (
-            <div className={`${sty.container} ${this.props.className}`}>
-              <Dropdown
-                open={downshift.isOpen && items.length > 0}
-                onOpenChange={(open) => {
-                  if (open) {
-                    downshift.openMenu();
-                  } else {
-                    downshift.closeMenu();
-                  }
-                }}
-                trigger={this.props.openOnClick ? ["click"] : []}
-                // This is the trick to disable auto adjustment - see
-                // https://github.com/ant-design/ant-design/issues/12070
-                align={
-                  this.props.disableAutoAdjustment
-                    ? { overflow: { adjustX: false, adjustY: false } }
-                    : undefined
-                }
-                popupRender={() => (
-                  <OverlayMenu
-                    selectedKeys={[selectedKey]}
-                    scrollClipperAncestors={this.props.scrollClipperAncestors}
-                  >
-                    {items.map((item, index) => {
-                      const itemKey = this.itemKey(item);
-                      let props = downshift.getItemProps({
-                        item,
-                        index,
-                        key: itemKey,
-                      });
-                      if (itemKey === selectedKey) {
-                        props.className = sty.item__active;
-                      }
-                      if (L.isString(item) && item === SHOW_MORE) {
-                        props = L.assign({}, props, {
-                          onClick: (param) => {
-                            this.curLimit *= 2;
-                            spawn(this.queryOptions());
-                            param.domEvent.stopPropagation();
-                          },
-                        });
-                      }
-                      return (
-                        <Menu.Item key={itemKey} {...props}>
-                          {ensure(source, "Unexpected undefined source").render(
-                            item,
-                          )}
-                        </Menu.Item>
-                      );
-                    })}
-                  </OverlayMenu>
-                )}
-              >
-                <div>{this.makeInput(downshift)}</div>
-              </Dropdown>
-            </div>
-          );
-        }}
-      </Downshift>
-    );
-  }
-
-  private itemKey = (item: P | null) => {
-    if (this.props.itemToString) {
-      return this.props.itemToString(item);
-    } else if (_.isObject(item) && "uid" in item) {
-      // Prefer uid because JSON.stringify fails with circular dependency.
-      return "" + item["uid"];
-    } else if (_.isObject(item)) {
-      return JSON.stringify(item);
-    } else {
-      return `${item}`;
-    }
+/** Owns asynchronous options; Downshift owns input and menu interactions. */
+export function BetterAutoComplete<P>(props: AutoCompleteProps<P>) {
+  const [queries] = React.useState(() => new AutoCompleteQueries<P>());
+  const result = React.useSyncExternalStore(queries.subscribe, queries.read, queries.read);
+  const [text, setText] = React.useState(props.defaultValue ?? "");
+  const [isOpen, setIsOpen] = React.useState(!!(props.defaultIsOpen || props.alwaysOpen));
+  const [limit, setLimit] = React.useState(initialLimit);
+  const [refresh, setRefresh] = React.useState(0);
+  const queryText = _.has(props, "value") ? props.value ?? "" : text;
+  const readProps = useCommittedValue(props);
+  React.useEffect(() => {
+    if (isOpen || !queries.hasQueried()) { return queries.query(props.source, queryText, limit); }
+    return undefined;
+  }, [queries, props.source, queryText, limit, isOpen, refresh]);
+  const itemKey = (item: P | null): string => {
+    if (props.itemToString) { return props.itemToString(item); }
+    if (_.isObject(item) && "uid" in item) { return `${item["uid"]}`; }
+    return _.isObject(item) ? JSON.stringify(item) : `${item}`;
   };
-
-  private makeInput(downshift: ControllerStateAndHelpers<P>) {
-    // We clone the caller's input element with our own handlers
-    // for onChange and onKeyDown
-    const input = this.props.children;
-    return React.cloneElement(
-      input,
-      downshift.getInputProps({
-        ...input.props,
-        onChange: (event) => callEventHandlers(event, [input.props.onChange]),
-        onFocus: (event) =>
-          callEventHandlers(event, [
-            () => {
-              if (this.props.openOnFocus) {
-                downshift.openMenu();
-              }
-            },
-            input.props.onFocus,
-          ]),
-        onKeyDown: (event) => callEventHandlers(event, [input.props.onKeyDown]),
-      }),
-    );
-  }
-
-  private onDownshiftChange = (item: P | null) => {
-    // If the user isn't selecting with ENTER or TAB, then the only
-    // way now is with the mouse.
-    this.onSelect(item, "Click", {}, this.state.cursorPosition);
+  const select = (item: P | null) => {
+    const current = readProps();
+    if (current.source !== result.source || queries.read() !== result) { return; }
+    if (item != null) { current.onSelect?.({ item, source: current.source, selector: "Click", modifiers: {}, cursorPosition: undefined }); }
+    queries.clear();
+    // Selecting the same value still refreshes an open query.
+    setRefresh((value) => value + 1);
   };
-
-  private onSelect = (
-    item: P | null,
-    selector: SelectMethod,
-    modifiers: KeyModifiers,
-    cursorPosition?: number,
-  ) => {
-    if (
-      this.props.source !== this.state.queriedSource ||
-      !this.state.queriedSource
-    ) {
-      // Selected outdated item, as the source has changed;
-      // ignore.  Unfortunately antd's AutoComplete has this
-      // annoying bug where it's still possible to select
-      // an item via ENTER even if you pass in an empty dataSource.
-      return;
-    }
-    if (this.props.onSelect && item) {
-      this.props.onSelect({
-        item,
-        source: this.state.queriedSource,
-        selector,
-        modifiers,
-        cursorPosition,
-      });
-    }
-
-    this.justSelected = true;
-
-    // After selecting an item, close the menu by setting the queried items to an empty array.
-    this.setState({ queriedItems: [], cursorPosition: undefined });
-  };
-
-  private pQuerying?: Cancelable<any>;
-
-  componentDidMount() {
-    // This is the only place where we reach into the Downshift instance to
-    // access its state.  Elsewhere we are relying on our own text state,
-    // which should be mirroring the inputValue.
-    const text = this.downshift.current!.state.inputValue;
-    if (this.state.text !== text) {
-      this.setState({ text: text || "" });
-    } else {
-      spawn(this.queryOptions());
-    }
-  }
-
-  componentDidUpdate(
-    prevProps: AutoCompleteProps<P>,
-    prevState: AutoCompleteState<P>,
-  ) {
-    if (
-      this.justSelected ||
-      prevProps.source !== this.props.source ||
-      this.queryText(prevProps, prevState) !== this.queryText()
-    ) {
-      this.justSelected = false;
-      if (this.downshift.current!.state.isOpen) {
-        spawn(this.queryOptions());
+  return <Downshift<P>
+    inputValue={props.value} initialInputValue={props.defaultValue}
+    onChange={select} itemToString={itemKey}
+    defaultHighlightedIndex={0}
+    defaultIsOpen={props.defaultIsOpen || props.alwaysOpen}
+    stateReducer={props.downshiftReducer}
+    selectedItem={props.selectedItem}
+    onStateChange={(changes) => {
+      if (changes.isOpen !== undefined) {
+        setIsOpen(changes.isOpen);
+        if (!changes.isOpen) { setLimit(initialLimit); }
       }
-    }
-  }
-  private queryOptions = async () => {
-    const source = this.props.source;
-    const text = this.queryText(this.props, this.state);
-    try {
-      if (this.pQuerying) {
-        this.pQuerying.cancel();
-      }
-      this.pQuerying = makeCancelable(
-        source.query(text, this.state.cursorPosition, this.curLimit),
-      );
-      const queriedItems = await this.pQuerying.promise;
-      if (source !== this.props.source) {
-        // Source has changed since we returned from .query();
-        // ignore.
-        return;
-      }
-      this.setState({ queriedItems, queriedSource: source });
-    } catch (err) {
-      if (err.isCanceled) {
-        return;
-      }
-      throw err;
-    }
-  };
+      if (changes.inputValue !== undefined && !_.has(props, "value")) { setText(changes.inputValue || ""); }
+      props.onChange?.(changes);
+    }}>
+    {(downshift) => <div {...downshift.getRootProps()} className={props.className}>
+      <AutoCompleteContent props={props} downshift={downshift} result={result} itemKey={itemKey} showMore={() => setLimit((value) => value * 2)} />
+    </div>}
+  </Downshift>;
+}
 
-  private handleInputValueUpdated = (change: StateChangeOptions<P>) => {
-    // Only set state.text if this component isn't being "controlled"
-    if (change.inputValue !== undefined && !_.has(this.props, "value")) {
-      this.setState({ text: change.inputValue || "" });
-    }
+function AutoCompleteContent<P>({ props, downshift, result, itemKey, showMore }: {
+  props: AutoCompleteProps<P>;
+  downshift: ControllerStateAndHelpers<P>;
+  result: AutoCompleteQueryState<P>;
+  itemKey: (item: P | null) => string;
+  showMore: () => void;
+}) {
+  const { items, source } = result;
+  const currentItem = items.length > 0 && downshift.highlightedIndex != null ? items[downshift.highlightedIndex] : undefined;
+  const selectedKey = currentItem == null ? "" : itemKey(currentItem);
+  return <Dropdown open={downshift.isOpen && items.length > 0}
+      onOpenChange={(open) => open ? downshift.openMenu() : downshift.closeMenu()}
+      trigger={props.openOnClick ? ["click"] : []}
+      align={props.disableAutoAdjustment ? { overflow: { adjustX: false, adjustY: false } } : undefined}
+      popupRender={() => <OverlayMenu selectedKeys={[selectedKey]} scrollClipperAncestors={props.scrollClipperAncestors}>
+        {items.map((item, index) => {
+          const key = itemKey(item);
+          const itemProps = downshift.getItemProps({ item, index });
+          return <Menu.Item key={key} {...itemProps}
+            className={key === selectedKey ? sty.item__active : itemProps.className}
+            {...(L.isString(item) && item === SHOW_MORE ? { onClick: (event: { domEvent: { stopPropagation: () => void } }) => { showMore(); event.domEvent.stopPropagation(); } } : {})}>
+            {ensure(source, "Autocomplete options require their source").render(item)}
+          </Menu.Item>;
+        })}
+      </OverlayMenu>}>
+      <div><AutoCompleteInput props={props} downshift={downshift} /></div>
+    </Dropdown>;
+}
 
-    if (this.props.onChange) {
-      this.props.onChange(change);
-    }
-  };
-
-  /**
-   * Reads the text to query, either from props.value or from state.text,
-   * depending on if this component is controlled.
-   */
-  private queryText(
-    props?: AutoCompleteProps<P>,
-    state?: AutoCompleteState<P>,
-  ) {
-    props = props || this.props;
-    state = state || this.state;
-    if (_.has(props, "value")) {
-      return props.value || "";
-    } else {
-      return state.text;
-    }
-  }
-
-  componentWillUnmount() {
-    if (this.pQuerying) {
-      this.pQuerying.cancel();
-    }
-  }
+function AutoCompleteInput<P>({ props, downshift }: { props: AutoCompleteProps<P>; downshift: ControllerStateAndHelpers<P> }) {
+  const input = props.children;
+  const Input = input.type;
+  const inputProps = downshift.getInputProps({
+    ...input.props,
+    onChange: (event) => callEventHandlers(event, [input.props.onChange]),
+    onFocus: (event) => callEventHandlers(event, [() => { if (props.openOnFocus) { downshift.openMenu(); } }, input.props.onFocus]),
+    onKeyDown: (event) => callEventHandlers(event, [input.props.onKeyDown]),
+  });
+  return <Input {...inputProps} key={input.key} />;
 }

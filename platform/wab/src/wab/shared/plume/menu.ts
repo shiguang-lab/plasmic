@@ -42,52 +42,35 @@ const menuConfig = {
 export const MenuPlugin: PlumePlugin = {
   // PlumeCanvasPlugin
   genCanvasWrapperComponent: (sub, impl, observer, getCompMeta, component) => {
-    return sub.React.forwardRef((allProps, ref: MenuRef) =>
+    const Comp = sub.createCanvasComponentType((allProps, ref: MenuRef) =>
       observer(() => {
-        const internalProps = pick(allProps, internalCanvasElementProps);
-        let componentProps = omit(allProps, internalCanvasElementProps);
-        let usingDefaultChildren: false | React.ReactElement = false;
-        if (
-          !("children" in componentProps) &&
-          getTplSlotByName(component, "children")?.defaultContents.length
-        ) {
-          usingDefaultChildren = createDefaultSlotContentsStub(sub);
-          componentProps = {
-            ...componentProps,
-            children: usingDefaultChildren,
-          };
-        }
-        const { plasmicProps } = sub.reactWeb.useMenu(
-          Object.assign(impl, getCompMeta()),
-          componentProps,
-          menuConfig as any,
-          ref,
-        );
-        if (usingDefaultChildren) {
-          assert(
-            plasmicProps.args.children === usingDefaultChildren,
-            () => `Expected children to match slot stub`,
-          );
-          delete plasmicProps.args.children;
-        }
-        return sub.React.createElement(impl, {
-          ...plasmicProps,
-          ...internalProps,
+        const componentProps = omit(allProps, internalCanvasElementProps);
+        const hasDefault = !("children" in componentProps) && !!getTplSlotByName(component, "children")?.defaultContents.length;
+        return sub.React.createElement(sub.CanvasPlume.CanvasPlumeMenu, {
+          impl,
+          metadata: getCompMeta(),
+          internalProps: pick(allProps, internalCanvasElementProps),
+          componentProps: hasDefault ? { ...componentProps, children: createDefaultSlotContentsStub(sub) } : componentProps,
+          config: menuConfig as any,
+          forwardedRef: ref,
+          defaultSlot: hasDefault ? "children" : undefined,
         });
       }),
     );
+
+    return Comp;
   },
 
   // PlumeCodegenPlugin
   genHook(ctx: SerializerBaseContext) {
     const { component } = ctx;
     return `
-      function useBehavior<P extends pp.BaseMenuProps>(props: P, ref: pp.MenuRef) {
+      function useBehavior<P extends Plume.BaseMenuProps>(props: P, ref: Plume.MenuRef) {
         ${serializeComponentSubstitutionCallsForDefaultContents(ctx, [
           "children",
         ])}
         ${maybeIncludeSerializedDefaultSlotContent(ctx, "children")}
-        return pp.useMenu(
+        return Plume.useMenu(
           ${makePlasmicComponentName(component)},
           props,
           ${jsLiteral(menuConfig)},
@@ -104,7 +87,7 @@ export const MenuPlugin: PlumePlugin = {
     return `
       export interface ${
         opts?.typeName ?? makeDefaultExternalPropsName(component)
-      } extends pp.BaseMenuProps {
+      } extends Plume.BaseMenuProps {
         ${params
           .map(
             (param) =>

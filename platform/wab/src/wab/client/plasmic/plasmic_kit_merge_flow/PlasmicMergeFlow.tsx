@@ -26,7 +26,8 @@ import {
   PlasmicImg as PlasmicImg__,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -35,7 +36,7 @@ import LineItem from "../../components/merge/LineItem"; // plasmic-import: VgvN9
 import Switch from "../../components/merge/Switch"; // plasmic-import: AJepyKzS-T-/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: p8FkKgCnyuat1kHSEYAKfW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: p8FkKgCnyuat1kHSEYAKfW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -133,11 +134,10 @@ function PlasmicMergeFlow__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "empty",
@@ -170,18 +170,20 @@ function PlasmicMergeFlow__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => "",
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -398,9 +400,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                     ),
                   }
                 )}
-                ref={(ref) => {
-                  $refs["sourceBranchChanges"] = ref;
-                }}
+                ref={registerRef("sourceBranchChanges")}
               >
                 {false ? (
                   <div className={classNames("all", sty.freeBox___5Fo1K)}>
@@ -458,9 +458,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                   "button__p8FkK",
                   sty.destinationBranchChanges
                 )}
-                ref={(ref) => {
-                  $refs["destinationBranchChanges"] = ref;
-                }}
+                ref={registerRef("destinationBranchChanges")}
               >
                 {false ? (
                   <div className={classNames("all", sty.freeBox__iWcvc)}>
@@ -613,9 +611,9 @@ function PlasmicMergeFlow__RenderFunc(props: {
                         "isChecked",
                       ]) ?? false
                     }
-                    onChange={async (...eventArgs: any) => {
+                    onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                       ((...eventArgs) => {
-                        generateStateOnChangeProp($state, [
+                        generateStateOnChangeProp($stateCommands, [
                           "showAllSwitch",
                           "isChecked",
                         ])(eventArgs[0]);
@@ -628,7 +626,7 @@ function PlasmicMergeFlow__RenderFunc(props: {
                       ) {
                         return;
                       }
-                    }}
+                    })); })}
                   >
                     <div
                       className={classNames(
@@ -1205,17 +1203,15 @@ function PlasmicMergeFlow__RenderFunc(props: {
                   "textarea__p8FkK",
                   sty.description
                 )}
-                onChange={async (...eventArgs: any) => {
+                onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                   ((e) => {
-                    generateStateOnChangeProp($state, ["description", "value"])(
+                    generateStateOnChangeProp($stateCommands, ["description", "value"])(
                       e.target.value
                     );
                   }).apply(null, eventArgs);
-                }}
+                })); })}
                 placeholder={uiT("Enter description here (optional)…")}
-                ref={(ref) => {
-                  $refs["description"] = ref;
-                }}
+                ref={registerRef("description")}
                 rows={2}
                 value={
                   generateStateValueProp($state, ["description", "value"]) ?? ""
@@ -1440,12 +1436,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1455,45 +1447,173 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicMergeFlow__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicMergeFlow";
-  } else {
-    func.displayName = `PlasmicMergeFlow.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicMergeFlow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicMergeFlow__root<T extends PlasmicMergeFlow__rootProps>(props: T & StrictProps<T, PlasmicMergeFlow__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicMergeFlow__root.displayName = "PlasmicMergeFlow";
+
+type PlasmicMergeFlow__sourceBranchChangesProps = NodeComponentProps<"sourceBranchChanges"> & {key?: React.Key};
+function PlasmicMergeFlow__sourceBranchChanges<T extends PlasmicMergeFlow__sourceBranchChangesProps>(props: T & StrictProps<T, PlasmicMergeFlow__sourceBranchChangesProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sourceBranchChanges", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sourceBranchChanges"} />;
+}
+PlasmicMergeFlow__sourceBranchChanges.displayName = "PlasmicMergeFlow.sourceBranchChanges";
+
+type PlasmicMergeFlow__destinationBranchChangesProps = NodeComponentProps<"destinationBranchChanges"> & {key?: React.Key};
+function PlasmicMergeFlow__destinationBranchChanges<T extends PlasmicMergeFlow__destinationBranchChangesProps>(props: T & StrictProps<T, PlasmicMergeFlow__destinationBranchChangesProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("destinationBranchChanges", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"destinationBranchChanges"} />;
+}
+PlasmicMergeFlow__destinationBranchChanges.displayName = "PlasmicMergeFlow.destinationBranchChanges";
+
+type PlasmicMergeFlow__labelIconsContainer4Props = NodeComponentProps<"labelIconsContainer4"> & {key?: React.Key};
+function PlasmicMergeFlow__labelIconsContainer4<T extends PlasmicMergeFlow__labelIconsContainer4Props>(props: T & StrictProps<T, PlasmicMergeFlow__labelIconsContainer4Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelIconsContainer4", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelIconsContainer4"} />;
+}
+PlasmicMergeFlow__labelIconsContainer4.displayName = "PlasmicMergeFlow.labelIconsContainer4";
+
+type PlasmicMergeFlow__showAllSwitchContainerProps = NodeComponentProps<"showAllSwitchContainer"> & {key?: React.Key};
+function PlasmicMergeFlow__showAllSwitchContainer<T extends PlasmicMergeFlow__showAllSwitchContainerProps>(props: T & StrictProps<T, PlasmicMergeFlow__showAllSwitchContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("showAllSwitchContainer", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"showAllSwitchContainer"} />;
+}
+PlasmicMergeFlow__showAllSwitchContainer.displayName = "PlasmicMergeFlow.showAllSwitchContainer";
+
+type PlasmicMergeFlow__showAllSwitchProps = NodeComponentProps<"showAllSwitch"> & {key?: React.Key};
+function PlasmicMergeFlow__showAllSwitch<T extends PlasmicMergeFlow__showAllSwitchProps>(props: T & StrictProps<T, PlasmicMergeFlow__showAllSwitchProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("showAllSwitch", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"showAllSwitch"} />;
+}
+PlasmicMergeFlow__showAllSwitch.displayName = "PlasmicMergeFlow.showAllSwitch";
+
+type PlasmicMergeFlow__pairedChangesProps = NodeComponentProps<"pairedChanges"> & {key?: React.Key};
+function PlasmicMergeFlow__pairedChanges<T extends PlasmicMergeFlow__pairedChangesProps>(props: T & StrictProps<T, PlasmicMergeFlow__pairedChangesProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("pairedChanges", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"pairedChanges"} />;
+}
+PlasmicMergeFlow__pairedChanges.displayName = "PlasmicMergeFlow.pairedChanges";
+
+type PlasmicMergeFlow__reconciliationsContainerProps = NodeComponentProps<"reconciliationsContainer"> & {key?: React.Key};
+function PlasmicMergeFlow__reconciliationsContainer<T extends PlasmicMergeFlow__reconciliationsContainerProps>(props: T & StrictProps<T, PlasmicMergeFlow__reconciliationsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("reconciliationsContainer", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"reconciliationsContainer"} />;
+}
+PlasmicMergeFlow__reconciliationsContainer.displayName = "PlasmicMergeFlow.reconciliationsContainer";
+
+type PlasmicMergeFlow__startIconsContainer13Props = NodeComponentProps<"startIconsContainer13"> & {key?: React.Key};
+function PlasmicMergeFlow__startIconsContainer13<T extends PlasmicMergeFlow__startIconsContainer13Props>(props: T & StrictProps<T, PlasmicMergeFlow__startIconsContainer13Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("startIconsContainer13", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"startIconsContainer13"} />;
+}
+PlasmicMergeFlow__startIconsContainer13.displayName = "PlasmicMergeFlow.startIconsContainer13";
+
+type PlasmicMergeFlow__labelIconsContainer13Props = NodeComponentProps<"labelIconsContainer13"> & {key?: React.Key};
+function PlasmicMergeFlow__labelIconsContainer13<T extends PlasmicMergeFlow__labelIconsContainer13Props>(props: T & StrictProps<T, PlasmicMergeFlow__labelIconsContainer13Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelIconsContainer13", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelIconsContainer13"} />;
+}
+PlasmicMergeFlow__labelIconsContainer13.displayName = "PlasmicMergeFlow.labelIconsContainer13";
+
+type PlasmicMergeFlow__endIconsContainer13Props = NodeComponentProps<"endIconsContainer13"> & {key?: React.Key};
+function PlasmicMergeFlow__endIconsContainer13<T extends PlasmicMergeFlow__endIconsContainer13Props>(props: T & StrictProps<T, PlasmicMergeFlow__endIconsContainer13Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("endIconsContainer13", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"endIconsContainer13"} />;
+}
+PlasmicMergeFlow__endIconsContainer13.displayName = "PlasmicMergeFlow.endIconsContainer13";
+
+type PlasmicMergeFlow__reconciliationsProps = NodeComponentProps<"reconciliations"> & {key?: React.Key};
+function PlasmicMergeFlow__reconciliations<T extends PlasmicMergeFlow__reconciliationsProps>(props: T & StrictProps<T, PlasmicMergeFlow__reconciliationsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("reconciliations", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"reconciliations"} />;
+}
+PlasmicMergeFlow__reconciliations.displayName = "PlasmicMergeFlow.reconciliations";
+
+type PlasmicMergeFlow__blockedContainerProps = NodeComponentProps<"blockedContainer"> & {key?: React.Key};
+function PlasmicMergeFlow__blockedContainer<T extends PlasmicMergeFlow__blockedContainerProps>(props: T & StrictProps<T, PlasmicMergeFlow__blockedContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("blockedContainer", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"blockedContainer"} />;
+}
+PlasmicMergeFlow__blockedContainer.displayName = "PlasmicMergeFlow.blockedContainer";
+
+type PlasmicMergeFlow__mergeBlockedTitleProps = NodeComponentProps<"mergeBlockedTitle"> & {key?: React.Key};
+function PlasmicMergeFlow__mergeBlockedTitle<T extends PlasmicMergeFlow__mergeBlockedTitleProps>(props: T & StrictProps<T, PlasmicMergeFlow__mergeBlockedTitleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("mergeBlockedTitle", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"mergeBlockedTitle"} />;
+}
+PlasmicMergeFlow__mergeBlockedTitle.displayName = "PlasmicMergeFlow.mergeBlockedTitle";
+
+type PlasmicMergeFlow__mergeBlockedMsgProps = NodeComponentProps<"mergeBlockedMsg"> & {key?: React.Key};
+function PlasmicMergeFlow__mergeBlockedMsg<T extends PlasmicMergeFlow__mergeBlockedMsgProps>(props: T & StrictProps<T, PlasmicMergeFlow__mergeBlockedMsgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("mergeBlockedMsg", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"mergeBlockedMsg"} />;
+}
+PlasmicMergeFlow__mergeBlockedMsg.displayName = "PlasmicMergeFlow.mergeBlockedMsg";
+
+type PlasmicMergeFlow__descriptionProps = NodeComponentProps<"description"> & {key?: React.Key};
+function PlasmicMergeFlow__description<T extends PlasmicMergeFlow__descriptionProps>(props: T & StrictProps<T, PlasmicMergeFlow__descriptionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("description", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"description"} />;
+}
+PlasmicMergeFlow__description.displayName = "PlasmicMergeFlow.description";
+
+type PlasmicMergeFlow__tagsSelectorProps = NodeComponentProps<"tagsSelector"> & {key?: React.Key};
+function PlasmicMergeFlow__tagsSelector<T extends PlasmicMergeFlow__tagsSelectorProps>(props: T & StrictProps<T, PlasmicMergeFlow__tagsSelectorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("tagsSelector", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tagsSelector"} />;
+}
+PlasmicMergeFlow__tagsSelector.displayName = "PlasmicMergeFlow.tagsSelector";
+
+type PlasmicMergeFlow__cancelButtonProps = NodeComponentProps<"cancelButton"> & {key?: React.Key};
+function PlasmicMergeFlow__cancelButton<T extends PlasmicMergeFlow__cancelButtonProps>(props: T & StrictProps<T, PlasmicMergeFlow__cancelButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelButton", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelButton"} />;
+}
+PlasmicMergeFlow__cancelButton.displayName = "PlasmicMergeFlow.cancelButton";
+
+type PlasmicMergeFlow__finishButtonProps = NodeComponentProps<"finishButton"> & {key?: React.Key};
+function PlasmicMergeFlow__finishButton<T extends PlasmicMergeFlow__finishButtonProps>(props: T & StrictProps<T, PlasmicMergeFlow__finishButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("finishButton", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"finishButton"} />;
+}
+PlasmicMergeFlow__finishButton.displayName = "PlasmicMergeFlow.finishButton";
+
+type PlasmicMergeFlow__spinnerContainerProps = NodeComponentProps<"spinnerContainer"> & {key?: React.Key};
+function PlasmicMergeFlow__spinnerContainer<T extends PlasmicMergeFlow__spinnerContainerProps>(props: T & StrictProps<T, PlasmicMergeFlow__spinnerContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("spinnerContainer", props);
+  return <PlasmicMergeFlow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"spinnerContainer"} />;
+}
+PlasmicMergeFlow__spinnerContainer.displayName = "PlasmicMergeFlow.spinnerContainer";
+
 
 export const PlasmicMergeFlow = Object.assign(
   // Top-level PlasmicMergeFlow renders the root element
-  makeNodeComponent("root"),
+  PlasmicMergeFlow__root,
   {
     // Helper components rendering sub-elements
-    sourceBranchChanges: makeNodeComponent("sourceBranchChanges"),
-    destinationBranchChanges: makeNodeComponent("destinationBranchChanges"),
-    labelIconsContainer4: makeNodeComponent("labelIconsContainer4"),
-    showAllSwitchContainer: makeNodeComponent("showAllSwitchContainer"),
-    showAllSwitch: makeNodeComponent("showAllSwitch"),
-    pairedChanges: makeNodeComponent("pairedChanges"),
-    reconciliationsContainer: makeNodeComponent("reconciliationsContainer"),
-    startIconsContainer13: makeNodeComponent("startIconsContainer13"),
-    labelIconsContainer13: makeNodeComponent("labelIconsContainer13"),
-    endIconsContainer13: makeNodeComponent("endIconsContainer13"),
-    reconciliations: makeNodeComponent("reconciliations"),
-    blockedContainer: makeNodeComponent("blockedContainer"),
-    mergeBlockedTitle: makeNodeComponent("mergeBlockedTitle"),
-    mergeBlockedMsg: makeNodeComponent("mergeBlockedMsg"),
-    description: makeNodeComponent("description"),
-    tagsSelector: makeNodeComponent("tagsSelector"),
-    cancelButton: makeNodeComponent("cancelButton"),
-    finishButton: makeNodeComponent("finishButton"),
-    spinnerContainer: makeNodeComponent("spinnerContainer"),
+    sourceBranchChanges: PlasmicMergeFlow__sourceBranchChanges,
+    destinationBranchChanges: PlasmicMergeFlow__destinationBranchChanges,
+    labelIconsContainer4: PlasmicMergeFlow__labelIconsContainer4,
+    showAllSwitchContainer: PlasmicMergeFlow__showAllSwitchContainer,
+    showAllSwitch: PlasmicMergeFlow__showAllSwitch,
+    pairedChanges: PlasmicMergeFlow__pairedChanges,
+    reconciliationsContainer: PlasmicMergeFlow__reconciliationsContainer,
+    startIconsContainer13: PlasmicMergeFlow__startIconsContainer13,
+    labelIconsContainer13: PlasmicMergeFlow__labelIconsContainer13,
+    endIconsContainer13: PlasmicMergeFlow__endIconsContainer13,
+    reconciliations: PlasmicMergeFlow__reconciliations,
+    blockedContainer: PlasmicMergeFlow__blockedContainer,
+    mergeBlockedTitle: PlasmicMergeFlow__mergeBlockedTitle,
+    mergeBlockedMsg: PlasmicMergeFlow__mergeBlockedMsg,
+    description: PlasmicMergeFlow__description,
+    tagsSelector: PlasmicMergeFlow__tagsSelector,
+    cancelButton: PlasmicMergeFlow__cancelButton,
+    finishButton: PlasmicMergeFlow__finishButton,
+    spinnerContainer: PlasmicMergeFlow__spinnerContainer,
 
     // Metadata about props expected for PlasmicMergeFlow
     internalVariantProps: PlasmicMergeFlow__VariantProps,

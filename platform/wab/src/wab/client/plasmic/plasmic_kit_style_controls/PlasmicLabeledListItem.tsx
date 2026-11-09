@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   MultiChoiceArg,
   SingleBooleanChoiceArg,
   SingleChoiceArg,
@@ -25,14 +25,14 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Indicator from "../../components/style-controls/Indicator"; // plasmic-import: KRNHR6lpj1/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "../plasmic_kit_style_controls/PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_style_controls/PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -210,11 +210,10 @@ function PlasmicLabeledListItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "valueSetState",
@@ -343,18 +342,20 @@ function PlasmicLabeledListItem__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.noContent,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -408,7 +409,7 @@ function PlasmicLabeledListItem__RenderFunc(props: {
           ),
         }
       )}
-      onClick={async (event) => {
+      onClick={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (event) => {
         const $steps = {};
 
         $steps["invokeOnClick"] = true
@@ -426,7 +427,7 @@ function PlasmicLabeledListItem__RenderFunc(props: {
         ) {
           $steps["invokeOnClick"] = await $steps["invokeOnClick"];
         }
-      }}
+      })); })}
     >
       <div
         data-plasmic-name={"dragHandle"}
@@ -1042,12 +1043,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1057,40 +1054,133 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLabeledListItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLabeledListItem";
-  } else {
-    func.displayName = `PlasmicLabeledListItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLabeledListItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLabeledListItem__root<T extends PlasmicLabeledListItem__rootProps>(props: T & StrictProps<T, PlasmicLabeledListItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLabeledListItem__root.displayName = "PlasmicLabeledListItem";
+
+type PlasmicLabeledListItem__dragHandleProps = NodeComponentProps<"dragHandle"> & {key?: React.Key};
+function PlasmicLabeledListItem__dragHandle<T extends PlasmicLabeledListItem__dragHandleProps>(props: T & StrictProps<T, PlasmicLabeledListItem__dragHandleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dragHandle", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dragHandle"} />;
+}
+PlasmicLabeledListItem__dragHandle.displayName = "PlasmicLabeledListItem.dragHandle";
+
+type PlasmicLabeledListItem__gripProps = NodeComponentProps<"grip"> & {key?: React.Key};
+function PlasmicLabeledListItem__grip<T extends PlasmicLabeledListItem__gripProps>(props: T & StrictProps<T, PlasmicLabeledListItem__gripProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("grip", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"grip"} />;
+}
+PlasmicLabeledListItem__grip.displayName = "PlasmicLabeledListItem.grip";
+
+type PlasmicLabeledListItem__labelContainerProps = NodeComponentProps<"labelContainer"> & {key?: React.Key};
+function PlasmicLabeledListItem__labelContainer<T extends PlasmicLabeledListItem__labelContainerProps>(props: T & StrictProps<T, PlasmicLabeledListItem__labelContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelContainer", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelContainer"} />;
+}
+PlasmicLabeledListItem__labelContainer.displayName = "PlasmicLabeledListItem.labelContainer";
+
+type PlasmicLabeledListItem__spacerProps = NodeComponentProps<"spacer"> & {key?: React.Key};
+function PlasmicLabeledListItem__spacer<T extends PlasmicLabeledListItem__spacerProps>(props: T & StrictProps<T, PlasmicLabeledListItem__spacerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("spacer", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"spacer"} />;
+}
+PlasmicLabeledListItem__spacer.displayName = "PlasmicLabeledListItem.spacer";
+
+type PlasmicLabeledListItem__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicLabeledListItem__freeBox<T extends PlasmicLabeledListItem__freeBoxProps>(props: T & StrictProps<T, PlasmicLabeledListItem__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicLabeledListItem__freeBox.displayName = "PlasmicLabeledListItem.freeBox";
+
+type PlasmicLabeledListItem__iconContainerProps = NodeComponentProps<"iconContainer"> & {key?: React.Key};
+function PlasmicLabeledListItem__iconContainer<T extends PlasmicLabeledListItem__iconContainerProps>(props: T & StrictProps<T, PlasmicLabeledListItem__iconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconContainer", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconContainer"} />;
+}
+PlasmicLabeledListItem__iconContainer.displayName = "PlasmicLabeledListItem.iconContainer";
+
+type PlasmicLabeledListItem__labelTextContainerProps = NodeComponentProps<"labelTextContainer"> & {key?: React.Key};
+function PlasmicLabeledListItem__labelTextContainer<T extends PlasmicLabeledListItem__labelTextContainerProps>(props: T & StrictProps<T, PlasmicLabeledListItem__labelTextContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelTextContainer", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelTextContainer"} />;
+}
+PlasmicLabeledListItem__labelTextContainer.displayName = "PlasmicLabeledListItem.labelTextContainer";
+
+type PlasmicLabeledListItem__spacer2Props = NodeComponentProps<"spacer2"> & {key?: React.Key};
+function PlasmicLabeledListItem__spacer2<T extends PlasmicLabeledListItem__spacer2Props>(props: T & StrictProps<T, PlasmicLabeledListItem__spacer2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("spacer2", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"spacer2"} />;
+}
+PlasmicLabeledListItem__spacer2.displayName = "PlasmicLabeledListItem.spacer2";
+
+type PlasmicLabeledListItem__contentContainerProps = NodeComponentProps<"contentContainer"> & {key?: React.Key};
+function PlasmicLabeledListItem__contentContainer<T extends PlasmicLabeledListItem__contentContainerProps>(props: T & StrictProps<T, PlasmicLabeledListItem__contentContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("contentContainer", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"contentContainer"} />;
+}
+PlasmicLabeledListItem__contentContainer.displayName = "PlasmicLabeledListItem.contentContainer";
+
+type PlasmicLabeledListItem__actionsContainerProps = NodeComponentProps<"actionsContainer"> & {key?: React.Key};
+function PlasmicLabeledListItem__actionsContainer<T extends PlasmicLabeledListItem__actionsContainerProps>(props: T & StrictProps<T, PlasmicLabeledListItem__actionsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionsContainer", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionsContainer"} />;
+}
+PlasmicLabeledListItem__actionsContainer.displayName = "PlasmicLabeledListItem.actionsContainer";
+
+type PlasmicLabeledListItem__deleteButtonProps = NodeComponentProps<"deleteButton"> & {key?: React.Key};
+function PlasmicLabeledListItem__deleteButton<T extends PlasmicLabeledListItem__deleteButtonProps>(props: T & StrictProps<T, PlasmicLabeledListItem__deleteButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("deleteButton", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"deleteButton"} />;
+}
+PlasmicLabeledListItem__deleteButton.displayName = "PlasmicLabeledListItem.deleteButton";
+
+type PlasmicLabeledListItem__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicLabeledListItem__menuButton<T extends PlasmicLabeledListItem__menuButtonProps>(props: T & StrictProps<T, PlasmicLabeledListItem__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicLabeledListItem__menuButton.displayName = "PlasmicLabeledListItem.menuButton";
+
+type PlasmicLabeledListItem__indicatorContainerProps = NodeComponentProps<"indicatorContainer"> & {key?: React.Key};
+function PlasmicLabeledListItem__indicatorContainer<T extends PlasmicLabeledListItem__indicatorContainerProps>(props: T & StrictProps<T, PlasmicLabeledListItem__indicatorContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("indicatorContainer", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"indicatorContainer"} />;
+}
+PlasmicLabeledListItem__indicatorContainer.displayName = "PlasmicLabeledListItem.indicatorContainer";
+
+type PlasmicLabeledListItem__indicatorProps = NodeComponentProps<"indicator"> & {key?: React.Key};
+function PlasmicLabeledListItem__indicator<T extends PlasmicLabeledListItem__indicatorProps>(props: T & StrictProps<T, PlasmicLabeledListItem__indicatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("indicator", props);
+  return <PlasmicLabeledListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"indicator"} />;
+}
+PlasmicLabeledListItem__indicator.displayName = "PlasmicLabeledListItem.indicator";
+
 
 export const PlasmicLabeledListItem = Object.assign(
   // Top-level PlasmicLabeledListItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicLabeledListItem__root,
   {
     // Helper components rendering sub-elements
-    dragHandle: makeNodeComponent("dragHandle"),
-    grip: makeNodeComponent("grip"),
-    labelContainer: makeNodeComponent("labelContainer"),
-    spacer: makeNodeComponent("spacer"),
-    freeBox: makeNodeComponent("freeBox"),
-    iconContainer: makeNodeComponent("iconContainer"),
-    labelTextContainer: makeNodeComponent("labelTextContainer"),
-    spacer2: makeNodeComponent("spacer2"),
-    contentContainer: makeNodeComponent("contentContainer"),
-    actionsContainer: makeNodeComponent("actionsContainer"),
-    deleteButton: makeNodeComponent("deleteButton"),
-    menuButton: makeNodeComponent("menuButton"),
-    indicatorContainer: makeNodeComponent("indicatorContainer"),
-    indicator: makeNodeComponent("indicator"),
+    dragHandle: PlasmicLabeledListItem__dragHandle,
+    grip: PlasmicLabeledListItem__grip,
+    labelContainer: PlasmicLabeledListItem__labelContainer,
+    spacer: PlasmicLabeledListItem__spacer,
+    freeBox: PlasmicLabeledListItem__freeBox,
+    iconContainer: PlasmicLabeledListItem__iconContainer,
+    labelTextContainer: PlasmicLabeledListItem__labelTextContainer,
+    spacer2: PlasmicLabeledListItem__spacer2,
+    contentContainer: PlasmicLabeledListItem__contentContainer,
+    actionsContainer: PlasmicLabeledListItem__actionsContainer,
+    deleteButton: PlasmicLabeledListItem__deleteButton,
+    menuButton: PlasmicLabeledListItem__menuButton,
+    indicatorContainer: PlasmicLabeledListItem__indicatorContainer,
+    indicator: PlasmicLabeledListItem__indicator,
 
     // Metadata about props expected for PlasmicLabeledListItem
     internalVariantProps: PlasmicLabeledListItem__VariantProps,

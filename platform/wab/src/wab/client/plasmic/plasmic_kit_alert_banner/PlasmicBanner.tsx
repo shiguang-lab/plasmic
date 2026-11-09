@@ -15,7 +15,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,12 +24,12 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 29njzcsBEPR4koRddw4knF/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 29njzcsBEPR4koRddw4knF/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -139,11 +139,10 @@ function PlasmicBanner__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "type",
@@ -170,18 +169,20 @@ function PlasmicBanner__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.iconType,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -252,19 +253,8 @@ function PlasmicBanner__RenderFunc(props: {
             })}
           >
             <React.Fragment>
-              {(() => {
-                try {
-                  return $props.title;
-                } catch (e) {
-                  if (
-                    e instanceof TypeError ||
-                    e?.plasmicType === "PlasmicUndefinedDataError"
-                  ) {
-                    return "This is bold text.";
-                  }
-                  throw e;
-                }
-              })()}
+              {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                    e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.title), () => ("This is bold text."))}
             </React.Fragment>
           </div>
           <div
@@ -282,19 +272,8 @@ function PlasmicBanner__RenderFunc(props: {
             })}
           >
             <React.Fragment>
-              {(() => {
-                try {
-                  return $props.message;
-                } catch (e) {
-                  if (
-                    e instanceof TypeError ||
-                    e?.plasmicType === "PlasmicUndefinedDataError"
-                  ) {
-                    return "This is normal text";
-                  }
-                  throw e;
-                }
-              })()}
+              {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                    e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.message), () => ("This is normal text"))}
             </React.Fragment>
           </div>
         </div>
@@ -308,19 +287,8 @@ function PlasmicBanner__RenderFunc(props: {
           ),
         })}
       >
-        {(() => {
-          try {
-            return $props.actionLabel1;
-          } catch (e) {
-            if (
-              e instanceof TypeError ||
-              e?.plasmicType === "PlasmicUndefinedDataError"
-            ) {
-              return true;
-            }
-            throw e;
-          }
-        })() ? (
+        {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+              e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.actionLabel1), () => (true)) ? (
           <Button
             data-plasmic-name={"action1Btn"}
             data-plasmic-override={overrides.action1Btn}
@@ -348,36 +316,14 @@ function PlasmicBanner__RenderFunc(props: {
               className={classNames("all", "__wab_text", sty.visit2)}
             >
               <React.Fragment>
-                {(() => {
-                  try {
-                    return $props.actionLabel1;
-                  } catch (e) {
-                    if (
-                      e instanceof TypeError ||
-                      e?.plasmicType === "PlasmicUndefinedDataError"
-                    ) {
-                      return "Button";
-                    }
-                    throw e;
-                  }
-                })()}
+                {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                      e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.actionLabel1), () => ("Button"))}
               </React.Fragment>
             </div>
           </Button>
         ) : null}
-        {(() => {
-          try {
-            return $props.actionLabel2;
-          } catch (e) {
-            if (
-              e instanceof TypeError ||
-              e?.plasmicType === "PlasmicUndefinedDataError"
-            ) {
-              return true;
-            }
-            throw e;
-          }
-        })() ? (
+        {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+              e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.actionLabel2), () => (true)) ? (
           <Button
             data-plasmic-name={"action2Btn"}
             data-plasmic-override={overrides.action2Btn}
@@ -400,36 +346,14 @@ function PlasmicBanner__RenderFunc(props: {
               className={classNames("all", "__wab_text", sty.visit)}
             >
               <React.Fragment>
-                {(() => {
-                  try {
-                    return $props.actionLabel2;
-                  } catch (e) {
-                    if (
-                      e instanceof TypeError ||
-                      e?.plasmicType === "PlasmicUndefinedDataError"
-                    ) {
-                      return "Button";
-                    }
-                    throw e;
-                  }
-                })()}
+                {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                      e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.actionLabel2), () => ("Button"))}
               </React.Fragment>
             </div>
           </Button>
         ) : null}
-        {(() => {
-          try {
-            return $props.dismissible;
-          } catch (e) {
-            if (
-              e instanceof TypeError ||
-              e?.plasmicType === "PlasmicUndefinedDataError"
-            ) {
-              return true;
-            }
-            throw e;
-          }
-        })() ? (
+        {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+              e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.dismissible), () => (true)) ? (
           <div
             data-plasmic-name={"dismissBtn"}
             data-plasmic-override={overrides.dismissBtn}
@@ -511,12 +435,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -526,33 +446,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicBanner__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicBanner";
-  } else {
-    func.displayName = `PlasmicBanner.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicBanner__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicBanner__root<T extends PlasmicBanner__rootProps>(props: T & StrictProps<T, PlasmicBanner__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicBanner__root.displayName = "PlasmicBanner";
+
+type PlasmicBanner__iconProps = NodeComponentProps<"icon"> & {key?: React.Key};
+function PlasmicBanner__icon<T extends PlasmicBanner__iconProps>(props: T & StrictProps<T, PlasmicBanner__iconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("icon", props);
+  return <PlasmicBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"icon"} />;
+}
+PlasmicBanner__icon.displayName = "PlasmicBanner.icon";
+
+type PlasmicBanner__action1BtnProps = NodeComponentProps<"action1Btn"> & {key?: React.Key};
+function PlasmicBanner__action1Btn<T extends PlasmicBanner__action1BtnProps>(props: T & StrictProps<T, PlasmicBanner__action1BtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("action1Btn", props);
+  return <PlasmicBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"action1Btn"} />;
+}
+PlasmicBanner__action1Btn.displayName = "PlasmicBanner.action1Btn";
+
+type PlasmicBanner__visit2Props = NodeComponentProps<"visit2"> & {key?: React.Key};
+function PlasmicBanner__visit2<T extends PlasmicBanner__visit2Props>(props: T & StrictProps<T, PlasmicBanner__visit2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("visit2", props);
+  return <PlasmicBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"visit2"} />;
+}
+PlasmicBanner__visit2.displayName = "PlasmicBanner.visit2";
+
+type PlasmicBanner__action2BtnProps = NodeComponentProps<"action2Btn"> & {key?: React.Key};
+function PlasmicBanner__action2Btn<T extends PlasmicBanner__action2BtnProps>(props: T & StrictProps<T, PlasmicBanner__action2BtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("action2Btn", props);
+  return <PlasmicBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"action2Btn"} />;
+}
+PlasmicBanner__action2Btn.displayName = "PlasmicBanner.action2Btn";
+
+type PlasmicBanner__visitProps = NodeComponentProps<"visit"> & {key?: React.Key};
+function PlasmicBanner__visit<T extends PlasmicBanner__visitProps>(props: T & StrictProps<T, PlasmicBanner__visitProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("visit", props);
+  return <PlasmicBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"visit"} />;
+}
+PlasmicBanner__visit.displayName = "PlasmicBanner.visit";
+
+type PlasmicBanner__dismissBtnProps = NodeComponentProps<"dismissBtn"> & {key?: React.Key};
+function PlasmicBanner__dismissBtn<T extends PlasmicBanner__dismissBtnProps>(props: T & StrictProps<T, PlasmicBanner__dismissBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dismissBtn", props);
+  return <PlasmicBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dismissBtn"} />;
+}
+PlasmicBanner__dismissBtn.displayName = "PlasmicBanner.dismissBtn";
+
+type PlasmicBanner__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicBanner__svg<T extends PlasmicBanner__svgProps>(props: T & StrictProps<T, PlasmicBanner__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicBanner__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicBanner__svg.displayName = "PlasmicBanner.svg";
+
 
 export const PlasmicBanner = Object.assign(
   // Top-level PlasmicBanner renders the root element
-  makeNodeComponent("root"),
+  PlasmicBanner__root,
   {
     // Helper components rendering sub-elements
-    icon: makeNodeComponent("icon"),
-    action1Btn: makeNodeComponent("action1Btn"),
-    visit2: makeNodeComponent("visit2"),
-    action2Btn: makeNodeComponent("action2Btn"),
-    visit: makeNodeComponent("visit"),
-    dismissBtn: makeNodeComponent("dismissBtn"),
-    svg: makeNodeComponent("svg"),
+    icon: PlasmicBanner__icon,
+    action1Btn: PlasmicBanner__action1Btn,
+    visit2: PlasmicBanner__visit2,
+    action2Btn: PlasmicBanner__action2Btn,
+    visit: PlasmicBanner__visit,
+    dismissBtn: PlasmicBanner__dismissBtn,
+    svg: PlasmicBanner__svg,
 
     // Metadata about props expected for PlasmicBanner
     internalVariantProps: PlasmicBanner__VariantProps,

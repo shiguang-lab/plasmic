@@ -1,7 +1,6 @@
 import { reportError } from "@/wab/client/ErrorNotifications";
 import { PublicLink } from "@/wab/client/components/PublicLink";
 import { useEditorPopupStyles } from "@/wab/client/components/ui/layout-styles";
-import { uncontrollable } from "@/wab/client/components/view-common";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { IconButton } from "@/wab/client/components/widgets/IconButton";
 import { LoadingError } from "@/wab/client/components/widgets/LoadingError";
@@ -29,6 +28,7 @@ import {
   createFakeEvent,
   swallowClick,
   useReadablePromise,
+  useCommittedValue,
 } from "@/wab/commons/components/ReactUtil";
 import {
   XDraggable,
@@ -48,7 +48,6 @@ import { Dropdown, Skeleton, Table, Tooltip } from "antd";
 import classNames from "classnames";
 import { isKeyHotkey } from "is-hotkey";
 import L from "lodash";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { CSSProperties, ReactElement, ReactNode } from "react";
 import {
@@ -148,108 +147,60 @@ type ModalProps = {
   className?: string;
   children: ReactNode;
 };
-export class Modal extends React.Component<ModalProps, {}> {
-  render() {
-    return (
-      <div className={cx("modal", this.props.className)}>
-        {this.props.children}
-      </div>
-    );
-  }
+export function Modal({ className, children }: ModalProps) {
+  return <div className={cx("modal", className)}>{children}</div>;
 }
-export class Spinner extends React.Component<{}, {}> {
-  render() {
-    return (
-      <div className={"loader-container"}>
-        <div className={"loader"}>{<UiText message={"Loading..."} />}</div>
-      </div>
-    );
-  }
+export function Spinner() {
+  return <div className="loader-container"><div className="loader"><UiText message="Loading..." /></div></div>;
 }
 type LoadableProps<T> = {
   loader: () => Promise<T>;
   contents: (data: T) => ReactNode;
-  loadingContents: () => ReactNode;
+  loadingContents?: () => ReactNode;
   failureContents?: (retry: () => void, error: unknown) => ReactNode;
 };
-type LoadableState<T> = {
-  loaded: boolean;
-  data: T | null;
-  failed: boolean;
-  error?: unknown;
-};
-export class Loadable<T> extends React.Component<
-  LoadableProps<T>,
-  LoadableState<T>
-> {
-  static defaultProps = {
-    loadingContents() {
-      return <Spinner />;
-    },
-  };
-  constructor(props) {
-    super(props);
-    this.state = {
-      loaded: false,
-      data: null,
-      failed: false,
-    };
-  }
-  pLoad: /*TWZ*/ { cancel: () => any; promise: Promise<T> };
-  private unmounted = false;
-  componentDidMount() {
-    this.unmounted = false;
-    void this.load();
-  }
-  componentWillUnmount() {
-    this.unmounted = true;
-    return this.pLoad.cancel();
-  }
-  private load = async () => {
-    this.setState({ failed: false, error: undefined });
-    const pending = makeCancelable(Promise.resolve().then(this.props.loader));
-    this.pLoad = pending;
-    try {
-      const data = await pending.promise;
-      if (!this.unmounted && this.pLoad === pending) {
-        this.setState({ loaded: true, data });
-      }
-    } catch (error) {
-      if (!this.unmounted && this.pLoad === pending) {
-        this.setState({ failed: true, error });
+type LoadableState<T> =
+  | { state: "loading" }
+  | { state: "loaded"; data: T }
+  | { state: "failed"; error: unknown };
+
+export function Loadable<T>(props: LoadableProps<T>) {
+  const readLoader = useCommittedValue(props.loader);
+  const [attempt, setAttempt] = React.useState(0);
+  const [result, setResult] = React.useState<LoadableState<T>>({ state: "loading" });
+  React.useEffect(() => {
+    let active = true;
+    const pending = makeCancelable(Promise.resolve().then(() => readLoader()()));
+    void pending.promise.then(
+      (data) => { if (active) { setResult({ state: "loaded", data }); } },
+      (error) => {
+        if (!active) { return; }
+        setResult({ state: "failed", error });
         reportError(error instanceof Error ? error : new Error(String(error)));
-      }
-    }
-  };
-  render() {
-    if (this.state.loaded) {
-      return this.props.contents(
-        ensure(this.state.data, "Data state not defined in Loadable component"),
-      );
-    } else if (this.state.failed) {
-      const retry = () => void this.load();
-      return this.props.failureContents ? (
-        this.props.failureContents(retry, this.state.error)
-      ) : (
-        <LoadingError onRetry={retry} />
-      );
-    } else {
-      return this.props.loadingContents();
-    }
+      },
+    );
+    return () => { active = false; pending.cancel(); };
+  }, [attempt, readLoader]);
+  const retry = () => { setResult({ state: "loading" }); setAttempt((value) => value + 1); };
+  if (result.state === "loaded") { return props.contents(ensure(result.data, "Data state not defined in Loadable component")); }
+  if (result.state === "failed") {
+    return props.failureContents ? props.failureContents(retry, result.error) : <LoadingError onRetry={retry} />;
   }
+  return props.loadingContents ? props.loadingContents() : <Spinner />;
 }
 
 export function ReadablePromiseLoadable<T, E>({
   rp,
   contents,
   failureContents = () => null,
-  loadingContents = () => <Spinner />,
+  loadingContents: _loadingContentsInput,
 }: {
   rp: ReadablePromise<T, E>;
   loadingContents?: () => ReactElement | null;
   contents: (x: T) => ReactElement | null;
   failureContents?: (x: E) => ReactElement | null;
 }) {
+  const loadingContents = _loadingContentsInput === undefined ? (() => <Spinner />) : _loadingContentsInput;
   const result = useReadablePromise(rp);
   if (!result) {
     return loadingContents();
@@ -257,7 +208,6 @@ export function ReadablePromiseLoadable<T, E>({
   return result.match(contents, failureContents);
 }
 
-export const ObserverLoadable = observer(Loadable);
 
 export class Tab {
   name: ReactNode;
@@ -268,39 +218,35 @@ export class Tab {
     Object.assign(this, L.pick(args, "name", "contents", "key", "pullRight"));
   }
 }
-type _TabsProps = {
+type TabsProps = {
   tabs: Tab[];
   tabBarClassName?: string;
   className?: string;
   tabKey?: any;
+  defaultTabKey?: any;
   onSwitch?: (...args: any[]) => any;
   tabClassName?: any;
   activeTabClassName?: any;
   useDefaultClasses?: boolean;
-  barWrapper: (bar: React.ReactNode) => any;
-  contentWrapper: (...args: any[]) => any;
+  barWrapper?: (bar: React.ReactNode) => any;
+  contentWrapper?: (...args: any[]) => any;
   scrollByTransform?: boolean;
   forceRender?: boolean;
   tabBarExtraContent?: React.ReactNode;
 };
-class _Tabs extends React.Component<_TabsProps, {}> {
-  static defaultProps = {
-    className: "",
-    useDefaultClasses: true,
-    barWrapper: L.identity,
-    contentWrapper: L.identity,
-  };
-  render() {
-    const tabKey = this.props.tabKey ?? 0;
+export function Tabs(props: TabsProps) {
+  const [uncontrolledKey, setUncontrolledKey] = React.useState(props.defaultTabKey ?? 0);
+  const tabKey = props.tabKey === undefined ? uncontrolledKey : props.tabKey ?? 0;
+  const { barWrapper = L.identity, contentWrapper = L.identity, useDefaultClasses = true } = props;
     return (
-      <div className={cx("tabs", this.props.className)}>
-        {this.props.barWrapper(
+      <div className={cx("tabs", props.className)}>
+        {barWrapper(
           <div
-            className={cx("nav-tabs", this.props.tabBarClassName)}
+            className={cx("nav-tabs", props.tabBarClassName)}
             role="tablist"
           >
             <div>
-              {this.props.tabs.map((tab: /*TWZ*/ Tab, i: /*TWZ*/ number) => {
+              {props.tabs.map((tab: /*TWZ*/ Tab, i: /*TWZ*/ number) => {
                 const key = tab.key != null ? tab.key : i;
                 const isActive = tabKey === key;
                 return (
@@ -308,23 +254,21 @@ class _Tabs extends React.Component<_TabsProps, {}> {
                     key={key}
                     className={cx(
                       {
-                        "nav-tab": true && this.props.useDefaultClasses,
+                        "nav-tab": true && useDefaultClasses,
                         "nav-tab--active":
-                          isActive && this.props.useDefaultClasses,
+                          isActive && useDefaultClasses,
                         "nav-tab--pull-right":
-                          this.props.tabs.length > 1 && tab.pullRight,
+                          props.tabs.length > 1 && tab.pullRight,
                       },
-                      this.props.tabClassName,
+                      props.tabClassName,
                       tabKey === key
-                        ? this.props.activeTabClassName
+                        ? props.activeTabClassName
                         : undefined,
                     )}
                     id={`nav-tab-${key}`}
                     onClick={() => {
-                      if (typeof this.props.onSwitch === "function") {
-                        this.props.onSwitch(key);
-                      }
-                      return this.setState({ tabKey: key });
+                      if (props.tabKey === undefined) { setUncontrolledKey(key); }
+                      props.onSwitch?.(key);
                     }}
                     data-test-tabkey={key}
                     tabIndex={0}
@@ -336,17 +280,17 @@ class _Tabs extends React.Component<_TabsProps, {}> {
                 );
               })}
             </div>
-            {this.props.tabBarExtraContent}
+            {props.tabBarExtraContent}
           </div>,
         )}
 
         <div
           className={"tab-content"}
-          style={this.props.scrollByTransform ? { overflow: "hidden" } : {}}
+          style={props.scrollByTransform ? { overflow: "hidden" } : {}}
         >
-          {this.props.tabs.map((tab, i) => {
+          {props.tabs.map((tab, i) => {
             const isSelected = tabKey === (tab.key ?? i);
-            if (!isSelected && !this.props.forceRender) {
+            if (!isSelected && !props.forceRender) {
               return null;
             }
             return (
@@ -357,18 +301,14 @@ class _Tabs extends React.Component<_TabsProps, {}> {
                   display: isSelected ? "flex" : "none",
                 }}
               >
-                {this.props.contentWrapper(tab.contents())}
+                {contentWrapper(tab.contents())}
               </div>
             );
           })}
         </div>
       </div>
     );
-  }
 }
-export const Tabs = uncontrollable(_Tabs, _Tabs.defaultProps, {
-  tabKey: "onSwitch",
-});
 
 interface DragItemProps {
   dragHandle: () => ReactNode;
@@ -520,35 +460,22 @@ interface ListBoxProps {
   "data-test-id"?: string;
 }
 
-type ListBoxState = {
-  adding: boolean;
-};
-export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
-  constructor(props) {
-    super(props);
-    this.state = { adding: false };
-  }
-  private handleDragEnd = (result: DropResult) => {
-    if (!result.destination) {
-      return;
-    }
-    const { onReorder } = this.props;
-    if (onReorder) {
-      onReorder(result.source.index, result.destination.index);
-    }
+export function ListBox(props: ListBoxProps) {
+  const [adding, setAdding] = React.useState(false);
+  const handleDragEnd = (result: DropResult) => {
+    if (result.destination) { props.onReorder?.(result.source.index, result.destination.index); }
   };
-  render() {
-    const { addText, addNode, disabled } = this.props;
+    const { addText, addNode, disabled } = props;
     // TODO this is inconsistently firing onmouseleave because the div is
     //  actually getting unmounted and then mounted.  See
     //  https://github.com/facebook/react/issues/6807.
     let addButton = (
       <PlainLinkButton
         className={"list-box__add-placeholder"}
-        onClick={this.props.onAdd}
+        onClick={props.onAdd}
         type="button"
         disabled={disabled}
-        data-test-id={`${this.props["data-test-id"]}-add-btn`}
+        data-test-id={`${props["data-test-id"]}-add-btn`}
       >
         <div>
           {addNode ? (
@@ -561,9 +488,9 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
         </div>
       </PlainLinkButton>
     );
-    if (this.props.addMenu) {
+    if (props.addMenu) {
       addButton = (
-        <IFrameAwareDropdownMenu menu={this.props.addMenu}>
+        <IFrameAwareDropdownMenu menu={props.addMenu}>
           {addButton}
         </IFrameAwareDropdownMenu>
       );
@@ -572,38 +499,37 @@ export class ListBox extends React.Component<ListBoxProps, ListBoxState> {
       !addText && !addNode ? null : (
         <div
           onMouseEnter={() => {
-            if (this.props.addHoverContent != null) {
-              return this.setState({ adding: true });
+            if (props.addHoverContent != null) {
+              return setAdding(true);
             }
           }}
           onMouseLeave={() => {
-            this.setState({ adding: false });
+            setAdding(false);
           }}
         >
-          {!this.state.adding ? (
+          {!adding ? (
             addButton
           ) : (
             <div className={"list-box__add-placeholder"}>
-              {this.props.addHoverContent}
+              {props.addHoverContent}
             </div>
           )}
         </div>
       );
     return (
-      <DragDropContext onDragEnd={this.handleDragEnd}>
-        {this.props.appendPrepend === "prepend" ? adder : undefined}
+      <DragDropContext onDragEnd={handleDragEnd}>
+        {props.appendPrepend === "prepend" ? adder : undefined}
         <Droppable droppableId={"droppable"}>
           {(provided) => (
             <div ref={provided.innerRef} className={"list-box"}>
-              {this.props.children}
+              {props.children}
               {provided.placeholder}
             </div>
           )}
         </Droppable>
-        {this.props.appendPrepend === "append" ? adder : undefined}
+        {props.appendPrepend === "append" ? adder : undefined}
       </DragDropContext>
     );
-  }
 }
 
 interface ListBoxItemProps {
@@ -630,10 +556,8 @@ interface ListBoxItemProps {
   "data-test-id"?: string;
 }
 
-// TODO Handle drag reordering
-export class ListBoxItem extends React.Component<ListBoxItemProps, {}> {
-  randId = Math.random();
-  render() {
+export function ListBoxItem(props: ListBoxItemProps) {
+  const dragId = React.useId();
     const {
       index,
       className,
@@ -648,10 +572,10 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, {}> {
       clickable = true,
       truncate = true,
       menu,
-    } = this.props;
+    } = props;
     return (
       <Draggable
-        draggableId={`${this.randId}`}
+        draggableId={`${dragId}`}
         index={index}
         isDragDisabled={isDragDisabled}
       >
@@ -672,10 +596,10 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, {}> {
                 }
                 onKeyDown={(event) => {
                   if (
-                    this.props.onClick &&
+                    props.onClick &&
                     isKeyHotkey("enter", event.nativeEvent)
                   ) {
-                    this.props.onClick();
+                    props.onClick();
                     event.stopPropagation();
                   }
                 }}
@@ -683,22 +607,22 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, {}> {
                 <div
                   className={classNames(className, {
                     "list-box-item flex-vcenter": true,
-                    "list-box-item--top": !!this.props.alignTop,
+                    "list-box-item--top": !!props.alignTop,
                     "list-box-item--clickable": !!clickable,
-                    "list-box-item--highlighted": !!this.props.isHighlighted,
+                    "list-box-item--highlighted": !!props.isHighlighted,
                     group: true,
                   })}
-                  data-test-id={this.props["data-test-id"]}
-                  onClick={this.props.onClick}
+                  data-test-id={props["data-test-id"]}
+                  onClick={props.onClick}
                 >
-                  {this.props.thumbnail && (
+                  {props.thumbnail && (
                     <div
                       className={classNames({
                         "list-box-item__img": true,
-                        "list-box-item__img-grid": this.props.gridThumbnail,
+                        "list-box-item__img-grid": props.gridThumbnail,
                       })}
                     >
-                      {this.props.thumbnail}
+                      {props.thumbnail}
                     </div>
                   )}
 
@@ -708,7 +632,7 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, {}> {
                       "list-box-item__label--truncate": !!truncate,
                     })}
                   >
-                    {this.props.mainContent}
+                    {props.mainContent}
                   </div>
 
                   {showGrip && (
@@ -734,8 +658,8 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, {}> {
                           }}
                           disabled={disabled}
                           data-test-id={
-                            this.props["data-test-id"]
-                              ? `${this.props["data-test-id"]}-remove`
+                            props["data-test-id"]
+                              ? `${props["data-test-id"]}-remove`
                               : undefined
                           }
                         >
@@ -786,7 +710,6 @@ export class ListBoxItem extends React.Component<ListBoxItemProps, {}> {
         }}
       </Draggable>
     );
-  }
 }
 
 export function InlineIcon({ children }: { children: ReactNode }) {

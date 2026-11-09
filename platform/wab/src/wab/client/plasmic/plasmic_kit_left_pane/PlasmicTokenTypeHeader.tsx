@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,13 +24,13 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -107,11 +107,10 @@ function PlasmicTokenTypeHeader__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isExpanded",
@@ -126,23 +125,25 @@ function PlasmicTokenTypeHeader__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.border,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -287,12 +288,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -302,28 +299,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTokenTypeHeader__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTokenTypeHeader";
-  } else {
-    func.displayName = `PlasmicTokenTypeHeader.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTokenTypeHeader__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTokenTypeHeader__root<T extends PlasmicTokenTypeHeader__rootProps>(props: T & StrictProps<T, PlasmicTokenTypeHeader__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTokenTypeHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTokenTypeHeader__root.displayName = "PlasmicTokenTypeHeader";
+
+type PlasmicTokenTypeHeader__iconContainerProps = NodeComponentProps<"iconContainer"> & {key?: React.Key};
+function PlasmicTokenTypeHeader__iconContainer<T extends PlasmicTokenTypeHeader__iconContainerProps>(props: T & StrictProps<T, PlasmicTokenTypeHeader__iconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconContainer", props);
+  return <PlasmicTokenTypeHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconContainer"} />;
+}
+PlasmicTokenTypeHeader__iconContainer.displayName = "PlasmicTokenTypeHeader.iconContainer";
+
+type PlasmicTokenTypeHeader__addButtonProps = NodeComponentProps<"addButton"> & {key?: React.Key};
+function PlasmicTokenTypeHeader__addButton<T extends PlasmicTokenTypeHeader__addButtonProps>(props: T & StrictProps<T, PlasmicTokenTypeHeader__addButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addButton", props);
+  return <PlasmicTokenTypeHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addButton"} />;
+}
+PlasmicTokenTypeHeader__addButton.displayName = "PlasmicTokenTypeHeader.addButton";
+
 
 export const PlasmicTokenTypeHeader = Object.assign(
   // Top-level PlasmicTokenTypeHeader renders the root element
-  makeNodeComponent("root"),
+  PlasmicTokenTypeHeader__root,
   {
     // Helper components rendering sub-elements
-    iconContainer: makeNodeComponent("iconContainer"),
-    addButton: makeNodeComponent("addButton"),
+    iconContainer: PlasmicTokenTypeHeader__iconContainer,
+    addButton: PlasmicTokenTypeHeader__addButton,
 
     // Metadata about props expected for PlasmicTokenTypeHeader
     internalVariantProps: PlasmicTokenTypeHeader__VariantProps,

@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,14 +22,14 @@ import {
   generateStateValueProp,
   renderPlasmicSlot,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -92,11 +92,10 @@ function PlasmicDirectoryUserRow__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "groupsSelect.value",
@@ -105,23 +104,25 @@ function PlasmicDirectoryUserRow__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -163,9 +164,9 @@ function PlasmicDirectoryUserRow__RenderFunc(props: {
               role={"img"}
             />
           }
-          onChange={async (...eventArgs: any) => {
+          onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
             ((...eventArgs) => {
-              generateStateOnChangeProp($state, ["groupsSelect", "value"])(
+              generateStateOnChangeProp($stateCommands, ["groupsSelect", "value"])(
                 eventArgs[0]
               );
             }).apply(null, eventArgs);
@@ -177,7 +178,7 @@ function PlasmicDirectoryUserRow__RenderFunc(props: {
             ) {
               return;
             }
-          }}
+          })); })}
           value={generateStateValueProp($state, ["groupsSelect", "value"])}
         />
       </div>
@@ -245,12 +246,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -260,29 +257,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDirectoryUserRow__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDirectoryUserRow";
-  } else {
-    func.displayName = `PlasmicDirectoryUserRow.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDirectoryUserRow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDirectoryUserRow__root<T extends PlasmicDirectoryUserRow__rootProps>(props: T & StrictProps<T, PlasmicDirectoryUserRow__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDirectoryUserRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDirectoryUserRow__root.displayName = "PlasmicDirectoryUserRow";
+
+type PlasmicDirectoryUserRow__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicDirectoryUserRow__freeBox<T extends PlasmicDirectoryUserRow__freeBoxProps>(props: T & StrictProps<T, PlasmicDirectoryUserRow__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicDirectoryUserRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicDirectoryUserRow__freeBox.displayName = "PlasmicDirectoryUserRow.freeBox";
+
+type PlasmicDirectoryUserRow__groupsSelectProps = NodeComponentProps<"groupsSelect"> & {key?: React.Key};
+function PlasmicDirectoryUserRow__groupsSelect<T extends PlasmicDirectoryUserRow__groupsSelectProps>(props: T & StrictProps<T, PlasmicDirectoryUserRow__groupsSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("groupsSelect", props);
+  return <PlasmicDirectoryUserRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"groupsSelect"} />;
+}
+PlasmicDirectoryUserRow__groupsSelect.displayName = "PlasmicDirectoryUserRow.groupsSelect";
+
+type PlasmicDirectoryUserRow__deleteBtnProps = NodeComponentProps<"deleteBtn"> & {key?: React.Key};
+function PlasmicDirectoryUserRow__deleteBtn<T extends PlasmicDirectoryUserRow__deleteBtnProps>(props: T & StrictProps<T, PlasmicDirectoryUserRow__deleteBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("deleteBtn", props);
+  return <PlasmicDirectoryUserRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"deleteBtn"} />;
+}
+PlasmicDirectoryUserRow__deleteBtn.displayName = "PlasmicDirectoryUserRow.deleteBtn";
+
 
 export const PlasmicDirectoryUserRow = Object.assign(
   // Top-level PlasmicDirectoryUserRow renders the root element
-  makeNodeComponent("root"),
+  PlasmicDirectoryUserRow__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    groupsSelect: makeNodeComponent("groupsSelect"),
-    deleteBtn: makeNodeComponent("deleteBtn"),
+    freeBox: PlasmicDirectoryUserRow__freeBox,
+    groupsSelect: PlasmicDirectoryUserRow__groupsSelect,
+    deleteBtn: PlasmicDirectoryUserRow__deleteBtn,
 
     // Metadata about props expected for PlasmicDirectoryUserRow
     internalVariantProps: PlasmicDirectoryUserRow__VariantProps,

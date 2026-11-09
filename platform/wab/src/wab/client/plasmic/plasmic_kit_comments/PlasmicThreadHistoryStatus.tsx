@@ -14,20 +14,20 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { Tooltip } from "../../components/plexus/Tooltip"; // plasmic-import: EBbuUzYSewBk/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -93,11 +93,10 @@ function PlasmicThreadHistoryStatus__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "resolved",
@@ -112,18 +111,20 @@ function PlasmicThreadHistoryStatus__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.isLoading,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -239,12 +240,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -254,29 +251,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicThreadHistoryStatus__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicThreadHistoryStatus";
-  } else {
-    func.displayName = `PlasmicThreadHistoryStatus.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicThreadHistoryStatus__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicThreadHistoryStatus__root<T extends PlasmicThreadHistoryStatus__rootProps>(props: T & StrictProps<T, PlasmicThreadHistoryStatus__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicThreadHistoryStatus__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicThreadHistoryStatus__root.displayName = "PlasmicThreadHistoryStatus";
+
+type PlasmicThreadHistoryStatus__tooltipProps = NodeComponentProps<"tooltip"> & {key?: React.Key};
+function PlasmicThreadHistoryStatus__tooltip<T extends PlasmicThreadHistoryStatus__tooltipProps>(props: T & StrictProps<T, PlasmicThreadHistoryStatus__tooltipProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("tooltip", props);
+  return <PlasmicThreadHistoryStatus__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tooltip"} />;
+}
+PlasmicThreadHistoryStatus__tooltip.displayName = "PlasmicThreadHistoryStatus.tooltip";
+
+type PlasmicThreadHistoryStatus__statusProps = NodeComponentProps<"status"> & {key?: React.Key};
+function PlasmicThreadHistoryStatus__status<T extends PlasmicThreadHistoryStatus__statusProps>(props: T & StrictProps<T, PlasmicThreadHistoryStatus__statusProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("status", props);
+  return <PlasmicThreadHistoryStatus__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"status"} />;
+}
+PlasmicThreadHistoryStatus__status.displayName = "PlasmicThreadHistoryStatus.status";
+
+type PlasmicThreadHistoryStatus__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicThreadHistoryStatus__svg<T extends PlasmicThreadHistoryStatus__svgProps>(props: T & StrictProps<T, PlasmicThreadHistoryStatus__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicThreadHistoryStatus__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicThreadHistoryStatus__svg.displayName = "PlasmicThreadHistoryStatus.svg";
+
 
 export const PlasmicThreadHistoryStatus = Object.assign(
   // Top-level PlasmicThreadHistoryStatus renders the root element
-  makeNodeComponent("root"),
+  PlasmicThreadHistoryStatus__root,
   {
     // Helper components rendering sub-elements
-    tooltip: makeNodeComponent("tooltip"),
-    status: makeNodeComponent("status"),
-    svg: makeNodeComponent("svg"),
+    tooltip: PlasmicThreadHistoryStatus__tooltip,
+    status: PlasmicThreadHistoryStatus__status,
+    svg: PlasmicThreadHistoryStatus__svg,
 
     // Metadata about props expected for PlasmicThreadHistoryStatus
     internalVariantProps: PlasmicThreadHistoryStatus__VariantProps,

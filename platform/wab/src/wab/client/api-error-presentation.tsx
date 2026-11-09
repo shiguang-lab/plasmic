@@ -1,4 +1,4 @@
-import { getUiLocale, useI18n } from "@/wab/client/i18n";
+import { getUiLocale, useI18n, type UiLocale } from "@/wab/client/i18n";
 import {
   MessageKey,
   translate,
@@ -204,8 +204,7 @@ const reasons: Record<string, MessageKey> = {
     "Tool result changed the execution scope.",
 };
 
-export function getErrorMessage(error: unknown): string {
-  const locale = getUiLocale();
+export function getErrorMessage(error: unknown, locale: UiLocale = getUiLocale()): string {
   if (error instanceof NetworkError) {
     return translate(locale, "No response was received. Check your network connection and whether the service is reachable.");
   }
@@ -267,6 +266,6 @@ export function getErrorType(error: unknown): "warning" | "error" {
 
 /** Subscribe even when a notification or modal is already open. */
 export function ErrorDescription({ error }: { error: unknown }) {
-  useI18n();
-  return <>{getErrorMessage(error)}</>;
+  const {locale} = useI18n();
+  return <>{getErrorMessage(error, locale)}</>;
 }

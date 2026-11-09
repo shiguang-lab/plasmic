@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicLink as PlasmicLink__,
   SingleChoiceArg,
   StrictProps,
@@ -25,7 +25,7 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -37,7 +37,7 @@ import WebhookEvent from "../../components/webhooks/WebhookEvent"; // plasmic-im
 import WebhooksHistory from "../../components/webhooks/WebhooksHistory"; // plasmic-import: Ynwp30ZgYk/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 
 import "@plasmicapp/react-web/lib/plasmic.css";
@@ -138,11 +138,10 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "publishState",
@@ -158,18 +157,20 @@ function PlasmicPublishFlowDialog__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.view,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -1258,12 +1259,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1273,50 +1270,213 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPublishFlowDialog__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPublishFlowDialog";
-  } else {
-    func.displayName = `PlasmicPublishFlowDialog.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPublishFlowDialog__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__root<T extends PlasmicPublishFlowDialog__rootProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPublishFlowDialog__root.displayName = "PlasmicPublishFlowDialog";
+
+type PlasmicPublishFlowDialog__dismissButtonProps = NodeComponentProps<"dismissButton"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__dismissButton<T extends PlasmicPublishFlowDialog__dismissButtonProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__dismissButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dismissButton", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dismissButton"} />;
+}
+PlasmicPublishFlowDialog__dismissButton.displayName = "PlasmicPublishFlowDialog.dismissButton";
+
+type PlasmicPublishFlowDialog__statusBarProps = NodeComponentProps<"statusBar"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__statusBar<T extends PlasmicPublishFlowDialog__statusBarProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__statusBarProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("statusBar", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"statusBar"} />;
+}
+PlasmicPublishFlowDialog__statusBar.displayName = "PlasmicPublishFlowDialog.statusBar";
+
+type PlasmicPublishFlowDialog__destinationSectionProps = NodeComponentProps<"destinationSection"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__destinationSection<T extends PlasmicPublishFlowDialog__destinationSectionProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__destinationSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("destinationSection", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"destinationSection"} />;
+}
+PlasmicPublishFlowDialog__destinationSection.displayName = "PlasmicPublishFlowDialog.destinationSection";
+
+type PlasmicPublishFlowDialog__destinationProps = NodeComponentProps<"destination"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__destination<T extends PlasmicPublishFlowDialog__destinationProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__destinationProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("destination", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"destination"} />;
+}
+PlasmicPublishFlowDialog__destination.displayName = "PlasmicPublishFlowDialog.destination";
+
+type PlasmicPublishFlowDialog__backPanelProps = NodeComponentProps<"backPanel"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__backPanel<T extends PlasmicPublishFlowDialog__backPanelProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__backPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("backPanel", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"backPanel"} />;
+}
+PlasmicPublishFlowDialog__backPanel.displayName = "PlasmicPublishFlowDialog.backPanel";
+
+type PlasmicPublishFlowDialog__backButtonProps = NodeComponentProps<"backButton"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__backButton<T extends PlasmicPublishFlowDialog__backButtonProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__backButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("backButton", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"backButton"} />;
+}
+PlasmicPublishFlowDialog__backButton.displayName = "PlasmicPublishFlowDialog.backButton";
+
+type PlasmicPublishFlowDialog__subsectionSaveVersionProps = NodeComponentProps<"subsectionSaveVersion"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__subsectionSaveVersion<T extends PlasmicPublishFlowDialog__subsectionSaveVersionProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__subsectionSaveVersionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("subsectionSaveVersion", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"subsectionSaveVersion"} />;
+}
+PlasmicPublishFlowDialog__subsectionSaveVersion.displayName = "PlasmicPublishFlowDialog.subsectionSaveVersion";
+
+type PlasmicPublishFlowDialog__subsectionPlasmicHostingProps = NodeComponentProps<"subsectionPlasmicHosting"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__subsectionPlasmicHosting<T extends PlasmicPublishFlowDialog__subsectionPlasmicHostingProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__subsectionPlasmicHostingProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("subsectionPlasmicHosting", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"subsectionPlasmicHosting"} />;
+}
+PlasmicPublishFlowDialog__subsectionPlasmicHosting.displayName = "PlasmicPublishFlowDialog.subsectionPlasmicHosting";
+
+type PlasmicPublishFlowDialog__subsectionPushDeployProps = NodeComponentProps<"subsectionPushDeploy"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__subsectionPushDeploy<T extends PlasmicPublishFlowDialog__subsectionPushDeployProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__subsectionPushDeployProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("subsectionPushDeploy", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"subsectionPushDeploy"} />;
+}
+PlasmicPublishFlowDialog__subsectionPushDeploy.displayName = "PlasmicPublishFlowDialog.subsectionPushDeploy";
+
+type PlasmicPublishFlowDialog__subsectionWebhooksProps = NodeComponentProps<"subsectionWebhooks"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__subsectionWebhooks<T extends PlasmicPublishFlowDialog__subsectionWebhooksProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__subsectionWebhooksProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("subsectionWebhooks", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"subsectionWebhooks"} />;
+}
+PlasmicPublishFlowDialog__subsectionWebhooks.displayName = "PlasmicPublishFlowDialog.subsectionWebhooks";
+
+type PlasmicPublishFlowDialog__addActionsContainerProps = NodeComponentProps<"addActionsContainer"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__addActionsContainer<T extends PlasmicPublishFlowDialog__addActionsContainerProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__addActionsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addActionsContainer", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addActionsContainer"} />;
+}
+PlasmicPublishFlowDialog__addActionsContainer.displayName = "PlasmicPublishFlowDialog.addActionsContainer";
+
+type PlasmicPublishFlowDialog__addWebsitePanelProps = NodeComponentProps<"addWebsitePanel"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__addWebsitePanel<T extends PlasmicPublishFlowDialog__addWebsitePanelProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__addWebsitePanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addWebsitePanel", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addWebsitePanel"} />;
+}
+PlasmicPublishFlowDialog__addWebsitePanel.displayName = "PlasmicPublishFlowDialog.addWebsitePanel";
+
+type PlasmicPublishFlowDialog__addWebsiteButtonProps = NodeComponentProps<"addWebsiteButton"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__addWebsiteButton<T extends PlasmicPublishFlowDialog__addWebsiteButtonProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__addWebsiteButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addWebsiteButton", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addWebsiteButton"} />;
+}
+PlasmicPublishFlowDialog__addWebsiteButton.displayName = "PlasmicPublishFlowDialog.addWebsiteButton";
+
+type PlasmicPublishFlowDialog__addGithubPanelProps = NodeComponentProps<"addGithubPanel"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__addGithubPanel<T extends PlasmicPublishFlowDialog__addGithubPanelProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__addGithubPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addGithubPanel", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addGithubPanel"} />;
+}
+PlasmicPublishFlowDialog__addGithubPanel.displayName = "PlasmicPublishFlowDialog.addGithubPanel";
+
+type PlasmicPublishFlowDialog__addGithubButtonProps = NodeComponentProps<"addGithubButton"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__addGithubButton<T extends PlasmicPublishFlowDialog__addGithubButtonProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__addGithubButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addGithubButton", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addGithubButton"} />;
+}
+PlasmicPublishFlowDialog__addGithubButton.displayName = "PlasmicPublishFlowDialog.addGithubButton";
+
+type PlasmicPublishFlowDialog__addWebhooksPanelProps = NodeComponentProps<"addWebhooksPanel"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__addWebhooksPanel<T extends PlasmicPublishFlowDialog__addWebhooksPanelProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__addWebhooksPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addWebhooksPanel", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addWebhooksPanel"} />;
+}
+PlasmicPublishFlowDialog__addWebhooksPanel.displayName = "PlasmicPublishFlowDialog.addWebhooksPanel";
+
+type PlasmicPublishFlowDialog__addWebhooksButtonProps = NodeComponentProps<"addWebhooksButton"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__addWebhooksButton<T extends PlasmicPublishFlowDialog__addWebhooksButtonProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__addWebhooksButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addWebhooksButton", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addWebhooksButton"} />;
+}
+PlasmicPublishFlowDialog__addWebhooksButton.displayName = "PlasmicPublishFlowDialog.addWebhooksButton";
+
+type PlasmicPublishFlowDialog__webhooksDescriptionProps = NodeComponentProps<"webhooksDescription"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__webhooksDescription<T extends PlasmicPublishFlowDialog__webhooksDescriptionProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__webhooksDescriptionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("webhooksDescription", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"webhooksDescription"} />;
+}
+PlasmicPublishFlowDialog__webhooksDescription.displayName = "PlasmicPublishFlowDialog.webhooksDescription";
+
+type PlasmicPublishFlowDialog__containerProps = NodeComponentProps<"container"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__container<T extends PlasmicPublishFlowDialog__containerProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__containerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("container", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"container"} />;
+}
+PlasmicPublishFlowDialog__container.displayName = "PlasmicPublishFlowDialog.container";
+
+type PlasmicPublishFlowDialog__webhooksHistoryProps = NodeComponentProps<"webhooksHistory"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__webhooksHistory<T extends PlasmicPublishFlowDialog__webhooksHistoryProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__webhooksHistoryProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("webhooksHistory", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"webhooksHistory"} />;
+}
+PlasmicPublishFlowDialog__webhooksHistory.displayName = "PlasmicPublishFlowDialog.webhooksHistory";
+
+type PlasmicPublishFlowDialog__publishButtonProps = NodeComponentProps<"publishButton"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__publishButton<T extends PlasmicPublishFlowDialog__publishButtonProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__publishButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("publishButton", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"publishButton"} />;
+}
+PlasmicPublishFlowDialog__publishButton.displayName = "PlasmicPublishFlowDialog.publishButton";
+
+type PlasmicPublishFlowDialog__startOverButtonProps = NodeComponentProps<"startOverButton"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__startOverButton<T extends PlasmicPublishFlowDialog__startOverButtonProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__startOverButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("startOverButton", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"startOverButton"} />;
+}
+PlasmicPublishFlowDialog__startOverButton.displayName = "PlasmicPublishFlowDialog.startOverButton";
+
+type PlasmicPublishFlowDialog__cancelButtonProps = NodeComponentProps<"cancelButton"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__cancelButton<T extends PlasmicPublishFlowDialog__cancelButtonProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__cancelButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelButton", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelButton"} />;
+}
+PlasmicPublishFlowDialog__cancelButton.displayName = "PlasmicPublishFlowDialog.cancelButton";
+
+type PlasmicPublishFlowDialog__statusButtonProps = NodeComponentProps<"statusButton"> & {key?: React.Key};
+function PlasmicPublishFlowDialog__statusButton<T extends PlasmicPublishFlowDialog__statusButtonProps>(props: T & StrictProps<T, PlasmicPublishFlowDialog__statusButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("statusButton", props);
+  return <PlasmicPublishFlowDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"statusButton"} />;
+}
+PlasmicPublishFlowDialog__statusButton.displayName = "PlasmicPublishFlowDialog.statusButton";
+
 
 export const PlasmicPublishFlowDialog = Object.assign(
   // Top-level PlasmicPublishFlowDialog renders the root element
-  makeNodeComponent("root"),
+  PlasmicPublishFlowDialog__root,
   {
     // Helper components rendering sub-elements
-    dismissButton: makeNodeComponent("dismissButton"),
-    statusBar: makeNodeComponent("statusBar"),
-    destinationSection: makeNodeComponent("destinationSection"),
-    destination: makeNodeComponent("destination"),
-    backPanel: makeNodeComponent("backPanel"),
-    backButton: makeNodeComponent("backButton"),
-    subsectionSaveVersion: makeNodeComponent("subsectionSaveVersion"),
-    subsectionPlasmicHosting: makeNodeComponent("subsectionPlasmicHosting"),
-    subsectionPushDeploy: makeNodeComponent("subsectionPushDeploy"),
-    subsectionWebhooks: makeNodeComponent("subsectionWebhooks"),
-    addActionsContainer: makeNodeComponent("addActionsContainer"),
-    addWebsitePanel: makeNodeComponent("addWebsitePanel"),
-    addWebsiteButton: makeNodeComponent("addWebsiteButton"),
-    addGithubPanel: makeNodeComponent("addGithubPanel"),
-    addGithubButton: makeNodeComponent("addGithubButton"),
-    addWebhooksPanel: makeNodeComponent("addWebhooksPanel"),
-    addWebhooksButton: makeNodeComponent("addWebhooksButton"),
-    webhooksDescription: makeNodeComponent("webhooksDescription"),
-    container: makeNodeComponent("container"),
-    webhooksHistory: makeNodeComponent("webhooksHistory"),
-    publishButton: makeNodeComponent("publishButton"),
-    startOverButton: makeNodeComponent("startOverButton"),
-    cancelButton: makeNodeComponent("cancelButton"),
-    statusButton: makeNodeComponent("statusButton"),
+    dismissButton: PlasmicPublishFlowDialog__dismissButton,
+    statusBar: PlasmicPublishFlowDialog__statusBar,
+    destinationSection: PlasmicPublishFlowDialog__destinationSection,
+    destination: PlasmicPublishFlowDialog__destination,
+    backPanel: PlasmicPublishFlowDialog__backPanel,
+    backButton: PlasmicPublishFlowDialog__backButton,
+    subsectionSaveVersion: PlasmicPublishFlowDialog__subsectionSaveVersion,
+    subsectionPlasmicHosting: PlasmicPublishFlowDialog__subsectionPlasmicHosting,
+    subsectionPushDeploy: PlasmicPublishFlowDialog__subsectionPushDeploy,
+    subsectionWebhooks: PlasmicPublishFlowDialog__subsectionWebhooks,
+    addActionsContainer: PlasmicPublishFlowDialog__addActionsContainer,
+    addWebsitePanel: PlasmicPublishFlowDialog__addWebsitePanel,
+    addWebsiteButton: PlasmicPublishFlowDialog__addWebsiteButton,
+    addGithubPanel: PlasmicPublishFlowDialog__addGithubPanel,
+    addGithubButton: PlasmicPublishFlowDialog__addGithubButton,
+    addWebhooksPanel: PlasmicPublishFlowDialog__addWebhooksPanel,
+    addWebhooksButton: PlasmicPublishFlowDialog__addWebhooksButton,
+    webhooksDescription: PlasmicPublishFlowDialog__webhooksDescription,
+    container: PlasmicPublishFlowDialog__container,
+    webhooksHistory: PlasmicPublishFlowDialog__webhooksHistory,
+    publishButton: PlasmicPublishFlowDialog__publishButton,
+    startOverButton: PlasmicPublishFlowDialog__startOverButton,
+    cancelButton: PlasmicPublishFlowDialog__cancelButton,
+    statusButton: PlasmicPublishFlowDialog__statusButton,
 
     // Metadata about props expected for PlasmicPublishFlowDialog
     internalVariantProps: PlasmicPublishFlowDialog__VariantProps,

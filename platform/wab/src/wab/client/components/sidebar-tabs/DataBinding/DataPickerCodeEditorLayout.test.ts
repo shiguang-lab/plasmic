@@ -62,8 +62,6 @@ describe("cleanDataForPreview", () => {
       normalKey: "value",
       $dataTokens_key: "should be filtered",
       dataTokensEnv: "should be filtered",
-      registerInitFunc: "should be filtered",
-      eagerInitializeStates: "should be filtered",
       __plasmicKey: "should be filtered",
       nested: {
         normalNested: "nested value",

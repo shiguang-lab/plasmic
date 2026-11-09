@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -26,7 +26,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import LeftSearchPanel from "../../components/studio/LeftSearchPanel"; // plasmic-import: TqAPn0srTq/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -103,11 +103,10 @@ function PlasmicLeftExprsSearchPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -162,19 +161,8 @@ function PlasmicLeftExprsSearchPanel__RenderFunc(props: {
             {renderPlasmicSlot({
               defaultContents: (
                 <React.Fragment>
-                  {(() => {
-                    try {
-                      return $props.exprsText;
-                    } catch (e) {
-                      if (
-                        e instanceof TypeError ||
-                        e?.plasmicType === "PlasmicUndefinedDataError"
-                      ) {
-                        return "Found 6 Expressions";
-                      }
-                      throw e;
-                    }
-                  })()}
+                  {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                        e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.exprsText), () => ("Found 6 Expressions"))}
                 </React.Fragment>
               ),
               value: args.exprsLabel,
@@ -260,12 +248,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -275,29 +259,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftExprsSearchPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftExprsSearchPanel";
-  } else {
-    func.displayName = `PlasmicLeftExprsSearchPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftExprsSearchPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftExprsSearchPanel__root<T extends PlasmicLeftExprsSearchPanel__rootProps>(props: T & StrictProps<T, PlasmicLeftExprsSearchPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftExprsSearchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftExprsSearchPanel__root.displayName = "PlasmicLeftExprsSearchPanel";
+
+type PlasmicLeftExprsSearchPanel__leftSearchPanelProps = NodeComponentProps<"leftSearchPanel"> & {key?: React.Key};
+function PlasmicLeftExprsSearchPanel__leftSearchPanel<T extends PlasmicLeftExprsSearchPanel__leftSearchPanelProps>(props: T & StrictProps<T, PlasmicLeftExprsSearchPanel__leftSearchPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftSearchPanel", props);
+  return <PlasmicLeftExprsSearchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftSearchPanel"} />;
+}
+PlasmicLeftExprsSearchPanel__leftSearchPanel.displayName = "PlasmicLeftExprsSearchPanel.leftSearchPanel";
+
+type PlasmicLeftExprsSearchPanel__exprsFilterProps = NodeComponentProps<"exprsFilter"> & {key?: React.Key};
+function PlasmicLeftExprsSearchPanel__exprsFilter<T extends PlasmicLeftExprsSearchPanel__exprsFilterProps>(props: T & StrictProps<T, PlasmicLeftExprsSearchPanel__exprsFilterProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("exprsFilter", props);
+  return <PlasmicLeftExprsSearchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"exprsFilter"} />;
+}
+PlasmicLeftExprsSearchPanel__exprsFilter.displayName = "PlasmicLeftExprsSearchPanel.exprsFilter";
+
+type PlasmicLeftExprsSearchPanel__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicLeftExprsSearchPanel__content<T extends PlasmicLeftExprsSearchPanel__contentProps>(props: T & StrictProps<T, PlasmicLeftExprsSearchPanel__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicLeftExprsSearchPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicLeftExprsSearchPanel__content.displayName = "PlasmicLeftExprsSearchPanel.content";
+
 
 export const PlasmicLeftExprsSearchPanel = Object.assign(
   // Top-level PlasmicLeftExprsSearchPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftExprsSearchPanel__root,
   {
     // Helper components rendering sub-elements
-    leftSearchPanel: makeNodeComponent("leftSearchPanel"),
-    exprsFilter: makeNodeComponent("exprsFilter"),
-    content: makeNodeComponent("content"),
+    leftSearchPanel: PlasmicLeftExprsSearchPanel__leftSearchPanel,
+    exprsFilter: PlasmicLeftExprsSearchPanel__exprsFilter,
+    content: PlasmicLeftExprsSearchPanel__content,
 
     // Metadata about props expected for PlasmicLeftExprsSearchPanel
     internalVariantProps: PlasmicLeftExprsSearchPanel__VariantProps,

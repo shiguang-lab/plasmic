@@ -48,20 +48,15 @@ const buttonConfig = {
 export const ButtonPlugin: PlumePlugin = {
   // PlumeCanvasPlugin
   genCanvasWrapperComponent: (sub, comp, observer, getCompMeta) => {
-    return sub.React.forwardRef((allProps, ref: ButtonRef) =>
-      observer(() => {
-        const internalProps = pick(allProps, internalCanvasElementProps);
-        const { plasmicProps } = sub.reactWeb.useButton(
-          Object.assign(comp, getCompMeta()),
-          omit(allProps, internalCanvasElementProps),
-          buttonConfig as any,
-          ref,
-        );
-        return sub.React.createElement(comp, {
-          ...plasmicProps,
-          ...internalProps,
-        });
-      }),
+    return sub.createCanvasComponentType((allProps, ref: ButtonRef) =>
+      observer(() => sub.React.createElement(sub.CanvasPlume.CanvasPlumeButton, {
+        impl: comp,
+        metadata: getCompMeta(),
+        internalProps: pick(allProps, internalCanvasElementProps),
+        componentProps: omit(allProps, internalCanvasElementProps),
+        config: buttonConfig as any,
+        forwardedRef: ref,
+      })),
     );
   },
 
@@ -76,14 +71,13 @@ export const ButtonPlugin: PlumePlugin = {
       }`
       : "";
     return `
-      function useBehavior<P extends pp.PlumeButtonProps>(props: P, ref: pp.ButtonRef) {
-        const b = pp.useButton<P, typeof ${makePlasmicComponentName(
+      function deriveBehaviorProps<P extends Plume.PlumeButtonProps>(props: P) {
+        const b = Plume.deriveButtonProps<P, typeof ${makePlasmicComponentName(
           component,
         )}>(
           ${makePlasmicComponentName(component)},
           props,
-          ${jsLiteral(buttonConfig)},
-          ref
+          ${jsLiteral(buttonConfig)}
         );
         ${plasmicLinkOverride}
         return b;
@@ -98,7 +92,7 @@ export const ButtonPlugin: PlumePlugin = {
     return `
       export interface ${
         opts?.typeName ?? makeDefaultExternalPropsName(component)
-      } extends pp.BaseButtonProps {
+      } extends Plume.BaseButtonProps {
         ${params
           .map(
             (param) =>
@@ -144,8 +138,11 @@ export const ButtonPlugin: PlumePlugin = {
       }
 
       function ${componentName}_(props: ${propsName}, ref: ButtonRef) {
-        const { plasmicProps } = ${plasmicComponentName}.useBehavior<${propsName}>(props, ref);
-        return <${plasmicComponentName} {...plasmicProps} />;
+        const { plasmicProps, rootOverride } = ${plasmicComponentName}.deriveBehaviorProps<${propsName}>(props);
+        return <${plasmicComponentName} {...plasmicProps} overrides={{
+          ...plasmicProps.overrides,
+          root: {...rootOverride, props: {...rootOverride.props, ref}}
+        }} />;
       }
 
       export type ButtonComponentType = {

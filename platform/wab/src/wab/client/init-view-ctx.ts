@@ -12,9 +12,7 @@ import { spawn } from "@/wab/shared/common";
 import { observeModel } from "@/wab/shared/core/observable-model";
 import { meta } from "@/wab/shared/model/classes-metas";
 import { SiteInfo } from "@/wab/shared/SharedApi";
-import * as mobx from "mobx";
 
-(window as any).mobx = mobx;
 (window as any).meta = meta;
 (window as any).observeModel = observeModel;
 

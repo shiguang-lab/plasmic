@@ -16,20 +16,20 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -95,11 +95,10 @@ function PlasmicSharePageModal__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "copied",
@@ -108,18 +107,20 @@ function PlasmicSharePageModal__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.copied,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -241,12 +242,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -256,31 +253,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSharePageModal__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSharePageModal";
-  } else {
-    func.displayName = `PlasmicSharePageModal.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSharePageModal__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSharePageModal__root<T extends PlasmicSharePageModal__rootProps>(props: T & StrictProps<T, PlasmicSharePageModal__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSharePageModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSharePageModal__root.displayName = "PlasmicSharePageModal";
+
+type PlasmicSharePageModal__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicSharePageModal__text<T extends PlasmicSharePageModal__textProps>(props: T & StrictProps<T, PlasmicSharePageModal__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicSharePageModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicSharePageModal__text.displayName = "PlasmicSharePageModal.text";
+
+type PlasmicSharePageModal__h2Props = NodeComponentProps<"h2"> & {key?: React.Key};
+function PlasmicSharePageModal__h2<T extends PlasmicSharePageModal__h2Props>(props: T & StrictProps<T, PlasmicSharePageModal__h2Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("h2", props);
+  return <PlasmicSharePageModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"h2"} />;
+}
+PlasmicSharePageModal__h2.displayName = "PlasmicSharePageModal.h2";
+
+type PlasmicSharePageModal__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicSharePageModal__freeBox<T extends PlasmicSharePageModal__freeBoxProps>(props: T & StrictProps<T, PlasmicSharePageModal__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicSharePageModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicSharePageModal__freeBox.displayName = "PlasmicSharePageModal.freeBox";
+
+type PlasmicSharePageModal__urlBoxProps = NodeComponentProps<"urlBox"> & {key?: React.Key};
+function PlasmicSharePageModal__urlBox<T extends PlasmicSharePageModal__urlBoxProps>(props: T & StrictProps<T, PlasmicSharePageModal__urlBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("urlBox", props);
+  return <PlasmicSharePageModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"urlBox"} />;
+}
+PlasmicSharePageModal__urlBox.displayName = "PlasmicSharePageModal.urlBox";
+
+type PlasmicSharePageModal__copyBtnProps = NodeComponentProps<"copyBtn"> & {key?: React.Key};
+function PlasmicSharePageModal__copyBtn<T extends PlasmicSharePageModal__copyBtnProps>(props: T & StrictProps<T, PlasmicSharePageModal__copyBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("copyBtn", props);
+  return <PlasmicSharePageModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"copyBtn"} />;
+}
+PlasmicSharePageModal__copyBtn.displayName = "PlasmicSharePageModal.copyBtn";
+
 
 export const PlasmicSharePageModal = Object.assign(
   // Top-level PlasmicSharePageModal renders the root element
-  makeNodeComponent("root"),
+  PlasmicSharePageModal__root,
   {
     // Helper components rendering sub-elements
-    text: makeNodeComponent("text"),
-    h2: makeNodeComponent("h2"),
-    freeBox: makeNodeComponent("freeBox"),
-    urlBox: makeNodeComponent("urlBox"),
-    copyBtn: makeNodeComponent("copyBtn"),
+    text: PlasmicSharePageModal__text,
+    h2: PlasmicSharePageModal__h2,
+    freeBox: PlasmicSharePageModal__freeBox,
+    urlBox: PlasmicSharePageModal__urlBox,
+    copyBtn: PlasmicSharePageModal__copyBtn,
 
     // Metadata about props expected for PlasmicSharePageModal
     internalVariantProps: PlasmicSharePageModal__VariantProps,

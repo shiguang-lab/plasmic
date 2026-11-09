@@ -1,3 +1,6 @@
+import { captureVariantModelWorld, useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useVariantLabelInputs } from "@/wab/client/components/variants/variant-label-inputs";
+import { useVariantComboInputs } from "@/wab/client/studio-ctx/variant-combo-inputs";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useContextMenu } from "@/wab/client/components/ContextMenu";
 import { PlumyIcon } from "@/wab/client/components/plume/plume-markers";
@@ -32,7 +35,6 @@ import { isTplVariantable, summarizeTpl } from "@/wab/shared/core/tpls";
 import { getEffectiveVariantSetting } from "@/wab/shared/effective-variant-setting";
 import { Variant } from "@/wab/shared/model/classes";
 import { PlumeVariantDef } from "@/wab/shared/plume/plume-registry";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
@@ -41,7 +43,7 @@ interface VariantRowProps {
   viewCtx?: ViewCtx;
   variant: Variant | VariantCombo;
   pinState: VariantPinState | undefined;
-  label?: React.ReactNode | (() => React.ReactNode);
+  label?: React.ReactNode;
   menu?: () => React.ReactElement;
   className?: string;
   style?: React.CSSProperties;
@@ -80,7 +82,18 @@ export function pinStateToPlasmicPinState(pinState?: VariantPinState) {
           : undefined;
 }
 
-const VariantRow = observer(function VariantRow(props: VariantRowProps) {
+const VariantRow = React.memo(function VariantRow(props: VariantRowProps) {
+  const identity = Array.isArray(props.variant) ? props.variant[0] ?? props.studioCtx : props.variant;
+  const world = useVariantModelWorld(props.studioCtx, identity, props.viewCtx);
+  if (!world.alive) { return null; }
+  return props.viewCtx ? <VariantRowViewInputs {...props} viewCtx={props.viewCtx} /> : <VariantRowContent {...props} />;
+});
+function VariantRowViewInputs(props: VariantRowProps & { viewCtx: ViewCtx }) {
+  const combo = React.useMemo(() => Array.isArray(props.variant) ? props.variant : [props.variant], [props.variant]);
+  const { snapshot } = useVariantComboInputs(props.viewCtx, combo);
+  return <VariantRowContent {...props} modelSnapshot={snapshot} />;
+}
+const VariantRowContent = React.memo(function VariantRowContent(props: VariantRowProps & { modelSnapshot?: unknown }) {
   const { t } = useI18n();
   const {
     studioCtx,
@@ -106,6 +119,7 @@ const VariantRow = observer(function VariantRow(props: VariantRowProps) {
     hideIcon,
     type,
     previewAnimationContainer,
+    modelSnapshot: _modelSnapshot,
     ...rest
   } = props;
   useViewSelection(viewCtx, (state) => state.tpls);
@@ -118,6 +132,8 @@ const VariantRow = observer(function VariantRow(props: VariantRowProps) {
   const isRecording = pinState?.startsWith("selected");
 
   const tpl = viewCtx?.focusedTpl() ?? undefined;
+  useVariantLabelInputs(studioCtx, variant, { focusedTag: tpl && isTplVariantable(tpl) && "tag" in tpl ? tpl : undefined });
+  const world = React.useMemo(() => captureVariantModelWorld(studioCtx), [studioCtx, Array.isArray(variant) ? variant[0] : variant]);
   const indicatedVs =
     tpl &&
     isTplVariantable(tpl) &&
@@ -142,7 +158,7 @@ const VariantRow = observer(function VariantRow(props: VariantRowProps) {
       }
       pinState={pinStateToPlasmicPinState(pinState)}
       variantPinButton={{
-        onToggle,
+        onToggle: onToggle ? () => { if (world.isCurrent(viewCtx)) { onToggle(); } } : undefined,
         ...{
           "data-event": "variantspanel-variant-pin-button",
         },
@@ -153,7 +169,7 @@ const VariantRow = observer(function VariantRow(props: VariantRowProps) {
               tooltip: t(isRecording ? "Stop recording" : "Add to recording"),
               onClick: (e) => {
                 e.stopPropagation();
-                onTarget(!isRecording);
+                if (world.isCurrent(viewCtx)) { onTarget(!isRecording); }
               },
               ...{
                 "data-test-class": `variant-record-button-${
@@ -168,7 +184,7 @@ const VariantRow = observer(function VariantRow(props: VariantRowProps) {
       addAnimation={{
         start: <KeyframesIcon className={"text-xlg dimfg"} />,
         end: <PlusIcon className={"text-xlg dimfg"} />,
-        ...(addAnimationLayer ? { onClick: addAnimationLayer } : {}),
+        ...(addAnimationLayer ? { onClick: () => { if (world.isCurrent(viewCtx)) { addAnimationLayer(); } } } : {}),
       }}
       previewAnimationContainer={previewAnimationContainer}
       root={{
@@ -190,7 +206,7 @@ const VariantRow = observer(function VariantRow(props: VariantRowProps) {
         additional,
         removeAdditionalRowLeftPadding: true,
         onClickMain: () => {
-          if (!isDragging) {
+          if (world.isCurrent(viewCtx) && !isDragging) {
             onClick && onClick();
           }
         },
@@ -254,7 +270,7 @@ const VariantRow = observer(function VariantRow(props: VariantRowProps) {
       }
       {...rest}
     >
-      {typeof label === "function" ? label() : label}
+      {label}
     </PlasmicVariantRow>
   );
 });

@@ -33,7 +33,7 @@ import {
 import { getDedicatedArena } from "@/wab/shared/core/sites";
 import { getPublicUrl, getStaticBaseUrl } from "@/wab/shared/urls";
 import { readBusinessAnchor } from "@plasmic-shared/preview";
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 import { createStyles } from "antd-style";
 import React from "react";
 import { useMountedState } from "react-use";
@@ -49,127 +49,29 @@ interface PreviewFrameProps {
   previewCtx: PreviewCtx;
 }
 
-interface LivePreview {
-  frameRef: React.MutableRefObject<Window | null>;
-  onLoad: () => Promise<void>;
-  reset: () => void;
+class PreviewFrameBinding {
+  private snapshot: Readonly<{ window: Window | null; generation: number }> = Object.freeze({ window: null, generation: 0 });
+  private readonly listeners = new Set<() => void>();
+  read = () => this.snapshot;
+  subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
+  attach = (window: Window | null) => {
+    if (this.snapshot.window === window) { return; }
+    this.snapshot = Object.freeze({ ...this.snapshot, window });
+    this.listeners.forEach((listener) => listener());
+  };
+  beginLoad() {
+    this.snapshot = Object.freeze({ ...this.snapshot, generation: this.snapshot.generation + 1 });
+    this.listeners.forEach((listener) => listener());
+    return this.snapshot;
+  }
+  reset = () => {
+    this.snapshot = Object.freeze({ window: null, generation: this.snapshot.generation + 1 });
+    this.listeners.forEach((listener) => listener());
+  };
+  isCurrent(window: Window, generation: number) { return this.snapshot.window === window && this.snapshot.generation === generation; }
 }
 
-export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
-  const { revealStudio } = useHostFrameCtx();
-  const { t } = useI18n();
-  const { token } = theme.useToken();
-  const full = usePreviewSelector(previewCtx, (state) => state.previewData?.full ?? false);
-  const route = usePreviewSelector(previewCtx, (state) => state.previewData);
-  const pageHash = route?.pageHash ?? "";
-  const isLive = usePreviewSelector(previewCtx, (state) => state.isLive);
-  const frameRef = React.useRef<Window | null>(null);
-  const frameGeneration = React.useRef(0);
-  const [frameLoaded, setFrameLoaded] = React.useState(false);
-
-  React.useEffect(() => {
-    const win = frameRef.current;
-    if (!frameLoaded || !win) {
-      return;
-    }
-    liveFrame(win).setErrorTitle(t("Error"));
-    const dispose = installPreviewAgentCursor(win, {
-      label: t("AI assistant"),
-      color: token.colorPrimary,
-      scale: () => {
-        const iframe = win.frameElement;
-        return iframe
-          ? iframe.getBoundingClientRect().width /
-              (iframe as HTMLElement).offsetWidth || 1
-          : 1;
-      },
-    });
-    const clear = () => {
-      // SPA navigation keeps the iframe but must discard the previous target.
-      win.dispatchEvent(
-        new (win as Window & typeof globalThis).CustomEvent(
-          "plasmic-agent-cursor",
-          { detail: { action: "clear" } },
-        ),
-      );
-    };
-    clear();
-    const stop = previewCtx.store.subscribe((next, previous) => {
-      if (next.previewData !== previous.previewData) { clear(); }
-    });
-    return () => {
-      stop();
-      dispose();
-    };
-  }, [frameLoaded, frameRef.current, previewCtx, t, token.colorPrimary]);
-
-  const usedPkgs = usePreviewPackages(previewCtx);
-  const [installedPkgs, setInstalledPkgs] = React.useState<string[]>([]);
-  const [installationStatus, setInstallationStatus] = React.useState<"idle" | "loading" | "failed">("idle");
-  const isMounted = useMountedState();
-
-  const reset = () => {
-    frameGeneration.current++;
-    frameRef.current = null;
-    setInstallationStatus("idle");
-    setInstalledPkgs([]);
-    setFrameLoaded(false);
-  };
-
-  const scrollToHash = () => {
-    if (!frameRef.current || !previewCtx.pageHash) {
-      return;
-    }
-
-    // We run it in the next-next event loop iteration in case it's still loading.
-    // We need TWO setTimeouts for links where both the component and hash change (e.g. /path#anchor).
-    // TODO: Trigger the scroll exactly when the anchored element is rendered.
-    setTimeout(() => {
-      setTimeout(() => {
-        const id = readBusinessAnchor(previewCtx.pageHash);
-        const anchorElement = frameRef.current?.document.getElementById(id);
-        anchorElement?.scrollIntoView();
-      }, 0);
-    }, 0);
-  };
-
-  const onAnchorClick = (href: string) => {
-    if (!href) {
-      return;
-    }
-
-    spawn(previewCtx.handleNavigation(href));
-  };
-
-  const onLoad = async () => {
-    const frameWindow = ensure(frameRef.current, `Frame must be loaded`);
-    const generation = frameGeneration.current;
-    try {
-      await onLoadInjectLiveRuntime(
-        previewCtx.studioCtx,
-        frameWindow,
-        true,
-        onAnchorClick,
-        (href) => previewCtx.hrefForNavigation(href),
-      );
-    } catch (error) {
-      if (!isMounted() || frameRef.current !== frameWindow || frameGeneration.current !== generation) { return; }
-      // The iframe owner retries this specific cross-origin URL failure.
-      if ((error as Error)?.name === "SecurityError") { throw error; }
-      await showPreviewLoadError(frameWindow, error);
-      if (full && isMounted() && frameRef.current === frameWindow && frameGeneration.current === generation) {
-        await revealStudio();
-      }
-      return;
-    }
-    if (
-      !isMounted() ||
-      frameRef.current !== frameWindow ||
-      frameGeneration.current !== generation
-    ) {
-      return;
-    }
-
+function installPreviewInteractionHandlers(frameWindow: Window, previewCtx: PreviewCtx) {
     (frameWindow as any).__PlasmicWrapUserFunction = (
       loc: InteractionLoc | InteractionArgLoc,
       fn: () => any,
@@ -209,20 +111,144 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       }
     };
 
-    setFrameLoaded(true);
+}
+
+interface LivePreview {
+  attachFrame: (window: Window | null) => void;
+  onLoad: () => Promise<void>;
+  reset: () => void;
+}
+
+export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
+  const { revealStudio } = useHostFrameCtx();
+  const { t } = useI18n();
+  const { token } = AntdTheme.useToken();
+  const full = usePreviewSelector(previewCtx, (state) => state.previewData?.full ?? false);
+  const route = usePreviewSelector(previewCtx, (state) => state.previewData);
+  const pageHash = route?.pageHash ?? "";
+  const isLive = usePreviewSelector(previewCtx, (state) => state.isLive);
+  const [binding] = React.useState(() => new PreviewFrameBinding());
+  const frame = React.useSyncExternalStore(binding.subscribe, binding.read, binding.read);
+  const [loadedFrame, setLoadedFrame] = React.useState<ReturnType<PreviewFrameBinding["read"]> | null>(null);
+  const frameLoaded = loadedFrame === frame;
+
+  React.useEffect(() => {
+    const win = frame.window;
+    if (!frameLoaded || !win) {
+      return;
+    }
+    liveFrame(win).setErrorTitle(t("Error"));
+    const dispose = installPreviewAgentCursor(win, {
+      label: t("AI assistant"),
+      color: token.colorPrimary,
+      scale: () => {
+        const iframe = win.frameElement;
+        return iframe
+          ? iframe.getBoundingClientRect().width /
+              (iframe as HTMLElement).offsetWidth || 1
+          : 1;
+      },
+    });
+    const clear = () => {
+      // SPA navigation keeps the iframe but must discard the previous target.
+      win.dispatchEvent(
+        new (win as Window & typeof globalThis).CustomEvent(
+          "plasmic-agent-cursor",
+          { detail: { action: "clear" } },
+        ),
+      );
+    };
+    clear();
+    const stop = previewCtx.store.subscribe((next, previous) => {
+      if (next.previewData !== previous.previewData) { clear(); }
+    });
+    return () => {
+      stop();
+      dispose();
+    };
+  }, [frameLoaded, frame.window, previewCtx, t, token.colorPrimary]);
+
+  const usedPkgs = usePreviewPackages(previewCtx);
+  const [installedPkgs, setInstalledPkgs] = React.useState<string[]>([]);
+  const [installationStatus, setInstallationStatus] = React.useState<"idle" | "loading" | "failed">("idle");
+  const isMounted = useMountedState();
+
+  const reset = () => {
+    binding.reset();
+    setInstallationStatus("idle");
+    setInstalledPkgs([]);
+    setLoadedFrame(null);
+  };
+
+  const scrollToHash = () => {
+    const current = binding.read();
+    const win = current.window;
+    if (!win || !previewCtx.pageHash) { return; }
+    // Components and anchor targets can settle in separate event turns.
+    setTimeout(() => {
+      setTimeout(() => {
+        if (!isMounted() || !binding.isCurrent(win, current.generation)) { return; }
+        const id = readBusinessAnchor(previewCtx.pageHash);
+        win.document.getElementById(id)?.scrollIntoView();
+      }, 0);
+    }, 0);
+  };
+
+  const onAnchorClick = (href: string) => {
+    if (!href) {
+      return;
+    }
+
+    spawn(previewCtx.handleNavigation(href));
+  };
+
+  const onLoad = async () => {
+    const currentFrame = binding.beginLoad();
+    setLoadedFrame(null);
+    setInstalledPkgs([]);
+    setInstallationStatus("idle");
+    const frameWindow = ensure(currentFrame.window, `Frame must be loaded`);
+    const generation = currentFrame.generation;
+    try {
+      await onLoadInjectLiveRuntime(
+        previewCtx.studioCtx,
+        frameWindow,
+        true,
+        onAnchorClick,
+        (href) => previewCtx.hrefForNavigation(href),
+      );
+    } catch (error) {
+      if (!isMounted() || !binding.isCurrent(frameWindow, generation)) { return; }
+      // The iframe owner retries this specific cross-origin URL failure.
+      if ((error as Error)?.name === "SecurityError") { throw error; }
+      await showPreviewLoadError(frameWindow, error);
+      if (full && isMounted() && binding.isCurrent(frameWindow, generation)) {
+        await revealStudio();
+      }
+      return;
+    }
+    if (
+      !isMounted() ||
+      !binding.isCurrent(frameWindow, generation)
+    ) {
+      return;
+    }
+
+    installPreviewInteractionHandlers(frameWindow, previewCtx);
+
+    setLoadedFrame(currentFrame);
   };
 
   React.useEffect(() => {
     const installedPkgsSet = new Set(installedPkgs);
-    if (!frameLoaded || !frameRef.current || installationStatus !== "idle") {
+    if (!frameLoaded || !frame.window || installationStatus !== "idle") {
       return;
     }
-    const win = frameRef.current;
-    const generation = frameGeneration.current;
+    const win = frame.window;
+    const generation = frame.generation;
     const isCurrentFrame = () =>
       isMounted() &&
-      frameRef.current === win &&
-      frameGeneration.current === generation;
+      binding.isCurrent(win, generation);
     if (
       usedPkgs.some(
         (pkg) =>
@@ -267,7 +293,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       );
     }
   }, [
-    frameRef.current,
+    frame.window,
     frameLoaded,
     usedPkgs,
     installedPkgs,
@@ -282,7 +308,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     const installedPkgsSet = new Set(installedPkgs);
     if (
       !frameLoaded ||
-      !frameRef.current ||
+      !frame.window ||
       installationStatus !== "idle" ||
       usedPkgs.some(
         (pkg) =>
@@ -294,8 +320,8 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       return;
     }
 
-    const win = frameRef.current;
-    const generation = frameGeneration.current;
+    const win = frame.window;
+    const generation = frame.generation;
     let active = true;
     let readyNotified = false;
     const dispose = pushPreviewModules(win, previewCtx, {
@@ -305,8 +331,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
           active &&
           full &&
           !readyNotified &&
-          frameRef.current === win &&
-          frameGeneration.current === generation
+          binding.isCurrent(win, generation)
         ) {
           readyNotified = true;
           spawn(revealStudio());
@@ -324,7 +349,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       dispose();
     };
   }, [
-    frameRef.current,
+    frame.window,
     frameLoaded,
     installationStatus,
     usedPkgs,
@@ -335,12 +360,12 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
 
   // Route inputs are subscribed independently of package installation.
   React.useEffect(() => {
-    if (!frameRef.current || !isLive) { return; }
-    if (pageHash) { scrollToHash(); } else { frameRef.current.scrollTo(0, 0); }
-  }, [frameRef.current, previewCtx, isLive, route, pageHash]);
+    if (!frame.window || !isLive) { return; }
+    if (pageHash) { scrollToHash(); } else { frame.window.scrollTo(0, 0); }
+  }, [frame.window, previewCtx, isLive, route, pageHash]);
 
   return {
-    frameRef,
+    attachFrame: binding.attach,
     onLoad,
     reset,
   };
@@ -369,15 +394,20 @@ export function PreviewFrame({
   const viewportMode = usePreviewSelector(previewCtx, (state) => state.previewData?.viewport ?? "desktop");
   const width = usePreviewSelector(previewCtx, (state) => state.previewData?.width ?? 320);
   const height = usePreviewSelector(previewCtx, (state) => state.previewData?.height ?? 480);
-  const stageRef = React.useRef<HTMLDivElement | null>(null);
-  const iframeRef = React.useRef<HTMLIFrameElement | null>(null);
-  const { frameRef, onLoad } = useLivePreview(previewCtx);
+  const [stage, setStage] = React.useState<HTMLDivElement | null>(null);
+  const [iframe, setIframe] = React.useState<HTMLIFrameElement | null>(null);
+  const { attachFrame, onLoad } = useLivePreview(previewCtx);
+  const attachIframe = React.useCallback((element: HTMLIFrameElement | null) => {
+    setIframe(element);
+    attachFrame(element?.contentWindow ?? null);
+  }, [attachFrame]);
   const [available, setAvailable] = React.useState({ width: 0, height: 0 });
   const [draft, setDraft] = React.useState<{
     width: number;
     height: number;
   } | null>(null);
   const [dragging, setDragging] = React.useState(false);
+  const [dragScale, setDragScale] = React.useState<number>();
   const [toggleTrailingSlash, setToggleTrailingSlash] = React.useState(false);
   const drag = React.useRef<{
     x: number;
@@ -389,11 +419,6 @@ export function PreviewFrame({
   } | null>(null);
 
   React.useEffect(() => {
-    frameRef.current = iframeRef.current?.contentWindow || null;
-  }, [iframeRef.current]);
-
-  React.useEffect(() => {
-    const stage = stageRef.current;
     if (!stage) {
       return;
     }
@@ -403,24 +428,13 @@ export function PreviewFrame({
     setAvailable({ width: stage.clientWidth, height: stage.clientHeight });
     resizeObserver.observe(stage);
     return () => resizeObserver.disconnect();
-  }, []);
+  }, [stage]);
 
   React.useEffect(() => {
     setDraft(null);
   }, [viewportMode, width, height]);
 
-  const setFrameColor = React.useCallback(
-    (
-      iframe: React.MutableRefObject<HTMLIFrameElement | null>,
-      color: string | null | undefined,
-    ) => {
-      if (iframe.current?.contentDocument?.body?.style) {
-        iframe.current.contentDocument.body.style.backgroundColor = color ?? "";
-      }
-    },
-    [],
-  );
-  useFrameBgColor(iframeRef, previewCtx, setFrameColor);
+  const updateFrameBgColor = useFrameBgColor(iframe, previewCtx);
 
   const fillsWindow = full || viewportMode === "desktop";
   const dimensions = draft ?? {
@@ -429,8 +443,8 @@ export function PreviewFrame({
   };
   const scale = fillsWindow
     ? 1
-    : dragging && drag.current
-      ? drag.current.scale
+    : dragging && dragScale !== undefined
+      ? dragScale
       : getViewportScale(available, dimensions);
   const viewport = {
     viewport: viewportMode,
@@ -472,7 +486,7 @@ export function PreviewFrame({
       className={`${styles.viewport} ${themeStyles.root} ${full ? styles.full : ""}`}
     >
       <div
-        ref={stageRef}
+        ref={setStage}
         className={`${styles.stage} ${fillsWindow ? styles.desktop : ""}`}
         data-test-id="preview-stage"
       >
@@ -502,17 +516,16 @@ export function PreviewFrame({
                 hostUrl,
               ) + frameHash
             }
-            ref={iframeRef}
-            onLoad={async () => {
-              try {
-                await onLoad();
-              } catch (e: any) {
-                if (!toggleTrailingSlash && e?.name === "SecurityError") {
-                  setToggleTrailingSlash(true);
-                  return;
-                }
-                throw e;
+            ref={attachIframe}
+            onLoad={() => {
+              updateFrameBgColor();
+              return onLoad().catch((error: unknown) => {
+              if (!toggleTrailingSlash && error != null && typeof error === "object" && "name" in error && error.name === "SecurityError") {
+                setToggleTrailingSlash(true);
+                return;
               }
+              throw error;
+              });
             }}
             title={uiT("Page preview")}
             style={{
@@ -552,6 +565,7 @@ export function PreviewFrame({
                     scale,
                     edge,
                   };
+                  setDragScale(scale);
                   setDragging(true);
                 }}
                 onPointerMove={(event) => {
@@ -604,11 +618,11 @@ export function PreviewFrame({
 
 function usePreviewPackages(previewCtx: PreviewCtx) {
   const studioCtx = previewCtx.studioCtx;
-  const readPackages = () => {
+  const readPackages = React.useCallback(() => {
     const packages = usedHostLessPkgs(studioCtx.site);
     return { packages, identities: packages.map((pkg) => getHostLessPkgIdentity(pkg, studioCtx.site)) };
-  };
-  const store = React.useMemo(() => createStore(readPackages), [studioCtx]);
+  }, [studioCtx]);
+  const store = React.useMemo(() => createStore(readPackages), [readPackages]);
   React.useEffect(() => {
     const sync = () => {
       const next = readPackages();
@@ -620,21 +634,18 @@ function usePreviewPackages(previewCtx: PreviewCtx) {
     });
     sync();
     return dispose;
-  }, [studioCtx, store]);
+  }, [studioCtx, store, readPackages]);
   return useStore(store, (state) => state.packages);
 }
 
-export function useFrameBgColor<T>(
-  iframeRef: React.MutableRefObject<T | null>,
-  previewCtx: PreviewCtx,
-  setFrameColor: (
-    iframe: React.MutableRefObject<T | null>,
-    color: string | undefined | null,
-  ) => void,
-) {
+function setFrameBackground(iframe: HTMLIFrameElement | null, color: string | null | undefined) {
+  if (iframe?.contentDocument?.body) { iframe.contentDocument.body.style.backgroundColor = color ?? ""; }
+}
+
+export function useFrameBgColor(iframe: HTMLIFrameElement | null, previewCtx: PreviewCtx) {
   const adjustBackgroundColor = () => {
     if (!previewCtx.component || isPageComponent(previewCtx.component)) {
-      setFrameColor(iframeRef, null);
+      setFrameBackground(iframe,  null);
       return;
     }
 
@@ -646,7 +657,7 @@ export function useFrameBgColor<T>(
     );
 
     if (!componentArena) {
-      setFrameColor(iframeRef, null);
+      setFrameBackground(iframe,  null);
       return;
     }
 
@@ -657,7 +668,7 @@ export function useFrameBgColor<T>(
       getCustomFrameForActivatedVariants(componentArena, activeVariants) ??
       getFrameForActivatedVariants(componentArena, activeVariants);
 
-    setFrameColor(iframeRef, currentFrame?.bgColor);
+    setFrameBackground(iframe,  currentFrame?.bgColor);
   };
 
   React.useEffect(() => {
@@ -667,5 +678,6 @@ export function useFrameBgColor<T>(
     });
     const stopModel = previewCtx.studioCtx.subscribeModelChanges(() => adjustBackgroundColor());
     return () => { stopRoute(); stopModel(); };
-  }, [previewCtx, iframeRef.current, setFrameColor]);
+  }, [previewCtx, iframe]);
+  return adjustBackgroundColor;
 }

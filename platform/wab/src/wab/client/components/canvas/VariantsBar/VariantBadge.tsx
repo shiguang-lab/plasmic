@@ -52,7 +52,7 @@ function VariantBadge({
       } else {
         variantLabelRef.current?.setEditing(true);
       }
-      studioCtx.latestVariantCreated = undefined;
+      studioCtx.latestVariantCreatedStore.setState(undefined, true);
     }
   }, [isLatest, editsSelectors, studioCtx]);
 

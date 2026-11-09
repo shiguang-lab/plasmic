@@ -4,7 +4,7 @@ import {
   LocalAiModel,
   localAiStatusSchema,
 } from "@/wab/shared/copilot/local-edit";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useEffectEvent, useState } from "react";
 
 /** Each mounted AI view reads service metadata directly; caching belongs to the server. */
 export function useLocalAiStatus(
@@ -13,8 +13,8 @@ export function useLocalAiStatus(
   fetchStatus?: () => Promise<LocalAiStatus>,
   fetchModels?: () => Promise<LocalAiModel[]>,
 ) {
-  const fetchers = useRef({ fetchStatus, fetchModels });
-  fetchers.current = { fetchStatus, fetchModels };
+  const readStatus = useEffectEvent((id: string) => fetchStatus ? fetchStatus() : localAiFetch<unknown>(id, "status"));
+  const readModels = useEffectEvent((id: string) => fetchModels ? fetchModels() : localAiFetch<unknown>(id, "models"));
   const [status, setStatus] = useState<{
     projectId: string;
     data?: LocalAiStatus;
@@ -34,11 +34,8 @@ export function useLocalAiStatus(
       return;
     }
     let active = true;
-    const load = async () => {
-      try {
-        const response = fetchers.current.fetchStatus
-          ? await fetchers.current.fetchStatus()
-          : await localAiFetch<unknown>(projectId, "status");
+    const pending = (async () => {
+        const response = await readStatus(projectId);
         const parsed = localAiStatusSchema.safeParse(response);
         if (!parsed.success) {
           throw new Error(
@@ -48,13 +45,10 @@ export function useLocalAiStatus(
         if (active) {
           setStatus({ projectId, data: parsed.data });
         }
-      } catch (error) {
-        if (active) {
-          setStatus({ projectId, error });
-        }
-      }
-    };
-    void load();
+    })().catch((error) => {
+      if (active) { setStatus({ projectId, error }); }
+    });
+    void pending;
     return () => { active = false; };
   }, [enabled, projectId]);
 
@@ -64,20 +58,16 @@ export function useLocalAiStatus(
       return;
     }
     let active = true;
-    const load = async () => {
-      try {
-        const response = fetchers.current.fetchModels
-          ? await fetchers.current.fetchModels()
-          : await localAiFetch<unknown>(projectId, "models");
+    const pending = (async () => {
+        const response = await readModels(projectId);
         const models = localAiStatusSchema.shape.models.parse(response);
         if (active) {
           setCatalog({ projectId, revision, models });
         }
-      } catch {
-        // Keep editing with the status response; reopening the menu requests again.
-      }
-    };
-    void load();
+    })().catch(() => {
+      // Keep editing with the status response; reopening the menu requests again.
+    });
+    void pending;
     return () => { active = false; };
   }, [enabled, projectId, revision]);
 

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,13 +23,13 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { Tooltip } from "../../components/plexus/Tooltip"; // plasmic-import: EBbuUzYSewBk/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -102,11 +102,10 @@ function PlasmicHoverableText__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "above",
@@ -115,20 +114,22 @@ function PlasmicHoverableText__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.above,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <Tooltip
@@ -207,12 +208,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -222,27 +219,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicHoverableText__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "tooltip") {
-    func.displayName = "PlasmicHoverableText";
-  } else {
-    func.displayName = `PlasmicHoverableText.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicHoverableText__tooltipProps = NodeComponentProps<"tooltip"> & {key?: React.Key};
+function PlasmicHoverableText__tooltip<T extends PlasmicHoverableText__tooltipProps>(props: T & StrictProps<T, PlasmicHoverableText__tooltipProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("tooltip", props);
+  return <PlasmicHoverableText__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tooltip"} />;
+}
+PlasmicHoverableText__tooltip.displayName = "PlasmicHoverableText";
+
+type PlasmicHoverableText__dottedUnderlineBorderProps = NodeComponentProps<"dottedUnderlineBorder"> & {key?: React.Key};
+function PlasmicHoverableText__dottedUnderlineBorder<T extends PlasmicHoverableText__dottedUnderlineBorderProps>(props: T & StrictProps<T, PlasmicHoverableText__dottedUnderlineBorderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dottedUnderlineBorder", props);
+  return <PlasmicHoverableText__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dottedUnderlineBorder"} />;
+}
+PlasmicHoverableText__dottedUnderlineBorder.displayName = "PlasmicHoverableText.dottedUnderlineBorder";
+
 
 export const PlasmicHoverableText = Object.assign(
   // Top-level PlasmicHoverableText renders the root element
-  makeNodeComponent("tooltip"),
+  PlasmicHoverableText__tooltip,
   {
     // Helper components rendering sub-elements
-    dottedUnderlineBorder: makeNodeComponent("dottedUnderlineBorder"),
+    dottedUnderlineBorder: PlasmicHoverableText__dottedUnderlineBorder,
 
     // Metadata about props expected for PlasmicHoverableText
     internalVariantProps: PlasmicHoverableText__VariantProps,

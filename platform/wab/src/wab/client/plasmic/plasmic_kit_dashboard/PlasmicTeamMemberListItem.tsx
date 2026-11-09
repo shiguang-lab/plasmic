@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -24,15 +24,15 @@ import {
   generateStateOnChangeProp,
   generateStateValueProp,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
 import Select__Option from "../../components/widgets/Select__Option"; // plasmic-import: rr-LWdMni2G/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -109,11 +109,10 @@ function PlasmicTeamMemberListItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "role.value",
@@ -122,20 +121,22 @@ function PlasmicTeamMemberListItem__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -196,9 +197,9 @@ function PlasmicTeamMemberListItem__RenderFunc(props: {
                 role={"img"}
               />
             }
-            onChange={async (...eventArgs: any) => {
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
               ((...eventArgs) => {
-                generateStateOnChangeProp($state, ["role", "value"])(
+                generateStateOnChangeProp($stateCommands, ["role", "value"])(
                   eventArgs[0]
                 );
               }).apply(null, eventArgs);
@@ -210,7 +211,7 @@ function PlasmicTeamMemberListItem__RenderFunc(props: {
               ) {
                 return;
               }
-            }}
+            })); })}
             placeholder={
               <div
                 data-plasmic-name={"text"}
@@ -326,12 +327,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -341,31 +338,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTeamMemberListItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTeamMemberListItem";
-  } else {
-    func.displayName = `PlasmicTeamMemberListItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTeamMemberListItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTeamMemberListItem__root<T extends PlasmicTeamMemberListItem__rootProps>(props: T & StrictProps<T, PlasmicTeamMemberListItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTeamMemberListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTeamMemberListItem__root.displayName = "PlasmicTeamMemberListItem";
+
+type PlasmicTeamMemberListItem__roleProps = NodeComponentProps<"role"> & {key?: React.Key};
+function PlasmicTeamMemberListItem__role<T extends PlasmicTeamMemberListItem__roleProps>(props: T & StrictProps<T, PlasmicTeamMemberListItem__roleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("role", props);
+  return <PlasmicTeamMemberListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"role"} />;
+}
+PlasmicTeamMemberListItem__role.displayName = "PlasmicTeamMemberListItem.role";
+
+type PlasmicTeamMemberListItem__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicTeamMemberListItem__text<T extends PlasmicTeamMemberListItem__textProps>(props: T & StrictProps<T, PlasmicTeamMemberListItem__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicTeamMemberListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicTeamMemberListItem__text.displayName = "PlasmicTeamMemberListItem.text";
+
+type PlasmicTeamMemberListItem__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicTeamMemberListItem__svg<T extends PlasmicTeamMemberListItem__svgProps>(props: T & StrictProps<T, PlasmicTeamMemberListItem__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicTeamMemberListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicTeamMemberListItem__svg.displayName = "PlasmicTeamMemberListItem.svg";
+
+type PlasmicTeamMemberListItem__roleHelpProps = NodeComponentProps<"roleHelp"> & {key?: React.Key};
+function PlasmicTeamMemberListItem__roleHelp<T extends PlasmicTeamMemberListItem__roleHelpProps>(props: T & StrictProps<T, PlasmicTeamMemberListItem__roleHelpProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("roleHelp", props);
+  return <PlasmicTeamMemberListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"roleHelp"} />;
+}
+PlasmicTeamMemberListItem__roleHelp.displayName = "PlasmicTeamMemberListItem.roleHelp";
+
+type PlasmicTeamMemberListItem__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicTeamMemberListItem__menuButton<T extends PlasmicTeamMemberListItem__menuButtonProps>(props: T & StrictProps<T, PlasmicTeamMemberListItem__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicTeamMemberListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicTeamMemberListItem__menuButton.displayName = "PlasmicTeamMemberListItem.menuButton";
+
 
 export const PlasmicTeamMemberListItem = Object.assign(
   // Top-level PlasmicTeamMemberListItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicTeamMemberListItem__root,
   {
     // Helper components rendering sub-elements
-    role: makeNodeComponent("role"),
-    text: makeNodeComponent("text"),
-    svg: makeNodeComponent("svg"),
-    roleHelp: makeNodeComponent("roleHelp"),
-    menuButton: makeNodeComponent("menuButton"),
+    role: PlasmicTeamMemberListItem__role,
+    text: PlasmicTeamMemberListItem__text,
+    svg: PlasmicTeamMemberListItem__svg,
+    roleHelp: PlasmicTeamMemberListItem__roleHelp,
+    menuButton: PlasmicTeamMemberListItem__menuButton,
 
     // Metadata about props expected for PlasmicTeamMemberListItem
     internalVariantProps: PlasmicTeamMemberListItem__VariantProps,

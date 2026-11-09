@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicLink as PlasmicLink__,
   StrictProps,
   classNames,
@@ -28,7 +28,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import LeftPaneHeader from "../../components/studio/LeftPaneHeader"; // plasmic-import: XLa52PvduIy/component
 import LeftSearchPanel from "../../components/studio/LeftSearchPanel"; // plasmic-import: TqAPn0srTq/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "../plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_left_pane/PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -89,11 +89,10 @@ function PlasmicLeftFontsPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -227,12 +226,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -242,31 +237,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftFontsPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftFontsPanel";
-  } else {
-    func.displayName = `PlasmicLeftFontsPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftFontsPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftFontsPanel__root<T extends PlasmicLeftFontsPanel__rootProps>(props: T & StrictProps<T, PlasmicLeftFontsPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftFontsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftFontsPanel__root.displayName = "PlasmicLeftFontsPanel";
+
+type PlasmicLeftFontsPanel__leftSearchPanelProps = NodeComponentProps<"leftSearchPanel"> & {key?: React.Key};
+function PlasmicLeftFontsPanel__leftSearchPanel<T extends PlasmicLeftFontsPanel__leftSearchPanelProps>(props: T & StrictProps<T, PlasmicLeftFontsPanel__leftSearchPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftSearchPanel", props);
+  return <PlasmicLeftFontsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftSearchPanel"} />;
+}
+PlasmicLeftFontsPanel__leftSearchPanel.displayName = "PlasmicLeftFontsPanel.leftSearchPanel";
+
+type PlasmicLeftFontsPanel__fontsHeaderProps = NodeComponentProps<"fontsHeader"> & {key?: React.Key};
+function PlasmicLeftFontsPanel__fontsHeader<T extends PlasmicLeftFontsPanel__fontsHeaderProps>(props: T & StrictProps<T, PlasmicLeftFontsPanel__fontsHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("fontsHeader", props);
+  return <PlasmicLeftFontsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"fontsHeader"} />;
+}
+PlasmicLeftFontsPanel__fontsHeader.displayName = "PlasmicLeftFontsPanel.fontsHeader";
+
+type PlasmicLeftFontsPanel__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicLeftFontsPanel__link<T extends PlasmicLeftFontsPanel__linkProps>(props: T & StrictProps<T, PlasmicLeftFontsPanel__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicLeftFontsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicLeftFontsPanel__link.displayName = "PlasmicLeftFontsPanel.link";
+
+type PlasmicLeftFontsPanel__newFontButtonProps = NodeComponentProps<"newFontButton"> & {key?: React.Key};
+function PlasmicLeftFontsPanel__newFontButton<T extends PlasmicLeftFontsPanel__newFontButtonProps>(props: T & StrictProps<T, PlasmicLeftFontsPanel__newFontButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newFontButton", props);
+  return <PlasmicLeftFontsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newFontButton"} />;
+}
+PlasmicLeftFontsPanel__newFontButton.displayName = "PlasmicLeftFontsPanel.newFontButton";
+
+type PlasmicLeftFontsPanel__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicLeftFontsPanel__content<T extends PlasmicLeftFontsPanel__contentProps>(props: T & StrictProps<T, PlasmicLeftFontsPanel__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicLeftFontsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicLeftFontsPanel__content.displayName = "PlasmicLeftFontsPanel.content";
+
 
 export const PlasmicLeftFontsPanel = Object.assign(
   // Top-level PlasmicLeftFontsPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftFontsPanel__root,
   {
     // Helper components rendering sub-elements
-    leftSearchPanel: makeNodeComponent("leftSearchPanel"),
-    fontsHeader: makeNodeComponent("fontsHeader"),
-    link: makeNodeComponent("link"),
-    newFontButton: makeNodeComponent("newFontButton"),
-    content: makeNodeComponent("content"),
+    leftSearchPanel: PlasmicLeftFontsPanel__leftSearchPanel,
+    fontsHeader: PlasmicLeftFontsPanel__fontsHeader,
+    link: PlasmicLeftFontsPanel__link,
+    newFontButton: PlasmicLeftFontsPanel__newFontButton,
+    content: PlasmicLeftFontsPanel__content,
 
     // Metadata about props expected for PlasmicLeftFontsPanel
     internalVariantProps: PlasmicLeftFontsPanel__VariantProps,

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,7 +25,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: p8FkKgCnyuat1kHSEYAKfW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: p8FkKgCnyuat1kHSEYAKfW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -92,11 +92,10 @@ function PlasmicLineItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -278,12 +277,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -293,36 +288,101 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLineItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLineItem";
-  } else {
-    func.displayName = `PlasmicLineItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLineItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLineItem__root<T extends PlasmicLineItem__rootProps>(props: T & StrictProps<T, PlasmicLineItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLineItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLineItem__root.displayName = "PlasmicLineItem";
+
+type PlasmicLineItem__startIconsContainer14Props = NodeComponentProps<"startIconsContainer14"> & {key?: React.Key};
+function PlasmicLineItem__startIconsContainer14<T extends PlasmicLineItem__startIconsContainer14Props>(props: T & StrictProps<T, PlasmicLineItem__startIconsContainer14Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("startIconsContainer14", props);
+  return <PlasmicLineItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"startIconsContainer14"} />;
+}
+PlasmicLineItem__startIconsContainer14.displayName = "PlasmicLineItem.startIconsContainer14";
+
+type PlasmicLineItem__iconProps = NodeComponentProps<"icon"> & {key?: React.Key};
+function PlasmicLineItem__icon<T extends PlasmicLineItem__iconProps>(props: T & StrictProps<T, PlasmicLineItem__iconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("icon", props);
+  return <PlasmicLineItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"icon"} />;
+}
+PlasmicLineItem__icon.displayName = "PlasmicLineItem.icon";
+
+type PlasmicLineItem__labelsContainer14Props = NodeComponentProps<"labelsContainer14"> & {key?: React.Key};
+function PlasmicLineItem__labelsContainer14<T extends PlasmicLineItem__labelsContainer14Props>(props: T & StrictProps<T, PlasmicLineItem__labelsContainer14Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelsContainer14", props);
+  return <PlasmicLineItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelsContainer14"} />;
+}
+PlasmicLineItem__labelsContainer14.displayName = "PlasmicLineItem.labelsContainer14";
+
+type PlasmicLineItem__labelText14Props = NodeComponentProps<"labelText14"> & {key?: React.Key};
+function PlasmicLineItem__labelText14<T extends PlasmicLineItem__labelText14Props>(props: T & StrictProps<T, PlasmicLineItem__labelText14Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelText14", props);
+  return <PlasmicLineItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelText14"} />;
+}
+PlasmicLineItem__labelText14.displayName = "PlasmicLineItem.labelText14";
+
+type PlasmicLineItem__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicLineItem__freeBox<T extends PlasmicLineItem__freeBoxProps>(props: T & StrictProps<T, PlasmicLineItem__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicLineItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicLineItem__freeBox.displayName = "PlasmicLineItem.freeBox";
+
+type PlasmicLineItem__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicLineItem__text<T extends PlasmicLineItem__textProps>(props: T & StrictProps<T, PlasmicLineItem__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicLineItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicLineItem__text.displayName = "PlasmicLineItem.text";
+
+type PlasmicLineItem__labelIconsContainer14Props = NodeComponentProps<"labelIconsContainer14"> & {key?: React.Key};
+function PlasmicLineItem__labelIconsContainer14<T extends PlasmicLineItem__labelIconsContainer14Props>(props: T & StrictProps<T, PlasmicLineItem__labelIconsContainer14Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelIconsContainer14", props);
+  return <PlasmicLineItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelIconsContainer14"} />;
+}
+PlasmicLineItem__labelIconsContainer14.displayName = "PlasmicLineItem.labelIconsContainer14";
+
+type PlasmicLineItem__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicLineItem__svg<T extends PlasmicLineItem__svgProps>(props: T & StrictProps<T, PlasmicLineItem__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicLineItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicLineItem__svg.displayName = "PlasmicLineItem.svg";
+
+type PlasmicLineItem__endIconsContainer14Props = NodeComponentProps<"endIconsContainer14"> & {key?: React.Key};
+function PlasmicLineItem__endIconsContainer14<T extends PlasmicLineItem__endIconsContainer14Props>(props: T & StrictProps<T, PlasmicLineItem__endIconsContainer14Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("endIconsContainer14", props);
+  return <PlasmicLineItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"endIconsContainer14"} />;
+}
+PlasmicLineItem__endIconsContainer14.displayName = "PlasmicLineItem.endIconsContainer14";
+
+type PlasmicLineItem__imgProps = NodeComponentProps<"img"> & {key?: React.Key};
+function PlasmicLineItem__img<T extends PlasmicLineItem__imgProps>(props: T & StrictProps<T, PlasmicLineItem__imgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("img", props);
+  return <PlasmicLineItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"img"} />;
+}
+PlasmicLineItem__img.displayName = "PlasmicLineItem.img";
+
 
 export const PlasmicLineItem = Object.assign(
   // Top-level PlasmicLineItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicLineItem__root,
   {
     // Helper components rendering sub-elements
-    startIconsContainer14: makeNodeComponent("startIconsContainer14"),
-    icon: makeNodeComponent("icon"),
-    labelsContainer14: makeNodeComponent("labelsContainer14"),
-    labelText14: makeNodeComponent("labelText14"),
-    freeBox: makeNodeComponent("freeBox"),
-    text: makeNodeComponent("text"),
-    labelIconsContainer14: makeNodeComponent("labelIconsContainer14"),
-    svg: makeNodeComponent("svg"),
-    endIconsContainer14: makeNodeComponent("endIconsContainer14"),
-    img: makeNodeComponent("img"),
+    startIconsContainer14: PlasmicLineItem__startIconsContainer14,
+    icon: PlasmicLineItem__icon,
+    labelsContainer14: PlasmicLineItem__labelsContainer14,
+    labelText14: PlasmicLineItem__labelText14,
+    freeBox: PlasmicLineItem__freeBox,
+    text: PlasmicLineItem__text,
+    labelIconsContainer14: PlasmicLineItem__labelIconsContainer14,
+    svg: PlasmicLineItem__svg,
+    endIconsContainer14: PlasmicLineItem__endIconsContainer14,
+    img: PlasmicLineItem__img,
 
     // Metadata about props expected for PlasmicLineItem
     internalVariantProps: PlasmicLineItem__VariantProps,

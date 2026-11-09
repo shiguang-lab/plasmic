@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -25,8 +25,8 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import DefaultLayout from "../../components/dashboard/DefaultLayout"; // plasmic-import: nSkQWLjK-B/component
 import NavTeamSection from "../../components/dashboard/NavTeamSection"; // plasmic-import: VqaN_WL-stA/component
 import WorkspaceSection from "../../components/dashboard/WorkspaceSection"; // plasmic-import: 5cdjGaqBQ4/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -112,13 +112,12 @@ function PlasmicMyPlayground__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <React.Fragment>
@@ -204,12 +203,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -219,29 +214,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicMyPlayground__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicMyPlayground";
-  } else {
-    func.displayName = `PlasmicMyPlayground.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicMyPlayground__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicMyPlayground__root<T extends PlasmicMyPlayground__rootProps>(props: T & StrictProps<T, PlasmicMyPlayground__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicMyPlayground__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicMyPlayground__root.displayName = "PlasmicMyPlayground";
+
+type PlasmicMyPlayground__defaultLayoutProps = NodeComponentProps<"defaultLayout"> & {key?: React.Key};
+function PlasmicMyPlayground__defaultLayout<T extends PlasmicMyPlayground__defaultLayoutProps>(props: T & StrictProps<T, PlasmicMyPlayground__defaultLayoutProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("defaultLayout", props);
+  return <PlasmicMyPlayground__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"defaultLayout"} />;
+}
+PlasmicMyPlayground__defaultLayout.displayName = "PlasmicMyPlayground.defaultLayout";
+
+type PlasmicMyPlayground__workspaceSectionProps = NodeComponentProps<"workspaceSection"> & {key?: React.Key};
+function PlasmicMyPlayground__workspaceSection<T extends PlasmicMyPlayground__workspaceSectionProps>(props: T & StrictProps<T, PlasmicMyPlayground__workspaceSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("workspaceSection", props);
+  return <PlasmicMyPlayground__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"workspaceSection"} />;
+}
+PlasmicMyPlayground__workspaceSection.displayName = "PlasmicMyPlayground.workspaceSection";
+
+type PlasmicMyPlayground__navTeamSectionProps = NodeComponentProps<"navTeamSection"> & {key?: React.Key};
+function PlasmicMyPlayground__navTeamSection<T extends PlasmicMyPlayground__navTeamSectionProps>(props: T & StrictProps<T, PlasmicMyPlayground__navTeamSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("navTeamSection", props);
+  return <PlasmicMyPlayground__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"navTeamSection"} />;
+}
+PlasmicMyPlayground__navTeamSection.displayName = "PlasmicMyPlayground.navTeamSection";
+
 
 export const PlasmicMyPlayground = Object.assign(
   // Top-level PlasmicMyPlayground renders the root element
-  makeNodeComponent("root"),
+  PlasmicMyPlayground__root,
   {
     // Helper components rendering sub-elements
-    defaultLayout: makeNodeComponent("defaultLayout"),
-    workspaceSection: makeNodeComponent("workspaceSection"),
-    navTeamSection: makeNodeComponent("navTeamSection"),
+    defaultLayout: PlasmicMyPlayground__defaultLayout,
+    workspaceSection: PlasmicMyPlayground__workspaceSection,
+    navTeamSection: PlasmicMyPlayground__navTeamSection,
 
     // Metadata about props expected for PlasmicMyPlayground
     internalVariantProps: PlasmicMyPlayground__VariantProps,

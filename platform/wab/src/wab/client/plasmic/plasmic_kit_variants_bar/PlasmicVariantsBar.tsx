@@ -15,20 +15,20 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ToggleRecordingButton from "../../components/canvas/VariantsBar/ToggleRecordingButton"; // plasmic-import: j_Jdg2E_a5/component
 import VariantBadge from "../../components/canvas/VariantsBar/VariantBadge"; // plasmic-import: 4OLKnpGnTY/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: kdj5vahTyUKxznuR6rrtt6/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: kdj5vahTyUKxznuR6rrtt6/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -108,11 +108,10 @@ function PlasmicVariantsBar__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isFocused",
@@ -139,18 +138,20 @@ function PlasmicVariantsBar__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.contained,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -574,12 +575,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -589,33 +586,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVariantsBar__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicVariantsBar";
-  } else {
-    func.displayName = `PlasmicVariantsBar.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVariantsBar__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicVariantsBar__root<T extends PlasmicVariantsBar__rootProps>(props: T & StrictProps<T, PlasmicVariantsBar__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicVariantsBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicVariantsBar__root.displayName = "PlasmicVariantsBar";
+
+type PlasmicVariantsBar__recordingButtonProps = NodeComponentProps<"recordingButton"> & {key?: React.Key};
+function PlasmicVariantsBar__recordingButton<T extends PlasmicVariantsBar__recordingButtonProps>(props: T & StrictProps<T, PlasmicVariantsBar__recordingButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("recordingButton", props);
+  return <PlasmicVariantsBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"recordingButton"} />;
+}
+PlasmicVariantsBar__recordingButton.displayName = "PlasmicVariantsBar.recordingButton";
+
+type PlasmicVariantsBar__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicVariantsBar__freeBox<T extends PlasmicVariantsBar__freeBoxProps>(props: T & StrictProps<T, PlasmicVariantsBar__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicVariantsBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicVariantsBar__freeBox.displayName = "PlasmicVariantsBar.freeBox";
+
+type PlasmicVariantsBar__variantsListProps = NodeComponentProps<"variantsList"> & {key?: React.Key};
+function PlasmicVariantsBar__variantsList<T extends PlasmicVariantsBar__variantsListProps>(props: T & StrictProps<T, PlasmicVariantsBar__variantsListProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("variantsList", props);
+  return <PlasmicVariantsBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"variantsList"} />;
+}
+PlasmicVariantsBar__variantsList.displayName = "PlasmicVariantsBar.variantsList";
+
+type PlasmicVariantsBar__dropdownTriggerProps = NodeComponentProps<"dropdownTrigger"> & {key?: React.Key};
+function PlasmicVariantsBar__dropdownTrigger<T extends PlasmicVariantsBar__dropdownTriggerProps>(props: T & StrictProps<T, PlasmicVariantsBar__dropdownTriggerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dropdownTrigger", props);
+  return <PlasmicVariantsBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dropdownTrigger"} />;
+}
+PlasmicVariantsBar__dropdownTrigger.displayName = "PlasmicVariantsBar.dropdownTrigger";
+
+type PlasmicVariantsBar__emptyListMessageProps = NodeComponentProps<"emptyListMessage"> & {key?: React.Key};
+function PlasmicVariantsBar__emptyListMessage<T extends PlasmicVariantsBar__emptyListMessageProps>(props: T & StrictProps<T, PlasmicVariantsBar__emptyListMessageProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emptyListMessage", props);
+  return <PlasmicVariantsBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emptyListMessage"} />;
+}
+PlasmicVariantsBar__emptyListMessage.displayName = "PlasmicVariantsBar.emptyListMessage";
+
+type PlasmicVariantsBar__chevronDownIconProps = NodeComponentProps<"chevronDownIcon"> & {key?: React.Key};
+function PlasmicVariantsBar__chevronDownIcon<T extends PlasmicVariantsBar__chevronDownIconProps>(props: T & StrictProps<T, PlasmicVariantsBar__chevronDownIconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("chevronDownIcon", props);
+  return <PlasmicVariantsBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"chevronDownIcon"} />;
+}
+PlasmicVariantsBar__chevronDownIcon.displayName = "PlasmicVariantsBar.chevronDownIcon";
+
+type PlasmicVariantsBar__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicVariantsBar__svg<T extends PlasmicVariantsBar__svgProps>(props: T & StrictProps<T, PlasmicVariantsBar__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicVariantsBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicVariantsBar__svg.displayName = "PlasmicVariantsBar.svg";
+
 
 export const PlasmicVariantsBar = Object.assign(
   // Top-level PlasmicVariantsBar renders the root element
-  makeNodeComponent("root"),
+  PlasmicVariantsBar__root,
   {
     // Helper components rendering sub-elements
-    recordingButton: makeNodeComponent("recordingButton"),
-    freeBox: makeNodeComponent("freeBox"),
-    variantsList: makeNodeComponent("variantsList"),
-    dropdownTrigger: makeNodeComponent("dropdownTrigger"),
-    emptyListMessage: makeNodeComponent("emptyListMessage"),
-    chevronDownIcon: makeNodeComponent("chevronDownIcon"),
-    svg: makeNodeComponent("svg"),
+    recordingButton: PlasmicVariantsBar__recordingButton,
+    freeBox: PlasmicVariantsBar__freeBox,
+    variantsList: PlasmicVariantsBar__variantsList,
+    dropdownTrigger: PlasmicVariantsBar__dropdownTrigger,
+    emptyListMessage: PlasmicVariantsBar__emptyListMessage,
+    chevronDownIcon: PlasmicVariantsBar__chevronDownIcon,
+    svg: PlasmicVariantsBar__svg,
 
     // Metadata about props expected for PlasmicVariantsBar
     internalVariantProps: PlasmicVariantsBar__VariantProps,

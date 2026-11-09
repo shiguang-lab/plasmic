@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,13 +24,13 @@ import {
   PlasmicLink as PlasmicLink__,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ExpandButton from "../../components/widgets/ExpandButton"; // plasmic-import: JJhv0MV9DH/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -102,11 +102,10 @@ function PlasmicExperimentEternalIds__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isExpanded",
@@ -122,18 +121,20 @@ function PlasmicExperimentEternalIds__RenderFunc(props: {
           $props.isSegmentation,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -420,12 +421,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -435,31 +432,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicExperimentEternalIds__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicExperimentEternalIds";
-  } else {
-    func.displayName = `PlasmicExperimentEternalIds.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicExperimentEternalIds__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicExperimentEternalIds__root<T extends PlasmicExperimentEternalIds__rootProps>(props: T & StrictProps<T, PlasmicExperimentEternalIds__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicExperimentEternalIds__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicExperimentEternalIds__root.displayName = "PlasmicExperimentEternalIds";
+
+type PlasmicExperimentEternalIds__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicExperimentEternalIds__link<T extends PlasmicExperimentEternalIds__linkProps>(props: T & StrictProps<T, PlasmicExperimentEternalIds__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicExperimentEternalIds__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicExperimentEternalIds__link.displayName = "PlasmicExperimentEternalIds.link";
+
+type PlasmicExperimentEternalIds__expandBtnProps = NodeComponentProps<"expandBtn"> & {key?: React.Key};
+function PlasmicExperimentEternalIds__expandBtn<T extends PlasmicExperimentEternalIds__expandBtnProps>(props: T & StrictProps<T, PlasmicExperimentEternalIds__expandBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("expandBtn", props);
+  return <PlasmicExperimentEternalIds__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"expandBtn"} />;
+}
+PlasmicExperimentEternalIds__expandBtn.displayName = "PlasmicExperimentEternalIds.expandBtn";
+
+type PlasmicExperimentEternalIds__experimentExternalIdInputProps = NodeComponentProps<"experimentExternalIdInput"> & {key?: React.Key};
+function PlasmicExperimentEternalIds__experimentExternalIdInput<T extends PlasmicExperimentEternalIds__experimentExternalIdInputProps>(props: T & StrictProps<T, PlasmicExperimentEternalIds__experimentExternalIdInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("experimentExternalIdInput", props);
+  return <PlasmicExperimentEternalIds__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"experimentExternalIdInput"} />;
+}
+PlasmicExperimentEternalIds__experimentExternalIdInput.displayName = "PlasmicExperimentEternalIds.experimentExternalIdInput";
+
+type PlasmicExperimentEternalIds__aExternalIdInputProps = NodeComponentProps<"aExternalIdInput"> & {key?: React.Key};
+function PlasmicExperimentEternalIds__aExternalIdInput<T extends PlasmicExperimentEternalIds__aExternalIdInputProps>(props: T & StrictProps<T, PlasmicExperimentEternalIds__aExternalIdInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("aExternalIdInput", props);
+  return <PlasmicExperimentEternalIds__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"aExternalIdInput"} />;
+}
+PlasmicExperimentEternalIds__aExternalIdInput.displayName = "PlasmicExperimentEternalIds.aExternalIdInput";
+
+type PlasmicExperimentEternalIds__bExternalIdInputProps = NodeComponentProps<"bExternalIdInput"> & {key?: React.Key};
+function PlasmicExperimentEternalIds__bExternalIdInput<T extends PlasmicExperimentEternalIds__bExternalIdInputProps>(props: T & StrictProps<T, PlasmicExperimentEternalIds__bExternalIdInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("bExternalIdInput", props);
+  return <PlasmicExperimentEternalIds__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"bExternalIdInput"} />;
+}
+PlasmicExperimentEternalIds__bExternalIdInput.displayName = "PlasmicExperimentEternalIds.bExternalIdInput";
+
 
 export const PlasmicExperimentEternalIds = Object.assign(
   // Top-level PlasmicExperimentEternalIds renders the root element
-  makeNodeComponent("root"),
+  PlasmicExperimentEternalIds__root,
   {
     // Helper components rendering sub-elements
-    link: makeNodeComponent("link"),
-    expandBtn: makeNodeComponent("expandBtn"),
-    experimentExternalIdInput: makeNodeComponent("experimentExternalIdInput"),
-    aExternalIdInput: makeNodeComponent("aExternalIdInput"),
-    bExternalIdInput: makeNodeComponent("bExternalIdInput"),
+    link: PlasmicExperimentEternalIds__link,
+    expandBtn: PlasmicExperimentEternalIds__expandBtn,
+    experimentExternalIdInput: PlasmicExperimentEternalIds__experimentExternalIdInput,
+    aExternalIdInput: PlasmicExperimentEternalIds__aExternalIdInput,
+    bExternalIdInput: PlasmicExperimentEternalIds__bExternalIdInput,
 
     // Metadata about props expected for PlasmicExperimentEternalIds
     internalVariantProps: PlasmicExperimentEternalIds__VariantProps,

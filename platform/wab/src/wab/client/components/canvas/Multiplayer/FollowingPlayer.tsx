@@ -9,7 +9,6 @@ export const FollowingPlayer = React.memo(function FollowingPlayer({
 }: {
   studioCtx: StudioCtx;
 }) {
-  "use memo";
   const id = useStore(studioCtx.multiplayerCtx.followStore, (state) => state);
   const [present, name, color] = useStore(
     studioCtx.multiplayerCtx.store,

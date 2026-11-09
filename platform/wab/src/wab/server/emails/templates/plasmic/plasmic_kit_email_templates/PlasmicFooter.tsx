@@ -14,6 +14,7 @@
 import * as React from "react";
 
 import {
+  usePlasmicRefs,
   Flex as Flex__,
   StrictProps,
   classNames,
@@ -70,9 +71,8 @@ function PlasmicFooter__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
   return (
     <EmailSection
@@ -145,12 +145,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -160,27 +156,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicFooter__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicFooter";
-  } else {
-    func.displayName = `PlasmicFooter.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicFooter__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicFooter__root<T extends PlasmicFooter__rootProps>(props: T & StrictProps<T, PlasmicFooter__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicFooter__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicFooter__root.displayName = "PlasmicFooter";
+
+type PlasmicFooter__emailLinkProps = NodeComponentProps<"emailLink"> & {key?: React.Key};
+function PlasmicFooter__emailLink<T extends PlasmicFooter__emailLinkProps>(props: T & StrictProps<T, PlasmicFooter__emailLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emailLink", props);
+  return <PlasmicFooter__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emailLink"} />;
+}
+PlasmicFooter__emailLink.displayName = "PlasmicFooter.emailLink";
+
 
 export const PlasmicFooter = Object.assign(
   // Top-level PlasmicFooter renders the root element
-  makeNodeComponent("root"),
+  PlasmicFooter__root,
   {
     // Helper components rendering sub-elements
-    emailLink: makeNodeComponent("emailLink"),
+    emailLink: PlasmicFooter__emailLink,
 
     // Metadata about props expected for PlasmicFooter
     internalVariantProps: PlasmicFooter__VariantProps,

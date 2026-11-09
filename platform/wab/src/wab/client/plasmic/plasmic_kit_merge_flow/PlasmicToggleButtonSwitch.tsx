@@ -23,11 +23,12 @@ import {
   PlasmicImg as PlasmicImg__,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: p8FkKgCnyuat1kHSEYAKfW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: p8FkKgCnyuat1kHSEYAKfW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -104,11 +105,10 @@ function PlasmicToggleButtonSwitch__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "side",
@@ -117,18 +117,20 @@ function PlasmicToggleButtonSwitch__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.side,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -155,9 +157,7 @@ function PlasmicToggleButtonSwitch__RenderFunc(props: {
         className={classNames("all", "button", "button__p8FkK", sty.left, {
           [sty.leftside_left]: hasVariant($state, "side", "left"),
         })}
-        ref={(ref) => {
-          $refs["left"] = ref;
-        }}
+        ref={registerRef("left")}
       >
         <div
           data-plasmic-name={"startIconsContainer11"}
@@ -248,9 +248,7 @@ function PlasmicToggleButtonSwitch__RenderFunc(props: {
           [sty.rightside_left]: hasVariant($state, "side", "left"),
           [sty.rightside_right]: hasVariant($state, "side", "right"),
         })}
-        ref={(ref) => {
-          $refs["right"] = ref;
-        }}
+        ref={registerRef("right")}
       >
         {false ? (
           <div
@@ -436,12 +434,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -451,40 +445,133 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicToggleButtonSwitch__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicToggleButtonSwitch";
-  } else {
-    func.displayName = `PlasmicToggleButtonSwitch.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicToggleButtonSwitch__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__root<T extends PlasmicToggleButtonSwitch__rootProps>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicToggleButtonSwitch__root.displayName = "PlasmicToggleButtonSwitch";
+
+type PlasmicToggleButtonSwitch__leftProps = NodeComponentProps<"left"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__left<T extends PlasmicToggleButtonSwitch__leftProps>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__leftProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("left", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"left"} />;
+}
+PlasmicToggleButtonSwitch__left.displayName = "PlasmicToggleButtonSwitch.left";
+
+type PlasmicToggleButtonSwitch__startIconsContainer11Props = NodeComponentProps<"startIconsContainer11"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__startIconsContainer11<T extends PlasmicToggleButtonSwitch__startIconsContainer11Props>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__startIconsContainer11Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("startIconsContainer11", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"startIconsContainer11"} />;
+}
+PlasmicToggleButtonSwitch__startIconsContainer11.displayName = "PlasmicToggleButtonSwitch.startIconsContainer11";
+
+type PlasmicToggleButtonSwitch__labelsContainer11Props = NodeComponentProps<"labelsContainer11"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__labelsContainer11<T extends PlasmicToggleButtonSwitch__labelsContainer11Props>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__labelsContainer11Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelsContainer11", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelsContainer11"} />;
+}
+PlasmicToggleButtonSwitch__labelsContainer11.displayName = "PlasmicToggleButtonSwitch.labelsContainer11";
+
+type PlasmicToggleButtonSwitch__labelText11Props = NodeComponentProps<"labelText11"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__labelText11<T extends PlasmicToggleButtonSwitch__labelText11Props>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__labelText11Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelText11", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelText11"} />;
+}
+PlasmicToggleButtonSwitch__labelText11.displayName = "PlasmicToggleButtonSwitch.labelText11";
+
+type PlasmicToggleButtonSwitch__label13Props = NodeComponentProps<"label13"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__label13<T extends PlasmicToggleButtonSwitch__label13Props>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__label13Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("label13", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"label13"} />;
+}
+PlasmicToggleButtonSwitch__label13.displayName = "PlasmicToggleButtonSwitch.label13";
+
+type PlasmicToggleButtonSwitch__labelIconsContainer11Props = NodeComponentProps<"labelIconsContainer11"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__labelIconsContainer11<T extends PlasmicToggleButtonSwitch__labelIconsContainer11Props>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__labelIconsContainer11Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelIconsContainer11", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelIconsContainer11"} />;
+}
+PlasmicToggleButtonSwitch__labelIconsContainer11.displayName = "PlasmicToggleButtonSwitch.labelIconsContainer11";
+
+type PlasmicToggleButtonSwitch__endIconsContainer11Props = NodeComponentProps<"endIconsContainer11"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__endIconsContainer11<T extends PlasmicToggleButtonSwitch__endIconsContainer11Props>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__endIconsContainer11Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("endIconsContainer11", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"endIconsContainer11"} />;
+}
+PlasmicToggleButtonSwitch__endIconsContainer11.displayName = "PlasmicToggleButtonSwitch.endIconsContainer11";
+
+type PlasmicToggleButtonSwitch__rightProps = NodeComponentProps<"right"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__right<T extends PlasmicToggleButtonSwitch__rightProps>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__rightProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("right", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"right"} />;
+}
+PlasmicToggleButtonSwitch__right.displayName = "PlasmicToggleButtonSwitch.right";
+
+type PlasmicToggleButtonSwitch__startIconsContainer12Props = NodeComponentProps<"startIconsContainer12"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__startIconsContainer12<T extends PlasmicToggleButtonSwitch__startIconsContainer12Props>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__startIconsContainer12Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("startIconsContainer12", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"startIconsContainer12"} />;
+}
+PlasmicToggleButtonSwitch__startIconsContainer12.displayName = "PlasmicToggleButtonSwitch.startIconsContainer12";
+
+type PlasmicToggleButtonSwitch__labelsContainer12Props = NodeComponentProps<"labelsContainer12"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__labelsContainer12<T extends PlasmicToggleButtonSwitch__labelsContainer12Props>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__labelsContainer12Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelsContainer12", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelsContainer12"} />;
+}
+PlasmicToggleButtonSwitch__labelsContainer12.displayName = "PlasmicToggleButtonSwitch.labelsContainer12";
+
+type PlasmicToggleButtonSwitch__labelText12Props = NodeComponentProps<"labelText12"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__labelText12<T extends PlasmicToggleButtonSwitch__labelText12Props>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__labelText12Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelText12", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelText12"} />;
+}
+PlasmicToggleButtonSwitch__labelText12.displayName = "PlasmicToggleButtonSwitch.labelText12";
+
+type PlasmicToggleButtonSwitch__label14Props = NodeComponentProps<"label14"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__label14<T extends PlasmicToggleButtonSwitch__label14Props>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__label14Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("label14", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"label14"} />;
+}
+PlasmicToggleButtonSwitch__label14.displayName = "PlasmicToggleButtonSwitch.label14";
+
+type PlasmicToggleButtonSwitch__labelIconsContainer12Props = NodeComponentProps<"labelIconsContainer12"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__labelIconsContainer12<T extends PlasmicToggleButtonSwitch__labelIconsContainer12Props>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__labelIconsContainer12Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelIconsContainer12", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelIconsContainer12"} />;
+}
+PlasmicToggleButtonSwitch__labelIconsContainer12.displayName = "PlasmicToggleButtonSwitch.labelIconsContainer12";
+
+type PlasmicToggleButtonSwitch__endIconsContainer12Props = NodeComponentProps<"endIconsContainer12"> & {key?: React.Key};
+function PlasmicToggleButtonSwitch__endIconsContainer12<T extends PlasmicToggleButtonSwitch__endIconsContainer12Props>(props: T & StrictProps<T, PlasmicToggleButtonSwitch__endIconsContainer12Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("endIconsContainer12", props);
+  return <PlasmicToggleButtonSwitch__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"endIconsContainer12"} />;
+}
+PlasmicToggleButtonSwitch__endIconsContainer12.displayName = "PlasmicToggleButtonSwitch.endIconsContainer12";
+
 
 export const PlasmicToggleButtonSwitch = Object.assign(
   // Top-level PlasmicToggleButtonSwitch renders the root element
-  makeNodeComponent("root"),
+  PlasmicToggleButtonSwitch__root,
   {
     // Helper components rendering sub-elements
-    left: makeNodeComponent("left"),
-    startIconsContainer11: makeNodeComponent("startIconsContainer11"),
-    labelsContainer11: makeNodeComponent("labelsContainer11"),
-    labelText11: makeNodeComponent("labelText11"),
-    label13: makeNodeComponent("label13"),
-    labelIconsContainer11: makeNodeComponent("labelIconsContainer11"),
-    endIconsContainer11: makeNodeComponent("endIconsContainer11"),
-    right: makeNodeComponent("right"),
-    startIconsContainer12: makeNodeComponent("startIconsContainer12"),
-    labelsContainer12: makeNodeComponent("labelsContainer12"),
-    labelText12: makeNodeComponent("labelText12"),
-    label14: makeNodeComponent("label14"),
-    labelIconsContainer12: makeNodeComponent("labelIconsContainer12"),
-    endIconsContainer12: makeNodeComponent("endIconsContainer12"),
+    left: PlasmicToggleButtonSwitch__left,
+    startIconsContainer11: PlasmicToggleButtonSwitch__startIconsContainer11,
+    labelsContainer11: PlasmicToggleButtonSwitch__labelsContainer11,
+    labelText11: PlasmicToggleButtonSwitch__labelText11,
+    label13: PlasmicToggleButtonSwitch__label13,
+    labelIconsContainer11: PlasmicToggleButtonSwitch__labelIconsContainer11,
+    endIconsContainer11: PlasmicToggleButtonSwitch__endIconsContainer11,
+    right: PlasmicToggleButtonSwitch__right,
+    startIconsContainer12: PlasmicToggleButtonSwitch__startIconsContainer12,
+    labelsContainer12: PlasmicToggleButtonSwitch__labelsContainer12,
+    labelText12: PlasmicToggleButtonSwitch__labelText12,
+    label14: PlasmicToggleButtonSwitch__label14,
+    labelIconsContainer12: PlasmicToggleButtonSwitch__labelIconsContainer12,
+    endIconsContainer12: PlasmicToggleButtonSwitch__endIconsContainer12,
 
     // Metadata about props expected for PlasmicToggleButtonSwitch
     internalVariantProps: PlasmicToggleButtonSwitch__VariantProps,

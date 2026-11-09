@@ -107,12 +107,15 @@ import {
   getDynamicSnippetsForJsonExpr,
 } from "@/wab/shared/dynamic-bindings";
 import { tryEvalExpr } from "@/wab/shared/eval";
+import { lowerMemberUpdates } from "@/wab/shared/eval/lower-member-updates";
+import { lowerFunctionVars } from "@/wab/shared/eval/lower-function-vars";
+import { lowerConditionalTests } from "@/wab/shared/eval/lower-conditional-tests";
 import {
   pathToString,
   transformDataTokenPathToDisplay,
   transformDataTokensToDisplay,
 } from "@/wab/shared/eval/expression-parser";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import { maybeConvertToIife } from "@/wab/shared/parser-utils";
 import { pageHrefPathToCode } from "@/wab/shared/utils/url-utils";
 import L, {
@@ -479,8 +482,7 @@ export function asCode(expr: Expr, exprCtx: ExprCtx) {
   return _asCode(expr, exprCtx);
 }
 
-const _asCode = maybeComputedFn(
-  (_expr: Expr, exprCtx: ExprCtx): CustomCode =>
+const _asCode = memoizeModelQuery((_expr: Expr, exprCtx: ExprCtx): CustomCode =>
     switchType(_expr)
       .when(CustomCode, (expr) => expr)
       .when(ImageAssetRef, (expr) =>
@@ -809,8 +811,7 @@ const _asCode = maybeComputedFn(
           }(${orderedArgs.join(",")})`,
         );
       })
-      .result(),
-);
+      .result());
 
 export const isFallbackSet = (expr: Expr): expr is CustomCode | ObjectPath =>
   (isKnownCustomCode(expr) || isKnownObjectPath(expr)) && expr.fallback != null;
@@ -902,7 +903,7 @@ export function stripParensAndMaybeConvertToIife(
   if (!text.startsWith("(")) {
     return text;
   }
-  const result = maybeConvertToIife(stripParens(text));
+  const result = lowerConditionalTests(lowerFunctionVars(maybeConvertToIife(stripParens(text))));
   return opts?.addParens ? `(${result})` : result;
 }
 
@@ -927,7 +928,7 @@ export function getCodeExpressionWithFallback(
   exprCtx: ExprCtx,
   opts?: { fallbackSerializer?: (fallback: Expr) => string },
 ): string {
-  let codeExpr = isKnownCustomCode(expr) ? expr.code : pathToString(expr.path);
+  let codeExpr = isKnownCustomCode(expr) ? lowerMemberUpdates(expr.code) : pathToString(expr.path);
   codeExpr = isEmptyCodeExpr(codeExpr) ? "(undefined)" : codeExpr;
   if (!isRealCodeExpr(expr)) {
     return codeExpr;
@@ -1014,24 +1015,24 @@ export function getCodeExpressionWithFallbackExpr(
   codeExpr = isEmptyCodeExpr(codeExpr) ? "(undefined)" : codeExpr;
   // Make sure codeExpr is on its own separate line, in case it
   // includes things like a line comment "//"
-  return `(() => {
+  return `((evaluate, fallback) => {
       try {
-        return (
-          ${stripParensAndMaybeConvertToIife(codeExpr)}
-        );
+        return evaluate();
       } catch (e) {
         if(e instanceof TypeError${
           exprCtx.projectFlags.useLoadingState
             ? ""
             : `|| e?.plasmicType === "PlasmicUndefinedDataError"`
         }) {
-          return (
-            ${stripParensAndMaybeConvertToIife(fallbackExpr)}
-          );
+          return fallback();
         }
         throw e;
       }
-    })()`;
+    })(() => (
+      ${stripParensAndMaybeConvertToIife(codeExpr)}
+    ), () => (
+      ${stripParensAndMaybeConvertToIife(fallbackExpr)}
+    ))`;
 }
 
 export function isCodeWrappedWithParens(codeExpr: string): boolean {
@@ -1159,8 +1160,6 @@ export const omittedKeysIfEmpty = new Set([
   "$dataTokens",
 ]);
 export const alwaysOmitKeys = new Set([
-  "$state.registerInitFunc",
-  "$state.eagerInitializeStates",
   "$refs",
   "dataSourcesCtx",
   "$globalActions",

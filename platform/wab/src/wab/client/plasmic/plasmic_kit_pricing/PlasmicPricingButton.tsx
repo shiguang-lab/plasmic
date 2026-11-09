@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,13 +25,13 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -126,11 +126,10 @@ function PlasmicPricingButton__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "dark",
@@ -170,25 +169,27 @@ function PlasmicPricingButton__RenderFunc(props: {
           $props.interactive,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -282,7 +283,7 @@ function PlasmicPricingButton__RenderFunc(props: {
             "withIcon"
           ),
         })}
-        onClick={async (event) => {
+        onClick={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (event) => {
           const $steps = {};
 
           $steps["runOnClick"] = true
@@ -300,7 +301,7 @@ function PlasmicPricingButton__RenderFunc(props: {
           ) {
             $steps["runOnClick"] = await $steps["runOnClick"];
           }
-        }}
+        })); })}
       >
         <ArrowLeftSvgIcon
           data-plasmic-name={"svg"}
@@ -380,12 +381,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -395,29 +392,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPricingButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPricingButton";
-  } else {
-    func.displayName = `PlasmicPricingButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPricingButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPricingButton__root<T extends PlasmicPricingButton__rootProps>(props: T & StrictProps<T, PlasmicPricingButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPricingButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPricingButton__root.displayName = "PlasmicPricingButton";
+
+type PlasmicPricingButton__linkProps = NodeComponentProps<"link"> & {key?: React.Key};
+function PlasmicPricingButton__link<T extends PlasmicPricingButton__linkProps>(props: T & StrictProps<T, PlasmicPricingButton__linkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("link", props);
+  return <PlasmicPricingButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"link"} />;
+}
+PlasmicPricingButton__link.displayName = "PlasmicPricingButton.link";
+
+type PlasmicPricingButton__normalButtonProps = NodeComponentProps<"normalButton"> & {key?: React.Key};
+function PlasmicPricingButton__normalButton<T extends PlasmicPricingButton__normalButtonProps>(props: T & StrictProps<T, PlasmicPricingButton__normalButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("normalButton", props);
+  return <PlasmicPricingButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"normalButton"} />;
+}
+PlasmicPricingButton__normalButton.displayName = "PlasmicPricingButton.normalButton";
+
+type PlasmicPricingButton__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicPricingButton__svg<T extends PlasmicPricingButton__svgProps>(props: T & StrictProps<T, PlasmicPricingButton__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicPricingButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicPricingButton__svg.displayName = "PlasmicPricingButton.svg";
+
 
 export const PlasmicPricingButton = Object.assign(
   // Top-level PlasmicPricingButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicPricingButton__root,
   {
     // Helper components rendering sub-elements
-    link: makeNodeComponent("link"),
-    normalButton: makeNodeComponent("normalButton"),
-    svg: makeNodeComponent("svg"),
+    link: PlasmicPricingButton__link,
+    normalButton: PlasmicPricingButton__normalButton,
+    svg: PlasmicPricingButton__svg,
 
     // Metadata about props expected for PlasmicPricingButton
     internalVariantProps: PlasmicPricingButton__VariantProps,

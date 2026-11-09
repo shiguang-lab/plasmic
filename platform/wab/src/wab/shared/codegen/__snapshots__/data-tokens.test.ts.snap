@@ -54,6 +54,7 @@ import * as React from "react";
       import Head from "next/head";
       import Link, { LinkProps } from "next/link";
       import { useRouter } from "next/navigation";
+      import { usePlasmicPrepass } from "@plasmicapp/react-web/lib/query";
     
 
 import {
@@ -71,16 +72,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -88,8 +92,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -110,8 +122,8 @@ import {
 import { generateDynamicMetadata, PageCtx } from "./PlasmicSeoServer"; // plasmic-import: yjEpnuKb4eHY/rscServer
 
 
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 3UYiEMfU3twU4iYSx86cub/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 3UYiEMfU3twU4iYSx86cub/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 3UYiEMfU3twU4iYSx86cub/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 3UYiEMfU3twU4iYSx86cub/styleTokensProvider
 import { pageText as $dataTokens_3UYiE_pageText, pageCanonical as $dataTokens_3UYiE_pageCanonical, pageImage as $dataTokens_3UYiE_pageImage } from "./plasmic-data-tokens"; // plasmic-import: 3UYiEMfU3twU4iYSx86cub/dataTokens
 
     import "@plasmicapp/react-web/lib/plasmic.css";
@@ -179,23 +191,25 @@ const $$ = {};
 
 
 
-function useNextRouter() {
-      try {
-        return useRouter();
-      } catch {}
-      return undefined;
-    }
 
-
-
-
-    function PlasmicSeo__RenderFunc(
-      props: {
-        variants: PlasmicSeo__VariantsArgs,
-        args: PlasmicSeo__ArgsType,
-        overrides: PlasmicSeo__OverridesType,
-        forNode?: string
+    
+      type PlasmicSeo__RenderFunc__Props = {
+    variants: PlasmicSeo__VariantsArgs,
+    args: PlasmicSeo__ArgsType,
+    overrides: PlasmicSeo__OverridesType,
+    forNode?: string
+  };
+      function PlasmicSeo__RenderFunc(props: PlasmicSeo__RenderFunc__Props) {
+        const prepass = usePlasmicPrepass();
+        return prepass ? <PlasmicSeo__RenderFunc__Body {...props} /> : <PlasmicSeo__RenderFunc__WithNextRouter {...props} />;
       }
+      function PlasmicSeo__RenderFunc__WithNextRouter(props: PlasmicSeo__RenderFunc__Props) {
+        const nextRouter = useRouter();
+        return <PlasmicSeo__RenderFunc__Body {...props} nextRouter={nextRouter} />;
+      }
+    
+    function PlasmicSeo__RenderFunc__Body(
+      props: PlasmicSeo__RenderFunc__Props & { nextRouter?: ReturnType<typeof useRouter> }
     ) {
       
       
@@ -217,11 +231,10 @@ function useNextRouter() {
       ...variants,
     };
 
-    const __nextRouter = useNextRouter();
+    const __nextRouter = props.nextRouter;
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
@@ -245,7 +258,7 @@ function useNextRouter() {
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
@@ -316,31 +329,30 @@ function useNextRouter() {
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicSeo__ArgProps,
           internalVariantPropNames: PlasmicSeo__VariantProps,
         }), [props, nodeName]);
-        return PlasmicSeo__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicSeo";
-      } else {
-        func.displayName = \`PlasmicSeo.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicSeo__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicSeo__root<T extends PlasmicSeo__rootProps>(props: T & StrictProps<T, PlasmicSeo__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicSeo__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicSeo__root.displayName = "PlasmicSeo";
+      
 
     
     
 
     export const PlasmicSeo = Object.assign(
       // Top-level PlasmicSeo renders the root element
-      makeNodeComponent("root"),
+      PlasmicSeo__root,
       {
         // Helper components rendering sub-elements
         
@@ -476,9 +488,10 @@ export function PlasmicSeoServer(props: PlasmicSeoServerProps) {
     // Plasmic Project: 3UYiEMfU3twU4iYSx86cub
     // plasmic-unformatted
   
-    import { createUseStyleTokens } from "@plasmicapp/react-web";
+    import * as React from "react";
+    import { useStyleTokens as useProjectStyleTokens } from "@plasmicapp/react-web";
 
-    import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 3UYiEMfU3twU4iYSx86cub/projectModule
+    import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 3UYiEMfU3twU4iYSx86cub/projectModule
 
     
 
@@ -489,10 +502,9 @@ export function PlasmicSeoServer(props: PlasmicSeoServerProps) {
   ],
   };
   
-    export const _useStyleTokens = createUseStyleTokens(
-      data,
-      _useGlobalVariants,
-    );
+    export function useStyleTokens() {
+      return useProjectStyleTokens(data, useGlobalVariants());
+    }
   
     
 --- __loader_rsc_Seo_yjEpnuKb4eHY.tsx ---
@@ -606,6 +618,9 @@ export async function generateMetadata(props: {
 --- externals.d.ts ---
 declare module 'next/link';
 declare module 'next/router';
+declare module 'next/compat/router' {
+  export function useRouter(): { pathname: string; query: Record<string, string | string[] | undefined>; push(href: string): Promise<boolean> } | null;
+}
 declare module 'next/navigation';
 declare module 'next' {
   export type Metadata = Record<string, unknown>;
@@ -801,13 +816,13 @@ column-gap: var(--mixin-QRKsNlwSCB5i_column-gap);
     // Plasmic Project: 3UYiEMfU3twU4iYSx86cub
     // plasmic-unformatted
   
-    import { createUseGlobalVariants } from "@plasmicapp/react-web";
+    import { ensureGlobalVariants } from "@plasmicapp/react-web";
     
   
     
-  export const _useGlobalVariants = createUseGlobalVariants({
+  export function useGlobalVariants() { "use memo"; return ensureGlobalVariants({
     
-  });
+  }); }
 
   
 --- plasmic__default_style.css ---
@@ -1301,16 +1316,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -1318,8 +1336,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -1340,8 +1366,8 @@ import {
 
 
 
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 import { myText as $dataTokens_1T8AH_myText } from "./plasmic-data-tokens"; // plasmic-import: 1T8AHUHZeUyK1iDkHxrRw6/dataTokens
 import { myNum as $dataTokens_12345_myNum, myCode as $dataTokens_12345_myCode } from "./plasmic-data-tokens"; // plasmic-import: 1234567890/dataTokens
 import { dep2Token as $dataTokens_3SFZd_dep2Token } from "./plasmic-data-tokens"; // plasmic-import: 3SFZdTKJa8BF7jgeRZMBcG/dataTokens
@@ -1441,17 +1467,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicP1__RenderFunc(
       props: {
-        variants: PlasmicP1__VariantsArgs,
-        args: PlasmicP1__ArgsType,
-        overrides: PlasmicP1__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicP1__VariantsArgs,
+    args: PlasmicP1__ArgsType,
+    overrides: PlasmicP1__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -1475,9 +1498,8 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
@@ -1498,7 +1520,7 @@ const $$ = {};
     
 
     
-    const styleTokensClassNames = _useStyleTokens();
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
@@ -1522,20 +1544,20 @@ const $$ = {};
       className={classNames("plasmic_default__all", "__wab_text", "P1__imported__lB2Er")}
       
       >
-            <React.Fragment>{(() => {
+            <React.Fragment>{((evaluate, fallback) => {
       try {
-        return (
-          $dataTokens_1T8AH_myText
-        );
+        return evaluate();
       } catch (e) {
         if(e instanceof TypeError) {
-          return (
-            ""
-          );
+          return fallback();
         }
         throw e;
       }
-    })()}</React.Fragment>
+    })(() => (
+      $dataTokens_1T8AH_myText
+    ), () => (
+      ""
+    ))}</React.Fragment>
           </div>
 <div
       data-plasmic-name={"override"}
@@ -1545,20 +1567,20 @@ const $$ = {};
       className={classNames("plasmic_default__all", "__wab_text", "P1__override___99RfY")}
       
       >
-            <React.Fragment>{(() => {
+            <React.Fragment>{((evaluate, fallback) => {
       try {
-        return (
-          $dataTokens_12345_myNum
-        );
+        return evaluate();
       } catch (e) {
         if(e instanceof TypeError) {
-          return (
-            ""
-          );
+          return fallback();
         }
         throw e;
       }
-    })()}</React.Fragment>
+    })(() => (
+      $dataTokens_12345_myNum
+    ), () => (
+      ""
+    ))}</React.Fragment>
           </div>
 <div
       
@@ -1568,20 +1590,20 @@ const $$ = {};
       className={classNames("plasmic_default__all", "__wab_text", "P1__text__qmnM")}
       
       >
-            <React.Fragment>{(() => {
+            <React.Fragment>{((evaluate, fallback) => {
       try {
-        return (
-          $dataTokens_12345_myCode
-        );
+        return evaluate();
       } catch (e) {
         if(e instanceof TypeError) {
-          return (
-            ""
-          );
+          return fallback();
         }
         throw e;
       }
-    })()}</React.Fragment>
+    })(() => (
+      $dataTokens_12345_myCode
+    ), () => (
+      ""
+    ))}</React.Fragment>
           </div>
 <div
       
@@ -1591,20 +1613,20 @@ const $$ = {};
       className={classNames("plasmic_default__all", "__wab_text", "P1__text__qabTp")}
       
       >
-            <React.Fragment>{(() => {
+            <React.Fragment>{((evaluate, fallback) => {
       try {
-        return (
-          $dataTokens_3SFZd_dep2Token
-        );
+        return evaluate();
       } catch (e) {
         if(e instanceof TypeError) {
-          return (
-            ""
-          );
+          return fallback();
         }
         throw e;
       }
-    })()}</React.Fragment>
+    })(() => (
+      $dataTokens_3SFZd_dep2Token
+    ), () => (
+      ""
+    ))}</React.Fragment>
           </div>
           </div>
       </div>
@@ -1649,35 +1671,50 @@ override: "div"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicP1__ArgProps,
           internalVariantPropNames: PlasmicP1__VariantProps,
         }), [props, nodeName]);
-        return PlasmicP1__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicP1";
-      } else {
-        func.displayName = \`PlasmicP1.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicP1__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicP1__root<T extends PlasmicP1__rootProps>(props: T & StrictProps<T, PlasmicP1__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicP1__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicP1__root.displayName = "PlasmicP1";
+      
+
+        type PlasmicP1__importedProps = NodeComponentProps<"imported"> & {key?: React.Key};
+        function PlasmicP1__imported<T extends PlasmicP1__importedProps>(props: T & StrictProps<T, PlasmicP1__importedProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("imported", props);
+          return <PlasmicP1__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"imported"} />;
+        }
+        PlasmicP1__imported.displayName = "PlasmicP1.imported";
+      
+
+        type PlasmicP1__overrideProps = NodeComponentProps<"override"> & {key?: React.Key};
+        function PlasmicP1__override<T extends PlasmicP1__overrideProps>(props: T & StrictProps<T, PlasmicP1__overrideProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("override", props);
+          return <PlasmicP1__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"override"} />;
+        }
+        PlasmicP1__override.displayName = "PlasmicP1.override";
+      
 
     
     
 
     export const PlasmicP1 = Object.assign(
       // Top-level PlasmicP1 renders the root element
-      makeNodeComponent("root"),
+      PlasmicP1__root,
       {
         // Helper components rendering sub-elements
-        imported: makeNodeComponent("imported"),
-override: makeNodeComponent("override"),
+        imported: PlasmicP1__imported,
+override: PlasmicP1__override,
 
         // Metadata about props expected for PlasmicP1
         internalVariantProps: PlasmicP1__VariantProps,
@@ -1714,9 +1751,10 @@ export default PlasmicP1;
     // Plasmic Project: 1234567890
     // plasmic-unformatted
   
-    import { createUseStyleTokens } from "@plasmicapp/react-web";
+    import * as React from "react";
+    import { useStyleTokens as useProjectStyleTokens } from "@plasmicapp/react-web";
 
-    import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+    import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
 
     import "./plasmic.css"; // plasmic-import: 1234567890/projectcss
 
@@ -1727,10 +1765,9 @@ export default PlasmicP1;
   ],
   };
   
-    export const _useStyleTokens = createUseStyleTokens(
-      data,
-      _useGlobalVariants,
-    );
+    export function useStyleTokens() {
+      return useProjectStyleTokens(data, useGlobalVariants());
+    }
   
     
 --- global.d.ts ---
@@ -1930,13 +1967,13 @@ column-gap: var(--mixin-QtrLNVmrq2kw_column-gap);
     // Plasmic Project: 1234567890
     // plasmic-unformatted
   
-    import { createUseGlobalVariants } from "@plasmicapp/react-web";
+    import { ensureGlobalVariants } from "@plasmicapp/react-web";
     
   
     
-  export const _useGlobalVariants = createUseGlobalVariants({
+  export function useGlobalVariants() { "use memo"; return ensureGlobalVariants({
     
-  });
+  }); }
 
   
 --- plasmic__default_style.css ---

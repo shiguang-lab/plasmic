@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,11 +24,11 @@ import {
   PlasmicImg as PlasmicImg__,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -97,11 +97,10 @@ function PlasmicThreadHistory__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isResolved",
@@ -110,18 +109,20 @@ function PlasmicThreadHistory__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.isResolved,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -288,12 +289,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -303,32 +300,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicThreadHistory__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicThreadHistory";
-  } else {
-    func.displayName = `PlasmicThreadHistory.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicThreadHistory__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicThreadHistory__root<T extends PlasmicThreadHistory__rootProps>(props: T & StrictProps<T, PlasmicThreadHistory__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicThreadHistory__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicThreadHistory__root.displayName = "PlasmicThreadHistory";
+
+type PlasmicThreadHistory__avatarContainerProps = NodeComponentProps<"avatarContainer"> & {key?: React.Key};
+function PlasmicThreadHistory__avatarContainer<T extends PlasmicThreadHistory__avatarContainerProps>(props: T & StrictProps<T, PlasmicThreadHistory__avatarContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("avatarContainer", props);
+  return <PlasmicThreadHistory__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"avatarContainer"} />;
+}
+PlasmicThreadHistory__avatarContainer.displayName = "PlasmicThreadHistory.avatarContainer";
+
+type PlasmicThreadHistory__imgProps = NodeComponentProps<"img"> & {key?: React.Key};
+function PlasmicThreadHistory__img<T extends PlasmicThreadHistory__imgProps>(props: T & StrictProps<T, PlasmicThreadHistory__imgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("img", props);
+  return <PlasmicThreadHistory__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"img"} />;
+}
+PlasmicThreadHistory__img.displayName = "PlasmicThreadHistory.img";
+
+type PlasmicThreadHistory__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicThreadHistory__text<T extends PlasmicThreadHistory__textProps>(props: T & StrictProps<T, PlasmicThreadHistory__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicThreadHistory__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicThreadHistory__text.displayName = "PlasmicThreadHistory.text";
+
+type PlasmicThreadHistory__userFullNameProps = NodeComponentProps<"userFullName"> & {key?: React.Key};
+function PlasmicThreadHistory__userFullName<T extends PlasmicThreadHistory__userFullNameProps>(props: T & StrictProps<T, PlasmicThreadHistory__userFullNameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("userFullName", props);
+  return <PlasmicThreadHistory__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"userFullName"} />;
+}
+PlasmicThreadHistory__userFullName.displayName = "PlasmicThreadHistory.userFullName";
+
+type PlasmicThreadHistory__timestampProps = NodeComponentProps<"timestamp"> & {key?: React.Key};
+function PlasmicThreadHistory__timestamp<T extends PlasmicThreadHistory__timestampProps>(props: T & StrictProps<T, PlasmicThreadHistory__timestampProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("timestamp", props);
+  return <PlasmicThreadHistory__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"timestamp"} />;
+}
+PlasmicThreadHistory__timestamp.displayName = "PlasmicThreadHistory.timestamp";
+
+type PlasmicThreadHistory__bodyProps = NodeComponentProps<"body"> & {key?: React.Key};
+function PlasmicThreadHistory__body<T extends PlasmicThreadHistory__bodyProps>(props: T & StrictProps<T, PlasmicThreadHistory__bodyProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("body", props);
+  return <PlasmicThreadHistory__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"body"} />;
+}
+PlasmicThreadHistory__body.displayName = "PlasmicThreadHistory.body";
+
 
 export const PlasmicThreadHistory = Object.assign(
   // Top-level PlasmicThreadHistory renders the root element
-  makeNodeComponent("root"),
+  PlasmicThreadHistory__root,
   {
     // Helper components rendering sub-elements
-    avatarContainer: makeNodeComponent("avatarContainer"),
-    img: makeNodeComponent("img"),
-    text: makeNodeComponent("text"),
-    userFullName: makeNodeComponent("userFullName"),
-    timestamp: makeNodeComponent("timestamp"),
-    body: makeNodeComponent("body"),
+    avatarContainer: PlasmicThreadHistory__avatarContainer,
+    img: PlasmicThreadHistory__img,
+    text: PlasmicThreadHistory__text,
+    userFullName: PlasmicThreadHistory__userFullName,
+    timestamp: PlasmicThreadHistory__timestamp,
+    body: PlasmicThreadHistory__body,
 
     // Metadata about props expected for PlasmicThreadHistory
     internalVariantProps: PlasmicThreadHistory__VariantProps,

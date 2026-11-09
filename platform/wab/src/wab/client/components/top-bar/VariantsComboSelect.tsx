@@ -1,3 +1,5 @@
+import { useShallow } from "zustand/react/shallow";
+import { usePreviewVariantModelInputs } from "@/wab/client/components/top-bar/preview-variant-inputs";
 import { usePreviewCtx, usePreviewSelector } from "@/wab/client/components/live/PreviewCtx";
 import VariantsMenu from "@/wab/client/components/top-bar/VariantsMenu";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
@@ -8,30 +10,19 @@ import {
   DefaultVariantsComboSelectProps,
   PlasmicVariantsComboSelect,
 } from "@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicVariantsComboSelect";
-import {
-  getAllVariantsForTpl,
-  getVariantLabel,
-  isBaseVariant,
-  isGlobalVariant,
-  isPrivateStyleVariant,
-  isScreenVariant,
-  isStandaloneVariant,
-  isStyleOrCodeComponentVariant,
-} from "@/wab/shared/Variants";
-import { ensure, partitions, xGroupBy } from "@/wab/shared/common";
-import { isVariantUsedInSplits } from "@/wab/shared/core/splits";
 import { Dropdown } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 type VariantsComboSelectProps = DefaultVariantsComboSelectProps;
 
-const VariantsComboSelect = observer(function VariantsComboSelect(
+const VariantsComboSelect = React.memo(function VariantsComboSelect(
   props: VariantsComboSelectProps,
 ) {
   const studioCtx = useStudioCtx();
   const previewCtx = usePreviewCtx();
-  usePreviewSelector(previewCtx, (state) => state.previewData);
+  const component = usePreviewSelector(previewCtx, (state) => state.previewData ? previewCtx.component : undefined);
+  const activeVariants = usePreviewSelector(previewCtx, useShallow((state) => state.previewData ? previewCtx.getVariants() : []));
+  const model = usePreviewVariantModelInputs(studioCtx, component);
 
   const [showDropdown, setShowDropdown] = React.useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
@@ -39,71 +30,12 @@ const VariantsComboSelect = observer(function VariantsComboSelect(
 
   useAutoFocus(showDropdown && inputRef);
 
-  if (!previewCtx?.component) {
+  if (!component || !model.alive) {
     return null;
   }
 
-  const variants = getAllVariantsForTpl({
-    component: previewCtx.component,
-    tpl: null,
-    site: studioCtx.site,
-  }).filter(
-    (v) =>
-      !isStyleOrCodeComponentVariant(v) &&
-      !isScreenVariant(v) &&
-      !isPrivateStyleVariant(v) &&
-      !isBaseVariant(v),
-  );
-
-  const [standaloneVariants, splitVariants, compVariants, globalVariants] =
-    partitions(variants, [
-      (v) => isStandaloneVariant(v),
-      (v) => isVariantUsedInSplits(studioCtx.site, v),
-      (v) => !isGlobalVariant(v),
-    ]);
-
-  const currentPreviewComponentData = {
-    componentUuid: previewCtx.component.uuid,
-    activeVariants: previewCtx.getVariants(),
-    variantGroups: [
-      ...standaloneVariants.map((v) => ({
-        name: undefined,
-        type: "standalone" as const,
-        variants: [v],
-      })),
-      ...[
-        ...xGroupBy(compVariants, (v) =>
-          ensure(v.parent, `Variant ${v.name} (uuid ${v.uuid}) has no parent`),
-        ).entries(),
-      ].map(([vg, vs]) => ({
-        type: vg.multi ? ("multi" as const) : ("single" as const),
-        name: vg.param.variable.name,
-        variants: vs,
-      })),
-      ...(splitVariants.length > 0
-        ? [
-            {
-              type: "multi" as const,
-              name: "Splits",
-              variants: splitVariants,
-            },
-          ]
-        : []),
-      ...[
-        ...xGroupBy(globalVariants, (v) =>
-          ensure(v.parent, `Variant ${v.name} (uuid ${v.uuid}) has no parent`),
-        ).entries(),
-      ].map(([vg, vs]) => ({
-        type: vg.multi ? ("multi" as const) : ("single" as const),
-        name: vg.param.variable.name,
-        variants: vs,
-      })),
-    ],
-  };
-
-  const activeVariants = currentPreviewComponentData.activeVariants;
-  const activeVariantUuids = new Set(activeVariants.map((v) => v.uuid));
-  const variantGroupsData = currentPreviewComponentData.variantGroups;
+  const activeVariantUuids = new Set(activeVariants.map((variant) => variant.uuid));
+  const variantGroupsData = model.groups;
 
   return (
     <Dropdown
@@ -136,7 +68,7 @@ const VariantsComboSelect = observer(function VariantsComboSelect(
             <UiText message={"Base"} />
           ) : (
             activeVariants
-              .map((v) => getVariantLabel(studioCtx.site, v))
+              .map((variant) => model.labels[variant.uuid])
               .join(", ")
           )}
         </PlasmicVariantsComboSelect>

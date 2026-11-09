@@ -237,8 +237,12 @@ export interface CodeComponentMeta<P> {
     args: Record<string, { prop: string }>;
   }[];
   /**
-   * Editing-only overlay controls apply to the component itself and descendants
-   * of its trigger slot. Other slots are content, not overlay triggers.
+   * Canvas reveal capability for overlays using open, optional defaultOpen and
+   * onOpenChange. Editing and interactive canvas modes share temporary session
+   * overrides; components must consume the effective canvas state and keep
+   * reveal transitions separate from business lifecycle callbacks. Selecting
+   * triggerSlot content does not open the overlay; other slots are its content.
+   * Components with other state props use __canvas.states/getState bindings.
    */
   canvasOverlay?: { triggerSlot?: string };
   /** Existing prop or primitive slot content edited directly on the component. */

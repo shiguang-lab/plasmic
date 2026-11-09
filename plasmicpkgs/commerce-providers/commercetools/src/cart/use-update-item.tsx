@@ -6,7 +6,7 @@ import {
   ValidationError,
 } from "@plasmicpkgs/commerce";
 import debounce from "debounce";
-import { useCallback } from "react";
+import { useMemo } from "react";
 import type { LineItem, UpdateItemHook } from "../types/cart";
 import {
   getActiveCart,
@@ -81,17 +81,17 @@ export const handler: MutationHook<UpdateItemHook> = {
   },
   useHook:
     ({ fetch }: MutationHookContext<UpdateItemHook>) =>
-    <T extends LineItem | undefined = undefined>(
+    function useUpdateItemHandler<T extends LineItem | undefined = undefined>(
       ctx: {
         item?: T;
         wait?: number;
       } = {}
-    ) => {
+    ) {
       const { item } = ctx;
       const { mutate } = useCart() as any;
 
-      return useCallback(
-        debounce(async (input: UpdateItemActionInput<T>) => {
+      const updateItem = useMemo(
+        () => debounce(async (input: UpdateItemActionInput<T>) => {
           const itemId = input.id ?? item?.id;
           if (!itemId || input.quantity == null) {
             throw new ValidationError({
@@ -110,7 +110,8 @@ export const handler: MutationHook<UpdateItemHook> = {
           await mutate(data, false);
           return data;
         }, ctx.wait ?? 500),
-        [fetch, mutate]
+        [fetch, mutate, item?.id]
       );
+      return updateItem;
     },
 };

@@ -1,6 +1,5 @@
 import { LabeledToggleButtonGroup } from "@/wab/client/components/sidebar/sidebar-helpers";
 import {
-  StyleComponent,
   StyleComponentProps,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
@@ -22,9 +21,8 @@ interface JustifyContentRenderProps extends StyleComponentProps {
   readonly flexDirection: string;
 }
 
-class JustifyContentControls_ extends StyleComponent<JustifyContentRenderProps> {
-  render() {
-    const flexDir = this.props.flexDirection;
+function JustifyContentControlsContent(props: JustifyContentRenderProps) {
+    const flexDir = props.flexDirection;
     const options = [
       "flex-start",
       "center",
@@ -41,17 +39,14 @@ class JustifyContentControls_ extends StyleComponent<JustifyContentRenderProps> 
         ))}
       </LabeledToggleButtonGroup>
     );
-  }
 }
 
-export const JustifyControls = React.forwardRef<JustifyContentControls_, StyleComponentProps>(
-  function JustifyControls(props, ref) {
-    const cells = useStyleCells(props.expsProvider, ["flex-direction"]);
-    const flexDirection = cells.find((cell) => cell.key === "flex-direction")?.value;
-    if (flexDirection === undefined) { return null; }
-    return <JustifyContentControls_ {...props} ref={ref} flexDirection={flexDirection} />;
-  },
-);
+export function JustifyControls(props: StyleComponentProps) {
+  const cells = useStyleCells(props.expsProvider, ["flex-direction"]);
+  const flexDirection = cells.find((cell) => cell.key === "flex-direction")?.value;
+  if (flexDirection === undefined) { return null; }
+  return <JustifyContentControlsContent {...props} flexDirection={flexDirection} />;
+}
 
 export const JustifyContentIcons = {
   row: {

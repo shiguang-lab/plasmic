@@ -4,6 +4,21 @@ import { XDraggable } from "@/wab/commons/components/XDraggable";
 import classNames from "classnames";
 import * as React from "react";
 
+class ScrollMetrics {
+  private current: Readonly<{ container: number; content: number; start: number; overflow: string }> | undefined;
+  constructor(private readonly element: HTMLElement, private readonly axis: "horizontal" | "vertical") {}
+  read = () => {
+    const vertical = this.axis === "vertical", element = this.element;
+    const next = { container: vertical ? element.clientHeight : element.clientWidth, content: vertical ? element.scrollHeight : element.scrollWidth, start: vertical ? element.scrollTop : element.scrollLeft, overflow: element.ownerDocument.defaultView?.getComputedStyle(element)[vertical ? "overflowY" : "overflowX"] ?? "" };
+    if (!this.current || this.current.container !== next.container || this.current.content !== next.content || this.current.start !== next.start || this.current.overflow !== next.overflow) { this.current = Object.freeze(next); }
+    return this.current;
+  };
+  subscribe = (listener: () => void) => {
+    this.element.addEventListener("scroll", listener);
+    return () => this.element.removeEventListener("scroll", listener);
+  };
+}
+
 export function VirtualScrollBar(props: {
   element: HTMLElement;
   axis: "horizontal" | "vertical";
@@ -16,11 +31,8 @@ export function VirtualScrollBar(props: {
   const studioCtx = useStudioCtx();
   const trackRef = React.useRef<HTMLDivElement>(null);
   const thumbRef = React.useRef<HTMLDivElement>(null);
-  const [, forceUpdate] = React.useReducer((value) => value + 1, 0);
-  React.useEffect(() => {
-    element.addEventListener("scroll", forceUpdate);
-    return () => element.removeEventListener("scroll", forceUpdate);
-  }, [element]);
+  const metricsSource = React.useMemo(() => new ScrollMetrics(element, axis), [element, axis]);
+  const metrics = React.useSyncExternalStore(metricsSource.subscribe, metricsSource.read, metricsSource.read);
 
   const containerSizeProp =
     axis === "vertical" ? "clientHeight" : "clientWidth";
@@ -29,14 +41,10 @@ export function VirtualScrollBar(props: {
   const deltaProp = axis === "vertical" ? "deltaY" : "deltaX";
   const thumbPositionProp = axis === "vertical" ? "top" : "left";
   const thumbSizeProp = axis === "vertical" ? "height" : "width";
-  const overflow =
-    element.ownerDocument.defaultView?.getComputedStyle(element)[
-      `overflow${axis === "vertical" ? "Y" : "X"}`
-    ];
 
   if (
-    element[containerSizeProp] >= element[contentSizeProp] ||
-    (overflow !== "auto" && overflow !== "scroll")
+    metrics.container >= metrics.content ||
+    (metrics.overflow !== "auto" && metrics.overflow !== "scroll")
   ) {
     return null;
   }
@@ -77,7 +85,7 @@ export function VirtualScrollBar(props: {
                 (newStart / element[contentSizeProp]) * 100
               }%`;
             }
-            element[contentStartProp] = newStart;
+            element.scrollTo(axis === "vertical" ? { top: newStart } : { left: newStart });
           }
         }}
       >
@@ -88,10 +96,10 @@ export function VirtualScrollBar(props: {
           )}
           style={{
             [thumbPositionProp]: `${
-              (element[contentStartProp] / element[contentSizeProp]) * 100
+              (metrics.start / metrics.content) * 100
             }%`,
             [thumbSizeProp]: `${
-              (element[containerSizeProp] / element[contentSizeProp]) * 100
+              (metrics.container / metrics.content) * 100
             }%`,
           }}
           ref={thumbRef}

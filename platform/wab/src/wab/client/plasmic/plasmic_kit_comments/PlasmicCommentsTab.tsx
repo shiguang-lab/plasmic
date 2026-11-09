@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -27,7 +27,7 @@ import { CommentsHeader } from "../../components/comments/CommentsHeader"; // pl
 import { ThreadList } from "../../components/comments/ThreadList"; // plasmic-import: nObxvgrqmfvo/component
 import ListSectionSeparator from "../../components/ListSectionSeparator"; // plasmic-import: uG5_fPM0sK/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -89,11 +89,10 @@ function PlasmicCommentsTab__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -258,12 +257,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -273,33 +268,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCommentsTab__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCommentsTab";
-  } else {
-    func.displayName = `PlasmicCommentsTab.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCommentsTab__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCommentsTab__root<T extends PlasmicCommentsTab__rootProps>(props: T & StrictProps<T, PlasmicCommentsTab__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCommentsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCommentsTab__root.displayName = "PlasmicCommentsTab";
+
+type PlasmicCommentsTab__currentSelectionSectionProps = NodeComponentProps<"currentSelectionSection"> & {key?: React.Key};
+function PlasmicCommentsTab__currentSelectionSection<T extends PlasmicCommentsTab__currentSelectionSectionProps>(props: T & StrictProps<T, PlasmicCommentsTab__currentSelectionSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("currentSelectionSection", props);
+  return <PlasmicCommentsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"currentSelectionSection"} />;
+}
+PlasmicCommentsTab__currentSelectionSection.displayName = "PlasmicCommentsTab.currentSelectionSection";
+
+type PlasmicCommentsTab__filterButtonProps = NodeComponentProps<"filterButton"> & {key?: React.Key};
+function PlasmicCommentsTab__filterButton<T extends PlasmicCommentsTab__filterButtonProps>(props: T & StrictProps<T, PlasmicCommentsTab__filterButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("filterButton", props);
+  return <PlasmicCommentsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"filterButton"} />;
+}
+PlasmicCommentsTab__filterButton.displayName = "PlasmicCommentsTab.filterButton";
+
+type PlasmicCommentsTab__notificationsButtonProps = NodeComponentProps<"notificationsButton"> & {key?: React.Key};
+function PlasmicCommentsTab__notificationsButton<T extends PlasmicCommentsTab__notificationsButtonProps>(props: T & StrictProps<T, PlasmicCommentsTab__notificationsButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("notificationsButton", props);
+  return <PlasmicCommentsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"notificationsButton"} />;
+}
+PlasmicCommentsTab__notificationsButton.displayName = "PlasmicCommentsTab.notificationsButton";
+
+type PlasmicCommentsTab__currentHeaderProps = NodeComponentProps<"currentHeader"> & {key?: React.Key};
+function PlasmicCommentsTab__currentHeader<T extends PlasmicCommentsTab__currentHeaderProps>(props: T & StrictProps<T, PlasmicCommentsTab__currentHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("currentHeader", props);
+  return <PlasmicCommentsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"currentHeader"} />;
+}
+PlasmicCommentsTab__currentHeader.displayName = "PlasmicCommentsTab.currentHeader";
+
+type PlasmicCommentsTab__currentThreadsProps = NodeComponentProps<"currentThreads"> & {key?: React.Key};
+function PlasmicCommentsTab__currentThreads<T extends PlasmicCommentsTab__currentThreadsProps>(props: T & StrictProps<T, PlasmicCommentsTab__currentThreadsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("currentThreads", props);
+  return <PlasmicCommentsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"currentThreads"} />;
+}
+PlasmicCommentsTab__currentThreads.displayName = "PlasmicCommentsTab.currentThreads";
+
+type PlasmicCommentsTab__restHeaderProps = NodeComponentProps<"restHeader"> & {key?: React.Key};
+function PlasmicCommentsTab__restHeader<T extends PlasmicCommentsTab__restHeaderProps>(props: T & StrictProps<T, PlasmicCommentsTab__restHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("restHeader", props);
+  return <PlasmicCommentsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"restHeader"} />;
+}
+PlasmicCommentsTab__restHeader.displayName = "PlasmicCommentsTab.restHeader";
+
+type PlasmicCommentsTab__restThreadsProps = NodeComponentProps<"restThreads"> & {key?: React.Key};
+function PlasmicCommentsTab__restThreads<T extends PlasmicCommentsTab__restThreadsProps>(props: T & StrictProps<T, PlasmicCommentsTab__restThreadsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("restThreads", props);
+  return <PlasmicCommentsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"restThreads"} />;
+}
+PlasmicCommentsTab__restThreads.displayName = "PlasmicCommentsTab.restThreads";
+
 
 export const PlasmicCommentsTab = Object.assign(
   // Top-level PlasmicCommentsTab renders the root element
-  makeNodeComponent("root"),
+  PlasmicCommentsTab__root,
   {
     // Helper components rendering sub-elements
-    currentSelectionSection: makeNodeComponent("currentSelectionSection"),
-    filterButton: makeNodeComponent("filterButton"),
-    notificationsButton: makeNodeComponent("notificationsButton"),
-    currentHeader: makeNodeComponent("currentHeader"),
-    currentThreads: makeNodeComponent("currentThreads"),
-    restHeader: makeNodeComponent("restHeader"),
-    restThreads: makeNodeComponent("restThreads"),
+    currentSelectionSection: PlasmicCommentsTab__currentSelectionSection,
+    filterButton: PlasmicCommentsTab__filterButton,
+    notificationsButton: PlasmicCommentsTab__notificationsButton,
+    currentHeader: PlasmicCommentsTab__currentHeader,
+    currentThreads: PlasmicCommentsTab__currentThreads,
+    restHeader: PlasmicCommentsTab__restHeader,
+    restThreads: PlasmicCommentsTab__restThreads,
 
     // Metadata about props expected for PlasmicCommentsTab
     internalVariantProps: PlasmicCommentsTab__VariantProps,

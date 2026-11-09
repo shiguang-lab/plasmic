@@ -1,4 +1,6 @@
 import type { LocalEditSession } from "@/wab/client/copilot/local-edit-session";
+import { cloneDeepWith } from "lodash";
+import * as React from "react";
 
 /** The UI reads a snapshot; execution and authenticated requests stay in the top frame. */
 export type AiSessionView = Pick<
@@ -21,6 +23,9 @@ export type AiSessionView = Pick<
   | "searchThreads"
   | "updateThread"
   | "setThreadAttachments"
+  | "setThreadDraft"
+  | "setThreadScroll"
+  | "setSelectedModel"
   | "error"
   | "syncError"
   | "before"
@@ -40,8 +45,8 @@ export type AiSessionView = Pick<
   | "undo"
 >;
 
-export type AiSessionSnapshot = Pick<
-  AiSessionView,
+export type AiSessionSnapshot = Readonly<Pick<
+  LocalEditSession,
   | "tasks"
   | "activeThreadId"
   | "branchId"
@@ -58,7 +63,7 @@ export type AiSessionSnapshot = Pick<
   | "draft"
   | "selectedModel"
   | "running"
-> & { stoppable: string[]; undoable: string[] };
+>> & { readonly stoppable: string[]; readonly undoable: string[] };
 
 type ActionName =
   | "run"
@@ -82,7 +87,7 @@ export type AiSessionAction =
   | { type: "model"; value: string | undefined };
 
 export function snapshotAiSession(session: AiSessionView): AiSessionSnapshot {
-  return {
+  return Object.freeze(cloneDeepWith({
     tasks: session.tasks,
     activeThreadId: session.activeThreadId,
     branchId: session.branchId,
@@ -106,6 +111,16 @@ export function snapshotAiSession(session: AiSessionView): AiSessionSnapshot {
       .flatMap((task) => task.records)
       .filter((record) => session.canUndo(record))
       .map((record) => record.id),
+  }, (value) => value instanceof Error ? value : undefined));
+}
+
+export function useAiSessionSnapshot(session: AiSessionView) {
+  const value = React.useSyncExternalStore(session.subscribe, session.snapshot, session.snapshot);
+  return {
+    ...value,
+    visibleTasks: value.tasks.filter((task) => task.threadId === value.activeThreadId),
+    activeRun: value.tasks.find((task) => task.status === "running"),
+    blockingTask: value.tasks.find((task) => task.status === "running" || task.needsReconciliation),
   };
 }
 
@@ -121,7 +136,7 @@ export async function applyAiSessionAction(
       session.setThreadScroll(action.threadId, action.value);
       return;
     case "model":
-      session.selectedModel = action.value;
+      session.setSelectedModel(action.value);
       return;
     case "run":
       return session.run(...action.args);

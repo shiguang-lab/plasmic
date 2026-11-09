@@ -42,7 +42,7 @@ export const handler = {
   },
   useHook:
     ({ fetch }: MutationHookContext<RemoveItemHook>) =>
-    () => {
+    function useRemoveItemHandler() {
       const { mutate } = useCart();
 
       return useCallback(

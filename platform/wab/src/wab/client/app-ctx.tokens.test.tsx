@@ -45,7 +45,7 @@ it.each([
   "invalidates only after %s succeeds and preserves the API result",
   async (method) => {
     const { appCtx, api } = fakeAppCtx();
-    const ops = new AppOps({ appCtx });
+    const ops = new AppOps(appCtx);
     appCtx.setPersonalApiTokens([
       { token: "existing", createdDate: new Date(100) },
     ]);

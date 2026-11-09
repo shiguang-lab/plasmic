@@ -2,7 +2,9 @@ import { showError } from "@/wab/client/ErrorNotifications";
 import { elementSchemaToTplAndLogErrors } from "@/wab/client/code-components/code-components";
 import { getUiLocale } from "@/wab/client/i18n";
 import { translate } from "@/wab/client/i18n/locales";
+import { HOSTLESS_PKGS_KEY } from "@/wab/client/studio-ctx/hostless-pkgs-state";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { modelKeys } from "@/wab/shared/model-revisions";
 import { withoutNils } from "@/wab/shared/common";
 import {
   CodeComponent,
@@ -11,7 +13,6 @@ import {
 import { TplComponent } from "@/wab/shared/model/classes";
 import { CodeComponentElement } from "@plasmicapp/host/dist/element-types";
 import { notification } from "antd";
-import { computedFn } from "mobx-utils";
 
 export interface Preset {
   name: string;
@@ -19,7 +20,41 @@ export interface Preset {
   screenshot?: string;
 }
 
-export const getComponentPresets = computedFn(function getComponentPresets(
+/**
+ * Component templates registered by a code component, converted to tpl.
+ *
+ * Replaces a MobX `computedFn`. The result depends on the component, the site
+ * (template → tpl conversion) and the installed hostless packages (which supply
+ * the registration meta), so it is cached per component and invalidated by those
+ * two revisions. Render sites must use `useComponentPresets`, which subscribes to
+ * the same keys.
+ */
+const presetsCache = new WeakMap<
+  StudioCtx,
+  WeakMap<CodeComponent, { site: StudioCtx["site"]; signature: string; value: Preset[] }>
+>();
+
+function presetsSignature(studio: StudioCtx): string {
+  return `${studio.modelRevisions.getModelRevision(modelKeys.site)}:${studio.modelRevisions.getModelRevision(HOSTLESS_PKGS_KEY)}:${studio.getCodeRegistrationRevision()}`;
+}
+
+export function getComponentPresets(
+  studioCtx: StudioCtx,
+  component: CodeComponent,
+): Preset[] {
+  const signature = presetsSignature(studioCtx);
+  let cache = presetsCache.get(studioCtx);
+  if (!cache) { cache = new WeakMap(); presetsCache.set(studioCtx, cache); }
+  const cached = cache.get(component);
+  if (cached && cached.site === studioCtx.site && cached.signature === signature) {
+    return cached.value;
+  }
+  const value = computeComponentPresets(studioCtx, component);
+  cache.set(component, { site: studioCtx.site, signature, value });
+  return value;
+}
+
+function computeComponentPresets(
   studioCtx: StudioCtx,
   component: CodeComponent,
 ): Preset[] {
@@ -67,4 +102,4 @@ export const getComponentPresets = computedFn(function getComponentPresets(
       };
     }),
   );
-});
+}

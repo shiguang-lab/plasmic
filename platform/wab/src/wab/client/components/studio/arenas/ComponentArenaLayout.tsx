@@ -1,5 +1,8 @@
+import { DedicatedArenaInputs, useDedicatedArenaInputs } from "@/wab/client/components/studio/arenas/dedicated-arena-inputs";
+import { useStore } from "zustand";
+import { useVariantComboFrameInputs } from "@/wab/client/components/studio/arenas/variant-combo-frame-inputs";
 import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
-import { useVariantsControllerInputs } from "@/wab/client/studio-ctx/variant-state";
+import { useVariantsController } from "@/wab/client/studio-ctx/variant-controller-inputs";
 import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { maybeShowContextMenu } from "@/wab/client/components/ContextMenu";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
@@ -11,7 +14,6 @@ import {
 } from "@/wab/client/components/studio/arenas/GhostFrame";
 import { GridFramesLayout } from "@/wab/client/components/studio/arenas/GridFramesLayout";
 import { VariantComboPicker } from "@/wab/client/components/variants/VariantComboPicker";
-import { makeVariantsController } from "@/wab/client/components/variants/VariantsController";
 import {
   EditableLabel,
   EditableLabelHandles,
@@ -65,18 +67,25 @@ import {
 } from "@/wab/shared/model/classes";
 import { Button, Form, Menu, Popover } from "antd";
 import cn from "classnames";
-import { observer } from "mobx-react";
 import React, { useLayoutEffect, useRef } from "react";
 
-export const ComponentArenaLayout = observer(
-  function ComponentArenaLayout(props: {
-    studioCtx: StudioCtx;
-    arena: ComponentArena;
-    onFrameLoad: (frame: ArenaFrame, canvasCtx: CanvasCtx) => void;
-  }) {
+interface ComponentArenaLayoutProps {
+  studioCtx: StudioCtx;
+  arena: ComponentArena;
+  onFrameLoad: (frame: ArenaFrame, canvasCtx: CanvasCtx) => void;
+}
+export const ComponentArenaLayout = React.memo(function ComponentArenaLayout(props: ComponentArenaLayoutProps) {
+  const inputs = useDedicatedArenaInputs(props.studioCtx, props.arena);
+  return inputs.isCurrent() ? <ComponentArenaLayoutContent {...props} inputs={inputs} snapshot={inputs.getSnapshot()} /> : null;
+});
+const ComponentArenaLayoutContent = React.memo(
+  function ComponentArenaLayoutContent(props: ComponentArenaLayoutProps & { inputs: DedicatedArenaInputs; snapshot: readonly unknown[] }) {
     const { t: uiT } = useI18n();
     const { studioCtx, arena, onFrameLoad } = props;
   const viewportZoom = useCanvasZoom(studioCtx);
+    const { inputs } = props;
+    const requestedGroup = useStore(studioCtx.variantGroupEditingStore);
+    const ghostFrameRef = useRef<GhostFrameRef>(null);
     const component = arena.component;
 
     const componentVariants = allComponentVariants(component);
@@ -97,6 +106,7 @@ export const ComponentArenaLayout = observer(
     const handleRowLabelChanged = (row: ArenaFrameRow) => (newName: string) => {
       spawn(
         studioCtx.changeUnsafe(() => {
+          if (!inputs.isCurrent()) { return; }
           if (isKnownVariantGroup(row.rowKey)) {
             studioCtx.siteOps().tryRenameVariantGroup(row.rowKey, newName);
 
@@ -119,18 +129,19 @@ export const ComponentArenaLayout = observer(
     >();
 
     useLayoutEffect(() => {
-      const variantGroupLabelRef =
-        studioCtx.latestVariantGroupCreated &&
-        variantGroupsEditableLabelRefs(studioCtx.latestVariantGroupCreated);
-
-      if (variantGroupLabelRef) {
-        variantGroupLabelRef.current?.setEditing(true);
-        studioCtx.latestVariantGroupCreated = undefined;
+      if (!requestedGroup || !inputs.isCurrent()) { return; }
+      const group = studioCtx.modelSnapshots.resolve(requestedGroup);
+      if (!arena.matrix.rows.some((row) => row.rowKey === group)) { return; }
+      const label = variantGroupsEditableLabelRefs(group);
+      if (label?.current) {
+        label.current.setEditing(true);
+        studioCtx.consumeVariantGroupEditing(requestedGroup);
       }
-    }, [studioCtx.latestVariantGroupCreated]);
+    }, [requestedGroup, inputs, arena, studioCtx, variantGroupsEditableLabelRefs]);
 
     const handleAddToggleVariant = () =>
       studioCtx.changeUnsafe(() =>
+        inputs.isCurrent() &&
         studioCtx
           .siteOps()
           .createVariantGroup(component, VariantOptionsType.standalone),
@@ -138,6 +149,7 @@ export const ComponentArenaLayout = observer(
 
     const handleAddSingleSelectVariantGroup = () =>
       studioCtx.changeUnsafe(() =>
+        inputs.isCurrent() &&
         studioCtx
           .siteOps()
           .createVariantGroup(component, VariantOptionsType.singleChoice),
@@ -145,6 +157,7 @@ export const ComponentArenaLayout = observer(
 
     const handleAddMultiSelectVariantGroup = () =>
       studioCtx.changeUnsafe(() =>
+        inputs.isCurrent() &&
         studioCtx
           .siteOps()
           .createVariantGroup(component, VariantOptionsType.multiChoice),
@@ -152,6 +165,7 @@ export const ComponentArenaLayout = observer(
 
     const handleAddVariantToGroup = (group: VariantGroup) => () =>
       studioCtx.changeUnsafe(() => {
+          if (!inputs.isCurrent()) { return; }
         if (isGlobalVariantGroup(group)) {
           studioCtx.siteOps().createGlobalVariant(group);
         } else {
@@ -161,6 +175,7 @@ export const ComponentArenaLayout = observer(
 
     const handleAddResponsiveBreakpoints = () =>
       studioCtx.changeUnsafe(() =>
+        inputs.isCurrent() &&
         studioCtx.switchLeftTab("responsiveness", {
           highlight: true,
         }),
@@ -171,9 +186,10 @@ export const ComponentArenaLayout = observer(
       (it) => isKnownVariantGroup(it.rowKey) && isScreenVariantGroup(it.rowKey),
     );
 
-    useVariantsControllerInputs(studioCtx);
-    const vController = makeVariantsController(studioCtx);
+    const variantInput = useVariantsController(studioCtx);
+    const vController = variantInput?.commands;
     const tplRoot = component.tplTree;
+    if (!inputs.isCurrent()) { return null; }
     return (
       <div>
         <GridFramesLayout
@@ -253,16 +269,17 @@ export const ComponentArenaLayout = observer(
                   width={framesWidth}
                   height={framesHeight}
                   onClick={() =>
-                    studioCtx.changeUnsafe(() =>
-                      isTplCodeComponent(tplRoot)
+                    studioCtx.changeUnsafe(() => {
+                      if (!inputs.isCurrent()) { return; }
+                      return isTplCodeComponent(tplRoot)
                         ? studioCtx
                             .siteOps()
                             .createCodeComponentVariant(
                               component,
                               tplRoot.component.name,
                             )
-                        : studioCtx.siteOps().createStyleVariant(component),
-                    )
+                        : studioCtx.siteOps().createStyleVariant(component);
+                    })
                   }
                   data-event="component-arena-add-interaction-variant"
                 />
@@ -302,8 +319,6 @@ export const ComponentArenaLayout = observer(
             }
           }}
           gridEndControls={() => {
-            const ghostFrameRef = useRef<GhostFrameRef>(null);
-
             return (
               <GhostFrame
                 ref={ghostFrameRef}
@@ -355,6 +370,7 @@ export const ComponentArenaLayout = observer(
                               key={it.variant.uuid}
                               onClick={async () =>
                                 studioCtx.changeUnsafe(() =>
+        inputs.isCurrent() &&
                                   vController?.onClickVariant(it.variant),
                                 )
                               }
@@ -405,7 +421,7 @@ export const ComponentArenaLayout = observer(
   },
 );
 
-export const VariantComboGhostFrame = observer(
+export const VariantComboGhostFrame = React.memo(
   function VariantComboGhostFrame(props: {
     studioCtx: StudioCtx;
     arena: ComponentArena | PageArena;
@@ -415,8 +431,11 @@ export const VariantComboGhostFrame = observer(
     const { studioCtx, arena } = props;
     const [visible, setVisible] = React.useState(false);
 
-    const framesHeight = useFrameHeight(studioCtx, arena.matrix.rows[0]?.cols[0]?.frame);
-    const framesWidth = arena.matrix.rows[0]?.cols[0]?.frame.width;
+    const inputs = useVariantComboFrameInputs(studioCtx, arena);
+    const framesHeight = useFrameHeight(studioCtx, inputs.frame);
+    const framesWidth = inputs.width;
+    if (!inputs.alive || !inputs.component) { return null; }
+    const component = inputs.component;
 
     return (
       <Popover
@@ -427,13 +446,15 @@ export const VariantComboGhostFrame = observer(
         placement="right"
         content={() => (
           <VariantComboForm
-            site={studioCtx.site}
-            component={arena.component}
+            key={component.uuid}
+            site={inputs.site}
+            component={component}
             onSubmit={(combo) =>
-              studioCtx.changeUnsafe(() => {
-                if (combo) {
+              inputs.isCurrent() && arena.component === component && studioCtx.changeUnsafe(() => {
+          if (!inputs.isCurrent()) { return; }
+                if (combo && inputs.isCurrent()) {
                   const frame = ensureCustomFrameForActivatedVariants(
-                    studioCtx.site,
+                    inputs.site,
                     arena,
                     new Set(combo),
                   );

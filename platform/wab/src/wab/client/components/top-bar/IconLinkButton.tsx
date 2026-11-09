@@ -72,8 +72,7 @@ export function IconLinkButton(props: IconLinkButtonProps) {
     "icon-link-btn icon-link-btn--inverse": true,
     "icon-link-btn--active": isActive,
     "icon-link-btn--disabled": props.disabled,
-    [className || ""]: true,
-  });
+  }, className);
 
   if (props.onClick && menu) {
     // Two buttons if there's both an onClick (default action) and a menu

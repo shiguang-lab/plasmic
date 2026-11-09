@@ -7,8 +7,8 @@ import { LayoutSection } from "@/wab/client/components/sidebar-tabs/LayoutSectio
 import { SizeSection } from "@/wab/client/components/sidebar-tabs/SizeSection";
 import { SpacingSection } from "@/wab/client/components/sidebar-tabs/SpacingSection";
 import {
-  mkStyleComponent,
-  providesStyleComponent,
+  createStyleTarget,
+  providesStyleTarget,
   SingleRsExpsProvider,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import {
@@ -45,8 +45,8 @@ const InitialsForm = function InitialsForm(props: {
     ["display", "flex-direction"],
     { kind: "ruleSet", rs, forTag: "div" },
   ), [rs, studioCtx]);
-  return providesStyleComponent(
-    mkStyleComponent({ expsProvider }),
+  return providesStyleTarget(
+    createStyleTarget({ expsProvider }),
     `${rs.uid}`,
   )(
     <>

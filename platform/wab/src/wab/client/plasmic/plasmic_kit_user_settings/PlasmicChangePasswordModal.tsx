@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   StrictProps,
   classNames,
@@ -23,14 +23,14 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import PasswordStrengthBar from "../../components/PasswordStrengthBar"; // plasmic-import: m5hJqED4tX/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aaggSgVS8yYsAwQffVQB4p/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aaggSgVS8yYsAwQffVQB4p/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -101,11 +101,10 @@ function PlasmicChangePasswordModal__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isFeedback",
@@ -120,18 +119,20 @@ function PlasmicChangePasswordModal__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.hasError,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -336,12 +337,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -351,33 +348,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicChangePasswordModal__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicChangePasswordModal";
-  } else {
-    func.displayName = `PlasmicChangePasswordModal.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicChangePasswordModal__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicChangePasswordModal__root<T extends PlasmicChangePasswordModal__rootProps>(props: T & StrictProps<T, PlasmicChangePasswordModal__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicChangePasswordModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicChangePasswordModal__root.displayName = "PlasmicChangePasswordModal";
+
+type PlasmicChangePasswordModal__formProps = NodeComponentProps<"form"> & {key?: React.Key};
+function PlasmicChangePasswordModal__form<T extends PlasmicChangePasswordModal__formProps>(props: T & StrictProps<T, PlasmicChangePasswordModal__formProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("form", props);
+  return <PlasmicChangePasswordModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"form"} />;
+}
+PlasmicChangePasswordModal__form.displayName = "PlasmicChangePasswordModal.form";
+
+type PlasmicChangePasswordModal__oldPasswordInputProps = NodeComponentProps<"oldPasswordInput"> & {key?: React.Key};
+function PlasmicChangePasswordModal__oldPasswordInput<T extends PlasmicChangePasswordModal__oldPasswordInputProps>(props: T & StrictProps<T, PlasmicChangePasswordModal__oldPasswordInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("oldPasswordInput", props);
+  return <PlasmicChangePasswordModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"oldPasswordInput"} />;
+}
+PlasmicChangePasswordModal__oldPasswordInput.displayName = "PlasmicChangePasswordModal.oldPasswordInput";
+
+type PlasmicChangePasswordModal__newPasswordInputProps = NodeComponentProps<"newPasswordInput"> & {key?: React.Key};
+function PlasmicChangePasswordModal__newPasswordInput<T extends PlasmicChangePasswordModal__newPasswordInputProps>(props: T & StrictProps<T, PlasmicChangePasswordModal__newPasswordInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newPasswordInput", props);
+  return <PlasmicChangePasswordModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newPasswordInput"} />;
+}
+PlasmicChangePasswordModal__newPasswordInput.displayName = "PlasmicChangePasswordModal.newPasswordInput";
+
+type PlasmicChangePasswordModal__passwordStrengthBarProps = NodeComponentProps<"passwordStrengthBar"> & {key?: React.Key};
+function PlasmicChangePasswordModal__passwordStrengthBar<T extends PlasmicChangePasswordModal__passwordStrengthBarProps>(props: T & StrictProps<T, PlasmicChangePasswordModal__passwordStrengthBarProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("passwordStrengthBar", props);
+  return <PlasmicChangePasswordModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"passwordStrengthBar"} />;
+}
+PlasmicChangePasswordModal__passwordStrengthBar.displayName = "PlasmicChangePasswordModal.passwordStrengthBar";
+
+type PlasmicChangePasswordModal__confirmPasswordInputProps = NodeComponentProps<"confirmPasswordInput"> & {key?: React.Key};
+function PlasmicChangePasswordModal__confirmPasswordInput<T extends PlasmicChangePasswordModal__confirmPasswordInputProps>(props: T & StrictProps<T, PlasmicChangePasswordModal__confirmPasswordInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("confirmPasswordInput", props);
+  return <PlasmicChangePasswordModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"confirmPasswordInput"} />;
+}
+PlasmicChangePasswordModal__confirmPasswordInput.displayName = "PlasmicChangePasswordModal.confirmPasswordInput";
+
+type PlasmicChangePasswordModal__submitButtonProps = NodeComponentProps<"submitButton"> & {key?: React.Key};
+function PlasmicChangePasswordModal__submitButton<T extends PlasmicChangePasswordModal__submitButtonProps>(props: T & StrictProps<T, PlasmicChangePasswordModal__submitButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("submitButton", props);
+  return <PlasmicChangePasswordModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"submitButton"} />;
+}
+PlasmicChangePasswordModal__submitButton.displayName = "PlasmicChangePasswordModal.submitButton";
+
+type PlasmicChangePasswordModal__feedbackProps = NodeComponentProps<"feedback"> & {key?: React.Key};
+function PlasmicChangePasswordModal__feedback<T extends PlasmicChangePasswordModal__feedbackProps>(props: T & StrictProps<T, PlasmicChangePasswordModal__feedbackProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("feedback", props);
+  return <PlasmicChangePasswordModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"feedback"} />;
+}
+PlasmicChangePasswordModal__feedback.displayName = "PlasmicChangePasswordModal.feedback";
+
 
 export const PlasmicChangePasswordModal = Object.assign(
   // Top-level PlasmicChangePasswordModal renders the root element
-  makeNodeComponent("root"),
+  PlasmicChangePasswordModal__root,
   {
     // Helper components rendering sub-elements
-    form: makeNodeComponent("form"),
-    oldPasswordInput: makeNodeComponent("oldPasswordInput"),
-    newPasswordInput: makeNodeComponent("newPasswordInput"),
-    passwordStrengthBar: makeNodeComponent("passwordStrengthBar"),
-    confirmPasswordInput: makeNodeComponent("confirmPasswordInput"),
-    submitButton: makeNodeComponent("submitButton"),
-    feedback: makeNodeComponent("feedback"),
+    form: PlasmicChangePasswordModal__form,
+    oldPasswordInput: PlasmicChangePasswordModal__oldPasswordInput,
+    newPasswordInput: PlasmicChangePasswordModal__newPasswordInput,
+    passwordStrengthBar: PlasmicChangePasswordModal__passwordStrengthBar,
+    confirmPasswordInput: PlasmicChangePasswordModal__confirmPasswordInput,
+    submitButton: PlasmicChangePasswordModal__submitButton,
+    feedback: PlasmicChangePasswordModal__feedback,
 
     // Metadata about props expected for PlasmicChangePasswordModal
     internalVariantProps: PlasmicChangePasswordModal__VariantProps,

@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -29,8 +29,8 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -52,7 +52,7 @@ import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRm
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6CrqkTcB6gSAHoA8c8zpNz/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6CrqkTcB6gSAHoA8c8zpNz/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -164,11 +164,10 @@ function PlasmicTopBar__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "mode",
@@ -202,26 +201,25 @@ function PlasmicTopBar__RenderFunc(props: {
           $props.plasmicAdminMode,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isN3650307Hover, triggerN3650307HoverProps] = useTrigger(
-    "useHover",
-    {}
-  );
+  const [isN3650307Hover, triggerN3650307HoverProps] = useHover();
   const triggers = {
     hover_3650307: isN3650307Hover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -390,9 +388,9 @@ function PlasmicTopBar__RenderFunc(props: {
                 role={"img"}
               />
             }
-            onChange={async (...eventArgs: any) => {
+            onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
               ((...eventArgs) => {
-                generateStateOnChangeProp($state, ["previewSelect", "value"])(
+                generateStateOnChangeProp($stateCommands, ["previewSelect", "value"])(
                   eventArgs[0]
                 );
               }).apply(null, eventArgs);
@@ -404,7 +402,7 @@ function PlasmicTopBar__RenderFunc(props: {
               ) {
                 return;
               }
-            }}
+            })); })}
             placeholder={
               <div className={classNames("all", "__wab_text", sty.text__yJyck)}>
                 {<UiText message={"Select…"} />}
@@ -911,12 +909,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -926,55 +920,253 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTopBar__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTopBar";
-  } else {
-    func.displayName = `PlasmicTopBar.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTopBar__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTopBar__root<T extends PlasmicTopBar__rootProps>(props: T & StrictProps<T, PlasmicTopBar__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTopBar__root.displayName = "PlasmicTopBar";
+
+type PlasmicTopBar__leftProps = NodeComponentProps<"left"> & {key?: React.Key};
+function PlasmicTopBar__left<T extends PlasmicTopBar__leftProps>(props: T & StrictProps<T, PlasmicTopBar__leftProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("left", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"left"} />;
+}
+PlasmicTopBar__left.displayName = "PlasmicTopBar.left";
+
+type PlasmicTopBar__logoLinkProps = NodeComponentProps<"logoLink"> & {key?: React.Key};
+function PlasmicTopBar__logoLink<T extends PlasmicTopBar__logoLinkProps>(props: T & StrictProps<T, PlasmicTopBar__logoLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("logoLink", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"logoLink"} />;
+}
+PlasmicTopBar__logoLink.displayName = "PlasmicTopBar.logoLink";
+
+type PlasmicTopBar__titleSegmentProps = NodeComponentProps<"titleSegment"> & {key?: React.Key};
+function PlasmicTopBar__titleSegment<T extends PlasmicTopBar__titleSegmentProps>(props: T & StrictProps<T, PlasmicTopBar__titleSegmentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("titleSegment", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"titleSegment"} />;
+}
+PlasmicTopBar__titleSegment.displayName = "PlasmicTopBar.titleSegment";
+
+type PlasmicTopBar__projectTitleProps = NodeComponentProps<"projectTitle"> & {key?: React.Key};
+function PlasmicTopBar__projectTitle<T extends PlasmicTopBar__projectTitleProps>(props: T & StrictProps<T, PlasmicTopBar__projectTitleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("projectTitle", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"projectTitle"} />;
+}
+PlasmicTopBar__projectTitle.displayName = "PlasmicTopBar.projectTitle";
+
+type PlasmicTopBar__projectMenuProps = NodeComponentProps<"projectMenu"> & {key?: React.Key};
+function PlasmicTopBar__projectMenu<T extends PlasmicTopBar__projectMenuProps>(props: T & StrictProps<T, PlasmicTopBar__projectMenuProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("projectMenu", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"projectMenu"} />;
+}
+PlasmicTopBar__projectMenu.displayName = "PlasmicTopBar.projectMenu";
+
+type PlasmicTopBar__saveIndicatorProps = NodeComponentProps<"saveIndicator"> & {key?: React.Key};
+function PlasmicTopBar__saveIndicator<T extends PlasmicTopBar__saveIndicatorProps>(props: T & StrictProps<T, PlasmicTopBar__saveIndicatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("saveIndicator", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"saveIndicator"} />;
+}
+PlasmicTopBar__saveIndicator.displayName = "PlasmicTopBar.saveIndicator";
+
+type PlasmicTopBar__branchSeparatorProps = NodeComponentProps<"branchSeparator"> & {key?: React.Key};
+function PlasmicTopBar__branchSeparator<T extends PlasmicTopBar__branchSeparatorProps>(props: T & StrictProps<T, PlasmicTopBar__branchSeparatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("branchSeparator", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"branchSeparator"} />;
+}
+PlasmicTopBar__branchSeparator.displayName = "PlasmicTopBar.branchSeparator";
+
+type PlasmicTopBar__branchSegmentProps = NodeComponentProps<"branchSegment"> & {key?: React.Key};
+function PlasmicTopBar__branchSegment<T extends PlasmicTopBar__branchSegmentProps>(props: T & StrictProps<T, PlasmicTopBar__branchSegmentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("branchSegment", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"branchSegment"} />;
+}
+PlasmicTopBar__branchSegment.displayName = "PlasmicTopBar.branchSegment";
+
+type PlasmicTopBar__branchSwitcherProps = NodeComponentProps<"branchSwitcher"> & {key?: React.Key};
+function PlasmicTopBar__branchSwitcher<T extends PlasmicTopBar__branchSwitcherProps>(props: T & StrictProps<T, PlasmicTopBar__branchSwitcherProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("branchSwitcher", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"branchSwitcher"} />;
+}
+PlasmicTopBar__branchSwitcher.displayName = "PlasmicTopBar.branchSwitcher";
+
+type PlasmicTopBar__arenaSeparatorProps = NodeComponentProps<"arenaSeparator"> & {key?: React.Key};
+function PlasmicTopBar__arenaSeparator<T extends PlasmicTopBar__arenaSeparatorProps>(props: T & StrictProps<T, PlasmicTopBar__arenaSeparatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("arenaSeparator", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"arenaSeparator"} />;
+}
+PlasmicTopBar__arenaSeparator.displayName = "PlasmicTopBar.arenaSeparator";
+
+type PlasmicTopBar__arenaSegmentProps = NodeComponentProps<"arenaSegment"> & {key?: React.Key};
+function PlasmicTopBar__arenaSegment<T extends PlasmicTopBar__arenaSegmentProps>(props: T & StrictProps<T, PlasmicTopBar__arenaSegmentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("arenaSegment", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"arenaSegment"} />;
+}
+PlasmicTopBar__arenaSegment.displayName = "PlasmicTopBar.arenaSegment";
+
+type PlasmicTopBar__arenaSwitcherProps = NodeComponentProps<"arenaSwitcher"> & {key?: React.Key};
+function PlasmicTopBar__arenaSwitcher<T extends PlasmicTopBar__arenaSwitcherProps>(props: T & StrictProps<T, PlasmicTopBar__arenaSwitcherProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("arenaSwitcher", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"arenaSwitcher"} />;
+}
+PlasmicTopBar__arenaSwitcher.displayName = "PlasmicTopBar.arenaSwitcher";
+
+type PlasmicTopBar__previewSelectProps = NodeComponentProps<"previewSelect"> & {key?: React.Key};
+function PlasmicTopBar__previewSelect<T extends PlasmicTopBar__previewSelectProps>(props: T & StrictProps<T, PlasmicTopBar__previewSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("previewSelect", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"previewSelect"} />;
+}
+PlasmicTopBar__previewSelect.displayName = "PlasmicTopBar.previewSelect";
+
+type PlasmicTopBar__variantsComboSelectProps = NodeComponentProps<"variantsComboSelect"> & {key?: React.Key};
+function PlasmicTopBar__variantsComboSelect<T extends PlasmicTopBar__variantsComboSelectProps>(props: T & StrictProps<T, PlasmicTopBar__variantsComboSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("variantsComboSelect", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"variantsComboSelect"} />;
+}
+PlasmicTopBar__variantsComboSelect.displayName = "PlasmicTopBar.variantsComboSelect";
+
+type PlasmicTopBar__centerLiveProps = NodeComponentProps<"centerLive"> & {key?: React.Key};
+function PlasmicTopBar__centerLive<T extends PlasmicTopBar__centerLiveProps>(props: T & StrictProps<T, PlasmicTopBar__centerLiveProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("centerLive", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"centerLive"} />;
+}
+PlasmicTopBar__centerLive.displayName = "PlasmicTopBar.centerLive";
+
+type PlasmicTopBar__rightProps = NodeComponentProps<"right"> & {key?: React.Key};
+function PlasmicTopBar__right<T extends PlasmicTopBar__rightProps>(props: T & StrictProps<T, PlasmicTopBar__rightProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("right", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"right"} />;
+}
+PlasmicTopBar__right.displayName = "PlasmicTopBar.right";
+
+type PlasmicTopBar__freeTrialProps = NodeComponentProps<"freeTrial"> & {key?: React.Key};
+function PlasmicTopBar__freeTrial<T extends PlasmicTopBar__freeTrialProps>(props: T & StrictProps<T, PlasmicTopBar__freeTrialProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeTrial", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeTrial"} />;
+}
+PlasmicTopBar__freeTrial.displayName = "PlasmicTopBar.freeTrial";
+
+type PlasmicTopBar__viewAsButtonProps = NodeComponentProps<"viewAsButton"> & {key?: React.Key};
+function PlasmicTopBar__viewAsButton<T extends PlasmicTopBar__viewAsButtonProps>(props: T & StrictProps<T, PlasmicTopBar__viewAsButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("viewAsButton", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"viewAsButton"} />;
+}
+PlasmicTopBar__viewAsButton.displayName = "PlasmicTopBar.viewAsButton";
+
+type PlasmicTopBar__zoomButtonProps = NodeComponentProps<"zoomButton"> & {key?: React.Key};
+function PlasmicTopBar__zoomButton<T extends PlasmicTopBar__zoomButtonProps>(props: T & StrictProps<T, PlasmicTopBar__zoomButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("zoomButton", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"zoomButton"} />;
+}
+PlasmicTopBar__zoomButton.displayName = "PlasmicTopBar.zoomButton";
+
+type PlasmicTopBar__viewButtonProps = NodeComponentProps<"viewButton"> & {key?: React.Key};
+function PlasmicTopBar__viewButton<T extends PlasmicTopBar__viewButtonProps>(props: T & StrictProps<T, PlasmicTopBar__viewButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("viewButton", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"viewButton"} />;
+}
+PlasmicTopBar__viewButton.displayName = "PlasmicTopBar.viewButton";
+
+type PlasmicTopBar__playProps = NodeComponentProps<"play"> & {key?: React.Key};
+function PlasmicTopBar__play<T extends PlasmicTopBar__playProps>(props: T & StrictProps<T, PlasmicTopBar__playProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("play", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"play"} />;
+}
+PlasmicTopBar__play.displayName = "PlasmicTopBar.play";
+
+type PlasmicTopBar__livePopOutButtonProps = NodeComponentProps<"livePopOutButton"> & {key?: React.Key};
+function PlasmicTopBar__livePopOutButton<T extends PlasmicTopBar__livePopOutButtonProps>(props: T & StrictProps<T, PlasmicTopBar__livePopOutButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("livePopOutButton", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"livePopOutButton"} />;
+}
+PlasmicTopBar__livePopOutButton.displayName = "PlasmicTopBar.livePopOutButton";
+
+type PlasmicTopBar__commentButtonProps = NodeComponentProps<"commentButton"> & {key?: React.Key};
+function PlasmicTopBar__commentButton<T extends PlasmicTopBar__commentButtonProps>(props: T & StrictProps<T, PlasmicTopBar__commentButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentButton", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentButton"} />;
+}
+PlasmicTopBar__commentButton.displayName = "PlasmicTopBar.commentButton";
+
+type PlasmicTopBar__aiButtonProps = NodeComponentProps<"aiButton"> & {key?: React.Key};
+function PlasmicTopBar__aiButton<T extends PlasmicTopBar__aiButtonProps>(props: T & StrictProps<T, PlasmicTopBar__aiButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("aiButton", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"aiButton"} />;
+}
+PlasmicTopBar__aiButton.displayName = "PlasmicTopBar.aiButton";
+
+type PlasmicTopBar__codeButtonProps = NodeComponentProps<"codeButton"> & {key?: React.Key};
+function PlasmicTopBar__codeButton<T extends PlasmicTopBar__codeButtonProps>(props: T & StrictProps<T, PlasmicTopBar__codeButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("codeButton", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"codeButton"} />;
+}
+PlasmicTopBar__codeButton.displayName = "PlasmicTopBar.codeButton";
+
+type PlasmicTopBar__shareButtonProps = NodeComponentProps<"shareButton"> & {key?: React.Key};
+function PlasmicTopBar__shareButton<T extends PlasmicTopBar__shareButtonProps>(props: T & StrictProps<T, PlasmicTopBar__shareButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("shareButton", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"shareButton"} />;
+}
+PlasmicTopBar__shareButton.displayName = "PlasmicTopBar.shareButton";
+
+type PlasmicTopBar__publishButtonProps = NodeComponentProps<"publishButton"> & {key?: React.Key};
+function PlasmicTopBar__publishButton<T extends PlasmicTopBar__publishButtonProps>(props: T & StrictProps<T, PlasmicTopBar__publishButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("publishButton", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"publishButton"} />;
+}
+PlasmicTopBar__publishButton.displayName = "PlasmicTopBar.publishButton";
+
+type PlasmicTopBar__stopProps = NodeComponentProps<"stop"> & {key?: React.Key};
+function PlasmicTopBar__stop<T extends PlasmicTopBar__stopProps>(props: T & StrictProps<T, PlasmicTopBar__stopProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("stop", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"stop"} />;
+}
+PlasmicTopBar__stop.displayName = "PlasmicTopBar.stop";
+
+type PlasmicTopBar__avatarProps = NodeComponentProps<"avatar"> & {key?: React.Key};
+function PlasmicTopBar__avatar<T extends PlasmicTopBar__avatarProps>(props: T & StrictProps<T, PlasmicTopBar__avatarProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("avatar", props);
+  return <PlasmicTopBar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"avatar"} />;
+}
+PlasmicTopBar__avatar.displayName = "PlasmicTopBar.avatar";
+
 
 export const PlasmicTopBar = Object.assign(
   // Top-level PlasmicTopBar renders the root element
-  makeNodeComponent("root"),
+  PlasmicTopBar__root,
   {
     // Helper components rendering sub-elements
-    left: makeNodeComponent("left"),
-    logoLink: makeNodeComponent("logoLink"),
-    titleSegment: makeNodeComponent("titleSegment"),
-    projectTitle: makeNodeComponent("projectTitle"),
-    projectMenu: makeNodeComponent("projectMenu"),
-    saveIndicator: makeNodeComponent("saveIndicator"),
-    branchSeparator: makeNodeComponent("branchSeparator"),
-    branchSegment: makeNodeComponent("branchSegment"),
-    branchSwitcher: makeNodeComponent("branchSwitcher"),
-    arenaSeparator: makeNodeComponent("arenaSeparator"),
-    arenaSegment: makeNodeComponent("arenaSegment"),
-    arenaSwitcher: makeNodeComponent("arenaSwitcher"),
-    previewSelect: makeNodeComponent("previewSelect"),
-    variantsComboSelect: makeNodeComponent("variantsComboSelect"),
-    centerLive: makeNodeComponent("centerLive"),
-    right: makeNodeComponent("right"),
-    freeTrial: makeNodeComponent("freeTrial"),
-    viewAsButton: makeNodeComponent("viewAsButton"),
-    zoomButton: makeNodeComponent("zoomButton"),
-    viewButton: makeNodeComponent("viewButton"),
-    play: makeNodeComponent("play"),
-    livePopOutButton: makeNodeComponent("livePopOutButton"),
-    commentButton: makeNodeComponent("commentButton"),
-    aiButton: makeNodeComponent("aiButton"),
-    codeButton: makeNodeComponent("codeButton"),
-    shareButton: makeNodeComponent("shareButton"),
-    publishButton: makeNodeComponent("publishButton"),
-    stop: makeNodeComponent("stop"),
-    avatar: makeNodeComponent("avatar"),
+    left: PlasmicTopBar__left,
+    logoLink: PlasmicTopBar__logoLink,
+    titleSegment: PlasmicTopBar__titleSegment,
+    projectTitle: PlasmicTopBar__projectTitle,
+    projectMenu: PlasmicTopBar__projectMenu,
+    saveIndicator: PlasmicTopBar__saveIndicator,
+    branchSeparator: PlasmicTopBar__branchSeparator,
+    branchSegment: PlasmicTopBar__branchSegment,
+    branchSwitcher: PlasmicTopBar__branchSwitcher,
+    arenaSeparator: PlasmicTopBar__arenaSeparator,
+    arenaSegment: PlasmicTopBar__arenaSegment,
+    arenaSwitcher: PlasmicTopBar__arenaSwitcher,
+    previewSelect: PlasmicTopBar__previewSelect,
+    variantsComboSelect: PlasmicTopBar__variantsComboSelect,
+    centerLive: PlasmicTopBar__centerLive,
+    right: PlasmicTopBar__right,
+    freeTrial: PlasmicTopBar__freeTrial,
+    viewAsButton: PlasmicTopBar__viewAsButton,
+    zoomButton: PlasmicTopBar__zoomButton,
+    viewButton: PlasmicTopBar__viewButton,
+    play: PlasmicTopBar__play,
+    livePopOutButton: PlasmicTopBar__livePopOutButton,
+    commentButton: PlasmicTopBar__commentButton,
+    aiButton: PlasmicTopBar__aiButton,
+    codeButton: PlasmicTopBar__codeButton,
+    shareButton: PlasmicTopBar__shareButton,
+    publishButton: PlasmicTopBar__publishButton,
+    stop: PlasmicTopBar__stop,
+    avatar: PlasmicTopBar__avatar,
 
     // Metadata about props expected for PlasmicTopBar
     internalVariantProps: PlasmicTopBar__VariantProps,

@@ -1,5 +1,8 @@
 import { registerPresentationProject } from "@/wab/client/route/presentation-projects";
 import { Root } from "@/wab/client/components/root-view";
+import * as projectEntryLoader from "@/wab/client/components/studio/project-entry-loader";
+import * as widgets from "@/wab/client/components/widgets";
+import type { NonAuthCtx } from "@/wab/client/app-ctx";
 import { HistoryProvider } from "@/wab/client/route/HistoryProvider";
 import { HttpError } from "@/wab/shared/ApiErrors/ApiError";
 import { ensure } from "@/wab/shared/common";
@@ -16,14 +19,16 @@ const mocks = vi.hoisted(() => ({
   loadAppCtx: vi.fn(),
   loadAppCtxData: vi.fn(),
   reportError: vi.fn(),
+  useHostFrameCtxIfHostFrame: vi.fn(),
 }));
 vi.mock("@/wab/client/components/normal-layout", () => ({
   NormalNonAuthLayout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   NormalLayout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
-vi.mock("@/wab/client/components/studio/view-initializer", () => ({
-  default: ({ projectId }: { projectId: string }) => <div data-testid="project-initializer">{projectId}</div>,
-}));
+vi.mock("@/wab/client/components/studio/view-initializer", () => {
+  const ViewInitializer = ({ projectId }: { projectId: string }) => <div data-testid="project-initializer">{projectId}</div>;
+  return { default: ViewInitializer, ViewInitializer };
+});
 vi.mock("@/wab/client/api", () => ({
   setUser: vi.fn(),
   Api: class {
@@ -44,7 +49,7 @@ vi.mock("@/wab/client/ErrorNotifications", async (importOriginal) => ({
   reportError: mocks.reportError,
 }));
 vi.mock("@/wab/client/frame-ctx/host-frame-ctx", () => ({
-  useHostFrameCtxIfHostFrame: () => null,
+  useHostFrameCtxIfHostFrame: mocks.useHostFrameCtxIfHostFrame,
 }));
 vi.mock("@/wab/client/components/ApplicationPageLoading", () => ({
   ApplicationPageLoading: ({ failure }) => (
@@ -63,6 +68,7 @@ vi.mock("@/wab/client/components/pages/ShiguangSignIn", () => ({
 }));
 
 beforeEach(() => {
+  mocks.useHostFrameCtxIfHostFrame.mockReturnValue(null);
   mocks.getSiteInfo.mockResolvedValue({});
   mocks.resolveProjectModel.mockResolvedValue({});
   mocks.getLastBundleVersion.mockResolvedValue({
@@ -78,6 +84,7 @@ beforeEach(() => {
 afterEach(() => {
   cleanup();
   vi.resetAllMocks();
+  vi.restoreAllMocks();
 });
 function setup(path = "/login") {
   render(
@@ -242,14 +249,121 @@ it("consumes the desktop opening response without repeating the project GET", as
 
 // Docs intentionally stays outside parseProjectLocation() so its component/icon
 // route does not change the canvas arena. The shared project entry still owns it.
+it("mounts the project entry while its model is still loading", async () => {
+  const history = createMemoryHistory({ initialEntries: ["/projects/project"] });
+  const startup = { selfInfo: null, appConfig: { config: {} }, appCtx: { teams: [], workspaces: [], perms: [] }, latestBundleVersion: "version", projectId: "project", branchName: "main", projectData: { projects: [], perms: [] }, hosts: { trustedHosts: [] }, branches: [] };
+  mocks.getProjectStartup.mockResolvedValue({ startup, rev: {}, depPkgs: [] });
+  mocks.resolveProjectModel.mockReturnValue(new Promise(() => undefined));
+  mocks.loadAppCtx.mockResolvedValue({ selfInfo: null, history, appConfig: { brands: {} } });
+  const mark = vi.spyOn(performance, "mark");
+  try {
+    render(<HistoryProvider history={history}><Root /></HistoryProvider>);
+    expect((await screen.findByTestId("project-initializer")).textContent).toBe("project");
+    expect(mocks.resolveProjectModel).toHaveBeenCalledOnce();
+    expect(mark).toHaveBeenCalledWith("studio-project-entry-import-ready");
+    expect(mark).toHaveBeenCalledWith("studio-project-entry-committed");
+    expect(screen.queryByRole("alert")).toBeNull();
+  } finally { mark.mockRestore(); }
+});
+
+it("releases Root's startup model after successful context initialization and preserves it for retry", async () => {
+  const history = createMemoryHistory({ initialEntries: ["/projects/project"] });
+  const startup = { selfInfo: null, appConfig: { config: {} }, appCtx: { teams: [], workspaces: [], perms: [] }, latestBundleVersion: "version", projectId: "project", branchName: "main", projectData: { projects: [], perms: [] }, hosts: { trustedHosts: [] }, branches: [] };
+  const model = Promise.resolve({ rev: {}, depPkgs: [] });
+  mocks.getProjectStartup.mockResolvedValue({ startup, rev: {}, depPkgs: [] });
+  mocks.resolveProjectModel.mockReturnValue(model);
+  let rootOwner: NonAuthCtx | undefined;
+  const Loadable = widgets.Loadable;
+  vi.spyOn(widgets, "Loadable").mockImplementation((props) => <Loadable {...props} contents={(value) => {
+    if (value && typeof value === "object" && "nonAuthCtx" in value) {
+      rootOwner = value.nonAuthCtx as NonAuthCtx;
+    }
+    return props.contents(value);
+  }} />);
+  mocks.loadAppCtx.mockRejectedValueOnce(new Error("Retry context initialization"));
+  mocks.loadAppCtx.mockImplementationOnce(async (owner: NonAuthCtx) => {
+    expect(owner).toBe(rootOwner);
+    expect(owner.initialProjectModel?.data).toBe(model);
+    owner.initialProjectInfo = undefined;
+    owner.initialProjectModel = undefined;
+    return { selfInfo: null, history, appConfig: { brands: {} } };
+  });
+  render(<HistoryProvider history={history}><Root /></HistoryProvider>);
+  await screen.findByRole("alert");
+  const owner = ensure(rootOwner, "Root's startup owner must be captured");
+  expect(mocks.loadAppCtx.mock.calls[0][0]).toBe(owner);
+  expect(owner.initialProjectInfo).toBe(startup);
+  expect(owner.initialProjectModel?.data).toBe(model);
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  await screen.findByTestId("project-initializer");
+  expect(owner.initialProjectInfo).toBeUndefined();
+  expect(owner.initialProjectModel).toBeUndefined();
+  expect(mocks.getProjectStartup).toHaveBeenCalledOnce();
+  expect(mocks.resolveProjectModel).toHaveBeenCalledOnce();
+});
+
 it.each(["", "/codegen/component/ComponentId", "/loader/icon/IconId"])(
   "resolves the project initializer for the Docs route %s",
   async (suffix) => {
     const history = createMemoryHistory({ initialEntries: [`/projects/project/docs${suffix}`] });
-    mocks.loadAppCtx.mockResolvedValue({ selfInfo: null, history });
+    mocks.loadAppCtx.mockResolvedValue({ selfInfo: null, history, appConfig: { brands: {} } });
     render(<HistoryProvider history={history}><Root /></HistoryProvider>);
     expect((await screen.findByTestId("project-initializer")).textContent).toBe("project");
     expect(history.location.pathname).toBe(`/projects/project/docs${suffix}`);
     expect(screen.queryByRole("alert")).toBeNull();
   },
 );
+
+
+it.each([false, true])("preloads the project entry before bootstrap completes in the host frame: %s", async (hostFrame) => {
+  const load = vi.spyOn(projectEntryLoader, "loadProjectEntry");
+  mocks.getProjectStartup.mockReturnValue(new Promise(() => undefined));
+  mocks.getLastBundleVersion.mockReturnValue(new Promise(() => undefined));
+  if (hostFrame) {
+    mocks.useHostFrameCtxIfHostFrame.mockReturnValue({ topFrameApi: { getLastBundleVersion: mocks.getLastBundleVersion } });
+  }
+  setup("/projects/project");
+  await waitFor(() => expect(load).toHaveBeenCalledOnce());
+  expect(mocks.loadAppCtx).not.toHaveBeenCalled();
+  expect(screen.queryByTestId("project-initializer")).toBeNull();
+  if (hostFrame) {
+    expect(mocks.loadAppCtxData).toHaveBeenCalledOnce();
+    expect(mocks.getProjectStartup).not.toHaveBeenCalled();
+  } else {
+    expect(mocks.getProjectStartup).toHaveBeenCalledOnce();
+  }
+});
+
+it("does not preload the Studio entry while Dashboard bootstrap is pending", async () => {
+  const load = vi.spyOn(projectEntryLoader, "loadProjectEntry");
+  mocks.getLastBundleVersion.mockReturnValue(new Promise(() => undefined));
+  setup("/");
+  await waitFor(() => expect(mocks.loadAppCtxData).toHaveBeenCalledOnce());
+  expect(load).not.toHaveBeenCalled();
+});
+
+it("lets the normal project loader report and retry an import after preload fails", async () => {
+  const load = vi.spyOn(projectEntryLoader, "loadProjectEntry")
+    .mockRejectedValueOnce(new Error("Speculative import unavailable"))
+    .mockRejectedValueOnce(new Error("Project import unavailable"));
+  const history = createMemoryHistory({ initialEntries: ["/projects/project"] });
+  const startup = { selfInfo: null, appConfig: { config: {} }, appCtx: { teams: [], workspaces: [], perms: [] }, latestBundleVersion: "version", projectId: "project", branchName: "main", projectData: { projects: [], perms: [] }, hosts: { trustedHosts: [] }, branches: [] };
+  const opening = { startup, rev: {}, depPkgs: [] };
+  let finishBootstrap!: (value: typeof opening) => void;
+  mocks.getProjectStartup.mockReturnValue(new Promise((resolve) => { finishBootstrap = resolve; }));
+  mocks.resolveProjectModel.mockReturnValue(new Promise(() => undefined));
+  mocks.loadAppCtx.mockResolvedValue({ selfInfo: null, history, appConfig: { brands: {} } });
+  render(<HistoryProvider history={history}><Root /></HistoryProvider>);
+  await waitFor(() => expect(load).toHaveBeenCalledOnce());
+  expect(screen.queryByRole("alert")).toBeNull();
+  expect(mocks.reportError).not.toHaveBeenCalled();
+  finishBootstrap(opening);
+  await screen.findByRole("alert");
+  expect(load).toHaveBeenCalledTimes(2);
+  expect(mocks.reportError).toHaveBeenCalledWith(expect.objectContaining({ message: "Project import unavailable" }));
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  expect((await screen.findByTestId("project-initializer")).textContent).toBe("project");
+  expect(load).toHaveBeenCalledTimes(3);
+  expect(mocks.getProjectStartup).toHaveBeenCalledOnce();
+  expect(mocks.loadAppCtx).toHaveBeenCalledOnce();
+});

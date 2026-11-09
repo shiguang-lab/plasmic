@@ -148,29 +148,6 @@ export function ListStack(props: {
   const allocations = useConstant(() =>
     createStore<Readonly<Record<string, number>>>(() => ({})),
   );
-  const sizeObserver = useConstant(
-    () =>
-      new ResizeObserver((entries) => {
-        // Only kick off space reallocation if any of the visible containers
-        // have changed size
-        if (
-          entries.some((entry) => (entry.target as HTMLElement).offsetParent)
-        ) {
-          delayedReallocateSpace();
-        }
-      }),
-  );
-
-  // Always observe the root element for size changes
-  React.useEffect(() => {
-    const rootElt = rootRef.current;
-    if (rootElt) {
-      sizeObserver.observe(rootElt);
-      return () => sizeObserver.unobserve(rootElt);
-    }
-    return undefined;
-  }, [sizeObserver]);
-
   const reallocateSpace = React.useCallback(() => {
     if (!rootRef.current) {
       return;
@@ -239,6 +216,30 @@ export function ListStack(props: {
   // then run the reallocation.  Unfortunately there's no such hook to make
   // that happen, so we resort to doing setTimeout() to do so.
   const delayedReallocateSpace = useBatchedDelayed(reallocateSpace);
+  const sizeObserver = useConstant(
+    () =>
+      new ResizeObserver((entries) => {
+        // Only kick off space reallocation if any of the visible containers
+        // have changed size
+        if (
+          entries.some((entry) => (entry.target as HTMLElement).offsetParent)
+        ) {
+          delayedReallocateSpace();
+        }
+      }),
+  );
+
+  // Always observe the root element for size changes
+  React.useEffect(() => {
+    const rootElt = rootRef.current;
+    if (rootElt) {
+      sizeObserver.observe(rootElt);
+      return () => sizeObserver.unobserve(rootElt);
+    }
+    return undefined;
+  }, [sizeObserver]);
+
+
 
   const requestSpace = React.useCallback(
     (id: string, opts: { space: number; minSpace?: number }) => {
@@ -295,7 +296,6 @@ export function ListStack(props: {
   );
 }
 
-let __nextSpaceId = 0;
 
 /**
  * Descendant element that will get space allocated to it by the ancestor
@@ -307,7 +307,7 @@ export function ListSpace(props: {
   minSpace?: number;
 }) {
   const ref = React.useRef<HTMLDivElement>(null);
-  const id = useConstant(() => `${__nextSpaceId++}`);
+  const id = React.useId();
   const context = useListStackContext();
   const isDisplayed = useDisplayed(ref);
 
@@ -333,26 +333,29 @@ export function ListSpace(props: {
     }
   }, [id, context, isDisplayed, requestedSpace, requestedMinSpace]);
 
-  // We keep track of the last space allocated to this container in lastSpaceRef.
+  // We keep track of the last space allocated to this container in lastSpace.
   // That way, if this container becomes undisplayed (ancestor has display:none),
   // and then displayed again, we will re-use the space allocated from last time
   // before the ListStack reallocates space again, thus avoiding a flash going
   // from 0 space to some space.
-  const lastSpaceRef = React.useRef(0);
+  const [lastSpace, setLastSpace] = React.useState(0);
   let allocatedSpace = useStore(context.allocations, (state) => state[id] ?? 0);
   if (allocatedSpace === 0 && requestedSpace > 0) {
-    allocatedSpace = lastSpaceRef.current;
+    allocatedSpace = lastSpace;
   }
 
-  if (isDisplayed && allocatedSpace > 0) {
-    lastSpaceRef.current = allocatedSpace;
-  }
+  React.useLayoutEffect(() => {
+    if (isDisplayed && allocatedSpace > 0) { setLastSpace(allocatedSpace); }
+  }, [isDisplayed, allocatedSpace]);
+
+  const { children } = props;
+  const content = React.useMemo(() => children({ height: allocatedSpace }), [children, allocatedSpace]);
 
   return (
     // The container space has height set to 100%, so that it will grow as more
     // space becomes available.
     <div ref={ref} className="list-space" style={{ height: "100%" }}>
-      {props.children({ height: allocatedSpace })}
+      {content}
     </div>
   );
 }

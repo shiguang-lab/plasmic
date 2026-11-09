@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,7 +25,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import InsertPanelTabItem from "../../components/insert-panel/InsertPanelTabItem"; // plasmic-import: iSztBTxncH/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 4B48dRthR8uGgyaBYpWthR/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 4B48dRthR8uGgyaBYpWthR/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -87,11 +87,10 @@ function PlasmicInsertPanelTabGroup__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -174,12 +173,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -189,27 +184,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicInsertPanelTabGroup__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicInsertPanelTabGroup";
-  } else {
-    func.displayName = `PlasmicInsertPanelTabGroup.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicInsertPanelTabGroup__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicInsertPanelTabGroup__root<T extends PlasmicInsertPanelTabGroup__rootProps>(props: T & StrictProps<T, PlasmicInsertPanelTabGroup__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicInsertPanelTabGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicInsertPanelTabGroup__root.displayName = "PlasmicInsertPanelTabGroup";
+
+type PlasmicInsertPanelTabGroup__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicInsertPanelTabGroup__freeBox<T extends PlasmicInsertPanelTabGroup__freeBoxProps>(props: T & StrictProps<T, PlasmicInsertPanelTabGroup__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicInsertPanelTabGroup__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicInsertPanelTabGroup__freeBox.displayName = "PlasmicInsertPanelTabGroup.freeBox";
+
 
 export const PlasmicInsertPanelTabGroup = Object.assign(
   // Top-level PlasmicInsertPanelTabGroup renders the root element
-  makeNodeComponent("root"),
+  PlasmicInsertPanelTabGroup__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
+    freeBox: PlasmicInsertPanelTabGroup__freeBox,
 
     // Metadata about props expected for PlasmicInsertPanelTabGroup
     internalVariantProps: PlasmicInsertPanelTabGroup__VariantProps,

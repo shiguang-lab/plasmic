@@ -1,3 +1,4 @@
+import { useStandaloneVariantInputs } from "@/wab/client/studio-ctx/variant-group-inputs";
 import { VariantLabel } from "@/wab/client/components/VariantControls";
 import VariantRow from "@/wab/client/components/variants/VariantRow";
 import {
@@ -15,7 +16,6 @@ import {
   ObjectPath,
 } from "@/wab/shared/model/classes";
 import { getPlumeVariantDef } from "@/wab/shared/plume/plume-registry";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
@@ -37,7 +37,7 @@ interface StandaloneVariantProps {
   onToggle?: () => void;
 }
 
-function StandaloneVariant_(props: StandaloneVariantProps) {
+export const StandaloneVariant = React.memo(function StandaloneVariant(props: StandaloneVariantProps) {
   const {
     studioCtx,
     component,
@@ -47,12 +47,13 @@ function StandaloneVariant_(props: StandaloneVariantProps) {
     onTarget,
     onToggle,
   } = props;
-  const ref = React.useRef<EditableLabelHandles>(null);
+  const [label, setLabel] = React.useState<EditableLabelHandles | null>(null);
   const tplMgr = studioCtx.tplMgr();
-  const plumeDef = getPlumeVariantDef(component, props.group.variants[0]);
-
-  const hasCodeExpression = !!props.group.param.defaultExpr;
+  const active = useStandaloneVariantInputs(studioCtx, component, props.group);
   const [visibleDataPicker, setVisibleDataPicker] = React.useState(false);
+  if (!active) { return null; }
+  const plumeDef = getPlumeVariantDef(component, props.group.variants[0]);
+  const hasCodeExpression = !!props.group.param.defaultExpr;
 
   return (
     <VariantRow
@@ -117,8 +118,8 @@ function StandaloneVariant_(props: StandaloneVariantProps) {
         onRename: () =>
           spawn(
             studioCtx.change(() => {
-              if (ref.current) {
-                ref.current.setEditing(true);
+              if (label) {
+                label.setEditing(true);
               }
               return ok();
             }),
@@ -168,7 +169,7 @@ function StandaloneVariant_(props: StandaloneVariantProps) {
       label={
         <>
           <VariantLabel
-            ref={ref}
+            ref={setLabel}
             doubleClickToEdit
             onRenamed={props.onRenamed}
             variant={props.group.variants[0]}
@@ -181,6 +182,4 @@ function StandaloneVariant_(props: StandaloneVariantProps) {
       isDragging={props.isDragging}
     />
   );
-}
-
-export const StandaloneVariant = observer(StandaloneVariant_);
+});

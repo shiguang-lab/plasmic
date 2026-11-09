@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,13 +25,13 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ListItem from "../../components/ListItem"; // plasmic-import: v31d9_ANqk/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "../plasmic_kit_project_panel/PlasmicStyleTokensProvider"; // plasmic-import: m8VxGcigeLAEXFe8c12w5Q/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_project_panel/PlasmicStyleTokensProvider"; // plasmic-import: m8VxGcigeLAEXFe8c12w5Q/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -121,11 +121,10 @@ function PlasmicFolderItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "type",
@@ -146,18 +145,20 @@ function PlasmicFolderItem__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.nested,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -368,12 +369,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -383,28 +380,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicFolderItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicFolderItem";
-  } else {
-    func.displayName = `PlasmicFolderItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicFolderItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicFolderItem__root<T extends PlasmicFolderItem__rootProps>(props: T & StrictProps<T, PlasmicFolderItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicFolderItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicFolderItem__root.displayName = "PlasmicFolderItem";
+
+type PlasmicFolderItem__listItemProps = NodeComponentProps<"listItem"> & {key?: React.Key};
+function PlasmicFolderItem__listItem<T extends PlasmicFolderItem__listItemProps>(props: T & StrictProps<T, PlasmicFolderItem__listItemProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("listItem", props);
+  return <PlasmicFolderItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"listItem"} />;
+}
+PlasmicFolderItem__listItem.displayName = "PlasmicFolderItem.listItem";
+
+type PlasmicFolderItem__iconButtonProps = NodeComponentProps<"iconButton"> & {key?: React.Key};
+function PlasmicFolderItem__iconButton<T extends PlasmicFolderItem__iconButtonProps>(props: T & StrictProps<T, PlasmicFolderItem__iconButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconButton", props);
+  return <PlasmicFolderItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconButton"} />;
+}
+PlasmicFolderItem__iconButton.displayName = "PlasmicFolderItem.iconButton";
+
 
 export const PlasmicFolderItem = Object.assign(
   // Top-level PlasmicFolderItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicFolderItem__root,
   {
     // Helper components rendering sub-elements
-    listItem: makeNodeComponent("listItem"),
-    iconButton: makeNodeComponent("iconButton"),
+    listItem: PlasmicFolderItem__listItem,
+    iconButton: PlasmicFolderItem__iconButton,
 
     // Metadata about props expected for PlasmicFolderItem
     internalVariantProps: PlasmicFolderItem__VariantProps,

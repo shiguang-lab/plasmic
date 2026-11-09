@@ -6,7 +6,6 @@ import {
 } from "@/wab/shared/Variants";
 import { SiteGenHelper } from "@/wab/shared/codegen/codegen-helpers";
 import {
-  makeCreateUseGlobalVariantsName,
   makeUseGlobalVariantsName,
 } from "@/wab/shared/codegen/react-p/serialize-utils";
 import { ProjectModuleBundle } from "@/wab/shared/codegen/types";
@@ -90,16 +89,16 @@ export function serializeUseGlobalVariants(groups: Set<VariantGroup>) {
     .map((group) => {
       const name = toVarName(group.param.variable.name);
       if (group.type === VariantGroupType.GlobalScreen) {
-        return `${name}: ${makeUniqueUseScreenVariantsName(group)}`;
+        return `${name}: ${makeUniqueUseScreenVariantsName(group)}()`;
       }
-      return `${name}: ${makeGlobalVariantGroupUseName(group)}`;
+      return `${name}: ${makeGlobalVariantGroupUseName(group)}()`;
     })
     .join(",\n");
 
   return `
-  export const ${makeUseGlobalVariantsName()} = ${makeCreateUseGlobalVariantsName()}({
+  export function ${makeUseGlobalVariantsName()}() { "use memo"; return ensureGlobalVariants({
     ${template}
-  });
+  }); }
 `;
 }
 

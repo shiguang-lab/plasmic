@@ -1,3 +1,9 @@
+import { CanvasArtboardSelectionHandle } from "@/wab/client/components/canvas/CanvasFrame/CanvasArtboardSelectionHandle";
+import styles from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
+import { createStore } from "zustand/vanilla";
+import { FrameViewMode } from "@/wab/shared/Arenas";
+import { CanvasHeaderInputs } from "@/wab/client/components/canvas/CanvasFrame/canvas-header-inputs";
+import { mkVariant } from "@/wab/shared/Variants";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import { CanvasHeader } from "@/wab/client/components/canvas/CanvasFrame/CanvasHeader";
@@ -141,4 +147,65 @@ it("rejects never-bound foreign frames before asking the current model owner for
   const demand = vi.spyOn(next.modelSnapshots, "field");
   expect(() => render(<CanvasHeader studioCtx={next.ctx} arena={old.arena} frame={old.frame} />)).toThrow("Cannot attach a foreign frame to the current width source");
   expect(demand).not.toHaveBeenCalled();
+});
+
+
+it("updates both the visible frame label and focus action after title changes", () => {
+  const { ctx, arena, frame, component, site, modelSnapshots } = setup();
+  const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
+  sourceDisposals.push(() => recorder.dispose());
+  render(<CanvasHeader studioCtx={ctx} arena={arena} frame={frame} />);
+  act(() => { modelSnapshots.sync(recorder.withRecording(() => { component.name = "Orders"; }).changes); });
+  expect(screen.getByText("Orders")).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Focus artboard: Orders" })).toBeTruthy();
+  act(() => { modelSnapshots.sync(recorder.withRecording(() => { component.name = ""; frame.name = "Fallback"; }).changes); });
+  expect(screen.getByText("Fallback")).toBeTruthy();
+  expect(screen.getByRole("button", { name: "Focus artboard: Fallback" })).toBeTruthy();
+});
+
+it("tracks frame pin and variant labels without observing unrelated component names", () => {
+  const { ctx, frame, component, site, modelSnapshots } = setup();
+  const unrelated = new TplMgr({ site }).addComponent({ name: "Other", type: ComponentType.Plain });
+  const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
+  sourceDisposals.push(() => recorder.dispose());
+  const inputs = new CanvasHeaderInputs(ctx, frame);
+  const publish = vi.fn();
+  const stop = inputs.subscribe(publish);
+  sourceDisposals.unshift(stop);
+  publish.mockClear();
+  const before = inputs.getSnapshot();
+  modelSnapshots.sync(recorder.withRecording(() => { unrelated.name = "Unrelated rename"; }).changes);
+  expect(inputs.getSnapshot()).toBe(before);
+  expect(publish).not.toHaveBeenCalled();
+  const variant = mkVariant({ name: "Selected" });
+  modelSnapshots.sync(recorder.withRecording(() => { component.variants.push(variant); frame.targetVariants = [variant]; }).changes);
+  expect(publish).toHaveBeenCalledOnce();
+  publish.mockClear();
+  modelSnapshots.sync(recorder.withRecording(() => { variant.name = "Renamed"; }).changes);
+  expect(publish).toHaveBeenCalledOnce();
+  publish.mockClear();
+  stop();
+  modelSnapshots.sync(recorder.withRecording(() => { variant.name = "Detached"; }).changes);
+  expect(publish).not.toHaveBeenCalled();
+});
+
+
+it("updates an artboard handle when its root stretch mode changes and preserves mouse ownership", () => {
+  const { ctx, frame, site, modelSnapshots } = setup();
+  Object.defineProperties(ctx, {
+    activeContentEditorStore: { value: createStore(() => undefined) },
+    hoverBoxControlledObj: { get: () => frame.viewMode === FrameViewMode.Stretch ? frame : undefined },
+  });
+  const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
+  sourceDisposals.push(() => recorder.dispose());
+  const onClick = vi.fn(), parentClick = vi.fn();
+  const mounted = render(<div onClick={parentClick}><CanvasArtboardSelectionHandle frame={frame} onClick={onClick} /></div>);
+  const handle = ensure(mounted.container.querySelector<HTMLElement>(`.${styles.artboardSelectionHandle}`), "Artboard handle");
+  expect(handle.classList.contains(styles.artboardSelectionHandle_focused)).toBe(true);
+  act(() => { modelSnapshots.sync(recorder.withRecording(() => { frame.viewMode = FrameViewMode.Centered; }).changes); });
+  expect(handle.classList.contains(styles.artboardSelectionHandle_focused)).toBe(false);
+  fireEvent.mouseDown(handle);
+  expect(onClick).toHaveBeenCalledOnce();
+  fireEvent.click(handle);
+  expect(parentClick).not.toHaveBeenCalled();
 });

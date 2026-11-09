@@ -14,7 +14,7 @@ export function FrameSelectionBox({
 }: {
   studioCtx: StudioCtx;
 }) {
-  useStudioSelection(studioCtx, (state) => state.frames);
+  const frames = useStudioSelection(studioCtx, (state) => state.frames);
   const draggingObject = useStore(studioCtx.draggingObjectStore);
   const transformingObject = useStore(studioCtx.transformingObjectStore);
   const viewportZoom = useCanvasZoom(studioCtx);
@@ -26,7 +26,6 @@ export function FrameSelectionBox({
   ) {
     return null;
   }
-  const frames = studioCtx.focusedFrames();
   const rect = bounds.rect();
   return (
     <div

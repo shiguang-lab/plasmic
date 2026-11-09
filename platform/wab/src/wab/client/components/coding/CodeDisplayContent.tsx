@@ -9,7 +9,6 @@ import darkTheme from "prism-react-renderer/themes/vsDark";
 import React from "react";
 
 export function CodeDisplayContent(props: CodeDisplayProps) {
-  "use memo";
   const { children, language } = props;
   const { appearance } = useUiAppearance();
   return (

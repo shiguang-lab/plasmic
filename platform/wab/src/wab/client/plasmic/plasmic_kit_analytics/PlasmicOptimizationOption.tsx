@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,11 +24,11 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -97,11 +97,10 @@ function PlasmicOptimizationOption__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "selected",
@@ -116,18 +115,20 @@ function PlasmicOptimizationOption__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.unset,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -221,12 +222,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -236,28 +233,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicOptimizationOption__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicOptimizationOption";
-  } else {
-    func.displayName = `PlasmicOptimizationOption.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicOptimizationOption__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicOptimizationOption__root<T extends PlasmicOptimizationOption__rootProps>(props: T & StrictProps<T, PlasmicOptimizationOption__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicOptimizationOption__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicOptimizationOption__root.displayName = "PlasmicOptimizationOption";
+
+type PlasmicOptimizationOption__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicOptimizationOption__svg<T extends PlasmicOptimizationOption__svgProps>(props: T & StrictProps<T, PlasmicOptimizationOption__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicOptimizationOption__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicOptimizationOption__svg.displayName = "PlasmicOptimizationOption.svg";
+
+type PlasmicOptimizationOption__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicOptimizationOption__freeBox<T extends PlasmicOptimizationOption__freeBoxProps>(props: T & StrictProps<T, PlasmicOptimizationOption__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicOptimizationOption__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicOptimizationOption__freeBox.displayName = "PlasmicOptimizationOption.freeBox";
+
 
 export const PlasmicOptimizationOption = Object.assign(
   // Top-level PlasmicOptimizationOption renders the root element
-  makeNodeComponent("root"),
+  PlasmicOptimizationOption__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
-    freeBox: makeNodeComponent("freeBox"),
+    svg: PlasmicOptimizationOption__svg,
+    freeBox: PlasmicOptimizationOption__freeBox,
 
     // Metadata about props expected for PlasmicOptimizationOption
     internalVariantProps: PlasmicOptimizationOption__VariantProps,

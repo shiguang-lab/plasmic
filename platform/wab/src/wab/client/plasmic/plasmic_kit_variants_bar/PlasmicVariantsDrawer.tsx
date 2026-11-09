@@ -22,13 +22,14 @@ import {
   Flex as Flex__,
   renderPlasmicSlot,
   StrictProps,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import VariantRow from "../../components/canvas/VariantsBar/VariantRow"; // plasmic-import: 0Rv3wK0NN-/component
 import VariantsGroupLabel from "../../components/canvas/VariantsBar/VariantsGroupLabel"; // plasmic-import: 73fZB1b9iN/component
 import VariantsSectionDivider from "../../components/canvas/VariantsBar/VariantsSectionDivider"; // plasmic-import: GPePwGKSYX/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: kdj5vahTyUKxznuR6rrtt6/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: kdj5vahTyUKxznuR6rrtt6/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -90,11 +91,10 @@ function PlasmicVariantsDrawer__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -133,9 +133,7 @@ function PlasmicVariantsDrawer__RenderFunc(props: {
             sty.searchInput
           )}
           placeholder={uiT("Search variants")}
-          ref={(ref) => {
-            $refs["searchInput"] = ref;
-          }}
+          ref={registerRef("searchInput")}
           size={1}
           type={"text"}
           value={""}
@@ -296,12 +294,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -311,30 +305,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVariantsDrawer__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicVariantsDrawer";
-  } else {
-    func.displayName = `PlasmicVariantsDrawer.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVariantsDrawer__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicVariantsDrawer__root<T extends PlasmicVariantsDrawer__rootProps>(props: T & StrictProps<T, PlasmicVariantsDrawer__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicVariantsDrawer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicVariantsDrawer__root.displayName = "PlasmicVariantsDrawer";
+
+type PlasmicVariantsDrawer__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicVariantsDrawer__freeBox<T extends PlasmicVariantsDrawer__freeBoxProps>(props: T & StrictProps<T, PlasmicVariantsDrawer__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicVariantsDrawer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicVariantsDrawer__freeBox.displayName = "PlasmicVariantsDrawer.freeBox";
+
+type PlasmicVariantsDrawer__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicVariantsDrawer__svg<T extends PlasmicVariantsDrawer__svgProps>(props: T & StrictProps<T, PlasmicVariantsDrawer__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicVariantsDrawer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicVariantsDrawer__svg.displayName = "PlasmicVariantsDrawer.svg";
+
+type PlasmicVariantsDrawer__searchInputProps = NodeComponentProps<"searchInput"> & {key?: React.Key};
+function PlasmicVariantsDrawer__searchInput<T extends PlasmicVariantsDrawer__searchInputProps>(props: T & StrictProps<T, PlasmicVariantsDrawer__searchInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchInput", props);
+  return <PlasmicVariantsDrawer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchInput"} />;
+}
+PlasmicVariantsDrawer__searchInput.displayName = "PlasmicVariantsDrawer.searchInput";
+
+type PlasmicVariantsDrawer__variantsListProps = NodeComponentProps<"variantsList"> & {key?: React.Key};
+function PlasmicVariantsDrawer__variantsList<T extends PlasmicVariantsDrawer__variantsListProps>(props: T & StrictProps<T, PlasmicVariantsDrawer__variantsListProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("variantsList", props);
+  return <PlasmicVariantsDrawer__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"variantsList"} />;
+}
+PlasmicVariantsDrawer__variantsList.displayName = "PlasmicVariantsDrawer.variantsList";
+
 
 export const PlasmicVariantsDrawer = Object.assign(
   // Top-level PlasmicVariantsDrawer renders the root element
-  makeNodeComponent("root"),
+  PlasmicVariantsDrawer__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    svg: makeNodeComponent("svg"),
-    searchInput: makeNodeComponent("searchInput"),
-    variantsList: makeNodeComponent("variantsList"),
+    freeBox: PlasmicVariantsDrawer__freeBox,
+    svg: PlasmicVariantsDrawer__svg,
+    searchInput: PlasmicVariantsDrawer__searchInput,
+    variantsList: PlasmicVariantsDrawer__variantsList,
 
     // Metadata about props expected for PlasmicVariantsDrawer
     internalVariantProps: PlasmicVariantsDrawer__VariantProps,

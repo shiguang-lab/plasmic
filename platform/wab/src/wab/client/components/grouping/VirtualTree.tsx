@@ -7,6 +7,8 @@ import {
   ReplacedFolderName,
 } from "@/wab/shared/folders/folders-util";
 import * as React from "react";
+import { useStore } from "zustand";
+import { createStore, type StoreApi } from "zustand/vanilla";
 import { areEqual, VariableSizeList } from "react-window";
 
 export interface RenderElementProps<T> {
@@ -94,7 +96,7 @@ export const VirtualTree = React.forwardRef(function <T>(
     return (index: number) => {
       return nodeHeights[index];
     };
-  }, [JSON.stringify(nodeHeights)]);
+  }, [nodeHeights]);
   React.useEffect(() => {
     if (listRef.current) {
       // When the sizes of the items in the list change, we need to reset
@@ -211,7 +213,7 @@ const TreeNodeRow = <T,>(props: TreeNodeRowProps<T>) => {
       nodeAction,
       toggleExpand: () => toggleExpand(nodeKey),
     };
-  }, [matcher, level, canOpen, isOpen, isSelected, nodeAction, toggleExpand]);
+  }, [matcher, level, canOpen, isOpen, isSelected, nodeAction, toggleExpand, nodeKey]);
   return (
     <li
       className="flex"
@@ -238,6 +240,7 @@ interface UseTreeDataProps<T> {
   nodeAction?: NodeAction<T>;
   isNodeSelectable?: (node: T) => boolean;
   defaultOpenKeys?: "all" | NodeKey[];
+  expansion?: TreeExpansion;
 }
 
 interface UseTreeData<T> {
@@ -274,6 +277,26 @@ export function getFolderKeyChanges(
   }));
 }
 
+/** Expansion commands can be owned before rows that use them are assembled. */
+export class TreeExpansion {
+  readonly store: StoreApi<Set<NodeKey>>;
+  constructor(keys: Iterable<NodeKey>) {
+    this.store = createStore<Set<NodeKey>>(() => new Set(keys));
+  }
+  setExpandedNodes = (value: Set<NodeKey> | ((previous: Set<NodeKey>) => Set<NodeKey>)) => {
+    this.store.setState(value, true);
+  };
+  renameGroup = (keyChanges: KeyChanges) => {
+    this.setExpandedNodes((previous) => {
+      const next = new Set(previous);
+      for (const change of keyChanges) {
+        if (next.delete(change.oldKey)) { next.add(change.newKey); }
+      }
+      return next;
+    });
+  };
+}
+
 export function useTreeData<T>({
   nodes,
   query = "",
@@ -285,41 +308,22 @@ export function useTreeData<T>({
   nodeAction,
   isNodeSelectable,
   defaultOpenKeys,
+  expansion,
 }: UseTreeDataProps<T>): UseTreeData<T> {
   const matcher = React.useMemo(() => {
     return new Matcher(query?.trim() ?? "");
   }, [query]);
-  const [expandedNodes, setExpandedNodes] = React.useState<Set<NodeKey>>(
-    new Set(
-      defaultOpenKeys === "all"
-        ? getAllNodeKeys(nodes, getNodeKey, getNodeChildren)
-        : (defaultOpenKeys ?? []),
-    ),
-  );
+  const [expansionOwner] = React.useState(() => expansion ?? new TreeExpansion(
+    defaultOpenKeys === "all" ? getAllNodeKeys(nodes, getNodeKey, getNodeChildren) : (defaultOpenKeys ?? []),
+  ));
+  const expandedNodes = useStore(expansionOwner.store);
+  const { setExpandedNodes, renameGroup } = expansionOwner;
   const toggleExpand = React.useCallback(
     (key: NodeKey) => {
-      setExpandedNodes((set) => {
-        if (set.has(key)) {
-          set.delete(key);
-        } else {
-          set.add(key);
-        }
-        return new Set(set);
-      });
-    },
-    [setExpandedNodes],
-  );
-
-  const renameGroup = React.useCallback(
-    (keyChanges: KeyChanges) => {
-      setExpandedNodes((set) => {
-        for (const change of keyChanges) {
-          if (set.has(change.oldKey)) {
-            set.delete(change.oldKey);
-            set.add(change.newKey);
-          }
-        }
-        return new Set(set);
+      setExpandedNodes((previous) => {
+        const next = new Set(previous);
+        if (!next.delete(key)) { next.add(key); }
+        return next;
       });
     },
     [setExpandedNodes],
@@ -392,7 +396,7 @@ export function useTreeData<T>({
         nodeAction,
       },
     }),
-    [visibleNodes, matcher, toggleExpand, selectedIndex],
+    [visibleNodes, matcher, toggleExpand, selectedIndex, renderElement, nodeAction],
   );
   const nodeKey = React.useCallback(
     (index: number, data: TreeRowData<T>) => data.treeData.nodes[index].key,
@@ -433,7 +437,7 @@ export function useTreeData<T>({
   }, [setExpandedNodes]);
   const nodeHeights: number[] = React.useMemo(
     () => visibleNodes.map((node) => getNodeHeight(node.value)),
-    [visibleNodes],
+    [visibleNodes, getNodeHeight],
   );
 
   const selectNextRow = React.useCallback(

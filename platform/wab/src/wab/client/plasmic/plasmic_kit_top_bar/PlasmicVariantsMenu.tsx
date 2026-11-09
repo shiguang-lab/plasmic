@@ -21,10 +21,11 @@ import {
   Flex as Flex__,
   renderPlasmicSlot,
   StrictProps,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6CrqkTcB6gSAHoA8c8zpNz/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6CrqkTcB6gSAHoA8c8zpNz/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -84,11 +85,10 @@ function PlasmicVariantsMenu__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -127,9 +127,7 @@ function PlasmicVariantsMenu__RenderFunc(props: {
             sty.searchInput
           )}
           placeholder={uiT("Search variants…")}
-          ref={(ref) => {
-            $refs["searchInput"] = ref;
-          }}
+          ref={registerRef("searchInput")}
           size={1}
           type={"text"}
           value={""}
@@ -193,12 +191,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -208,30 +202,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVariantsMenu__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicVariantsMenu";
-  } else {
-    func.displayName = `PlasmicVariantsMenu.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVariantsMenu__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicVariantsMenu__root<T extends PlasmicVariantsMenu__rootProps>(props: T & StrictProps<T, PlasmicVariantsMenu__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicVariantsMenu__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicVariantsMenu__root.displayName = "PlasmicVariantsMenu";
+
+type PlasmicVariantsMenu__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicVariantsMenu__freeBox<T extends PlasmicVariantsMenu__freeBoxProps>(props: T & StrictProps<T, PlasmicVariantsMenu__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicVariantsMenu__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicVariantsMenu__freeBox.displayName = "PlasmicVariantsMenu.freeBox";
+
+type PlasmicVariantsMenu__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicVariantsMenu__svg<T extends PlasmicVariantsMenu__svgProps>(props: T & StrictProps<T, PlasmicVariantsMenu__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicVariantsMenu__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicVariantsMenu__svg.displayName = "PlasmicVariantsMenu.svg";
+
+type PlasmicVariantsMenu__searchInputProps = NodeComponentProps<"searchInput"> & {key?: React.Key};
+function PlasmicVariantsMenu__searchInput<T extends PlasmicVariantsMenu__searchInputProps>(props: T & StrictProps<T, PlasmicVariantsMenu__searchInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchInput", props);
+  return <PlasmicVariantsMenu__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchInput"} />;
+}
+PlasmicVariantsMenu__searchInput.displayName = "PlasmicVariantsMenu.searchInput";
+
+type PlasmicVariantsMenu__variantsListProps = NodeComponentProps<"variantsList"> & {key?: React.Key};
+function PlasmicVariantsMenu__variantsList<T extends PlasmicVariantsMenu__variantsListProps>(props: T & StrictProps<T, PlasmicVariantsMenu__variantsListProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("variantsList", props);
+  return <PlasmicVariantsMenu__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"variantsList"} />;
+}
+PlasmicVariantsMenu__variantsList.displayName = "PlasmicVariantsMenu.variantsList";
+
 
 export const PlasmicVariantsMenu = Object.assign(
   // Top-level PlasmicVariantsMenu renders the root element
-  makeNodeComponent("root"),
+  PlasmicVariantsMenu__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    svg: makeNodeComponent("svg"),
-    searchInput: makeNodeComponent("searchInput"),
-    variantsList: makeNodeComponent("variantsList"),
+    freeBox: PlasmicVariantsMenu__freeBox,
+    svg: PlasmicVariantsMenu__svg,
+    searchInput: PlasmicVariantsMenu__searchInput,
+    variantsList: PlasmicVariantsMenu__variantsList,
 
     // Metadata about props expected for PlasmicVariantsMenu
     internalVariantProps: PlasmicVariantsMenu__VariantProps,

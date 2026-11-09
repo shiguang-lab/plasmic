@@ -8,9 +8,11 @@ import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarMod
 import Button from "@/wab/client/components/widgets/Button";
 import {
   ColorPicker,
-  tryGetRealColor,
 } from "@/wab/client/components/widgets/ColorPicker";
-import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
+import { useClientTokenValue } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
+import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
+import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
+import { useStore } from "zustand";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import Select from "@/wab/client/components/widgets/Select";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
@@ -37,7 +39,6 @@ import { EditingTextContext } from "@/wab/client/studio-ctx/view-ctx";
 import { fontWeightOptions } from "@/wab/client/typography-utils";
 import { INTERACT_OUTSIDE_EXCEPTION_SELECTORS } from "@/wab/commons/components/OnClickAway";
 import { mergeRefs } from "@/wab/commons/components/ReactUtil";
-import { PublicStyleSection } from "@/wab/shared/ApiSchema";
 import { spawn } from "@/wab/shared/common";
 import {
   tagDisplayLabel,
@@ -45,10 +46,8 @@ import {
   TextInlineTag,
   textInlineTags,
 } from "@/wab/shared/html";
-import { canEditStyleSection } from "@/wab/shared/ui-config-utils";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
 import { Menu, Popover } from "antd";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { Editor, Range, Element as SlateElement, Text } from "slate";
 
@@ -167,11 +166,11 @@ function RichTextToolbar_(
 
   const studioCtx = useStudioCtx();
   const focusedMode = useStudioArena(studioCtx, (state) => state.focusedMode);
-  const resolver = useClientTokenResolver();
-
-  const maybeRealColor = marks?.color
-    ? tryGetRealColor(marks.color, studioCtx, resolver).realColor
-    : undefined;
+  const colorContext = React.useMemo(() => new VariantedStylesHelper(), []);
+  const colorInput = useStyleTokenRefs(studioCtx, [marks.color ?? ""], colorContext, "ColorDirectSorted", (snapshot) => snapshot.rows[0]);
+  const colorToken = colorInput.selected?.resolved;
+  const tokenColor = useClientTokenValue(colorToken?.value, colorToken, colorInput.lifetime);
+  const maybeRealColor = colorToken ? tokenColor : marks.color;
 
   // TODO: We default color to black, but maybe we could default it to the
   // effective color of the current TplText.
@@ -182,7 +181,7 @@ function RichTextToolbar_(
   // End (and commit) the editing session on clicks in the studio chrome
   // outside the toolbar.
   const rootElt = React.useRef<HTMLDivElement | null>(null);
-  const rootRef = React.useMemo(() => mergeRefs(ref, rootElt), [ref]);
+  const rootRef = React.useCallback((element: HTMLDivElement | null) => mergeRefs(ref, rootElt)(element), [ref]);
   React.useEffect(() => {
     const listener = (e: PointerEvent) => {
       if (isForwardedFrameInteraction(e)) {
@@ -213,7 +212,6 @@ function RichTextToolbar_(
     // otherwise we would hide the color picker when a color is picked,
     // because adding marks to an unmarked text changes the selection path.
     if (
-      colorPickerVisible &&
       editor.selection &&
       Range.isCollapsed(editor.selection)
     ) {
@@ -232,16 +230,9 @@ function RichTextToolbar_(
 
     // Update marks (CSS props in current selection).
     setMarks(marksForToolbar(editor) ?? {});
-  }, [ctx.editor]);
+  }, [ctx]);
 
-  const showBlock = canEditStyleSection(
-    studioCtx.getCurrentUiConfig(),
-    PublicStyleSection.Tag,
-    {
-      isContentCreator: studioCtx.contentEditorMode,
-      defaultContentEditorVisible: false, // matches what's chosen in Sections.tsx
-    },
-  );
+  const showBlock = useStore(studioCtx.uiEnvironment.store, (state) => state.canEditTag);
 
   const inlineMenuItems = textInlineTags
     // "a" is handled by the dedicated Link button, which prompts for an href.
@@ -436,5 +427,5 @@ function RichTextToolbar_(
   );
 }
 
-const RichTextToolbar = observer(React.forwardRef(RichTextToolbar_));
+const RichTextToolbar = React.memo(React.forwardRef(RichTextToolbar_));
 export default RichTextToolbar;

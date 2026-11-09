@@ -18,66 +18,65 @@ interface EllipseControlProps {
   onChange: (ellipse: Ellipse) => void;
 }
 
-export class EllipseControl extends React.Component<EllipseControlProps> {
-  svg: SVGElement | null = null;
-  initEllipse: Ellipse | null = null;
+export function EllipseControl({ ellipse, onChange }: EllipseControlProps) {
+  const svg = React.useRef<SVGSVGElement | null>(null);
+  const initEllipse = React.useRef<Ellipse | null>(null);
 
-  private getDragPcts(e: XDraggableEvent) {
-    const orig = ensure(this.initEllipse);
-    const area = ensure(this.svg).getBoundingClientRect();
+  function getDragPcts(e: XDraggableEvent) {
+    const orig = ensure(initEllipse.current);
+    const area = ensure(svg.current).getBoundingClientRect();
     const dx = (e.data.deltaX / area.width) * 100;
     const dy = (e.data.deltaY / area.height) * 100;
 
     return { orig, dx, dy };
   }
 
-  private handleDragCenter = (e: XDraggableEvent) => {
-    const { orig, dx, dy } = this.getDragPcts(e);
-    this.props.onChange({
+  const handleDragCenter = (e: XDraggableEvent) => {
+    const { orig, dx, dy } = getDragPcts(e);
+    onChange({
       ...orig,
       cx: L.clamp(orig.cx + dx, 0, 100),
       cy: L.clamp(orig.cy + dy, 0, 100),
     });
   };
 
-  private handleDragKnobRight = (e: XDraggableEvent) => {
-    const { orig, dx, dy } = this.getDragPcts(e);
-    this.props.onChange({
+  const handleDragKnobRight = (e: XDraggableEvent) => {
+    const { orig, dx, dy } = getDragPcts(e);
+    onChange({
       ...orig,
       rx: L.clamp(orig.rx + dx, orig.cx, 100 - orig.cx),
     });
   };
 
-  private handleDragKnobBottom = (e: XDraggableEvent) => {
-    const { orig, dx, dy } = this.getDragPcts(e);
-    this.props.onChange({
+  const handleDragKnobBottom = (e: XDraggableEvent) => {
+    const { orig, dx, dy } = getDragPcts(e);
+    onChange({
       ...orig,
       ry: L.clamp(orig.ry + dy, orig.cy, 100 - orig.cy),
     });
   };
 
-  private handleDragKnobLeft = (e: XDraggableEvent) => {
-    const { orig, dx, dy } = this.getDragPcts(e);
-    this.props.onChange({
+  const handleDragKnobLeft = (e: XDraggableEvent) => {
+    const { orig, dx, dy } = getDragPcts(e);
+    onChange({
       ...orig,
       rx: L.clamp(orig.rx - dx, 0, orig.cx),
     });
   };
 
-  private handleDragKnobTop = (e: XDraggableEvent) => {
-    const { orig, dx, dy } = this.getDragPcts(e);
-    this.props.onChange({
+  const handleDragKnobTop = (e: XDraggableEvent) => {
+    const { orig, dx, dy } = getDragPcts(e);
+    onChange({
       ...orig,
       ry: L.clamp(orig.ry - dy, 0, orig.cy),
     });
   };
 
-  private handleDragStart = () => {
-    this.initEllipse = L.clone(this.props.ellipse);
+  const handleDragStart = () => {
+    initEllipse.current = L.clone(ellipse);
   };
 
-  render() {
-    const { cx, cy, rx, ry } = this.props.ellipse;
+    const { cx, cy, rx, ry } = ellipse;
     const p = (x: number) => `${x}%`;
     const [px1, py1, prx, pry, right, bottom, left, top] = [
       cx,
@@ -93,9 +92,7 @@ export class EllipseControl extends React.Component<EllipseControlProps> {
     return (
       <div className={"ellipse-control"}>
         <svg
-          ref={(el) => {
-            this.svg = el;
-          }}
+          ref={svg}
           className={"ellipse-control__svg"}
         >
           <ellipse
@@ -120,8 +117,8 @@ export class EllipseControl extends React.Component<EllipseControlProps> {
             y2={bottom}
           />
           <XDraggable
-            onStart={this.handleDragStart}
-            onDrag={this.handleDragCenter}
+            onStart={handleDragStart}
+            onDrag={handleDragCenter}
           >
             <circle
               className={"ellipse-control__center"}
@@ -131,8 +128,8 @@ export class EllipseControl extends React.Component<EllipseControlProps> {
             />
           </XDraggable>
           <XDraggable
-            onStart={this.handleDragStart}
-            onDrag={this.handleDragKnobRight}
+            onStart={handleDragStart}
+            onDrag={handleDragKnobRight}
           >
             <circle
               className={"ellipse-control__knob"}
@@ -142,8 +139,8 @@ export class EllipseControl extends React.Component<EllipseControlProps> {
             />
           </XDraggable>
           <XDraggable
-            onStart={this.handleDragStart}
-            onDrag={this.handleDragKnobBottom}
+            onStart={handleDragStart}
+            onDrag={handleDragKnobBottom}
           >
             <circle
               className={"ellipse-control__knob"}
@@ -153,8 +150,8 @@ export class EllipseControl extends React.Component<EllipseControlProps> {
             />
           </XDraggable>
           <XDraggable
-            onStart={this.handleDragStart}
-            onDrag={this.handleDragKnobLeft}
+            onStart={handleDragStart}
+            onDrag={handleDragKnobLeft}
           >
             <circle
               className={"ellipse-control__knob"}
@@ -164,8 +161,8 @@ export class EllipseControl extends React.Component<EllipseControlProps> {
             />
           </XDraggable>
           <XDraggable
-            onStart={this.handleDragStart}
-            onDrag={this.handleDragKnobTop}
+            onStart={handleDragStart}
+            onDrag={handleDragKnobTop}
           >
             <circle
               className={"ellipse-control__knob"}
@@ -177,5 +174,4 @@ export class EllipseControl extends React.Component<EllipseControlProps> {
         </svg>
       </div>
     );
-  }
 }

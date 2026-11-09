@@ -46,20 +46,15 @@ const textInputConfig = {
 export const TextInputPlugin: PlumePlugin = {
   // PlumeCanvasPlugin
   genCanvasWrapperComponent: (sub, comp, observer, getCompMeta) => {
-    return sub.React.forwardRef((allProps, ref: TextInputRef) =>
-      observer(() => {
-        const internalProps = pick(allProps, internalCanvasElementProps);
-        const { plasmicProps } = sub.reactWeb.useTextInput(
-          Object.assign(comp, getCompMeta()),
-          omit(allProps, internalCanvasElementProps),
-          textInputConfig as any,
-          ref,
-        );
-        return sub.React.createElement(comp, {
-          ...plasmicProps,
-          ...internalProps,
-        });
-      }),
+    return sub.createCanvasComponentType((allProps, ref: TextInputRef) =>
+      observer(() => sub.React.createElement(sub.CanvasPlume.CanvasPlumeTextInput, {
+        impl: comp,
+        metadata: getCompMeta(),
+        internalProps: pick(allProps, internalCanvasElementProps),
+        componentProps: omit(allProps, internalCanvasElementProps),
+        config: textInputConfig as any,
+        forwardedRef: ref,
+      })),
     );
   },
 
@@ -67,8 +62,8 @@ export const TextInputPlugin: PlumePlugin = {
   genHook(ctx: SerializerBaseContext) {
     const { component } = ctx;
     return `
-      function useBehavior<P extends pp.PlumeTextInputProps>(props: P, ref: pp.TextInputRef) {
-        return pp.useTextInput<P, typeof ${makePlasmicComponentName(
+      function useBehavior<P extends Plume.PlumeTextInputProps>(props: P, ref: Plume.TextInputRef) {
+        return Plume.useTextInput<P, typeof ${makePlasmicComponentName(
           component,
         )}>(
           ${makePlasmicComponentName(component)},
@@ -87,7 +82,7 @@ export const TextInputPlugin: PlumePlugin = {
     return `
       export interface ${
         opts?.typeName ?? makeDefaultExternalPropsName(component)
-      } extends pp.BaseTextInputProps {
+      } extends Plume.BaseTextInputProps {
         ${params
           .map(
             (param) =>

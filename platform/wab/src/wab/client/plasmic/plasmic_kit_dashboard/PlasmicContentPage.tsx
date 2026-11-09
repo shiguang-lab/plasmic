@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicLink as PlasmicLink__,
   StrictProps,
   classNames,
@@ -32,8 +32,8 @@ import MenuItem from "../../components/MenuItem"; // plasmic-import: Ts79yZbRFG/
 import DefaultLayout from "../../components/dashboard/DefaultLayout"; // plasmic-import: nSkQWLjK-B/component
 import NavTeamSection from "../../components/dashboard/NavTeamSection"; // plasmic-import: VqaN_WL-stA/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -129,13 +129,12 @@ function PlasmicContentPage__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <React.Fragment>
@@ -370,12 +369,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -385,33 +380,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicContentPage__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicContentPage";
-  } else {
-    func.displayName = `PlasmicContentPage.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicContentPage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicContentPage__root<T extends PlasmicContentPage__rootProps>(props: T & StrictProps<T, PlasmicContentPage__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicContentPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicContentPage__root.displayName = "PlasmicContentPage";
+
+type PlasmicContentPage__defaultLayoutProps = NodeComponentProps<"defaultLayout"> & {key?: React.Key};
+function PlasmicContentPage__defaultLayout<T extends PlasmicContentPage__defaultLayoutProps>(props: T & StrictProps<T, PlasmicContentPage__defaultLayoutProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("defaultLayout", props);
+  return <PlasmicContentPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"defaultLayout"} />;
+}
+PlasmicContentPage__defaultLayout.displayName = "PlasmicContentPage.defaultLayout";
+
+type PlasmicContentPage__moreButtonProps = NodeComponentProps<"moreButton"> & {key?: React.Key};
+function PlasmicContentPage__moreButton<T extends PlasmicContentPage__moreButtonProps>(props: T & StrictProps<T, PlasmicContentPage__moreButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("moreButton", props);
+  return <PlasmicContentPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"moreButton"} />;
+}
+PlasmicContentPage__moreButton.displayName = "PlasmicContentPage.moreButton";
+
+type PlasmicContentPage__modelNavProps = NodeComponentProps<"modelNav"> & {key?: React.Key};
+function PlasmicContentPage__modelNav<T extends PlasmicContentPage__modelNavProps>(props: T & StrictProps<T, PlasmicContentPage__modelNavProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("modelNav", props);
+  return <PlasmicContentPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"modelNav"} />;
+}
+PlasmicContentPage__modelNav.displayName = "PlasmicContentPage.modelNav";
+
+type PlasmicContentPage__editModelsButtonProps = NodeComponentProps<"editModelsButton"> & {key?: React.Key};
+function PlasmicContentPage__editModelsButton<T extends PlasmicContentPage__editModelsButtonProps>(props: T & StrictProps<T, PlasmicContentPage__editModelsButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("editModelsButton", props);
+  return <PlasmicContentPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"editModelsButton"} />;
+}
+PlasmicContentPage__editModelsButton.displayName = "PlasmicContentPage.editModelsButton";
+
+type PlasmicContentPage__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicContentPage__svg<T extends PlasmicContentPage__svgProps>(props: T & StrictProps<T, PlasmicContentPage__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicContentPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicContentPage__svg.displayName = "PlasmicContentPage.svg";
+
+type PlasmicContentPage__cmsSectionProps = NodeComponentProps<"cmsSection"> & {key?: React.Key};
+function PlasmicContentPage__cmsSection<T extends PlasmicContentPage__cmsSectionProps>(props: T & StrictProps<T, PlasmicContentPage__cmsSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cmsSection", props);
+  return <PlasmicContentPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cmsSection"} />;
+}
+PlasmicContentPage__cmsSection.displayName = "PlasmicContentPage.cmsSection";
+
+type PlasmicContentPage__navTeamSectionProps = NodeComponentProps<"navTeamSection"> & {key?: React.Key};
+function PlasmicContentPage__navTeamSection<T extends PlasmicContentPage__navTeamSectionProps>(props: T & StrictProps<T, PlasmicContentPage__navTeamSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("navTeamSection", props);
+  return <PlasmicContentPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"navTeamSection"} />;
+}
+PlasmicContentPage__navTeamSection.displayName = "PlasmicContentPage.navTeamSection";
+
 
 export const PlasmicContentPage = Object.assign(
   // Top-level PlasmicContentPage renders the root element
-  makeNodeComponent("root"),
+  PlasmicContentPage__root,
   {
     // Helper components rendering sub-elements
-    defaultLayout: makeNodeComponent("defaultLayout"),
-    moreButton: makeNodeComponent("moreButton"),
-    modelNav: makeNodeComponent("modelNav"),
-    editModelsButton: makeNodeComponent("editModelsButton"),
-    svg: makeNodeComponent("svg"),
-    cmsSection: makeNodeComponent("cmsSection"),
-    navTeamSection: makeNodeComponent("navTeamSection"),
+    defaultLayout: PlasmicContentPage__defaultLayout,
+    moreButton: PlasmicContentPage__moreButton,
+    modelNav: PlasmicContentPage__modelNav,
+    editModelsButton: PlasmicContentPage__editModelsButton,
+    svg: PlasmicContentPage__svg,
+    cmsSection: PlasmicContentPage__cmsSection,
+    navTeamSection: PlasmicContentPage__navTeamSection,
 
     // Metadata about props expected for PlasmicContentPage
     internalVariantProps: PlasmicContentPage__VariantProps,

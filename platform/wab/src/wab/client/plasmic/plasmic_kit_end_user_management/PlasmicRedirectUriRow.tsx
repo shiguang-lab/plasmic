@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -83,11 +83,10 @@ function PlasmicRedirectUriRow__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -188,12 +187,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -203,28 +198,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicRedirectUriRow__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicRedirectUriRow";
-  } else {
-    func.displayName = `PlasmicRedirectUriRow.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicRedirectUriRow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicRedirectUriRow__root<T extends PlasmicRedirectUriRow__rootProps>(props: T & StrictProps<T, PlasmicRedirectUriRow__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicRedirectUriRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicRedirectUriRow__root.displayName = "PlasmicRedirectUriRow";
+
+type PlasmicRedirectUriRow__textBoxProps = NodeComponentProps<"textBox"> & {key?: React.Key};
+function PlasmicRedirectUriRow__textBox<T extends PlasmicRedirectUriRow__textBoxProps>(props: T & StrictProps<T, PlasmicRedirectUriRow__textBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("textBox", props);
+  return <PlasmicRedirectUriRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"textBox"} />;
+}
+PlasmicRedirectUriRow__textBox.displayName = "PlasmicRedirectUriRow.textBox";
+
+type PlasmicRedirectUriRow__removeBtnProps = NodeComponentProps<"removeBtn"> & {key?: React.Key};
+function PlasmicRedirectUriRow__removeBtn<T extends PlasmicRedirectUriRow__removeBtnProps>(props: T & StrictProps<T, PlasmicRedirectUriRow__removeBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("removeBtn", props);
+  return <PlasmicRedirectUriRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"removeBtn"} />;
+}
+PlasmicRedirectUriRow__removeBtn.displayName = "PlasmicRedirectUriRow.removeBtn";
+
 
 export const PlasmicRedirectUriRow = Object.assign(
   // Top-level PlasmicRedirectUriRow renders the root element
-  makeNodeComponent("root"),
+  PlasmicRedirectUriRow__root,
   {
     // Helper components rendering sub-elements
-    textBox: makeNodeComponent("textBox"),
-    removeBtn: makeNodeComponent("removeBtn"),
+    textBox: PlasmicRedirectUriRow__textBox,
+    removeBtn: PlasmicRedirectUriRow__removeBtn,
 
     // Metadata about props expected for PlasmicRedirectUriRow
     internalVariantProps: PlasmicRedirectUriRow__VariantProps,

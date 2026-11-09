@@ -12,10 +12,8 @@ import {
   PlasmicClassArgs,
   PlasmicClassOverrides,
   PlasmicClassVariants,
-  PLUME_STRICT_MODE,
   VariantDef,
 } from "../plume-utils";
-import { getDefaultPlasmicProps } from "../props-utils";
 import { TriggeredOverlayContext } from "../triggered-overlay/context";
 import { MenuContext } from "./context";
 
@@ -44,11 +42,7 @@ export function useMenuItem<
   const triggerContext = React.useContext(TriggeredOverlayContext);
 
   if (!menuContext) {
-    if (PLUME_STRICT_MODE) {
-      throw new Error("You can only use a Menu.Item within a Menu component.");
-    }
-
-    return getDefaultPlasmicProps(plasmicClass, props);
+    throw new Error("You can only use a Menu.Item within a Menu component.");
   }
 
   const { children, onAction } = props;
@@ -106,7 +100,7 @@ export function useMenuItem<
   const overrides: Overrides = {
     [config.root]: {
       as: "li",
-      props: mergeProps(menuItemProps, { ref, style: noOutline() }),
+      props: { ...menuItemProps, ref, style: noOutline() },
     },
     [config.labelContainer]: {
       props: { ...labelProps },

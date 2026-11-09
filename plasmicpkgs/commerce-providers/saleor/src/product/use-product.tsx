@@ -40,7 +40,7 @@ export const handler: SWRHook<GetProductHook> = {
   },
   useHook:
     ({ useData }) =>
-    (input = {}) => {
+    function useProductHandler(input = {}) {
       return useData({
         input: [["id", input.id]],
         swrOptions: {

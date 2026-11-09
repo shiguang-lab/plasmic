@@ -14,18 +14,18 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -86,11 +86,10 @@ function PlasmicReactionButton__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "includesSelf",
@@ -100,18 +99,20 @@ function PlasmicReactionButton__RenderFunc(props: {
           $props.includesSelf,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <button
@@ -195,12 +196,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -210,28 +207,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicReactionButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicReactionButton";
-  } else {
-    func.displayName = `PlasmicReactionButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicReactionButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicReactionButton__root<T extends PlasmicReactionButton__rootProps>(props: T & StrictProps<T, PlasmicReactionButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicReactionButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicReactionButton__root.displayName = "PlasmicReactionButton";
+
+type PlasmicReactionButton__emojiProps = NodeComponentProps<"emoji"> & {key?: React.Key};
+function PlasmicReactionButton__emoji<T extends PlasmicReactionButton__emojiProps>(props: T & StrictProps<T, PlasmicReactionButton__emojiProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emoji", props);
+  return <PlasmicReactionButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emoji"} />;
+}
+PlasmicReactionButton__emoji.displayName = "PlasmicReactionButton.emoji";
+
+type PlasmicReactionButton__countProps = NodeComponentProps<"count"> & {key?: React.Key};
+function PlasmicReactionButton__count<T extends PlasmicReactionButton__countProps>(props: T & StrictProps<T, PlasmicReactionButton__countProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("count", props);
+  return <PlasmicReactionButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"count"} />;
+}
+PlasmicReactionButton__count.displayName = "PlasmicReactionButton.count";
+
 
 export const PlasmicReactionButton = Object.assign(
   // Top-level PlasmicReactionButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicReactionButton__root,
   {
     // Helper components rendering sub-elements
-    emoji: makeNodeComponent("emoji"),
-    count: makeNodeComponent("count"),
+    emoji: PlasmicReactionButton__emoji,
+    count: PlasmicReactionButton__count,
 
     // Metadata about props expected for PlasmicReactionButton
     internalVariantProps: PlasmicReactionButton__VariantProps,

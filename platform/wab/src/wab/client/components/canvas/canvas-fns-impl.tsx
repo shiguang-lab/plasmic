@@ -19,10 +19,8 @@ import type { Descendant } from "slate";
 import { Element, Text } from "slate";
 
 export function isExplicitlySized(effectiveVs: EffectiveVariantSetting) {
-  // We need to use `getComputedStyleForVal` because this function might be
-  // called without evaluating (so `node.summarizedRuleSet` would be out of
-  // date). This is safe to do because we don't need Sub.mobx to track
-  // sizing changes in the RuleSet - we use `ResizeObserver` to do so.
+  // Read the effective rules even before a new canvas evaluation.
+  // ResizeObserver publishes changes to the resulting element size.
 
   const computedStyle = effectiveVs.rsh();
   const isExplicitSize = (size: string) =>

@@ -53,7 +53,7 @@ export function TopFrameCopilotToolsBridge({ onOpenChatChange }: {
       const call = (
         name === "getEditorContext" ? Promise.resolve() : pending
       ).then(async (): Promise<CopilotToolCallResult> => {
-        try {
+        return await (async () => {
           if (!active) {
             throw new Error(
               "This project session has closed; reconnect to the open project.",
@@ -75,13 +75,13 @@ export function TopFrameCopilotToolsBridge({ onOpenChatChange }: {
           const cancel = () => { void hostFrameApi.cancelCopilotToolCall(requestId).catch(() => {}); };
           signal.addEventListener("abort", cancel, { once: true });
           if (signal.aborted) { cancel(); }
-          try {
+          return await (async () => {
             // Keep the queue locked until an in-flight editor transaction settles.
             return await result;
-          } finally {
+          })().finally(() => {
             signal.removeEventListener("abort", cancel);
-          }
-        } catch (error) {
+          });
+        })().catch(async (error) => {
           return {
             success: false,
             error: {
@@ -89,7 +89,7 @@ export function TopFrameCopilotToolsBridge({ onOpenChatChange }: {
               message: formatErrorMessage(error),
             },
           };
-        }
+        });
       });
       if (name !== "getEditorContext") {
         pending = call.then(

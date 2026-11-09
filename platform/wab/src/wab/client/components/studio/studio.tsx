@@ -12,7 +12,6 @@ import { analytics } from "@/wab/client/observability";
 import RocketsvgIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__RocketSvg";
 import { bindStudioShortcutHandlers } from "@/wab/client/shortcuts/studio/studio-shortcut-handlers";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { TopProjectNavTour } from "@/wab/client/tours/TopProjectNavTour";
 import { StudioTutorialTours } from "@/wab/client/tours/tutorials/TutorialTours";
 import { mkShortId, spawn } from "@/wab/shared/common";
 import { PlasmicQueryDataProvider } from "@plasmicapp/query";
@@ -24,21 +23,15 @@ interface StudioProps {
   children?: React.ReactNode;
 }
 
-export class Studio extends React.Component<StudioProps, {}> {
-  private unbindShortcutHandlers: () => void;
-
-  // Hide overflow to prevent popups from temporarily causing scrollbars to
-  // appear, throwing off all dynamic positioning logic (including hoverboxes
-  // and popup positioning).
-  componentDidMount() {
-    const studioCtx = this.props.studioCtx;
-    studioCtx.studioIsVisible = true;
+export function Studio({studioCtx, children}: StudioProps) {
+  React.useLayoutEffect(() => {
+    studioCtx.setStudioVisible(true);
     const appConfig = studioCtx.appCtx.appConfig;
     fixStudioIframePositionAndOverflow();
 
     analytics().appendBaseEventProperties({
-      ProjectId: this.props.studioCtx.siteInfo.id,
-      ProjectName: this.props.studioCtx.siteInfo.name,
+      ProjectId: studioCtx.siteInfo.id,
+      ProjectName: studioCtx.siteInfo.name,
     });
 
     spawn(getLiveFrameClientJs());
@@ -77,31 +70,25 @@ export class Studio extends React.Component<StudioProps, {}> {
       });
     }
 
-    this.unbindShortcutHandlers = bindStudioShortcutHandlers(studioCtx);
-  }
-  componentWillUnmount() {
-    this.unbindShortcutHandlers();
-    this.props.studioCtx.studioIsVisible = false;
-    document.body.style.overflow = "";
-  }
-  dbCtx() {
-    return this.props.studioCtx.dbCtx();
-  }
-  render() {
+    const unbindShortcutHandlers = bindStudioShortcutHandlers(studioCtx);
+    return () => {
+      unbindShortcutHandlers();
+      studioCtx.setStudioVisible(false);
+      document.body.style.overflow = "";
+    };
+  }, [studioCtx]);
     return (
       <ShortcutsModal>
         <PlasmicQueryDataProvider
-          provider={() => this.props.studioCtx.hostQuerySwrCache}
+          provider={() => studioCtx.hostQuerySwrCache}
         >
           <BottomModalsProvider>
-            <StudioLayout>{this.props.children}</StudioLayout>
+            <StudioLayout>{children}</StudioLayout>
             <React.Suspense fallback={null}>
-              <TopProjectNavTour />
               <StudioTutorialTours />
             </React.Suspense>
           </BottomModalsProvider>
         </PlasmicQueryDataProvider>
       </ShortcutsModal>
     );
-  }
 }

@@ -1,3 +1,5 @@
+import { useRepeatingElementInputs } from "@/wab/client/studio-ctx/state-management-inputs";
+import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
 import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
 import { DataPickerEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/DataPickerEditor";
 import { StringPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/StringPropEditor";
@@ -9,25 +11,22 @@ import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { isBaseVariant } from "@/wab/shared/Variants";
 import { toVarName } from "@/wab/shared/codegen/util";
 import { ensure, uniqueName, withoutNils } from "@/wab/shared/common";
 import {
   code,
   createExprForDataPickerValue,
-  extractValueSavedFromDataPicker,
 } from "@/wab/shared/core/exprs";
 import { mkVar } from "@/wab/shared/core/lang";
 import { tryGetTplOwnerComponent } from "@/wab/shared/core/tpls";
 import { ObjectPath, Rep, TplNode } from "@/wab/shared/model/classes";
 import { Menu } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
 
 const defaultElementName = "currentItem";
 const defaultIndexName = "currentIndex";
 
-export const RepeatingElementSection = observer(function (props: {
+export const RepeatingElementSection = React.memo(function RepeatingElementSection(props: {
   tpl: TplNode;
   viewCtx: ViewCtx;
 }) {
@@ -43,15 +42,15 @@ export const RepeatingElementSection = observer(function (props: {
   // serializeDataReps in codegen). Maybe it should be actually be moved out
   // from VariantSetting into TplNode. But while we don't do it, this section
   // just edits the dataRep in baseVs.
-  const baseVs = ensure(
-    tpl.vsettings.find((vs) => isBaseVariant(vs.variants)),
-    "All TplNodes must have a base variant setting",
-  );
-  const dataRep = baseVs.dataRep;
+  const {snapshot, source} = useRepeatingElementInputs(viewCtx, ownerComponent ?? viewCtx.currentComponent(), tpl);
+  const baseVs = snapshot.base ? source.resolve(snapshot.base) : undefined;
+  const dataRep = snapshot.repetition ? source.resolve(snapshot.repetition) : undefined;
+  const schema = useCustomFunctionsSchema(viewCtx.studioCtx);
+  if (!baseVs) {return null;}
 
   const resetDataRep = () => {
     viewCtx.change(() => {
-      baseVs.dataRep = new Rep({
+      ensure(baseVs, "Base variant setting").dataRep = new Rep({
         collection: new ObjectPath({
           path: ["[2, 3, 4]"],
           fallback: null,
@@ -84,7 +83,7 @@ export const RepeatingElementSection = observer(function (props: {
                 <Menu.Item
                   onClick={() => {
                     viewCtx.change(() => {
-                      baseVs.dataRep = null;
+                      ensure(baseVs, "Base variant setting").dataRep = null;
                     });
                   }}
                 >
@@ -104,13 +103,7 @@ export const RepeatingElementSection = observer(function (props: {
           >
             <DataPickerEditor
               viewCtx={viewCtx}
-              value={
-                extractValueSavedFromDataPicker(dataRep?.collection, {
-                  projectFlags: viewCtx.projectFlags(),
-                  component: ownerComponent ?? null,
-                  inStudio: true,
-                }) ?? ""
-              }
+              value={snapshot.collectionValue}
               onChange={(val) => {
                 if (!val) {
                   return;
@@ -123,7 +116,7 @@ export const RepeatingElementSection = observer(function (props: {
               visible={isDataPickerVisible}
               setVisible={setIsDataPickerVisible}
               data={canvasEnv}
-              schema={viewCtx.customFunctionsSchema()}
+              schema={schema}
               key={tpl.uid}
               context="Array of elements to then be iterated"
             />
@@ -149,7 +142,7 @@ export const RepeatingElementSection = observer(function (props: {
                   );
                 });
               }}
-              value={dataRep.element.name}
+              value={snapshot.elementName}
               leftAligned
             />
           </LabeledItemRow>
@@ -174,7 +167,7 @@ export const RepeatingElementSection = observer(function (props: {
                   }
                 });
               }}
-              value={dataRep.index?.name}
+              value={snapshot.indexName}
               leftAligned
             />
           </LabeledItemRow>

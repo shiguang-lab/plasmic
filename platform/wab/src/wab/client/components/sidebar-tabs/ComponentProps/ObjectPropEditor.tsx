@@ -1,8 +1,14 @@
+import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
+import { instUtil } from "@/wab/shared/model/InstUtil";
+import { usePropExpressionValue } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { StudioCtxContext, useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import {
   ControlExtras,
   InnerPropEditorRow,
   isPropShown,
   PropValueEditorContext,
+  PropValueEditorContextData,
   usePropValueEditorContext,
 } from "@/wab/client/components/sidebar-tabs/PropEditorRow";
 import { BoolPropEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/BoolPropEditor";
@@ -21,12 +27,11 @@ import {
 import { assert, uncheckedCast, withoutNils } from "@/wab/shared/common";
 import { codeLit, summarizeExpr } from "@/wab/shared/core/exprs";
 import { DefinedIndicatorType } from "@/wab/shared/defined-indicator";
-import { isKnownExpr, TemplatedString } from "@/wab/shared/model/classes";
+import { Expr, isKnownExpr, TemplatedString } from "@/wab/shared/model/classes";
 import { smartHumanize } from "@/wab/shared/strs";
 import { PropType } from "@plasmicapp/host";
 import { ObjectType } from "@plasmicapp/host/dist/registerFunction";
 import { isString } from "lodash";
-import { observer } from "mobx-react";
 import React from "react";
 
 export type ItemFunc<Value, Return> = (
@@ -36,9 +41,7 @@ export type ItemFunc<Value, Return> = (
   controlExtras: ControlExtras,
 ) => Return;
 
-export const ObjectPropEditor = observer(function ObjectPropEditor<
-  Value extends object,
->(props: {
+interface ObjectPropEditorProps<Value extends object> {
   compositeValue: Value | undefined;
   evaluatedValue: Value | undefined;
   fields: Record<string, PropType<unknown>>;
@@ -57,7 +60,41 @@ export const ObjectPropEditor = observer(function ObjectPropEditor<
   display?: ObjectType<any, any>["display"];
   toggleable?: boolean;
   label?: string;
-}) {
+}
+function findObjectExpression(value: unknown, seen = new Set<object>()): Expr | undefined {
+  if (!value || typeof value !== "object" || seen.has(value)) { return undefined; }
+  seen.add(value);
+  if (instUtil.isObjInst(value)) { return isKnownExpr(value) ? value : undefined; }
+  for (const child of Object.values(value)) { const expr = findObjectExpression(child, seen); if (expr) { return expr; } }
+  return undefined;
+}
+function ObjectPropEditor_<Value extends object>(props: ObjectPropEditorProps<Value>) {
+  const context = usePropValueEditorContext(), contextStudio = React.useContext(StudioCtxContext);
+  const studio = context.viewCtx?.studioCtx ?? contextStudio;
+  if (!studio) {
+    assert(!findObjectExpression(props.compositeValue), "Model expressions require the Studio publisher");
+    return <ObjectPropEditorContent {...props} />;
+  }
+  return <BoundObjectPropEditor {...props} studio={studio} />;
+}
+function BoundObjectPropEditor<Value extends object>(props: ObjectPropEditorProps<Value> & { studio: StudioCtx }) {
+  const { studio } = props, context = usePropValueEditorContext();
+  const identity = context.tpl ?? context.exprCtx?.component ?? findObjectExpression(props.compositeValue) ?? props.compositeValue ?? studio;
+  const world = useVariantModelWorld(studio, identity, context.viewCtx);
+  return world.alive ? <ObjectPropEditorInputs {...props} identity={identity} onChange={(value) => { if (world.isCurrent()) { props.onChange(value); } }} /> : null;
+}
+function ObjectPropEditorInputs<Value extends object>(props: ObjectPropEditorProps<Value> & { identity: object }) {
+  const studio = useStudioCtx(), context = usePropValueEditorContext();
+  const expressionSummaries = usePropExpressionValue(studio, props.identity, props.compositeValue, context.exprCtx?.component,
+    () => projectExpressionSummaries(props.compositeValue, context.exprCtx));
+  return <ObjectPropEditorContent {...props} expressionSummaries={expressionSummaries} />;
+}
+export const ObjectPropEditor = React.memo(ObjectPropEditor_) as typeof ObjectPropEditor_;
+function projectExpressionSummaries(value: object | undefined, exprCtx: PropValueEditorContextData["exprCtx"]) {
+  if (!exprCtx || !value) return {};
+  return Object.fromEntries(Object.entries(value).flatMap(([key, field]) => isKnownExpr(field) ? [[key, summarizeExpr(field, exprCtx)]] : []));
+}
+function ObjectPropEditorContent<Value extends object>(props: ObjectPropEditorProps<Value> & {expressionSummaries?: Readonly<Record<string, string>>}) {
   const {
     compositeValue,
     evaluatedValue,
@@ -84,11 +121,11 @@ export const ObjectPropEditor = observer(function ObjectPropEditor<
   if (controlExtras.path.length === 1) {
     defaultValue = getPropTypeDefaultValue(propType) ?? {};
   } else {
-    defaultValue = usePropValueEditorContext().defaultValue ?? {};
+    defaultValue = valueEditorCtx.defaultValue ?? {};
   }
 
   const [showModal, setShowModal] = React.useState(false);
-  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const [buttonElement, setButtonElement] = React.useState<HTMLButtonElement | null>(null);
   const shouldShowModal = showModal || !!defaultShowModal;
 
   // Defer showing modal until the next frame so the button ref is available for positioning
@@ -120,7 +157,7 @@ export const ObjectPropEditor = observer(function ObjectPropEditor<
       ? {
           source: "setNonVariable",
           prop: fieldName,
-          value: summarizeExpr(fieldValue, exprCtx),
+          value: props.expressionSummaries?.[fieldName] ?? summarizeExpr(fieldValue, exprCtx),
         }
       : { source: "none" };
     return {
@@ -243,7 +280,7 @@ export const ObjectPropEditor = observer(function ObjectPropEditor<
       return (
         <>
           <Button
-            ref={buttonRef}
+            ref={setButtonElement}
             type={
               withoutNils(["leftAligned", buttonType]) as React.ComponentProps<
                 typeof Button
@@ -286,7 +323,7 @@ export const ObjectPropEditor = observer(function ObjectPropEditor<
               onClose?.();
             }}
             persistOnInteractOutside={false}
-            triggerElement={buttonRef.current ?? undefined}
+            triggerElement={buttonElement ?? undefined}
           >
             <div className="pt-xxlg pb-xsm">
               <SidebarSection
@@ -342,4 +379,4 @@ export const ObjectPropEditor = observer(function ObjectPropEditor<
       throw new Error(`Unexpected display value: ${_exhaustive}`);
     }
   }
-});
+}

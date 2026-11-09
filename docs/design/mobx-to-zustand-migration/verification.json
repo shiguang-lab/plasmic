@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-11-08T02:48:20.795Z",
+  "remainingMobxFiles": 0,
+  "remainingMobxManifests": 0,
+  "fullStudioBeforeFixes": {
+    "files": 833,
+    "passedFiles": 817,
+    "failedFiles": 16,
+    "passedTests": 5542,
+    "failedTests": 22,
+    "skippedTests": 4,
+    "success": false,
+    "unhandledErrors": 3,
+    "log": "/tmp/mobx-wab-full-before-fixes.log"
+  },
+  "affectedStudioAfterFixes": {
+    "files": 70,
+    "passedFiles": 70,
+    "failedFiles": 0,
+    "passedTests": 376,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "success": true,
+    "unhandledErrors": 0,
+    "allOriginalFailureFilesRechecked": true,
+    "log": "/tmp/mobx-closure-affected-studio.log"
+  },
+  "serverPersistence": {
+    "files": 3,
+    "passedFiles": 3,
+    "failedFiles": 0,
+    "passedTests": 17,
+    "failedTests": 0,
+    "skippedTests": 0,
+    "success": true
+  },
+  "checks": [
+    {
+      "stage": "typecheck",
+      "exitCode": 0,
+      "elapsedSeconds": 2,
+      "log": "/tmp/mobx-closure-typecheck.log"
+    },
+    {
+      "stage": "eslint",
+      "exitCode": 0,
+      "elapsedSeconds": 39,
+      "log": "/tmp/mobx-closure-eslint.log"
+    },
+    {
+      "stage": "affected-studio",
+      "exitCode": 0,
+      "elapsedSeconds": 173,
+      "log": "/tmp/mobx-closure-affected-studio.log"
+    },
+    {
+      "stage": "server-persistence",
+      "exitCode": 0,
+      "elapsedSeconds": 9,
+      "log": "/tmp/mobx-closure-server.log"
+    }
+  ],
+  "eslint": {
+    "checkedFiles": 506,
+    "errors": 0,
+    "warnings": 168
+  },
+  "sourceIntegrity": {
+    "files": 5324,
+    "changedDuringAffectedChecks": []
+  }
+}

@@ -1,9 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { App, withAppContext } from "@/wab/client/components/top-view";
+import { useApp } from "@/wab/client/components/top-view";
+import type { App } from "@/wab/client/components/top-view";
 import { assert, ensure } from "@/wab/shared/common";
 import L from "lodash";
 import * as React from "react";
 import { ReactNode } from "react";
+import { useCommittedValue } from "@/wab/commons/components/ReactUtil";
 import { unstable_batchedUpdates } from "react-dom";
 import {
   DraggableCore,
@@ -51,196 +53,117 @@ export type XDraggableProps = Partial<
     render: (lastEvent: XDraggableEvent | undefined) => ReactNode;
     useMovement?: boolean;
   }
-> & {
-  app: App;
-  children?: React.ReactNode;
-};
+> & { children?: React.ReactNode };
 
-interface XDraggableState {
-  lastEvent?: XDraggableEvent;
-}
+type DragSessionProps = XDraggableProps & { app: App };
 
-/**
- * Extras for React-Draggable.
- */
-class _XDraggable extends React.Component<XDraggableProps, XDraggableState> {
-  private readonly nodeRef = React.createRef<HTMLElement | SVGElement>();
-  static defaultProps = {
-    minPx: 4,
-  };
-
-  constructor(props: XDraggableProps) {
-    super(props);
-    this.state = {};
-  }
-
-  private snapshotEvent(xevent: XDraggableEvent) {
-    this.setState({
-      lastEvent: {
-        ...xevent,
-        mouseEvent: L.assignIn({}, xevent.mouseEvent),
-      },
-    });
-  }
-
-  private handleStart: DraggableEventHandler = (_e, data) => {
-    unstable_batchedUpdates(() => {
-      const e = _e;
-      const newState: XDraggableData = {
-        initX: e.pageX,
-        initY: e.pageY,
-        started: !this.props.minPx,
-        aborted: false,
-        deltaX: 0,
-        deltaY: 0,
-      };
-      this.props.app.setIsDragging(true);
-      const xevent = this.createData(e, data, newState);
-      if (!this.props.minPx) {
-        if (this.props.onStart) {
-          this.props.onStart(xevent);
-        }
-      }
-      this.snapshotEvent(xevent);
-    });
-  };
-
-  /**
-   * Note that this intentionally fires *either* onStart or onDrag and not both
-   * in the same cycle.
-   */
-  private handleDrag: DraggableEventHandler = (_e, data) => {
-    let toRet: boolean | undefined = undefined;
-    unstable_batchedUpdates(() => {
-      const e = _e;
-      const lastEvent = ensure(this.state.lastEvent, "expected a lastEvent");
-      if (lastEvent.data.aborted) {
-        toRet = false;
-        return;
-      }
-      const dx = this.props.useMovement
-        ? lastEvent.data.deltaX + e.movementX
-        : e.pageX - lastEvent.data.initX;
-      const dy = this.props.useMovement
-        ? lastEvent.data.deltaY + e.movementY
-        : e.pageY - lastEvent.data.initY;
-      let xevent = this.createData(e, data, {
-        ...lastEvent.data,
-      });
-      if (
-        !lastEvent.data.started &&
-        this.props.minPx &&
-        Math.sqrt(dx ** 2 + dy ** 2) >= this.props.minPx
-      ) {
-        xevent = { ...xevent, data: { ...xevent.data, started: true } };
-        if (this.props.onStart) {
-          this.props.onStart(xevent);
-        }
-      }
-      if (lastEvent.data.started && this.props.onDrag) {
-        this.props.onDrag(xevent);
-      }
-      this.snapshotEvent(xevent);
-    });
-    return toRet;
-  };
-
-  private handleStop: DraggableEventHandler = (_e, data) => {
-    let toRet: boolean | undefined = undefined;
-    unstable_batchedUpdates(() => {
-      const e = _e;
-      const lastEvent = ensure(this.state.lastEvent, "expected a lastEvent");
-      if (lastEvent.data.aborted) {
-        toRet = false;
-        return;
-      }
-      this.props.app.setIsDragging(false);
-      const xevent = this.createData(e, data, {
-        ...lastEvent.data,
-        started: false,
-      });
-      if (lastEvent.data.started) {
-        if (this.props.onStop) {
-          this.props.onStop(xevent);
-        }
-      }
-      this.snapshotEvent(xevent);
-    });
-    return toRet;
-  };
-
-  private createData(
-    mouseEvent: MouseEvent,
-    draggableData: DraggableData,
-    xdata = ensure(this.state.lastEvent, "expected a lastEvent").data,
-  ): XDraggableEvent {
-    return {
-      mouseEvent,
-      draggableData,
-      data: {
-        ...xdata,
-        deltaX: this.props.useMovement
-          ? xdata.deltaX + mouseEvent.movementX
-          : mouseEvent.pageX - xdata.initX,
-        deltaY: this.props.useMovement
-          ? xdata.deltaY + mouseEvent.movementY
-          : mouseEvent.pageY - xdata.initY,
-      },
+/** Synchronous pointer commands publish immutable render snapshots. */
+class DragSession {
+  private current: XDraggableEvent | undefined;
+  private pressed = false;
+  private readonly listeners = new Set<() => void>();
+  constructor(private readonly readProps: () => DragSessionProps) {}
+  read = () => this.current;
+  subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
+  private publish(event: XDraggableEvent) {
+    this.current = {
+      ...event,
+      mouseEvent: L.assignIn({}, event.mouseEvent),
+      data: Object.freeze({ ...event.data }),
     };
+    this.listeners.forEach((listener) => listener());
   }
-
-  private handleEscape = (e: React.KeyboardEvent<HTMLElement>) => {
+  private event(mouseEvent: MouseEvent, draggableData: DraggableData, state: XDraggableData): XDraggableEvent {
+    const { useMovement } = this.readProps();
+    return { mouseEvent, draggableData, data: {
+      ...state,
+      deltaX: useMovement ? state.deltaX + mouseEvent.movementX : mouseEvent.pageX - state.initX,
+      deltaY: useMovement ? state.deltaY + mouseEvent.movementY : mouseEvent.pageY - state.initY,
+    } };
+  }
+  start: DraggableEventHandler = (mouseEvent, data) => {
     unstable_batchedUpdates(() => {
-      e.stopPropagation();
-      this.props.app.setIsDragging(false);
-      const lastEvent = ensure(this.state.lastEvent, "expected a lastEvent");
-      const xevent: XDraggableEvent = {
-        ...lastEvent,
-        data: {
-          ...lastEvent.data,
-          started: false,
-          aborted: true,
-        },
-      };
-      if (lastEvent.data.started) {
-        if (this.props.onStop) {
-          this.props.onStop(xevent);
-        }
-      }
-      this.snapshotEvent(xevent);
+      const props = this.readProps();
+      const event = this.event(mouseEvent, data, {
+        initX: mouseEvent.pageX, initY: mouseEvent.pageY,
+        started: !props.minPx, aborted: false, deltaX: 0, deltaY: 0,
+      });
+      this.pressed = true;
+      props.app.setIsDragging(true);
+      if (!props.minPx) { props.onStart?.(event); }
+      this.publish(event);
     });
   };
-
-  render() {
-    const { onStart, onStop, onDrag, minPx, nodeRef, ...props } = this.props;
-    const child = (this.props.render && this.props.render(this.state.lastEvent)) || this.props.children;
-    let dragChild = child;
-    if (!nodeRef) {
-      assert(React.isValidElement<React.RefAttributes<HTMLElement | SVGElement>>(child) && typeof child.type === "string",
-        "XDraggable component children must provide a nodeRef to their native drag target");
-      dragChild = React.cloneElement(child, { ref: this.nodeRef });
-    }
-    return (
-      <>
-        {this.state.lastEvent && this.state.lastEvent.data.started && (
-          <UseKey filter={"Escape"} fn={this.handleEscape} />
-        )}
-        <DraggableCore
-          {...props}
-          // Upstream accepts SVG targets at runtime, but its nodeRef declaration
-          // only names HTMLElement. Keep the native SVG ref (no wrapper).
-          nodeRef={(nodeRef ?? this.nodeRef) as DraggableCoreProps["nodeRef"]}
-          // DraggableCore breaks input focus.  See https://github.com/mzabriskie/react-draggable/issues/410.
-          enableUserSelectHack={false}
-          onStart={this.handleStart}
-          onDrag={this.handleDrag}
-          onStop={this.handleStop}
-        >
-          {dragChild}
-        </DraggableCore>
-      </>
-    );
+  move: DraggableEventHandler = (mouseEvent, data) => {
+    const last = ensure(this.current, "Expected an active drag event");
+    if (last.data.aborted) { return false; }
+    unstable_batchedUpdates(() => {
+      const props = this.readProps();
+      let event = this.event(mouseEvent, data, last.data);
+      if (!last.data.started && props.minPx && Math.hypot(event.data.deltaX, event.data.deltaY) >= props.minPx) {
+        event = { ...event, data: { ...event.data, started: true } };
+        props.onStart?.(event);
+      }
+      if (last.data.started) { props.onDrag?.(event); }
+      this.publish(event);
+    });
+    return undefined;
+  };
+  stop: DraggableEventHandler = (mouseEvent, data) => {
+    const last = ensure(this.current, "Expected an active drag event");
+    if (last.data.aborted) { return false; }
+    unstable_batchedUpdates(() => {
+      const props = this.readProps();
+      this.pressed = false;
+      props.app.setIsDragging(false);
+      const event = this.event(mouseEvent, data, { ...last.data, started: false });
+      if (last.data.started) { props.onStop?.(event); }
+      this.publish(event);
+    });
+    return undefined;
+  };
+  escape = (keyboardEvent: Pick<React.KeyboardEvent<HTMLElement>, "stopPropagation">) => {
+    keyboardEvent.stopPropagation();
+    this.abort(true);
+  };
+  private abort(notify: boolean) {
+    const last = this.current;
+    if (!this.pressed || !last) { return; }
+    this.pressed = false;
+    const props = this.readProps();
+    props.app.setIsDragging(false);
+    const event = { ...last, data: { ...last.data, started: false, aborted: true } };
+    if (last.data.started) { props.onStop?.(event); }
+    if (notify) { this.publish(event); } else { this.current = event; }
   }
+  release = () => this.abort(false);
 }
 
-export const XDraggable = withAppContext(_XDraggable);
+export function XDraggable({ minPx = 4, ...props }: XDraggableProps) {
+  const app = useApp();
+  const readProps = useCommittedValue({ ...props, minPx, app });
+  const [session] = React.useState(() => new DragSession(readProps));
+  const lastEvent = React.useSyncExternalStore(session.subscribe, session.read, session.read);
+  React.useLayoutEffect(() => session.release, [session]);
+  const ownNodeRef = React.useRef<HTMLElement | SVGElement | null>(null);
+  const attachNativeNode = React.useCallback((node: HTMLElement | SVGElement | null) => { ownNodeRef.current = node; }, []);
+  const { nodeRef, render, children } = props;
+  const draggableProps = L.omit(props, ["onStart", "onStop", "onDrag", "nodeRef", "render", "children", "useMovement"]);
+  const child = render?.(lastEvent) || children;
+  let dragChild = child;
+  if (!nodeRef) {
+    assert(React.isValidElement<React.RefAttributes<HTMLElement | SVGElement>>(child) && typeof child.type === "string",
+      "XDraggable component children must provide a nodeRef to their native drag target");
+    const Child: React.ElementType = child.type as React.ElementType;
+    dragChild = <Child {...child.props} key={child.key} ref={attachNativeNode} />;
+  }
+  return <>
+    {lastEvent?.data.started && <UseKey filter="Escape" fn={session.escape} />}
+    <DraggableCore {...draggableProps}
+      nodeRef={(nodeRef ?? ownNodeRef) as DraggableCoreProps["nodeRef"]}
+      enableUserSelectHack={false}
+      onStart={session.start} onDrag={session.move} onStop={session.stop}>
+      {dragChild}
+    </DraggableCore>
+  </>;
+}

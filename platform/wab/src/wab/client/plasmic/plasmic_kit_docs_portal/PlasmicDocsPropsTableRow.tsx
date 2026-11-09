@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,14 +24,14 @@ import {
   renderPlasmicSlot,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
 import Switch from "../../components/widgets/Switch"; // plasmic-import: b35JDgXpbiF/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -118,11 +118,10 @@ function PlasmicDocsPropsTableRow__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "controlType",
@@ -132,18 +131,20 @@ function PlasmicDocsPropsTableRow__RenderFunc(props: {
           $props.controlType,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -656,12 +657,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -671,30 +668,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDocsPropsTableRow__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDocsPropsTableRow";
-  } else {
-    func.displayName = `PlasmicDocsPropsTableRow.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDocsPropsTableRow__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDocsPropsTableRow__root<T extends PlasmicDocsPropsTableRow__rootProps>(props: T & StrictProps<T, PlasmicDocsPropsTableRow__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDocsPropsTableRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDocsPropsTableRow__root.displayName = "PlasmicDocsPropsTableRow";
+
+type PlasmicDocsPropsTableRow__textControlProps = NodeComponentProps<"textControl"> & {key?: React.Key};
+function PlasmicDocsPropsTableRow__textControl<T extends PlasmicDocsPropsTableRow__textControlProps>(props: T & StrictProps<T, PlasmicDocsPropsTableRow__textControlProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("textControl", props);
+  return <PlasmicDocsPropsTableRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"textControl"} />;
+}
+PlasmicDocsPropsTableRow__textControl.displayName = "PlasmicDocsPropsTableRow.textControl";
+
+type PlasmicDocsPropsTableRow__switchControlProps = NodeComponentProps<"switchControl"> & {key?: React.Key};
+function PlasmicDocsPropsTableRow__switchControl<T extends PlasmicDocsPropsTableRow__switchControlProps>(props: T & StrictProps<T, PlasmicDocsPropsTableRow__switchControlProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("switchControl", props);
+  return <PlasmicDocsPropsTableRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"switchControl"} />;
+}
+PlasmicDocsPropsTableRow__switchControl.displayName = "PlasmicDocsPropsTableRow.switchControl";
+
+type PlasmicDocsPropsTableRow__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicDocsPropsTableRow__text<T extends PlasmicDocsPropsTableRow__textProps>(props: T & StrictProps<T, PlasmicDocsPropsTableRow__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicDocsPropsTableRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicDocsPropsTableRow__text.displayName = "PlasmicDocsPropsTableRow.text";
+
+type PlasmicDocsPropsTableRow__selectControlProps = NodeComponentProps<"selectControl"> & {key?: React.Key};
+function PlasmicDocsPropsTableRow__selectControl<T extends PlasmicDocsPropsTableRow__selectControlProps>(props: T & StrictProps<T, PlasmicDocsPropsTableRow__selectControlProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("selectControl", props);
+  return <PlasmicDocsPropsTableRow__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"selectControl"} />;
+}
+PlasmicDocsPropsTableRow__selectControl.displayName = "PlasmicDocsPropsTableRow.selectControl";
+
 
 export const PlasmicDocsPropsTableRow = Object.assign(
   // Top-level PlasmicDocsPropsTableRow renders the root element
-  makeNodeComponent("root"),
+  PlasmicDocsPropsTableRow__root,
   {
     // Helper components rendering sub-elements
-    textControl: makeNodeComponent("textControl"),
-    switchControl: makeNodeComponent("switchControl"),
-    text: makeNodeComponent("text"),
-    selectControl: makeNodeComponent("selectControl"),
+    textControl: PlasmicDocsPropsTableRow__textControl,
+    switchControl: PlasmicDocsPropsTableRow__switchControl,
+    text: PlasmicDocsPropsTableRow__text,
+    selectControl: PlasmicDocsPropsTableRow__selectControl,
 
     // Metadata about props expected for PlasmicDocsPropsTableRow
     internalVariantProps: PlasmicDocsPropsTableRow__VariantProps,

@@ -10,7 +10,6 @@ export type CommentsTabProps = {
 };
 
 export function CommentsDialogs(props: CommentsTabProps) {
-  "use memo";
   const { studioCtx } = props;
 
   const commentsCtx = studioCtx.commentsCtx;

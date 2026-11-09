@@ -1,4 +1,5 @@
 import { Api } from "@/wab/client/api";
+import { compileModules } from "@/wab/client/components/dashboard/preview/compile-modules";
 import { overviewLayout } from "@/wab/client/components/dashboard/preview/layout";
 import {
   previewChannel,
@@ -206,7 +207,7 @@ export async function prepare(request: PreviewRequest) {
   });
   return { pages, modules, site };
 }
-export async function load(request: PreviewRequest) {
+async function prepareRuntime(request: PreviewRequest) {
   applyDevFlagOverrides(request.flags);
   const payload = await prepare(request);
   const doc = document;
@@ -245,10 +246,18 @@ export async function load(request: PreviewRequest) {
   styleNode.textContent =
     "*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}html,body{margin:0;overflow:hidden!important}";
   doc.head.append(styleNode);
+  // Runtime registration needs the model; compilation and capture only need
+  // these generated values, so they must not retain the complete Site.
+  return { pages: payload.pages, modules: payload.modules };
+}
+
+export async function load(request: PreviewRequest) {
+  const { pages, modules } = await prepareRuntime(request);
+  const win = window as Window & Record<string, any>;
   let dispose = () => {};
   const rendered = new Promise<void>((resolve, reject) => {
-    dispose = syncPreview(win, () => ({ modules: payload.modules, render: { run: "./cover-root.tsx" } }),
-      (error) => error ? reject(error) : resolve());
+    dispose = syncPreview(win, () => ({ modules, render: { run: "./cover-root.tsx" } }),
+      (error) => error ? reject(error) : resolve(), { compileModules });
   });
   try {
     await withTimeout(rendered, "Preview timed out", 30000);
@@ -258,7 +267,7 @@ export async function load(request: PreviewRequest) {
   await new Promise<void>((resolve) =>
     win.requestAnimationFrame(() => win.requestAnimationFrame(() => resolve())),
   );
-  return payload;
+  return { pages };
 }
 
 const stylesheetTrackers = new WeakMap<Document, ReturnType<typeof observeStylesheets>>();

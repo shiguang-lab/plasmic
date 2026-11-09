@@ -1,7 +1,8 @@
+import { ModelRevisions } from "@/wab/shared/model-revisions";
 import { CanvasRegistrations } from "@/wab/client/components/canvas/canvas-registrations";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
+import { createHostlessPkgsStore } from "@/wab/client/studio-ctx/hostless-pkgs-state";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { observable } from "mobx";
 import { scriptExec } from "@/wab/client/script-exec";
 import $ from "jquery";
 const libs = vi.hoisted(() => ({
@@ -33,7 +34,25 @@ beforeEach(() => {
   );
 });
 function fixture(kind: "studio" | "canvas", site: any) {
-  const installed = kind === "studio" ? observable.set<string>() : new Set<string>(),
+  // Studio keeps installed hostless packages in a store now; expose a small
+  // set-like façade so the assertions below keep reading the same way.
+  const hostlessPkgsStore = createHostlessPkgsStore();
+  const installed =
+    kind === "studio"
+      ? {
+          get size() {
+            return hostlessPkgsStore.getState().installed.size;
+          },
+          has: (pkg: string) => hostlessPkgsStore.getState().installed.has(pkg),
+          add: (pkg: string) => {
+            const next = new Set(hostlessPkgsStore.getState().installed);
+            next.add(pkg);
+            hostlessPkgsStore.setState({ installed: next });
+          },
+          [Symbol.iterator]: () =>
+            hostlessPkgsStore.getState().installed[Symbol.iterator](),
+        }
+      : new Set<string>(),
     clear = vi.fn();
   const ctx = Object.create(
     kind === "studio" ? StudioCtx.prototype : CanvasCtx.prototype,
@@ -43,6 +62,7 @@ function fixture(kind: "studio" | "canvas", site: any) {
     appCtx: { value: { api: {} } },
   });
   Object.assign(ctx, {
+    hostlessPkgsStore,
     installedHostLessPkgs: installed,
     _hostLessPkgsLock: Promise.resolve(),
     hostLessPkgsFrame: { contentWindow: {} },
@@ -51,7 +71,7 @@ function fixture(kind: "studio" | "canvas", site: any) {
     ccRegistry: { clear },
     registrations: new CanvasRegistrations(),
   });
-  if (kind === "studio") { ctx.hostLessPkgsLock = Promise.resolve(); }
+  if (kind === "studio") { ctx.hostLessPkgsLock = Promise.resolve(); ctx.modelRevisions = new ModelRevisions(); }
   const update = (pkgs: string[]) =>
     kind === "studio"
       ? ctx.updateCcRegistry(pkgs)

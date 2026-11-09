@@ -1,7 +1,7 @@
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { LayoutSection } from "@/wab/client/components/sidebar-tabs/LayoutSection";
-import { mkStyleComponent, SingleRsExpsProvider, StyleComponentContext } from "@/wab/client/components/style-controls/StyleComponent";
+import { createStyleTarget, SingleRsExpsProvider, StyleTargetContext } from "@/wab/client/components/style-controls/StyleComponent";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { RSH } from "@/wab/shared/RuleSetHelpers";
@@ -35,10 +35,10 @@ it("switches the native layout classification and keeps the original conversion 
     await waitFor(() => expect(studio.initialRouteReady).toBe(true));
     studio.observeComponents([component]);
     const provider = new SingleRsExpsProvider(rs, rsh, studio, [], { kind: "ruleSet", rs, forTag: "div" });
-    const sc = mkStyleComponent({ expsProvider: provider });
-    const mounted = render(<StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={sc}>
+    const sc = createStyleTarget({ expsProvider: provider });
+    const mounted = render(<StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={sc}>
       <LayoutSection expsProvider={provider} allowConvert isCodeComponentTpl />
-    </StyleComponentContext.Provider></StudioCtxContext.Provider>);
+    </StyleTargetContext.Provider></StudioCtxContext.Provider>);
     const horizontal = () => ensure(mounted.container.querySelector<HTMLButtonElement>('[data-test-id="layout-hstack"]'), "Horizontal layout control");
     const selectedClass = horizontal().className;
     expect(screen.getByText("Flex controls")).toBeInTheDocument();

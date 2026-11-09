@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  get as $stateGet,
+  usePlasmicRefs, get as $stateGet,
   set as $stateSet,
   classNames,
   createPlasmicElementProxy,
@@ -26,12 +26,12 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -106,11 +106,10 @@ function PlasmicExpandableSection__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "open",
@@ -125,20 +124,22 @@ function PlasmicExpandableSection__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.dark,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -166,7 +167,7 @@ function PlasmicExpandableSection__RenderFunc(props: {
           [sty.headerdark]: hasVariant($state, "dark", "dark"),
           [sty.headeropen]: hasVariant($state, "open", "open"),
         })}
-        onClick={async (event) => {
+        onClick={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (event) => {
           const $steps = {};
 
           $steps["updateOpen"] = true
@@ -178,7 +179,7 @@ function PlasmicExpandableSection__RenderFunc(props: {
                   }
 
                   const oldValue = $stateGet($state, vgroup);
-                  $stateSet($state, vgroup, !oldValue);
+                  $stateSet($stateCommands, vgroup, !oldValue);
                   return !oldValue;
                 })?.apply(null, [actionArgs]);
               })()
@@ -190,7 +191,7 @@ function PlasmicExpandableSection__RenderFunc(props: {
           ) {
             $steps["updateOpen"] = await $steps["updateOpen"];
           }
-        }}
+        })); })}
       >
         <div
           className={classNames("all", sty.freeBox__i5DdO, {
@@ -313,12 +314,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -328,29 +325,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicExpandableSection__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicExpandableSection";
-  } else {
-    func.displayName = `PlasmicExpandableSection.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicExpandableSection__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicExpandableSection__root<T extends PlasmicExpandableSection__rootProps>(props: T & StrictProps<T, PlasmicExpandableSection__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicExpandableSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicExpandableSection__root.displayName = "PlasmicExpandableSection";
+
+type PlasmicExpandableSection__headerProps = NodeComponentProps<"header"> & {key?: React.Key};
+function PlasmicExpandableSection__header<T extends PlasmicExpandableSection__headerProps>(props: T & StrictProps<T, PlasmicExpandableSection__headerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("header", props);
+  return <PlasmicExpandableSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"header"} />;
+}
+PlasmicExpandableSection__header.displayName = "PlasmicExpandableSection.header";
+
+type PlasmicExpandableSection__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicExpandableSection__svg<T extends PlasmicExpandableSection__svgProps>(props: T & StrictProps<T, PlasmicExpandableSection__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicExpandableSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicExpandableSection__svg.displayName = "PlasmicExpandableSection.svg";
+
+type PlasmicExpandableSection__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicExpandableSection__content<T extends PlasmicExpandableSection__contentProps>(props: T & StrictProps<T, PlasmicExpandableSection__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicExpandableSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicExpandableSection__content.displayName = "PlasmicExpandableSection.content";
+
 
 export const PlasmicExpandableSection = Object.assign(
   // Top-level PlasmicExpandableSection renders the root element
-  makeNodeComponent("root"),
+  PlasmicExpandableSection__root,
   {
     // Helper components rendering sub-elements
-    header: makeNodeComponent("header"),
-    svg: makeNodeComponent("svg"),
-    content: makeNodeComponent("content"),
+    header: PlasmicExpandableSection__header,
+    svg: PlasmicExpandableSection__svg,
+    content: PlasmicExpandableSection__content,
 
     // Metadata about props expected for PlasmicExpandableSection
     internalVariantProps: PlasmicExpandableSection__VariantProps,

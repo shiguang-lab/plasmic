@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,7 +22,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -74,11 +74,10 @@ function PlasmicPanelDivider__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -134,12 +133,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -149,24 +144,19 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPanelDivider__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "panelDivider") {
-    func.displayName = "PlasmicPanelDivider";
-  } else {
-    func.displayName = `PlasmicPanelDivider.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPanelDivider__panelDividerProps = NodeComponentProps<"panelDivider"> & {key?: React.Key};
+function PlasmicPanelDivider__panelDivider<T extends PlasmicPanelDivider__panelDividerProps>(props: T & StrictProps<T, PlasmicPanelDivider__panelDividerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("panelDivider", props);
+  return <PlasmicPanelDivider__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"panelDivider"} />;
+}
+PlasmicPanelDivider__panelDivider.displayName = "PlasmicPanelDivider";
+
 
 export const PlasmicPanelDivider = Object.assign(
   // Top-level PlasmicPanelDivider renders the root element
-  makeNodeComponent("panelDivider"),
+  PlasmicPanelDivider__panelDivider,
   {
     // Helper components rendering sub-elements
 

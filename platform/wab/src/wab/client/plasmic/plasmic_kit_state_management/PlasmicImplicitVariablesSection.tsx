@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,13 +24,13 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import VariableRow from "../../components/sidebar-tabs/StateManagement/VariableRow"; // plasmic-import: jiD9NQWVHe/component
 import LabeledListItem from "../../components/widgets/LabeledListItem"; // plasmic-import: -L2zZ5Mvmr/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -106,11 +106,10 @@ function PlasmicImplicitVariablesSection__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isSelected",
@@ -130,18 +129,20 @@ function PlasmicImplicitVariablesSection__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.color,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -272,12 +273,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -288,28 +285,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicImplicitVariablesSection__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicImplicitVariablesSection";
-  } else {
-    func.displayName = `PlasmicImplicitVariablesSection.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicImplicitVariablesSection__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicImplicitVariablesSection__root<T extends PlasmicImplicitVariablesSection__rootProps>(props: T & StrictProps<T, PlasmicImplicitVariablesSection__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicImplicitVariablesSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicImplicitVariablesSection__root.displayName = "PlasmicImplicitVariablesSection";
+
+type PlasmicImplicitVariablesSection__tplRowProps = NodeComponentProps<"tplRow"> & {key?: React.Key};
+function PlasmicImplicitVariablesSection__tplRow<T extends PlasmicImplicitVariablesSection__tplRowProps>(props: T & StrictProps<T, PlasmicImplicitVariablesSection__tplRowProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("tplRow", props);
+  return <PlasmicImplicitVariablesSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tplRow"} />;
+}
+PlasmicImplicitVariablesSection__tplRow.displayName = "PlasmicImplicitVariablesSection.tplRow";
+
+type PlasmicImplicitVariablesSection__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicImplicitVariablesSection__freeBox<T extends PlasmicImplicitVariablesSection__freeBoxProps>(props: T & StrictProps<T, PlasmicImplicitVariablesSection__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicImplicitVariablesSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicImplicitVariablesSection__freeBox.displayName = "PlasmicImplicitVariablesSection.freeBox";
+
 
 export const PlasmicImplicitVariablesSection = Object.assign(
   // Top-level PlasmicImplicitVariablesSection renders the root element
-  makeNodeComponent("root"),
+  PlasmicImplicitVariablesSection__root,
   {
     // Helper components rendering sub-elements
-    tplRow: makeNodeComponent("tplRow"),
-    freeBox: makeNodeComponent("freeBox"),
+    tplRow: PlasmicImplicitVariablesSection__tplRow,
+    freeBox: PlasmicImplicitVariablesSection__freeBox,
 
     // Metadata about props expected for PlasmicImplicitVariablesSection
     internalVariantProps: PlasmicImplicitVariablesSection__VariantProps,

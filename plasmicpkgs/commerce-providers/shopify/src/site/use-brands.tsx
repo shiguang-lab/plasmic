@@ -45,7 +45,7 @@ export const handler: SWRHook<SiteTypes.GetBrandsHook> = {
   },
   useHook:
     ({ useData }) =>
-    (input) => {
+    function useBrandsHandler(input) {
       const response = useData({
         swrOptions: { revalidateOnFocus: false, ...input?.swrOptions },
       });

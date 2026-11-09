@@ -10,7 +10,7 @@ import {
   walkDependencyTree,
 } from "@/wab/shared/core/project-deps";
 import { FinalToken, toFinalToken } from "@/wab/shared/core/tokens";
-import { maybeComputedFn } from "@/wab/shared/mobx-util";
+import { memoizeModelQuery } from "@/wab/shared/model-query";
 import { DataToken, Site } from "@/wab/shared/model/classes";
 import keyBy from "lodash/keyBy";
 
@@ -34,42 +34,27 @@ function dataTokens(
   return allTokens;
 }
 
-export const siteDataTokens = maybeComputedFn(
-  (site: Site): ReadonlyArray<DataToken> => dataTokens(site),
-);
+export const siteDataTokens = memoizeModelQuery((site: Site): ReadonlyArray<DataToken> => dataTokens(site));
 
-export const siteDataTokensDirectDeps = maybeComputedFn(
-  (site: Site): ReadonlyArray<DataToken> =>
-    dataTokens(site, { includeDeps: "direct" }),
-);
+export const siteDataTokensDirectDeps = memoizeModelQuery((site: Site): ReadonlyArray<DataToken> =>
+    dataTokens(site, { includeDeps: "direct" }));
 
-export const siteDataTokensAllDeps = maybeComputedFn(
-  (site: Site): ReadonlyArray<DataToken> =>
-    dataTokens(site, { includeDeps: "all" }),
-);
+export const siteDataTokensAllDeps = memoizeModelQuery((site: Site): ReadonlyArray<DataToken> =>
+    dataTokens(site, { includeDeps: "all" }));
 
-export const siteDataTokensAllDepsDict = maybeComputedFn(
-  (site: Site): Readonly<{ [uuid: string]: DataToken }> =>
-    keyBy(siteDataTokensAllDeps(site), (t) => t.uuid),
-);
+export const siteDataTokensAllDepsDict = memoizeModelQuery((site: Site): Readonly<{ [uuid: string]: DataToken }> =>
+    keyBy(siteDataTokensAllDeps(site), (t) => t.uuid));
 
-export const siteFinalDataTokens = maybeComputedFn(
-  (site: Site): ReadonlyArray<FinalToken<DataToken>> =>
-    siteDataTokens(site).map((token) => toFinalToken(token, site)),
-);
+export const siteFinalDataTokens = memoizeModelQuery((site: Site): ReadonlyArray<FinalToken<DataToken>> =>
+    siteDataTokens(site).map((token) => toFinalToken(token, site)));
 
-export const siteFinalDataTokensDirectDeps = maybeComputedFn(
-  (site: Site): ReadonlyArray<FinalToken<DataToken>> =>
-    siteDataTokensDirectDeps(site).map((token) => toFinalToken(token, site)),
-);
+export const siteFinalDataTokensDirectDeps = memoizeModelQuery((site: Site): ReadonlyArray<FinalToken<DataToken>> =>
+    siteDataTokensDirectDeps(site).map((token) => toFinalToken(token, site)));
 
-export const siteFinalDataTokensAllDeps = maybeComputedFn(
-  (site: Site): ReadonlyArray<FinalToken<DataToken>> =>
-    siteDataTokensAllDeps(site).map((token) => toFinalToken(token, site)),
-);
+export const siteFinalDataTokensAllDeps = memoizeModelQuery((site: Site): ReadonlyArray<FinalToken<DataToken>> =>
+    siteDataTokensAllDeps(site).map((token) => toFinalToken(token, site)));
 
-export const siteFinalDataTokensOfType = maybeComputedFn(
-  (
+export const siteFinalDataTokensOfType = memoizeModelQuery((
     site: Site,
     category: DataTokenType,
     opts: { includeDeps?: DependencyWalkScope } = {},
@@ -82,15 +67,13 @@ export const siteFinalDataTokensOfType = maybeComputedFn(
           : siteFinalDataTokens(site);
 
     return tokens.filter((t) => getDataTokenType(t.value) === category);
-  },
-);
+  });
 
 /**
  * Local + direct-dependency data tokens of the given type as
  * {@link DataTokenRef}s, keeping each token's owning project id
  */
-export const siteDataTokenRefsDirectDeps = maybeComputedFn(
-  (
+export const siteDataTokenRefsDirectDeps = memoizeModelQuery((
     site: Site,
     projectId: ProjectId,
     category: DataTokenType,
@@ -105,8 +88,7 @@ export const siteDataTokenRefsDirectDeps = maybeComputedFn(
         projectId: dep.projectId as ProjectId,
       })),
     ),
-  ],
-);
+  ]);
 
 export function finalDataTokensForDep(
   site: Site,

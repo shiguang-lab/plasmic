@@ -1,0 +1,7 @@
+{
+  "en": "- Upgrade Studio, Canvas and Preview to React 19 with React Compiler.\n- Move Studio state to native stores and improve editing, undo, draft recovery and project startup.\n- Improve Desktop Dynamic Island previews, activity feedback and resource preparation.",
+  "zh-CN": "- Studio、画布与预览升级至 React 19，并启用 React Compiler。\n- Studio 状态迁移至原生存储，改善编辑、撤销、草稿恢复及项目启动。\n- 改善桌面端灵动岛预览、操作反馈及资源准备。",
+  "zh-TW": "- Studio、畫布與預覽升級至 React 19，並啟用 React Compiler。\n- Studio 狀態遷移至原生儲存，改善編輯、復原、草稿恢復與專案啟動。\n- 改善桌面版動態島預覽、操作回饋與資源準備。",
+  "ja": "- Studio、キャンバス、プレビューを React 19 に更新し、React Compiler を導入。\n- Studio の状態管理をネイティブストアに移行し、編集、取り消し、下書きの復元、プロジェクトの起動を改善。\n- デスクトップの Dynamic Island プレビュー、操作フィードバック、リソース準備を改善。",
+  "ko": "- Studio, 캔버스 및 미리 보기를 React 19로 업그레이드하고 React Compiler를 도입합니다.\n- Studio 상태를 네이티브 스토어로 이전하고 편집, 실행 취소, 초안 복원 및 프로젝트 시작을 개선합니다.\n- 데스크톱 Dynamic Island 미리 보기, 작업 피드백 및 리소스 준비를 개선합니다."
+}

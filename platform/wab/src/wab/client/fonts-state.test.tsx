@@ -65,7 +65,7 @@ it("does not rerender font choices when only local availability changes", async 
   const studio = mock<StudioCtx>({ site });
   Object.defineProperty(studio, "viewCtxs", { value: [] });
   await Promise.resolve();
-  manager.useFont(studio, "Menlo");
+  manager.loadFont(studio, "Menlo");
   await Promise.resolve();
   const choices = vi.fn();
   const warnings = vi.fn();

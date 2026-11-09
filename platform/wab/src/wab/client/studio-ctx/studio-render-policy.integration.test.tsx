@@ -102,10 +102,10 @@ it("prepares source and owner live changes before their subscribers, ignores ina
     expect(studio.previewCtx).toBe(second);
     first.isLive = false; first.isLive = true;
     expect(studio.renderPolicy.store.getState().devMode).toBe(true);
-    studio.isDocs = true;
+    studio.setDocsMode(true);
     second.isLive = true; second.isLive = false;
     expect(studio.renderPolicy.store.getState().devMode).toBe(false);
-    studio.isDocs = false;
+    studio.setDocsMode(false);
     const terminal = studio.renderPolicy.store.getState();
     studio.dispose(); second.isLive = true;
     expect(studio.renderPolicy.store.getState()).toBe(terminal);

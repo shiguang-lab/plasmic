@@ -62,7 +62,7 @@ test("a Preview write is rejected before execution while model reads retain Prev
     assert.equal(error.context.operationExecuted, false);
     assert.equal(error.context.actual.mode, "preview");
     assert.equal(error.context.actual.sessionId, "session");
-    assert.equal(error.context.required.mode, "edit");
+    assert.deepEqual(error.context.required.previewKind, [null, "interactive"]);
     assert.deepEqual(error.context.recovery[0], { tool: "preview", arguments: { action: "close" } });
     return true;
   });
@@ -151,12 +151,12 @@ test("unavailable context and external Preview give explicit failures without ru
   assert.deepEqual(calls, []);
 });
 
-test("background canvas targets need no active frame; visible canvas operations require edit mode", async (t) => {
+test("background canvas targets need no active frame; native Preview rejects current-canvas reads", async (t) => {
   const { controller, context, calls } = fixture(t, "preview");
   context.frameUuid = null; context.editorView = null;
   await controller.checkContext("get_screenshot", { componentUuid: "page" });
   await controller.checkContext("snapshot_layout", { componentUuid: "page" });
-  await assert.rejects(controller.dispatch("get_screenshot", { mode: "workspace" }), (error) => error.context.required.mode === "edit");
+  await assert.rejects(controller.dispatch("get_screenshot", { mode: "workspace" }), (error) => error.context.required.previewKind.includes("interactive"));
   assert.deepEqual(calls, []);
   assert.equal(context.mode, "preview");
 });
@@ -245,10 +245,11 @@ test("context error and recovery survive RPC and MCP, allowing one explicit clos
 test("status distinguishes retained editor selection from native, external and interactive Preview", () => {
   for (const previewKind of ["in-app", "external", "interactive"]) {
     const context = currentContext({ ready: true, projectId: "project", editorContext: {
-      mode: "preview", previewKind, componentUuid: "original", previewContext: { componentUuid: "runtime-page" },
+      mode: "preview", previewKind, canEdit: true, componentUuid: "original", previewContext: { componentUuid: "runtime-page" },
     } });
     assert.equal(context.mode, "preview");
     assert.equal(context.previewKind, previewKind);
+    assert.equal(context.canEdit, previewKind === "interactive");
     assert.equal(context.componentUuid, "original");
   }
 });
@@ -264,7 +265,8 @@ test("root Preview routes are native Preview contexts, including the route witho
 });
 
 test("the page height view runs on read-only canvases as a view operation", async (t) => {
-  const { controller, context, calls } = fixture(t);
+  const { controller, context, calls, setUrl } = fixture(t);
+  setUrl("https://studio.example/projects/project");
   context.canEdit = false;
   await controller.dispatch("execute", { name: "setCanvasPageHeight", input: { mode: "full" } });
   assert.deepEqual(calls.at(-1), { name: "setCanvasPageHeight", input: { mode: "full" } });
@@ -288,7 +290,7 @@ test("interactive mode can be explicitly enabled and disabled, while design writ
   assert.deepEqual(calls.at(-1), disable);
   await assert.rejects(controller.dispatch("execute", { name: "changeElement", input: {} }), error => {
     assert.equal(error.context.code, "CONTEXT_MISMATCH");
-    assert.deepEqual(error.context.recovery[0], { tool: "execute", arguments: { name: "setInteractiveMode", input: { enabled: false } } });
+    assert.deepEqual(error.context.recovery[0], { tool: "get_app_state", arguments: {} });
     return true;
   });
   const { EDITOR_METHODS, tools } = require("../src/mcp-contract.cjs");
@@ -307,40 +309,43 @@ test("canvas interaction rejects native/external Preview and accepts runtime inp
 });
 
 for (const method of ["execute", "execute_batch"]) {
-  test(`${method} automatically leaves canvas interaction before editing`, async t => {
-    const { controller, context, calls } = fixture(t);
-    context.mode = "preview"; context.previewKind = "interactive"; context.canEdit = false;
-    const editor = controller.editor;
-    controller.editor = async (name, input) => {
-      const result = await editor(name, input);
-      if (name === "setInteractiveMode") {
-        context.mode = "edit"; context.previewKind = null; context.canEdit = true;
-      }
-      return result;
-    };
+  test(`${method} edits in canvas interaction without switching modes`, async t => {
+    const { controller, context, calls, setUrl } = fixture(t);
+    setUrl("https://studio.example/projects/project");
+    context.mode = "preview"; context.previewKind = "interactive"; context.canEdit = true;
     const operation = { name: "changeElement", input: { componentUuid: "page", elementUuid: "node", name: "Updated" } };
     await controller.dispatch(method, method === "execute" ? operation : { operations: [operation] });
-    assert.deepEqual(calls[0], { name: "setInteractiveMode", input: { enabled: false } });
-    assert.equal(calls[1].name, method === "execute" ? "changeElement" : "executeBatch");
-    assert.equal(context.mode, "edit");
+    assert.deepEqual(calls.map(call => call.name), [method === "execute" ? "changeElement" : "executeBatch"]);
+    assert.equal(context.mode, "preview");
+    assert.equal(context.previewKind, "interactive");
+    assert.equal(controller.activity.latest.mode, "preview");
   });
 }
 
-test("automatic interaction exit rechecks permission and session before any mutation", async t => {
+test("interactive writes still reject missing permission and stale project sessions", async t => {
   for (const reason of ["permission", "session"]) {
-    const { controller, context, calls } = fixture(t);
-    context.mode = "preview"; context.previewKind = "interactive"; context.canEdit = false;
-    const editor = controller.editor;
-    controller.editor = async (name, input) => {
-      const result = await editor(name, input);
-      if (name === "setInteractiveMode") {
-        context.mode = "edit"; context.previewKind = null;
-        context.canEdit = reason !== "permission";
-        if (reason === "session") context.sessionId = "replacement";
-      }
-      return result;
-    };
+    const { controller, context, calls, setUrl } = fixture(t);
+    setUrl("https://studio.example/projects/project");
+    context.mode = "preview"; context.previewKind = "interactive"; context.canEdit = reason !== "permission";
+    if (reason === "session") context.projectId = "stale-project";
     await assert.rejects(controller.dispatch("execute", { name: "changeElement", input: { componentUuid: "page" } }), error => error.context.code === "CONTEXT_MISMATCH" && error.context.operationExecuted === false);
-    assert.deepEqual(calls.map(call => call.name), ["setInteractiveMode"]);
+    assert.deepEqual(calls, []);
+    assert.equal(context.previewKind, "interactive");
   }
+});
+
+test("model reads and current-canvas inspection retain interactive mode, including read-only projects", async t => {
+  const { controller, context, calls, setUrl } = fixture(t);
+  setUrl("https://studio.example/projects/project");
+  context.mode = "preview"; context.previewKind = "interactive"; context.canEdit = false;
+  for (const name of ["read", "queryElements", "validate", "getEditorContext"]) {
+    await controller.dispatch("execute", { name, input: {} });
+  }
+  for (const method of ["get_screenshot", "snapshot_layout"]) {
+    await controller.checkContext(method, {});
+    await controller.checkContext(method, { frameUuid: "original-frame" });
+  }
+  await controller.checkContext("execute", { name: "beginCanvasInspection", input: { frameUuid: "original-frame" } });
+  assert.deepEqual(calls.map(call => call.name), ["read", "queryElements", "validate", "getEditorContext"]);
+  assert.equal(context.previewKind, "interactive");
 });

@@ -15,42 +15,7 @@ import { useI18n } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
-import {
-  Flex as Flex__,
-  MultiChoiceArg,
-  PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
-  PlasmicIcon as PlasmicIcon__,
-  PlasmicImg as PlasmicImg__,
-  PlasmicLink as PlasmicLink__,
-  PlasmicPageGuard as PlasmicPageGuard__,
-  SingleBooleanChoiceArg,
-  SingleChoiceArg,
-  Stack as Stack__,
-  StrictProps,
-  Trans as Trans__,
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  ensureGlobalVariants,
-  generateOnMutateForSpec,
-  generateStateOnChangeProp,
-  generateStateOnChangePropForCodeComponents,
-  generateStateValueProp,
-  get as $stateGet,
-  hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
-  makeFragment,
-  omit,
-  pick,
-  renderPlasmicSlot,
-  set as $stateSet,
-  useCurrentUser,
-  useDollarState,
-  usePlasmicTranslator,
-  useTrigger,
-  wrapWithClassName
-} from "@plasmicapp/react-web";
+import {usePlasmicRefs, Flex as Flex__, MultiChoiceArg, PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__, PlasmicIcon as PlasmicIcon__, PlasmicImg as PlasmicImg__, PlasmicLink as PlasmicLink__, PlasmicPageGuard as PlasmicPageGuard__, SingleBooleanChoiceArg, SingleChoiceArg, Stack as Stack__, StrictProps, Trans as Trans__, classNames, createPlasmicElementProxy, deriveRenderOpts, ensureGlobalVariants, generateOnMutateForSpec, generateStateOnChangeProp, generateStateOnChangePropForCodeComponents, generateStateValueProp, get as $stateGet, hasVariant, makeFragment, omit, pick, renderPlasmicSlot, set as $stateSet, useCurrentUser, useDollarState, useDollarStateSnapshot, usePlasmicTranslator, wrapWithClassName, getStateCommandEnv, getStateCommandValue, createStateEventHandler, getCodeComponentStateInitializers, StateInitializer} from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
@@ -61,8 +26,8 @@ import TextAreaInput from "../../components/plexus/TextAreaInput"; // plasmic-im
 import { BaseTextArea } from "@plasmicpkgs/react-aria/skinny/registerTextArea";
 import { inputHelpers as BaseTextArea_Helpers } from "@plasmicpkgs/react-aria/skinny/registerTextArea";
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -159,11 +124,10 @@ function PlasmicCopilotPromptInput__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "generating",
@@ -219,20 +183,24 @@ function PlasmicCopilotPromptInput__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.withImages
       }
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs
-  });
+    getRefs
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
-  return (
+  return (() => {
+const $stateInitializers: Array<Parameters<typeof StateInitializer>[0]["initializers"][number]> = [];
+const rendered = ((
     <div
       data-plasmic-name={"root"}
       data-plasmic-override={overrides.root}
@@ -274,8 +242,8 @@ function PlasmicCopilotPromptInput__RenderFunc(props: {
         disabled={
           hasVariant($state, "generating", "generating") ? true : undefined
         }
-        onChange={async (...eventArgs: any) => {
-          generateStateOnChangeProp($state, [
+        onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+          generateStateOnChangeProp($stateCommands, [
             "modelOverrideInput",
             "value"
           ]).apply(null, eventArgs);
@@ -287,7 +255,7 @@ function PlasmicCopilotPromptInput__RenderFunc(props: {
           ) {
             return;
           }
-        }}
+        })); })}
         placeholder={uiT("Model provider override")}
         value={generateStateValueProp($state, ["modelOverrideInput", "value"])}
       />
@@ -312,8 +280,8 @@ function PlasmicCopilotPromptInput__RenderFunc(props: {
         disabled={
           hasVariant($state, "generating", "generating") ? true : undefined
         }
-        onChange={async (...eventArgs: any) => {
-          generateStateOnChangeProp($state, [
+        onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+          generateStateOnChangeProp($stateCommands, [
             "systemPromptInput",
             "value"
           ]).apply(null, eventArgs);
@@ -325,7 +293,7 @@ function PlasmicCopilotPromptInput__RenderFunc(props: {
           ) {
             return;
           }
-        }}
+        })); })}
         placeholder={uiT("System prompt")}
         value={generateStateValueProp($state, ["systemPromptInput", "value"])}
       />
@@ -362,39 +330,22 @@ function PlasmicCopilotPromptInput__RenderFunc(props: {
               }),
               onChange: async (...eventArgs: any) => {
                 generateStateOnChangePropForCodeComponents(
-                  $state,
+                  $stateCommands,
                   "value",
                   ["textAreaInput", "value"],
                   BaseTextArea_Helpers
                 ).apply(null, eventArgs);
               },
-              placeholder: (() => {
-                try {
-                  return $props.placeholder;
-                } catch (e) {
-                  if (
-                    e instanceof TypeError ||
-                    e?.plasmicType === "PlasmicUndefinedDataError"
-                  ) {
-                    return undefined;
-                  }
-                  throw e;
-                }
-              })(),
+              placeholder: ((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                    e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.placeholder), () => (undefined)),
               value: generateStateValueProp($state, ["textAreaInput", "value"])
             };
-            initializeCodeComponentStates(
-              $state,
-              [
+            $stateInitializers.push(...getCodeComponentStateInitializers([
                 {
                   name: "value",
                   plasmicStateName: "textAreaInput.value"
                 }
-              ],
-              [],
-              BaseTextArea_Helpers ?? {},
-              child$Props
-            );
+              ], [], BaseTextArea_Helpers ?? {}, child$Props));
 
             return (
               <BaseTextArea
@@ -593,7 +544,9 @@ function PlasmicCopilotPromptInput__RenderFunc(props: {
         />
       ) : null}
     </div>
-  ) as React.ReactElement | null;
+  ) as React.ReactElement | null);
+return <StateInitializer state={$state} initializers={$stateInitializers}>{rendered}</StateInitializer>;
+})();
 }
 
 const PlasmicDescendants = {
@@ -662,12 +615,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -677,35 +626,93 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCopilotPromptInput__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCopilotPromptInput";
-  } else {
-    func.displayName = `PlasmicCopilotPromptInput.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCopilotPromptInput__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCopilotPromptInput__root<T extends PlasmicCopilotPromptInput__rootProps>(props: T & StrictProps<T, PlasmicCopilotPromptInput__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCopilotPromptInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCopilotPromptInput__root.displayName = "PlasmicCopilotPromptInput";
+
+type PlasmicCopilotPromptInput__modelOverrideInputProps = NodeComponentProps<"modelOverrideInput"> & {key?: React.Key};
+function PlasmicCopilotPromptInput__modelOverrideInput<T extends PlasmicCopilotPromptInput__modelOverrideInputProps>(props: T & StrictProps<T, PlasmicCopilotPromptInput__modelOverrideInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("modelOverrideInput", props);
+  return <PlasmicCopilotPromptInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"modelOverrideInput"} />;
+}
+PlasmicCopilotPromptInput__modelOverrideInput.displayName = "PlasmicCopilotPromptInput.modelOverrideInput";
+
+type PlasmicCopilotPromptInput__systemPromptInputProps = NodeComponentProps<"systemPromptInput"> & {key?: React.Key};
+function PlasmicCopilotPromptInput__systemPromptInput<T extends PlasmicCopilotPromptInput__systemPromptInputProps>(props: T & StrictProps<T, PlasmicCopilotPromptInput__systemPromptInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("systemPromptInput", props);
+  return <PlasmicCopilotPromptInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"systemPromptInput"} />;
+}
+PlasmicCopilotPromptInput__systemPromptInput.displayName = "PlasmicCopilotPromptInput.systemPromptInput";
+
+type PlasmicCopilotPromptInput__textAreaInputProps = NodeComponentProps<"textAreaInput"> & {key?: React.Key};
+function PlasmicCopilotPromptInput__textAreaInput<T extends PlasmicCopilotPromptInput__textAreaInputProps>(props: T & StrictProps<T, PlasmicCopilotPromptInput__textAreaInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("textAreaInput", props);
+  return <PlasmicCopilotPromptInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"textAreaInput"} />;
+}
+PlasmicCopilotPromptInput__textAreaInput.displayName = "PlasmicCopilotPromptInput.textAreaInput";
+
+type PlasmicCopilotPromptInput__imageUploadIconProps = NodeComponentProps<"imageUploadIcon"> & {key?: React.Key};
+function PlasmicCopilotPromptInput__imageUploadIcon<T extends PlasmicCopilotPromptInput__imageUploadIconProps>(props: T & StrictProps<T, PlasmicCopilotPromptInput__imageUploadIconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("imageUploadIcon", props);
+  return <PlasmicCopilotPromptInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"imageUploadIcon"} />;
+}
+PlasmicCopilotPromptInput__imageUploadIcon.displayName = "PlasmicCopilotPromptInput.imageUploadIcon";
+
+type PlasmicCopilotPromptInput__runPromptBtnProps = NodeComponentProps<"runPromptBtn"> & {key?: React.Key};
+function PlasmicCopilotPromptInput__runPromptBtn<T extends PlasmicCopilotPromptInput__runPromptBtnProps>(props: T & StrictProps<T, PlasmicCopilotPromptInput__runPromptBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("runPromptBtn", props);
+  return <PlasmicCopilotPromptInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"runPromptBtn"} />;
+}
+PlasmicCopilotPromptInput__runPromptBtn.displayName = "PlasmicCopilotPromptInput.runPromptBtn";
+
+type PlasmicCopilotPromptInput__stopBtnProps = NodeComponentProps<"stopBtn"> & {key?: React.Key};
+function PlasmicCopilotPromptInput__stopBtn<T extends PlasmicCopilotPromptInput__stopBtnProps>(props: T & StrictProps<T, PlasmicCopilotPromptInput__stopBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("stopBtn", props);
+  return <PlasmicCopilotPromptInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"stopBtn"} />;
+}
+PlasmicCopilotPromptInput__stopBtn.displayName = "PlasmicCopilotPromptInput.stopBtn";
+
+type PlasmicCopilotPromptInput__dropOverlayProps = NodeComponentProps<"dropOverlay"> & {key?: React.Key};
+function PlasmicCopilotPromptInput__dropOverlay<T extends PlasmicCopilotPromptInput__dropOverlayProps>(props: T & StrictProps<T, PlasmicCopilotPromptInput__dropOverlayProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dropOverlay", props);
+  return <PlasmicCopilotPromptInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dropOverlay"} />;
+}
+PlasmicCopilotPromptInput__dropOverlay.displayName = "PlasmicCopilotPromptInput.dropOverlay";
+
+type PlasmicCopilotPromptInput__spanProps = NodeComponentProps<"span"> & {key?: React.Key};
+function PlasmicCopilotPromptInput__span<T extends PlasmicCopilotPromptInput__spanProps>(props: T & StrictProps<T, PlasmicCopilotPromptInput__spanProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("span", props);
+  return <PlasmicCopilotPromptInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"span"} />;
+}
+PlasmicCopilotPromptInput__span.displayName = "PlasmicCopilotPromptInput.span";
+
+type PlasmicCopilotPromptInput__imageUploadContainerProps = NodeComponentProps<"imageUploadContainer"> & {key?: React.Key};
+function PlasmicCopilotPromptInput__imageUploadContainer<T extends PlasmicCopilotPromptInput__imageUploadContainerProps>(props: T & StrictProps<T, PlasmicCopilotPromptInput__imageUploadContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("imageUploadContainer", props);
+  return <PlasmicCopilotPromptInput__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"imageUploadContainer"} />;
+}
+PlasmicCopilotPromptInput__imageUploadContainer.displayName = "PlasmicCopilotPromptInput.imageUploadContainer";
+
 
 export const PlasmicCopilotPromptInput = Object.assign(
   // Top-level PlasmicCopilotPromptInput renders the root element
-  makeNodeComponent("root"),
+  PlasmicCopilotPromptInput__root,
   {
     // Helper components rendering sub-elements
-    modelOverrideInput: makeNodeComponent("modelOverrideInput"),
-    systemPromptInput: makeNodeComponent("systemPromptInput"),
-    textAreaInput: makeNodeComponent("textAreaInput"),
-    imageUploadIcon: makeNodeComponent("imageUploadIcon"),
-    runPromptBtn: makeNodeComponent("runPromptBtn"),
-    stopBtn: makeNodeComponent("stopBtn"),
-    dropOverlay: makeNodeComponent("dropOverlay"),
-    span: makeNodeComponent("span"),
-    imageUploadContainer: makeNodeComponent("imageUploadContainer"),
+    modelOverrideInput: PlasmicCopilotPromptInput__modelOverrideInput,
+    systemPromptInput: PlasmicCopilotPromptInput__systemPromptInput,
+    textAreaInput: PlasmicCopilotPromptInput__textAreaInput,
+    imageUploadIcon: PlasmicCopilotPromptInput__imageUploadIcon,
+    runPromptBtn: PlasmicCopilotPromptInput__runPromptBtn,
+    stopBtn: PlasmicCopilotPromptInput__stopBtn,
+    dropOverlay: PlasmicCopilotPromptInput__dropOverlay,
+    span: PlasmicCopilotPromptInput__span,
+    imageUploadContainer: PlasmicCopilotPromptInput__imageUploadContainer,
 
     // Metadata about props expected for PlasmicCopilotPromptInput
     internalVariantProps: PlasmicCopilotPromptInput__VariantProps,

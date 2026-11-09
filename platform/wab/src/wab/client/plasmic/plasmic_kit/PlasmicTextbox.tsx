@@ -24,11 +24,12 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -191,11 +192,10 @@ function PlasmicTextbox__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "disabled",
@@ -254,18 +254,20 @@ function PlasmicTextbox__RenderFunc(props: {
           $props.extraPadding,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -572,9 +574,7 @@ function PlasmicTextbox__RenderFunc(props: {
             hasVariant($state, "styleType", "medium"),
         })}
         placeholder={args.placeholder}
-        ref={(ref) => {
-          $refs["textbox"] = ref;
-        }}
+        ref={registerRef("textbox")}
         size={1}
         type={"text"}
         value={args.value}
@@ -752,12 +752,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -767,29 +763,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTextbox__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTextbox";
-  } else {
-    func.displayName = `PlasmicTextbox.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTextbox__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTextbox__root<T extends PlasmicTextbox__rootProps>(props: T & StrictProps<T, PlasmicTextbox__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTextbox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTextbox__root.displayName = "PlasmicTextbox";
+
+type PlasmicTextbox__prefixContainerProps = NodeComponentProps<"prefixContainer"> & {key?: React.Key};
+function PlasmicTextbox__prefixContainer<T extends PlasmicTextbox__prefixContainerProps>(props: T & StrictProps<T, PlasmicTextbox__prefixContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("prefixContainer", props);
+  return <PlasmicTextbox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"prefixContainer"} />;
+}
+PlasmicTextbox__prefixContainer.displayName = "PlasmicTextbox.prefixContainer";
+
+type PlasmicTextbox__textboxProps = NodeComponentProps<"textbox"> & {key?: React.Key};
+function PlasmicTextbox__textbox<T extends PlasmicTextbox__textboxProps>(props: T & StrictProps<T, PlasmicTextbox__textboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("textbox", props);
+  return <PlasmicTextbox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"textbox"} />;
+}
+PlasmicTextbox__textbox.displayName = "PlasmicTextbox.textbox";
+
+type PlasmicTextbox__suffixContainerProps = NodeComponentProps<"suffixContainer"> & {key?: React.Key};
+function PlasmicTextbox__suffixContainer<T extends PlasmicTextbox__suffixContainerProps>(props: T & StrictProps<T, PlasmicTextbox__suffixContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("suffixContainer", props);
+  return <PlasmicTextbox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"suffixContainer"} />;
+}
+PlasmicTextbox__suffixContainer.displayName = "PlasmicTextbox.suffixContainer";
+
 
 export const PlasmicTextbox = Object.assign(
   // Top-level PlasmicTextbox renders the root element
-  makeNodeComponent("root"),
+  PlasmicTextbox__root,
   {
     // Helper components rendering sub-elements
-    prefixContainer: makeNodeComponent("prefixContainer"),
-    textbox: makeNodeComponent("textbox"),
-    suffixContainer: makeNodeComponent("suffixContainer"),
+    prefixContainer: PlasmicTextbox__prefixContainer,
+    textbox: PlasmicTextbox__textbox,
+    suffixContainer: PlasmicTextbox__suffixContainer,
 
     // Metadata about props expected for PlasmicTextbox
     internalVariantProps: PlasmicTextbox__VariantProps,

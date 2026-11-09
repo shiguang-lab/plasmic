@@ -72,11 +72,11 @@ export const ResourceUpload = function ResourceUpload({
     }
     pending.current = true;
     setUploadingType(type);
-    try {
+    await (async () => {
       const image = await readAndSanitizeFileAsImage(studioCtx.appCtx, file);
       if (!image) {
         void message.error({ content: t("Invalid image") });
-        return false;
+        return;
       }
       const { imageResult, opts } = await maybeUploadImage(
         studioCtx.appCtx,
@@ -86,11 +86,11 @@ export const ResourceUpload = function ResourceUpload({
       );
       if (!imageResult || !opts) {
         // Image type validation has already reported its specific error.
-        return false;
+        return;
       }
       // Permissions and the editable version can change while the upload is in flight.
       if (!canUpload(type)) {
-        return false;
+        return;
       }
       await studioCtx.change(() => {
         studioCtx.siteOps().createImageAsset(imageResult, opts);
@@ -98,12 +98,12 @@ export const ResourceUpload = function ResourceUpload({
       });
       void message.success({ content: t("Asset uploaded") });
       onUploaded(type);
-    } catch (error) {
+    })().catch((error) => {
       showError(error, { title: "Failed to upload asset" });
-    } finally {
+    }).finally(() => {
       setUploadingType(undefined);
       pending.current = false;
-    }
+    });
     return false;
   }
   return (

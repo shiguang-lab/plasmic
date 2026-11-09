@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -86,11 +86,10 @@ function PlasmicPreset__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -174,12 +173,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -189,28 +184,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPreset__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPreset";
-  } else {
-    func.displayName = `PlasmicPreset.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPreset__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPreset__root<T extends PlasmicPreset__rootProps>(props: T & StrictProps<T, PlasmicPreset__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPreset__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPreset__root.displayName = "PlasmicPreset";
+
+type PlasmicPreset__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicPreset__freeBox<T extends PlasmicPreset__freeBoxProps>(props: T & StrictProps<T, PlasmicPreset__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicPreset__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicPreset__freeBox.displayName = "PlasmicPreset.freeBox";
+
+type PlasmicPreset__nameContainerProps = NodeComponentProps<"nameContainer"> & {key?: React.Key};
+function PlasmicPreset__nameContainer<T extends PlasmicPreset__nameContainerProps>(props: T & StrictProps<T, PlasmicPreset__nameContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("nameContainer", props);
+  return <PlasmicPreset__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"nameContainer"} />;
+}
+PlasmicPreset__nameContainer.displayName = "PlasmicPreset.nameContainer";
+
 
 export const PlasmicPreset = Object.assign(
   // Top-level PlasmicPreset renders the root element
-  makeNodeComponent("root"),
+  PlasmicPreset__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    nameContainer: makeNodeComponent("nameContainer"),
+    freeBox: PlasmicPreset__freeBox,
+    nameContainer: PlasmicPreset__nameContainer,
 
     // Metadata about props expected for PlasmicPreset
     internalVariantProps: PlasmicPreset__VariantProps,

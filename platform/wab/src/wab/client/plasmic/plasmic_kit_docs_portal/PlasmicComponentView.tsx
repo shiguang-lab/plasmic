@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,7 +25,7 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -33,7 +33,7 @@ import CodePreviewSnippet from "../../components/docs/CodePreviewSnippet"; // pl
 import DocsPropsTable from "../../components/docs/DocsPropsTable"; // plasmic-import: 9vACp1cwGL/component
 import DocsPropsTableRow from "../../components/docs/DocsPropsTableRow"; // plasmic-import: MQ5YoyUM0K/component
 import TemplateRow from "../../components/docs/TemplateRow"; // plasmic-import: qFYdDOtl6B/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -119,11 +119,10 @@ function PlasmicComponentView__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "componentType",
@@ -140,18 +139,20 @@ function PlasmicComponentView__RenderFunc(props: {
           $props.hideCustomProps,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -805,12 +806,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -820,33 +817,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicComponentView__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicComponentView";
-  } else {
-    func.displayName = `PlasmicComponentView.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicComponentView__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicComponentView__root<T extends PlasmicComponentView__rootProps>(props: T & StrictProps<T, PlasmicComponentView__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicComponentView__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicComponentView__root.displayName = "PlasmicComponentView";
+
+type PlasmicComponentView__templatesListProps = NodeComponentProps<"templatesList"> & {key?: React.Key};
+function PlasmicComponentView__templatesList<T extends PlasmicComponentView__templatesListProps>(props: T & StrictProps<T, PlasmicComponentView__templatesListProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("templatesList", props);
+  return <PlasmicComponentView__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"templatesList"} />;
+}
+PlasmicComponentView__templatesList.displayName = "PlasmicComponentView.templatesList";
+
+type PlasmicComponentView__templateProps = NodeComponentProps<"template"> & {key?: React.Key};
+function PlasmicComponentView__template<T extends PlasmicComponentView__templateProps>(props: T & StrictProps<T, PlasmicComponentView__templateProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("template", props);
+  return <PlasmicComponentView__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"template"} />;
+}
+PlasmicComponentView__template.displayName = "PlasmicComponentView.template";
+
+type PlasmicComponentView__viewportProps = NodeComponentProps<"viewport"> & {key?: React.Key};
+function PlasmicComponentView__viewport<T extends PlasmicComponentView__viewportProps>(props: T & StrictProps<T, PlasmicComponentView__viewportProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("viewport", props);
+  return <PlasmicComponentView__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"viewport"} />;
+}
+PlasmicComponentView__viewport.displayName = "PlasmicComponentView.viewport";
+
+type PlasmicComponentView__columnsProps = NodeComponentProps<"columns"> & {key?: React.Key};
+function PlasmicComponentView__columns<T extends PlasmicComponentView__columnsProps>(props: T & StrictProps<T, PlasmicComponentView__columnsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("columns", props);
+  return <PlasmicComponentView__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"columns"} />;
+}
+PlasmicComponentView__columns.displayName = "PlasmicComponentView.columns";
+
+type PlasmicComponentView__examplesProps = NodeComponentProps<"examples"> & {key?: React.Key};
+function PlasmicComponentView__examples<T extends PlasmicComponentView__examplesProps>(props: T & StrictProps<T, PlasmicComponentView__examplesProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("examples", props);
+  return <PlasmicComponentView__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"examples"} />;
+}
+PlasmicComponentView__examples.displayName = "PlasmicComponentView.examples";
+
+type PlasmicComponentView__basePropsProps = NodeComponentProps<"baseProps"> & {key?: React.Key};
+function PlasmicComponentView__baseProps<T extends PlasmicComponentView__basePropsProps>(props: T & StrictProps<T, PlasmicComponentView__basePropsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("baseProps", props);
+  return <PlasmicComponentView__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"baseProps"} />;
+}
+PlasmicComponentView__baseProps.displayName = "PlasmicComponentView.baseProps";
+
+type PlasmicComponentView__customPropsProps = NodeComponentProps<"customProps"> & {key?: React.Key};
+function PlasmicComponentView__customProps<T extends PlasmicComponentView__customPropsProps>(props: T & StrictProps<T, PlasmicComponentView__customPropsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("customProps", props);
+  return <PlasmicComponentView__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"customProps"} />;
+}
+PlasmicComponentView__customProps.displayName = "PlasmicComponentView.customProps";
+
 
 export const PlasmicComponentView = Object.assign(
   // Top-level PlasmicComponentView renders the root element
-  makeNodeComponent("root"),
+  PlasmicComponentView__root,
   {
     // Helper components rendering sub-elements
-    templatesList: makeNodeComponent("templatesList"),
-    template: makeNodeComponent("template"),
-    viewport: makeNodeComponent("viewport"),
-    columns: makeNodeComponent("columns"),
-    examples: makeNodeComponent("examples"),
-    baseProps: makeNodeComponent("baseProps"),
-    customProps: makeNodeComponent("customProps"),
+    templatesList: PlasmicComponentView__templatesList,
+    template: PlasmicComponentView__template,
+    viewport: PlasmicComponentView__viewport,
+    columns: PlasmicComponentView__columns,
+    examples: PlasmicComponentView__examples,
+    baseProps: PlasmicComponentView__baseProps,
+    customProps: PlasmicComponentView__customProps,
 
     // Metadata about props expected for PlasmicComponentView
     internalVariantProps: PlasmicComponentView__VariantProps,

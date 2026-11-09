@@ -18,7 +18,7 @@ import {
   getExportedComponentName,
   makePlasmicComponentName,
 } from "@/wab/shared/codegen/react-p/serialize-utils";
-import { ensure, mkUuid } from "@/wab/shared/common";
+import { ensure, mkUuid, tryCatchElse } from "@/wab/shared/common";
 import {
   isCodeComponent,
   isPlumeComponent,
@@ -39,6 +39,16 @@ import REACT_WEB_TYPES from "!raw-loader!../../../../../node_modules/@plasmicapp
 import REACT_TYPES from "!raw-loader!../../../../../node_modules/@types/react/index.d.ts";
 
 type MonacoType = typeof monacoEditor;
+
+/** Reentrant Monaco content events distinguish programmatic text from edits. */
+class CodeTextSynchronization {
+  private replacing = false;
+  isReplacing() { return this.replacing; }
+  replace(model: monacoEditor.editor.ITextModel, code: string) {
+    this.replacing = true;
+    try { model.setValue(code); } finally { this.replacing = false; }
+  }
+}
 
 export function DocsPortalEditor(props: {
   docsCtx: DocsPortalCtx;
@@ -102,9 +112,9 @@ export function DocsPortalEditor(props: {
     }
 
     // Whenver the model content changes, we inform docsCtx about it
-    let synchronizing = false;
+    const textSynchronization = new CodeTextSynchronization();
     const disposeModel = model.onDidChangeContent((_event) => {
-      if (synchronizing) {
+      if (textSynchronization.isReplacing()) {
         return;
       }
       const newCode = removeInjectedCode(model.getValue());
@@ -131,14 +141,14 @@ export function DocsPortalEditor(props: {
               serializeToggledComponent(
                 component,
                 docsCtx.getComponentToggles(component),
-                docsCtx.useLoader(),
+                docsCtx.isUsingLoader(),
               ))
           : (docsCtx.getIconCustomCode(ensure(icon, "picked icon")) ??
             "// Try directly editing this code to pass in different props\n" +
               serializeToggledIcon(
                 ensure(icon, "picked icon"),
                 docsCtx.getIconToggles(ensure(icon, "picked icon")),
-                docsCtx.useLoader(),
+                docsCtx.isUsingLoader(),
               ));
 
       if (
@@ -154,17 +164,12 @@ ${injectedCode}
 ${codePreviewCtx?.getCode() ?? docsCtxCode}
 `.trim();
       if (model.getValue() !== code) {
-        synchronizing = true;
-        try {
-          model.setValue(code);
-        } finally {
-          synchronizing = false;
-        }
+        textSynchronization.replace(model, code);
         hideInjectedCode(editor);
       }
     };
-    const syncDependencies = () => {
-      try {
+    const syncDependencies = () => tryCatchElse({
+      try: () => {
         // Regenerate dependencies only for project-model changes. Native
         // code/toggle edits below update the editor text without codegen.
 
@@ -204,10 +209,11 @@ ${component ? makePlumeDepsImports(docsCtx.studioCtx.site, component) : ""}
 
         syncCode();
         setDependencyError(undefined);
-      } catch (error) {
+      },
+      catch: (error: unknown) => {
         setDependencyError(error instanceof Error ? error.message || error.name : String(error));
-      }
-    };
+      },
+    });
     const dispose = subscribePreviewCodegen(docsCtx.studioCtx, () => component, syncDependencies);
     syncDependencies();
 

@@ -1,6 +1,5 @@
 import L from "lodash";
 // eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import { computed, isObservable, makeObservable } from "mobx";
 
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { DeepReadonly, DeepReadonlyArray } from "@/wab/commons/types";
@@ -148,23 +147,7 @@ export class EffectiveVariantSetting {
     private site?: Site,
     activeVariants?: Variant[],
   ) {
-    if (isObservable(tpl)) {
-      makeObservable(this, {
-        rs: computed,
-        dataRep: computed,
-        dataCond: computed,
-        attrs: computed,
-        args: computed,
-        text: computed,
-        columnsConfig: computed,
-        parentArgSlotVs: computed,
-        parentSlotVs: computed,
-        themeRsh: computed,
-        potentialPropSources: computed,
-        parentStyleContexts: computed,
-        parentStyleValues: computed,
-      });
-    }
+
 
     if (activeVariants) {
       activeVariants = activeVariants.filter((v) => !isBaseVariant(v));
@@ -464,8 +447,7 @@ export class EffectiveVariantSetting {
    * Stores the activeVariants used for each parent so the UI can reconstruct
    * the RSH independently (important for cross-component inheritance).
    *
-   * This is a MobX computed property, so the parent traversal and style computation
-   * is cached and only re-computed when the parent tree or activeVariants change.
+   * The parent traversal reads the current model and active variants.
    */
   /** The existing inheritance topology, including currently empty contributors.
    * Both value resolution and explicit native field declarations use this path. */

@@ -45,7 +45,7 @@ function keyInput<T>(initial: T): KeyInput<T> {
   };
 }
 
-function contractSnapshot(meta: unknown) {
+export function contractSnapshot(meta: unknown) {
   const copy = cloneDeepWith(meta, (value) => {
     // Class instances, React elements and functions are runtime handles. Only
     // registration metadata's plain containers belong to the copied contract.

@@ -2,12 +2,26 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { createSite } from "@/wab/shared/core/sites";
 import { unbundleProjectDependency } from "@/wab/shared/core/tagged-unbundle";
 import { ProjectDependency } from "@/wab/shared/model/classes";
-import { autorun } from "mobx";
+import { setDependency } from "@/wab/client/studio-ctx/project-dependencies-state";
 
 vi.mock("@/wab/shared/core/tagged-unbundle", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/wab/shared/core/tagged-unbundle")>()),
   unbundleProjectDependency: vi.fn(),
 }));
+
+test("reads package metadata synchronously before any revision microtask", () => {
+  const site = createSite();
+  const dependency = new ProjectDependency({ uuid: "dep", pkgId: "pkg", projectId: "project", version: "1.0.0", name: "Library", site: createSite() });
+  site.projectDependencies.push(dependency);
+  const { studioCtx } = fakeStudioCtx({ site });
+  const manager = studioCtx.projectDependencyManager;
+  try {
+    const before = manager.getDependencies()[0];
+    const next = { ...before, latestPkgVersionMeta: { version: "2.0.0" } as any };
+    setDependency(manager, "pkg", next);
+    expect(manager.getDependencies()[0]).toBe(next);
+  } finally { studioCtx.dispose(); }
+});
 
 test("loads Plume alongside version metadata, shares its in-flight request and updates observers", async () => {
   const site = createSite();
@@ -21,8 +35,18 @@ test("loads Plume alongside version metadata, shares its in-flight request and u
   api.getPlumePkg.mockReturnValue(new Promise((resolve) => { resolvePlume = resolve; }));
   let resolveMetadata!: (value: any) => void;
   api.getPkgVersionMeta.mockReturnValue(new Promise((resolve) => { resolveMetadata = resolve; }));
+  // `plumeSite` used to be an `observable.box`; it now lives in the dependency
+  // store, so observe it through the store subscription instead of `autorun`.
+  const initialDependencies = manager.dependencyStateStore.getState().dependencyMap;
+  const versionsChanged = vi.fn();
+  const stopVersions = manager.dependencyStateStore.subscribe((next, previous) => {
+    if (next.dependencyMap !== previous.dependencyMap) { versionsChanged(next.dependencyMap); }
+  });
   const observed: unknown[] = [];
-  const disposeObserver = autorun(() => { observed.push(manager.plumeSite); });
+  observed.push(manager.plumeSite);
+  const disposeObserver = manager.dependencyStateStore.subscribe(() => {
+    observed.push(manager.plumeSite);
+  });
   try {
     const refresh = manager.refreshDeps();
     const requiredPlume = manager.ensurePlumeSite();
@@ -36,7 +60,14 @@ test("loads Plume alongside version metadata, shares its in-flight request and u
     expect(api.getPlumePkg).toHaveBeenCalledOnce();
     resolveMetadata({ pkg: { version: "2.0.0" } });
     await refresh;
+    expect(versionsChanged).toHaveBeenCalledOnce();
+    const published = manager.dependencyStateStore.getState().dependencyMap;
+    expect(published).not.toBe(initialDependencies);
+    expect(published.pkg.model).toBe(dependency);
+    expect(published.pkg.latestPkgVersionMeta?.version).toBe("2.0.0");
+    expect(initialDependencies.pkg.latestPkgVersionMeta).toBeUndefined();
   } finally {
+    stopVersions();
     disposeObserver();
     studioCtx.dispose();
   }

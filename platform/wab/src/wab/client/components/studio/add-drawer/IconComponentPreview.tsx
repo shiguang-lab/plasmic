@@ -2,7 +2,7 @@ import type { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { AddItem, isTplAddItem } from "@/wab/client/definitions/insertables";
 import { ensure } from "@/wab/shared/common";
 import { isCodeComponent } from "@/wab/shared/core/components";
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 import * as React from "react";
 import type { Root } from "react-dom/client";
 
@@ -25,7 +25,7 @@ export function IconComponentPreview({
 }) {
   const container = React.useRef<HTMLSpanElement>(null);
   const root = React.useRef<Root>(undefined);
-  const { token } = theme.useToken();
+  const { token } = AntdTheme.useToken();
 
   React.useEffect(() => {
     const mount = document.createElement("span");

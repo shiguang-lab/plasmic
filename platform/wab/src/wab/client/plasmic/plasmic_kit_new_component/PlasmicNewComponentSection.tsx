@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,12 +23,12 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import NewComponentItem from "../../components/widgets/NewComponentItem"; // plasmic-import: csXhXQDIqh/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: oermwjefjidrRRHcrxyCjQ/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: oermwjefjidrRRHcrxyCjQ/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -98,11 +98,10 @@ function PlasmicNewComponentSection__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "hideTitle",
@@ -111,18 +110,20 @@ function PlasmicNewComponentSection__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.hideTitle,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -256,12 +257,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -271,28 +268,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicNewComponentSection__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicNewComponentSection";
-  } else {
-    func.displayName = `PlasmicNewComponentSection.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicNewComponentSection__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicNewComponentSection__root<T extends PlasmicNewComponentSection__rootProps>(props: T & StrictProps<T, PlasmicNewComponentSection__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicNewComponentSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicNewComponentSection__root.displayName = "PlasmicNewComponentSection";
+
+type PlasmicNewComponentSection__titleProps = NodeComponentProps<"title"> & {key?: React.Key};
+function PlasmicNewComponentSection__title<T extends PlasmicNewComponentSection__titleProps>(props: T & StrictProps<T, PlasmicNewComponentSection__titleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("title", props);
+  return <PlasmicNewComponentSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"title"} />;
+}
+PlasmicNewComponentSection__title.displayName = "PlasmicNewComponentSection.title";
+
+type PlasmicNewComponentSection__itemsProps = NodeComponentProps<"items"> & {key?: React.Key};
+function PlasmicNewComponentSection__items<T extends PlasmicNewComponentSection__itemsProps>(props: T & StrictProps<T, PlasmicNewComponentSection__itemsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("items", props);
+  return <PlasmicNewComponentSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"items"} />;
+}
+PlasmicNewComponentSection__items.displayName = "PlasmicNewComponentSection.items";
+
 
 export const PlasmicNewComponentSection = Object.assign(
   // Top-level PlasmicNewComponentSection renders the root element
-  makeNodeComponent("root"),
+  PlasmicNewComponentSection__root,
   {
     // Helper components rendering sub-elements
-    title: makeNodeComponent("title"),
-    items: makeNodeComponent("items"),
+    title: PlasmicNewComponentSection__title,
+    items: PlasmicNewComponentSection__items,
 
     // Metadata about props expected for PlasmicNewComponentSection
     internalVariantProps: PlasmicNewComponentSection__VariantProps,

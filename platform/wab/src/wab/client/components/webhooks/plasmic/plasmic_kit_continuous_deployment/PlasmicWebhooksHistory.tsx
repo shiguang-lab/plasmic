@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleBooleanChoiceArg,
   StrictProps,
   classNames,
@@ -23,11 +23,11 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "../../../../plasmic/plasmic_kit_continuous_deployment/PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "../../../../plasmic/plasmic_kit_continuous_deployment/PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 import WebhookEvent from "../../WebhookEvent"; // plasmic-import: MtBpr4iNob/component
 
 import "@plasmicapp/react-web/lib/plasmic.css";
@@ -92,11 +92,10 @@ function PlasmicWebhooksHistory__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "loading",
@@ -105,18 +104,20 @@ function PlasmicWebhooksHistory__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.loading,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -257,12 +258,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -272,28 +269,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicWebhooksHistory__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicWebhooksHistory";
-  } else {
-    func.displayName = `PlasmicWebhooksHistory.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicWebhooksHistory__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicWebhooksHistory__root<T extends PlasmicWebhooksHistory__rootProps>(props: T & StrictProps<T, PlasmicWebhooksHistory__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicWebhooksHistory__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicWebhooksHistory__root.displayName = "PlasmicWebhooksHistory";
+
+type PlasmicWebhooksHistory__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicWebhooksHistory__freeBox<T extends PlasmicWebhooksHistory__freeBoxProps>(props: T & StrictProps<T, PlasmicWebhooksHistory__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicWebhooksHistory__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicWebhooksHistory__freeBox.displayName = "PlasmicWebhooksHistory.freeBox";
+
+type PlasmicWebhooksHistory__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicWebhooksHistory__text<T extends PlasmicWebhooksHistory__textProps>(props: T & StrictProps<T, PlasmicWebhooksHistory__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicWebhooksHistory__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicWebhooksHistory__text.displayName = "PlasmicWebhooksHistory.text";
+
 
 export const PlasmicWebhooksHistory = Object.assign(
   // Top-level PlasmicWebhooksHistory renders the root element
-  makeNodeComponent("root"),
+  PlasmicWebhooksHistory__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    text: makeNodeComponent("text"),
+    freeBox: PlasmicWebhooksHistory__freeBox,
+    text: PlasmicWebhooksHistory__text,
 
     // Metadata about props expected for PlasmicWebhooksHistory
     internalVariantProps: PlasmicWebhooksHistory__VariantProps,

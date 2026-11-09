@@ -24,7 +24,7 @@ import {
 import { TplTagType, TplTextTag, ancestors } from "@/wab/shared/core/tpls";
 import { CanvasEnv } from "@/wab/shared/eval";
 import { SlotInfo, ValState } from "@/wab/shared/eval/val-state";
-import mobx from "@/wab/shared/import-mobx";
+import { createStore } from "zustand/vanilla";
 import { makeLayoutAwareRuleSet } from "@/wab/shared/layoututils";
 import {
   Param,
@@ -43,6 +43,36 @@ export const writeableValNode = <T extends ValNode>(
   v: T,
 ): { -readonly [P in keyof T]: T[P] } => v;
 
+let runtimePublicationDepth = 0;
+const pendingRuntimePublications = new Set<() => void>();
+/** A Fiber commit installs every runtime field before notifying its consumers. */
+export function deferValRuntimePublication<T>(command: () => T): T {
+  runtimePublicationDepth++;
+  try { return command(); }
+  finally {
+    runtimePublicationDepth--;
+    if (!runtimePublicationDepth) {
+      const pending = [...pendingRuntimePublications]; pendingRuntimePublications.clear();
+      pending.forEach(publish => publish());
+    }
+  }
+}
+function createValRuntimeInputs<T extends object>(initial: T) {
+  let current = initial;
+  const state = createStore(() => initial);
+  const publish = () => state.setState(current, true);
+  return {
+    getState: () => current,
+    getInitialState: state.getInitialState,
+    subscribe: state.subscribe,
+    update: (value: T) => {
+      current = value;
+      if (runtimePublicationDepth) { pendingRuntimePublications.add(publish); }
+      else { publish(); }
+    },
+  };
+}
+
 export interface ValNodeParams {
   tpl: TplNode;
   valOwner: ValComponent | null | undefined;
@@ -56,21 +86,18 @@ export interface ValNodeParams {
 }
 export abstract class ValNode {
   static modelTypeName = "ValNode";
-  private readonly _envs = mobx.observable.box<{
-    env: CanvasEnv;
-    wrappingEnv: CanvasEnv;
-  }>(undefined, { deep: false });
+  readonly runtimeInputs = createValRuntimeInputs<{envs: {env: CanvasEnv; wrappingEnv: CanvasEnv} | undefined}>({envs: undefined});
   constructor(args: ValNodeParams) {
     Object.assign(this, args);
   }
   set envs(envs: { env: CanvasEnv; wrappingEnv: CanvasEnv }) {
-    this._envs.set(envs);
+    if (this.runtimeInputs.getState().envs !== envs) { this.runtimeInputs.update({envs}); }
   }
   get env() {
-    return this._envs.get()?.env;
+    return this.runtimeInputs.getState().envs?.env;
   }
   get wrappingEnv() {
-    return this._envs.get()?.wrappingEnv;
+    return this.runtimeInputs.getState().envs?.wrappingEnv;
   }
   private copyFrom(other: ValNode, { merge }: { merge: boolean }) {
     assert(
@@ -149,44 +176,34 @@ export interface ValComponentParams extends ValNodeParams {
 export class ValComponent extends ValNode {
   static modelTypeName = "ValComponent";
 
-  // We store the props that this ValComponent code component was
-  // instantiated with, to render custom component controls. We store
-  // them in this observable box instead of reading from
-  // fiber.memoizedProps because fiber.memoizedProps is not reactive;
-  // since fiber.memoizedProps is only updated upon rendering, it
-  // the ComponentActionsSection and ComponentPropsSection components
-  // may have already finished rendering.
-  private readonly _codeComponentProps = mobx.observable.box<
-    Record<string, any> | undefined
-  >(undefined, { deep: false });
+  /** Runtime writes may follow React's commit; consumers subscribe to these
+   * actual fields rather than relying on a canvas evaluation tick. */
+  readonly componentRuntimeInputs = createValRuntimeInputs<{
+    codeComponentProps: Record<string, any> | undefined;
+    contents: ValNode[] | undefined;
+    invalidArgs: InvalidArgMeta[] | undefined;
+  }>({codeComponentProps: undefined, contents: undefined, invalidArgs: undefined});
   constructor(args: ValComponentParams) {
     super(args);
   }
   set codeComponentProps(props: any) {
-    this._codeComponentProps.set(props);
+    const current = this.componentRuntimeInputs.getState();
+    if (current.codeComponentProps !== props) {
+      this.componentRuntimeInputs.update({codeComponentProps: props, contents: current.contents, invalidArgs: current.invalidArgs});
+    }
   }
   get codeComponentProps() {
-    return this._codeComponentProps.get();
+    return this.componentRuntimeInputs.getState().codeComponentProps;
   }
 
-  // We also store the contents of a ValComponent in a reactive box.
-  // That's because for code components, the contents may change
-  // outside of the render tick -- for example, accessing $queries
-  // may throw data-not-ready promise, leaving a contents array empty
-  // until it is re-rendered. So we need to make sure when the contents
-  // are filled up by globalHook, that the left tree will react and
-  // re-render the proper content.  The _contents can also be `undefined`;
-  // this signifies that the component has been rendered, but its contents
-  // haven't been gathered yet. We use this information when we merge or
-  // copy; we never merge `undefined` contents into defined contents.
-  private readonly _contents = mobx.observable.box<ValNode[] | undefined>(
-    undefined,
-  );
   set contents(vals: ValNode[] | undefined) {
-    this._contents.set(vals);
+    const current = this.componentRuntimeInputs.getState();
+    if (current.contents !== vals) {
+      this.componentRuntimeInputs.update({codeComponentProps: current.codeComponentProps, contents: vals, invalidArgs: current.invalidArgs});
+    }
   }
   get contents() {
-    return this._contents.get();
+    return this.componentRuntimeInputs.getState().contents;
   }
 
   merge(other: ValComponent) {
@@ -225,14 +242,14 @@ export class ValComponent extends ValNode {
     }
   }
 
-  private _invalidArgs = mobx.observable.box<InvalidArgMeta[] | undefined>(
-    undefined,
-  );
   get invalidArgs() {
-    return this._invalidArgs.get();
+    return this.componentRuntimeInputs.getState().invalidArgs;
   }
   set invalidArgs(params: InvalidArgMeta[] | undefined) {
-    this._invalidArgs.set(params);
+    const current = this.componentRuntimeInputs.getState();
+    if (current.invalidArgs !== params) {
+      this.componentRuntimeInputs.update({codeComponentProps: current.codeComponentProps, contents: current.contents, invalidArgs: params});
+    }
   }
 
   declare readonly tpl: TplComponent;

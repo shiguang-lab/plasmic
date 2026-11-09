@@ -113,7 +113,8 @@ it("detaches the previous combo's name subscriptions when the parent replaces it
     const view = render(
       picker(f, [f.baseVariant, f.first], () => undefined),
     );
-    expect(oldSubscriptions).toBe(1);
+    // Both the picker base classification and the visible native label demand name.
+    expect(oldSubscriptions).toBe(2);
 
     view.rerender(picker(f, [f.baseVariant, f.second], () => undefined));
     expect(oldSubscriptions).toBe(0);

@@ -38,7 +38,7 @@ export function TeamCreation() {
 
   async function onSubmit({ teamName }) {
     setSubmitting(true);
-    try {
+    return await (async () => {
       if (!teamName) {
         notification.error({
           message: studioUiT(
@@ -51,14 +51,14 @@ export function TeamCreation() {
       const response = await appCtx.api.createTeam(teamName);
       setTeam(response.team);
       await appCtx.reloadAll();
-    } finally {
+    })().finally(() => {
       setSubmitting(false);
-    }
+    });
   }
 
   async function onInvites({ inviteEmails }) {
     setSubmitting(true);
-    try {
+    return await (async () => {
       const emails = inviteEmails
         ? (inviteEmails as string[])
             .map((email) => email.trim())
@@ -95,19 +95,19 @@ export function TeamCreation() {
         );
       }
       appCtx.router.routeTo(nextPath.toString());
-    } finally {
+    })().finally(() => {
       setSubmitting(false);
-    }
+    });
   }
 
   async function onSkip() {
     setSubmitting(true);
-    try {
+    return await (async () => {
       await appCtx.reloadAll();
       appCtx.router.routeTo(nextPath.toString());
-    } finally {
+    })().finally(() => {
       setSubmitting(false);
-    }
+    });
   }
   React.useEffect(() => {
     if (nextPath.includes("?inviteId=")) {

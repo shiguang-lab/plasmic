@@ -24,14 +24,15 @@ import {
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import StarterGroup from "../../components/StarterGroup"; // plasmic-import: u6dq5eydCj/component
 import StarterProject from "../../components/StarterProject"; // plasmic-import: CCsDeqqYeoM/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -109,67 +110,46 @@ function PlasmicTutorialsSection__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "collapsed",
         type: "private",
         variableType: "variant",
         initFunc: ({ $props, $state, $queries, $q, $ctx }) =>
-          (() => {
-            try {
-              return $state.isCollapsed;
-            } catch (e) {
-              if (
-                e instanceof TypeError ||
-                e?.plasmicType === "PlasmicUndefinedDataError"
-              ) {
-                return undefined;
-              }
-              throw e;
-            }
-          })() ?? $props.collapsed,
+          ((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($state.isCollapsed), () => (undefined)) ?? $props.collapsed,
       },
       {
         path: "isCollapsed",
         type: "readonly",
         variableType: "boolean",
         initFunc: ({ $props, $state, $queries, $q, $ctx }) =>
-          (() => {
-            try {
-              return $props.isInitiallyCollapsed;
-            } catch (e) {
-              if (
-                e instanceof TypeError ||
-                e?.plasmicType === "PlasmicUndefinedDataError"
-              ) {
-                return false;
-              }
-              throw e;
-            }
-          })(),
+          ((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.isInitiallyCollapsed), () => (false)),
 
         onChangeProp: "onIsCollapsedChange",
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -193,7 +173,7 @@ function PlasmicTutorialsSection__RenderFunc(props: {
         className={classNames("all", "button", "button__ooL7E", sty.header, {
           [sty.headercollapsed]: hasVariant($state, "collapsed", "collapsed"),
         })}
-        onClick={async (event) => {
+        onClick={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (event) => {
           const $steps = {};
 
           $steps["updateIsCollapsed"] = true
@@ -224,10 +204,8 @@ function PlasmicTutorialsSection__RenderFunc(props: {
           ) {
             $steps["updateIsCollapsed"] = await $steps["updateIsCollapsed"];
           }
-        }}
-        ref={(ref) => {
-          $refs["header"] = ref;
-        }}
+        })); })}
+        ref={registerRef("header")}
         type={"button"}
       >
         <span
@@ -468,12 +446,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -483,31 +457,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicTutorialsSection__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicTutorialsSection";
-  } else {
-    func.displayName = `PlasmicTutorialsSection.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicTutorialsSection__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicTutorialsSection__root<T extends PlasmicTutorialsSection__rootProps>(props: T & StrictProps<T, PlasmicTutorialsSection__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicTutorialsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicTutorialsSection__root.displayName = "PlasmicTutorialsSection";
+
+type PlasmicTutorialsSection__headerProps = NodeComponentProps<"header"> & {key?: React.Key};
+function PlasmicTutorialsSection__header<T extends PlasmicTutorialsSection__headerProps>(props: T & StrictProps<T, PlasmicTutorialsSection__headerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("header", props);
+  return <PlasmicTutorialsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"header"} />;
+}
+PlasmicTutorialsSection__header.displayName = "PlasmicTutorialsSection.header";
+
+type PlasmicTutorialsSection__starterGroupProps = NodeComponentProps<"starterGroup"> & {key?: React.Key};
+function PlasmicTutorialsSection__starterGroup<T extends PlasmicTutorialsSection__starterGroupProps>(props: T & StrictProps<T, PlasmicTutorialsSection__starterGroupProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("starterGroup", props);
+  return <PlasmicTutorialsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"starterGroup"} />;
+}
+PlasmicTutorialsSection__starterGroup.displayName = "PlasmicTutorialsSection.starterGroup";
+
+type PlasmicTutorialsSection__tutorialPortfolioProps = NodeComponentProps<"tutorialPortfolio"> & {key?: React.Key};
+function PlasmicTutorialsSection__tutorialPortfolio<T extends PlasmicTutorialsSection__tutorialPortfolioProps>(props: T & StrictProps<T, PlasmicTutorialsSection__tutorialPortfolioProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("tutorialPortfolio", props);
+  return <PlasmicTutorialsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"tutorialPortfolio"} />;
+}
+PlasmicTutorialsSection__tutorialPortfolio.displayName = "PlasmicTutorialsSection.tutorialPortfolio";
+
+type PlasmicTutorialsSection__gameProps = NodeComponentProps<"game"> & {key?: React.Key};
+function PlasmicTutorialsSection__game<T extends PlasmicTutorialsSection__gameProps>(props: T & StrictProps<T, PlasmicTutorialsSection__gameProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("game", props);
+  return <PlasmicTutorialsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"game"} />;
+}
+PlasmicTutorialsSection__game.displayName = "PlasmicTutorialsSection.game";
+
+type PlasmicTutorialsSection__codegenQuickstartProps = NodeComponentProps<"codegenQuickstart"> & {key?: React.Key};
+function PlasmicTutorialsSection__codegenQuickstart<T extends PlasmicTutorialsSection__codegenQuickstartProps>(props: T & StrictProps<T, PlasmicTutorialsSection__codegenQuickstartProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("codegenQuickstart", props);
+  return <PlasmicTutorialsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"codegenQuickstart"} />;
+}
+PlasmicTutorialsSection__codegenQuickstart.displayName = "PlasmicTutorialsSection.codegenQuickstart";
+
 
 export const PlasmicTutorialsSection = Object.assign(
   // Top-level PlasmicTutorialsSection renders the root element
-  makeNodeComponent("root"),
+  PlasmicTutorialsSection__root,
   {
     // Helper components rendering sub-elements
-    header: makeNodeComponent("header"),
-    starterGroup: makeNodeComponent("starterGroup"),
-    tutorialPortfolio: makeNodeComponent("tutorialPortfolio"),
-    game: makeNodeComponent("game"),
-    codegenQuickstart: makeNodeComponent("codegenQuickstart"),
+    header: PlasmicTutorialsSection__header,
+    starterGroup: PlasmicTutorialsSection__starterGroup,
+    tutorialPortfolio: PlasmicTutorialsSection__tutorialPortfolio,
+    game: PlasmicTutorialsSection__game,
+    codegenQuickstart: PlasmicTutorialsSection__codegenQuickstart,
 
     // Metadata about props expected for PlasmicTutorialsSection
     internalVariantProps: PlasmicTutorialsSection__VariantProps,

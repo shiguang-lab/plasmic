@@ -15,14 +15,14 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -30,7 +30,7 @@ import RichTextToolbarDivider from "../../components/canvas/RichText/RichTextToo
 import ActionMenuButton from "../../components/widgets/ActionMenuButton"; // plasmic-import: VNi6NC2QOI/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: uLddf5fC1aQbF7tmV1WQ1a/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: uLddf5fC1aQbF7tmV1WQ1a/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -109,11 +109,10 @@ function PlasmicRichTextToolbar__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "hideBlock",
@@ -122,18 +121,20 @@ function PlasmicRichTextToolbar__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.hideBlock,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -396,12 +397,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -411,38 +408,117 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicRichTextToolbar__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicRichTextToolbar";
-  } else {
-    func.displayName = `PlasmicRichTextToolbar.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicRichTextToolbar__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicRichTextToolbar__root<T extends PlasmicRichTextToolbar__rootProps>(props: T & StrictProps<T, PlasmicRichTextToolbar__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicRichTextToolbar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicRichTextToolbar__root.displayName = "PlasmicRichTextToolbar";
+
+type PlasmicRichTextToolbar__blockControlsProps = NodeComponentProps<"blockControls"> & {key?: React.Key};
+function PlasmicRichTextToolbar__blockControls<T extends PlasmicRichTextToolbar__blockControlsProps>(props: T & StrictProps<T, PlasmicRichTextToolbar__blockControlsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("blockControls", props);
+  return <PlasmicRichTextToolbar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"blockControls"} />;
+}
+PlasmicRichTextToolbar__blockControls.displayName = "PlasmicRichTextToolbar.blockControls";
+
+type PlasmicRichTextToolbar__blockProps = NodeComponentProps<"block"> & {key?: React.Key};
+function PlasmicRichTextToolbar__block<T extends PlasmicRichTextToolbar__blockProps>(props: T & StrictProps<T, PlasmicRichTextToolbar__blockProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("block", props);
+  return <PlasmicRichTextToolbar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"block"} />;
+}
+PlasmicRichTextToolbar__block.displayName = "PlasmicRichTextToolbar.block";
+
+type PlasmicRichTextToolbar__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicRichTextToolbar__freeBox<T extends PlasmicRichTextToolbar__freeBoxProps>(props: T & StrictProps<T, PlasmicRichTextToolbar__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicRichTextToolbar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicRichTextToolbar__freeBox.displayName = "PlasmicRichTextToolbar.freeBox";
+
+type PlasmicRichTextToolbar__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicRichTextToolbar__text<T extends PlasmicRichTextToolbar__textProps>(props: T & StrictProps<T, PlasmicRichTextToolbar__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicRichTextToolbar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicRichTextToolbar__text.displayName = "PlasmicRichTextToolbar.text";
+
+type PlasmicRichTextToolbar__styleControlsProps = NodeComponentProps<"styleControls"> & {key?: React.Key};
+function PlasmicRichTextToolbar__styleControls<T extends PlasmicRichTextToolbar__styleControlsProps>(props: T & StrictProps<T, PlasmicRichTextToolbar__styleControlsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("styleControls", props);
+  return <PlasmicRichTextToolbar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"styleControls"} />;
+}
+PlasmicRichTextToolbar__styleControls.displayName = "PlasmicRichTextToolbar.styleControls";
+
+type PlasmicRichTextToolbar__colorProps = NodeComponentProps<"color"> & {key?: React.Key};
+function PlasmicRichTextToolbar__color<T extends PlasmicRichTextToolbar__colorProps>(props: T & StrictProps<T, PlasmicRichTextToolbar__colorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("color", props);
+  return <PlasmicRichTextToolbar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"color"} />;
+}
+PlasmicRichTextToolbar__color.displayName = "PlasmicRichTextToolbar.color";
+
+type PlasmicRichTextToolbar__currentColorProps = NodeComponentProps<"currentColor"> & {key?: React.Key};
+function PlasmicRichTextToolbar__currentColor<T extends PlasmicRichTextToolbar__currentColorProps>(props: T & StrictProps<T, PlasmicRichTextToolbar__currentColorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("currentColor", props);
+  return <PlasmicRichTextToolbar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"currentColor"} />;
+}
+PlasmicRichTextToolbar__currentColor.displayName = "PlasmicRichTextToolbar.currentColor";
+
+type PlasmicRichTextToolbar__fontWeightProps = NodeComponentProps<"fontWeight"> & {key?: React.Key};
+function PlasmicRichTextToolbar__fontWeight<T extends PlasmicRichTextToolbar__fontWeightProps>(props: T & StrictProps<T, PlasmicRichTextToolbar__fontWeightProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("fontWeight", props);
+  return <PlasmicRichTextToolbar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"fontWeight"} />;
+}
+PlasmicRichTextToolbar__fontWeight.displayName = "PlasmicRichTextToolbar.fontWeight";
+
+type PlasmicRichTextToolbar__fontStyleProps = NodeComponentProps<"fontStyle"> & {key?: React.Key};
+function PlasmicRichTextToolbar__fontStyle<T extends PlasmicRichTextToolbar__fontStyleProps>(props: T & StrictProps<T, PlasmicRichTextToolbar__fontStyleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("fontStyle", props);
+  return <PlasmicRichTextToolbar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"fontStyle"} />;
+}
+PlasmicRichTextToolbar__fontStyle.displayName = "PlasmicRichTextToolbar.fontStyle";
+
+type PlasmicRichTextToolbar__textDecorationProps = NodeComponentProps<"textDecoration"> & {key?: React.Key};
+function PlasmicRichTextToolbar__textDecoration<T extends PlasmicRichTextToolbar__textDecorationProps>(props: T & StrictProps<T, PlasmicRichTextToolbar__textDecorationProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("textDecoration", props);
+  return <PlasmicRichTextToolbar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"textDecoration"} />;
+}
+PlasmicRichTextToolbar__textDecoration.displayName = "PlasmicRichTextToolbar.textDecoration";
+
+type PlasmicRichTextToolbar__inlineControlsProps = NodeComponentProps<"inlineControls"> & {key?: React.Key};
+function PlasmicRichTextToolbar__inlineControls<T extends PlasmicRichTextToolbar__inlineControlsProps>(props: T & StrictProps<T, PlasmicRichTextToolbar__inlineControlsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("inlineControls", props);
+  return <PlasmicRichTextToolbar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"inlineControls"} />;
+}
+PlasmicRichTextToolbar__inlineControls.displayName = "PlasmicRichTextToolbar.inlineControls";
+
+type PlasmicRichTextToolbar__inlineProps = NodeComponentProps<"inline"> & {key?: React.Key};
+function PlasmicRichTextToolbar__inline<T extends PlasmicRichTextToolbar__inlineProps>(props: T & StrictProps<T, PlasmicRichTextToolbar__inlineProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("inline", props);
+  return <PlasmicRichTextToolbar__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"inline"} />;
+}
+PlasmicRichTextToolbar__inline.displayName = "PlasmicRichTextToolbar.inline";
+
 
 export const PlasmicRichTextToolbar = Object.assign(
   // Top-level PlasmicRichTextToolbar renders the root element
-  makeNodeComponent("root"),
+  PlasmicRichTextToolbar__root,
   {
     // Helper components rendering sub-elements
-    blockControls: makeNodeComponent("blockControls"),
-    block: makeNodeComponent("block"),
-    freeBox: makeNodeComponent("freeBox"),
-    text: makeNodeComponent("text"),
-    styleControls: makeNodeComponent("styleControls"),
-    color: makeNodeComponent("color"),
-    currentColor: makeNodeComponent("currentColor"),
-    fontWeight: makeNodeComponent("fontWeight"),
-    fontStyle: makeNodeComponent("fontStyle"),
-    textDecoration: makeNodeComponent("textDecoration"),
-    inlineControls: makeNodeComponent("inlineControls"),
-    inline: makeNodeComponent("inline"),
+    blockControls: PlasmicRichTextToolbar__blockControls,
+    block: PlasmicRichTextToolbar__block,
+    freeBox: PlasmicRichTextToolbar__freeBox,
+    text: PlasmicRichTextToolbar__text,
+    styleControls: PlasmicRichTextToolbar__styleControls,
+    color: PlasmicRichTextToolbar__color,
+    currentColor: PlasmicRichTextToolbar__currentColor,
+    fontWeight: PlasmicRichTextToolbar__fontWeight,
+    fontStyle: PlasmicRichTextToolbar__fontStyle,
+    textDecoration: PlasmicRichTextToolbar__textDecoration,
+    inlineControls: PlasmicRichTextToolbar__inlineControls,
+    inline: PlasmicRichTextToolbar__inline,
 
     // Metadata about props expected for PlasmicRichTextToolbar
     internalVariantProps: PlasmicRichTextToolbar__VariantProps,

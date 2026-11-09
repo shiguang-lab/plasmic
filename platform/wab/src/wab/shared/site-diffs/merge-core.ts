@@ -38,7 +38,6 @@ import {
   trackComponentRoot,
   trackComponentSite,
 } from "@/wab/shared/core/tpls";
-import mobx from "@/wab/shared/import-mobx";
 import { instUtil } from "@/wab/shared/model/InstUtil";
 import * as classes from "@/wab/shared/model/classes";
 import {
@@ -1657,16 +1656,16 @@ function preFixNames(
 ) {
   const allSeen: SeenNamesMap = new Map();
   const autoReconciliations: AutoReconciliation[] = [];
-  mobx.runInAction(() => {
+  (() => {
     autoReconciliations.push(
       ...walkAndFixNames(a, bundler, allSeen, isDeletedInst),
     );
-  });
-  mobx.runInAction(() => {
+  })();
+  (() => {
     autoReconciliations.push(
       ...walkAndFixNames(b, bundler, allSeen, isDeletedInst),
     );
-  });
+  })();
   return autoReconciliations;
 }
 
@@ -1877,7 +1876,7 @@ function runMergeFnAndApplyFixes(
     ...preFixTplNames(a, b, ancestor, bundler, isDeletedInst),
   );
 
-  mobx.runInAction(() => {
+  (() => {
     recorder.withRecording(() => {
       fn();
 
@@ -1913,7 +1912,7 @@ function runMergeFnAndApplyFixes(
 
       fixPageArenaFramesOrderingAndScreenVariants(mergedSite);
     });
-  });
+  })();
 
   const fixAutoReconciliationsInsts = (
     arr: AutoReconciliation[],

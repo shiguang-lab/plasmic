@@ -10,8 +10,7 @@ import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { ViewVariantState } from "@/wab/client/studio-ctx/view-variant-state";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
-import { ownedComputedFn } from "@/wab/shared/mobx-util";
-import { observable, onBecomeUnobserved, Reaction } from "mobx";
+import { canvasFactory } from "@/wab/client/components/canvas/canvas-factories";
 
 it.each([false, true])("returns no rendered values after disposal, evaluator released: %s", (released) => {
   const read = vi.fn(() => { throw new Error("Disposed evaluator was read"); });
@@ -26,12 +25,10 @@ it.each([false, true])("returns no rendered values after disposal, evaluator rel
 it.each([false, true])("unmounts once and releases frame-owned resources even when unmount fails: %s", (fails) => {
   const unmount = vi.fn(() => { if (fails) { throw new Error("unmount failed"); } });
   const sub = { React: {}, ReactDOM: { flushSync: (fn: () => void) => fn() }, hostUtils: { setPlasmicRootNode: unmount } };
-  const box = observable.box(1);
-  const unobserved = vi.fn();
-  onBecomeUnobserved(box, unobserved);
-  const read = ownedComputedFn((_owner: object) => box.get());
-  read(sub);
-  read(sub.React);
+  const build = vi.fn((_owner: object) => ({ value: 1 }));
+  const read = canvasFactory(build);
+  const subFactory = read(sub), reactFactory = read(sub.React);
+  expect(read(sub)).toBe(subFactory); expect(read(sub.React)).toBe(reactFactory);
   const frame = globalHookCtx.createFrameState({ uid: 400, objectPrototype: {} });
   const resize = vi.fn(), mutation = vi.fn(), frameInputs = vi.fn(), packages = vi.fn(), listener = vi.fn();
   const canvas: CanvasCtx = Object.assign(Object.create(CanvasCtx.prototype), {
@@ -41,11 +38,12 @@ it.each([false, true])("unmounts once and releases frame-owned resources even wh
   });
   const log = vi.spyOn(console, "error").mockImplementation(() => {});
   try {
-    expect(unobserved).not.toHaveBeenCalled();
+    expect(build).toHaveBeenCalledTimes(2);
     canvas.dispose();
     canvas.dispose();
     expect(unmount).toHaveBeenCalledExactlyOnceWith(null);
-    expect(unobserved).toHaveBeenCalledTimes(1);
+    expect(read(sub)).not.toBe(subFactory); expect(read(sub.React)).not.toBe(reactFactory);
+    expect(build).toHaveBeenCalledTimes(4);
     expect(globalHookCtx.frames.has(400)).toBe(false);
     for (const cleanup of [resize, mutation, frameInputs, packages, listener]) {
       expect(cleanup).toHaveBeenCalledTimes(1);
@@ -60,7 +58,7 @@ it.each([false, true])("unmounts once and releases frame-owned resources even wh
 it("marks a view disposed before reentrant cleanup and keeps its render-state handle readable", () => {
   const frame = globalHookCtx.createFrameState({ uid: 401, objectPrototype: {} });
   const evaluator = vi.fn(), canvas = vi.fn();
-  const reaction = new Reaction("fixture", () => {});
+  const lease = { isDisposed: false, dispose() { this.isDisposed = true; } };
   const states: boolean[] = [];
   const uncommittedCanvasObservers = new Map();
   const session = new CanvasSessionState();
@@ -79,23 +77,22 @@ it("marks a view disposed before reentrant cleanup and keeps its render-state ha
     canvasCtx: { dispose: canvas }, csEvaluator: { dispose: evaluator },
     canvasObservers: new Set(), uncommittedCanvasObservers, canvasErrorObservers: new Set(), disposals: [],
   });
-  view.trackCanvasObserver(reaction);
+  view.trackCanvasObserver(lease);
   expect(uncommittedCanvasObservers.size).toBe(1);
   const cleanup = vi.fn(() => {
     states.push(view.isDisposed);
     if (cleanup.mock.calls.length === 1) { view.dispose(); }
   });
   Object.assign(view, { disposals: [cleanup] });
-  const box = observable.box(1), released = vi.fn();
-  onBecomeUnobserved(box, released);
-  ownedComputedFn((_owner: object) => box.get())(view);
+  const factory = canvasFactory((_owner: object) => ({ value: 1 }));
+  const previousFactory = factory(view);
   view.dispose();
   view.dispose();
   expect(states).toEqual([true]);
   expect(canvas).toHaveBeenCalledTimes(1);
   expect(evaluator).toHaveBeenCalledTimes(1);
-  expect(released).toHaveBeenCalledTimes(1);
-  expect(reaction.isDisposed).toBe(true);
+  expect(factory(view)).not.toBe(previousFactory);
+  expect(lease.isDisposed).toBe(true);
   expect(view.canvasObservers.size).toBe(0);
   expect(uncommittedCanvasObservers.size).toBe(0);
   expect(view.renderState).toBe(frame.renderState);

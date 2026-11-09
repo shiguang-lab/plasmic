@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   MultiChoiceArg,
   StrictProps,
   classNames,
@@ -23,13 +23,13 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { BaseDialog } from "@plasmicpkgs/react-aria/skinny/registerDialog";
 import ListSectionSeparator from "../../components/ListSectionSeparator"; // plasmic-import: uG5_fPM0sK/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -98,11 +98,10 @@ function PlasmicDialog__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "show",
@@ -111,18 +110,20 @@ function PlasmicDialog__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.show,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <BaseDialog
@@ -265,12 +266,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -280,27 +277,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDialog__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDialog";
-  } else {
-    func.displayName = `PlasmicDialog.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDialog__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDialog__root<T extends PlasmicDialog__rootProps>(props: T & StrictProps<T, PlasmicDialog__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDialog__root.displayName = "PlasmicDialog";
+
+type PlasmicDialog__scrollableContentProps = NodeComponentProps<"scrollableContent"> & {key?: React.Key};
+function PlasmicDialog__scrollableContent<T extends PlasmicDialog__scrollableContentProps>(props: T & StrictProps<T, PlasmicDialog__scrollableContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("scrollableContent", props);
+  return <PlasmicDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"scrollableContent"} />;
+}
+PlasmicDialog__scrollableContent.displayName = "PlasmicDialog.scrollableContent";
+
 
 export const PlasmicDialog = Object.assign(
   // Top-level PlasmicDialog renders the root element
-  makeNodeComponent("root"),
+  PlasmicDialog__root,
   {
     // Helper components rendering sub-elements
-    scrollableContent: makeNodeComponent("scrollableContent"),
+    scrollableContent: PlasmicDialog__scrollableContent,
 
     // Metadata about props expected for PlasmicDialog
     internalVariantProps: PlasmicDialog__VariantProps,

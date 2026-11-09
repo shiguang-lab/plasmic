@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,12 +23,12 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { CopilotCodePrompt } from "../../components/copilot/CopilotCodePrompt"; // plasmic-import: SdMPiPjcB9G/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -100,11 +100,10 @@ function PlasmicDataQueryCodeEditorLayout__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "hidePreview",
@@ -120,18 +119,20 @@ function PlasmicDataQueryCodeEditorLayout__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.copilot,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -334,12 +335,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -350,31 +347,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDataQueryCodeEditorLayout__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDataQueryCodeEditorLayout";
-  } else {
-    func.displayName = `PlasmicDataQueryCodeEditorLayout.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDataQueryCodeEditorLayout__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDataQueryCodeEditorLayout__root<T extends PlasmicDataQueryCodeEditorLayout__rootProps>(props: T & StrictProps<T, PlasmicDataQueryCodeEditorLayout__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDataQueryCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDataQueryCodeEditorLayout__root.displayName = "PlasmicDataQueryCodeEditorLayout";
+
+type PlasmicDataQueryCodeEditorLayout__codePanelProps = NodeComponentProps<"codePanel"> & {key?: React.Key};
+function PlasmicDataQueryCodeEditorLayout__codePanel<T extends PlasmicDataQueryCodeEditorLayout__codePanelProps>(props: T & StrictProps<T, PlasmicDataQueryCodeEditorLayout__codePanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("codePanel", props);
+  return <PlasmicDataQueryCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"codePanel"} />;
+}
+PlasmicDataQueryCodeEditorLayout__codePanel.displayName = "PlasmicDataQueryCodeEditorLayout.codePanel";
+
+type PlasmicDataQueryCodeEditorLayout__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicDataQueryCodeEditorLayout__text<T extends PlasmicDataQueryCodeEditorLayout__textProps>(props: T & StrictProps<T, PlasmicDataQueryCodeEditorLayout__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicDataQueryCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicDataQueryCodeEditorLayout__text.displayName = "PlasmicDataQueryCodeEditorLayout.text";
+
+type PlasmicDataQueryCodeEditorLayout__envPreviewContainerProps = NodeComponentProps<"envPreviewContainer"> & {key?: React.Key};
+function PlasmicDataQueryCodeEditorLayout__envPreviewContainer<T extends PlasmicDataQueryCodeEditorLayout__envPreviewContainerProps>(props: T & StrictProps<T, PlasmicDataQueryCodeEditorLayout__envPreviewContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("envPreviewContainer", props);
+  return <PlasmicDataQueryCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"envPreviewContainer"} />;
+}
+PlasmicDataQueryCodeEditorLayout__envPreviewContainer.displayName = "PlasmicDataQueryCodeEditorLayout.envPreviewContainer";
+
+type PlasmicDataQueryCodeEditorLayout__h4Props = NodeComponentProps<"h4"> & {key?: React.Key};
+function PlasmicDataQueryCodeEditorLayout__h4<T extends PlasmicDataQueryCodeEditorLayout__h4Props>(props: T & StrictProps<T, PlasmicDataQueryCodeEditorLayout__h4Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("h4", props);
+  return <PlasmicDataQueryCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"h4"} />;
+}
+PlasmicDataQueryCodeEditorLayout__h4.displayName = "PlasmicDataQueryCodeEditorLayout.h4";
+
+type PlasmicDataQueryCodeEditorLayout__copilotCodePromptProps = NodeComponentProps<"copilotCodePrompt"> & {key?: React.Key};
+function PlasmicDataQueryCodeEditorLayout__copilotCodePrompt<T extends PlasmicDataQueryCodeEditorLayout__copilotCodePromptProps>(props: T & StrictProps<T, PlasmicDataQueryCodeEditorLayout__copilotCodePromptProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("copilotCodePrompt", props);
+  return <PlasmicDataQueryCodeEditorLayout__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"copilotCodePrompt"} />;
+}
+PlasmicDataQueryCodeEditorLayout__copilotCodePrompt.displayName = "PlasmicDataQueryCodeEditorLayout.copilotCodePrompt";
+
 
 export const PlasmicDataQueryCodeEditorLayout = Object.assign(
   // Top-level PlasmicDataQueryCodeEditorLayout renders the root element
-  makeNodeComponent("root"),
+  PlasmicDataQueryCodeEditorLayout__root,
   {
     // Helper components rendering sub-elements
-    codePanel: makeNodeComponent("codePanel"),
-    text: makeNodeComponent("text"),
-    envPreviewContainer: makeNodeComponent("envPreviewContainer"),
-    h4: makeNodeComponent("h4"),
-    copilotCodePrompt: makeNodeComponent("copilotCodePrompt"),
+    codePanel: PlasmicDataQueryCodeEditorLayout__codePanel,
+    text: PlasmicDataQueryCodeEditorLayout__text,
+    envPreviewContainer: PlasmicDataQueryCodeEditorLayout__envPreviewContainer,
+    h4: PlasmicDataQueryCodeEditorLayout__h4,
+    copilotCodePrompt: PlasmicDataQueryCodeEditorLayout__copilotCodePrompt,
 
     // Metadata about props expected for PlasmicDataQueryCodeEditorLayout
     internalVariantProps: PlasmicDataQueryCodeEditorLayout__VariantProps,

@@ -25,7 +25,8 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -33,7 +34,7 @@ import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRm
 import NewComponentItem from "../../components/widgets/NewComponentItem"; // plasmic-import: csXhXQDIqh/component
 import NewComponentSection from "../../components/widgets/NewComponentSection"; // plasmic-import: 3_QVitiqMh/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: oermwjefjidrRRHcrxyCjQ/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: oermwjefjidrRRHcrxyCjQ/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -114,11 +115,10 @@ function PlasmicNewComponentModal__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showTemplates",
@@ -134,18 +134,20 @@ function PlasmicNewComponentModal__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.isPage,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -225,19 +227,8 @@ function PlasmicNewComponentModal__RenderFunc(props: {
             }
           />
         </div>
-        {(() => {
-          try {
-            return !$state.isPage;
-          } catch (e) {
-            if (
-              e instanceof TypeError ||
-              e?.plasmicType === "PlasmicUndefinedDataError"
-            ) {
-              return true;
-            }
-            throw e;
-          }
-        })() ? (
+        {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+              e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => (!$state.isPage), () => (true)) ? (
           <button
             data-plasmic-name={"expander"}
             data-plasmic-override={overrides.expander}
@@ -254,9 +245,7 @@ function PlasmicNewComponentModal__RenderFunc(props: {
                 ),
               }
             )}
-            ref={(ref) => {
-              $refs["expander"] = ref;
-            }}
+            ref={registerRef("expander")}
           >
             <PlasmicIcon__
               PlasmicIconType={
@@ -595,12 +584,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -610,34 +595,85 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicNewComponentModal__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicNewComponentModal";
-  } else {
-    func.displayName = `PlasmicNewComponentModal.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicNewComponentModal__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicNewComponentModal__root<T extends PlasmicNewComponentModal__rootProps>(props: T & StrictProps<T, PlasmicNewComponentModal__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicNewComponentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicNewComponentModal__root.displayName = "PlasmicNewComponentModal";
+
+type PlasmicNewComponentModal__bodyProps = NodeComponentProps<"body"> & {key?: React.Key};
+function PlasmicNewComponentModal__body<T extends PlasmicNewComponentModal__bodyProps>(props: T & StrictProps<T, PlasmicNewComponentModal__bodyProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("body", props);
+  return <PlasmicNewComponentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"body"} />;
+}
+PlasmicNewComponentModal__body.displayName = "PlasmicNewComponentModal.body";
+
+type PlasmicNewComponentModal__nameSectionProps = NodeComponentProps<"nameSection"> & {key?: React.Key};
+function PlasmicNewComponentModal__nameSection<T extends PlasmicNewComponentModal__nameSectionProps>(props: T & StrictProps<T, PlasmicNewComponentModal__nameSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("nameSection", props);
+  return <PlasmicNewComponentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"nameSection"} />;
+}
+PlasmicNewComponentModal__nameSection.displayName = "PlasmicNewComponentModal.nameSection";
+
+type PlasmicNewComponentModal__nameInputProps = NodeComponentProps<"nameInput"> & {key?: React.Key};
+function PlasmicNewComponentModal__nameInput<T extends PlasmicNewComponentModal__nameInputProps>(props: T & StrictProps<T, PlasmicNewComponentModal__nameInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("nameInput", props);
+  return <PlasmicNewComponentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"nameInput"} />;
+}
+PlasmicNewComponentModal__nameInput.displayName = "PlasmicNewComponentModal.nameInput";
+
+type PlasmicNewComponentModal__expanderProps = NodeComponentProps<"expander"> & {key?: React.Key};
+function PlasmicNewComponentModal__expander<T extends PlasmicNewComponentModal__expanderProps>(props: T & StrictProps<T, PlasmicNewComponentModal__expanderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("expander", props);
+  return <PlasmicNewComponentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"expander"} />;
+}
+PlasmicNewComponentModal__expander.displayName = "PlasmicNewComponentModal.expander";
+
+type PlasmicNewComponentModal__sectionsProps = NodeComponentProps<"sections"> & {key?: React.Key};
+function PlasmicNewComponentModal__sections<T extends PlasmicNewComponentModal__sectionsProps>(props: T & StrictProps<T, PlasmicNewComponentModal__sectionsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sections", props);
+  return <PlasmicNewComponentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sections"} />;
+}
+PlasmicNewComponentModal__sections.displayName = "PlasmicNewComponentModal.sections";
+
+type PlasmicNewComponentModal__footerProps = NodeComponentProps<"footer"> & {key?: React.Key};
+function PlasmicNewComponentModal__footer<T extends PlasmicNewComponentModal__footerProps>(props: T & StrictProps<T, PlasmicNewComponentModal__footerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("footer", props);
+  return <PlasmicNewComponentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"footer"} />;
+}
+PlasmicNewComponentModal__footer.displayName = "PlasmicNewComponentModal.footer";
+
+type PlasmicNewComponentModal__cancelButtonProps = NodeComponentProps<"cancelButton"> & {key?: React.Key};
+function PlasmicNewComponentModal__cancelButton<T extends PlasmicNewComponentModal__cancelButtonProps>(props: T & StrictProps<T, PlasmicNewComponentModal__cancelButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelButton", props);
+  return <PlasmicNewComponentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelButton"} />;
+}
+PlasmicNewComponentModal__cancelButton.displayName = "PlasmicNewComponentModal.cancelButton";
+
+type PlasmicNewComponentModal__submitButtonProps = NodeComponentProps<"submitButton"> & {key?: React.Key};
+function PlasmicNewComponentModal__submitButton<T extends PlasmicNewComponentModal__submitButtonProps>(props: T & StrictProps<T, PlasmicNewComponentModal__submitButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("submitButton", props);
+  return <PlasmicNewComponentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"submitButton"} />;
+}
+PlasmicNewComponentModal__submitButton.displayName = "PlasmicNewComponentModal.submitButton";
+
 
 export const PlasmicNewComponentModal = Object.assign(
   // Top-level PlasmicNewComponentModal renders the root element
-  makeNodeComponent("root"),
+  PlasmicNewComponentModal__root,
   {
     // Helper components rendering sub-elements
-    body: makeNodeComponent("body"),
-    nameSection: makeNodeComponent("nameSection"),
-    nameInput: makeNodeComponent("nameInput"),
-    expander: makeNodeComponent("expander"),
-    sections: makeNodeComponent("sections"),
-    footer: makeNodeComponent("footer"),
-    cancelButton: makeNodeComponent("cancelButton"),
-    submitButton: makeNodeComponent("submitButton"),
+    body: PlasmicNewComponentModal__body,
+    nameSection: PlasmicNewComponentModal__nameSection,
+    nameInput: PlasmicNewComponentModal__nameInput,
+    expander: PlasmicNewComponentModal__expander,
+    sections: PlasmicNewComponentModal__sections,
+    footer: PlasmicNewComponentModal__footer,
+    cancelButton: PlasmicNewComponentModal__cancelButton,
+    submitButton: PlasmicNewComponentModal__submitButton,
 
     // Metadata about props expected for PlasmicNewComponentModal
     internalVariantProps: PlasmicNewComponentModal__VariantProps,

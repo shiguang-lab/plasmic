@@ -48,13 +48,13 @@ import {
   assert,
   ensure,
   maybe,
-  removeAt,
   spawn,
   switchType,
   unexpected,
   uniqueKey,
 } from "@/wab/shared/common";
 import {
+  Background,
   BackgroundLayer,
   ColorFill,
   ImageBackground,
@@ -79,6 +79,7 @@ import {
 import { isStandardSide, oppSides } from "@/wab/shared/geom";
 import { isKnownImageAsset } from "@/wab/shared/model/classes";
 import { userImgUrl } from "@/wab/shared/urls";
+import { cloneDeep } from "lodash";
 import { Tooltip } from "antd";
 import React, { useState } from "react";
 
@@ -110,16 +111,17 @@ export const BackgroundSection = function BackgroundSection(
   const backgroundIndicator = useStyleIndicator(expsProvider, "background");
   const { labels, thumbnails } = useBackgroundInputs(studioCtx, bg.layers, vsh);
 
-  const updateLayers = () => {
+  const updateLayers = (layers: BackgroundLayer[]) => {
+    const next = new Background({ layers });
     assert(
-      bg.layers.every((l) => !l.preferBackgroundColorOverColorFill),
+      layers.every((l) => !l.preferBackgroundColorOverColorFill),
       "No background layer can have a preferBackgroundColorOverColorFill",
     );
     spawn(
       studioCtx.changeUnsafe(() => {
         const exp = expsProvider.mergedExp();
-        if (bg.layers.length > 0) {
-          exp.set("background", bg.showCss());
+        if (layers.length > 0) {
+          exp.set("background", next.showCss());
         } else {
           // Create an empty layer as we might inherit from other variant
           // or mixin.
@@ -130,13 +132,11 @@ export const BackgroundSection = function BackgroundSection(
   };
 
   const moveLayer = (fromIndex: number, toIndex: number) => {
-    bg.layers = arrayMoveIndex(bg.layers, fromIndex, toIndex);
-    updateLayers();
+    updateLayers(arrayMoveIndex(bg.layers, fromIndex, toIndex));
   };
 
   const removeLayer = (index: number) => {
-    removeAt(bg.layers, index);
-    updateLayers();
+    updateLayers(bg.layers.filter((_, i) => i !== index));
   };
 
   const inspectedLayer = maybe(inspected, (i) => bg.layers[i]);
@@ -156,8 +156,7 @@ export const BackgroundSection = function BackgroundSection(
           }
         : undefined,
     );
-    bg.layers.unshift(layer);
-    updateLayers();
+    updateLayers([layer, ...bg.layers]);
     setInspected(0);
   };
 
@@ -222,8 +221,7 @@ export const BackgroundSection = function BackgroundSection(
                 layer={inspectedLayer}
                 expsProvider={expsProvider}
                 onUpdated={(layer) => {
-                  bg.layers[inspected] = layer;
-                  updateLayers();
+                  updateLayers(bg.layers.map((current, index) => index === inspected ? layer : current));
                 }}
                 vsh={vsh}
                 animatableOnly={animatableOnly}
@@ -309,22 +307,22 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
   const { t: uiT } = useI18n();
   const { studioCtx } = expsProvider;
   const imageAssets = useImageAssetList(studioCtx);
-  const [cachedValuesByBgType] = React.useState({});
+  const cachedValuesByBgType = React.useRef<Record<string, string>>({});
 
   /**
    * General-purpose dumping ground for cached values.  E.g. when user sets a
    * custom size, switches away, then switches back - we want to restore the
    * custom size they had set.
    */
-  const [cachedValues] = React.useState({});
+  const cachedValues = React.useRef<Record<string, string>>({});
 
-  const updateImg = (
-    img: ImageBackground | ColorFill | LinearGradient | RadialGradient,
-    f: () => void,
+  const updateImg = <T extends ImageBackground | ColorFill | LinearGradient | RadialGradient>(
+    img: T,
+    f: (draft: T) => void,
   ) => {
-    f();
-    layer.image = img;
-    onUpdated(layer);
+    const draft = cloneDeep(img);
+    f(draft);
+    onUpdated(new BackgroundLayer({ ...layer, image: draft }));
   };
 
   const modelType = switchType(layer.image)
@@ -335,7 +333,13 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
     .when(NoneBackground, () => "none")
     .result();
 
-  cachedValuesByBgType[modelType] = layer.image.showCss();
+  const imageCss = layer.image.showCss();
+  React.useLayoutEffect(() => {
+    cachedValuesByBgType.current[modelType] = imageCss;
+    if (layer.size !== undefined && !["cover", "contain"].includes(layer.size)) {
+      cachedValues.current["background-size"] = layer.size;
+    }
+  }, [modelType, imageCss, layer.size]);
 
   const imageBackgroundPanel = (img: /*TWZ*/ ImageBackground) => {
     // Can only use picture type for background-image
@@ -368,7 +372,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
           color={col.color}
           onChange={(color) => {
             if (layer.image instanceof ColorFill) {
-              updateImg(col, () => {
+              updateImg(col, (col) => {
                 return (col.color = color);
               });
             }
@@ -387,7 +391,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
           <DimTokenSpinner
             value={`${lin.angle}deg`}
             onChange={(val) => {
-              updateImg(lin, () => {
+              updateImg(lin, (lin) => {
                 const { num, units } = ensure(
                   css.parseCssNumericNew(val || "0"),
                   "Must be a valid numeric value",
@@ -405,7 +409,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
             <AngleDial
               angle={lin.angle}
               onChange={(val: number) => {
-                return updateImg(lin, () => {
+                return updateImg(lin, (lin) => {
                   return (lin.angle = val);
                 });
               }}
@@ -418,7 +422,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
           stops={lin.stops}
           studioCtx={studioCtx}
           onChange={(stops: Stop[]) => {
-            return updateImg(lin, () => {
+            return updateImg(lin, (lin) => {
               return (lin.stops = stops);
             });
           }}
@@ -429,23 +433,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
   };
 
   const radialGradientPanel = (rad: RadialGradient) => {
-    const CustomDimSpinner = ({
-      value,
-      onChange,
-    }: {
-      onChange: (val?: string) => any;
-      value: string;
-    }) => {
-      return (
-        <DimTokenSpinner
-          value={value}
-          onChange={onChange}
-          allowedUnits={PERCENTAGE_UNITS}
-          noClear={true}
-          allowFunctions={false}
-        />
-      );
-    };
+    
     return (
       <SidebarSection title={uiT("Radial")} key="Radial">
         <FullRow>
@@ -459,7 +447,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
                   ry: rad.ry.getNumericValue(),
                 }}
                 onChange={({ cx, cy, rx, ry }) => {
-                  return updateImg(rad, () => {
+                  return updateImg(rad, (rad) => {
                     rad.cx.value = `${cx}`;
                     rad.cy.value = `${cy}`;
                     rad.rx.value = `${rx}`;
@@ -475,28 +463,28 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
               {CustomDimSpinner({
                 value: rad.cx.showCss(),
                 onChange: (val) =>
-                  updateImg(rad, () => rad.cx.setValue(val || "center")),
+                  updateImg(rad, (rad) => rad.cx.setValue(val || "center")),
               })}
             </LabeledItemRow>
             <LabeledItemRow label={uiT("Top")} labelSize="small">
               {CustomDimSpinner({
                 value: rad.cy.showCss(),
                 onChange: (val) =>
-                  updateImg(rad, () => rad.cy.setValue(val || "center")),
+                  updateImg(rad, (rad) => rad.cy.setValue(val || "center")),
               })}
             </LabeledItemRow>
             <LabeledItemRow label={uiT("Width")} labelSize="small">
               {CustomDimSpinner({
                 value: rad.rx.showCss(),
                 onChange: (val) =>
-                  updateImg(rad, () => rad.rx.setValue(val || "")),
+                  updateImg(rad, (rad) => rad.rx.setValue(val || "")),
               })}
             </LabeledItemRow>
             <LabeledItemRow label={uiT("Height")} labelSize="small">
               {CustomDimSpinner({
                 value: rad.ry.showCss(),
                 onChange: (val) =>
-                  updateImg(rad, () => rad.ry.setValue(val || "")),
+                  updateImg(rad, (rad) => rad.ry.setValue(val || "")),
               })}
             </LabeledItemRow>
           </div>
@@ -506,7 +494,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
           stops={rad.stops}
           studioCtx={studioCtx}
           onChange={(stops) => {
-            return updateImg(rad, () => (rad.stops = stops));
+            return updateImg(rad, (rad) => (rad.stops = stops));
           }}
           vsh={vsh}
         />
@@ -528,9 +516,10 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
     .when(NoneBackground, (model) => unexpected())
     .result();
 
-  const change = (f: () => void) => {
-    f();
-    onUpdated(layer);
+  const change = (f: (draft: BackgroundLayer) => void) => {
+    const draft = cloneDeep(layer);
+    f(draft);
+    onUpdated(draft);
   };
 
   const sizeSection = () => {
@@ -550,7 +539,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
         styleProps={[]}
         emptyBody={!isCustomSize}
         onSwitch={(val) =>
-          change(() => {
+          change((layer) => {
             layer.size = (() => {
               switch (val) {
                 case "contain":
@@ -558,7 +547,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
                   return val;
                 case "custom":
                   return (
-                    cachedValues["background-size"] ??
+                    cachedValues.current["background-size"] ??
                     css.getCssInitial("background-size", "div")
                   );
                 default:
@@ -574,7 +563,6 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
             case "cover":
               return sizeVal;
             default:
-              cachedValues["background-size"] = sizeVal;
               return "custom";
           }
         })()}
@@ -609,7 +597,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
                 <DimTokenSpinner
                   value={maybe(bgSize(), (x: string[]) => x[0]) || ""}
                   onChange={(val) =>
-                    change(() => {
+                    change((layer) => {
                       layer.size = css.showWidthHeight(
                         val ?? "auto",
                         bgSize()[1],
@@ -627,7 +615,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
                 <DimTokenSpinner
                   value={maybe(bgSize(), (x: string[]) => x[1]) || ""}
                   onChange={(val) =>
-                    change(() => {
+                    change((layer) => {
                       layer.size = css.showWidthHeight(
                         bgSize()[0],
                         val ?? "auto",
@@ -670,10 +658,10 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
                   if (!isStandardSide(side)) {
                     return;
                   }
-                  change(() => {
-                    bgPos[side] = value;
-                    delete bgPos[oppSides[side]];
-                    layer.position = css.showBgPos(bgPos);
+                  change((layer) => {
+                    const nextPosition = { ...bgPos, [side]: value };
+                    delete nextPosition[oppSides[side]];
+                    layer.position = css.showBgPos(nextPosition);
                   });
                 },
               }}
@@ -693,7 +681,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
           <StyleToggleButtonGroup
             value={bgRep}
             onChange={(val) =>
-              change(() => {
+              change((layer) => {
                 layer.repeat = val;
               })
             }
@@ -725,7 +713,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
               (layer.clip === bgClipTextTag ? "text" : layer.clip) ||
               css.getCssInitial("background-clip", "div")
             }
-            onChange={(val) => change(() => (layer.clip = val ?? undefined))}
+            onChange={(val) => change((layer) => (layer.clip = val ?? undefined))}
             valueSetState={layer.clip ? "isSet" : "isUnset"}
           >
             <StyleSelect.Option value="border-box">
@@ -750,7 +738,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
               css.getCssInitial("background-attachment", "div")
             }
             onChange={(val) =>
-              change(() => (layer.attachment = val ?? undefined))
+              change((layer) => (layer.attachment = val ?? undefined))
             }
             valueSetState={layer.attachment ? "isSet" : "isUnset"}
           >
@@ -771,7 +759,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
             value={
               layer.origin || css.getCssInitial("background-origin", "div")
             }
-            onChange={(val) => change(() => (layer.origin = val ?? undefined))}
+            onChange={(val) => change((layer) => (layer.origin = val ?? undefined))}
             valueSetState={layer.origin ? "isSet" : "isUnset"}
           >
             <StyleSelect.Option value="padding-box">
@@ -799,7 +787,7 @@ const BackgroundLayerPanel = function BackgroundLayerPanel({
               updateImg(
                 ensure(
                   parseCss(
-                    cachedValuesByBgType[
+                    cachedValuesByBgType.current[
                       ensure(bgType, "Must not be undefined")
                     ] ??
                       defaultValuesByBgType[
@@ -848,3 +836,22 @@ const defaultValuesByBgType = {
     "radial-gradient(ellipse 40% 60% at 20% 20%, #CE9FFF 0%, #56B9FF 100%)",
   fill: `linear-gradient(#ffffff, #ffffff)`,
 };
+
+function CustomDimSpinner({
+      value,
+      onChange,
+    }: {
+      onChange: (val?: string) => any;
+      value: string;
+    }) {
+      return (
+        <DimTokenSpinner
+          value={value}
+          onChange={onChange}
+          allowedUnits={PERCENTAGE_UNITS}
+          noClear={true}
+          allowFunctions={false}
+        />
+      );
+    }
+

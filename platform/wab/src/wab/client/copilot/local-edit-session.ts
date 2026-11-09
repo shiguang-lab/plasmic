@@ -1,3 +1,4 @@
+import { snapshotAiSession, type AiSessionSnapshot } from "@/wab/client/copilot/ai-session-view";
 import { normalizeError } from "@/wab/client/ErrorNotifications";
 import type { PlasmicAiTools } from "@/wab/client/components/studio/TopFrameCopilotToolsBridge";
 import { NetworkError } from "@/wab/shared/ApiErrors/ApiError";
@@ -166,9 +167,6 @@ export class LocalEditSession {
   get scrollTop() {
     return this.view().scrollTop;
   }
-  set scrollTop(value: number) {
-    this.view().scrollTop = value;
-  }
   get before() {
     return this.view().before;
   }
@@ -227,6 +225,7 @@ export class LocalEditSession {
     this.branchReady = true;
     this.branchId = branchId;
     this.createThread(false, initialBranch ? this.activeThreadId : undefined);
+    this.notify();
     if (!this.connected || !this.viewers) {
       return;
     }
@@ -509,13 +508,10 @@ export class LocalEditSession {
     this.buffer = [];
     this.missingRuns.clear();
     this.createThread(false);
+    this.notify();
   }
   get draft() {
     return this.view().draft;
-  }
-  set draft(value: LocalAiDraft) {
-    this.view().draft = value;
-    this.notify();
   }
   setThreadDraft(id: string, value: LocalAiDraft) {
     if (!this.threadStates.has(id)) {
@@ -540,7 +536,7 @@ export class LocalEditSession {
   get selectedModel() {
     return this._selectedModel;
   }
-  set selectedModel(value: string | undefined) {
+  setSelectedModel(value: string | undefined) {
     if (value === this._selectedModel) {
       return;
     }
@@ -591,7 +587,8 @@ export class LocalEditSession {
       this.listeners.delete(listener);
     };
   };
-  snapshot = () => this.tasks;
+  private currentSnapshot: AiSessionSnapshot | undefined;
+  snapshot = (): AiSessionSnapshot => this.currentSnapshot ??= snapshotAiSession(this);
   get running() {
     return this.sending || this.undoing || !!this.blockingTask;
   }
@@ -605,7 +602,7 @@ export class LocalEditSession {
     return task.authorId === this.userId;
   }
   private notify() {
-    this.tasks = [...this.tasks];
+    this.currentSnapshot = undefined;
     this.listeners.forEach((listener) => listener());
   }
   private apply = (task: AiTask) => {
@@ -1267,7 +1264,7 @@ export class LocalEditSession {
         frameUuid: context.frameUuid,
       };
       await this.selectThread(task.threadId);
-      this.draft = { prompt: task.prompt, attachments };
+      this.setThreadDraft(this.activeThreadId, { prompt: task.prompt, attachments });
       await this.run(
         task.prompt,
         binding,

@@ -32,11 +32,12 @@ export function TokenDefinedIndicator(props: {
 }) {
   const {
     token,
-    vsh = new VariantedStylesHelper(),
+    vsh: _vshInput,
     studioCtx,
     className,
     indicatorType,
   } = props;
+  const vsh = _vshInput === undefined ? (new VariantedStylesHelper()) : _vshInput;
   const clientTokenResolver = useClientTokenResolver();
 
   const isEditingNonBaseVariant = !vsh.isTargetBaseVariant();

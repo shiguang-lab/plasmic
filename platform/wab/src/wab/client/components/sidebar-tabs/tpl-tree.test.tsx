@@ -8,6 +8,8 @@ import {
   OutlineNodeData,
   makeNodeKey,
 } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
+import { createOutlineStateStore } from "@/wab/client/components/sidebar-tabs/outline-state";
+import { Matcher } from "@/wab/client/components/view-common";
 import {
   ArenaTree,
   TreeDndManager,
@@ -21,8 +23,7 @@ import { ComponentType } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { Arena, ArenaFrame } from "@/wab/shared/model/classes";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { observable, runInAction } from "mobx";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -64,24 +65,30 @@ function setup() {
   const arenaState = new StudioArenaState({ site, modelSnapshots: models });
   arenaState.setCurrent(arena);
   const focus = new StudioSelection(() => models);
-  Object.assign(studio, { site, modelSnapshots: models, arenaState, currentArena: arena });
+  Object.assign(studio, { site, modelSnapshots: models, arenaState });
+  Object.defineProperty(studio, "currentArena", { get: () => arenaState.currentArena() });
   Object.defineProperties(studio, { selectionStore: { value: focus.store }, hoveredViewStore: { value: createStore(() => undefined) } });
   studio.focusedViewCtx.mockImplementation(() => focus.current().view);
   studio.changeUnsafe.mockImplementation((fn: any) => fn());
-  const expanded = observable.map<ArenaFrame, boolean>();
+  const expanded = new Map<ArenaFrame, boolean>();
   const outline = mock<OutlineCtx>();
+  // The component subscribes to the outline state store; the mock needs a real one.
+  Object.defineProperty(outline, "stateStore", { value: createOutlineStateStore(new Matcher("")) });
   outline.isFrameExpanded.mockImplementation(
     (frame) => expanded.get(frame) ?? false,
   );
   outline.setFrameExpanded.mockImplementation((frame, value) =>
-    runInAction(() => {
+    {
       expanded.set(frame, value);
-    }),
+      const store = outline.stateStore;
+      store.setState({ expandedFrames: new Map(expanded), version: store.getState().version + 1 });
+    },
   );
   outline.focusedNodeKeyPath.mockReturnValue([]);
   outline.viewCtx.mockReturnValue(undefined);
   const children = frames.map(() => {
     const child = mock<OutlineCtx>();
+    Object.defineProperty(child, "stateStore", { value: createOutlineStateStore(new Matcher("")) });
     child.rootTreeNode.mockReturnValue(null);
     child.isVisible.mockReturnValue(true);
     child.isExpanded.mockReturnValue(true);
@@ -90,7 +97,7 @@ function setup() {
   outline.getFrameOutline.mockImplementation(
     (frame) => children[frames.indexOf(frame)],
   );
-  return { site, frames, arena, studio, outline, children };
+  return { site, frames, arena, arenaState, studio, outline, children };
 }
 
 it("lists artboards directly and separates expanding, selecting and focusing", () => {
@@ -173,4 +180,44 @@ it("flattens expanded artboards into one list with independent contexts and uniq
   expect(
     buildVisibleOutlineRows(f.arena, f.outline).map((row) => row.type),
   ).toEqual(["artboard", "artboard", "node", "node"]);
+});
+
+it("retires inactive arena rows without recreating old frame inputs and reactivates A-B-A before commit", () => {
+  const f = setup();
+  const next = new Arena({ name: "Other", children: [] });
+  f.site.arenas.push(next);
+  const childStops: ReturnType<typeof vi.fn>[] = [];
+  for (const child of f.children) {
+    const subscribe = child.stateStore.subscribe;
+    vi.spyOn(child.stateStore, "subscribe").mockImplementation((listener) => {
+      const stop = vi.fn(subscribe(listener));
+      childStops.push(stop);
+      return stop;
+    });
+  }
+  const mounted = render(<ArenaTree studioCtx={f.studio} arena={f.arena} outlineCtx={f.outline} dndManager={mock<TreeDndManager>()} />);
+  expect(screen.getByRole("button", { name: "List", expanded: false })).toBeDefined();
+  f.outline.getFrameOutline.mockClear();
+  f.outline.refreshVariantSearch.mockClear();
+  act(() => f.arenaState.setCurrent(next));
+  expect(screen.queryAllByRole("button", { name: "List" })).toHaveLength(0);
+  expect(f.outline.getFrameOutline).not.toHaveBeenCalled();
+  expect(f.outline.refreshVariantSearch).not.toHaveBeenCalled();
+  expect(childStops.length).toBeGreaterThan(0);
+  expect(childStops.every((stop) => stop.mock.calls.length === 1)).toBe(true);
+  act(() => f.outline.setFrameExpanded(f.frames[0], true));
+  expect(f.outline.getFrameOutline).not.toHaveBeenCalled();
+  act(() => f.arenaState.setCurrent(f.arena));
+  expect(screen.getByRole("button", { name: "List", expanded: true })).toBeDefined();
+  act(() => { f.arenaState.setCurrent(next); f.arenaState.setCurrent(f.arena); });
+  expect(screen.getByRole("button", { name: "List", expanded: true })).toBeDefined();
+  act(() => f.outline.setFrameExpanded(f.frames[0], false));
+  expect(screen.getByRole("button", { name: "List", expanded: false })).toBeDefined();
+  mounted.unmount();
+  f.outline.getFrameOutline.mockClear();
+  f.outline.refreshVariantSearch.mockClear();
+  act(() => { f.arenaState.setCurrent(next); f.arenaState.setCurrent(f.arena); f.outline.setFrameExpanded(f.frames[0], true); });
+  expect(f.outline.getFrameOutline).not.toHaveBeenCalled();
+  expect(f.outline.refreshVariantSearch).not.toHaveBeenCalled();
+  expect(childStops.every((stop) => stop.mock.calls.length === 1)).toBe(true);
 });

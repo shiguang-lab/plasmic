@@ -1,5 +1,7 @@
+import { CanvasObserver } from "../../../../../../canvas-packages/src/canvas-observer";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
-import { useCanvasDataTokenLease, useCanvasDataTokens, type RenderingCtx } from "@/wab/client/components/canvas/canvas-rendering";
+import { computeFullKey, type RenderingCtx } from "@/wab/client/components/canvas/canvas-rendering";
+import { useCanvasDataTokenLease, useCanvasDataTokens } from "../../../../../../react-web-bundle/src/canvas-component";
 import { mkUseCanvasObserver } from "@/wab/client/components/canvas/canvas-observer";
 import type { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
@@ -9,8 +11,7 @@ import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { makeShortProjectId, toVarName } from "@/wab/shared/codegen/util";
 import { act, cleanup, render, waitFor } from "@testing-library/react";
-import { useDollarState } from "@plasmicapp/react-web";
-import { computed } from "mobx";
+import { useDollarState, useDollarStateSnapshot } from "@plasmicapp/react-web";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 import { CanvasDataTokenInputs } from "@/wab/client/components/canvas/canvas-data-token-inputs";
@@ -170,22 +171,34 @@ async function renderFixture() {
   studio.arenaState.activate(target, performance.now());
   expect(studio.getArenaStatus(target)).toBe("cached");
   const view = ensure(studio.tryGetViewCtxForFrame(frame), "Actual inactive ViewCtx");
-  const sub = mock<SubDeps>(); Object.defineProperty(sub, "React", { value: React });
+  const sub = mock<SubDeps>(); Object.defineProperty(sub, "React", { value: React }); Object.defineProperty(sub, "CanvasObserver", { value: CanvasObserver });
   const key = makeDataTokenIdentifier(makeShortProjectId(studio.siteInfo.id), toVarName(token.name));
   const contexts = new Map<string, RenderingCtx>();
   const runtime = new Map<string, { items: number[]; command: () => number }>();
   const renders = new Map<string, ReturnType<typeof vi.fn<() => void>>>();
-  function useCachedNode(id: string, tokens?: ReturnType<typeof useCanvasDataTokens>) {
+  const tokenSource = view.canvasRenderOwner.dataTokenInputs(view).store;
+  const controller = {
+    dataTokenDefinitions: (definitions: ReturnType<typeof tokenSource.getState>) => definitions,
+    evaluateDataTokens: (definitions: ReturnType<typeof tokenSource.getState>) => evaluateDataTokenDefinitions(definitions, {}),
+    retain(consumerKey: string, consumerSlot: string | undefined) {
+      const lifetime = view.disposeSignal;
+      if (lifetime.aborted) { return () => undefined; }
+      const release = view.canvasRenderOwner.retainDataTokenConsumer(consumerKey, consumerSlot);
+      lifetime.addEventListener("abort", release, { once: true });
+      return () => { lifetime.removeEventListener("abort", release); release(); };
+    },
+  };
+  function useCachedNode(id: string, tokens?: { definitions: ReturnType<typeof tokenSource.getState>; evaluated: ReturnType<typeof evaluateDataTokenDefinitions> }) {
     const [, invalidate] = React.useReducer((x) => x + 1, 0);
     const unusedCommand = React.useCallback(() => undefined, []);
-    const $state = useDollarState([], { $props: {}, $queries: {}, $q: {}, $ctx: {}, $refs: {} }, { inCanvas: true });
+    const $state = useDollarStateSnapshot(useDollarState(), { $props: {}, $queries: {}, $q: {}, $ctx: {} }, []);
 
-      const env = { $ctx: {}, $props: {}, $queries: {}, $q: {}, $state, $refs: {}, $$: {}, ...tokens?.evaluated?.$dataTokens };
+      const env = { $ctx: {}, $props: {}, $queries: {}, $q: {}, $state, $$: {}, ...tokens?.evaluated?.$dataTokens };
       const ctx: RenderingCtx = {
         sub, viewCtx: view, site, valKey: id, rootClassName: "", projectFlags: DEVFLAGS,
         ownerComponent: component, ownerKey: undefined, nodeNamer: undefined,
         env, wrappingEnv: env, activeVariants: new Set(), ownersStack: [], reactHookSpecs: [], triggerProps: {}, overrides: {},
-        $stateSnapshot: {}, $ccVariants: {}, updateVariant: unusedCommand,
+        $stateSnapshot: {}, registerRef: undefined, getRefs: undefined, $ccVariants: {}, updateVariant: unusedCommand,
         stateSpecs: [],
         setDollarQueries: unusedCommand, setDollarQ: unusedCommand, plasmicInvalidate: undefined,
         onRenderInvalidated: invalidate, dataTokenDefinitions: tokens?.definitions,
@@ -202,9 +215,10 @@ async function renderFixture() {
       return { ctx, output };
   }
   function Probe({ id }: { id: string }) {
-    const tokens = useCanvasDataTokens(sub, view);
+    const definitions = React.useSyncExternalStore(tokenSource.subscribe, tokenSource.getState, tokenSource.getInitialState);
+    const tokens = useCanvasDataTokens(controller, definitions);
     const { ctx, output } = useCachedNode(id, tokens);
-    useCanvasDataTokenLease(sub, view, ctx);
+    useCanvasDataTokenLease(controller, computeFullKey(ctx), ctx.renderSlotInstance);
     return output;
   }
   function Unrelated({ id }: { id: string }) { return useCachedNode(id).output; }
@@ -226,7 +240,7 @@ it("feeds the real mounted consumer/cache chain with per-instance mutable values
     const atNotification = vi.fn(() => {
       // Use the OLD context/hash deliberately. The root entry must already be
       // invalidated before the source notification, even before React rerenders.
-      const observed = computed(() => f.view.canvasRenderOwner.render(f.component.tplTree, firstCtx, () => React.createElement("output", { children: source.getState()[0].tokens[0].value }))).get();
+      const observed = f.view.canvasRenderOwner.render(f.component.tplTree, firstCtx, () => React.createElement("output", { children: source.getState()[0].tokens[0].value }));
       expect(observed.props.children).toBe("({ items: [2], command() { return this.items[0]; } })");
     });
     const off = source.subscribe(atNotification);

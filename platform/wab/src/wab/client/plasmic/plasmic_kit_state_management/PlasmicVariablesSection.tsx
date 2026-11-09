@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,14 +22,14 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ListSectionSeparator from "../../components/ListSectionSeparator"; // plasmic-import: uG5_fPM0sK/component
 import ImplicitVariablesSection from "../../components/sidebar-tabs/StateManagement/ImplicitVariablesSection"; // plasmic-import: 3OCMg2P28Q/component
 import VariableRow from "../../components/sidebar-tabs/StateManagement/VariableRow"; // plasmic-import: jiD9NQWVHe/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -101,11 +101,10 @@ function PlasmicVariablesSection__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isExpanded",
@@ -121,18 +120,20 @@ function PlasmicVariablesSection__RenderFunc(props: {
           $props.hasImplicitStates,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -165,19 +166,8 @@ function PlasmicVariablesSection__RenderFunc(props: {
                 className={classNames("__wab_instance", sty.variableRow__eY4H3)}
                 value={
                   <React.Fragment>
-                    {(() => {
-                      try {
-                        return "";
-                      } catch (e) {
-                        if (
-                          e instanceof TypeError ||
-                          e?.plasmicType === "PlasmicUndefinedDataError"
-                        ) {
-                          return "1";
-                        }
-                        throw e;
-                      }
-                    })()}
+                    {((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                          e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => (""), () => ("1"))}
                   </React.Fragment>
                 }
                 variableType={"text"}
@@ -310,12 +300,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -325,27 +311,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVariablesSection__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicVariablesSection";
-  } else {
-    func.displayName = `PlasmicVariablesSection.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVariablesSection__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicVariablesSection__root<T extends PlasmicVariablesSection__rootProps>(props: T & StrictProps<T, PlasmicVariablesSection__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicVariablesSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicVariablesSection__root.displayName = "PlasmicVariablesSection";
+
+type PlasmicVariablesSection__listSectionSeparatorProps = NodeComponentProps<"listSectionSeparator"> & {key?: React.Key};
+function PlasmicVariablesSection__listSectionSeparator<T extends PlasmicVariablesSection__listSectionSeparatorProps>(props: T & StrictProps<T, PlasmicVariablesSection__listSectionSeparatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("listSectionSeparator", props);
+  return <PlasmicVariablesSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"listSectionSeparator"} />;
+}
+PlasmicVariablesSection__listSectionSeparator.displayName = "PlasmicVariablesSection.listSectionSeparator";
+
 
 export const PlasmicVariablesSection = Object.assign(
   // Top-level PlasmicVariablesSection renders the root element
-  makeNodeComponent("root"),
+  PlasmicVariablesSection__root,
   {
     // Helper components rendering sub-elements
-    listSectionSeparator: makeNodeComponent("listSectionSeparator"),
+    listSectionSeparator: PlasmicVariablesSection__listSectionSeparator,
 
     // Metadata about props expected for PlasmicVariablesSection
     internalVariantProps: PlasmicVariablesSection__VariantProps,

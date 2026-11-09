@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,14 +25,14 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useFocusVisibleWithin, useFocusedWithin,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import * as pp from "@plasmicapp/react-web";
+import * as Plume from "@plasmicapp/react-web";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -95,7 +95,7 @@ export type PlasmicCheckbox__OverridesType = {
   labelContainer?: Flex__<"div">;
 };
 
-export interface DefaultCheckboxProps extends pp.CheckboxProps {
+export interface DefaultCheckboxProps extends Plume.CheckboxProps {
   "aria-label"?: string;
   "aria-labelledby"?: string;
   onChange?: (isChecked: boolean) => void;
@@ -129,11 +129,10 @@ function PlasmicCheckbox__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "noLabel",
@@ -175,23 +174,23 @@ function PlasmicCheckbox__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.color,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootFocusWithin, triggerRootFocusWithinProps] = useTrigger(
-    "useFocusedWithin",
-    {}
+  const [isRootFocusWithin, triggerRootFocusWithinProps] = useFocusedWithin({}
   );
   const [isRootNotFocusVisibleWithin, triggerRootNotFocusVisibleWithinProps] =
-    useTrigger("useFocusVisibleWithin", {
+    useFocusVisibleWithin({
       isTextInput: false,
     });
   const triggers = {
@@ -199,7 +198,7 @@ function PlasmicCheckbox__RenderFunc(props: {
       isRootFocusWithin && !isRootNotFocusVisibleWithin,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -437,9 +436,9 @@ function PlasmicCheckbox__RenderFunc(props: {
   ) as React.ReactElement | null;
 }
 
-function useBehavior<P extends pp.CheckboxProps>(
+function useBehavior<P extends Plume.CheckboxProps>(
   props: P,
-  ref: pp.CheckboxRef
+  ref: Plume.CheckboxRef
 ) {
   if (!("children" in props)) {
     props = {
@@ -448,7 +447,7 @@ function useBehavior<P extends pp.CheckboxProps>(
     };
   }
 
-  return pp.useCheckbox<P, typeof PlasmicCheckbox>(
+  return Plume.useCheckbox<P, typeof PlasmicCheckbox>(
     PlasmicCheckbox,
     props,
     {
@@ -506,12 +505,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -521,28 +516,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCheckbox__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCheckbox";
-  } else {
-    func.displayName = `PlasmicCheckbox.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCheckbox__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCheckbox__root<T extends PlasmicCheckbox__rootProps>(props: T & StrictProps<T, PlasmicCheckbox__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCheckbox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCheckbox__root.displayName = "PlasmicCheckbox";
+
+type PlasmicCheckbox__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicCheckbox__svg<T extends PlasmicCheckbox__svgProps>(props: T & StrictProps<T, PlasmicCheckbox__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicCheckbox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicCheckbox__svg.displayName = "PlasmicCheckbox.svg";
+
+type PlasmicCheckbox__labelContainerProps = NodeComponentProps<"labelContainer"> & {key?: React.Key};
+function PlasmicCheckbox__labelContainer<T extends PlasmicCheckbox__labelContainerProps>(props: T & StrictProps<T, PlasmicCheckbox__labelContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelContainer", props);
+  return <PlasmicCheckbox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelContainer"} />;
+}
+PlasmicCheckbox__labelContainer.displayName = "PlasmicCheckbox.labelContainer";
+
 
 export const PlasmicCheckbox = Object.assign(
   // Top-level PlasmicCheckbox renders the root element
-  makeNodeComponent("root"),
+  PlasmicCheckbox__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
-    labelContainer: makeNodeComponent("labelContainer"),
+    svg: PlasmicCheckbox__svg,
+    labelContainer: PlasmicCheckbox__labelContainer,
 
     // Metadata about props expected for PlasmicCheckbox
     internalVariantProps: PlasmicCheckbox__VariantProps,

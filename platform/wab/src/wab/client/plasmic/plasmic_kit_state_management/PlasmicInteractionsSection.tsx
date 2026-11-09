@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,7 +25,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import ActionChip from "../../components/sidebar-tabs/StateManagement/ActionChip"; // plasmic-import: _uEitkIFZr/component
 import HandlerRow from "../../components/sidebar-tabs/StateManagement/HandlerRow"; // plasmic-import: VYbagtLCKV/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: frhoorZk3bxNXU73uUyvHm/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -84,11 +84,10 @@ function PlasmicInteractionsSection__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -181,12 +180,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -196,27 +191,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicInteractionsSection__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicInteractionsSection";
-  } else {
-    func.displayName = `PlasmicInteractionsSection.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicInteractionsSection__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicInteractionsSection__root<T extends PlasmicInteractionsSection__rootProps>(props: T & StrictProps<T, PlasmicInteractionsSection__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicInteractionsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicInteractionsSection__root.displayName = "PlasmicInteractionsSection";
+
+type PlasmicInteractionsSection__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicInteractionsSection__freeBox<T extends PlasmicInteractionsSection__freeBoxProps>(props: T & StrictProps<T, PlasmicInteractionsSection__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicInteractionsSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicInteractionsSection__freeBox.displayName = "PlasmicInteractionsSection.freeBox";
+
 
 export const PlasmicInteractionsSection = Object.assign(
   // Top-level PlasmicInteractionsSection renders the root element
-  makeNodeComponent("root"),
+  PlasmicInteractionsSection__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
+    freeBox: PlasmicInteractionsSection__freeBox,
 
     // Metadata about props expected for PlasmicInteractionsSection
     internalVariantProps: PlasmicInteractionsSection__VariantProps,

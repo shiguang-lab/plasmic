@@ -1,3 +1,9 @@
+import { usePropExpressionInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
+import { useQueryInteractionInputs } from "@/wab/client/components/sidebar-tabs/ServerQuery/server-query-inputs";
+import { useStepCacheVersion } from "@/wab/client/studio-ctx/steps-cache-state";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
 import {
   CustomCodePreview,
   CustomFunctionExprPreview,
@@ -9,7 +15,6 @@ import { useI18n } from "@/wab/client/i18n";
 import { extractDataCtx } from "@/wab/client/state-management/interactions-meta";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { observer } from "@/wab/client/utils/mobx-client-util";
 import { ServerQueryOp } from "@/wab/shared/codegen/react-p/server-queries/utils";
 import { ExprCtx } from "@/wab/shared/core/exprs";
 import { EventHandlerKeyType } from "@/wab/shared/core/tpls";
@@ -49,8 +54,14 @@ type CustomFunctionEditorProps = {
     }
 );
 
-export const CustomFunctionEditor = observer(
-  (props: CustomFunctionEditorProps) => {
+export const CustomFunctionEditor = React.memo(function CustomFunctionEditor(props: CustomFunctionEditorProps) {
+  const studio = useStudioCtx(), view = "viewCtx" in props ? props.viewCtx : undefined;
+  const identity = props.component ?? props.interaction ?? props.value ?? view ?? studio.site;
+  const world = useVariantModelWorld(studio, identity, view);
+  return world.alive ? <CustomFunctionEditorContent {...props} isCurrent={world.isCurrent} /> : null;
+});
+const CustomFunctionEditorContent = React.memo(
+  (props: CustomFunctionEditorProps & { isCurrent: () => boolean }) => {
     const { t: studioUiT } = useI18n();
 
     const {
@@ -60,10 +71,18 @@ export const CustomFunctionEditor = observer(
       onClose,
       allowedOps,
       component,
+      isCurrent: _isCurrent,
       ...rest
     } = props;
     const { open, close } = useServerQueryBottomModal(queryKey);
     const studioCtx = useStudioCtx();
+    const view = "viewCtx" in props ? props.viewCtx : undefined, tpl = "tpl" in props ? props.tpl : undefined, key = "eventHandlerKey" in props ? props.eventHandlerKey : undefined;
+    usePropExpressionInputs(studioCtx, value ?? component ?? view ?? studioCtx, value, component);
+    useQueryInteractionInputs(studioCtx, props.interaction, key, view);
+    useStepCacheVersion(studioCtx); useCanvasRenderCount(view);
+    const canvasEnv = useInspectorCanvasEnv(view, tpl);
+    const subscribeFlags = React.useCallback((listener: () => void) => studioCtx.appCtx.subscribeUiEnvironmentInputs(listener), [studioCtx]);
+    React.useSyncExternalStore(subscribeFlags, () => !!studioCtx.appCtx.appConfig.previewSteps, () => !!studioCtx.appCtx.appConfig.previewSteps);
     const projectFlags = studioCtx.projectFlags();
     // Identity-stable for useServerQueryOp's memo deps.
     const exprCtx: ExprCtx = React.useMemo(
@@ -82,7 +101,7 @@ export const CustomFunctionEditor = observer(
           ? extractDataCtx(
               props.viewCtx,
               props.tpl,
-              undefined,
+              canvasEnv,
               props.interaction,
               props.eventHandlerKey,
             )
@@ -96,14 +115,17 @@ export const CustomFunctionEditor = observer(
           id="configure-operation-btn"
           type="leftAligned"
           onClick={() => {
+            if (!props.isCurrent()) { return; }
             open({
               value,
               onSave: (newExpr) => {
+                if (!props.isCurrent()) { return; }
                 onChange(newExpr);
                 close();
                 onClose?.();
               },
               onCancel: () => {
+                if (!props.isCurrent()) { return; }
                 close();
                 onClose?.();
               },

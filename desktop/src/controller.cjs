@@ -263,18 +263,6 @@ class DesktopController {
     }
     const url = state.url || this.getStudio()?.webContents?.getURL?.();
     const snapshot = { ...state, ...(url ? { url } : {}) };
-    const actual = currentContext(snapshot, this.config.studioOrigin);
-    if (["execute", "execute_batch"].includes(method) && required.mode === "edit" && required.canEdit && actual.previewKind === "interactive") {
-      assertContext({ surface: "editor", previewKind: "interactive" }, snapshot, this.config.studioOrigin);
-      await this.editor("setInteractiveMode", { enabled: false });
-      const after = await this.state();
-      const afterUrl = after.url || this.getStudio()?.webContents?.getURL?.();
-      const verified = assertContext(required, { ...after, ...(afterUrl ? { url: afterUrl } : {}) }, this.config.studioOrigin);
-      if (["projectId", "branchId", "sessionId"].some(key => actual[key] !== verified[key])) {
-        throw contextError(required, verified, "The editor session changed while leaving canvas interaction; the requested operation was not executed.");
-      }
-      return verified;
-    }
     return assertContext(required, snapshot, this.config.studioOrigin);
   }
   dispatch(method, input, caller, signal) {
@@ -1038,7 +1026,7 @@ class DesktopController {
   async browserImportContext() {
     await this.ready();
     const context = await this.editor("getEditorContext");
-    if (!context.canEdit || context.mode !== "edit")
+    if (!context.canEdit)
       throw new Error("Open an editable current project before importing");
     return {
       projectId: context.projectId,

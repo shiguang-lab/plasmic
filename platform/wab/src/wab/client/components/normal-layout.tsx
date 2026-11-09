@@ -1,8 +1,4 @@
-import {
-  AppComponent,
-  NonAuthComponent,
-  NonAuthComponentProps,
-} from "@/wab/client/app-ctx";
+import type { AppCtx } from "@/wab/client/app-ctx";
 import { BrandLink } from "@/wab/client/components/BrandLink";
 import { PublicLink } from "@/wab/client/components/PublicLink";
 import { Avatar } from "@/wab/client/components/studio/Avatar";
@@ -20,23 +16,24 @@ import { Dropdown, Menu, Skeleton } from "antd";
 import * as React from "react";
 import { ReactNode } from "react";
 
+function useLayoutBrand(appCtx: AppCtx | undefined) {
+  const subscribe = React.useCallback((listener: () => void) => appCtx ? appCtx.subscribeUiEnvironmentInputs(listener) : () => undefined, [appCtx]);
+  const read = React.useCallback(() => appCtx?.appConfig.brands?.[""], [appCtx]);
+  return React.useSyncExternalStore(subscribe, read, read);
+}
+
 interface NormalLayoutComponentProps {
   className?: string;
   topBar?: ReactNode;
   children?: ReactNode;
 }
-class NormalLayoutComponent extends React.Component<
-  NormalLayoutComponentProps,
-  {}
-> {
-  static contextType = AppCtxContext;
-  declare context: React.ContextType<typeof AppCtxContext>;
-
-  render() {
-    const { topBar } = this.props;
+function NormalLayoutComponent(props: NormalLayoutComponentProps) {
+  const appCtx = React.useContext(AppCtxContext);
+  const brand = useLayoutBrand(appCtx);
+  const { topBar } = props;
     return (
       <div
-        className={["normal-layout", this.props.className]
+        className={["normal-layout", props.className]
           .filter(Boolean)
           .join(" ")}
       >
@@ -46,35 +43,28 @@ class NormalLayoutComponent extends React.Component<
               className={"normal-layout-content normal-layout-content--top-bar"}
             >
               <div className="normal-layout__brand">
-                <BrandLink brand={this.context?.appConfig.brands?.[""]} />
+                <BrandLink brand={brand} />
               </div>
 
               {topBar}
             </div>
           </div>
         )}
-        <div className={"normal-layout-content"}>{this.props.children}</div>
+        <div className={"normal-layout-content"}>{props.children}</div>
       </div>
     );
-  }
 }
 function AuthenticatedLayout(props: NormalLayoutComponentProps) {
   const { styles } = useAuthenticatedLayoutStyles();
   return <NormalLayoutComponent {...props} className={styles.root} />;
 }
-interface NormalNonAuthLayoutProps extends NonAuthComponentProps {
-  children?: React.ReactNode;
+export function NormalNonAuthLayout({children}: { children?: React.ReactNode }) {
+  return <NormalLayoutComponent>{children}</NormalLayoutComponent>;
 }
-export class NormalNonAuthLayout extends NonAuthComponent<
-  NormalNonAuthLayoutProps,
-  {}
-> {
-  render() {
-    return <NormalLayoutComponent>{this.props.children}</NormalLayoutComponent>;
-  }
-}
-export class NormalLayout extends AppComponent {
-  render() {
+export function NormalLayout({appCtx, children}: { appCtx: AppCtx; children?: React.ReactNode }) {
+  const subscribe = React.useCallback((listener: () => void) => appCtx.subscribeUiEnvironmentInputs(listener), [appCtx]);
+  const readUser = React.useCallback(() => appCtx.selfInfo, [appCtx]);
+  const selfInfo = React.useSyncExternalStore(subscribe, readUser, readUser);
     const menu = (
       <Menu>
         <Menu.Item>
@@ -84,7 +74,7 @@ export class NormalLayout extends AppComponent {
         </Menu.Item>
         <Menu.Item
           onClick={async () => {
-            await this.logout();
+            await appCtx.logout();
           }}
         >
           <UiText message={"Sign Out"} />
@@ -102,7 +92,7 @@ export class NormalLayout extends AppComponent {
                 <div className={"normal-layout__user"}>
                   <Avatar
                     className={"user-avatar"}
-                    user={ensure(this.appCtx().selfInfo, "must have selfInfo")}
+                    user={ensure(selfInfo, "must have selfInfo")}
                   />
                   <InlineIcon>
                     <Icon icon={ChevronDownsvgIcon} />
@@ -112,11 +102,10 @@ export class NormalLayout extends AppComponent {
             </div>
           }
         >
-          {this.props.children}
+          {children}
         </AuthenticatedLayout>
       </>
     );
-  }
 }
 
 export function NormalLayoutLoading({

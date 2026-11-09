@@ -7,7 +7,7 @@ import {
 import {
   ExpsProvider,
   TplExpsProvider,
-  useStyleComponent,
+  useStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
 import StyleToggleButtonGroup from "@/wab/client/components/style-controls/StyleToggleButtonGroup";
@@ -33,7 +33,7 @@ export function GridControls(_props: {
   expsProvider: ExpsProvider;
 }) {
   const { t: uiT } = useI18n();
-  const sc = useStyleComponent();
+  const sc = useStyleTarget();
   const studioCtx = sc.studioCtx();
   const provider = sc.props.expsProvider;
   const [display, template] = useStyleCells(provider, ["display", "grid-template-columns"]);

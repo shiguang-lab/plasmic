@@ -83,15 +83,15 @@ describe("mkColumnItems", () => {
   });
 
   it("hides always-omitted keys by their full path", () => {
-    // `$refs` only at the root; `registerInitFunc` only under `$state`.
+    // Runtime refs are hidden only at the root.
     const root = { $refs: {}, a: 1 };
     expect(itemNames(mkColumnItems(root, [], opts))).toEqual(["a"]);
-    const state = { registerInitFunc: () => 1, count: 5 };
+    const state = { $refs: {}, count: 5 };
     expect(itemNames(mkColumnItems(state, ["$state"], opts))).toEqual([
-      "count",
+      "$refs", "count",
     ]);
     expect(itemNames(mkColumnItems(state, ["other"], opts))).toEqual([
-      "registerInitFunc",
+      "$refs",
       "count",
     ]);
   });

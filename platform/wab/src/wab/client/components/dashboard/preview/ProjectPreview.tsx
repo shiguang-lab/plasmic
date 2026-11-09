@@ -1,5 +1,5 @@
 import { isDesktopViewActive, subscribeDesktopView } from "@/wab/client/desktop-navigation";
-import { subscribePreview } from "@/wab/client/components/dashboard/preview/client";
+import { desktopPreviewBridge, subscribePreview } from "@/wab/client/components/dashboard/preview/client";
 import { previewCanvasBackground } from "@/wab/client/components/dashboard/preview/types";
 import { Skeleton } from "antd";
 import React from "react";
@@ -27,20 +27,31 @@ export function ProjectPreview({
       return;
     }
     let unsubscribe: (() => void) | undefined, url: string | undefined;
-    let visible = false,
-      attempted = false;
-    const release = () => {
-      unsubscribe?.();
-      unsubscribe = undefined;
+    let mounted = true,
+      visible = false,
+      attempted = false,
+      running = false;
+    const offscreenDesktop = !!desktopPreviewBridge();
+    const isVisible = () => visible && document.visibilityState !== "hidden" && isDesktopViewActive();
+    const releaseImage = () => {
       if (url) {
         URL.revokeObjectURL(url);
         url = undefined;
       }
-      setSrc(undefined);
-      setStatus("waiting");
+      if (mounted) {
+        setSrc(undefined);
+        setStatus("waiting");
+      }
+    };
+    const release = () => {
+      const stop = unsubscribe;
+      unsubscribe = undefined;
+      running = false;
+      stop?.();
+      releaseImage();
     };
     const update = () => {
-      if (visible && document.visibilityState !== "hidden" && isDesktopViewActive()) {
+      if (isVisible()) {
         if (unsubscribe || attempted) {
           return;
         }
@@ -49,6 +60,9 @@ export function ProjectPreview({
           userId,
           projectId,
           (blob) => {
+            if (!mounted || !isVisible()) {
+              return;
+            }
             if (!blob) {
               setStatus("failed");
               return;
@@ -60,8 +74,26 @@ export function ProjectPreview({
             setSrc(url);
           },
           // A cached image stays visible while a newer preview generates.
-          () => setStatus((current) => (current === "waiting" ? "loading" : current)),
+          () => {
+            if (!mounted) {
+              return;
+            }
+            running = true;
+            setStatus((current) => (current === "waiting" ? "loading" : current));
+          },
+          () => {
+            running = false;
+            if (mounted && unsubscribe && !isVisible()) {
+              release();
+              attempted = false;
+            }
+          },
         );
+      } else if (offscreenDesktop && running) {
+        // Keep the one running offscreen job through either visibility or
+        // Desktop activation event order. It writes its PNG before release.
+        // Queued work and ordinary browser hiding still cancel.
+        releaseImage();
       } else {
         release();
         attempted = false;
@@ -75,6 +107,7 @@ export function ProjectPreview({
     document.addEventListener("visibilitychange", update);
     const stopDesktopView = subscribeDesktopView(update);
     return () => {
+      mounted = false;
       stopDesktopView();
       observer.disconnect();
       document.removeEventListener("visibilitychange", update);

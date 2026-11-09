@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,11 +24,11 @@ import {
   renderPlasmicSlot,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -94,11 +94,10 @@ function PlasmicGitJobStep__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "status",
@@ -107,18 +106,20 @@ function PlasmicGitJobStep__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.status,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <li
@@ -236,12 +237,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -251,28 +248,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicGitJobStep__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicGitJobStep";
-  } else {
-    func.displayName = `PlasmicGitJobStep.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicGitJobStep__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicGitJobStep__root<T extends PlasmicGitJobStep__rootProps>(props: T & StrictProps<T, PlasmicGitJobStep__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicGitJobStep__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicGitJobStep__root.displayName = "PlasmicGitJobStep";
+
+type PlasmicGitJobStep__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicGitJobStep__svg<T extends PlasmicGitJobStep__svgProps>(props: T & StrictProps<T, PlasmicGitJobStep__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicGitJobStep__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicGitJobStep__svg.displayName = "PlasmicGitJobStep.svg";
+
+type PlasmicGitJobStep__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicGitJobStep__freeBox<T extends PlasmicGitJobStep__freeBoxProps>(props: T & StrictProps<T, PlasmicGitJobStep__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicGitJobStep__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicGitJobStep__freeBox.displayName = "PlasmicGitJobStep.freeBox";
+
 
 export const PlasmicGitJobStep = Object.assign(
   // Top-level PlasmicGitJobStep renders the root element
-  makeNodeComponent("root"),
+  PlasmicGitJobStep__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
-    freeBox: makeNodeComponent("freeBox"),
+    svg: PlasmicGitJobStep__svg,
+    freeBox: PlasmicGitJobStep__freeBox,
 
     // Metadata about props expected for PlasmicGitJobStep
     internalVariantProps: PlasmicGitJobStep__VariantProps,

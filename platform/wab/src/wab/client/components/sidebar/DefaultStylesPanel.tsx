@@ -23,22 +23,23 @@ import {
 import { Mixin, Variant } from "@/wab/shared/model/classes";
 import { naturalSort } from "@/wab/shared/sort";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { observer } from "mobx-react";
+import { DefaultStylesInputs, useDefaultStylesInputs } from "@/wab/client/components/sidebar/default-styles-inputs";
+import { useStore } from "zustand";
 import { ok } from "neverthrow";
 import * as React from "react";
 
 export type DefaultStylesPanelProps = DefaultDefaultStylesPanelProps;
 
-const DefaultStylesPanel = observer(
-  React.forwardRef(function DefaultStylesPanel(
-    props: DefaultStylesPanelProps,
+const DefaultStylesPanelContent = React.forwardRef(function DefaultStylesPanelContent(
+    props: DefaultStylesPanelProps & { source: DefaultStylesInputs; snapshot: readonly unknown[] },
     ref: HTMLElementRefOf<"div">,
   ) {
+    const { source, snapshot, ...panelProps } = props;
     const { t: uiT } = useI18n();
     const studioCtx = useStudioCtx();
     const site = studioCtx.site;
     const activeTheme = site.activeTheme;
-    const readOnly = studioCtx.getLeftTabPermission("themes") === "readable";
+    const readOnly = useStore(studioCtx.uiEnvironment.store, (state) => state.leftTabPermissions.themes === "readable");
     const [tag, setTag] = React.useState<ThemableTag>(BASE_THEMABLE_TAG);
     const [pseudoClass, setPseudoClass] = React.useState<string>("");
     const [mixin, setMixin] = React.useState<Mixin | undefined>(undefined);
@@ -82,10 +83,11 @@ const DefaultStylesPanel = observer(
       }
 
       await studioCtx.change<never>(() => {
+        if (!source.isActive()) { return ok(); }
         setMixin(ensureThemeStyleMixin(activeTheme, selector));
         return ok();
       });
-    }, [activeTheme, tag, pseudoClass]);
+    }, [activeTheme, tag, pseudoClass, source, snapshot]);
 
     const nonScreenGlobalVariants = studioCtx.site.globalVariantGroups.flatMap(
       (variantGroup) =>
@@ -231,10 +233,15 @@ const DefaultStylesPanel = observer(
             ),
           },
         }}
-        {...props}
+        {...panelProps}
       />
     );
-  }),
-);
+  });
+
+const DefaultStylesPanel = React.memo(React.forwardRef(function DefaultStylesPanel(props: DefaultStylesPanelProps, ref: HTMLElementRefOf<"div">) {
+  const studio = useStudioCtx();
+  const { source, snapshot } = useDefaultStylesInputs(studio);
+  return source.isActive() ? <DefaultStylesPanelContent {...props} ref={ref} key={source.key} source={source} snapshot={snapshot} /> : null;
+}));
 
 export default DefaultStylesPanel;

@@ -7,7 +7,8 @@ function NoSSR(props: {
   children: React.ReactElement;
   onSSR?: React.ReactElement;
 }) {
-  const { onSSR = <></>, children } = props;
+  const { onSSR: _onSSRInput, children } = props;
+  const onSSR = _onSSRInput === undefined ? (<></>) : _onSSRInput;
   const [canRender, setCanRender] = React.useState(false);
   React.useEffect(() => {
     setCanRender(true);

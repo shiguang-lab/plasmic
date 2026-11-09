@@ -1,6 +1,7 @@
 import {
   HeadMetadata,
   HeadMetadataContext,
+  HeadMetadataCollector,
   PlasmicPrepassContext,
 } from "@plasmicapp/query";
 
@@ -18,7 +19,7 @@ export async function plasmicPrepassExtract(
   element: React.ReactElement
 ): Promise<PlasmicPrepassData> {
   const cache = new Map<string, any>();
-  const headMetadata: HeadMetadata = {};
+  const headMetadata = new HeadMetadataCollector();
   try {
     await plasmicPrepass(
       <PlasmicPrepassContext cache={cache}>
@@ -57,7 +58,7 @@ export async function plasmicPrepassExtract(
 
   return {
     queryData,
-    headMetadata,
+    headMetadata: headMetadata.getMetadata(),
   };
 }
 

@@ -15,19 +15,19 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6CrqkTcB6gSAHoA8c8zpNz/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 6CrqkTcB6gSAHoA8c8zpNz/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -91,11 +91,10 @@ function PlasmicAiButton__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "active",
@@ -104,18 +103,20 @@ function PlasmicAiButton__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.active,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <IconButton
@@ -200,12 +201,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -215,29 +212,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicAiButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicAiButton";
-  } else {
-    func.displayName = `PlasmicAiButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicAiButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicAiButton__root<T extends PlasmicAiButton__rootProps>(props: T & StrictProps<T, PlasmicAiButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicAiButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicAiButton__root.displayName = "PlasmicAiButton";
+
+type PlasmicAiButton__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicAiButton__svg<T extends PlasmicAiButton__svgProps>(props: T & StrictProps<T, PlasmicAiButton__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicAiButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicAiButton__svg.displayName = "PlasmicAiButton.svg";
+
+type PlasmicAiButton__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicAiButton__freeBox<T extends PlasmicAiButton__freeBoxProps>(props: T & StrictProps<T, PlasmicAiButton__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicAiButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicAiButton__freeBox.displayName = "PlasmicAiButton.freeBox";
+
+type PlasmicAiButton__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicAiButton__text<T extends PlasmicAiButton__textProps>(props: T & StrictProps<T, PlasmicAiButton__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicAiButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicAiButton__text.displayName = "PlasmicAiButton.text";
+
 
 export const PlasmicAiButton = Object.assign(
   // Top-level PlasmicAiButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicAiButton__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
-    freeBox: makeNodeComponent("freeBox"),
-    text: makeNodeComponent("text"),
+    svg: PlasmicAiButton__svg,
+    freeBox: PlasmicAiButton__freeBox,
+    text: PlasmicAiButton__text,
 
     // Metadata about props expected for PlasmicAiButton
     internalVariantProps: PlasmicAiButton__VariantProps,

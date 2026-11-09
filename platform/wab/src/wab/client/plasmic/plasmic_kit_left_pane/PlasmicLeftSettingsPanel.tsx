@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -26,7 +26,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import LeftPaneHeader from "../../components/studio/LeftPaneHeader"; // plasmic-import: XLa52PvduIy/component
 import LeftSearchPanel from "../../components/studio/LeftSearchPanel"; // plasmic-import: TqAPn0srTq/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -84,11 +84,10 @@ function PlasmicLeftSettingsPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -183,12 +182,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -198,30 +193,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftSettingsPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftSettingsPanel";
-  } else {
-    func.displayName = `PlasmicLeftSettingsPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftSettingsPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftSettingsPanel__root<T extends PlasmicLeftSettingsPanel__rootProps>(props: T & StrictProps<T, PlasmicLeftSettingsPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftSettingsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftSettingsPanel__root.displayName = "PlasmicLeftSettingsPanel";
+
+type PlasmicLeftSettingsPanel__leftSearchPanelProps = NodeComponentProps<"leftSearchPanel"> & {key?: React.Key};
+function PlasmicLeftSettingsPanel__leftSearchPanel<T extends PlasmicLeftSettingsPanel__leftSearchPanelProps>(props: T & StrictProps<T, PlasmicLeftSettingsPanel__leftSearchPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftSearchPanel", props);
+  return <PlasmicLeftSettingsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftSearchPanel"} />;
+}
+PlasmicLeftSettingsPanel__leftSearchPanel.displayName = "PlasmicLeftSettingsPanel.leftSearchPanel";
+
+type PlasmicLeftSettingsPanel__leftPaneHeaderProps = NodeComponentProps<"leftPaneHeader"> & {key?: React.Key};
+function PlasmicLeftSettingsPanel__leftPaneHeader<T extends PlasmicLeftSettingsPanel__leftPaneHeaderProps>(props: T & StrictProps<T, PlasmicLeftSettingsPanel__leftPaneHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftPaneHeader", props);
+  return <PlasmicLeftSettingsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftPaneHeader"} />;
+}
+PlasmicLeftSettingsPanel__leftPaneHeader.displayName = "PlasmicLeftSettingsPanel.leftPaneHeader";
+
+type PlasmicLeftSettingsPanel__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicLeftSettingsPanel__text<T extends PlasmicLeftSettingsPanel__textProps>(props: T & StrictProps<T, PlasmicLeftSettingsPanel__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicLeftSettingsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicLeftSettingsPanel__text.displayName = "PlasmicLeftSettingsPanel.text";
+
+type PlasmicLeftSettingsPanel__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicLeftSettingsPanel__content<T extends PlasmicLeftSettingsPanel__contentProps>(props: T & StrictProps<T, PlasmicLeftSettingsPanel__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicLeftSettingsPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicLeftSettingsPanel__content.displayName = "PlasmicLeftSettingsPanel.content";
+
 
 export const PlasmicLeftSettingsPanel = Object.assign(
   // Top-level PlasmicLeftSettingsPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftSettingsPanel__root,
   {
     // Helper components rendering sub-elements
-    leftSearchPanel: makeNodeComponent("leftSearchPanel"),
-    leftPaneHeader: makeNodeComponent("leftPaneHeader"),
-    text: makeNodeComponent("text"),
-    content: makeNodeComponent("content"),
+    leftSearchPanel: PlasmicLeftSettingsPanel__leftSearchPanel,
+    leftPaneHeader: PlasmicLeftSettingsPanel__leftPaneHeader,
+    text: PlasmicLeftSettingsPanel__text,
+    content: PlasmicLeftSettingsPanel__content,
 
     // Metadata about props expected for PlasmicLeftSettingsPanel
     internalVariantProps: PlasmicLeftSettingsPanel__VariantProps,

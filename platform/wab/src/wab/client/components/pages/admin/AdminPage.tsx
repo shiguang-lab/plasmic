@@ -288,14 +288,14 @@ function DownloadProjectView() {
       </p>
       <Form
         onFinish={async (event) => {
-          try {
+          return await (async () => {
             const appCtx = await loadAppCtx(nonAuthCtx);
             await appCtx.ops?.download(event.projectId, {
               dontMigrateProject: event.dontMigrateProject,
             });
-          } catch (e) {
+          })().catch((e) => {
             showError(normalizeError(e));
-          }
+          });
         }}
       >
         <Form.Item name="projectId" label={studioUiT("Project ID")}>
@@ -335,7 +335,7 @@ function DownloadProjectViewAndBranches() {
       </p>
       <Form
         onFinish={async (event) => {
-          try {
+          return await (async () => {
             const appCtx = await loadAppCtx(nonAuthCtx);
             await appCtx.ops?.downloadFullProjectData(
               event.projectId,
@@ -345,9 +345,9 @@ function DownloadProjectViewAndBranches() {
                 .map((branchId) => branchId.trim())
                 .filter((branchId) => !!branchId),
             );
-          } catch (e) {
+          })().catch((e) => {
             showError(normalizeError(e));
-          }
+          });
         }}
       >
         <Form.Item name="projectId" label={studioUiT("Project ID")}>
@@ -664,16 +664,16 @@ export function FeatureTierControls() {
       setError("Invalid JSON");
       return;
     }
-    try {
+    return await (async () => {
       setSubmitting(true);
       await nonAuthCtx.api.addFeatureTier(parsedData);
       setError("");
-    } catch (e) {
+    })().catch(async (e) => {
       setError(e);
-    } finally {
+    }).finally(() => {
       setSubmitting(false);
       listFeatureTiers.retry();
-    }
+    });
   }
 
   return (
@@ -962,9 +962,9 @@ function CopilotFeedbackView() {
       pageSize: PAGE_SIZE,
       pageIndex: (pagination.current ?? 1) - 1,
     });
-    if (res.total !== pagination.total) {
-      pagination.total = res.total;
-    }
+    setPagination((previous) => previous.total === res.total
+      ? previous
+      : { ...previous, total: res.total });
     return res;
   }, [nonAuthCtx, query, PAGE_SIZE, pagination.current]);
 

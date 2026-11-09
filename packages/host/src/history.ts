@@ -1,4 +1,4 @@
-import { useMemo, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 
 function readBrowserQueryParams(search: string) {
   const searchParams = new URLSearchParams(search);
@@ -44,7 +44,7 @@ function ensureHistoryChangeEvents() {
 
 export function useBrowserQueryParams(enabled: boolean) {
   const search = useSyncExternalStore(
-    (onStoreChange) => {
+    useCallback((onStoreChange: () => void) => {
       if (!enabled || typeof window === "undefined") {
         return () => {};
       }
@@ -55,7 +55,7 @@ export function useBrowserQueryParams(enabled: boolean) {
         window.removeEventListener("popstate", onStoreChange);
         window.removeEventListener(LOCATION_CHANGE_EVENT, onStoreChange);
       };
-    },
+    }, [enabled]),
     () =>
       !enabled || typeof window === "undefined"
         ? undefined

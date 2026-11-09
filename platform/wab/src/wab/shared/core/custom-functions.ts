@@ -217,40 +217,38 @@ function buildCustomCodeArgs(
   };
 }
 
-export function getCustomFunctionParams(
-  expr: CustomFunctionExpr,
-  env: Record<string, any> | undefined,
-  exprCtx: ExprCtx,
-  currGlobalThis?: typeof globalThis,
-) {
-  const { func, args } = expr;
-  const argsMap = groupBy(args, (arg) => arg.argType.argName);
-  return (
-    func.params.map((param) => {
-      if (argsMap[param.argName]) {
-        const clonedExpr = clone(argsMap[param.argName][0].expr);
-        if (isFallbackSet(clonedExpr)) {
-          clonedExpr.fallback = undefined;
-        }
-        const result = tryEvalExpr(
-          getRawCode(clonedExpr, exprCtx),
-          env ?? {},
-          currGlobalThis,
-        );
-        if (result.err) {
-          // Surface the error to indicate prop eval error instead of downstream error
-          throwIfPlasmicUndefinedDataError(result.err);
-          throw new Error(
-            `Failed to evaluate query parameter "${param.argName}": ${
-              (result.err as Error).message ?? String(result.err)
-            }`,
-          );
-        }
-        return result.val;
-      }
-      return undefined;
-    }) ?? []
-  );
+export interface CapturedCustomFunctionParam {
+  readonly name: string;
+  readonly code: string | undefined;
+}
+
+/** Capture the serialized arguments while their finite model inputs are current. */
+export function captureCustomFunctionParams(expr: CustomFunctionExpr, exprCtx: ExprCtx): readonly CapturedCustomFunctionParam[] {
+  const argsMap = groupBy(expr.args, (arg) => arg.argType.argName);
+  return Object.freeze(expr.func.params.map((param) => {
+    const arg = argsMap[param.argName]?.[0];
+    if (!arg) { return Object.freeze({ name: param.argName, code: undefined }); }
+    const expression = clone(arg.expr);
+    if (isFallbackSet(expression)) { expression.fallback = undefined; }
+    return Object.freeze({ name: param.argName, code: getRawCode(expression, exprCtx) });
+  }));
+}
+
+/** Evaluate captured code against the current query execution context. */
+export function evaluateCapturedCustomFunctionParams(params: readonly CapturedCustomFunctionParam[], env: Record<string, any> | undefined, currGlobalThis?: typeof globalThis) {
+  return params.map((param) => {
+    if (param.code === undefined) { return undefined; }
+    const result = tryEvalExpr(param.code, env ?? {}, currGlobalThis);
+    if (result.err) {
+      throwIfPlasmicUndefinedDataError(result.err);
+      throw new Error(`Failed to evaluate query parameter "${param.name}": ${(result.err as Error).message ?? String(result.err)}`);
+    }
+    return result.val;
+  });
+}
+
+export function getCustomFunctionParams(expr: CustomFunctionExpr, env: Record<string, any> | undefined, exprCtx: ExprCtx, currGlobalThis?: typeof globalThis) {
+  return evaluateCapturedCustomFunctionParams(captureCustomFunctionParams(expr, exprCtx), env, currGlobalThis);
 }
 
 export function getInvalidFunctionArgs(

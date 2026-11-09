@@ -8,7 +8,7 @@ import * as htmlImporter from "@/wab/client/operations/html-to-tpl";
 import { RSH } from "@/wab/shared/RuleSetHelpers";
 import { ensureBaseVariantSetting, getBaseVariant } from "@/wab/shared/Variants";
 import { getTplComponentArg } from "@/wab/shared/TplMgr";
-import { fillVirtualSlotContents, isSlot } from "@/wab/shared/SlotUtils";
+import { fillVirtualSlotContents, isSlot, isDefaultSlotArg } from "@/wab/shared/SlotUtils";
 import { mkCodeComponent, propMetasToComponentParams } from "@/wab/shared/code-components/code-components";
 import { mkServerQuery } from "@/wab/shared/codegen/react-p/server-queries/__testonly__/test-utils";
 import { ensure } from "@/wab/shared/common";
@@ -39,7 +39,6 @@ import {
   VariantsRef,
 } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
-import { runInAction } from "mobx";
 import { ok } from "neverthrow";
 import { vi } from "vitest";
 import { runInNewContext } from "node:vm";
@@ -125,10 +124,10 @@ describe("AI prototype editor tools", () => {
     // Seed an existing design through the internal model, not an MCP write.
     for (const instance of instances) {
       expect(instance.vsettings[0].args.some((arg) => arg.param.variable.name === "internalReveal")).toBe(false);
-      runInAction(() => instance.vsettings[0].args.push(new Arg({
+      (() => instance.vsettings[0].args.push(new Arg({
           param: ensure(instance.component.params.find((param) => param.variable.name === "internalReveal"), "Missing internal editing prop"),
           expr: codeLit(true),
-        })));
+        })))();
     }
     const elements = instances.map((tpl) => ({ componentUuid: page.uuid, elementUuid: tpl.uuid }));
     for (const propNames of [undefined, ["internalReveal", "open"]]) {
@@ -1300,7 +1299,7 @@ describe("AI prototype editor tools", () => {
     const page = await createPage("QueryInspection");
     const op = customCode("$props.records");
     const query = mkServerQuery("Records", op);
-    runInAction(() => page.serverQueries.push(query));
+    (() => page.serverQueries.push(query))();
     vi.spyOn(studioCtx, "canEditProject").mockReturnValue(false);
     expect(
       (
@@ -1472,7 +1471,7 @@ describe("AI prototype editor tools", () => {
   });
   it("reports a blocked editor as non-editable", async () => {
     const { studioCtx, call } = fixture();
-    studioCtx.blockChanges = true;
+    studioCtx.setBlockChanges(true);
     expect(await call("getEditorContext")).toMatchObject({ canEdit: false });
     studioCtx.copilotActivity.dispose();
   });
@@ -1495,7 +1494,7 @@ describe("AI prototype editor tools", () => {
     studioCtx.copilotActivity.dispose();
   });
   it.each(["live", "interactive"])(
-    "reports %s preview and rejects edits and selection",
+    "reports %s preview with its model editing capability",
     async (mode) => {
       const { studioCtx, call } = fixture();
       if (mode === "live") {
@@ -1505,18 +1504,19 @@ describe("AI prototype editor tools", () => {
       }
       expect(await call("getEditorContext")).toMatchObject({
         mode: "preview",
-        canEdit: false,
+        canEdit: mode === "interactive",
       });
-      await expect(
-        call("createComponent", { name: "Preview edit" }),
-      ).rejects.toThrow();
-      await expect(
-        call("selectElement", {
-          componentUuid: "page",
-          elementUuid: "element",
-          instanceIndex: 0,
-        }),
-      ).rejects.toThrow("Return to edit mode");
+      if (mode === "live") {
+        await expect(call("createComponent", { name: "Preview edit" })).rejects.toThrow();
+      } else {
+        await call("createComponent", { name: "InteractiveEdit" });
+        expect(studioCtx.isInteractiveMode).toBe(true);
+      }
+      if (mode === "live") {
+        await expect(call("selectElement", {
+          componentUuid: "page", elementUuid: "element", instanceIndex: 0,
+        })).rejects.toThrow("Close native Preview");
+      }
       studioCtx.copilotActivity.dispose();
     },
   );
@@ -1990,7 +1990,7 @@ describe("AI prototype editor tools", () => {
     const add = vi
       .spyOn(studioCtx.projectDependencyManager, "addByProjectId")
       .mockImplementation(async () => {
-        runInAction(() => studioCtx.site.projectDependencies.push(dependency));
+        (() => studioCtx.site.projectDependencies.push(dependency))();
         return dependency;
       });
     const registry = vi
@@ -2045,7 +2045,7 @@ describe("AI prototype editor tools", () => {
       uuid: "dep-new",
       site: createSite(),
     });
-    runInAction(() => studioCtx.site.projectDependencies.push(dependency));
+    (() => studioCtx.site.projectDependencies.push(dependency))();
     const originalFetch = studioCtx.appCtx.api.getPkgVersion;
     const fetch = vi.fn().mockResolvedValue({ pkg: {}, depPkgs: [] });
     studioCtx.appCtx.api.getPkgVersion = fetch;
@@ -2119,7 +2119,7 @@ describe("AI prototype editor tools", () => {
       expect(upgrade).toHaveBeenCalledTimes(1);
       expect(upgrade).toHaveBeenCalledWith([published, newShell]);
       // An unrelated parent pinning the old shell must still block the upgrade.
-      runInAction(() => unrelated.site.projectDependencies.push(oldShell));
+      (() => unrelated.site.projectDependencies.push(oldShell))();
       await expect(call("upgradeLibrary", { projectId: oldTemplates.projectId }))
         .rejects.toThrow("conflicting dependencies");
       expect(site.projectDependencies).toEqual([oldTemplates, oldShell, unrelated]);
@@ -2807,7 +2807,7 @@ describe("AI prototype editor tools", () => {
     async (state) => {
       const { studioCtx, call } = fixture();
       if (state === "blocked") {
-        studioCtx.blockChanges = true;
+        studioCtx.setBlockChanges(true);
       }
       if (state === "stale") {
         studioCtx.isAtTip = false;
@@ -3323,9 +3323,10 @@ it("marks inherited slot nodes as readonly and locates their real source contrac
   const page = await createPage("AuditConsumer");
   await call("insertHtml", { componentUuid: page.uuid, html: '<plasmic-component data-plasmic-component="AuditReusable"></plasmic-component>' });
   const instance = ensure(flattenTpls(page.tplTree).find(isKnownTplComponent), "instance");
-  await call("changeElement", { componentUuid: page.uuid, elementUuid: instance.uuid, resetProps: ["children"] });
   const slotParam = ensure(instance.component.params.find(isSlot), "source slot param");
-  runInAction(() => fillVirtualSlotContents(studioCtx.tplMgr(), instance, [slotParam.tplSlot]));
+  expect(isDefaultSlotArg(getTplComponentArg(instance, ensureBaseVariantSetting(instance), slotParam.variable))).toBe(true);
+  studioCtx.observeComponents([page, instance.component]);
+  await studioCtx.changeUnsafe(() => { fillVirtualSlotContents(studioCtx.tplMgr(), instance, [slotParam.tplSlot]); });
   const model = (await call("read", { view: "full", componentUuids: [page.uuid] })).results[0];
   expect(model.baseVariantTplTree).toContain('data-editable="false"');
   expect(model.baseVariantTplTree).toContain('data-source-component="' + source.uuid + '"');

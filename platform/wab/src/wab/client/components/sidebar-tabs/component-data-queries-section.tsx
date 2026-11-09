@@ -1,4 +1,11 @@
+import { usePropExpressionInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
+import { useElementPropInputs } from "@/wab/client/components/sidebar-tabs/ComponentProps/element-prop-inputs";
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
+import { useModelSelector, useModelRevisions } from "@/wab/client/stores/model-revisions-react";
+import { modelKeys } from "@/wab/shared/model-revisions";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
 import { useShallow } from "zustand/react/shallow";
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useCurrentAppUserToken } from "@/wab/client/studio-ctx/studio-mode-state";
@@ -38,9 +45,9 @@ import {
   DELETE_ACTION,
 } from "@/wab/shared/Labels";
 import { addEmptyQuery } from "@/wab/shared/TplMgr";
-import { getTplComponentFetchers } from "@/wab/shared/cached-selectors";
+import { flattenComponent, getTplComponentFetchers } from "@/wab/shared/cached-selectors";
 import { toVarName } from "@/wab/shared/codegen/util";
-import { spawn } from "@/wab/shared/common";
+import { arrayEq, spawn } from "@/wab/shared/common";
 import { isPageComponent } from "@/wab/shared/core/components";
 import { ExprCtx, asCode } from "@/wab/shared/core/exprs";
 import { tryGetTplOwnerComponent } from "@/wab/shared/core/tpls";
@@ -51,6 +58,7 @@ import {
   DataSourceOpExpr,
   TplComponent,
   isKnownDataSourceOpExpr,
+  isKnownTplComponent,
   isKnownTemplatedString,
 } from "@/wab/shared/model/classes";
 import {
@@ -60,7 +68,6 @@ import {
 } from "@/wab/shared/refactoring";
 import { PlasmicDataSourceContextProvider } from "@plasmicapp/react-web";
 import { Button, Menu, Tooltip } from "antd";
-import { observer } from "mobx-react";
 import { ok } from "neverthrow";
 import React from "react";
 import { useStore } from "zustand";
@@ -70,7 +77,17 @@ function startQueryMigrationChat(studioCtx: StudioCtx, prompt: string) {
   studioCtx.openCopilotChat({ prompt, mode: "query-migration" });
 }
 
-const DataQueryRow = observer(
+function useQueryMigrationEnabled(studio: StudioCtx) {
+  const canEdit = useStore(studio.uiEnvironment.store, (state) => state.canEditProject);
+  const subscribe = React.useCallback((listener: () => void) => studio.appCtx.subscribeUiEnvironmentInputs(listener), [studio]);
+  const enabled = React.useSyncExternalStore(subscribe, () => !!studio.appCtx.appConfig.enableQueryMigrationCopilot, () => !!studio.appCtx.appConfig.enableQueryMigrationCopilot);
+  return canEdit && enabled;
+}
+const DataQueryRow = React.memo(function DataQueryRow(props: React.ComponentProps<typeof DataQueryRowContent>) {
+  const world = useVariantModelWorld(props.viewCtx.studioCtx, props.query, props.viewCtx);
+  return world.alive ? <DataQueryRowContent {...props} /> : null;
+});
+const DataQueryRowContent = React.memo(
   ({
     query,
     viewCtx,
@@ -86,10 +103,14 @@ const DataQueryRow = observer(
     const { t: uiT } = useI18n();
 
     const studioCtx = viewCtx.studioCtx;
+    const world = useVariantModelWorld(studioCtx, query, viewCtx);
+    usePropExpressionInputs(studioCtx, query, query, component);
+    usePropExpressionInputs(studioCtx, component, component.dataQueries, component);
+    const migrationEnabled = useQueryMigrationEnabled(studioCtx);
     const isNewlyAdded = useStore(studioCtx.newlyAddedQueryStore, (ref) => ref?.uid === query.uid);
     const userAuthToken = useCurrentAppUserToken(studioCtx);
     const showMigrateItem =
-      isDeprecated && studioCtx.queryMigrationCopilotEnabled();
+      isDeprecated && migrationEnabled;
     // The integration is only needed for the migrate menu item; don't fetch
     // (and on 403, retry) it otherwise.
     const {
@@ -97,6 +118,7 @@ const DataQueryRow = observer(
       error: dataSourceError,
       isLoading: isLoadingDataSource,
     } = useDataSource(showMigrateItem ? query.op?.sourceId : undefined);
+    useModelRevisions(studioCtx.modelRevisions, showMigrateItem ? [modelKeys.site] : []);
     const invalidationRefCount = showMigrateItem
       ? findQueryInvalidationRefs(studioCtx.site).filter(
           ({ ref }) => ref === query,
@@ -124,23 +146,26 @@ const DataQueryRow = observer(
       newOp: DataSourceOpExpr,
       opExprName?: string,
     ) => {
+      if (!world.isCurrent()) { return; }
       await studioCtx.change(() => {
+        if (!world.isCurrent()) { return ok(); }
         query.op = newOp;
         if (opExprName && opExprName !== query.name) {
           renameQueryAndFixExprs(component, query, opExprName);
         }
         return ok();
       });
-      dataSourceModal.close();
+      if (world.isCurrent()) { dataSourceModal.close(); }
     };
 
     const dataSourceModal = useDataSourceOpExprBottomModal(query.uuid);
     const openDataSourceModal = () => {
+      if (!world.isCurrent()) { return; }
       dataSourceModal.open({
         parent: query,
         value: query.op ?? undefined,
         onSave: handleDataSourceOpChange,
-        onCancel: dataSourceModal.close,
+        onCancel: () => { if (world.isCurrent()) { dataSourceModal.close(); } },
         env,
         schema,
         readOpsOnly: true,
@@ -162,12 +187,7 @@ const DataQueryRow = observer(
                   ? undefined
                   : [...migration.blockers, ...migration.warnings].join(" ")
               }
-              onClick={() =>
-                startQueryMigrationChat(
-                  studioCtx,
-                  makeLegacyQueryMigrationPrompt(component, query),
-                )
-              }
+              onClick={() => { if (world.isCurrent()) { startQueryMigrationChat(studioCtx, makeLegacyQueryMigrationPrompt(component, query)); } }}
             >
               <span className="inline-flex flex-vcenter gap-xsm">
                 <SparklesSvgIcon />
@@ -177,9 +197,10 @@ const DataQueryRow = observer(
           )}
           <Menu.Divider />
           <Menu.Item
-            onClick={() =>
-              studioCtx.siteOps().removeComponentQuery(component, query)
-            }
+            onClick={() => {
+              if (!world.isCurrent()) { return; }
+              return studioCtx.siteOps().removeComponentQuery(component, query);
+            }}
           >
             {<UiLabel text={DELETE_ACTION} />}
           </Menu.Item>
@@ -189,20 +210,18 @@ const DataQueryRow = observer(
 
     // For some reason calling `omit` tries to read from the query data,
     // throwing `PlasmicUndefinedDataError`
-    const env = {
-      ...viewCtx.getCanvasEnvForTpl(viewCtx.currentCtxTplRoot(), {
-        forDataRepCollection: true,
-      }),
-    };
+    const currentRoot = viewCtx.currentCtxTplRoot();
+    const canvasEnv = useInspectorCanvasEnv(viewCtx, currentRoot, { forDataRepCollection: true });
+    const env = { ...canvasEnv };
     if (env.$queries) {
       env.$queries = { ...env.$queries };
       delete env.$queries[toVarName(query.name)];
     }
-    const schema = viewCtx.customFunctionsSchema();
+    const schema = useCustomFunctionsSchema(viewCtx.studioCtx);
 
     React.useEffect(() => {
-      if (studioCtx.newlyAddedQuery === query) {
-        studioCtx.newlyAddedQuery = undefined;
+      if (world.isCurrent() && studioCtx.newlyAddedQuery === query) {
+        studioCtx.setNewlyAddedQuery(undefined);
         openDataSourceModal();
       }
     }, [studioCtx, query, isNewlyAdded, openDataSourceModal]);
@@ -254,30 +273,35 @@ function ComponentQueriesSection_(props: {
   const { component, viewCtx, isDeprecated } = props;
   const studioCtx = useStudioCtx();
 
-  const tplFetchers = getTplComponentFetchers(component);
+  const world = useVariantModelWorld(studioCtx, component, viewCtx);
+  usePropExpressionInputs(studioCtx, component, component.dataQueries, component);
+  const queryRefs = useStore(studioCtx.modelSnapshots.field(component, "dataQueries"));
+  const queries = queryRefs.map((ref) => studioCtx.modelSnapshots.resolve(ref));
+  useStore(studioCtx.modelSnapshots.field(component, "type"));
+  const migrationEnabled = useQueryMigrationEnabled(studioCtx);
+  // Fetchers are found by scanning this component's whole document structure.
+  const nodes = flattenComponent(component);
+  const tplFetchers = useModelSelector(studioCtx.modelRevisions, [modelKeys.component(component.uuid), ...nodes.filter(isKnownTplComponent).map((tpl) => modelKeys.component(tpl.component.uuid))], () => getTplComponentFetchers(component), arrayEq);
 
   const componentType = uiT(isPageComponent(component) ? "page" : "component");
 
   const showMigrate =
     isDeprecated &&
-    studioCtx.queryMigrationCopilotEnabled() &&
-    component.dataQueries.length > 0;
+    migrationEnabled &&
+    queries.length > 0;
 
   const handleAddDataQuery = () => {
     spawn(
       studioCtx.change(() => {
+        if (!world.isCurrent()) { return ok(); }
         const query = addEmptyQuery(component);
-        studioCtx.newlyAddedQuery = query;
+        studioCtx.setNewlyAddedQuery(query);
         return ok();
       }),
     );
   };
 
-  const handleMigrateAll = () =>
-    startQueryMigrationChat(
-      studioCtx,
-      makeAllLegacyQueriesMigrationPrompt(component, component.dataQueries),
-    );
+  const handleMigrateAll = () => { if (world.isCurrent()) { startQueryMigrationChat(studioCtx, makeAllLegacyQueriesMigrationPrompt(component, component.dataQueries)); } };
 
   return (
     <SidebarSection
@@ -296,7 +320,7 @@ function ComponentQueriesSection_(props: {
           {isDeprecated ? " " + uiT("(legacy)") : ""}
         </LabelWithDetailedTooltip>
       }
-      emptyBody={component.dataQueries.length === 0 && tplFetchers.length === 0}
+      emptyBody={queries.length === 0 && tplFetchers.length === 0}
       emptyDescription={uiT("Fetch data from an integration.")}
       zeroBodyPadding
       controls={
@@ -331,7 +355,7 @@ function ComponentQueriesSection_(props: {
         </div>
       }
     >
-      {component.dataQueries.map((query) => (
+      {queries.map((query) => (
         <DataQueryRow
           key={query.uid}
           component={component}
@@ -347,13 +371,20 @@ function ComponentQueriesSection_(props: {
   );
 }
 
-const TplFetcherRow = observer(function TplFetcherRow(props: {
+const TplFetcherRow = React.memo(function TplFetcherRow(props: React.ComponentProps<typeof TplFetcherRowContent>) {
+  const world = useVariantModelWorld(props.viewCtx.studioCtx, props.tpl, props.viewCtx);
+  return world.alive ? <TplFetcherRowContent {...props} /> : null;
+});
+const TplFetcherRowContent = React.memo(function TplFetcherRow_(props: {
   tpl: TplComponent;
   viewCtx: ViewCtx;
 }) {
   const { t: uiT } = useI18n();
 
   const { tpl, viewCtx } = props;
+  const world = useVariantModelWorld(viewCtx.studioCtx, tpl, viewCtx);
+  useElementPropInputs(viewCtx, tpl);
+  useViewSelection(viewCtx, (state) => state.context);
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const component = tryGetTplOwnerComponent(tpl) ?? null;
   const exprCtx: ExprCtx = {
@@ -378,7 +409,7 @@ const TplFetcherRow = observer(function TplFetcherRow(props: {
     (arg) => arg.param.variable.name === "dataOp",
   )?.expr;
 
-  const env = viewCtx.getCanvasEnvForTpl(tpl);
+  const env = useInspectorCanvasEnv(viewCtx, tpl);
 
   return (
     <LabeledListItem
@@ -386,6 +417,7 @@ const TplFetcherRow = observer(function TplFetcherRow(props: {
       subtitle={<UiText message="Fetcher" />}
       withSubtitle
       onClick={() => {
+        if (!world.isCurrent()) { return; }
         viewCtx.setStudioFocusByTpl(tpl);
         viewCtx.studioCtx.switchRightTab(RightTabKey.style);
       }}
@@ -417,4 +449,8 @@ const TplFetcherRow = observer(function TplFetcherRow(props: {
   );
 });
 
-export const ComponentDataQueriesSection = observer(ComponentQueriesSection_);
+const ComponentDataQueriesSectionContent = React.memo(ComponentQueriesSection_);
+export const ComponentDataQueriesSection = React.memo(function ComponentDataQueriesSection(props: Parameters<typeof ComponentQueriesSection_>[0]) {
+  const studio = useStudioCtx(), world = useVariantModelWorld(studio, props.component, props.viewCtx);
+  return world.alive ? <ComponentDataQueriesSectionContent {...props} /> : null;
+});

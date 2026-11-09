@@ -42,17 +42,19 @@ export function Giphy({ searchTerm, className }: GiphyProps) {
   const id = useFetch({ keyword: searchTerm });
   const [gif, setGif] = useState<IGif | null>(null);
 
-  const gf = new GiphyFetch("X1q3afkDR9WHSZJhLS6H9yYTQMPIWOTK");
   useEffect(() => {
+    const gf = new GiphyFetch("X1q3afkDR9WHSZJhLS6H9yYTQMPIWOTK");
+    let active = true;
     const fetchGif = async () => {
       if (!id) {
         return null;
       }
       const { data } = await gf.gif(id);
-      setGif(data);
+      if (active) { setGif(data); }
       return data;
     };
-    fetchGif();
+    void fetchGif().catch((error) => { if (active) { console.error(error); } });
+    return () => { active = false; };
   }, [id]);
 
   return (

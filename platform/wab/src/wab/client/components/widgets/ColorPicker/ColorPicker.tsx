@@ -32,7 +32,7 @@ import {
   mkTokenRef,
   tryParseTokenRef,
 } from "@/wab/commons/StyleToken";
-import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
+import { MaybeWrap, useCommittedValue } from "@/wab/commons/components/ReactUtil";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { ensure, spawn } from "@/wab/shared/common";
 import {
@@ -54,10 +54,9 @@ import { Input, InputRef, Select, Tooltip } from "antd";
 import { sortBy } from "lodash";
 import debounce from "lodash/debounce";
 import defer from "lodash/defer";
-import { observer } from "mobx-react";
+import { useStyleTokenCatalogInputs, useTokenPickerPermissions } from "@/wab/client/studio-ctx/style-token-catalog-inputs";
 import * as React from "react";
 import {
-  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -88,6 +87,28 @@ export function tryGetRealColor(
   return { colorTokens, appliedToken, realColor };
 }
 
+/** Imperative conversion and scheduled-write lifetime owned by one picker. */
+class ColorPickerSession {
+  private readonly conversions = new Map<string, string>();
+  private frame: number | undefined;
+  readonly propagate: ReturnType<typeof debounce>;
+  constructor(readOnChange: () => (value: string) => void) {
+    this.propagate = debounce((value: string) => {
+      if (this.frame !== undefined) { window.cancelAnimationFrame(this.frame); }
+      this.frame = window.requestAnimationFrame(() => {
+        this.frame = undefined;
+        readOnChange()(/#0{8}/i.test(value) ? "transparent" : value);
+      });
+    }, 50, { maxWait: 150 });
+  }
+  restore(value: string) { return this.conversions.get(value) || value; }
+  remember(hsl: string, hex: string) { if (!this.conversions.has(hsl)) { this.conversions.set(hsl, hex); } }
+  dispose = () => {
+    this.propagate.cancel();
+    if (this.frame !== undefined) { window.cancelAnimationFrame(this.frame); this.frame = undefined; }
+  };
+}
+
 interface ColorPickerProps {
   color: string;
   onChange: (colorOrToken: string) => void;
@@ -98,49 +119,42 @@ interface ColorPickerProps {
   vsh?: VariantedStylesHelper;
 }
 
-export const ColorPicker = observer(ColorPicker_);
+export const ColorPicker = React.memo(function ColorPicker(props: ColorPickerProps) {
+  const studio = useStudioCtx();
+  const catalog = useStyleTokenCatalogInputs(studio, "Color", props.vsh, props.colorTokens);
+  return catalog.source?.isActive() ? <ColorPicker_ key={catalog.source.key} {...props} colorTokens={props.colorTokens ?? sortBy(catalog.tokens, (token) => token.name)} /> : null;
+});
 
-function ColorPicker_({
-  autoFocus = false,
-  hideTokenPicker,
-  derefToken,
-  color,
-  onChange,
-  colorTokens: maybeColorTokens,
-  vsh = new VariantedStylesHelper(),
-}: ColorPickerProps) {
+function ColorPicker_(props: ColorPickerProps) {
+  const sc = useStudioCtx();
+  const vsh = React.useMemo(() => props.vsh ?? new VariantedStylesHelper(), [props.vsh]);
+  const resolver = useClientTokenResolver();
+  const { colorTokens, realColor: resolvedColor, appliedToken } = tryGetRealColor(props.color, sc, resolver, vsh, props.colorTokens);
+  const applied = useColorTokenChoiceInputs(sc, appliedToken ? [appliedToken] : [], vsh);
+  const palette = useColorTokenChoiceInputs(sc, props.hideTokenPicker ? [] : colorTokens.filter((token) => token !== appliedToken), vsh);
+  const paletteColors = useClientTokenValues(palette.snapshot.choices.map((row) => row.resolved), palette.lifetime);
+  if (resolvedColor === undefined) { return null; }
+  const realColor = props.color === "" ? "#FFFFFF" : ensure(resolvedColor, "Unexpected empty real color");
+  return <ColorPickerContent {...props} {...{ realColor, appliedToken, palette, paletteColors, vsh }} appliedChoice={applied.snapshot.choices[0]} />;
+}
+
+function ColorPickerContent({
+  autoFocus = false, hideTokenPicker, derefToken, color, onChange, vsh,
+  realColor, appliedToken, appliedChoice, palette, paletteColors,
+}: ColorPickerProps & {
+  realColor: string;
+  vsh: VariantedStylesHelper;
+  appliedToken: FinalToken<StyleToken> | undefined;
+  appliedChoice: ColorTokenChoice | undefined;
+  palette: ReturnType<typeof useColorTokenChoiceInputs>;
+  paletteColors: ReturnType<typeof useClientTokenValues>;
+}) {
   const { t: uiT } = useI18n();
   const sc = useStudioCtx();
-  const uiConfig = sc.getCurrentUiConfig();
-  const canCreateToken = canCreateAlias(uiConfig, "token");
-
-  const justAddedRef = React.useRef<StyleToken | undefined>(undefined);
-  const justAddedValue = justAddedRef.current;
-
-  const resolver = useClientTokenResolver();
-
-  const {
-    colorTokens,
-    realColor: maybeRealColor,
-    appliedToken,
-  } = tryGetRealColor(color, sc, resolver, vsh, maybeColorTokens);
-
-  const [editToken, setEditToken] = React.useState<
-    MutableToken<StyleToken> | OverrideableToken<StyleToken> | undefined
-  >(undefined);
-
-  const palette = useColorTokenChoiceInputs(sc, hideTokenPicker ? [] : colorTokens.filter((token) => token !== appliedToken), vsh);
-  const paletteColors = useClientTokenValues(palette.snapshot.choices.map((row) => row.resolved), palette.lifetime);
-
-  if (maybeRealColor === undefined) {
-    console.log(`Invalid token - hopefully caused by undo`, color);
-    return null;
-  }
-
-  const realColor =
-    color === ""
-      ? "#FFFFFF"
-      : ensure(maybeRealColor, "Unexpected empty real color");
+  const permissions = useTokenPickerPermissions(sc);
+  const canCreateToken = permissions.canCreateTokens;
+  const [justAddedUid, setJustAddedUid] = React.useState<number>();
+  const [editToken, setEditToken] = React.useState<MutableToken<StyleToken> | OverrideableToken<StyleToken>>();
   const colorPickerRef = useRef<HTMLDivElement>(null);
   const [pickr, setPickr] = useState<Pickr | null>(null);
   const [mode, setMode] = useState(ColorMode.hex);
@@ -164,24 +178,10 @@ function ColorPicker_({
   }, [initialColor, initialAlpha]);
   const colorInputRef = useRef<InputRef>(null);
 
-  // Store hsl-to-hex conversions to make it possible
-  // to return to the same hex/rgb when coming back from
-  // hsl rounded values
-  const hslToHex = useMemo(() => new Map<string, string>(), []);
-
-  const propagateChangesToParent = useCallback(
-    debounce(
-      (v) =>
-        window.requestAnimationFrame(() =>
-          onChange(/#0{8}/i.test(v) ? "transparent" : v),
-        ),
-      50,
-      {
-        maxWait: 150,
-      },
-    ),
-    [],
-  );
+  const readOnChange = useCommittedValue(onChange);
+  const session = useMemo(() => new ColorPickerSession(readOnChange), [readOnChange]);
+  const propagateChangesToParent = session.propagate;
+  useEffect(() => session.dispose, [session]);
 
   const controlledHexColor =
     !realColor || Chroma.isLiteralTransparent(realColor)
@@ -313,14 +313,14 @@ function ColorPicker_({
       mode,
     );
     const formattedColorInNewMode = getShortenedColor(
-      hslToHex.get(currentColorRestored) || currentColorRestored,
+      session.restore(currentColorRestored),
       newMode,
     );
 
     setMode(newMode);
 
-    if (newMode === ColorMode.hsl && !hslToHex.has(formattedColorInNewMode)) {
-      hslToHex.set(
+    if (newMode === ColorMode.hsl) {
+      session.remember(
         getFullColorRepresentation(formattedColorInNewMode, newMode),
         getShortColorHex(currentColorRestored),
       );
@@ -436,7 +436,7 @@ function ColorPicker_({
   };
 
   const isEditable =
-    appliedToken && isStyleTokenEditable(appliedToken, vsh, uiConfig);
+    appliedToken && isStyleTokenEditable(appliedToken, vsh, permissions);
 
   const selectPaletteToken = async (row: ColorTokenChoice) => {
     const token = palette.command(row);
@@ -468,7 +468,7 @@ function ColorPicker_({
   // No shared handler ref is changed by speculative renders.
   const paletteRows = palette.snapshot.active ? palette.snapshot.choices.map((row, index) => ({
     id: row.id, name: row.name, color: ensure(paletteColors[index], "Native palette color must exist"),
-    selected: palette.command(row) === appliedToken,
+    selected: row.ref.uid === appliedToken?.base.uid,
     onSelect: () => spawn(selectPaletteToken(row)),
   })) : [];
 
@@ -571,9 +571,9 @@ function ColorPicker_({
                   }
                   withIcons={["startIcon", "endIcon"]}
                 >
-                  <Tooltip title={appliedToken.name} mouseEnterDelay={0.5}>
+                  <Tooltip title={appliedChoice?.name} mouseEnterDelay={0.5}>
                     <div className="fill-width text-ellipsis">
-                      {appliedToken.name}
+                      {appliedChoice?.name}
                     </div>
                   </Tooltip>
                 </Button>
@@ -590,7 +590,7 @@ function ColorPicker_({
                   tokenType: "Color",
                   value: realColor,
                 });
-                justAddedRef.current = newToken;
+                setJustAddedUid(newToken.uid);
                 onChange(mkTokenRef(newToken));
                 setEditToken(new MutableToken(newToken));
               });
@@ -607,9 +607,9 @@ function ColorPicker_({
           show={true}
           onClose={() => {
             setEditToken(undefined);
-            justAddedRef.current = undefined;
+            setJustAddedUid(undefined);
           }}
-          autoFocusName={justAddedValue === editToken.base}
+          autoFocusName={justAddedUid === editToken.base.uid}
           vsh={vsh}
         />
       )}

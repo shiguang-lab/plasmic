@@ -37,7 +37,6 @@ import {
   TplNode,
 } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
-import { runInAction } from "mobx";
 
 function mkTestSite() {
   const site = createSite();
@@ -92,22 +91,22 @@ function mkTestSite() {
   const imported = mkTestDep("Imported", {
     projectDependencies: [transitive.dep],
   });
-  runInAction(() => {
+  (() => {
     site.components.push(component, page, codeComponent);
     site.styleTokens.push(token, registeredToken);
     screenGroup.variants.push(screenVariant);
     site.globalVariantGroups.push(variantGroup);
     site.animationSequences.push(animation);
     site.projectDependencies.push(imported.dep);
-  });
+  })();
   // Registers the components in the maps `getOwnerSite` reads, which a site
   // built by hand misses; without it `getEffectiveVariantSetting` throws.
   deepTrackComponents(site);
   const tplMgr = new TplMgr({ site });
-  const componentVariant = runInAction(() => {
+  const componentVariant = (() => {
     const group = tplMgr.createVariantGroup({ component, name: "Size" });
     return tplMgr.createVariant(component, group, "Large");
-  });
+  })();
   return {
     site,
     component,
@@ -181,13 +180,13 @@ function mkTestDep(
     name: `${name}Tablet`,
     parent: site.globalVariantGroups[0],
   });
-  runInAction(() => {
+  (() => {
     site.components.push(component, page, codeComponent);
     site.styleTokens.push(token, registeredToken);
     site.animationSequences.push(animation);
     site.globalVariantGroups.push(variantGroup);
     site.globalVariantGroups[0].variants.push(screenVariant);
-  });
+  })();
   const dep = new ProjectDependency({
     name: `${name} project`,
     pkgId: `${name}-pkg-id`,
@@ -406,13 +405,13 @@ describe("getMentionUiId", () => {
   it("returns a Model UiId for a component variant", () => {
     const { site: s, component: comp } = mkTestSite();
     const tplMgr = new TplMgr({ site: s });
-    const cv = runInAction(() => {
+    const cv = (() => {
       const group = tplMgr.createVariantGroup({
         component: comp,
         name: "Size",
       });
       return tplMgr.createVariant(comp, group, "Large");
-    });
+    })();
     expect(
       getMentionUiId("componentVariant", `${comp.uuid}/${cv.uuid}`, s),
     ).toBe(mkModelUiId({ typeTag: "Variant", uuid: cv.uuid }));
@@ -545,7 +544,7 @@ describe("mkMentionableResources", () => {
 
   it("keeps the registered tokens of a hostless package, which the tokens panel lists", () => {
     const own = mkTestSite();
-    runInAction(() => {
+    (() => {
       writeable(own.imported.site).hostLessPackageInfo =
         new HostLessPackageInfo({
           name: "antd6",
@@ -555,7 +554,7 @@ describe("mkMentionableResources", () => {
           registerCalls: [],
           minimumReactVersion: null,
         });
-    });
+    })();
 
     expect(importedResources(own)).toContainEqual(
       expect.objectContaining({ uuid: own.imported.registeredToken.uuid }),
@@ -564,10 +563,10 @@ describe("mkMentionableResources", () => {
 
   it("takes the breakpoints from the active screen variant group, even when an imported project owns it", () => {
     const own = mkTestSite();
-    runInAction(() => {
+    (() => {
       own.site.activeScreenVariantGroup =
         own.imported.site.globalVariantGroups[0];
-    });
+    })();
 
     const resources = mkResources(own).searchable;
     expect(resources).toContainEqual({

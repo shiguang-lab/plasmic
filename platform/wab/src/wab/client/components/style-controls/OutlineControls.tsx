@@ -8,7 +8,7 @@ import {
 import { LabeledLineStyleToggleButtonGroupItemRow } from "@/wab/client/components/style-controls/LineStyleControls";
 import {
   StylePanelSection,
-  useStyleComponent,
+  useStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { IconLinkButton } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
@@ -114,7 +114,7 @@ function outlineVariantResource(view: ViewCtx | undefined) {
 
 export function OutlinePanelSection() {
   const { t: uiT } = useI18n();
-  const sc = useStyleComponent();
+  const sc = useStyleTarget();
 
   const studioCtx = sc.studioCtx();
   const viewCtx = useStudioSelection(studioCtx, (state) => state.view);

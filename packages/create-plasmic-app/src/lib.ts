@@ -1,8 +1,11 @@
 import { auth, getProjectApiToken, setMetadataEnv } from "@plasmicapp/cli";
 import chalk from "chalk";
+import * as execa from "execa";
+import { promises as fs } from "fs";
 import * as path from "upath";
 import validateProjectName from "validate-npm-package-name";
 import { ensureTsconfig, overwriteReadme } from "./utils/file-utils";
+import { spawnOrFail } from "./utils/cmd-utils";
 import {
   packageManagerCommand,
   packageManagerExec,
@@ -52,6 +55,13 @@ export async function create(args: CreatePlasmicAppArgs): Promise<void> {
   } = args;
   let { projectApiToken } = args;
   const packageManager = resolvePackageManager(args.packageManager);
+  // Capture the launch version before a scaffolder writes its own manager pin.
+  const pnpmVersion = packageManager === "pnpm"
+    ? /^pnpm\/([^\s]+)/.exec(process.env.npm_config_user_agent ?? "")?.[1]
+      ?? execa.commandSync("pnpm --version", {
+        cwd: path.dirname(resolvedProjectPath),
+      }).stdout.trim()
+    : undefined;
   console.log("Let's get started! Here's what we'll do: ");
   console.log("1. Authenticate with Plasmic");
   console.log("2. Create a React/Next/TanStack repo");
@@ -98,6 +108,16 @@ export async function create(args: CreatePlasmicAppArgs): Promise<void> {
     platformOptions,
     packageManager,
   });
+
+  if (pnpmVersion) {
+    const manifestPath = path.join(resolvedProjectPath, "package.json");
+    const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+    await fs.writeFile(manifestPath, JSON.stringify({
+      ...manifest,
+      packageManager: `pnpm@${pnpmVersion}`,
+    }, null, 2) + "\n");
+    await spawnOrFail("pnpm install", resolvedProjectPath);
+  }
 
   // Ensure that we have a empty tsconfig and @types packages.
   // Next.js by default support typescript handling internally

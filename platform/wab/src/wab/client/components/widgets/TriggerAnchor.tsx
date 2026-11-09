@@ -1,4 +1,5 @@
 import * as React from "react";
+import { mergeRefs } from "@plasmicapp/react-web";
 
 /** What antd triggers inject into their child: event handlers and a class. */
 export type TriggerChildProps = Omit<
@@ -41,44 +42,13 @@ export function chainTriggerProps<P extends Record<string, any>>(
   return merged as P & TriggerChildProps;
 }
 
-/**
- * antd 6 Tooltip/Popover/Dropdown locate their anchor only through the child's
- * ref (there is no findDOMNode fallback). Without a DOM anchor the popup is
- * never aligned and presses on the trigger count as outside clicks.
- *
- * Generated Plasmic components are plain function components that drop refs.
- * Put this between the trigger and such a component, and pass both the ref and
- * the trigger's props to the element that should anchor the popup:
- *
- *   <Tooltip title="…">
- *     <TriggerAnchor>
- *       {(ref, triggerProps) => (
- *         <PlasmicFoo {...chainTriggerProps(triggerProps, ownProps)} root={{ ref }} />
- *       )}
- *     </TriggerAnchor>
- *   </Tooltip>
- */
-export const TriggerAnchor = React.forwardRef(function TriggerAnchor(
-  {
-    children,
-    ...triggerProps
-  }: TriggerChildProps & {
-    children: (
-      ref: React.Ref<any>,
-      triggerProps: TriggerChildProps,
-    ) => React.ReactElement;
-  },
-  ref: React.Ref<any>,
-) {
-  return children(ref, triggerProps);
-});
-
 function setRef<T>(ref: React.Ref<T> | undefined, value: T | null) {
   if (typeof ref === "function") {
-    ref(value);
+    return ref(value);
   } else if (ref) {
     (ref as React.MutableRefObject<T | null>).current = value;
   }
+  return undefined;
 }
 
 function isDomElement(value: unknown): value is Element {
@@ -113,9 +83,8 @@ function mayForwardRef(type: unknown): boolean {
   if (typed?.$$typeof === MEMO) {
     return mayForwardRef(typed.type);
   }
-  // Plain function components drop refs; class components hand out their
-  // instance, which is not a DOM node.
-  return false;
+  // React 19 function components receive ref through their native props.
+  return typeof type === "function" && !(type as { prototype?: { isReactComponent?: unknown } }).prototype?.isReactComponent;
 }
 
 /**
@@ -123,8 +92,8 @@ function mayForwardRef(type: unknown): boolean {
  * forward refs and children only known at runtime (`{children}`, `{x}`).
  *
  * The child is rendered unchanged, with the trigger's handlers chained onto
- * its props. Host elements and ref-forwarding components get the trigger's
- * ref directly. For anything else (or a forwarded ref that turns out not to
+ * its props. Host elements and React 19 ref-prop components get the trigger's
+ * ref directly. For class handles without a DOM node (or a forwarded ref that turns out not to
  * be a DOM node) a `<template>` marker rendered right after the child (valid
  * in any parent, never displayed) locates the child's root DOM element, which
  * is handed to the trigger. Text and fragments are wrapped in a `<span>`, as
@@ -145,25 +114,25 @@ export const TriggerTarget = React.forwardRef(function TriggerTarget(
   const [refIsNotDom, setRefIsNotDom] = React.useState(false);
   const useMarker = isElement && (refIsNotDom || !mayForwardRef(children.type));
   const childOwnRef = isElement
-    ? (children as React.ReactElement & { ref?: React.Ref<unknown> }).ref
+    ? (children.props as { ref?: React.Ref<unknown> }).ref
     : undefined;
-  const childRef = React.useCallback(
+  const forwardDomRef = React.useCallback(
     (value: unknown) => {
-      setRef(childOwnRef as React.Ref<unknown>, value);
       if (value == null) {
-        setRef(ref, null);
-        return;
+        return setRef(ref, null);
       }
       const dom = refValueToDom(value);
       if (dom) {
-        setRef(ref, dom);
+        return setRef(ref, dom);
       } else {
         // e.g. an imperative handle: locate the DOM node with the marker.
         setRefIsNotDom(true);
       }
+      return undefined;
     },
-    [ref, childOwnRef],
+    [ref],
   );
+  const childRef = React.useCallback((value: unknown) => mergeRefs(childOwnRef, forwardDomRef)(value), [childOwnRef, forwardDomRef]);
   const markerRef = React.useRef<HTMLTemplateElement>(null);
   React.useLayoutEffect(() => {
     if (!useMarker) {
@@ -190,10 +159,11 @@ export const TriggerTarget = React.forwardRef(function TriggerTarget(
     );
   }
   const element = children as React.ReactElement<Record<string, any>>;
-  const child = React.cloneElement(element, {
-    ...chainTriggerProps(triggerProps, element.props),
-    ...(!useMarker && { ref: childRef }),
-  });
+  const Child = element.type;
+  const childProps = chainTriggerProps(triggerProps, element.props);
+  const child = useMarker
+    ? <Child {...childProps} key={element.key} />
+    : <Child {...childProps} ref={childRef} key={element.key} />;
   return useMarker ? (
     <>
       {child}

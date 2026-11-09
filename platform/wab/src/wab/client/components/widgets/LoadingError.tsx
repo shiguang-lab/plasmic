@@ -1,7 +1,7 @@
 import { useI18n } from "@/wab/client/i18n";
 import { MessageKey } from "@/wab/client/i18n/locales";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
-import { Button, Flex, Typography, theme } from "antd";
+import { Button, Flex, Typography, theme as AntdTheme } from "antd";
 import * as React from "react";
 
 export function LoadingError({
@@ -16,7 +16,7 @@ export function LoadingError({
   title?: MessageKey;
 }) {
   const { t } = useI18n();
-  const { token } = theme.useToken();
+  const { token } = AntdTheme.useToken();
   return (
     <Flex
       role="alert"

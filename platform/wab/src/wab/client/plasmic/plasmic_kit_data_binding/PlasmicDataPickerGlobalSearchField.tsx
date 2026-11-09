@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,7 +23,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Searchbox from "../../components/widgets/Searchbox"; // plasmic-import: po7gr0PX4_gWo/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -78,11 +78,10 @@ function PlasmicDataPickerGlobalSearchField__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -148,12 +147,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -164,27 +159,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDataPickerGlobalSearchField__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDataPickerGlobalSearchField";
-  } else {
-    func.displayName = `PlasmicDataPickerGlobalSearchField.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDataPickerGlobalSearchField__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDataPickerGlobalSearchField__root<T extends PlasmicDataPickerGlobalSearchField__rootProps>(props: T & StrictProps<T, PlasmicDataPickerGlobalSearchField__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDataPickerGlobalSearchField__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDataPickerGlobalSearchField__root.displayName = "PlasmicDataPickerGlobalSearchField";
+
+type PlasmicDataPickerGlobalSearchField__searchboxProps = NodeComponentProps<"searchbox"> & {key?: React.Key};
+function PlasmicDataPickerGlobalSearchField__searchbox<T extends PlasmicDataPickerGlobalSearchField__searchboxProps>(props: T & StrictProps<T, PlasmicDataPickerGlobalSearchField__searchboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("searchbox", props);
+  return <PlasmicDataPickerGlobalSearchField__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"searchbox"} />;
+}
+PlasmicDataPickerGlobalSearchField__searchbox.displayName = "PlasmicDataPickerGlobalSearchField.searchbox";
+
 
 export const PlasmicDataPickerGlobalSearchField = Object.assign(
   // Top-level PlasmicDataPickerGlobalSearchField renders the root element
-  makeNodeComponent("root"),
+  PlasmicDataPickerGlobalSearchField__root,
   {
     // Helper components rendering sub-elements
-    searchbox: makeNodeComponent("searchbox"),
+    searchbox: PlasmicDataPickerGlobalSearchField__searchbox,
 
     // Metadata about props expected for PlasmicDataPickerGlobalSearchField
     internalVariantProps: PlasmicDataPickerGlobalSearchField__VariantProps,

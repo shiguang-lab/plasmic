@@ -1,3 +1,8 @@
+import { captureVariantModelWorld, useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useVariantLabelInputs } from "@/wab/client/components/variants/variant-label-inputs";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
+import { useTplStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
 import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useShallow } from "zustand/react/shallow";
@@ -24,20 +29,24 @@ import {
 } from "@/wab/shared/Variants";
 import { spawn } from "@/wab/shared/common";
 import { TplTag, Variant } from "@/wab/shared/model/classes";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const PrivateStyleVariantsPanel = observer(
-  function PrivateStyleVariantsPanel(props: {
-    tpl: TplTag;
-    viewCtx: ViewCtx;
-    studioCtx: StudioCtx;
-  }) {
+interface PrivateStyleVariantsProps { tpl: TplTag; viewCtx: ViewCtx; studioCtx: StudioCtx; }
+export const PrivateStyleVariantsPanel = React.memo(function PrivateStyleVariantsPanel(props: PrivateStyleVariantsProps) {
+  const world = useVariantModelWorld(props.studioCtx, props.tpl, props.viewCtx);
+  return world.alive ? <PrivateStyleVariantsContent {...props} /> : null;
+});
+const PrivateStyleVariantsContent = React.memo(function PrivateStyleVariantsContent(props: PrivateStyleVariantsProps) {
     const { tpl, studioCtx, viewCtx } = props;
     useCanvasRenderCount(viewCtx);
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
 
+    const context = useViewSelection(viewCtx, (state) => state.context);
     const component = viewCtx.currentTplComponent().component;
+    useVariantLabelInputs(studioCtx, component.variants, { component, componentVariants: true, focusedTag: tpl, node: tpl });
+    const provider = React.useMemo(() => new TplExpsProvider(viewCtx, tpl), [viewCtx, tpl, context]);
+    useTplStyleIndicators(provider, ["animation"]);
+    const world = React.useMemo(() => captureVariantModelWorld(studioCtx), [studioCtx, tpl]);
     const [editingVariant, setEditingVariant] = React.useState<
       Variant | undefined
     >(undefined);
@@ -56,6 +65,7 @@ export const PrivateStyleVariantsPanel = observer(
 
     const addPrivateVariant = () =>
       studioCtx.changeUnsafe(() => {
+        if (!world.isCurrent(viewCtx)) { return; }
         const variant = studioCtx
           .tplMgr()
           .createPrivateStyleVariant(component, tpl);
@@ -117,6 +127,7 @@ export const PrivateStyleVariantsPanel = observer(
             }
             onClick={() =>
               studioCtx.changeUnsafe(() =>
+                  world.isCurrent(viewCtx) &&
                 pinManager.removeSelectedVariants(privateStyleVariants),
               )
             }
@@ -145,6 +156,7 @@ export const PrivateStyleVariantsPanel = observer(
                   pinState={vcontroller.getPinState(variant)}
                   onClick={() =>
                     studioCtx.changeUnsafe(() => {
+        if (!world.isCurrent(viewCtx)) { return; }
                       // Toggle behavior: if already selected, turn off; otherwise turn on
                       if (vcontroller.isTargeted(variant)) {
                         vcontroller.onToggleVariant(variant);
@@ -159,6 +171,7 @@ export const PrivateStyleVariantsPanel = observer(
                     onRemove: () =>
                       spawn(
                         studioCtx.changeUnsafe(() =>
+                  world.isCurrent(viewCtx) &&
                           spawn(
                             studioCtx
                               .siteOps()
@@ -169,6 +182,7 @@ export const PrivateStyleVariantsPanel = observer(
                     onCopyTo: (toVariant) =>
                       spawn(
                         studioCtx.changeUnsafe(() =>
+                  world.isCurrent(viewCtx) &&
                           studioCtx
                             .tplMgr()
                             .copyToVariant(component, variant, toVariant),

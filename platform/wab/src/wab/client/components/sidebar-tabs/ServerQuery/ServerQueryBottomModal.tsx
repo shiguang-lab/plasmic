@@ -1,3 +1,8 @@
+import { useServerQueryInputs, useQueryInteractionInputs } from "@/wab/client/components/sidebar-tabs/ServerQuery/server-query-inputs";
+import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
+import { useStepCacheVersion } from "@/wab/client/studio-ctx/steps-cache-state";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useBottomModalActions } from "@/wab/client/components/BottomModal";
 import { DataPickerTypesSchema } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPicker";
 import { ServerQueryOpExprFormAndPreview } from "@/wab/client/components/sidebar-tabs/ServerQuery/ServerQueryOpPicker";
@@ -16,7 +21,6 @@ import {
   TplNode,
   isKnownComponentServerQuery,
 } from "@/wab/shared/model/classes";
-import { observer } from "mobx-react";
 import * as React from "react";
 
 /**
@@ -96,8 +100,7 @@ export function useServerQueryBottomModals() {
   };
 }
 
-const ServerQueryOpExprBottomModalContent = observer(
-  function ServerQueryOpExprBottomModalContent({
+const ServerQueryOpExprBottomModalContent = React.memo(function ServerQueryOpExprBottomModalContent({
     value,
     onSave,
     onCancel,
@@ -111,6 +114,12 @@ const ServerQueryOpExprBottomModalContent = observer(
     eventHandlerKey,
   }: ServerQueryOpExprBottomModalContentProps) {
     const parentQuery = isKnownComponentServerQuery(value) ? value : undefined;
+    const studio = useStudioCtx();
+    useServerQueryInputs(studio, parentQuery, viewCtx);
+    useQueryInteractionInputs(studio, interaction, eventHandlerKey, viewCtx);
+    useStepCacheVersion(studio);
+    useCanvasRenderCount(viewCtx);
+    const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl);
     const wrappedOnSave = React.useCallback(
       (newExpr: ServerQueryOp, opExprName?: string) => {
         onSave(newExpr, opExprName);
@@ -126,7 +135,7 @@ const ServerQueryOpExprBottomModalContent = observer(
       let computedEnv: Record<string, any> = extractDataCtx(
         viewCtx,
         tpl,
-        undefined,
+        canvasEnv,
         interaction,
         eventHandlerKey,
       );
@@ -155,5 +164,4 @@ const ServerQueryOpExprBottomModalContent = observer(
         />
       </PopoverFrameProvider>
     );
-  },
-);
+});

@@ -27,7 +27,7 @@ const { chromium } = require(path.join(wab, "node_modules/playwright"));
       if (request.url === "/app.js") {return response.end(script);}
       if (request.url.startsWith("/frame")) {return response.end('<div id="root"></div><script src="/app.js"></script>');}
       const widget = new URL(request.url, "http://local").searchParams.get("widget") || "tabs";
-      response.end(`<button id="mode">Toggle mode</button><button id="standalone">Standalone</button><iframe id="canvas" style="width:1440px;height:900px;border:0" src="/frame?widget=${widget}"></iframe><script>let interactive=false;document.querySelector('#mode').onclick=()=>{interactive=!interactive;document.querySelector('#canvas').contentWindow.postMessage({sessionMode:{interactive,standalone:false}},'*')};document.querySelector('#standalone').onclick=()=>document.querySelector('#canvas').contentWindow.postMessage({sessionMode:{interactive:true,standalone:true}},'*')</script>`);
+      response.end(`<button id="mode">Toggle mode</button><button id="standalone">Standalone</button><button id="selection">Toggle selection</button><iframe id="canvas" style="width:1440px;height:900px;border:0" src="/frame?widget=${widget}"></iframe><script>let interactive=false,selected=true;document.querySelector('#mode').onclick=()=>{interactive=!interactive;document.querySelector('#canvas').contentWindow.postMessage({sessionMode:{interactive,standalone:false}},'*')};document.querySelector('#selection').onclick=()=>{selected=!selected;document.querySelector('#canvas').contentWindow.postMessage({sessionSelection:selected},'*')};document.querySelector('#standalone').onclick=()=>document.querySelector('#canvas').contentWindow.postMessage({sessionMode:{interactive:true,standalone:true}},'*')</script>`);
     });
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     browser = await chromium.launch({ headless: true });
@@ -113,6 +113,13 @@ const { chromium } = require(path.join(wab, "node_modules/playwright"));
           for (const row of [4, 1, 0]) { await open(row); await close(); }
           const expected = [4, 1, 0].flatMap((row) => [`open:${row}:true${kind === "dropdown" ? ":trigger" : ""}`, `open:${row}:false${kind === "dropdown" ? ":trigger" : ""}`]);
           assert.deepEqual(await readCalls(), expected, `${widget}: open/close callbacks affected another row or ran twice`);
+          if (kind === "tooltip") {
+            await resetCalls();
+            for (const row of [0, 1, 2, 3, 4]) { await open(row); }
+            await close();
+            const transitions = [0, 1, 2, 3, 4].flatMap((row) => [`open:${row}:true`, `open:${row}:false`]);
+            assert.deepEqual((await readCalls()).slice().sort(), transitions.sort(), `${widget}: direct row transitions lost a hover event`);
+          }
           if (kind === "popconfirm") {
             await open(1);
             await popups.getByRole("button", { name: "Confirm", exact: true }).click();
@@ -131,10 +138,13 @@ const { chromium } = require(path.join(wab, "node_modules/playwright"));
           return readCalls();
         };
         await frame.locator('[data-row="4"]').waitFor();
-        await expectRows([4]); // Selection reveal belongs only to the editing canvas.
+        await expectRows([4]);
         assert.deepEqual(await readCalls(), []);
         await toggle(true);
+        await expectRows([4]);
+        await page.locator("#selection").click();
         await expectRows([]);
+        assert.deepEqual(await readCalls(), [], "Selection changes must not emit business callbacks");
         const baseline = await exercise();
         await frame.evaluate(() => { window.trackedCell = document.querySelector('[data-row="0"]'); });
         for (let round = 0; round < 2; round++) {
@@ -184,9 +194,9 @@ const { chromium } = require(path.join(wab, "node_modules/playwright"));
         if (widget === "tooltip") {
           await frame.waitForFunction((expected) =>
             document.querySelectorAll(".ant-tooltip:not(.ant-tooltip-hidden)").length === expected,
-            index % 2 ? 2 : 0);
-          assert.equal(await frame.locator(".ant-tooltip:visible").count(), index % 2 ? 2 : 0,
-            "Editing reveals must not leak into interactive mode");
+            2);
+          assert.equal(await frame.locator(".ant-tooltip:visible").count(), 2,
+            "Selection reveals remain visible in both canvas modes");
         }
       }
       const calls = await frame.evaluate(() => window.sessionCheck.calls);
@@ -204,7 +214,9 @@ const { chromium } = require(path.join(wab, "node_modules/playwright"));
       if (widget === "tooltip") {
         await page.locator("#mode").click();
         await frame.locator('[data-mode="interactive"]').waitFor();
+        await page.locator("#selection").click();
         await frame.waitForFunction(() => !document.querySelector(".ant-tooltip:not(.ant-tooltip-hidden)"));
+        assert.deepEqual(await frame.evaluate(() => window.sessionCheck.calls), [], "Releasing selection is silent");
         await checkTooltips();
         await frame.waitForFunction(() => window.sessionCheck.calls.length === 12);
         assert.deepEqual(await frame.evaluate(() => window.sessionCheck.calls),

@@ -1,5 +1,5 @@
 import { reactConfirm } from "@/wab/client/components/quick-modals";
-import { ObserverLoadable } from "@/wab/client/components/widgets";
+import { Loadable } from "@/wab/client/components/widgets";
 import Chip from "@/wab/client/components/widgets/Chip";
 import { Modal } from "@/wab/client/components/widgets/Modal";
 import { useI18n } from "@/wab/client/i18n";
@@ -10,6 +10,10 @@ import {
   tryJsonParse,
 } from "@/wab/shared/core/lang";
 import React from "react";
+
+function loadGraphqlBuilder() {
+  return import("@/wab/client/data/GraphqlBuilder").then(({ default: GraphiqlWithExplorer }) => GraphiqlWithExplorer);
+}
 
 export interface GraphQLValue {
   query: string;
@@ -64,12 +68,8 @@ export const GraphQLEditor = (props: {
         // Unmount the GraphiQLExplorer component when the modal closes
         <Modal {...modalProps} title={title}>
           {show && (
-            <ObserverLoadable
-              loader={() =>
-                import("@/wab/client/data/GraphqlBuilder").then(
-                  ({ default: GraphiqlWithExplorer }) => GraphiqlWithExplorer,
-                )
-              }
+            <Loadable
+              loader={loadGraphqlBuilder}
               contents={(GraphiqlWithExplorer) => (
                 <GraphiqlWithExplorer
                   url={endpoint}

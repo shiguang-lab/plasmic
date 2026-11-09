@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,13 +22,13 @@ import {
   renderPlasmicSlot,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import * as pp from "@plasmicapp/react-web";
+import * as Plume from "@plasmicapp/react-web";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gYEVvAzCcLMHDVPvuYxkFh/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -68,7 +68,7 @@ export type PlasmicStyleSelect__Overlay__OverridesType = {
 };
 
 export interface DefaultStyleSelect__OverlayProps
-  extends pp.BaseTriggeredOverlayProps {
+  extends Plume.BaseTriggeredOverlayProps {
   children?: React.ReactNode;
 }
 
@@ -98,11 +98,10 @@ function PlasmicStyleSelect__Overlay__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "relativePlacement",
@@ -112,22 +111,24 @@ function PlasmicStyleSelect__Overlay__RenderFunc(props: {
           $props.relativePlacement,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
   const superContexts = {
     StyleSelect: React.useContext(SUPER__PlasmicStyleSelect.Context),
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -240,11 +241,11 @@ function PlasmicStyleSelect__Overlay__RenderFunc(props: {
   ) as React.ReactElement | null;
 }
 
-function useBehavior<P extends pp.BaseTriggeredOverlayProps>(
+function useBehavior<P extends Plume.BaseTriggeredOverlayProps>(
   props: P,
-  ref: pp.TriggeredOverlayRef
+  ref: Plume.TriggeredOverlayRef
 ) {
-  return pp.useTriggeredOverlay(
+  return Plume.useTriggeredOverlay(
     PlasmicStyleSelect__Overlay,
     props,
     {
@@ -307,12 +308,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -322,32 +319,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicStyleSelect__Overlay__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicStyleSelect__Overlay";
-  } else {
-    func.displayName = `PlasmicStyleSelect__Overlay.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicStyleSelect__Overlay__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicStyleSelect__Overlay__root<T extends PlasmicStyleSelect__Overlay__rootProps>(props: T & StrictProps<T, PlasmicStyleSelect__Overlay__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicStyleSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicStyleSelect__Overlay__root.displayName = "PlasmicStyleSelect__Overlay";
+
+type PlasmicStyleSelect__Overlay__topProps = NodeComponentProps<"top"> & {key?: React.Key};
+function PlasmicStyleSelect__Overlay__top<T extends PlasmicStyleSelect__Overlay__topProps>(props: T & StrictProps<T, PlasmicStyleSelect__Overlay__topProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("top", props);
+  return <PlasmicStyleSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"top"} />;
+}
+PlasmicStyleSelect__Overlay__top.displayName = "PlasmicStyleSelect__Overlay.top";
+
+type PlasmicStyleSelect__Overlay__middleProps = NodeComponentProps<"middle"> & {key?: React.Key};
+function PlasmicStyleSelect__Overlay__middle<T extends PlasmicStyleSelect__Overlay__middleProps>(props: T & StrictProps<T, PlasmicStyleSelect__Overlay__middleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("middle", props);
+  return <PlasmicStyleSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"middle"} />;
+}
+PlasmicStyleSelect__Overlay__middle.displayName = "PlasmicStyleSelect__Overlay.middle";
+
+type PlasmicStyleSelect__Overlay__leftProps = NodeComponentProps<"left"> & {key?: React.Key};
+function PlasmicStyleSelect__Overlay__left<T extends PlasmicStyleSelect__Overlay__leftProps>(props: T & StrictProps<T, PlasmicStyleSelect__Overlay__leftProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("left", props);
+  return <PlasmicStyleSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"left"} />;
+}
+PlasmicStyleSelect__Overlay__left.displayName = "PlasmicStyleSelect__Overlay.left";
+
+type PlasmicStyleSelect__Overlay__mainProps = NodeComponentProps<"main"> & {key?: React.Key};
+function PlasmicStyleSelect__Overlay__main<T extends PlasmicStyleSelect__Overlay__mainProps>(props: T & StrictProps<T, PlasmicStyleSelect__Overlay__mainProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("main", props);
+  return <PlasmicStyleSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"main"} />;
+}
+PlasmicStyleSelect__Overlay__main.displayName = "PlasmicStyleSelect__Overlay.main";
+
+type PlasmicStyleSelect__Overlay__rightProps = NodeComponentProps<"right"> & {key?: React.Key};
+function PlasmicStyleSelect__Overlay__right<T extends PlasmicStyleSelect__Overlay__rightProps>(props: T & StrictProps<T, PlasmicStyleSelect__Overlay__rightProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("right", props);
+  return <PlasmicStyleSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"right"} />;
+}
+PlasmicStyleSelect__Overlay__right.displayName = "PlasmicStyleSelect__Overlay.right";
+
+type PlasmicStyleSelect__Overlay__bottomProps = NodeComponentProps<"bottom"> & {key?: React.Key};
+function PlasmicStyleSelect__Overlay__bottom<T extends PlasmicStyleSelect__Overlay__bottomProps>(props: T & StrictProps<T, PlasmicStyleSelect__Overlay__bottomProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("bottom", props);
+  return <PlasmicStyleSelect__Overlay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"bottom"} />;
+}
+PlasmicStyleSelect__Overlay__bottom.displayName = "PlasmicStyleSelect__Overlay.bottom";
+
 
 export const PlasmicStyleSelect__Overlay = Object.assign(
   // Top-level PlasmicStyleSelect__Overlay renders the root element
-  makeNodeComponent("root"),
+  PlasmicStyleSelect__Overlay__root,
   {
     // Helper components rendering sub-elements
-    top: makeNodeComponent("top"),
-    middle: makeNodeComponent("middle"),
-    left: makeNodeComponent("left"),
-    main: makeNodeComponent("main"),
-    right: makeNodeComponent("right"),
-    bottom: makeNodeComponent("bottom"),
+    top: PlasmicStyleSelect__Overlay__top,
+    middle: PlasmicStyleSelect__Overlay__middle,
+    left: PlasmicStyleSelect__Overlay__left,
+    main: PlasmicStyleSelect__Overlay__main,
+    right: PlasmicStyleSelect__Overlay__right,
+    bottom: PlasmicStyleSelect__Overlay__bottom,
 
     // Metadata about props expected for PlasmicStyleSelect__Overlay
     internalVariantProps: PlasmicStyleSelect__Overlay__VariantProps,

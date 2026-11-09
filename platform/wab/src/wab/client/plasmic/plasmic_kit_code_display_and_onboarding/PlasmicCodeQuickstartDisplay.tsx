@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,7 +23,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import FrameworkTabs from "../../components/studio/code-quickstart/FrameworkTabs"; // plasmic-import: tf_fQvs5kI8/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: pTmuho7nuNtDcvZAf2kJgx/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: pTmuho7nuNtDcvZAf2kJgx/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -79,11 +79,10 @@ function PlasmicCodeQuickstartDisplay__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -162,12 +161,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -177,29 +172,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCodeQuickstartDisplay__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCodeQuickstartDisplay";
-  } else {
-    func.displayName = `PlasmicCodeQuickstartDisplay.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCodeQuickstartDisplay__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCodeQuickstartDisplay__root<T extends PlasmicCodeQuickstartDisplay__rootProps>(props: T & StrictProps<T, PlasmicCodeQuickstartDisplay__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCodeQuickstartDisplay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCodeQuickstartDisplay__root.displayName = "PlasmicCodeQuickstartDisplay";
+
+type PlasmicCodeQuickstartDisplay__frameworkTabsContainerProps = NodeComponentProps<"frameworkTabsContainer"> & {key?: React.Key};
+function PlasmicCodeQuickstartDisplay__frameworkTabsContainer<T extends PlasmicCodeQuickstartDisplay__frameworkTabsContainerProps>(props: T & StrictProps<T, PlasmicCodeQuickstartDisplay__frameworkTabsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("frameworkTabsContainer", props);
+  return <PlasmicCodeQuickstartDisplay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"frameworkTabsContainer"} />;
+}
+PlasmicCodeQuickstartDisplay__frameworkTabsContainer.displayName = "PlasmicCodeQuickstartDisplay.frameworkTabsContainer";
+
+type PlasmicCodeQuickstartDisplay__frameworkTabsProps = NodeComponentProps<"frameworkTabs"> & {key?: React.Key};
+function PlasmicCodeQuickstartDisplay__frameworkTabs<T extends PlasmicCodeQuickstartDisplay__frameworkTabsProps>(props: T & StrictProps<T, PlasmicCodeQuickstartDisplay__frameworkTabsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("frameworkTabs", props);
+  return <PlasmicCodeQuickstartDisplay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"frameworkTabs"} />;
+}
+PlasmicCodeQuickstartDisplay__frameworkTabs.displayName = "PlasmicCodeQuickstartDisplay.frameworkTabs";
+
+type PlasmicCodeQuickstartDisplay__iframeContainerProps = NodeComponentProps<"iframeContainer"> & {key?: React.Key};
+function PlasmicCodeQuickstartDisplay__iframeContainer<T extends PlasmicCodeQuickstartDisplay__iframeContainerProps>(props: T & StrictProps<T, PlasmicCodeQuickstartDisplay__iframeContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iframeContainer", props);
+  return <PlasmicCodeQuickstartDisplay__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iframeContainer"} />;
+}
+PlasmicCodeQuickstartDisplay__iframeContainer.displayName = "PlasmicCodeQuickstartDisplay.iframeContainer";
+
 
 export const PlasmicCodeQuickstartDisplay = Object.assign(
   // Top-level PlasmicCodeQuickstartDisplay renders the root element
-  makeNodeComponent("root"),
+  PlasmicCodeQuickstartDisplay__root,
   {
     // Helper components rendering sub-elements
-    frameworkTabsContainer: makeNodeComponent("frameworkTabsContainer"),
-    frameworkTabs: makeNodeComponent("frameworkTabs"),
-    iframeContainer: makeNodeComponent("iframeContainer"),
+    frameworkTabsContainer: PlasmicCodeQuickstartDisplay__frameworkTabsContainer,
+    frameworkTabs: PlasmicCodeQuickstartDisplay__frameworkTabs,
+    iframeContainer: PlasmicCodeQuickstartDisplay__iframeContainer,
 
     // Metadata about props expected for PlasmicCodeQuickstartDisplay
     internalVariantProps: PlasmicCodeQuickstartDisplay__VariantProps,

@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   SingleChoiceArg,
   StrictProps,
   classNames,
@@ -26,7 +26,7 @@ import {
   generateStateValueProp,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -38,7 +38,7 @@ import MenuItem from "../../components/plexus/MenuItem"; // plasmic-import: HuWz
 import MenuPopover from "../../components/plexus/MenuPopover"; // plasmic-import: cplpbevCTFb_/component
 import MenuSection from "../../components/plexus/MenuSection"; // plasmic-import: YvSNiHRodZSY/component
 import TextInput from "../../components/plexus/TextInput"; // plasmic-import: J_e2eE41048e/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -157,11 +157,10 @@ function PlasmicCombobox__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "ariaComboBox.isOpen",
@@ -193,18 +192,20 @@ function PlasmicCombobox__RenderFunc(props: {
           $props["defaultValue"],
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   const [$ccVariants, setDollarCcVariants] = React.useState<
     Record<string, boolean>
@@ -244,18 +245,18 @@ function PlasmicCombobox__RenderFunc(props: {
       )}
       isDisabled={args.disabled}
       isOpen={generateStateValueProp($state, ["ariaComboBox", "isOpen"])}
-      onOpenChange={async (...eventArgs: any) => {
-        generateStateOnChangeProp($state, ["ariaComboBox", "isOpen"]).apply(
+      onOpenChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+        generateStateOnChangeProp($stateCommands, ["ariaComboBox", "isOpen"]).apply(
           null,
           eventArgs
         );
-      }}
-      onSelectionChange={async (...eventArgs: any) => {
-        generateStateOnChangeProp($state, [
+      })); })}
+      onSelectionChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+        generateStateOnChangeProp($stateCommands, [
           "ariaComboBox",
           "selectedValue",
         ]).apply(null, eventArgs);
-      }}
+      })); })}
       plasmicUpdateVariant={updateVariant}
       selectedKey={generateStateValueProp($state, [
         "ariaComboBox",
@@ -284,8 +285,8 @@ function PlasmicCombobox__RenderFunc(props: {
           data-plasmic-override={overrides.textInput}
           className={classNames("__wab_instance", sty.textInput)}
           flat={["top", "right", "bottom", "left"]}
-          onChange={async (...eventArgs: any) => {
-            generateStateOnChangeProp($state, ["textInput", "value"]).apply(
+          onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+            generateStateOnChangeProp($stateCommands, ["textInput", "value"]).apply(
               null,
               eventArgs
             );
@@ -297,7 +298,7 @@ function PlasmicCombobox__RenderFunc(props: {
             ) {
               return;
             }
-          }}
+          })); })}
           padded={[]}
           placeholder={args.placeholder}
           value={generateStateValueProp($state, ["textInput", "value"])}
@@ -435,12 +436,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -450,33 +447,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCombobox__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "ariaComboBox") {
-    func.displayName = "PlasmicCombobox";
-  } else {
-    func.displayName = `PlasmicCombobox.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCombobox__ariaComboBoxProps = NodeComponentProps<"ariaComboBox"> & {key?: React.Key};
+function PlasmicCombobox__ariaComboBox<T extends PlasmicCombobox__ariaComboBoxProps>(props: T & StrictProps<T, PlasmicCombobox__ariaComboBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("ariaComboBox", props);
+  return <PlasmicCombobox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaComboBox"} />;
+}
+PlasmicCombobox__ariaComboBox.displayName = "PlasmicCombobox";
+
+type PlasmicCombobox__labelProps = NodeComponentProps<"label"> & {key?: React.Key};
+function PlasmicCombobox__label<T extends PlasmicCombobox__labelProps>(props: T & StrictProps<T, PlasmicCombobox__labelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("label", props);
+  return <PlasmicCombobox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"label"} />;
+}
+PlasmicCombobox__label.displayName = "PlasmicCombobox.label";
+
+type PlasmicCombobox__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicCombobox__freeBox<T extends PlasmicCombobox__freeBoxProps>(props: T & StrictProps<T, PlasmicCombobox__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicCombobox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicCombobox__freeBox.displayName = "PlasmicCombobox.freeBox";
+
+type PlasmicCombobox__textInputProps = NodeComponentProps<"textInput"> & {key?: React.Key};
+function PlasmicCombobox__textInput<T extends PlasmicCombobox__textInputProps>(props: T & StrictProps<T, PlasmicCombobox__textInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("textInput", props);
+  return <PlasmicCombobox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"textInput"} />;
+}
+PlasmicCombobox__textInput.displayName = "PlasmicCombobox.textInput";
+
+type PlasmicCombobox__ariaButtonProps = NodeComponentProps<"ariaButton"> & {key?: React.Key};
+function PlasmicCombobox__ariaButton<T extends PlasmicCombobox__ariaButtonProps>(props: T & StrictProps<T, PlasmicCombobox__ariaButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("ariaButton", props);
+  return <PlasmicCombobox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"ariaButton"} />;
+}
+PlasmicCombobox__ariaButton.displayName = "PlasmicCombobox.ariaButton";
+
+type PlasmicCombobox__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicCombobox__svg<T extends PlasmicCombobox__svgProps>(props: T & StrictProps<T, PlasmicCombobox__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicCombobox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicCombobox__svg.displayName = "PlasmicCombobox.svg";
+
+type PlasmicCombobox__descriptionProps = NodeComponentProps<"description"> & {key?: React.Key};
+function PlasmicCombobox__description<T extends PlasmicCombobox__descriptionProps>(props: T & StrictProps<T, PlasmicCombobox__descriptionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("description", props);
+  return <PlasmicCombobox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"description"} />;
+}
+PlasmicCombobox__description.displayName = "PlasmicCombobox.description";
+
+type PlasmicCombobox__menuPopoverProps = NodeComponentProps<"menuPopover"> & {key?: React.Key};
+function PlasmicCombobox__menuPopover<T extends PlasmicCombobox__menuPopoverProps>(props: T & StrictProps<T, PlasmicCombobox__menuPopoverProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuPopover", props);
+  return <PlasmicCombobox__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuPopover"} />;
+}
+PlasmicCombobox__menuPopover.displayName = "PlasmicCombobox.menuPopover";
+
 
 export const PlasmicCombobox = Object.assign(
   // Top-level PlasmicCombobox renders the root element
-  makeNodeComponent("ariaComboBox"),
+  PlasmicCombobox__ariaComboBox,
   {
     // Helper components rendering sub-elements
-    label: makeNodeComponent("label"),
-    freeBox: makeNodeComponent("freeBox"),
-    textInput: makeNodeComponent("textInput"),
-    ariaButton: makeNodeComponent("ariaButton"),
-    svg: makeNodeComponent("svg"),
-    description: makeNodeComponent("description"),
-    menuPopover: makeNodeComponent("menuPopover"),
+    label: PlasmicCombobox__label,
+    freeBox: PlasmicCombobox__freeBox,
+    textInput: PlasmicCombobox__textInput,
+    ariaButton: PlasmicCombobox__ariaButton,
+    svg: PlasmicCombobox__svg,
+    description: PlasmicCombobox__description,
+    menuPopover: PlasmicCombobox__menuPopover,
 
     // Metadata about props expected for PlasmicCombobox
     internalVariantProps: PlasmicCombobox__VariantProps,

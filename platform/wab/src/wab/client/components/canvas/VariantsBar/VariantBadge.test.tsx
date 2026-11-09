@@ -1,3 +1,4 @@
+import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import VariantBadge from "@/wab/client/components/canvas/VariantsBar/VariantBadge";
 import { SiteOps } from "@/wab/client/components/canvas/site-ops";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
@@ -22,14 +23,16 @@ function fixture() {
   const selection = new StudioSelection(() => models);
   const operations = mock<SiteOps>();
   const component = mkComponent({ name: "Card", type: ComponentType.Plain, tplTree: mkTplTagX("div") });
+  const site = createSite(); site.components.push(component);
+  const arenaState = new StudioArenaState({ site, modelSnapshots: models });
   Object.assign(studio, {
-    site: createSite(), modelSnapshots: models, selectionStore: selection.store,
+    site, arenaState, modelSnapshots: models, selectionStore: selection.store,
     latestVariantCreatedStore: createStore<ModelRef<Variant> | undefined>(() => undefined),
   });
   Object.defineProperty(studio, "latestVariantCreated", ensure(Object.getOwnPropertyDescriptor(StudioCtx.prototype, "latestVariantCreated"), "Missing native variant command"));
   studio.changeUnsafe.mockImplementation(async (change) => change());
   studio.siteOps.mockReturnValue(operations);
-  return { studio, models, component, operations, dispose: () => { selection.dispose(); models.dispose(); } };
+  return { studio, models, component, operations, dispose: () => { arenaState.dispose(); selection.dispose(); models.dispose(); } };
 }
 
 beforeEach(() => {
@@ -43,6 +46,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 
 it("opens only the matching native badge and preserves toggle, unpin and rename commands", async () => {
   const f = fixture(), first = mkVariant({ name: "First" }), other = mkVariant({ name: "Other" });
+  f.component.variants.push(first, other);
   const toggle = vi.fn(), unpin = vi.fn(), otherCommits = vi.fn();
   const label = render(<StudioCtxContext.Provider value={f.studio}>
     <VariantBadge variant={first} component={f.component} isFocused isUnpinnable onToggle={toggle} onUnpin={unpin} />
@@ -69,6 +73,7 @@ it("opens only the matching native badge and preserves toggle, unpin and rename 
 
 it("uses committed classification fields to open the real selector editor", async () => {
   const f = fixture(), variant = mkVariant({ name: "Mode" });
+  f.component.variants.push(variant);
   const label = render(<StudioCtxContext.Provider value={f.studio}><VariantBadge variant={variant} component={f.component} /></StudioCtxContext.Provider>);
   variant.selectors = [":hover"];
   const change: ModelChange = { type: "update", oldValue: null, newValue: variant.selectors, changeNode: { inst: variant, field: "selectors" } };

@@ -1,26 +1,26 @@
 # 待办：交互模式下的读写与扫描效果
 
-> 记录于 2026-11-06。范围：Desktop 灵动岛 / MCP 交互画布。
+> 更新于 2026-11-09。范围：Desktop 灵动岛 / MCP 交互画布。
 
 ## 1. 交互模式下支持读
 
-- [ ] 模型读（`read` / `queryElements` / `validate` / `getEditorContext` 等）：已可用，补一次实测确认。
-- [ ] 画布读（`get_screenshot`、`snapshot_layout` 不带 `componentUuid`）当前要求编辑模式，需放行 `interactive`。
+- [x] 模型读（`read` / `queryElements` / `validate` / `getEditorContext` 等）保持交互模式，支持正常的目标选中与临时展开。
+- [x] 当前画布的 `get_screenshot`、`snapshot_layout` 放行 `interactive`，不要求传 `componentUuid` 或退出交互。
 
 ## 2. 交互模式下显示扫描效果
 
-- [ ] `desktop/src/island.cjs:100` 的放行条件排除交互模式，需要放行 `previewKind === "interactive"`。
-- [ ] `desktop/src/island-capture.cjs:98` 取景传的是 `context.mode`（交互态为 `preview`），会去找原生 Preview 的 `.live-root-container`；交互画布应走编辑画布分支（`"edit"`）。
-- [ ] 目标定位随之走编辑画布 `valkey` 分支，确认扫描区域落在交互画布上。
-- [ ] 说明：扫描层是灵动岛独立透明窗口的覆盖层，鼠标穿透，不进截图/导出，不会阻塞交互。
+- [x] 灵动岛允许 `previewKind === "interactive"`，显示当前交互画布镜像。
+- [x] 交互画布按编辑画布的 artboard 结构取景；原生 Preview 使用独立的 runtime viewport。
+- [x] 模型目标按 `valkey` 定位，交互目标按当前文档的 runtime ref 定位；切换 Preview 类型会使旧反馈失效。
+- [x] 反馈层位于灵动岛透明窗口内的镜像图像上，不接收鼠标事件，不进入画布截图或导出。
 
 ## 3. 交互模式下的写操作
 
-- [ ] 现状：写操作会自动关闭交互模式再执行（`desktop/src/controller.cjs:267`），扫描落在编辑画布上。
-- [ ] 待定：是否需要"留在交互模式里写"；若需要，卡点在 Studio 的编辑模型：
-  - `assertCanEditPrototype` 断言 `!isInteractiveMode`
-  - `canEdit` 在交互态为 false
-  - 写入后的展示/选中会主动退出交互（`present-target` / `selectElement`）
+- [x] AI 模型读写、批处理、选中、撤销和保存保持交互模式，不自动退回设计编辑模式。
+- [x] 自动选中与展开在后台尽力执行，模型读写及 MCP 返回不等待可见性；展示失败或超时不影响操作成功，也不阻塞后续调用。
+- [x] `canEdit` 反映有效模型编辑权限；权限、最新修订、阻塞状态及受保护分支的限制仍适用。原生 Preview 仍拒绝模型写入。
+- [x] 目标展示继续走共享选中与临时展开机制，支持 Tab、弹层、折叠内容及隐藏节点。
+- [x] 临时展开与业务状态分离，不改写保存的初始值，不触发业务回调；设计师的真实交互仍正常触发事件。
 
 ## 4. 关闭优化：扫描动画完整执行
 
@@ -30,6 +30,8 @@
 
 ## 5. 测试与文档
 
-- [ ] 灵动岛交互态扫描的 native 测试（镜像 + 扫描区域）。
+- [x] 灵动岛交互态 native 测试：真实 Electron / stdio MCP，覆盖镜像、截图与布局读取、目标扫描、写入反馈及保存后的模式保持。
+- [x] Studio 测试：读写、批处理、撤销、保存分发、权限拦截、自动选中与临时展开。
+- [x] 真实浏览器测试：15 个组件场景，覆盖交互态临时展开、DOM/输入保留、重复实例隔离、真实回调和独立运行时。
 - [ ] 关闭收尾的计时测试。
-- [ ] 更新 `desktop/README.md` 灵动岛反馈行为说明。
+- [x] 更新 `desktop/README.md`、MCP 合约及相关交互工作流说明。

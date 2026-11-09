@@ -14,18 +14,18 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   renderPlasmicSlot,
   StrictProps,
-  useTrigger,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import RowItem from "../../components/RowItem"; // plasmic-import: gkx-PRZnjFPo/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -92,16 +92,15 @@ function PlasmicColorTokenControl__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -187,12 +186,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -202,27 +197,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicColorTokenControl__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicColorTokenControl";
-  } else {
-    func.displayName = `PlasmicColorTokenControl.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicColorTokenControl__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicColorTokenControl__root<T extends PlasmicColorTokenControl__rootProps>(props: T & StrictProps<T, PlasmicColorTokenControl__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicColorTokenControl__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicColorTokenControl__root.displayName = "PlasmicColorTokenControl";
+
+type PlasmicColorTokenControl__rowItemProps = NodeComponentProps<"rowItem"> & {key?: React.Key};
+function PlasmicColorTokenControl__rowItem<T extends PlasmicColorTokenControl__rowItemProps>(props: T & StrictProps<T, PlasmicColorTokenControl__rowItemProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("rowItem", props);
+  return <PlasmicColorTokenControl__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"rowItem"} />;
+}
+PlasmicColorTokenControl__rowItem.displayName = "PlasmicColorTokenControl.rowItem";
+
 
 export const PlasmicColorTokenControl = Object.assign(
   // Top-level PlasmicColorTokenControl renders the root element
-  makeNodeComponent("root"),
+  PlasmicColorTokenControl__root,
   {
     // Helper components rendering sub-elements
-    rowItem: makeNodeComponent("rowItem"),
+    rowItem: PlasmicColorTokenControl__rowItem,
 
     // Metadata about props expected for PlasmicColorTokenControl
     internalVariantProps: PlasmicColorTokenControl__VariantProps,

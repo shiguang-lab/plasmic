@@ -14,42 +14,7 @@
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
-import {
-  Flex as Flex__,
-  MultiChoiceArg,
-  PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
-  PlasmicIcon as PlasmicIcon__,
-  PlasmicImg as PlasmicImg__,
-  PlasmicLink as PlasmicLink__,
-  PlasmicPageGuard as PlasmicPageGuard__,
-  SingleBooleanChoiceArg,
-  SingleChoiceArg,
-  Stack as Stack__,
-  StrictProps,
-  Trans as Trans__,
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  ensureGlobalVariants,
-  generateOnMutateForSpec,
-  generateStateOnChangeProp,
-  generateStateOnChangePropForCodeComponents,
-  generateStateValueProp,
-  get as $stateGet,
-  hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
-  makeFragment,
-  omit,
-  pick,
-  renderPlasmicSlot,
-  set as $stateSet,
-  useCurrentUser,
-  useDollarState,
-  usePlasmicTranslator,
-  useTrigger,
-  wrapWithClassName
-} from "@plasmicapp/react-web";
+import {Flex as Flex__, MultiChoiceArg, PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__, PlasmicIcon as PlasmicIcon__, PlasmicImg as PlasmicImg__, PlasmicLink as PlasmicLink__, PlasmicPageGuard as PlasmicPageGuard__, SingleBooleanChoiceArg, SingleChoiceArg, Stack as Stack__, StrictProps, Trans as Trans__, classNames, createPlasmicElementProxy, deriveRenderOpts, ensureGlobalVariants, generateOnMutateForSpec, generateStateOnChangeProp, generateStateOnChangePropForCodeComponents, generateStateValueProp, get as $stateGet, hasVariant, makeFragment, omit, pick, renderPlasmicSlot, set as $stateSet, useCurrentUser, useDollarState, useDollarStateSnapshot, usePlasmicTranslator, useFocusVisible, wrapWithClassName, usePlasmicRefs} from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
@@ -57,8 +22,8 @@ import {
 } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -144,11 +109,10 @@ function PlasmicActionMenuButton__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "type",
@@ -175,26 +139,28 @@ function PlasmicActionMenuButton__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.size
       }
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs
-  });
+    getRefs
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
   const [isActionButtonFocusVisible, triggerActionButtonFocusVisibleProps] =
-    useTrigger("useFocusVisible", {
+    useFocusVisible({
       isTextInput: false
     });
   const triggers = {
     focusVisible_actionButton: isActionButtonFocusVisible
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -288,9 +254,7 @@ function PlasmicActionMenuButton__RenderFunc(props: {
             )
           }
         )}
-        ref={ref => {
-          $refs["actionButton"] = ref;
-        }}
+        ref={registerRef("actionButton")}
         type={"button"}
         data-plasmic-trigger-props={[triggerActionButtonFocusVisibleProps]}
       >
@@ -555,12 +519,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -570,29 +530,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicActionMenuButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicActionMenuButton";
-  } else {
-    func.displayName = `PlasmicActionMenuButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicActionMenuButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicActionMenuButton__root<T extends PlasmicActionMenuButton__rootProps>(props: T & StrictProps<T, PlasmicActionMenuButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicActionMenuButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicActionMenuButton__root.displayName = "PlasmicActionMenuButton";
+
+type PlasmicActionMenuButton__actionButtonProps = NodeComponentProps<"actionButton"> & {key?: React.Key};
+function PlasmicActionMenuButton__actionButton<T extends PlasmicActionMenuButton__actionButtonProps>(props: T & StrictProps<T, PlasmicActionMenuButton__actionButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionButton", props);
+  return <PlasmicActionMenuButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionButton"} />;
+}
+PlasmicActionMenuButton__actionButton.displayName = "PlasmicActionMenuButton.actionButton";
+
+type PlasmicActionMenuButton__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicActionMenuButton__freeBox<T extends PlasmicActionMenuButton__freeBoxProps>(props: T & StrictProps<T, PlasmicActionMenuButton__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicActionMenuButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicActionMenuButton__freeBox.displayName = "PlasmicActionMenuButton.freeBox";
+
+type PlasmicActionMenuButton__menuTriggerProps = NodeComponentProps<"menuTrigger"> & {key?: React.Key};
+function PlasmicActionMenuButton__menuTrigger<T extends PlasmicActionMenuButton__menuTriggerProps>(props: T & StrictProps<T, PlasmicActionMenuButton__menuTriggerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuTrigger", props);
+  return <PlasmicActionMenuButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuTrigger"} />;
+}
+PlasmicActionMenuButton__menuTrigger.displayName = "PlasmicActionMenuButton.menuTrigger";
+
 
 export const PlasmicActionMenuButton = Object.assign(
   // Top-level PlasmicActionMenuButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicActionMenuButton__root,
   {
     // Helper components rendering sub-elements
-    actionButton: makeNodeComponent("actionButton"),
-    freeBox: makeNodeComponent("freeBox"),
-    menuTrigger: makeNodeComponent("menuTrigger"),
+    actionButton: PlasmicActionMenuButton__actionButton,
+    freeBox: PlasmicActionMenuButton__freeBox,
+    menuTrigger: PlasmicActionMenuButton__menuTrigger,
 
     // Metadata about props expected for PlasmicActionMenuButton
     internalVariantProps: PlasmicActionMenuButton__VariantProps,

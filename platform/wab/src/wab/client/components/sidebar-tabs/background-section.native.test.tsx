@@ -1,9 +1,10 @@
+import { AppContext } from "@/wab/client/components/top-view";
 import "@/wab/client/components/sidebar/MixinControls";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import * as imageAssetControls from "@/wab/client/components/sidebar/image-asset-controls";
 import { BackgroundSection } from "@/wab/client/components/sidebar-tabs/background-section";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
-import { SingleRsExpsProvider, StyleComponent, StyleComponentContext } from "@/wab/client/components/style-controls/StyleComponent";
+import { SingleRsExpsProvider, StyleTarget, StyleTargetContext } from "@/wab/client/components/style-controls/StyleComponent";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
@@ -42,14 +43,14 @@ async function setup(nonbase = false) {
   await waitFor(() => expect(fixture.studioCtx.initialRouteReady).toBe(true));
   const studio = fixture.studioCtx, helper = new VariantedStylesHelper(site, active ? [active] : undefined);
   const provider = new SingleRsExpsProvider(rs, exp, studio, [], { kind: "ruleSet", rs, forTag: "div" });
-  const sc = new StyleComponent({ expsProvider: provider });
+  const sc = new StyleTarget({ expsProvider: provider });
   function Probe() {
     const [cell] = useStyleCells(provider, ["background"]);
     const bg = parseCss(cell?.raw ?? "", { startRule: "background" });
     const input = useBackgroundInputs(studio, bg.layers, helper);
     return <output data-testid="background-projection" data-css={JSON.stringify(input.thumbnails)}>{input.labels.join(" | ")}</output>;
   }
-  const wrap = (content: React.ReactNode) => <AppCtxContext.Provider value={fixture.appCtx}><StudioCtxContext.Provider value={studio}><StyleComponentContext.Provider value={sc}><SidebarModalProvider containerSelector="#background-test-sidebar"><div id="background-test-sidebar" />{content}</SidebarModalProvider></StyleComponentContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider>;
+  const wrap = (content: React.ReactNode) => <AppContext.Provider value={studio.app}><AppCtxContext.Provider value={fixture.appCtx}><StudioCtxContext.Provider value={studio}><StyleTargetContext.Provider value={sc}><SidebarModalProvider containerSelector="#background-test-sidebar"><div id="background-test-sidebar" />{content}</SidebarModalProvider></StyleTargetContext.Provider></StudioCtxContext.Provider></AppCtxContext.Provider></AppContext.Provider>;
   const section = () => wrap(<><BackgroundSection expsProvider={provider} vsh={helper} /><Probe /></>);
   return { ...fixture, studio, site, first, other, head, end, exp, helper, active, group, provider, section, wrap, Probe };
 }

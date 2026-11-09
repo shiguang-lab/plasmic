@@ -1,4 +1,8 @@
 import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import {
+  useDndTentativeInsertion,
+} from "@/wab/client/studio-ctx/dnd-insertion-state";
+import { useHighlightedAdoptees } from "@/wab/client/studio-ctx/adoptee-highlight-state";
 import { useCanvasGeometry, useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import {
   ManipState,
@@ -104,7 +108,14 @@ import {
 import classNames from "classnames";
 import $ from "jquery";
 import L from "lodash";
-import { Observer, observer } from "mobx-react";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useShallow } from "zustand/react/shallow";
+import { noCanvasModelFields, useCanvasViewInputs, type CanvasViewFieldRecipe } from "@/wab/client/components/canvas/canvas-view-inputs";
+import { useParentStackItemInputs } from "@/wab/client/components/canvas/HoverBox/parent-stack-inputs";
+import { observeCanvasSelectionDom } from "@/wab/client/components/canvas/HoverBox/canvas-selection-dom-observer";
+import { useFrameForceUpdate } from "@/wab/client/useForceUpdate";
+import { dndMarkerModelFields } from "@/wab/client/components/canvas/dnd-marker-inputs";
 import { ok, safeTry } from "neverthrow";
 import * as React from "react";
 
@@ -113,6 +124,8 @@ const insertionStripExtension = 0;
 
 function DndMarkers_(props: { viewCtx: ViewCtx }) {
   useViewSelection(props.viewCtx, (state) => state.tpls);
+  const input = useCanvasViewInputs(props.viewCtx, noCanvasModelFields);
+  if (!input.alive) { return null; }
   return (
     <>
       {props.viewCtx.focusedTpls().map((tpl, i) => {
@@ -128,14 +141,16 @@ function DndMarkers_(props: { viewCtx: ViewCtx }) {
     </>
   );
 }
-export const DndMarkers = observer(DndMarkers_);
+export const DndMarkers = React.memo(DndMarkers_);
 
 function DndTentativeContainerMarker_(props: { viewCtx: ViewCtx }) {
   const vc = props.viewCtx;
   const geometry = useCanvasGeometry(vc.studioCtx);
-  const ins = vc.getDndTentativeInsertion();
+  const ins = useDndTentativeInsertion(vc);
+  useCanvasRenderCount(vc);
+  const input = useCanvasViewInputs(vc, noCanvasModelFields);
 
-  if (!ins) {
+  if (!input.alive || !ins) {
     return null;
   }
 
@@ -153,6 +168,32 @@ function DndTentativeContainerMarker_(props: { viewCtx: ViewCtx }) {
     }
   }
 
+  const container = getContainerVal(ins);
+  return container ? <DndContainerContent viewCtx={vc} insertion={ins} container={container} geometry={geometry} /> : null;
+}
+
+const DndContainerContent = React.memo(function DndContainerContent({ viewCtx: vc, insertion: ins, container: containerVal, geometry }: {
+  viewCtx: ViewCtx; insertion: InsertionSpec; container: Selectable; geometry: ReturnType<typeof useCanvasGeometry>;
+}) {
+  useViewVariants(vc, useShallow((state) => [state.frames, state.global]));
+  const renderCount = useCanvasRenderCount(vc);
+  const alive = useParentStackItemInputs(vc, containerVal, false);
+  const recipe = React.useCallback<CanvasViewFieldRecipe>((field) => {
+    dndMarkerModelFields(field, vc.arenaFrame(), containerVal.tpl);
+  }, [vc, containerVal]);
+  const styleInput = useCanvasViewInputs(vc, recipe);
+  const refresh = useFrameForceUpdate(vc.disposeSignal);
+  React.useEffect(() => {
+    if (!alive || !styleInput.alive) { return; }
+    const styles = vc.studioCtx.styleChanged.add(refresh), frames = vc.studioCtx.framesChanged.add(refresh);
+    const doms = withoutNils(ensureArray(vc.renderState.sel2dom(containerVal, vc.canvasCtx)));
+    const doc = doms[0]?.ownerDocument;
+    const stop = observeCanvasSelectionDom(vc.disposeSignal, doms,
+      { attributes: true, childList: true, subtree: true, characterData: true }, refresh,
+      { targets: [...doms, ...(doc ? [doc.documentElement] : [])], onResize: refresh });
+    doc?.addEventListener("scroll", refresh, true);
+    return () => { stop(); doc?.removeEventListener("scroll", refresh, true); styles.detach(); frames.detach(); };
+  }, [vc, containerVal, renderCount, alive, styleInput.alive, refresh]);
   function createContainerIcon(container: Selectable) {
     if (
       ensure(
@@ -184,7 +225,6 @@ function DndTentativeContainerMarker_(props: { viewCtx: ViewCtx }) {
 
   function getContainerRect(insertion: InsertionSpec) {
     if (insertion.type === "SiblingInsertion") {
-      const containerVal = getContainerVal(insertion);
       const dom = withoutNils(
         ensureArray(
           vc.renderState.sel2dom(containerVal as ValNode, vc.canvasCtx),
@@ -214,10 +254,8 @@ function DndTentativeContainerMarker_(props: { viewCtx: ViewCtx }) {
     }
   }
 
-  const containerVal = getContainerVal(ins);
-  if (!containerVal) {
-    return null;
-  }
+
+  if (!alive || !styleInput.alive) { return null; }
 
   if (
     containerVal instanceof ValNode &&
@@ -260,16 +298,17 @@ function DndTentativeContainerMarker_(props: { viewCtx: ViewCtx }) {
       </div>
     </div>
   );
-}
-export const DndTentativeContainerMarker = observer(
+});
+export const DndTentativeContainerMarker = React.memo(
   DndTentativeContainerMarker_,
 );
 
 function DndTentativeSlotDropMarker_(props: { viewCtx: ViewCtx }) {
   const vc = props.viewCtx;
   const geometry = useCanvasGeometry(vc.studioCtx);
-  const ins = vc.getDndTentativeInsertion();
-  if (!ins || ins.type !== "SiblingInsertion") {
+  const ins = useDndTentativeInsertion(vc);
+  const input = useCanvasViewInputs(vc, noCanvasModelFields);
+  if (!input.alive || !ins || ins.type !== "SiblingInsertion") {
     return null;
   }
 
@@ -295,11 +334,12 @@ function DndTentativeSlotDropMarker_(props: { viewCtx: ViewCtx }) {
     />
   );
 }
-export const DndTentativeSlotDropMarker = observer(DndTentativeSlotDropMarker_);
+export const DndTentativeSlotDropMarker = React.memo(DndTentativeSlotDropMarker_);
 
 export function DndAdoptee() {
   const vc = useViewCtx();
   const zoom = useCanvasZoom(vc.studioCtx);
+  const adoptees = useHighlightedAdoptees(vc);
   const getParentLoc = L.memoize(() => {
     const elt = ensure(
       vc.canvasCtx.viewport().parentElement,
@@ -326,19 +366,13 @@ export function DndAdoptee() {
   };
   return (
     <>
-      <Observer>
-        {() => (
-          <>
-            {vc.highlightedAdoptees().map((a) => (
-              <div
-                key={a.val.fullKey}
-                className={"dnd__adoptee"}
-                style={getCssProps(a)}
-              />
-            ))}
-          </>
-        )}
-      </Observer>
+      {adoptees.map((a) => (
+        <div
+          key={a.val.fullKey}
+          className={"dnd__adoptee"}
+          style={getCssProps(a)}
+        />
+      ))}
     </>
   );
 }

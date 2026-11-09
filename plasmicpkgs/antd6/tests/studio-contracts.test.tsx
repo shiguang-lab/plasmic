@@ -52,7 +52,7 @@ test("uncontrolled Tabs uses the initial key once and keeps user switching", () 
   expect(screen.getByRole("tab", { selected: true }).textContent).toBe("First");
 });
 
-test("inactive tab selection reveals content only in editing, without business events", () => {
+test("inactive tab selection reveals content in both canvas modes without business events", () => {
   const onChange = vi.fn();
   const props = { activeKey: "first", items: tabs(true), onChange };
   const view = render(<Canvas><AntdTabs {...props as any} /></Canvas>);
@@ -185,7 +185,7 @@ for (const [name, Picker, register] of [
     expect(props.open).toBe(false);
   });
 
-  test(`${name} hides editing calendars in runtime while preserving configured values and input nodes`, async () => {
+  test(`${name} retains selected calendars during interaction while preserving configured values and input nodes`, async () => {
     const onChange = vi.fn(), onCalendarChange = vi.fn();
     const dates = name === "date-picker" ? { defaultValue: "2026-11-01" }
       : { defaultStartDate: "2026-11-01", defaultEndDate: "2026-11-05" };
@@ -198,7 +198,7 @@ for (const [name, Picker, register] of [
     const inputs = screen.getAllByRole("textbox");
     const draft = inputs.map((input) => (input as HTMLInputElement).value);
     view.rerender(page(true));
-    await waitFor(() => expect(document.querySelector(".ant-picker-dropdown:not(.ant-picker-dropdown-hidden)")).toBeFalsy());
+    await waitFor(() => expect(document.querySelector(".ant-picker-dropdown:not(.ant-picker-dropdown-hidden)")).toBeTruthy());
     expect(props.open).toBe(false);
     expect(screen.getAllByRole("textbox").map((input) => (input as HTMLInputElement).value)).toEqual(draft);
     screen.getAllByRole("textbox").forEach((input, index) => expect(input).toBe(inputs[index]));

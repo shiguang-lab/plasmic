@@ -124,7 +124,7 @@ it("renames through the existing model, preserves failed input and retries", asy
   await waitFor(() => expect(showError).toHaveBeenCalledWith(expect.any(Error), { title: "Failed to update asset" }));
   expect(input).toHaveValue("  NewHero  ");
   expect(f.asset.name).toBe("Hero");
-  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Save" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
   fireEvent.keyDown(screen.getByRole("button", { name: "Asset actions" }), {
     key: "z",
@@ -170,4 +170,21 @@ it("delegates deletion to the existing usage-aware confirmation operation and re
   expect(f.site.imageAssets).toContain(f.asset);
   expect(screen.getByRole("button", { name: "Asset actions" })).toBeEnabled();
   expect(f.parentClick).not.toHaveBeenCalled();
+});
+
+it("refreshes an open preview after committed asset metadata changes", async () => {
+  const f = await fixture();
+  await openMenu();
+  fireEvent.click(screen.getByRole("menuitem", { name: "Preview" }));
+  const dialog = await screen.findByRole("dialog");
+  await act(async () => {
+    await f.sc.changeUnsafe(() => {
+      f.asset.name = "Updated hero";
+      f.asset.dataUri = "/updated-hero.png";
+      f.asset.width = 800;
+      f.asset.height = 600;
+    });
+  });
+  expect(dialog.querySelector('img[alt="Updated hero"]')).toHaveAttribute("src", "/updated-hero.png");
+  await waitFor(() => expect(screen.getByText("800 × 600")).toBeVisible());
 });

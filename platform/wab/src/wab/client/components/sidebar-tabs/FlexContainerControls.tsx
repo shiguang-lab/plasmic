@@ -12,7 +12,7 @@ import {
   ExpsProvider,
   TplExpsProvider,
   createStyleContextMenu,
-  useStyleComponent,
+  useStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
 import { useStyleCells, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
@@ -272,7 +272,7 @@ interface FlexContainerControlsProps {
 
 function FlexContainerControls_(props: FlexContainerControlsProps) {
   const { t: uiT } = useI18n();
-  const styling = useStyleComponent();
+  const styling = useStyleTarget();
   const studioCtx = useStudioCtx();
   const {
     expsProvider,
@@ -283,6 +283,7 @@ function FlexContainerControls_(props: FlexContainerControlsProps) {
   const [columnGapCell, rowGapCell] = useStyleCells(styling.props.expsProvider, ["column-gap", "row-gap"]);
   const { display, direction, isReverse, isWrap, isWrapReverse, arrangement, alignment } = useFlexConfig(expsProvider);
   const containerType = getContainerLayoutType(display, direction);
+  const reverseIndicator = useStyleIndicators(styling.props.expsProvider, ["flex-direction"])[0];
 
   let showColumnGapControls: boolean;
   let showRowGapControls: boolean;
@@ -428,6 +429,7 @@ function FlexContainerControls_(props: FlexContainerControlsProps) {
             <FullRow className={S.flexTogglers}>
               <LabeledStyleSwitchItem
                 styleName="flex-reverse"
+                definedIndicator={reverseIndicator}
                 label={uiT("Reverse items")}
                 value={isReverse}
                 onChange={toggleReverse}
@@ -849,7 +851,7 @@ export function AlignmentGridControl(props: {
     ...(outerYProp && { [outerYProp]: FlexOptions.unset }),
   });
 
-  const styling = useStyleComponent();
+  const styling = useStyleTarget();
 
   const keys = [xProp, yProp, ...(outerYProp ? [outerYProp] : []), ...(outerXProp ? [outerXProp] : [])];
   const cells = useStyleCells(styling.props.expsProvider, keys);
@@ -882,7 +884,7 @@ export function AlignmentGridControl(props: {
         onShowPreview={(val) => setHoveringPreviewAlignment({ [prop]: val })}
         onSelect={(val) => styling.change(() => styling.exp().set(prop, val))}
         definedIndicator={indicators[cells.findIndex((cell) => cell.key === prop)]}
-        contextMenu={() => createStyleContextMenu(styling, [prop])}
+        contextMenu={() => createStyleContextMenu(styling.props.expsProvider, [prop])}
         isInnerAxis={isInner}
       />
     );
@@ -943,6 +945,8 @@ export function AlignmentGridControl(props: {
               {range(9).map((_, i) => {
                 const gridX = ["left", "center", "right"][i % 3];
                 const gridY = ["top", "center", "bottom"][Math.floor(i / 3)];
+                const previewXProp = outerXProp ?? xProp;
+                const previewYProp = outerYProp ?? yProp;
                 const horizontalVal = (outerXOptions ?? xOptions).find(
                   (o) => o.gridX === gridX,
                 )!.value;
@@ -954,8 +958,8 @@ export function AlignmentGridControl(props: {
                     key={i}
                     onMouseEnter={() =>
                       setHoveringPreviewAlignment({
-                        [outerXProp ?? xProp]: horizontalVal,
-                        [outerYProp ?? yProp]: verticalVal,
+                        [previewXProp]: horizontalVal,
+                        [previewYProp]: verticalVal,
                       })
                     }
                     onClick={() =>

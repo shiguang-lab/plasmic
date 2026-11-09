@@ -1170,7 +1170,7 @@ function TeamDiscourseInfoForm({
         name: team.name,
       };
     }
-  }, [discourseInfo]);
+  }, [discourseInfo, team]);
   return (
     <Form<{ slug: string; name: string }>
       form={form}

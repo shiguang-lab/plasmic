@@ -83,17 +83,17 @@ export class ReactHookSpec {
       // text input.  Note this is not perfect, as we're not accounting
       // for the case where the user may have overridden the tag to
       // something else.
-      return `useTrigger("useFocusVisible", {
+      return `useFocusVisible({
         isTextInput: ${jsLiteral(isTextInputNode(this.triggerNode))}
       })`;
     } else if (trigger.hookName === "useFocusVisibleWithin") {
       // For useFocusVisibleWithin, we need to check if any of the descendant
       // is a text input
-      return `useTrigger("useFocusVisibleWithin", {
+      return `useFocusVisibleWithin({
         isTextInput: ${jsLiteral(isTextInputNodeWithin(this.triggerNode))}
       })`;
     } else {
-      return `useTrigger(${jsLiteral(trigger.hookName)}, {})`;
+      return `${trigger.hookName}(${["useHover", "usePressed"].includes(trigger.hookName) ? "" : "{}"})`;
     }
   };
 

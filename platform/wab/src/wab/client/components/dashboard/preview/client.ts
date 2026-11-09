@@ -29,7 +29,7 @@ interface DesktopPreviewBridge {
   ): Promise<Uint8Array<ArrayBuffer>>;
   cancel(id: string): void;
 }
-function desktopPreviewBridge() {
+export function desktopPreviewBridge() {
   return (window as Window & { desktopPreview?: DesktopPreviewBridge })
     .desktopPreview;
 }
@@ -140,11 +140,20 @@ export function subscribePreview(
   listener: (blob?: Blob) => void,
   /** Called when this project's preview starts generating (not while it waits in the queue). */
   onGenerating?: () => void,
+  /** Called once after cache validation, generation, failure or cancellation. */
+  onFinished?: () => void,
 ) {
   const key = `${userId}:${projectId}`;
   const controller = new AbortController();
   const { signal } = controller;
   let unsubscribe: (() => void) | undefined;
+  let finished = false;
+  const finish = () => {
+    if (!finished) {
+      finished = true;
+      onFinished?.();
+    }
+  };
   void (async () => {
     const cached = await readPreview(key).catch(() => undefined);
     signal.throwIfAborted();
@@ -174,6 +183,7 @@ export function subscribePreview(
       // A new app build alone does not invalidate previews; Desktop releases
       // ship several times a day. Bump `previewFormat` when rendering changes.
       if (cached?.revision === revision && cached.format === previewFormat) {
+        finish();
         return;
       }
       unsubscribe = queue.subscribe(
@@ -196,8 +206,11 @@ export function subscribePreview(
           return blob;
         },
         (blob) => {
-          if (!signal.aborted && (blob || !cached)) {
-            listener(blob);
+          if (!signal.aborted) {
+            if (blob || !cached) {
+              listener(blob);
+            }
+            finish();
           }
         },
         onGenerating &&
@@ -211,12 +224,15 @@ export function subscribePreview(
       if (!signal.aborted && !cached) {
         listener(undefined);
       }
+      finish();
     }
   })().catch(() => {
     /* Unsubscribing cancels cache delivery as well as background work. */
+    finish();
   });
   return () => {
     controller.abort();
     unsubscribe?.();
+    finish();
   };
 }

@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,12 +25,12 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -104,11 +104,10 @@ function PlasmicPriceTierFeatureItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "tier",
@@ -130,20 +129,22 @@ function PlasmicPriceTierFeatureItem__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.checkIcon,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -313,12 +314,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -328,28 +325,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPriceTierFeatureItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPriceTierFeatureItem";
-  } else {
-    func.displayName = `PlasmicPriceTierFeatureItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPriceTierFeatureItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPriceTierFeatureItem__root<T extends PlasmicPriceTierFeatureItem__rootProps>(props: T & StrictProps<T, PlasmicPriceTierFeatureItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPriceTierFeatureItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPriceTierFeatureItem__root.displayName = "PlasmicPriceTierFeatureItem";
+
+type PlasmicPriceTierFeatureItem__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicPriceTierFeatureItem__svg<T extends PlasmicPriceTierFeatureItem__svgProps>(props: T & StrictProps<T, PlasmicPriceTierFeatureItem__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicPriceTierFeatureItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicPriceTierFeatureItem__svg.displayName = "PlasmicPriceTierFeatureItem.svg";
+
+type PlasmicPriceTierFeatureItem__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicPriceTierFeatureItem__freeBox<T extends PlasmicPriceTierFeatureItem__freeBoxProps>(props: T & StrictProps<T, PlasmicPriceTierFeatureItem__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicPriceTierFeatureItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicPriceTierFeatureItem__freeBox.displayName = "PlasmicPriceTierFeatureItem.freeBox";
+
 
 export const PlasmicPriceTierFeatureItem = Object.assign(
   // Top-level PlasmicPriceTierFeatureItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicPriceTierFeatureItem__root,
   {
     // Helper components rendering sub-elements
-    svg: makeNodeComponent("svg"),
-    freeBox: makeNodeComponent("freeBox"),
+    svg: PlasmicPriceTierFeatureItem__svg,
+    freeBox: PlasmicPriceTierFeatureItem__freeBox,
 
     // Metadata about props expected for PlasmicPriceTierFeatureItem
     internalVariantProps: PlasmicPriceTierFeatureItem__VariantProps,

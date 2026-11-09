@@ -63,7 +63,7 @@ function fixture() {
 it("switches the native slot owner and edits only its current parameter", async () => {
   const f = fixture();
   const view = render(<SlotSettingsSection expsProvider={f.provider} />);
-  fireEvent.click(screen.getByRole("button", { name: "Show more" }));
+  fireEvent.click(screen.getByRole("button", { name: "More options" }));
   try {
     expect(screen.getByRole("switch").getAttribute("aria-checked")).toBe("false");
     const renders = renderSwitch.mock.calls.length;
@@ -89,12 +89,12 @@ it("switches between unsupported providers, a tag and a slot without changing ho
   try {
     expect(screen.queryByRole("switch")).toBeNull();
     view.rerender(<React.StrictMode><SlotSettingsSection expsProvider={f.provider} /></React.StrictMode>);
-    fireEvent.click(screen.getByRole("button", { name: "Show more" }));
+    fireEvent.click(screen.getByRole("button", { name: "More options" }));
     expect(screen.getByRole("switch")).toBeTruthy();
     view.rerender(<React.StrictMode><SlotSettingsSection expsProvider={f.tagProvider} /></React.StrictMode>);
     expect(screen.queryByRole("switch")).toBeNull();
     view.rerender(<React.StrictMode><SlotSettingsSection expsProvider={f.provider} /></React.StrictMode>);
-    fireEvent.click(screen.getByRole("button", { name: "Show more" }));
+    fireEvent.click(screen.getByRole("button", { name: "More options" }));
     expect(screen.getByRole("switch")).toBeTruthy();
   } finally { view.unmount(); f.dispose(); }
 });

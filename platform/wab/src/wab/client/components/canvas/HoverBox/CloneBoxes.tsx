@@ -1,3 +1,6 @@
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { useCloneVariantInputs } from "@/wab/client/components/canvas/HoverBox/clone-variant-inputs";
+import { useFrameForceUpdate } from "@/wab/client/useForceUpdate";
 import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
@@ -13,27 +16,27 @@ import { hasLayoutBox } from "@/wab/client/dom";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { maybes } from "@/wab/shared/common";
 import { Selectable } from "@/wab/shared/core/selection";
-import { isTplVariantable } from "@/wab/shared/core/tpls";
 import Chroma from "@/wab/shared/utils/color-utils";
 import $ from "jquery";
-import { computed } from "mobx";
-import { observer } from "mobx-react";
 import * as React from "react";
-export const CloneBoxes = observer(function CloneBoxes() {
+export const CloneBoxes = React.memo(function CloneBoxes() {
   const studioCtx = useStudioCtx();
   useStudioSelection(studioCtx, (state) => state.view);
   const viewCtx = studioCtx.focusedViewCtx();
-  useViewSelection(viewCtx, (state) => state.targets);
-  const selectable = viewCtx?.focusedSelectable();
+  useViewSelection(viewCtx, useShallow((state) => [state.targets, state.cloneKeys]));
+  useCanvasRenderCount(viewCtx);
+  const scope = React.useMemo(() => viewCtx ? { models: studioCtx.modelSnapshots, signal: viewCtx.disposeSignal } : undefined, [viewCtx, studioCtx.modelSnapshots]);
+  const active = !!scope && !!viewCtx && !scope.signal.aborted && scope.models === studioCtx.modelSnapshots && studioCtx.arenaState.isCurrentLifetime(viewCtx.modelLifetime);
+  const selectable = active ? viewCtx?.focusedSelectable() : undefined;
   const isUnlogged = useStudioSaveState(studioCtx, (state) => state.isUnlogged);
-  const cloneKeys = isUnlogged
+  const cloneKeys = isUnlogged || !active
     ? []
     : (viewCtx?.selectableToCloneKeys(selectable) ?? []);
 
-  const skip = !selectable;
-  const needsRecompute = useRerenderOnUserBodyChange(studioCtx, viewCtx, skip);
+  const skip = !selectable || !active;
+  const needsRecompute = useRerenderOnUserBodyChange(studioCtx, active ? viewCtx : undefined, skip);
 
-  if (!viewCtx || !selectable) {
+  if (!active || !viewCtx || !selectable) {
     return null;
   }
 
@@ -57,31 +60,38 @@ interface CloneBoxProps {
   selectable: Selectable;
 }
 
-const CloneBox = observer(function CloneBox({
+const CloneBox = React.memo(function CloneBox({
   cloneKey,
   selectable,
   viewCtx,
 }: CloneBoxProps) {
-  useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
+  const variants = useViewVariants(viewCtx, useShallow((state) => [state.frames, state.global]));
+  useCanvasRenderCount(viewCtx);
+  const input = useCloneVariantInputs(viewCtx, selectable.tpl, variants);
   useViewSelection(viewCtx, useShallow((state) => [state.cloneKeys, state.doms]));
-  const cloneSelectable = viewCtx.renderState.sel2clone(selectable, cloneKey);
+  const cloneSelectable = input.alive ? viewCtx.renderState.sel2clone(selectable, cloneKey) : undefined;
   const $elt = maybes(cloneSelectable)((sel) =>
     viewCtx.renderState.sel2dom(sel, viewCtx.canvasCtx, cloneKey),
   )((dom) => $(dom))();
-  const isTargetingSomeNonBaseVariant =
-    isTplVariantable(selectable.tpl) &&
-    viewCtx.variantTplMgr().isTargetingNonBaseVariant(selectable.tpl);
-
-  const isFocusedClone = computed(
-    () => viewCtx.focusedCloneKey() === cloneKey,
-  ).get();
-  const isFocusedElt = computed(() => {
-    const focusedElt = viewCtx.focusedDomElt();
-    return !!focusedElt && !!$elt && $elt.is($(focusedElt));
-  }).get();
+  const isTargetingSomeNonBaseVariant = input.targeting;
+  const isFocusedClone = input.alive && viewCtx.focusedCloneKey() === cloneKey;
+  const focusedElt = input.alive ? viewCtx.focusedDomElt() : undefined;
+  const isFocusedElt = !!focusedElt && !!$elt && $elt.is($(focusedElt));
+  const elements = useShallow((nodes: Element[]) => nodes)($elt?.toArray() ?? []);
+  const refresh = useFrameForceUpdate(viewCtx.disposeSignal);
+  React.useEffect(() => {
+    if (!input.alive || !elements.length) { return; }
+    const doc = elements[0].ownerDocument;
+    const resize = new ResizeObserver(refresh);
+    elements.forEach((element) => resize.observe(element));
+    resize.observe(doc.documentElement);
+    doc.addEventListener("scroll", refresh, true);
+    const styles = viewCtx.studioCtx.styleChanged.add(refresh), frames = viewCtx.studioCtx.framesChanged.add(refresh);
+    return () => { resize.disconnect(); doc.removeEventListener("scroll", refresh, true); styles.detach(); frames.detach(); };
+  }, [elements, viewCtx, refresh, input.alive]);
 
   const shouldShow =
-    $elt &&
+    input.alive && $elt &&
     !isFocusedClone &&
     $elt.length &&
     $elt.get(0).isConnected &&

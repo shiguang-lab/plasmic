@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,14 +24,14 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -178,11 +178,10 @@ function PlasmicListItem__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isSelected",
@@ -278,23 +277,25 @@ function PlasmicListItem__RenderFunc(props: {
       },
     ],
 
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -1258,12 +1259,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1273,37 +1270,109 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicListItem__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicListItem";
-  } else {
-    func.displayName = `PlasmicListItem.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicListItem__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicListItem__root<T extends PlasmicListItem__rootProps>(props: T & StrictProps<T, PlasmicListItem__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicListItem__root.displayName = "PlasmicListItem";
+
+type PlasmicListItem__mainProps = NodeComponentProps<"main"> & {key?: React.Key};
+function PlasmicListItem__main<T extends PlasmicListItem__mainProps>(props: T & StrictProps<T, PlasmicListItem__mainProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("main", props);
+  return <PlasmicListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"main"} />;
+}
+PlasmicListItem__main.displayName = "PlasmicListItem.main";
+
+type PlasmicListItem__dragHandleProps = NodeComponentProps<"dragHandle"> & {key?: React.Key};
+function PlasmicListItem__dragHandle<T extends PlasmicListItem__dragHandleProps>(props: T & StrictProps<T, PlasmicListItem__dragHandleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dragHandle", props);
+  return <PlasmicListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dragHandle"} />;
+}
+PlasmicListItem__dragHandle.displayName = "PlasmicListItem.dragHandle";
+
+type PlasmicListItem__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicListItem__svg<T extends PlasmicListItem__svgProps>(props: T & StrictProps<T, PlasmicListItem__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicListItem__svg.displayName = "PlasmicListItem.svg";
+
+type PlasmicListItem__iconContainerProps = NodeComponentProps<"iconContainer"> & {key?: React.Key};
+function PlasmicListItem__iconContainer<T extends PlasmicListItem__iconContainerProps>(props: T & StrictProps<T, PlasmicListItem__iconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconContainer", props);
+  return <PlasmicListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconContainer"} />;
+}
+PlasmicListItem__iconContainer.displayName = "PlasmicListItem.iconContainer";
+
+type PlasmicListItem__labelContainerProps = NodeComponentProps<"labelContainer"> & {key?: React.Key};
+function PlasmicListItem__labelContainer<T extends PlasmicListItem__labelContainerProps>(props: T & StrictProps<T, PlasmicListItem__labelContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelContainer", props);
+  return <PlasmicListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelContainer"} />;
+}
+PlasmicListItem__labelContainer.displayName = "PlasmicListItem.labelContainer";
+
+type PlasmicListItem__leftContentProps = NodeComponentProps<"leftContent"> & {key?: React.Key};
+function PlasmicListItem__leftContent<T extends PlasmicListItem__leftContentProps>(props: T & StrictProps<T, PlasmicListItem__leftContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftContent", props);
+  return <PlasmicListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftContent"} />;
+}
+PlasmicListItem__leftContent.displayName = "PlasmicListItem.leftContent";
+
+type PlasmicListItem__rightContentContainerProps = NodeComponentProps<"rightContentContainer"> & {key?: React.Key};
+function PlasmicListItem__rightContentContainer<T extends PlasmicListItem__rightContentContainerProps>(props: T & StrictProps<T, PlasmicListItem__rightContentContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("rightContentContainer", props);
+  return <PlasmicListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"rightContentContainer"} />;
+}
+PlasmicListItem__rightContentContainer.displayName = "PlasmicListItem.rightContentContainer";
+
+type PlasmicListItem__addendumContainerProps = NodeComponentProps<"addendumContainer"> & {key?: React.Key};
+function PlasmicListItem__addendumContainer<T extends PlasmicListItem__addendumContainerProps>(props: T & StrictProps<T, PlasmicListItem__addendumContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addendumContainer", props);
+  return <PlasmicListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addendumContainer"} />;
+}
+PlasmicListItem__addendumContainer.displayName = "PlasmicListItem.addendumContainer";
+
+type PlasmicListItem__actionsContainerProps = NodeComponentProps<"actionsContainer"> & {key?: React.Key};
+function PlasmicListItem__actionsContainer<T extends PlasmicListItem__actionsContainerProps>(props: T & StrictProps<T, PlasmicListItem__actionsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionsContainer", props);
+  return <PlasmicListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionsContainer"} />;
+}
+PlasmicListItem__actionsContainer.displayName = "PlasmicListItem.actionsContainer";
+
+type PlasmicListItem__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicListItem__menuButton<T extends PlasmicListItem__menuButtonProps>(props: T & StrictProps<T, PlasmicListItem__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicListItem__menuButton.displayName = "PlasmicListItem.menuButton";
+
+type PlasmicListItem__additionalProps = NodeComponentProps<"additional"> & {key?: React.Key};
+function PlasmicListItem__additional<T extends PlasmicListItem__additionalProps>(props: T & StrictProps<T, PlasmicListItem__additionalProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("additional", props);
+  return <PlasmicListItem__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"additional"} />;
+}
+PlasmicListItem__additional.displayName = "PlasmicListItem.additional";
+
 
 export const PlasmicListItem = Object.assign(
   // Top-level PlasmicListItem renders the root element
-  makeNodeComponent("root"),
+  PlasmicListItem__root,
   {
     // Helper components rendering sub-elements
-    main: makeNodeComponent("main"),
-    dragHandle: makeNodeComponent("dragHandle"),
-    svg: makeNodeComponent("svg"),
-    iconContainer: makeNodeComponent("iconContainer"),
-    labelContainer: makeNodeComponent("labelContainer"),
-    leftContent: makeNodeComponent("leftContent"),
-    rightContentContainer: makeNodeComponent("rightContentContainer"),
-    addendumContainer: makeNodeComponent("addendumContainer"),
-    actionsContainer: makeNodeComponent("actionsContainer"),
-    menuButton: makeNodeComponent("menuButton"),
-    additional: makeNodeComponent("additional"),
+    main: PlasmicListItem__main,
+    dragHandle: PlasmicListItem__dragHandle,
+    svg: PlasmicListItem__svg,
+    iconContainer: PlasmicListItem__iconContainer,
+    labelContainer: PlasmicListItem__labelContainer,
+    leftContent: PlasmicListItem__leftContent,
+    rightContentContainer: PlasmicListItem__rightContentContainer,
+    addendumContainer: PlasmicListItem__addendumContainer,
+    actionsContainer: PlasmicListItem__actionsContainer,
+    menuButton: PlasmicListItem__menuButton,
+    additional: PlasmicListItem__additional,
 
     // Metadata about props expected for PlasmicListItem
     internalVariantProps: PlasmicListItem__VariantProps,

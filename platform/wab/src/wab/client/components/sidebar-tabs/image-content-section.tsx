@@ -76,7 +76,7 @@ function usePlasmicImageOptimization(provider: TplExpsProvider) {
   return React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
 }
 
-function _ContentPanelSection(props: ContentPanelSectionProps) {
+function ContentPanelSectionContent(props: ContentPanelSectionProps) {
   const { t: uiT } = useI18n();
   const { expsProvider, shouldShowSizeProps } = props;
   const studioCtx = expsProvider.studioCtx;
@@ -257,4 +257,4 @@ function _ContentPanelSection(props: ContentPanelSectionProps) {
   );
 }
 
-export const ContentPanelSection = _ContentPanelSection;
+export const ContentPanelSection = ContentPanelSectionContent;

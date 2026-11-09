@@ -1,3 +1,5 @@
+import { useCommittedValue } from "@/wab/commons/components/ReactUtil";
+import { useCopilotActivityInputs } from "@/wab/client/components/canvas/copilot-activity-inputs";
 import { useStudioArena, useViewEntryForFrame } from "@/wab/client/studio-ctx/arena-state";
 import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import styles from "@/wab/client/components/canvas/CopilotActivityOverlay.module.scss";
@@ -23,7 +25,6 @@ import { ArenaFrame, TplNode } from "@/wab/shared/model/classes";
 import { createStyles } from "antd-style";
 import classNames from "classnames";
 import { findLast, groupBy } from "lodash";
-import { observer } from "mobx-react";
 import React from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
@@ -142,7 +143,7 @@ const ActivityRegion = function ActivityRegion({
   );
 };
 
-export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
+export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay({
   studioCtx,
   frame,
 }: {
@@ -156,7 +157,9 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
   const viewCtx = useViewEntryForFrame(studioCtx, frame)?.view;
   const current = useStudioArena(studioCtx, (state) => state.current);
   const arenaName = useStudioArena(studioCtx, (state) => state.name);
-  useStudioArena(studioCtx, (state) => state.frames);
+  const frameRefs = useStudioArena(studioCtx, (state) => state.frames);
+  const scopeFrames = React.useMemo(() => current ? getArenaFrames(studioCtx.currentArena) : [frame], [studioCtx, current, frameRefs, frame]);
+  useCopilotActivityInputs(studioCtx, scopeFrames);
   const componentUuid = frame.container.component.uuid;
   const frameUuid = frame.uuid;
   const matchesFrame = (target: ActivityTarget, candidate: ArenaFrame) =>
@@ -168,7 +171,7 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
       (!target.componentUuid || target.componentUuid === componentUuid) &&
       (!target.canvasName || arenaName === target.canvasName) &&
       (!target.frameUuid || target.frameUuid === frameUuid))));
-  const frames = current ? getArenaFrames(studioCtx.currentArena) : [frame];
+  const frames = scopeFrames;
   const cursorRequest = useStore(studioCtx.copilotActivity.cursorStore, state => {
     const request = state.current;
     const owner = request && frames.find(candidate => request.targets.some(target => matchesFrame(target, candidate)));
@@ -216,11 +219,10 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
   const [layouts, setLayouts] = React.useState<Record<string, RegionLayout>>(
     {},
   );
-  const latestRegions = React.useRef(regions);
-  latestRegions.current = regions;
+  const getRegions = useCommittedValue(regions);
   const regionKeys = JSON.stringify(regions.map(({ key }) => key));
   React.useEffect(() => {
-    if (!viewCtx || !latestRegions.current.length) {
+    if (!viewCtx || !getRegions().length) {
       // Idle frames don't poll the canvas DOM.
       setLayouts((previous) =>
         Object.keys(previous).length ? {} : previous,
@@ -231,7 +233,7 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
     const update = () => {
       const arenaFrame = viewCtx.arenaFrame();
       const tpls = new Map(
-        latestRegions.current.some(({ target }) => target.elementUuid)
+        getRegions().some(({ target }) => target.elementUuid)
           ? flattenTpls(arenaFrame.container.component.tplTree).map((tpl) => [
               tpl.uuid,
               tpl,
@@ -239,7 +241,7 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
           : [],
       );
       const next: Record<string, RegionLayout> = {};
-      for (const { key, target } of latestRegions.current) {
+      for (const { key, target } of getRegions()) {
         const layout = measureRegion(viewCtx, arenaFrame, tpls, target);
         if (layout) {
           next[key] = layout;
@@ -252,7 +254,7 @@ export const CopilotActivityOverlay = observer(function CopilotActivityOverlay({
     };
     update();
     return () => cancelAnimationFrame(animation);
-  }, [viewCtx, regionKeys]);
+  }, [viewCtx, regionKeys, getRegions]);
   const placedRegions = regions.flatMap((region) => {
     const layout = layouts[region.key];
     return layout ? [{ ...region, layout }] : [];

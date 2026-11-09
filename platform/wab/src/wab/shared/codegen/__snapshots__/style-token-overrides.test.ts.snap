@@ -65,7 +65,7 @@ exports[`token overrides: codegen > should codegen correct contents - css 1`] = 
     
 
     import * as React from "react";
-    import { createUseScreenVariants } from "@plasmicapp/react-web";
+    import { createScreenVariantStore, useScreenVariants as useProjectScreenVariants } from "@plasmicapp/react-web";
 
     export type ScreenValue = "mobileOnly";
     export const ScreenContext = React.createContext<ScreenValue[] | undefined>("PLEASE_RENDER_INSIDE_PROVIDER" as any);
@@ -77,9 +77,12 @@ exports[`token overrides: codegen > should codegen correct contents - css 1`] = 
       );
     }
     
-export const useScreenVariants = createUseScreenVariants(true,{
+const screenVariantStore = createScreenVariantStore({
   "mobileOnly": "(min-width:0px) and (max-width:768px)"
 });
+export function useScreenVariants() {
+  return useProjectScreenVariants(screenVariantStore, true);
+}
     
     export default ScreenContext;
     /* prettier-ignore-end */
@@ -94,7 +97,7 @@ export const useScreenVariants = createUseScreenVariants(true,{
     
 
     import * as React from "react";
-    import { createUseScreenVariants } from "@plasmicapp/react-web";
+    import { createScreenVariantStore, useScreenVariants as useProjectScreenVariants } from "@plasmicapp/react-web";
 
     export type ThemeValue = "dark";
     export const ThemeContext = React.createContext<ThemeValue | undefined>("PLEASE_RENDER_INSIDE_PROVIDER" as any);
@@ -182,16 +185,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -199,8 +205,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -221,8 +235,8 @@ import {
 
 
 import DepComp from "./DepComp";  // plasmic-import: u4_D7ezQ-9rk/component
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     import "./plasmic__default_style.css"; // plasmic-import: global/defaultcss
@@ -319,17 +333,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicHomepage__RenderFunc(
       props: {
-        variants: PlasmicHomepage__VariantsArgs,
-        args: PlasmicHomepage__ArgsType,
-        overrides: PlasmicHomepage__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicHomepage__VariantsArgs,
+    args: PlasmicHomepage__ArgsType,
+    overrides: PlasmicHomepage__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -353,30 +364,29 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
-    const globalVariants = _useGlobalVariants();
+    const globalVariants = useGlobalVariants();
 
-    
-
-    
-
-    
-    
-    
     
 
     
 
     
     
+    
+    
 
     
-    const styleTokensClassNames = _useStyleTokens();
+
+    
+    
+
+    
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
@@ -457,35 +467,50 @@ p: "p"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicHomepage__ArgProps,
           internalVariantPropNames: PlasmicHomepage__VariantProps,
         }), [props, nodeName]);
-        return PlasmicHomepage__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicHomepage";
-      } else {
-        func.displayName = \`PlasmicHomepage.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicHomepage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicHomepage__root<T extends PlasmicHomepage__rootProps>(props: T & StrictProps<T, PlasmicHomepage__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicHomepage__root.displayName = "PlasmicHomepage";
+      
+
+        type PlasmicHomepage__depCompProps = NodeComponentProps<"depComp"> & {key?: React.Key};
+        function PlasmicHomepage__depComp<T extends PlasmicHomepage__depCompProps>(props: T & StrictProps<T, PlasmicHomepage__depCompProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("depComp", props);
+          return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"depComp"} />;
+        }
+        PlasmicHomepage__depComp.displayName = "PlasmicHomepage.depComp";
+      
+
+        type PlasmicHomepage__pProps = NodeComponentProps<"p"> & {key?: React.Key};
+        function PlasmicHomepage__p<T extends PlasmicHomepage__pProps>(props: T & StrictProps<T, PlasmicHomepage__pProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("p", props);
+          return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"p"} />;
+        }
+        PlasmicHomepage__p.displayName = "PlasmicHomepage.p";
+      
 
     
     
 
     export const PlasmicHomepage = Object.assign(
       // Top-level PlasmicHomepage renders the root element
-      makeNodeComponent("root"),
+      PlasmicHomepage__root,
       {
         // Helper components rendering sub-elements
-        depComp: makeNodeComponent("depComp"),
-p: makeNodeComponent("p"),
+        depComp: PlasmicHomepage__depComp,
+p: PlasmicHomepage__p,
 
         // Metadata about props expected for PlasmicHomepage
         internalVariantProps: PlasmicHomepage__VariantProps,
@@ -522,9 +547,10 @@ export default PlasmicHomepage;
     // Plasmic Project: 1234567890
     // plasmic-unformatted
   
-    import { createUseStyleTokens, createStyleTokensProvider } from "@plasmicapp/react-web";
+    import * as React from "react";
+    import { useStyleTokens as useProjectStyleTokens, StyleTokensProvider as ProjectStyleTokensProvider } from "@plasmicapp/react-web";
 
-    import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+    import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
 
     import "./plasmic.css"; // plasmic-import: 1234567890/projectcss
 import "./plasmic.css"; // plasmic-import: iGygRUekJWXZgpf4Konyj4/projectcss
@@ -545,18 +571,17 @@ import "./plasmic.css"; // plasmic-import: iGygRUekJWXZgpf4Konyj4/projectcss
   ],
   };
   
-    export const _useStyleTokens = createUseStyleTokens(
-      data,
-      _useGlobalVariants,
-    );
+    export function useStyleTokens() {
+      return useProjectStyleTokens(data, useGlobalVariants());
+    }
   
-    export const StyleTokensProvider = createStyleTokensProvider(
-      { 
+    export function StyleTokensProvider({children}: {children?: import("react").ReactNode}) {
+      const globalVariants = useGlobalVariants();
+      return <ProjectStyleTokensProvider tokenData={{ 
     base: \`\${"plasmic_tokens_override_1234567890"} \${data.base}\`, 
     varianted: data.varianted 
-  },
-      _useGlobalVariants,
-    );
+  }} globalVariants={globalVariants}>{children}</ProjectStyleTokensProvider>;
+    }
 --- global.d.ts ---
 declare module '*.css' {
   const classes: { readonly [key: string]: string }
@@ -752,7 +777,7 @@ line-height: var(--mixin-c5PTYwS9Oqn0_line-height);
     // Plasmic Project: 1234567890
     // plasmic-unformatted
   
-    import { createUseGlobalVariants } from "@plasmicapp/react-web";
+    import { ensureGlobalVariants } from "@plasmicapp/react-web";
     
           import {useScreenVariants as useScreenVariantsnfhwiZAfL1RZ} from "./PlasmicGlobalVariant__Screen";  // plasmic-import: NfhwiZAfL1rZ/globalVariant
 import {ThemeValue, useTheme} from "./PlasmicGlobalVariant__Theme";  // plasmic-import: AmskLHuaRQYg/globalVariant
@@ -760,11 +785,11 @@ import {FontSizeValue, useFontSize} from "./PlasmicGlobalVariant__FontSize";  //
         
   
     
-  export const _useGlobalVariants = createUseGlobalVariants({
-    screen: useScreenVariantsnfhwiZAfL1RZ,
-theme: useTheme,
-fontSize: useFontSize
-  });
+  export function useGlobalVariants() { "use memo"; return ensureGlobalVariants({
+    screen: useScreenVariantsnfhwiZAfL1RZ(),
+theme: useTheme(),
+fontSize: useFontSize()
+  }); }
 
   
 --- plasmic__default_style.css ---
@@ -1143,7 +1168,7 @@ exports[`token overrides: codegen > should codegen correct contents - css module
     
 
     import * as React from "react";
-    import { createUseScreenVariants } from "@plasmicapp/react-web";
+    import { createScreenVariantStore, useScreenVariants as useProjectScreenVariants } from "@plasmicapp/react-web";
 
     export type ScreenValue = "mobileOnly";
     export const ScreenContext = React.createContext<ScreenValue[] | undefined>("PLEASE_RENDER_INSIDE_PROVIDER" as any);
@@ -1155,9 +1180,12 @@ exports[`token overrides: codegen > should codegen correct contents - css module
       );
     }
     
-export const useScreenVariants = createUseScreenVariants(true,{
+const screenVariantStore = createScreenVariantStore({
   "mobileOnly": "(min-width:0px) and (max-width:768px)"
 });
+export function useScreenVariants() {
+  return useProjectScreenVariants(screenVariantStore, true);
+}
     
     export default ScreenContext;
     /* prettier-ignore-end */
@@ -1172,7 +1200,7 @@ export const useScreenVariants = createUseScreenVariants(true,{
     
 
     import * as React from "react";
-    import { createUseScreenVariants } from "@plasmicapp/react-web";
+    import { createScreenVariantStore, useScreenVariants as useProjectScreenVariants } from "@plasmicapp/react-web";
 
     export type ThemeValue = "dark";
     export const ThemeContext = React.createContext<ThemeValue | undefined>("PLEASE_RENDER_INSIDE_PROVIDER" as any);
@@ -1260,16 +1288,19 @@ import {
   Trans as Trans__,
   classNames,
   createPlasmicElementProxy,
+  createStateEventHandler,
   deriveRenderOpts,
   ensureGlobalVariants,
   generateOnMutateForSpec,
   generateStateOnChangeProp,
   generateStateOnChangePropForCodeComponents,
   generateStateValueProp,
+  getStateCommandEnv,
+  getStateCommandValue,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
+  getCodeComponentStateInitializers,
+  StateInitializer,
   makeFragment,
   omit,
   pick,
@@ -1277,8 +1308,16 @@ import {
   set as $stateSet,
   useCurrentUser,
   useDollarState,
+  useDollarStateSnapshot,
+  useDollarStateQueryInput,
+  usePlasmicRefs,
   usePlasmicTranslator,
-  useTrigger,
+  useHover,
+  usePressed,
+  useFocused,
+  useFocusVisible,
+  useFocusedWithin,
+  useFocusVisibleWithin,
   wrapWithClassName,
   
 } from  "@plasmicapp/react-web";
@@ -1299,8 +1338,8 @@ import {
 
 
 import DepComp from "./DepComp";  // plasmic-import: u4_D7ezQ-9rk/component
-import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
+import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider.tsx"; // plasmic-import: 1234567890/styleTokensProvider
 
     import "@plasmicapp/react-web/lib/plasmic.css";
     
@@ -1397,17 +1436,14 @@ const $$ = {};
 
 
 
-
-
-
-
+    
     function PlasmicHomepage__RenderFunc(
       props: {
-        variants: PlasmicHomepage__VariantsArgs,
-        args: PlasmicHomepage__ArgsType,
-        overrides: PlasmicHomepage__OverridesType,
-        forNode?: string
-      }
+    variants: PlasmicHomepage__VariantsArgs,
+    args: PlasmicHomepage__ArgsType,
+    overrides: PlasmicHomepage__OverridesType,
+    forNode?: string
+  }
     ) {
       
       
@@ -1431,30 +1467,29 @@ const $$ = {};
 
     
     
-    const $ctx = useDataEnv?.() || {};
-    const refsRef = React.useRef({});
-    const $refs = refsRef.current;
+    const $ctx = useDataEnv() || {};
+    const { registerRef, getRefs } = usePlasmicRefs();
 
     
 
-    const globalVariants = _useGlobalVariants();
+    const globalVariants = useGlobalVariants();
 
-    
-
-    
-
-    
-    
-    
     
 
     
 
     
     
+    
+    
 
     
-    const styleTokensClassNames = _useStyleTokens();
+
+    
+    
+
+    
+    const styleTokensClassNames = useStyleTokens();
     
   
       return (
@@ -1535,35 +1570,50 @@ p: "p"
       // Specify props for the root element
       & Omit<Partial<React.ComponentProps<NodeDefaultElementType[T]>>, ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>>
     );
-    function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-      type PropsType = NodeComponentProps<NodeName> & {key?: React.Key};
-      const func = function<T extends PropsType>(props: T & StrictProps<T, PropsType>) {
-        const {variants, args, overrides} = React.useMemo(() => deriveRenderOpts(props, {
+    function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+        return React.useMemo(() => deriveRenderOpts(props, {
           name: nodeName,
           descendantNames: PlasmicDescendants[nodeName],
           internalArgPropNames: PlasmicHomepage__ArgProps,
           internalVariantPropNames: PlasmicHomepage__VariantProps,
         }), [props, nodeName]);
-        return PlasmicHomepage__RenderFunc({ variants, args, overrides, forNode: nodeName });
-      };
-      if (nodeName === "root") {
-        func.displayName = "PlasmicHomepage";
-      } else {
-        func.displayName = \`PlasmicHomepage.\${nodeName}\`;
-      }
-      return func;
     }
+
+    
+        type PlasmicHomepage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+        function PlasmicHomepage__root<T extends PlasmicHomepage__rootProps>(props: T & StrictProps<T, PlasmicHomepage__rootProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("root", props);
+          return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+        }
+        PlasmicHomepage__root.displayName = "PlasmicHomepage";
+      
+
+        type PlasmicHomepage__depCompProps = NodeComponentProps<"depComp"> & {key?: React.Key};
+        function PlasmicHomepage__depComp<T extends PlasmicHomepage__depCompProps>(props: T & StrictProps<T, PlasmicHomepage__depCompProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("depComp", props);
+          return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"depComp"} />;
+        }
+        PlasmicHomepage__depComp.displayName = "PlasmicHomepage.depComp";
+      
+
+        type PlasmicHomepage__pProps = NodeComponentProps<"p"> & {key?: React.Key};
+        function PlasmicHomepage__p<T extends PlasmicHomepage__pProps>(props: T & StrictProps<T, PlasmicHomepage__pProps>) {
+          const {variants, args, overrides} = useNodeRenderOpts("p", props);
+          return <PlasmicHomepage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"p"} />;
+        }
+        PlasmicHomepage__p.displayName = "PlasmicHomepage.p";
+      
 
     
     
 
     export const PlasmicHomepage = Object.assign(
       // Top-level PlasmicHomepage renders the root element
-      makeNodeComponent("root"),
+      PlasmicHomepage__root,
       {
         // Helper components rendering sub-elements
-        depComp: makeNodeComponent("depComp"),
-p: makeNodeComponent("p"),
+        depComp: PlasmicHomepage__depComp,
+p: PlasmicHomepage__p,
 
         // Metadata about props expected for PlasmicHomepage
         internalVariantProps: PlasmicHomepage__VariantProps,
@@ -1600,9 +1650,10 @@ export default PlasmicHomepage;
     // Plasmic Project: 1234567890
     // plasmic-unformatted
   
-    import { createUseStyleTokens, createStyleTokensProvider } from "@plasmicapp/react-web";
+    import * as React from "react";
+    import { useStyleTokens as useProjectStyleTokens, StyleTokensProvider as ProjectStyleTokensProvider } from "@plasmicapp/react-web";
 
-    import { _useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
+    import { useGlobalVariants } from "./plasmic.tsx"; // plasmic-import: 1234567890/projectModule
 
     import "./plasmic.css"; // plasmic-import: 1234567890/projectcss
 import "./plasmic.css"; // plasmic-import: iGygRUekJWXZgpf4Konyj4/projectcss
@@ -1623,18 +1674,17 @@ import "./plasmic.css"; // plasmic-import: iGygRUekJWXZgpf4Konyj4/projectcss
   ],
   };
   
-    export const _useStyleTokens = createUseStyleTokens(
-      data,
-      _useGlobalVariants,
-    );
+    export function useStyleTokens() {
+      return useProjectStyleTokens(data, useGlobalVariants());
+    }
   
-    export const StyleTokensProvider = createStyleTokensProvider(
-      { 
+    export function StyleTokensProvider({children}: {children?: import("react").ReactNode}) {
+      const globalVariants = useGlobalVariants();
+      return <ProjectStyleTokensProvider tokenData={{ 
     base: \`\${"plasmic_tokens_override_1234567890"} \${data.base}\`, 
     varianted: data.varianted 
-  },
-      _useGlobalVariants,
-    );
+  }} globalVariants={globalVariants}>{children}</ProjectStyleTokensProvider>;
+    }
 --- global.d.ts ---
 declare module '*.css' {
   const classes: { readonly [key: string]: string }
@@ -2120,7 +2170,7 @@ line-height: var(--mixin-c5PTYwS9Oqn0_line-height);
     // Plasmic Project: 1234567890
     // plasmic-unformatted
   
-    import { createUseGlobalVariants } from "@plasmicapp/react-web";
+    import { ensureGlobalVariants } from "@plasmicapp/react-web";
     
           import {useScreenVariants as useScreenVariantsnfhwiZAfL1RZ} from "./PlasmicGlobalVariant__Screen";  // plasmic-import: NfhwiZAfL1rZ/globalVariant
 import {ThemeValue, useTheme} from "./PlasmicGlobalVariant__Theme";  // plasmic-import: AmskLHuaRQYg/globalVariant
@@ -2128,11 +2178,11 @@ import {FontSizeValue, useFontSize} from "./PlasmicGlobalVariant__FontSize";  //
         
   
     
-  export const _useGlobalVariants = createUseGlobalVariants({
-    screen: useScreenVariantsnfhwiZAfL1RZ,
-theme: useTheme,
-fontSize: useFontSize
-  });
+  export function useGlobalVariants() { "use memo"; return ensureGlobalVariants({
+    screen: useScreenVariantsnfhwiZAfL1RZ(),
+theme: useTheme(),
+fontSize: useFontSize()
+  }); }
 
   
 --- plasmic__default_style.css ---

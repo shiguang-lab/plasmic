@@ -1,3 +1,10 @@
+import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
+import { createOutlineStateStore, patchOutlineState } from "@/wab/client/components/sidebar-tabs/outline-state";
+import { Matcher } from "@/wab/client/components/view-common";
+import { ChangeRecorder } from "@/wab/shared/core/observable-model";
+import { instUtil } from "@/wab/shared/model/InstUtil";
+import { createCanvasOverviewStore } from "@/wab/client/studio-ctx/canvas-overview-state";
+import { Pt } from "@/wab/shared/geom";
 import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
 import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import { StudioSaveState } from "@/wab/client/studio-ctx/save-state";
@@ -17,7 +24,6 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import { observable, runInAction } from "mobx";
 import React from "react";
 
 const fixture = vi.hoisted(() => ({
@@ -33,25 +39,33 @@ vi.mock("@/wab/client/components/sidebar-tabs/OutlineCtx", () => ({
       fixture.ctx.selectedFrame
         ? { arenaFrame: () => fixture.ctx.selectedFrame }
         : undefined;
-    expandedFrames = observable.map<ArenaFrame, boolean>();
+    stateStore = createOutlineStateStore(new Matcher(""));
     isFrameExpanded = (frame: ArenaFrame, defaultExpanded = false) =>
-      this.expandedFrames.get(frame) ?? defaultExpanded;
-    setFrameExpanded = (frame: ArenaFrame, expanded: boolean) =>
-      runInAction(() => this.expandedFrames.set(frame, expanded));
+      this.stateStore.getState().expandedFrames.get(frame) ?? defaultExpanded;
+    setFrameExpanded = (frame: ArenaFrame, expanded: boolean) => {
+      const frames = new Map(this.stateStore.getState().expandedFrames); frames.set(frame, expanded);
+      patchOutlineState(this.stateStore, { expandedFrames: frames });
+    };
     dispose = vi.fn();
     collapseAll = () => {
       fixture.collapseAll();
-      runInAction(() => this.expandedFrames.clear());
+      patchOutlineState(this.stateStore, { expandedFrames: new Map() });
     };
   },
 }));
 vi.mock("@/wab/client/components/sidebar-tabs/tpl-tree", async () => {
   const ReactModule = await import("react");
+  const { useStudioSelection } = await import("@/wab/client/studio-ctx/selection-state");
+  const { useCanvasComponentValue } = await import("@/wab/client/components/canvas/canvas-view-inputs");
   return {
     TreeDndManager: class {},
-    ArenaTree: ReactModule.forwardRef((_props: any, _ref) => (
-      <div>{fixture.ctx.selectedFrame?.name} layers</div>
-    )),
+    ArenaTree: ReactModule.forwardRef(function ArenaTree(_props: any, _ref) {
+      const frame = useStudioSelection(fixture.ctx, (state) => state.frames[0] ? fixture.ctx.modelSnapshots.resolve(state.frames[0]) : undefined);
+      const recipe = ReactModule.useCallback((field) => { if (frame) { field(frame, "name"); } }, [frame]);
+      const read = ReactModule.useCallback(() => frame?.name, [frame]);
+      const name = useCanvasComponentValue(fixture.ctx, frame ?? fixture.ctx.site, recipe, read);
+      return <div>{name} layers</div>;
+    }),
   };
 });
 beforeAll(() =>
@@ -65,7 +79,8 @@ beforeAll(() =>
   ),
 );
 afterAll(() => vi.unstubAllGlobals());
-afterEach(cleanup);
+const disposals: (() => void)[] = [];
+afterEach(() => { cleanup(); disposals.splice(0).forEach((dispose) => dispose()); });
 
 function setup() {
   const site = createSite();
@@ -83,41 +98,30 @@ function setup() {
   arenaState.setCurrent(arena);
   const saveState = new StudioSaveState();
   const selection = new StudioSelection(() => modelSnapshots);
-  fixture.ctx = observable(
-    {
+  const canvasOverviewStore = createCanvasOverviewStore();
+  const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
+  disposals.push(() => { arenaState.dispose(); selection.dispose(); modelSnapshots.dispose(); recorder.dispose(); });
+  fixture.ctx = {
       site,
-      modelSnapshots, arenaState, saveState, selectionStore: selection.store,
+      modelSnapshots, arenaState, saveState, canvasOverviewStore, selectionStore: selection.store,
+      ...createStudioUiEnvironmentFixture(),
       get currentArena() { return arenaState.currentArena(); },
       set currentArena(value: AnyArena | null) {
         if (isMixedArena(value) && !site.arenas.includes(value)) { site.arenas.push(value); }
         arenaState.setCurrent(value);
       },
-      canvasFocusActive: false,
-      selectedFrame: undefined as ArenaFrame | undefined,
+      get selectedFrame() { return selection.frames()[0]; },
+      set selectedFrame(frame: ArenaFrame | undefined) { selection.set(undefined, frame ? [frame] : []); },
       currentArenaEmpty: false,
       changeUnsafe: (fn: () => void) => fn(),
       setStudioFocusOnFrame: vi.fn(({ frame }) => {
-        runInAction(() => {
-          fixture.ctx.selectedFrame = frame;
-        });
+        fixture.ctx.selectedFrame = frame;
       }),
-      returnToCanvasOverview: vi.fn(() =>
-        runInAction(() => {
-          fixture.ctx.canvasFocusActive = false;
-        }),
-      ),
-    },
-    {
-      selectedFrame: observable.ref,
-      site: false,
-      currentArena: false,
-      modelSnapshots: false, arenaState: false, saveState: false, selectionStore: false,
-      returnToCanvasOverview: false,
-      setStudioFocusOnFrame: false,
-      changeUnsafe: false,
-    },
-  );
-  return { site, component, frames, arena };
+      returnToCanvasOverview: vi.fn(() => {
+        canvasOverviewStore.setState({ overview: undefined });
+      }),
+    };
+  return { site, component, frames, arena, edit: (change: () => void) => modelSnapshots.sync(recorder.withRecording(change).changes) };
 }
 
 it("shows the arena scope and tree without a current-artboard dropdown", () => {
@@ -139,7 +143,9 @@ it("shows the arena scope and tree without a current-artboard dropdown", () => {
 it("retains the arena scope and overview action during artboard focus", () => {
   const { frames, arena } = setup();
   fixture.ctx.selectedFrame = frames[1];
-  fixture.ctx.canvasFocusActive = true;
+  fixture.ctx.canvasOverviewStore.setState({ overview: {
+    arena, viewport: { scroll: new Pt(0, 0), canvasPadding: new Pt(0, 0), scale: 1 },
+  } });
   render(<OutlineTab />);
   expect(screen.getByText("Customer overview")).toBeDefined();
   expect(screen.getByText("Focused in arena · Details")).toBeDefined();
@@ -255,7 +261,6 @@ it("updates the arena footer count when artboards change", () => {
   const { arena, site, component } = setup();
   render(<OutlineTab />);
   act(() => {
-    runInAction(() => {
       fixture.ctx.currentArena = new Arena({
         name: arena.name,
         children: [
@@ -269,7 +274,6 @@ it("updates the arena footer count when artboards change", () => {
           }),
         ],
       });
-    });
   });
   expect(screen.getByText("Arena · 3 artboards")).toBeDefined();
 });
@@ -301,4 +305,30 @@ it("offers only collapse all without layer search or expand all", () => {
   expect(screen.queryByRole("button", { name: "Expand all" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Collapse all" }));
   expect(fixture.collapseAll).toHaveBeenCalledOnce();
+});
+
+it("updates page name, viewport size and device from committed native metadata", () => {
+  const { site, component, edit } = setup();
+  const arena = ensure(site.pageArenas.find((item) => item.component === component), "Page arena");
+  const frame = ensure(getArenaFrames(arena)[0], "Page viewport");
+  fixture.ctx.currentArena = arena; fixture.ctx.selectedFrame = frame;
+  render(<OutlineTab />);
+  act(() => edit(() => { component.name = "Accounts"; frame.width = 390; frame.height = 844; }));
+  expect(screen.getByRole("button", { name: "Accounts · Mobile", expanded: true })).toBeDefined();
+  const viewportButton = ensure(screen.getAllByRole("button", { name: "Mobile" }).find((button) => button.title === "Accounts · 390 × 844"), "Renamed 390 × 844 viewport button");
+  expect(viewportButton.title).toBe("Accounts · 390 × 844");
+  expect(viewportButton.getAttribute("aria-pressed")).toBe("true");
+  expect(screen.getByText("Page editing · Mobile")).toBeDefined();
+});
+
+it("updates a focused artboard label through native model publication", () => {
+  const { arena, frames, edit } = setup();
+  const frame = ensure(frames[1], "Focused artboard");
+  fixture.ctx.selectedFrame = frame;
+  fixture.ctx.canvasOverviewStore.setState({ overview: { arena, viewport: { scroll: new Pt(0, 0), canvasPadding: new Pt(0, 0), scale: 1 } } });
+  render(<OutlineTab />);
+  expect(screen.getByText("Focused in arena · Details")).toBeDefined();
+  act(() => edit(() => { frame.name = "Invoices"; }));
+  expect(screen.getByText("Focused in arena · Invoices")).toBeDefined();
+  expect(screen.getByText("Invoices layers")).toBeDefined();
 });

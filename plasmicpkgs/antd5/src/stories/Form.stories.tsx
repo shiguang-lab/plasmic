@@ -1,5 +1,5 @@
 import { DataCtxReader, PlasmicCanvasContext } from "@plasmicapp/host";
-import { generateOnMutateForSpec, useDollarState } from "@plasmicapp/react-web";
+import { generateOnMutateForSpec, $StateSpec, useDollarState, useDollarStateSnapshot, createStateEventHandler } from "@plasmicapp/react-web";
 import { StoryFn } from "@storybook/react";
 import { expect, queryByAttribute, userEvent, within } from "@storybook/test";
 import { Button, Checkbox, Input, InputNumber } from "antd";
@@ -120,20 +120,20 @@ const SubmitSlot = ({ label }: { label?: string }) => (
 );
 
 const _SimplifiedForm: StoryFn = (args: any) => {
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "form.value",
         type: "private",
         variableType: "object",
       },
-    ],
-    { $props: args }
-  );
+    ];
+  const stateEnv = { $props: args };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   return (
     <div>
       <Form
-        extendedOnValuesChange={(values) => ($state.form.value = values)}
+        extendedOnValuesChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((values) => ($state.form.value = values)))}
         formItems={args.formItems}
         mode="simplified"
         submitSlot={<SubmitSlot />}
@@ -150,19 +150,19 @@ SimplifiedForm.args = {
 };
 
 const _AdvancedForm: StoryFn = (args: any) => {
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "form.value",
         type: "private",
         variableType: "object",
       },
-    ],
-    { $props: args }
-  );
+    ];
+  const stateEnv = { $props: args };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   return (
     <div>
-      <Form extendedOnValuesChange={(values) => ($state.form.value = values)}>
+      <Form extendedOnValuesChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((values) => ($state.form.value = values)))}>
         <FormItem label={<p>Text Field</p>} name="textField">
           <Input />
         </FormItem>
@@ -206,8 +206,7 @@ AdvancedForm.args = {};
 
 const _TestSimplifiedForm: StoryFn = (args: any) => {
   const ref = React.createRef<TextAreaRef>();
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "form.value",
         type: "private",
@@ -224,9 +223,10 @@ const _TestSimplifiedForm: StoryFn = (args: any) => {
         variableType: "text",
         initFunc: ({ $props }) => JSON.stringify($props.formItems),
       },
-    ],
-    { $props: args }
-  );
+    ];
+  const stateEnv = { $props: args };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   return (
     <div>
       <FormItem label="Form items">
@@ -238,8 +238,8 @@ const _TestSimplifiedForm: StoryFn = (args: any) => {
         />
       </FormItem>
       <Button
-        onClick={() =>
-          ($state.formItems = ref.current?.resizableTextArea?.textArea.value)
+        onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => (() =>
+          ($state.formItems = ref.current?.resizableTextArea?.textArea.value)))
         }
       >
         Update form
@@ -249,8 +249,8 @@ const _TestSimplifiedForm: StoryFn = (args: any) => {
         mode="simplified"
         formItems={JSON.parse($state.formItems)}
         submitSlot={<SubmitSlot />}
-        extendedOnValuesChange={(values) => ($state.form.value = values)}
-        onFinish={(values) => ($state.submittedValue = values)}
+        extendedOnValuesChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((values) => ($state.form.value = values)))}
+        onFinish={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((values) => ($state.submittedValue = values)))}
       />
       <p data-testid={"value"}>Value: {JSON.stringify($state.form.value)}</p>
       <p data-testid={"submitted"}>
@@ -456,16 +456,16 @@ const _InternalFormCtx: StoryFn = (args: any) => {
   }, []);
   const registeredFields =
     ctxDataRef.current?.internalFieldCtx?.registeredFields;
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "form.value",
         type: "private",
         variableType: "object",
       },
-    ],
-    { $props: args }
-  );
+    ];
+  const stateEnv = { $props: args };
+  const $stateCommands = useDollarState();
+  useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   const [formItems, setFormItems] = React.useState(() => [
     {
       preserve: true,
@@ -501,7 +501,7 @@ const _InternalFormCtx: StoryFn = (args: any) => {
   return (
     <PlasmicCanvasProvider>
       <Form
-        extendedOnValuesChange={(values) => ($state.form.value = values)}
+        extendedOnValuesChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((values) => ($state.form.value = values)))}
         setControlContextData={setControlContextData}
       >
         {!formItems[0].hidden && (
@@ -903,8 +903,7 @@ SchemaForms.play = async ({ canvasElement }) => {
 
 const _MultiStepForm: StoryFn = (args: any) => {
   const [step, setStep] = React.useState(0);
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "form.value",
         type: "private",
@@ -915,14 +914,15 @@ const _MultiStepForm: StoryFn = (args: any) => {
         type: "private",
         variableType: "object",
       },
-    ],
-    { $props: args }
-  );
+    ];
+  const stateEnv = { $props: args };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   return (
     <div>
       <Form
-        extendedOnValuesChange={(values) => ($state.form.value = values)}
-        onFinish={(values) => ($state.submittedData = values)}
+        extendedOnValuesChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((values) => ($state.form.value = values)))}
+        onFinish={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((values) => ($state.submittedData = values)))}
         validateTrigger={"onFinish"}
       >
         {[0, 1, 2].map((formStep) => {
@@ -1276,8 +1276,7 @@ FormValidation.play = async ({ canvasElement }) => {
 const _TestFormRefActions: StoryFn = (args: any) => {
   const refsRef = React.useRef<{ form?: FormRefActions | null }>({});
   const $refs = refsRef.current;
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "form.value",
         type: "private",
@@ -1293,15 +1292,16 @@ const _TestFormRefActions: StoryFn = (args: any) => {
         type: "private",
         variableType: "text",
       },
-    ],
-    { $props: args, $refs }
-  );
+    ];
+  const stateEnv = { $props: args, $refs };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   return (
     <div>
       <Form
         mode="simplified"
-        extendedOnValuesChange={(val) => ($state.form.value = val)}
-        ref={(ref) => ($refs["form"] = ref)}
+        extendedOnValuesChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((val) => ($state.form.value = val)))}
+        ref={(ref) => { $refs["form"] = ref; }}
         formItems={[
           ...ALL_FORM_ITEMS_TYPE,
           {
@@ -1320,30 +1320,30 @@ const _TestFormRefActions: StoryFn = (args: any) => {
       <p data-testid="value">{JSON.stringify($state.form.value)}</p>
       <Input
         value={$state.itemName}
-        onChange={(e) => ($state.itemName = e.target.value)}
+        onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((e) => ($state.itemName = e.target.value)))}
         data-testid={"itemName"}
       />
       <Input
         value={$state.itemValue}
-        onChange={(e) => ($state.itemValue = e.target.value)}
+        onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((e) => ($state.itemValue = e.target.value)))}
         data-testid={"itemValue"}
       />
       <div>
         <Button onClick={() => $refs.form?.clearFields()}>Clear fields</Button>
         <Button onClick={() => $refs.form?.resetFields()}>Reset fields</Button>
         <Button
-          onClick={() =>
+          onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => (() =>
             $refs.form?.setFieldValue(
               JSON.parse($state.itemName),
               JSON.parse($state.itemValue)
-            )
+            )))
           }
         >
           Set field
         </Button>
         <Button
-          onClick={() =>
-            $refs.form?.setFieldsValue(JSON.parse($state.itemValue))
+          onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => (() =>
+            $refs.form?.setFieldsValue(JSON.parse($state.itemValue))))
           }
         >
           Set fields
@@ -1352,8 +1352,8 @@ const _TestFormRefActions: StoryFn = (args: any) => {
           Validate all fields
         </Button>
         <Button
-          onClick={() =>
-            $refs.form?.validateFields(JSON.parse($state.itemName))
+          onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => (() =>
+            $refs.form?.validateFields(JSON.parse($state.itemName))))
           }
         >
           Validate fields
@@ -1490,8 +1490,7 @@ TestFormRefActions.play = async ({ canvasElement }) => {
 const _FormStateIsMutable: StoryFn = (args: any) => {
   const refsRef = React.useRef<{ form?: FormRefActions | null }>({});
   const $refs = refsRef.current;
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "form.value",
         type: "private",
@@ -1504,15 +1503,16 @@ const _FormStateIsMutable: StoryFn = (args: any) => {
         type: "private",
         variableType: "text",
       },
-    ],
-    { $props: args, $refs }
-  );
+    ];
+  const stateEnv = { $props: args, $refs };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   return (
     <div>
       <Form
         mode="simplified"
-        extendedOnValuesChange={(val) => ($state.form.value = val)}
-        ref={(ref) => ($refs["form"] = ref)}
+        extendedOnValuesChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((val) => ($state.form.value = val)))}
+        ref={(ref) => { $refs["form"] = ref; }}
         formItems={ALL_FORM_ITEMS_TYPE}
         submitSlot={<SubmitSlot />}
         validateTrigger={"onFinish"}
@@ -1521,13 +1521,13 @@ const _FormStateIsMutable: StoryFn = (args: any) => {
       <div style={{ display: "flex", gap: 10 }}>
         <Input
           value={$state.runCode}
-          onChange={(e) => ($state.runCode = e.target.value)}
+          onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((e) => ($state.runCode = e.target.value)))}
           data-testid={"runCode"}
         />
         <Button
-          onClick={() => {
+          onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => (() => {
             eval($state.runCode);
-          }}
+          }))}
         >
           Run Code
         </Button>
@@ -1573,8 +1573,7 @@ FormStateIsMutable.play = async ({ canvasElement }) => {
 };
 
 const _CanModifyPropsInCanvasForSchema: StoryFn = (args: any) => {
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "form.value",
         type: "private",
@@ -1585,9 +1584,10 @@ const _CanModifyPropsInCanvasForSchema: StoryFn = (args: any) => {
         type: "private",
         variableType: "text",
       },
-    ],
-    { $props: args }
-  );
+    ];
+  const stateEnv = { $props: args };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   const dataOp = React.useMemo(
     () => ({
       sourceId: "fake",
@@ -1612,11 +1612,11 @@ const _CanModifyPropsInCanvasForSchema: StoryFn = (args: any) => {
       >
         <Input
           value={$state.input.value}
-          onChange={(e) => ($state.input.value = e.target.value)}
+          onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((e) => ($state.input.value = e.target.value)))}
           data-testid="input"
         />
         <Button
-          onClick={() => {
+          onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => (() => {
             const [opName, formItem] = JSON.parse($state.input.value) as any;
             if (opName === "add") {
               setDataFormItems((formItems) => [...formItems, formItem]);
@@ -1639,7 +1639,7 @@ const _CanModifyPropsInCanvasForSchema: StoryFn = (args: any) => {
               );
             }
             $state.input.value = "";
-          }}
+          }))}
         >
           Update form
         </Button>
@@ -1647,7 +1647,7 @@ const _CanModifyPropsInCanvasForSchema: StoryFn = (args: any) => {
       <PlasmicCanvasProvider>
         <Form
           mode="simplified"
-          extendedOnValuesChange={(values) => ($state.form.value = values)}
+          extendedOnValuesChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((values) => ($state.form.value = values)))}
           submitSlot={<SubmitSlot />}
           colon={false}
           data={dataOp}
@@ -1749,8 +1749,7 @@ CanModifyPropsInCanvasForSchema.play = async ({ canvasElement }) => {
 };
 
 const _OnlySubmitMountedFields: StoryFn = (args: any) => {
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "form.value",
         type: "private",
@@ -1766,9 +1765,10 @@ const _OnlySubmitMountedFields: StoryFn = (args: any) => {
         type: "private",
         variableType: "text",
       },
-    ],
-    { $props: args }
-  );
+    ];
+  const stateEnv = { $props: args };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   const [formItems, setFormItems] = React.useState<SimplifiedFormItemsProp[]>([
     { label: "Field 1", name: "field1", inputType: InputType.Text },
     { label: "Field 2", name: "field2", inputType: InputType.Text },
@@ -1783,11 +1783,11 @@ const _OnlySubmitMountedFields: StoryFn = (args: any) => {
       >
         <Input
           value={$state.input.value}
-          onChange={(e) => ($state.input.value = e.target.value)}
+          onChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((e) => ($state.input.value = e.target.value)))}
           data-testid="input"
         />
         <Button
-          onClick={() => {
+          onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => (() => {
             const [opName, formItem] = JSON.parse($state.input.value) as any;
             if (opName === "add") {
               setFormItems((items) => [...items, formItem]);
@@ -1810,15 +1810,15 @@ const _OnlySubmitMountedFields: StoryFn = (args: any) => {
               );
             }
             $state.input.value = "";
-          }}
+          }))}
         >
           Update form
         </Button>
       </div>
       <PlasmicCanvasProvider>
         <Form
-          extendedOnValuesChange={(values) => ($state.form.value = values)}
-          onFinish={(values) => ($state.submitted = values)}
+          extendedOnValuesChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((values) => ($state.form.value = values)))}
+          onFinish={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((values) => ($state.submitted = values)))}
           mode="simplified"
           submitSlot={<SubmitSlot />}
           colon={false}
@@ -1967,16 +1967,16 @@ OnlySubmitMountedFields.play = async ({ canvasElement }) => {
 const _TestFormList: StoryFn = (args: any) => {
   const refsRef = React.useRef<{ form?: FormListOperation | null }>({});
   const $refs = refsRef.current;
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "form.value",
         type: "private",
         variableType: "object",
       },
-    ],
-    { $props: args, $refs }
-  );
+    ];
+  const stateEnv = { $props: args, $refs };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   const [withDefault, setWithDefault] = React.useState(false);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -1990,7 +1990,7 @@ const _TestFormList: StoryFn = (args: any) => {
           Add new form item with default value
         </div>
         <Form
-          extendedOnValuesChange={(values) => ($state.form.value = values)}
+          extendedOnValuesChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((values) => ($state.form.value = values)))}
           submitSlot={<SubmitSlot />}
           colon={false}
         >
@@ -2000,7 +2000,7 @@ const _TestFormList: StoryFn = (args: any) => {
               { firstName: "Jane", lastName: "Doe" },
               { firstName: "John", lastName: "Smith" },
             ]}
-            ref={(ref) => ($refs["form"] = ref)}
+            ref={(ref) => { $refs["form"] = ref; }}
           >
             <DataCtxReader>
               {($ctx) => (
@@ -2121,8 +2121,7 @@ TestFormList.play = async ({ canvasElement }) => {
 const _DisableMultipleSubmissions: StoryFn = (args: any) => {
   const refsRef = React.useRef<{ form?: FormListOperation | null }>({});
   const $refs = refsRef.current;
-  const $state = useDollarState(
-    [
+  const stateSpecs: $StateSpec<any>[] = [
       {
         path: "form.value",
         type: "private",
@@ -2145,24 +2144,25 @@ const _DisableMultipleSubmissions: StoryFn = (args: any) => {
         variableType: "boolean",
         initVal: false,
       },
-    ],
-    { $props: args, $refs }
-  );
+    ];
+  const stateEnv = { $props: args, $refs };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, stateEnv, stateSpecs);
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <Button onClick={() => ($state.isDisabled = !$state.isDisabled)}>
+      <Button onClick={createStateEventHandler(() => [$stateCommands] as const, ($state) => (() => ($state.isDisabled = !$state.isDisabled)))}>
         Toggle "Disable Multiple Submissions"
       </Button>
       <p>Is disabled: {$state.isDisabled ? "true" : "false"}</p>
       <p>Active submissions: {$state.count}</p>
       <Form
-        extendedOnValuesChange={(values) => ($state.form.value = values)}
+        extendedOnValuesChange={createStateEventHandler(() => [$stateCommands] as const, ($state) => ((values) => ($state.form.value = values)))}
         colon={false}
-        onFinish={async () => {
+        onFinish={createStateEventHandler(() => [$stateCommands] as const, ($state) => (async () => {
           $state.count++;
           await new Promise((r) => setTimeout(r, 2000));
           $state.count = 0;
-        }}
+        }))}
         autoDisableWhileSubmitting={$state.isDisabled}
       >
         <FormItem label={<p>Text Field</p>} name="textField">

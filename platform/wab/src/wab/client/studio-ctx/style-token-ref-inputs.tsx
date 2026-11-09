@@ -1,3 +1,4 @@
+import { StyleTokenReaderBinding } from "@/wab/client/studio-ctx/style-token-inputs";
 import { allGlobalVariants } from "@/wab/shared/core/sites";
 import { useShallow } from "zustand/react/shallow";
 import type { ModelFieldStore, ModelRef } from "@/wab/client/studio-ctx/model-snapshots";
@@ -11,6 +12,7 @@ import { siteFinalColorTokens, siteFinalStyleTokensAllDeps, siteFinalStyleTokens
 import type { FinalToken } from "@/wab/shared/core/tokens";
 import type { ObjInst, StyleToken } from "@/wab/shared/model/classes";
 import * as React from "react";
+import { sortBy } from "lodash";
 
 export interface StyleTokenReaderScope {
   readonly models: StudioCtx["modelSnapshots"];
@@ -41,14 +43,16 @@ export function getStyleTokenReaderScope(studio: StudioCtx, helper: VariantedSty
 
 /** The original consumers' finite lookup contracts:
  * Color: Color heads, all-style aliases, first UUID.
+ * ColorDirectSorted: direct Color heads sorted by name; all-style aliases, first UUID.
  * ColorOnly: Color heads and aliases, first UUID.
  * ColorLabel: Color head/name only, without dereferencing aliases.
  * all: all-style heads and aliases, first UUID.
+ * allLastHead: last-UUID all-style head, first-UUID aliases.
  * allHead: all-style head name/base value only, first UUID, no aliases.
  * SpacingOnly: Spacing heads and aliases, first UUID.
  * dictionary: CssVarResolver's all-style heads and aliases, last UUID.
  */
-export type StyleTokenReferenceRole = "Color" | "ColorOnly" | "ColorLabel" | "SpacingOnly" | "allHead" | "all" | "dictionary";
+export type StyleTokenReferenceRole = "Color" | "ColorDirectSorted" | "ColorOnly" | "ColorLabel" | "SpacingOnly" | "allHead" | "allLastHead" | "all" | "dictionary";
 
 export interface ResolvedStyleToken {
   readonly ref: ModelRef<StyleToken>;
@@ -150,7 +154,9 @@ export class StyleTokenRefInputs {
           for (const token of site.styleTokens) { field(token, "uuid", "type", "isRegistered"); }
         }
         const all = siteFinalStyleTokensAllDeps(this.site);
-        this.lookup = { all, heads: this.headType === "SpacingOnly" ? siteFinalStyleTokensOfType(this.site, "Spacing", { includeDeps: "all" }) : (this.headType === "Color" || this.headType === "ColorOnly" || this.headType === "ColorLabel") ? siteFinalColorTokens(this.site, { includeDeps: "all" }) : all,
+        const directColors = this.headType === "ColorDirectSorted" ? siteFinalColorTokens(this.site, { includeDeps: "direct" }) : [];
+        directColors.forEach((token) => field(token.base, "name"));
+        this.lookup = { all, heads: this.headType === "ColorDirectSorted" ? sortBy(directColors, (token) => token.name) : this.headType === "SpacingOnly" ? siteFinalStyleTokensOfType(this.site, "Spacing", { includeDeps: "all" }) : (this.headType === "Color" || this.headType === "ColorOnly" || this.headType === "ColorLabel") ? siteFinalColorTokens(this.site, { includeDeps: "all" }) : all,
           captured: new Map([...usedFields].map((store) => [store, store.getState()])) };
         this.lookupDirty = false;
       }
@@ -170,7 +176,7 @@ export class StyleTokenRefInputs {
       const rows = this.inputs.map((input, index) => {
         const existing = distinct.get(input); if (existing) { return existing; }
         const previous = this.current.rows[index]?.input === input ? this.current.rows[index] : this.current.rows.find((row) => row.input === input);
-        const token = tryParseTokenRef(input, heads, lookupOrder);
+        const token = tryParseTokenRef(input, heads, this.headType === "allLastHead" ? "last" : lookupOrder);
         let applied: TokenReferenceRow["applied"], resolved: TokenReferenceRow["resolved"];
         if (token && this.headType === "ColorLabel") {
           field(token.base, "name");
@@ -242,7 +248,7 @@ export function useStyleTokenRefs<Selected>(studio: StudioCtx, inputs: readonly 
   const readOwner = React.useCallback(() => studio.singleRsStyleInputs, [studio]);
   const owner = React.useSyncExternalStore(subscribeOwner, readOwner, readOwner);
   const stableInputs = useShallow((values: readonly string[]) => values)(inputs);
-  const binding = React.useMemo<{ committed: StyleTokenRefInputs | undefined }>(() => ({ committed: undefined }), [studio]);
+  const binding = React.useMemo(() => new StyleTokenReaderBinding<StyleTokenRefInputs>(), [studio]);
   const context = React.useMemo(() => getStyleTokenReaderScope(studio, vsh), [studio, owner, vsh]);
   const source = React.useMemo(() => {
     const closed = context.owner.isDisposed || context.lifetime.aborted;
@@ -250,7 +256,7 @@ export function useStyleTokenRefs<Selected>(studio: StudioCtx, inputs: readonly 
       ? binding.committed : new StyleTokenRefInputs(studio, stableInputs, vsh, headType);
   }, [studio, owner, stableInputs, vsh, headType, context, binding]);
   React.useLayoutEffect(() => {
-    if (!binding.committed || !context.owner.isDisposed && !context.lifetime.aborted) { binding.committed = source; }
+    if (!binding.committed || !context.owner.isDisposed && !context.lifetime.aborted) { binding.commit(source); }
   }, [binding, source, context]);
   const readSelected = React.useCallback(() => selector(source.getSnapshot()), [source, selector]);
   const selected = React.useSyncExternalStore(source.subscribe, readSelected, readSelected);

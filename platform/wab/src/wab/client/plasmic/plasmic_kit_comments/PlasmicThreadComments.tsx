@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,7 +23,7 @@ import {
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import CommentPost from "../../components/comments/CommentPost"; // plasmic-import: l_AKXl2AAu/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -76,11 +76,10 @@ function PlasmicThreadComments__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -156,12 +155,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -171,27 +166,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicThreadComments__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicThreadComments";
-  } else {
-    func.displayName = `PlasmicThreadComments.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicThreadComments__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicThreadComments__root<T extends PlasmicThreadComments__rootProps>(props: T & StrictProps<T, PlasmicThreadComments__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicThreadComments__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicThreadComments__root.displayName = "PlasmicThreadComments";
+
+type PlasmicThreadComments__commentsListProps = NodeComponentProps<"commentsList"> & {key?: React.Key};
+function PlasmicThreadComments__commentsList<T extends PlasmicThreadComments__commentsListProps>(props: T & StrictProps<T, PlasmicThreadComments__commentsListProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("commentsList", props);
+  return <PlasmicThreadComments__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"commentsList"} />;
+}
+PlasmicThreadComments__commentsList.displayName = "PlasmicThreadComments.commentsList";
+
 
 export const PlasmicThreadComments = Object.assign(
   // Top-level PlasmicThreadComments renders the root element
-  makeNodeComponent("root"),
+  PlasmicThreadComments__root,
   {
     // Helper components rendering sub-elements
-    commentsList: makeNodeComponent("commentsList"),
+    commentsList: PlasmicThreadComments__commentsList,
 
     // Metadata about props expected for PlasmicThreadComments
     internalVariantProps: PlasmicThreadComments__VariantProps,

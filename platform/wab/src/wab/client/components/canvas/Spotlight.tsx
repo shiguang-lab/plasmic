@@ -1,6 +1,6 @@
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useStudioLiveMode } from "@/wab/client/studio-ctx/studio-mode-state";
-import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
+import { useCanvasGeometry } from "@/wab/client/studio-ctx/viewport-state";
 import {
   clipBox,
   computeClipBounds,
@@ -20,25 +20,34 @@ import { SlotSelection } from "@/wab/shared/core/slots";
 import { Box } from "@/wab/shared/geom";
 import { Switch } from "antd";
 import $ from "jquery";
-import { reaction } from "mobx";
-import { observer } from "mobx-react";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { useCanvasViewInputs } from "@/wab/client/components/canvas/canvas-view-inputs";
+import { canvasSlotFields } from "@/wab/client/components/canvas/canvas-slot-inputs";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
+import { useFrameForceUpdate } from "@/wab/client/useForceUpdate";
+import { useShallow } from "zustand/react/shallow";
 import * as React from "react";
 
-export const Spotlight = observer(Spotlight_);
+export const Spotlight = React.memo(Spotlight_);
 
 function Spotlight_(props: { viewCtx: ViewCtx }) {
   const { viewCtx } = props;
   useViewVariants(viewCtx, (variantState) => variantState.showDefaultSlots);
   useStudioLiveMode(viewCtx.studioCtx);
-  const viewportZoom = useCanvasZoom(viewCtx.studioCtx);
+  const selection = useViewSelection(viewCtx, useShallow((state) => [state.context, state.doms]));
+  const renderCount = useCanvasRenderCount(viewCtx);
+  const recipe = React.useCallback((field: Parameters<typeof canvasSlotFields>[1]) => canvasSlotFields(viewCtx.currentComponentCtx()?.tplComponent().component, field), [viewCtx, selection]);
+  const { alive } = useCanvasViewInputs(viewCtx, recipe);
+  const refresh = useFrameForceUpdate(viewCtx.disposeSignal);
+  const { scale: viewportZoom } = useCanvasGeometry(viewCtx.studioCtx);
   const showDefaultSlotContents = viewCtx.showDefaultSlotContents();
   const { tplComponent, valComponent, shouldRender } =
-    getSpotlightInfo(viewCtx);
+    alive ? getSpotlightInfo(viewCtx) : { tplComponent: undefined, valComponent: undefined, shouldRender: false };
 
-  const userBody = viewCtx.canvasCtx.$userBody()[0];
+  const userBody = alive ? viewCtx.canvasCtx.$userBody()[0] : undefined;
   const rootRef = React.useRef<HTMLDivElement>(null);
-  const [spotlightDomInfo, setSpotlightDomInfo] =
-    React.useState<null | ReturnType<typeof getSpotlightDomInfo>>(null);
+  const spotlightDomInfo = alive && shouldRender ? getSpotlightDomInfo(viewCtx) : null;
+  const measuredElements = useShallow((elements: Element[]) => elements)(spotlightDomInfo?.focusedElements ?? []);
 
   React.useEffect(() => {
     if (!userBody) {
@@ -46,54 +55,44 @@ function Spotlight_(props: { viewCtx: ViewCtx }) {
     }
     // Whenever content inside the frame changes, to be safe, we re-render,
     // in case the DOM size has changed
-    const mutationObserver = new MutationObserver((e) => {
-      setSpotlightDomInfo(getSpotlightDomInfo(viewCtx));
+    const mutationObserver = new MutationObserver(() => {
+      refresh();
     });
     mutationObserver.observe(userBody, { childList: true, subtree: true });
     return () => mutationObserver.disconnect();
-  }, [userBody, viewCtx]);
+  }, [userBody, viewCtx, refresh]);
 
   React.useEffect(() => {
     // Re-render spotlight mode whenever styles change, as DOM size
     // may change as a result
-    const listener = viewCtx.styleChanged.add(() =>
-      setSpotlightDomInfo(getSpotlightDomInfo(viewCtx)),
-    );
+    if (!alive) { return; }
+    const listener = viewCtx.styleChanged.add(refresh);
     return () => {
       listener.detach();
     };
-  }, [viewCtx]);
+  }, [viewCtx, alive, refresh]);
 
   React.useEffect(() => {
-    if (!shouldRender && showDefaultSlotContents) {
+    if (alive && !shouldRender && showDefaultSlotContents) {
       viewCtx.setShowDefaultSlotContents(false);
     }
-  }, [shouldRender, showDefaultSlotContents, viewCtx]);
+  }, [alive, shouldRender, showDefaultSlotContents, viewCtx]);
 
   React.useEffect(() => {
     adjustSpotLightDueToZoom(viewportZoom);
   });
 
   React.useEffect(() => {
-    if (!shouldRender) {
-      return;
-    }
-    // Re-render spotlight when anything changes about the spotlight mode,
-    // read off of viewCtx
-    const dispose = reaction(
-      () => getSpotlightDomInfo(viewCtx),
-      (info) => {
-        setSpotlightDomInfo(info);
-      },
-      {
-        fireImmediately: true,
-      },
-    );
-    return () => {
-      dispose();
-      setSpotlightDomInfo(null);
-    };
-  }, [shouldRender, viewCtx]);
+    if (!alive || !shouldRender || !userBody) { return; }
+    const resize = new ResizeObserver(refresh);
+    resize.observe(userBody);
+    measuredElements.forEach((element) => resize.observe(element));
+    resize.observe(userBody.ownerDocument.documentElement);
+    const doc = userBody.ownerDocument;
+    doc.addEventListener("scroll", refresh, true);
+    const frames = viewCtx.studioCtx.framesChanged.add(refresh);
+    return () => { resize.disconnect(); doc.removeEventListener("scroll", refresh, true); frames.detach(); };
+  }, [alive, shouldRender, userBody, viewCtx, refresh, selection, renderCount, measuredElements]);
 
   if (!shouldRender || !spotlightDomInfo) {
     return null;

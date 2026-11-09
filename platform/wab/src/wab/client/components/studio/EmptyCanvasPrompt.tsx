@@ -14,7 +14,6 @@ import {
 } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { createStyles } from "antd-style";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useStore } from "zustand";
 
@@ -152,7 +151,7 @@ const useStyles = createStyles(({ token }) => ({
   },
 }));
 
-export const EmptyCanvasPrompt = observer(function EmptyCanvasPrompt({
+export const EmptyCanvasPrompt = React.memo(function EmptyCanvasPrompt({
   studioCtx,
   emptyProject,
 }: {
@@ -162,6 +161,7 @@ export const EmptyCanvasPrompt = observer(function EmptyCanvasPrompt({
   const { t } = useI18n();
   const { styles, cx } = useStyles();
   const canCreate = useStudioSaveState(studioCtx, (state) => state.canSave);
+  const canEditProject = useStore(studioCtx.uiEnvironment.store, (state) => state.canEditProject);
   const leftTabKey = useStore(
     studioCtx.leftPanelState.store,
     selectLeftTabKey,
@@ -197,7 +197,7 @@ export const EmptyCanvasPrompt = observer(function EmptyCanvasPrompt({
       onClick: () => {
         void studioCtx.openCopilotChat();
       },
-      disabled: !studioCtx.chatCopilotEnabled(),
+      disabled: !canEditProject || !studioCtx.appCtx.appConfig.enableLocalAiEditing,
     },
     {
       key: "blank",

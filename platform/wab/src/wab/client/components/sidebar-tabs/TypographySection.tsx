@@ -1,4 +1,11 @@
+import { useTargetedStylePanelInputs } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
+import { collectPropExpressionFields } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
+import { useCanvasComponentValue, type CanvasViewFieldRecipe } from "@/wab/client/components/canvas/canvas-view-inputs";
+import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
+import { useStore } from "zustand";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
+import { useEditingTextContext } from "@/wab/client/studio-ctx/editing-text-state";
 import { useShallow } from "zustand/react/shallow";
 import { useStudioSelection, useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
@@ -77,10 +84,19 @@ import {
   isKnownTemplatedString,
 } from "@/wab/shared/model/classes";
 import { Alert, Menu, Tooltip } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
 
-export const TypographySection = observer(TypographySection_);
+export const TypographySection = React.memo(function TypographySection(props: Parameters<typeof TypographySection_>[0]) {
+  if (props.expsProvider instanceof TplExpsProvider) {
+    return <TplTypographySection {...props} expsProvider={props.expsProvider} />;
+  }
+  return props.expsProvider.getNativeStyleSource().inputs.isDisposed ? null : <TypographySection_ {...props} />;
+});
+
+function TplTypographySection(props: Parameters<typeof TypographySection_>[0] & { expsProvider: TplExpsProvider }) {
+  const source = useTargetedStylePanelInputs(props.expsProvider.studioCtx, { kind: "text", view: props.expsProvider.viewCtx, tpl: props.ancestorSlot ?? props.expsProvider.tpl });
+  return source.active ? <TypographySection_ {...props} /> : null;
+}
 
 function TypographySection_(props: {
   expsProvider: ExpsProvider;
@@ -102,9 +118,8 @@ function TypographySection_(props: {
   const vc = sc.focusedViewCtx();
   const tpl =
     expsProvider instanceof TplExpsProvider ? expsProvider.tpl : undefined;
-  const hasStyles = typographyCssProps.some((p) =>
-    expsProvider.maybeTargetExp()?.has(p),
-  );
+  const typographyCells = useStyleCells(expsProvider, typographyCssProps);
+  const hasStyles = typographyCells.some((cell) => cell.targetHas);
 
   const shouldShowSlotTypographyWarning =
     ancestorSlot && tpl && vc && !isCodeComponentSlot(ancestorSlot);
@@ -191,7 +206,7 @@ function TypographySection_(props: {
                 expsProvider.targetExp().set(cssPropName, newValue);
               });
               if (cssPropName === "font-family") {
-                sc.fontManager.useFont(sc, newValue);
+                sc.fontManager.loadFont(sc, newValue);
               }
             }}
             unset={async (cssPropName: string) => {
@@ -228,44 +243,29 @@ export const TextOnlySection = function TextOnlySection(props: {
   );
 };
 
-export const TextContentRow = observer(function TextContentRow(props: {
+export const TextContentRow = React.memo(function TextContentRow(props: {
   viewCtx: ViewCtx;
   expsProvider: TplExpsProvider;
 }) {
+  const source = useTargetedStylePanelInputs(props.viewCtx.studioCtx, { kind: "text", view: props.viewCtx, tpl: props.expsProvider.tpl });
+  return source.active ? <TextContentRowBody {...props} /> : null;
+});
+function TextContentRowBody(props: { viewCtx: ViewCtx; expsProvider: TplExpsProvider }) {
   const { t: uiT } = useI18n();
   const { expsProvider, viewCtx } = props;
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   useViewSelection(viewCtx, (state) => state.context);
   const studioCtx = useStudioCtx();
-  const contentRef = React.useRef<HTMLDivElement>(null);
+  const functionsSchema = useCustomFunctionsSchema(studioCtx);
+  const contentEditorMode = useStore(studioCtx.uiEnvironment.store, (state) => state.contentEditorMode);
+  const [contentElement, setContentElement] = React.useState<HTMLDivElement | null>(null);
   const [isDataPickerVisible, setIsDataPickerVisible] =
     React.useState<boolean>(false);
   const [editDataToken, setEditDataToken] = React.useState<DataToken | null>(
     null,
   );
   const [showFallback, setShowFallback] = React.useState(false);
-  // Reconnect after each commit so requests use this render's text target and
-  // variant manager, including changes within the same expressions provider.
-  React.useEffect(() => {
-    const consumeRequests = () => {
-      if (viewCtx.triggerEditingTextDataPicker()) {
-        viewCtx.setTriggerEditingTextDataPicker(false);
-        contentRef.current?.scrollIntoView({ block: "center" });
-        setIsDataPickerVisible(true);
-      }
 
-      const dataToken = viewCtx.getTriggerCreatingTextDataToken();
-      if (dataToken) {
-        viewCtx.setTriggerCreatingTextDataToken(null);
-        contentRef.current?.scrollIntoView({ block: "center" });
-        setEditDataToken(dataToken);
-        switchToDynamicValue(dataToken.name);
-      }
-    };
-    const unsubscribe = viewCtx.textDataRequestsStore.subscribe(consumeRequests);
-    consumeRequests();
-    return unsubscribe;
-  });
 
   const tpl = expsProvider.tpl;
   const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl);
@@ -276,6 +276,37 @@ export const TextContentRow = observer(function TextContentRow(props: {
       : undefined;
 
   const vtm = viewCtx.variantTplMgr();
+
+  const switchToDynamicValue = (dataTokenName: string) => {
+    if (!textTpl || viewCtx.disposeSignal.aborted) { return; }
+    viewCtx.change(() => {
+      vtm.ensureCurrentVariantSetting(textTpl).text = mkDataTokenExprText(viewCtx.siteInfo.id, dataTokenName);
+    });
+  };
+
+  // Reconnect after each commit so requests use this render's text target and
+  // variant manager, including changes within the same expressions provider.
+  React.useEffect(() => {
+    if (!textTpl) { return; }
+    const consumeRequests = () => {
+      if (viewCtx.triggerEditingTextDataPicker()) {
+        viewCtx.setTriggerEditingTextDataPicker(false);
+        contentElement?.scrollIntoView({ block: "center" });
+        setIsDataPickerVisible(true);
+      }
+
+      const dataToken = viewCtx.getTriggerCreatingTextDataToken();
+      if (dataToken) {
+        viewCtx.setTriggerCreatingTextDataToken(null);
+        contentElement?.scrollIntoView({ block: "center" });
+        setEditDataToken(dataToken);
+        switchToDynamicValue(dataToken.name);
+      }
+    };
+    const unsubscribe = viewCtx.textDataRequestsStore.subscribe(consumeRequests);
+    consumeRequests();
+    return unsubscribe;
+  });
 
   if (!textTpl) {
     return null;
@@ -323,9 +354,9 @@ export const TextContentRow = observer(function TextContentRow(props: {
     component: viewCtx.currentComponent(),
     inStudio: true,
   };
-  const switchToDynamicValue = (dataTokenName: string) => {
-    onChange(mkDataTokenExprText(viewCtx.siteInfo.id, dataTokenName));
-  };
+
+
+
 
   const applyDynamicValue = convertToDynamicValue
     ? () => {
@@ -373,13 +404,13 @@ export const TextContentRow = observer(function TextContentRow(props: {
         label={uiT("Content")}
         definedIndicator={indicator}
         menu={contextMenu}
-        ref={contentRef}
+        ref={setContentElement}
         noMenuButton
       >
         <ContextMenuIndicator
           menu={contextMenu}
           showDynamicValueButton={
-            applyDynamicValue && !studioCtx.contentEditorMode
+            applyDynamicValue && !contentEditorMode
           }
           onIndicatorClickDefault={applyDynamicValue}
           className="qb-custom-widget"
@@ -398,7 +429,7 @@ export const TextContentRow = observer(function TextContentRow(props: {
                 token={editDataToken}
                 studioCtx={studioCtx}
                 onClose={() => setEditDataToken(null)}
-                triggerElement={contentRef.current ?? undefined}
+                triggerElement={contentElement ?? undefined}
                 popoverFrameValuePath={["text"]}
               />
             )}
@@ -421,7 +452,7 @@ export const TextContentRow = observer(function TextContentRow(props: {
                   }}
                   disabled={isDisabled}
                   data={canvasEnv}
-                  schema={viewCtx.customFunctionsSchema()}
+                  schema={functionsSchema}
                   component={viewCtx.currentComponent()}
                   key={tpl.uid}
                 />
@@ -469,7 +500,7 @@ export const TextContentRow = observer(function TextContentRow(props: {
                   isDisabled={isDisabled}
                   disabledTooltip={disabledTooltip}
                   data={canvasEnv}
-                  schema={viewCtx.customFunctionsSchema()}
+                  schema={functionsSchema}
                   key={tpl.uid}
                   context="The text content to be displayed"
                 />
@@ -563,9 +594,9 @@ export const TextContentRow = observer(function TextContentRow(props: {
       )}
     </>
   );
-});
+}
 
-const TextEditor = observer(function TextEditor_(props: {
+const TextEditor = React.memo(function TextEditor_(props: {
   viewCtx: ViewCtx;
   tpl: TplTag;
   text: RichText | undefined;
@@ -573,14 +604,15 @@ const TextEditor = observer(function TextEditor_(props: {
   isDisabled: boolean | undefined;
 }) {
   const { viewCtx, tpl, text, setState, isDisabled } = props;
-  if (!text) {
-    return null;
-  }
-  const editingText = viewCtx.editingTextContext();
+  const editingText = useEditingTextContext(viewCtx);
+  const recipe = React.useCallback<CanvasViewFieldRecipe>((field) => collectPropExpressionFields(text, field), [text]);
+  const readContent = React.useCallback(() => text ? getRichTextContent(text, viewCtx) : undefined, [text, viewCtx]);
+  const committedContent = useCanvasComponentValue(viewCtx.studioCtx, tpl, recipe, readContent);
+  if (!text) { return null; }
   const content =
     editingText?.val.tpl === tpl && editingText.draftText !== undefined
       ? editingText.draftText.text
-      : getRichTextContent(text, viewCtx);
+      : committedContent;
   return (
     <button
       className={cx(

@@ -45,13 +45,6 @@ export function useMenuGroup<
     | Node<React.ReactElement<BaseMenuGroupProps>>
     | undefined;
 
-  if (!context || !node) {
-    if (PLUME_STRICT_MODE) {
-      throw new Error("You can only use a Menu.Group within a Menu component.");
-    }
-    return getDefaultPlasmicProps(plasmicClass, props);
-  }
-
   const { headingProps, groupProps } = useMenuSection({
     heading: props.title,
     "aria-label": props["aria-label"],
@@ -60,6 +53,14 @@ export function useMenuGroup<
   const { separatorProps } = useSeparator({
     elementType: "li",
   });
+
+  if (!context || !node) {
+    if (PLUME_STRICT_MODE) {
+      throw new Error("You can only use a Menu.Group within a Menu component.");
+    }
+    return getDefaultPlasmicProps(plasmicClass, props);
+  }
+
 
   const variants = {
     ...pick(props, ...plasmicClass.internalVariantProps),

@@ -15,20 +15,20 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -97,11 +97,10 @@ function PlasmicExperimentEvent__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "withoutLabel",
@@ -111,18 +110,20 @@ function PlasmicExperimentEvent__RenderFunc(props: {
           $props.withoutLabel,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -279,12 +280,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -294,30 +291,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicExperimentEvent__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicExperimentEvent";
-  } else {
-    func.displayName = `PlasmicExperimentEvent.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicExperimentEvent__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicExperimentEvent__root<T extends PlasmicExperimentEvent__rootProps>(props: T & StrictProps<T, PlasmicExperimentEvent__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicExperimentEvent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicExperimentEvent__root.displayName = "PlasmicExperimentEvent";
+
+type PlasmicExperimentEvent__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicExperimentEvent__freeBox<T extends PlasmicExperimentEvent__freeBoxProps>(props: T & StrictProps<T, PlasmicExperimentEvent__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicExperimentEvent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicExperimentEvent__freeBox.displayName = "PlasmicExperimentEvent.freeBox";
+
+type PlasmicExperimentEvent__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicExperimentEvent__text<T extends PlasmicExperimentEvent__textProps>(props: T & StrictProps<T, PlasmicExperimentEvent__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicExperimentEvent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicExperimentEvent__text.displayName = "PlasmicExperimentEvent.text";
+
+type PlasmicExperimentEvent__inputProps = NodeComponentProps<"input"> & {key?: React.Key};
+function PlasmicExperimentEvent__input<T extends PlasmicExperimentEvent__inputProps>(props: T & StrictProps<T, PlasmicExperimentEvent__inputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("input", props);
+  return <PlasmicExperimentEvent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"input"} />;
+}
+PlasmicExperimentEvent__input.displayName = "PlasmicExperimentEvent.input";
+
+type PlasmicExperimentEvent__copyButtonProps = NodeComponentProps<"copyButton"> & {key?: React.Key};
+function PlasmicExperimentEvent__copyButton<T extends PlasmicExperimentEvent__copyButtonProps>(props: T & StrictProps<T, PlasmicExperimentEvent__copyButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("copyButton", props);
+  return <PlasmicExperimentEvent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"copyButton"} />;
+}
+PlasmicExperimentEvent__copyButton.displayName = "PlasmicExperimentEvent.copyButton";
+
 
 export const PlasmicExperimentEvent = Object.assign(
   // Top-level PlasmicExperimentEvent renders the root element
-  makeNodeComponent("root"),
+  PlasmicExperimentEvent__root,
   {
     // Helper components rendering sub-elements
-    freeBox: makeNodeComponent("freeBox"),
-    text: makeNodeComponent("text"),
-    input: makeNodeComponent("input"),
-    copyButton: makeNodeComponent("copyButton"),
+    freeBox: PlasmicExperimentEvent__freeBox,
+    text: PlasmicExperimentEvent__text,
+    input: PlasmicExperimentEvent__input,
+    copyButton: PlasmicExperimentEvent__copyButton,
 
     // Metadata about props expected for PlasmicExperimentEvent
     internalVariantProps: PlasmicExperimentEvent__VariantProps,

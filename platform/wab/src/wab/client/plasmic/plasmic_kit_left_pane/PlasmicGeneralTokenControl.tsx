@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,12 +22,12 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import RowItem from "../../components/RowItem"; // plasmic-import: gkx-PRZnjFPo/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -97,11 +97,10 @@ function PlasmicGeneralTokenControl__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showIcon",
@@ -110,18 +109,20 @@ function PlasmicGeneralTokenControl__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.showIcon,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -209,12 +210,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -224,28 +221,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicGeneralTokenControl__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicGeneralTokenControl";
-  } else {
-    func.displayName = `PlasmicGeneralTokenControl.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicGeneralTokenControl__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicGeneralTokenControl__root<T extends PlasmicGeneralTokenControl__rootProps>(props: T & StrictProps<T, PlasmicGeneralTokenControl__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicGeneralTokenControl__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicGeneralTokenControl__root.displayName = "PlasmicGeneralTokenControl";
+
+type PlasmicGeneralTokenControl__rowItemProps = NodeComponentProps<"rowItem"> & {key?: React.Key};
+function PlasmicGeneralTokenControl__rowItem<T extends PlasmicGeneralTokenControl__rowItemProps>(props: T & StrictProps<T, PlasmicGeneralTokenControl__rowItemProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("rowItem", props);
+  return <PlasmicGeneralTokenControl__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"rowItem"} />;
+}
+PlasmicGeneralTokenControl__rowItem.displayName = "PlasmicGeneralTokenControl.rowItem";
+
+type PlasmicGeneralTokenControl__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicGeneralTokenControl__svg<T extends PlasmicGeneralTokenControl__svgProps>(props: T & StrictProps<T, PlasmicGeneralTokenControl__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicGeneralTokenControl__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicGeneralTokenControl__svg.displayName = "PlasmicGeneralTokenControl.svg";
+
 
 export const PlasmicGeneralTokenControl = Object.assign(
   // Top-level PlasmicGeneralTokenControl renders the root element
-  makeNodeComponent("root"),
+  PlasmicGeneralTokenControl__root,
   {
     // Helper components rendering sub-elements
-    rowItem: makeNodeComponent("rowItem"),
-    svg: makeNodeComponent("svg"),
+    rowItem: PlasmicGeneralTokenControl__rowItem,
+    svg: PlasmicGeneralTokenControl__svg,
 
     // Metadata about props expected for PlasmicGeneralTokenControl
     internalVariantProps: PlasmicGeneralTokenControl__VariantProps,

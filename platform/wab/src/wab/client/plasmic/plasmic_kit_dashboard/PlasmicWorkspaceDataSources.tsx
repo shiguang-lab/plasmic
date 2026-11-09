@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   PlasmicIcon as PlasmicIcon__,
   SingleBooleanChoiceArg,
   StrictProps,
@@ -25,14 +25,14 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import DataSource from "../../components/dashboard/DataSource"; // plasmic-import: B2dxgzfI6E/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -106,11 +106,10 @@ function PlasmicWorkspaceDataSources__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "viewer",
@@ -126,20 +125,22 @@ function PlasmicWorkspaceDataSources__RenderFunc(props: {
           $props.showApiKeys,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -401,12 +402,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -416,29 +413,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicWorkspaceDataSources__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicWorkspaceDataSources";
-  } else {
-    func.displayName = `PlasmicWorkspaceDataSources.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicWorkspaceDataSources__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicWorkspaceDataSources__root<T extends PlasmicWorkspaceDataSources__rootProps>(props: T & StrictProps<T, PlasmicWorkspaceDataSources__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicWorkspaceDataSources__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicWorkspaceDataSources__root.displayName = "PlasmicWorkspaceDataSources";
+
+type PlasmicWorkspaceDataSources__newDataSourceProps = NodeComponentProps<"newDataSource"> & {key?: React.Key};
+function PlasmicWorkspaceDataSources__newDataSource<T extends PlasmicWorkspaceDataSources__newDataSourceProps>(props: T & StrictProps<T, PlasmicWorkspaceDataSources__newDataSourceProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newDataSource", props);
+  return <PlasmicWorkspaceDataSources__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newDataSource"} />;
+}
+PlasmicWorkspaceDataSources__newDataSource.displayName = "PlasmicWorkspaceDataSources.newDataSource";
+
+type PlasmicWorkspaceDataSources__sourcesProps = NodeComponentProps<"sources"> & {key?: React.Key};
+function PlasmicWorkspaceDataSources__sources<T extends PlasmicWorkspaceDataSources__sourcesProps>(props: T & StrictProps<T, PlasmicWorkspaceDataSources__sourcesProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("sources", props);
+  return <PlasmicWorkspaceDataSources__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"sources"} />;
+}
+PlasmicWorkspaceDataSources__sources.displayName = "PlasmicWorkspaceDataSources.sources";
+
+type PlasmicWorkspaceDataSources__newApiKeyProps = NodeComponentProps<"newApiKey"> & {key?: React.Key};
+function PlasmicWorkspaceDataSources__newApiKey<T extends PlasmicWorkspaceDataSources__newApiKeyProps>(props: T & StrictProps<T, PlasmicWorkspaceDataSources__newApiKeyProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newApiKey", props);
+  return <PlasmicWorkspaceDataSources__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newApiKey"} />;
+}
+PlasmicWorkspaceDataSources__newApiKey.displayName = "PlasmicWorkspaceDataSources.newApiKey";
+
 
 export const PlasmicWorkspaceDataSources = Object.assign(
   // Top-level PlasmicWorkspaceDataSources renders the root element
-  makeNodeComponent("root"),
+  PlasmicWorkspaceDataSources__root,
   {
     // Helper components rendering sub-elements
-    newDataSource: makeNodeComponent("newDataSource"),
-    sources: makeNodeComponent("sources"),
-    newApiKey: makeNodeComponent("newApiKey"),
+    newDataSource: PlasmicWorkspaceDataSources__newDataSource,
+    sources: PlasmicWorkspaceDataSources__sources,
+    newApiKey: PlasmicWorkspaceDataSources__newApiKey,
 
     // Metadata about props expected for PlasmicWorkspaceDataSources
     internalVariantProps: PlasmicWorkspaceDataSources__VariantProps,

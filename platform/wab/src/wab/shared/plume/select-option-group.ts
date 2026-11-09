@@ -37,20 +37,15 @@ const selectOptionGroupConfig = {
 export const SelectOptionGroupPlugin: PlumePlugin = {
   // PlumeCanvasPlugin
   genCanvasWrapperComponent: (sub, comp, observer, getCompMeta) => {
-    return (allProps) =>
-      observer(() => {
-        const internalProps = pick(allProps, internalCanvasElementProps);
-        const { plasmicProps } = sub.reactWeb.useSelectOptionGroup(
-          Object.assign(comp, getCompMeta()),
-          omit(allProps, internalCanvasElementProps),
-          selectOptionGroupConfig as any,
-        );
+    return sub.createCanvasComponentType((allProps) =>
+      observer(() => sub.React.createElement(sub.CanvasPlume.CanvasPlumeSelectOptionGroup, {
+        impl: comp,
+        metadata: getCompMeta(),
+        internalProps: pick(allProps, internalCanvasElementProps),
+        componentProps: omit(allProps, internalCanvasElementProps),
+        config: selectOptionGroupConfig as any,
 
-        return sub.React.createElement(comp, {
-          ...plasmicProps,
-          ...internalProps,
-        });
-      });
+      })));
   },
 
   // PlumeCodegenPlugin
@@ -59,8 +54,8 @@ export const SelectOptionGroupPlugin: PlumePlugin = {
     const { component } = ctx;
 
     return `
-      function useBehavior<P extends pp.BaseSelectOptionGroupProps>(props: P) {
-        return pp.useSelectOptionGroup(
+      function useBehavior<P extends Plume.BaseSelectOptionGroupProps>(props: P) {
+        return Plume.useSelectOptionGroup(
           ${makePlasmicComponentName(component)},
           props,
           ${jsLiteral(selectOptionGroupConfig)}
@@ -76,7 +71,7 @@ export const SelectOptionGroupPlugin: PlumePlugin = {
     return `
       export interface ${
         opts?.typeName ?? makeDefaultExternalPropsName(component)
-      } extends pp.BaseSelectOptionGroupProps {
+      } extends Plume.BaseSelectOptionGroupProps {
         ${params
           .map(
             (param) =>

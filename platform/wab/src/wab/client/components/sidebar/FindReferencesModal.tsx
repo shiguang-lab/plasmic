@@ -1,3 +1,6 @@
+import { ReferenceInputs, ReferenceInput } from "@/wab/client/components/sidebar/find-reference-inputs";
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useContentEditorMode } from "@/wab/client/studio-ctx/content-editor-mode-state";
 import ListSectionSeparator from "@/wab/client/components/ListSectionSeparator";
 import { menuSection } from "@/wab/client/components/menu-builder";
 import { MixinPopup } from "@/wab/client/components/sidebar/MixinControls";
@@ -14,12 +17,7 @@ import PlasmicFindReferencesModal from "@/wab/client/plasmic/plasmic_kit_find_re
 import { DefaultReferenceItemProps } from "@/wab/client/plasmic/plasmic_kit_find_references_modal/PlasmicReferenceItem";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
-import { FRAME_LOWER } from "@/wab/shared/Labels";
 import { assert, ensure, spawn, unexpected } from "@/wab/shared/common";
-import {
-  getComponentDisplayName,
-  isPageComponent,
-} from "@/wab/shared/core/components";
 import {
   extractComponentUsages,
   getArenaFromFrame,
@@ -45,8 +43,7 @@ import {
   isKnownStyleTokenOverride,
 } from "@/wab/shared/model/classes";
 import { Menu } from "antd";
-import L, { sortBy } from "lodash";
-import { observer } from "mobx-react";
+import L from "lodash";
 import { ok } from "neverthrow";
 import * as React from "react";
 import { VariableSizeList } from "react-window";
@@ -61,14 +58,6 @@ export interface UsageSummary {
   styleTokenOverrides?: StyleTokenOverride[];
   themes?: DefaultStyle[];
 }
-
-type Reference =
-  | Component
-  | StyleToken
-  | StyleTokenOverride
-  | Mixin
-  | DefaultStyle
-  | ArenaFrame;
 
 type Item = {
   displayName: string;
@@ -105,8 +94,7 @@ function typeToIcon(type: ItemType) {
   }
 }
 
-export const FindReferencesModal = observer(
-  function FindReferencesModal(props: {
+export function FindReferencesModal(props: {
     displayName: string;
     icon: React.ReactNode;
     usageSummary: UsageSummary;
@@ -114,6 +102,11 @@ export const FindReferencesModal = observer(
     onClose: () => void;
   }) {
     const { usageSummary, studioCtx, icon, displayName } = props;
+    const identity = usageSummary.components[0] ?? usageSummary.frames[0] ?? usageSummary.styleTokens?.[0] ?? usageSummary.styleTokenOverrides?.[0] ?? usageSummary.mixins?.[0] ?? usageSummary.themes?.[0]?.style ?? studioCtx;
+    const world = useVariantModelWorld(studioCtx, identity);
+    const contentEditorMode = useContentEditorMode(studioCtx);
+    const source = React.useMemo(() => new ReferenceInputs(world, usageSummary, contentEditorMode), [world, usageSummary, contentEditorMode]);
+    const inputs = React.useSyncExternalStore(source.subscribe, source.getSnapshot, source.getSnapshot);
     const currentArenaRef = useStudioArena(studioCtx, (state) => state.current);
 
     const [editToken, setEditToken] = React.useState<
@@ -130,75 +123,77 @@ export const FindReferencesModal = observer(
       Item | undefined
     >(undefined);
 
-    const toItem = (type: ItemType, item: Reference): Item => {
+    const toItem = (input: ReferenceInput): Item => {
+      const { type, target: item, displayName, arenaUid } = input;
       if (type === "component" || type === "page") {
         const component = item as Component;
-        const arena = studioCtx.getDedicatedArena(component);
         return {
-          displayName: getComponentDisplayName(component),
+          displayName,
           type: type,
-          onClick: () =>
+          onClick: () => {
+            if (!world.isCurrent()) { return; }
             spawn(
               studioCtx.change(() => {
+                if (!world.isCurrent()) { return ok(); }
                 studioCtx.switchToComponentArena(component);
                 return ok();
               }),
-            ),
-          isSelected: currentArenaRef !== null && arena?.uid === currentArenaRef.uid,
+            );
+          },
+          isSelected: currentArenaRef !== null && arenaUid === currentArenaRef.uid,
           getUsageSummary:
             type === "component"
-              ? () => extractComponentUsages(studioCtx.site, component)
+              ? () => world.isCurrent() ? extractComponentUsages(world.site, component) : { components: [], frames: [] }
               : undefined,
         };
       } else if (type === "frame") {
         const frame = item as ArenaFrame;
-        const arena = getArenaFromFrame(studioCtx.site, frame);
         return {
-          displayName: frame.name || `unnamed ${FRAME_LOWER}`,
+          displayName,
           type: type,
-          onClick: () =>
+          onClick: () => {
+            if (!world.isCurrent()) { return; }
             spawn(
               studioCtx.change(() => {
-                studioCtx.switchToArena(arena);
+                if (!world.isCurrent()) { return ok(); }
+                studioCtx.switchToArena(getArenaFromFrame(world.site, frame));
                 return ok();
               }),
-            ),
-          isSelected: currentArenaRef !== null && arena?.uid === currentArenaRef.uid,
+            );
+          },
+          isSelected: currentArenaRef !== null && arenaUid === currentArenaRef.uid,
         };
       } else if (type === "token") {
-        const token = isKnownStyleToken(item)
-          ? toFinalToken(item, studioCtx.site)
-          : isKnownStyleTokenOverride(item)
-            ? toFinalToken(item.token, studioCtx.site)
-            : unexpected();
-        assert(
-          token instanceof MutableToken || token instanceof OverrideableToken,
-          "token must be editable",
-        );
+        const getToken = () => {
+          const token = isKnownStyleToken(item)
+            ? toFinalToken(item, world.site)
+            : isKnownStyleTokenOverride(item)
+              ? toFinalToken(item.token, world.site)
+              : unexpected();
+          assert(token instanceof MutableToken || token instanceof OverrideableToken, "token must be editable");
+          return token;
+        };
         return {
-          displayName: token.name,
-          type: type,
-          onClick: () => setEditToken(token),
-          getUsageSummary: () =>
-            extractTokenUsages(studioCtx.site, token.base)[1],
+          displayName,
+          type,
+          onClick: () => { if (world.isCurrent()) { setEditToken(getToken()); } },
+          getUsageSummary: () => world.isCurrent() ? extractTokenUsages(world.site, getToken().base)[1] : { components: [], frames: [] },
         };
       } else if (type === "mixin") {
         const mixin = item as Mixin;
         return {
-          displayName: mixin.name,
+          displayName,
           type: type,
-          onClick: () => setEditMixin(mixin),
-          getUsageSummary: () => extractMixinUsages(studioCtx.site, mixin)[1],
+          onClick: () => { if (world.isCurrent()) { setEditMixin(mixin); } },
+          getUsageSummary: () => world.isCurrent() ? extractMixinUsages(world.site, mixin)[1] : { components: [], frames: [] },
         };
       } else if (type === "theme") {
         const theme = item as DefaultStyle;
         return {
-          displayName: theme.selector
-            ? `Default "${theme.selector}"`
-            : `Default Typography`,
+          displayName,
           type: type,
           onClick: () => {
-            setEditDefaultStyle(theme);
+            if (world.isCurrent()) { setEditDefaultStyle(theme); }
           },
         };
       } else {
@@ -206,23 +201,11 @@ export const FindReferencesModal = observer(
       }
     };
 
-    const getSection = (type: ItemType, items: Reference[]) => {
-      const _items = items.map((item) => toItem(type, item));
-      sortBy(_items);
-      return [...(_items.length ? ["separator"] : []), ..._items];
-    };
-    const items = [
-      ...getSection("page", usageSummary.components.filter(isPageComponent)),
-      ...getSection(
-        "component",
-        usageSummary.components.filter((c) => !isPageComponent(c)),
-      ),
-      ...getSection("frame", usageSummary.frames),
-      ...getSection("token", usageSummary.styleTokens ?? []),
-      ...getSection("token", usageSummary.styleTokenOverrides ?? []),
-      ...getSection("mixin", usageSummary.mixins ?? []),
-      ...getSection("theme", usageSummary.themes ?? []),
-    ];
+    const items: (Item | "separator")[] = [];
+    for (const type of ["page", "component", "frame", "token", "mixin", "theme"] as const) {
+      const section = inputs.filter((input) => input.type === type);
+      if (section.length) { items.push("separator", ...section.map(toItem)); }
+    }
 
     const itemSizer = (index: number) => {
       const item = items[index];
@@ -340,8 +323,7 @@ export const FindReferencesModal = observer(
         )}
       </SidebarModal>
     );
-  },
-);
+}
 
 function getReferenceItemMenuRenderer({
   item,

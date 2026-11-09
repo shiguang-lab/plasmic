@@ -14,42 +14,7 @@
 import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
-import {
-  Flex as Flex__,
-  MultiChoiceArg,
-  PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
-  PlasmicIcon as PlasmicIcon__,
-  PlasmicImg as PlasmicImg__,
-  PlasmicLink as PlasmicLink__,
-  PlasmicPageGuard as PlasmicPageGuard__,
-  SingleBooleanChoiceArg,
-  SingleChoiceArg,
-  Stack as Stack__,
-  StrictProps,
-  Trans as Trans__,
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  ensureGlobalVariants,
-  generateOnMutateForSpec,
-  generateStateOnChangeProp,
-  generateStateOnChangePropForCodeComponents,
-  generateStateValueProp,
-  get as $stateGet,
-  hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
-  makeFragment,
-  omit,
-  pick,
-  renderPlasmicSlot,
-  set as $stateSet,
-  useCurrentUser,
-  useDollarState,
-  usePlasmicTranslator,
-  useTrigger,
-  wrapWithClassName
-} from "@plasmicapp/react-web";
+import {usePlasmicRefs, Flex as Flex__, MultiChoiceArg, PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__, PlasmicIcon as PlasmicIcon__, PlasmicImg as PlasmicImg__, PlasmicLink as PlasmicLink__, PlasmicPageGuard as PlasmicPageGuard__, SingleBooleanChoiceArg, SingleChoiceArg, Stack as Stack__, StrictProps, Trans as Trans__, classNames, createPlasmicElementProxy, deriveRenderOpts, ensureGlobalVariants, generateOnMutateForSpec, generateStateOnChangeProp, generateStateOnChangePropForCodeComponents, generateStateValueProp, get as $stateGet, hasVariant, makeFragment, omit, pick, renderPlasmicSlot, set as $stateSet, useCurrentUser, useDollarState, useDollarStateSnapshot, usePlasmicTranslator, wrapWithClassName} from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
@@ -58,8 +23,8 @@ import {
 
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import DataPickerColumnItem from "../../components/sidebar-tabs/DataBinding/DataPickerColumnItem"; // plasmic-import: fa3uzsyXr0/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -132,11 +97,10 @@ function PlasmicDataPickerColumn__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isWide",
@@ -152,18 +116,20 @@ function PlasmicDataPickerColumn__RenderFunc(props: {
           $props.previewSteps
       }
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs
-  });
+    getRefs
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -329,12 +295,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -344,30 +306,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDataPickerColumn__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDataPickerColumn";
-  } else {
-    func.displayName = `PlasmicDataPickerColumn.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDataPickerColumn__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDataPickerColumn__root<T extends PlasmicDataPickerColumn__rootProps>(props: T & StrictProps<T, PlasmicDataPickerColumn__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDataPickerColumn__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDataPickerColumn__root.displayName = "PlasmicDataPickerColumn";
+
+type PlasmicDataPickerColumn__runAllStepsProps = NodeComponentProps<"runAllSteps"> & {key?: React.Key};
+function PlasmicDataPickerColumn__runAllSteps<T extends PlasmicDataPickerColumn__runAllStepsProps>(props: T & StrictProps<T, PlasmicDataPickerColumn__runAllStepsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("runAllSteps", props);
+  return <PlasmicDataPickerColumn__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"runAllSteps"} />;
+}
+PlasmicDataPickerColumn__runAllSteps.displayName = "PlasmicDataPickerColumn.runAllSteps";
+
+type PlasmicDataPickerColumn__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicDataPickerColumn__svg<T extends PlasmicDataPickerColumn__svgProps>(props: T & StrictProps<T, PlasmicDataPickerColumn__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicDataPickerColumn__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicDataPickerColumn__svg.displayName = "PlasmicDataPickerColumn.svg";
+
+type PlasmicDataPickerColumn__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicDataPickerColumn__text<T extends PlasmicDataPickerColumn__textProps>(props: T & StrictProps<T, PlasmicDataPickerColumn__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicDataPickerColumn__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicDataPickerColumn__text.displayName = "PlasmicDataPickerColumn.text";
+
+type PlasmicDataPickerColumn__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicDataPickerColumn__freeBox<T extends PlasmicDataPickerColumn__freeBoxProps>(props: T & StrictProps<T, PlasmicDataPickerColumn__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicDataPickerColumn__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicDataPickerColumn__freeBox.displayName = "PlasmicDataPickerColumn.freeBox";
+
 
 export const PlasmicDataPickerColumn = Object.assign(
   // Top-level PlasmicDataPickerColumn renders the root element
-  makeNodeComponent("root"),
+  PlasmicDataPickerColumn__root,
   {
     // Helper components rendering sub-elements
-    runAllSteps: makeNodeComponent("runAllSteps"),
-    svg: makeNodeComponent("svg"),
-    text: makeNodeComponent("text"),
-    freeBox: makeNodeComponent("freeBox"),
+    runAllSteps: PlasmicDataPickerColumn__runAllSteps,
+    svg: PlasmicDataPickerColumn__svg,
+    text: PlasmicDataPickerColumn__text,
+    freeBox: PlasmicDataPickerColumn__freeBox,
 
     // Metadata about props expected for PlasmicDataPickerColumn
     internalVariantProps: PlasmicDataPickerColumn__VariantProps,

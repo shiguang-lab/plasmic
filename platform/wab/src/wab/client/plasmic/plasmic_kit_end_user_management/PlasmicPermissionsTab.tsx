@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -30,7 +30,7 @@ import StyleCheckbox from "../../components/style-controls/StyleCheckbox"; // pl
 import StyleSelect from "../../components/style-controls/StyleSelect"; // plasmic-import: E0bKgamUEin/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -96,11 +96,10 @@ function PlasmicPermissionsTab__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -306,12 +305,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -321,33 +316,77 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPermissionsTab__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPermissionsTab";
-  } else {
-    func.displayName = `PlasmicPermissionsTab.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPermissionsTab__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPermissionsTab__root<T extends PlasmicPermissionsTab__rootProps>(props: T & StrictProps<T, PlasmicPermissionsTab__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPermissionsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPermissionsTab__root.displayName = "PlasmicPermissionsTab";
+
+type PlasmicPermissionsTab__formProps = NodeComponentProps<"form"> & {key?: React.Key};
+function PlasmicPermissionsTab__form<T extends PlasmicPermissionsTab__formProps>(props: T & StrictProps<T, PlasmicPermissionsTab__formProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("form", props);
+  return <PlasmicPermissionsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"form"} />;
+}
+PlasmicPermissionsTab__form.displayName = "PlasmicPermissionsTab.form";
+
+type PlasmicPermissionsTab__notifyCheckboxProps = NodeComponentProps<"notifyCheckbox"> & {key?: React.Key};
+function PlasmicPermissionsTab__notifyCheckbox<T extends PlasmicPermissionsTab__notifyCheckboxProps>(props: T & StrictProps<T, PlasmicPermissionsTab__notifyCheckboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("notifyCheckbox", props);
+  return <PlasmicPermissionsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"notifyCheckbox"} />;
+}
+PlasmicPermissionsTab__notifyCheckbox.displayName = "PlasmicPermissionsTab.notifyCheckbox";
+
+type PlasmicPermissionsTab__inputProps = NodeComponentProps<"input"> & {key?: React.Key};
+function PlasmicPermissionsTab__input<T extends PlasmicPermissionsTab__inputProps>(props: T & StrictProps<T, PlasmicPermissionsTab__inputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("input", props);
+  return <PlasmicPermissionsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"input"} />;
+}
+PlasmicPermissionsTab__input.displayName = "PlasmicPermissionsTab.input";
+
+type PlasmicPermissionsTab__roleSelectProps = NodeComponentProps<"roleSelect"> & {key?: React.Key};
+function PlasmicPermissionsTab__roleSelect<T extends PlasmicPermissionsTab__roleSelectProps>(props: T & StrictProps<T, PlasmicPermissionsTab__roleSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("roleSelect", props);
+  return <PlasmicPermissionsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"roleSelect"} />;
+}
+PlasmicPermissionsTab__roleSelect.displayName = "PlasmicPermissionsTab.roleSelect";
+
+type PlasmicPermissionsTab__addBtnProps = NodeComponentProps<"addBtn"> & {key?: React.Key};
+function PlasmicPermissionsTab__addBtn<T extends PlasmicPermissionsTab__addBtnProps>(props: T & StrictProps<T, PlasmicPermissionsTab__addBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addBtn", props);
+  return <PlasmicPermissionsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addBtn"} />;
+}
+PlasmicPermissionsTab__addBtn.displayName = "PlasmicPermissionsTab.addBtn";
+
+type PlasmicPermissionsTab__columnsProps = NodeComponentProps<"columns"> & {key?: React.Key};
+function PlasmicPermissionsTab__columns<T extends PlasmicPermissionsTab__columnsProps>(props: T & StrictProps<T, PlasmicPermissionsTab__columnsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("columns", props);
+  return <PlasmicPermissionsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"columns"} />;
+}
+PlasmicPermissionsTab__columns.displayName = "PlasmicPermissionsTab.columns";
+
+type PlasmicPermissionsTab__mainRulesProps = NodeComponentProps<"mainRules"> & {key?: React.Key};
+function PlasmicPermissionsTab__mainRules<T extends PlasmicPermissionsTab__mainRulesProps>(props: T & StrictProps<T, PlasmicPermissionsTab__mainRulesProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("mainRules", props);
+  return <PlasmicPermissionsTab__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"mainRules"} />;
+}
+PlasmicPermissionsTab__mainRules.displayName = "PlasmicPermissionsTab.mainRules";
+
 
 export const PlasmicPermissionsTab = Object.assign(
   // Top-level PlasmicPermissionsTab renders the root element
-  makeNodeComponent("root"),
+  PlasmicPermissionsTab__root,
   {
     // Helper components rendering sub-elements
-    form: makeNodeComponent("form"),
-    notifyCheckbox: makeNodeComponent("notifyCheckbox"),
-    input: makeNodeComponent("input"),
-    roleSelect: makeNodeComponent("roleSelect"),
-    addBtn: makeNodeComponent("addBtn"),
-    columns: makeNodeComponent("columns"),
-    mainRules: makeNodeComponent("mainRules"),
+    form: PlasmicPermissionsTab__form,
+    notifyCheckbox: PlasmicPermissionsTab__notifyCheckbox,
+    input: PlasmicPermissionsTab__input,
+    roleSelect: PlasmicPermissionsTab__roleSelect,
+    addBtn: PlasmicPermissionsTab__addBtn,
+    columns: PlasmicPermissionsTab__columns,
+    mainRules: PlasmicPermissionsTab__mainRules,
 
     // Metadata about props expected for PlasmicPermissionsTab
     internalVariantProps: PlasmicPermissionsTab__VariantProps,

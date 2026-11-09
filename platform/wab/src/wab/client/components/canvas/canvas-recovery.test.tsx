@@ -1,29 +1,37 @@
-import { mkCanvasErrorBoundary } from "@/wab/client/components/canvas/canvas-error";
+import { CanvasObserver } from "../../../../../../canvas-packages/src/canvas-observer";
+import { CanvasErrorBoundary, CanvasErrorDisplay } from "../../../../../../canvas-packages/src/canvas-error";
+import { wrapCanvasErrorBoundary } from "@/wab/client/components/canvas/canvas-error";
 import { mkUseCanvasObserver } from "@/wab/client/components/canvas/canvas-observer";
 import { globalHookCtx } from "@/wab/client/react-global-hook/globalHook";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ensure } from "@/wab/shared/common";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { act, cleanup, render } from "@testing-library/react";
-import { observable, runInAction } from "mobx";
+import { createStore } from "zustand/vanilla";
+import { CanvasRenderOwner } from "@/wab/client/components/canvas/canvas-cache";
+import { CanvasSessionState } from "@/wab/client/components/canvas/canvas-session-state";
+import type { CanvasObserverInput } from "@/wab/client/components/canvas/canvas-observer";
 import React from "react";
 import * as ReactDOM from "react-dom";
 
-function fixture() {
+const releases: (() => void)[] = [];
+function fixture(input?: CanvasObserverInput) {
   const lifetime = new AbortController();
+  const session = new CanvasSessionState(), owner = new CanvasRenderOwner(session);
+  releases.push(() => { lifetime.abort(); owner.dispose(); session.dispose(); });
   const frame = globalHookCtx.createFrameState({ uid: 402, objectPrototype: {} });
   const view: ViewCtx = Object.assign(Object.create(ViewCtx.prototype), {
-    _isDisposed: false, disposeSignal: lifetime.signal, frameState: frame, arenaFrame: () => ({ uid: 402 }),
+    _isDisposed: false, disposeSignal: lifetime.signal, frameState: frame, canvasRenderOwner: owner, arenaFrame: () => ({ uid: 402 }),
     canvasObservers: new Set(), uncommittedCanvasObservers: new Map(),
     canvasErrorObservers: new Set(), _canvasRerenderQueue: new Set(),
-    canvasCtx: { Sub: { React, ReactDOM, DataContext: React.createContext({}) } },
+    canvasCtx: { Sub: { React, ReactDOM, DataContext: CanvasErrorBoundary.contextType, CanvasErrorBoundary, CanvasErrorDisplay } },
     syncQueue: { idle: () => true },
     studioCtx: { hasPendingModelChanges: () => false },
     updateCtxPostChange: vi.fn(),
   });
-  const useObserver = mkUseCanvasObserver({ React } as any, view);
-  const Boundary = mkCanvasErrorBoundary(view, React);
-  const boundaryProps = { ctx: { viewCtx: view, env: {}, wrappingEnv: {}, valKey: "table", ownerKey: "page" }, nodeOrComponent: mkTplTagX("div") } as any;
+  const useObserver = mkUseCanvasObserver({ React, CanvasObserver } as any, view, input);
+  const Boundary = CanvasErrorBoundary;
+  const boundaryProps = wrapCanvasErrorBoundary({ ctx: { viewCtx: view, env: {}, wrappingEnv: {}, valKey: "table", ownerKey: "page" }, nodeOrComponent: mkTplTagX("div"), children: null } as any).props;
   return { view, useObserver, Boundary, boundaryProps, lifetime };
 }
 
@@ -34,7 +42,7 @@ beforeEach(() => {
   vi.spyOn(console, "error").mockReturnValue(undefined);
 });
 afterEach(() => {
-  cleanup();
+  cleanup(); releases.splice(0).forEach((release) => release());
   globalHookCtx.frames.get(402)?.dispose();
   vi.clearAllTimers();
   vi.useRealTimers();
@@ -42,15 +50,15 @@ afterEach(() => {
 });
 
 it("latches a persistent component error, cleans abandoned observers and recovers on model evaluation", async () => {
-  const { view, useObserver, Boundary, boundaryProps } = fixture();
-  const options = observable.box<any>({ 常规: { label: "常规", color: "geekblue" } });
+  const options = createStore<unknown>(() => ({ 常规: { label: "常规", color: "geekblue" } }));
+  const { view, useObserver, Boundary, boundaryProps } = fixture(options);
   const attempts = vi.fn();
   function Widget({ value }: { value: any }) {
     attempts();
     return <span>{value?.find((item: any) => item.value === "常规")?.label}</span>;
   }
   function Observer() {
-    return useObserver(() => <Widget value={options.get()} />);
+    return useObserver(() => <Widget value={options.getState()} />);
   }
   const result = render(<Boundary {...boundaryProps}><Observer /></Boundary>);
   expect(result.container.textContent).toContain("find is not a function");
@@ -60,7 +68,7 @@ it("latches a persistent component error, cleans abandoned observers and recover
   expect(view.canvasObservers.size).toBe(0);
   expect(vi.getTimerCount()).toBe(0);
   await act(() => {
-    runInAction(() => options.set([{ value: "常规", label: "已恢复" }]));
+    options.setState([{ value: "常规", label: "已恢复" }], true);
     view.flushRerenderQueue();
   });
   expect(result.getByText("已恢复")).toBeTruthy();
@@ -72,14 +80,14 @@ it("latches a persistent component error, cleans abandoned observers and recover
 });
 
 it("keeps committed observers reactive through StrictMode and cleans them on unmount", async () => {
-  const { view, useObserver } = fixture();
-  const value = observable.box("初始");
-  function Observer() { return useObserver(() => <span>{value.get()}</span>); }
+  const value = createStore(() => "初始");
+  const { view, useObserver } = fixture(value);
+  function Observer() { return useObserver(() => <span>{value.getState()}</span>); }
   const result = render(<React.StrictMode><Observer /></React.StrictMode>);
   await act(() => vi.advanceTimersByTime(30000));
   expect(view.canvasObservers.size).toBe(1);
   await act(() => {
-    runInAction(() => value.set("已更新"));
+    value.setState("已更新", true);
     vi.advanceTimersByTime(32);
   });
   expect(result.getByText("已更新")).toBeTruthy();
@@ -87,16 +95,16 @@ it("keeps committed observers reactive through StrictMode and cleans them on unm
   expect(view.canvasObservers.size).toBe(0);
 });
 
-it("can resume a suspended render after its uncommitted reaction was reclaimed", async () => {
-  const { view, useObserver } = fixture();
+it("can resume a suspended render after its uncommitted render lease was reclaimed", async () => {
+  const value = createStore(() => "已加载");
+  const { view, useObserver } = fixture(value);
   let ready = false;
   let resume!: () => void;
   const pending = new Promise<void>((resolve) => { resume = resolve; });
-  const value = observable.box("已加载");
   function Observer() {
     return useObserver(() => {
       if (!ready) { throw pending; }
-      return <span>{value.get()}</span>;
+      return <span>{value.getState()}</span>;
     });
   }
   const result = render(<React.Suspense fallback="加载中"><Observer /></React.Suspense>);
@@ -105,7 +113,7 @@ it("can resume a suspended render after its uncommitted reaction was reclaimed",
   await act(async () => { ready = true; resume(); await pending; });
   expect(result.getByText("已加载")).toBeTruthy();
   await act(() => {
-    runInAction(() => value.set("查询更新"));
+    value.setState("查询更新", true);
     vi.advanceTimersByTime(32);
   });
   expect(result.getByText("查询更新")).toBeTruthy();
@@ -114,20 +122,18 @@ it("can resume a suspended render after its uncommitted reaction was reclaimed",
 });
 
 
-it("scopes boundary types to the real view, React and DataContext identities", () => {
+it("uses the iframe's native boundary type with independent view lifetimes", () => {
   const first = fixture(), second = fixture();
-  expect(mkCanvasErrorBoundary(first.view, React)).toBe(first.Boundary);
-  expect(second.Boundary).not.toBe(first.Boundary);
-  const originalContext = first.view.canvasCtx.Sub.DataContext;
-  first.view.canvasCtx.Sub.DataContext = React.createContext<React.ContextType<typeof originalContext>>(undefined);
-  const otherContext = mkCanvasErrorBoundary(first.view, React);
-  expect(otherContext).not.toBe(first.Boundary);
-  expect(otherContext.contextType).toBe(first.view.canvasCtx.Sub.DataContext);
-  first.view.canvasCtx.Sub.DataContext = originalContext;
-  expect(mkCanvasErrorBoundary(first.view, React)).toBe(first.Boundary);
-  first.lifetime.abort(); second.lifetime.abort();
-  expect(() => mkCanvasErrorBoundary(first.view, React)).toThrow("Cannot create a canvas error boundary for a disposed view");
+  expect(first.Boundary).toBe(CanvasErrorBoundary);
+  expect(second.Boundary).toBe(CanvasErrorBoundary);
+  expect(first.boundaryProps.lifetime).toBe(first.lifetime.signal);
+  expect(second.boundaryProps.lifetime).toBe(second.lifetime.signal);
+  expect(first.Boundary.contextType).toBe(first.view.canvasCtx.Sub.DataContext);
+  first.lifetime.abort();
+  expect(second.boundaryProps.lifetime.aborted).toBe(false);
+  expect(() => wrapCanvasErrorBoundary({ ctx: { viewCtx: first.view }, nodeOrComponent: mkTplTagX("div"), children: null } as any)).toThrow("Cannot create a canvas error boundary for a disposed view");
 });
+
 
 it("releases a persistent error subscription at view abort before React unmount and ignores a queued retry", () => {
   const { view, Boundary, boundaryProps, lifetime } = fixture();
@@ -151,4 +157,29 @@ it("releases a persistent error subscription at view abort before React unmount 
   result.unmount(); lifetime.abort();
   expect(stopped).toHaveBeenCalledOnce();
   stateUpdates.mockRestore();
+});
+
+it.each(["view", "owner"] as const)("unmounts a hooked canvas render at %s retirement before a queued retry", (retirement) => {
+  const value = createStore(() => "live"), f = fixture(value), rendered = vi.fn(), cleaned = vi.fn();
+  let queued: (() => void) | undefined;
+  function HookedContent() {
+    const [count, setCount] = React.useState(0);
+    React.useMemo(() => count + 1, [count]);
+    React.useEffect(() => cleaned, []);
+    queued = () => setCount((previous) => previous + 1);
+    rendered(); return <span>{value.getState()}:{count}</span>;
+  }
+  function Content() { return f.useObserver(() => <HookedContent />); }
+  const mounted = render(<React.StrictMode><Content /></React.StrictMode>);
+  expect(mounted.getByText("live:0")).toBeTruthy();
+  const beforeCleanup = cleaned.mock.calls.length;
+  act(() => { if (retirement === "view") { f.lifetime.abort(); } else { f.view.canvasRenderOwner.dispose(); } });
+  expect(mounted.queryByText("live:0")).toBeNull();
+  expect(cleaned).toHaveBeenCalledTimes(beforeCleanup + 1);
+  const beforeRender = rendered.mock.calls.length;
+  act(() => { queued?.(); value.setState("stale", true); f.view.flushRerenderQueue(); });
+  expect(rendered).toHaveBeenCalledTimes(beforeRender);
+  expect(f.view.canvasObservers.size).toBe(0);
+  expect(vi.mocked(console.error).mock.calls.some((args) => args.some((arg) => String(arg).includes("Rendered fewer hooks") || String(arg).includes("order of Hooks")))).toBe(false);
+  mounted.unmount();
 });

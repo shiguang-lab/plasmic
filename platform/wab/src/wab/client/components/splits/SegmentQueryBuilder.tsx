@@ -71,7 +71,7 @@ function SegmentQueryBuilder_(
     </div>
   );
 }
-export function getHumanFormatRules(logic: any) {
+export function useHumanFormatRules(logic: any) {
   const studioCtx = useStudioCtx();
   const { t } = useI18n();
   const fields: Field[] = [

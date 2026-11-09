@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   StrictProps,
   classNames,
   createPlasmicElementProxy,
@@ -26,7 +26,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import LeftPaneHeader from "../../components/studio/LeftPaneHeader"; // plasmic-import: XLa52PvduIy/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -87,11 +87,10 @@ function PlasmicLeftLintIssuesPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -209,12 +208,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -224,30 +219,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftLintIssuesPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftLintIssuesPanel";
-  } else {
-    func.displayName = `PlasmicLeftLintIssuesPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftLintIssuesPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftLintIssuesPanel__root<T extends PlasmicLeftLintIssuesPanel__rootProps>(props: T & StrictProps<T, PlasmicLeftLintIssuesPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftLintIssuesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftLintIssuesPanel__root.displayName = "PlasmicLeftLintIssuesPanel";
+
+type PlasmicLeftLintIssuesPanel__leftPaneHeaderProps = NodeComponentProps<"leftPaneHeader"> & {key?: React.Key};
+function PlasmicLeftLintIssuesPanel__leftPaneHeader<T extends PlasmicLeftLintIssuesPanel__leftPaneHeaderProps>(props: T & StrictProps<T, PlasmicLeftLintIssuesPanel__leftPaneHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("leftPaneHeader", props);
+  return <PlasmicLeftLintIssuesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"leftPaneHeader"} />;
+}
+PlasmicLeftLintIssuesPanel__leftPaneHeader.displayName = "PlasmicLeftLintIssuesPanel.leftPaneHeader";
+
+type PlasmicLeftLintIssuesPanel__descriptionProps = NodeComponentProps<"description"> & {key?: React.Key};
+function PlasmicLeftLintIssuesPanel__description<T extends PlasmicLeftLintIssuesPanel__descriptionProps>(props: T & StrictProps<T, PlasmicLeftLintIssuesPanel__descriptionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("description", props);
+  return <PlasmicLeftLintIssuesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"description"} />;
+}
+PlasmicLeftLintIssuesPanel__description.displayName = "PlasmicLeftLintIssuesPanel.description";
+
+type PlasmicLeftLintIssuesPanel__newComponentButtonProps = NodeComponentProps<"newComponentButton"> & {key?: React.Key};
+function PlasmicLeftLintIssuesPanel__newComponentButton<T extends PlasmicLeftLintIssuesPanel__newComponentButtonProps>(props: T & StrictProps<T, PlasmicLeftLintIssuesPanel__newComponentButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("newComponentButton", props);
+  return <PlasmicLeftLintIssuesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"newComponentButton"} />;
+}
+PlasmicLeftLintIssuesPanel__newComponentButton.displayName = "PlasmicLeftLintIssuesPanel.newComponentButton";
+
+type PlasmicLeftLintIssuesPanel__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicLeftLintIssuesPanel__content<T extends PlasmicLeftLintIssuesPanel__contentProps>(props: T & StrictProps<T, PlasmicLeftLintIssuesPanel__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicLeftLintIssuesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicLeftLintIssuesPanel__content.displayName = "PlasmicLeftLintIssuesPanel.content";
+
 
 export const PlasmicLeftLintIssuesPanel = Object.assign(
   // Top-level PlasmicLeftLintIssuesPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftLintIssuesPanel__root,
   {
     // Helper components rendering sub-elements
-    leftPaneHeader: makeNodeComponent("leftPaneHeader"),
-    description: makeNodeComponent("description"),
-    newComponentButton: makeNodeComponent("newComponentButton"),
-    content: makeNodeComponent("content"),
+    leftPaneHeader: PlasmicLeftLintIssuesPanel__leftPaneHeader,
+    description: PlasmicLeftLintIssuesPanel__description,
+    newComponentButton: PlasmicLeftLintIssuesPanel__newComponentButton,
+    content: PlasmicLeftLintIssuesPanel__content,
 
     // Metadata about props expected for PlasmicLeftLintIssuesPanel
     internalVariantProps: PlasmicLeftLintIssuesPanel__VariantProps,

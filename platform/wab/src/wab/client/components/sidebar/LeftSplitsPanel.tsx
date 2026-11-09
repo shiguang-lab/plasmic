@@ -56,7 +56,7 @@ function LeftSplitsPanel_(
       const forceOpenSplit = studioCtx.forceOpenSpit;
       if (forceOpenSplit) {
         focusSplit(forceOpenSplit);
-        studioCtx.forceOpenSplit = null;
+        studioCtx.forceOpenSplitStore.setState(null, true);
       }
     };
     const dispose = studioCtx.forceOpenSplitStore.subscribe(consumeRequest);

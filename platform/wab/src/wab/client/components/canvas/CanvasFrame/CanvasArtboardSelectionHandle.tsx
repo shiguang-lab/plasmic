@@ -1,3 +1,6 @@
+import { createStore } from "zustand/vanilla";
+import { useStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { useStore } from "zustand";
 import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { useFocusedViewSelection, useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useShallow } from "zustand/react/shallow";
@@ -12,11 +15,11 @@ import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { ArenaFrame } from "@/wab/shared/model/classes";
 import { gridSpacing, hoverBoxTagHeight } from "@/wab/styles/css-variables";
 import cn from "classnames";
-import { observer } from "mobx-react";
 import * as React from "react";
 
-export const CanvasArtboardSelectionHandle = observer(
-  function CanvasArtboardSelectionHandle_({
+const inactiveHandle = createStore<unknown>(() => undefined);
+
+export const CanvasArtboardSelectionHandle = React.memo(function CanvasArtboardSelectionHandle({
     frame,
     onClick,
   }: {
@@ -25,8 +28,22 @@ export const CanvasArtboardSelectionHandle = observer(
   }) {
     const studioCtx = useStudioCtx();
     useContentEditorScope(studioCtx);
+    useStudioArena(studioCtx, (state) => state.kind);
   useFocusedViewSelection(studioCtx, useShallow((state) => [state.context, state.targets, state.tpls]));
   useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view]));
+    const ownerFrame = studioCtx.focusedViewCtx()?.arenaFrame() ?? frame;
+    const scope = React.useMemo(() => {
+      const models = studioCtx.modelSnapshots;
+      return {
+        models, lifetime: studioCtx.arenaState.lifetime(),
+        owned: studioCtx.arenaState.frameMembershipStore.getState().some((ref) => ref.uid === ownerFrame.uid && models.resolve(ref) === ownerFrame),
+      };
+    }, [studioCtx, ownerFrame]);
+    const active = scope.owned && !scope.lifetime.aborted && studioCtx.arenaState.isCurrentLifetime(scope.lifetime) && scope.models === studioCtx.modelSnapshots;
+    useStore(active ? scope.models.declaredField(ownerFrame, "viewMode") : inactiveHandle);
+    useStore(active ? scope.models.declaredField(ownerFrame, "container") : inactiveHandle);
+    useStore(active ? scope.models.declaredField(ownerFrame.container, "component") : inactiveHandle);
+    useStore(active ? scope.models.declaredField(ownerFrame.container.component, "tplTree") : inactiveHandle);
     const stopClickPropagation = React.useCallback(
       (e?: React.MouseEvent<HTMLElement>) => e?.stopPropagation(),
       [],
@@ -72,5 +89,4 @@ export const CanvasArtboardSelectionHandle = observer(
         <Icon icon={PlasmicIcon__Frame} />
       </div>
     );
-  },
-);
+});

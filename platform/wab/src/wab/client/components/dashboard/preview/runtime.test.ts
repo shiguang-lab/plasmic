@@ -4,6 +4,13 @@ import { DEVFLAGS } from "@/wab/shared/devflags";
 import fs from "fs";
 import path from "path";
 
+// Node exercises runtime setup with the real compiler; worker ownership and
+// transport have their own contract tests.
+vi.mock("@/wab/client/components/dashboard/preview/compile-modules", async () => {
+  const { createTranspiler } = await import("@/wab/client/components/live/preview-transpiler");
+  const transpile = createTranspiler();
+  return { compileModules: (modules: import("@/wab/client/components/live/preview-types").SourceModule[]) => Promise.all(modules.map(transpile)) };
+});
 vi.mock("@/wab/client/components/studio/studio-bundles", () => ({
   ensureCanvasRuntime: async () => undefined,
   getLiveFrameClientJs: async () => "",
@@ -46,7 +53,12 @@ it("initializes preview event callbacks before the first isolated render", async
     depPkgs: bundles.slice(0, -1).map(([depId, model]) => ({ id: depId, model })),
   }) })));
   try {
-    await load({ projectId: id, revision: 42, flags: DEVFLAGS, staticBaseUrl: "http://localhost/" });
+    const output = await load({ projectId: id, revision: 42, flags: DEVFLAGS, staticBaseUrl: "http://localhost/" });
+    // Capture consumes board descriptions; the isolated runtime must not keep
+    // the Site or generated module sources alive through its returned value.
+    expect(Object.keys(output)).toEqual(["pages"]);
+    expect(output.pages.length).toBeGreaterThan(0);
+    expect(output.pages[0]).toMatchObject({ uuid: expect.any(String), componentId: expect.any(String), width: expect.any(Number), height: expect.any(Number) });
     expect(update).toHaveBeenCalledOnce();
     expect(onValuesChange).toHaveBeenCalledExactlyOnceWith({ amount: 100 });
     expect(win.__plasmicLive.showError).not.toHaveBeenCalled();

@@ -170,10 +170,8 @@ export function useVariantedStylesHelperFromCurrentCtx(studio: StudioCtx | undef
   const subscribe = React.useCallback((listener: () => void) => source ? source.subscribe(listener) : () => undefined, [source]);
   const read = React.useCallback(() => source ? source.getSnapshot() : emptyContext, [source]);
   const snapshot = React.useSyncExternalStore(subscribe, read, read);
-  const previous = React.useRef<VariantedStylesHelper | undefined>(undefined);
-  return React.useMemo(() => {
-    const helper = source?.materialize(snapshot);
-    if (helper) { previous.current = helper; }
-    return helper ?? previous.current ?? new VariantedStylesHelper();
-  }, [source, snapshot]);
+  const helper = React.useMemo(() => source?.materialize(snapshot), [source, snapshot]);
+  const [previous, setPrevious] = React.useState(() => helper ?? new VariantedStylesHelper());
+  if (helper && helper !== previous) { setPrevious(helper); }
+  return helper ?? previous;
 }

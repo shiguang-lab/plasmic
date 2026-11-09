@@ -1,3 +1,7 @@
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useSelectedImageAsset } from "@/wab/client/studio-ctx/image-asset-inputs";
+import { useModelSelector } from "@/wab/client/stores/model-revisions-react";
+import { modelKeys } from "@/wab/shared/model-revisions";
 import { showError } from "@/wab/client/ErrorNotifications";
 import { FindReferencesModal } from "@/wab/client/components/sidebar/FindReferencesModal";
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
@@ -9,22 +13,14 @@ import { useStudioSaveState } from "@/wab/client/studio-ctx/save-state";
 import { ImageAssetType } from "@/wab/shared/core/image-asset-type";
 import { extractImageAssetUsages } from "@/wab/shared/core/image-assets";
 import { ImageAsset } from "@/wab/shared/model/classes";
-import { canWrite, type UiAccess } from "@/wab/shared/ui-config-utils";
+import { canWrite } from "@/wab/shared/ui-config-utils";
 import { MoreOutlined } from "@ant-design/icons";
 import { Button, Dropdown, Input, Typography } from "antd";
-import { observer } from "mobx-react";
 import React from "react";
 import { useStore } from "zustand";
 import { useShallow } from "zustand/react/shallow";
 
-type AssetEditAccess = Readonly<{
-  canSave: boolean;
-  images: UiAccess;
-  imagesSection: UiAccess;
-  iconsSection: UiAccess;
-}>;
-
-export const ResourceAssetActions = observer(function ResourceAssetActions({
+export const ResourceAssetActions = React.memo(function ResourceAssetActions({
   studioCtx,
   asset,
 }: {
@@ -32,8 +28,19 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
   asset: ImageAsset;
 }) {
   const { t } = useI18n();
+  const selected = useSelectedImageAsset(studioCtx, asset);
+  const fields = React.useMemo(() => ({
+    width: studioCtx.modelSnapshots.field(asset, "width"),
+    height: studioCtx.modelSnapshots.field(asset, "height"),
+    type: studioCtx.modelSnapshots.field(asset, "type"),
+  }), [studioCtx, asset]);
+  const width = useStore(fields.width);
+  const height = useStore(fields.height);
+  const type = useStore(fields.type);
+  const assetName = selected?.name ?? "";
+  const dataUri = selected?.dataUri;
   const [view, setView] = React.useState<"preview" | "rename" | "references">();
-  const [name, setName] = React.useState(asset.name);
+  const [name, setName] = React.useState(assetName);
   const [busy, setBusy] = React.useState(false);
   const pending = React.useRef(false);
   const canSave = useStudioSaveState(studioCtx, (state) => state.canSave);
@@ -46,23 +53,14 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
         state.leftTabPermissions.iconsSection,
       ] as const),
     );
-  const canEdit = (access?: AssetEditAccess) =>
-    studioCtx.site.imageAssets.includes(asset) &&
-    (access?.canSave ?? studioCtx.canSave()) &&
-    canWrite(
-      access?.images ?? studioCtx.getLeftTabPermission("images"),
-      asset.type === ImageAssetType.Icon
-        ? (access?.iconsSection ??
-            studioCtx.getLeftTabPermission("iconsSection"))
-        : (access?.imagesSection ??
-            studioCtx.getLeftTabPermission("imagesSection")),
-    );
-  const editable = canEdit({
-    canSave,
-    images: imagesPermission,
-    imagesSection: imagesSectionPermission,
-    iconsSection: iconsSectionPermission,
-  });
+  const canEdit = () => studioCtx.site.imageAssets.includes(asset) && studioCtx.canSave() && canWrite(
+    studioCtx.getLeftTabPermission("images"),
+    asset.type === ImageAssetType.Icon ? studioCtx.getLeftTabPermission("iconsSection") : studioCtx.getLeftTabPermission("imagesSection"),
+  );
+  const editable = !!selected?.editable && canSave && canWrite(
+    imagesPermission,
+    type === ImageAssetType.Icon ? iconsSectionPermission : imagesSectionPermission,
+  );
 
   async function mutate(action: "rename" | "delete") {
     if (
@@ -74,7 +72,7 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
     }
     pending.current = true;
     setBusy(true);
-    try {
+    return await (async () => {
       if (action === "rename") {
         await studioCtx.changeUnsafe(() => {
           if (canEdit()) {
@@ -86,12 +84,12 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
         // The existing operation checks usages and owns deletion confirmation.
         await studioCtx.siteOps().tryDeleteImageAssets([asset]);
       }
-    } catch (cause) {
+    })().catch((cause) => {
       showError(cause, { title: "Failed to update asset" });
-    } finally {
+    }).finally(() => {
       pending.current = false;
       setBusy(false);
-    }
+    });
   }
 
   return (
@@ -116,7 +114,7 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
           items: [
             { key: "preview", label: t("Preview") },
             { key: "references", label: t("Find all references") },
-            ...(asset.dataUri
+            ...(dataUri
               ? [{ key: "download", label: t("Download image") }]
               : []),
             ...(editable
@@ -137,7 +135,7 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
               key === "references" ||
               key === "rename"
             ) {
-              setName(asset.name);
+              setName(assetName);
               setView(key);
             }
           },
@@ -152,7 +150,7 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
       </Dropdown>
       <Modal
         open={view === "preview" || view === "rename"}
-        title={view === "rename" ? t("Rename") : asset.name}
+        title={view === "rename" ? t("Rename") : assetName}
         onCancel={(event) => {
           event.stopPropagation();
           if (!busy) {
@@ -189,13 +187,13 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
         ) : (
           <>
             <img
-              src={asset.dataUri ?? undefined}
-              alt={asset.name}
+              src={dataUri ?? undefined}
+              alt={assetName}
               style={{ width: "100%", maxHeight: "60vh", objectFit: "contain" }}
             />
-            {!!asset.width && !!asset.height && (
+            {!!width && !!height && (
               <Typography.Text type="secondary">
-                {asset.width} × {asset.height}
+                {width} × {height}
               </Typography.Text>
             )}
           </>
@@ -203,15 +201,23 @@ export const ResourceAssetActions = observer(function ResourceAssetActions({
       </Modal>
       {view === "references" && (
         <SidebarModalProvider>
-          <FindReferencesModal
-            studioCtx={studioCtx}
-            displayName={asset.name}
-            icon={<MoreOutlined />}
-            usageSummary={extractImageAssetUsages(studioCtx.site, asset)[1]}
-            onClose={() => setView(undefined)}
-          />
+          <AssetReferences studioCtx={studioCtx} asset={asset} onClose={() => setView(undefined)} />
         </SidebarModalProvider>
       )}
     </div>
   );
 });
+
+
+function AssetReferences({ studioCtx, asset, onClose }: {
+  studioCtx: StudioCtx;
+  asset: ImageAsset;
+  onClose: () => void;
+}) {
+  const world = useVariantModelWorld(studioCtx, asset);
+  const selected = useSelectedImageAsset(studioCtx, asset);
+  const query = React.useCallback(() => world.isCurrent() ? extractImageAssetUsages(world.site, asset)[1] : { components: [], frames: [] }, [world, asset]);
+  const usageSummary = useModelSelector(studioCtx.modelRevisions, [modelKeys.site], query);
+  return <FindReferencesModal studioCtx={studioCtx} displayName={selected?.name ?? ""} icon={<MoreOutlined />}
+    usageSummary={usageSummary} onClose={onClose} />;
+}

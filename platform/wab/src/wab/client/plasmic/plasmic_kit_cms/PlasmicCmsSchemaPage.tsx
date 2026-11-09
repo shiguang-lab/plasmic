@@ -14,21 +14,21 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import CmsModelDetails from "../../components/cms/CmsModelDetails"; // plasmic-import: pLQf-lY112u/component
 import CmsModelItem from "../../components/cms/CmsModelItem"; // plasmic-import: FpZFUfiTA6/component
 import CmsModelsList from "../../components/cms/CmsModelsList"; // plasmic-import: M3aa84scyXT/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ieacQ3Z46z4gwo1FnaB5vY/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -89,11 +89,10 @@ function PlasmicCmsSchemaPage__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "noModels",
@@ -102,18 +101,20 @@ function PlasmicCmsSchemaPage__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.noModels,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -209,12 +210,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -224,28 +221,37 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCmsSchemaPage__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCmsSchemaPage";
-  } else {
-    func.displayName = `PlasmicCmsSchemaPage.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCmsSchemaPage__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCmsSchemaPage__root<T extends PlasmicCmsSchemaPage__rootProps>(props: T & StrictProps<T, PlasmicCmsSchemaPage__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCmsSchemaPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCmsSchemaPage__root.displayName = "PlasmicCmsSchemaPage";
+
+type PlasmicCmsSchemaPage__cmsModelsListProps = NodeComponentProps<"cmsModelsList"> & {key?: React.Key};
+function PlasmicCmsSchemaPage__cmsModelsList<T extends PlasmicCmsSchemaPage__cmsModelsListProps>(props: T & StrictProps<T, PlasmicCmsSchemaPage__cmsModelsListProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cmsModelsList", props);
+  return <PlasmicCmsSchemaPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cmsModelsList"} />;
+}
+PlasmicCmsSchemaPage__cmsModelsList.displayName = "PlasmicCmsSchemaPage.cmsModelsList";
+
+type PlasmicCmsSchemaPage__cmsModelDetailsProps = NodeComponentProps<"cmsModelDetails"> & {key?: React.Key};
+function PlasmicCmsSchemaPage__cmsModelDetails<T extends PlasmicCmsSchemaPage__cmsModelDetailsProps>(props: T & StrictProps<T, PlasmicCmsSchemaPage__cmsModelDetailsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cmsModelDetails", props);
+  return <PlasmicCmsSchemaPage__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cmsModelDetails"} />;
+}
+PlasmicCmsSchemaPage__cmsModelDetails.displayName = "PlasmicCmsSchemaPage.cmsModelDetails";
+
 
 export const PlasmicCmsSchemaPage = Object.assign(
   // Top-level PlasmicCmsSchemaPage renders the root element
-  makeNodeComponent("root"),
+  PlasmicCmsSchemaPage__root,
   {
     // Helper components rendering sub-elements
-    cmsModelsList: makeNodeComponent("cmsModelsList"),
-    cmsModelDetails: makeNodeComponent("cmsModelDetails"),
+    cmsModelsList: PlasmicCmsSchemaPage__cmsModelsList,
+    cmsModelDetails: PlasmicCmsSchemaPage__cmsModelDetails,
 
     // Metadata about props expected for PlasmicCmsSchemaPage
     internalVariantProps: PlasmicCmsSchemaPage__VariantProps,

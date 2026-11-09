@@ -1,0 +1,554 @@
+{
+  "reviewDate": "2026-11-09",
+  "scope": "Re-review of the preceding Hooks dependency edits against their saved session-start sources, call sites and business behavior. Existing unrelated workspace changes and the earlier rendering-API fixes are preserved.",
+  "acceptance": "Preserve original business triggers, initialization snapshots, valid pending writes and setup/cleanup ownership. Retain only demonstrated correctness fixes; warning-count reduction is not an acceptance criterion. A surviving lint warning is not automatically a false positive.",
+  "sourceDecisions": {
+    "reviewed": 69,
+    "fullyReverted": 36,
+    "retained": 13,
+    "narrowed": 20
+  },
+  "changes": [
+    {
+      "file": "platform/wab/src/wab/commons/components/use-signal-listener.ts",
+      "disposition": "narrowed",
+      "reason": "Retain only emitter ownership tracking. The deps parameter and caller-selected callback snapshot semantics are preserved; callback-only rerenders do not replace the listener."
+    },
+    {
+      "file": "platform/wab/src/wab/client/tours/tutorials/TutorialTours.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/NewProjectModal.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/PasswordStrengthBar.tsx",
+      "disposition": "retained",
+      "reason": "The existing password trigger and 500 ms delay are unchanged. Reject retired asynchronous ratings and cancel local UI work after the field unmounts."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/BottomModal.tsx",
+      "disposition": "narrowed",
+      "reason": "Only cleanup follows modalKey so a replacement modal does not leave the old registration behind. Existing push/configuration triggers are unchanged."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/ResizingHandle.tsx",
+      "disposition": "retained",
+      "reason": "Canvas zoom/handle position are continuous geometry inputs, not initialization options. Recompute measurements for them and reject queued measurements from the old owner."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/TopFrame/HostLoadTimeoutPrompt.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/TopFrame/TopFrameChrome.tsx",
+      "disposition": "reverted",
+      "reason": "Restore the existing preview transition keys. Project metadata refresh must not repeat the preview warning."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/TopFrame/TopBar/SubsectionPushDeploy.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/sidebar/PopoverFrame.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/sidebar/AnimationSequenceControls.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/copilot/CopilotChatDialog.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/auth/GithubConnect.tsx",
+      "disposition": "reverted",
+      "reason": "Restore the existing refreshDeps contract and mount/request-driven OAuth-state initialization. No existing caller changes dependency-array arity, so changing the API and reacting to API-wrapper replacement was unnecessary."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/grouping/VirtualTree.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/modals/ComponentPropModal.tsx",
+      "disposition": "reverted",
+      "reason": "paramTypeData is a lookup in static COMPONENT_PARAM_TYPES keyed solely by paramType, already a dependency. The original memo was separately compiled in strict mode with zero diagnostics; restore its equivalent input set."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/docs/DocsPortal.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/canvas/CanvasFrame/CanvasFrame.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/canvas/VariantsBar/VariantsBar.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/canvas/RichText/RichTextToolbar.tsx",
+      "disposition": "retained",
+      "reason": "Selection updates publish a new editing context while keeping the Slate editor object. Formatting follows that snapshot; local color-picker visibility is not a new formatting-sync trigger."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/dashboard/TeamPage.tsx",
+      "disposition": "narrowed",
+      "reason": "Keep the original [team] trigger. Only reject results from retired checks; preserve an already displayed trial dialog across data refresh and preserve the confirmation close action."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/cms/CmsInputs.tsx",
+      "disposition": "retained",
+      "reason": "Synchronize the controlled color and disabled state, invoke the current change observer, and release the widget. Color changes do not rebuild the widget or emit a synthetic edit."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/sidebar-tabs/useAnimations.ts",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/sidebar-tabs/ComponentPropsDefinitionSection.tsx",
+      "disposition": "narrowed",
+      "reason": "Only add the current view owner to the listener lifetime. An event for the live view must not be rejected because the listener still guards a disposed previous view. Extra callback memoization was removed."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/sidebar-tabs/style-tab.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/sidebar-tabs/StateManagement/ActionBuilder.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/sidebar-tabs/DataSource/ConnectToDBTable.tsx",
+      "disposition": "retained",
+      "reason": "Save availability depends on whether the asynchronously loaded table schema exists. Include that real validation input so an unchanged draft can become saveable when the schema arrives."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/sidebar-tabs/ComponentProps/TemplatedTextEditor.tsx",
+      "disposition": "narrowed",
+      "reason": "A mode change can replace the Slate editor without changing the controlled value. Restore the content in that replacement; preserve existing signal deps and tooltip lifecycle."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/sidebar-tabs/ComponentProps/RichTextPropEditor.tsx",
+      "disposition": "retained",
+      "reason": "Prevent an old debounced draft from overwriting a newly supplied controlled value, and route a real save through its current observer. Handler-only rerenders are not save events."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/style-controls/ImageSelector.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/pages/FromStarterTemplate.tsx",
+      "disposition": "narrowed",
+      "reason": "Restore exactly [projectId, baseProjectId, appCtx, name]. Path/workspace/version changes alone do not clone again; only reject navigation from an operation retired by an original trigger or unmount."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/widgets/ColorTokenSelector.tsx",
+      "disposition": "reverted",
+      "reason": "Restore selection-ID-driven scrolling. Row-array reordering and query clearing must not introduce extra automatic scroll requests."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/widgets/Textbox.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/widgets/FloatingWindow.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "platform/wab/src/wab/client/components/app-auth/PermissionsTab.tsx",
+      "disposition": "reverted",
+      "reason": "Restore role initialization on loadingRoles transitions. Roles-array publications must not introduce a new automatic role-selection policy."
+    },
+    {
+      "file": "platform/wab/src/wab/client/hooks/useCodegenType.ts",
+      "disposition": "retained",
+      "reason": "Transfer a real storage subscription when its API owner changes. Capture the installing API for cleanup and reject retired reads/queued notifications."
+    },
+    {
+      "file": "platform/wab/src/wab/client/hooks/useVirtualCombobox.ts",
+      "disposition": "retained",
+      "reason": "Preserve the local query debouncer across renders, cancel obsolete local filtering work, and keep highlighted scrolling aligned with the current item/row mapping."
+    },
+    {
+      "file": "platform/canvas-packages/src/modals.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "packages/loader-react/src/usePlasmicComponent.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "packages/loader-react/src/PlasmicComponent.tsx",
+      "disposition": "retained",
+      "reason": "This is a pure rendered-value memo. Current translator, global variants and provider context must reach the rendered subtree; no imperative action trigger is introduced."
+    },
+    {
+      "file": "packages/data-sources/src/common.ts",
+      "disposition": "reverted",
+      "reason": "Restore query-key-based fetch/proxy memoization. The production caller supplies an inline fetcher, mapper and proxy-field array on each render; including those identities discarded memoization on ordinary renders. Its mapper is the same pure conversion, so the synthetic mapper-replacement test did not establish a production defect."
+    },
+    {
+      "file": "packages/data-sources/src/hooks/usePlasmicDataOp.tsx",
+      "disposition": "retained",
+      "reason": "The mutation reads the current user even when its auth token is unchanged. This callback changes only on real mutation-context inputs; no operation executes automatically."
+    },
+    {
+      "file": "packages/data-sources/src/serverQueries/client.ts",
+      "disposition": "reverted",
+      "reason": "The existing query/params inputs already own this query-state memo lifetime. No reproduced stale-query-state bug required another dependency; restore the original memo."
+    },
+    {
+      "file": "plasmicpkgs/react-chartjs-2/src/common.ts",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "plasmicpkgs/commerce-providers/commerce/src/registerProductBox.tsx",
+      "disposition": "reverted",
+      "reason": "The original useCallback already preserves the effective search debouncer. The extra useMemo and unmount cancellation did not fix a demonstrated visible problem."
+    },
+    {
+      "file": "plasmicpkgs/commerce-providers/commerce/src/utils/use-hook.ts",
+      "disposition": "narrowed",
+      "reason": "Retain current fetch implementation/provider inputs, using hook.fetcher and hook.fetchOptions rather than the entire wrapper object. Equivalent wrappers keep callback identity and do not invalidate queued cart mutations."
+    },
+    {
+      "file": "plasmicpkgs/commerce-providers/commerce/src/product/use-price.tsx",
+      "disposition": "retained",
+      "reason": "Locale is a real input to the pure formatted price; equal amount/currency under another locale must use that locale."
+    },
+    {
+      "file": "plasmicpkgs/commerce-providers/shopify/src/cart/use-update-item.tsx",
+      "disposition": "narrowed",
+      "reason": "Use the current item ID, while preserving the per-item debounce window and already queued business mutations. Pending writes still submit after replacement/unmount; cancellation and wait-only reinitialization were removed."
+    },
+    {
+      "file": "plasmicpkgs/commerce-providers/shopify/src/cart/use-remove-item.tsx",
+      "disposition": "retained",
+      "reason": "Explicit remove actions use the current item ID instead of a previous item captured by the memoized callback; no action runs automatically."
+    },
+    {
+      "file": "plasmicpkgs/commerce-providers/saleor/src/cart/use-update-item.tsx",
+      "disposition": "narrowed",
+      "reason": "Use the current item ID, while preserving the per-item debounce window and already queued business mutations. Pending writes still submit after replacement/unmount; cancellation and wait-only reinitialization were removed."
+    },
+    {
+      "file": "plasmicpkgs/commerce-providers/commercetools/src/cart/use-update-item.tsx",
+      "disposition": "narrowed",
+      "reason": "Use the current item ID, while preserving the per-item debounce window and already queued business mutations. Pending writes still submit after replacement/unmount; cancellation and wait-only reinitialization were removed."
+    },
+    {
+      "file": "plasmicpkgs/commerce-providers/commercetools/src/cart/use-remove-item.tsx",
+      "disposition": "retained",
+      "reason": "Explicit remove actions use the current item ID instead of a previous item captured by the memoized callback; no action runs automatically."
+    },
+    {
+      "file": "plasmicpkgs/commerce-providers/swell/src/cart/use-update-item.tsx",
+      "disposition": "narrowed",
+      "reason": "Use the current item ID, while preserving the per-item debounce window and already queued business mutations. Pending writes still submit after replacement/unmount; cancellation and wait-only reinitialization were removed."
+    },
+    {
+      "file": "plasmicpkgs/antd5/src/registerTable.tsx",
+      "disposition": "narrowed",
+      "reason": "Only add isControlled to the existing imperative-handle deps. Preserve data and selection invalidation keys and remove unrelated unused-argument cleanup."
+    },
+    {
+      "file": "plasmicpkgs/antd5/src/form/Form.tsx",
+      "disposition": "narrowed",
+      "reason": "Keep the original initialization and remount triggers. Update a committed observer ref so actual field events use the current callback without resetting edits or emitting a new initialization event."
+    },
+    {
+      "file": "plasmicpkgs/tiptap/src/registerItalic.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "plasmicpkgs/tiptap/src/registerMention.tsx",
+      "disposition": "narrowed",
+      "reason": "Installed suggestion callbacks read current suggestion data/presentation without reinstalling on keystrokes. Preserve the original filtering behavior and extension-reinitialization keys."
+    },
+    {
+      "file": "plasmicpkgs/tiptap/src/registerBold.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "plasmicpkgs/tiptap/src/registerUnderline.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "plasmicpkgs/tiptap/src/registerCode.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "plasmicpkgs/tiptap/src/registerStrike.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "plasmicpkgs/tiptap/src/registerTiptap.tsx",
+      "disposition": "narrowed",
+      "reason": "Use one fixed-length semantic content key. Preserve the initial refresh in runtime as well as canvas mode, and preserve uncontrolled runtime content after mounting."
+    },
+    {
+      "file": "plasmicpkgs/tiptap/src/registerLink.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "plasmicpkgs/plasmic-basic-components/src/SideEffect.tsx",
+      "disposition": "narrowed",
+      "reason": "Support dependency-array length changes while preserving the cleanup captured by each setup. Callback-only changes are ignored until a business dependency changes or the component unmounts."
+    },
+    {
+      "file": "plasmicpkgs/react-aria/src/registerSliderTrack.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    },
+    {
+      "file": "plasmicpkgs/react-aria/src/registerTextArea.tsx",
+      "disposition": "narrowed",
+      "reason": "Enabling autoResize with an unchanged value must resize that content. Unrelated prop rerenders do not repeat measurement; the stable ref was not added as a trigger."
+    },
+    {
+      "file": "plasmicpkgs/antd6/src/form/Form.tsx",
+      "disposition": "narrowed",
+      "reason": "Keep the original initialization and remount triggers. Update a committed observer ref so actual field events use the current callback without resetting edits or emitting a new initialization event."
+    },
+    {
+      "file": "plasmicpkgs/plasmic-giphy/src/giphy.tsx",
+      "disposition": "narrowed",
+      "reason": "Keep [id] as the request trigger and create the immutable SDK client inside that request. Ignore retired responses, while preserving the last successfully rendered GIF during loading or an empty search."
+    },
+    {
+      "file": "plasmicpkgs/plasmic-giphy/src/hooks/useFetch.ts",
+      "disposition": "narrowed",
+      "reason": "Keep [keyword] as the request trigger. Ignore retired responses and preserve the prior GIF ID while loading or when the search is empty; do not add eager clearing."
+    },
+    {
+      "file": "plasmicpkgs/react-scroll-parallax/src/ParallaxProvider.tsx",
+      "disposition": "reverted",
+      "reason": "No demonstrated defect required this dependency-review change. Restore the exact pre-review source, preserving existing initialization triggers, memo invalidation keys and configuration snapshots."
+    }
+  ],
+  "additionalRetainedSource": {
+    "file": "plasmicpkgs/tiptap/src/contexts.tsx",
+    "reason": "Cancel an obsolete pending Mention-extension installation when it is removed/replaced or its provider unmounts. Keep its existing 500 ms installation delay; a removed extension must not be resurrected by its old timer."
+  },
+  "restoredCallsiteContract": {
+    "files": [
+      "platform/wab/src/wab/client/components/github/GithubIntegration.tsx",
+      "platform/wab/src/wab/client/components/studio/LeftPane.tsx",
+      "platform/wab/src/wab/client/components/canvas/HoverBox/ResponsiveColumnsCanvasControls.tsx"
+    ],
+    "reason": "Restore the existing refreshDeps / signal dependency APIs and their original callsite configuration, preserving unrelated changes in those files."
+  },
+  "removedUnsupportedTest": "platform/wab/src/wab/client/components/auth/GithubConnect.dependencies.test.tsx tested the unnecessary new refreshKey/API-reactivity behavior and was removed with that implementation.",
+  "tests": {
+    "sdkAndComponents": {
+      "files": 14,
+      "passed": 35,
+      "failed": 0,
+      "testFiles": [
+        "plasmicpkgs/plasmic-basic-components/src/SideEffect.test.tsx",
+        "plasmicpkgs/react-aria/src/registerTextArea.dependencies.test.tsx",
+        "packages/loader-react/src/PlasmicComponent.dependencies.test.tsx",
+        "plasmicpkgs/antd5/src/table-dependencies.test.tsx",
+        "plasmicpkgs/antd5/src/form/form-hooks.test.tsx",
+        "plasmicpkgs/plasmic-giphy/src/giphy.test.tsx",
+        "plasmicpkgs/plasmic-giphy/src/hooks/useFetch.test.tsx",
+        "plasmicpkgs/tiptap/src/dependencies.test.tsx",
+        "plasmicpkgs/tiptap/src/editor-dependencies.test.tsx",
+        "packages/data-sources/src/swr2-cache.test.tsx",
+        "packages/data-sources/src/hooks/usePlasmicDataOp.dependencies.test.tsx",
+        "plasmicpkgs/commerce-providers/commerce/tests/cart-dependencies.test.tsx",
+        "plasmicpkgs/commerce-providers/commerce/src/product/use-price.test.tsx",
+        "plasmicpkgs/commerce-providers/commerce/src/utils/use-hook.test.tsx"
+      ]
+    },
+    "wab": {
+      "files": 20,
+      "passed": 57,
+      "failed": 0,
+      "testFiles": [
+        "platform/wab/src/wab/commons/components/use-signal-listener.test.tsx",
+        "platform/wab/src/wab/client/hooks/useCodegenType.test.tsx",
+        "platform/wab/src/wab/client/hooks/useVirtualCombobox.test.tsx",
+        "platform/wab/src/wab/client/components/BottomModal.test.tsx",
+        "platform/wab/src/wab/client/components/PasswordStrengthBar.dependencies.test.tsx",
+        "platform/wab/src/wab/client/components/ResizingHandle.dependencies.test.tsx",
+        "platform/wab/src/wab/client/route/Switch.test.tsx",
+        "platform/wab/src/wab/client/components/cms/CmsColorInput.dependencies.test.tsx",
+        "platform/wab/src/wab/client/components/cms/CmsInputs.test.tsx",
+        "platform/wab/src/wab/client/components/dashboard/TeamPage.dependencies.test.tsx",
+        "platform/wab/src/wab/client/components/pages/FromStarterTemplate.dependencies.test.tsx",
+        "platform/wab/src/wab/client/components/sidebar/PopoverFrame.test.tsx",
+        "platform/wab/src/wab/client/components/sidebar/animation-sequence-editor.test.tsx",
+        "platform/wab/src/wab/client/components/widgets/Textbox.test.tsx",
+        "platform/wab/src/wab/client/components/sidebar-tabs/ComponentPropsDefinitionSection.native.test.tsx",
+        "platform/wab/src/wab/client/shortcuts/studio/useUndo.test.ts",
+        "platform/wab/src/wab/client/components/canvas/CanvasFrame/CanvasFrame.test.tsx",
+        "platform/wab/src/wab/client/components/canvas/RichText/RichTextToolbar.test.tsx",
+        "platform/wab/src/wab/client/components/sidebar-tabs/ComponentProps/RichTextPropEditor.dependencies.test.tsx",
+        "platform/wab/src/wab/client/components/sidebar-tabs/ComponentProps/TemplatedTextEditor.test.tsx"
+      ]
+    },
+    "antd6": {
+      "files": 2,
+      "passed": 24,
+      "failed": 0,
+      "testFiles": [
+        "plasmicpkgs/antd6/tests/form-contract.test.tsx",
+        "plasmicpkgs/antd6/tests/form-hooks.test.tsx"
+      ]
+    }
+  },
+  "totalDistinctPassingTests": 116,
+  "counterfactualVerification": {
+    "note": "The exact same revised behavioral tests were also run against saved older source implementations. These failures are expected regression evidence; the reviewed sources were restored in finally blocks before final verification.",
+    "originalImplementation": {
+      "passed": 1,
+      "expectedFailures": 4,
+      "failedTests": [
+        "preserves setup cleanup ownership and reruns only when business dependency values change",
+        "keeps the current GIF when details for an old result arrive later",
+        "keeps the last rendered GIF visible while another result loads or the search is cleared",
+        "ignores an earlier search response and retains the last GIF when the search is emptied"
+      ]
+    },
+    "previousDependencyEdits": {
+      "passed": 2,
+      "expectedFailures": 3,
+      "failedTests": [
+        "preserves setup cleanup ownership and reruns only when business dependency values change",
+        "keeps the last rendered GIF visible while another result loads or the search is cleared",
+        "ignores an earlier search response and retains the last GIF when the search is emptied"
+      ]
+    },
+    "previousCartEdits": {
+      "passed": 2,
+      "expectedFailures": 4,
+      "failedTests": [
+        "shopify targets the current item and preserves already queued mutations after replacement or unmount",
+        "swell targets the current item and preserves already queued mutations after replacement or unmount",
+        "saleor targets the current item and preserves already queued mutations after replacement or unmount",
+        "commercetools targets the current item and preserves already queued mutations after replacement or unmount"
+      ]
+    },
+    "previousInitializationEdits": {
+      "passed": 1,
+      "expectedFailures": 2,
+      "failedTests": [
+        "ignores retired trial checks without closing an open dialog on a team-data refresh",
+        "does not create another project when only path, workspace or template version changes"
+      ]
+    }
+  },
+  "validationStatus": "Completed",
+  "knownSeparateFinding": {
+    "file": "packages/data-sources/src/serverQueries/client.ts",
+    "reason": "The existing usePlasmicQuery invocation inside mapRecords is a separate Hook-order finding. This re-review restores the unnecessary dependency edit there and does not classify the Hook-order issue as a false positive."
+  },
+  "compiler": {
+    "files": 3321,
+    "compiledFiles": 2486,
+    "compiledFunctions": 6050,
+    "diagnosticFiles": 0,
+    "diagnostics": 0,
+    "byCategory": {},
+    "errors": 0,
+    "changedSources": 0,
+    "candidateFunctions": 6050,
+    "classComponents": 3,
+    "requiredErrorBoundaries": 3,
+    "businessClassComponents": 0,
+    "missingRequiredErrorBoundaries": 0,
+    "uncompiledCandidates": 0,
+    "unvisitedCandidates": 0
+  },
+  "typechecks": {
+    "wab": {
+      "command": "node_modules/.bin/tsc --noEmit --pretty false",
+      "cwd": "platform/wab",
+      "exitCode": 0
+    },
+    "tiptap": {
+      "command": "node_modules/.bin/tsc -p plasmicpkgs/tiptap/tsconfig.json --noEmit --target es2020 --pretty false",
+      "exitCode": 0
+    },
+    "giphy": {
+      "command": "node_modules/.bin/tsc -p plasmicpkgs/plasmic-giphy/tsconfig.json --noEmit --target es2020 --pretty false",
+      "exitCode": 0
+    },
+    "sideEffect": {
+      "command": "node_modules/.bin/tsc -p plasmicpkgs/plasmic-basic-components/tsconfig.json --noEmit --target es2020 --pretty false",
+      "exitCode": 0
+    },
+    "antd5Forms": {
+      "scope": [
+        "Form.tsx",
+        "FormItem.tsx",
+        "FormList.tsx"
+      ],
+      "config": "Extends the original Antd5 tsconfig, lists the form source files, no diagnostic options disabled",
+      "exitCode": 0
+    },
+    "antd6Forms": {
+      "scope": [
+        "Form.tsx",
+        "FormItem.tsx",
+        "FormList.tsx"
+      ],
+      "config": "Extends the original Antd6 tsconfig, lists the form source files, no diagnostic options disabled",
+      "exitCode": 0
+    },
+    "reactAria": {
+      "scope": [
+        "registerTextArea.tsx",
+        "registerSliderTrack.tsx"
+      ],
+      "config": "Extends the original package tsconfig with noEmit and target es2020, no diagnostic options disabled",
+      "exitCode": 0
+    },
+    "commerce": {
+      "command": "node_modules/.bin/tsc -p plasmicpkgs/commerce-providers/commerce/tsconfig.json --noEmit --target es2020 --pretty false",
+      "exitCode": 0
+    }
+  },
+  "scopedRecheck": {
+    "files": [
+      "plasmicpkgs/tiptap/src/dependencies.test.tsx",
+      "plasmicpkgs/tiptap/src/editor-dependencies.test.tsx"
+    ],
+    "passed": 8,
+    "failed": 0,
+    "reason": "After removing unnecessary setMention callback memoization, rechecked the same tests without counting them twice."
+  },
+  "whitespaceCheck": "git diff --check passed for the reviewed source scope and changed existing tests",
+  "remainingLint": "Warnings remain intentionally visible. This re-review does not declare every warning a false positive, does not add suppressions, and does not claim a clean repository-wide ESLint run.",
+  "removedUnsupportedMapperTest": "Removed the mapper-replacement case added to packages/data-sources/src/swr2-cache.test.tsx; all original six SWR cache/Suspense cases remain and pass."
+}

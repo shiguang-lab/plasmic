@@ -11,8 +11,8 @@ import {
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import PlusIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Plus";
 import { derefTokenRefs } from "@/wab/commons/StyleToken";
-import { arrayMoveIndex, arrayRemove } from "@/wab/shared/collections";
-import { cx, maybe, spawn, uniqueKey } from "@/wab/shared/common";
+import { arrayMoveIndex } from "@/wab/shared/collections";
+import { cx, maybe, spawn } from "@/wab/shared/common";
 import {
   FilterEffect,
   defaultFilterEffects,
@@ -26,13 +26,12 @@ import { useStyleCell } from "@/wab/client/studio-ctx/style-inputs-react";
 import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 
-const _GenericFilterEffectSection = (
-  cssProp: string,
-  title: string,
-  label: string,
-) =>
-  (props: { expsProvider: ExpsProvider }) => {
-    const { expsProvider } = props;
+function FilterEffectSectionContent({ expsProvider, cssProp, title, label }: {
+  expsProvider: ExpsProvider;
+  cssProp: string;
+  title: string;
+  label: string;
+}) {
     const { studioCtx } = expsProvider;
     const exp = expsProvider.mergedExp();
     const cell = useStyleCell(expsProvider, cssProp);
@@ -58,6 +57,7 @@ const _GenericFilterEffectSection = (
     const setsProp = (prop: string, values: string[]) => {
       spawn(
         studioCtx.changeUnsafe(() => {
+          if (lifetime.aborted) { return; }
           // Use value.join() instead of showCssValue() so we don't
           // filter out the hidden# values.
           exp.set(prop, joinCssValues(prop, values));
@@ -75,8 +75,7 @@ const _GenericFilterEffectSection = (
     };
 
     const hideFilter = (idx: number) => {
-      filters[idx].visible = !filters[idx].visible;
-      updateFilters(filters);
+      updateFilters(filters.map((filter, index) => index === idx ? { ...filter, visible: !filter.visible } : filter));
     };
 
     const addFilter = () => {
@@ -111,8 +110,7 @@ const _GenericFilterEffectSection = (
                 studioCtx={studioCtx}
                 filterEffect={filters[inspect]}
                 onChange={(newFilterEffect: FilterEffect) => {
-                  filters[inspect] = newFilterEffect;
-                  updateFilters(filters);
+                  updateFilters(filters.map((filter, index) => index === inspect ? newFilterEffect : filter));
                 }}
               />
             </div>
@@ -140,11 +138,10 @@ const _GenericFilterEffectSection = (
 
               return (
                 <ListBoxItem
-                  key={uniqueKey(filter)}
+                  key={i}
                   index={i}
                   onRemove={() => {
-                    arrayRemove(filters, filter);
-                    updateFilters(filters);
+                    updateFilters(filters.filter((_, index) => index !== i));
                   }}
                   onClick={() => setInspect(i)}
                   mainContent={
@@ -174,15 +171,12 @@ const _GenericFilterEffectSection = (
         )}
       </div>
     );
-  };
+  }
 
-export const FilterEffectSection = _GenericFilterEffectSection(
-  "filter",
-  "Filter",
-  "Filter Effect",
-);
-export const BackdropFilterEffectSection = _GenericFilterEffectSection(
-  "backdrop-filter",
-  "Backdrop Filter",
-  "Backdrop Effect",
-);
+export function FilterEffectSection(props: { expsProvider: ExpsProvider }) {
+  return <FilterEffectSectionContent {...props} cssProp="filter" title="Filter" label="Filter Effect" />;
+}
+
+export function BackdropFilterEffectSection(props: { expsProvider: ExpsProvider }) {
+  return <FilterEffectSectionContent {...props} cssProp="backdrop-filter" title="Backdrop Filter" label="Backdrop Effect" />;
+}

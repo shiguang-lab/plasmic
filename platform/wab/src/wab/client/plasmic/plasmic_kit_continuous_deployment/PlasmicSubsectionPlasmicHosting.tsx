@@ -29,7 +29,8 @@ import {
   generateStateValueProp,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
+  usePlasmicRefs, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -38,7 +39,7 @@ import Checkbox from "../../components/widgets/Checkbox"; // plasmic-import: W-r
 import ExpandButton from "../../components/widgets/ExpandButton"; // plasmic-import: JJhv0MV9DH/component
 import GitJobStep from "../../components/widgets/GitJobStep"; // plasmic-import: JzpEJAQTjPX/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: fpbcKyXdMTvY59T4C5fjcC/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -134,11 +135,10 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "collapse",
@@ -165,18 +165,20 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => undefined,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -222,9 +224,9 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                 generateStateValueProp($state, ["checkbox", "isChecked"]) ??
                 false
               }
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, ["checkbox", "isChecked"])(
+                  generateStateOnChangeProp($stateCommands, ["checkbox", "isChecked"])(
                     eventArgs[0]
                   );
                 }).apply(null, eventArgs);
@@ -236,7 +238,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
             />
 
             {false ? (
@@ -647,9 +649,9 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                           role={"img"}
                         />
                       }
-                      onChange={async (...eventArgs: any) => {
+                      onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                         ((...eventArgs) => {
-                          generateStateOnChangeProp($state, [
+                          generateStateOnChangeProp($stateCommands, [
                             "pushAs",
                             "value",
                           ])(eventArgs[0]);
@@ -662,7 +664,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                         ) {
                           return;
                         }
-                      }}
+                      })); })}
                       type={"bordered"}
                       value={generateStateValueProp($state, [
                         "pushAs",
@@ -691,9 +693,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                           sty.title
                         )}
                         placeholder={uiT("Title (optional)")}
-                        ref={(ref) => {
-                          $refs["title"] = ref;
-                        }}
+                        ref={registerRef("title")}
                         size={1}
                         type={"text"}
                         value={""}
@@ -719,9 +719,7 @@ function PlasmicSubsectionPlasmicHosting__RenderFunc(props: {
                           sty.description
                         )}
                         placeholder={uiT("Description (optional)")}
-                        ref={(ref) => {
-                          $refs["description"] = ref;
-                        }}
+                        ref={registerRef("description")}
                         rows={3}
                         value={""}
                       />
@@ -906,12 +904,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -922,44 +916,165 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicSubsectionPlasmicHosting__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicSubsectionPlasmicHosting";
-  } else {
-    func.displayName = `PlasmicSubsectionPlasmicHosting.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicSubsectionPlasmicHosting__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__root<T extends PlasmicSubsectionPlasmicHosting__rootProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicSubsectionPlasmicHosting__root.displayName = "PlasmicSubsectionPlasmicHosting";
+
+type PlasmicSubsectionPlasmicHosting__checkboxProps = NodeComponentProps<"checkbox"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__checkbox<T extends PlasmicSubsectionPlasmicHosting__checkboxProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__checkboxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("checkbox", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"checkbox"} />;
+}
+PlasmicSubsectionPlasmicHosting__checkbox.displayName = "PlasmicSubsectionPlasmicHosting.checkbox";
+
+type PlasmicSubsectionPlasmicHosting__imgProps = NodeComponentProps<"img"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__img<T extends PlasmicSubsectionPlasmicHosting__imgProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__imgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("img", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"img"} />;
+}
+PlasmicSubsectionPlasmicHosting__img.displayName = "PlasmicSubsectionPlasmicHosting.img";
+
+type PlasmicSubsectionPlasmicHosting__removeButtonProps = NodeComponentProps<"removeButton"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__removeButton<T extends PlasmicSubsectionPlasmicHosting__removeButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__removeButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("removeButton", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"removeButton"} />;
+}
+PlasmicSubsectionPlasmicHosting__removeButton.displayName = "PlasmicSubsectionPlasmicHosting.removeButton";
+
+type PlasmicSubsectionPlasmicHosting__viewGithubButtonProps = NodeComponentProps<"viewGithubButton"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__viewGithubButton<T extends PlasmicSubsectionPlasmicHosting__viewGithubButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__viewGithubButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("viewGithubButton", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"viewGithubButton"} />;
+}
+PlasmicSubsectionPlasmicHosting__viewGithubButton.displayName = "PlasmicSubsectionPlasmicHosting.viewGithubButton";
+
+type PlasmicSubsectionPlasmicHosting__learnMoreLinkProps = NodeComponentProps<"learnMoreLink"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__learnMoreLink<T extends PlasmicSubsectionPlasmicHosting__learnMoreLinkProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__learnMoreLinkProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("learnMoreLink", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"learnMoreLink"} />;
+}
+PlasmicSubsectionPlasmicHosting__learnMoreLink.displayName = "PlasmicSubsectionPlasmicHosting.learnMoreLink";
+
+type PlasmicSubsectionPlasmicHosting__warningProps = NodeComponentProps<"warning"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__warning<T extends PlasmicSubsectionPlasmicHosting__warningProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__warningProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("warning", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"warning"} />;
+}
+PlasmicSubsectionPlasmicHosting__warning.displayName = "PlasmicSubsectionPlasmicHosting.warning";
+
+type PlasmicSubsectionPlasmicHosting__reviewChangesButtonProps = NodeComponentProps<"reviewChangesButton"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__reviewChangesButton<T extends PlasmicSubsectionPlasmicHosting__reviewChangesButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__reviewChangesButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("reviewChangesButton", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"reviewChangesButton"} />;
+}
+PlasmicSubsectionPlasmicHosting__reviewChangesButton.displayName = "PlasmicSubsectionPlasmicHosting.reviewChangesButton";
+
+type PlasmicSubsectionPlasmicHosting__domainProps = NodeComponentProps<"domain"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__domain<T extends PlasmicSubsectionPlasmicHosting__domainProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__domainProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("domain", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"domain"} />;
+}
+PlasmicSubsectionPlasmicHosting__domain.displayName = "PlasmicSubsectionPlasmicHosting.domain";
+
+type PlasmicSubsectionPlasmicHosting__retryButtonProps = NodeComponentProps<"retryButton"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__retryButton<T extends PlasmicSubsectionPlasmicHosting__retryButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__retryButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("retryButton", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"retryButton"} />;
+}
+PlasmicSubsectionPlasmicHosting__retryButton.displayName = "PlasmicSubsectionPlasmicHosting.retryButton";
+
+type PlasmicSubsectionPlasmicHosting__removeGithubButtonProps = NodeComponentProps<"removeGithubButton"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__removeGithubButton<T extends PlasmicSubsectionPlasmicHosting__removeGithubButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__removeGithubButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("removeGithubButton", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"removeGithubButton"} />;
+}
+PlasmicSubsectionPlasmicHosting__removeGithubButton.displayName = "PlasmicSubsectionPlasmicHosting.removeGithubButton";
+
+type PlasmicSubsectionPlasmicHosting__setupButtonProps = NodeComponentProps<"setupButton"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__setupButton<T extends PlasmicSubsectionPlasmicHosting__setupButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__setupButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("setupButton", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"setupButton"} />;
+}
+PlasmicSubsectionPlasmicHosting__setupButton.displayName = "PlasmicSubsectionPlasmicHosting.setupButton";
+
+type PlasmicSubsectionPlasmicHosting__showOptionsButtonProps = NodeComponentProps<"showOptionsButton"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__showOptionsButton<T extends PlasmicSubsectionPlasmicHosting__showOptionsButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__showOptionsButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("showOptionsButton", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"showOptionsButton"} />;
+}
+PlasmicSubsectionPlasmicHosting__showOptionsButton.displayName = "PlasmicSubsectionPlasmicHosting.showOptionsButton";
+
+type PlasmicSubsectionPlasmicHosting__showOptionsIconButtonProps = NodeComponentProps<"showOptionsIconButton"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__showOptionsIconButton<T extends PlasmicSubsectionPlasmicHosting__showOptionsIconButtonProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__showOptionsIconButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("showOptionsIconButton", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"showOptionsIconButton"} />;
+}
+PlasmicSubsectionPlasmicHosting__showOptionsIconButton.displayName = "PlasmicSubsectionPlasmicHosting.showOptionsIconButton";
+
+type PlasmicSubsectionPlasmicHosting__pushAsProps = NodeComponentProps<"pushAs"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__pushAs<T extends PlasmicSubsectionPlasmicHosting__pushAsProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__pushAsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("pushAs", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"pushAs"} />;
+}
+PlasmicSubsectionPlasmicHosting__pushAs.displayName = "PlasmicSubsectionPlasmicHosting.pushAs";
+
+type PlasmicSubsectionPlasmicHosting__titleProps = NodeComponentProps<"title"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__title<T extends PlasmicSubsectionPlasmicHosting__titleProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__titleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("title", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"title"} />;
+}
+PlasmicSubsectionPlasmicHosting__title.displayName = "PlasmicSubsectionPlasmicHosting.title";
+
+type PlasmicSubsectionPlasmicHosting__descriptionProps = NodeComponentProps<"description"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__description<T extends PlasmicSubsectionPlasmicHosting__descriptionProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__descriptionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("description", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"description"} />;
+}
+PlasmicSubsectionPlasmicHosting__description.displayName = "PlasmicSubsectionPlasmicHosting.description";
+
+type PlasmicSubsectionPlasmicHosting__stepsProps = NodeComponentProps<"steps"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__steps<T extends PlasmicSubsectionPlasmicHosting__stepsProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__stepsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("steps", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"steps"} />;
+}
+PlasmicSubsectionPlasmicHosting__steps.displayName = "PlasmicSubsectionPlasmicHosting.steps";
+
+type PlasmicSubsectionPlasmicHosting__githubPagesDelayNoticeProps = NodeComponentProps<"githubPagesDelayNotice"> & {key?: React.Key};
+function PlasmicSubsectionPlasmicHosting__githubPagesDelayNotice<T extends PlasmicSubsectionPlasmicHosting__githubPagesDelayNoticeProps>(props: T & StrictProps<T, PlasmicSubsectionPlasmicHosting__githubPagesDelayNoticeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("githubPagesDelayNotice", props);
+  return <PlasmicSubsectionPlasmicHosting__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"githubPagesDelayNotice"} />;
+}
+PlasmicSubsectionPlasmicHosting__githubPagesDelayNotice.displayName = "PlasmicSubsectionPlasmicHosting.githubPagesDelayNotice";
+
 
 export const PlasmicSubsectionPlasmicHosting = Object.assign(
   // Top-level PlasmicSubsectionPlasmicHosting renders the root element
-  makeNodeComponent("root"),
+  PlasmicSubsectionPlasmicHosting__root,
   {
     // Helper components rendering sub-elements
-    checkbox: makeNodeComponent("checkbox"),
-    img: makeNodeComponent("img"),
-    removeButton: makeNodeComponent("removeButton"),
-    viewGithubButton: makeNodeComponent("viewGithubButton"),
-    learnMoreLink: makeNodeComponent("learnMoreLink"),
-    warning: makeNodeComponent("warning"),
-    reviewChangesButton: makeNodeComponent("reviewChangesButton"),
-    domain: makeNodeComponent("domain"),
-    retryButton: makeNodeComponent("retryButton"),
-    removeGithubButton: makeNodeComponent("removeGithubButton"),
-    setupButton: makeNodeComponent("setupButton"),
-    showOptionsButton: makeNodeComponent("showOptionsButton"),
-    showOptionsIconButton: makeNodeComponent("showOptionsIconButton"),
-    pushAs: makeNodeComponent("pushAs"),
-    title: makeNodeComponent("title"),
-    description: makeNodeComponent("description"),
-    steps: makeNodeComponent("steps"),
-    githubPagesDelayNotice: makeNodeComponent("githubPagesDelayNotice"),
+    checkbox: PlasmicSubsectionPlasmicHosting__checkbox,
+    img: PlasmicSubsectionPlasmicHosting__img,
+    removeButton: PlasmicSubsectionPlasmicHosting__removeButton,
+    viewGithubButton: PlasmicSubsectionPlasmicHosting__viewGithubButton,
+    learnMoreLink: PlasmicSubsectionPlasmicHosting__learnMoreLink,
+    warning: PlasmicSubsectionPlasmicHosting__warning,
+    reviewChangesButton: PlasmicSubsectionPlasmicHosting__reviewChangesButton,
+    domain: PlasmicSubsectionPlasmicHosting__domain,
+    retryButton: PlasmicSubsectionPlasmicHosting__retryButton,
+    removeGithubButton: PlasmicSubsectionPlasmicHosting__removeGithubButton,
+    setupButton: PlasmicSubsectionPlasmicHosting__setupButton,
+    showOptionsButton: PlasmicSubsectionPlasmicHosting__showOptionsButton,
+    showOptionsIconButton: PlasmicSubsectionPlasmicHosting__showOptionsIconButton,
+    pushAs: PlasmicSubsectionPlasmicHosting__pushAs,
+    title: PlasmicSubsectionPlasmicHosting__title,
+    description: PlasmicSubsectionPlasmicHosting__description,
+    steps: PlasmicSubsectionPlasmicHosting__steps,
+    githubPagesDelayNotice: PlasmicSubsectionPlasmicHosting__githubPagesDelayNotice,
 
     // Metadata about props expected for PlasmicSubsectionPlasmicHosting
     internalVariantProps: PlasmicSubsectionPlasmicHosting__VariantProps,

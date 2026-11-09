@@ -23,7 +23,6 @@ import {
   cssPropsForInvertTransform,
 } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { useForceUpdate } from "@/wab/client/useForceUpdate";
 import { summarizeFocusObj } from "@/wab/client/utils/tpl-client-utils";
 import { ensure } from "@/wab/shared/common";
 import {
@@ -31,48 +30,41 @@ import {
   Selectable,
   makeSelectableFullKey,
 } from "@/wab/shared/core/selection";
-import { isTplTagOrComponent, isTplVariantable } from "@/wab/shared/core/tpls";
+import { isTplTagOrComponent } from "@/wab/shared/core/tpls";
 import cn from "classnames";
 import $ from "jquery";
-import { observer } from "mobx-react";
+import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
+import { useParentStackItemInputs } from "@/wab/client/components/canvas/HoverBox/parent-stack-inputs";
+import { useHoverVariantInputs } from "@/wab/client/components/canvas/HoverBox/hover-variant-inputs";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
+import type { NativeStyleProvider } from "@/wab/client/studio-ctx/style-inputs";
+import { useFrameForceUpdate } from "@/wab/client/useForceUpdate";
 import React from "react";
 
-export const PreselectBoxes = observer(PreselectBoxes_);
+export const PreselectBoxes = React.memo(PreselectBoxes_);
 function PreselectBoxes_() {
   const studioCtx = useStudioCtx();
   useContentEditorScope(studioCtx);
   const transforming = useCanvasTransforming(studioCtx);
   const ancestorsHoverBoxes = useStudioOverlayState(studioCtx, (state) => state.ancestorsHoverBoxes);
-  const forceUpdate = useForceUpdate();
 
   const viewCtx = useHoveredViewCtx(studioCtx);
   useViewSelection(viewCtx, useShallow((state) => [state.hover, state.hoverDom]));
-  const doc = viewCtx?.canvasCtx.$doc()[0];
-  React.useEffect(() => {
-    if (!doc?.body) {
-      return;
-    }
-    let previous = getActiveCanvasModal(doc);
-    const modalObserver = new MutationObserver(() => {
-      const current = getActiveCanvasModal(doc);
-      if (current !== previous) {
-        previous = current;
-        forceUpdate();
-      }
-    });
-    modalObserver.observe(doc.body, {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ["class", "style", "aria-modal"],
-    });
-    return () => modalObserver.disconnect();
-  }, [doc, forceUpdate]);
+  const alive = usePreselectLifetime(viewCtx);
+  useCanvasRenderCount(viewCtx);
+  const doc = alive ? viewCtx?.canvasCtx.$doc()[0] : undefined;
+  const subscribeModal = React.useCallback((listener: () => void) => {
+    if (!doc?.body) { return () => undefined; }
+    const observer = new MutationObserver(listener);
+    observer.observe(doc.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "style", "aria-modal", "role", "hidden"] });
+    return () => observer.disconnect();
+  }, [doc]);
+  const readModal = React.useCallback(() => getActiveCanvasModal(doc), [doc]);
+  const modal = React.useSyncExternalStore(subscribeModal, readModal, readModal);
 
-  if (transforming) {
+  if (transforming || !alive) {
     return null;
   }
-  const modal = getActiveCanvasModal(doc);
 
   const hoveredSelectable = viewCtx?.hoveredSelectable();
   const cloneKey = hoveredSelectable
@@ -111,7 +103,7 @@ function PreselectBoxes_() {
   return <>{preselectBoxes}</>;
 }
 
-export const PreselectBox = observer(PreselectBox_);
+export const PreselectBox = React.memo(PreselectBox_);
 function PreselectBox_(props: {
   selectable: Selectable;
   cloneKey: string | undefined;
@@ -123,14 +115,16 @@ function PreselectBox_(props: {
   const { selectable, cloneKey, studioCtx, viewCtx, isHoveredElt } = props;
   useContentEditorScope(studioCtx);
   const draggingObject = useStore(studioCtx.draggingObjectStore);
-  useStudioOverlayState(studioCtx, (state) => state.screenshotting);
+  const screenshotting = useStudioOverlayState(studioCtx, (state) => state.screenshotting);
   const stackOfParents = useStudioOverlayState(studioCtx, (state) => state.stackOfParents);
   useStudioSelection(studioCtx, (state) => state.view);
   useViewVariants(viewCtx, useShallow((state) => [state.frames, state.global]));
+  useCanvasRenderCount(viewCtx);
+  const alive = usePreselectLifetime(viewCtx);
   useViewSelection(viewCtx, useShallow((state) => [state.doms, state.hoverDom]));
 
-  const $selection = viewCtx?.selectionDom(selectable, cloneKey) ?? undefined;
-  const $hovered = viewCtx?.$hoveredDomElt();
+  const $selection = alive ? viewCtx?.selectionDom(selectable, cloneKey) ?? undefined : undefined;
+  const $hovered = alive ? viewCtx?.$hoveredDomElt() : undefined;
   // Portals keep model ancestors whose DOM remains behind the overlay. Only
   // outline ancestor roots that actually contain the hovered foreground DOM.
   const $ancestors = !isHoveredElt && $hovered?.length
@@ -147,19 +141,19 @@ function PreselectBox_(props: {
     ? $ancestors?.filter((_, element) => modal.contains(element))
     : $ancestors;
   const $focused =
-    viewCtx === studioCtx.focusedViewCtx() && viewCtx?.focusedDomElt();
+    alive && viewCtx === studioCtx.focusedViewCtx() && viewCtx?.focusedDomElt();
 
   const shouldShow =
-    viewCtx &&
+    alive && viewCtx &&
     viewCtx.contentEditor.contains(selectable) &&
     !draggingObject &&
-    !studioCtx.shouldHidePreselectBox() &&
+    !screenshotting &&
     $element?.length &&
     $element?.get(0).isConnected &&
     $element?.toArray().filter(hasLayoutBox)?.length > 0 &&
     (stackOfParents || !$focused || !$element.is($focused));
 
-  if (!shouldShow) {
+  if (!shouldShow || !viewCtx) {
     return null;
   }
 
@@ -183,18 +177,47 @@ function PreselectBoxInner(props: {
   $element: JQuery | undefined;
   $focused: false | JQuery<HTMLElement> | null | undefined;
 }) {
-  const { selectable, studioCtx, viewCtx, isHoveredElt, $element, $focused } =
-    props;
+  const { selectable, viewCtx } = props;
+  const variants = useViewVariants(viewCtx, useShallow((state) => [state.frames, state.global]));
+  const renderCount = useCanvasRenderCount(viewCtx);
+  const metadataAlive = useParentStackItemInputs(viewCtx, selectable, false);
+  const hover = useHoverVariantInputs(viewCtx, selectable, variants, renderCount);
+  if (!metadataAlive || !hover.alive) { return null; }
+  return <PreselectBoxStyled {...props} hover={hover} />;
+}
+
+function PreselectBoxStyled(props: Parameters<typeof PreselectBoxInner>[0] & {
+  hover: ReturnType<typeof useHoverVariantInputs>;
+}) {
+  // Keep the hover manager's unthemed label and themed icon reads unchanged.
+  return props.hover.provider
+    ? <PreselectBoxStyleSubscriber {...props} provider={props.hover.provider} />
+    : <PreselectBoxGeometry {...props} />;
+}
+
+function PreselectBoxStyleSubscriber(props: Parameters<typeof PreselectBoxStyled>[0] & { provider: NativeStyleProvider }) {
+  useStyleCells(props.provider, ["display", "flex-direction"]);
+  return <PreselectBoxGeometry {...props} />;
+}
+
+function PreselectBoxGeometry(props: Parameters<typeof PreselectBoxStyled>[0]) {
+  const { selectable, studioCtx, viewCtx, isHoveredElt, $element, $focused, hover } = props;
   const viewportZoom = useCanvasZoom(studioCtx);
   const stackOfParents = useStudioOverlayState(studioCtx, (state) => state.stackOfParents);
-
+  const alive = usePreselectLifetime(viewCtx);
   const hoverTagRef = React.useRef<HTMLDivElement>(null);
-  const forceUpdate = useForceUpdate();
+  const forceUpdate = useFrameForceUpdate(viewCtx.disposeSignal);
+  const elements = useShallow((nodes: Element[]) => nodes)($element?.toArray() ?? []);
   React.useEffect(() => {
-    const doc = viewCtx.canvasCtx.$doc()[0];
+    if (!alive || !hover.alive || !elements.length) { return; }
+    const doc = elements[0].ownerDocument;
+    const resize = new ResizeObserver(forceUpdate);
+    elements.forEach((element) => resize.observe(element));
+    resize.observe(doc.documentElement);
     doc.addEventListener("scroll", forceUpdate, true);
-    return () => doc.removeEventListener("scroll", forceUpdate, true);
-  }, [viewCtx, forceUpdate]);
+    const styleSignal = studioCtx.styleChanged.add(forceUpdate), frames = studioCtx.framesChanged.add(forceUpdate);
+    return () => { resize.disconnect(); doc.removeEventListener("scroll", forceUpdate, true); styleSignal.detach(); frames.detach(); };
+  }, [elements, viewCtx, studioCtx, forceUpdate, hover.alive, alive]);
 
   const tpl = selectable.tpl;
 
@@ -202,30 +225,30 @@ function PreselectBoxInner(props: {
     isHoveredElt && $element && (!$focused || !$element.is($focused));
 
   // Hover outlines show only what the user can see of the element.
-  const { visible: scalerRect } = computeScalerVisibility(
+  const scalerRect = alive ? computeScalerVisibility(
     ensure($element, "PreselectBoxInner requires a hovered element"),
     viewCtx,
-  );
+  ).visible : undefined;
   const cssProps = cssPropsForInvertTransform(viewportZoom, scalerRect);
 
   const tagPlacement = useTagPlacement(
     hoverTagRef,
     scalerRect?.width ?? 0,
     viewportZoom,
-    viewCtx,
+    alive ? viewCtx : undefined,
   );
 
-  if (!scalerRect) {
+  if (!alive || !scalerRect) {
     return null;
   }
 
-  const hoverVtm = viewCtx.hoverVariantTplMgr(selectable);
+  const hoverVtm = hover.manager;
   const isTargetingSomeNonBaseVariant =
-    isTplVariantable(tpl) && hoverVtm.isTargetingNonBaseVariant(tpl);
+    hover.targeting;
 
   const effectiveVariantSetting =
     shouldShowHoverTag && isTplTagOrComponent(tpl)
-      ? hoverVtm.effectiveVariantSetting(tpl)
+      ? hoverVtm?.effectiveVariantSetting(tpl)
       : undefined;
   const tagName = shouldShowHoverTag
     ? summarizeFocusObj(selectable, viewCtx, effectiveVariantSetting)
@@ -273,4 +296,15 @@ function PreselectBoxInner(props: {
       )}
     </div>
   );
+}
+
+/** A prop from a retired model world cannot register against its replacement. */
+function usePreselectLifetime(view: ViewCtx | undefined) {
+  const scope = React.useMemo(() => view ? { view, models: view.studioCtx.modelSnapshots, signal: view.disposeSignal } : undefined, [view]);
+  const subscribe = React.useCallback((listener: () => void) => {
+    scope?.signal.addEventListener("abort", listener, { once: true });
+    return () => scope?.signal.removeEventListener("abort", listener);
+  }, [scope]);
+  const snapshot = React.useCallback(() => !!scope && !scope.signal.aborted && scope.models === scope.view.studioCtx.modelSnapshots && scope.view.studioCtx.arenaState.isCurrentLifetime(scope.view.modelLifetime), [scope]);
+  return React.useSyncExternalStore(subscribe, snapshot, snapshot);
 }

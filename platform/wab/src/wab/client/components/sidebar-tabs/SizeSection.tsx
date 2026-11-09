@@ -1,3 +1,6 @@
+import { useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
+import { useStylePanelLayoutInputs, useStylePanelLayoutSnapshot } from "@/wab/client/studio-ctx/style-panel-layout-inputs";
+import { useStore } from "zustand";
 import { useVariantedStylesHelperFromCurrentCtx } from "@/wab/client/studio-ctx/varianted-style-context";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import { useShallow } from "zustand/react/shallow";
@@ -19,12 +22,9 @@ import { SidebarSection } from "@/wab/client/components/sidebar/SidebarSection";
 import StyleCheckbox from "@/wab/client/components/style-controls/StyleCheckbox";
 import {
   ExpsProvider,
-  FlexControlHelper,
-  StyleComponent,
   StyleComponentProps,
   StylePanelSection,
   TplExpsProvider,
-  useStyleComponent,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { Icon as IconComponent } from "@/wab/client/components/widgets/Icon";
@@ -43,9 +43,8 @@ import {
 import WidthFullBleedIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WidthFullBleed";
 import WidthStandardStretchIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WidthStandardStretch";
 import WidthWideIcon from "@/wab/client/plasmic/plasmic_kit_icons/icons/PlasmicIcon__WidthWide";
-import { makeVariantedStylesHelperFromCurrentCtx } from "@/wab/client/utils/style-utils";
 import { tokenTypeDimOpts } from "@/wab/commons/StyleToken";
-import { assert, spawn, withoutNils } from "@/wab/shared/common";
+import { assert, ensure, spawn, withoutNils } from "@/wab/shared/common";
 import { isPageComponent } from "@/wab/shared/core/components";
 import {
   CONTENT_LAYOUT_FULL_BLEED,
@@ -53,9 +52,7 @@ import {
   sizeSectionProps,
 } from "@/wab/shared/core/style-props";
 import {
-  isComponentRoot,
   isTplComponent,
-  isTplImage,
 } from "@/wab/shared/core/tpls";
 import { parseAspectRatio } from "@/wab/shared/css/aspect-ratio";
 import {
@@ -64,12 +61,8 @@ import {
   NUMBER_UNITS,
 } from "@/wab/shared/css/types";
 import { parseDataUrl, SVG_MEDIA_TYPE } from "@/wab/shared/data-urls";
-import { isContentLayoutTpl } from "@/wab/shared/layoututils";
-import { isKnownImageAssetRef } from "@/wab/shared/model/classes";
 import {
   getPageFrameSizeType,
-  isTplAutoSizable,
-  isTplResizable,
   setPageSizeType,
 } from "@/wab/shared/sizingutils";
 import { capitalizeFirst } from "@/wab/shared/strs";
@@ -77,61 +70,23 @@ import { $$$ } from "@/wab/shared/TplQuery";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { Alert, Menu } from "antd";
 import cn from "classnames";
-import { observer } from "mobx-react";
 import React from "react";
 
-interface SizePanelSectionState {
-  showMore: boolean;
-}
-
-class SizeSection_ extends StyleComponent<
-  StyleComponentProps,
-  SizePanelSectionState
-> {
-  constructor(props: StyleComponentProps) {
-    super(props);
-    this.state = {
-      showMore: false,
-    };
-  }
-
-  render() {
-    const { expsProvider, vsh: providedVsh } = this.props;
-    // The collapsible-row callback runs under SidebarSection's own observer.
-    // Capture this class's model inputs during its render, before that boundary.
-    const indicators = {
-      minWidth: this.definedIndicators("min-width"),
-      maxWidth: this.definedIndicators("max-width"),
-      minHeight: this.definedIndicators("min-height"),
-      maxHeight: this.definedIndicators("max-height"),
-      aspectRatio: this.definedIndicators("aspect-ratio"),
-      flexGrowShrink: this.definedIndicators("flex-grow", "flex-shrink"),
-      flexBasis: this.definedIndicators("flex-basis"),
-    };
+function SizeSectionContent(props: StyleComponentProps & { inputs: ReturnType<typeof useStylePanelLayoutSnapshot> }) {
+    const { expsProvider, vsh: providedVsh, inputs } = props;
+    const uri = inputs.layout?.imageDataUri;
+    const svg = !!uri && (uri.search(/\.svg/) !== -1 || parseDataUrl(uri)?.mediaType === SVG_MEDIA_TYPE);
+    const minWidth = useStyleIndicators(expsProvider, ["min-width"]);
+    const maxWidth = useStyleIndicators(expsProvider, ["max-width"]);
+    const minHeight = useStyleIndicators(expsProvider, ["min-height"]);
+    const maxHeight = useStyleIndicators(expsProvider, ["max-height"]);
+    const aspectRatio = useStyleIndicators(expsProvider, ["aspect-ratio"]);
+    const flexGrowShrink = useStyleIndicators(expsProvider, ["flex-grow", "flex-shrink"]);
+    const flexBasis = useStyleIndicators(expsProvider, ["flex-basis"]);
+    const indicators = { minWidth, maxWidth, minHeight, maxHeight, aspectRatio, flexGrowShrink, flexBasis };
     const dimOpts = { ...tokenTypeDimOpts("Spacing"), min: 0 };
-    const vsh =
-      providedVsh ??
-      makeVariantedStylesHelperFromCurrentCtx(this.studioCtx());
-
-    const isMinMaxWidthSet = isSetOrInherited(
-      getValueSetState(...this.definedIndicators("min-width", "max-width")),
-    );
-
-    const isMinMaxHeightSet = isSetOrInherited(
-      getValueSetState(...this.definedIndicators("min-width", "max-width")),
-    );
-
-    const tpl =
-      expsProvider instanceof TplExpsProvider
-        ? expsProvider.tpl
-        : undefined;
-    const deepLayoutParent = tpl
-      ? $$$(tpl).layoutParent({ throughSlot: true }).maybeOneTpl()
-      : undefined;
-    const isDeepContentLayoutChild =
-      !!deepLayoutParent && isContentLayoutTpl(deepLayoutParent);
-    const isDeepContentLayout =
-      !!tpl && isContentLayoutTpl(tpl, { deep: true });
+    const currentVsh = useVariantedStylesHelperFromCurrentCtx(providedVsh ? undefined : expsProvider.studioCtx);
+    const vsh = providedVsh ?? currentVsh;
 
     return (
       <StylePanelSection
@@ -143,7 +98,7 @@ class SizeSection_ extends StyleComponent<
       >
         {(renderMaybeCollapsibleRows) => (
           <div>
-            {isSvg(expsProvider) && (
+            {svg && (
               <Alert
                 className="mb-sm"
                 type="warning"
@@ -361,10 +316,13 @@ class SizeSection_ extends StyleComponent<
         )}
       </StylePanelSection>
     );
-  }
 }
 
-export const SizeSection = observer(SizeSection_);
+const sizeKeys = [...sizeSectionProps, "display", "flex-direction"];
+export const SizeSection = React.memo(function SizeSection(props: StyleComponentProps) {
+  const inputs = useStylePanelLayoutSnapshot(props.expsProvider, sizeKeys, ["display", "flex-direction"]);
+  return inputs.active ? <SizeSectionContent {...props} inputs={inputs} /> : null;
+});
 
 export const SizeWidthOnlySection = function SizeWidthOnlySection(
   props: StyleComponentProps,
@@ -388,7 +346,7 @@ export const SizeWidthOnlySection = function SizeWidthOnlySection(
   );
 };
 
-const SizeControl = observer(function SizeRow(props: {
+const SizeControl = React.memo(function SizeRow(props: {
   prop: "width" | "height";
   expsProvider: ExpsProvider;
   vsh?: VariantedStylesHelper;
@@ -401,31 +359,25 @@ const SizeControl = observer(function SizeRow(props: {
     expsProvider,
     isDisabled,
     disabledTooltip,
-    vsh = new VariantedStylesHelper(),
+    vsh: _vshInput,
   } = props;
+  const vsh = _vshInput === undefined ? (new VariantedStylesHelper()) : _vshInput;
   useViewVariants(expsProvider instanceof TplExpsProvider ? expsProvider.viewCtx : undefined, useShallow((variantState) => [variantState.frames, variantState.global]));
-  const value = expsProvider.mergedExp().get(prop);
+  const inputs = useStylePanelLayoutSnapshot(expsProvider, sizeKeys, ["display", "flex-direction"]);
+  const cell = inputs.cells.find((item) => item.key === prop);
+  if (!inputs.active || !cell) { return null; }
+  const value = cell.value;
   const tpl =
     expsProvider instanceof TplExpsProvider ? expsProvider.tpl : undefined;
   const canSetSpecialSizes = !!tpl;
 
   const sc = expsProvider.studioCtx;
 
-  let isAutoSizable = true;
-  let isResizable = true;
-  let isRoot = false;
-  let isDeepContentLayoutChild = false;
-  if (tpl) {
-    const vtm = (expsProvider as TplExpsProvider).viewCtx.variantTplMgr();
-    isResizable = isTplResizable(tpl, vtm)[prop];
-    isAutoSizable = isTplAutoSizable(tpl, vtm, prop);
-    isRoot = isComponentRoot(tpl);
-    const deepLayoutParent = tpl
-      ? $$$(tpl).layoutParent({ throughSlot: true }).maybeOneTpl()
-      : undefined;
-    isDeepContentLayoutChild =
-      (!!deepLayoutParent && isContentLayoutTpl(deepLayoutParent)) || isRoot;
-  }
+  const metadata = inputs.layout;
+  const isAutoSizable = metadata ? (prop === "width" ? metadata.canAutoSizeWidth : metadata.canAutoSizeHeight) : true;
+  const isResizable = metadata ? (prop === "width" ? metadata.canResizeWidth : metadata.canResizeHeight) : true;
+  const isRoot = metadata?.isRoot ?? false;
+  const isDeepContentLayoutChild = !!metadata && (metadata.parentIsContentLayout || metadata.isRoot);
 
   const stretchLabel =
     prop === "width" && isDeepContentLayoutChild && !isRoot
@@ -513,8 +465,11 @@ const SizeControl = observer(function SizeRow(props: {
     : ([] as any[]);
 
   const setProp = (val: string | undefined) => {
+    const owner = expsProvider.getNativeStyleSource().inputs;
+    if (owner.isDisposed || (expsProvider instanceof TplExpsProvider && !expsProvider.canEdit())) { return; }
     spawn(
       sc.changeUnsafe(() => {
+        if (owner.isDisposed || (expsProvider instanceof TplExpsProvider && !expsProvider.canEdit())) { return; }
         const exp = expsProvider.targetExp();
         if (val == null) {
           exp.clear(prop);
@@ -632,41 +587,31 @@ const SizeControl = observer(function SizeRow(props: {
   );
 });
 
-const FlexGrowControls = observer(function FlexGrowControls(props: {
+const FlexGrowControls = React.memo(function FlexGrowControls(props: {
   expsProvider: ExpsProvider;
 }) {
-  const styleComponent = useStyleComponent();
-
+  const indicators = useStyleIndicators(props.expsProvider, ["flex-grow", "flex-shrink"]);
+  const inputs = useStylePanelLayoutSnapshot(props.expsProvider, ["flex-grow", "flex-shrink", "flex-basis", "width", "height", "position"], ["display", "flex-direction"]);
+  const usePlasmicImg = useStore(props.expsProvider.studioCtx.uiEnvironment.store, (state) => state.usePlasmicImg);
+  if (!inputs.active || !inputs.cells.length) { return null; }
   const { isDisabled } = shouldBeDisabled({
     props: {},
-    indicators: styleComponent.definedIndicators("flex-grow", "flex-shrink"),
+    indicators,
   });
 
   const { expsProvider } = props;
-  const h = new FlexControlHelper(expsProvider);
+  const owner = expsProvider.getNativeStyleSource().inputs;
 
-  // We always show the flex shrink/grow controls for root or mixin.
-  // Else, only auto-positioned flex children
-  //
-  // TODO: reactivate this after fixing the inference of parent's flex config
-  //  https://gerrit.aws.plasmic.app/c/plasmic/+/4694/comment/ed34b3b7_ff78ae90/
-  //
-  // if (!h.isComponentRoot && !h.isMixin && !h.isAutoInFlexParent()) {
-  //   return null;
-  // }
-
-  const parentContainerType = h.getParentContainerType();
+  const parentContainerType = inputs.parentContainerType;
 
   const exp = () => expsProvider.mergedExp();
 
   const getFlexShrinkVal = (prop: "flex-shrink") => {
-    if (exp().has(prop)) {
-      return exp().get(prop);
-    }
+    const cell = inputs.cells.find((item) => item.key === prop);
+    if (cell?.has) { return cell.value; }
 
-    return expsProvider.studioCtx.appCtx.appConfig.usePlasmicImg &&
-      expsProvider instanceof TplExpsProvider &&
-      isTplImage(expsProvider.tpl)
+    return usePlasmicImg &&
+      inputs.layout?.isImage
       ? false
       : true;
   };
@@ -678,7 +623,7 @@ const FlexGrowControls = observer(function FlexGrowControls(props: {
     title: string,
     tooltip: string,
   ) => {
-    const val = prop == "flex-grow" ? exp().get(prop) : getFlexShrinkVal(prop);
+    const val = prop == "flex-grow" ? ensure(inputs.cells.find((item) => item.key === prop), "Flex sizing requires its captured CSS cell").value : getFlexShrinkVal(prop);
     const isNonzero = +val > 0;
     const strVal = `${+val}`;
 
@@ -690,11 +635,12 @@ const FlexGrowControls = observer(function FlexGrowControls(props: {
         value={isNonzero}
         data-plasmic-prop={prop}
         onChange={(checked) => {
-          if (isDisabled) {
+          if (isDisabled || owner.isDisposed) {
             return;
           }
           spawn(
             expsProvider.studioCtx.changeUnsafe(() => {
+              if (owner.isDisposed) { return; }
               exp().set(prop, checked ? "1" : "0");
             }),
           );
@@ -718,10 +664,12 @@ const FlexGrowControls = observer(function FlexGrowControls(props: {
               <input {...inputProps} autoFocus type="number" min="0" />
             )}
             onEdit={(value) => {
+              if (owner.isDisposed) { return false; }
               const num = parseFloat(value);
               if (!isNaN(num) && num >= 0) {
                 spawn(
                   expsProvider.studioCtx.changeUnsafe(() => {
+                    if (owner.isDisposed) { return; }
                     exp().set(prop, String(num));
                   }),
                 );
@@ -779,7 +727,7 @@ function fromDisplay(val: string, stretchLabel: string) {
   return val;
 }
 
-export const PageSizePanelSection = observer(
+export const PageSizePanelSection = React.memo(
   function PageSizePanelSection(props: { expsProvider: ExpsProvider }) {
     const { t: uiT } = useI18n();
     const { expsProvider } = props;
@@ -788,6 +736,8 @@ export const PageSizePanelSection = observer(
       "ExpsProvider should be TplExpsProvider",
     );
     useViewSelection(expsProvider.viewCtx, (state) => state.context);
+    const active = useStylePanelLayoutInputs(expsProvider, sizeKeys);
+    if (!active) { return null; }
     const component = expsProvider.viewCtx.currentComponent();
     const arenaFrame = expsProvider.viewCtx.arenaFrame();
     assert(
@@ -902,21 +852,3 @@ export const StretchyComponentSizePanelSection =
   }
 ;
 
-function isSvg(expsProvider: ExpsProvider) {
-  const tpl =
-    expsProvider instanceof TplExpsProvider ? expsProvider.tpl : undefined;
-  let isSvgSrc = false;
-  if (tpl) {
-    const vtm = (expsProvider as TplExpsProvider).viewCtx.variantTplMgr();
-    const effectiveVs = vtm.effectiveTargetVariantSetting(tpl);
-
-    const expr = effectiveVs.attrs["src"];
-    if (isKnownImageAssetRef(expr) && expr.asset.dataUri) {
-      const parsed = parseDataUrl(expr.asset.dataUri);
-      isSvgSrc =
-        expr.asset.dataUri.search(/\.svg/) !== -1 ||
-        (parsed && parsed.mediaType === SVG_MEDIA_TYPE);
-    }
-  }
-  return isSvgSrc;
-}

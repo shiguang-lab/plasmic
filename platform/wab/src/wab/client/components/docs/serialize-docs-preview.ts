@@ -257,13 +257,13 @@ function createPreviewModule(
       serializeToggledComponent(
         component,
         docsCtx.getComponentToggles(component),
-        docsCtx.useLoader(),
+        docsCtx.isUsingLoader(),
       ))
     : (docsCtx.getIconCustomCode(ensure(icon, "picked icon")) ??
       serializeToggledIcon(
         ensure(icon, "picked icon"),
         docsCtx.getIconToggles(ensure(icon, "picked icon")),
-        docsCtx.useLoader(),
+        docsCtx.isUsingLoader(),
       ));
 
   const depCssImports = component
@@ -303,7 +303,8 @@ ${
     : ""
 }
 function PlasmicComponent({component, componentProps}) {
-  return React.createElement(componentsMap[component], componentProps);
+  const Component = componentsMap[component];
+  return <Component {...componentProps} />;
 }
 
 PlasmicComponent.getPlumeType = function({ component }) {

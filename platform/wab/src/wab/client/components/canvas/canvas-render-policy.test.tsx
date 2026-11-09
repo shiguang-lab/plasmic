@@ -12,7 +12,6 @@ import type { ChangeSummary } from "@/wab/shared/model/model-change-util";
 import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { CanvasFrameInfoOwner } from "@/wab/client/components/canvas/canvas-frame-info";
 import { CanvasFrameHash } from "@/wab/client/components/canvas/canvas-frame-hash-observer";
-import { useCanvasRenderPolicy } from "@/wab/client/components/canvas/canvas-render-policy";
 import type { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { ensure } from "@/wab/shared/common";
@@ -42,14 +41,15 @@ it("updates iframe scalar consumers and the committed native URL across real mod
   const interactiveRenders = vi.fn<() => void>();
   function Probe() {
     interactiveRenders();
-    const interactive = useCanvasRenderPolicy(sub, view, "interactive");
+    const policy = view.studioCtx.renderPolicy.store;
+    const interactive = React.useSyncExternalStore(policy.subscribe, () => policy.getState().interactive, () => policy.getInitialState().interactive);
     return <output>{String(interactive)}</output>;
   }
   const mounted = render(<Probe />);
   try {
     expect(write).not.toHaveBeenCalled();
     const count = interactiveRenders.mock.calls.length;
-    act(() => { studio.isDocs = true; });
+    act(() => { studio.setDocsMode(true); });
     expect(interactiveRenders).toHaveBeenCalledTimes(count);
     expect(write).not.toHaveBeenCalled();
     act(() => { studio.isInteractiveMode = true; });

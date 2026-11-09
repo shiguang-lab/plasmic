@@ -35,10 +35,10 @@ import {
 import { smartHumanize } from "@/wab/shared/strs";
 import { Menu } from "antd";
 import { isString, uniq } from "lodash";
-import { observer } from "mobx-react";
+import { useQueryInvalidationInputs } from "@/wab/client/components/sidebar-tabs/ServerQuery/server-query-inputs";
 import * as React from "react";
 
-export const InvalidationEditor = observer(function InvalidationKeysEditor({
+export const InvalidationEditor = React.memo(function InvalidationKeysEditor({
   value,
   onChange,
   data,
@@ -58,6 +58,7 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
   const { t: uiT } = useI18n();
   const studioCtx = useStudioCtx();
   const viewCtx = useFocusedViewCtx(studioCtx);
+  const queryInputs = useQueryInvalidationInputs(studioCtx, value);
   const firstRenderRef = React.useRef(true);
   React.useLayoutEffect(() => {
     if (!firstRenderRef.current) {
@@ -65,7 +66,7 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
     }
     firstRenderRef.current = false;
   }, []);
-  const { invalidationQueries, invalidationKeys } = value ?? {
+  const { invalidationQueries, invalidationKeys } = queryInputs?.value ?? {
     invalidationQueries: [ALL_QUERIES.value] as (string | QueryRef)[],
     invalidationKeys: undefined,
   };
@@ -74,82 +75,15 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
   );
   const [isDataPickerVisible, setIsDataPickerVisible] = React.useState(false);
 
-  // Options list of custom functions used by all query types
-  const { queryOptions, valueToRef } = React.useMemo(() => {
-    const components = studioCtx.site.components;
-    const dataQueries = components.flatMap((c) => c.dataQueries);
-    const serverQueries = components.flatMap((c) => c.serverQueries);
-
-    const customCodeQueries: ComponentServerQuery[] = [];
-    const functionGroups = new Map<
-      string,
-      { func: CustomFunction; queries: ComponentServerQuery[] }
-    >();
-    for (const query of serverQueries) {
-      const op = query.op;
-      if (!op) {
-        continue;
-      }
-      if (isKnownCustomCode(op)) {
-        customCodeQueries.push(query);
-      } else {
-        const id = customFunctionId(op.func);
-        const group = functionGroups.get(id);
-        if (group) {
-          group.queries.push(query);
-        } else {
-          functionGroups.set(id, { func: op.func, queries: [query] });
-        }
-      }
-    }
-
-    const valueToRefMap = new Map<
-      string,
-      ComponentDataQuery | ComponentServerQuery
-    >();
-    const options: { value: string; label: string }[] = [];
-    for (const query of [...dataQueries, ...customCodeQueries]) {
-      valueToRefMap.set(query.uuid, query);
-      options.push({ value: query.uuid, label: query.name });
-    }
-    for (const [id, group] of functionGroups) {
-      // Any query referencing this function serializes to the same invalidation
-      // id, so any one of them can anchor the QueryRef.
-      valueToRefMap.set(id, group.queries[0]);
-      const fnName =
-        group.func.displayName ?? smartHumanize(group.func.importName);
-      const count = group.queries.length;
-      options.push({
-        value: id,
-        label: uiT(
-          count === 1 ? "{name} (1 query)" : "{name} ({count} queries)",
-          { name: fnName, count },
-        ),
-      });
-    }
-    return { queryOptions: options, valueToRef: valueToRefMap };
-  }, [studioCtx.site.components, uiT]);
-
-  const refToValue = (ref: QueryRef["ref"]): string => {
-    if (
-      isKnownComponentServerQuery(ref) &&
-      ref.op &&
-      isKnownCustomFunctionExpr(ref.op)
-    ) {
-      return customFunctionId(ref.op.func);
-    }
-    return ref.uuid;
-  };
-
-  const multiSelectValues = invalidationQueries
-    ? invalidationQueries.find((query) => isString(query))
-      ? [ALL_QUERIES.value]
-      : uniq(
-          invalidationQueries.map((query) =>
-            isString(query) ? query : refToValue(query.ref),
-          ),
-        )
-    : undefined;
+  const queryOptions = queryInputs?.options.map(option => ({
+    value: option.value,
+    label: option.count === undefined ? option.name : uiT(option.count === 1 ? "{name} (1 query)" : "{name} ({count} queries)", {name: option.name, count: option.count}),
+  })) ?? [];
+  const valueToRef = new Map(queryInputs?.options.map(option => [option.value, option.ref]));
+  if (queryInputs === null) { return null; }
+  const selected = queryInputs.selectedValues;
+  const multiSelectValues = selected ? invalidationQueries.some(isString) ? [ALL_QUERIES.value] : uniq([...selected]) : [ALL_QUERIES.value];
+  const commitChange = (next: QueryInvalidationExpr) => { if (queryInputs.isCurrent()) { onChange(next); } };
 
   return (
     <>
@@ -169,7 +103,7 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
           value={multiSelectValues}
           onChange={(val) => {
             if (!val) {
-              onChange(
+              commitChange(
                 new QueryInvalidationExpr({
                   invalidationQueries: [],
                   invalidationKeys: invalidationKeys,
@@ -184,14 +118,14 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
               !invalidationQueries.find((v) => v === ALL_QUERIES.value) &&
               val.find((v) => v === ALL_QUERIES.value)
             ) {
-              onChange(
+              commitChange(
                 new QueryInvalidationExpr({
                   invalidationQueries: [ALL_QUERIES.value],
                   invalidationKeys: invalidationKeys,
                 }),
               );
             } else {
-              onChange(
+              commitChange(
                 new QueryInvalidationExpr({
                   invalidationQueries: val
                     .filter(
@@ -232,7 +166,7 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
             <Menu>
               <Menu.Item
                 onClick={() => {
-                  onChange(
+                  commitChange(
                     new QueryInvalidationExpr({
                       invalidationQueries: invalidationQueries,
                       invalidationKeys: undefined,
@@ -249,7 +183,7 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
             <IconButton
               className={styles[`rightTrashIcon--${layout}`]}
               onClick={() => {
-                onChange(
+                commitChange(
                   new QueryInvalidationExpr({
                     invalidationQueries: invalidationQueries,
                     invalidationKeys: undefined,
@@ -274,7 +208,7 @@ export const InvalidationEditor = observer(function InvalidationKeysEditor({
                 return;
               }
               const newExpr = createExprForDataPickerValue(val);
-              onChange(
+              commitChange(
                 new QueryInvalidationExpr({
                   invalidationQueries: invalidationQueries,
                   invalidationKeys: newExpr,

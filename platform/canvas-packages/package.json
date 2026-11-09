@@ -8,6 +8,7 @@
     "test": "node --test makePkgTypes.test.js",
     "test:preview-runtime": "node --test antd6-runtime.test.cjs",
     "test:icons": "node --test antd-icons.test.cjs",
+    "test:canvas-runtime": "NODE_ENV=production node --test slate-runtime.test.cjs",
     "size": "size-limit",
     "upgrade-aria": "pnpm up --latest react-aria && pnpm dedupe"
   },
@@ -118,6 +119,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "babel-plugin-react-compiler": "1.0.0",
     "@babel/core": "^7.29.0",
     "@babel/preset-react": "^7.28.5",
     "@plasmicapp/host": "link:../../packages/host",

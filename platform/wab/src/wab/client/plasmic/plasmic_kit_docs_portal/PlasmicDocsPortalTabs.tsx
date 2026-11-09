@@ -15,19 +15,19 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
   hasVariant,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import DocsPortalTab from "../../components/docs/DocsPortalTab"; // plasmic-import: J18H-n0ADz/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: dyzP6dbCdycwJpqiR2zkwe/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -93,11 +93,10 @@ function PlasmicDocsPortalTabs__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "activeTab",
@@ -106,18 +105,20 @@ function PlasmicDocsPortalTabs__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.activeTab,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -248,12 +249,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -263,29 +260,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicDocsPortalTabs__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicDocsPortalTabs";
-  } else {
-    func.displayName = `PlasmicDocsPortalTabs.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicDocsPortalTabs__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicDocsPortalTabs__root<T extends PlasmicDocsPortalTabs__rootProps>(props: T & StrictProps<T, PlasmicDocsPortalTabs__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicDocsPortalTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicDocsPortalTabs__root.displayName = "PlasmicDocsPortalTabs";
+
+type PlasmicDocsPortalTabs__introProps = NodeComponentProps<"intro"> & {key?: React.Key};
+function PlasmicDocsPortalTabs__intro<T extends PlasmicDocsPortalTabs__introProps>(props: T & StrictProps<T, PlasmicDocsPortalTabs__introProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("intro", props);
+  return <PlasmicDocsPortalTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"intro"} />;
+}
+PlasmicDocsPortalTabs__intro.displayName = "PlasmicDocsPortalTabs.intro";
+
+type PlasmicDocsPortalTabs__componentsProps = NodeComponentProps<"components"> & {key?: React.Key};
+function PlasmicDocsPortalTabs__components<T extends PlasmicDocsPortalTabs__componentsProps>(props: T & StrictProps<T, PlasmicDocsPortalTabs__componentsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("components", props);
+  return <PlasmicDocsPortalTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"components"} />;
+}
+PlasmicDocsPortalTabs__components.displayName = "PlasmicDocsPortalTabs.components";
+
+type PlasmicDocsPortalTabs__imagesProps = NodeComponentProps<"images"> & {key?: React.Key};
+function PlasmicDocsPortalTabs__images<T extends PlasmicDocsPortalTabs__imagesProps>(props: T & StrictProps<T, PlasmicDocsPortalTabs__imagesProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("images", props);
+  return <PlasmicDocsPortalTabs__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"images"} />;
+}
+PlasmicDocsPortalTabs__images.displayName = "PlasmicDocsPortalTabs.images";
+
 
 export const PlasmicDocsPortalTabs = Object.assign(
   // Top-level PlasmicDocsPortalTabs renders the root element
-  makeNodeComponent("root"),
+  PlasmicDocsPortalTabs__root,
   {
     // Helper components rendering sub-elements
-    intro: makeNodeComponent("intro"),
-    components: makeNodeComponent("components"),
-    images: makeNodeComponent("images"),
+    intro: PlasmicDocsPortalTabs__intro,
+    components: PlasmicDocsPortalTabs__components,
+    images: PlasmicDocsPortalTabs__images,
 
     // Metadata about props expected for PlasmicDocsPortalTabs
     internalVariantProps: PlasmicDocsPortalTabs__VariantProps,

@@ -24,7 +24,7 @@ export function createSessionCanvas(registers: ((loader: Registerable) => void)[
           initialValueProp: state.initialValueProp ?? meta.props[state.valueProp]?.uncontrolledProp,
           controlled: props[state.valueProp] !== undefined && !meta.props[state.valueProp]?.editOnly,
         }));
-        if (meta.canvasOverlay && !interactive) {
+        if (meta.canvasOverlay) {
           const selection = props.__canvas;
           session.resolve(instance, "open", props.open, props.defaultOpen);
           session.reveal(instance, "open", !!props.open || !!selection?.selected && (!meta.canvasOverlay.triggerSlot || selection.slot !== meta.canvasOverlay.triggerSlot));

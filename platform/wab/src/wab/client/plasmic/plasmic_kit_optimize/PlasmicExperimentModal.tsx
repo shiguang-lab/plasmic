@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,7 +24,7 @@ import {
   renderPlasmicSlot,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -36,7 +36,7 @@ import ExperimentToggle from "../../components/splits/ExperimentToggle"; // plas
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import Select from "../../components/widgets/Select"; // plasmic-import: j_4IQyOWK2b/component
 import Textbox from "../../components/widgets/Textbox"; // plasmic-import: pA22NEzDCsn_/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: gtUDvxG6cmBbSzqLikNzoP/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -125,11 +125,10 @@ function PlasmicExperimentModal__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isExternal",
@@ -145,18 +144,20 @@ function PlasmicExperimentModal__RenderFunc(props: {
           $props.withConversionEvents,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -440,12 +441,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -455,36 +452,101 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicExperimentModal__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicExperimentModal";
-  } else {
-    func.displayName = `PlasmicExperimentModal.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicExperimentModal__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicExperimentModal__root<T extends PlasmicExperimentModal__rootProps>(props: T & StrictProps<T, PlasmicExperimentModal__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicExperimentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicExperimentModal__root.displayName = "PlasmicExperimentModal";
+
+type PlasmicExperimentModal__closeButtonProps = NodeComponentProps<"closeButton"> & {key?: React.Key};
+function PlasmicExperimentModal__closeButton<T extends PlasmicExperimentModal__closeButtonProps>(props: T & StrictProps<T, PlasmicExperimentModal__closeButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("closeButton", props);
+  return <PlasmicExperimentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"closeButton"} />;
+}
+PlasmicExperimentModal__closeButton.displayName = "PlasmicExperimentModal.closeButton";
+
+type PlasmicExperimentModal__titleProps = NodeComponentProps<"title"> & {key?: React.Key};
+function PlasmicExperimentModal__title<T extends PlasmicExperimentModal__titleProps>(props: T & StrictProps<T, PlasmicExperimentModal__titleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("title", props);
+  return <PlasmicExperimentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"title"} />;
+}
+PlasmicExperimentModal__title.displayName = "PlasmicExperimentModal.title";
+
+type PlasmicExperimentModal__typeProps = NodeComponentProps<"type"> & {key?: React.Key};
+function PlasmicExperimentModal__type<T extends PlasmicExperimentModal__typeProps>(props: T & StrictProps<T, PlasmicExperimentModal__typeProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("type", props);
+  return <PlasmicExperimentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"type"} />;
+}
+PlasmicExperimentModal__type.displayName = "PlasmicExperimentModal.type";
+
+type PlasmicExperimentModal__toggleProps = NodeComponentProps<"toggle"> & {key?: React.Key};
+function PlasmicExperimentModal__toggle<T extends PlasmicExperimentModal__toggleProps>(props: T & StrictProps<T, PlasmicExperimentModal__toggleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("toggle", props);
+  return <PlasmicExperimentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"toggle"} />;
+}
+PlasmicExperimentModal__toggle.displayName = "PlasmicExperimentModal.toggle";
+
+type PlasmicExperimentModal__contentProps = NodeComponentProps<"content"> & {key?: React.Key};
+function PlasmicExperimentModal__content<T extends PlasmicExperimentModal__contentProps>(props: T & StrictProps<T, PlasmicExperimentModal__contentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("content", props);
+  return <PlasmicExperimentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"content"} />;
+}
+PlasmicExperimentModal__content.displayName = "PlasmicExperimentModal.content";
+
+type PlasmicExperimentModal__descriptionInputProps = NodeComponentProps<"descriptionInput"> & {key?: React.Key};
+function PlasmicExperimentModal__descriptionInput<T extends PlasmicExperimentModal__descriptionInputProps>(props: T & StrictProps<T, PlasmicExperimentModal__descriptionInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("descriptionInput", props);
+  return <PlasmicExperimentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"descriptionInput"} />;
+}
+PlasmicExperimentModal__descriptionInput.displayName = "PlasmicExperimentModal.descriptionInput";
+
+type PlasmicExperimentModal__extraControlsProps = NodeComponentProps<"extraControls"> & {key?: React.Key};
+function PlasmicExperimentModal__extraControls<T extends PlasmicExperimentModal__extraControlsProps>(props: T & StrictProps<T, PlasmicExperimentModal__extraControlsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("extraControls", props);
+  return <PlasmicExperimentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"extraControls"} />;
+}
+PlasmicExperimentModal__extraControls.displayName = "PlasmicExperimentModal.extraControls";
+
+type PlasmicExperimentModal__experimentEventsProps = NodeComponentProps<"experimentEvents"> & {key?: React.Key};
+function PlasmicExperimentModal__experimentEvents<T extends PlasmicExperimentModal__experimentEventsProps>(props: T & StrictProps<T, PlasmicExperimentModal__experimentEventsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("experimentEvents", props);
+  return <PlasmicExperimentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"experimentEvents"} />;
+}
+PlasmicExperimentModal__experimentEvents.displayName = "PlasmicExperimentModal.experimentEvents";
+
+type PlasmicExperimentModal__experimentEternalIdsProps = NodeComponentProps<"experimentEternalIds"> & {key?: React.Key};
+function PlasmicExperimentModal__experimentEternalIds<T extends PlasmicExperimentModal__experimentEternalIdsProps>(props: T & StrictProps<T, PlasmicExperimentModal__experimentEternalIdsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("experimentEternalIds", props);
+  return <PlasmicExperimentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"experimentEternalIds"} />;
+}
+PlasmicExperimentModal__experimentEternalIds.displayName = "PlasmicExperimentModal.experimentEternalIds";
+
+type PlasmicExperimentModal__statusSelectProps = NodeComponentProps<"statusSelect"> & {key?: React.Key};
+function PlasmicExperimentModal__statusSelect<T extends PlasmicExperimentModal__statusSelectProps>(props: T & StrictProps<T, PlasmicExperimentModal__statusSelectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("statusSelect", props);
+  return <PlasmicExperimentModal__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"statusSelect"} />;
+}
+PlasmicExperimentModal__statusSelect.displayName = "PlasmicExperimentModal.statusSelect";
+
 
 export const PlasmicExperimentModal = Object.assign(
   // Top-level PlasmicExperimentModal renders the root element
-  makeNodeComponent("root"),
+  PlasmicExperimentModal__root,
   {
     // Helper components rendering sub-elements
-    closeButton: makeNodeComponent("closeButton"),
-    title: makeNodeComponent("title"),
-    type: makeNodeComponent("type"),
-    toggle: makeNodeComponent("toggle"),
-    content: makeNodeComponent("content"),
-    descriptionInput: makeNodeComponent("descriptionInput"),
-    extraControls: makeNodeComponent("extraControls"),
-    experimentEvents: makeNodeComponent("experimentEvents"),
-    experimentEternalIds: makeNodeComponent("experimentEternalIds"),
-    statusSelect: makeNodeComponent("statusSelect"),
+    closeButton: PlasmicExperimentModal__closeButton,
+    title: PlasmicExperimentModal__title,
+    type: PlasmicExperimentModal__type,
+    toggle: PlasmicExperimentModal__toggle,
+    content: PlasmicExperimentModal__content,
+    descriptionInput: PlasmicExperimentModal__descriptionInput,
+    extraControls: PlasmicExperimentModal__extraControls,
+    experimentEvents: PlasmicExperimentModal__experimentEvents,
+    experimentEternalIds: PlasmicExperimentModal__experimentEternalIds,
+    statusSelect: PlasmicExperimentModal__statusSelect,
 
     // Metadata about props expected for PlasmicExperimentModal
     internalVariantProps: PlasmicExperimentModal__VariantProps,

@@ -55,37 +55,18 @@ const checkboxConfig = {
 export const CheckboxPlugin: PlumePlugin = {
   // PlumeCanvasPlugin
   genCanvasWrapperComponent: (sub, impl, observer, getCompMeta, component) => {
-    const Comp = sub.React.forwardRef((allProps, ref: CheckboxRef) =>
+    const Comp = sub.createCanvasComponentType((allProps, ref: CheckboxRef) =>
       observer(() => {
-        const internalProps = pick(allProps, internalCanvasElementProps);
-        let usingDefaultChildren: false | React.ReactElement = false;
-        let componentProps = omit(allProps, internalCanvasElementProps);
-        if (
-          !("children" in componentProps) &&
-          getTplSlotByName(component, "children")?.defaultContents.length
-        ) {
-          usingDefaultChildren = createDefaultSlotContentsStub(sub);
-          componentProps = {
-            ...componentProps,
-            children: usingDefaultChildren,
-          };
-        }
-        const { plasmicProps } = sub.reactWeb.useCheckbox(
-          Object.assign(impl, getCompMeta()),
-          componentProps,
-          checkboxConfig as any,
-          ref,
-        );
-        if (usingDefaultChildren) {
-          assert(
-            plasmicProps.args.children === usingDefaultChildren,
-            () => `Expected children to match slot stub`,
-          );
-          delete plasmicProps.args.children;
-        }
-        return sub.React.createElement(impl, {
-          ...plasmicProps,
-          ...internalProps,
+        const componentProps = omit(allProps, internalCanvasElementProps);
+        const hasDefault = !("children" in componentProps) && !!getTplSlotByName(component, "children")?.defaultContents.length;
+        return sub.React.createElement(sub.CanvasPlume.CanvasPlumeCheckbox, {
+          impl,
+          metadata: getCompMeta(),
+          internalProps: pick(allProps, internalCanvasElementProps),
+          componentProps: hasDefault ? { ...componentProps, children: createDefaultSlotContentsStub(sub) } : componentProps,
+          config: checkboxConfig as any,
+          forwardedRef: ref,
+          defaultSlot: hasDefault ? "children" : undefined,
         });
       }),
     );
@@ -97,12 +78,12 @@ export const CheckboxPlugin: PlumePlugin = {
   genHook(ctx: SerializerBaseContext) {
     const { component } = ctx;
     return `
-      function useBehavior<P extends pp.CheckboxProps>(props: P, ref: pp.CheckboxRef) {
+      function useBehavior<P extends Plume.CheckboxProps>(props: P, ref: Plume.CheckboxRef) {
         ${serializeComponentSubstitutionCallsForDefaultContents(ctx, [
           "children",
         ])}
         ${maybeIncludeSerializedDefaultSlotContent(ctx, "children")}
-        return pp.useCheckbox<P, typeof ${makePlasmicComponentName(component)}>(
+        return Plume.useCheckbox<P, typeof ${makePlasmicComponentName(component)}>(
           ${makePlasmicComponentName(component)},
           props,
           ${jsLiteral(checkboxConfig)},
@@ -119,7 +100,7 @@ export const CheckboxPlugin: PlumePlugin = {
     return `
       export interface ${
         opts?.typeName ?? makeDefaultExternalPropsName(component)
-      } extends pp.CheckboxProps {
+      } extends Plume.CheckboxProps {
         ${params
           .map(
             (param) =>

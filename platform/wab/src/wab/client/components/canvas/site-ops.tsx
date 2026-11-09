@@ -1527,10 +1527,10 @@ export class SiteOps {
                   if (focusedViewCtx) {
                     focusedViewCtx.postEval(() => {
                       if (focusedViewCtx.focusedTpl() === failure.tpl) {
-                        focusedViewCtx.highlightParams = {
+                        focusedViewCtx.setHighlightParams({
                           tpl: failure.tpl,
                           params: [failure.arg.param],
-                        };
+                        });
                       }
                     });
                   }
@@ -1719,7 +1719,7 @@ export class SiteOps {
   createVariantGroup(component: Component, optionsType: VariantOptionsType) {
     const group = this.tplMgr.createVariantGroup({ component, optionsType });
 
-    this.studioCtx.latestVariantGroupCreated = group;
+    this.studioCtx.requestVariantGroupEditing(group);
 
     if (optionsType === VariantOptionsType.standalone) {
       this.onVariantAdded(group.variants[0]);

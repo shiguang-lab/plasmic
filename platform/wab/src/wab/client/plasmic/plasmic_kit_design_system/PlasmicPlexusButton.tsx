@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   MultiChoiceArg,
   SingleBooleanChoiceArg,
   SingleChoiceArg,
@@ -25,12 +25,12 @@ import {
   deriveRenderOpts,
   hasVariant,
   renderPlasmicSlot,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { BaseButton } from "@plasmicpkgs/react-aria/skinny/registerButton";
-import { _useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_design_system/PlasmicStyleTokensProvider"; // plasmic-import: tXkSR39sgCDWSitZxC5xFV/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -158,11 +158,10 @@ function PlasmicPlexusButton__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "color",
@@ -208,18 +207,20 @@ function PlasmicPlexusButton__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.flatSide,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   const [$ccVariants, setDollarCcVariants] = React.useState<
     Record<string, boolean>
@@ -337,19 +338,8 @@ function PlasmicPlexusButton__RenderFunc(props: {
       plasmicUpdateVariant={updateVariant}
       resetsForm={args.resetsForm}
       submitsForm={args.submitsForm}
-      target={(() => {
-        try {
-          return $props.openLinkInNewTab ? "_blank" : "_self";
-        } catch (e) {
-          if (
-            e instanceof TypeError ||
-            e?.plasmicType === "PlasmicUndefinedDataError"
-          ) {
-            return undefined;
-          }
-          throw e;
-        }
-      })()}
+      target={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+            e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.openLinkInNewTab ? "_blank" : "_self"), () => (undefined))}
     >
       {(
         hasVariant($state, "type", "bordered") && $ccVariants["pressed"]
@@ -1024,12 +1014,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1039,29 +1025,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPlexusButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPlexusButton";
-  } else {
-    func.displayName = `PlasmicPlexusButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPlexusButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPlexusButton__root<T extends PlasmicPlexusButton__rootProps>(props: T & StrictProps<T, PlasmicPlexusButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPlexusButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPlexusButton__root.displayName = "PlasmicPlexusButton";
+
+type PlasmicPlexusButton__softBackgroundProps = NodeComponentProps<"softBackground"> & {key?: React.Key};
+function PlasmicPlexusButton__softBackground<T extends PlasmicPlexusButton__softBackgroundProps>(props: T & StrictProps<T, PlasmicPlexusButton__softBackgroundProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("softBackground", props);
+  return <PlasmicPlexusButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"softBackground"} />;
+}
+PlasmicPlexusButton__softBackground.displayName = "PlasmicPlexusButton.softBackground";
+
+type PlasmicPlexusButton__borderProps = NodeComponentProps<"border"> & {key?: React.Key};
+function PlasmicPlexusButton__border<T extends PlasmicPlexusButton__borderProps>(props: T & StrictProps<T, PlasmicPlexusButton__borderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("border", props);
+  return <PlasmicPlexusButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"border"} />;
+}
+PlasmicPlexusButton__border.displayName = "PlasmicPlexusButton.border";
+
+type PlasmicPlexusButton__interactionEffectProps = NodeComponentProps<"interactionEffect"> & {key?: React.Key};
+function PlasmicPlexusButton__interactionEffect<T extends PlasmicPlexusButton__interactionEffectProps>(props: T & StrictProps<T, PlasmicPlexusButton__interactionEffectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("interactionEffect", props);
+  return <PlasmicPlexusButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"interactionEffect"} />;
+}
+PlasmicPlexusButton__interactionEffect.displayName = "PlasmicPlexusButton.interactionEffect";
+
 
 export const PlasmicPlexusButton = Object.assign(
   // Top-level PlasmicPlexusButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicPlexusButton__root,
   {
     // Helper components rendering sub-elements
-    softBackground: makeNodeComponent("softBackground"),
-    border: makeNodeComponent("border"),
-    interactionEffect: makeNodeComponent("interactionEffect"),
+    softBackground: PlasmicPlexusButton__softBackground,
+    border: PlasmicPlexusButton__border,
+    interactionEffect: PlasmicPlexusButton__interactionEffect,
 
     // Metadata about props expected for PlasmicPlexusButton
     internalVariantProps: PlasmicPlexusButton__VariantProps,

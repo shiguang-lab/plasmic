@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,7 +25,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: cQnF1HuwK97HkvkrC6uRk2/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -87,11 +87,10 @@ function PlasmicAnalyticsHeader__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -206,12 +205,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -221,29 +216,45 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicAnalyticsHeader__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicAnalyticsHeader";
-  } else {
-    func.displayName = `PlasmicAnalyticsHeader.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicAnalyticsHeader__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicAnalyticsHeader__root<T extends PlasmicAnalyticsHeader__rootProps>(props: T & StrictProps<T, PlasmicAnalyticsHeader__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicAnalyticsHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicAnalyticsHeader__root.displayName = "PlasmicAnalyticsHeader";
+
+type PlasmicAnalyticsHeader__logoProps = NodeComponentProps<"logo"> & {key?: React.Key};
+function PlasmicAnalyticsHeader__logo<T extends PlasmicAnalyticsHeader__logoProps>(props: T & StrictProps<T, PlasmicAnalyticsHeader__logoProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("logo", props);
+  return <PlasmicAnalyticsHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"logo"} />;
+}
+PlasmicAnalyticsHeader__logo.displayName = "PlasmicAnalyticsHeader.logo";
+
+type PlasmicAnalyticsHeader__backBtnProps = NodeComponentProps<"backBtn"> & {key?: React.Key};
+function PlasmicAnalyticsHeader__backBtn<T extends PlasmicAnalyticsHeader__backBtnProps>(props: T & StrictProps<T, PlasmicAnalyticsHeader__backBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("backBtn", props);
+  return <PlasmicAnalyticsHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"backBtn"} />;
+}
+PlasmicAnalyticsHeader__backBtn.displayName = "PlasmicAnalyticsHeader.backBtn";
+
+type PlasmicAnalyticsHeader__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicAnalyticsHeader__svg<T extends PlasmicAnalyticsHeader__svgProps>(props: T & StrictProps<T, PlasmicAnalyticsHeader__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicAnalyticsHeader__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicAnalyticsHeader__svg.displayName = "PlasmicAnalyticsHeader.svg";
+
 
 export const PlasmicAnalyticsHeader = Object.assign(
   // Top-level PlasmicAnalyticsHeader renders the root element
-  makeNodeComponent("root"),
+  PlasmicAnalyticsHeader__root,
   {
     // Helper components rendering sub-elements
-    logo: makeNodeComponent("logo"),
-    backBtn: makeNodeComponent("backBtn"),
-    svg: makeNodeComponent("svg"),
+    logo: PlasmicAnalyticsHeader__logo,
+    backBtn: PlasmicAnalyticsHeader__backBtn,
+    svg: PlasmicAnalyticsHeader__svg,
 
     // Metadata about props expected for PlasmicAnalyticsHeader
     internalVariantProps: PlasmicAnalyticsHeader__VariantProps,

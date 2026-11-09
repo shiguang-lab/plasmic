@@ -1,0 +1,479 @@
+{
+  "date": "2026-11-09",
+  "scope": "Offline native dashboard replay; built-in and custom Hosts; current production-mode implementation versus identical source with project-wide canvas library installation. Working-set sums are not physical footprint.",
+  "builds": {
+    "control": {
+      "kind": "diagnostic",
+      "variant": "control",
+      "sourceRoot": "/tmp/plasmic-hostless-formal-20261109/source",
+      "runtimeRevision": "a475f219bfae530ba61900e8e5b310020cbb8292",
+      "rendererHash": "ea281ad2e48e2737b8fa8ef3a1bd633b92be92d3286436ac8d7de8a8d96bb664"
+    },
+    "formal": {
+      "kind": "diagnostic",
+      "variant": "formal",
+      "sourceRoot": "/tmp/plasmic-hostless-formal-20261109/source",
+      "runtimeRevision": "a475f219bfae530ba61900e8e5b310020cbb8292",
+      "rendererHash": "719247c96c5bbe94e49ccb3de7e6e41cacf335d81e06e1aaad8689d143c45070"
+    }
+  },
+  "candidateSources": {
+    "platform/wab/src/wab/client/components/root-view.tsx": "917421e37b1e22993e85350139db0a9084935003e6ea0e3175ba68833c0706b7",
+    "platform/wab/src/wab/client/app-ctx.ts": "08fa2d1b6161ad01b341e1a9fe127c86792546a20f85cadc13d6c194d9ea592b",
+    "platform/wab/src/wab/client/components/canvas/canvas-hostless-inputs.ts": "dc4078a3ddef8a120171ccaf8b10c5f9487d1436991c6d0b7a76f39a3a03e525",
+    "platform/wab/src/wab/client/components/canvas/canvas-ctx.ts": "bc3bfad1f2389e4cf960dfb7fa611b4fea1e7e62f50ca5af892aca8705eb20e7",
+    "platform/wab/src/wab/client/components/studio/arenas/FreeFramesLayout.tsx": "b9e8ef5664722f07fefad308632c2769f0d43494cc279c77709661064c64dc43"
+  },
+  "sharedRuntimeSha256": {
+    "static/sub/build/client.a475f2.js": "2ef024b74e23ff828f3071eac6f2c464eb8760710150be69e91e58c174dc849a",
+    "static/canvas-packages/build/client.a475f2.js": "98f0bc26798dbe6c388534616d8f87bbea67ded49b003b42b53186f22e450a0d",
+    "static/react-web-bundle/build/client.a475f2.js": "6f77ff9cbd7d45525d415ef3bb70d0ec815fa95d9b22adfa63daffa7879c0e66"
+  },
+  "comparisons": [
+    {
+      "project": "gp",
+      "timing": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1463.35,
+          "allFramesMs": 1422.75,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 727.23,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1468.3,
+          "allFramesMs": 1426.55,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 725.6,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      },
+      "memory": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1465.4,
+          "allFramesMs": 1424.8,
+          "activeWorkingSetMiB": 1329.41,
+          "settledWorkingSetMiB": null,
+          "activeViews": 1.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1331.55,
+          "returnedWorkingSetMiB": 725.55,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1455.1,
+          "allFramesMs": 1413.5,
+          "activeWorkingSetMiB": 1316.38,
+          "settledWorkingSetMiB": null,
+          "activeViews": 1.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1316.27,
+          "returnedWorkingSetMiB": 721.16,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      }
+    },
+    {
+      "project": "complex",
+      "timing": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1317.75,
+          "allFramesMs": 3485.65,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 749.62,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1321.4,
+          "allFramesMs": 3393.75,
+          "activeWorkingSetMiB": null,
+          "settledWorkingSetMiB": null,
+          "activeViews": null,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": null,
+          "returnedWorkingSetMiB": 730.16,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      },
+      "memory": {
+        "before": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1329.05,
+          "allFramesMs": 3508.2,
+          "activeWorkingSetMiB": 1561.02,
+          "settledWorkingSetMiB": null,
+          "activeViews": 10.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1569.57,
+          "returnedWorkingSetMiB": 716.53,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        },
+        "after": {
+          "processes": 2,
+          "warmSamples": 8,
+          "revealMs": 1323.4,
+          "allFramesMs": 3402.95,
+          "activeWorkingSetMiB": 1523.66,
+          "settledWorkingSetMiB": null,
+          "activeViews": 10.0,
+          "settledViews": null,
+          "openPeakWorkingSetMiB": 1538.89,
+          "returnedWorkingSetMiB": 718.82,
+          "viewsBeforeOverview": null,
+          "overviewDetectedMs": null
+        }
+      }
+    }
+  ],
+  "qualification": [
+    {
+      "project": "gp",
+      "mode": "qual-final-svg",
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "outline-dom-rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 160,
+        "reopen": true,
+        "hostless": {
+          "custom": false,
+          "frameId": "dO6gEmTQ80cE",
+          "iconName": "plasmic-antd-icon-AccountBookFilled",
+          "initialIconLibraryLoaded": false,
+          "nodeId": "patCJKlm99rE",
+          "revision": 159,
+          "undoRedo": true,
+          "savedDynamicReference": true,
+          "previewCondition": true,
+          "reopen": true
+        }
+      },
+      "errors": [],
+      "blockedWrites": [],
+      "saves": 2,
+      "initialArtboardLibraryCounts": [
+        2
+      ]
+    },
+    {
+      "project": "gp",
+      "mode": "qual-final-custom",
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "outline-dom-rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 160,
+        "reopen": true,
+        "hostless": {
+          "custom": true,
+          "frameId": "dO6gEmTQ80cE",
+          "iconName": "plasmic-antd-icon-AccountBookFilled",
+          "initialIconLibraryLoaded": true,
+          "nodeId": "Y2aMYthp_a9i",
+          "revision": 159,
+          "undoRedo": true,
+          "savedDynamicReference": true,
+          "previewCondition": false,
+          "reopen": true
+        }
+      },
+      "errors": [],
+      "blockedWrites": [],
+      "saves": 2,
+      "initialArtboardLibraryCounts": [
+        4
+      ]
+    },
+    {
+      "project": "complex",
+      "mode": "qual-formal-complex-full",
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "outline-dom-rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-redo-rendered-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "errors": [],
+      "blockedWrites": [],
+      "saves": 1,
+      "initialArtboardLibraryCounts": [
+        4,
+        4,
+        2,
+        4,
+        4,
+        3,
+        4,
+        2,
+        1,
+        1
+      ]
+    },
+    {
+      "project": "gp",
+      "mode": "qual-control-gp",
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "dO6gEmTQ80cE",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "outline-dom-rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "preview-business-pagination-return",
+            "passed": true
+          }
+        ],
+        "revision": 159,
+        "reopen": true
+      },
+      "errors": [],
+      "blockedWrites": [],
+      "saves": 1,
+      "initialArtboardLibraryCounts": [
+        4
+      ]
+    },
+    {
+      "project": "complex",
+      "mode": "qual-control-complex",
+      "functional": {
+        "cases": [
+          {
+            "case": "switch-artboard",
+            "frame": "g6iKNJJfK8J6",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "58rcnoga5nrA",
+            "rendered": true
+          },
+          {
+            "case": "switch-artboard",
+            "frame": "yqGY4RQZ5MAn",
+            "rendered": true
+          },
+          {
+            "case": "rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "outline-dom-rename-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "rendered-style-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "frame-position-undo-redo",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-undo-selection-style",
+            "passed": true
+          },
+          {
+            "case": "cold-frame-redo-rendered-style",
+            "passed": true
+          }
+        ],
+        "revision": 1,
+        "reopen": true
+      },
+      "errors": [],
+      "blockedWrites": [],
+      "saves": 1,
+      "initialArtboardLibraryCounts": [
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4,
+        4
+      ]
+    }
+  ],
+  "checks": {
+    "vitest": {
+      "files": 4,
+      "tests": 57,
+      "passed": true,
+      "finalInputsTests": 17
+    },
+    "typecheck": {
+      "command": "node_modules/.bin/tsc --noEmit --incremental false (cwd: platform/wab)",
+      "passed": true
+    },
+    "eslint": {
+      "files": [
+        "canvas-hostless-inputs.ts",
+        "canvas-hostless-inputs.test.ts",
+        "canvas-ctx.ts",
+        "open-hostless.cjs"
+      ],
+      "errors": 0,
+      "warnings": 0
+    },
+    "diagnosticSyntaxChecks": 3
+  },
+  "sampling": {
+    "order": "ABBA per project per metric",
+    "opensPerProcess": 6,
+    "excludedWarmupOpensPerProcess": 2,
+    "processes": 16,
+    "totalOpens": 96,
+    "warmTimingSamples": 32,
+    "warmMemorySamples": 32,
+    "debugger": false,
+    "forcedGc": false,
+    "activeMemoryWaitMs": 1500,
+    "peakSampleIntervalMs": 100
+  },
+  "privateReplayRoot": "/tmp/plasmic-hostless-formal-20261109",
+  "validationSources": {
+    "platform/wab/src/wab/client/components/canvas/canvas-hostless-inputs.test.ts": "963de2e52b52eaf78b6b791846f510e090998205f13acdd6cf0a217e03cb7d8e",
+    "desktop/tests/performance/open-hostless.cjs": "b61b68885c174c65235180022b4f4a8231fdf19f07cdf9e05c1ba69861ee6cba",
+    "desktop/tests/performance/open-functional.cjs": "3a3a18fe0b43ced15c9b09cb70f923a3b45d73cd8eb8bac8783b324e9c72e828"
+  }
+}

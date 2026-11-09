@@ -30,7 +30,7 @@
     "release": "echo 'Use the jenkins job release_public_packages instead: https://jenkins.aws.plasmic.app/job/release_public_packages/'",
     "setup": "pnpm install && pnpm --filter @shiguang-lab/plasmic-antd6... build && pnpm --filter @shiguang-lab/plasmic-antd-icons build && pnpm --filter @shiguang-lab/plasmic-react-ui build && pnpm setup:wab && pnpm setup:loader-html-hydrate && pnpm setup:sub && pnpm setup:react-web-bundle && pnpm setup:live-frame && pnpm setup:loader-bundle-env && pnpm make",
     "setup-all": "pnpm setup && pnpm setup:canvas-packages && cd platform/wab && pnpm typeorm migration:run && pnpm migrate-dev-bundles && pnpm plume:dev update",
-    "setup:canvas-packages": "cd platform && pnpm install && pnpm --filter canvas-packages build",
+    "setup:canvas-packages": "node scripts/build-canvas-dependencies.mjs && cd platform && pnpm install && pnpm --filter canvas-packages build",
     "setup:live-frame": "cd platform/live-frame && pnpm install && pnpm build",
     "setup:loader-bundle-env": "cd platform && pnpm install && pnpm --filter \"loader-bundle-env...\" build",
     "setup:loader-html-hydrate": "cd platform && pnpm install --frozen-lockfile && cd .. && node scripts/build-html-hydrate.mjs",

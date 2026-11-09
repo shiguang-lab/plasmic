@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -27,7 +27,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import RedirectUriRow from "../../components/app-auth/RedirectUriRow"; // plasmic-import: Wx1WB4BUap/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 2dMe7XWUq916KsPnra5vYj/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -91,11 +91,10 @@ function PlasmicRedirectUrIsControl__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -232,12 +231,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -247,30 +242,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicRedirectUrIsControl__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicRedirectUrIsControl";
-  } else {
-    func.displayName = `PlasmicRedirectUrIsControl.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicRedirectUrIsControl__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicRedirectUrIsControl__root<T extends PlasmicRedirectUrIsControl__rootProps>(props: T & StrictProps<T, PlasmicRedirectUrIsControl__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicRedirectUrIsControl__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicRedirectUrIsControl__root.displayName = "PlasmicRedirectUrIsControl";
+
+type PlasmicRedirectUrIsControl__columnsProps = NodeComponentProps<"columns"> & {key?: React.Key};
+function PlasmicRedirectUrIsControl__columns<T extends PlasmicRedirectUrIsControl__columnsProps>(props: T & StrictProps<T, PlasmicRedirectUrIsControl__columnsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("columns", props);
+  return <PlasmicRedirectUrIsControl__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"columns"} />;
+}
+PlasmicRedirectUrIsControl__columns.displayName = "PlasmicRedirectUrIsControl.columns";
+
+type PlasmicRedirectUrIsControl__redirectsLabelProps = NodeComponentProps<"redirectsLabel"> & {key?: React.Key};
+function PlasmicRedirectUrIsControl__redirectsLabel<T extends PlasmicRedirectUrIsControl__redirectsLabelProps>(props: T & StrictProps<T, PlasmicRedirectUrIsControl__redirectsLabelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("redirectsLabel", props);
+  return <PlasmicRedirectUrIsControl__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"redirectsLabel"} />;
+}
+PlasmicRedirectUrIsControl__redirectsLabel.displayName = "PlasmicRedirectUrIsControl.redirectsLabel";
+
+type PlasmicRedirectUrIsControl__saveBtnProps = NodeComponentProps<"saveBtn"> & {key?: React.Key};
+function PlasmicRedirectUrIsControl__saveBtn<T extends PlasmicRedirectUrIsControl__saveBtnProps>(props: T & StrictProps<T, PlasmicRedirectUrIsControl__saveBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("saveBtn", props);
+  return <PlasmicRedirectUrIsControl__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"saveBtn"} />;
+}
+PlasmicRedirectUrIsControl__saveBtn.displayName = "PlasmicRedirectUrIsControl.saveBtn";
+
+type PlasmicRedirectUrIsControl__addBtnProps = NodeComponentProps<"addBtn"> & {key?: React.Key};
+function PlasmicRedirectUrIsControl__addBtn<T extends PlasmicRedirectUrIsControl__addBtnProps>(props: T & StrictProps<T, PlasmicRedirectUrIsControl__addBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addBtn", props);
+  return <PlasmicRedirectUrIsControl__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addBtn"} />;
+}
+PlasmicRedirectUrIsControl__addBtn.displayName = "PlasmicRedirectUrIsControl.addBtn";
+
 
 export const PlasmicRedirectUrIsControl = Object.assign(
   // Top-level PlasmicRedirectUrIsControl renders the root element
-  makeNodeComponent("root"),
+  PlasmicRedirectUrIsControl__root,
   {
     // Helper components rendering sub-elements
-    columns: makeNodeComponent("columns"),
-    redirectsLabel: makeNodeComponent("redirectsLabel"),
-    saveBtn: makeNodeComponent("saveBtn"),
-    addBtn: makeNodeComponent("addBtn"),
+    columns: PlasmicRedirectUrIsControl__columns,
+    redirectsLabel: PlasmicRedirectUrIsControl__redirectsLabel,
+    saveBtn: PlasmicRedirectUrIsControl__saveBtn,
+    addBtn: PlasmicRedirectUrIsControl__addBtn,
 
     // Metadata about props expected for PlasmicRedirectUrIsControl
     internalVariantProps: PlasmicRedirectUrIsControl__VariantProps,

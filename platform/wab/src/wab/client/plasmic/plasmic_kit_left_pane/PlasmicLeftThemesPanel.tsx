@@ -16,7 +16,7 @@ import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
 import {
-  set as $stateSet,
+  usePlasmicRefs, set as $stateSet,
   Flex as Flex__,
   SingleBooleanChoiceArg,
   SingleChoiceArg,
@@ -27,7 +27,7 @@ import {
   generateStateOnChangeProp,
   generateStateValueProp,
   hasVariant,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -38,7 +38,7 @@ import ThemeLayoutPanel from "../../components/sidebar/ThemeLayoutPanel"; // pla
 import LeftPaneHeader from "../../components/studio/LeftPaneHeader"; // plasmic-import: XLa52PvduIy/component
 import StyleSelect from "../../components/style-controls/StyleSelect"; // plasmic-import: E0bKgamUEin/component
 import HiliteTabs from "../../components/widgets/HiliteTabs"; // plasmic-import: a0-WHzk-U8/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -120,11 +120,10 @@ function PlasmicLeftThemesPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "notOwnedBySite",
@@ -167,18 +166,20 @@ function PlasmicLeftThemesPanel__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.noLayout,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -232,9 +233,9 @@ function PlasmicLeftThemesPanel__RenderFunc(props: {
                   "styles"
                 ),
               })}
-              onChange={async (...eventArgs: any) => {
+              onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
                 ((...eventArgs) => {
-                  generateStateOnChangeProp($state, ["themeSelector", "value"])(
+                  generateStateOnChangeProp($stateCommands, ["themeSelector", "value"])(
                     eventArgs[0]
                   );
                 }).apply(null, eventArgs);
@@ -246,7 +247,7 @@ function PlasmicLeftThemesPanel__RenderFunc(props: {
                 ) {
                   return;
                 }
-              }}
+              })); })}
               options={[
                 { value: "option1", label: "Option 1" },
                 { value: "option2", label: "Option 2" },
@@ -312,8 +313,8 @@ function PlasmicLeftThemesPanel__RenderFunc(props: {
             [sty.hiliteTabstab_layout]: hasVariant($state, "tab", "layout"),
             [sty.hiliteTabstab_styles]: hasVariant($state, "tab", "styles"),
           })}
-          onSelectedTabKeyChange={async (...eventArgs: any) => {
-            generateStateOnChangeProp($state, [
+          onSelectedTabKeyChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+            generateStateOnChangeProp($stateCommands, [
               "hiliteTabs",
               "selectedTabKey",
             ]).apply(null, eventArgs);
@@ -358,7 +359,7 @@ function PlasmicLeftThemesPanel__RenderFunc(props: {
                 $steps["setTab"] = await $steps["setTab"];
               }
             }).apply(null, eventArgs);
-          }}
+          })); })}
           selectedTabKey={generateStateValueProp($state, [
             "hiliteTabs",
             "selectedTabKey",
@@ -520,12 +521,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -535,34 +532,85 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicLeftThemesPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicLeftThemesPanel";
-  } else {
-    func.displayName = `PlasmicLeftThemesPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicLeftThemesPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicLeftThemesPanel__root<T extends PlasmicLeftThemesPanel__rootProps>(props: T & StrictProps<T, PlasmicLeftThemesPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicLeftThemesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicLeftThemesPanel__root.displayName = "PlasmicLeftThemesPanel";
+
+type PlasmicLeftThemesPanel__themeHeaderProps = NodeComponentProps<"themeHeader"> & {key?: React.Key};
+function PlasmicLeftThemesPanel__themeHeader<T extends PlasmicLeftThemesPanel__themeHeaderProps>(props: T & StrictProps<T, PlasmicLeftThemesPanel__themeHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("themeHeader", props);
+  return <PlasmicLeftThemesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"themeHeader"} />;
+}
+PlasmicLeftThemesPanel__themeHeader.displayName = "PlasmicLeftThemesPanel.themeHeader";
+
+type PlasmicLeftThemesPanel__textWithInfoProps = NodeComponentProps<"textWithInfo"> & {key?: React.Key};
+function PlasmicLeftThemesPanel__textWithInfo<T extends PlasmicLeftThemesPanel__textWithInfoProps>(props: T & StrictProps<T, PlasmicLeftThemesPanel__textWithInfoProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("textWithInfo", props);
+  return <PlasmicLeftThemesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"textWithInfo"} />;
+}
+PlasmicLeftThemesPanel__textWithInfo.displayName = "PlasmicLeftThemesPanel.textWithInfo";
+
+type PlasmicLeftThemesPanel__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicLeftThemesPanel__freeBox<T extends PlasmicLeftThemesPanel__freeBoxProps>(props: T & StrictProps<T, PlasmicLeftThemesPanel__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicLeftThemesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicLeftThemesPanel__freeBox.displayName = "PlasmicLeftThemesPanel.freeBox";
+
+type PlasmicLeftThemesPanel__themeSelectorProps = NodeComponentProps<"themeSelector"> & {key?: React.Key};
+function PlasmicLeftThemesPanel__themeSelector<T extends PlasmicLeftThemesPanel__themeSelectorProps>(props: T & StrictProps<T, PlasmicLeftThemesPanel__themeSelectorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("themeSelector", props);
+  return <PlasmicLeftThemesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"themeSelector"} />;
+}
+PlasmicLeftThemesPanel__themeSelector.displayName = "PlasmicLeftThemesPanel.themeSelector";
+
+type PlasmicLeftThemesPanel__hiliteTabsProps = NodeComponentProps<"hiliteTabs"> & {key?: React.Key};
+function PlasmicLeftThemesPanel__hiliteTabs<T extends PlasmicLeftThemesPanel__hiliteTabsProps>(props: T & StrictProps<T, PlasmicLeftThemesPanel__hiliteTabsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("hiliteTabs", props);
+  return <PlasmicLeftThemesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"hiliteTabs"} />;
+}
+PlasmicLeftThemesPanel__hiliteTabs.displayName = "PlasmicLeftThemesPanel.hiliteTabs";
+
+type PlasmicLeftThemesPanel__defaultStylesPanelProps = NodeComponentProps<"defaultStylesPanel"> & {key?: React.Key};
+function PlasmicLeftThemesPanel__defaultStylesPanel<T extends PlasmicLeftThemesPanel__defaultStylesPanelProps>(props: T & StrictProps<T, PlasmicLeftThemesPanel__defaultStylesPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("defaultStylesPanel", props);
+  return <PlasmicLeftThemesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"defaultStylesPanel"} />;
+}
+PlasmicLeftThemesPanel__defaultStylesPanel.displayName = "PlasmicLeftThemesPanel.defaultStylesPanel";
+
+type PlasmicLeftThemesPanel__themeLayoutPanelProps = NodeComponentProps<"themeLayoutPanel"> & {key?: React.Key};
+function PlasmicLeftThemesPanel__themeLayoutPanel<T extends PlasmicLeftThemesPanel__themeLayoutPanelProps>(props: T & StrictProps<T, PlasmicLeftThemesPanel__themeLayoutPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("themeLayoutPanel", props);
+  return <PlasmicLeftThemesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"themeLayoutPanel"} />;
+}
+PlasmicLeftThemesPanel__themeLayoutPanel.displayName = "PlasmicLeftThemesPanel.themeLayoutPanel";
+
+type PlasmicLeftThemesPanel__themeInitialStylesPanelProps = NodeComponentProps<"themeInitialStylesPanel"> & {key?: React.Key};
+function PlasmicLeftThemesPanel__themeInitialStylesPanel<T extends PlasmicLeftThemesPanel__themeInitialStylesPanelProps>(props: T & StrictProps<T, PlasmicLeftThemesPanel__themeInitialStylesPanelProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("themeInitialStylesPanel", props);
+  return <PlasmicLeftThemesPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"themeInitialStylesPanel"} />;
+}
+PlasmicLeftThemesPanel__themeInitialStylesPanel.displayName = "PlasmicLeftThemesPanel.themeInitialStylesPanel";
+
 
 export const PlasmicLeftThemesPanel = Object.assign(
   // Top-level PlasmicLeftThemesPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicLeftThemesPanel__root,
   {
     // Helper components rendering sub-elements
-    themeHeader: makeNodeComponent("themeHeader"),
-    textWithInfo: makeNodeComponent("textWithInfo"),
-    freeBox: makeNodeComponent("freeBox"),
-    themeSelector: makeNodeComponent("themeSelector"),
-    hiliteTabs: makeNodeComponent("hiliteTabs"),
-    defaultStylesPanel: makeNodeComponent("defaultStylesPanel"),
-    themeLayoutPanel: makeNodeComponent("themeLayoutPanel"),
-    themeInitialStylesPanel: makeNodeComponent("themeInitialStylesPanel"),
+    themeHeader: PlasmicLeftThemesPanel__themeHeader,
+    textWithInfo: PlasmicLeftThemesPanel__textWithInfo,
+    freeBox: PlasmicLeftThemesPanel__freeBox,
+    themeSelector: PlasmicLeftThemesPanel__themeSelector,
+    hiliteTabs: PlasmicLeftThemesPanel__hiliteTabs,
+    defaultStylesPanel: PlasmicLeftThemesPanel__defaultStylesPanel,
+    themeLayoutPanel: PlasmicLeftThemesPanel__themeLayoutPanel,
+    themeInitialStylesPanel: PlasmicLeftThemesPanel__themeInitialStylesPanel,
 
     // Metadata about props expected for PlasmicLeftThemesPanel
     internalVariantProps: PlasmicLeftThemesPanel__VariantProps,

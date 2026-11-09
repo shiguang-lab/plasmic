@@ -122,7 +122,7 @@ function BaseTextArea_(
       // Then set to scrollHeight so it expands to fit new content
       el.style.height = `${el.scrollHeight}px`;
     }
-  }, [mergedProps.value]);
+  }, [mergedProps.value, autoResize]);
 
   useEffect(() => {
     if (plasmicUpdateVariant) {

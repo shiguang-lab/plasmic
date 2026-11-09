@@ -50,7 +50,7 @@ import {
   parseExpr,
   tryCodeWritesToGlobalVariable,
 } from "@/wab/shared/eval/expression-parser";
-import { ensureComponentsObserved } from "@/wab/shared/mobx-util";
+import { ensureComponentsRecorded } from "@/wab/shared/core/component-recording";
 import {
   Component,
   ComponentVariantGroup,
@@ -635,7 +635,7 @@ export function addImplicitStates(site: Site, component: Component) {
   const tplMgr = new TplMgr({ site });
   Tpls.findAllInstancesOfComponent(site, component).forEach(
     ({ referencedComponent, tpl }) => {
-      ensureComponentsObserved([referencedComponent]);
+      ensureComponentsRecorded([referencedComponent]);
       if (!tpl.name) {
         // Auto-name TplComponents with public states.
         tplMgr.renameTpl(
@@ -1178,8 +1178,9 @@ export const initBuiltinActions = (siteCtx: SiteCtx) =>
     dataSourceOp: {
       parameters: {},
       function: `async ({ dataOp, continueOnError }) => {
+        const execute = () => executePlasmicDataOp(dataOp, { userAuthToken: dataSourcesCtx?.userAuthToken, user: dataSourcesCtx?.user });
         try {
-          const response = await executePlasmicDataOp(dataOp, { userAuthToken: dataSourcesCtx?.userAuthToken, user: dataSourcesCtx?.user });
+          const response = await execute();
           await plasmicInvalidate(dataOp.invalidatedKeys);
           return response;
         } catch(e) {

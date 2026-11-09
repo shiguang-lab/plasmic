@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,14 +25,14 @@ import {
   hasVariant,
   SingleBooleanChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot, getStateCommandEnv, getStateCommandValue, createStateEventHandler,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import { PlexusButton } from "../../components/plexus/PlexusButton"; // plasmic-import: sbyrU_8SkoWY/component
 import TextField from "../../components/plexus/TextField"; // plasmic-import: tKtZ3ZcVITrx/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: BP7V3EkXPURJVwwMyWoHn/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -110,11 +110,10 @@ function PlasmicCommentPostForm__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "isEditing",
@@ -137,18 +136,20 @@ function PlasmicCommentPostForm__RenderFunc(props: {
           $props.isPreviewing,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -193,8 +194,8 @@ function PlasmicCommentPostForm__RenderFunc(props: {
             ),
           })}
           multiLine={true}
-          onChange={async (...eventArgs: any) => {
-            generateStateOnChangeProp($state, ["bodyInput", "value"]).apply(
+          onChange={createStateEventHandler(() => [$stateCommands, getStateCommandEnv($props), getStateCommandEnv($ctx)], ($state, $props, $ctx) => { const $refs = getRefs(); return ((async (...eventArgs: any) => {
+            generateStateOnChangeProp($stateCommands, ["bodyInput", "value"]).apply(
               null,
               eventArgs
             );
@@ -206,7 +207,7 @@ function PlasmicCommentPostForm__RenderFunc(props: {
             ) {
               return;
             }
-          }}
+          })); })}
           placeholder={uiT("Add a comment")}
           showLabel={false}
           value={generateStateValueProp($state, ["bodyInput", "value"])}
@@ -465,12 +466,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -480,34 +477,85 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCommentPostForm__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCommentPostForm";
-  } else {
-    func.displayName = `PlasmicCommentPostForm.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCommentPostForm__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCommentPostForm__root<T extends PlasmicCommentPostForm__rootProps>(props: T & StrictProps<T, PlasmicCommentPostForm__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCommentPostForm__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCommentPostForm__root.displayName = "PlasmicCommentPostForm";
+
+type PlasmicCommentPostForm__bodyInputProps = NodeComponentProps<"bodyInput"> & {key?: React.Key};
+function PlasmicCommentPostForm__bodyInput<T extends PlasmicCommentPostForm__bodyInputProps>(props: T & StrictProps<T, PlasmicCommentPostForm__bodyInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("bodyInput", props);
+  return <PlasmicCommentPostForm__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"bodyInput"} />;
+}
+PlasmicCommentPostForm__bodyInput.displayName = "PlasmicCommentPostForm.bodyInput";
+
+type PlasmicCommentPostForm__bodyProps = NodeComponentProps<"body"> & {key?: React.Key};
+function PlasmicCommentPostForm__body<T extends PlasmicCommentPostForm__bodyProps>(props: T & StrictProps<T, PlasmicCommentPostForm__bodyProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("body", props);
+  return <PlasmicCommentPostForm__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"body"} />;
+}
+PlasmicCommentPostForm__body.displayName = "PlasmicCommentPostForm.body";
+
+type PlasmicCommentPostForm__mentionIconProps = NodeComponentProps<"mentionIcon"> & {key?: React.Key};
+function PlasmicCommentPostForm__mentionIcon<T extends PlasmicCommentPostForm__mentionIconProps>(props: T & StrictProps<T, PlasmicCommentPostForm__mentionIconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("mentionIcon", props);
+  return <PlasmicCommentPostForm__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"mentionIcon"} />;
+}
+PlasmicCommentPostForm__mentionIcon.displayName = "PlasmicCommentPostForm.mentionIcon";
+
+type PlasmicCommentPostForm__shareProjectIconProps = NodeComponentProps<"shareProjectIcon"> & {key?: React.Key};
+function PlasmicCommentPostForm__shareProjectIcon<T extends PlasmicCommentPostForm__shareProjectIconProps>(props: T & StrictProps<T, PlasmicCommentPostForm__shareProjectIconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("shareProjectIcon", props);
+  return <PlasmicCommentPostForm__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"shareProjectIcon"} />;
+}
+PlasmicCommentPostForm__shareProjectIcon.displayName = "PlasmicCommentPostForm.shareProjectIcon";
+
+type PlasmicCommentPostForm__markdownHintsIconProps = NodeComponentProps<"markdownHintsIcon"> & {key?: React.Key};
+function PlasmicCommentPostForm__markdownHintsIcon<T extends PlasmicCommentPostForm__markdownHintsIconProps>(props: T & StrictProps<T, PlasmicCommentPostForm__markdownHintsIconProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("markdownHintsIcon", props);
+  return <PlasmicCommentPostForm__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"markdownHintsIcon"} />;
+}
+PlasmicCommentPostForm__markdownHintsIcon.displayName = "PlasmicCommentPostForm.markdownHintsIcon";
+
+type PlasmicCommentPostForm__previewButtonProps = NodeComponentProps<"previewButton"> & {key?: React.Key};
+function PlasmicCommentPostForm__previewButton<T extends PlasmicCommentPostForm__previewButtonProps>(props: T & StrictProps<T, PlasmicCommentPostForm__previewButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("previewButton", props);
+  return <PlasmicCommentPostForm__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"previewButton"} />;
+}
+PlasmicCommentPostForm__previewButton.displayName = "PlasmicCommentPostForm.previewButton";
+
+type PlasmicCommentPostForm__cancelButtonProps = NodeComponentProps<"cancelButton"> & {key?: React.Key};
+function PlasmicCommentPostForm__cancelButton<T extends PlasmicCommentPostForm__cancelButtonProps>(props: T & StrictProps<T, PlasmicCommentPostForm__cancelButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("cancelButton", props);
+  return <PlasmicCommentPostForm__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"cancelButton"} />;
+}
+PlasmicCommentPostForm__cancelButton.displayName = "PlasmicCommentPostForm.cancelButton";
+
+type PlasmicCommentPostForm__submitButtonProps = NodeComponentProps<"submitButton"> & {key?: React.Key};
+function PlasmicCommentPostForm__submitButton<T extends PlasmicCommentPostForm__submitButtonProps>(props: T & StrictProps<T, PlasmicCommentPostForm__submitButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("submitButton", props);
+  return <PlasmicCommentPostForm__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"submitButton"} />;
+}
+PlasmicCommentPostForm__submitButton.displayName = "PlasmicCommentPostForm.submitButton";
+
 
 export const PlasmicCommentPostForm = Object.assign(
   // Top-level PlasmicCommentPostForm renders the root element
-  makeNodeComponent("root"),
+  PlasmicCommentPostForm__root,
   {
     // Helper components rendering sub-elements
-    bodyInput: makeNodeComponent("bodyInput"),
-    body: makeNodeComponent("body"),
-    mentionIcon: makeNodeComponent("mentionIcon"),
-    shareProjectIcon: makeNodeComponent("shareProjectIcon"),
-    markdownHintsIcon: makeNodeComponent("markdownHintsIcon"),
-    previewButton: makeNodeComponent("previewButton"),
-    cancelButton: makeNodeComponent("cancelButton"),
-    submitButton: makeNodeComponent("submitButton"),
+    bodyInput: PlasmicCommentPostForm__bodyInput,
+    body: PlasmicCommentPostForm__body,
+    mentionIcon: PlasmicCommentPostForm__mentionIcon,
+    shareProjectIcon: PlasmicCommentPostForm__shareProjectIcon,
+    markdownHintsIcon: PlasmicCommentPostForm__markdownHintsIcon,
+    previewButton: PlasmicCommentPostForm__previewButton,
+    cancelButton: PlasmicCommentPostForm__cancelButton,
+    submitButton: PlasmicCommentPostForm__submitButton,
 
     // Metadata about props expected for PlasmicCommentPostForm
     internalVariantProps: PlasmicCommentPostForm__VariantProps,

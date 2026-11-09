@@ -9,150 +9,95 @@
 // Plasmic Project: 47tFXWjN2C4NyHFGGpaYQ3
 // Component: Q23H1_1M_P
 import * as React from "react";
-import { useRouter } from "next/router";
-import {
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts
-} from "@plasmicapp/react-web";
+import { useRouter } from "next/compat/router";
+import { usePlasmicRefs, classNames, createPlasmicElementProxy, deriveRenderOpts } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 import Button from "../../Button"; // plasmic-import: TQcvW_pSKi3/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/styleTokensProvider
 import "@plasmicapp/react-web/lib/plasmic.css";
 import sty from "./PlasmicRandomDynamicPageButton.module.css"; // plasmic-import: Q23H1_1M_P/css
 
 createPlasmicElementProxy;
-
 export const PlasmicRandomDynamicPageButton__VariantProps = new Array();
-
 export const PlasmicRandomDynamicPageButton__ArgProps = new Array();
-
 const $$ = {};
 
-function useNextRouter() {
-  try {
-    return useRouter();
-  } catch {}
-  return undefined;
-}
-
 function PlasmicRandomDynamicPageButton__RenderFunc(props) {
-  const { variants, overrides, forNode } = props;
-  const args = React.useMemo(
-    () =>
-      Object.assign(
-        {},
-        Object.fromEntries(
-          Object.entries(props.args).filter(([_, v]) => v !== undefined)
-        )
-      ),
-    [props.args]
-  );
+  const {
+    variants,
+    overrides,
+    forNode
+  } = props;
+  const args = React.useMemo(() => Object.assign({}, Object.fromEntries(Object.entries(props.args).filter(([_, v]) => v !== undefined))), [props.args]);
   const $props = {
     ...args,
     ...variants
   };
-  const __nextRouter = useNextRouter();
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
-  const styleTokensClassNames = _useStyleTokens();
-  return (
-    <Button
-      data-plasmic-name={"root"}
-      data-plasmic-override={overrides.root}
-      data-plasmic-root={true}
-      data-plasmic-for-node={forNode}
-      className={classNames("__wab_instance", sty.root)}
-      onClick={async event => {
-        const $steps = {};
-        $steps["goToDynamicPage"] = true
-          ? (() => {
-              const actionArgs = {
-                destination: `/dynamic/${(() => {
-                  try {
-                    return Math.random().toString(36).slice(2);
-                  } catch (e) {
-                    if (
-                      e instanceof TypeError ||
-                      e?.plasmicType === "PlasmicUndefinedDataError"
-                    ) {
-                      return "value";
-                    }
-                    throw e;
-                  }
-                })()}`
-              };
-              return (({ destination }) => {
-                if (
-                  typeof destination === "string" &&
-                  destination.startsWith("#")
-                ) {
-                  document
-                    .getElementById(destination.substr(1))
-                    .scrollIntoView({ behavior: "smooth" });
-                } else {
-                  __nextRouter?.push(destination);
-                }
-              })?.apply(null, [actionArgs]);
-            })()
-          : undefined;
-        if (
-          $steps["goToDynamicPage"] != null &&
-          typeof $steps["goToDynamicPage"] === "object" &&
-          typeof $steps["goToDynamicPage"].then === "function"
-        ) {
-          $steps["goToDynamicPage"] = await $steps["goToDynamicPage"];
+  const __nextRouter = useRouter();
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
+  const styleTokensClassNames = useStyleTokens();
+  return <Button data-plasmic-name={"root"} data-plasmic-override={overrides.root} data-plasmic-root={true} data-plasmic-for-node={forNode} className={classNames("__wab_instance", sty.root)} onClick={async event => {
+    const $steps = {};
+    $steps["goToDynamicPage"] = true ? (() => {
+      const actionArgs = {
+        destination: `/dynamic/${((__plasmicEvaluate, __plasmicFallback) => {
+          try {
+            return __plasmicEvaluate();
+          } catch (e) {
+            if (e instanceof TypeError || e?.plasmicType === "PlasmicUndefinedDataError") {
+              return __plasmicFallback();
+            }
+            throw e;
+          }
+        })(() => Math.random().toString(36).slice(2), () => "value")}`
+      };
+      return (({
+        destination
+      }) => {
+        if (typeof destination === "string" && destination.startsWith("#")) {
+          document.getElementById(destination.substr(1)).scrollIntoView({
+            behavior: "smooth"
+          });
+        } else {
+          __nextRouter?.push(destination);
         }
-      }}
-      submitsForm={true}
-    >
+      })?.apply(null, [actionArgs]);
+    })() : undefined;
+    if ($steps["goToDynamicPage"] != null && typeof $steps["goToDynamicPage"] === "object" && typeof $steps["goToDynamicPage"].then === "function") {
+      $steps["goToDynamicPage"] = await $steps["goToDynamicPage"];
+    }
+  }} submitsForm={true}>
       {"Random Dynamic Page"}
-    </Button>
-  );
+    </Button>;
 }
-
 const PlasmicDescendants = {
   root: ["root"]
 };
-
-function makeNodeComponent(nodeName) {
-  const func = function (props) {
-    const { variants, args, overrides } = React.useMemo(
-      () =>
-        deriveRenderOpts(props, {
-          name: nodeName,
-          descendantNames: PlasmicDescendants[nodeName],
-          internalArgPropNames: PlasmicRandomDynamicPageButton__ArgProps,
-          internalVariantPropNames: PlasmicRandomDynamicPageButton__VariantProps
-        }),
-      [props, nodeName]
-    );
-    return PlasmicRandomDynamicPageButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicRandomDynamicPageButton";
-  } else {
-    func.displayName = `PlasmicRandomDynamicPageButton.${nodeName}`;
-  }
-  return func;
+function useNodeRenderOpts(nodeName, props) {
+  return React.useMemo(() => deriveRenderOpts(props, {
+    name: nodeName,
+    descendantNames: PlasmicDescendants[nodeName],
+    internalArgPropNames: PlasmicRandomDynamicPageButton__ArgProps,
+    internalVariantPropNames: PlasmicRandomDynamicPageButton__VariantProps
+  }), [props, nodeName]);
 }
-
+function PlasmicRandomDynamicPageButton__root(props) {
+  const {
+    variants,
+    args,
+    overrides
+  } = useNodeRenderOpts("root", props);
+  return <PlasmicRandomDynamicPageButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicRandomDynamicPageButton__root.displayName = "PlasmicRandomDynamicPageButton";
 export const PlasmicRandomDynamicPageButton = Object.assign(
-  // Top-level PlasmicRandomDynamicPageButton renders the root element
-  makeNodeComponent("root"),
-  {
-    // Helper components rendering sub-elements
-    // Metadata about props expected for PlasmicRandomDynamicPageButton
-    internalVariantProps: PlasmicRandomDynamicPageButton__VariantProps,
-    internalArgProps: PlasmicRandomDynamicPageButton__ArgProps
-  }
-);
-
+// Top-level PlasmicRandomDynamicPageButton renders the root element
+PlasmicRandomDynamicPageButton__root, {
+  // Helper components rendering sub-elements
+  // Metadata about props expected for PlasmicRandomDynamicPageButton
+  internalVariantProps: PlasmicRandomDynamicPageButton__VariantProps,
+  internalArgProps: PlasmicRandomDynamicPageButton__ArgProps
+});
 export default PlasmicRandomDynamicPageButton;
 /* prettier-ignore-end */

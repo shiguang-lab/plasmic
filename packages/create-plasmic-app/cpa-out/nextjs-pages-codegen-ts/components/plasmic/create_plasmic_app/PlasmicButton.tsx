@@ -15,10 +15,10 @@ import * as React from "react";
 
 import Head from "next/head";
 import Link, { LinkProps } from "next/link";
-import { useRouter } from "next/router";
+import { useRouter } from "next/compat/router";
 
 import {
-  Flex as Flex__,
+  usePlasmicRefs, Flex as Flex__,
   MultiChoiceArg,
   PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
   PlasmicIcon as PlasmicIcon__,
@@ -40,17 +40,15 @@ import {
   generateStateValueProp,
   get as $stateGet,
   hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
   makeFragment,
   omit,
   pick,
   renderPlasmicSlot,
   set as $stateSet,
   useCurrentUser,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
   usePlasmicTranslator,
-  useTrigger,
+  useFocusVisibleWithin,
   wrapWithClassName
 } from "@plasmicapp/react-web";
 import {
@@ -59,10 +57,10 @@ import {
   useGlobalActions
 } from "@plasmicapp/react-web/lib/host";
 
-import * as pp from "@plasmicapp/react-web";
+import * as Plume from "@plasmicapp/react-web";
 
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: 47tFXWjN2C4NyHFGGpaYQ3/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -151,7 +149,7 @@ export type PlasmicButton__OverridesType = {
   endIconContainer?: Flex__<"div">;
 };
 
-export interface DefaultButtonProps extends pp.BaseButtonProps {
+export interface DefaultButtonProps extends Plume.BaseButtonProps {
   submitsForm?: boolean;
   target?: boolean;
   shape?: SingleChoiceArg<"rounded" | "round" | "sharp">;
@@ -175,12 +173,7 @@ export interface DefaultButtonProps extends pp.BaseButtonProps {
 
 const $$ = {};
 
-function useNextRouter() {
-  try {
-    return useRouter();
-  } catch {}
-  return undefined;
-}
+
 
 function PlasmicButton__RenderFunc(props: {
   variants: PlasmicButton__VariantsArgs;
@@ -206,13 +199,12 @@ function PlasmicButton__RenderFunc(props: {
     ...variants
   };
 
-  const __nextRouter = useNextRouter();
+  const __nextRouter = useRouter();
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "showStartIcon",
@@ -252,26 +244,28 @@ function PlasmicButton__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.color
       }
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs
-  });
+    getRefs
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
   const [isRootFocusVisibleWithin, triggerRootFocusVisibleWithinProps] =
-    useTrigger("useFocusVisibleWithin", {
+    useFocusVisibleWithin({
       isTextInput: false
     });
   const triggers = {
     focusVisibleWithin_root: isRootFocusVisibleWithin
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <button
@@ -652,11 +646,9 @@ function PlasmicButton__RenderFunc(props: {
   ) as React.ReactElement | null;
 }
 
-function useBehavior<P extends pp.PlumeButtonProps>(
-  props: P,
-  ref: pp.ButtonRef
-) {
-  const b = pp.useButton<P, typeof PlasmicButton>(
+function deriveBehaviorProps<P extends Plume.PlumeButtonProps>(
+  props: P) {
+  const b = Plume.deriveButtonProps<P, typeof PlasmicButton>(
     PlasmicButton,
     props,
     {
@@ -670,9 +662,7 @@ function useBehavior<P extends pp.PlumeButtonProps>(
       startIconSlot: "startIcon",
       endIconSlot: "endIcon",
       root: "root"
-    },
-    ref
-  );
+    });
   if (b.plasmicProps.overrides.root.as === "a") {
     b.plasmicProps.overrides.root.as = PlasmicLink__;
     b.plasmicProps.overrides.root.props.component = Link;
@@ -724,12 +714,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -739,35 +725,51 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicButton__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicButton";
-  } else {
-    func.displayName = `PlasmicButton.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicButton__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicButton__root<T extends PlasmicButton__rootProps>(props: T & StrictProps<T, PlasmicButton__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicButton__root.displayName = "PlasmicButton";
+
+type PlasmicButton__startIconContainerProps = NodeComponentProps<"startIconContainer"> & {key?: React.Key};
+function PlasmicButton__startIconContainer<T extends PlasmicButton__startIconContainerProps>(props: T & StrictProps<T, PlasmicButton__startIconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("startIconContainer", props);
+  return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"startIconContainer"} />;
+}
+PlasmicButton__startIconContainer.displayName = "PlasmicButton.startIconContainer";
+
+type PlasmicButton__contentContainerProps = NodeComponentProps<"contentContainer"> & {key?: React.Key};
+function PlasmicButton__contentContainer<T extends PlasmicButton__contentContainerProps>(props: T & StrictProps<T, PlasmicButton__contentContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("contentContainer", props);
+  return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"contentContainer"} />;
+}
+PlasmicButton__contentContainer.displayName = "PlasmicButton.contentContainer";
+
+type PlasmicButton__endIconContainerProps = NodeComponentProps<"endIconContainer"> & {key?: React.Key};
+function PlasmicButton__endIconContainer<T extends PlasmicButton__endIconContainerProps>(props: T & StrictProps<T, PlasmicButton__endIconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("endIconContainer", props);
+  return <PlasmicButton__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"endIconContainer"} />;
+}
+PlasmicButton__endIconContainer.displayName = "PlasmicButton.endIconContainer";
+
 
 export const PlasmicButton = Object.assign(
   // Top-level PlasmicButton renders the root element
-  makeNodeComponent("root"),
+  PlasmicButton__root,
   {
     // Helper components rendering sub-elements
-    startIconContainer: makeNodeComponent("startIconContainer"),
-    contentContainer: makeNodeComponent("contentContainer"),
-    endIconContainer: makeNodeComponent("endIconContainer"),
+    startIconContainer: PlasmicButton__startIconContainer,
+    contentContainer: PlasmicButton__contentContainer,
+    endIconContainer: PlasmicButton__endIconContainer,
 
     // Metadata about props expected for PlasmicButton
     internalVariantProps: PlasmicButton__VariantProps,
     internalArgProps: PlasmicButton__ArgProps,
 
-    useBehavior
+    deriveBehaviorProps
   }
 );
 

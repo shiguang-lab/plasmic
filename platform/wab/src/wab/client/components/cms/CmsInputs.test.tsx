@@ -16,7 +16,7 @@ import {
   render,
   screen,
 } from "@testing-library/react";
-import { Form, theme } from "antd";
+import { Form, theme as AntdTheme } from "antd";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -50,7 +50,7 @@ it("shares the CMS theme with multiline fields through appearance changes", () =
   const input = screen.getByRole("textbox");
   for (const appearance of ["dark", "light", "dark"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     expect(
       getComputedStyle(input)
         .getPropertyValue("--ant-color-bg-container")

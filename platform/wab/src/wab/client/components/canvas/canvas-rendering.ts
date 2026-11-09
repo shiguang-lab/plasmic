@@ -1,29 +1,28 @@
-import { useCanvasRenderPolicy } from "@/wab/client/components/canvas/canvas-render-policy";
+import type { CanvasQueryController, CanvasQueryPlan } from "../../../../../../react-web-bundle/src/canvas-queries";
+import type { CanvasComponentController, CanvasComponentValues } from "../../../../../../react-web-bundle/src/canvas-component";
+import { setEditingTextContext } from "@/wab/client/studio-ctx/editing-text-state";
 import {
   SlateRenderNodeOpts,
-  mkCanvasText,
-  mkReadOnlyCanvasText,
-  mkSlateChildren,
+  renderCanvasText,
+  renderReadOnlyCanvasText,
+  renderSlateChildren,
 } from "@/wab/client/components/canvas/CanvasText";
 import {
   cachedRenderTplNode,
   reactHookSpecsToKey,
 } from "@/wab/client/components/canvas/canvas-cache";
-import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { wrapCanvasEventHandler } from "@/wab/client/components/canvas/canvas-interactions";
 import { applyCanvasSessionState, canvasSessionInstanceKey, CanvasStateSpec } from "@/wab/client/components/canvas/canvas-session-state";
 import {
-  CanvasErrorBoundaryProps,
-  mkCanvasErrorBoundary,
+  wrapCanvasErrorBoundary,
   withErrorDisplayFallback,
 } from "@/wab/client/components/canvas/canvas-error";
 import {
   isExplicitlySized,
   resizePlaceholder,
 } from "@/wab/client/components/canvas/canvas-fns-impl";
-import { useCanvasForceUpdate } from "@/wab/client/components/canvas/canvas-hooks";
 import {
-  mkCanvasObserver,
+  CanvasObservedRenderSource,
   mkUseCanvasObserver,
 } from "@/wab/client/components/canvas/canvas-observer";
 import { genRepeatedElement } from "@/wab/client/components/canvas/repeatedElement";
@@ -34,7 +33,6 @@ import {
 } from "@/wab/client/components/canvas/studio-canvas-util";
 import { getRealClassNames } from "@/wab/client/components/canvas/styles-name";
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
-import type { CanvasVariantInputs } from "@/wab/client/components/canvas/canvas-variant-inputs";
 import { globalHookCtx } from "@/wab/client/react-global-hook/globalHook";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { EditingTextContext, ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
@@ -148,7 +146,6 @@ import {
   isHostLessCodeComponent,
 } from "@/wab/shared/core/components";
 import {
-  StatefulQueryResult,
   buildCustomCodePlasmicQuery,
   getCustomFunctionParams,
   wrapPlasmicQueryFetch,
@@ -204,6 +201,7 @@ import {
   RawTextLike,
   TplTextTag,
   ancestorsUp,
+  flattenExprs,
   getNumberOfRepeatingAncestors,
   getOwnerSite,
   isExprText,
@@ -228,10 +226,10 @@ import {
   getEffectiveVariantSetting,
 } from "@/wab/shared/effective-variant-setting";
 import { stampIgnoreError } from "@/wab/shared/error-handling";
-import { CanvasEnv, evalCodeWithEnv } from "@/wab/shared/eval";
+import { CanvasEnv, canvasRefCommands, evalCodeWithEnv } from "@/wab/shared/eval";
 import { exprUsesCtxOrFreeVars } from "@/wab/shared/eval/expression-parser";
 import { ContainerType } from "@/wab/shared/layoututils";
-import { ownedComputedFn } from "@/wab/shared/mobx-util";
+import { canvasFactory } from "@/wab/client/components/canvas/canvas-factories";
 import {
   CollectionExpr,
   Component,
@@ -302,30 +300,25 @@ import {
   getTplComponentDefaultDisplayByActiveVariants,
 } from "@/wab/shared/visibility-utils";
 import type {
-  ClientQueryResult,
   PlasmicQueryResult,
   QueryComponentNode,
   usePlasmicInvalidate,
 } from "@plasmicapp/data-sources";
 import { DataDict, mkMetaName } from "@plasmicapp/host";
-import { $StateSpec } from "@plasmicapp/react-web";
+import { $StateSpec, StateInitializerDeclaration } from "@plasmicapp/react-web";
+import type * as ReactWeb from "@plasmicapp/react-web";
 import {
-  cloneDeep,
+  get,
   isString,
   last,
   omit,
   pick,
+  toPath,
   uniqBy,
   without,
   zipObject,
 } from "lodash";
-import {
-  computed,
-  observable,
-} from "mobx";
-import { computedFn } from "mobx-utils";
 import type React from "react";
-import type { ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
 import { maybeMakePlasmicImgSrc } from "src/wab/shared/codegen/react-p/image";
 import defer = setTimeout;
 
@@ -362,7 +355,10 @@ export interface RenderingCtx {
   // in a component will have the same $state, we only make this
   // snapshot once, per component. We need to make a snapshot because
   // $state is altered by mutation.
-  $stateSnapshot: Record<string, any>;
+  $stateSnapshot: Readonly<Record<string, any>>;
+  readonly pinnedVariants?: ReadonlySet<Variant>;
+  readonly registerRef: ReturnType<typeof ReactWeb.usePlasmicRefs>["registerRef"] | undefined;
+  readonly getRefs: ReturnType<typeof ReactWeb.usePlasmicRefs>["getRefs"] | undefined;
 
   inline?: boolean;
   // `slate` is only passed by rich text blocks to their marker nodes when
@@ -375,6 +371,8 @@ export interface RenderingCtx {
 
   plasmicInvalidate: ReturnType<typeof usePlasmicInvalidate> | undefined;
   stateSpecs: $StateSpec<any>[];
+  /** Output declarations belong to this render owner; cached nodes replay them. */
+  stateInitializers?: StateInitializerDeclaration[];
 
   // This is used to enable code components variants in the canvas
   $ccVariants: Record<string, boolean>;
@@ -400,7 +398,7 @@ interface CanvasComponentProps extends Partial<
   ref?: React.Ref<any>;
 }
 
-export const createCanvasComponent = ownedComputedFn(
+export const createCanvasComponent = canvasFactory(
   (
     viewCtx: ViewCtx,
     component: Component,
@@ -411,33 +409,14 @@ export const createCanvasComponent = ownedComputedFn(
       internalArgProps: componentToNonVariantParamNames(component),
       internalVariantProps: componentToVariantParamNames(component),
     });
-    const CanvasComponent: React.ComponentType<CanvasComponentProps> = (
-      originalProps,
-    ) => {
-      const forceUpdate = useCanvasForceUpdate(sub);
-      const onRenderInvalidated = sub.React.useCallback(
-        () => viewCtx.addRerenderObserver(forceUpdate),
-        [viewCtx, forceUpdate],
-      );
-      return mkUseCanvasObserver(sub, viewCtx)(() => {
-        const ctx = { ...useCtxFromInternalComponentProps(
-          originalProps,
-          viewCtx,
-          component,
-          getArgsAndVariants,
-        ), onRenderInvalidated };
-
-        return sub.React.createElement(
-          mkTriggers(sub, viewCtx, reactHookSpecsToKey(ctx.reactHookSpecs)),
-          {
-            ctx,
-            component,
-            childrenFn: (newCtx) =>
-              wrapInComponentDataQueries(newCtx, component),
-          },
-        );
+    const CanvasComponent = sub.createCanvasComponentType<CanvasComponentProps>((originalProps) => {
+      return mkUseCanvasObserver(sub, viewCtx, viewCtx.canvasRenderOwner.observerInput(viewCtx, component))((onRenderInvalidated) => {
+        const inherited = originalProps[renderingCtxProp];
+        const input = createCanvasComponentInputs(viewCtx, component, inherited?.valKey ?? "", serverQueryRegistrationKey(component));
+        const controller = createCanvasComponentController(viewCtx, component, input, onRenderInvalidated);
+        return sub.React.createElement(sub.CanvasComponentRuntime<CanvasComponentProps, ReturnType<typeof input.getState>, CanvasComponentPrepared, RenderingCtx, ReturnType<typeof input.getState>["tokens"]>, { controller, originalProps });
       }, component.name);
-    };
+    });
     Object.assign(CanvasComponent, {
       displayName: getExportedComponentName(component) + "__Impl",
     });
@@ -446,24 +425,21 @@ export const createCanvasComponent = ownedComputedFn(
       (plumePlugin?.genCanvasWrapperComponent(
         sub,
         CanvasComponent,
-        mkUseCanvasObserver(sub, viewCtx),
+        mkUseCanvasObserver(sub, viewCtx, viewCtx.canvasRenderOwner.observerInput(viewCtx, component)),
         getArgsAndVariants,
         component,
         viewCtx,
         (_comp) => createCanvasComponent(viewCtx, _comp),
       ) as React.ComponentType<CanvasComponentProps>) ?? CanvasComponent;
-    const CanvasComponentWrapper = sub.React.forwardRef((props, ref) =>
-      sub.React.createElement<CanvasErrorBoundaryProps>(
-        mkCanvasErrorBoundary(viewCtx, sub.React),
-        {
+    const CanvasComponentWrapper = sub.createCanvasComponentType<CanvasComponentProps>((props, ref) =>
+      wrapCanvasErrorBoundary({
           ctx: props[renderingCtxProp] ?? makeEmptyRenderingCtx(viewCtx, ""),
           nodeOrComponent: component,
           children: sub.React.createElement(MaybePlumeComp, {
             ...props,
             ref,
           }),
-        },
-      ),
+        }),
     ) as typeof MaybePlumeComp;
     Object.assign(CanvasComponentWrapper, {
       displayName: getExportedComponentName(component),
@@ -475,6 +451,7 @@ export const createCanvasComponent = ownedComputedFn(
     });
     return CanvasComponentWrapper;
   },
+ (viewCtx, component) => [viewCtx, component, component.plumeInfo?.type],
 );
 
 export interface ExtraSlotCanvasEnvData {
@@ -493,6 +470,7 @@ export function mkEventHandlerEnv(
 ) {
   return {
     ...env,
+    $refs: env[canvasRefCommands]?.() ?? {},
     __wrapUserFunction: (
       loc: InteractionLoc | InteractionArgLoc,
       fn: () => any,
@@ -554,7 +532,12 @@ export function mkEventHandlerEnv(
 
 function mkEventHandlerEnvFromRenderingCtx(ctx: RenderingCtx) {
   return mkEventHandlerEnv(
-    ctx.env,
+    {
+      ...ctx.sub.reactWeb.getStateCommandEnv(ctx.env),
+      [canvasRefCommands]: ctx.getRefs,
+      $props: ctx.sub.reactWeb.getStateCommandEnv(ctx.env.$props),
+      $ctx: ctx.sub.reactWeb.getStateCommandEnv(ctx.env.$ctx),
+    },
     ctx.viewCtx.studioCtx,
     ctx.sub.reactWeb,
     ctx.plasmicInvalidate,
@@ -576,10 +559,7 @@ function mkInitFuncExpr(
     return undefined;
   }
 
-  const isCurrentComponent = computed(
-    () => viewCtx.currentComponent() === exprCtx.component,
-    { name: "mkInitFuncExpr.isCurrentComponent" },
-  ).get();
+  const isCurrentComponent = viewCtx.currentComponent() === exprCtx.component;
 
   if (!state.tplNode && state.variableType === "variant") {
     // The root starts from this artboard's variant props in either mode.
@@ -611,7 +591,7 @@ function mkInitFuncExpr(
       (ancestorsUp(state.tplNode).some(isTplRepeated) ||
         (initExpr && exprUsesCtxOrFreeVars(initExpr)))
     ) {
-      // We need to use registerInitFunc because the function is either repeated or it uses the $ctx variable
+      // Repeated paths and context-dependent values are declared by their render owner.
       return undefined;
     }
     if (
@@ -712,135 +692,120 @@ function isSlotArgElement(v: React.ReactElement) {
   return !!props[slotArgCompKeyProp] && !!props[slotArgParamProp];
 }
 
-const mkTriggers = ownedComputedFn(function mkTriggers(
-  sub: SubDeps,
-  viewCtx: ViewCtx,
-  // The number of hooks to be called depends on `reactHookSpec`, so we create
-  // a new component when the number of specs change.
-  _reactHookSpecsKey: string,
-) {
-  return function WithTriggers({
-    ctx,
-    component,
-    childrenFn,
-  }: {
-    ctx: RenderingCtx;
-    component: Component;
-    childrenFn: (newCtx: RenderingCtx) => React.ReactElement | null;
-  }): React.ReactElement | null {
-    return mkUseCanvasObserver(
-      sub,
-      viewCtx,
-    )(() => {
-      const isInteractive = useCanvasRenderPolicy(sub, viewCtx, "interactive");
-
-      // triggers map is empty in non-interactive mode
-      const { triggers, triggerProps } = useTriggers(
-        ctx.viewCtx.canvasCtx,
-        ctx.reactHookSpecs,
-        isInteractive,
-      );
-
-      const newCtx: RenderingCtx = {
-        ...ctx,
-        triggerProps,
-        activeVariants: new Set([
-          ...ctx.activeVariants.keys(),
-          ...component.variants.filter((variant) => {
-            if (!isStyleOrCodeComponentVariant(variant)) {
-              return false;
-            }
-            // We include the style variants dynamically here to handle changes that require JS
-            // to be re-run. For handling changes that only require CSS, we generate the proper
-            // CSS classes in `genCanvasRules`. Those can only be applied in interactive mode,
-            // because we don't want the content to change when the user tries to edit rich text
-            // while in design mode.
-
-            // Style variants of built-in components (like vertical stack's hover)
-            if (!isCodeComponentVariant(variant)) {
-              const hook = ctx.reactHookSpecs.find(
-                (spec) => spec.sv === variant,
-              );
-              return hook && triggers[hook.hookName];
-            }
-
-            // Interactive registered variants (like a Button CC's hover) can not be applied in non-interactive mode
-            if (
-              isMaybeInteractiveCodeComponentVariant(variant) &&
-              !isInteractive
-            ) {
-              return false;
-            }
-
-            // Non-interactive registered variants (like Button CC's disabled) do no harm to rich-text editing and can be applied in non-interactive mode
-            return variant.codeComponentVariantKeys.reduce(
-              (prev, key) => prev && ctx.$ccVariants[key],
-              true,
-            );
-          }),
-        ]),
-      };
-      return childrenFn(newCtx);
-    });
-  };
-});
-
-function useTriggers(
-  canvasCtx: CanvasCtx,
-  reactHookSpecs: ReactHookSpec[],
-  interactive: boolean,
-) {
-  const sub = canvasCtx.Sub;
-  const uniqSpecs = uniqBy(reactHookSpecs, (s) => s.hookName);
-
-  const triggers: Record<string, boolean> = {};
-  const triggerProps: Record<string, React.HTMLAttributes<HTMLElement>> = {};
-  for (const spec of uniqSpecs) {
-    // We only set `triggered` if in interactive mode. If not, `triggered`
-    // is always false. This is because we don't want to trigger hooks
-    // when editing rich text blocks.
-    let triggered = interactive;
-    for (const opt of getTriggerableSelectors(spec.sv)) {
-      const trigger = ensure(
-        opt.trigger,
-        "Trigger condition is expected to be not null",
-      );
-      const [expr, prop] = sub.reactWeb.useTrigger(trigger.hookName as any, {});
-      triggered = triggered && (trigger.isOpposite ? !expr : expr);
-      for (const propName of spec.getTriggerPropNames()) {
-        triggerProps[propName] = prop;
-      }
-    }
-    triggers[spec.hookName] = triggered;
-  }
-
-  return { triggers, triggerProps };
+function renderWithTriggers(ctx: RenderingCtx, component: Component, childrenFn: (newCtx: RenderingCtx) => React.ReactNode) {
+  const steps = uniqBy(ctx.reactHookSpecs, (spec) => spec.hookName).flatMap((spec) =>
+    getTriggerableSelectors(spec.sv).map((opt, index) => {
+      const trigger = ensure(opt.trigger, "Trigger condition is expected to be not null");
+      return { group: spec.hookName, hook: trigger.hookName, opposite: !!trigger.isOpposite, propName: spec.getTriggerPropNames()[index] };
+    }));
+  return ctx.sub.React.createElement(ctx.sub.CanvasTriggersRuntime, {
+    policy: ctx.viewCtx.studioCtx.renderPolicy.store,
+    steps,
+    render: ({ interactive, triggers, triggerProps }) => childrenFn({
+      ...ctx,
+      triggerProps,
+      activeVariants: new Set([
+        ...ctx.activeVariants,
+        ...component.variants.filter((variant) => {
+          if (!isStyleOrCodeComponentVariant(variant)) { return false; }
+          if (!isCodeComponentVariant(variant)) {
+            const hook = ctx.reactHookSpecs.find((spec) => spec.sv === variant);
+            return !!hook && !!triggers[hook.hookName];
+          }
+          if (isMaybeInteractiveCodeComponentVariant(variant) && !interactive) { return false; }
+          return variant.codeComponentVariantKeys.every((key) => ctx.$ccVariants[key]);
+        }),
+      ]),
+    }),
+  });
 }
 
 const dataPickerHiddenMeta = { hidden: true };
 
-// Returns a RenderingCtx, but it's still missing `triggerProps` because they
-// need a non-stable number of hooks. The complete `RenderingCtx` should be
-// built inside `mkTriggers`.
-function useCtxFromInternalComponentProps(
+/** One finite component input: model fields, registrations, pins, tokens and
+ * user/policy values are captured before the iframe render subscribes. */
+const createCanvasComponentInputs = canvasFactory((view: ViewCtx, component: Component, valKey: string, idsKey: string) => {
+  const owner = view.canvasRenderOwner;
+  const variants = owner.variantInputs(view);
+  const sources = {
+    model: owner.observerInput(view, component),
+    functions: owner.functionInputs(view).store,
+    ownerPins: variants.ownerStore(valKey),
+    globals: variants.globalStore,
+    forceDefaultSlot: variants.slotStore(valKey),
+    tokens: owner.dataTokenInputs(view).store,
+    policy: view.studioCtx.renderPolicy.store,
+    currentUser: view.studioCtx.currentAppUserStore,
+    registrations: createServerQueryRegistrationInput(view, component, idsKey),
+  };
+  const read = () => ({
+    model: sources.model.getState(),
+    functions: sources.functions.getState(),
+    ownerPins: sources.ownerPins.getState(),
+    globals: sources.globals.getState(),
+    forceDefaultSlot: sources.forceDefaultSlot.getState(),
+    tokens: sources.tokens.getState(),
+    policy: sources.policy.getState(),
+    currentUser: sources.currentUser.getState(),
+    registrations: sources.registrations.getState(),
+  });
+  let current = Object.freeze(read());
+  const getState = () => {
+    const next = read();
+    if (!arrayEq(Object.values(current), Object.values(next))) { current = Object.freeze(next); }
+    return current;
+  };
+  return {
+    getState,
+    getInitialState: getState,
+    subscribe: (listener: () => void) => {
+      const stops = Object.values(sources).map((source) => source.subscribe(listener));
+      return () => stops.forEach((stop) => stop());
+    },
+  };
+});
+
+const createCanvasComponentController = canvasFactory((view: ViewCtx, component: Component, input: ReturnType<typeof createCanvasComponentInputs>, onRenderInvalidated: () => void) => {
+  const sub = view.canvasCtx.Sub, owner = view.canvasRenderOwner;
+  const controller: CanvasComponentController<CanvasComponentProps, ReturnType<typeof input.getState>, CanvasComponentPrepared, RenderingCtx, ReturnType<typeof input.getState>["tokens"]> = {
+    input,
+    dataTokenDefinitions: (snapshot) => snapshot.tokens,
+    evaluateDataTokens: (definitions) => evaluateDataTokenDefinitions(definitions, {}),
+    prepare: (props, snapshot, values) => prepareCanvasComponent(props, view, component, snapshot, values),
+    finish: (prepared, commands, state, values) => {
+      const result = finishCanvasComponent(prepared, commands, state, values);
+      return { ...result, context: { ...result.context, onRenderInvalidated } };
+    },
+    retain(key, slot) {
+      const lifetime = view.disposeSignal;
+      if (lifetime.aborted) { return () => undefined; }
+      const release = owner.retainDataTokenConsumer(key, slot);
+      lifetime.addEventListener("abort", release, { once: true });
+      return () => { lifetime.removeEventListener("abort", release); release(); };
+    },
+    commit(_ctx, commands) {
+      if (!view.isDisposed && !view.disposeSignal.aborted && input.getState().policy.interactive && view.component === component) {
+        view.change(() => view.syncInteractiveVariants(commands));
+      }
+    },
+    render(ctx) {
+      return renderWithTriggers(ctx, component, (next) => wrapInComponentDataQueries(next, component));
+    },
+  };
+  return controller;
+});
+
+// Trigger props are supplied by the native trigger component chain.
+function prepareCanvasComponent(
   originalProps: object,
   viewCtx: ViewCtx,
   component: Component,
-  getArgsAndVariants: () => {
-    internalVariantProps: string[];
-    internalArgProps: string[];
-  },
+  input: ReturnType<ReturnType<typeof createCanvasComponentInputs>["getState"]>,
+  values: CanvasComponentValues,
 ) {
   const canvasCtx = viewCtx.canvasCtx;
   const sub = canvasCtx.Sub;
-  const functions = viewCtx.canvasRenderOwner.functionInputs(viewCtx).store;
-  const functionEnvironment = sub.React.useSyncExternalStore(functions.subscribe, functions.getState, functions.getInitialState);
-  useServerQueryRegistrations(sub, viewCtx, component);
-
-  const viewState = ensure(
-    sub.React.useContext(createViewStateContext(viewCtx)),
-    "Must be rendered with ViewState context",
-  );
+  const functionEnvironment = input.functions;
 
   const nodeNamer = computedNodeNamer(component);
 
@@ -849,9 +814,9 @@ function useCtxFromInternalComponentProps(
 
   const internalProps = pick(originalProps, internalCanvasElementProps);
 
-  const argAndVariantNames = getArgsAndVariants();
+  const argAndVariantNames = { internalArgProps: componentToNonVariantParamNames(component), internalVariantProps: componentToVariantParamNames(component) };
 
-  const { args, overrides, variants } = sub.reactWeb.deriveRenderOpts(
+  const { args, overrides: originalOverrides, variants } = sub.reactWeb.deriveRenderOpts(
     omit(originalProps, internalCanvasElementProps),
     {
       name: rootName,
@@ -861,32 +826,19 @@ function useCtxFromInternalComponentProps(
     },
   );
 
-  // Sometimes we trigger a re-render after renaming a slot, which runs on the
-  // inner component before the parent component re-renders, and therefore uses
-  // the props with the old name. Since there's no longer a Param with the old
-  // name, it would be interpreted as an override, so we delete overrides that
-  // receive slot args here.
-  Object.values(overrides).forEach(
-    (eltOverrides) =>
-      eltOverrides?.props &&
-      [...Object.entries(eltOverrides.props)].forEach(([key, value]) => {
-        const arr = ensureArray(value);
-        if (
-          arr.length > 0 &&
-          arr.every(
-            (v: any) => v && sub.React.isValidElement(v) && isSlotArgElement(v),
-          )
-        ) {
-          delete eltOverrides.props[key];
-        }
-      }),
-  );
+  // Renamed slot arguments no longer represent overrides. Copy each edited
+  // override instead of mutating the caller's registered props.
+  const overrides = Object.fromEntries(Object.entries(originalOverrides).map(([name, override]) => [name, override?.props ? {
+    ...override,
+    props: Object.fromEntries(Object.entries(override.props).filter(([_key, value]) => {
+      const entries = ensureArray(value);
+      return !entries.length || !entries.every((entry: any) => entry && sub.React.isValidElement(entry) && isSlotArgElement(entry));
+    })),
+  } : override]));
 
   const reactHookSpecs = deriveReactHookSpecs(component, nodeNamer);
 
-  const plasmicInvalidate = sub.dataSources?.usePlasmicInvalidate
-    ? sub.dataSources.usePlasmicInvalidate()
-    : () => {};
+  const { plasmicInvalidate } = values;
 
   const renderingCtx: RenderingCtx = {
     // renderingCtx could be undefined, if this canvas component has for
@@ -899,16 +851,12 @@ function useCtxFromInternalComponentProps(
     triggerProps: {},
     plasmicInvalidate,
   };
-  const ownerPinsStore = viewState.ownerStore(renderingCtx.valKey);
-  const ownerPins = sub.React.useSyncExternalStore(ownerPinsStore.subscribe, ownerPinsStore.getState, ownerPinsStore.getInitialState);
-  const globals = sub.React.useSyncExternalStore(viewState.globalStore.subscribe, viewState.globalStore.getState, viewState.globalStore.getInitialState);
-  const slotStore = viewState.slotStore(renderingCtx.valKey);
-  const forceDefaultSlot = sub.React.useSyncExternalStore(slotStore.subscribe, slotStore.getState, slotStore.getInitialState);
+  const { ownerPins, globals, forceDefaultSlot } = input;
   const models = viewCtx.studioCtx.modelSnapshots;
-  const pinMap: PinMap = sub.React.useMemo(() => new Map(ownerPins ? [[ownerPins.key,
-    new Map(ownerPins.pins.map((pin) => [models.resolve(pin.variant), pin.active]))]] : []), [ownerPins, models]);
-  const globalPins = sub.React.useMemo(() => new Map(globals.map((pin) => [models.resolve(pin.variant), pin.active])), [globals, models]);
-  const forceDefaultKeys = sub.React.useMemo(() => new Set(forceDefaultSlot ? [renderingCtx.valKey] : []), [forceDefaultSlot, renderingCtx.valKey]);
+  const pinMap: PinMap = new Map(ownerPins ? [[ownerPins.key,
+    new Map(ownerPins.pins.map((pin) => [models.resolve(pin.variant), pin.active]))]] : []);
+  const globalPins = new Map(globals.map((pin) => [models.resolve(pin.variant), pin.active]));
+  const forceDefaultKeys = new Set(forceDefaultSlot ? [renderingCtx.valKey] : []);
 
   const initialActiveVariants = deriveActiveVariants(
     component,
@@ -920,7 +868,7 @@ function useCtxFromInternalComponentProps(
 
   const meta = maybeGetCodeComponentMeta(viewCtx, component);
 
-  const $ctx = sub.useDataEnv?.() ?? {};
+  const { $ctx, getRefs, $queries, $q, dataSourcesCtx, $globalActions, evaluatedDataTokens } = values;
   // Hide $props.<vgName> from data picker to avoid confusion with
   // $state.<vgName>, which should be preferred.
   const variantProps = variantsToProps(component, [...initialActiveVariants], {
@@ -946,45 +894,13 @@ function useCtxFromInternalComponentProps(
     ),
   };
 
-  const dataSourcesCtx = sub.dataSourcesContext?.usePlasmicDataSourceContext();
-
-  const [$queries, setDollarQueries] = sub.React.useState({});
-  const [$q, setDollarQ] = sub.React.useState({});
-
-  const refsRef = sub.React.useRef({});
-  const $refs = refsRef.current;
-
-  // We will use $ccVariants to store the variants that are triggered
-  // by the code component root, to keep the number of hooks stable. We will
-  // always create these values during the canvas component initialization.
-  const [$ccVariants, setDollarCcVariants] = sub.React.useState({});
-  const updateVariant = sub.React.useCallback(
-    (changes: Record<string, boolean>) => {
-      setDollarCcVariants((prev) => {
-        if (!Object.keys(changes).some((k) => prev[k] !== changes[k])) {
-          return prev;
-        }
-        return { ...prev, ...changes };
-      });
-    },
-    [],
-  );
-
-  const $globalActions = sub.useGlobalActions?.();
-  const { definitions: dataTokenDefinitions, evaluated: evaluatedDataTokens } = useCanvasDataTokens(sub, viewCtx);
-  const interactive = useCanvasRenderPolicy(sub, viewCtx, "interactive");
-
-  const currentAppUserStore = viewCtx.studioCtx.currentAppUserStore;
-  const currentAppUser = sub.React.useSyncExternalStore(
-    currentAppUserStore.subscribe,
-    () => currentAppUserStore.getState().appUser,
-    () => currentAppUserStore.getInitialState().appUser,
-  );
+  const dataTokenDefinitions = input.tokens;
+  const currentAppUser = input.currentUser.appUser;
 
   const env = {
     $props,
     $ctx,
-    $refs,
+    [canvasRefCommands]: getRefs,
     $$: functionEnvironment,
     dataSourcesCtx,
     $globalActions,
@@ -1038,70 +954,50 @@ function useCtxFromInternalComponentProps(
         }
       : {}),
   }));
-  const $state = sub.reactWeb.useDollarState(
+  return {
+    data: { renderingCtx, component, viewCtx, pinMap, globalPins, forceDefaultKeys, nodeNamer, env, overrides, stateSpecs, dataTokenDefinitions, interactive: input.policy.interactive },
     stateSpecs,
-    { $props, $queries, $q, $ctx, $refs },
-    {
-      inCanvas: true,
-    },
-  );
-  const activeVariants = deriveActiveVariants(
-    component,
-    $state,
-    pinMap,
-    globalPins,
-    renderingCtx,
-  );
-  if (interactive && viewCtx.component === component) {
-    viewCtx.change(() => {
-      viewCtx.syncInteractiveVariants($state);
-    });
-  }
+    stateEnv: { $props, $queries, $q, $ctx, getRefs },
+  };
+}
 
+type CanvasComponentPrepared = ReturnType<typeof prepareCanvasComponent>["data"];
+
+function finishCanvasComponent(
+  prepared: CanvasComponentPrepared,
+  commands: ReactWeb.$State,
+  state: Readonly<Record<string, any>>,
+  values: CanvasComponentValues,
+) {
+  const { renderingCtx, component, viewCtx, pinMap, globalPins, forceDefaultKeys, nodeNamer, env, overrides, stateSpecs, dataTokenDefinitions } = prepared;
+  const activeVariants = deriveActiveVariants(component, state, pinMap, globalPins, renderingCtx);
   const ctx: RenderingCtx = {
     ...renderingCtx,
     valKey: renderingCtx.valKey + "." + component.tplTree.uuid,
     activeVariants,
+    pinnedVariants: new Set([
+      ...[...globalPins].filter(([_variant, active]) => active).map(([variant]) => variant),
+      ...[...(pinMap.get(renderingCtx.valKey) ?? [])].filter(([_variant, active]) => active).map(([variant]) => variant),
+    ]),
     nodeNamer,
-    env: { ...env, $state },
-    wrappingEnv: { ...env, $state },
+    env: { ...env, $state: state },
+    wrappingEnv: { ...env, $state: state },
+    registerRef: values.registerRef,
+    getRefs: values.getRefs,
     overrides,
     ownerComponent: component,
     ownerKey: renderingCtx.valKey,
     ownersStack: [...renderingCtx.ownersStack, renderingCtx.valKey],
-    $stateSnapshot: cloneDeep($state),
+    $stateSnapshot: state,
     dataTokenDefinitions,
-    forceValComponentKeysWithDefaultSlotContents:
-      forceDefaultKeys,
-    setDollarQueries,
-    setDollarQ,
+    forceValComponentKeysWithDefaultSlotContents: forceDefaultKeys,
+    setDollarQueries: values.setDollarQueries,
+    setDollarQ: values.setDollarQ,
     stateSpecs,
-    $ccVariants,
-    updateVariant: updateVariant,
+    $ccVariants: values.$ccVariants,
+    updateVariant: values.updateVariant,
   };
-  useCanvasDataTokenLease(sub, viewCtx, ctx);
-  return ctx;
-}
-
-/** Subscribe at the existing component boundary; evaluated results remain
- * local to this React instance, including mutable arrays and command handles. */
-export function useCanvasDataTokens(sub: SubDeps, view: ViewCtx) {
-  const owner = view.canvasRenderOwner;
-  const source = owner.dataTokenInputs(view).store;
-  const definitions = sub.React.useSyncExternalStore(source.subscribe, source.getState, source.getInitialState);
-  const evaluated = sub.React.useMemo(() => evaluateDataTokenDefinitions(definitions, {}), [definitions]);
-  return { definitions, evaluated };
-}
-
-export function useCanvasDataTokenLease(sub: SubDeps, view: ViewCtx, ctx: RenderingCtx): void {
-  const owner = view.canvasRenderOwner, fullKey = computeFullKey(ctx), slot = ctx.renderSlotInstance;
-  const lifetime = view.disposeSignal;
-  sub.React.useLayoutEffect(() => {
-    if (lifetime.aborted) { return; }
-    const release = owner.retainDataTokenConsumer(fullKey, slot);
-    lifetime.addEventListener("abort", release, { once: true });
-    return () => { lifetime.removeEventListener("abort", release); release(); };
-  }, [owner, fullKey, slot, lifetime]);
+  return { context: ctx, consumerKey: computeFullKey(ctx), consumerSlot: ctx.renderSlotInstance };
 }
 
 function deriveActiveVariants(
@@ -1155,67 +1051,37 @@ function variantsToProps(
   return props;
 }
 
-const createViewStateContext = ownedComputedFn(
-  (viewCtx: ViewCtx) => {
-    const sub = viewCtx.canvasCtx.Sub;
-    return sub.React.createContext<CanvasVariantInputs | undefined>(undefined);
-  },
-  {
-    name: "createViewStateProvider",
-  },
-);
 
-export function useRenderedFrameRoot(
+export function renderFrameRoot(
   viewCtx: ViewCtx,
   root: TplNode,
+  onRenderInvalidated: () => void,
 ): React.ReactElement {
   const sub = viewCtx.canvasCtx.Sub;
-  const ViewStateContext = createViewStateContext(viewCtx);
-  const forceUpdate = useCanvasForceUpdate(sub);
-  const onRenderInvalidated = sub.React.useCallback(
-    () => viewCtx.addRerenderObserver(forceUpdate),
-    [viewCtx, forceUpdate],
-  );
   const viewState = viewCtx.canvasRenderOwner.variantInputs(viewCtx);
-  const globals = sub.React.useSyncExternalStore(viewState.globalStore.subscribe, viewState.globalStore.getState, viewState.globalStore.getInitialState);
-  const globalPins = sub.React.useMemo(() => new Map(globals.map((pin) => [viewCtx.studioCtx.modelSnapshots.resolve(pin.variant), pin.active])), [globals, viewCtx]);
-
   const r = sub.React.createElement;
-
-  const content = r(
-    ViewStateContext.Provider,
-    { value: viewState },
-    renderTplNode(root, {
-      ...makeEmptyRenderingCtx(viewCtx, root.uuid),
-      onRenderInvalidated,
-      activeVariants: new Set([
-        viewCtx.site.globalVariant,
-        ...[...globalPins.entries()].filter(([_, b]) => !!b).map(([v]) => v),
-      ]),
-    }),
-  );
-
-  const reactMajorVersion = +sub.React.version.split(".")[0];
-
-  if (reactMajorVersion >= 18 && !!sub.DataProvider) {
-    return r(
-      sub.DataProvider,
-      {
+  return r(sub.CanvasRoot<ReturnType<typeof viewState.globalStore.getState>>, {
+    globals: viewState.globalStore,
+    owner: viewCtx.canvasRenderOwner,
+    onRenderInvalidated,
+    render: (globals) => {
+      const globalPins = new Map(globals.map((pin) => [viewCtx.studioCtx.modelSnapshots.resolve(pin.variant), pin.active]));
+      const rootCtx: RenderingCtx = {
+        ...makeEmptyRenderingCtx(viewCtx, root.uuid),
+        onRenderInvalidated,
+        activeVariants: new Set([
+          viewCtx.site.globalVariant,
+          ...[...globalPins.entries()].filter(([_, active]) => !!active).map(([variant]) => variant),
+        ]),
+      };
+      const content = renderWithStateInitializers(rootCtx, (scope) => renderTplNode(root, scope));
+      return r(sub.DataProvider, {
         name: enableLoadingBoundaryKey,
         hidden: true,
         data: true,
-      },
-      r(
-        sub.React.Suspense,
-        {
-          fallback: "Loading...",
-        },
-        content,
-      ),
-    );
-  }
-
-  return content;
+      }, r(sub.React.Suspense, { fallback: "Loading..." }, content));
+    },
+  });
 }
 
 function makeEmptyRenderingCtx(viewCtx: ViewCtx, valKey: string): RenderingCtx {
@@ -1227,7 +1093,6 @@ function makeEmptyRenderingCtx(viewCtx: ViewCtx, valKey: string): RenderingCtx {
       $state: {},
       $q: {},
       $queries: {},
-      $refs: {},
       $$: {},
       currentUser: {},
       $dataTokens: {},
@@ -1238,7 +1103,6 @@ function makeEmptyRenderingCtx(viewCtx: ViewCtx, valKey: string): RenderingCtx {
       $state: {},
       $q: {},
       $queries: {},
-      $refs: {},
       $$: {},
       currentUser: {},
       $dataTokens: {},
@@ -1257,6 +1121,8 @@ function makeEmptyRenderingCtx(viewCtx: ViewCtx, valKey: string): RenderingCtx {
     valKey: valKey,
     viewCtx,
     $stateSnapshot: {},
+    registerRef: undefined,
+    getRefs: undefined,
     setDollarQueries: () => {},
     setDollarQ: () => {},
     stateSpecs: [],
@@ -1270,19 +1136,38 @@ export function renderTplNode(node: TplNode, ctx: RenderingCtx) {
   globalHookCtx.uuidToTplNode.set(node.uuid, new WeakRef(node));
   globalHookCtx.valKeyToOwnerKey.set(ctx.valKey, ctx.ownerKey);
   return withErrorDisplayFallback(
-    ctx.sub.React,
     ctx,
     node,
-    () => cachedRenderTplNode(node, ctx, () => renderReppable(node, ctx)),
+    () => {
+      const result = cachedRenderTplNode(node, ctx, () => {
+        const initializers: StateInitializerDeclaration[] = [];
+        const rendered = renderReppable(node, { ...ctx, stateInitializers: initializers, wrappingEnv: ctx.env });
+        return { rendered, initializers };
+      });
+      if (result.initializers.length) {
+        ensure(ctx.stateInitializers, "State declarations require a render owner").push(...result.initializers);
+      }
+      return result.rendered;
+    },
     {
       hasLoadingBoundary: ctx.env.$ctx[hasLoadingBoundaryKey],
     },
   );
 }
 
+/** Collect declarations without changing ordinary child element types or props.
+ * Every independently rendered callback owns a fresh collection and commit fiber. */
+export function renderWithStateInitializers(ctx: RenderingCtx, render: (scope: RenderingCtx) => React.ReactNode): React.ReactNode {
+  const initializers: StateInitializerDeclaration[] = [];
+  const node = render({ ...ctx, stateInitializers: initializers });
+  return initializers.length
+    ? ctx.sub.React.createElement(ctx.sub.reactWeb.StateInitializer, { state: ctx.env.$state, initializers }, node)
+    : node;
+}
+
 function getAutoOpenSelectionInfo(ctx: RenderingCtx, node: TplNode) {
   const info = ctx.viewCtx.canvasRenderOwner.selectionInput(ctx.viewCtx, node, ctx.valKey).getState();
-  return ctx.viewCtx.studioCtx.renderPolicy.store.getState().interactive || ctx.viewCtx.canvasCtx.frameInfo(ctx.viewCtx).getState().exporting || !ctx.viewCtx.studioCtx.renderPolicy.store.getState().autoOpen
+  return ctx.viewCtx.canvasCtx.frameInfo(ctx.viewCtx).getState().exporting || !ctx.viewCtx.studioCtx.renderPolicy.store.getState().autoOpen
     ? { id: node.uuid, isSelected: false, selectedSlotName: null }
     : info;
 }
@@ -1360,14 +1245,7 @@ function renderReppable(tplNode: TplNode, ctx: RenderingCtx) {
       );
     }
   } else {
-    return renderNonReppable(
-      node,
-      {
-        ...ctx,
-        wrappingEnv: ctx.env,
-      },
-      activeVSettings,
-    );
+    return renderNonReppable(node, ctx, activeVSettings);
   }
 }
 
@@ -1517,15 +1395,7 @@ function renderTplComponent(
                 // ObjectStudioPropType union; TS 7.0 no longer allows reading it
                 // off the whole union, so narrow with a targeted cast.
                 (propMeta as { hidePlaceholder?: boolean }).hidePlaceholder &&
-                // We wrap this in computed() so we don't re-render the
-                // TplComponent every time the focusedSelectable changes;
-                // we re-render only if the key has changed to match or not
-                // match selKey
-                computed(
-                  () =>
-                    makeSelectableKey(ctx.viewCtx.focusedSelectable()) !==
-                    selKey,
-                ).get())
+                makeSelectableKey(ctx.viewCtx.focusedSelectable()) !== selKey)
             ) {
               continue;
             }
@@ -1633,7 +1503,7 @@ function renderTplComponent(
           const plugin = getPlumeCodegenPlugin(node.component);
           pushEventHandler((...args: unknown[]) => {
             ctx.sub.reactWeb.generateStateOnChangeProp(
-              ctx.env.$state,
+              ctx.sub.reactWeb.getStateCommandValue(ctx.env.$state),
               statePath,
             )(
               plugin?.genOnChangeEventToValue
@@ -1651,14 +1521,14 @@ function renderTplComponent(
         ) {
           pushEventHandler((...eventArgs: any[]) => {
             ctx.sub.reactWeb.generateStateOnChangeProp(
-              ctx.env.$state,
+              ctx.sub.reactWeb.getStateCommandValue(ctx.env.$state),
               statePath,
             )(stateHelpers.onChangeArgsToValue?.apply(null, eventArgs));
           });
         } else {
           pushEventHandler(
             ctx.sub.reactWeb.generateStateOnChangeProp(
-              ctx.env.$state,
+              ctx.sub.reactWeb.getStateCommandValue(ctx.env.$state),
               statePath,
             ),
           );
@@ -1694,20 +1564,21 @@ function renderTplComponent(
       initFuncExpr &&
       (exprUsesCtxOrFreeVars(initFuncExpr) || dataReps.length > 0)
     ) {
-      ctx.env.$state.registerInitFunc?.(
-        getStateVarName(state),
-        mkInitFuncFromExpr(initFuncExpr, ctx.viewCtx, ctx.env, exprCtx, true),
-        dataReps,
-      );
+      const { $state: _renderState, ...initializerEnv } = ctx.env;
+      ensure(ctx.stateInitializers, "State declarations require a render owner").push({
+        path: getStateVarName(state),
+        initFunc: mkInitFuncFromExpr(initFuncExpr, ctx.viewCtx, ctx.env, exprCtx, true),
+        repetitionIndex: dataReps,
+        env: initializerEnv,
+      });
     }
   });
 
   if (tplHasRef(node)) {
     const refProp = node.component.codeComponentMeta?.refProp ?? "ref";
-    props[refProp] = (ref: any) =>
-      (ctx.env.$refs[
-        ensure(ctx.nodeNamer?.(node), `Only named tpls can have ref`)
-      ] = ref);
+    props[refProp] = ensure(ctx.registerRef, "A named template ref requires its component runtime")(
+      ensure(ctx.nodeNamer?.(node), `Only named tpls can have ref`),
+    );
   }
 
   if (
@@ -1727,12 +1598,12 @@ function renderTplComponent(
         const stateHelper = stateHelpers[stateName];
         if (stateHelper && "initFunc" in stateHelper) {
           // first we search for initFunc in the helper
-          ctx.env.$state.registerInitFunc?.(
-            getStateVarName(state),
-            ({ $props }) => stateHelper.initFunc?.($props),
-            dataReps,
-            { $props: props },
-          );
+          ensure(ctx.stateInitializers, "State declarations require a render owner").push({
+            path: getStateVarName(state),
+            initFunc: ({ $props }) => stateHelper.initFunc?.($props),
+            repetitionIndex: dataReps,
+            env: { $props: props },
+          });
         }
       }
     });
@@ -1753,8 +1624,7 @@ function renderTplComponent(
     };
     if (
       meta?.meta.canvasOverlay &&
-      !ctx.viewCtx.canvasCtx.frameInfo(ctx.viewCtx).getState().exporting &&
-      !ctx.viewCtx.studioCtx.renderPolicy.store.getState().interactive
+      !ctx.viewCtx.canvasCtx.frameInfo(ctx.viewCtx).getState().exporting
     ) {
       const autoOpen =
         codeComponentSelectionInfo.isSelected &&
@@ -1795,15 +1665,12 @@ function renderTplComponent(
     // may be picky since it may render a code component under the hood.  But
     // we know for sure that TplTags are not picky, so this is the easiest /
     // best we can do.
-    elt = ctx.sub.React.createElement<CanvasErrorBoundaryProps>(
-      mkCanvasErrorBoundary(ctx.viewCtx, ctx.sub.React),
-      {
+    elt = wrapCanvasErrorBoundary({
         ctx,
         nodeOrComponent: node,
         children: elt,
         nodeProps: props,
-      },
-    );
+      });
   }
   return elt;
 }
@@ -1907,10 +1774,12 @@ function computeTplComponentArgs(
     inStudio: true,
   };
 
+  const rootCtx = ctx;
   const evalArgExpr = (
     param: DeepReadonly<Param>,
     expr: DeepReadonly<Expr>,
-  ) => {
+    evaluationCtx: RenderingCtx = rootCtx,
+  ): any => {
     return switchType(expr)
       .when(RenderExpr, (_expr) => {
         if (_expr.tpl.length === 0) {
@@ -1919,25 +1788,24 @@ function computeTplComponentArgs(
           return ofCodeComponent ? undefined : null;
         } else {
           const renderContents = (renderCtx: RenderingCtx, envOverrides: Partial<CanvasEnv>) => {
-            const contents = (extraEnv: Partial<CanvasEnv>) =>
-              computeRenderedArg(param, _expr.tpl, renderCtx, { ...extraEnv, ...envOverrides });
+            const contents = (extraEnv: Partial<CanvasEnv>, scope = renderCtx, onRenderInvalidated = scope.onRenderInvalidated) =>
+              computeRenderedArg(param, _expr.tpl, { ...scope, onRenderInvalidated }, { ...extraEnv, ...envOverrides });
             if (shouldWrapSlotContentInDataCtxReader(tpl.component, param)) {
               return wrapInDataCtxReader(
                 renderCtx,
-                ($newCtx) =>
+                ($newCtx, onRenderInvalidated, scope) =>
                   withErrorDisplayFallback(
-                    renderCtx.sub.React,
                     renderCtx,
                     tpl,
                     () =>
-                      renderCtx.sub.React.createElement(mkCanvasWrapper(renderCtx.sub), {
+                      renderCtx.sub.React.createElement(renderCtx.sub.CanvasWrapper, {
                         // Expose the slot's data context even when descendants do not render.
                         [slotExtraCanvasEnvProp]: ensureType<ExtraSlotCanvasEnvData>({
                           env: { ...renderCtx.env, ...envOverrides, $ctx: { ...$newCtx } },
                           slotPropUuid: param.uuid,
                           tplComponentValKey: renderCtx.valKey,
                         }),
-                        children: contents({ $ctx: $newCtx }),
+                        children: contents({ $ctx: $newCtx }, scope, onRenderInvalidated),
                       }),
                     {
                       hasLoadingBoundary:
@@ -1952,68 +1820,60 @@ function computeTplComponentArgs(
           };
           if (isRenderFuncType(param.type)) {
             const paramType = param.type;
-            return (...args: any[]) => ctx.sub.React.createElement(
-              mkCanvasObserver(ctx.sub, ctx.viewCtx),
-              {
-                children: () => {
-                  const instance = ctx.sub.React.useId();
-                  return ctx.sub.React.createElement(
-                    ctx.sub.React.Fragment,
-                    {},
-                    renderContents(
-                      { ...ctx, renderSlotInstance: JSON.stringify([ctx.renderSlotInstance, param.uuid, instance]) },
-                      zipObject(paramType.params.map((p) => p.argName), args),
-                    ),
-                  );
-                },
-              },
+            return (...args: any[]) => mkUseCanvasObserver(evaluationCtx.sub, evaluationCtx.viewCtx, evaluationCtx.viewCtx.canvasRenderOwner.observerInput(evaluationCtx.viewCtx, tpl, evaluationCtx))(
+              (onRenderInvalidated) => evaluationCtx.sub.React.createElement(evaluationCtx.sub.CanvasRenderSlot, {
+                render: (instance) => renderWithStateInitializers(
+                  { ...evaluationCtx, onRenderInvalidated, renderSlotInstance: JSON.stringify([evaluationCtx.renderSlotInstance, param.uuid, instance]) },
+                  (scope) => renderContents(scope, zipObject(paramType.params.map((parameter) => parameter.argName), args)),
+                ),
+              }),
             );
           }
-          return renderContents(ctx, {});
+          return renderContents(evaluationCtx, {});
         }
       })
       .when(CustomCode, (_expr) => {
         return evalCodeWithEnv(
           getCodeExpressionWithFallback(_expr, exprCtx),
-          ctx.env,
-          ctx.viewCtx.canvasCtx.win(),
+          evaluationCtx.env,
+          evaluationCtx.viewCtx.canvasCtx.win(),
         );
       })
       .when(DataSourceOpExpr, (_expr) => {
         // Remove currentUser from env so that it doesn't get passed to the operations for now
-        const { currentUser: _, ...rest } = ctx.env;
+        const { currentUser: _, ...rest } = evaluationCtx.env;
         return evalCodeWithEnv(
           asCode(_expr, exprCtx).code,
           rest,
-          ctx.viewCtx.canvasCtx.win(),
+          evaluationCtx.viewCtx.canvasCtx.win(),
         );
       })
       .when(VarRef, (_expr) => {
         const component = ensure(
-          ctx.ownerComponent,
+          evaluationCtx.ownerComponent,
           () => `ownerComponent should exist as we're passing VarRef args`,
         );
         const referencedParam = extractReferencedParam(component, _expr);
         if (!referencedParam) {
           return undefined;
         }
-        return ctx.env.$props[canvasParamToVarName(component, referencedParam)];
+        return evaluationCtx.env.$props[canvasParamToVarName(component, referencedParam)];
       })
       .when(StyleTokenRef, (_expr) => {
         if (isKnownColorPropType(param.type) && param.type.noDeref) {
           return mkTokenRef(_expr.token);
         }
-        const vsh = new VariantedStylesHelper(ctx.site, [
-          ...ctx.activeVariants,
+        const vsh = new VariantedStylesHelper(evaluationCtx.site, [
+          ...evaluationCtx.activeVariants,
         ]);
-        const resolver = makeTokenValueResolver(ctx.site);
-        return resolver(toFinalToken(_expr.token, ctx.site), vsh);
+        const resolver = makeTokenValueResolver(evaluationCtx.site);
+        return resolver(toFinalToken(_expr.token, evaluationCtx.site), vsh);
       })
       .when(PageHref, (_expr) =>
         evalCodeWithEnv(
           asCode(_expr, exprCtx).code,
-          ctx.env,
-          ctx.viewCtx.canvasCtx.win(),
+          evaluationCtx.env,
+          evaluationCtx.viewCtx.canvasCtx.win(),
         ),
       )
       .when(ImageAssetRef, (_expr) =>
@@ -2027,35 +1887,33 @@ function computeTplComponentArgs(
       .when(ObjectPath, (_expr) =>
         evalCodeWithEnv(
           getCodeExpressionWithFallback(_expr, exprCtx),
-          ctx.env,
-          ctx.viewCtx.canvasCtx.win(),
+          evaluationCtx.env,
+          evaluationCtx.viewCtx.canvasCtx.win(),
         ),
       )
       .when(EventHandler, (_expr) => {
         return wrapCanvasEventHandler(
-          ctx.viewCtx,
-          evalCodeWithEnv(
+          evaluationCtx.viewCtx,
+          (...eventArgs: unknown[]) => evalCodeWithEnv(
             getRawCode(expr, exprCtx),
-            mkEventHandlerEnvFromRenderingCtx(ctx),
-            ctx.viewCtx.canvasCtx.win(),
-          ),
+            mkEventHandlerEnvFromRenderingCtx(evaluationCtx),
+            evaluationCtx.viewCtx.canvasCtx.win(),
+          )(...eventArgs),
         );
       })
-      .when(FunctionArg, (functionArg) => evalArgExpr(param, functionArg.expr))
+      .when(FunctionArg, (functionArg) => evalArgExpr(param, functionArg.expr, evaluationCtx))
       .when(CollectionExpr, (collectionExpr) => [
         ...collectionExpr.exprs.map((_expr) =>
-          _expr ? evalArgExpr(param, _expr) : undefined,
+          _expr ? evalArgExpr(param, _expr, evaluationCtx) : undefined,
         ),
       ])
       .when(MapExpr, (_expr) =>
         Object.fromEntries(
           Object.entries(_expr.mapExpr).map(([name, iexpr]) => [
             name,
-            evalCodeWithEnv(
-              getRawCode(iexpr, exprCtx),
-              ctx.env,
-              ctx.viewCtx.canvasCtx.win(),
-            ),
+            flattenExprs(iexpr).some(isKnownEventHandler)
+              ? evalArgExpr(param, iexpr, evaluationCtx)
+              : evalCodeWithEnv(getRawCode(iexpr, exprCtx), evaluationCtx.env, evaluationCtx.viewCtx.canvasCtx.win()),
           ]),
         ),
       )
@@ -2081,16 +1939,16 @@ function computeTplComponentArgs(
       .when(TemplatedString, (templatedString) =>
         evalCodeWithEnv(
           getRawCode(templatedString, exprCtx),
-          ctx.env,
-          ctx.viewCtx.canvasCtx.win(),
+          evaluationCtx.env,
+          evaluationCtx.viewCtx.canvasCtx.win(),
         ),
       )
       .when(FunctionExpr, (functionExpr) =>
-        evalCodeWithEnv(
-          asCode(functionExpr, exprCtx).code,
-          ctx.env,
-          ctx.viewCtx.canvasCtx.win(),
-        ),
+        flattenExprs(functionExpr.bodyExpr).some(isKnownEventHandler)
+          ? (...args: unknown[]) => evalArgExpr(param, functionExpr.bodyExpr, {
+            ...evaluationCtx, env: { ...evaluationCtx.env, ...zipObject(functionExpr.argNames, args) },
+          })
+          : evalCodeWithEnv(asCode(functionExpr, exprCtx).code, evaluationCtx.env, evaluationCtx.viewCtx.canvasCtx.win()),
       )
       .when(TplRef, (_expr) =>
         unexpected(`Cannot evaluate TplRef as a component arg`),
@@ -2098,13 +1956,20 @@ function computeTplComponentArgs(
       .when(QueryInvalidationExpr, (_expr) =>
         unexpected(`Cannot evaluate QueryInvalidationExpr as component arg`),
       )
-      .when(CompositeExpr, (_expr) =>
-        evalCodeWithEnv(
-          asCode(_expr, exprCtx).code,
-          mkEventHandlerEnvFromRenderingCtx(ctx),
-          ctx.viewCtx.canvasCtx.win(),
-        ),
-      )
+      .when(CompositeExpr, (composite) => {
+        if (!flattenExprs(composite).some(isKnownEventHandler)) {
+          return evalCodeWithEnv(asCode(composite, exprCtx).code, evaluationCtx.env, evaluationCtx.viewCtx.canvasCtx.win());
+        }
+        const value = evalCodeWithEnv(composite.hostLiteral, evaluationCtx.env, evaluationCtx.viewCtx.canvasCtx.win());
+        for (const [path, expression] of Object.entries(composite.substitutions)) {
+          const keys = toPath(path);
+          const parent = keys.length > 1 ? get(value, keys.slice(0, -1)) : value;
+          parent[ensure(last(keys), "Composite substitutions require a property path")] = flattenExprs(expression).some(isKnownEventHandler)
+            ? evalArgExpr(param, expression, evaluationCtx)
+            : evalCodeWithEnv(getRawCode(expression, exprCtx), evaluationCtx.env, evaluationCtx.viewCtx.canvasCtx.win());
+        }
+        return value;
+      })
       .when(CustomFunctionExpr, (_expr) =>
         unexpected(`Cannot evaluate CustomFunctionExpr as a component arg`),
       )
@@ -2114,9 +1979,6 @@ function computeTplComponentArgs(
   const args: Record<string, any> = {};
 
   const addToEnv = (param: DeepReadonly<Param>, val: any) => {
-    // The following check for param.variable.name may seem unnecessary, but
-    // it is required to force mobx to re-compute this when a variable name
-    // changes; see https://app.shortcut.com/plasmic/story/25230/
     if (!param.variable.name) {
       return;
     }
@@ -2159,15 +2021,7 @@ function computeTplComponentArgs(
     }
   }
 
-  const isInCurrentComponentStack = computed(
-    () => {
-      const currentComponentSet = new Set(
-        ctx.viewCtx.componentStackFrames().map((f) => f.tplComponent),
-      );
-      return currentComponentSet.has(tpl);
-    },
-    { name: "computeTplComponentArgs.isInCurrentComponentStack" },
-  ).get();
+  const isInCurrentComponentStack = ctx.viewCtx.componentStackFrames().some((frame) => frame.tplComponent === tpl);
 
   const ccMeta = maybeGetCodeComponentMeta(ctx.viewCtx, tpl.component);
 
@@ -2368,7 +2222,7 @@ function renderTplTag(
   } else if (node.tag === "img" && ctx.projectFlags.usePlasmicImg) {
     tag = ctx.sub.reactWeb.PlasmicImg;
   } else if (node.tag === "svg") {
-    tag = mkCanvasIcon(ctx.sub.React);
+    tag = ctx.sub.CanvasIcon;
     evaledAttrs.placeholderUrl = placeholderImgUrl(true);
   }
   const classes = uniqifyClassName(
@@ -2404,16 +2258,13 @@ function renderTplTag(
     className: cx(classes, evaledAttrs["className"]),
     ...(ctx.slate && !isTplImage(node)
       ? {
-          children: ctx.sub.React.createElement(
-            mkSlateChildren(ctx.sub.React),
-            {
+          children: renderSlateChildren({
               node,
               inline: !!ctx.inline,
               slate: ctx.slate,
               effectiveVs,
               ctx,
-            },
-          ),
+            }),
         }
       : !isTplImage(node) && !isTplTextBlock(node)
         ? {
@@ -2461,7 +2312,7 @@ function renderTplTag(
       onChange: [
         (e: React.ChangeEvent<HTMLInputElement>) =>
           ctx.sub.reactWeb.generateStateOnChangeProp(
-            ctx.env.$state,
+            ctx.sub.reactWeb.getStateCommandValue(ctx.env.$state),
             statePath,
           )(e.target.value),
       ],
@@ -2479,8 +2330,9 @@ function renderTplTag(
   attrs["key"] = attrs["key"] ?? ctx.valKey;
 
   if (tplHasRef(node)) {
-    attrs["ref"] = (ref: any) =>
-      (ctx.env.$refs[ensure(node.name, `Only named tpls can have ref`)] = ref);
+    attrs["ref"] = ensure(ctx.registerRef, "A named template ref requires its component runtime")(
+      ensure(node.name, `Only named tpls can have ref`),
+    );
   }
 
   if (style) {
@@ -2491,7 +2343,7 @@ function renderTplTag(
   }
 
   if (isTplTextBlock(node)) {
-    return ctx.sub.React.createElement(mkRichText(ctx.sub.React), {
+    return ctx.sub.React.createElement(mkRichText(ctx.sub), {
       ctx,
       node,
       effectiveVs,
@@ -2523,17 +2375,12 @@ function computeActiveVariantsForMaybeDisabledTag(
       ) {
         return tuple(attr, null);
       }
-      const value = evalCodeWithEnv(
-        evalTagAttrExprToString(node, attr, expr, ctx),
-        mkEventHandlerEnvFromRenderingCtx(ctx),
-        ctx.viewCtx.canvasCtx.win(),
-      );
-      return tuple(
-        attr,
-        isKnownEventHandler(expr)
-          ? wrapCanvasEventHandler(ctx.viewCtx, value)
-          : value,
-      );
+      const expression = evalTagAttrExprToString(node, attr, expr, ctx);
+      const value = isKnownEventHandler(expr)
+        ? wrapCanvasEventHandler(ctx.viewCtx, (...args: unknown[]) =>
+          evalCodeWithEnv(expression, mkEventHandlerEnvFromRenderingCtx(ctx), ctx.viewCtx.canvasCtx.win())(...args))
+        : evalCodeWithEnv(expression, ctx.env, ctx.viewCtx.canvasCtx.win());
+      return tuple(attr, value);
     }),
   );
 
@@ -2799,7 +2646,7 @@ function determineAutoOpenState(
         component: ctx.ownerComponent ?? null, projectFlags: ctx.projectFlags, inStudio: true,
       }) : undefined,
       ]);
-      if (!ctx.viewCtx.studioCtx.renderPolicy.store.getState().interactive && !nativeVisible) {
+      if (!nativeVisible) {
         visible = !!session.reveal(instance, "$visibility", getAutoOpenSelectionInfo(ctx, node).isSelected);
       }
     }
@@ -2921,111 +2768,22 @@ interface EmptyContainerPlaceholderProps {
   effectiveVs: EffectiveVariantSetting;
 }
 
-const mkEmptyContainerPlaceholder = ownedComputedFn(
-  (sub: SubDeps) =>
-    function EmptyContainerPlaceholder({
-      node,
-      onAutoResized,
-      summary,
-      ctx,
-      effectiveVs,
-    }: EmptyContainerPlaceholderProps) {
-      return mkUseCanvasObserver(ctx.sub, ctx.viewCtx)(
-        () =>
-          withErrorDisplayFallback(
-            ctx.sub.React,
-            ctx,
-            node,
-            () => {
-              const domRef = sub.React.useRef<HTMLDivElement | null>(null);
-
-              sub.React.useEffect(() => {
-                if (!domRef.current) {
-                  return;
-                }
-
-                const placeholderElt = domRef.current;
-                const doResize = () => {
-                  const resized = resizePlaceholder(placeholderElt, {
-                    forceAutoHeight: isTplColumn(node) || isGridChild(node),
-                    isContainerSized: isExplicitlySized(effectiveVs),
-                  });
-                  if (resized && onAutoResized) {
-                    onAutoResized();
-                  }
-                };
-
-                doResize();
-
-                const elt = domRef.current;
-                const containerElt = elt.parentElement as HTMLElement;
-
-                const observer = new sub.ResizeObserver(() => {
-                  doResize();
-                });
-
-                observer.observe(containerElt);
-                return () => {
-                  observer.unobserve(containerElt);
-                  observer.disconnect();
-                };
-              }, [onAutoResized, effectiveVs, node]);
-
-              const r = sub.React.createElement;
-
-              // We always use a unique key, because we always want to reset / re-render the DOM
-              // elements to determine the right size for the placeholder
-              return r(
-                "div",
-                { className: "__wab_placeholder", ref: domRef },
-                r("div", { className: "__wab_placeholder__inner" }),
-                r("div", { className: "__wab_placeholder__tag" }, summary),
-                r(
-                  "div",
-                  { className: "__wab_placeholder_border" },
-                  r("div", { className: "__wab_placeholder_border_inner" }),
-                ),
-              );
-            },
-            {
-              hasLoadingBoundary: ctx.env.$ctx[hasLoadingBoundaryKey],
-            },
-          ),
-        `mkEmptyContainerPlaceholder(${node.uuid})`,
-      );
-    },
+const mkEmptyContainerPlaceholder = canvasFactory((sub: SubDeps) =>
+  sub.createCanvasComponentType<EmptyContainerPlaceholderProps>(({ node, onAutoResized, summary, ctx, effectiveVs }) => {
+    return mkUseCanvasObserver(sub, ctx.viewCtx, ctx.viewCtx.canvasRenderOwner.observerInput(ctx.viewCtx, node, ctx))(() =>
+      withErrorDisplayFallback(ctx, node, () => sub.React.createElement(sub.CanvasPlaceholder, {
+        summary,
+        resize(element) {
+          if (ctx.viewCtx.isDisposed || ctx.viewCtx.disposeSignal.aborted) { return; }
+          if (resizePlaceholder(element, { forceAutoHeight: isTplColumn(node) || isGridChild(node), isContainerSized: isExplicitlySized(effectiveVs) })) { onAutoResized(); }
+        },
+      }), { hasLoadingBoundary: ctx.env.$ctx[hasLoadingBoundaryKey] }),
+    );
+  }),
 );
 
-interface CanvasIconProps extends React.ComponentProps<"svg"> {
-  outerHTML: string;
-  placeholderUrl: string;
-}
-
-const mkCanvasIcon = ownedComputedFn(
-  (react: typeof React) =>
-    function CanvasIcon(props: CanvasIconProps) {
-      const { outerHTML, className, placeholderUrl, ...restProps } = props;
-      if (outerHTML) {
-        return react.createElement("div", {
-          className: `${className} svg-icon-wrapper`,
-          dangerouslySetInnerHTML: { __html: outerHTML },
-          ...restProps,
-        });
-      } else {
-        return react.createElement("img", {
-          className,
-          src: placeholderUrl,
-          ...restProps,
-        });
-      }
-    },
-);
-
-const mkRepeatedElement = ownedComputedFn(
+const mkRepeatedElement = canvasFactory(
   (react: typeof React) => genRepeatedElement(react),
-  {
-    name: "mkRepeatedElement",
-  },
 );
 
 interface RichTextProps {
@@ -3037,133 +2795,42 @@ interface RichTextProps {
   className?: string;
 }
 
-const mkRichText = ownedComputedFn((react: typeof React) =>
-  react.forwardRef(function RichText(
-    { ctx, node, attrs, tag, effectiveVs, className, ...rest }: RichTextProps,
-    ref,
-  ) {
-    return mkUseCanvasObserver(ctx.sub, ctx.viewCtx)(
-      () =>
-        withErrorDisplayFallback(
-          ctx.sub.React,
-          ctx,
-          node,
-          () => {
-            const eltRef = react.useRef<HTMLElement | null>(null);
-
-            const [isEditing, setEditing] = react.useState(() => false);
-
-            // Use a computed() here so we don't re-render when the valRoot is set
-            const devMode = useCanvasRenderPolicy(ctx.sub, ctx.viewCtx, "devMode");
-            const isTextEditable = computed(() => devMode && isEditable(node, ctx), {
-              name: `isRichTextEditable`,
-            }).get();
-
-            const richTextHandle = {
-              enterEdit: () => {
-                if (eltRef.current) {
-                  if (
-                    getComputedStyle(eltRef.current).visibility === "hidden"
-                  ) {
-                    return "Cannot edit the text on canvas because it is hidden. Please edit it on the right side bar.";
-                  }
-                  setEditing(true);
-                  return undefined;
-                }
-                return "Cannot edit the text on canvas because Plasmic is not ready";
-              },
-              exitEdit: () => {
-                setEditing(false);
-              },
-            };
-
-            const subOnChange = react.useCallback(
-              (text: string, markers: Marker[]) => {
-                const textCtx = ctx.viewCtx.editingTextContext();
-                if (textCtx) {
-                  textCtx.draftText = new RawTextLike(text, markers);
-                }
-              },
-              [ctx.viewCtx],
-            );
-
-            const subOnUpdateContext = react.useCallback(
-              (partialCtx: Partial<EditingTextContext>) => {
-                const textCtx = ctx.viewCtx.editingTextContext();
-                if (textCtx) {
-                  Object.assign(textCtx, partialCtx);
-                }
-              },
-              [ctx.viewCtx],
-            );
-
-            return ctx.sub.React.createElement(
-              mkCanvasErrorBoundary(ctx.viewCtx, ctx.sub.React),
-              {
-                ctx: ctx,
-                nodeOrComponent: node,
-                children: createPlasmicElementProxy(node, ctx, tag, {
-                  ...attrs,
-                  className: cx(attrs.className, className, [
-                    ...(isTextEditable
-                      ? [
-                          makeWabTextClassName({ targetEnv: "canvas" }),
-                          "__wab_editor",
-                        ]
-                      : []),
-                    isExprText(effectiveVs.text) &&
-                      effectiveVs.text.html &&
-                      makeWabHtmlTextClassName({ targetEnv: "canvas" }),
-                    isEditing && "__wab_editing",
-                  ]),
-                  [richTextProp]: {
-                    text: effectiveVs.text,
-                    handle: richTextHandle,
-                  },
-                  // This element may have been cloned to append data-plasmic-* props
-                  // (data-plasmic-index for dataRep, and data-plasmic-slot-* as slot args)
-                  // or arbitrary non-data-plasmic-* props from code components.
-                  // Since this RichText component is a renderless component, we pass on
-                  // those props to the actual element we are rendering, so they can be
-                  // read by globalHook
-                  ...rest,
-                  ref: (el: any) => {
-                    eltRef.current = el;
-                    if (typeof ref === "function") {
-                      ref(el);
-                    } else if (ref != null) {
-                      ref.current = el;
-                    }
-                  },
-                  children:
-                    attrs.children ??
-                    (isEditing
-                      ? react.createElement(mkCanvasText(react), {
-                          node,
-                          readOnly: false,
-                          onChange: subOnChange,
-                          onUpdateContext: subOnUpdateContext,
-                          inline: !!ctx.inline,
-                          ctx,
-                          effectiveVs,
-                          key: "editing",
-                        })
-                      : react.createElement(mkReadOnlyCanvasText(react), {
-                          node,
-                          inline: !!ctx.inline,
-                          ctx,
-                          effectiveVs,
-                          key: "readonly",
-                        })),
-                }),
-              },
-            );
-          },
-          {
-            hasLoadingBoundary: ctx.env.$ctx[hasLoadingBoundaryKey],
-          },
-        ),
-      `mkRichText(${node.uuid})`,
+const mkRichText = canvasFactory((sub: SubDeps) =>
+  sub.createCanvasComponentType<RichTextProps, HTMLElement>(({ ctx, node, attrs, tag, effectiveVs, className, ...rest }, outerRef) => {
+    const react = sub.React;
+    return mkUseCanvasObserver(ctx.sub, ctx.viewCtx, ctx.viewCtx.canvasRenderOwner.observerInput(ctx.viewCtx, node, ctx))(() =>
+      withErrorDisplayFallback(ctx, node, () => react.createElement(ctx.sub.CanvasRichTextFrame, {
+        policy: ctx.viewCtx.studioCtx.renderPolicy.store,
+        canEdit: isEditable(node, ctx),
+        attributeRef: attrs.ref,
+        outerRef,
+        render({ isEditing, isTextEditable, ref, handle }) {
+          const onChange = (text: string, markers: Marker[]) => {
+            if (ctx.viewCtx.isDisposed || ctx.viewCtx.disposeSignal.aborted) { return; }
+            const current = ctx.viewCtx.editingTextContext();
+            if (current) { setEditingTextContext(ctx.viewCtx, { ...current, draftText: new RawTextLike(text, markers) }); }
+          };
+          const onUpdateContext = (partial: Partial<EditingTextContext>) => {
+            if (ctx.viewCtx.isDisposed || ctx.viewCtx.disposeSignal.aborted) { return; }
+            const current = ctx.viewCtx.editingTextContext();
+            if (current) { setEditingTextContext(ctx.viewCtx, { ...current, ...partial }); }
+          };
+          return wrapCanvasErrorBoundary({ ctx, nodeOrComponent: node, children: createPlasmicElementProxy(node, ctx, tag, {
+            ...attrs,
+            className: cx(attrs.className, className, [
+              ...(isTextEditable ? [makeWabTextClassName({ targetEnv: "canvas" }), "__wab_editor"] : []),
+              isExprText(effectiveVs.text) && effectiveVs.text.html && makeWabHtmlTextClassName({ targetEnv: "canvas" }),
+              isEditing && "__wab_editing",
+            ]),
+            [richTextProp]: { text: effectiveVs.text, handle },
+            ...rest,
+            ref,
+            children: attrs.children ?? (isEditing
+              ? renderCanvasText({ node, readOnly: false, onChange, onUpdateContext, inline: !!ctx.inline, ctx, effectiveVs })
+              : renderReadOnlyCanvasText({ node, inline: !!ctx.inline, ctx, effectiveVs })),
+          }) });
+        },
+      }), { hasLoadingBoundary: ctx.env.$ctx[hasLoadingBoundaryKey] }),
     );
   }),
 );
@@ -3310,12 +2977,7 @@ function supressSlotPlaceholder(node: TplSlot, ctx: RenderingCtx) {
 }
 
 function isKeyInEditableStack(ctx: RenderingCtx, valKey: string) {
-  return computed(
-    () => {
-      return ctx.viewCtx.valComponentStack().some((v) => v.key === valKey);
-    },
-    { name: "isKeyInEditableStack" },
-  ).get();
+  return ctx.viewCtx.valComponentStack().some((value) => value.key === valKey);
 }
 
 interface CanvasSlotPlaceholderProps {
@@ -3330,20 +2992,19 @@ interface CanvasSlotPlaceholderProps {
   slotSelectionKey: string;
 }
 
-const mkCanvasSlotPlaceholder = ownedComputedFn(
+const mkCanvasSlotPlaceholder = canvasFactory(
   (sub: SubDeps) =>
-    function CanvasSlotPlaceholder({
+    sub.createCanvasComponentType<CanvasSlotPlaceholderProps>(({
       ctx,
       component,
       node,
       param,
       isPropOrSlot,
       slotSelectionKey,
-    }: CanvasSlotPlaceholderProps) {
-      return mkUseCanvasObserver(ctx.sub, ctx.viewCtx)(
+    }) => {
+      return mkUseCanvasObserver(ctx.sub, ctx.viewCtx, ctx.viewCtx.canvasRenderOwner.observerInput(ctx.viewCtx, node ?? component, ctx))(
         () =>
           withErrorDisplayFallback(
-            ctx.sub.React,
             ctx,
             node ?? component,
             () => {
@@ -3388,7 +3049,7 @@ const mkCanvasSlotPlaceholder = ownedComputedFn(
           ),
         `mkCanvasSlotPlaceholder(${component.name}.${param.variable.name})`,
       );
-    },
+    }),
 );
 
 // Should keep in sync with `makeSlotSelectionKey` and parse it in globalHook.ts
@@ -3470,92 +3131,6 @@ export interface CanvasFrameInfo {
   defaultInitialPageFrameSize?: number;
 }
 
-export interface CanvasFrameProps {
-  children?: React.ReactNode;
-  frameInfo: ModelFieldStore<CanvasFrameInfo>;
-}
-
-export function mkCanvas(sub: SubDeps, vc: ViewCtx) {
-  return function CanvasFrame(props: CanvasFrameProps) {
-    const { children, frameInfo } = props;
-    const {
-      viewMode,
-      height,
-      isHeightAutoDerived,
-      fullPageHeight,
-      bgColor,
-    } = sub.React.useSyncExternalStore(
-      frameInfo.subscribe, frameInfo.getState, frameInfo.getInitialState,
-    );
-    const showFullHeight = isHeightAutoDerived && fullPageHeight;
-
-    const userStore = vc.studioCtx.currentAppUserStore;
-    const appUserCtx = sub.React.useSyncExternalStore(
-      userStore.subscribe, userStore.getState, userStore.getInitialState,
-    );
-
-    sub.React.useEffect(() => {
-      if (!vc.isDisposed) {
-        vc.canvasCtx.doc().body.style.backgroundColor = bgColor || "unset";
-      }
-    }, [bgColor]);
-
-    if (vc.isDisposed) {
-      return null;
-    }
-
-    let wrapped: React.ReactElement = sub.React.createElement(
-      "div",
-      {
-        className: cx({
-          __wab_root: true,
-          "__wab_root--stretch": viewMode === "stretch",
-          "__wab_root--centered": viewMode === "centered",
-          "__wab_root--checkerboard": viewMode === "centered" && !bgColor,
-          "__wab_root--page-stretch": isHeightAutoDerived,
-          "__wab_root--full-height": showFullHeight,
-        }),
-        style: {
-          minHeight: `${height}px`,
-          "--viewport-height": `${height}px`,
-          // Layout components opt in by reading this variable, e.g.
-          // `height: var(--canvas-content-height, <viewport height>)`.
-          // It is only defined on the canvas, never in previews/exports.
-          ...(showFullHeight
-            ? { "--canvas-content-height": "auto" }
-            : {}),
-        },
-      },
-      children,
-    );
-
-    if (sub.dataSourcesContext?.PlasmicDataSourceContextProvider) {
-      wrapped = sub.React.createElement(
-        sub.dataSourcesContext.PlasmicDataSourceContextProvider,
-        {
-          value: {
-            user: {
-              email: appUserCtx.appUser.email,
-              roleId: appUserCtx.appUser.roleId,
-              roleName: appUserCtx.appUser.roleName,
-              roleIds: appUserCtx.appUser.roleIds?.map(
-                (roleId) => roleId,
-              ),
-              roleNames: appUserCtx.appUser.roleNames?.map(
-                (roleName) => roleName,
-              ),
-              isLoggedIn: appUserCtx.appUser.isLoggedIn,
-            } as any,
-            userAuthToken: appUserCtx.fakeAuthToken,
-          },
-        },
-        wrapped,
-      );
-    }
-
-    return wrapped;
-  };
-}
 
 export function computeFullKey(ctx: RenderingCtx) {
   const parts = ctx.valKey.split(".");
@@ -3592,34 +3167,22 @@ let envIdCount = 1;
 export function getEnvId(ctx: RenderingCtx) {
   const envs = { env: ctx.env, wrappingEnv: ctx.wrappingEnv };
   const id = `${envIdCount}`;
+  ctx.viewCtx.canvasRenderOwner.retainEnvironment(ctx, id, envs);
   envIdCount++;
-  // We create a mobx observable and then subscribe to changes, so we ensure it
-  // will only be garbage collected when we're no longer reading from it.
-  const box = observable.box(envs, { deep: false });
   const frameUid = ctx.viewCtx.arenaFrame().uid;
   const frame = ensure(globalHookCtx.frames.get(frameUid), "Missing canvas frame state");
   const fullKey = `${frameUid}:${computeFullKey(ctx)}`;
   frame.envIdToFullKey.set(id, fullKey);
   envCleanup.register(envs, { id, frameUid, fullKey });
-  globalHookCtx.envIdToEnvs.set(id, new WeakRef(box.get()));
+  globalHookCtx.envIdToEnvs.set(id, new WeakRef(envs));
   globalHookCtx.fullKeyToEnvId.set(fullKey, id);
   return id;
 }
 
-// A wrapper for providing extra props consumed by the global hook. Just renders
-// the children.
-const mkCanvasWrapper = computedFn(function mkCanvasWrapper(sub: SubDeps) {
-  return function CanvasWrapper(props: {
-    children: React.ReactNode;
-    [prop: string]: any;
-  }) {
-    return sub.React.createElement(sub.React.Fragment, {}, props.children);
-  };
-});
 
 function wrapInDataCtxReader(
   ctx: RenderingCtx,
-  contents: ($ctx: DataDict | undefined) => React.ReactNode,
+  contents: ($ctx: DataDict | undefined, onRenderInvalidated: () => void, scope: RenderingCtx) => React.ReactNode,
   label: string,
 ) {
   return ctx.sub.React.createElement(
@@ -3628,8 +3191,8 @@ function wrapInDataCtxReader(
     }>,
     {
       children: ($newCtx) => {
-        return mkUseCanvasObserver(ctx.sub, ctx.viewCtx)(
-          () => contents($newCtx),
+        return mkUseCanvasObserver(ctx.sub, ctx.viewCtx, ctx.viewCtx.canvasRenderOwner.observerInput(ctx.viewCtx, ctx.ownerComponent ?? ctx.viewCtx.component, ctx))(
+          (onRenderInvalidated) => renderWithStateInitializers(ctx, (scope) => contents($newCtx, onRenderInvalidated, scope)),
           label,
         );
       },
@@ -3637,157 +3200,41 @@ function wrapInDataCtxReader(
   );
 }
 
-type DataOrServerQueries = Record<
-  string,
-  ClientQueryResult | PlasmicQueryResult | undefined
->;
 
-function updateCtxQueries(
-  oldQueries: DataOrServerQueries,
-  newQueries: DataOrServerQueries,
-) {
-  let shouldUpdate = false;
-  Object.keys(newQueries).forEach((k) => {
-    if (!(k in oldQueries)) {
-      oldQueries[k] = newQueries[k];
-      shouldUpdate = true;
-    }
-  });
-  [...Object.keys(oldQueries)].forEach((k) => {
-    if (!(k in newQueries)) {
-      delete oldQueries[k];
-      shouldUpdate = true;
-    }
-  });
-  Object.keys(newQueries).forEach((k) => {
-    if (newQueries[k] !== oldQueries[k]) {
-      oldQueries[k] = newQueries[k];
-      shouldUpdate = true;
-    }
-  });
-  return shouldUpdate;
-}
-
-// Subscribe directly to each query and republish a fresh { ...new$Q }
-// from a microtask whenever its state transitions.
-function useReactiveDollarQ(
-  sub: SubDeps,
-  new$Q: Record<string, PlasmicQueryResult | undefined>,
-  setDollarQ: (q: Record<string, PlasmicQueryResult | undefined>) => void,
-) {
-  sub.React.useEffect(() => {
-    let cleanup = false;
-    const listener = () => {
-      if (cleanup) {
-        return;
-      }
-      queueMicrotask(() => {
-        if (!cleanup) {
-          setDollarQ({ ...new$Q });
-        }
-      });
-    };
-    Object.values(new$Q).forEach((q) => {
-      (q as StatefulQueryResult | undefined)?.addListener?.(listener);
-    });
-    return () => {
-      cleanup = true;
-      Object.values(new$Q).forEach((q) => {
-        (q as StatefulQueryResult | undefined)?.removeListener?.(listener);
-      });
-    };
-  }, [new$Q, setDollarQ]);
-}
-
-function triggerQueryLoad(queries: DataOrServerQueries) {
-  Object.values(queries).forEach((query) => {
-    try {
-      if (query?.isLoading) {
-        const data = query.data;
-        if (data && typeof data === "object" && "value" in data) {
-          data.value;
-        }
-      }
-    } catch {
-      /* Empty */
-    }
-  });
-}
-
-function getServerQueryFuncReg(ctx: RenderingCtx, op: CustomFunctionExpr) {
+function getServerQueryFuncReg(ctx: Pick<RenderingCtx, "viewCtx">, op: CustomFunctionExpr) {
   return ctx.viewCtx.canvasCtx
     .getRegisteredFunctionsMap()
     .get(customFunctionId(op.func));
 }
 
-/** One React subscription to this component's explicitly named query functions. */
-function useServerQueryRegistrations(sub: SubDeps, view: ViewCtx, component: Component) {
-  const registry = view.canvasCtx.registrations;
-  const idsKey = JSON.stringify(component.serverQueries.filter(isServerQueryWithOperation)
+function serverQueryRegistrationKey(component: Component) {
+  return JSON.stringify(component.serverQueries.filter(isServerQueryWithOperation)
     .flatMap((query) => isKnownCustomCode(query.op) ? [] : [customFunctionId(query.op.func)]));
-  const input = sub.React.useMemo(() => {
-    const ids = new Set(component.serverQueries.filter(isServerQueryWithOperation)
-      .flatMap((query) => isKnownCustomCode(query.op) ? [] : [customFunctionId(query.op.func)]));
-    const stores = [...ids].map((id) => registry.function(id));
-    let current = Object.freeze(stores.map((store) => store.getState()));
-    const getSnapshot = () => {
-      const next = stores.map((store) => store.getState());
-      if (!arrayEq(current, next)) { current = Object.freeze(next); }
-      return current;
-    };
-    return {
-      getSnapshot,
-      subscribe: (listener: () => void) => {
-        const stops = stores.map((store) => store.subscribe(listener));
-        return () => stops.forEach((stop) => stop());
-      },
-    };
-  }, [registry, component, idsKey]);
-  return sub.React.useSyncExternalStore(input.subscribe, input.getSnapshot, input.getSnapshot);
 }
 
-/**
- * Number of server queries that can currently execute, i.e. that get an entry
- * in the query tree. Queries with unregistered custom functions are dropped.
- */
-function countExecutableServerQueries(ctx: RenderingCtx, component: Component) {
-  return component.serverQueries
-    .filter(isServerQueryWithOperation)
-    .filter(
-      (query) =>
-        isKnownCustomCode(query.op) || !!getServerQueryFuncReg(ctx, query.op),
-    ).length;
-}
+const createServerQueryRegistrationInput = canvasFactory((view: ViewCtx, component: Component, _idsKey: string) => {
+  const registry = view.canvasCtx.registrations;
+  const ids = new Set(component.serverQueries.filter(isServerQueryWithOperation)
+    .flatMap((query) => isKnownCustomCode(query.op) ? [] : [customFunctionId(query.op.func)]));
+  const stores = [...ids].map((id) => registry.function(id));
+  let current = Object.freeze(stores.map((store) => store.getState()));
+  const getState = () => {
+    const next = stores.map((store) => store.getState());
+    if (!arrayEq(current, next)) { current = Object.freeze(next); }
+    return current;
+  };
+  return {
+    getState,
+    getInitialState: getState,
+    subscribe: (listener: () => void) => {
+      const stops = stores.map((store) => store.subscribe(listener));
+      return () => stops.forEach((stop) => stop());
+    },
+  };
+});
 
-/**
- * How many React hooks `useComponentLevelQueries` runs, as a pair of counts:
- * - `usePlasmicDataOp` per legacy data query, and, inside `usePlasmicQueries`.
- * - `usePlasmicQuery` per executable server query.
- * React requires a constant hook count per component, so this is the fetcher
- * component's identity.
- */
-function getQueryFetcherHookCounts(ctx: RenderingCtx, component: Component) {
-  return [
-    component.dataQueries.filter((query) => !!query.op).length,
-    countExecutableServerQueries(ctx, component),
-  ] as const;
-}
 
-/**
- * Computes this component's `$q` and `$queries` and seeds them into `ctx.env`.
- *
- * Both must be seeded before `eagerInitializeStates()`, and `$q` before the legacy
- * `dataQueries` ops: unseeded they are still the empty `useState({})` object, so a read
- * is a TypeError, not the deferrable "not ready yet" throw the retry paths recover from.
- */
-function useComponentLevelQueries(
-  sub: SubDeps,
-  ctx: RenderingCtx,
-  component: Component,
-) {
-  const registrations = useServerQueryRegistrations(sub, ctx.viewCtx, component);
-  // Rebuild the tree when any query's id, name, or op changes (e.g. on rename)
-  // otherwise `usePlasmicQueries` returns results keyed by stale names.
+function buildCanvasServerQueryTree(ctx: Pick<RenderingCtx, "viewCtx" | "projectFlags">, component: Component, staticEnv: Record<string, any>): QueryComponentNode {
   const serverQueriesByKey = component.serverQueries
     .filter(isServerQueryWithOperation)
     .map((query) => {
@@ -3813,8 +3260,8 @@ function useComponentLevelQueries(
         key: `func:${uuidName}:${funcId}${funcReg ? "" : ":?"}`,
       };
     });
-  const serverQueryTree = sub.React.useMemo(
-    (): QueryComponentNode => ({
+
+ return {
       type: "component",
       queries: Object.fromEntries(
         serverQueriesByKey
@@ -3830,7 +3277,7 @@ function useComponentLevelQueries(
                     // Match QueryResultPreview/modal custom-code id.
                     makeCustomCodeQueryKey(query.uuid),
                     query.op.code,
-                    () => ctx.env,
+                    () => staticEnv,
                   ),
                   wrapFetch,
                 ),
@@ -3864,7 +3311,7 @@ function useComponentLevelQueries(
                 }) => {
                   return getCustomFunctionParams(
                     op,
-                    { ...ctx.env, $q, $props, $ctx, $state },
+                    { ...staticEnv, $q, $props, $ctx, $state },
                     {
                       component,
                       projectFlags: ctx.projectFlags,
@@ -3878,134 +3325,61 @@ function useComponentLevelQueries(
           })
           .filter(notNil),
       ),
-      stateSpecs: ctx.stateSpecs,
+      stateSpecs: [],
       propsContext: {},
       children: [],
-    }),
-    [
-      component,
-      ctx.viewCtx.canvasCtx,
-      serverQueriesByKey.map((q) => q.key).join("|"),
-      registrations,
-    ],
-  );
-  const new$Q =
-    sub.dataSources?.usePlasmicQueries?.(serverQueryTree, {
-      $ctx: ctx.env.$ctx ?? {},
-      $props: ctx.env.$props ?? {},
-      $state: (ctx.env.$state as Record<string, unknown> | undefined) ?? {},
-    }) ?? {};
-
-  // In codegen $queries/$q are updated in the render function. We can't do it
-  // here as this is not the `Component` render function, so we update the
-  // object manually.
-  const shouldUpdate$Q = updateCtxQueries(ctx.env.$q, new$Q);
-
-  const getDataOp = (
-    query: ComponentDataQuery,
-    $queries: DataOrServerQueries,
-  ) =>
-    query.op
-      ? () => {
-          return evalCodeWithEnv(
-            asCode(removeFallbackFromDataSourceOp(query.op!), {
-              component,
-              projectFlags: ctx.projectFlags,
-              inStudio: true,
-            }).code,
-            { ...ctx.env, $queries },
-            ctx.viewCtx.canvasCtx.win(),
-          );
-        }
-      : undefined;
-  // Each op sees the results of the queries before it, dependents resolve in this pass.
-  // Codegen does this by re-rendering on setDollarQueries(), here $queries is in a layout
-  // effect, too late for a render that reads it.
-  const new$Queries: DataOrServerQueries = {};
-  const soFar$Queries: DataOrServerQueries = { ...ctx.env.$queries };
-  for (const query of component.dataQueries.filter((q) => !!q.op)) {
-    const result = sub.dataSources?.usePlasmicDataOp(
-      getDataOp(query, soFar$Queries),
-    );
-    new$Queries[toVarName(query.name)] = result;
-    soFar$Queries[toVarName(query.name)] = result;
-  }
-  const shouldUpdate$Queries = updateCtxQueries(ctx.env.$queries, new$Queries);
-
-  // Must run here since state initializers can reference queries. The ops above
-  // read `$state` through its lazy proxy.
-  ctx.env.$state.eagerInitializeStates(ctx.stateSpecs);
-
-  useReactiveDollarQ(sub, new$Q, ctx.setDollarQ);
-
-  defer(() => {
-    triggerQueryLoad(new$Q);
-    triggerQueryLoad(new$Queries);
-  });
-
-  sub.React.useLayoutEffect(() => {
-    if (shouldUpdate$Queries) {
-      ctx.setDollarQueries(new$Queries);
-    }
-    if (shouldUpdate$Q) {
-      ctx.setDollarQ(new$Q);
-    }
-  }, [
-    shouldUpdate$Queries,
-    new$Queries,
-    ctx.env.$queries,
-    shouldUpdate$Q,
-    new$Q,
-    ctx.env.$q,
-  ]);
+    };
 }
 
-/**
- * We need to create a wrapper for component-level queries because the number
- * of React hooks to be used depend on the number of queries to be made, but
- * React requires each component to use a constant number of hooks, so we need
- * to generate a new React Component whenever the number of queries changes.
- */
-const mkComponentLevelQueryFetcher = computedFn(
-  (
-    sub: SubDeps,
-    viewCtx: ViewCtx,
-    _dataQueriesCount: number,
-    _executableServerQueriesCount: number,
-  ) =>
-    ({
-      ctx,
-      component,
-    }: {
-      ctx: RenderingCtx;
-      component: Component;
-    }): React.ReactElement | null => {
-      return mkUseCanvasObserver(
-        sub,
-        viewCtx,
-      )(() => {
-        useComponentLevelQueries(sub, ctx, component);
-        return renderTplNode(component.tplTree, ctx);
-      });
-    },
+
+
+
+const createCanvasServerQueryTree = canvasFactory(
+  (view: ViewCtx, component: Component, _key: string, _registrations: unknown, staticEnv: Record<string, any>, projectFlags: DevFlagsType) =>
+    buildCanvasServerQueryTree({ viewCtx: view, projectFlags }, component, staticEnv),
+  (view, component, key, registrations, staticEnv, projectFlags) => [view, component, key, registrations, projectFlags, ...Object.entries(staticEnv).flat()],
 );
 
-/**
- * Renders the component root, wrapped in data queries fetcher
- */
-function wrapInComponentDataQueries(ctx: RenderingCtx, component: Component) {
-  return ctx.sub.React.createElement(
-    mkComponentLevelQueryFetcher(
-      ctx.sub,
-      ctx.viewCtx,
-      ...getQueryFetcherHookCounts(ctx, component),
-    ),
-    {
-      key: component.uuid,
-      ctx,
-      component,
+
+const createCanvasQueryController = canvasFactory((view: ViewCtx, component: Component, idsKey: string) => {
+  const controller: CanvasQueryController<RenderingCtx, ReturnType<ReturnType<typeof createServerQueryRegistrationInput>["getState"]>> = {
+    registrations: createServerQueryRegistrationInput(view, component, idsKey),
+    plan(ctx, registrations): CanvasQueryPlan {
+      const staticEnv = Object.fromEntries(Object.entries(ctx.env).filter(([name]) => !["$ctx", "$props", "$state", "$q"].includes(name)));
+      const key = JSON.stringify(component.serverQueries.filter(isServerQueryWithOperation).map((query) => [query.uuid, query.name, getRawCode(query.op, { component, projectFlags: ctx.projectFlags, inStudio: true })]));
+      const server = createCanvasServerQueryTree(view, component, key, registrations, staticEnv, ctx.projectFlags);
+      const legacy = component.dataQueries.filter((query) => !!query.op).map((query) => {
+        const expression = asCode(removeFallbackFromDataSourceOp(ensure(query.op, "A data query operation is required")), { component, projectFlags: ctx.projectFlags, inStudio: true }).code;
+        return { key: query.uuid, name: toVarName(query.name), evaluate: (env: Parameters<CanvasQueryPlan["legacy"][number]["evaluate"]>[0]) => evalCodeWithEnv(expression, env, view.canvasCtx.win()) };
+      });
+      return { server, legacy };
     },
-  );
+    environment: (ctx) => ctx.env,
+    refCommands: (ctx) => ctx.getRefs,
+    specs: (ctx) => ctx.stateSpecs,
+    withQueries(ctx, state, $q, $queries) {
+      return { ...ctx, env: { ...ctx.env, $state: state, $q, $queries }, wrappingEnv: { ...ctx.wrappingEnv, $state: state, $q, $queries }, $stateSnapshot: state };
+    },
+    publish(ctx, server, legacy) {
+      if (view.isDisposed || view.disposeSignal.aborted) { return; }
+      const equal = (left: Record<string, unknown>, right: Record<string, unknown>) => Object.keys(left).length === Object.keys(right).length && Object.keys(left).every((key) => left[key] === right[key]);
+      if (!equal(ctx.env.$q, server)) { ctx.setDollarQ(server); }
+      if (!equal(ctx.env.$queries, legacy)) { ctx.setDollarQueries(legacy); }
+    },
+    renderInput(ctx) {
+      const variants = component.variantGroups.flatMap((group) => group.variants.filter((variant) => ctx.sub.reactWeb.hasVariant(ctx.env.$state, toVarName(group.param.variable.name), toVarName(variant.name))));
+      const activeVariants = new Set<Variant>([...ctx.activeVariants].filter(isStyleOrCodeComponentVariant));
+      for (const variant of ctx.pinnedVariants ?? []) { activeVariants.add(variant); }
+      for (const variant of variants) { activeVariants.add(variant); }
+      return new CanvasObservedRenderSource(view, (onRenderInvalidated) => renderWithStateInitializers({ ...ctx, activeVariants, onRenderInvalidated }, (scope) => renderTplNode(component.tplTree, scope)));
+    },
+  };
+  return controller;
+});
+
+function wrapInComponentDataQueries(ctx: RenderingCtx, component: Component) {
+  const controller = createCanvasQueryController(ctx.viewCtx, component, serverQueryRegistrationKey(component));
+  return ctx.sub.React.createElement(ctx.sub.CanvasQueriesRuntime<RenderingCtx, ReturnType<typeof controller.registrations.getState>>, { controller, context: ctx });
 }
 
 export const _testOnlyUtils = {
@@ -4016,7 +3390,8 @@ export const _testOnlyUtils = {
   computeActiveVariantsForMaybeDisabledTag,
   computeTplComponentArgs,
   determineAutoOpenState,
-  getQueryFetcherHookCounts,
-  useComponentLevelQueries,
-  useServerQueryRegistrations,
+  createCanvasQueryController,
+  buildCanvasServerQueryTree,
+  createServerQueryRegistrationInput,
+  serverQueryRegistrationKey,
 };

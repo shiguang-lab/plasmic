@@ -14,42 +14,7 @@
 import { useI18n } from "@/wab/client/i18n";
 import * as React from "react";
 
-import {
-  Flex as Flex__,
-  MultiChoiceArg,
-  PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__,
-  PlasmicIcon as PlasmicIcon__,
-  PlasmicImg as PlasmicImg__,
-  PlasmicLink as PlasmicLink__,
-  PlasmicPageGuard as PlasmicPageGuard__,
-  SingleBooleanChoiceArg,
-  SingleChoiceArg,
-  Stack as Stack__,
-  StrictProps,
-  Trans as Trans__,
-  classNames,
-  createPlasmicElementProxy,
-  deriveRenderOpts,
-  ensureGlobalVariants,
-  generateOnMutateForSpec,
-  generateStateOnChangeProp,
-  generateStateOnChangePropForCodeComponents,
-  generateStateValueProp,
-  get as $stateGet,
-  hasVariant,
-  initializeCodeComponentStates,
-  initializePlasmicStates,
-  makeFragment,
-  omit,
-  pick,
-  renderPlasmicSlot,
-  set as $stateSet,
-  useCurrentUser,
-  useDollarState,
-  usePlasmicTranslator,
-  useTrigger,
-  wrapWithClassName
-} from "@plasmicapp/react-web";
+import {usePlasmicRefs, Flex as Flex__, MultiChoiceArg, PlasmicDataSourceContextProvider as PlasmicDataSourceContextProvider__, PlasmicIcon as PlasmicIcon__, PlasmicImg as PlasmicImg__, PlasmicLink as PlasmicLink__, PlasmicPageGuard as PlasmicPageGuard__, SingleBooleanChoiceArg, SingleChoiceArg, Stack as Stack__, StrictProps, Trans as Trans__, classNames, createPlasmicElementProxy, deriveRenderOpts, ensureGlobalVariants, generateOnMutateForSpec, generateStateOnChangeProp, generateStateOnChangePropForCodeComponents, generateStateValueProp, get as $stateGet, hasVariant, makeFragment, omit, pick, renderPlasmicSlot, set as $stateSet, useCurrentUser, useDollarState, usePlasmicTranslator, wrapWithClassName} from "@plasmicapp/react-web";
 import {
   DataCtxReader as DataCtxReader__,
   useDataEnv,
@@ -60,8 +25,8 @@ import { Dialog } from "../../components/widgets/Dialog"; // plasmic-import: en2
 import DialogHeader from "../../components/widgets/DialogHeader"; // plasmic-import: 5TapYEMkYCfR/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import { CopilotPromptInput } from "../../components/copilot/CopilotPromptInput"; // plasmic-import: pnV7KLVDUyoz/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: w2GXN278dkQ2gQTVQnPehW/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -126,11 +91,10 @@ function PlasmicCopilotChatDialog__RenderFunc(props: {
     ...variants
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <Dialog
@@ -278,12 +242,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -293,32 +253,69 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicCopilotChatDialog__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicCopilotChatDialog";
-  } else {
-    func.displayName = `PlasmicCopilotChatDialog.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicCopilotChatDialog__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicCopilotChatDialog__root<T extends PlasmicCopilotChatDialog__rootProps>(props: T & StrictProps<T, PlasmicCopilotChatDialog__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicCopilotChatDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicCopilotChatDialog__root.displayName = "PlasmicCopilotChatDialog";
+
+type PlasmicCopilotChatDialog__dialogHeaderProps = NodeComponentProps<"dialogHeader"> & {key?: React.Key};
+function PlasmicCopilotChatDialog__dialogHeader<T extends PlasmicCopilotChatDialog__dialogHeaderProps>(props: T & StrictProps<T, PlasmicCopilotChatDialog__dialogHeaderProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dialogHeader", props);
+  return <PlasmicCopilotChatDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dialogHeader"} />;
+}
+PlasmicCopilotChatDialog__dialogHeader.displayName = "PlasmicCopilotChatDialog.dialogHeader";
+
+type PlasmicCopilotChatDialog__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicCopilotChatDialog__text<T extends PlasmicCopilotChatDialog__textProps>(props: T & StrictProps<T, PlasmicCopilotChatDialog__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicCopilotChatDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicCopilotChatDialog__text.displayName = "PlasmicCopilotChatDialog.text";
+
+type PlasmicCopilotChatDialog__closeBtnProps = NodeComponentProps<"closeBtn"> & {key?: React.Key};
+function PlasmicCopilotChatDialog__closeBtn<T extends PlasmicCopilotChatDialog__closeBtnProps>(props: T & StrictProps<T, PlasmicCopilotChatDialog__closeBtnProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("closeBtn", props);
+  return <PlasmicCopilotChatDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"closeBtn"} />;
+}
+PlasmicCopilotChatDialog__closeBtn.displayName = "PlasmicCopilotChatDialog.closeBtn";
+
+type PlasmicCopilotChatDialog__chatContentProps = NodeComponentProps<"chatContent"> & {key?: React.Key};
+function PlasmicCopilotChatDialog__chatContent<T extends PlasmicCopilotChatDialog__chatContentProps>(props: T & StrictProps<T, PlasmicCopilotChatDialog__chatContentProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("chatContent", props);
+  return <PlasmicCopilotChatDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"chatContent"} />;
+}
+PlasmicCopilotChatDialog__chatContent.displayName = "PlasmicCopilotChatDialog.chatContent";
+
+type PlasmicCopilotChatDialog__scrollToBottomButtonProps = NodeComponentProps<"scrollToBottomButton"> & {key?: React.Key};
+function PlasmicCopilotChatDialog__scrollToBottomButton<T extends PlasmicCopilotChatDialog__scrollToBottomButtonProps>(props: T & StrictProps<T, PlasmicCopilotChatDialog__scrollToBottomButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("scrollToBottomButton", props);
+  return <PlasmicCopilotChatDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"scrollToBottomButton"} />;
+}
+PlasmicCopilotChatDialog__scrollToBottomButton.displayName = "PlasmicCopilotChatDialog.scrollToBottomButton";
+
+type PlasmicCopilotChatDialog__copilotPromptInputProps = NodeComponentProps<"copilotPromptInput"> & {key?: React.Key};
+function PlasmicCopilotChatDialog__copilotPromptInput<T extends PlasmicCopilotChatDialog__copilotPromptInputProps>(props: T & StrictProps<T, PlasmicCopilotChatDialog__copilotPromptInputProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("copilotPromptInput", props);
+  return <PlasmicCopilotChatDialog__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"copilotPromptInput"} />;
+}
+PlasmicCopilotChatDialog__copilotPromptInput.displayName = "PlasmicCopilotChatDialog.copilotPromptInput";
+
 
 export const PlasmicCopilotChatDialog = Object.assign(
   // Top-level PlasmicCopilotChatDialog renders the root element
-  makeNodeComponent("root"),
+  PlasmicCopilotChatDialog__root,
   {
     // Helper components rendering sub-elements
-    dialogHeader: makeNodeComponent("dialogHeader"),
-    text: makeNodeComponent("text"),
-    closeBtn: makeNodeComponent("closeBtn"),
-    chatContent: makeNodeComponent("chatContent"),
-    scrollToBottomButton: makeNodeComponent("scrollToBottomButton"),
-    copilotPromptInput: makeNodeComponent("copilotPromptInput"),
+    dialogHeader: PlasmicCopilotChatDialog__dialogHeader,
+    text: PlasmicCopilotChatDialog__text,
+    closeBtn: PlasmicCopilotChatDialog__closeBtn,
+    chatContent: PlasmicCopilotChatDialog__chatContent,
+    scrollToBottomButton: PlasmicCopilotChatDialog__scrollToBottomButton,
+    copilotPromptInput: PlasmicCopilotChatDialog__copilotPromptInput,
 
     // Metadata about props expected for PlasmicCopilotChatDialog
     internalVariantProps: PlasmicCopilotChatDialog__VariantProps,

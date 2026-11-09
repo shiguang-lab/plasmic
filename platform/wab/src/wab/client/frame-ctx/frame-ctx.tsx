@@ -7,16 +7,10 @@ type FrameCtx = TopFrameCtx | HostFrameCtx | undefined;
 
 const FrameCtxContext = React.createContext<FrameCtx>(undefined);
 
-export function providesFrameCtx(value: FrameCtx, key?: string) {
-  return function (children: React.ReactNode) {
-    const existingFrameCtx = React.useContext(FrameCtxContext);
-    ensureTruthy(!existingFrameCtx, "FrameCtx already provided");
-    return (
-      <FrameCtxContext.Provider value={value} key={key}>
-        {children}
-      </FrameCtxContext.Provider>
-    );
-  };
+export function FrameCtxProvider({ value, children }: React.PropsWithChildren<{value: FrameCtx}>) {
+  const existingFrameCtx = React.useContext(FrameCtxContext);
+  ensureTruthy(!existingFrameCtx, "FrameCtx already provided");
+  return <FrameCtxContext.Provider value={value}>{children}</FrameCtxContext.Provider>;
 }
 
 export function useFrameCtx<TFrameCtx extends FrameCtx>(): TFrameCtx {

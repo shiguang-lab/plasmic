@@ -15,12 +15,13 @@
 | 项目 | 实际状态 |
 | --- | --- |
 | 完整 Zustand 替换 | 仍有 414 个文件引用 MobX 或项目包装：351 个源码、62 个测试、1 个工具。mobx 6.13.6／mobx-react 9.2.0 仍在使用；后者声明支持 React 19，但不等于 Compiler 安全。Compiler 已改为默认开启，当前安全编译范围为 7 个组件；剩余模型不能因开启配置就记为已完成迁移。 |
-| 独立公共声明检查 | skipLibCheck:false 仍有 @rc-component/image、@vercel/fetch、swell-js 共 3 项上游错误。未忽略或记为通过。 |
 | 根工具链 peer | dedent 1.7.2 要求 babel-plugin-macros ^3.1.0，当前检查解析到 2.8.0；root peers check 有 1 项失败。platform peers check 无问题。此项属于工具链，不是 React peer 冲突。 |
 | 全范围验证 | 实际 CLI／后端协议、完整消费方交互及部署平台验证尚未全部关闭。普通项目 5 项、复杂画布 8 项及保存重开、Docs 双模式通过，只能代表该覆盖范围。 |
 | 发布与合入 | 未对外发布 SDK，未合入原工作区。 |
 
 ## 补丁与适配方式
+
+公开类型按 `strict: true`、`skipLibCheck: true` 验收；独立消费者类型检查、生产构建和浏览器执行已通过，见[公开类型验收](public-types-verification.md)。第三方声明内部检查不列为未完成项。
 
 | 位置 | 内容 | 本轮判定 |
 | --- | --- | --- |

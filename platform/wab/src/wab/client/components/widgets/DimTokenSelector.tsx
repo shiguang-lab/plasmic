@@ -6,7 +6,7 @@ import { GeneralTokenEditModal } from "@/wab/client/components/sidebar/GeneralTo
 import { ValueSetState } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { Matcher } from "@/wab/client/components/view-common";
 import Chip from "@/wab/client/components/widgets/Chip";
-import { useClientTokenResolver } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
+import { useClientTokenValues } from "@/wab/client/components/widgets/ColorPicker/client-token-resolver";
 import DropdownOverlay from "@/wab/client/components/widgets/DropdownOverlay";
 import { Icon } from "@/wab/client/components/widgets/Icon";
 import { TriggerTarget } from "@/wab/client/components/widgets/TriggerAnchor";
@@ -42,7 +42,6 @@ import {
 } from "@/wab/shared/common";
 import {
   siteFinalStyleTokens,
-  siteFinalStyleTokensOfType,
   TokenValueResolver,
 } from "@/wab/shared/core/site-style-tokens";
 import {
@@ -71,7 +70,8 @@ import type { TooltipPlacement } from "antd/es/tooltip";
 import cn from "classnames";
 import { useCombobox, UseComboboxGetItemPropsOptions } from "downshift";
 import L from "lodash";
-import { observer } from "mobx-react";
+import { useStyleTokenCatalogInputs, useTokenPickerPermissions } from "@/wab/client/studio-ctx/style-token-catalog-inputs";
+import { useColorTokenChoiceInputs } from "@/wab/client/studio-ctx/color-token-choice-inputs";
 import React from "react";
 import {
   AriaPositionProps,
@@ -128,8 +128,17 @@ function MiddleEllipsis({
   );
 }
 
-export const DimTokenSpinner = observer(
-  React.forwardRef(function DimTokenSpinner(
+/** Synchronous intent shared by Downshift's focus, selection and blur events. */
+class DimSpinnerInteraction {
+  private skipBlur = false;
+  private selectClick = false;
+  shouldSaveBlur() { return !this.skipBlur; }
+  suppressBlur() { this.skipBlur = true; }
+  focus() { this.skipBlur = false; this.selectClick = true; }
+  consumeClickSelection() { const select = this.selectClick; this.selectClick = false; return select; }
+}
+
+const DimTokenSpinnerContent = React.forwardRef(function DimTokenSpinner(
     props: {
       className?: string;
       "data-test-id"?: string;
@@ -154,6 +163,12 @@ export const DimTokenSpinner = observer(
       onFocus?: () => void;
       onBlur?: () => void;
       disableSpin?: boolean;
+      tokenInputs?: {
+        readonly tokens: readonly FinalToken<StyleToken>[];
+        readonly resolver: TokenValueResolver;
+        readonly command: (token: FinalToken<StyleToken>) => FinalToken<StyleToken> | undefined;
+        readonly permissions: ReturnType<typeof useTokenPickerPermissions>;
+      };
     } & DimValueOpts,
     ref: React.Ref<DimTokenSpinnerRef>,
   ) {
@@ -184,6 +199,8 @@ export const DimTokenSpinner = observer(
       disableSpin,
     } = props;
 
+    const owner = React.useMemo(() => studioCtx ? { models: studioCtx.modelSnapshots, lifetime: studioCtx.arenaState.lifetime() } : undefined, [studioCtx]);
+    const isActive = () => !owner || !owner.lifetime.aborted && owner.models === studioCtx?.modelSnapshots;
     const extraOptions = _extraOptions.map((it) =>
       typeof it === "string" ? { value: it } : it,
     );
@@ -191,16 +208,7 @@ export const DimTokenSpinner = observer(
     if (tokenType && !studioCtx) {
       throw new Error("Must pass in studioCtx if using with tokens");
     }
-    const tokens =
-      tokenType &&
-      siteFinalStyleTokensOfType(
-        ensure(studioCtx, "DimTokenSelector expects studioCtx if using tokens")
-          .site,
-        tokenType,
-        {
-          includeDeps: "direct",
-        },
-      );
+    const tokens = props.tokenInputs?.tokens;
 
     const { displayValue, tryOnChange, spin, values } = useDimValue(props);
     const shorthandVals = shorthand ? css.toShorthandVals(values) : values;
@@ -219,12 +227,12 @@ export const DimTokenSpinner = observer(
 
     const hasParsedToken = parsedTokens.length > 0;
 
-    const rootRef = React.useRef<HTMLDivElement>(null);
-    const inputRef = React.useRef<HTMLInputElement>(null);
-    const triggerRef = React.useRef<HTMLButtonElement>(null);
+    const [rootElement, setRootElement] = React.useState<HTMLDivElement | null>(null);
+    const rootRef = React.useMemo(() => ({ current: rootElement }), [rootElement]);
+    const [inputElement, setInputElement] = React.useState<HTMLInputElement | null>(null);
+    const [menuWidth, setMenuWidth] = React.useState(300);
     const overlayRef = React.useRef<HTMLDivElement>(null);
-    const listRef = React.useRef<VariableSizeList>(null);
-    const menuRef = React.useRef<HTMLElement>(null);
+    const [list, setList] = React.useState<VariableSizeList | null>(null);
 
     const {
       value: typedInputValue,
@@ -248,16 +256,15 @@ export const DimTokenSpinner = observer(
     const isNumberMode = !isNaN(parseFloat(inputValue));
     const matcher = new Matcher(typedInputValue ?? "");
     const showCurrentToken = hasParsedToken && typedInputValue === undefined;
-    const skipChangeOnBlur = React.useRef(false);
-    const selectOnNextClick = React.useRef(false);
+    const [interaction] = React.useState(() => new DimSpinnerInteraction());
     const [explicitHighlightedIndex, setExplicitHighlightedIndex] =
       React.useState<number | undefined>(undefined);
 
     React.useImperativeHandle(ref, () => ({
       focus() {
-        inputRef.current?.focus();
+        inputElement?.focus();
       },
-    }));
+    }), [inputElement]);
 
     const makeUnitOptions = (): ConvertUnitItem[] => {
       if (typedInputValue && typedInputValue.length > 0) {
@@ -305,12 +312,12 @@ export const DimTokenSpinner = observer(
       }));
     };
 
-    const resolver = useClientTokenResolver();
+    const resolver = props.tokenInputs?.resolver;
 
     const makeTokenOptions = (): (
       AddTokenItem | EditTokenItem | SelectTokenItem
     )[] => {
-      if (!tokenType || !tokens) {
+      if (!tokenType || !tokens || !resolver) {
         return [];
       }
 
@@ -327,7 +334,7 @@ export const DimTokenSpinner = observer(
           isStyleTokenEditable(
             selectedToken,
             vsh,
-            studioCtx.getCurrentUiConfig(),
+            props.tokenInputs?.permissions ?? studioCtx.getCurrentUiConfig(),
           ) && // the token is editable
           ({ type: "edit-token", token: selectedToken } as const),
 
@@ -360,18 +367,17 @@ export const DimTokenSpinner = observer(
     const hasOptions =
       rawItems.length > 0 || !!tokenType || !noClear || extraOptions.length > 0;
 
-    let itemIndex = 0;
-    const virtualItems: VirtualItem[] = rawItems.map((item) => ({
+    const virtualItems: VirtualItem[] = rawItems.map((item, itemIndex) => ({
       type: "action",
       item,
-      itemIndex: itemIndex++,
+      itemIndex,
     }));
 
     const addTokenIndex = virtualItems.findIndex(
       (x) => x.type === "action" && x.item.type === "add-token",
     );
 
-    const uiConfig = studioCtx?.getCurrentUiConfig() || {};
+    const uiConfig = props.tokenInputs?.permissions ?? {};
     const canCreateToken = canCreateAlias(uiConfig, "token");
     if (addTokenIndex >= 0) {
       virtualItems.splice(
@@ -398,7 +404,7 @@ export const DimTokenSpinner = observer(
     };
 
     const handleBlur = () => {
-      if (!skipChangeOnBlur.current && typedInputValue !== undefined) {
+      if (interaction.shouldSaveBlur() && typedInputValue !== undefined) {
         tryOnChange(typedInputValue, "raw");
       }
       resetState();
@@ -454,12 +460,12 @@ export const DimTokenSpinner = observer(
         }
       },
       onStateChange: (changes) => {
-        if (disabled) {
+        if (disabled || !isActive()) {
           return;
         }
         if (
           changes.highlightedIndex != null &&
-          listRef.current &&
+          list &&
           changes.type !== useCombobox.stateChangeTypes.MenuMouseLeave
         ) {
           // Make sure the highlighted item is revealed by the virtual list.  We need
@@ -470,7 +476,7 @@ export const DimTokenSpinner = observer(
           );
 
           if (virtualIndex >= 0) {
-            listRef.current.scrollToItem(virtualIndex, "smart");
+            list.scrollToItem(virtualIndex, "smart");
           }
         }
         if (changes.type === useCombobox.stateChangeTypes.InputBlur) {
@@ -490,13 +496,16 @@ export const DimTokenSpinner = observer(
             } else if (selectedItem.type === "clear") {
               tryOnChange(undefined, "selected");
             } else if (selectedItem.type === "token") {
-              onChange(mkTokenRef(selectedItem.token.base), "selected");
+              const token = props.tokenInputs?.command(selectedItem.token);
+              if (!token) { return; }
+              onChange(mkTokenRef(token.base), "selected");
             } else if (selectedItem.type === "add-token") {
               spawn(
                 ensure(
                   studioCtx,
                   "DimTokenSelector expects to have studioCtx if adding token",
                 ).changeUnsafe(() => {
+                  if (!isActive()) { return; }
                   const startValue = css.parseCssNumericNew(inputValue)
                     ? css.autoUnit(inputValue, [...allowedUnits][0], value)
                     : tokenTypeDefaults(
@@ -523,14 +532,15 @@ export const DimTokenSpinner = observer(
                 }),
               );
             } else if (selectedItem.type === "edit-token") {
-              setEditToken(selectedItem.token);
+              const token = props.tokenInputs?.command(selectedItem.token);
+              if (token && isStyleTokenEditable(token, vsh, studioCtx?.getCurrentUiConfig() ?? {})) { setEditToken(token); }
             }
           }
-          skipChangeOnBlur.current = true;
+          interaction.suppressBlur();
           resetState();
         }
         if (changes.type === useCombobox.stateChangeTypes.InputKeyDownEscape) {
-          skipChangeOnBlur.current = true;
+          interaction.suppressBlur();
           resetState();
         }
       },
@@ -553,7 +563,6 @@ export const DimTokenSpinner = observer(
     });
 
     const menuProps = getMenuProps({
-      ref: menuRef,
       "aria-label": fieldAriaProps?.["aria-label"],
     });
 
@@ -580,12 +589,14 @@ export const DimTokenSpinner = observer(
       setExplicitHighlightedIndex(undefined);
     };
 
-    const menuWidth = rootRef.current
-      ? Math.min(
-          maxDropdownWidth,
-          Math.max(rootRef.current.offsetWidth, minDropdownWidth),
-        )
-      : 300;
+    React.useLayoutEffect(() => {
+      if (!rootElement) { setMenuWidth(300); return; }
+      const measure = () => setMenuWidth(Math.min(maxDropdownWidth, Math.max(rootElement.offsetWidth, minDropdownWidth)));
+      measure();
+      const resize = new ResizeObserver(measure);
+      resize.observe(rootElement);
+      return () => resize.disconnect();
+    }, [rootElement, minDropdownWidth, maxDropdownWidth]);
 
     return (
       <>
@@ -614,13 +625,11 @@ export const DimTokenSpinner = observer(
                     openMenu();
                   }
                   e.target.select();
-                  selectOnNextClick.current = true;
-                  skipChangeOnBlur.current = false;
+                  interaction.focus();
                   setFocused(true);
                 },
                 onClick: (e) => {
-                  if (selectOnNextClick.current) {
-                    selectOnNextClick.current = false;
+                  if (interaction.consumeClickSelection()) {
                     const input = e.currentTarget;
                     // Defer selection to after all event handlers complete
                     setTimeout(() => {
@@ -640,14 +649,14 @@ export const DimTokenSpinner = observer(
 
                   if (e.key === "Escape") {
                     if (isOpen) {
-                      skipChangeOnBlur.current = true;
+                      interaction.suppressBlur();
                       e.stopPropagation();
                       resetState();
                       closeMenu();
                       onEscape && onEscape(e);
                     }
                   } else if (e.key === "Enter") {
-                    skipChangeOnBlur.current = true;
+                    interaction.suppressBlur();
                     const isValidInput =
                       isNumberMode ||
                       isDimCssFunction(inputValue) ||
@@ -673,13 +682,13 @@ export const DimTokenSpinner = observer(
                 },
                 onChange: (e) => {
                   setTypedInputValue(e.currentTarget.value);
-                  if (listRef.current) {
+                  if (list) {
                     // Item sizes are cached on the virtual list, so if list members change,
                     // we need to invalidate the cache
-                    listRef.current.resetAfterIndex(0, true);
+                    list.resetAfterIndex(0, true);
                   }
                 },
-                ref: inputRef,
+                ref: setInputElement,
                 autoFocus,
                 disabled,
                 placeholder: placeholder
@@ -719,14 +728,14 @@ export const DimTokenSpinner = observer(
             root={{
               props: {
                 ...getComboboxProps({
-                  ref: rootRef as any,
+                  ref: setRootElement,
                   className: cn("overflow-hidden", props.className),
                   ...(disabled
                     ? {}
                     : {
                         onClick: () => {
-                          if (inputRef.current) {
-                            inputRef.current.focus();
+                          if (inputElement) {
+                            inputElement.focus();
                           }
                           if (!isOpen) {
                             openMenu();
@@ -749,7 +758,6 @@ export const DimTokenSpinner = observer(
               },
             }}
             dropdownToggle={{
-              ref: triggerRef,
               disabled: disabled,
               ...getToggleButtonProps(),
             }}
@@ -784,7 +792,7 @@ export const DimTokenSpinner = observer(
                   >
                     <VariableSizeList
                       outerElementType={VirtualListScrollbar}
-                      ref={listRef}
+                      ref={setList}
                       itemData={virtualItems}
                       itemCount={virtualItems.length}
                       estimatedItemSize={32}
@@ -837,8 +845,24 @@ export const DimTokenSpinner = observer(
         )}
       </>
     );
-  }),
-);
+  });
+
+type DimTokenSpinnerProps = Omit<React.ComponentPropsWithoutRef<typeof DimTokenSpinnerContent>, "tokenInputs">;
+
+export const DimTokenSpinner = React.memo(React.forwardRef<DimTokenSpinnerRef, DimTokenSpinnerProps>(function DimTokenSpinner(props, ref) {
+  const catalog = useStyleTokenCatalogInputs(props.studioCtx, props.tokenType, props.vsh);
+  const permissions = useTokenPickerPermissions(props.studioCtx);
+  if (catalog.source && !catalog.source.isActive()) { return null; }
+  return props.studioCtx ? <NativeDimTokenSpinner {...props} studio={props.studioCtx} tokens={catalog.tokens} permissions={permissions} inputRef={ref} key={catalog.source?.key} /> : <DimTokenSpinnerContent {...props} ref={ref} />;
+}));
+
+function NativeDimTokenSpinner({ studio, inputRef, tokens, permissions, ...props }: DimTokenSpinnerProps & { studio: StudioCtx; tokens: readonly FinalToken<StyleToken>[]; inputRef: React.Ref<DimTokenSpinnerRef>; permissions: ReturnType<typeof useTokenPickerPermissions> }) {
+  const helper = React.useMemo(() => props.vsh ?? new VariantedStylesHelper(), [props.vsh]);
+  const values = useColorTokenChoiceInputs(studio, tokens, helper);
+  const clientValues = useClientTokenValues(values.snapshot.choices.map((choice) => choice.resolved), values.lifetime);
+  const resolver = React.useMemo<TokenValueResolver>(() => (token) => ensure(clientValues[tokens.indexOf(token)], "Dimension token must belong to its captured choices"), [clientValues, tokens]);
+  return values.snapshot.active ? <DimTokenSpinnerContent {...props} ref={inputRef} tokenInputs={{ tokens, resolver, permissions, command: (token) => { const choice = values.snapshot.choices[tokens.indexOf(token)]; return choice && values.command(choice); } }} /> : null;
+}
 
 interface SelectTokenItem {
   type: "token";
@@ -899,7 +923,7 @@ interface DimTokenContextValue {
   highlightedItemIndex: number;
   tokenType?: StyleTokenType;
   vsh?: VariantedStylesHelper;
-  resolver: TokenValueResolver;
+  resolver?: TokenValueResolver;
 }
 
 const DimTokenContext = React.createContext<DimTokenContextValue | undefined>(
@@ -948,7 +972,7 @@ const Row = React.memo(function Row(props: {
     };
 
     if (action.type === "token") {
-      const realValue = resolver(action.token, vsh);
+      const realValue = ensure(resolver, "Dimension token rows require their captured native resolver")(action.token, vsh);
       return (
         <Tooltip title={action.token.name} placement="left" open={isFocused}>
           <li {...itemProps} aria-label={action.token.name}>
@@ -1106,6 +1130,18 @@ function useDimValue(opts: DimValueOpts) {
 
   const values = shorthand ? css.parseCssShorthand(value) : [value];
 
+  function showUnitError(newValue: string) {
+    notification.error({
+      message: studioUiT('Invalid value "{part1}"', {
+        part1: String(newValue),
+      }),
+      description: studioUiT("Must use one of these units - {part1}.", {
+        part1: String(allowedUnits.join(", ")),
+      }),
+    });
+  }
+
+
   function checkValidValue(val: string) {
     if (extraOptions.some((it) => it.value === val)) {
       return true;
@@ -1198,16 +1234,6 @@ function useDimValue(opts: DimValueOpts) {
     return isDimCssFunction(val) ? formatDimCssFunction(val) : roundValue(val);
   };
 
-  function showUnitError(newValue: string) {
-    notification.error({
-      message: studioUiT('Invalid value "{part1}"', {
-        part1: String(newValue),
-      }),
-      description: studioUiT("Must use one of these units - {part1}.", {
-        part1: String(allowedUnits.join(", ")),
-      }),
-    });
-  }
 
   function tryChange(newValue: string | undefined, type: ChangeType) {
     if (newValue === undefined) {

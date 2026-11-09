@@ -9,7 +9,7 @@ import {
   makePlasmicComponentName,
 } from "@/wab/shared/codegen/react-p/serialize-utils";
 import { SerializerBaseContext } from "@/wab/shared/codegen/react-p/types";
-import { getPlumePackageName } from "@/wab/shared/codegen/react-p/utils";
+import { getPlumePackageName, getReactWebPackageName } from "@/wab/shared/codegen/react-p/utils";
 import {
   jsLiteral,
   paramToVarName,
@@ -47,21 +47,15 @@ const selectOptionConfig = {
 export const SelectOptionPlugin: PlumePlugin = {
   // PlumeCanvasPlugin
   genCanvasWrapperComponent: (sub, comp, observer, getCompMeta) => {
-    return sub.React.forwardRef((allProps, ref: SelectOptionRef) =>
-      observer(() => {
-        const internalProps = pick(allProps, internalCanvasElementProps);
-        const { plasmicProps } = sub.reactWeb.useSelectOption(
-          Object.assign(comp, getCompMeta()),
-          omit(allProps, internalCanvasElementProps),
-          selectOptionConfig as any,
-          ref,
-        );
-
-        return sub.React.createElement(comp, {
-          ...plasmicProps,
-          ...internalProps,
-        });
-      }),
+    return sub.createCanvasComponentType((allProps, ref: SelectOptionRef) =>
+      observer(() => sub.React.createElement(sub.CanvasPlume.CanvasPlumeSelectOption, {
+        impl: comp,
+        metadata: getCompMeta(),
+        internalProps: pick(allProps, internalCanvasElementProps),
+        componentProps: omit(allProps, internalCanvasElementProps),
+        config: selectOptionConfig as any,
+        forwardedRef: ref,
+      })),
     );
   },
 
@@ -71,8 +65,8 @@ export const SelectOptionPlugin: PlumePlugin = {
     const { component } = ctx;
 
     return `
-      function useBehavior<P extends pp.BaseSelectOptionProps>(props: P, ref: pp.SelectOptionRef) {
-        return pp.useSelectOption(
+      function useBehavior<P extends Plume.BaseSelectOptionProps>(props: P, ref: Plume.SelectOptionRef) {
+        return Plume.useSelectOption(
           ${makePlasmicComponentName(component)},
           props,
           ${jsLiteral(selectOptionConfig)},
@@ -89,7 +83,7 @@ export const SelectOptionPlugin: PlumePlugin = {
     return `
       export interface ${
         opts?.typeName ?? makeDefaultExternalPropsName(component)
-      } extends pp.BaseSelectOptionProps {
+      } extends Plume.BaseSelectOptionProps {
         ${params
           .map(
             (param) =>
@@ -134,6 +128,16 @@ export const SelectOptionPlugin: PlumePlugin = {
       }
 
       function ${componentName}_(props: ${propsName}, ref: SelectOptionRef) {
+        const context = React.useContext(SelectContext);
+        if (!context) {
+          if (PLUME_STRICT_MODE) { throw new Error("You can only use a Select.Option within a Select component."); }
+          const { plasmicProps } = getDefaultPlasmicProps(${plasmicComponentName}, props);
+          return <${plasmicComponentName} {...plasmicProps} />;
+        }
+        return <${componentName}WithContext props={props} ref={ref} />;
+      }
+
+      function ${componentName}WithContext({ props, ref }: {props: ${propsName}; ref: SelectOptionRef}) {
         const { plasmicProps } = ${plasmicComponentName}.useBehavior(props, ref);
         return <${plasmicComponentName} {...plasmicProps} />;
       }
@@ -155,10 +159,11 @@ export const SelectOptionPlugin: PlumePlugin = {
   genSkeletonImports(ctx) {
     return {
       imports: `
-      import {SelectOptionRef} from "${getPlumePackageName(
+      import {SelectOptionRef, SelectContext} from "${getPlumePackageName(
         ctx.exportOpts,
         "select-option",
-      )}";`,
+      )}";
+      import {getDefaultPlasmicProps, PLUME_STRICT_MODE} from "${getReactWebPackageName(ctx.exportOpts)}";`,
       refName: "SelectOptionRef",
     };
   },

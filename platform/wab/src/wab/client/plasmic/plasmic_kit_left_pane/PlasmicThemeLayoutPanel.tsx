@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -22,7 +22,7 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: aukbrhkegRkQ6KizvhdUPT/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -76,11 +76,10 @@ function PlasmicThemeLayoutPanel__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -146,12 +145,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -161,27 +156,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicThemeLayoutPanel__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicThemeLayoutPanel";
-  } else {
-    func.displayName = `PlasmicThemeLayoutPanel.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicThemeLayoutPanel__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicThemeLayoutPanel__root<T extends PlasmicThemeLayoutPanel__rootProps>(props: T & StrictProps<T, PlasmicThemeLayoutPanel__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicThemeLayoutPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicThemeLayoutPanel__root.displayName = "PlasmicThemeLayoutPanel";
+
+type PlasmicThemeLayoutPanel__textProps = NodeComponentProps<"text"> & {key?: React.Key};
+function PlasmicThemeLayoutPanel__text<T extends PlasmicThemeLayoutPanel__textProps>(props: T & StrictProps<T, PlasmicThemeLayoutPanel__textProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("text", props);
+  return <PlasmicThemeLayoutPanel__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"text"} />;
+}
+PlasmicThemeLayoutPanel__text.displayName = "PlasmicThemeLayoutPanel.text";
+
 
 export const PlasmicThemeLayoutPanel = Object.assign(
   // Top-level PlasmicThemeLayoutPanel renders the root element
-  makeNodeComponent("root"),
+  PlasmicThemeLayoutPanel__root,
   {
     // Helper components rendering sub-elements
-    text: makeNodeComponent("text"),
+    text: PlasmicThemeLayoutPanel__text,
 
     // Metadata about props expected for PlasmicThemeLayoutPanel
     internalVariantProps: PlasmicThemeLayoutPanel__VariantProps,

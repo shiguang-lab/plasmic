@@ -1,3 +1,7 @@
+import "@/wab/client/components/sidebar/MixinControls";
+import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
+import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
+import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import {
   EnumPropEditor,
   EnumWithSearchPropEditor,
@@ -11,7 +15,7 @@ import {
   act,
   cleanup,
   fireEvent,
-  render,
+  render as rtlRender,
   screen,
 } from "@testing-library/react";
 import React from "react";
@@ -35,15 +39,7 @@ vi.mock(
   "@/wab/client/components/sidebar-tabs/ComponentProps/TemplatedTextEditor",
   () => ({ TemplatedTextEditor: () => null }),
 );
-vi.mock("@/wab/client/contexts/StudioContexts", async () => ({
-  useStudioCtx: () => ({
-    site: { dataTokens: [] },
-    siteInfo: { id: "test" },
-    customFunctionsSchema: () => ({}),
-    projectFlags: () => ({}),
-  }),
-  StudioCtxContext: (await import("react")).createContext(undefined),
-}));
+
 
 // Isolate the select shell; retain the real enum editor's serialization and callbacks.
 vi.mock("@/wab/client/components/style-controls/StyleSelect", () => {
@@ -65,8 +61,18 @@ vi.mock("@/wab/client/components/style-controls/StyleSelect", () => {
   return { default: Object.assign(Select, { Option, OptionGroup }) };
 });
 
+let nativeFixture: ReturnType<typeof fakeStudioCtx>;
+beforeEach(async () => {
+  nativeFixture = fakeStudioCtx();
+  await vi.waitFor(() => expect(nativeFixture.studioCtx.initialRouteReady).toBe(true));
+});
+function render(ui: React.ReactElement) {
+  return rtlRender(<AppCtxContext.Provider value={nativeFixture.appCtx}><StudioCtxContext.Provider value={nativeFixture.studioCtx}>{ui}</StudioCtxContext.Provider></AppCtxContext.Provider>);
+}
+
 afterEach(async () => {
   cleanup();
+  await nativeFixture.studioCtx.awaitEval(); nativeFixture.studioCtx.dispose();
   await act(async () => await setLanguagePreference("en"));
 });
 

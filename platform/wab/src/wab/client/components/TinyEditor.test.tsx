@@ -5,7 +5,7 @@ import { languageOptions, translate } from "@/wab/client/i18n/locales";
 import { setAppearancePreference } from "@/wab/client/ui-theme";
 import { act, cleanup, render } from "@testing-library/react";
 import type { IAllProps } from "@tinymce/tinymce-react";
-import { theme } from "antd";
+import { theme as AntdTheme } from "antd";
 import React from "react";
 import type { Editor as TinyMceEditor } from "tinymce";
 import { mock } from "vitest-mock-extended";
@@ -67,7 +67,7 @@ it("updates the editable iframe theme without changing its content or replacing 
   expect(originalStyle).toBeTruthy();
   for (const appearance of ["dark", "light", "dark"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     expect(doc.getElementById("cms-editor-theme")).toBe(originalStyle);
     expect(originalStyle?.textContent).toContain(
       `background: ${token.colorBgContainer}`,

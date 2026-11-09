@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -24,8 +24,8 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
-  useTrigger,
+  useDollarState, useDollarStateSnapshot,
+  useHover,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -33,7 +33,7 @@ import VariantRow from "../../components/variants/VariantRow"; // plasmic-import
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
 import IconButton from "../../components/widgets/IconButton"; // plasmic-import: LPry-TF4j22a/component
 import MenuButton from "../../components/widgets/MenuButton"; // plasmic-import: h69wHrrKtL/component
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: wT5BWZPEc2fYxyqbTLXMt2/styleTokensProvider
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: wT5BWZPEc2fYxyqbTLXMt2/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -140,11 +140,10 @@ function PlasmicVariantSection__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "state",
@@ -179,23 +178,25 @@ function PlasmicVariantSection__RenderFunc(props: {
         initFunc: ({ $props, $state, $queries, $q, $ctx }) => $props.showIcon,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const [isRootHover, triggerRootHoverProps] = useTrigger("useHover", {});
+  const [isRootHover, triggerRootHoverProps] = useHover();
   const triggers = {
     hover_root: isRootHover,
   };
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -656,12 +657,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -671,38 +668,117 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicVariantSection__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicVariantSection";
-  } else {
-    func.displayName = `PlasmicVariantSection.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicVariantSection__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicVariantSection__root<T extends PlasmicVariantSection__rootProps>(props: T & StrictProps<T, PlasmicVariantSection__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicVariantSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicVariantSection__root.displayName = "PlasmicVariantSection";
+
+type PlasmicVariantSection__headerProps = NodeComponentProps<"header"> & {key?: React.Key};
+function PlasmicVariantSection__header<T extends PlasmicVariantSection__headerProps>(props: T & StrictProps<T, PlasmicVariantSection__headerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("header", props);
+  return <PlasmicVariantSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"header"} />;
+}
+PlasmicVariantSection__header.displayName = "PlasmicVariantSection.header";
+
+type PlasmicVariantSection__iconContainerProps = NodeComponentProps<"iconContainer"> & {key?: React.Key};
+function PlasmicVariantSection__iconContainer<T extends PlasmicVariantSection__iconContainerProps>(props: T & StrictProps<T, PlasmicVariantSection__iconContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("iconContainer", props);
+  return <PlasmicVariantSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"iconContainer"} />;
+}
+PlasmicVariantSection__iconContainer.displayName = "PlasmicVariantSection.iconContainer";
+
+type PlasmicVariantSection__labelContainerProps = NodeComponentProps<"labelContainer"> & {key?: React.Key};
+function PlasmicVariantSection__labelContainer<T extends PlasmicVariantSection__labelContainerProps>(props: T & StrictProps<T, PlasmicVariantSection__labelContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("labelContainer", props);
+  return <PlasmicVariantSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"labelContainer"} />;
+}
+PlasmicVariantSection__labelContainer.displayName = "PlasmicVariantSection.labelContainer";
+
+type PlasmicVariantSection__actionsContainerProps = NodeComponentProps<"actionsContainer"> & {key?: React.Key};
+function PlasmicVariantSection__actionsContainer<T extends PlasmicVariantSection__actionsContainerProps>(props: T & StrictProps<T, PlasmicVariantSection__actionsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("actionsContainer", props);
+  return <PlasmicVariantSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"actionsContainer"} />;
+}
+PlasmicVariantSection__actionsContainer.displayName = "PlasmicVariantSection.actionsContainer";
+
+type PlasmicVariantSection__menuButtonProps = NodeComponentProps<"menuButton"> & {key?: React.Key};
+function PlasmicVariantSection__menuButton<T extends PlasmicVariantSection__menuButtonProps>(props: T & StrictProps<T, PlasmicVariantSection__menuButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("menuButton", props);
+  return <PlasmicVariantSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"menuButton"} />;
+}
+PlasmicVariantSection__menuButton.displayName = "PlasmicVariantSection.menuButton";
+
+type PlasmicVariantSection__settingsButtonProps = NodeComponentProps<"settingsButton"> & {key?: React.Key};
+function PlasmicVariantSection__settingsButton<T extends PlasmicVariantSection__settingsButtonProps>(props: T & StrictProps<T, PlasmicVariantSection__settingsButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("settingsButton", props);
+  return <PlasmicVariantSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"settingsButton"} />;
+}
+PlasmicVariantSection__settingsButton.displayName = "PlasmicVariantSection.settingsButton";
+
+type PlasmicVariantSection__exprButtonProps = NodeComponentProps<"exprButton"> & {key?: React.Key};
+function PlasmicVariantSection__exprButton<T extends PlasmicVariantSection__exprButtonProps>(props: T & StrictProps<T, PlasmicVariantSection__exprButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("exprButton", props);
+  return <PlasmicVariantSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"exprButton"} />;
+}
+PlasmicVariantSection__exprButton.displayName = "PlasmicVariantSection.exprButton";
+
+type PlasmicVariantSection__addButtonProps = NodeComponentProps<"addButton"> & {key?: React.Key};
+function PlasmicVariantSection__addButton<T extends PlasmicVariantSection__addButtonProps>(props: T & StrictProps<T, PlasmicVariantSection__addButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("addButton", props);
+  return <PlasmicVariantSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"addButton"} />;
+}
+PlasmicVariantSection__addButton.displayName = "PlasmicVariantSection.addButton";
+
+type PlasmicVariantSection__emptyAddButtonProps = NodeComponentProps<"emptyAddButton"> & {key?: React.Key};
+function PlasmicVariantSection__emptyAddButton<T extends PlasmicVariantSection__emptyAddButtonProps>(props: T & StrictProps<T, PlasmicVariantSection__emptyAddButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("emptyAddButton", props);
+  return <PlasmicVariantSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"emptyAddButton"} />;
+}
+PlasmicVariantSection__emptyAddButton.displayName = "PlasmicVariantSection.emptyAddButton";
+
+type PlasmicVariantSection__dragHandleProps = NodeComponentProps<"dragHandle"> & {key?: React.Key};
+function PlasmicVariantSection__dragHandle<T extends PlasmicVariantSection__dragHandleProps>(props: T & StrictProps<T, PlasmicVariantSection__dragHandleProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("dragHandle", props);
+  return <PlasmicVariantSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"dragHandle"} />;
+}
+PlasmicVariantSection__dragHandle.displayName = "PlasmicVariantSection.dragHandle";
+
+type PlasmicVariantSection__bodyProps = NodeComponentProps<"body"> & {key?: React.Key};
+function PlasmicVariantSection__body<T extends PlasmicVariantSection__bodyProps>(props: T & StrictProps<T, PlasmicVariantSection__bodyProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("body", props);
+  return <PlasmicVariantSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"body"} />;
+}
+PlasmicVariantSection__body.displayName = "PlasmicVariantSection.body";
+
+type PlasmicVariantSection__variantsContainerProps = NodeComponentProps<"variantsContainer"> & {key?: React.Key};
+function PlasmicVariantSection__variantsContainer<T extends PlasmicVariantSection__variantsContainerProps>(props: T & StrictProps<T, PlasmicVariantSection__variantsContainerProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("variantsContainer", props);
+  return <PlasmicVariantSection__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"variantsContainer"} />;
+}
+PlasmicVariantSection__variantsContainer.displayName = "PlasmicVariantSection.variantsContainer";
+
 
 export const PlasmicVariantSection = Object.assign(
   // Top-level PlasmicVariantSection renders the root element
-  makeNodeComponent("root"),
+  PlasmicVariantSection__root,
   {
     // Helper components rendering sub-elements
-    header: makeNodeComponent("header"),
-    iconContainer: makeNodeComponent("iconContainer"),
-    labelContainer: makeNodeComponent("labelContainer"),
-    actionsContainer: makeNodeComponent("actionsContainer"),
-    menuButton: makeNodeComponent("menuButton"),
-    settingsButton: makeNodeComponent("settingsButton"),
-    exprButton: makeNodeComponent("exprButton"),
-    addButton: makeNodeComponent("addButton"),
-    emptyAddButton: makeNodeComponent("emptyAddButton"),
-    dragHandle: makeNodeComponent("dragHandle"),
-    body: makeNodeComponent("body"),
-    variantsContainer: makeNodeComponent("variantsContainer"),
+    header: PlasmicVariantSection__header,
+    iconContainer: PlasmicVariantSection__iconContainer,
+    labelContainer: PlasmicVariantSection__labelContainer,
+    actionsContainer: PlasmicVariantSection__actionsContainer,
+    menuButton: PlasmicVariantSection__menuButton,
+    settingsButton: PlasmicVariantSection__settingsButton,
+    exprButton: PlasmicVariantSection__exprButton,
+    addButton: PlasmicVariantSection__addButton,
+    emptyAddButton: PlasmicVariantSection__emptyAddButton,
+    dragHandle: PlasmicVariantSection__dragHandle,
+    body: PlasmicVariantSection__body,
+    variantsContainer: PlasmicVariantSection__variantsContainer,
 
     // Metadata about props expected for PlasmicVariantSection
     internalVariantProps: PlasmicVariantSection__VariantProps,

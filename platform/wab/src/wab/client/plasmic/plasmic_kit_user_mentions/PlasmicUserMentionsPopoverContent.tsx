@@ -15,7 +15,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,7 +25,7 @@ import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
 import UserList from "../../components/user-mentions/UserList"; // plasmic-import: l-sEnd6egOHM/component
 import Button from "../../components/widgets/Button"; // plasmic-import: SEF-sRmSoqV5c/component
-import { _useStyleTokens } from "../plasmic_kit_user_mentions/PlasmicStyleTokensProvider"; // plasmic-import: kTSMroKPFv65RRTb44SCtk/styleTokensProvider
+import { useStyleTokens } from "../plasmic_kit_user_mentions/PlasmicStyleTokensProvider"; // plasmic-import: kTSMroKPFv65RRTb44SCtk/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -86,11 +86,10 @@ function PlasmicUserMentionsPopoverContent__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -191,12 +190,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -207,31 +202,61 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicUserMentionsPopoverContent__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicUserMentionsPopoverContent";
-  } else {
-    func.displayName = `PlasmicUserMentionsPopoverContent.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicUserMentionsPopoverContent__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicUserMentionsPopoverContent__root<T extends PlasmicUserMentionsPopoverContent__rootProps>(props: T & StrictProps<T, PlasmicUserMentionsPopoverContent__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicUserMentionsPopoverContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicUserMentionsPopoverContent__root.displayName = "PlasmicUserMentionsPopoverContent";
+
+type PlasmicUserMentionsPopoverContent__userListProps = NodeComponentProps<"userList"> & {key?: React.Key};
+function PlasmicUserMentionsPopoverContent__userList<T extends PlasmicUserMentionsPopoverContent__userListProps>(props: T & StrictProps<T, PlasmicUserMentionsPopoverContent__userListProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("userList", props);
+  return <PlasmicUserMentionsPopoverContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"userList"} />;
+}
+PlasmicUserMentionsPopoverContent__userList.displayName = "PlasmicUserMentionsPopoverContent.userList";
+
+type PlasmicUserMentionsPopoverContent__freeBoxProps = NodeComponentProps<"freeBox"> & {key?: React.Key};
+function PlasmicUserMentionsPopoverContent__freeBox<T extends PlasmicUserMentionsPopoverContent__freeBoxProps>(props: T & StrictProps<T, PlasmicUserMentionsPopoverContent__freeBoxProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("freeBox", props);
+  return <PlasmicUserMentionsPopoverContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"freeBox"} />;
+}
+PlasmicUserMentionsPopoverContent__freeBox.displayName = "PlasmicUserMentionsPopoverContent.freeBox";
+
+type PlasmicUserMentionsPopoverContent__separatorProps = NodeComponentProps<"separator"> & {key?: React.Key};
+function PlasmicUserMentionsPopoverContent__separator<T extends PlasmicUserMentionsPopoverContent__separatorProps>(props: T & StrictProps<T, PlasmicUserMentionsPopoverContent__separatorProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("separator", props);
+  return <PlasmicUserMentionsPopoverContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"separator"} />;
+}
+PlasmicUserMentionsPopoverContent__separator.displayName = "PlasmicUserMentionsPopoverContent.separator";
+
+type PlasmicUserMentionsPopoverContent__shareProjectProps = NodeComponentProps<"shareProject"> & {key?: React.Key};
+function PlasmicUserMentionsPopoverContent__shareProject<T extends PlasmicUserMentionsPopoverContent__shareProjectProps>(props: T & StrictProps<T, PlasmicUserMentionsPopoverContent__shareProjectProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("shareProject", props);
+  return <PlasmicUserMentionsPopoverContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"shareProject"} />;
+}
+PlasmicUserMentionsPopoverContent__shareProject.displayName = "PlasmicUserMentionsPopoverContent.shareProject";
+
+type PlasmicUserMentionsPopoverContent__svgProps = NodeComponentProps<"svg"> & {key?: React.Key};
+function PlasmicUserMentionsPopoverContent__svg<T extends PlasmicUserMentionsPopoverContent__svgProps>(props: T & StrictProps<T, PlasmicUserMentionsPopoverContent__svgProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("svg", props);
+  return <PlasmicUserMentionsPopoverContent__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"svg"} />;
+}
+PlasmicUserMentionsPopoverContent__svg.displayName = "PlasmicUserMentionsPopoverContent.svg";
+
 
 export const PlasmicUserMentionsPopoverContent = Object.assign(
   // Top-level PlasmicUserMentionsPopoverContent renders the root element
-  makeNodeComponent("root"),
+  PlasmicUserMentionsPopoverContent__root,
   {
     // Helper components rendering sub-elements
-    userList: makeNodeComponent("userList"),
-    freeBox: makeNodeComponent("freeBox"),
-    separator: makeNodeComponent("separator"),
-    shareProject: makeNodeComponent("shareProject"),
-    svg: makeNodeComponent("svg"),
+    userList: PlasmicUserMentionsPopoverContent__userList,
+    freeBox: PlasmicUserMentionsPopoverContent__freeBox,
+    separator: PlasmicUserMentionsPopoverContent__separator,
+    shareProject: PlasmicUserMentionsPopoverContent__shareProject,
+    svg: PlasmicUserMentionsPopoverContent__svg,
 
     // Metadata about props expected for PlasmicUserMentionsPopoverContent
     internalVariantProps: PlasmicUserMentionsPopoverContent__VariantProps,

@@ -116,7 +116,8 @@ import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert, Menu, Popover, Tooltip } from "antd";
 import classNames from "classnames";
 import L from "lodash";
-import { observer } from "mobx-react";
+import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
+import { useIndicatorInputs } from "@/wab/client/components/style-controls/defined-indicator-inputs";
 import * as React from "react";
 
 export const variantComboName = (combo: VariantCombo) => {
@@ -241,7 +242,7 @@ function showExpr(expr: Expr, exprCtx: ExprCtx) {
   }
 }
 
-export const SourceValue = observer(function SourceValue(props: {
+export const SourceValue = React.memo(function SourceValue(props: {
   site: Site;
   source: VariantSettingSource;
   editable: boolean;
@@ -258,6 +259,10 @@ export const SourceValue = observer(function SourceValue(props: {
     inStudio: true,
   };
   const studioCtx = useStudioCtx();
+  const sources = React.useMemo(() => [source], [source]);
+  const world = useVariantModelWorld(studioCtx, site);
+  const alive = useIndicatorInputs(studioCtx, site, sources);
+  if (!alive) { return null; }
 
   if (source.type === "theme") {
     if (site.themes.includes(source.theme)) {
@@ -461,7 +466,7 @@ export const SourceValue = observer(function SourceValue(props: {
           isTplFocusable ? "defined-indicator__edit-button code clickable" : ""
         }`}
         onClick={() => {
-          if (isTplFocusable) {
+          if (isTplFocusable && world.isCurrent()) {
             spawn(
               studioCtx.setStudioFocusOnTpl(
                 owningComponent,
@@ -520,7 +525,7 @@ export const SourceValue = observer(function SourceValue(props: {
   }
 });
 
-const VariantSourceStack = observer(function VariantSourceStack(props: {
+const VariantSourceStack = React.memo(function VariantSourceStack(props: {
   stack: VariantSettingSourceStack;
   targetSource?: VariantSettingSource;
   onShowPopup?: (showing: boolean) => void;
@@ -530,6 +535,8 @@ const VariantSourceStack = observer(function VariantSourceStack(props: {
 
   const { stack, targetSource, onShowPopup } = props;
   const studioCtx = useStudioCtx();
+  const alive = useIndicatorInputs(studioCtx, studioCtx.site, stack);
+  if (!alive) { return null; }
 
   const renderParentTplSourceIcon = (
     source: ParentTplStyleSource | SlotSource,
@@ -701,7 +708,7 @@ export function mergedIndicatorSource(
   }
 }
 
-const PopoverContent = observer(function PopoverContent(props: {
+const PopoverContent = React.memo(function PopoverContent(props: {
   alwaysShowPropLabel?: React.ReactNode;
   types: DefinedIndicatorType[];
   onShowPopup: (showing: boolean) => void;
@@ -711,6 +718,9 @@ const PopoverContent = observer(function PopoverContent(props: {
   const types = props.types.filter((type) => type.source !== "none");
   const studioCtx = useStudioCtx();
   const clientTokenResolver = useClientTokenResolver();
+  const sources = React.useMemo<VariantSettingSource[]>(() => props.types.flatMap((type) => "stack" in type ? type.stack : type.source === "setNonVariable" ? [{ type: "style" as const, combo: [], prop: type.prop, value: type.value }] : []), [props.types]);
+  const alive = useIndicatorInputs(studioCtx, studioCtx.site, sources);
+  if (!alive) { return null; }
 
   const renderIndicator = (type: DefinedIndicatorType) => {
     if (type.source === "none" || type.source === "invariantable") {
@@ -830,7 +840,7 @@ const PopoverContent = observer(function PopoverContent(props: {
   }
 });
 
-export const DefinedIndicator = observer(DefinedIndicator_);
+export const DefinedIndicator = React.memo(DefinedIndicator_);
 function DefinedIndicator_(props: {
   type: DefinedIndicatorType | DefinedIndicatorType[];
   label?: React.ReactNode;
@@ -927,13 +937,17 @@ function DefinedIndicator_(props: {
   );
 }
 
-export const VariantSettingPopoverTitle = observer(
+export const VariantSettingPopoverTitle = React.memo(
   function VariantSettingPopoverTitle(props: {
     vs: VariantSetting;
     children: React.ReactNode | (() => React.ReactNode);
     viewCtx: ViewCtx;
   }) {
     const { children, viewCtx, vs } = props;
+    const world = useVariantModelWorld(viewCtx.studioCtx, vs, viewCtx);
+    const sources = React.useMemo(() => [], []);
+    const alive = useIndicatorInputs(viewCtx.studioCtx, vs, sources, vs);
+    if (!alive || !world.alive) { return null; }
     const menu = () => {
       const builder = new MenuBuilder();
       builder.genSection(undefined, (push) => {
@@ -941,7 +955,7 @@ export const VariantSettingPopoverTitle = observer(
           <Menu.Item
             key="reset-all"
             onClick={() =>
-              viewCtx.change(() => {
+              world.isCurrent() && viewCtx.change(() => {
                 clearVariantSetting(vs);
               })
             }
@@ -965,7 +979,7 @@ export const VariantSettingPopoverTitle = observer(
   },
 );
 
-export const VariantSettingPopoverContent = observer(
+export const VariantSettingPopoverContent = React.memo(
   function VariantSettingPopoverContent(props: {
     site: Site;
     tpl: TplNode;
@@ -974,6 +988,10 @@ export const VariantSettingPopoverContent = observer(
   }) {
     const { t: uiT } = useI18n();
     const { site, tpl, vs, viewCtx } = props;
+    const world = useVariantModelWorld(viewCtx.studioCtx, vs, viewCtx);
+    const sources = React.useMemo(() => [], []);
+    const alive = useIndicatorInputs(viewCtx.studioCtx, vs, sources, vs, tpl);
+    if (!alive || !world.alive) { return null; }
     const exp = RSH(vs.rs, tpl);
 
     return (
@@ -984,7 +1002,7 @@ export const VariantSettingPopoverContent = observer(
             title={uiT("Visibility")}
             type="target"
             onClear={() =>
-              viewCtx.change(() => clearTplVisibility(tpl, vs.variants))
+              world.isCurrent() && viewCtx.change(() => clearTplVisibility(tpl, vs.variants))
             }
           >
             <SourceValue
@@ -1004,7 +1022,7 @@ export const VariantSettingPopoverContent = observer(
             title={uiT("Text")}
             type="target"
             onClear={() =>
-              viewCtx.change(
+              world.isCurrent() && viewCtx.change(
                 () =>
                   (vs.text = new RawText({
                     text: "",
@@ -1037,7 +1055,7 @@ export const VariantSettingPopoverContent = observer(
                   key={attr}
                   title={getLabelForAttr(attr)}
                   type="target"
-                  onClear={() => viewCtx.change(() => delete vs.attrs[attr])}
+                  onClear={() => world.isCurrent() && viewCtx.change(() => delete vs.attrs[attr])}
                 >
                   <SourceValue
                     site={site}
@@ -1058,7 +1076,7 @@ export const VariantSettingPopoverContent = observer(
               key={arg.uid}
               title={arg.param.variable.name}
               type="target"
-              onClear={() => viewCtx.change(() => arrayRemove(vs.args, arg))}
+              onClear={() => world.isCurrent() && viewCtx.change(() => arrayRemove(vs.args, arg))}
             >
               <SourceValue
                 site={site}
@@ -1077,7 +1095,7 @@ export const VariantSettingPopoverContent = observer(
             key={"mixins"}
             title={<UiText message={MIXINS_CAP} />}
             type="target"
-            onClear={() => viewCtx.change(() => (vs.rs.mixins = []))}
+            onClear={() => world.isCurrent() && viewCtx.change(() => (vs.rs.mixins = []))}
           >
             <Tooltip title={vs.rs.mixins.map((mixin) => mixin.name).join(", ")}>
               <div>
@@ -1097,7 +1115,7 @@ export const VariantSettingPopoverContent = observer(
             key={"animations"}
             title={<UiText message={ANIMATIONS_CAP} />}
             type="target"
-            onClear={() => viewCtx.change(() => (vs.rs.animations = null))}
+            onClear={() => world.isCurrent() && viewCtx.change(() => (vs.rs.animations = null))}
           >
             {vs.rs.animations.length > 0 ? (
               <Tooltip
@@ -1137,7 +1155,7 @@ export const VariantSettingPopoverContent = observer(
               onClear={
                 !isBaseVariant(vs.variants) ||
                 !unclearableBaseStyleProps.includes(prop)
-                  ? () => viewCtx.change(() => exp.clear(prop))
+                  ? () => world.isCurrent() && viewCtx.change(() => exp.clear(prop))
                   : undefined
               }
             >

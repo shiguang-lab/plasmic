@@ -21,7 +21,7 @@ import {
   Segmented,
   Select,
   TimePicker,
-  theme,
+  theme as AntdTheme,
 } from "antd";
 import { ThemeProvider } from "antd-style";
 import dayjs from "dayjs";
@@ -149,7 +149,7 @@ it("updates group colors, sizing, and every drag state with the selected theme",
   );
   for (const appearance of ["dark", "light", "dark"] as const) {
     act(() => setAppearancePreference(appearance));
-    const token = theme.getDesignToken(productTheme(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
     const css = getComputedStyle(root);
     expect(css.getPropertyValue("--rqb-border-color")).toBe(
       token.colorBorderSecondary,
@@ -372,7 +372,7 @@ it("honors custom typography, radius, spacing and semantic color tokens", () => 
   expect(css.fontFamily).toBe("monospace");
   expect(css.getPropertyValue("--rqb-border-radius")).toBe("11px");
   expect(css.getPropertyValue("--rqb-spacing")).toBe("13px");
-  const token = theme.getDesignToken(custom);
+  const token = AntdTheme.getDesignToken(custom);
   expect(css.getPropertyValue("--rqb-dnd-drop-indicator-color")).toBe(
     token.colorPrimary,
   );

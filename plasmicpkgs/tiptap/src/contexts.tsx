@@ -6,7 +6,7 @@ import type { LinkOptions } from "@tiptap/extension-link";
 import type { MentionOptions } from "@tiptap/extension-mention";
 import type { StrikeOptions } from "@tiptap/extension-strike";
 import type { UnderlineOptions } from "@tiptap/extension-underline";
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export const RESET_TIMEOUT_MS = 500;
 export interface TiptapContextProps {
@@ -67,6 +67,14 @@ export const TiptapContextProvider = ({ children }: any) => {
     Mark<UnderlineOptions> | undefined
   >(undefined);
 
+  const mentionTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const updateMention = (options?: Node<MentionOptions>) => {
+    clearTimeout(mentionTimer.current);
+    if (!options) { setMention(undefined); return; }
+    mentionTimer.current = setTimeout(() => setMention(options), RESET_TIMEOUT_MS);
+  };
+  useEffect(() => () => clearTimeout(mentionTimer.current), []);
+
   return (
     <TiptapContext.Provider
       value={{
@@ -79,23 +87,7 @@ export const TiptapContextProvider = ({ children }: any) => {
         link,
         setLink,
         mention,
-        /**
-         * In situations where I want to remove an extension and add it again with new options (e.g. within a useEffect - see registerMention)
-         * the options are not updated.
-         * So after removing the extension, I want to wait a few seconds before I add it again,
-         * so the Tiptap editor acknowledges the removal before it adds the extension back with new updated options.
-         * @param mentionOptions
-         * @returns
-         */
-        setMention: (mentionOptions?: Node<MentionOptions>) => {
-          if (!mentionOptions) {
-            setMention(mentionOptions);
-            return;
-          }
-          setTimeout(() => {
-            setMention(mentionOptions);
-          }, RESET_TIMEOUT_MS);
-        },
+        setMention: updateMention,
         strike,
         setStrike,
         underline,

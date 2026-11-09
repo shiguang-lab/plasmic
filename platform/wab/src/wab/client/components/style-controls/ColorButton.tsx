@@ -44,7 +44,7 @@ type ColorButtonProps = {
   valuePath?: PropValuePath;
 };
 
-function _ColorButton(props: ColorButtonProps) {
+function ColorButtonContent(props: ColorButtonProps) {
   const { t: studioUiT } = useI18n();
 
   const {
@@ -62,7 +62,7 @@ function _ColorButton(props: ColorButtonProps) {
     valuePath,
   } = props;
   const ref = useRef<HTMLElement | null>(null);
-  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const [buttonElement, setButtonElement] = useState<HTMLButtonElement | null>(null);
   const [show, setShow] = useState(false);
   const popoverFrameContext = useMaybePopoverFrameContext();
 
@@ -109,7 +109,7 @@ function _ColorButton(props: ColorButtonProps) {
         overrides={{
           root: {
             props: {
-              ref: buttonRef,
+              ref: setButtonElement,
               type: "button",
               "data-plasmic-prop": props["data-plasmic-prop"],
               onClick: (e) => {
@@ -144,7 +144,7 @@ function _ColorButton(props: ColorButtonProps) {
           title={popupTitle}
           valuePath={valuePath!}
           onClose={handleClose}
-          triggerElement={buttonRef.current ?? undefined}
+          triggerElement={buttonElement ?? undefined}
         >
           <div className="panel-content">
             <ColorPicker
@@ -174,7 +174,7 @@ function _ColorButton(props: ColorButtonProps) {
   );
 }
 
-export const ColorButton = _ColorButton;
+export const ColorButton = ColorButtonContent;
 
 export const ColorSidebarPopup = function ColorSidebarPopup(props: {
   color?: string;

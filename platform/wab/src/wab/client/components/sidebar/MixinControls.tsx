@@ -27,8 +27,8 @@ import {
 import { OutlinePanelSection } from "@/wab/client/components/style-controls/OutlineControls";
 import {
   SingleRsExpsProvider,
-  mkStyleComponent,
-  providesStyleComponent,
+  createStyleTarget,
+  providesStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { Matcher } from "@/wab/client/components/view-common";
 import { StylePreviewTooltip } from "@/wab/client/components/widgets/DetailedTooltips";
@@ -53,7 +53,6 @@ import {
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import { ensure, spawn, tuple } from "@/wab/shared/common";
 import { extractTransitiveDepsFromMixins } from "@/wab/shared/core/project-deps";
-import { makeTokenRefResolver } from "@/wab/shared/core/site-style-tokens";
 import { isHostLessPackage } from "@/wab/shared/core/sites";
 import {
   extractMixinUsages,
@@ -76,11 +75,13 @@ import { naturalSort } from "@/wab/shared/sort";
 import { Menu, notification } from "antd";
 import cn from "classnames";
 import L from "lodash";
-import { observer } from "mobx-react";
+import { MixinPanelInputs, useMixinCatalog, useMixinUsage, useMixinModelInputs } from "@/wab/client/components/sidebar/mixin-panel-inputs";
+import { useLibraryAppInputs } from "@/wab/client/components/sidebar/library-inputs";
+import { useStyleTokenRefs } from "@/wab/client/studio-ctx/style-token-ref-inputs";
 import React from "react";
 import { DraggableProvidedDragHandleProps } from "@hello-pangea/dnd";
 
-function _MixinPreview(props: {
+function MixinPreviewContent(props: {
   sc: StudioCtx;
   mixin: Mixin;
   vsh: VariantedStylesHelper;
@@ -88,11 +89,14 @@ function _MixinPreview(props: {
   tag: TagName;
 }) {
   const { sc, mixin, vsh, tag } = props;
-  const theme = sc.site.activeTheme;
+  const inputs = useMixinModelInputs(sc, mixin, tag);
+  const active = inputs.alive;
   const isList = isTagListContainer(tag);
-  const text = mixin.preview || defaultPreviewText(tag);
-
-  const tokenRefResolver = makeTokenRefResolver(sc.site);
+  const { text, elementValues, baseValues, listValues, wrapperValues } = inputs.preview;
+  const references = [baseValues, elementValues, listValues, wrapperValues].flatMap((values) => Object.entries(values ?? {}).filter(([key, value]) => !["left", "right", "top", "bottom"].includes(key) && isTokenRef(value)).map(([, value]) => value));
+  const tokens = useStyleTokenRefs(sc, references, vsh, "allLastHead", (state) => state.rows);
+  if (!active) { return null; }
+  const tokenRefResolver = (value: string) => tokens.selected.find((row) => row.input === value)?.resolved?.value;
   // We ignore the positioning properties for the preview
   const resolveStyle = (values: Record<string, string> | undefined) =>
     Object.fromEntries(
@@ -101,7 +105,7 @@ function _MixinPreview(props: {
         .map(([r, val]) =>
           tuple(
             L.camelCase(r),
-            isTokenRef(val) ? tokenRefResolver(val, vsh) : val,
+            isTokenRef(val) ? tokenRefResolver(val) : val,
           ),
         ),
     ) as React.CSSProperties;
@@ -112,9 +116,9 @@ function _MixinPreview(props: {
   // a real page, where the base style is inherited from component roots.
   const baseStyle = {
     whiteSpace: "pre-wrap",
-    ...resolveStyle(theme?.defaultStyle.rs.values),
+    ...resolveStyle(baseValues),
   };
-  const style = resolveStyle(computeElementValues(sc, mixin));
+  const style = resolveStyle(elementValues);
 
   return (
     <>
@@ -131,7 +135,7 @@ function _MixinPreview(props: {
               tag,
               { style },
               defaultPreviewList(
-                resolveStyle(themeTagStyleValues(theme, "li")),
+                resolveStyle(listValues),
               ),
             )
           ) : (
@@ -139,11 +143,11 @@ function _MixinPreview(props: {
               value={text}
               defaultEditing={false}
               onEdit={(newValue) =>
-                spawn(sc.changeUnsafe(() => (mixin.preview = newValue)))
+                spawn(sc.changeUnsafe(() => { if (inputs.isActive()) { mixin.preview = newValue; } }))
               }
             >
               {tag === "li" ? (
-                <ul style={resolveStyle(themeTagStyleValues(theme, "ul"))}>
+                <ul style={resolveStyle(wrapperValues)}>
                   <li style={style}>{text}</li>
                 </ul>
               ) : (
@@ -157,7 +161,7 @@ function _MixinPreview(props: {
   );
 }
 
-export const MixinPreview = observer(_MixinPreview);
+export const MixinPreview = React.memo(MixinPreviewContent);
 
 export interface MixinPanelSelection {
   // Each boolean below defines whether to show the corresponding panel or not.
@@ -188,30 +192,32 @@ export interface MixinPopupProps {
 
 const iconClass = "mixin-fg custom-svg-icon--lg monochrome-exempt";
 
-export const MixinPopup = observer(function MixinPopup(props: MixinPopupProps) {
+export const MixinPopup = React.memo(function MixinPopup(props: MixinPopupProps) {
   const { t: uiT } = useI18n();
 
   const { studioCtx, mixin, themeTag } = props;
+  const inputs = useMixinModelInputs(studioCtx, mixin);
+  if (!inputs.alive) { return null; }
   // Only the default typography style (no specific tag) is restricted to
   // typography-only props; tag styles (e.g. ul/ol) keep all their panels.
-  const isDefaultThemeStyle = mixin.forTheme && themeTag === BASE_THEMABLE_TAG;
+  const isDefaultThemeStyle = inputs.forTheme && themeTag === BASE_THEMABLE_TAG;
   return (
     <SidebarModal
       title={
-        mixin.forTheme ? (
+        inputs.forTheme ? (
           <>
             <Icon icon={ThemeIcon} className={iconClass} />
-            <div> {mixin.name} </div>
+            <div> {inputs.name} </div>
           </>
         ) : (
           <>
             <Icon icon={MixinIcon} className={iconClass} />
             <SimpleTextbox
-              defaultValue={mixin.name}
+              defaultValue={inputs.name}
               onValueChange={(name) =>
-                studioCtx.changeUnsafe(() =>
-                  studioCtx.tplMgr().renameMixin(mixin, name),
-                )
+                studioCtx.changeUnsafe(() => {
+                  if (inputs.isActive()) { studioCtx.tplMgr().renameMixin(mixin, name); }
+                })
               }
               placeholder={uiT("(unnamed {part1})", {
                 part1: translateUiLabel(getUiLocale(), MIXIN_LOWER),
@@ -238,7 +244,7 @@ export const MixinPopup = observer(function MixinPopup(props: MixinPopupProps) {
   );
 });
 
-export const MixinFormContent = observer(function MixinFormContent(props: {
+export const MixinFormContent = React.memo(function MixinFormContent(props: {
   studioCtx: StudioCtx;
   mixin: Mixin;
   themeTag: ThemableTag | undefined;
@@ -258,6 +264,8 @@ export const MixinFormContent = observer(function MixinFormContent(props: {
     warnOnRelativeFontUnits,
   } = props;
 
+  const inputs = useMixinModelInputs(studioCtx, mixin);
+  if (!inputs.alive) { return null; }
   const vsh = new VariantedStylesHelper(
     studioCtx.site,
     targetGlobalVariants,
@@ -267,10 +275,10 @@ export const MixinFormContent = observer(function MixinFormContent(props: {
   const rsh =
     themeTag !== undefined
       ? new VariantedRuleSetHelpers(mixin, themeTag, vsh)
-      : new RuleSetHelpers(mixin.rs, "div");
+      : new RuleSetHelpers(inputs.rs, "div");
 
   const expsProvider = new SingleRsExpsProvider(
-    mixin.rs,
+    inputs.rs,
     rsh,
     studioCtx,
     /*unremovableProps=*/ [],
@@ -280,10 +288,10 @@ export const MixinFormContent = observer(function MixinFormContent(props: {
     themeTag,
   );
 
-  const styleComponent = mkStyleComponent({ expsProvider });
+  const styleComponent = createStyleTarget({ expsProvider });
   const s = panelSelection;
 
-  return providesStyleComponent(styleComponent)(
+  return providesStyleTarget(styleComponent)(
     <>
       <SidebarSection
         title={
@@ -360,16 +368,16 @@ export const MixinFormContent = observer(function MixinFormContent(props: {
   );
 });
 
-function _MixinsPanel() {
+function MixinsPanelContent({ inputs }: { inputs: NonNullable<ReturnType<typeof useMixinCatalog>> }) {
   const { t: studioUiT } = useI18n();
 
   const sc = useStudioCtx();
   const [query, setQuery] = React.useState("");
   const { filterDeps, filterProps } = useDepFilterButton({
     studioCtx: sc,
-    deps: sc.site.projectDependencies.filter((d) => d.site.mixins.length > 0),
+    deps: inputs.dependencies.filter((row) => row.mixins.length > 0).map((row) => row.dependency),
   });
-  const readOnly = sc.getLeftTabPermission("mixins") === "readable";
+  const readOnly = useStore(sc.uiEnvironment.store, (state) => state.leftTabPermissions.mixins === "readable");
   const matcher = new Matcher(query);
 
   const [editMixin, setEditMixin] = React.useState<Mixin | undefined>(
@@ -384,6 +392,7 @@ function _MixinsPanel() {
     Mixin | undefined
   >(undefined);
 
+  const usage = useMixinUsage(sc, findReferenceMixin);
   const onDuplicate = async (mixin: Mixin) => {
     const transitiveDeps = extractTransitiveDepsFromMixins(sc.site, [mixin]);
 
@@ -419,6 +428,7 @@ function _MixinsPanel() {
       return;
     }
     await sc.changeUnsafe(() => {
+      if (!inputs.isActive()) { return; }
       for (const dep of transitiveDeps) {
         sc.projectDependencyManager.addTransitiveDepAsDirectDep(dep);
       }
@@ -429,11 +439,12 @@ function _MixinsPanel() {
   };
 
   const onDelete = async (mixin: Mixin) => {
-    await sc.siteOps().tryDeleteMixins([mixin]);
+    if (inputs.isActive()) { await sc.siteOps().tryDeleteMixins([mixin]); }
   };
 
   const addMixin = async () => {
     return sc.changeUnsafe(() => {
+      if (!inputs.isActive()) { return; }
       const mixin = sc.tplMgr().addMixin();
       setJustAdded(mixin);
       setEditMixin(mixin);
@@ -446,45 +457,45 @@ function _MixinsPanel() {
     setFindReferenceMixin(mixin);
   };
 
-  const makeMixinsItems = (mixins: Mixin[]) => {
+  const makeMixinsItems = (mixins: (typeof inputs)["local"]) => {
     mixins = mixins.filter(
-      (mixin) => matcher.matches(mixin.name) || justAdded === mixin,
+      (mixin) => matcher.matches(mixin.name) || justAdded === mixin.mixin,
     );
     mixins = naturalSort(mixins, (mixin) => mixin.name);
     return mixins.map((mixin) => ({
       type: "item" as const,
-      item: mixin,
-      key: mixin.uuid,
+      item: mixin.mixin,
+      key: mixin.key,
     }));
   };
 
-  const makeDepsItems = (deps: ProjectDependency[]) => {
+  const makeDepsItems = (deps: (typeof inputs)["dependencies"]) => {
     deps = deps.filter(
-      (dep) => filterDeps.length === 0 || filterDeps.includes(dep),
+      (dep) => filterDeps.length === 0 || filterDeps.includes(dep.dependency),
     );
     deps = naturalSort(deps, (dep) =>
-      sc.projectDependencyManager.getNiceDepName(dep),
+      dep.name,
     );
     return deps.map((dep) => ({
       type: "group" as const,
-      key: dep.uuid,
-      group: dep,
-      items: makeMixinsItems(dep.site.mixins),
+      key: dep.dependency.uuid,
+      group: dep.dependency,
+      items: makeMixinsItems(dep.mixins),
       defaultCollapsed: true,
     }));
   };
 
   const items: ItemOrGroup<ProjectDependency, Mixin>[] = [
-    ...(filterDeps.length === 0 ? [...makeMixinsItems(sc.site.mixins)] : []),
+    ...(filterDeps.length === 0 ? [...makeMixinsItems(inputs.local)] : []),
     ...makeDepsItems(
-      sc.site.projectDependencies.filter((d) => !isHostLessPackage(d.site)),
+      inputs.dependencies.filter((d) => !d.hostless),
     ),
     ...makeDepsItems(
-      sc.site.projectDependencies.filter((d) => isHostLessPackage(d.site)),
+      inputs.dependencies.filter((d) => d.hostless),
     ),
   ];
 
-  const editableMixins = new Set(sc.site.mixins);
+  const editableMixins = new Set(inputs.local.map((row) => row.mixin));
 
   return (
     <>
@@ -529,11 +540,7 @@ function _MixinsPanel() {
                 />
               )}
               itemHeight={32}
-              renderGroupHeader={(dep) =>
-                `Imported from "${sc.projectDependencyManager.getNiceDepName(
-                  dep,
-                )}"`
-              }
+              renderGroupHeader={(dep) => `Imported from "${inputs.dependencies.find((row) => row.dependency === dep)?.name ?? ""}"`}
               headerHeight={50}
               hideEmptyGroups
               forceExpandAll={matcher.hasQuery() || filterDeps.length > 0}
@@ -556,12 +563,12 @@ function _MixinsPanel() {
         />
       )}
 
-      {findReferenceMixin && (
+      {findReferenceMixin && usage && (
         <FindReferencesModal
           studioCtx={sc}
-          displayName={findReferenceMixin.name}
+          displayName={usage.name}
           icon={<Icon icon={MixinIcon} className={iconClass} />}
-          usageSummary={extractMixinUsages(sc.site, findReferenceMixin)[1]}
+          usageSummary={usage.summary}
           onClose={() => {
             setFindReferenceMixin(undefined);
           }}
@@ -571,7 +578,12 @@ function _MixinsPanel() {
   );
 }
 
-export const MixinsPanel = observer(_MixinsPanel);
+export const MixinsPanel = React.memo(function MixinsPanel() {
+  const studio = useStudioCtx();
+  useLibraryAppInputs(studio);
+  const inputs = useMixinCatalog(studio);
+  return inputs ? <MixinsPanelContent key={inputs.key} inputs={inputs} /> : null;
+});
 
 export const MixinRow = function MixinRow(props: {
   mixin: Mixin;
@@ -678,54 +690,12 @@ export const EditMixinButton = function EditMixinButton(props: {
   );
 };
 
-function defaultPreviewText(tag: TagName) {
-  return /^h[1-6]$/.test(tag)
-    ? "Heading"
-    : "The quick brown fox jumps over the lazy dog.";
-}
-
 function defaultPreviewList(liStyle: React.CSSProperties) {
   return [1, 2, 3].map((i) => (
     <li key={i} style={liStyle}>
       {<UiText message={"Item {part1}"} values={{ part1: String(i) }} />}
     </li>
   ));
-}
-
-function themeTagStyleValues(
-  theme: Theme | null | undefined,
-  tag: TagName,
-): Record<string, string> | undefined {
-  return theme?.styles.find((s) => s.selector === tag)?.style.rs.values;
-}
-
-/**
- * Computes the CSS values `mixin` declares on the previewed element itself:
- * for a theme pseudo-class style (e.g. "a:hover"), the tag's own style ("a")
- * merged under it. The theme's base default style is not included here; it is
- * applied to the preview wrapper as inherited context instead.
- */
-function computeElementValues(
-  sc: StudioCtx,
-  mixin: Mixin,
-): Record<string, string> {
-  const theme = sc.site.activeTheme;
-  if (!mixin.forTheme || !theme) {
-    return { ...mixin.rs.values };
-  }
-  if (mixin === theme.defaultStyle) {
-    return {};
-  }
-  const selector = theme.styles.find((s) => s.style === mixin)?.selector;
-  const tag = selector?.split(":")[0];
-  const tagStyle =
-    tag && tag !== selector
-      ? theme.styles.find((s) => s.selector === tag)?.style
-      : undefined;
-  return {
-    ...tagStyle?.rs.values,
-    ...mixin.rs.values,
-  };
 }
 
 /**

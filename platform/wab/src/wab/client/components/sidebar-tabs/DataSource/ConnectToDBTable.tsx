@@ -1,4 +1,5 @@
 import { useInspectorCanvasEnv } from "@/wab/client/studio-ctx/inspector-state";
+import { useCustomFunctionsSchema } from "@/wab/client/studio-ctx/custom-functions-schema-react";
 import {
   BottomModalButtons,
   useBottomModalActions,
@@ -96,6 +97,7 @@ export function ConnectToDBTable({
   const { t: uiT, label } = useI18n();
   const studioCtx = useStudioCtx();
   const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl);
+  const functionsSchema = useCustomFunctionsSchema(studioCtx);
   const [selectedFormOption, setSelectedFormOption] = React.useState<
     FormType | undefined
   >(undefined);
@@ -135,7 +137,7 @@ export function ConnectToDBTable({
       (field) =>
         field in ensure(lookupDraft.lookupValue, "checked before").value,
     );
-  }, [lookupDraft, selectedFormOption]);
+  }, [lookupDraft, selectedFormOption, tableSchema]);
 
   const onSave = async () => {
     if (
@@ -227,7 +229,7 @@ export function ConnectToDBTable({
             studioCtx={viewCtx.studioCtx}
             requireLookupValue={selectedFormOption === FormType.UpdateEntry}
             env={canvasEnv}
-            schema={viewCtx.customFunctionsSchema()}
+            schema={functionsSchema}
             draft={lookupDraft}
             onChange={(newDraft) => setLookupDraft(newDraft)}
             onlySchema={selectedFormOption === FormType.NewEntry}

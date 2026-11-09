@@ -1,3 +1,4 @@
+import { createStudioUiEnvironmentFixture } from "@/wab/client/__testonly__/studio-ui-environment";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import { NavigationDropdown } from "@/wab/client/components/sidebar-tabs/ProjectPanel/NavigationDropdown";
@@ -137,6 +138,7 @@ beforeEach(async () => {
   ownerDisposals.add(() => { arenaState.dispose(); modelSnapshots.dispose(); });
   const projectSearchInputRef = React.createRef<HTMLInputElement>();
   fixture.ctx = {
+    ...createStudioUiEnvironmentFixture(),
     site,
     modelSnapshots,
     arenaState,
@@ -147,6 +149,7 @@ beforeEach(async () => {
       return navigationPanelStore.getState();
     },
     projectSearchInputRef,
+    focusOnProjectSearchInput: () => projectSearchInputRef.current?.focus(),
     bindProjectSearchInput: (input: HTMLInputElement | null) => {
       projectSearchInputRef.current = input;
     },

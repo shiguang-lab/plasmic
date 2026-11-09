@@ -14,7 +14,7 @@
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -23,8 +23,8 @@ import {
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ooL7EhXDmFQWnW9sxtchhE/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -78,13 +78,12 @@ function PlasmicShared__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <button
@@ -187,12 +186,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -202,27 +197,29 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicShared__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicShared";
-  } else {
-    func.displayName = `PlasmicShared.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicShared__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicShared__root<T extends PlasmicShared__rootProps>(props: T & StrictProps<T, PlasmicShared__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicShared__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicShared__root.displayName = "PlasmicShared";
+
+type PlasmicShared__avatarsProps = NodeComponentProps<"avatars"> & {key?: React.Key};
+function PlasmicShared__avatars<T extends PlasmicShared__avatarsProps>(props: T & StrictProps<T, PlasmicShared__avatarsProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("avatars", props);
+  return <PlasmicShared__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"avatars"} />;
+}
+PlasmicShared__avatars.displayName = "PlasmicShared.avatars";
+
 
 export const PlasmicShared = Object.assign(
   // Top-level PlasmicShared renders the root element
-  makeNodeComponent("root"),
+  PlasmicShared__root,
   {
     // Helper components rendering sub-elements
-    avatars: makeNodeComponent("avatars"),
+    avatars: PlasmicShared__avatars,
 
     // Metadata about props expected for PlasmicShared
     internalVariantProps: PlasmicShared__VariantProps,

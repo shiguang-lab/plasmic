@@ -16,7 +16,7 @@ import { UiText } from "@/wab/client/i18n/UiText";
 import * as React from "react";
 
 import {
-  classNames,
+  usePlasmicRefs, classNames,
   createPlasmicElementProxy,
   deriveRenderOpts,
   Flex as Flex__,
@@ -25,7 +25,7 @@ import {
   SingleBooleanChoiceArg,
   SingleChoiceArg,
   StrictProps,
-  useDollarState,
+  useDollarState, useDollarStateSnapshot,
 } from "@plasmicapp/react-web";
 import { useDataEnv } from "@plasmicapp/react-web/lib/host";
 
@@ -33,8 +33,8 @@ import ExpandableSection from "../../components/pricing/ExpandableSection"; // p
 import PriceTierChip from "../../components/pricing/PriceTierChip"; // plasmic-import: UwHbCO-1rFrq/component
 import PriceTierFeatureItem from "../../components/pricing/PriceTierFeatureItem"; // plasmic-import: Z40kBWC-Knbn/component
 import PricingButton from "../../components/pricing/PricingButton"; // plasmic-import: NqVzp6p_r1Wa/component
-import { _useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
-import { _useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
+import { useGlobalVariants } from "./plasmic"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/projectModule
+import { useStyleTokens } from "./PlasmicStyleTokensProvider"; // plasmic-import: ehckhYnyDHgCBbV47m9bkf/styleTokensProvider
 
 import "@plasmicapp/react-web/lib/plasmic.css";
 
@@ -178,11 +178,10 @@ function PlasmicPriceTier__RenderFunc(props: {
     ...variants,
   };
 
-  const $ctx = useDataEnv?.() || {};
-  const refsRef = React.useRef({});
-  const $refs = refsRef.current;
+  const $ctx = useDataEnv() || {};
+  const { registerRef, getRefs } = usePlasmicRefs();
 
-  const stateSpecs: Parameters<typeof useDollarState>[0] = React.useMemo(
+  const stateSpecs: Parameters<typeof useDollarStateSnapshot>[2] = React.useMemo(
     () => [
       {
         path: "status",
@@ -204,20 +203,22 @@ function PlasmicPriceTier__RenderFunc(props: {
           $props.mostPopular,
       },
     ],
-    [$props, $ctx, $refs]
+    [$props, $ctx]
   );
 
-  const globalVariants = _useGlobalVariants();
+  const globalVariants = useGlobalVariants();
 
-  const $state = useDollarState(stateSpecs, {
+  const $stateEnv = {
     $props,
     $ctx,
     $queries: {},
     $q: {},
-    $refs,
-  });
+    getRefs,
+  };
+  const $stateCommands = useDollarState();
+  const $state = useDollarStateSnapshot($stateCommands, $stateEnv, stateSpecs);
 
-  const styleTokensClassNames = _useStyleTokens();
+  const styleTokensClassNames = useStyleTokens();
 
   return (
     <div
@@ -1087,19 +1088,8 @@ function PlasmicPriceTier__RenderFunc(props: {
               hasVariant(globalVariants, "environment", "website"),
           })}
           dark={hasVariant($state, "tier", "enterprise") ? true : undefined}
-          open={(() => {
-            try {
-              return $props.openSection;
-            } catch (e) {
-              if (
-                e instanceof TypeError ||
-                e?.plasmicType === "PlasmicUndefinedDataError"
-              ) {
-                return [];
-              }
-              throw e;
-            }
-          })()}
+          open={((__plasmicEvaluate, __plasmicFallback) => { try { return __plasmicEvaluate(); } catch (e) { if (e instanceof TypeError ||
+                e?.plasmicType === "PlasmicUndefinedDataError") { return __plasmicFallback(); } throw e; } })(() => ($props.openSection), () => ([]))}
           title={renderPlasmicSlot({
             defaultContents: <UiText message={"All features"} />,
             value: args.expandableTitle,
@@ -1174,12 +1164,8 @@ type NodeComponentProps<T extends NodeNameType> =
       ReservedPropsType | VariantPropType | ArgPropType | DescendantsType<T>
     >;
 
-function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
-  type PropsType = NodeComponentProps<NodeName> & { key?: React.Key };
-  const func = function <T extends PropsType>(
-    props: T & StrictProps<T, PropsType>
-  ) {
-    const { variants, args, overrides } = React.useMemo(
+function useNodeRenderOpts<NodeName extends NodeNameType>(nodeName: NodeName, props: NodeComponentProps<NodeName> & {key?: React.Key}) {
+  return React.useMemo(
       () =>
         deriveRenderOpts(props, {
           name: nodeName,
@@ -1189,30 +1175,53 @@ function makeNodeComponent<NodeName extends NodeNameType>(nodeName: NodeName) {
         }),
       [props, nodeName]
     );
-    return PlasmicPriceTier__RenderFunc({
-      variants,
-      args,
-      overrides,
-      forNode: nodeName,
-    });
-  };
-  if (nodeName === "root") {
-    func.displayName = "PlasmicPriceTier";
-  } else {
-    func.displayName = `PlasmicPriceTier.${nodeName}`;
-  }
-  return func;
 }
+
+type PlasmicPriceTier__rootProps = NodeComponentProps<"root"> & {key?: React.Key};
+function PlasmicPriceTier__root<T extends PlasmicPriceTier__rootProps>(props: T & StrictProps<T, PlasmicPriceTier__rootProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("root", props);
+  return <PlasmicPriceTier__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"root"} />;
+}
+PlasmicPriceTier__root.displayName = "PlasmicPriceTier";
+
+type PlasmicPriceTier__priceTierChipProps = NodeComponentProps<"priceTierChip"> & {key?: React.Key};
+function PlasmicPriceTier__priceTierChip<T extends PlasmicPriceTier__priceTierChipProps>(props: T & StrictProps<T, PlasmicPriceTier__priceTierChipProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("priceTierChip", props);
+  return <PlasmicPriceTier__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"priceTierChip"} />;
+}
+PlasmicPriceTier__priceTierChip.displayName = "PlasmicPriceTier.priceTierChip";
+
+type PlasmicPriceTier__h3Props = NodeComponentProps<"h3"> & {key?: React.Key};
+function PlasmicPriceTier__h3<T extends PlasmicPriceTier__h3Props>(props: T & StrictProps<T, PlasmicPriceTier__h3Props>) {
+  const {variants, args, overrides} = useNodeRenderOpts("h3", props);
+  return <PlasmicPriceTier__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"h3"} />;
+}
+PlasmicPriceTier__h3.displayName = "PlasmicPriceTier.h3";
+
+type PlasmicPriceTier__normalButtonProps = NodeComponentProps<"normalButton"> & {key?: React.Key};
+function PlasmicPriceTier__normalButton<T extends PlasmicPriceTier__normalButtonProps>(props: T & StrictProps<T, PlasmicPriceTier__normalButtonProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("normalButton", props);
+  return <PlasmicPriceTier__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"normalButton"} />;
+}
+PlasmicPriceTier__normalButton.displayName = "PlasmicPriceTier.normalButton";
+
+type PlasmicPriceTier__expandableSectionProps = NodeComponentProps<"expandableSection"> & {key?: React.Key};
+function PlasmicPriceTier__expandableSection<T extends PlasmicPriceTier__expandableSectionProps>(props: T & StrictProps<T, PlasmicPriceTier__expandableSectionProps>) {
+  const {variants, args, overrides} = useNodeRenderOpts("expandableSection", props);
+  return <PlasmicPriceTier__RenderFunc variants={variants} args={args} overrides={overrides} forNode={"expandableSection"} />;
+}
+PlasmicPriceTier__expandableSection.displayName = "PlasmicPriceTier.expandableSection";
+
 
 export const PlasmicPriceTier = Object.assign(
   // Top-level PlasmicPriceTier renders the root element
-  makeNodeComponent("root"),
+  PlasmicPriceTier__root,
   {
     // Helper components rendering sub-elements
-    priceTierChip: makeNodeComponent("priceTierChip"),
-    h3: makeNodeComponent("h3"),
-    normalButton: makeNodeComponent("normalButton"),
-    expandableSection: makeNodeComponent("expandableSection"),
+    priceTierChip: PlasmicPriceTier__priceTierChip,
+    h3: PlasmicPriceTier__h3,
+    normalButton: PlasmicPriceTier__normalButton,
+    expandableSection: PlasmicPriceTier__expandableSection,
 
     // Metadata about props expected for PlasmicPriceTier
     internalVariantProps: PlasmicPriceTier__VariantProps,

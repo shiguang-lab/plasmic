@@ -12,7 +12,7 @@ import {
 } from "@/wab/client/components/sidebar/sidebar-helpers";
 import { MaybeCollapsibleRowsRenderer } from "@/wab/client/components/sidebar/SidebarSection";
 import {
-  useStyleComponent,
+  useStyleTarget,
 } from "@/wab/client/components/style-controls/StyleComponent";
 import { useStyleCells, useStyleIndicators } from "@/wab/client/studio-ctx/style-inputs-react";
 import StyleToggleButton from "@/wab/client/components/style-controls/StyleToggleButton";
@@ -62,7 +62,7 @@ interface TypographyContentProps {
   animatableOnly?: boolean;
 }
 
-export const Typography = _Typography;
+export const Typography = TypographyContent;
 
 function mkFontWeightOptions(
   fonts: readonly FontInstallSpec[],
@@ -85,7 +85,7 @@ function mkFontWeightOptions(
   );
 }
 
-function _Typography({
+function TypographyContent({
   renderMaybeCollapsibleRows,
   inheritableOnly,
   readOnly,
@@ -93,7 +93,7 @@ function _Typography({
   ...props
 }: TypographyContentProps) {
   const { t: uiT } = useI18n();
-  const sc = useStyleComponent();
+  const sc = useStyleTarget();
   const fonts = useStore(
     sc.studioCtx().fontManager.store,
     (state) => state.availableFonts,
