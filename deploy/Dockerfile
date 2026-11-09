@@ -88,6 +88,7 @@ RUN printf '#!/bin/sh\nset -eu\npython3 /opt/configure-web.py\n' > /docker-entry
 EXPOSE 8080 8081 8082
 
 FROM builder AS preview-build
+RUN pnpm --recursive --workspace-concurrency=2 --filter @plasmicapp/loader-nextjs... run build
 WORKDIR /plasmic/platform/preview
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
