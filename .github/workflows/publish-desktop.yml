@@ -106,6 +106,13 @@ jobs:
           go-version-file: desktop/mcp/go.mod
           cache-dependency-path: desktop/mcp/go.sum
       - run: tar -xzf renderer.tar.gz -C desktop
+      - name: Install Electron before native verification
+        run: |
+          for attempt in 1 2 3; do
+            node desktop/node_modules/electron/install.js && break
+            if [ "$attempt" = 3 ]; then exit 1; fi
+            sleep 5
+          done
       - name: Use Electron package checksums for packaging
         run: |
           node -e 'require("node:fs").writeFileSync("desktop/electron-builder.json", JSON.stringify({ electronDownload: { force: false, checksums: require("./desktop/node_modules/electron/checksums.json") } }))'

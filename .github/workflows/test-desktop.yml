@@ -43,7 +43,12 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - run: npm ci --prefix desktop --prefer-offline --no-audit --no-fund
       - name: Install Electron before parallel tests
-        run: node desktop/node_modules/electron/install.js
+        run: |
+          for attempt in 1 2 3; do
+            node desktop/node_modules/electron/install.js && break
+            if [ "$attempt" = 3 ]; then exit 1; fi
+            sleep 5
+          done
       - uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
           go-version-file: desktop/mcp/go.mod
