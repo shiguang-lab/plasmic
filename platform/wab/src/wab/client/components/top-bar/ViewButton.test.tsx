@@ -215,7 +215,7 @@ it("updates an already mounted menu and preserves its actions", async () => {
   expect(screen.queryByText("Hide placeholders for empty slots")).toBeNull();
   fireEvent.click(screen.getByText("隐藏空插槽占位符"));
   expect(studio.toggleShowSlotPlaceholder).toHaveBeenCalledOnce();
-  fireEvent.click(screen.getByText("按视口高度显示"));
+  fireEvent.click(screen.getByText(translate("zh-CN", "Fit to viewport height")));
   expect(studio.toggleFullPageHeight).toHaveBeenCalledOnce();
   fireEvent.click(screen.getByText("关闭自动展开模式"));
   expect(studio.toggleAutoOpenMode).toHaveBeenCalledOnce();
