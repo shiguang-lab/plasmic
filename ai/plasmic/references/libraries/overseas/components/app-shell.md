@@ -11,6 +11,8 @@ Library: [Overseas](../index.md).
 ### Design defaults
 
 - One AppShell per standalone Page; it owns navigation, the header and the 16px content padding.
+- The header clock is internal and updates every second using `timeZone` (default `Asia/Shanghai`). It has no configurable time-text prop.
+- `productName` is a Slot with `fixedRoot: true`. It contains one required native `span` node named Brand. The Slot is transparent in Layers, is not selectable and has no AppShell property control. Select Brand itself to edit its Content property or double-click to edit plain text. All styles, structure, deletion and movement are locked by this registration; ordinary Span nodes retain their normal properties. Its span fills the fixed sidebar brand area (166×32px when expanded), including when its text is empty. Keep this existing root when editing instead of replacing the Slot. The first breadcrumb mirrors the rendered brand text, including changes while the sidebar is collapsed; it never renders a second copy of the editable node. Canvas placeholders are excluded. Menu-derived breadcrumbs remain independent. `logoUrl` sets the separate brand image; without it, plain string names use their first character and composed content uses the platform icon.
 - Its children Slot holds one full-width business layout following the decided [Page structure](../../../design/page-structure.md): Flex gap 16 with the chosen direction, or Row gutter 16 for columns; no extra outer padding or Page title.
 
 ### Standalone Page boilerplate

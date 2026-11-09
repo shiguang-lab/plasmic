@@ -106,6 +106,7 @@ import {
 } from "@/wab/shared/core/site-style-tokens";
 import { isTplAttachedToSite } from "@/wab/shared/core/sites";
 import { SlotSelection, isSlotSelection } from "@/wab/shared/core/slots";
+import { isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
 import {
   getStateVarName,
 } from "@/wab/shared/core/states";
@@ -1836,7 +1837,7 @@ export class ViewCtx extends WithDbCtx {
    */
   isFocusedResizeDraggable = () => {
     const selectable = this.focusedSelectable();
-    if (!selectable || selectable instanceof SlotSelection) {
+    if (!selectable || selectable instanceof SlotSelection || isFixedSlotRoot(this, selectable.tpl)) {
       return { width: false, height: false };
     }
     const vtm = this.variantTplMgr();

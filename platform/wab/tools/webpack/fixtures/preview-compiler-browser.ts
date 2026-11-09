@@ -11,11 +11,16 @@ import * as reactWeb from "@plasmicapp/react-web";
 export async function runBrowserPreviewCompilerContract() {
   const transpile = createTranspiler();
   let opaqueRefCommits = 0;
+  let rowHandler: (() => Promise<unknown>) | undefined;
+  const ActionButton = (props: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
+    rowHandler = props.onClick as unknown as typeof rowHandler;
+    return React.createElement("button", props);
+  };
   const OpaqueRefLibrary = React.forwardRef<{ label: string }, { label: string }>(function OpaqueRefLibrary({ label }, ref) {
     React.useImperativeHandle(ref, () => { opaqueRefCommits++; return { label }; });
     return null;
   });
-  const runtime = createLiveRuntime({ react: React, "react/compiler-runtime": compilerRuntime, "@plasmicapp/react-web": reactWeb, "opaque-ref-library": { OpaqueRefLibrary } });
+  const runtime = createLiveRuntime({ react: React, "react/compiler-runtime": compilerRuntime, "@plasmicapp/react-web": reactWeb, "opaque-ref-library": { OpaqueRefLibrary }, "row-action-library": { ActionButton } });
   const container = document.createElement("div");
   document.body.append(container);
   const root = createRoot(container);
@@ -93,6 +98,58 @@ export async function runBrowserPreviewCompilerContract() {
     await refWait;
     await Promise.resolve();
 
+    runtime.update([await transpile({ name: "./coupon-actions.tsx", lang: "tsx", source: `import React from "react";
+      import {createStateEventHandler} from "@plasmicapp/react-web";
+      import {ActionButton} from "row-action-library";
+      export default function CouponActions({$state,request,cleanup}) {
+        return <ActionButton onClick={createStateEventHandler(()=>[$state],$state=>async()=>{
+          if($state.rowActionBusy)return;
+          $state.rowActionBusy=true;
+          try {
+            if(!$state.pendingId)return "denied";
+            return await request();
+          } catch(error) { $state.error=error.message; throw error; }
+          finally { $state.rowActionBusy=false; cleanup(); }
+        })}>下线</ActionButton>;
+      }` })]);
+    let finishRow: ((value: string) => void) | undefined;
+    const rowRequest = new Promise<string>(resolve => { finishRow = resolve; });
+    const rowState = { rowActionBusy: false, pendingId: "coupon-1", error: "" };
+    let requests = 0, cleanups = 0, rejectRow = false;
+    render("./coupon-actions.tsx", { $state: rowState,
+      request: () => { requests++; return rejectRow ? Promise.reject(new Error("request failed")) : rowRequest; },
+      cleanup: () => { cleanups++; },
+    });
+    if (!rowHandler || !finishRow) {throw new Error("Compiled row action must mount");}
+    const pendingRow = rowHandler();
+    const busyDuringRequest = rowState.rowActionBusy;
+    finishRow("done");
+    const rowResult = await pendingRow;
+    rowState.pendingId = "";
+    const deniedRow = await rowHandler();
+    rowState.pendingId = "coupon-1";
+    rejectRow = true;
+    let rejectedRow = "";
+    try { await rowHandler(); } catch (error) { rejectedRow = (error as Error).message; }
+    const rowActions = { busyDuringRequest, result: rowResult, denied: deniedRow, rejected: rejectedRow,
+      busyAfter: rowState.rowActionBusy, error: rowState.error, requests, cleanups };
+
+    // An unrelated native-JS construct proves the boundary is not a finally
+    // rewrite. Registered event factories may contain classes and generators.
+    runtime.update([await transpile({ name: "./native-event.tsx", lang: "tsx", source: `import React from "react";
+      import {createStateEventHandler as event} from "@plasmicapp/react-web";
+      import {ActionButton} from "row-action-library";
+      export default function NativeEvent({value}) {
+        return <ActionButton onClick={event(()=>[value], value=>()=>{
+          class Result { constructor(value){this.value=value;} }
+          function* values(){yield new Result(value).value;yield value+1;}
+          return [...values()];
+        })}>Run</ActionButton>;
+      }` })]);
+    render("./native-event.tsx", { value: 4 });
+    if (!rowHandler) {throw new Error("Native event must mount");}
+    const nativeEventSyntax = await rowHandler();
+
     const custom = { name: "./custom.tsx", lang: "tsx", source: `import React from "react";
       function customElement(type,props,...children) { return React.createElement(type,{...props,"data-preview-pragma":"custom"},...children); }
       export default function GeneratedCustom() { return <span>Custom JSX</span>; }` };
@@ -118,6 +175,8 @@ export async function runBrowserPreviewCompilerContract() {
       authoredVarInitial, authoredVarUpdated,
       authoredConditionalInitial, authoredConditionalUpdated,
       refCommandResult, opaqueRefCommits,
+      rowActions,
+      nativeEventSyntax,
       cssAsset: css.type === "asset" && css.source === "button { color: red }",
       nodeGlobals: { require: typeof (globalThis as { require?: unknown }).require, process: typeof (globalThis as { process?: unknown }).process },
     };

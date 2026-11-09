@@ -1,3 +1,4 @@
+import { isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
 import { withErrorDisplayFallback } from "@/wab/client/components/canvas/canvas-error";
 import { resolveNodesToMarkers } from "@/wab/client/components/canvas/canvas-fns-impl";
 import { mkUseCanvasObserver } from "@/wab/client/components/canvas/canvas-observer";
@@ -746,6 +747,7 @@ const isSpace = isHotkey("space");
 
 type PlasmicRichTextOpts = {
   inline: boolean;
+  plainText?: boolean;
 };
 
 // Inject Plasmic rich text editor functionality into Slate Editor.
@@ -794,7 +796,11 @@ const withPlasmic = <T extends SlateEditor>(
   editor.insertFragment = (fragment: SlateNode[]) => {
     // When Slate nodes are pasted, we reset the uuids in the tpls to ensure
     // that we don't have multiple TplTags with the same uuid.
-    insertFragment(fragment.map((n) => resetUuids(n, sub)));
+    if (opts.plainText) {
+      insertText(fragment.map((node) => sub.slate.Node.string(node)).join(" "));
+    } else {
+      insertFragment(fragment.map((n) => resetUuids(n, sub)));
+    }
   };
 
   editor.insertText = (text) => {
@@ -805,7 +811,7 @@ const withPlasmic = <T extends SlateEditor>(
     // That may be interpreted as a Markdown shortcut to create a block-level
     // element. The logic comes from slate's markdown-shortcuts example:
     // https://github.com/ianstormtaylor/slate/blob/main/site/examples/markdown-shortcuts.tsx
-    if (text === " " && selection && Range.isCollapsed(selection)) {
+    if (!opts.plainText && text === " " && selection && Range.isCollapsed(selection)) {
       const { anchor } = selection;
       const block = Editor.above(editor, {
         match: (n) => Element.isElement(n) && Editor.isBlock(editor, n),
@@ -843,6 +849,9 @@ const withPlasmic = <T extends SlateEditor>(
     insertText(text);
   };
 
+  if (opts.plainText) {
+    editor.addMark = () => {};
+  }
   return editor;
 };
 
@@ -893,6 +902,9 @@ function mkExprTextProps(
 function configureCanvasTextEditor(editor: import("../../../../../../canvas-packages/src/canvas-text").CanvasTextEditorInstance, inline: boolean, sub: SubDeps) {
   return withPlasmic(editor, { inline }, sub);
 }
+function configurePlainCanvasTextEditor(editor: import("../../../../../../canvas-packages/src/canvas-text").CanvasTextEditorInstance, inline: boolean, sub: SubDeps) {
+  return withPlasmic(editor, { inline, plainText: true }, sub);
+}
 function activateCanvasTextEditor(editor: SlateEditor, readOnly: boolean, sub: SubDeps) {
   if (readOnly) {
     editor.selection = { anchor: { path: [0, 0], offset: 0 }, focus: { path: [0, 0], offset: 0 } };
@@ -908,6 +920,7 @@ export function renderCanvasText({ node, onChange, onUpdateContext, readOnly, in
   return mkUseCanvasObserver(ctx.sub, ctx.viewCtx, ctx.viewCtx.canvasRenderOwner.observerInput(ctx.viewCtx, node, ctx))(() => renderWithStateInitializers(ctx, (ctx) => {
     const { sub, viewCtx: vc } = ctx;
     const react = sub.React;
+    const plainText = isFixedSlotRoot(vc, node);
     const initialValue = tplToSlateNodes(node, ctx, effectiveVs);
     const doc = vc.canvasCtx.doc();
     const { Range, Transforms } = sub.slate;
@@ -955,11 +968,11 @@ export function renderCanvasText({ node, onChange, onUpdateContext, readOnly, in
     const descendants = getDescendentsAndRelativeValKeys(node);
     return react.createElement(sub.CanvasTextEditor<SubDeps>, {
       runtime: sub, inline, readOnly, initialValue,
-      configureEditor: configureCanvasTextEditor,
+      configureEditor: plainText ? configurePlainCanvasTextEditor : configureCanvasTextEditor,
       activateEditor: activateCanvasTextEditor,
       resetEditor: resetCanvasTextEditor,
       valuesEqual: isEqual,
-      onSetup: (editor) => onUpdateContext({ run: mkRunFn(editor, shortcutOpts, sub) }),
+      onSetup: (editor) => onUpdateContext({ run: plainText ? undefined : mkRunFn(editor, shortcutOpts, sub) }),
       onChange: (editor) => { doc.documentElement.scrollTop = 0; onUpdateContext({ editor }); },
       onValueChange: (newValue) => { const newVals = resolveNodesToMarkers(newValue, true); onChange(newVals.text, newVals.markers); },
       onReset: () => onUpdateContext({ draftText: undefined }),
@@ -1062,7 +1075,7 @@ export function renderCanvasText({ node, onChange, onUpdateContext, readOnly, in
                 .filter(({ hotkey }) => hotkey?.(event.nativeEvent))
                 .forEach(({ fn }) => {
                   event.preventDefault();
-                  spawn(fn(editor, shortcutOpts, sub));
+                  if (!plainText) spawn(fn(editor, shortcutOpts, sub));
                 });
             },
 

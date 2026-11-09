@@ -122,6 +122,8 @@ interface ButtonTextElement {
 
 interface GenericTextElement {
   type: "text";
+  /** Name of the editable text node in Studio. */
+  elementName?: string;
   /**
    * Default: "div"
    */

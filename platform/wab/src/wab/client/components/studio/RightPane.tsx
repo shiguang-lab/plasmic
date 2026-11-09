@@ -1,3 +1,4 @@
+import { isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { useRightTabKey } from "@/wab/client/studio-ctx/right-panel-state";
@@ -52,6 +53,7 @@ export const RightPane = React.memo(function RightPane({
   const selectedRef = selection.tpls[0];
   const selectedTpl = selectedRef ? studioCtx.modelSnapshots.resolve(selectedRef) : undefined;
   const focusedComponent = focusedOrFirstViewCtx?.component;
+  const contentOnly = !!focusedViewCtx && isFixedSlotRoot(focusedViewCtx, selectedTpl);
 
   const selectionTitle = useInspectorTitle(studioCtx,
     rightTabKey === RightTabKey.component ? undefined : selectedTpl, focusedComponent);
@@ -66,7 +68,7 @@ export const RightPane = React.memo(function RightPane({
   if (focusedViewCtx && selectedFrames.length === 0) {
     tabs.push(
       new widgets.Tab({
-        name: <UiText message={"Design"} />,
+        name: <UiText message={contentOnly ? "Props" : "Design"} />,
         key: RightTabKey.style,
         contents: () => (
           <StyleTabContext.Provider value="design">
@@ -74,6 +76,8 @@ export const RightPane = React.memo(function RightPane({
           </StyleTabContext.Provider>
         ),
       }),
+    );
+    if (!contentOnly) tabs.push(
       new widgets.Tab({
         name: <UiText message={"Interactions"} />,
         key: RightTabKey.interactions,
@@ -104,10 +108,12 @@ export const RightPane = React.memo(function RightPane({
   }
 
   React.useEffect(() => {
-    if (tabs.length === 1 && !isMultiSelection) {
+    if (contentOnly && rightTabKey === RightTabKey.interactions) {
+      studioCtx.switchRightTab(RightTabKey.style);
+    } else if (tabs.length === 1 && !isMultiSelection) {
       studioCtx.switchRightTab(tabs[0].key as RightTabKey);
     }
-  }, [tabs.length, isMultiSelection]);
+  }, [tabs.length, isMultiSelection, contentOnly, rightTabKey]);
 
   const commentsPanel = useStudioOverlayState(
     studioCtx,

@@ -65,28 +65,27 @@ it.each(["text", "stack"] as const)("waits for an inserted %s runtime value befo
   site.arenas.push(mkMixedArena("Overview", [frame]));
   const models = new ModelSnapshots(), lifetime = new AbortController(), selection = new ViewSelection(() => models);
   const studio = mock<StudioCtx>(), view = mock<ViewCtx>(), canvas = mock<CanvasCtx>();
-  Object.defineProperties(studio, { modelSnapshots: { value: models }, hoverBoxControlledObjs: { get: () => selection.targets() } });
-  Object.defineProperties(view, { studioCtx: { value: studio }, site: { value: site }, canvasCtx: { value: canvas }, isDisposed: { value: false } });
-  studio.focusedViewCtx.mockReturnValue(view);
+  Object.defineProperties(studio, { modelSnapshots: { value: models }, canvasContentEditor: { value: undefined } });
+  Object.defineProperties(view, { studioCtx: { value: studio }, site: { value: site }, canvasCtx: { value: canvas }, selection: { value: selection }, isDisposed: { value: false } });
+  view.getViewOps.mockReturnValue({ isRootNodeOfStretchFrame: () => false } as any);
   view.currentComponent.mockReturnValue(component); view.arenaFrame.mockReturnValue(frame);
-  view.focusedDomElts.mockImplementation(() => selection.doms());
   canvas.$viewport.mockReturnValue($(document.createElement("iframe")));
   const source = new CanvasViewInputs({ studio, models, signal: lifetime.signal }, (field) => {
-    computeHoverBoxTargets(studio).forEach((target) => hoverBoxModelFields(view, target, field));
+    computeHoverBoxTargets(studio, { view, frames: [] }, selection.store.getState()).forEach((target) => hoverBoxModelFields(view, target, field));
   });
   const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
   const notify = vi.fn(); let stop: (() => void) | undefined;
   try {
     recorder.withRecording(() => { root.children.push(inserted); inserted.parent = root; });
     selection.transaction(() => { selection.setTpls([inserted]); selection.setTargets([null]); selection.setDoms([null]); });
-    expect(computeHoverBoxTargets(studio)).toEqual([]);
+    expect(computeHoverBoxTargets(studio, { view, frames: [] }, selection.store.getState())).toEqual([]);
     stop = source.subscribe(notify);
     expect(source.getSnapshot().alive).toBe(true);
 
     const value = new ValTag({ tpl: inserted, children: [], className: "", key: "inserted", fullKey: "inserted[0]", frameUid: frame.uid, fibers: [], parent: undefined, valOwner: undefined, slotInfo: undefined });
     const element = document.createElement(kind === "text" ? "span" : "div");
     selection.transaction(() => { selection.setTargets([value]); selection.setDoms([$(element)]); });
-    expect(computeHoverBoxTargets(studio)).toEqual([{ node: selection.doms()[0], focusObj: value }]);
+    expect(computeHoverBoxTargets(studio, { view, frames: [] }, selection.store.getState())).toEqual([{ node: selection.doms()[0], focusObj: value }]);
     source.getSnapshot(); notify.mockClear();
     models.sync(recorder.withRecording(() => { inserted.name = "Resolved selection"; }).changes);
     expect(notify).toHaveBeenCalledOnce();
@@ -94,7 +93,7 @@ it.each(["text", "stack"] as const)("waits for an inserted %s runtime value befo
 
     // Pending values retain their original index in the parallel DOM list.
     selection.transaction(() => { selection.setTpls([root, inserted]); selection.setTargets([null, value]); selection.setDoms([null, $(element)]); });
-    expect(computeHoverBoxTargets(studio)).toEqual([{ node: selection.doms()[1], focusObj: value }]);
+    expect(computeHoverBoxTargets(studio, { view, frames: [] }, selection.store.getState())).toEqual([{ node: selection.doms()[1], focusObj: value }]);
 
     selection.transaction(() => { selection.setTpls([inserted]); selection.setTargets([null]); selection.setDoms([null]); });
     expect(source.getSnapshot().fields).toEqual([]); notify.mockClear();

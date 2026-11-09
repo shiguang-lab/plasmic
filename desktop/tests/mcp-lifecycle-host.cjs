@@ -1,5 +1,5 @@
 // Owned GUI fixture: real bootstrap and quit handlers, no NAS or design edits.
-const { app, dialog, session } = require("electron");
+const { app, BrowserWindow, dialog, session } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const Module = require("node:module");
@@ -26,8 +26,16 @@ Module._load = function(request, parent, isMain) {
 const { bootstrap } = require("../src/main.cjs");
 Module._load = originalLoad;
 app.whenReady().then(() => {
+  fs.writeFileSync(path.join(profile, "gui.json"), JSON.stringify({ pid: process.pid }));
   session.fromPartition("persist:plasmic-desktop").fetch = async () => Response.json({authenticated:true});
   const timer = setInterval(() => {
+    const commandFile = path.join(profile, "command");
+    if (fs.existsSync(commandFile)) {
+      const command = fs.readFileSync(commandFile, "utf8");
+      fs.unlinkSync(commandFile);
+      if (command === "close") BrowserWindow.getAllWindows()[0].close();
+      else if (command === "restart") { app.relaunch(); app.quit(); }
+    }
     if (fs.existsSync(path.join(profile,"quit"))) {
       clearInterval(timer);
       app.quit();

@@ -5,15 +5,17 @@ import { reactCompilerOptions } from "../../../../../tools/react-compiler.mjs";
 /** Each live module edit evicts its instance and all importers. React therefore
  * mounts a new component type; no Fast Refresh cache survives a source edit. */
 async function compilePreviewModule(mod: SourceModule) {
-  const [{ parseSync, transformFromAstSync }, { default: compiler }, { transform }, { reactComponentBases, reactCompilerCandidates, uncompiledCandidates }] = await Promise.all([
+  const [{ parseSync, transformFromAstSync }, { default: compiler }, { transform }, { reactComponentBases, reactCompilerCandidates, uncompiledCandidates }, { outlineEventHandlers }] = await Promise.all([
     import("@babel/core"),
     import("babel-plugin-react-compiler"),
     import("sucrase"),
     import("../../../../../tools/react-compiler-coverage.mjs"),
+    import("../../../../../tools/preview-event-handlers.mjs"),
   ]);
   const ast = ensure(parseSync(mod.source, { filename: mod.name, babelrc: false, configFile: false, sourceType: "module", parserOpts: { plugins: ["typescript", "jsx"] } }), `Could not parse Preview source ${mod.name}`);
   const bases = reactComponentBases([ast]);
   const candidates = reactCompilerCandidates(ast, bases);
+  outlineEventHandlers(ast, candidates);
   const successes: Array<{ loc: unknown }> = [];
   const compiled = transformFromAstSync(ast, mod.source, {
     filename: mod.name,

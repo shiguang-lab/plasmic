@@ -39,8 +39,7 @@ export interface AppShellProps {
   direction?: "ltr" | "rtl";
   onDirectionChange?: (value: "ltr" | "rtl") => void;
   timeZone?: string;
-  currentTime?: string;
-  productName?: string;
+  productName?: React.ReactNode;
   logoUrl?: string;
   userName?: string;
   languages?: ShellOption[];
@@ -102,7 +101,6 @@ export function AppShell({
   direction,
   onDirectionChange,
   timeZone = "Asia/Shanghai",
-  currentTime,
   initialContentScrollTop,
   onContentScroll,
   children,
@@ -115,6 +113,22 @@ export function AppShell({
   const [localMenu, setMenu] = useState<string>();
   const [localDirection, setDirection] = useState<"ltr" | "rtl">("ltr");
   const [now, setNow] = useState(() => new Date());
+  const brandRef = React.useRef<HTMLDivElement>(null);
+  const [brandText, setBrandText] = useState("");
+  useEffect(() => {
+    const brand = brandRef.current;
+    if (!brand) return;
+    const updateText = () => {
+      const content = brand.cloneNode(true) as HTMLDivElement;
+      content.querySelectorAll("[data-plasmic-slot-placeholder], [data-plasmic-editor-only], [data-slate-zero-width]")
+        .forEach((element) => element.remove());
+      setBrandText(content.textContent?.trim() ?? "");
+    };
+    updateText();
+    const observer = new MutationObserver(updateText);
+    observer.observe(brand, { childList: true, characterData: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
   const contentRef = React.useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (contentRef.current && initialContentScrollTop !== undefined) {
@@ -122,12 +136,9 @@ export function AppShell({
     }
   }, [initialContentScrollTop]);
   useEffect(() => {
-    if (currentTime !== undefined) {
-      return;
-    }
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
-  }, [currentTime]);
+  }, []);
   const isCollapsed = collapsed ?? localCollapsed;
   const currentLanguage =
     language || localLanguage || languages[0]?.value || "en";
@@ -179,7 +190,9 @@ export function AppShell({
     menus.set(menuState.navigationKey, menuState.openKeys);
   }, [canvas, menuState]);
   const breadcrumbItems = [
-    { title: productName },
+    ...((typeof productName === "string" ? productName : brandText)
+      ? [{ title: typeof productName === "string" ? productName : brandText }]
+      : []),
     ...menuPath
       .filter((item) => item.label)
       .map((item) => ({
@@ -206,7 +219,6 @@ export function AppShell({
       .map(({ type, value }) => [type, value]),
   );
   const clock =
-    currentTime ??
     `${timeParts.year}-${timeParts.month}-${timeParts.day} ${timeParts.hour}:${timeParts.minute}:${timeParts.second}`;
   const linkedMenu = (items: any[]): any[] =>
     items.map(
@@ -282,18 +294,34 @@ export function AppShell({
                   }}
                 />
               ) : (
-                <Avatar shape="square" size={30} style={{ flexShrink: 0 }}>
-                  {productName.slice(0, 1)}
+                <Avatar
+                  shape="square"
+                  size={30}
+                  style={{ flexShrink: 0 }}
+                  icon={typeof productName === "string" ? undefined : <GlobalOutlined />}
+                >
+                  {typeof productName === "string" ? productName.slice(0, 1) : null}
                 </Avatar>
               )}
-              {!isCollapsed && (
-                <strong
-                  style={{ fontSize: 16, color: token.colorText }}
-                  title={productName}
+                <div
+                  ref={brandRef}
+                  data-app-shell-product-name
+                  style={{
+                    flex: "1 1 0%",
+                    minWidth: 0,
+                    height: 32,
+                    display: isCollapsed ? "none" : "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    overflow: "hidden",
+                    fontSize: 16,
+                    fontWeight: 600,
+                    color: token.colorText,
+                  }}
+                  title={typeof productName === "string" ? productName : undefined}
                 >
                   {productName}
-                </strong>
-              )}
+                </div>
             </div>
             <Menu
               mode="inline"
@@ -466,13 +494,23 @@ export const appShellMeta: CodeComponentMeta<AppShellProps> = {
       argTypes: [{ name: "value", type: "string" }],
     },
     timeZone: { displayName: "Time zone", type: "string", defaultValue: "Asia/Shanghai" },
-    currentTime: {
-      displayName: "Current time",
-      type: "string",
-      description:
-        "Host-supplied clock text; otherwise show the current time in timeZone.",
+    productName: {
+      displayName: "Brand",
+      type: "slot",
+      fixedRoot: true,
+      defaultValue: {
+        type: "text",
+        tag: "span",
+        elementName: "Brand",
+        value: "增长管理平台",
+        styles: {
+          width: "100%", height: "100%", lineHeight: "32px",
+          fontSize: "16px", fontWeight: "600", color: "inherit",
+          flexShrink: 0, margin: "0", padding: "0",
+        },
+      },
+      hidePlaceholder: false,
     },
-    productName: { displayName: "Product name", type: "string", defaultValue: "增长管理平台" },
     logoUrl: { type: "imageUrl", displayName: "Logo" },
     userName: { displayName: "User name", type: "string", defaultValue: "示例用户" },
     languages: {

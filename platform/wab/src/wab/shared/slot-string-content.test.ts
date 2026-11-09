@@ -9,6 +9,9 @@ import { flattenTpls, isTplCodeComponent, mkTplComponent, trackComponentSite } f
 import { assert } from "@/wab/shared/common";
 import { isKnownRenderExpr } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
+import { runInNewContext } from "node:vm";
+import { ChangeRecorder } from "@/wab/shared/core/observable-model";
+import { instUtil } from "@/wab/shared/model/InstUtil";
 
 function fixture(defaultValue: string | { type: "text"; value: string }) {
   const site = createSite();
@@ -22,6 +25,21 @@ function fixture(defaultValue: string | { type: "text"; value: string }) {
   assert(isTplCodeComponent(tpl), "Button must be a code component");
   return { site, component, tpl };
 }
+
+it("owns structured default schemas from a separate development Host window before observing the model", () => {
+  const external = runInNewContext('({type:"text",tag:"span",elementName:"Brand",value:"客服中心",styles:{width:"100%",height:"100%"}})');
+  expect(external.constructor).not.toBe(Object);
+  const { site, component } = fixture("Old brand");
+  const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
+  try {
+    const defaults = extractDefaultSlotContents({ name: "Button", importPath: "./Button", props: { children: { type: "slot", defaultValue: external } } });
+    expect(defaults.children).toEqual(external);
+    expect(defaults.children).not.toBe(external);
+    expect(defaults.children.constructor).toBe(Object);
+    expect((defaults.children as { styles: object }).styles.constructor).toBe(Object);
+    expect(() => recorder.withRecording(() => { component.codeComponentMeta.defaultSlotContents = defaults; })).not.toThrow();
+  } finally { recorder.dispose(); }
+});
 
 it.each(["新建模板", ""])("creates a primitive default slot without text elements: %j", (text) => {
   const { component, tpl } = fixture(text);

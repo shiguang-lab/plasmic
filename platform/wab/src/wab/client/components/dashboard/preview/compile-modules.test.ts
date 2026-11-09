@@ -72,7 +72,7 @@ it("terminates when posting a batch fails", async () => {
   expect(workers[0].terminate).toHaveBeenCalledOnce();
 });
 
-it.each(["valid", "invalid-hooks", "unvisited"])("uses the real strict compiler inside the single-use worker (%s)", async (kind) => {
+it.each(["valid", "finally", "invalid-hooks", "unvisited"])("uses the real strict compiler inside the single-use worker (%s)", async (kind) => {
   vi.resetModules();
   const scope: {
     onmessage: ((event: MessageEvent<SourceModule[]>) => Promise<void>) | null;
@@ -85,6 +85,8 @@ it.each(["valid", "invalid-hooks", "unvisited"])("uses the real strict compiler 
       ? 'import React from "react"; export function Root({on}){if(on){React.useState(0);}return <span/>;}'
       : kind === "unvisited"
         ? 'import React from "react"; export function Root(){"use no memo";return <span/>;}'
+        : kind === "finally"
+          ? 'import React from "react"; export function Root({run,cleanup}){return <button onClick={async()=>{try{return await run()}finally{cleanup()}}}/>;}'
         : 'import React from "react"; export function Root({value}){return <span>{value}</span>;}' },
     { name: "./style.css", lang: "css", source: "span{color:red}" },
   ];
@@ -101,5 +103,8 @@ it.each(["valid", "invalid-hooks", "unvisited"])("uses the real strict compiler 
       { fileName: "./root.tsx", type: "code", code: expect.stringContaining("react/compiler-runtime") },
       { fileName: "./style.css", type: "asset", source: "span{color:red}" },
     ] });
+    if (kind === "finally" && "modules" in reply) {
+      expect(reply.modules[0]).toMatchObject({ code: expect.stringContaining("finally") });
+    }
   }
 });

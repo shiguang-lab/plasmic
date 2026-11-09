@@ -8,6 +8,7 @@ import { desktopSources, hashFiles, sourceIdentity } from "../../scripts/build-i
 import { assertDesktopBrowserTarget } from "../../scripts/studio-build-target.mjs";
 import { macSigningCertificate, verifyMacSignature } from "./local-signing.mjs";
 import runtimeSecurity from "../src/runtime-security.cjs";
+import { installMacLauncher } from "./mac-launcher.mjs";
 import { buildMcp } from "./build-mcp.mjs";
 import { prepareComponentReuse } from "./prepare-component-reuse.mjs";
 import { verifyComponentReuseRuntime } from "./component-reuse-runtime.mjs";
@@ -101,6 +102,7 @@ const outputs = await build({
         const version = JSON.parse(execFileSync(helper, ["--version"], { encoding: "utf8" }));
         if (!version.go || version.version !== metadata.version) throw new Error("Packaged Go MCP verification failed");
       }
+      installMacLauncher(path.dirname(bundle), arch);
     },
     afterSign: async (context) => {
       if (platform !== "darwin" || process.platform !== "darwin") return;

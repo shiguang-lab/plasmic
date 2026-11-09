@@ -234,6 +234,9 @@ export interface EventHandlerType<P> extends PropTypeBase<
 export interface RichSlotType<P> {
   type: "slot";
   description?: string;
+  /** Keep the slot's authored root selectable with only its text content editable.
+   * Its structure and styles are fixed; the slot itself is not an editor target. */
+  fixedRoot?: boolean;
 
   /**
    * The unique names of all code components that can be placed in the slot

@@ -6,8 +6,9 @@ var last = ""
 func sample() {
   let apps = NSWorkspace.shared.runningApplications
     .filter { $0.bundleURL?.path == bundle }
-    .map { ["pid": Int($0.processIdentifier), "policy": $0.activationPolicy.rawValue] }
-    .sorted { $0["pid"]! < $1["pid"]! }
+    .map { ["pid": Int($0.processIdentifier), "policy": $0.activationPolicy.rawValue,
+             "finished": $0.isFinishedLaunching] as [String: Any] }
+    .sorted { ($0["pid"] as! Int) < ($1["pid"] as! Int) }
   let state = String(data: try! JSONSerialization.data(withJSONObject: apps, options: [.sortedKeys]), encoding: .utf8)!
   if state != last {
     let event: [String: Any] = ["time": Date().timeIntervalSince1970, "apps": apps]

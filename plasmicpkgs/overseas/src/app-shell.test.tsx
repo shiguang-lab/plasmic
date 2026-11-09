@@ -1,8 +1,11 @@
 import assert from "node:assert/strict";
-import { test } from "vitest";
+import { afterEach, beforeEach, test, vi } from "vitest";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { registerAppShell } from "./registerAppShell";
+
+beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date("2026-10-03T13:30:00Z")); });
+afterEach(() => vi.useRealTimers());
 
 const components = new Map<string, any>();
 registerAppShell({ registerComponent(component, meta) { components.set(meta.name, { component, meta }); } });
@@ -12,12 +15,22 @@ test("AppShell registers configurable shared layout, editable body and an offlin
   assert(shell.meta.section);
   assert.match(shell.meta.thumbnailUrl, /^data:image\/svg\+xml/);
   assert.equal(shell.meta.props.children.type, "slot");
+  assert.equal(shell.meta.props.productName.type, "slot");
+  assert.equal(shell.meta.canvasParts, undefined);
+  assert.equal(shell.meta.canvasText, undefined);
+  assert.equal(shell.meta.props.currentTime, undefined);
+  assert.equal(shell.meta.props.productName.fixedRoot, true);
+  assert.equal(shell.meta.props.productName.defaultValue.tag, "span");
+  assert.equal(shell.meta.props.productName.defaultValue.elementName, "Brand");
+  assert.equal(shell.meta.props.productName.defaultValue.styles.lineHeight, "32px");
+  assert.equal(shell.meta.props.productName.defaultValue.styles.fontSize, "16px");
+  assert.equal(shell.meta.props.productName.hidePlaceholder, false);
   for (const prop of ["productName", "userName", "languages", "appSources", "menuItems"])
     assert(shell.meta.props[prop]);
   for (const state of ["collapsed", "language", "appSource", "selectedMenuKey"])
     assert(shell.meta.props[shell.meta.states[state].onChangeProp]);
   const html = renderToStaticMarkup(React.createElement(shell.component, {
-    productName: "Test product", userName: "Test operator", currentTime: "2026-10-03 21:30:00",
+    productName: "Test product", userName: "Test operator",
     languages: [{ value: "en", label: "English" }], appSources: [{ value: "OTHER", label: "Other market" }],
     menuItems: [{ key: "custom", label: "Current page" }], selectedMenuKey: "custom", children: <article>Editable business content</article>,
   }));
@@ -27,6 +40,27 @@ test("AppShell registers configurable shared layout, editable body and an offlin
   assert.match(html, /height:64px/);
   const collapsed = renderToStaticMarkup(React.createElement(shell.component, { collapsed: true }));
   assert.match(collapsed, /width:80px/);
+});
+
+test("AppShell renders editable product content and components in its brand slot", () => {
+  const shell = components.get("plasmic-overseas-app-shell")!;
+  const productName = <span><em>客服平台</em><span aria-label="环境">测试</span></span>;
+  const render = (collapsed: boolean) => renderToStaticMarkup(
+    <shell.component productName={productName} collapsed={collapsed} />
+  );
+  const html = render(false);
+  const brand = html.match(/<div[^>]*data-app-shell-product-name[^>]*>[\s\S]*?<\/div>/)![0];
+  assert.match(brand, /<em>客服平台<\/em>/);
+  assert.match(brand, /aria-label="环境">测试/);
+  assert.equal(html.split("客服平台").length - 1, 1);
+  assert(!brand.includes("[object Object]"));
+  assert.match(render(true), /data-app-shell-product-name[^>]*display:none/);
+  const empty = renderToStaticMarkup(<shell.component productName={null} />);
+  assert(!empty.includes("增长管理平台"));
+  const emptyBrand = empty.match(/<div[^>]*data-app-shell-product-name[^>]*><\/div>/)![0];
+  assert.match(emptyBrand, /flex:1 1 0%/);
+  assert.match(emptyBrand, /height:32px/);
+  assert.match(emptyBrand, /min-width:0/);
 });
 
 import { PageParamsProvider } from "@plasmicapp/host";
@@ -52,7 +86,7 @@ test("route-derived breadcrumbs include every parent and hidden detail routes", 
   const shell = components.get("plasmic-overseas-app-shell")!;
   assert.equal(shell.meta.props.breadcrumbItems, undefined);
   const html = renderToStaticMarkup(<PageParamsProvider route="/groups/detail">
-    <shell.component productName="经营平台" menuItems={routes} selectedMenuKey="sql" currentTime="00:00" />
+    <shell.component productName="经营平台" menuItems={routes} selectedMenuKey="sql" />
   </PageParamsProvider>);
   const breadcrumb = html.match(/<nav[^>]*ant-breadcrumb[\s\S]*?<\/nav>/)![0];
   assert.match(breadcrumb, /经营平台/);assert.match(breadcrumb, /客户运营/);assert.match(breadcrumb, /客群列表/);assert.match(breadcrumb, /常规客群详情/);
@@ -73,7 +107,7 @@ test("detail IDs inherit the longest menu route and keep the visible parent sele
 
   const shell = components.get("plasmic-overseas-app-shell")!;
   const html = renderToStaticMarkup(<PageParamsProvider route="/groups/detail/[id]" params={{ id: "GRP_REGULAR_1006" }}>
-    <shell.component menuItems={routes} currentTime="00:00" />
+    <shell.component menuItems={routes} />
   </PageParamsProvider>);
   const breadcrumb = html.match(/<nav[^>]*ant-breadcrumb[\s\S]*?<\/nav>/)![0];
   assert.match(breadcrumb, /常规客群详情/);

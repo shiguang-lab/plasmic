@@ -1,4 +1,5 @@
 import { useContentEditorScope } from "@/wab/client/studio-ctx/canvas-content-editor";
+import { isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
 import { useEditingTextContext } from "@/wab/client/studio-ctx/editing-text-state";
 import { useAutoOpenedUuid } from "@/wab/client/studio-ctx/auto-open-state";
 import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
@@ -323,7 +324,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
   };
 
   const startMove = (e: XDraggableEvent) => {
-    if (viewProps.displayProps?.isComponentPart) {
+    if (viewProps.displayProps?.isComponentPart || (viewCtx && isFixedSlotRoot(viewCtx, viewCtx.focusedTpl()))) {
       return;
     }
     if (studioCtx.showStackOfParents) {
@@ -1139,7 +1140,8 @@ function HoverBoxGeometry({
   target: HoverBoxTarget;
 }) {
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
-  useViewSelection(viewCtx, useShallow((state) => [state.part, state.doms, state.context, state.cloneKeys]));
+  const selection = useViewSelection(viewCtx, useShallow((state) => [state.part, state.doms, state.context, state.cloneKeys]));
+  const selectedPart = React.useMemo(() => viewCtx.focusedComponentPart, [viewCtx, selection]);
   useContentEditorScope(viewCtx.studioCtx);
   const forceUpdate = useFrameForceUpdate(viewCtx.disposeSignal);
   useCanvasGeometry(viewCtx.studioCtx);
@@ -1148,7 +1150,7 @@ function HoverBoxGeometry({
   const transformingObject = useStore(viewCtx.studioCtx.transformingObjectStore);
   const draggingObject = useStore(viewCtx.studioCtx.draggingObjectStore);
   useFrameHeight(viewCtx.studioCtx, isKnownArenaFrame(target) ? target : undefined);
-  const viewProps = computeHoverBoxViewState(viewCtx, target, transformingObject, draggingObject);
+  const viewProps = computeHoverBoxViewState(viewCtx, target, transformingObject, draggingObject, selectedPart);
   const partElement =
     viewProps.displayProps &&
     "isComponentPart" in viewProps.displayProps &&
@@ -1206,14 +1208,14 @@ export const HoverBoxes = memo(HoverBoxes_);
 function HoverBoxes_(props: { studioCtx: StudioCtx }) {
   const { studioCtx } = props;
   useContentEditorScope(studioCtx);
-  useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view]));
   useCanvasTransforming(studioCtx);
   // computeHoverBoxTargets resolves controlled frames through the registry
   // command index; this subscription keeps that result reactive to a roster
   // change without making every unrelated model commit clone the roster.
   useViewRegistry(studioCtx, (entries) => entries);
 
-  const viewCtx = studioCtx.focusedViewCtx();
+  const studioSelection = useStudioSelection(studioCtx, (state) => state);
+  const viewCtx = studioSelection.view;
   useCanvasRenderCount(viewCtx);
   const targetRecipe = React.useCallback<CanvasViewFieldRecipe>((field) => {
     if (!viewCtx) { return; }
@@ -1222,8 +1224,9 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
   }, [viewCtx]);
   const scope = useCanvasViewInputs(viewCtx, targetRecipe);
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
-  useViewSelection(viewCtx, (state) => state.doms);
-  useViewSelection(viewCtx, (state) => state.targets);
+  const selection = useViewSelection(viewCtx, useShallow((state) => ({
+    targets: state.targets, doms: state.doms, tpls: state.tpls, part: state.part,
+  })));
 
   useStudioRenderPolicy(studioCtx, (policy) => policy.devMode);
   useStudioOverlayState(studioCtx, (state) => state.screenshotting);
@@ -1268,15 +1271,15 @@ function HoverBoxes_(props: { studioCtx: StudioCtx }) {
     });
   }, [viewCtx, canvasBody, forceUpdate]);
 
-  if (studioCtx.focusedFrames().length > 1) {
+  if (studioSelection.frames.length > 1) {
     return studioCtx.shouldHideUIOverlay(false) ? null : (
       <FrameSelectionBox studioCtx={studioCtx} />
     );
   }
-  if (viewCtx && viewCtx.focusedSelectables().length > 1) {
+  if (viewCtx && selection.targets.length > 1) {
     return shouldHideHoverBox ? null : <MultiSelectionBox viewCtx={viewCtx} />;
   }
-  const targets = scope.alive ? computeHoverBoxTargets(studioCtx) : [];
+  const targets = scope.alive ? computeHoverBoxTargets(studioCtx, studioSelection, selection) : [];
   return shouldHideHoverBox ? null : (
     <>
       {targets.map((target, i) => (

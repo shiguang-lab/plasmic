@@ -1,3 +1,5 @@
+import { isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
+import { TextOnlySection } from "@/wab/client/components/sidebar-tabs/TypographySection";
 import { useContentEditorMode } from "@/wab/client/studio-ctx/content-editor-mode-state";
 import { useTargetedStylePanelInputs, useTargetedStylePanelValue } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
 import { useStore } from "zustand";
@@ -125,7 +127,11 @@ function readStyleTab(view: ViewCtx, tpl: TplNode) {
 const StyleTabForTpl = React.memo(function StyleTabForTpl(props: { tpl: TplNode; viewCtx: ViewCtx }) {
   const select = React.useCallback(() => readStyleTab(props.viewCtx, props.tpl), [props.viewCtx, props.tpl]);
   const source = useTargetedStylePanelValue(props.viewCtx.studioCtx, { kind: "style-tab", view: props.viewCtx, tpl: props.tpl }, select);
-  return source.active && source.value ? <StyleTabForTplBody {...props} styleInput={source.value} /> : null;
+  if (!source.active || !source.value) return null;
+  if (isFixedSlotRoot(props.viewCtx, props.tpl)) {
+    return <TextOnlySection viewCtx={props.viewCtx} expsProvider={new TplExpsProvider(props.viewCtx, props.tpl)} title={<UiText message="Props" />} />;
+  }
+  return <StyleTabForTplBody {...props} styleInput={source.value} />;
 });
 function StyleTabForTplBody(props: { tpl: TplNode; viewCtx: ViewCtx; styleInput: ReturnType<typeof readStyleTab> }) {
   const { tpl, viewCtx, styleInput } = props;

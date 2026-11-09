@@ -83,6 +83,7 @@ export const desktopSources = [
     .filter(name => /\.go$/.test(name) && !name.endsWith("_test.go") || ["go.mod", "go.sum"].includes(name))
     .map(name => `mcp/${name}`),
   "scripts/build-mcp.mjs",
+  "scripts/mac-launcher.mjs",
   "package.json",
   "desktop.config.json",
 ];

@@ -24,6 +24,7 @@ import {
 } from "@/wab/client/clipboard/local";
 import { toast } from "@/wab/client/components/Messages";
 import { closestTaggedNonTextDomElt } from "@/wab/client/components/canvas/studio-canvas-util";
+import { isFixedRootSlot, isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
 import { getActiveCanvasModal, getCanvasModalSelectionRoot } from "@/wab/client/components/canvas/canvas-modal-scope";
 import { promptExtractComponent } from "@/wab/client/components/modals/ExtractComponentModal";
 import { promptWrapInComponent } from "@/wab/client/components/modals/WrapInComponentModal";
@@ -396,6 +397,7 @@ export class ViewOps {
 
   nudgePosition(dir: "left" | "right" | "up" | "down", large = false) {
     const tpl = this.viewCtx().focusedTpl();
+    if (isFixedSlotRoot(this.viewCtx(), tpl)) return;
 
     if (
       this.studioCtx().focusedFrame() === this.viewCtx().arenaFrame() ||
@@ -653,6 +655,7 @@ export class ViewOps {
 
   nudgeSize(dim: "width" | "height", grow: boolean, large = false) {
     const tpl = this.viewCtx().focusedTpl();
+    if (isFixedSlotRoot(this.viewCtx(), tpl)) return;
 
     if (
       this.studioCtx().focusedFrame() === this.viewCtx().arenaFrame() ||
@@ -740,6 +743,7 @@ export class ViewOps {
       return;
     }
     const targetTpls = targets.filter((t) => isKnownTplNode(t)) as TplNode[];
+    if (targetTpls.some((tpl) => isFixedSlotRoot(this.viewCtx(), tpl))) return;
     if (targetTpls.length !== targets.length || !Tpls.areSiblings(targetTpls)) {
       notification.error({
         message: translate(getUiLocale(), "Cannot wrap non-sibling nodes."),
@@ -814,6 +818,7 @@ export class ViewOps {
       return;
     }
     const targetTpls = targets.filter((t) => isKnownTplNode(t)) as TplNode[];
+    if (targetTpls.some((tpl) => isFixedSlotRoot(this.viewCtx(), tpl))) return;
     if (targetTpls.length !== targets.length || !Tpls.areSiblings(targetTpls)) {
       notification.error({
         message: translate(getUiLocale(), "Cannot wrap non-sibling nodes."),
@@ -958,6 +963,7 @@ export class ViewOps {
    * based on any available current rendered positions.
    */
   setStackLayout(tpl: TplNode, desiredDir: ContainerType) {
+    if (isFixedSlotRoot(this.viewCtx(), tpl)) return;
     if (
       Tpls.isTplTag(tpl) &&
       Tpls.isTplContainer(tpl) &&
@@ -1127,6 +1133,7 @@ export class ViewOps {
 
   autoSizeFocused() {
     const tpl = this.viewCtx().focusedTpl();
+    if (isFixedSlotRoot(this.viewCtx(), tpl)) return;
     if (tpl && Tpls.isTplTagOrComponent(tpl)) {
       if (
         this.isRootNodeOfFrame(tpl) &&
@@ -1596,6 +1603,9 @@ export class ViewOps {
       exact: boolean;
     },
   ) {
+    if (focusObj instanceof SlotSelection && isFixedRootSlot(this.viewCtx(), focusObj) && focusObj.val) {
+      focusObj = focusObj.val;
+    }
     if (opts.deepSelect && focusObj instanceof ValNode) {
       const boundary = this.focusHeuristics()
         .parentComponents(focusObj)
@@ -1607,6 +1617,7 @@ export class ViewOps {
     }
     return this.focusHeuristics().bestFocusTarget(focusObj, {
       ...opts,
+      exact: focusObj instanceof ValNode && isFixedSlotRoot(this.viewCtx(), focusObj.tpl) ? true : opts.exact,
       curFocused: this.viewCtx().focusedSelectable(),
     });
   }
@@ -1908,6 +1919,7 @@ export class ViewOps {
   }
 
   ungroup(tpl: TplNode) {
+    if (isFixedSlotRoot(this.viewCtx(), tpl)) return false;
     this.change(() => $$$(tpl).ungroup());
     return true;
   }
@@ -1961,7 +1973,7 @@ export class ViewOps {
       ),
     );
 
-    if (tpls.length === 0) {
+    if (tpls.length === 0 || tpls.some((tpl) => isFixedSlotRoot(this.viewCtx(), tpl))) {
       return;
     }
 
@@ -2273,6 +2285,7 @@ export class ViewOps {
 
   convertToLink(maybeTpl?: TplNode) {
     const tpl = maybeTpl ?? this.viewCtx().focusedTpl();
+    if (isFixedSlotRoot(this.viewCtx(), tpl)) return;
 
     // If the tpl is a text element or a non-atomic tag element, just turn
     // its tag to "a" instead of wrapping in an "a" container.
@@ -2574,6 +2587,7 @@ export class ViewOps {
     const { clip, cssProps } = props;
     const targetTpl =
       props.targetTpl || this.viewCtx().focusedTpl() || undefined;
+    if (isFixedSlotRoot(this.viewCtx(), targetTpl)) return false;
     if (
       !Tpls.isTplTag(targetTpl) &&
       !(Tpls.isTplComponent(targetTpl) && isCodeComponent(targetTpl.component))
@@ -3235,6 +3249,7 @@ export class ViewOps {
     targetTplOrSlotSelection: TplNode | SlotSelection,
     showErrors: boolean,
   ) {
+    if (!(targetTplOrSlotSelection instanceof SlotSelection) && isFixedSlotRoot(this.viewCtx(), targetTplOrSlotSelection)) return false;
     const reason = canInsertTplAsChild(
       newItem,
       targetTplOrSlotSelection,
@@ -3254,6 +3269,7 @@ export class ViewOps {
     target: TplNode | SlotSelection,
     showErrors: boolean,
   ) {
+    if (!(target instanceof SlotSelection) && isFixedSlotRoot(this.viewCtx(), target)) return false;
     const reason = canInsertTplAsSibling(newItem, target, this.insertTplCtx());
     if (reason !== true) {
       if (showErrors) {
@@ -3284,6 +3300,8 @@ export class ViewOps {
     loc: InsertRelLoc,
     showErrorNotification: boolean,
   ) {
+    if (target instanceof SlotSelection ? isFixedRootSlot(this.viewCtx(), target)
+      : isFixedSlotRoot(this.viewCtx(), target)) return false;
     const reason = canPasteTplAt(newItem, target, loc, this.pasteTplCtx());
     if (reason !== true) {
       if (showErrorNotification) {
@@ -3329,6 +3347,7 @@ export class ViewOps {
         this.viewCtx().focusedTpl(),
         "Should have focused tpl to be able to extract component",
       );
+    if (isFixedSlotRoot(this.viewCtx(), tpl)) return;
     const containingComponent = $$$(tpl).owningComponent();
 
     const validationError = validateComponentExtraction(
@@ -3677,6 +3696,10 @@ export class ViewOps {
       afterNode?: TplNode;
     } = {},
   ) {
+    if (isFixedSlotRoot(this.viewCtx(), newNode)) return;
+    if (!(newParent instanceof SlotSelection) && isFixedSlotRoot(this.viewCtx(), newParent)) return;
+    if (newParent instanceof SlotSelection && isFixedRootSlot(this.viewCtx(), newParent) &&
+      this.getSlotTplContent(newParent)?.length) return;
     const result = insertTplAsChild(
       newNode,
       newParent,
@@ -3757,6 +3780,7 @@ export class ViewOps {
     target: TplNode | SlotSelection,
     showErrorNotification: boolean,
   ) {
+    if (!(target instanceof SlotSelection) && isFixedSlotRoot(this.viewCtx(), target)) return false;
     const reason = canInsertTplAsParent(newNode, target);
     if (reason !== true) {
       if (showErrorNotification) {
@@ -3770,6 +3794,7 @@ export class ViewOps {
   // If convertAtomically set to true, it means always convert tpl as the
   // defaultContent of a slot.
   convertToSlot(tpl: TplTag | TplComponent, convertAtomically?: boolean) {
+    if (isFixedSlotRoot(this.viewCtx(), tpl)) return;
     // You cannot convert a tpl to a TplSlot if it's already a default content for
     // some TplSlot!
     if (
@@ -4276,6 +4301,7 @@ export class ViewOps {
     tpl: Tpls.TplTextTag,
     inferFlexStyleFromChild = false,
   ) {
+    if (isFixedSlotRoot(this.viewCtx(), tpl)) return;
     const container = convertTextBlockToContainerOp(
       tpl,
       this.insertTplCtx(),
@@ -4402,6 +4428,7 @@ export class ViewOps {
   };
 
   setTplVisibility = (tpl: TplNode, visibility: TplVisibility) => {
+    if (isFixedSlotRoot(this.viewCtx(), tpl)) return;
     const combo = this.viewCtx()
       .variantTplMgr()
       .getTargetVariantComboForNode(tpl, { forVisibility: true });

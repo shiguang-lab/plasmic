@@ -133,7 +133,6 @@ test("AppShell 的语言和账号菜单悬停打开，选中后才执行", async
   const onUserAction = vi.fn();
   render(
     <AppShell
-      currentTime="2026-10-04 19:00:00"
       userName="测试管理员"
       appSources={[]}
       menuItems={[]}

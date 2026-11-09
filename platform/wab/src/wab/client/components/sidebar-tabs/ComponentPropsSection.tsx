@@ -321,6 +321,7 @@ const ComponentPropsSectionContent = React.memo(
     });
     const slotParams = getSlotParams(component).filter((param) => {
       const propType = propTypes?.[param.variable.name];
+      if (typeof propType === "object" && propType.type === "slot" && propType.fixedRoot) return false;
       if (typeof propType !== "object" || !("hidden" in propType)) {
         return true;
       }

@@ -44,7 +44,7 @@ test("the shipped entry applies production restrictions before importing the app
   assert.deepEqual(calls, ["restrict", "import", "bootstrap"]);
 });
 
-test("the public MCP command replaces Electron with the bundled helper before GUI initialization",()=>{
+test("development POSIX MCP replaces Electron without bootstrapping the GUI",()=>{
   const calls=[],app={setActivationPolicy:()=>{},exit:()=>assert.fail("Unexpected startup failure")};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../src/entry.cjs"),"utf8"),{
     process:{argv:["--mcp"],platform:"darwin",env:{},execve:(command,args)=>{assert.equal(command,"/helper");assert.equal(args[0],command);calls.push("replace");}},

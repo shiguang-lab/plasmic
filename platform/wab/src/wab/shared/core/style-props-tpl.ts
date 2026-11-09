@@ -1,6 +1,6 @@
 import { PublicStyleSection } from "@/wab/shared/ApiSchema";
 import { ReadonlyIRuleSetHelpersX } from "@/wab/shared/RuleSetHelpers";
-import { isTypographyNode } from "@/wab/shared/SlotUtils";
+import { getSlotSelectionContainingTpl, isTypographyNode } from "@/wab/shared/SlotUtils";
 import { CodeComponentsRegistry } from "@/wab/shared/code-components/code-components";
 import {
   FLEX_CONTAINER_PROPS,
@@ -43,6 +43,12 @@ export function isValidStylePropForTpl(
   rsh: ReadonlyIRuleSetHelpersX,
   ccRegistry: CodeComponentsRegistry,
 ): boolean {
+  const slot = getSlotSelectionContainingTpl(tpl);
+  const slotProp = slot && Tpls.isTplCodeComponent(slot.getTpl()) && ccRegistry.getRegisteredCodeComponentsMap()
+    .get(slot.getTpl().component.name)?.meta.props[slot.slotParam.variable.name];
+  if (slotProp && typeof slotProp === "object" && slotProp.type === "slot" && slotProp.fixedRoot) {
+    return false;
+  }
   if (!isValidStyleProp(prop)) {
     return false;
   }

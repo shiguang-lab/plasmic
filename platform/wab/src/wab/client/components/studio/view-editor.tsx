@@ -114,6 +114,7 @@ import {
   isTplTextBlock,
 } from "@/wab/shared/core/tpls";
 import { ValComponent, ValNode, ValTag } from "@/wab/shared/core/val-nodes";
+import { isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
 import { dbg } from "@/wab/shared/dbg";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { Box, Pt } from "@/wab/shared/geom";
@@ -1182,14 +1183,14 @@ private async handleMouseDown(
 
     this.props.studioCtx.commentsCtx.maybeCloseCommentDialogs();
 
+    const partTarget = !isCanvasModifierPressed(e) && !e.shiftKey && !e.altKey
+      ? getCanvasComponentPartTarget(targetVc, $target[0]) : undefined;
+    const editingPartContent = partTarget && targetVc.focusedTpl() !== partTarget.part.tpl &&
+      targetVc.focusedDomElt()?.toArray().some((element) => partTarget.part.element.contains(element));
     targetVc.setFocusedComponentPart(undefined);
-    const owner = targetVc.dom2focusObj(closest);
-    if (!e.shiftKey && !e.altKey && owner instanceof ValComponent && isCodeComponent(owner.tpl.component)) {
-      const part = findCanvasComponentPart(
-        $target[0], closest[0], owner.tpl,
-        targetVc.getCodeComponentMeta(owner.tpl.component)?.canvasParts,
-      );
-      if (part) {
+    if (partTarget) {
+      const { owner, part } = partTarget;
+      if (!editingPartContent || targetVc.dom2focusObj(closest) === owner) {
         targetVc.changeSelection(() => {
           targetVc.getViewOps().tryFocusObj(owner, { exact: true, anchorCloneKey: targetVc.sel2cloneKey(owner) });
           targetVc.setFocusedComponentPart(part);
@@ -1239,7 +1240,9 @@ private async handleMouseDown(
       }
     }
 
-    this.dragState = makeSpeculativeDragState();
+    if (!(focusable instanceof ValNode && isFixedSlotRoot(targetVc, focusable.tpl))) {
+      this.dragState = makeSpeculativeDragState();
+    }
   }
 private throttledWarn = throttle(
     (args: ArgsProps) => notification.warning(args),
@@ -1593,7 +1596,12 @@ private async handleMouseUp(e: MouseEvent, vc: ViewCtx | undefined | null) {
         !click.viewCtx.viewOps.isEditing(e.target as HTMLElement)
       ) {
         if (click.componentPart) {
-          click.viewCtx.change(() => click.viewCtx.viewOps.tryEditText());
+          if (click.viewCtx.focusedComponentPart?.text) {
+            click.viewCtx.change(() => click.viewCtx.viewOps.tryEditText());
+          } else {
+            click.viewCtx.setFocusedComponentPart(undefined);
+            click.viewCtx.viewOps.deepFocusElement(click.target);
+          }
         } else {
           click.viewCtx.viewOps.deepFocusElement(click.target);
         }
@@ -1781,6 +1789,12 @@ private handleContextMenu = (e: MouseEvent, focusedVc?: ViewCtx) => {
     }
     const [$target, targetVc] = r;
     if (!targetVc) {
+      return;
+    }
+
+    if (targetVc.focusedComponentPart?.element.contains($target[0])) {
+      e.preventDefault();
+      e.stopPropagation();
       return;
     }
 
@@ -2335,7 +2349,7 @@ function PageSettingsDialogHost({ studioCtx }: { studioCtx: StudioCtx }) {
 
 function EditingTextToolbar({ viewCtx }: { viewCtx: ViewCtx | undefined }) {
   const editingText = useEditingTextContext(viewCtx);
-  return editingText ? <RichTextToolbar ctx={editingText} /> : null;
+  return editingText && viewCtx && !isFixedSlotRoot(viewCtx, editingText.val.tpl) ? <RichTextToolbar ctx={editingText} /> : null;
 }
 
 const HiddenContentBanner = React.memo(function HiddenContentBanner({ viewCtx }: { viewCtx: ViewCtx }) {
@@ -2351,4 +2365,4 @@ function CanvasMarquee({ studioCtx, box }: { studioCtx: StudioCtx; box: Box }) {
   const rect = box.plus(scroll).sub(canvasPadding).sub(clipperBox.topLeft()).scale(1 / scale).rect();
   return <div className="canvas-editor__marquee" style={{ ...rect, borderWidth: 1 / scale }} />;
 }
-import { findCanvasComponentPart } from "@/wab/client/components/canvas/canvas-component-parts";
+import { getCanvasComponentPartTarget } from "@/wab/client/components/canvas/canvas-component-parts";

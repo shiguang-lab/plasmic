@@ -14,12 +14,12 @@ import { mock } from "vitest-mock-extended";
 
 vi.mock("@/wab/client/components/canvas/studio-canvas-util", async (original) => ({
   ...await original<typeof import("@/wab/client/components/canvas/studio-canvas-util")>(),
-  closestTaggedNonTextDomElt: (target: JQuery) => target.closest("[data-owner]"),
+  closestTaggedNonTextDomElt: (target: JQuery) => target.closest("[data-content], [data-owner]"),
 }));
 
 afterEach(() => { document.body.innerHTML = ""; vi.restoreAllMocks(); });
 
-it("selects the native part's owner and props without starting a drag or a deep-selection click", async () => {
+it.each([true, false])("selects a protected part and double-clicks into its %s text contract or slot content", async (hasTextContract) => {
   const { studioCtx } = fakeStudioCtx();
   const source = mock<ViewCtx>();
   const canvas = mock<CanvasCtx>();
@@ -32,11 +32,14 @@ it("selects the native part's owner and props without starting a drag or a deep-
   const owner = new ValComponent({ tpl } as any);
   const root = document.body.appendChild(document.createElement("section"));
   root.dataset.owner = "";
-  root.innerHTML = '<button data-part="ok"><span>Next</span></button>';
+  root.innerHTML = '<button data-part="ok"><span data-content>Next</span></button>';
   source.getViewOps.mockReturnValue(viewOps);
   source.dom2focusObj.mockReturnValue(owner);
   source.sel2cloneKey.mockReturnValue("instance[1]");
-  source.getCodeComponentMeta.mockReturnValue({ canvasParts: { ok: { selector: '[data-part="ok"]', displayName: "Confirm button", props: ["okText", "onOk"] } } } as any);
+  source.getCodeComponentMeta.mockReturnValue({ canvasParts: { ok: { selector: '[data-part="ok"]', displayName: "Confirm button", props: ["okText", "onOk"], ...(hasTextContract ? { text: { prop: "okText", selector: '[data-part="ok"]' } } : {}) } } } as any);
+  let focusedPart: unknown;
+  source.setFocusedComponentPart.mockImplementation((part) => { focusedPart = part; });
+  Object.defineProperty(source, "focusedComponentPart", { get: () => focusedPart });
   source.changeSelection.mockImplementation((callback) => callback());
   source.change.mockImplementation((callback: any) => callback());
   canvas.$wabInternalElements.mockReturnValue([]);
@@ -58,19 +61,31 @@ it("selects the native part's owner and props without starting a drag or a deep-
     expect(Reflect.get(editor, "dragState")).toBeUndefined();
     expect(Reflect.get(editor, "pendingCanvasClick")).toMatchObject({ componentPart: true });
     expect(event.defaultPrevented).toBe(true);
+    const contextMenu = new MouseEvent("contextmenu", { bubbles: true, cancelable: true, button: 2 });
+    root.querySelector("span")!.dispatchEvent(contextMenu);
+    Reflect.get(editor, "handleContextMenu").call(editor, contextMenu, source);
+    expect(contextMenu.defaultPrevented).toBe(true);
+    expect(viewOps.getFinalFocusable).not.toHaveBeenCalled();
     const release = new MouseEvent("pointerup", { bubbles: true, button: 0 });
     root.querySelector("span")!.dispatchEvent(release);
     await Reflect.get(editor, "handleMouseUp").call(editor, release, source);
     expect(viewOps.tryEditText).not.toHaveBeenCalled();
     // Canvas reconciliation can replace native DOM while keeping the same model target.
-    root.innerHTML = '<button data-part="ok"><span>Next</span></button>';
+    root.innerHTML = '<button data-part="ok"><span data-content>Next</span></button>';
     const second = new MouseEvent("pointerdown", { bubbles: true, cancelable: true, button: 0 });
     root.querySelector("span")!.dispatchEvent(second);
     await Reflect.get(editor, "handleMouseDown").call(editor, second, source);
     const secondRelease = new MouseEvent("pointerup", { bubbles: true, button: 0 });
     root.querySelector("span")!.dispatchEvent(secondRelease);
     await Reflect.get(editor, "handleMouseUp").call(editor, secondRelease, source);
-    expect(viewOps.tryEditText).toHaveBeenCalledOnce();
-    expect(viewOps.deepFocusElement).not.toHaveBeenCalled();
+    if (hasTextContract) {
+      expect(viewOps.tryEditText).toHaveBeenCalledOnce();
+      expect(viewOps.deepFocusElement).not.toHaveBeenCalled();
+    } else {
+      expect(viewOps.tryEditText).not.toHaveBeenCalled();
+      expect(viewOps.deepFocusElement).toHaveBeenCalledOnce();
+      expect(viewOps.deepFocusElement.mock.calls[0][0]?.[0]).toBe(root.querySelector("span"));
+      expect(source.setFocusedComponentPart).toHaveBeenLastCalledWith(undefined);
+    }
   } finally { studioCtx.dispose(); }
 });

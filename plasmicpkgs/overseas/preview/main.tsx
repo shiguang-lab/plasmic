@@ -1,14 +1,24 @@
 import { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { PlasmicCanvasHost } from "@plasmicapp/host";
-import { Button, ConfigProvider, Typography } from "antd";
-import { AppShell, registerAppShell } from "../src/registerAppShell";
+import { PlasmicCanvasHost, registerComponent } from "@plasmicapp/host";
+import { Button, ConfigProvider, Tag, Typography } from "antd";
+import { AppShell, appShellMeta, registerAppShell } from "../src/registerAppShell";
 import { registerSearchForm } from "../src/registerSearchForm";
 import { SearchFormPreview } from "./SearchFormPreview";
 import { Registerable } from "../src/registerAppShell";
 
-registerAppShell();
-registerSearchForm();
+const params = new URLSearchParams(location.search);
+const localHost = location.pathname === "/local-host/";
+if (localHost) {
+  registerComponent(AppShell, {
+    ...appShellMeta,
+    name: "local-overseas-app-shell",
+    displayName: "AppShell (local development)",
+  });
+} else {
+  registerAppShell();
+  registerSearchForm();
+}
 let registration: any;
 registerAppShell({ registerComponent(_component, meta) { registration = meta; } } as Registerable);
 const sources = [{ value: "PAKORA", label: "PAKORA" }, { value: "TACO", label: "TACO" }];
@@ -19,7 +29,9 @@ function Preview() {
   const [page, setPage] = useState("apps");
   const [source, setSource] = useState("PAKORA");
   const [language, setLanguage] = useState("zh-CN");
-  return <AppShell timeZone="Asia/Shanghai" productName="增长管理平台" logoUrl={logo} userName="示例用户" menuItems={menus} selectedMenuKey={page} onMenuSelect={setPage} appSources={sources} appSource={source} onAppSourceChange={setSource} languages={languages} language={language} onLanguageChange={setLanguage}>
+  const brandSlot = new URLSearchParams(location.search).has("brand-slot");
+  const productName = brandSlot ? <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>客服平台<Tag color="blue" style={{ margin: 0 }}>测试</Tag></span> : "增长管理平台";
+  return <AppShell timeZone="Asia/Shanghai" productName={productName} logoUrl={logo} userName="示例用户" menuItems={menus} selectedMenuKey={page} onMenuSelect={setPage} appSources={sources} appSource={source} onAppSourceChange={setSource} languages={languages} language={language} onLanguageChange={setLanguage}>
     <div style={{ height: "100%", minHeight: "calc(100vh - 96px)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 12 }}>
       <strong style={{ color: "#536176", fontSize: 18 }}>页面业务内容插槽 (Page Body Slot)</strong>
       <span style={{ color: "#9cacc1", fontSize: 14 }}>在实例中直接替换此 Slot 填充业务页面；外层固定保留 16px 内容间距</span>
@@ -39,5 +51,4 @@ function Gallery() {
     <Typography.Paragraph>此地址也提供 <a href="?host">Plasmic 组件 Host</a>；缩略图随注册信息内置，不依赖外部图片服务。</Typography.Paragraph>
   </div>;
 }
-const params = new URLSearchParams(location.search);
-createRoot(document.getElementById("root")!).render(params.has("host") ? <PlasmicCanvasHost /> : params.has("search-form") ? <SearchFormPreview /> : <ConfigProvider><>{params.has("preview") ? <Preview /> : <Gallery />}</></ConfigProvider>);
+createRoot(document.getElementById("root")!).render(params.has("host") || localHost ? <PlasmicCanvasHost /> : params.has("search-form") ? <SearchFormPreview /> : <ConfigProvider><>{params.has("preview") ? <Preview /> : <Gallery />}</></ConfigProvider>);

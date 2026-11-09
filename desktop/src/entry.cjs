@@ -4,8 +4,8 @@ if (process.argv.includes("--mcp")) {
   // A transport process must never initialize the GUI or compete for its lock.
   app.setActivationPolicy?.("prohibited");
   const { command, args } = require("./mcp-launch.cjs").mcpLaunch(app);
-  // Keep the public --mcp entry using the same helper as registered clients.
-  // POSIX can replace this process before Electron starts browser services.
+  // Packaged macOS dispatches --mcp in mac-launcher.c before loading Electron.
+  // This branch serves development Electron and other platforms.
   try {
     if (process.platform !== "win32") {
       process.execve(command, [command, ...args], process.env);

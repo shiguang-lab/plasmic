@@ -60,6 +60,9 @@ it.each(["development", "production"] as const)("builds and executes strict Prev
         authoredVarInitial: '["undefined",4,4]', authoredVarUpdated: '["undefined",5,5]',
         authoredConditionalInitial: "first（未修改过）", authoredConditionalUpdated: "second（被用户修改过）",
         refCommandResult: ["first", "second"],
+        rowActions: { busyDuringRequest: true, result: "done", denied: "denied", rejected: "request failed",
+          busyAfter: false, error: "request failed", requests: 2, cleanups: 3 },
+        nativeEventSyntax: [4, 5],
         defaultPragma: true, customPragma: "Custom JSX", cssAsset: true,
         nodeGlobals: { require: "undefined", process: "undefined" },
       });

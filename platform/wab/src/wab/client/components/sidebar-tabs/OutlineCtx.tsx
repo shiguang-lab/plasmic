@@ -22,6 +22,7 @@ import { isCodeComponent } from "@/wab/shared/core/components";
 import { getOnlyAssetRef } from "@/wab/shared/core/image-assets";
 import { isTplAttachedToSite } from "@/wab/shared/core/sites";
 import { SlotSelection } from "@/wab/shared/core/slots";
+import { isFixedRootSlot } from "@/wab/client/components/canvas/fixed-slot-root";
 import * as Tpls from "@/wab/shared/core/tpls";
 import {
   isTplImage,
@@ -612,7 +613,9 @@ function getNodeKeyPath(
       $$$(f.tplComponent).ancestorsWithSlotSelections().toArray(),
     );
 
-  return [...ancestors, ...curCtxAncestors, frame].map(makeNodeKey);
+  return [...ancestors, ...curCtxAncestors, frame]
+    .filter((node) => !(node instanceof SlotSelection && isFixedRootSlot(vc, node)))
+    .map(makeNodeKey);
 }
 
 function makeFrameRootNode(viewCtx: ViewCtx, outlineCtx: OutlineCtx) {
@@ -822,9 +825,12 @@ function getTreeNodeChildren(
           }
         }
         return {
-          children: slotParams.map(
-            (slotParam) => new SlotSelection({ tpl, slotParam }),
-          ),
+          children: slotParams.flatMap<TplNode | SlotSelection>((slotParam) => {
+            const slot = new SlotSelection({ tpl, slotParam });
+            if (!isFixedRootSlot(viewCtx, slot)) return [slot];
+            const arg = viewCtx.effectiveCurrentVariantSetting(tpl).args.find((arg) => arg.param === slotParam);
+            return arg && isKnownRenderExpr(arg.expr) ? arg.expr.tpl : [];
+          }),
           childrenFrameNum: componentFrameNum,
         };
       })

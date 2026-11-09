@@ -33,6 +33,7 @@ async function isListening(port) {
 (async () => {
   assert.equal(process.platform, "darwin", "Packaged runtime acceptance requires macOS");
   const temporary = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-runtime-security-"));
+  const { installMacLauncher } = await import("../scripts/mac-launcher.mjs");
   let child, client, stop;
   try {
     const project = path.join(temporary, "project");
@@ -55,6 +56,8 @@ async function isListening(port) {
         let opened = false;
         app.whenReady().then(async () => {
           const window = new BrowserWindow({ show: false, webPreferences: { devTools: !app.isPackaged } });
+          const sharp = require(${JSON.stringify(require.resolve("sharp"))});
+          const image = await sharp({ create: { width: 1, height: 1, channels: 4, background: "white" } }).png().toBuffer();
           window.webContents.on("devtools-opened", () => { opened = true; });
           await window.loadURL("data:text/html,<main>Owned fixture</main>");
           window.webContents.openDevTools({ mode: "bottom", activate: false });
@@ -67,7 +70,7 @@ async function isListening(port) {
           control.webContents.openDevTools({ mode: "bottom", activate: false });
           await controlOpened;
           control.destroy();
-          fs.writeFileSync(path.join(process.env.PLASMIC_DESKTOP_PROFILE, "result.json"), JSON.stringify({ isPackaged: app.isPackaged, productionOpened, opened, developmentOpened: true,
+          fs.writeFileSync(path.join(process.env.PLASMIC_DESKTOP_PROFILE, "result.json"), JSON.stringify({ isPackaged: app.isPackaged, nativeAddon: image.length > 0, productionOpened, opened, developmentOpened: true,
             debuggingSwitch: app.commandLine.hasSwitch("remote-debugging-port"),
             debuggingPipe: app.commandLine.hasSwitch("remote-debugging-pipe") }));
         }).catch(error => { console.error(error); app.exit(1); });
@@ -85,6 +88,7 @@ async function isListening(port) {
       afterPack: (context) => {
         // Production's packaged dependency check runs before fuses and signing.
         execFileSync(path.join(context.appOutDir, "Plasmic.app/Contents/MacOS/Plasmic"), ["-e", "console.log('Pre-fuse package check passed')"], { env: { ...process.env, ELECTRON_RUN_AS_NODE: "1" }, stdio: "inherit" });
+        installMacLauncher(path.join(context.appOutDir, "Plasmic.app"), process.arch);
       },
       mac: { identity: "-", hardenedRuntime: false, notarize: false },
     } });
@@ -115,7 +119,7 @@ async function isListening(port) {
       await delay(100);
     }
     assert(result, output || "Packaged fixture did not finish");
-    assert.deepEqual(result, { isPackaged: true, productionOpened: false, opened: false, developmentOpened: true, debuggingSwitch: false, debuggingPipe: false });
+    assert.deepEqual(result, { isPackaged: true, nativeAddon: true, productionOpened: false, opened: false, developmentOpened: true, debuggingSwitch: false, debuggingPipe: false });
     assert.equal(await isListening(remotePort), false);
     assert.equal(await isListening(inspectorPort), false);
     await assert.rejects(fs.access(injected), { code: "ENOENT" });
@@ -142,7 +146,7 @@ async function isListening(port) {
       env:{...process.env,PLASMIC_DESKTOP_PROFILE:profile},stdio:"pipe"}));
     assert.equal(await isListening(helperPort),false);
     await assert.rejects(fs.access(evaluated),{code:"ENOENT"});
-    console.log("PASS: Packaged DevTools, remote debugging, Node inspector and environment injection disabled; MCP startup preserved");
+    console.log("PASS: Native addon loading and MCP startup preserved; packaged DevTools, remote debugging, Node inspector and environment injection disabled");
   } finally {
     if (client) await client.close();
     if (stop) await stop();

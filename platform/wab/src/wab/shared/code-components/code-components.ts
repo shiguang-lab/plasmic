@@ -34,6 +34,7 @@ import {
   isArrayOfLiterals,
   isArrayOfStrings,
   isNumeric,
+  jsonClone,
   maybe,
   mkShortId,
   objsEq,
@@ -2926,6 +2927,9 @@ export function elementSchemaToTpl(
             attrs: schema.attrs,
             baseVariant,
           });
+          if (schema.type === "text" && "elementName" in schema) {
+            tpl.name = schema.elementName?.trim() || null;
+          }
           const vs = ensureVariantSetting(tpl, baseCombo);
           RSH(vs.rs, tpl).merge(
             getDefaultStyles(
@@ -5303,7 +5307,9 @@ export function extractDefaultSlotContents(
           propMeta.type === "slot" &&
           propMeta.defaultValue !== undefined
         ) {
-          return [prop, propMeta.defaultValue];
+          // Host schemas can originate in another window. Persist editor-owned
+          // JSON data so the model observer never receives foreign prototypes.
+          return [prop, jsonClone(propMeta.defaultValue)];
         } else {
           return undefined;
         }

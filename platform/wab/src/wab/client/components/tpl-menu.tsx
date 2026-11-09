@@ -1,3 +1,4 @@
+import { isFixedRootSlot, isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
 import { openNewTab } from "@/wab/client/cli-routes";
 import { WritableClipboard } from "@/wab/client/clipboard/WritableClipboard";
 import { isStyleClip } from "@/wab/client/clipboard/local";
@@ -177,6 +178,7 @@ function pushSlotSelectionMenu(
   node: SlotSelection,
   push: (x: React.ReactNode) => void,
 ) {
+  if (isFixedRootSlot(viewCtx, node)) return;
   const tpl = ensure(
     node.toTplSlotSelection().tpl,
     "node to tpl slot selection must have a tpl",
@@ -231,6 +233,7 @@ export function makeTplMenu(
   const forMultipleTpls =
     focusedTpls.length > 1 && focusedTpls.some((ftpl) => ftpl === tpl);
   const tpls = forMultipleTpls ? focusedTpls : [tpl];
+  const fixedRoot = tpls.some((node) => isFixedSlotRoot(viewCtx, node));
 
   const tryGetValNode = () => {
     const valNodes = viewCtx.maybeTpl2ValsInContext(tpl);
@@ -258,6 +261,7 @@ export function makeTplMenu(
   const canInsertContext = { isContentCreator: contentEditorMode };
 
   if (
+    !fixedRoot &&
     hasSiblings &&
     positionType !== PositionLayoutType.fixed &&
     !isMarkerTpl &&
@@ -309,6 +313,7 @@ export function makeTplMenu(
 
   builder.genSection(<UiText message={"Edit"} />, (pushEdit) => {
     if (
+      !fixedRoot &&
       tpls.every(
         (_tpl) => isTplTag(_tpl) || isTplComponent(_tpl) || isTplSlot(tpl),
       ) &&
@@ -364,6 +369,7 @@ export function makeTplMenu(
     const hasWrappableComponents =
       getAllowedWrapperComponents(studioCtx, component).length > 0;
     if (
+      !fixedRoot &&
       hasWrappableComponents &&
       tpls.every(
         (_tpl) => isTplTag(_tpl) || isTplComponent(_tpl) || isTplSlot(tpl),
@@ -387,6 +393,7 @@ export function makeTplMenu(
     const children =
       isTplTag(tpl) || isTplComponent(tpl) ? tplChildrenOnly(tpl) : false;
     if (
+      !fixedRoot &&
       children &&
       children.length > 0 &&
       !isTplColumns(tpl) &&
@@ -538,7 +545,7 @@ export function makeTplMenu(
       pushEdit(makeTplTextMenu(makeTplTextOps(viewCtx, tpl), viewCtx));
     }
 
-    if (!forMultipleTpls && isTplContainer(tpl) && !contentEditorMode) {
+    if (!fixedRoot && !forMultipleTpls && isTplContainer(tpl) && !contentEditorMode) {
       const { nextAutoLayoutType } = viewCtx
         .getViewOps()
         .getNextAutoLayoutInfo(tpl);
@@ -577,7 +584,7 @@ export function makeTplMenu(
         );
       }
     }
-    if (!forMultipleTpls && isTplTagOrComponent(tpl) && !contentEditorMode) {
+    if (!fixedRoot && !forMultipleTpls && isTplTagOrComponent(tpl) && !contentEditorMode) {
       if (
         !isTplDefaultSized(tpl, viewCtx.variantTplMgr()) &&
         isTplAutoSizable(tpl, viewCtx.variantTplMgr())
@@ -601,6 +608,7 @@ export function makeTplMenu(
 
     if (
       !forMultipleTpls &&
+      !fixedRoot &&
       canToggleVisibility(tpl, viewCtx) &&
       !contentEditorMode
     ) {
@@ -652,6 +660,7 @@ export function makeTplMenu(
 
     if (
       !forMultipleTpls &&
+      !fixedRoot &&
       (isTplTag(tpl) || isTplComponent(tpl) || isTplSlot(tpl))
     ) {
       pushEdit(
@@ -673,6 +682,7 @@ export function makeTplMenu(
 
   if (
     !forMultipleTpls &&
+    !fixedRoot &&
     viewCtx.tplMgr().canExtractComponent(tpl) &&
     !contentEditorMode
   ) {
@@ -692,6 +702,7 @@ export function makeTplMenu(
 
   if (
     !forMultipleTpls &&
+    !fixedRoot &&
     !isFrameComponent(component) &&
     !isCodeComponent(component) &&
     !contentEditorMode
@@ -736,7 +747,7 @@ export function makeTplMenu(
     );
   }
 
-  if (!forMultipleTpls && !contentEditorMode) {
+  if (!fixedRoot && !forMultipleTpls && !contentEditorMode) {
     builder.genSection(undefined, (_push) => {
       builder.genSub(<UiText message={"Convert to..."} />, (push2) => {
         if (isTplPicture(tpl)) {
@@ -806,7 +817,7 @@ export function makeTplMenu(
             </MenuItemContent>
           </Menu.Item>,
         );
-        if (tpl.parent) {
+        if (tpl.parent && !fixedRoot) {
           push2(
             <Menu.Item
               key="cut"
@@ -861,7 +872,7 @@ export function makeTplMenu(
           </Menu.Item>,
         );
       });
-      builder.genSub(<UiText message={"Paste..."} />, (push2) => {
+      if (!fixedRoot) builder.genSub(<UiText message={"Paste..."} />, (push2) => {
         const clip = viewCtx.getViewOps().clipboard().contents();
         if (clip && isStyleClip(clip)) {
           if (
@@ -910,7 +921,7 @@ export function makeTplMenu(
   });
 
   const ancestorSlotArg = getAncestorSlotArg(tpl);
-  if (!forMultipleTpls && ancestorSlotArg) {
+  if (!fixedRoot && !forMultipleTpls && ancestorSlotArg) {
     const { tplComponent, arg } = ancestorSlotArg;
     const slotSelection = new SlotSelection({
       tpl: tplComponent,
@@ -957,7 +968,7 @@ export function makeTplMenu(
   });
 
   // "Delete" may only be performed on a non-root element.
-  if (tpl.parent) {
+  if (tpl.parent && !isFixedSlotRoot(viewCtx, tpl)) {
     builder.genSection(undefined, (push) => {
       push(
         <Menu.Item

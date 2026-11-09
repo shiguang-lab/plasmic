@@ -4,7 +4,9 @@
 
 - 缩略图卡片：<http://127.0.0.1:3106/>
 - 交互预览：<http://127.0.0.1:3106/?preview>
+- 品牌 Slot 渲染示例（文字＋Tag 组件）：<http://127.0.0.1:3106/?preview&brand-slot>。这是本地运行时预览；Studio 画布编辑需使用相应开发 Host。
 - Plasmic 本地组件 Host：<http://127.0.0.1:3106/?host>
+- 独立的 AppShell 开发 Host：<http://127.0.0.1:3106/local-host/>。该入口用 `local-overseas-app-shell` 注册当前源码，避免与项目已安装的 Overseas 版本重名；支持画布双击编辑品牌 Slot 和插入组件。Host 必须使用独立路径，因为画板加载会清除 URL 查询参数。测试应使用隔离项目快照和本地后端，不发布平台组件库。
 - SearchForm 交互预览：<http://127.0.0.1:3106/?search-form>（字段、Slot、折叠、查询/重置、校验及插入/修改/删除演示）。组件设计与生成规则见 [SearchForm](../../../ai/plasmic/references/libraries/overseas/components/search-form.md)。
 
 预览服务运行后，在仓库根目录执行 `node plasmicpkgs/overseas/preview/verify-search-form.mjs` 进行浏览器验收。使用 WAB 已安装的 Playwright，默认打开本机 Google Chrome；其它环境用 PLASMIC_BROWSER_PATH 指定 Chromium 可执行文件。截图保存至 `desktop/desktop-report/search-form/runtime.png`。
@@ -26,14 +28,14 @@ Studio 画布开启「显示完整页面高度」时会注入 `--canvas-content-
 
 | 配置 | 用途 |
 | --- | --- |
-| `productName`、`logoUrl` | 产品品牌 |
+| `productName`、`logoUrl` | `productName` 为固定品牌区域中的可编辑 Slot，区域只开放内容编辑，内部节点可独立设置样式；结构化内容只渲染一次，纯字符串可同时作为首级面包屑文本。`logoUrl` 为独立品牌图片 |
 | `userName`、`userMenuItems` | 用户名及用户操作菜单 |
 | `languages`、`language` | 语言选项 `{value,label}` 和当前值 |
 | `appSources`、`appSource` | 应用源选项 `{value,label}` 和当前值 |
 | `menuItems`、`selectedMenuKey` | 嵌套菜单和 `href` 路由树；`hidden` 用于隐藏详情路由。当前 `pagePath` 自动推导选中项及所有父级面包屑；没有路由上下文时按选中 key 预览 |
 | `collapsed` | 侧栏折叠状态 |
 | `direction` | 独立于语言的 `ltr` / `rtl` 布局 |
-| `timeZone`、`currentTime` | IANA 时区或外部提供的时间文本 |
+| `timeZone` | IANA 时区；当地时间由 AppShell 内部时钟每秒自动更新，不配置时间文本 |
 
 语言、应用源、菜单、折叠和方向均注册可写状态及对应事件。
 AppSource 选择器参照 fintechgrowthui 中 `@react/ui` 的显示效果：180px 选择框、8px 状态圆点、320px 下拉面板、当前应用标记和上下提示。中文/英文文案跟随 `language`。实现仅依赖现有 Ant Design 6；应用源数据和业务数据更新仍由 `appSources`、`appSource`、`onAppSourceChange` 管理，不访问 fintechgrowthui 的接口或缓存。

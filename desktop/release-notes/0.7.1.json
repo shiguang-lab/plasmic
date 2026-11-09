@@ -1,0 +1,7 @@
+{
+  "en": "- Fix macOS application reopening and process lifecycle handling.\n- Correct Preview event-handler compilation.\n- Make AppShell Brand a fixed 32px span with content-only editing and synchronized breadcrumbs.\n- Update AppShell local time automatically and remove the static time property.",
+  "zh-CN": "- 修复 macOS 应用重新打开与进程生命周期处理。\n- 修复预览事件处理器编译。\n- AppShell 品牌区域改为固定 32px 的 Span，仅开放内容编辑并同步面包屑。\n- 当地时间由 AppShell 内部自动更新，移除静态时间属性。",
+  "zh-TW": "- 修正 macOS 應用程式重新開啟與程序生命週期處理。\n- 修正預覽事件處理器編譯。\n- AppShell 品牌區域改為固定 32px 的 Span，僅開放內容編輯並同步麵包屑。\n- 當地時間由 AppShell 內部自動更新，移除靜態時間屬性。",
+  "ja": "- macOS アプリの再起動とプロセスのライフサイクルを修正。\n- プレビューのイベントハンドラーのコンパイルを修正。\n- AppShell の Brand を高さ 32px の固定 Span に変更し、内容のみ編集可能にしてパンくずと同期。\n- AppShell の現地時刻を自動更新し、静的な時刻プロパティを削除。",
+  "ko": "- macOS 앱 다시 열기 및 프로세스 수명 주기 처리를 수정합니다.\n- 미리 보기 이벤트 핸들러 컴파일을 수정합니다.\n- AppShell Brand를 높이 32px의 고정 Span으로 변경하고 내용만 편집하며 탐색 경로와 동기화합니다.\n- AppShell 현지 시간을 자동으로 갱신하고 정적 시간 속성을 제거합니다."
+}

@@ -8,6 +8,10 @@ import {
   computeElementVisibility,
 } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
 import { filterCanvasModalElements, getActiveCanvasModal, getCanvasModalSelectionRoot } from "@/wab/client/components/canvas/canvas-modal-scope";
+import type { CanvasComponentPart } from "@/wab/client/components/canvas/canvas-component-parts";
+import { isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
+import type { StudioSelectionSnapshot } from "@/wab/client/studio-ctx/studio-selection";
+import type { ViewSelectionSnapshot } from "@/wab/client/studio-ctx/view-selection";
 import { isCodeComponentMissingPositionClass } from "@/wab/client/components/sidebar-tabs/Sections";
 import { createNodeIcon } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import { frameToScalerRect } from "@/wab/client/coords";
@@ -120,11 +124,16 @@ export function getControlledSpacingObj(
   }
 }
 
-export function computeHoverBoxTargets(studioCtx: StudioCtx): HoverBoxTarget[] {
-  const focusObjs = studioCtx.hoverBoxControlledObjs ?? [];
-
-  if (focusObjs.length === 1 && isKnownArenaFrame(focusObjs[0])) {
-    const frame = focusObjs[0];
+export function computeHoverBoxTargets(
+  studioCtx: StudioCtx,
+  studioSelection: StudioSelectionSnapshot,
+  selection: Pick<ViewSelectionSnapshot, "targets" | "doms" | "tpls" | "part">,
+): HoverBoxTarget[] {
+  const vc = studioSelection.view;
+  if (!vc) {
+    const frameRef = studioSelection.frames[0];
+    const frame = frameRef && studioCtx.modelSnapshots.resolve(frameRef);
+    if (!frame) { return []; }
     const vc = studioCtx.tryGetViewCtxForFrame(frame);
     if (!vc || vc.isDisposed) {
       return [];
@@ -133,9 +142,7 @@ export function computeHoverBoxTargets(studioCtx: StudioCtx): HoverBoxTarget[] {
     return [frame];
   }
 
-  const vc = studioCtx.focusedViewCtx();
-
-  if (!vc || vc.isDisposed) {
+  if (vc.isDisposed) {
     return [];
   }
 
@@ -145,24 +152,34 @@ export function computeHoverBoxTargets(studioCtx: StudioCtx): HoverBoxTarget[] {
     return [];
   }
 
-  const nodes = vc.focusedDomElts();
+  const focusObjs = selection.targets.map((ref) => ref && vc.selection.resolveTarget(ref));
+  const nodes = selection.doms.map((elements) => elements && $(elements));
   assert(
     nodes.length === focusObjs.length,
     "focusedDomElts and focusedSelectables should have same length.",
   );
 
+  if (!studioCtx.canvasContentEditor && (
+    (!focusObjs.length && !selection.tpls.length) ||
+    (!selection.part && focusObjs.length === 1 && focusObjs[0] instanceof ValNode &&
+      vc.getViewOps().isRootNodeOfStretchFrame(focusObjs[0].tpl))
+  )) {
+    return [vc.arenaFrame()];
+  }
+
   // A newly inserted tpl can be selected before evaluation resolves its value.
   // Keep that pending slot out of renderable targets without shifting DOM pairs.
   return withoutNils(nodes.map((node, i) => {
     const focusObj = focusObjs[i];
-    return !focusObj ? undefined : isKnownArenaFrame(focusObj) ? focusObj : { node, focusObj };
+    return !focusObj || (studioCtx.canvasContentEditor && !vc.contentEditor.contains(focusObj))
+      ? undefined : { node, focusObj };
   }));
 }
 
 export type HoverBoxTarget =
   ArenaFrame | { node: JQuery<HTMLElement> | null; focusObj: Selectable };
 
-export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, transformingObject: boolean, draggingObject: boolean) {
+export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, transformingObject: boolean, draggingObject: boolean, selectedPart: CanvasComponentPart | undefined) {
   const studioCtx = vc.studioCtx;
   if (studioCtx.canvasContentEditor &&
     (isKnownArenaFrame(target) || !vc.contentEditor.contains(target.focusObj))) {
@@ -206,8 +223,8 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, tr
   }
 
   const { focusObj } = target;
-  const part = focusObj instanceof ValComponent && vc.focusedComponentPart?.tpl === focusObj.tpl
-    ? vc.focusedComponentPart : undefined;
+  const part = focusObj instanceof ValComponent && selectedPart?.tpl === focusObj.tpl
+    ? selectedPart : undefined;
   const selection = part ? $(part.element) : target.node;
   const modal = getActiveCanvasModal(selection?.[0]?.ownerDocument);
   const modalRoot = modal && getCanvasModalSelectionRoot(vc, modal);
@@ -236,6 +253,7 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, tr
 
   const tplOrSlot = focusObj instanceof ValNode ? focusObj.tpl : focusObj;
   const tpl = isKnownTplNode(tplOrSlot) ? tplOrSlot : undefined;
+  const fixedRoot = !!tpl && isFixedSlotRoot(vc, tpl);
 
   const effectiveVariantSetting = isTplTagOrComponent(tplOrSlot)
     ? vc.effectiveCurrentVariantSetting(tplOrSlot)
@@ -252,12 +270,11 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, tr
       tagName: part?.displayName ?? summarizeFocusObj(focusObj, vc, effectiveVariantSetting),
       tagIcon: createNodeIcon(tplOrSlot, effectiveVariantSetting),
       tagUid: tpl?.uid,
-      ...computeSpacingViewState(focusObj, vc),
-      ...(part && {
+      ...(part || fixedRoot ? {
         isComponentPart: true,
         edgeControls: { top: [], right: [], bottom: [], left: [] },
-        padding: undefined, paddingPx: undefined, margin: undefined, marginPx: undefined,
-      }),
+        containerChildAlignment: { vert: undefined, horiz: undefined },
+      } : computeSpacingViewState(focusObj, vc)),
     },
     focusedElt: node,
   };

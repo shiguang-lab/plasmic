@@ -911,7 +911,7 @@ const DraggableTreeNode = React.memo(function DraggableTreeNode(props: {
   return (
     <DragItem
       onDragStart={(e) => {
-        if (item instanceof SlotSelection) {
+        if (item instanceof SlotSelection || isFixedSlotRoot(viewCtx, item)) {
           e.mouseEvent.stopPropagation();
           e.mouseEvent.preventDefault();
           return false;
@@ -2074,3 +2074,4 @@ const TplVisibilityToggle = function TplVisibilityToggle(props: {
   );
   return elt;
 };
+import { isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";

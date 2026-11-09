@@ -1,6 +1,6 @@
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
 import { getComponentThumbnail } from '@shiguang-lab/plasmic-overseas/thumbnails';
-import { MenuUnfoldOutlined, MenuFoldOutlined, GlobalOutlined, SwapOutlined, DownOutlined } from '@ant-design/icons';
+import { GlobalOutlined, MenuUnfoldOutlined, MenuFoldOutlined, SwapOutlined, DownOutlined } from '@ant-design/icons';
 import { usePlasmicCanvasContext, usePlasmicLink, useSelector } from '@plasmicapp/host';
 import registerComponent from '@plasmicapp/host/registerComponent';
 import { theme, Select, ConfigProvider, Layout, Avatar, Menu, Button, Breadcrumb, Dropdown } from 'antd';
@@ -113,7 +113,6 @@ function AppShell({
   direction,
   onDirectionChange,
   timeZone = "Asia/Shanghai",
-  currentTime,
   initialContentScrollTop,
   onContentScroll,
   children
@@ -126,6 +125,21 @@ function AppShell({
   const [localMenu, setMenu] = useState();
   const [localDirection, setDirection] = useState("ltr");
   const [now, setNow] = useState(() => /* @__PURE__ */ new Date());
+  const brandRef = React.useRef(null);
+  const [brandText, setBrandText] = useState("");
+  useEffect(() => {
+    const brand = brandRef.current;
+    if (!brand) return;
+    const updateText = () => {
+      const content = brand.cloneNode(true);
+      content.querySelectorAll("[data-plasmic-slot-placeholder], [data-plasmic-editor-only], [data-slate-zero-width]").forEach((element) => element.remove());
+      setBrandText(content.textContent?.trim() ?? "");
+    };
+    updateText();
+    const observer = new MutationObserver(updateText);
+    observer.observe(brand, { childList: true, characterData: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
   const contentRef = React.useRef(null);
   useEffect(() => {
     if (contentRef.current && initialContentScrollTop !== void 0) {
@@ -133,12 +147,9 @@ function AppShell({
     }
   }, [initialContentScrollTop]);
   useEffect(() => {
-    if (currentTime !== void 0) {
-      return;
-    }
     const timer = setInterval(() => setNow(/* @__PURE__ */ new Date()), 1e3);
     return () => clearInterval(timer);
-  }, [currentTime]);
+  }, []);
   const isCollapsed = collapsed ?? localCollapsed;
   const currentLanguage = language || localLanguage || languages[0]?.value || "en";
   const currentSource = appSource || localSource || appSources[0]?.value;
@@ -182,7 +193,7 @@ function AppShell({
     menus.set(menuState.navigationKey, menuState.openKeys);
   }, [canvas, menuState]);
   const breadcrumbItems = [
-    { title: productName },
+    ...(typeof productName === "string" ? productName : brandText) ? [{ title: typeof productName === "string" ? productName : brandText }] : [],
     ...menuPath.filter((item) => item.label).map((item) => ({
       title: item.href && item !== menuPath.at(-1) ? /* @__PURE__ */ jsx(PlasmicLink, { href: item.href, children: item.label }) : item.label
     }))
@@ -199,7 +210,7 @@ function AppShell({
       hourCycle: "h23"
     }).formatToParts(now).map(({ type, value }) => [type, value])
   );
-  const clock = currentTime ?? `${timeParts.year}-${timeParts.month}-${timeParts.day} ${timeParts.hour}:${timeParts.minute}:${timeParts.second}`;
+  const clock = `${timeParts.year}-${timeParts.month}-${timeParts.day} ${timeParts.hour}:${timeParts.minute}:${timeParts.second}`;
   const linkedMenu = (items) => items.map(
     (item) => item && {
       ...item,
@@ -274,12 +285,34 @@ function AppShell({
                               flexShrink: 0
                             }
                           }
-                        ) : /* @__PURE__ */ jsx(Avatar, { shape: "square", size: 30, style: { flexShrink: 0 }, children: productName.slice(0, 1) }),
-                        !isCollapsed && /* @__PURE__ */ jsx(
-                          "strong",
+                        ) : /* @__PURE__ */ jsx(
+                          Avatar,
                           {
-                            style: { fontSize: 16, color: token.colorText },
-                            title: productName,
+                            shape: "square",
+                            size: 30,
+                            style: { flexShrink: 0 },
+                            icon: typeof productName === "string" ? void 0 : /* @__PURE__ */ jsx(GlobalOutlined, {}),
+                            children: typeof productName === "string" ? productName.slice(0, 1) : null
+                          }
+                        ),
+                        /* @__PURE__ */ jsx(
+                          "div",
+                          {
+                            ref: brandRef,
+                            "data-app-shell-product-name": true,
+                            style: {
+                              flex: "1 1 0%",
+                              minWidth: 0,
+                              height: 32,
+                              display: isCollapsed ? "none" : "flex",
+                              flexDirection: "column",
+                              justifyContent: "center",
+                              overflow: "hidden",
+                              fontSize: 16,
+                              fontWeight: 600,
+                              color: token.colorText
+                            },
+                            title: typeof productName === "string" ? productName : void 0,
                             children: productName
                           }
                         )
@@ -484,12 +517,29 @@ const appShellMeta = {
       argTypes: [{ name: "value", type: "string" }]
     },
     timeZone: { displayName: "Time zone", type: "string", defaultValue: "Asia/Shanghai" },
-    currentTime: {
-      displayName: "Current time",
-      type: "string",
-      description: "Host-supplied clock text; otherwise show the current time in timeZone."
+    productName: {
+      displayName: "Brand",
+      type: "slot",
+      fixedRoot: true,
+      defaultValue: {
+        type: "text",
+        tag: "span",
+        elementName: "Brand",
+        value: "\u589E\u957F\u7BA1\u7406\u5E73\u53F0",
+        styles: {
+          width: "100%",
+          height: "100%",
+          lineHeight: "32px",
+          fontSize: "16px",
+          fontWeight: "600",
+          color: "inherit",
+          flexShrink: 0,
+          margin: "0",
+          padding: "0"
+        }
+      },
+      hidePlaceholder: false
     },
-    productName: { displayName: "Product name", type: "string", defaultValue: "\u589E\u957F\u7BA1\u7406\u5E73\u53F0" },
     logoUrl: { type: "imageUrl", displayName: "Logo" },
     userName: { displayName: "User name", type: "string", defaultValue: "\u793A\u4F8B\u7528\u6237" },
     languages: {

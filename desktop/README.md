@@ -635,6 +635,12 @@ replayed. The bridge does not launch Desktop. Closing a window into Dynamic Isla
 keeps Desktop and MCP available; closing the client's STDIO releases its session
 and exits the bridge.
 
+The macOS bundle's native executable dispatches `--mcp` directly to the Go bridge
+before loading Electron or registering with LaunchServices. GUI launches call
+ElectronMain from the bundled framework at the same executable path. Packaging
+compiles this entry for the target architecture and Electron's minimum macOS
+version before applying production fuses and signing the application.
+
 Tool argument validators compile on first use. Large result snapshots remain
 connection-local and readable across Desktop restarts, with a limit of 16 retained
 results and a 64 MiB budget (a single oversized result is retained). Each snapshot
@@ -1004,12 +1010,16 @@ and a renderer Promise that never settles: Preview reaches its 30-second runtime
 deadline, then queued close and read commands complete. It uses no NAS project or
 credentials. Set `PLASMIC_REPORT_DIR` to retain its JSON result.
 
-On macOS the bundle starts with `LSUIElement:true`, so a transport has no Dock
-identity before JavaScript executes. Only the GUI process holding the single
-instance lock promotes itself to a regular app. With one installed GUI running,
-`pnpm run test:macos-activation` checks the bundle flag and observes macOS
-activation policies during the discovery probe and initialized MCP startup.
-`PLASMIC_APP_PATH` selects a bundle; `PLASMIC_REPORT_DIR` retains the trace.
+On macOS the GUI bundle starts with `LSUIElement:true`; only the GUI process
+holding the single instance lock promotes itself to a regular app.
+`pnpm run test:macos-activation` builds the MCP bridge and a signed, isolated
+application with the production native entry and GUI lifecycle handlers. Three
+MCP clients remain connected through window close, quit, and `app.relaunch()`.
+The test opens and reopens via LaunchServices (the Finder/Dock path, without
+`open -n`), verifies that transports never register as application instances,
+and checks missing-helper failure and stdin EOF cleanup. It uses a unique bundle
+identifier and private profile without touching the installed App.
+`PLASMIC_REPORT_DIR` retains the trace.
 
 `pnpm run test:mcp-lifecycle` starts an isolated GUI with three independent MCP
 clients whose stdin remains open. It verifies offline MCP initialization, rejection
