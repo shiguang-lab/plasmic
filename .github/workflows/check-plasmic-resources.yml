@@ -81,6 +81,7 @@ jobs:
           node-version: 24
       - name: Install component dependencies
         run: |
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends libseccomp-dev
           npm install --global pnpm@11.10.0
           pnpm install --frozen-lockfile
       - name: Verify React lint rules with repository dependencies
