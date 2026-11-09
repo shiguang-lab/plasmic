@@ -4,6 +4,7 @@ const { execFileSync } = require("node:child_process");
 const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
+const { pathToFileURL } = require("node:url");
 
 const repository = path.resolve(__dirname, "../..");
 const electronPackage = require("../node_modules/electron/package.json");
@@ -37,7 +38,7 @@ async function buildFixture({ desktop, pinnedElectron = electronPackage.version 
     const original=child.execFileSync;
     child.execFileSync=(command,args,options)=>{
       let stage;
-      if(['npm','npm.cmd'].includes(path.basename(command))) stage=path.relative(process.cwd(),options.cwd)+':'+args[1];
+      if(['npm','npm.cmd'].includes(path.basename(command))) stage=path.relative(process.cwd(),options.cwd).split(path.sep).join('/')+':'+args[1];
       else if(args[0]?.endsWith('build-html-hydrate.mjs')) stage='hydration';
       if(stage){
         fs.appendFileSync('test-output/calls.jsonl',JSON.stringify({stage,chromium:options.env?.${chromiumEnvironment}??null})+'\\n');
@@ -57,7 +58,7 @@ async function buildFixture({ desktop, pinnedElectron = electronPackage.version 
   return {
     root,
     run() {
-      return execFileSync(process.execPath, ["--import", preload, "scripts/build-studio.mjs", ...(desktop ? ["--desktop"] : [])], {
+      return execFileSync(process.execPath, ["--import", pathToFileURL(preload).href, "scripts/build-studio.mjs", ...(desktop ? ["--desktop"] : [])], {
         cwd: root,
         env: { ...process.env, [chromiumEnvironment]: "1.2.3.4" },
         encoding: "utf8",

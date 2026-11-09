@@ -1,5 +1,5 @@
 FROM node:24.16.0-bookworm-slim AS dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends bash git curl wget python3 python3-pip postgresql-client build-essential ca-certificates libssl3 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends bash git curl wget python3 python3-pip postgresql-client build-essential ca-certificates libssl3 libseccomp-dev && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 ENV CI=1 PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 PUPPETEER_SKIP_DOWNLOAD=1 CYPRESS_INSTALL_BINARY=0
 WORKDIR /plasmic
