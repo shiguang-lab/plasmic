@@ -1,2 +1,16 @@
 export const menuItemType: any = { type: "object", nameFunc: (item: any) => item.label || item.key, fields: { key: "string", label: "string", href: { type: "href", description: "Page route; uses Plasmic navigation." }, disabled: "boolean", hidden: { type: "boolean", description: "Hide this route from the sidebar while retaining its breadcrumb ancestry." }, type: { type: "choice", options: ["item", "group", "divider"] }, children: { type: "array" } } };
 menuItemType.fields.children.itemType = menuItemType;
+
+export const sidebarMenuItemType: any = {
+  type: "object",
+  nameFunc: (item: any) => item.label || item.key,
+  fields: {
+    key: "string",
+    label: "string",
+    href: { type: "href", description: "Page route; uses Plasmic navigation." },
+    disabled: "boolean",
+    hidden: { type: "boolean", description: "Hide this route from the sidebar while retaining its breadcrumb ancestry." },
+    children: { type: "array", displayName: "Children" },
+  },
+};
+sidebarMenuItemType.fields.children.itemType = sidebarMenuItemType;

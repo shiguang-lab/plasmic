@@ -6,7 +6,6 @@ export interface ShellMenuItem {
   href?: string;
   hidden?: boolean;
   disabled?: boolean;
-  type?: "item" | "group" | "divider";
   icon?: React.ReactNode;
   children?: ShellMenuItem[];
 }
@@ -23,7 +22,6 @@ export function findMenuPath(items: ShellMenuItem[], pagePath?: string, selected
     for (const item of entries) {
       const path = [...ancestors, item];
       visit(item.children ?? [], path);
-      if (item.type === "divider") continue;
       if (!selectedPath.length && item.key === selectedKey) selectedPath = path;
       if (!currentPath || !item.href) continue;
       const hrefPath = routePath(item.href);

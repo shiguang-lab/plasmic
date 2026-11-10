@@ -1,4 +1,4 @@
-import { useTargetedStylePanelInputs } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
+import { useTargetedStylePanelInputs, useTargetedStylePanelValue } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
 import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
 import { collectPropExpressionFields } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
 import { useCanvasComponentValue, type CanvasViewFieldRecipe } from "@/wab/client/components/canvas/canvas-view-inputs";
@@ -81,9 +81,10 @@ import {
   isKnownCustomCode,
   isKnownExprText,
   isKnownObjectPath,
+  isKnownRawText,
   isKnownTemplatedString,
 } from "@/wab/shared/model/classes";
-import { Alert, Menu, Tooltip } from "antd";
+import { Alert, Input, Menu, Tooltip } from "antd";
 import React from "react";
 
 export const TypographySection = React.memo(function TypographySection(props: Parameters<typeof TypographySection_>[0]) {
@@ -246,11 +247,18 @@ export const TextOnlySection = function TextOnlySection(props: {
 export const TextContentRow = React.memo(function TextContentRow(props: {
   viewCtx: ViewCtx;
   expsProvider: TplExpsProvider;
+  label?: React.ReactNode;
 }) {
-  const source = useTargetedStylePanelInputs(props.viewCtx.studioCtx, { kind: "text", view: props.viewCtx, tpl: props.expsProvider.tpl });
-  return source.active ? <TextContentRowBody {...props} /> : null;
+  const select = React.useCallback(() => {
+    const tpl = props.expsProvider.tpl;
+    const textTpl = isTplTextBlock(tpl) ? tpl
+      : isPlainTextTplSlot(tpl) && !isCodeComponentSlot(tpl) ? ensureKnownTplTag(tpl.defaultContents[0]) : undefined;
+    return textTpl ? { textTpl, ops: makeTplTextOps(props.viewCtx, textTpl) } : undefined;
+  }, [props.viewCtx, props.expsProvider]);
+  const source = useTargetedStylePanelValue(props.viewCtx.studioCtx, { kind: "text", view: props.viewCtx, tpl: props.expsProvider.tpl }, select);
+  return source.active && source.value ? <TextContentRowBody {...props} textSource={source.value} /> : null;
 });
-function TextContentRowBody(props: { viewCtx: ViewCtx; expsProvider: TplExpsProvider }) {
+function TextContentRowBody(props: { viewCtx: ViewCtx; expsProvider: TplExpsProvider; label?: React.ReactNode; textSource: { textTpl: TplTag; ops: ReturnType<typeof makeTplTextOps> } }) {
   const { t: uiT } = useI18n();
   const { expsProvider, viewCtx } = props;
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
@@ -269,11 +277,7 @@ function TextContentRowBody(props: { viewCtx: ViewCtx; expsProvider: TplExpsProv
 
   const tpl = expsProvider.tpl;
   const canvasEnv = useInspectorCanvasEnv(viewCtx, tpl);
-  const textTpl = isTplTextBlock(tpl)
-    ? tpl
-    : isPlainTextTplSlot(tpl) && !isCodeComponentSlot(tpl)
-      ? ensureKnownTplTag(tpl.defaultContents[0])
-      : undefined;
+  const { textTpl } = props.textSource;
 
   const vtm = viewCtx.variantTplMgr();
 
@@ -316,7 +320,7 @@ function TextContentRowBody(props: { viewCtx: ViewCtx; expsProvider: TplExpsProv
   // can be a TemplatedString. Top-level blocks can only be ObjectPath/CustomCode.
   const isSubNode = isTplTextBlock(textTpl.parent);
 
-  const textTplOps = makeTplTextOps(viewCtx, textTpl);
+  const textTplOps = props.textSource.ops;
   const {
     effectiveVs,
     indicator,
@@ -401,7 +405,7 @@ function TextContentRowBody(props: { viewCtx: ViewCtx; expsProvider: TplExpsProv
     <>
       <LabeledItemRow
         data-test-id="text-content"
-        label={uiT("Content")}
+        label={props.label ?? uiT("Content")}
         definedIndicator={indicator}
         menu={contextMenu}
         ref={setContentElement}
@@ -613,6 +617,23 @@ const TextEditor = React.memo(function TextEditor_(props: {
     editingText?.val.tpl === tpl && editingText.draftText !== undefined
       ? editingText.draftText.text
       : committedContent;
+  if (isKnownRawText(text) && text.markers.length === 0 && !content?.includes("\n")) {
+    return (
+      <Input
+        className="form-control code"
+        value={content ?? ""}
+        disabled={isDisabled}
+        onChange={(event) => {
+          if (isDisabled || viewCtx.disposeSignal.aborted) { return; }
+          const value = event.currentTarget.value;
+          viewCtx.change(() => {
+            viewCtx.variantTplMgr().ensureCurrentVariantSetting(tpl).text =
+              new RawText({ text: value, markers: [] });
+          });
+        }}
+      />
+    );
+  }
   return (
     <button
       className={cx(

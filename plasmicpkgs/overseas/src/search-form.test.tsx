@@ -29,9 +29,13 @@ test("Overseas registers an editable field tree, slots, events and actions", () 
     item.meta.name,
   ]);
   assert.equal(item.meta.parentComponentName, form.meta.name);
-  assert.equal(item.meta.props.label.type, "string");
-  assert.equal(item.meta.canvasParts.label.text.prop, "label");
-  for (const slot of ["children", "labelContent", "help"]) {
+  assert.equal(item.meta.canvasParts, undefined);
+  assert.equal(item.meta.props.labelContent, undefined);
+  assert.equal(item.meta.props.label.fixedRoot, true);
+  assert.equal(item.meta.props.label.defaultValue.elementName, "Label");
+  assert.equal(item.meta.props.label.defaultValue.tag, "span");
+  assert.equal(form.meta.props.children.defaultValue[0].props.label.elementName, "Label");
+  for (const slot of ["children", "label", "help"]) {
     assert.equal(item.meta.props[slot].type, "slot");
   }
   assert.equal(form.meta.props.extraActions.type, "slot");
@@ -181,8 +185,7 @@ test("collapsed fields stay mounted, and custom labels/actions remain real slot 
         <SearchFormItem
           key={i}
           name={`field${i}`}
-          label={`Label ${i}`}
-          labelContent={i === 1 ? <strong>Custom label</strong> : undefined}
+          label={i === 1 ? <span>Custom label</span> : `Label ${i}`}
         >
           <Input placeholder={`Input ${i}`} />
         </SearchFormItem>
@@ -194,7 +197,7 @@ test("collapsed fields stay mounted, and custom labels/actions remain real slot 
   }
   assert.match(html, /display:none/);
   assert.match(html, /Custom label/);
-  assert.match(html, /data-search-form-label=""/);
+  assert.match(html, /<span>Custom label<\/span>/);
   assert.match(html, /Export/);
   assert.match(html, /aria-expanded="false"/);
 });

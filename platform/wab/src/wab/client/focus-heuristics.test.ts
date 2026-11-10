@@ -12,6 +12,7 @@ import { ViewOps } from "@/wab/client/components/canvas/view-ops";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import $ from "jquery";
 import { TplMgr } from "@/wab/shared/TplMgr";
+import { $$$ } from "@/wab/shared/TplQuery";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
 import { ensure, ensureInstance, maybe, tuple } from "@/wab/shared/common";
 import * as Components from "@/wab/shared/core/components";
@@ -28,7 +29,7 @@ import {
   slotContentValNode,
 } from "@/wab/shared/core/val-nodes";
 import { ValState } from "@/wab/shared/eval/val-state";
-import { TplComponent, TplNode } from "@/wab/shared/model/classes";
+import { RenderExpr, TplComponent, TplNode } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
 
 describe("FocusHeuristics", function () {
@@ -574,6 +575,36 @@ describe("FocusHeuristics", function () {
           drillDown: true,
         }).focusTarget,
       ).toBe(leaf);
+    });
+
+    it("selects a fixed slot's shell on single click and its content on double click", () => {
+      const param = Lang.mkParam({ name: "brand", type: typeFactory.renderable(), paramType: "slot" });
+      const meta = { name: "Shell", importPath: "./Shell", props: { brand: { type: "slot" as const, fixedRoot: true } } };
+      const shell = mkCodeComponent("Shell", meta, {});
+      shell.params.push(param);
+      $$$(shell.tplTree).append(Tpls.mkSlot(param));
+      site.components.push(shell);
+      const brand = Tpls.mkTplTag("span");
+      const instanceTpl = Tpls.mkTplComponentX({ component: shell, baseVariant: TEST_GLOBAL_VARIANT });
+      $$$(instanceTpl).setSlotArg("brand", new RenderExpr({ tpl: [brand] }));
+      evalTpl({ tplTree: Tpls.mkTplTag("div", [instanceTpl]) });
+      const instance = valTree.children[0];
+      const leaf = ensure(ValNodes.flattenVals(valTree).find((val) => val.tpl === brand), "Brand content");
+      let current: Selectable | null = null;
+      const view = {
+        focusedSelectable: () => current,
+        getCodeComponentMeta: () => meta,
+      } as unknown as ViewCtx;
+      const ops = new ViewOps({ viewCtx: view });
+      vi.spyOn(ops as any, "focusHeuristics").mockReturnValue(getHeuristics());
+      const resolve = (drillDown = false, exact = false) => Reflect.get(ops, "resolveFocusTarget").call(ops, leaf, { exact, drillDown }).focusTarget;
+      expect(resolve()).toBe(instance);
+      current = instance;
+      expect(resolve()).toBe(instance);
+      expect(resolve(true)).toBe(leaf);
+      current = leaf;
+      expect(resolve()).toBe(leaf);
+      expect(resolve(false, true)).toBe(leaf);
     });
 
     it("uses authored ancestors when a code component renders slot content outside its original Fiber parent", () => {

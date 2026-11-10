@@ -2,6 +2,7 @@ import {
   PopoverFrame,
   PopoverFrameProvider,
 } from "@/wab/client/components/sidebar/PopoverFrame";
+import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { ensure } from "@/wab/shared/common";
 import "@testing-library/jest-dom/vitest";
 import {
@@ -35,6 +36,7 @@ function NestedEditor() {
 function Editor(props: { children?: React.ReactNode; onClose?: () => void }) {
   const [open, setOpen] = React.useState(false);
   return (
+    <AntdConfigProvider productUI>
     <PopoverFrameProvider containerSelector="#sidebar">
       <div
         id="sidebar"
@@ -55,6 +57,7 @@ function Editor(props: { children?: React.ReactNode; onClose?: () => void }) {
         <input aria-label="Value" defaultValue="edited" />
       </PopoverFrame>
     </PopoverFrameProvider>
+    </AntdConfigProvider>
   );
 }
 
@@ -65,12 +68,13 @@ function popoverPanel() {
   );
 }
 
-it("mounts in its container and closes on Escape", async () => {
+it("escapes the sidebar clipping container and closes on Escape", async () => {
   const onClose = vi.fn();
   render(<Editor onClose={onClose} />);
   fireEvent.click(screen.getByText("Edit value"));
   const input = await screen.findByRole("textbox", { name: "Value" });
-  expect(popoverPanel().closest("#sidebar")).not.toBeNull();
+  expect(popoverPanel().closest("#sidebar")).toBeNull();
+  expect(document.body).toContainElement(popoverPanel());
 
   fireEvent.keyDown(input, { key: "Escape" });
 

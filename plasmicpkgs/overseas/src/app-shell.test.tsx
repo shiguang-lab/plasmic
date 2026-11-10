@@ -13,6 +13,7 @@ registerAppShell({ registerComponent(component, meta) { components.set(meta.name
 test("AppShell registers configurable shared layout, editable body and an offline thumbnail", () => {
   const shell = components.get("plasmic-overseas-app-shell")!;
   assert(shell.meta.section);
+  assert.equal(shell.meta.styleSections, false);
   assert.match(shell.meta.thumbnailUrl, /^data:image\/svg\+xml/);
   assert.equal(shell.meta.props.children.type, "slot");
   assert.equal(shell.meta.props.productName.type, "slot");
@@ -73,6 +74,23 @@ const routes: ShellMenuItem[] = [
   ] },
   { key: "sql", label: "SQL 圈选器", href: "/sql" },
 ];
+
+test("sidebar menus expose parent/child items and render stored group entries as submenus", () => {
+  const shell = components.get("plasmic-overseas-app-shell")!;
+  const item = shell.meta.props.menuItems.itemType;
+  assert.equal(item.fields.type, undefined);
+  assert.equal(item.fields.children.itemType, item);
+  assert(shell.meta.props.userMenuItems.itemType.fields.type);
+  const html = renderToStaticMarkup(<PageParamsProvider route="/groups">
+    <shell.component menuItems={[{ ...routes[0], type: "group" }]} />
+  </PageParamsProvider>);
+  const menu = html.slice(html.indexOf('role="menu"'));
+  assert.match(menu, /ant-menu-submenu-open/);
+  assert.match(menu, /ant-menu-submenu-title/);
+  assert.match(menu, /aria-expanded="true"/);
+  assert(!menu.includes("ant-menu-item-group"));
+  assert.match(menu, /客群列表/);
+});
 
 test("route-derived breadcrumbs include every parent and hidden detail routes", () => {
   assert.deepEqual(findMenuPath(routes, "/groups/detail/?tab=members", "sql").map(i => i.key), ["customers", "groups", "detail"]);

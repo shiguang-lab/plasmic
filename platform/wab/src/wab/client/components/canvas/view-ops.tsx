@@ -1617,7 +1617,6 @@ export class ViewOps {
     }
     return this.focusHeuristics().bestFocusTarget(focusObj, {
       ...opts,
-      exact: focusObj instanceof ValNode && isFixedSlotRoot(this.viewCtx(), focusObj.tpl) ? true : opts.exact,
       curFocused: this.viewCtx().focusedSelectable(),
     });
   }

@@ -137,6 +137,34 @@ not invoke these actions or open image previews. Interactive preview and
 published pages keep native table interactions and omit selection highlights. Upgrade the
 hostless library metadata and load the rebuilt canvas runtime to expose these
 controls in existing Studio projects.
+## Column filters
+
+Select a Table Column and configure **Filters** (`text`, typed `value`, optional
+nested `children`) and **On filter**, for example
+`(value, record) => record.status === value`. These props drive Ant Design's
+native header menu and local filtering. **Filter multiple**, **Filter mode** and
+**Filter search** configure single/multiple selection, menu/tree presentation and
+option search. Search accepts `true`, `false`, or a native matching function.
+
+**Default filtered value** initializes uncontrolled filtering. **Filtered value**
+controls it: bind state, update from Table **On change** `filters`, and use `null`
+or `[]` to clear. Set Column **Key** to an explicit unique value for controlled/server
+filters in Studio, which otherwise supplies an instance React key. Outside Studio,
+native unkeyed Columns fall back to `dataIndex`. **Filter on close** defaults to true; **Filter reset to default
+filtered value** controls whether Reset clears selections or restores defaults.
+The design canvas reflects default edits without saving a controlled override.
+
+**Filter dropdown** is an optional custom panel Slot receiving the native
+`filterProps` object, including `selectedKeys`, `setSelectedKeys`, `confirm`,
+`clearFilters` and `close`. **Filter icon** receives the `filtered` boolean.
+**Filter dropdown props** accepts the native Dropdown configuration, including
+controlled `open`/`onOpenChange`. **Filtered** forces the icon highlight only.
+For server filtering, omit **On filter**, request data from Table **On change**
+`filters`, and supply the response as Table data.
+
+Rebuild the package and canvas runtime and upgrade the hostless library metadata
+to expose these controls in existing Studio projects.
+
 ## Icons
 
 Install the independent **Ant Design Icons** library from **Component Store → Icons**.

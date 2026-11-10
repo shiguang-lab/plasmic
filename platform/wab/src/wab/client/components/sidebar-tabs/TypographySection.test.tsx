@@ -23,7 +23,7 @@ import {
 } from "@/wab/shared/core/tpls";
 import { ValTextTag } from "@/wab/shared/core/val-nodes";
 import { Arena, type DataToken, RawText, type TplTag, isKnownRawText, isKnownExprText } from "@/wab/shared/model/classes";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -94,39 +94,39 @@ async function setup() {
 
 it("shows typing, deletion and undo drafts immediately without committing the model", async () => {
   const f = await setup();
-  const content = screen.getByRole("button", { name: "内部名称1" });
+  const content = screen.getByDisplayValue("内部名称1") as HTMLInputElement;
   act(() => f.startEditing());
   expect(f.context.get()?.val.tpl).toBe(f.tpl);
   act(() => f.draft("内部名称123"));
-  expect(content.textContent).toBe("内部名称123");
+  expect(content.value).toBe("内部名称123");
   act(() => f.draft(""));
-  expect(content.textContent).toBe("");
+  expect(content.value).toBe("");
   act(() => f.draft("内部名称1"));
-  expect(content.textContent).toBe("内部名称1");
+  expect(content.value).toBe("内部名称1");
   expect(f.text.text).toBe("内部名称1");
   expect(f.viewCtx.change).not.toHaveBeenCalled();
 });
 
 it("falls back to the model after the draft is cleared or editing ends", async () => {
   const f = await setup();
-  const content = screen.getByRole("button", { name: "内部名称1" });
+  const content = screen.getByDisplayValue("内部名称1") as HTMLInputElement;
   act(() => f.startEditing());
   act(() => f.draft("Draft"));
   act(() => f.draft(undefined));
-  expect(content.textContent).toBe("内部名称1");
+  expect(content.value).toBe("内部名称1");
   act(() => f.draft("Draft"));
   act(() => {
     f.context.set(null);
     setEditingTextContext(f.viewCtx, null);
   });
-  expect(content.textContent).toBe("内部名称1");
+  expect(content.value).toBe("内部名称1");
 });
 
 it("does not display another text node's draft", async () => {
   const f = await setup();
   act(() => f.startEditing(mkTplTagX("span", { type: TplTagType.Text })));
   act(() => f.draft("Other text"));
-  expect(screen.getByRole("button", { name: "内部名称1" })).toBeTruthy();
+  expect(screen.getByDisplayValue("内部名称1") as HTMLInputElement).toBeTruthy();
 });
 
 async function actualText(name = "Text requests") {
@@ -239,7 +239,24 @@ it("refreshes real raw text without a project revision subscription", async () =
   const setting = ensure(f.tpl.vsettings[0], "Original text setting"), raw = ensure(setting.text, "Original raw text");
   assert(isKnownRawText(raw), "Expected original raw text");
   await act(async () => { await f.studio.changeUnsafe(() => { raw.text = "Changed business text"; }); });
-  expect(screen.getByRole("button", { name: "Changed business text" })).toBeTruthy(); expect(setting.text).toBe(raw);
+  expect(screen.getByDisplayValue("Changed business text")).toBeTruthy(); expect(setting.text).toBe(raw);
   act(() => f.studio.disposeViewCtx(f.view));
-  expect(screen.queryByRole("button", { name: "Changed business text" })).toBeNull(); mounted.unmount();
+  expect(screen.queryByDisplayValue("Changed business text")).toBeNull(); mounted.unmount();
+});
+
+
+it("updates the authored text on every sidebar keystroke, clearing and undo without blur", async () => {
+  const f = await actualText("Direct content editing");
+  const mounted = render(f.row());
+  const input = screen.getByDisplayValue("Business text");
+  fireEvent.change(input, { target: { value: "E" } });
+  await waitFor(() => expect(f.tpl.vsettings[0].text).toMatchObject({ text: "E" }));
+  fireEvent.change(input, { target: { value: "Edited in sidebar" } });
+  await waitFor(() => expect(f.tpl.vsettings[0].text).toMatchObject({ text: "Edited in sidebar" }));
+  fireEvent.change(input, { target: { value: "" } });
+  await waitFor(() => expect(f.tpl.vsettings[0].text).toMatchObject({ text: "" }));
+  await act(async () => { await f.studio.undo(); });
+  expect(f.tpl.vsettings[0].text).toMatchObject({ text: "Edited in sidebar" });
+  expect(screen.getByDisplayValue("Edited in sidebar")).toBeTruthy();
+  mounted.unmount();
 });

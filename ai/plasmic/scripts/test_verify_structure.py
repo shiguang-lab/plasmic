@@ -100,7 +100,7 @@ class StructureTests(unittest.TestCase):
         self.assertTrue(any(e.get("check") == "searchFormLayout" for e in self.result()["errors"]))
         render("关键词")
         self.assertTrue(self.result()["passed"])
-        render("", custom='<slot name="labelContent"><span>关键词</span></slot>')
+        render("", custom='<slot name="label"><span data-plasmic-name="Label">关键词</span></slot>')
         self.assertTrue(self.result()["passed"])
         self.expected["pages"][0]["components"] = [
             {"nodeName": "Filters", "component": "plasmic-overseas-search-form", "source": "Explicit approved two-row query", "props": {"minRows": 2}, "overrides": self.override('minRows', 2)},

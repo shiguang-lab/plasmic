@@ -3,6 +3,7 @@ import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
 import PlasmicPopoverFrame from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicPopoverFrame";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { zIndex } from "@/wab/client/z-index";
+import { useProductThemeStyles } from "@/wab/client/product-ui-theme.styles";
 import { useInteractOutsideWithCommonExceptions } from "@/wab/commons/components/OnClickAway";
 import { arrayReversed } from "@/wab/shared/collections";
 import { cx, ensure } from "@/wab/shared/common";
@@ -14,6 +15,7 @@ import { OverlayProvider, useOverlay, useOverlayPosition } from "react-aria";
 import ReactDOM from "react-dom";
 import { animated, useSpring } from "@react-spring/web";
 import ResizeObserver from "resize-observer-polyfill";
+import { theme } from "antd";
 
 interface Store {
   state: PopoverFrameState;
@@ -264,6 +266,8 @@ function PopoverFrameInternal(props: PopoverFrameProps & { frameId: string }) {
 }
 
 function PopoverFrameShell() {
+  const { token } = theme.useToken();
+  const { styles: themeStyles } = useProductThemeStyles(token);
   const popupRef = React.useRef<HTMLDivElement>(null);
   const triggerRef = React.useRef<HTMLElement | null>(null);
   const { state, dispatch } = usePopoverFrameContext();
@@ -275,16 +279,11 @@ function PopoverFrameShell() {
     triggerRef.current = stack[0]?.triggerElement ?? null;
   }, [stack]);
 
-  const [popoverHeight, setPopoverHeight] = React.useState(0);
   const [container, setContainer] = React.useState<Element | null>(null);
   React.useLayoutEffect(() => {
     setContainer(document.querySelector(containerSelector));
   }, [containerSelector]);
-  const [minHeight, setMinHeight] = React.useState(
-    container
-      ? Math.min(popoverHeight, container.clientHeight - 50)
-      : undefined,
-  );
+  const [minHeight, setMinHeight] = React.useState<number>();
   const [contentContainer, setContentContainer] = React.useState<
     Element | undefined
   >(undefined);
@@ -304,10 +303,9 @@ function PopoverFrameShell() {
         4;
       const newMinHeight = Math.min(
         newPopoverHeight,
-        container.clientHeight - 50,
+        Math.max(0, container.ownerDocument.documentElement.clientHeight - 16),
       );
       setMinHeight(newMinHeight);
-      setPopoverHeight(newPopoverHeight);
     });
 
     _observer.observe(titleContainer);
@@ -380,7 +378,7 @@ function PopoverFrameShell() {
   return ReactDOM.createPortal(
     <OverlayProvider>
       <div
-        className={cx("auto-pointer-events")}
+        className={cx("auto-pointer-events", themeStyles.root)}
         style={{
           position: "fixed",
           inset: 0,
@@ -394,6 +392,8 @@ function PopoverFrameShell() {
           className={cx("dev-env panel-popup")}
           style={{
             minHeight: minHeight,
+            maxHeight: "calc(100vh - 16px)",
+            maxWidth: "calc(100vw - 16px)",
             pointerEvents: "auto",
             ...positionProps.style,
           }}
@@ -449,6 +449,6 @@ function PopoverFrameShell() {
         </div>
       </div>
     </OverlayProvider>,
-    container,
+    container.ownerDocument.body,
   );
 }

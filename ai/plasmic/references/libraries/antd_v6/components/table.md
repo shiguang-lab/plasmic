@@ -242,6 +242,37 @@ Confirm each sortable Column has a task-based reason under [sorting decisions](#
 Use at least three distinct, initially unsorted values and stable row keys. In Preview verify ascending, descending and clearing (or the declared non-clearing cycle) against actual row order, not just the header icon. Check initial ordering, controlled-state updates including explicit null, and page/selection behavior under the chosen ownership. Server sorting must prove outgoing field/direction and the returned row order; `sorter:true` alone is not acceptance. Verify multiple-sort priority when configured. After save/reopen, reread the Column expressions and directions and confirm temporary canvas ordering did not create a persisted controlled prop.
 
 
+### Column filtering
+
+Use the native leaf Column props, including leaves in ColumnGroup. Read the live Column contract before composition; the consuming project's installed library metadata and canvas runtime must both include these registrations.
+
+| Column prop | Native contract and use |
+| --- | --- |
+| `key` | Explicit unique native column key for `onChange` filters and `sorter.columnKey`. Set this for controlled/server filtering in Studio, where the editor otherwise supplies an instance React key. |
+| `filters` | Array of `{ text, value, children? }`. The panel edits text, typed values and nested children; a data binding can supply the full array, including ReactNode labels. Values may be strings, numbers or booleans. Nested children form menu submenus or tree nodes. |
+| `onFilter` | Predicate `(value, record) => boolean` for local filtering, not an event handler. Selected values within one Column are ORed; active Columns are ANDed. Omit for server filtering. |
+| `filterMultiple` | Native multiple selection by default; false enables single selection. |
+| `filterMode` | `"menu"` (default) or `"tree"`. Tree mode supports hierarchical checks and Check all. |
+| `filterSearch` | False (default), true for option search, or `(input, filterItem) => boolean`. This searches options rather than records; tree matches are highlighted by Ant Design. |
+| `defaultFilteredValue` | Initial array of native values. Runtime menu selection stays uncontrolled afterward. |
+| `filteredValue` | Controlled array, or `null`/`[]` to clear. Bind state and update it from Table `onChange` filters. Omit to let native menu state own filtering. |
+| `filterResetToDefaultFilteredValue` | False clears selection on Reset; true restores `defaultFilteredValue`. Confirm the reset selection, or close with `filterOnClose:true`, to apply it. |
+| `filterOnClose` | True by default: closing a native menu applies selections. False requires OK. Custom panels call their own confirm/clear functions. |
+| `filtered` | Force the native icon highlight; does not itself filter records. |
+| `filterDropdown` | Optional render Slot receiving one `filterProps` object, replacing the native menu. It provides `selectedKeys`, `setSelectedKeys(keys)`, `confirm({closeDropdown})`, `clearFilters({confirm,closeDropdown})`, `close()`, `filters`, `visible` and `prefixCls`. |
+| `filterIcon` | Optional render Slot receiving the `filtered` boolean; empty uses the native icon. |
+| `filterDropdownProps` | Native Dropdown object expression, including `open`, `onOpenChange(open)`, `placement`, `trigger` and `getPopupContainer`. Controlling `open` requires updating its state from the callback. |
+
+For example, `filters:[{text:"待处理",value:"pending"},{text:"已完成",value:"done"}]` with `onFilter:{{ (value, record) => record.status === value }}` filters local records. Keep field values aligned with their actual types. Do not add a separate filtering schema or render a substitute header menu.
+
+Table `onChange(pagination, filters, sorter, extra)` exposes selected values by native Column key; without an authored key, Ant Design uses `dataIndex` (joined with dots for array paths), then its positional fallback. A cleared filter reports `null`. For server filtering, omit `onFilter`, map `filters` to the backing query and replace the data from the response; the menu alone does not filter local rows. `extra.action === "filter"` identifies filtering, and `extra.currentDataSource` contains locally sorted/filtered rows before pagination. Native local pagination resets to page 1 after filtering; controlled/server pagination must update its own state.
+
+The design canvas reflects edits to `defaultFilteredValue` using a temporary `filteredValue` override unless the Column is explicitly controlled. This does not mutate saved props or emit change events on render. Interactive Preview and exports use native initial/uncontrolled behavior.
+
+For custom panels, bind registered controls to `filterProps.selectedKeys`/`setSelectedKeys`, call `confirm` to apply, and call `clearFilters` with the intended confirm/close flags. `close()` only closes; it does not apply pending edits. These functions are the native API, not additional Table events. Do not persist the callback object or temporary dropdown state.
+
+Acceptance: verify actual record keys after multi/single selection, nested menu/tree selection, option search, empty matches, Reset, default/controlled values and clearing. Check native value types, grouped Column keys, multiple-column intersection, sorting and pagination together. Verify `onChange` payloads and `extra.currentDataSource`, custom-panel confirm/clear/close, controlled dropdown visibility and icon state. Server filtering requires evidence of outgoing query values and returned records. Save/reopen checks must show only business props, with no persisted canvas override.
+
 ## Acceptance checks
 
 ### Column and operation width acceptance

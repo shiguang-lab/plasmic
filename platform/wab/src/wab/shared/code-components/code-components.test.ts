@@ -12,6 +12,8 @@ import {
   parseStyles,
   makePlumeComponentMeta,
   mkCodeComponent,
+  attachRenderableTplSlots,
+  CodeComponentSyncCallbackFns,
 } from "@/wab/shared/code-components/code-components";
 import { arrayRemove } from "@/wab/shared/collections";
 import { only, uncheckedCast } from "@/wab/shared/common";
@@ -19,6 +21,7 @@ import { PlumeComponent } from "@/wab/shared/core/components";
 import { codeLit } from "@/wab/shared/core/exprs";
 import { syncGlobalContexts } from "@/wab/shared/core/project-deps";
 import { createSite } from "@/wab/shared/core/sites";
+import { deepTrackComponents } from "@/wab/shared/core/tpls";
 import { unbundleSite } from "@/wab/shared/core/tagged-unbundle";
 import {
   Component,
@@ -32,6 +35,44 @@ import type { GlobalContextMeta } from "@plasmicapp/host";
 import type { CodeComponentMeta } from "@plasmicapp/host/registerComponent";
 
 const { addNewRegisteredComponents, findDuplicateAriaParams } = _testonly;
+
+it("refreshes current params when another refresh finishes during prop confirmation", async () => {
+  const site = createSite();
+  const oldMeta: CodeComponentMeta<any> = {
+    name: "SearchItem", importPath: "./SearchItem",
+    props: { label: "string", labelContent: { type: "slot" } },
+  };
+  const meta: CodeComponentMeta<any> = {
+    name: "SearchItem", importPath: "./SearchItem",
+    props: { label: { type: "slot", fixedRoot: true } },
+  };
+  const component = mkCodeComponent(meta.name, oldMeta, {});
+  component.params = componentMetaToComponentParams(site, oldMeta)._unsafeUnwrap();
+  site.components.push(component);
+  deepTrackComponents(site);
+  attachRenderableTplSlots(component);
+  const registry = new CodeComponentsRegistry(uncheckedCast<Window>({
+    __PlasmicComponentRegistry: [{ component: () => null, meta }],
+  }), {});
+  const ctx: Parameters<typeof _testonly.checkComponentPropsAndStates>[0] = {
+    site, codeComponentsRegistry: registry,
+    change: async (f) => f(),
+    observeComponents: () => true,
+    getRootSubReact: () => { throw new Error("unused"); },
+    tplMgr: () => new TplMgr({ site }),
+    getPlumeSite: async () => undefined,
+  };
+  const onStaleProps = vi.fn(async () => {
+    component.params = componentMetaToComponentParams(site, meta)._unsafeUnwrap();
+    attachRenderableTplSlots(component);
+    return true;
+  });
+  const result = await _testonly.checkComponentPropsAndStates(ctx, [], { onStaleProps } as unknown as CodeComponentSyncCallbackFns);
+  expect(result.isOk()).toBe(true);
+  expect(onStaleProps).toHaveBeenCalledOnce();
+  expect(component.params.map((param) => param.variable.name)).toContain("label");
+  expect(component.params.map((param) => param.variable.name)).not.toContain("labelContent");
+});
 
 describe("code-components", () => {
   // Unbundle plume-master-pkg.json and pick out TextInput

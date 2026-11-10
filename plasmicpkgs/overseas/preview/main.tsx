@@ -12,10 +12,34 @@ import {
 } from "../src/registerSearchForm";
 import { SearchFormPreview } from "./SearchFormPreview";
 import { Registerable } from "../src/registerAppShell";
+import { registerForm } from "../../antd6/src/form/registerForm";
+import { registerFormItem } from "../../antd6/src/form/registerFormItem";
 
 const params = new URLSearchParams(location.search);
 const localHost = location.pathname === "/local-host/";
 if (localHost) {
+  registerFormItem({ registerComponent(component, meta) {
+    registerComponent(component, {
+      ...meta,
+      name: "local-antd6-form-item",
+      parentComponentName: "local-antd6-form",
+      templates: undefined,
+      props: { ...meta.props, children: { type: "slot", defaultValue: { type: "component", name: "local-search-input" } } },
+    });
+  } } as any);
+  registerForm({ registerComponent(component, meta) {
+    registerComponent(component, {
+      ...meta,
+      name: "local-antd6-form",
+      actions: undefined,
+      templates: undefined,
+      props: {
+        ...meta.props,
+        mode: { type: "controlMode", defaultValue: "advanced" } as any,
+        children: { type: "slot", allowedComponents: ["local-antd6-form-item"], defaultValue: { type: "component", name: "local-antd6-form-item" } },
+      },
+    });
+  } } as any);
   registerComponent(AppShell, {
     ...appShellMeta,
     name: "local-overseas-app-shell",

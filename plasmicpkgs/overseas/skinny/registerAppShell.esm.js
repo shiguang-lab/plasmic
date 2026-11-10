@@ -43,6 +43,19 @@ function AppSourceSelect({ options, value, language, onChange }) {
 
 const menuItemType = { type: "object", nameFunc: (item) => item.label || item.key, fields: { key: "string", label: "string", href: { type: "href", description: "Page route; uses Plasmic navigation." }, disabled: "boolean", hidden: { type: "boolean", description: "Hide this route from the sidebar while retaining its breadcrumb ancestry." }, type: { type: "choice", options: ["item", "group", "divider"] }, children: { type: "array" } } };
 menuItemType.fields.children.itemType = menuItemType;
+const sidebarMenuItemType = {
+  type: "object",
+  nameFunc: (item) => item.label || item.key,
+  fields: {
+    key: "string",
+    label: "string",
+    href: { type: "href", description: "Page route; uses Plasmic navigation." },
+    disabled: "boolean",
+    hidden: { type: "boolean", description: "Hide this route from the sidebar while retaining its breadcrumb ancestry." },
+    children: { type: "array", displayName: "Children" }
+  }
+};
+sidebarMenuItemType.fields.children.itemType = sidebarMenuItemType;
 
 const routePath = (href) => href.split(/[?#]/)[0].replace(/\/+$/, "") || "/";
 function findMenuPath(items, pagePath, selectedKey) {
@@ -54,7 +67,6 @@ function findMenuPath(items, pagePath, selectedKey) {
     for (const item of entries) {
       const path = [...ancestors, item];
       visit(item.children ?? [], path);
-      if (item.type === "divider") continue;
       if (!selectedPath.length && item.key === selectedKey) selectedPath = path;
       if (!currentPath || !item.href) continue;
       const hrefPath = routePath(item.href);
@@ -161,10 +173,10 @@ function AppShell({
     pagePath,
     selectedMenuKey ?? localMenu
   );
-  const selectedKey = [...menuPath].reverse().find((item) => !item.hidden && item.type !== "group")?.key;
-  const navigationKey = JSON.stringify(menuItems, ["key", "href", "hidden", "type", "children"]);
+  const selectedKey = [...menuPath].reverse().find((item) => !item.hidden)?.key;
+  const navigationKey = JSON.stringify(menuItems, ["key", "href", "hidden", "children"]);
   const routeKey = JSON.stringify([pagePath, menuPath.map((item) => item.key)]);
-  const routeOpenKeys = menuPath.filter((item) => !item.hidden && item.type !== "group" && item.children?.some((child) => !child.hidden)).map((item) => item.key);
+  const routeOpenKeys = menuPath.filter((item) => !item.hidden && item.children?.some((child) => !child.hidden)).map((item) => item.key);
   const rememberedKeys = !canvas && typeof window !== "undefined" ? menuOpenKeysByWindow.get(window)?.get(navigationKey) ?? [] : [];
   const [menuState, setMenuState] = useState(() => ({
     inCanvas: !!canvas,
@@ -213,7 +225,10 @@ function AppShell({
   const clock = `${timeParts.year}-${timeParts.month}-${timeParts.day} ${timeParts.hour}:${timeParts.minute}:${timeParts.second}`;
   const linkedMenu = (items) => items.map(
     (item) => item && {
-      ...item,
+      key: item.key,
+      label: item.label,
+      icon: item.icon,
+      disabled: item.disabled,
       ...item.href ? {
         label: /* @__PURE__ */ jsx(PlasmicLink, { href: item.href, children: item.label })
       } : {},
@@ -509,6 +524,7 @@ const appShellMeta = {
   description: "Shared application shell with route-based navigation and breadcrumbs. Configure the product, user, language, and app source; edit pages in the children slot.",
   importPath: "@shiguang-lab/plasmic-overseas/skinny/registerAppShell",
   importName: "AppShell",
+  styleSections: false,
   defaultStyles: { width: "100%", height: "100vh" },
   props: {
     direction: { displayName: "Direction", type: "choice", options: ["ltr", "rtl"], defaultValue: "ltr" },
@@ -567,7 +583,7 @@ const appShellMeta = {
     menuItems: {
       displayName: "Menu items",
       type: "array",
-      itemType: menuItemType,
+      itemType: sidebarMenuItemType,
       defaultValue: DEFAULT_MENU_ITEMS
     },
     selectedMenuKey: { type: "string", displayName: "Selected menu key" },

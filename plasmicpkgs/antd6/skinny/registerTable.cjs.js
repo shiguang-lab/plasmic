@@ -206,7 +206,9 @@ function TableHeaderCell(props) {
   return renderTableCell(props, "th");
 }
 function getColumns(children, bodyCell, headerCell, isEditing) {
-  return React__default.default.Children.toArray(children).flatMap((child) => {
+  const elements = [];
+  React__default.default.Children.forEach(children, (child) => elements.push(child));
+  return elements.flatMap((child) => {
     if (!React__default.default.isValidElement(child)) {
       return [];
     }
@@ -242,6 +244,8 @@ function getColumns(children, bodyCell, headerCell, isEditing) {
         key: child.key ?? column.key,
         // Preview initial sorting edits without controlling sorting at runtime.
         ...isEditing && column.sortOrder === void 0 ? { sortOrder: column.defaultSortOrder ?? null } : {},
+        // Reflect initial filter edits on the canvas without controlling runtime filters.
+        ...isEditing && column.filteredValue === void 0 && (column.filters || column.filterDropdown || column.onFilter) ? { filteredValue: column.defaultFilteredValue ?? null } : {},
         onHeaderCell,
         onCell: (row, index) => {
           const cellProps = column.onCell?.(row, index);
@@ -595,7 +599,7 @@ function registerTable(loader) {
       onChange: {
         type: "eventHandler",
         displayName: "On change",
-        description: "Receives pagination, filters, sorter and extra. Sorter contains field, columnKey and order (ascend/descend, or undefined when cleared); multiple sorting can return an array. extra.action is paginate, sort or filter. With Column.sorter=true, use these values to request server-sorted data; rows are not reordered locally.",
+        description: "Receives pagination, filters, sorter and extra. Filters maps column keys (dataIndex when no explicit key) to selected native values or null when cleared. extra.action is paginate, sort or filter; extra.currentDataSource contains the locally sorted and filtered rows before pagination. Omit Column.onFilter for server filtering and use filters to request data. Sorter contains field, columnKey and order (ascend/descend, or undefined when cleared); multiple sorting can return an array. With Column.sorter=true, use these values to request server-sorted data; rows are not reordered locally.",
         argTypes: [
           { name: "pagination", type: "object" },
           { name: "filters", type: "object" },
@@ -709,6 +713,12 @@ function registerTable(loader) {
         displayName: "Data index",
         description: "The data field used by this column. Changes apply to every row."
       },
+      key: {
+        type: "string",
+        displayName: "Key",
+        advanced: true,
+        description: "Unique native column key used in Table On change filters and sorter.columnKey. Set an explicit stable key for controlled or server filtering in Studio; otherwise Studio may supply the instance's React key. Outside Studio, an unkeyed column falls back to Data index."
+      },
       render: {
         type: "slot",
         renderPropParams: ["cell", "row", "index"],
@@ -736,6 +746,94 @@ function registerTable(loader) {
           { value: "center", label: "Center" }
         ],
         defaultValueHint: "left"
+      },
+      filters: {
+        type: "array",
+        displayName: "Filters",
+        description: "Native filter menu items. Each item has text, value and optional nested children. Values retain their string, number or boolean types. Use a data binding for ReactNode text or a complete nested array. Requires On filter for local filtering; otherwise handle Table On change to fetch server-filtered data.",
+        itemType: {
+          type: "object",
+          nameFunc: (item) => typeof item.text === "string" ? item.text : String(item.value),
+          fields: {
+            text: { type: "string", displayName: "Text" },
+            value: { type: "exprEditor", displayName: "Value", description: "Native filter value: string, number or boolean." },
+            children: { type: "exprEditor", displayName: "Children", description: "Nested array of native { text, value, children? } filter items, for submenus or tree mode." }
+          }
+        }
+      },
+      onFilter: {
+        type: "exprEditor",
+        displayName: "On filter",
+        description: "Native predicate (value, record) => boolean, for example (value, record) => record.status === value. Receives a selected filter value and the complete record. Selected values within a column are ORed; active columns are ANDed. Omit for server filtering through Table On change. This is a predicate, not an event handler."
+      },
+      filterMultiple: {
+        type: "boolean",
+        displayName: "Filter multiple",
+        defaultValueHint: true,
+        description: "Allow multiple selected filter values. False uses native single selection."
+      },
+      filterMode: {
+        type: "choice",
+        displayName: "Filter mode",
+        options: [{ value: "menu", label: "Menu" }, { value: "tree", label: "Tree" }],
+        defaultValueHint: "menu"
+      },
+      filterSearch: {
+        type: "exprEditor",
+        displayName: "Filter search",
+        description: "False (default), true for native option search, or (input, filterItem) => boolean for custom matching. Searches filter options, not table records."
+      },
+      defaultFilteredValue: {
+        type: "exprEditor",
+        displayName: "Default filtered value",
+        description: "Initial array of native filter values. Leave unset for no initial filter. Users own filtering afterward in Preview; canvas edits reflect immediately without persisting controlled state."
+      },
+      filteredValue: {
+        type: "exprEditor",
+        displayName: "Filtered value",
+        advanced: true,
+        description: "Controlled array of native filter values. Bind state and update it from Table On change filters using this column's key. Use null or [] to clear; omit for uncontrolled filtering. Takes precedence over Default filtered value."
+      },
+      filterResetToDefaultFilteredValue: {
+        type: "boolean",
+        displayName: "Filter reset to default filtered value",
+        defaultValueHint: false,
+        advanced: true,
+        description: "Reset restores Default filtered value when true; otherwise Reset clears the selected values. The native menu applies the reset selection on confirmation or close when Filter on close is enabled."
+      },
+      filterOnClose: {
+        type: "boolean",
+        displayName: "Filter on close",
+        defaultValueHint: true,
+        advanced: true,
+        description: "Apply native menu selections when the dropdown closes. False requires confirmation. A custom Filter dropdown owns its confirm/clear behavior."
+      },
+      filtered: {
+        type: "boolean",
+        displayName: "Filtered",
+        advanced: true,
+        defaultValueHint: false,
+        description: "Force the filter icon highlight without filtering rows. Actual filtering uses Filtered value or native menu state and On filter."
+      },
+      filterDropdown: {
+        type: "slot",
+        displayName: "Filter dropdown",
+        renderPropParams: ["filterProps"],
+        hidePlaceholder: true,
+        description: "Optional custom filter panel replacing the native menu. Receives the native filterProps object: selectedKeys, setSelectedKeys(keys), confirm({ closeDropdown }), clearFilters({ confirm, closeDropdown }), close(), filters, visible and prefixCls. Bind controls and actions to these functions; On filter still owns local row matching."
+      },
+      filterIcon: {
+        type: "slot",
+        displayName: "Filter icon",
+        renderPropParams: ["filtered"],
+        hidePlaceholder: true,
+        description: "Optional native filter icon template receiving the filtered boolean. Leave empty for Ant Design's filter icon."
+      },
+      filterDropdownProps: {
+        type: "exprEditor",
+        displayName: "Filter dropdown props",
+        advanced: true,
+        description: "Native Dropdown props object, including placement, trigger, getPopupContainer, open and onOpenChange(open). When controlling open, update its owning state from onOpenChange. Omit open for native trigger behavior."
       },
       sorter: {
         type: "exprEditor",

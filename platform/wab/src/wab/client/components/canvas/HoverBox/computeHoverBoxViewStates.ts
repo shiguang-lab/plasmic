@@ -96,7 +96,7 @@ export interface HoverBoxViewDisplayProps {
   marginPx?: Record<Side, number>;
   edgeControls: Record<Side, SpaceEdgeType[]>;
   containerChildAlignment: Record<Orient, ContainerChildAlignment | undefined>;
-  isSlot?: boolean;
+  dashedBorder?: boolean;
   isRepeated?: boolean;
   isComponentPart?: boolean;
 }
@@ -272,6 +272,7 @@ export function computeHoverBoxViewState(vc: ViewCtx, target: HoverBoxTarget, tr
       tagUid: tpl?.uid,
       ...(part || fixedRoot ? {
         isComponentPart: true,
+        dashedBorder: fixedRoot,
         edgeControls: { top: [], right: [], bottom: [], left: [] },
         containerChildAlignment: { vert: undefined, horiz: undefined },
       } : computeSpacingViewState(focusObj, vc)),
@@ -293,9 +294,9 @@ function computeSpacingViewState(
   | "containerChildAlignment"
   | "autoWidth"
   | "autoHeight"
-  | "isSlot"
+  | "dashedBorder"
 > {
-  const unknown = (isSlot: boolean) => ({
+  const unknown = (dashedBorder: boolean) => ({
     edgeControls: {
       top: [],
       right: [],
@@ -306,7 +307,7 @@ function computeSpacingViewState(
       vert: undefined,
       horiz: undefined,
     },
-    isSlot: isSlot,
+    dashedBorder,
   });
 
   if (controlledObj instanceof SlotSelection) {
@@ -368,7 +369,7 @@ function computeSpacingViewState(
       effectiveExpr,
       parentExpr,
     ),
-    isSlot: controlledObj instanceof ValSlot,
+    dashedBorder: controlledObj instanceof ValSlot,
     ...computeSpacingInfo(viewCtx, spacingObj, effectiveExpr),
   };
 }

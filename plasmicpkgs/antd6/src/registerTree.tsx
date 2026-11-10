@@ -1,7 +1,7 @@
 import type { TreeDataNode, TreeProps } from "antd";
 import { Tree } from "antd";
 import type { DirectoryTreeProps } from "antd/es/tree";
-import React, { Key } from "react";
+import React from "react";
 import { Registerable, registerComponentHelper } from "./utils";
 
 export function AntdTree(props: TreeProps) {
@@ -20,7 +20,7 @@ export function AntdDirectoryTree(props: DirectoryTreeProps) {
 export interface CheckedDetails<
   TreeDataType extends TreeDataNode = TreeDataNode,
 > {
-  halfCheckedKeys: Key[];
+  halfCheckedKeys: React.Key[];
   checkedNodesPositions?: {
     node: TreeDataType;
     pos: string;

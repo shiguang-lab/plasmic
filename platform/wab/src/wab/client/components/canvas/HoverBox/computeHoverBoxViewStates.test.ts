@@ -1,13 +1,15 @@
 import { computeHoverBoxViewState } from "@/wab/client/components/canvas/HoverBox/computeHoverBoxViewStates";
 import { getSelectionBounds } from "@/wab/client/components/canvas/selection-bounds";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
 import { mkBaseVariant } from "@/wab/shared/Variants";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkParam } from "@/wab/shared/core/lang";
 import { SlotSelection } from "@/wab/shared/core/slots";
 import { mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
-import { ValComponent } from "@/wab/shared/core/val-nodes";
+import { ValComponent, ValTextTag } from "@/wab/shared/core/val-nodes";
 import { Box } from "@/wab/shared/geom";
+import { Arg, RenderExpr } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import $ from "jquery";
 
@@ -145,6 +147,30 @@ it("outlines the protected part's fixed DOM bounds without resize or spacing con
   const part = { tpl: owner.tpl, name: "brand", displayName: "Product name", selector: "[data-brand]", props: ["productName"], element: brand };
   expect(computeHoverBoxViewState(vc, target, false, false, part).displayProps)
     .toMatchObject({ left: 120, top: 210, width: 166, height: 64, tagName: "Product name", isComponentPart: true, edgeControls: { top: [], right: [], bottom: [], left: [] } });
+});
+
+it("uses the common dashed border while keeping the real text node selected", () => {
+  const { vc, focusObj } = fixture();
+  const param = focusObj.slotParam;
+  const component = mkCodeComponent("Shell", { name: "Shell", importPath: "./Shell", props: {} }, {});
+  component.params.push(param);
+  const owner = mkTplComponent(component, mkBaseVariant(), []);
+  const brand = mkTplTagX("span");
+  owner.vsettings[0].args.push(new Arg({ param, expr: new RenderExpr({ tpl: [brand] }) }));
+  brand.parent = owner;
+  Object.assign(vc, {
+    getCodeComponentMeta: () => ({ props: { children: { type: "slot", fixedRoot: true } } }),
+    effectiveCurrentVariantSetting: () => undefined,
+  });
+  const node = $(document.body.appendChild(element(new Box(10, 20, 166, 32))));
+  const result = computeHoverBoxViewState(vc, { node, focusObj: new ValTextTag({ tpl: brand } as any) }, false, false, undefined);
+  expect(result.displayProps).toMatchObject({
+    width: 166,
+    height: 32,
+    dashedBorder: true,
+    edgeControls: { top: [], right: [], bottom: [], left: [] },
+  });
+  expect(result.focusedElt).toBe(node);
 });
 
 it("shows a selection when an initially hidden root gains layout", () => {

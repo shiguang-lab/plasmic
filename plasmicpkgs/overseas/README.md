@@ -4,7 +4,7 @@
 
 Build with `pnpm --filter @shiguang-lab/plasmic-overseas build`. The canvas bundle is `platform/canvas-packages/src/overseas.ts`; the NAS registration script publishes the independent `overseas` hostless library and component-store entry. Install it in Studio or through MCP `installLibrary`, then read its contracts before insertion.
 
-See [AppShell configuration and preview](preview/README.md). Menu items accept `key`, `label`, `href`, `disabled`, `type` and nested `children`. Routes use the Plasmic Link provider, so the same links work in Studio preview and exported applications.
+See [AppShell configuration and preview](preview/README.md). Sidebar menu items accept `key`, `label`, `href`, `disabled`, `hidden` and nested `children` for parent/child navigation. User dropdown items also support `type` for groups and dividers. Routes use the Plasmic Link provider, so the same links work in Studio preview and exported applications.
 
 The already-published Ant Design library cannot delete registered component contracts. Its previous AppShell name delegates to this implementation and is hidden by the NAS component catalog. New designs and migrated REQ075 pages use only the Overseas registration.
 

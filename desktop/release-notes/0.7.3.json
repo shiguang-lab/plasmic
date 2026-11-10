@@ -1,0 +1,7 @@
+{
+  "en": "- Edit AppShell Brand, SearchForm.Item Label and Form.Item Label in real time from the property panel, synchronized with their canvas text nodes.\n- Use standard drill-down selection and thin dashed outlines for fixed text nodes, without resize controls. AppShell exposes only its registered properties.\n- Configure native Table column filters, initial and controlled filter values, custom filter panels and icons.\n- Improve property popover appearance, selection highlights and component registration refreshes.",
+  "zh-CN": "- AppShell Brand、SearchForm.Item Label 和 Form.Item Label 支持在属性面板实时编辑，并与画布文本节点同步。\n- 固定文本节点使用通用的逐层选中、细虚线选框，不提供尺寸调整；AppShell 仅显示已注册的属性。\n- Table 列支持原生筛选配置、初始与受控筛选值、自定义筛选面板和图标。\n- 改善属性浮层样式、选中高亮及组件注册信息刷新。",
+  "zh-TW": "- AppShell Brand、SearchForm.Item Label 和 Form.Item Label 支援在屬性面板即時編輯，並與畫布文字節點同步。\n- 固定文字節點使用通用的逐層選取、細虛線選框，不提供尺寸調整；AppShell 僅顯示已註冊的屬性。\n- Table 欄支援原生篩選設定、初始與受控篩選值、自訂篩選面板和圖示。\n- 改善屬性浮層樣式、選取醒目提示及元件註冊資訊重新整理。",
+  "ja": "- AppShell Brand、SearchForm.Item Label、Form.Item Label をプロパティパネルからリアルタイムで編集し、キャンバスのテキストと同期できるようにしました。\n- 固定テキストに標準の階層選択と細い破線の選択枠を適用し、サイズ変更操作を非表示にしました。AppShell には登録済みのプロパティのみを表示します。\n- Table 列のネイティブフィルター、初期値と制御値、カスタムパネルとアイコンを設定できるようにしました。\n- プロパティポップオーバー、選択表示、コンポーネント登録情報の更新を改善しました。",
+  "ko": "- AppShell Brand, SearchForm.Item Label, Form.Item Label을 속성 패널에서 실시간으로 편집하고 캔버스 텍스트 노드와 동기화할 수 있습니다.\n- 고정 텍스트 노드에 기본 계층 선택과 가는 점선 테두리를 적용하고 크기 조절을 숨겼습니다. AppShell에는 등록된 속성만 표시합니다.\n- Table 열의 기본 필터, 초기 및 제어 필터 값, 사용자 지정 패널과 아이콘 설정을 지원합니다.\n- 속성 팝오버, 선택 강조 및 컴포넌트 등록 정보 갱신을 개선했습니다."
+}

@@ -15,6 +15,7 @@ import { ImagePreview } from "@/wab/client/components/style-controls/ImageSelect
 import Indicator from "@/wab/client/components/style-controls/Indicator";
 import Select from "@/wab/client/components/widgets/Select";
 import Textarea from "@/wab/client/components/widgets/Textarea";
+import Button from "@/wab/client/components/widgets/Button";
 import { ListBox } from "@/wab/client/components/widgets";
 import { SectionSeparator } from "@/wab/client/components/sidebar/sidebar-helpers";
 import styleSelectOption from "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Option.module.css";
@@ -61,6 +62,12 @@ vi.mock(
     ),
   }),
 );
+vi.mock("@/wab/client/plasmic/PlasmicButton.module.css", () => ({
+  default: new Proxy({}, { get: (_target, key) => `button-${String(key)}` }),
+}));
+vi.mock("@/wab/client/plasmic/plasmic_kit_top_bar/PlasmicVariantsComboSelect.module.css", () => ({
+  default: new Proxy({}, { get: (_target, key) => `variants-combo-${String(key)}` }),
+}));
 vi.mock(
   "@/wab/client/plasmic/plasmic_kit_style_controls/PlasmicStyleSelect__Option.module.css",
   () => ({
@@ -73,6 +80,24 @@ vi.mock(
 
 const styleOwners: SingleRsStyleInputs[] = [];
 afterEach(() => { cleanup(); styleOwners.splice(0).forEach((owner) => owner.dispose()); });
+
+it("keeps the active object editor button readable across themes", () => {
+  render(<AntdConfigProvider productUI>
+    <Button className="button--active" type={["leftAligned", "seamless"]}>Parent menu</Button>
+  </AntdConfigProvider>);
+  const button = screen.getByRole("button", { name: "Parent menu" });
+  for (const appearance of ["dark", "light", "dark"] as const) {
+    act(() => setAppearancePreference(appearance));
+    const token = AntdTheme.getDesignToken(productTheme(appearance));
+    const probe = document.createElement("div");
+    probe.style.backgroundColor = token.colorPrimaryBg;
+    probe.style.color = token.colorPrimaryText;
+    document.body.appendChild(probe);
+    expect(getComputedStyle(button).backgroundColor).toBe(getComputedStyle(probe).backgroundColor);
+    expect(getComputedStyle(screen.getByText("Parent menu")).color).toBe(getComputedStyle(probe).color);
+    probe.remove();
+  }
+});
 
 it("keeps sidebar modal surfaces readable with a light scrim across themes", async () => {
   const onClose = vi.fn();

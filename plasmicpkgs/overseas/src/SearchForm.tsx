@@ -14,8 +14,7 @@ export type SearchValues = Record<string, unknown>;
 export interface SearchFormItemProps {
   className?: string;
   name?: string;
-  label?: string;
-  labelContent?: React.ReactNode;
+  label?: React.ReactNode;
   children?: React.ReactNode;
   span?: number;
   initialValue?: unknown;
@@ -57,7 +56,6 @@ export function SearchFormItem({
   className,
   name,
   label,
-  labelContent,
   children,
   required,
   requiredMessage,
@@ -66,6 +64,7 @@ export function SearchFormItem({
   trigger,
   help,
 }: SearchFormItemProps) {
+  const labelRef = useRef<HTMLSpanElement>(null);
   const child = React.Children.toArray(children)[0];
   const controlMeta = React.isValidElement(child)
     ? (child.type as any).__plasmicFormFieldMeta
@@ -75,7 +74,7 @@ export function SearchFormItem({
     <Form.Item
       className={className}
       name={name}
-      label={labelContent ?? (label == null || label === "" ? label : <span data-search-form-label="">{label}</span>)}
+      label={label == null || label === "" ? label : <span ref={labelRef}>{label}</span>}
       help={help}
       style={{ marginBottom: 16 }}
       valuePropName={valuePropName ?? controlMeta?.valueProp ?? "value"}
@@ -83,11 +82,11 @@ export function SearchFormItem({
       rules={[
         ...(required
           ? [
-              {
+              () => ({
                 required: true,
                 message:
-                  requiredMessage ?? `请输入${label ?? name ?? "查询条件"}`,
-              },
+                  requiredMessage ?? `请输入${labelRef.current?.textContent?.trim() || name || "查询条件"}`,
+              }),
             ]
           : []),
         ...(rules ?? []),

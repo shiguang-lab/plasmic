@@ -67,17 +67,6 @@ it("blocks deletion, movement and resizing while leaving the actual text node se
   expect(brand.parent).toBe(slot.getTpl());
 });
 
-it("focuses the fixed span directly without promoting selection to the owning component", () => {
-  const { brand, view } = fixture();
-  const value = new ValTextTag({ tpl: brand } as any);
-  const ops = new ViewOps({ viewCtx: view });
-  const bestFocusTarget = vi.fn(() => ({ focusTarget: value }));
-  vi.spyOn(ops as any, "focusHeuristics").mockReturnValue({ bestFocusTarget });
-  const result = Reflect.get(ops, "resolveFocusTarget").call(ops, value, { exact: false });
-  expect(result.focusTarget).toBe(value);
-  expect(bestFocusTarget).toHaveBeenCalledWith(value, expect.objectContaining({ exact: true }));
-});
-
 it("locks every style for a registered fixed span while ordinary spans keep their style properties", () => {
   const { brand, owner, meta } = fixture();
   const registry = mock<CodeComponentsRegistry>();

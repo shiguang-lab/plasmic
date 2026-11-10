@@ -2,6 +2,7 @@ import { ViewStyleInputs } from "@/wab/client/studio-ctx/style-inputs";
 import { mkBaseVariant } from "@/wab/shared/Variants";
 import { VariantTplMgr } from "@/wab/shared/VariantTplMgr";
 import { TplMgr } from "@/wab/shared/TplMgr";
+import { $$$ } from "@/wab/shared/TplQuery";
 import { RootComponentVariantFrame, GlobalVariantFrame } from "@/wab/shared/component-frame";
 import * as Signals from "signals";
 import { CanvasContentEditorIndex } from "@/wab/client/studio-ctx/canvas-content-editor";
@@ -16,6 +17,9 @@ import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
 import { ViewSelection } from "@/wab/client/studio-ctx/view-selection";
 import { mkArenaFrame } from "@/wab/shared/Arenas";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
+import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
+import { mkParam } from "@/wab/shared/core/lang";
+import { SlotSelection } from "@/wab/shared/core/slots";
 import { createSite } from "@/wab/shared/core/sites";
 import { ValTag } from "@/wab/shared/core/val-nodes";
 import { createStore } from "zustand/vanilla";
@@ -26,8 +30,9 @@ import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { SQ } from "@/wab/shared/core/selection";
-import { Arena } from "@/wab/shared/model/classes";
-import { mkTplTagX } from "@/wab/shared/core/tpls";
+import { Arena, Arg, RenderExpr } from "@/wab/shared/model/classes";
+import { typeFactory } from "@/wab/shared/model/model-util";
+import { deepTrackComponents, mkSlot, mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
 import { act, cleanup, render, waitFor } from "@testing-library/react";
 import $ from "jquery";
 import React from "react";
@@ -79,12 +84,12 @@ function element(parent = document.body) {
   return node;
 }
 
-function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = false, live = false, dragging = createStore<boolean>(() => false), overlayState = new StudioOverlayState()) {
+function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = false, live = false, dragging = createStore<boolean>(() => false), overlayState = new StudioOverlayState(), fixedSlot?: "root" | "slot") {
   overlayState.ancestorsHoverBoxes = false;
   const site = createSite();
   const base = mkBaseVariant();
   const tpl = mkTplTagX("div", { baseVariant: base, attrs: {} });
-  const component = mkComponent({ name: "Hover", type: ComponentType.Plain, tplTree: tpl, variants: [base] });
+  const component = mkComponent({ name: "Hover", type: ComponentType.Plain, tplTree: fixedSlot ? mkTplTagX("div", { baseVariant: base }) : tpl, variants: [base] });
   site.components.push(component);
   const frame = mkArenaFrame({ site, component, name: "Hover", width: 100, height: 100 });
   const models = new ModelSnapshots();
@@ -96,7 +101,20 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
   const styleInputs = new ViewStyleInputs(() => models, signal.signal);
   const manager = new VariantTplMgr([new RootComponentVariantFrame(frame)], site, new TplMgr({ site }), new GlobalVariantFrame(site, frame));
   disposeFixtures.push(() => signal.abort());
-  const selectable = new ValTag({ tpl, children: [], className: "", key: "hover", fullKey: "hover", frameUid: frame.uid, fibers: [], parent: undefined, valOwner: undefined, slotInfo: undefined });
+  const value = new ValTag({ tpl, children: [], className: "", key: "hover", fullKey: "hover", frameUid: frame.uid, fibers: [], parent: undefined, valOwner: undefined, slotInfo: undefined });
+  let selectable: ValTag | SlotSelection = value;
+  if (fixedSlot) {
+    const shell = mkCodeComponent("Shell", { name: "Shell", importPath: "./Shell", props: {} }, {});
+    const param = mkParam({ name: "brand", paramType: "slot", type: typeFactory.renderable() });
+    shell.params.push(param); site.components.push(shell);
+    $$$(shell.tplTree).append(mkSlot(param));
+    const owner = mkTplComponent(shell, base, []);
+    $$$(component.tplTree).append(owner);
+    owner.vsettings[0].args.push(new Arg({ param, expr: new RenderExpr({ tpl: [tpl] }) }));
+    tpl.parent = owner;
+    if (fixedSlot === "slot") selectable = new SlotSelection({ tpl: owner, slotParam: param });
+  }
+  deepTrackComponents(site);
   selection.setHover(selectable, $(hovered));
   disposeFixtures.push(() => { arenaState.dispose(); overlayState.dispose(); studioSelection.dispose(); selection.dispose(); variants.dispose(); models.dispose(); });
   const viewCtx = {
@@ -107,6 +125,7 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
     modelLifetime: arenaState.lifetime(),
     canvasCtx: { $doc: () => $(document) },
     dom2focusObj: () => undefined,
+    getCodeComponentMeta: () => ({ props: { brand: { type: "slot", fixedRoot: true } } }),
     selectionDom: () => $(roots),
     $hoveredDomElt: () => selection.hoverDom(),
     contentEditor: { contains: () => true },
@@ -160,6 +179,18 @@ function outline(roots: HTMLElement[], hovered: HTMLElement, isHoveredElt = fals
     />,
   ), { retire: () => signal.abort() });
 }
+
+it("uses a dashed hover outline for fixed slot content", () => {
+  const brand = element();
+  const { container } = outline([brand], brand, true, false, undefined, undefined, "root");
+  expect(container.querySelector<HTMLElement>(".PreselectBox > div")?.style.borderStyle).toBe("dashed");
+});
+
+it("does not add a second hover outline for the transparent fixed-root slot", () => {
+  const wrapper = element(), brand = element(wrapper);
+  const { container } = outline([wrapper], brand, false, false, undefined, undefined, "slot");
+  expect(container.querySelector(".PreselectBox")).toBeNull();
+});
 
 it("does not outline background model ancestors of a portaled dialog", () => {
   const background = element();

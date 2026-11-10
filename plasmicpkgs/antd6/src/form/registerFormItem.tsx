@@ -23,12 +23,15 @@ export function registerFormItem(loader?: Registerable) {
     props: {
       label: {
         type: "slot",
+        displayName: "Label",
+        fixedRoot: true,
         defaultValue: {
           type: "text",
+          tag: "span",
+          elementName: "Label",
           value: "Label",
         },
         hidden: (ps: any) => !!ps.noLabel,
-        ...({ mergeWithParent: true } as any),
       },
       children: {
         type: "slot",

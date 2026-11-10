@@ -331,8 +331,8 @@ def check_search_forms(plan, root, path):
                 parent = owners.get(id(parent), (None, None))[0]
             if parent is not form:
                 continue
-            label, custom = props(field).get("label"), slot(field, "labelContent")
-            has_custom = custom is not None and (content(custom).strip() or any(n["tag"] == "plasmic-component" for n in walk(custom)))
+            label, label_slot = props(field).get("label"), slot(field, "label")
+            has_label_slot = label_slot is not None and content(label_slot).strip()
             field_spec = declarations.get(node_name(field), {})
             expected_span = expected_columns
             field_constraints = field_spec.get("props", {})
@@ -346,9 +346,9 @@ def check_search_forms(plan, root, path):
                                "form": node_name(form), "expectedSpan": expected_span, "actualSpan": actual_span,
                                "message": "SearchForm.Item must inherit the reviewed Form colSpan unless its components entry declares a source-reviewed props.span override"})
             reviewed_empty = field_spec.get("source") and "label" in field_spec.get("props", {}) and field_spec["props"]["label"] == ""
-            if not (isinstance(label, str) and label.strip() or has_custom or reviewed_empty):
+            if not (isinstance(label, str) and label.strip() or has_label_slot or reviewed_empty):
                 errors.append({"check": "searchFieldLabel", "path": path, "node": node_name(field),
-                               "message": "SearchForm.Item needs a visible label/labelContent; placeholder is not a label. A deliberate label-free field needs an explicit source-reviewed label constraint"})
+                               "message": "SearchForm.Item needs visible label slot content; placeholder is not a label. A deliberate label-free field needs an explicit source-reviewed label constraint"})
     return errors
 
 

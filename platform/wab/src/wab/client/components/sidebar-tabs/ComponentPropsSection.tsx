@@ -15,6 +15,7 @@ import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import { TextAndShortcut } from "@/wab/client/components/menu-builder";
 import { reactPrompt } from "@/wab/client/components/quick-modals";
 import { ComponentActionsSection } from "@/wab/client/components/sidebar-tabs/ComponentActionsSection";
+import { TextContentRow } from "@/wab/client/components/sidebar-tabs/TypographySection";
 import { ModelNameHeader } from "@/wab/client/components/sidebar-tabs/ModelNameHeader";
 import { DataPickerEditor } from "@/wab/client/components/sidebar-tabs/ComponentProps/DataPickerEditor";
 import {
@@ -85,6 +86,7 @@ import {
 } from "@/wab/shared/component-props";
 import {
   getComponentDisplayName,
+  getParamDisplayName,
   getRealParams,
   isCodeComponent,
   isPlumeComponent,
@@ -108,6 +110,7 @@ import {
   isEventHandlerKeyForParam,
   isTplComponent,
   isTplNamable,
+  isTplTextBlock,
   summarizeUnnamedTpl,
   tplHasRef,
 } from "@/wab/shared/core/tpls";
@@ -196,6 +199,18 @@ const PropNode = React.memo(function PropNode(props: {
   const { isExpanded } = useSidebarSection();
   if (node.kind === "param") {
     if (isExpanded || !isParamAdvanced(node.param, ctx)) {
+      const propType = inferPropTypeFromParam(viewCtx.studioCtx, viewCtx, tpl, node.param);
+      if (typeof propType === "object" && propType.type === "slot" && propType.fixedRoot) {
+        const expr = expsProvider.effectiveVs().args.find((arg) => arg.param === node.param)?.expr;
+        const root = isKnownRenderExpr(expr) && expr.tpl.length === 1 ? expr.tpl[0] : undefined;
+        return root && isTplTextBlock(root) ? (
+          <TextContentRow
+            viewCtx={viewCtx}
+            expsProvider={new TplExpsProvider(viewCtx, root)}
+            label={getParamDisplayName(tpl.component, node.param)}
+          />
+        ) : null;
+      }
       return (
         <PropEditorRowWrapper
           key={node.param.uid}
@@ -287,10 +302,14 @@ const ComponentPropsSectionContent = React.memo(
 
     const propTypes = getComponentPropTypes(viewCtx, component);
 
-    // Primitive slot content is edited on its owning component, without a Tpl node.
+    // Fixed text slots edit the same authored root from the owner and the canvas.
     params.push(...getSlotParams(component).filter((param) => {
       const expr = expsProvider.effectiveVs().args.find((arg) => arg.param === param)?.expr;
-      return tab === "settings" && expr && !isKnownRenderExpr(expr);
+      const propType = propTypes?.[param.variable.name];
+      return tab === "settings" && (
+        (typeof propType === "object" && propType.type === "slot" && propType.fixedRoot) ||
+        (expr && !isKnownRenderExpr(expr))
+      );
     }));
 
     if (isCodeComponent(component) || isPlumeComponent(component)) {
@@ -321,7 +340,7 @@ const ComponentPropsSectionContent = React.memo(
     });
     const slotParams = getSlotParams(component).filter((param) => {
       const propType = propTypes?.[param.variable.name];
-      if (typeof propType === "object" && propType.type === "slot" && propType.fixedRoot) return false;
+      if (typeof propType === "object" && propType.type === "slot" && propType.fixedRoot) { return false; }
       if (typeof propType !== "object" || !("hidden" in propType)) {
         return true;
       }

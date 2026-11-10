@@ -5,6 +5,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from "@testing-library/react";
 import { Input } from "antd";
 import { createRef } from "react";
@@ -27,6 +28,27 @@ const fields = ["市场", "场景", "类型", "状态", "关键字"].map((label,
     <Input aria-label={label} />
   </SearchFormItem>
 ));
+test("fixed label content supplies the current required message and preserves submission", async () => {
+  const onSearch = vi.fn();
+  const form = (label: string) => (
+    <SearchForm onSearch={onSearch}>
+      <SearchFormItem name="keyword" label={<span>{label}</span>} required>
+        <Input aria-label="Keyword" />
+      </SearchFormItem>
+    </SearchForm>
+  );
+  const view = render(form("客户姓名"));
+  fireEvent.click(screen.getByRole("button", { name: /查\s*询/ }));
+  await screen.findByText("请输入客户姓名");
+  expect(onSearch).not.toHaveBeenCalled();
+  view.rerender(form("客户昵称"));
+  fireEvent.click(screen.getByRole("button", { name: /查\s*询/ }));
+  await screen.findByText("请输入客户昵称");
+  fireEvent.change(screen.getByRole("textbox", { name: "Keyword" }), { target: { value: "张三" } });
+  fireEvent.click(screen.getByRole("button", { name: /查\s*询/ }));
+  await waitFor(() => expect(onSearch).toHaveBeenCalledWith({ keyword: "张三" }));
+});
+
 test("imperative actions use current fields, clear values and callbacks after a rerender", () => {
   const ref = createRef<SearchFormActions>();
   const changed = vi.fn(), reset = vi.fn();

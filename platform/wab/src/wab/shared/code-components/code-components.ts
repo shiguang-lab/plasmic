@@ -2047,13 +2047,6 @@ async function checkComponentPropsAndStates(
       }
     }
 
-    const newParams = changes.flatMap((change) =>
-      change.addedProps.map((p) => ({
-        component: change.component,
-        param: p,
-      })),
-    );
-
     const staleDiffs = changes.filter(
       (change) =>
         change.updatedProps.length > 0 || change.removedProps.length > 0,
@@ -2084,6 +2077,18 @@ async function checkComponentPropsAndStates(
             Array.from(componentToReferencers(ctx.site).get(c) ?? []),
           );
           ctx.observeComponents([...parentComponents, ...changedComponents]);
+          // Another registration refresh can finish while the confirmation
+          // dialog is open. Apply the accepted contract to the current params.
+          for (const change of changes) {
+            Object.assign(change, yield* compareComponentPropsWithMeta(
+              ctx.site,
+              change.component,
+              ensure(componentToMeta.get(change.component), "Registered component metadata"),
+            ));
+          }
+          const newParams = changes.flatMap((change) =>
+            change.addedProps.map((param) => ({ component: change.component, param })),
+          );
           // First pass registers all new props (which are safe and needed
           // to instantiate `TplComponent`s in the default slot contents).
           newParams.forEach(({ component, param }) => {
@@ -5361,6 +5366,7 @@ export function appendCodeComponentMetaToModel(
 
 export const _testonly = {
   addNewRegisteredComponents,
+  checkComponentPropsAndStates,
   findDuplicateAriaParams,
   typeCheckRegistrations,
 };

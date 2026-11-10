@@ -4,10 +4,30 @@ import { mkParam } from "@/wab/shared/core/lang";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { assert } from "@/wab/shared/common";
 import { tryExtractJson } from "@/wab/shared/core/exprs";
-import { ensureKnownVariantsRef } from "@/wab/shared/model/classes";
+import { ensureKnownVariantsRef, ensureKnownRenderExpr, ensureKnownTplTag, isKnownExprText } from "@/wab/shared/model/classes";
 import { ComponentType } from "@/wab/shared/core/components";
 
 describe("setComponentInstanceProp", () => {
+  it("creates a named fixed slot text root and keeps its identity on later edits", () => {
+    const { instance, getArg, opts } = setupComponentWithInstance();
+    const registration = {
+      type: "slot", fixedRoot: true,
+      defaultValue: { type: "text", tag: "span", elementName: "Label", value: "条件" },
+    };
+    const set = (value: string) => setComponentInstanceProp(instance, "children", value, { ...opts, registration });
+    expect(set("查询关键词").isOk()).toBe(true);
+    const root = ensureKnownTplTag(ensureKnownRenderExpr(getArg(instance, "children")!.expr).tpl[0]);
+    expect(root.name).toBe("Label");
+    expect(root.tag).toBe("span");
+    expect(root.parent).toBe(instance);
+    expect(root.vsettings[0].text).toMatchObject({ text: "查询关键词" });
+    expect(set("客户昵称").isOk()).toBe(true);
+    expect(ensureKnownRenderExpr(getArg(instance, "children")!.expr).tpl).toEqual([root]);
+    expect(root.vsettings[0].text).toMatchObject({ text: "客户昵称" });
+    expect(set("{{ $state.label }}").isOk()).toBe(true);
+    expect(isKnownExprText(root.vsettings[0].text)).toBe(true);
+  });
+
   it("rejects invalid declared custom shapes before replacing an existing value", () => {
     const { instance, getArg, opts } = setupComponentWithInstance();
     const registration = { type: "formValidationRules", itemType: { type: "object", fields: {

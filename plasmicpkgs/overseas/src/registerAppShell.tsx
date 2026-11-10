@@ -22,7 +22,7 @@ import {
 } from "antd";
 import React, { useEffect, useState } from "react";
 import { AppSourceSelect } from "./AppSourceSelect";
-import { menuItemType } from "./menuItemType";
+import { menuItemType, sidebarMenuItemType } from "./menuItemType";
 import {
   ShellMenuItem,
   findMenuPath,
@@ -153,11 +153,11 @@ export function AppShell({
   );
   const selectedKey = [...menuPath]
     .reverse()
-    .find((item) => !item.hidden && item.type !== "group")?.key;
-  const navigationKey = JSON.stringify(menuItems, ["key", "href", "hidden", "type", "children"]);
+    .find((item) => !item.hidden)?.key;
+  const navigationKey = JSON.stringify(menuItems, ["key", "href", "hidden", "children"]);
   const routeKey = JSON.stringify([pagePath, menuPath.map((item) => item.key)]);
   const routeOpenKeys = menuPath
-    .filter((item) => !item.hidden && item.type !== "group" &&
+    .filter((item) => !item.hidden &&
       item.children?.some((child) => !child.hidden))
     .map((item) => item.key);
   const rememberedKeys = !canvas && typeof window !== "undefined"
@@ -220,11 +220,14 @@ export function AppShell({
   );
   const clock =
     `${timeParts.year}-${timeParts.month}-${timeParts.day} ${timeParts.hour}:${timeParts.minute}:${timeParts.second}`;
-  const linkedMenu = (items: any[]): any[] =>
+  const linkedMenu = (items: ShellMenuItem[]): React.ComponentProps<typeof Menu>["items"] =>
     items.map(
       (item) =>
         item && {
-          ...item,
+          key: item.key,
+          label: item.label,
+          icon: item.icon,
+          disabled: item.disabled,
           ...(item.href
             ? {
                 label: <PlasmicLink href={item.href}>{item.label}</PlasmicLink>,
@@ -486,6 +489,7 @@ export const appShellMeta: CodeComponentMeta<AppShellProps> = {
     "Shared application shell with route-based navigation and breadcrumbs. Configure the product, user, language, and app source; edit pages in the children slot.",
   importPath: "@shiguang-lab/plasmic-overseas/skinny/registerAppShell",
   importName: "AppShell",
+  styleSections: false,
   defaultStyles: { width: "100%", height: "100vh" },
   props: {
     direction: { displayName: "Direction", type: "choice", options: ["ltr", "rtl"], defaultValue: "ltr" },
@@ -538,7 +542,7 @@ export const appShellMeta: CodeComponentMeta<AppShellProps> = {
     menuItems: {
       displayName: "Menu items",
       type: "array",
-      itemType: menuItemType as any,
+      itemType: sidebarMenuItemType,
       defaultValue: DEFAULT_MENU_ITEMS,
     },
     selectedMenuKey: { type: "string", displayName: "Selected menu key" },

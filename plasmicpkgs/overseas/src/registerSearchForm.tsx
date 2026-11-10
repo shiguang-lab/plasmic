@@ -31,7 +31,10 @@ export const searchFormMeta: CodeComponentMeta<SearchFormProps> = {
         {
           type: "component",
           name: searchFormItemName,
-          props: { name: "keyword", label: "关键词" },
+          props: {
+            name: "keyword",
+            label: { type: "text", tag: "span", elementName: "Label", value: "关键词" },
+          },
         },
       ],
     },
@@ -132,24 +135,17 @@ export const searchFormItemMeta: CodeComponentMeta<SearchFormItemProps> = {
     "One editable query field. Use a unique name and exactly one input control in the Control slot; configure the control itself through its own props.",
   importPath,
   importName: "SearchFormItem",
-  canvasParts: {
-    label: {
-      selector: "[data-search-form-label]",
-      displayName: "Label",
-      props: ["label"],
-      text: { prop: "label", selector: "[data-search-form-label]" },
-    },
-  },
   props: {
     name: {
       type: "string",
       description: "Unique field key in submitted values.",
     },
-    label: { type: "string", defaultValue: "条件" },
-    labelContent: {
+    label: {
       type: "slot",
-      displayName: "Custom label",
-      hidePlaceholder: true,
+      displayName: "Label",
+      fixedRoot: true,
+      defaultValue: { type: "text", tag: "span", elementName: "Label", value: "条件" },
+      hidePlaceholder: false,
     },
     children: {
       type: "slot",

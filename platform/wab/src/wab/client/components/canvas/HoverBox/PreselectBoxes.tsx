@@ -8,6 +8,7 @@ import { useCanvasTransforming } from "@/wab/client/studio-ctx/viewport-state";
 import { useCanvasZoom } from "@/wab/client/studio-ctx/viewport-state";
 import { EditableNodeLabel } from "@/wab/client/components/canvas/EditableNodeLabel";
 import { getActiveCanvasModal, getCanvasModalSelectionRoot } from "@/wab/client/components/canvas/canvas-modal-scope";
+import { isFixedRootSlot, isFixedSlotRoot } from "@/wab/client/components/canvas/fixed-slot-root";
 import styles from "@/wab/client/components/canvas/HoverBox/HoverBox.module.scss";
 import { useTagPlacement } from "@/wab/client/components/canvas/HoverBox/useTagPlacement";
 import { computeScalerVisibility } from "@/wab/client/components/canvas/HoverBox/visible-bounds";
@@ -31,6 +32,7 @@ import {
   makeSelectableFullKey,
 } from "@/wab/shared/core/selection";
 import { isTplTagOrComponent } from "@/wab/shared/core/tpls";
+import { SlotSelection } from "@/wab/shared/core/slots";
 import cn from "classnames";
 import $ from "jquery";
 import { useCanvasRenderCount } from "@/wab/client/hooks/useCanvasRenderStatus";
@@ -145,6 +147,7 @@ function PreselectBox_(props: {
 
   const shouldShow =
     alive && viewCtx &&
+    !(selectable instanceof SlotSelection && isFixedRootSlot(viewCtx, selectable)) &&
     viewCtx.contentEditor.contains(selectable) &&
     !draggingObject &&
     !screenshotting &&
@@ -272,6 +275,7 @@ function PreselectBoxGeometry(props: Parameters<typeof PreselectBoxStyled>[0]) {
       <div
         className={styles.preselectBoxBorder}
         style={{
+          borderStyle: isFixedSlotRoot(viewCtx, tpl) ? "dashed" : undefined,
           borderColor: isTargetingSomeNonBaseVariant
             ? NON_BASE_VARIANT_COLOR
             : BASE_VARIANT_COLOR,

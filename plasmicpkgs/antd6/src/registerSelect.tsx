@@ -1,7 +1,7 @@
 import type { PlasmicCanvasProps } from "@plasmicapp/host";
 import { Select } from "antd";
 import cls from "classnames";
-import React, { ComponentProps } from "react";
+import React from "react";
 import {
   useCanvasOverlay,
 } from "./canvas-overlay";
@@ -22,7 +22,7 @@ export const AntdOption: typeof Select.Option = Select.Option;
 export const AntdOptionGroup: typeof Select.OptGroup = Select.OptGroup;
 
 export function AntdSelect(
-  props: ComponentProps<typeof Select> &
+  props: React.ComponentProps<typeof Select> &
     PlasmicCanvasProps & {
       popupScopeClassName?: string;
       popupRootClassName?: string;

@@ -108,6 +108,13 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
     color: token.colorText,
     boxShadow: token.boxShadowSecondary,
   },
+  [`& .${button.root}.button--active, & .${button.root}.button--active:hover`]: {
+    background: token.colorPrimaryBg,
+    color: token.colorPrimaryText,
+  },
+  [`& .${button.root}.button--active .${button.slotTargetChildren}`]: {
+    color: token.colorPrimaryText,
+  },
   // Select portals can carry their own generated token classes. Bind their
   // actual surfaces and option states so local defaults cannot restore white.
   [`& .${styleSelectOverlay.main}, & .${selectOverlay.main}, & .${dropdownOverlay.root}`]:

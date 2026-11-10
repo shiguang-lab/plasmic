@@ -645,7 +645,7 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                     HoverBox__Border: true,
                     "HoverBox__Border--autoWidth": state && state.autoWidth,
                     "HoverBox__Border--autoHeight": state && state.autoHeight,
-                    "HoverBox__Border--isSlot": state && state.isSlot,
+                    "HoverBox__Border--dashed": state && state.dashedBorder,
                   })}
                 />
                 <div className={"HoverBox__Controls"}>

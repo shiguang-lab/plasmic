@@ -92,7 +92,7 @@ An installed library can still supply a controlled `collapsed:true` default even
 
 ### Page generation
 
-Every query field has a visible `label` or real `labelContent`, including keyword inputs. A placeholder is an input hint; it does not replace the label, and the label is never cleared to give the input more room. Derive the label from the business field and re-measure the form's labelWidth. A deliberately unlabeled special search entry needs its own source-reviewed Item declaration with `props.label:""` and the source; a placeholder-only reference image is not that exception.
+Every query field has visible text in its `label` Slot, including keyword inputs. Its fixed root is a text span named `Label`. A placeholder is an input hint; it does not replace the label, and the label is never cleared to give the input more room. Derive the label from the business field and re-measure the form's labelWidth. A deliberately unlabeled special search entry needs its own source-reviewed Item declaration with `props.label:""` and the source; a placeholder-only reference image is not that exception.
 
 A standard list keeps `minRows=1`. Only a requirement that explicitly asks for an initially expanded form with a collapse button allows an initial false value, through a source exception and the verified `defaultCollapsed` mapping; never expand initially by raising minRows. Five fields at span=6 cover two rows: minRows=1 shows expand/collapse, while minRows=2 makes both rows permanent with no toggle; declare the latter in the plan only when two permanent rows are explicitly approved. The editor's forced full display and the runtime collapse setting are accepted separately.
 
@@ -108,8 +108,9 @@ Every list query region uses Overseas SearchForm with real Items and Antd6 contr
   <slot name="children">
     <plasmic-component
       data-plasmic-component="plasmic-overseas-search-form-item"
-      data-props='{"name":"keyword","label":"关键词"}'
+      data-props='{"name":"keyword"}'
     >
+      <slot name="label"><span data-plasmic-name="Label">关键词</span></slot>
       <slot name="children">
         <plasmic-component
           data-plasmic-component="plasmic-antd6-input"
@@ -127,13 +128,13 @@ For an actual MCP insertion every component also sets `data-plasmic-project` to 
 
 Read the actual registered child contract before editing a query field. The owning [SearchForm](#editable-structure) controls the grid, shared labels, collapse and query/reset state.
 
-Each Item's `name` is its unique field key; `label`, `span`, `initialValue`, `clearValue`, `required`, `requiredMessage`, `rules`, `valuePropName` and `trigger` are editable and bindable. `name` is a single string key; dotted paths are not interpreted. `rules` is an Ant Design Form.Item rule array.
+Each Item's `name` is its unique field key; `span`, `initialValue`, `clearValue`, `required`, `requiredMessage`, `rules`, `valuePropName` and `trigger` are editable and bindable. `name` is a single string key; dotted paths are not interpreted. `rules` is an Ant Design Form.Item rule array.
 
-The visible text label supports direct canvas editing: double-click it to edit the same `label` string prop shown in the Item property panel. It is a native component part, not a separate text node or Slot; edits use the normal undo/save flow. A configured Custom label Slot owns its own content instead.
+The `label` Slot has one fixed text span named `Label`, using the same editing contract as AppShell's Brand. Single clicks follow normal component selection; double-click to enter and edit the label. Layers shows the real Label node without an extra Slot wrapper. Its geometry and styles belong to the component, so its outline is dashed and it has no resize handles. Text edits use the normal undo/save flow. Required validation uses the rendered label text unless `requiredMessage` is set.
 
 The Item's Control (`children`) Slot holds one value control, such as Antd6 Input, Select, DatePicker, Checkbox or a custom component. Edit the control's placeholder, options, mode, format and disabled state on the control; configure initial values on the Item/Form and do not also bind an independent controlled value. Binding defaults to `value` / `onChange`; registered controls' `__plasmicFormFieldMeta.valueProp` (`checked` for Checkbox/Switch) and Item-specified prop/event names are supported. The control's own event handlers still run.
 
-Custom label (labelContent) and help are real editable Slots. Custom label overrides the text label; help supplies supporting text or validation feedback.
+The help Slot supplies supporting text or validation feedback.
 
 ## Acceptance checks
 

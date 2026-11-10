@@ -6,8 +6,50 @@ import { FormRefActions, FormWrapper } from "../src/form/Form";
 
 import { FormItemWrapper, formRuleTypes } from "../src/form/FormItem";
 import { registerForm } from "../src/form/registerForm";
+import { registerFormItem } from "../src/form/registerFormItem";
 import { commonFormItemProps } from "../src/form/sharedRegistration";
 import { FormWrapper as SchemaForm } from "../src/form/SchemaForm";
+
+test("FormItem registers its label as the fixed named text root used by the property editor", () => {
+  let meta: any;
+  registerFormItem({ registerComponent: (_component, registered) => { meta = registered; } } as any);
+  expect(meta.props.label).toMatchObject({
+    type: "slot",
+    displayName: "Label",
+    fixedRoot: true,
+    defaultValue: { type: "text", tag: "span", elementName: "Label", value: "Label" },
+  });
+  expect(meta.props.label.mergeWithParent).toBeUndefined();
+  expect(meta.props.label.hidden({ noLabel: true })).toBe(true);
+  expect(meta.props.label.hidden({ noLabel: false })).toBe(false);
+});
+
+test("editing the FormItem label root updates native labels and validation without resetting its value", async () => {
+  const ref = React.createRef<FormRefActions>();
+  const field = (label: string, noLabel = false) => (
+    <FormWrapper ref={ref} initialValues={{ keyword: "Initial" }}>
+      <FormItemWrapper name="keyword" label={<span>{label}</span>} noLabel={noLabel} rules={[{ ruleType: "required" }]}>
+        <Input />
+      </FormItemWrapper>
+    </FormWrapper>
+  );
+  const view = render(field("Keyword"));
+  fireEvent.change(screen.getByRole("textbox"), { target: { value: "Edited" } });
+  view.rerender(field("Query keyword"));
+  expect((screen.getByRole("textbox", { name: "Query keyword" }) as HTMLInputElement).value).toBe("Edited");
+  act(() => ref.current!.setFieldsValue({ keyword: "" }));
+  await act(async () => {
+    await expect(ref.current!.validateFields()).rejects.toMatchObject({
+      errorFields: [{ name: ["keyword"], errors: ["Query keyword is required"] }],
+    });
+  });
+  view.rerender(field("Query keyword", true));
+  expect(view.container.querySelector(".ant-form-item-label")).toBeNull();
+  fireEvent.change(screen.getByRole("textbox"), { target: { value: "Restored" } });
+  await act(async () => {
+    await expect(ref.current!.validateFields()).resolves.toEqual({ keyword: "Restored" });
+  });
+});
 
 test("the registered reset action resets every field and publishes the complete initial values", () => {
   const ref = React.createRef<FormRefActions>();

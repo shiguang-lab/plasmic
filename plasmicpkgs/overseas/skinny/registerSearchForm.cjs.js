@@ -35,7 +35,6 @@ function SearchFormItem({
   className,
   name,
   label,
-  labelContent,
   children,
   required,
   requiredMessage,
@@ -44,6 +43,7 @@ function SearchFormItem({
   trigger,
   help
 }) {
+  const labelRef = React.useRef(null);
   const child = React__default.default.Children.toArray(children)[0];
   const controlMeta = React__default.default.isValidElement(child) ? child.type.__plasmicFormFieldMeta : void 0;
   const changeEvent = trigger ?? controlMeta?.onChangeProp ?? "onChange";
@@ -52,17 +52,17 @@ function SearchFormItem({
     {
       className,
       name,
-      label: labelContent ?? (label == null || label === "" ? label : /* @__PURE__ */ jsxRuntime.jsx("span", { "data-search-form-label": "", children: label })),
+      label: label == null || label === "" ? label : /* @__PURE__ */ jsxRuntime.jsx("span", { ref: labelRef, children: label }),
       help,
       style: { marginBottom: 16 },
       valuePropName: valuePropName ?? controlMeta?.valueProp ?? "value",
       trigger: changeEvent,
       rules: [
         ...required ? [
-          {
+          () => ({
             required: true,
-            message: requiredMessage ?? `\u8BF7\u8F93\u5165${label ?? name ?? "\u67E5\u8BE2\u6761\u4EF6"}`
-          }
+            message: requiredMessage ?? `\u8BF7\u8F93\u5165${labelRef.current?.textContent?.trim() || name || "\u67E5\u8BE2\u6761\u4EF6"}`
+          })
         ] : [],
         ...rules ?? []
       ],
@@ -368,7 +368,10 @@ const searchFormMeta = {
         {
           type: "component",
           name: searchFormItemName,
-          props: { name: "keyword", label: "\u5173\u952E\u8BCD" }
+          props: {
+            name: "keyword",
+            label: { type: "text", tag: "span", elementName: "Label", value: "\u5173\u952E\u8BCD" }
+          }
         }
       ]
     },
@@ -463,24 +466,17 @@ const searchFormItemMeta = {
   description: "One editable query field. Use a unique name and exactly one input control in the Control slot; configure the control itself through its own props.",
   importPath,
   importName: "SearchFormItem",
-  canvasParts: {
-    label: {
-      selector: "[data-search-form-label]",
-      displayName: "Label",
-      props: ["label"],
-      text: { prop: "label", selector: "[data-search-form-label]" }
-    }
-  },
   props: {
     name: {
       type: "string",
       description: "Unique field key in submitted values."
     },
-    label: { type: "string", defaultValue: "\u6761\u4EF6" },
-    labelContent: {
+    label: {
       type: "slot",
-      displayName: "Custom label",
-      hidePlaceholder: true
+      displayName: "Label",
+      fixedRoot: true,
+      defaultValue: { type: "text", tag: "span", elementName: "Label", value: "\u6761\u4EF6" },
+      hidePlaceholder: false
     },
     children: {
       type: "slot",
