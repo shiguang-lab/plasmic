@@ -1,6 +1,6 @@
 {
   "name": "@shiguang-lab/plasmic-desktop",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "private": true,
   "description": "Locally bundled Plasmic Studio with the NAS backend",
   "main": "src/entry.cjs",
@@ -23,6 +23,7 @@
     "test:macos-activation": "node tests/macos-activation.cjs",
     "pretest:macos-activation": "npm run build:mcp",
     "test:mcp-lifecycle": "node tests/mcp-lifecycle.cjs",
+    "test:desktop-lifecycle": "node tests/desktop-lifecycle.cjs",
     "test:runtime-security": "node tests/runtime-security-native.cjs",
     "test:updates-native": "electron tests/update-download-native.cjs && electron tests/updates-native.cjs",
     "package": "node scripts/package.mjs",

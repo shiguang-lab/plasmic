@@ -1,10 +1,9 @@
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import type { ModelFieldStore, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
-import { arrayEq } from "@/wab/shared/common";
-import { Component, ComponentArena, PageArena, ObjInst, Site, VariantGroup, isKnownGlobalVariantSplitContent, isKnownTplComponent, isKnownVariantGroup, isKnownVariant } from "@/wab/shared/model/classes";
+import type { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { ModelFieldInputs, type DeclareModelFields } from "@/wab/client/stores/model-field-inputs";
+import { Component, ComponentArena, PageArena, Site, VariantGroup, isKnownGlobalVariantSplitContent, isKnownTplComponent, isKnownVariantGroup, isKnownVariant } from "@/wab/shared/model/classes";
 import * as React from "react";
 
-const retired: readonly unknown[] = Object.freeze([]);
 
 /** Fields read by arena row labels, combo availability and the add menus.
  * This stops at group catalogs and split assignments, never document tpl trees. */
@@ -12,27 +11,13 @@ export class DedicatedArenaInputs {
   private readonly models: ModelSnapshots;
   private readonly lifetime: AbortSignal;
   readonly site: Site;
-  private current = retired;
-  private readonly fields = new Map<ModelFieldStore<unknown>, () => void>();
-  private readonly listeners = new Set<() => void>();
-  private connected = false;
+  private readonly inputs;
   constructor(private readonly studio: StudioCtx, private readonly arena: ComponentArena | PageArena) {
-    this.models = studio.modelSnapshots; this.site = studio.site; this.lifetime = studio.arenaState.lifetime(); this.getSnapshot();
+    this.models = studio.modelSnapshots; this.site = studio.site; this.lifetime = studio.arenaState.lifetime();
+    this.inputs = new ModelFieldInputs({ models: this.models, lifetime: this.lifetime, isCurrent: this.isCurrent }, this.collect);
   }
   isCurrent = () => !this.lifetime.aborted && this.models === this.studio.modelSnapshots && this.site === this.studio.site;
-  private disconnect = () => {
-    this.connected = false; this.lifetime.removeEventListener("abort", this.sync);
-    this.fields.forEach((stop) => stop()); this.fields.clear();
-  };
-  private sync = () => {
-    const before = this.current; this.getSnapshot();
-    if (!this.isCurrent()) { this.disconnect(); }
-    if (before !== this.current) { this.listeners.forEach((listener) => listener()); }
-  };
-  getSnapshot = (): readonly unknown[] => {
-    if (!this.isCurrent()) { this.current = retired; return this.current; }
-    const used = new Set<ModelFieldStore<unknown>>();
-    const field = (model: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(this.models.declaredField(model, key)));
+  private collect = (field: DeclareModelFields) => {
     const groups = new Set<VariantGroup>();
     const group = (value: VariantGroup) => {
       if (groups.has(value)) { return; } groups.add(value);
@@ -74,20 +59,10 @@ export class DedicatedArenaInputs {
         field(slice, "contents"); slice.contents.forEach((content) => { if (isKnownGlobalVariantSplitContent(content)) { field(content, "group"); } });
       });
     });
-    const values = [...used].map((store) => store.getState());
-    if (!arrayEq(this.current, values)) { this.current = Object.freeze(values); }
-    if (this.connected) {
-      for (const store of used) { if (!this.fields.has(store)) { this.fields.set(store, store.subscribe(this.sync)); } }
-      for (const [store, stop] of this.fields) { if (!used.has(store)) { stop(); this.fields.delete(store); } }
-    }
-    return this.current;
   };
-  subscribe = (listener: () => void) => {
-    if (!this.isCurrent()) { return () => undefined; }
-    this.listeners.add(listener);
-    if (!this.connected) { this.connected = true; this.lifetime.addEventListener("abort", this.sync, { once: true }); this.sync(); }
-    return () => { this.listeners.delete(listener); if (!this.listeners.size) { this.disconnect(); } };
-  };
+  getSnapshot = () => this.inputs.read();
+  subscribe = (listener: () => void) => this.inputs.subscribe(listener);
+
 }
 export function useDedicatedArenaInputs(studio: StudioCtx, arena: ComponentArena | PageArena) {
   const source = React.useMemo(() => new DedicatedArenaInputs(studio, arena), [studio, arena]);

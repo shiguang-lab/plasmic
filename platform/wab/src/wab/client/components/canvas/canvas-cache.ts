@@ -1,5 +1,5 @@
+import { CanvasObserverContext, type CanvasObserverContextSnapshot } from "@/wab/client/components/canvas/canvas-observer-context";
 import type { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
-import { isValComponent } from "@/wab/shared/core/val-nodes";
 import { isCodeComponent } from "@/wab/shared/core/components";
 import { canvasNodePolicy, type CanvasNodePolicy } from "@/wab/client/components/canvas/canvas-render-policy";
 import type { StudioRenderPolicySnapshot } from "@/wab/client/studio-ctx/studio-render-policy";
@@ -300,21 +300,25 @@ interface ContextInputs {
   readonly defaultSlotContext: string | undefined;
 }
 
-function contextInputs(node: TplNode, ctx: RenderingCtx): ContextInputs {
+function contextInputs(node: TplNode, ctx: RenderingCtx, shared?: CanvasObserverContextSnapshot): ContextInputs {
   const view = ctx.viewCtx;
-  const stack = view.valComponentStack().map((value) => value.key);
-  const current = view.currentComponent();
-  const selection = view.selectionStore.getState();
-  const target = selection.targets[0];
+  const stack = shared?.stack ?? view.valComponentStack().map((value) => value.key);
+  const current = shared?.current ?? view.currentComponent();
+  const selection = shared ? undefined : view.selectionStore.getState();
+  const target = selection?.targets[0];
+  const frames = shared?.frames ?? view.componentStackFrames().map((frame) => frame.tplComponent);
+  const slotKey = shared ? shared.slotKey : target?.kind === "slot" ? target.key : undefined;
+  const slotParam = shared ? shared.slotParam : target?.kind === "slot" ? target.slotParam?.uid : undefined;
+  const defaultSlotContext = shared ? shared.defaultSlotContext : view.showDefaultSlotContents() ? selection?.context?.valKey : undefined;
   return {
     ownerIsCurrent: ctx.ownerComponent === current,
     nodeIsCurrent: isKnownTplComponent(node) && node.component === current,
-    inComponentStack: view.componentStackFrames().some((frame) => frame.tplComponent === node),
+    inComponentStack: frames.includes(node),
     ownerEditable: ctx.ownerKey == null || stack.length === 0 || ctx.ownerKey === stack[stack.length - 1],
     ownerInStack: !!ctx.ownerKey && stack.includes(ctx.ownerKey),
     parentOwnerInStack: ctx.ownersStack.length > 1 && stack.includes(ctx.ownersStack[ctx.ownersStack.length - 2]),
-    focusedSlotUid: target?.kind === "slot" && target.key?.startsWith(`${ctx.valKey}~`) ? target.slotParam?.uid : undefined,
-    defaultSlotContext: !ctx.ownerKey && view.showDefaultSlotContents() ? selection.context?.valKey : undefined,
+    focusedSlotUid: slotKey?.startsWith(`${ctx.valKey}~`) ? slotParam : undefined,
+    defaultSlotContext: !ctx.ownerKey ? defaultSlotContext : undefined,
   };
 }
 
@@ -357,6 +361,7 @@ export class CanvasRenderOwner {
   private readonly dataTokenConsumers = new Map<string, { readonly target: Pick<InstanceCache, "fullKey" | "renderSlotInstance">; count: number }>();
   private variants: CanvasVariantInputs | undefined;
   private contextView: ViewCtx | undefined;
+  private observerContext: CanvasObserverContext | undefined;
   private contextVariants: ReturnType<ViewCtx["variantStore"]["getState"]> | undefined;
   private contextDirty = false;
   private stopContextInputs: (() => void) | undefined;
@@ -617,6 +622,7 @@ export class CanvasRenderOwner {
     if (this.inputModels && this.inputModels !== view.studioCtx.modelSnapshots) { this.dispose(); }
     if (this.disposed || view.disposeSignal.aborted || view.isDisposed) { return inactiveObserverInput; }
     this.bindInputs(view);
+    const observerContext = this.observerContext ??= new CanvasObserverContext(view);
     const models = ensure(this.inputModels, "Canvas original model scope");
     const component = isKnownComponent(model);
     const modelInput = component ? ensure(this.modelInputs, "Canvas model owner").component(model) : ensure(this.modelInputs, "Canvas model owner").node(model);
@@ -631,7 +637,7 @@ export class CanvasRenderOwner {
     const closed = () => this.disposed || view.disposeSignal.aborted || view.isDisposed || view.studioCtx.modelSnapshots !== models;
     const capture = () => {
       if (closed()) { return emptyObserverSnapshot; }
-      const context = !component && entry.ctx ? Object.values(contextInputs(model, entry.ctx)) : [view.currentComponent() === model];
+      const context = !component && entry.ctx ? Object.values(contextInputs(model, entry.ctx, observerContext.read())) : [observerContext.read().current === model];
       const values = [modelInput.getState(), selected?.getState(), ...context];
       if (!arrayEq(current, values)) { current = Object.freeze(values); }
       return current;
@@ -641,23 +647,10 @@ export class CanvasRenderOwner {
       subscribe: (listener) => {
         if (closed()) { return () => undefined; }
         let previous = capture();
-        const runtime = new Map<CanvasObserverInput, () => void>();
-        const rebindRuntime = () => {
-          const used = new Set<CanvasObserverInput>();
-          if (!closed()) {
-            const values = [...view.valComponentStack()];
-            const root = view.frameState.valRootStore.getState();
-            if (root) { values.push(root); }
-            values.forEach((value) => { used.add(value.runtimeInputs); if (isValComponent(value)) { used.add(value.componentRuntimeInputs); } });
-          }
-          for (const source of used) { if (!runtime.has(source)) { runtime.set(source, source.subscribe(changed)); } }
-          for (const [source, stop] of runtime) { if (!used.has(source)) { stop(); runtime.delete(source); } }
-        };
-        const changed = () => { rebindRuntime(); const next = capture(); if (next !== previous) { previous = next; listener(); } };
-        const stops = [modelInput.subscribe(changed), view.selectionStore.subscribe(changed), view.variantStore.subscribe(changed), view.frameState.valRootStore.subscribe(changed)];
+        const changed = () => { const next = capture(); if (next !== previous) { previous = next; listener(); } };
+        const stops = [modelInput.subscribe(changed), observerContext.subscribe(changed)];
         if (selected) { stops.push(selected.subscribe(changed)); }
-        rebindRuntime();
-        return () => { stops.forEach((stop) => stop()); runtime.forEach((stop) => stop()); runtime.clear(); };
+        return () => stops.forEach((stop) => stop());
       },
     };
     sources.set(key, entry);
@@ -682,8 +675,9 @@ export class CanvasRenderOwner {
     if (this.contextDirty) {
       this.contextDirty = false;
       const affected: string[] = [];
+      const shared = this.observerContext?.read();
       for (const [instance, resource] of this.instances) {
-        const next = contextInputs(resource.node, resource.ctx);
+        const next = contextInputs(resource.node, resource.ctx, shared);
         if (!objsEq(resource.context, next)) {
           affected.push(instance);
         }
@@ -698,6 +692,7 @@ export class CanvasRenderOwner {
   private releaseInputs() {
     this.stopModelCommits?.(); this.stopModelCommits = undefined;
     this.stopContextInputs?.(); this.stopContextInputs = undefined;
+    this.observerContext?.dispose(); this.observerContext = undefined;
     this.modelSubscriptions.forEach((subscription) => subscription.stop()); this.modelSubscriptions.clear();
     this.globalContexts?.dispose(); this.globalContexts = undefined;
     this.functions?.dispose(); this.functions = undefined;

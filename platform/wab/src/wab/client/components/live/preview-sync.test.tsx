@@ -5,6 +5,7 @@ import {
   syncPreview,
   type PreviewBatchCompiler,
 } from "@/wab/client/components/live/preview-sync";
+import { createPreviewCompiler } from "@/wab/client/components/live/preview-compiler";
 import { createTranspiler } from "@/wab/client/components/live/preview-transpiler";
 import {
   LiveFrame,
@@ -24,6 +25,16 @@ import {
 import { createPreview } from "../../../../../../live-frame/src/preview";
 import { createRenderer } from "../../../../../../live-frame/src/render";
 import { createLiveRuntime } from "../../../../../../live-frame/src/runtime";
+
+// jsdom exercises real generated code and runtime updates; worker transport
+// and browser responsiveness are checked by their dedicated contracts.
+vi.mock("@/wab/client/components/live/preview-compiler", async () => {
+  const { createTranspiler: createTestTranspiler } = await import("@/wab/client/components/live/preview-transpiler");
+  return { createPreviewCompiler: () => {
+    const transpile = createTestTranspiler();
+    return { compile: (modules: import("@/wab/client/components/live/preview-types").SourceModule[]) => Promise.all(modules.map(transpile)), dispose: vi.fn() };
+  } };
+});
 
 let container: HTMLDivElement;
 let root: Root;
@@ -159,11 +170,40 @@ it("commits a custom compiled batch through the same runtime and completion queu
 
 it("reports custom batch compiler failures through the shared visible error path", async () => {
   const failure = new Error("Isolated compiler failed");
+  const onReturn = vi.fn();
+  frame.setErrorTitle("预览加载失败", { label: "返回编辑", onReturn });
   const compile = vi.fn<PreviewBatchCompiler>(async () => { throw failure; });
   const result = await deliver(update(), compile);
   expect(result.error).toBe(failure);
-  expect(result.text).toContain("Isolated compiler failed");
+  expect(result.text).toBe("预览加载失败返回编辑");
+  expect(container.textContent).not.toContain(failure.message);
+  container.querySelector("button")?.click();
+  expect(onReturn).toHaveBeenCalledOnce();
   expect(compile.mock.calls[0][1].aborted).toBe(true);
+});
+
+it.each(["compile", "evaluation"])("retains interactive DOM and inputs after an update %s failure", async kind => {
+  await deliver(update(`import React from "react"; export default function Counter(props) {
+    const [count, setCount] = React.useState(0);
+    return <><button onClick={() => setCount(value => value + 1)}>{props.label}:{count}</button><input defaultValue="initial" /></>;
+  }`));
+  const button = container.querySelector("button"), input = container.querySelector("input");
+  if (!button || !input) { throw new Error("Counter must mount"); }
+  button.click(); input.value = "edited";
+  await vi.waitFor(() => expect(button.textContent).toBe(":1"));
+  const result = kind === "compile"
+    ? await deliver(update(), async () => { throw new Error("Worker failed"); })
+    : await deliver(update('throw new Error("Module failed"); export default () => null;'));
+  expect(result.error).toBeDefined();
+  expect(container.querySelector("button")).toBe(button);
+  expect(container.querySelector("input")).toBe(input);
+  expect(input.value).toBe("edited");
+  frame.setProps({ label: "updated" });
+  button.click();
+  await vi.waitFor(() => expect(button.textContent).toBe("updated:2"));
+  expect(container.querySelector("[data-plasmic-preview-error]")).toBeNull();
+  await deliver(update());
+  expect(frame.getDiagnostics().status).toBe("ready");
 });
 
 it("aborts a custom compiler on disposal without updating a retired runtime", async () => {
@@ -239,15 +279,15 @@ it.each([
     'throw new Error("evaluation failed"); export default () => null',
   ],
 ])(
-  "replaces stale content after a %s error and recovers",
+  "retains the last committed page after a %s error and recovers",
   async (_kind, source) => {
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     await deliver(update());
     const result = await deliver(update(source));
     expect(result.error).toBeDefined();
-    expect(result.text).toContain("Error:");
+    expect(result.text).toBe("Fresh preview");
     expect(frame.getDiagnostics().status).toBe("failed");
-    expect(result.text).not.toContain("Fresh preview");
+    expect(container.querySelector("[data-plasmic-preview-error]")).toBeNull();
     expect(await deliver(update())).toEqual({
       error: undefined,
       text: "Fresh preview",
@@ -264,10 +304,10 @@ it("contains a render error, records its cause, and recovers on the next render"
     await deliver(
       update('export default () => { throw new Error("render failed"); }'),
     ),
-  ).toEqual({ error: undefined, text: "Error: render failed" });
+  ).toMatchObject({ error: expect.objectContaining({ message: "render failed" }), text: "Fresh preview" });
   expect(
     container.querySelector("[data-plasmic-preview-error]"),
-  ).not.toBeNull();
+  ).toBeNull();
   expect(frame.getDiagnostics()).toMatchObject({
     status: "failed",
     errors: [
@@ -351,14 +391,15 @@ it("serializes build failures after in-flight commits, then recovers on a valid 
     version.setState(1, true);
     gate.resolve();
     await vi.waitFor(() => expect(onDone).toHaveBeenLastCalledWith(error));
-    expect(container.textContent).toContain("Invalid preview model");
-    expect(container.textContent).not.toContain("Fresh preview");
+    expect(container.textContent).toBe("Fresh preview");
+    expect(container.querySelector("[data-plasmic-preview-error]")).toBeNull();
     expect(frame.getDiagnostics()).toMatchObject({
       status: "failed",
       errors: [{ message: error.message, stack: error.stack }],
     });
     version.setState(2, true);
-    await vi.waitFor(() => expect(container.textContent).toBe("Fresh preview"));
+    await vi.waitFor(() => expect(onDone).toHaveBeenLastCalledWith());
+    expect(container.textContent).toBe("Fresh preview");
     expect(frame.getDiagnostics()).toMatchObject({
       status: "ready",
       errors: [],
@@ -369,16 +410,20 @@ it("serializes build failures after in-flight commits, then recovers on a valid 
   }
 });
 
-it("shows bootstrap failures before the runtime exists without losing their stack", async () => {
+it("shows a bootstrap error card with return to editor and no technical details", async () => {
   const iframe = document.createElement("iframe");
   document.body.append(iframe);
   try {
     const win = iframe.contentWindow as Window;
     const error = new Error("Runtime download failed");
-    await showPreviewLoadError(win, error);
+    const onReturn = vi.fn();
+    await showPreviewLoadError(win, error, { title: "预览加载失败", label: "返回编辑", onReturn });
     const failure = win.document.querySelector("[data-plasmic-preview-error]");
-    expect(failure?.textContent).toBe(error.message);
-    expect(failure?.getAttribute("data-plasmic-error-stack")).toBe(error.stack);
+    expect(failure?.textContent).toBe("预览加载失败返回编辑");
+    (failure?.querySelector("button") as HTMLButtonElement).click();
+    expect(onReturn).toHaveBeenCalledOnce();
+    expect(failure?.outerHTML).not.toContain(error.message);
+    expect(failure?.getAttribute("data-plasmic-error-stack")).toBeNull();
     expect(failure?.getAttribute("role")).toBe("alert");
   } finally {
     iframe.remove();
@@ -453,7 +498,7 @@ it.each(["props", "render"])(
       await deliver(value);
       container.querySelectorAll("button")[1].click();
       await vi.waitFor(() =>
-        expect(container.textContent).toContain("Error: render failed"),
+        expect(container.textContent).toContain("Preview unavailable"),
       );
       expect(frame.getDiagnostics()).toMatchObject({
         status: "degraded",
@@ -679,6 +724,7 @@ it("keeps variant changes made before the first render commits", async () => {
   vi.spyOn(codegen, "buildPreviewUpdate").mockReturnValue(value);
   const ctx = {
     store: state,
+    previewCompiler: createPreviewCompiler(),
     studioCtx: { currentAppUserCtx: {}, currentAppUserStore: createStore(() => ({})) },
     previewData: {},
     get variants() {
@@ -840,4 +886,65 @@ it("coalesces native store inputs without observable revisions and releases subs
   await Promise.resolve();
   expect(build).toHaveBeenCalledTimes(2);
   expect(calls).toEqual(["first", "latest"]);
+});
+
+it("preserves native state across same-root updates and recovers a failed root", async () => {
+  const host = document.createElement("div"); document.body.append(host);
+  const nativeRoot = createRoot(host);
+  const renderer = createRenderer({ hostUtils: {
+    setPlasmicRootNode: (node: React.ReactNode) => nativeRoot.render(node),
+    registerRenderErrorListener: () => vi.fn(),
+  } });
+  let mounts = 0;
+  function Counter({label}: {label: string}) {
+    const [value, setValue] = React.useState(0);
+    React.useEffect(() => { mounts++; }, []);
+    return <><button onClick={() => setValue(count => count + 1)}>{label}:{value}</button><input defaultValue="initial" /></>;
+  }
+  function Broken(): React.ReactNode { throw new Error("broken root"); }
+  try {
+    await renderer.renderRoot(<Counter label="First" />);
+    const button = host.querySelector("button"), input = host.querySelector("input");
+    if (!button || !input) { throw new Error("Counter must mount"); }
+    button.click(); input.value = "edited";
+    await vi.waitFor(() => expect(button.textContent).toBe("First:1"));
+    await renderer.renderRoot(<Counter label="Second" />);
+    expect(host.querySelector("button")).toBe(button);
+    expect(host.querySelector("input")).toBe(input);
+    expect(button.textContent).toBe("Second:1"); expect(input.value).toBe("edited");
+    expect(mounts).toBe(1);
+    renderer.beginRender("broken"); await expect(renderer.renderRoot(<Broken />)).rejects.toThrow("broken root");
+    expect(host.textContent).toContain("Second:");
+    expect(host.textContent).not.toContain("broken root");
+    renderer.beginRender("recovered"); await renderer.renderRoot(<Counter label="Recovered" />);
+    expect(host.textContent).toBe("Recovered:0");
+    expect(renderer.getDiagnostics().status).toBe("ready");
+  } finally { nativeRoot.unmount(); host.remove(); }
+});
+
+it("compiles large outlined preview boundaries with a custom JSX pragma and retains live state", async () => {
+  const host = window as Window & { __plasmicLive?: LiveFrame };
+  const previous = host.__plasmicLive;
+  host.__plasmicLive = frame;
+  const value = update(`import React, {createElement as createPlasmicElementProxy} from "react";
+    export default function Page({label}) {
+      const [count, setCount] = React.useState(0);
+      return <main>{window.__plasmicLive.renderBoundary(() => (() => {
+        const rendered = <button onClick={() => setCount(value => value + 1)}>{label}:{count}</button>;
+        return <section>{rendered}</section>;
+      })(), {elementUuid:"large-boundary"})}</main>;
+    }
+    /*${"source padding ".repeat(40000)}*/`);
+  value.modules[0].jsxPragma = "createPlasmicElementProxy";
+  value.modules[1].source = 'export default {label:"first"}';
+  try {
+    expect(await deliver(value)).toEqual({ error: undefined, text: "first:0" });
+    container.querySelector("button")?.click();
+    await vi.waitFor(() => expect(container.textContent).toBe("first:1"));
+    frame.setProps({ label: "second" });
+    await vi.waitFor(() => expect(container.textContent).toBe("second:1"));
+    expect(frame.getDiagnostics().errors).toEqual([]);
+  } finally {
+    if (previous) { host.__plasmicLive = previous; } else { delete host.__plasmicLive; }
+  }
 });

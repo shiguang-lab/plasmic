@@ -3,10 +3,45 @@ import * as compilerRuntime from "react/compiler-runtime";
 import { flushSync } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { createTranspiler } from "../../../src/wab/client/components/live/preview-transpiler";
+import { createPreviewCompiler } from "../../../src/wab/client/components/live/preview-compiler";
 import { createLiveRuntime } from "../../../../live-frame/src/runtime";
+import { createRenderer } from "../../../../live-frame/src/render";
 import { lowerFunctionVars } from "../../../src/wab/shared/eval/lower-function-vars";
 import { lowerConditionalTests } from "../../../src/wab/shared/eval/lower-conditional-tests";
 import * as reactWeb from "@plasmicapp/react-web";
+
+export async function runBrowserPreviewWorkerPerformance() {
+  const source = `import React from "react";\n${Array.from({ length: 50 }, (_, index) =>
+    `export function Item${index}({value}){return <section>${Array.from({ length: 8 }, () => "<span>{value}</span>").join("")}</section>;}`
+  ).join("\n")}\nexport default function Page({value}){return <>${Array.from({ length: 50 }, (_, index) => `<Item${index} value={value}/>`).join("")}</>;}`;
+  const modules = [{ name: "./menu-page.tsx", lang: "tsx", source }];
+  const measure = async (run: () => Promise<unknown>) => {
+    let ticks = 0, maxDelay = 0, previous = performance.now();
+    const timer = setInterval(() => { const now = performance.now(); maxDelay = Math.max(maxDelay, now - previous); previous = now; ticks++; }, 1);
+    const start = performance.now();
+    try {
+      const result = await run();
+      const ms = performance.now() - start;
+      // Synchronous compilation can finish before a single timer is delivered.
+      maxDelay = Math.max(maxDelay, performance.now() - previous);
+      await new Promise(resolve => setTimeout(resolve, 0));
+      return { result, ms, ticks, maxDelay };
+    } finally { clearInterval(timer); }
+  };
+  const transpile = createTranspiler();
+  const baseline = await measure(() => Promise.all(modules.map(transpile)));
+  const compiler = createPreviewCompiler(), lifetime = new AbortController();
+  try {
+    const worker = await measure(() => compiler.compile(modules, lifetime.signal));
+    const repeated = await measure(() => compiler.compile(modules, lifetime.signal));
+    const changed = await compiler.compile([{ ...modules[0], source: source.replace(/<span>/g, "<strong>").replace(/<\/span>/g, "</strong>") }], lifetime.signal);
+    const sameOutput = JSON.stringify(baseline.result) === JSON.stringify(worker.result) && JSON.stringify(worker.result) === JSON.stringify(repeated.result);
+    return { baseline: { ms: baseline.ms, ticks: baseline.ticks, maxDelay: baseline.maxDelay },
+      worker: { ms: worker.ms, ticks: worker.ticks, maxDelay: worker.maxDelay },
+      repeated: { ms: repeated.ms, ticks: repeated.ticks, maxDelay: repeated.maxDelay },
+      sameOutput, changedOutput: JSON.stringify(changed) !== JSON.stringify(worker.result) };
+  } finally { lifetime.abort(); compiler.dispose(); }
+}
 
 export async function runBrowserPreviewCompilerContract() {
   const transpile = createTranspiler();
@@ -168,7 +203,20 @@ export async function runBrowserPreviewCompilerContract() {
       catch (error) { errors.push(String(error)); }
     }
     const css = await transpile({ name: "./styles.css", lang: "css", source: "button { color: red }" });
+    const renderer = createRenderer({ hostUtils: {
+      setPlasmicRootNode: (node: React.ReactNode) => flushSync(() => root.render(node)),
+      registerRenderErrorListener: () => () => undefined,
+    } });
+    const PreviewCounter = runtime.require("./root.tsx").default;
+    await renderer.renderRoot(React.createElement(PreviewCounter, { prefix: "First" }));
+    const previewButton = container.querySelector("button");
+    if (!previewButton) { throw new Error("Preview counter must mount"); }
+    flushSync(() => previewButton.click());
+    await renderer.renderRoot(React.createElement(PreviewCounter, { prefix: "Route" }));
+    const retainedPreviewRoot = container.querySelector("button") === previewButton;
+    const previewRootText = previewButton.textContent;
     return {
+      retainedPreviewRoot, previewRootText,
       compilerRuntimeImport: compiled.code.includes("react/compiler-runtime"),
       incremented, retainedSameSource, retainedText, evictedImporter, dependencyEditText,
       evictedSource, sourceEditText, defaultPragma, customPragma, errors,

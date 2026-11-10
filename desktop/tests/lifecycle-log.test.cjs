@@ -1,0 +1,31 @@
+const { test } = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const { createLifecycleLog, lifecycleError } = require("../src/lifecycle-log.cjs");
+
+test("lifecycle diagnostics rotate and remain harmless when the log path is unavailable", t => {
+  const profile = fs.mkdtempSync(path.join(os.tmpdir(), "plasmic-lifecycle-log-"));
+  t.after(() => fs.rmSync(profile, { recursive: true, force: true }));
+  const log = createLifecycleLog(profile, 1024);
+  const file = path.join(profile, "logs/lifecycle.log");
+  log("process.start", { version: "fixture" });
+  const row = JSON.parse(fs.readFileSync(file, "utf8"));
+  assert.equal(row.event, "process.start");
+  assert.equal(row.pid, process.pid);
+  assert.equal(row.ppid, process.ppid);
+  assert.equal(row.version, "fixture");
+  assert.ok(Number.isFinite(Date.parse(row.time)));
+  fs.truncateSync(file, 1024);
+  log("startup.failed", { error: lifecycleError(new Error("locale read failed")) });
+  assert.equal(fs.statSync(file + ".1").size, 1024);
+  const failure = JSON.parse(fs.readFileSync(file, "utf8"));
+  assert.equal(failure.error.message, "locale read failed");
+  assert.match(failure.error.stack, /locale read failed/);
+  log("process.exit", { code: 1 });
+  assert.equal(fs.existsSync(file + ".2"), false);
+  const blocked = path.join(profile, "not-a-directory");
+  fs.writeFileSync(blocked, "fixture");
+  assert.doesNotThrow(() => createLifecycleLog(blocked)("process.exit"));
+});

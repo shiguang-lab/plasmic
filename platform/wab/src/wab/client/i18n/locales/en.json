@@ -126,6 +126,7 @@
   "Forum": "Forum",
   "Back to dashboard": "Back to dashboard",
   "Preview": "Preview",
+  "Preview unavailable": "Preview unavailable",
   "Back to editor": "Back to editor",
   "Rename project": "Rename project",
   "Publish": "Publish",
@@ -5795,5 +5796,18 @@
   "Invite by email": "Invite by email",
   "Enable link invitations": "Enable link invitations",
   "Default role": "Default role",
-  "People can register or sign in and use this link to join the organization.": "People can register or sign in and use this link to join the organization."
+  "People can register or sign in and use this link to join the organization.": "People can register or sign in and use this link to join the organization.",
+  "Open comment by {name}": "Open comment by {name}",
+  "Comment details": "Comment details",
+  "Back to comments": "Back to comments",
+  "Previous comment": "Previous comment",
+  "Next comment": "Next comment",
+  "Locate comment target": "Locate comment target",
+  "Comment resolved": "Comment resolved",
+  "Mention someone": "Mention someone",
+  "Enter to send": "Enter to send",
+  "Shift+Enter for a new line": "Shift+Enter for a new line",
+  "Unnamed element": "Unnamed element",
+  "Failed to send comment": "Failed to send comment",
+  "No replies yet": "No replies yet"
 }

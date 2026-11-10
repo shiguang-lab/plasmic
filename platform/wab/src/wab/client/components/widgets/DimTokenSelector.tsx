@@ -26,6 +26,7 @@ import { MaybeWrap } from "@/wab/commons/components/ReactUtil";
 import {
   derefToken,
   isStyleTokenEditable,
+  isTokenRef,
   mkTokenRef,
   StyleTokenType,
   tokenTypeDefaults,
@@ -168,6 +169,8 @@ const DimTokenSpinnerContent = React.forwardRef(function DimTokenSpinner(
         readonly resolver: TokenValueResolver;
         readonly command: (token: FinalToken<StyleToken>) => FinalToken<StyleToken> | undefined;
         readonly permissions: ReturnType<typeof useTokenPickerPermissions>;
+        readonly open: boolean;
+        readonly setOpen: (open: boolean) => void;
       };
     } & DimValueOpts,
     ref: React.Ref<DimTokenSpinnerRef>,
@@ -241,6 +244,8 @@ const DimTokenSpinnerContent = React.forwardRef(function DimTokenSpinner(
       reset,
     } = useUndo<string | undefined>(undefined);
     const [focused, setFocused] = React.useState(false);
+    const [localOpen, setLocalOpen] = React.useState(false);
+    const menuOpen = props.tokenInputs?.open ?? localOpen;
     const inputValue =
       typedInputValue ??
       (hasParsedToken ? "" : focused ? value : localizeLabel(displayValue));
@@ -317,7 +322,7 @@ const DimTokenSpinnerContent = React.forwardRef(function DimTokenSpinner(
     const makeTokenOptions = (): (
       AddTokenItem | EditTokenItem | SelectTokenItem
     )[] => {
-      if (!tokenType || !tokens || !resolver) {
+      if (!menuOpen || !tokenType || !tokens || !resolver) {
         return [];
       }
 
@@ -444,6 +449,12 @@ const DimTokenSpinnerContent = React.forwardRef(function DimTokenSpinner(
       openMenu,
       closeMenu,
     } = useCombobox({
+      isOpen: menuOpen,
+      onIsOpenChange: ({ isOpen: nextOpen }) => {
+        if (!isActive()) { return; }
+        if (props.tokenInputs) { props.tokenInputs.setOpen(!!nextOpen); }
+        else { setLocalOpen(!!nextOpen); }
+      },
       inputValue,
       items: rawItems,
       highlightedIndex,
@@ -850,18 +861,25 @@ const DimTokenSpinnerContent = React.forwardRef(function DimTokenSpinner(
 type DimTokenSpinnerProps = Omit<React.ComponentPropsWithoutRef<typeof DimTokenSpinnerContent>, "tokenInputs">;
 
 export const DimTokenSpinner = React.memo(React.forwardRef<DimTokenSpinnerRef, DimTokenSpinnerProps>(function DimTokenSpinner(props, ref) {
-  const catalog = useStyleTokenCatalogInputs(props.studioCtx, props.tokenType, props.vsh);
+  const catalog = useStyleTokenCatalogInputs(props.studioCtx, props.tokenType, props.vsh, undefined, false);
   const permissions = useTokenPickerPermissions(props.studioCtx);
   if (catalog.source && !catalog.source.isActive()) { return null; }
-  return props.studioCtx ? <NativeDimTokenSpinner {...props} studio={props.studioCtx} tokens={catalog.tokens} permissions={permissions} inputRef={ref} key={catalog.source?.key} /> : <DimTokenSpinnerContent {...props} ref={ref} />;
+  return props.studioCtx ? <NativeDimTokenSpinner {...props} studio={props.studioCtx} permissions={permissions} inputRef={ref} key={catalog.source?.key} /> : <DimTokenSpinnerContent {...props} ref={ref} />;
 }));
 
-function NativeDimTokenSpinner({ studio, inputRef, tokens, permissions, ...props }: DimTokenSpinnerProps & { studio: StudioCtx; tokens: readonly FinalToken<StyleToken>[]; inputRef: React.Ref<DimTokenSpinnerRef>; permissions: ReturnType<typeof useTokenPickerPermissions> }) {
+function NativeDimTokenSpinner({ studio, inputRef, permissions, ...props }: DimTokenSpinnerProps & { studio: StudioCtx; inputRef: React.Ref<DimTokenSpinnerRef>; permissions: ReturnType<typeof useTokenPickerPermissions> }) {
+  const [open, setOpen] = React.useState(false);
   const helper = React.useMemo(() => props.vsh ?? new VariantedStylesHelper(), [props.vsh]);
-  const values = useColorTokenChoiceInputs(studio, tokens, helper);
+  const parts = props.shorthand ? css.parseCssShorthand(props.value) : [props.value];
+  const catalog = useStyleTokenCatalogInputs(studio, props.tokenType, helper, undefined, open || parts.some(isTokenRef));
+  const tokens = catalog.tokens;
+  // Closed controls demand only the tokens actually displayed by their value.
+  const starts = open ? tokens : filterFalsy(parts.map((part) => tryParseTokenRef(part, tokens)));
+  const values = useColorTokenChoiceInputs(studio, starts, helper);
   const clientValues = useClientTokenValues(values.snapshot.choices.map((choice) => choice.resolved), values.lifetime);
-  const resolver = React.useMemo<TokenValueResolver>(() => (token) => ensure(clientValues[tokens.indexOf(token)], "Dimension token must belong to its captured choices"), [clientValues, tokens]);
-  return values.snapshot.active ? <DimTokenSpinnerContent {...props} ref={inputRef} tokenInputs={{ tokens, resolver, permissions, command: (token) => { const choice = values.snapshot.choices[tokens.indexOf(token)]; return choice && values.command(choice); } }} /> : null;
+  const indexes = React.useMemo(() => new Map(starts.map((token, index) => [token, index])), [starts]);
+  const resolver = React.useMemo<TokenValueResolver>(() => (token) => ensure(clientValues[ensure(indexes.get(token), "Dimension token must belong to its captured choices")], "Dimension token value must exist"), [clientValues, indexes]);
+  return values.snapshot.active ? <DimTokenSpinnerContent {...props} ref={inputRef} tokenInputs={{ tokens, resolver, permissions, open, setOpen, command: (token) => { const index = indexes.get(token), choice = index === undefined ? undefined : values.snapshot.choices[index]; return choice && values.command(choice); } }} /> : null;
 }
 
 interface SelectTokenItem {

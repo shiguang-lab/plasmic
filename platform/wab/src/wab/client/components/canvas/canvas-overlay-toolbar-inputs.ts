@@ -1,14 +1,14 @@
 import { $$$ } from "@/wab/shared/TplQuery";
-import { withoutNils } from "@/wab/shared/common";
+import { arrayEq, withoutNils } from "@/wab/shared/common";
 import { getCanvasOverlayTargets } from "@/wab/shared/core/canvas-overlays";
 import { isCodeComponent } from "@/wab/shared/core/components";
 import { isSlotSelection } from "@/wab/shared/core/slots";
 import { isValComponent } from "@/wab/shared/core/val-nodes";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import type { ModelFieldStore, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
-import { arrayEq } from "@/wab/shared/common";
+import { ModelFieldInputs, type DeclareModelFields } from "@/wab/client/stores/model-field-inputs";
 import { flattenTpls } from "@/wab/shared/core/tpls";
-import { type Expr, type ObjInst, type Site, isKnownTplComponent, isKnownTplTag, isKnownTplSlot, isKnownCustomCode, isKnownObjectPath, isKnownFunctionExpr, isKnownEventHandler, isKnownTemplatedString, isKnownCompositeExpr, isKnownRenderExpr } from "@/wab/shared/model/classes";
+import { type Component, type TplNode, type Expr, type Site, isKnownTplComponent, isKnownTplTag, isKnownTplSlot, isKnownCustomCode, isKnownObjectPath, isKnownFunctionExpr, isKnownEventHandler, isKnownTemplatedString, isKnownCompositeExpr, isKnownRenderExpr } from "@/wab/shared/model/classes";
 import * as React from "react";
 
 interface Scope { readonly view: ViewCtx; readonly models: ModelSnapshots; readonly site: Site; readonly signal: AbortSignal; }
@@ -81,22 +81,11 @@ export class CanvasOverlayToolbarInputs {
     }
     return this.renderValues;
   };
-  private readonly fields = new Map<ModelFieldStore<unknown>, () => void>();
-  private readonly listeners = new Set<() => void>();
-  private connected = false;
-  constructor(private readonly scope: Scope) { this.getSnapshot(); }
-  private closed() { const { view, models, site, signal } = this.scope; return signal.aborted || models !== view.studioCtx.modelSnapshots || site !== view.studioCtx.site; }
-  private disconnect = () => {
-    this.connected = false; this.scope.signal.removeEventListener("abort", this.close);
-    this.fields.forEach((stop) => stop()); this.fields.clear();
-  };
-  private close = () => { this.current = inactive; this.disconnect(); this.listeners.forEach((listener) => listener()); };
-  private sync = () => { const previous = this.current; this.getSnapshot(); if (previous !== this.current) { this.listeners.forEach((listener) => listener()); } };
-  getSnapshot = (): Snapshot => {
-    if (this.closed()) { this.current = inactive; this.disconnect(); return this.current; }
-    const { view, models } = this.scope;
-    const used = new Set<ModelFieldStore<unknown>>([view.selectionStore, view.variantStore, view.csEvaluator.renderStatusStore]);
-    const field = (model: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(models.declaredField(model, key)));
+  private readonly inputs: ModelFieldInputs;
+  constructor(private readonly scope: Scope) {
+    const { view, models, site, signal } = scope;
+    const inputScope = { models, lifetime: signal, isCurrent: () => models === view.studioCtx.modelSnapshots && site === view.studioCtx.site };
+    const collectNodes = (nodes: Iterable<TplNode>, field: DeclareModelFields, watch: (store: ModelFieldStore<unknown>) => void) => {
     const expressions = new Set<Expr>();
     const expression = (expr: Expr) => {
       if (expressions.has(expr)) { return; } expressions.add(expr);
@@ -113,15 +102,6 @@ export class CanvasOverlayToolbarInputs {
         });
       } else if (isKnownRenderExpr(expr)) { field(expr, "tpl"); }
     };
-    const components = new Set(view.componentStackFrames().map((frame) => frame.component));
-    components.add(view.currentComponent());
-    const nodes = new Set([...components].flatMap((component) => {
-      field(component, "tplTree"); return flattenTpls(component.tplTree);
-    }));
-    view.focusedTplAncestorsThroughComponents().forEach(({ node }) => {
-      if (isSlotSelection(node)) { field(node.slotParam, "variable"); field(node.slotParam.variable, "name"); }
-      nodes.add(isSlotSelection(node) ? node.getTpl() : node);
-    });
     for (const tpl of nodes) {
       field(tpl, "parent", "vsettings");
       if (isKnownTplTag(tpl)) { field(tpl, "children"); }
@@ -132,7 +112,7 @@ export class CanvasOverlayToolbarInputs {
         tpl.component.params.forEach((param) => { field(param, "type"); });
         if (isCodeComponent(tpl.component)) {
           field(tpl, "name"); field(tpl.component, "name");
-          used.add(view.canvasCtx.registrations.component(tpl.component.name));
+          watch(view.canvasCtx.registrations.component(tpl.component.name));
         }
       }
       tpl.vsettings.forEach((setting) => {
@@ -144,20 +124,43 @@ export class CanvasOverlayToolbarInputs {
         });
       });
     }
-    const values = [...used].map((store) => store.getState());
-    if (!this.current.alive || !arrayEq(this.current.fields, values)) { this.current = Object.freeze({ alive: true, fields: Object.freeze(values) }); }
-    if (this.connected) {
-      for (const store of used) { if (!this.fields.has(store)) { this.fields.set(store, store.subscribe(this.sync)); } }
-      for (const [store, stop] of this.fields) { if (!used.has(store)) { stop(); this.fields.delete(store); } }
-    }
+    };
+    let components: readonly Component[] = [];
+    const tree = new ModelFieldInputs(inputScope, (field, watch) => {
+      const nodes = new Set(components.flatMap((component) => {
+        field(component, "tplTree"); return flattenTpls(component.tplTree);
+      }));
+      collectNodes(nodes, field, watch);
+    });
+    const treeStore: ModelFieldStore<readonly unknown[]> = {
+      getState: tree.read, getInitialState: tree.read,
+      subscribe: (listener) => {
+        let previous = tree.read();
+        return tree.subscribe(() => { const next = tree.read(), before = previous; previous = next; listener(next, before); });
+      },
+    };
+    this.inputs = new ModelFieldInputs(inputScope, (field, watch) => {
+      watch(view.selectionStore); watch(view.variantStore); watch(view.csEvaluator.renderStatusStore);
+      const nextComponents = [...new Set([...view.componentStackFrames().map((frame) => frame.component), view.currentComponent()])];
+      if (!arrayEq(components, nextComponents)) { components = nextComponents; tree.invalidate(); }
+      watch(treeStore);
+      // Selection/render changes only recollect the active ancestor path.
+      // Component-wide event routing inputs retain their independent snapshot.
+      const ancestors = new Set<TplNode>();
+      view.focusedTplAncestorsThroughComponents().forEach(({ node }) => {
+        if (isSlotSelection(node)) { field(node.slotParam, "variable"); field(node.slotParam.variable, "name"); }
+        ancestors.add(isSlotSelection(node) ? node.getTpl() : node);
+      });
+      collectNodes(ancestors, field, watch);
+    });
+  }
+  getSnapshot = (): Snapshot => {
+    if (!this.inputs.isCurrent()) { return inactive; }
+    const fields = this.inputs.read();
+    if (!this.current.alive || this.current.fields !== fields) { this.current = Object.freeze({ alive: true, fields }); }
     return this.current;
   };
-  subscribe = (listener: () => void) => {
-    if (this.closed()) { return () => undefined; }
-    this.listeners.add(listener);
-    if (!this.connected) { this.connected = true; this.scope.signal.addEventListener("abort", this.close, { once: true }); this.sync(); }
-    return () => { this.listeners.delete(listener); if (!this.listeners.size) { this.disconnect(); } };
-  };
+  subscribe = (listener: () => void) => this.inputs.subscribe(listener);
 }
 
 export function useCanvasOverlayToolbarInputs(view: ViewCtx) {

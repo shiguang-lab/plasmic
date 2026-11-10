@@ -1,4 +1,5 @@
 import { parseProjectLocation } from "@/wab/client/cli-routes";
+import { createPreviewCompiler } from "@/wab/client/components/live/preview-compiler";
 import { showCanvasPageNavigationNotification } from "@/wab/client/components/canvas/studio-canvas-util";
 import {
   DEVICE_VIEWPORTS,
@@ -127,6 +128,11 @@ export function usePreviewSelector<T>(
 }
 
 export class PreviewCtx {
+  private compiler: ReturnType<typeof createPreviewCompiler> | undefined;
+  get previewCompiler() {
+    if (!this.compiler || this.compiler.disposed) { this.compiler = createPreviewCompiler(); }
+    return this.compiler;
+  }
   private disposals: (() => void)[] = [];
   private disposed = false;
   readonly store = createStore<PreviewState>(() => ({
@@ -382,6 +388,7 @@ export class PreviewCtx {
     this.syncTargets();
     this.disposals.push(studioCtx.subscribeModelChanges((event) => {
       if (event.type === "site-replaced") {
+        this.compiler?.dispose(); this.compiler = undefined;
         this.syncTargets();
         this.syncVariantAvailability();
         spawn(this.parseRoute());
@@ -398,9 +405,6 @@ export class PreviewCtx {
     const historyListener = (location: Location) => {
       const wasLive = this.isLive;
       this.isLive = isLiveMode(location.pathname);
-      if (this.isLive && !wasLive) {
-        studioCtx.closeEditorPanels();
-      }
       if (!this.isLive && wasLive) {
         this.previousLocation = undefined;
       }
@@ -430,6 +434,7 @@ export class PreviewCtx {
 
   dispose() {
     this.disposed = true;
+    this.compiler?.dispose(); this.compiler = undefined;
     this.disposals.splice(0).forEach((d) => d());
   }
 

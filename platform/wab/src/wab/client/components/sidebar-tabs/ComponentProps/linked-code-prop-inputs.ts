@@ -21,9 +21,12 @@ export function useLinkedCodePropInputs(view: ViewCtx, component: Component) {
 export function createLinkedCodePropInputsSource(world: ReturnType<typeof useVariantModelWorld>, studio: ReturnType<typeof useVariantModelWorld>['studio'], view: Parameters<typeof useLinkedCodePropInputs>[0], component: Parameters<typeof useLinkedCodePropInputs>[1]) {
     let current: readonly unknown[] = Object.freeze([]), stopKeys: (() => void) | undefined;
     let boundKeys = "";
+    let captured: { keys: Map<ModelKey, number>; fields: Map<ModelFieldStore<unknown>, unknown> } | undefined;
     const listeners = new Set<() => void>(), registrations = new Map<ModelFieldStore<unknown>, () => void>();
     const read = () => {
       if (world.studio !== studio || !world.isCurrent(view)) { return current; }
+      if (captured && [...captured.keys].every(([key, version]) => studio.modelRevisions.getModelRevision(key) === version) &&
+        [...captured.fields].every(([field, value]) => field.getState() === value)) { return current; }
       const keys = new Set<ModelKey>(), owners = new Set<Component>(), used = new Set<ModelFieldStore<unknown>>();
       const sites = new Set<Site>();
       const catalog = (owner: Site) => {
@@ -62,12 +65,14 @@ export function createLinkedCodePropInputsSource(world: ReturnType<typeof useVar
         used.forEach((store) => { if (!registrations.has(store)) { registrations.set(store, store.subscribe(sync)); } });
         for (const [store, stop] of registrations) { if (!used.has(store)) { stop(); registrations.delete(store); } }
       }
+      captured = { keys: new Map([...keys].map(key => [key, studio.modelRevisions.getModelRevision(key)])), fields: new Map([...used].map(field => [field, field.getState()])) };
       return current;
     };
     const disconnect = () => { stopKeys?.(); stopKeys = undefined; boundKeys = ""; registrations.forEach((stop) => stop()); registrations.clear(); world.lifetime.removeEventListener("abort", disconnect); view.disposeSignal.removeEventListener("abort", disconnect); };
     const sync = () => { const before = current; read(); if (before !== current) { listeners.forEach((listener) => listener()); } };
     const subscribe = (listener: () => void) => {
       if (world.studio !== studio || !world.isCurrent(view)) { return () => undefined; }
+      captured = undefined;
       listeners.add(listener); world.lifetime.addEventListener("abort", disconnect, { once: true }); view.disposeSignal.addEventListener("abort", disconnect, { once: true }); read();
       return () => { listeners.delete(listener); if (!listeners.size) { disconnect(); } };
     };

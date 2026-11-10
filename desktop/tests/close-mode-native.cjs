@@ -60,6 +60,11 @@ if (!process.versions.electron) {
   });
   const originalLoad = Module._load;
   Module._load = function (request, parent, isMain) {
+    if (request === "../desktop.config.json" && parent.filename.endsWith("/src/main.cjs")) {
+      // All renderer content is replaced below; use this fixture's asset version.
+      const assets = JSON.parse(fs.readFileSync(path.join(__dirname, "../renderer/desktop-assets.json"), "utf8"));
+      return { ...config, webImage: assets.webImage };
+    }
     if (request === "./open-browser.cjs" && parent.filename.endsWith("/src/main.cjs")) {
       return { openBrowser: async url => { authorization = new URL(url); } };
     }

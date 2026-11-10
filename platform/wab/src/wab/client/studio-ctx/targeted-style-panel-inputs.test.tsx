@@ -5,19 +5,23 @@ import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleCom
 import { SidebarModalProvider } from "@/wab/client/components/sidebar/SidebarModal";
 import { AppCtxContext } from "@/wab/client/contexts/AppContexts";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
-import { TargetedStylePanelInputs } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
+import { getTargetedStylePanelInputs, TargetedStylePanelInputs, useTargetedStylePanelInputs } from "@/wab/client/studio-ctx/targeted-style-panel-inputs";
+import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { RuleSetHelpers } from "@/wab/shared/RuleSetHelpers";
 import { TplMgr } from "@/wab/shared/TplMgr";
 import { ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
+import { ValComponent } from "@/wab/shared/core/val-nodes";
 import { mkParam } from "@/wab/shared/core/lang";
 import { createSite } from "@/wab/shared/core/sites";
 import { mkSelectorRuleSet } from "@/wab/shared/core/styles";
-import { mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
+import { mkSlot, mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
 import { $$$ } from "@/wab/shared/TplQuery";
-import { StyleExpr, ensureKnownStyleExpr, ensureKnownTplTag } from "@/wab/shared/model/classes";
+import { RenderExpr, StyleExpr, ensureKnownSlotParam, ensureKnownStyleExpr, ensureKnownTplTag } from "@/wab/shared/model/classes";
+import { CONTENT_LAYOUT } from "@/wab/shared/core/style-props";
+import { setTplVisibilityToDisplayNone } from "@/wab/shared/visibility-utils";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import * as React from "react";
@@ -116,4 +120,89 @@ it("keeps a mounted provider on the current target variant and rejects writes af
   f.studio.disposeViewCtx(f.view);
   expect(provider.canEdit()).toBe(false);
   expect(() => provider.targetRs()).toThrow("retired model or component context");
+});
+
+it("shares target inputs without subscribing unrelated siblings and catches edits made while hidden", async () => {
+  const f = await fixture();
+  const sibling = mkTplTagX("div");
+  await f.studio.changeUnsafe(() => {
+    ensureVariantSetting(sibling, [f.view.component.variants[0]]);
+    $$$(f.root).append(sibling);
+  });
+  const input = { kind: "visibility", view: f.view, tpl: f.instance } as const;
+  const source = getTargetedStylePanelInputs(f.studio, input);
+  expect(getTargetedStylePanelInputs(f.studio, input)).toBe(source);
+  const collect = vi.spyOn(f.studio.modelSnapshots, "declaredField");
+  const before = source.getSnapshot();
+  const readCount = collect.mock.calls.length;
+  expect(readCount).toBeGreaterThan(0);
+  expect(collect.mock.calls.some(([model]) => model === sibling || model === sibling.vsettings[0] || model === sibling.vsettings[0].rs)).toBe(false);
+  source.getSnapshot(); source.getRenderInputs();
+  expect(collect).toHaveBeenCalledTimes(readCount);
+  const subscribe = vi.spyOn(f.studio.modelSnapshots, "subscribePreparedField");
+  const notify = vi.fn(), stop = source.subscribe(notify);
+  const subscriptions = subscribe.mock.calls.length;
+  const secondStop = getTargetedStylePanelInputs(f.studio, input).subscribe(() => undefined);
+  expect(subscribe).toHaveBeenCalledTimes(subscriptions);
+  expect(collect).toHaveBeenCalledTimes(readCount);
+  notify.mockClear();
+  await f.studio.changeUnsafe(() => { new RuleSetHelpers(sibling.vsettings[0].rs, "div").set("display", "none"); });
+  expect(notify).not.toHaveBeenCalled();
+  expect(source.getSnapshot()).toBe(before);
+  secondStop(); stop();
+  await f.studio.changeUnsafe(() => { setTplVisibilityToDisplayNone(f.instance, f.instance.vsettings[0]); });
+  expect(source.getSnapshot()).not.toBe(before);
+  const reopened = source.getSnapshot();
+  const stopAgain = source.subscribe(() => undefined);
+  expect(source.getSnapshot()).toBe(reopened);
+  stopAgain();
+});
+
+it("follows the actual layout parent through a supplied slot and rebinds when that slot moves", async () => {
+  const f = await fixture();
+  const owner = f.instance.component;
+  f.studio.observeComponents([f.view.component, owner]);
+  const param = ensureKnownSlotParam(mkParam({ name: "children", paramType: "slot", type: typeFactory.renderable() }));
+  const slot = mkSlot(param), first = mkTplTagX("div", {}, [slot]), second = mkTplTagX("div"), supplied = mkTplTagX("div");
+  await f.studio.changeUnsafe(() => {
+    owner.params.push(param);
+    for (const node of [slot, first, second]) { ensureVariantSetting(node, [owner.variants[0]]); }
+    ensureVariantSetting(supplied, [f.view.component.variants[0]]);
+    $$$(owner.tplTree).append(first).append(second);
+    $$$(f.instance).setSlotArg("children", new RenderExpr({ tpl: [supplied] }));
+  });
+  const source = getTargetedStylePanelInputs(f.studio, { kind: "layout", view: f.view, tpl: supplied });
+  const stop = source.subscribe(() => undefined);
+  expect(source.getRenderInputs().layout?.parent).toBe(f.studio.modelSnapshots.ref(first));
+  expect(source.getRenderInputs().layout?.parentIsContentLayout).toBe(false);
+  await f.studio.changeUnsafe(() => { new RuleSetHelpers(first.vsettings[0].rs, "div").set("display", CONTENT_LAYOUT); });
+  expect(source.getRenderInputs().layout?.parentIsContentLayout).toBe(true);
+  await f.studio.changeUnsafe(() => { $$$(second).append(slot); });
+  expect(source.getRenderInputs().layout?.parent).toBe(f.studio.modelSnapshots.ref(second));
+  expect(source.getRenderInputs().layout?.parentIsContentLayout).toBe(false);
+  stop();
+});
+
+it("replaces a retired mounted input when the editing context changes for the same template", async () => {
+  const f = await fixture(), frame = f.view.arenaFrame();
+  const context = (key: string) => new ComponentCtx({ valComponent: new ValComponent({
+    tpl: frame.container, key, fullKey: key, frameUid: frame.uid, valOwner: undefined,
+    parent: undefined, fibers: [], className: "", slotInfo: undefined, slotArgs: new Map(), slotCanvasEnvs: new Map(),
+  }) });
+  f.view.selection.setContext(context("First"));
+  const input = { kind: "style-tab", view: f.view, tpl: f.root } as const;
+  const first = getTargetedStylePanelInputs(f.studio, input);
+  function Panel() {
+    const snapshot = useTargetedStylePanelInputs(f.studio, input);
+    return <output>{String(snapshot.active)}</output>;
+  }
+  const mounted = render(<Panel />);
+  expect(screen.getByText("true")).toBeTruthy();
+  act(() => f.view.selection.setContext(context("Second")));
+  expect(first.isActive()).toBe(false);
+  expect(screen.getByText("true")).toBeTruthy();
+  expect(getTargetedStylePanelInputs(f.studio, input)).not.toBe(first);
+  act(() => f.view.selection.setContext(null));
+  expect(screen.getByText("true")).toBeTruthy();
+  mounted.unmount();
 });

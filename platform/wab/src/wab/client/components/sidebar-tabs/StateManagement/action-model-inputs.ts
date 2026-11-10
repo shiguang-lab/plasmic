@@ -2,9 +2,8 @@ import { contractSnapshot } from "@/wab/client/components/canvas/canvas-registra
 import { collectComponentParamFields } from "@/wab/client/components/sidebar-tabs/ComponentProps/component-param-inputs";
 import { collectPropExpressionFields } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
-import type { ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
+import { ModelFieldInputs } from "@/wab/client/stores/model-field-inputs";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { arrayEq } from "@/wab/shared/common";
 import { Component, EventHandler, ObjInst, TplNode, isKnownTplComponent, isKnownTplTag, isKnownTplNode } from "@/wab/shared/model/classes";
 import { isEqual } from "lodash";
 import * as React from "react";
@@ -19,14 +18,12 @@ export function useActionModelInputs(view: ViewCtx, component: Component, handle
 }
 
 function createActionModelInputsSource(world: ReturnType<typeof useVariantModelWorld>, studio: ReturnType<typeof useVariantModelWorld>['studio'], view: Parameters<typeof useActionModelInputs>[0], component: Parameters<typeof useActionModelInputs>[1], handler: Parameters<typeof useActionModelInputs>[2]) {
-    let current: readonly unknown[] = Object.freeze([]), contract: unknown;
-    const fields = new Map<ModelFieldStore<unknown>, () => void>(), listeners = new Set<() => void>();
-    let stopRegistry: (() => void) | undefined;
-    const read = () => {
-      if (world.studio !== studio || !world.isCurrent(view)) { return current; }
-      const used = new Set<ModelFieldStore<unknown>>(), refs = new Set<TplNode>(), refContracts: unknown[] = [];
+    let contract: unknown;
+    const source = new ModelFieldInputs({ models: world.models, lifetime: view.disposeSignal,
+      isCurrent: () => world.studio === studio && world.isCurrent(view) }, (declare) => {
+      const refs = new Set<TplNode>(), refContracts: unknown[] = [];
       const field = (owner: ObjInst, ...keys: string[]) => {
-        keys.forEach((key) => used.add(world.models.declaredField(owner, key)));
+        declare(owner, ...keys);
         if (isKnownTplNode(owner) && !refs.has(owner)) { reference(owner); }
       };
       const reference = (tpl: TplNode) => {
@@ -47,21 +44,18 @@ function createActionModelInputsSource(world: ReturnType<typeof useVariantModelW
       const contexts = [...studio.getRegisteredContextsMap().values(), ...studio.getHostLessContextsMap().values()];
       const nextContract = contractSnapshot([contexts.map(({ meta }) => [meta.name, meta.displayName, "globalActions" in meta ? meta.globalActions : undefined]), refContracts]);
       if (!isEqual(contract, nextContract)) { contract = nextContract; }
-      const next = [...used].map((store) => store.getState()); next.push(contract);
-      if (!arrayEq(current, next)) { current = Object.freeze(next); }
-      if (listeners.size) {
-        used.forEach((store) => { if (!fields.has(store)) { fields.set(store, store.subscribe(sync)); } });
-        for (const [store, stop] of fields) { if (!used.has(store)) { stop(); fields.delete(store); } }
-      }
-      return current;
-    };
-    const sync = () => { const previous = current; read(); if (previous !== current) { listeners.forEach((listener) => listener()); } };
-    const disconnect = () => { fields.forEach((stop) => stop()); fields.clear(); stopRegistry?.(); stopRegistry = undefined; world.lifetime.removeEventListener("abort", disconnect); view.disposeSignal.removeEventListener("abort", disconnect); };
-    const subscribe = (listener: () => void) => {
-      if (world.studio !== studio || !world.isCurrent(view)) { return () => undefined; }
-      listeners.add(listener); if (!stopRegistry) { stopRegistry = studio.subscribeCodeRegistrations(sync); }
-      world.lifetime.addEventListener("abort", disconnect, { once: true }); view.disposeSignal.addEventListener("abort", disconnect, { once: true }); read();
-      return () => { listeners.delete(listener); if (!listeners.size) { disconnect(); } };
-    };
-    return { read, subscribe };
-  }
+      return [contract];
+    });
+    return { read: source.read, subscribe: (listener: () => void) => {
+      if (!source.isCurrent()) { return () => undefined; }
+      const stop = source.subscribe(listener), stopRegistry = studio.subscribeCodeRegistrations(source.refresh);
+      let stopped = false;
+      const release = () => {
+        if (stopped) { return; } stopped = true;
+        stopRegistry(); stop();
+        world.lifetime.removeEventListener("abort", release); view.disposeSignal.removeEventListener("abort", release);
+      };
+      world.lifetime.addEventListener("abort", release, { once: true }); view.disposeSignal.addEventListener("abort", release, { once: true });
+      return release;
+    } };
+}

@@ -1712,7 +1712,7 @@ async function getProjectRevData(req: Request, res: Response, projectId: string,
     }),
     timed("dependencies", async () => {
       const loadedRevision = await revision;
-      return loadDepPackages(mgr, dontMigrateProject ? JSON.parse(loadedRevision.data) : await getMigratedBundle(loadedRevision), { dontMigrateBundle: dontMigrateProject });
+      return loadDepPackages(mgr, dontMigrateProject ? JSON.parse(loadedRevision.data) : await getMigratedBundle(loadedRevision), { dontMigrateBundle: dontMigrateProject, extendTokens: !!req.headers["x-plasmic-presentation-code"] });
     }),
     getCurrentModelVersion(req.txMgr || req.noTxMgr),
     mgr.getHostlessVersion(),

@@ -35,10 +35,11 @@ import {
   isTplNamable,
   tryGetTplOwnerComponent,
 } from "@/wab/shared/core/tpls";
-import { Box } from "@/wab/shared/geom";
 import { ArenaFrame, TplNode } from "@/wab/shared/model/classes";
 import { maybeMkSemVerSiteElement } from "@/wab/shared/site-diffs";
 import { Popover, Tooltip } from "antd";
+import { createStyles } from "antd-style";
+import { fullName } from "@/wab/shared/ApiSchemaUtil";
 import $ from "jquery";
 import { noCanvasModelFields, useCanvasComponentInputs, useCanvasViewInputs } from "@/wab/client/components/canvas/canvas-view-inputs";
 import { useCommentMarkerOwner } from "@/wab/client/components/comments/comment-marker-inputs";
@@ -52,6 +53,9 @@ const ADD_COMMENT_MARKER_MARGIN = 10;
 const ADD_COMMENT_INDIVIDUAL_MARKER_MARGIN = 20;
 const COMMENT_MARKER_INITIAL_Z_INDEX = 12;
 const THREAD_MARKER_MARGIN = 30;
+const useMarkerStyles = createStyles(({ token }) => ({
+  button: { border: 0, padding: 0, background: "transparent", borderRadius: "50%", cursor: "pointer", display: "inline-flex", "&[aria-pressed=true], &:focus-visible": { outline: `2px solid ${token.colorPrimary}`, outlineOffset: 2 } },
+}));
 
 export const CanvasCommentSubjectLabel = React.memo(function CanvasCommentSubjectLabel(props: { subject: TplNode; view: ViewCtx }) {
   const { t: studioUiT, label } = useI18n();
@@ -75,7 +79,7 @@ export const CanvasCommentSubjectLabel = React.memo(function CanvasCommentSubjec
   );
 });
 
-const CanvasCommentMarker = React.memo(function CanvasCommentMarker(props: {
+export const CanvasCommentMarker = React.memo(function CanvasCommentMarker(props: {
   commentThread: TplCommentThread;
   viewCtx: ViewCtx;
   offsetRight: number;
@@ -83,6 +87,9 @@ const CanvasCommentMarker = React.memo(function CanvasCommentMarker(props: {
   onHoverChange: (hovering: boolean) => void;
 }) {
   const { commentThread, viewCtx, offsetRight, zIndex, onHoverChange } = props;
+  const { styles } = useMarkerStyles();
+  const { t } = useI18n();
+  const [previewOpen, setPreviewOpen] = React.useState(false);
   const commentsCtx = viewCtx.studioCtx.commentsCtx;
   const lifetime = useCanvasViewInputs(viewCtx, noCanvasModelFields);
 
@@ -108,47 +115,36 @@ const CanvasCommentMarker = React.memo(function CanvasCommentMarker(props: {
       tpl={subject}
       viewCtx={viewCtx}
       className={"CommentMarker"}
-      onClick={(e) => {
-        if (lifetime.alive && !viewCtx.disposeSignal.aborted && !isSelected) {
-          e.stopPropagation();
-          commentsCtx.openCommentThreadDialog(commentThread.id, true);
-        }
-      }}
       zIndex={zIndex}
     >
       <Popover
-        key={isSelected ? "selected" : `${comment.id}-not-selected`}
         classNames={{ root: "NoPaddingPopover NoBackgroundStyles" }}
-        placement={"top"}
-        trigger={["hover"]}
+        placement="top"
+        trigger="hover"
         destroyOnHidden
         arrow={false}
-        content={
-          !isSelected ? (
-            <CommentPost
-              comment={comment}
-              commentThread={commentThread}
-              subjectLabel={<CanvasCommentSubjectLabel view={viewCtx} subject={subject} />}
-              hoverBox
-              repliesLinkLabel={
-                threadComments.length > 1
-                  ? `${threadComments.length - 1} replies`
-                  : null
-              }
-            />
-          ) : null
-        }
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        content={<CommentPost comment={comment} commentThread={commentThread} hoverBox />}
       >
         <div
           onMouseEnter={() => onHoverChange(true)}
           onMouseLeave={() => onHoverChange(false)}
         >
+          <button type="button" className={styles.button} aria-label={t("Open comment by {name}", { name: fullName(author) })} aria-pressed={isSelected} onClick={event => {
+            event.stopPropagation();
+            if (lifetime.alive && !viewCtx.disposeSignal.aborted) {
+              setPreviewOpen(false);
+              commentsCtx.openCommentThreadDialog(commentThread.id, true);
+            }
+          }}>
           <CommentMarker
-            className={"CommentMarkerInitial"}
+            className="CommentMarkerInitial"
             data-test-id={`comment-marker-${commentThread.id}`}
           >
             <Avatar user={author} size="small" showToolTip={false} />
           </CommentMarker>
+          </button>
         </div>
       </Popover>
     </CanvasCommentOverlay>
@@ -208,7 +204,6 @@ export const CanvasAddCommentMarker = React.memo(
                 commentsCtx.openNewCommentDialog(
                   viewCtx,
                   tpl,
-                  Box.fromRectSides(e.currentTarget.getBoundingClientRect()),
                 );
               },
             }}

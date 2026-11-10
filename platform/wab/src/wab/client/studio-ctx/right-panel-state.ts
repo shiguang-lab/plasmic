@@ -6,17 +6,18 @@ import type {
 import { useStore } from "zustand";
 
 /**
- * Which tab the right pane shows.
+ * Which inspector tab the right pane shows and whether it is collapsed.
  *
  * Replaces `StudioCtx._xRightTabKey` (`observable.box`); the right pane renders
  * it, and commands switch it.
  */
 export interface RightPanelSnapshot {
   readonly tabKey: RightTabKey | undefined;
+  readonly collapsed: boolean;
 }
 
 export function createRightPanelStore() {
-  return createStudioStore<RightPanelSnapshot>(() => ({ tabKey: undefined }), {
+  return createStudioStore<RightPanelSnapshot>(() => ({ tabKey: undefined, collapsed: false }), {
     name: "studio-right-panel",
   });
 }

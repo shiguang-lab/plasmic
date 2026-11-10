@@ -1882,9 +1882,13 @@ class OutlineRowsInput {
   private sources() {
     const sources = new Set<CanvasObserverInput | CanvasViewInputs>([this.studio.arenaState.store, this.metadata, this.outline.stateStore, this.studio.selectionStore, this.studio.hoveredViewStore, this.studio.arenaState.viewRegistry.store]);
     this.outlineSources.clear(); this.outlineSources.add(this.outline.stateStore);
-    const contexts = isMixedArena(this.arena) ? getArenaFrames(this.arena).map((frame) => this.outline.getFrameOutline(frame)) : [this.outline];
-    for (const context of contexts) {
+    const mixed = isMixedArena(this.arena);
+    const contexts = mixed ? getArenaFrames(this.arena).map((frame) => ({ context: this.outline.getFrameOutline(frame), expanded: this.outline.isFrameExpanded(frame) })) : [{ context: this.outline, expanded: true }];
+    for (const { context, expanded } of contexts) {
       sources.add(context.stateStore); this.outlineSources.add(context.stateStore);
+      // Collapsed artboards need expansion/selection state, but none of their
+      // node, style or Val inputs until their layers are actually shown.
+      if (!expanded) { continue; }
       const view = context.viewCtx();
       if (view) { sources.add(getOutlineModelInput(view)); }
     }
@@ -1958,14 +1962,15 @@ export function buildVisibleOutlineRows(
       return;
     }
     const indent = node.self.indent + (frame ? 1 : 0);
+    const isOpen = context.isExpanded(node.self.key);
     rows.push({
       type: "node",
       key: frame ? `${frame.uuid}:${node.self.key}` : node.self.key,
       indent,
-      node: { ...node.self, indent, isOpen: context.isExpanded(node.self.key) },
+      node: { ...node.self, indent, isOpen },
       outlineCtx: context,
     });
-    if (context.isExpanded(node.self.key)) {
+    if (isOpen) {
       node.children.forEach((child) => pushNode(child, context, frame));
     }
   };

@@ -1,4 +1,5 @@
 import type { AppCtx } from "@/wab/client/app-ctx";
+import "@testing-library/jest-dom/vitest";
 import { toOpaque } from "@/wab/commons/types";
 import type { DesktopDraft } from "@/wab/shared/desktop-drafts";
 import { mock } from "vitest-mock-extended";
@@ -9,7 +10,7 @@ import { RightTabKey } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
-import { act, cleanup, render, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import React from "react";
 
 vi.mock("@/wab/client/components/sidebar-tabs/PageURLParametersSection", () => ({ PageURLParametersSection: () => null }));
@@ -41,6 +42,53 @@ class VisibleIntersectionObserver {
 }
 beforeEach(() => vi.stubGlobal("IntersectionObserver", VisibleIntersectionObserver));
 afterEach(() => { cleanup(); vi.restoreAllMocks(); vi.unstubAllGlobals(); });
+
+it("collapses only the right pane, retains selection and tab, and reopens through its edge button or a tab command", async () => {
+  vi.spyOn(ViewCtx.prototype, "isVisible").mockReturnValue(false);
+  const { studioCtx: studio } = fakeStudioCtx();
+  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  const page = await studio.changeUnsafe(() => studio.addComponent("Inspector", { type: ComponentType.Page }));
+  const view = ensure(studio.focusedOrFirstViewCtx(), "Page view");
+  studio.setStudioFocusOnFrameContents(view.arenaFrame());
+  studio.switchRightTab(RightTabKey.component);
+  const selection = studio.selectionStore.getState();
+  const leftPanel = studio.leftPanelState.store.getState();
+  const metadata = studio.modelSnapshots.field(page, "pageMeta"), subscribe = metadata.subscribe;
+  const released = vi.fn();
+  const connections = vi.spyOn(metadata, "subscribe").mockImplementation((listener) => {
+    const stop = subscribe(listener);
+    return () => { stop(); released(); };
+  });
+  const { container, unmount } = render(<StudioCtxContext.Provider value={studio}><RightPane studioCtx={studio} canvasLoading={false} /></StudioCtxContext.Provider>);
+  const shell = () => container.querySelector('[data-test-id="right-panel-shell"]');
+  try {
+    await waitFor(() => expect(container.querySelector('[data-test-id="page-panel"]')).not.toBeNull());
+    expect(connections).toHaveBeenCalled();
+    const contents = container.querySelector('[data-test-id="page-panel"]');
+    fireEvent.click(ensure(container.querySelector<HTMLButtonElement>('.editor-panel-header button'), "Inspector collapse button"));
+    expect(shell()?.getAttribute("data-open")).toBe("false");
+    expect(studio.rightTabKey).toBe(RightTabKey.component);
+    expect(studio.selectionStore.getState()).toBe(selection);
+    expect(studio.leftPanelState.store.getState()).toBe(leftPanel);
+    await waitFor(() => expect(released).toHaveBeenCalledTimes(connections.mock.calls.length));
+    expect(contents).not.toBeVisible();
+    expect(container.querySelector('[data-test-id="page-panel"]')).toBe(contents);
+    fireEvent.click(ensure(container.querySelector<HTMLButtonElement>('.editor-inspector-reopen button'), "Inspector expand button"));
+    expect(shell()?.getAttribute("data-open")).toBe("true");
+    expect(studio.rightTabKey).toBe(RightTabKey.component);
+    await waitFor(() => expect(container.querySelector('[data-test-id="page-panel"]')).not.toBeNull());
+    expect(container.querySelector('[data-test-id="page-panel"]')).toBe(contents);
+    expect(contents).toBeVisible();
+    act(() => studio.collapseRightPanel());
+    act(() => studio.switchRightTab(RightTabKey.component));
+    expect(shell()?.getAttribute("data-open")).toBe("true");
+    expect(container.querySelector('.editor-inspector-reopen')).toBeNull();
+    expect(studio.selectionStore.getState()).toBe(selection);
+    act(() => { studio.collapseRightPanel(); studio.toggleCommentsPanel(); });
+    expect(studio.showCommentsPanel).toBe(true);
+    expect(studio.rightPanelStore.getState().collapsed).toBe(false);
+  } finally { unmount(); studio.dispose(); }
+});
 
 it.each([false, true])("detaches the mounted real PageTab and metadata before disposing its model owner (focused=%s)", async (focused) => {
   vi.spyOn(ViewCtx.prototype, "isVisible").mockReturnValue(false);

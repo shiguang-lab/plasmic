@@ -126,6 +126,7 @@
   "Forum": "フォーラム",
   "Back to dashboard": "ダッシュボードに戻る",
   "Preview": "プレビュー",
+  "Preview unavailable": "プレビューを読み込めませんでした",
   "Back to editor": "エディターに戻る",
   "Rename project": "プロジェクト名を変更",
   "Publish": "公開",
@@ -5795,5 +5796,18 @@
   "Invite by email": "メールで招待",
   "Enable link invitations": "リンク招待を有効にする",
   "Default role": "デフォルトの役割",
-  "People can register or sign in and use this link to join the organization.": "ユーザーは登録またはログイン後、このリンクから組織に参加できます。"
+  "People can register or sign in and use this link to join the organization.": "ユーザーは登録またはログイン後、このリンクから組織に参加できます。",
+  "Open comment by {name}": "{name}のコメントを開く",
+  "Comment details": "コメントの詳細",
+  "Back to comments": "コメント一覧に戻る",
+  "Previous comment": "前のコメント",
+  "Next comment": "次のコメント",
+  "Locate comment target": "コメントの対象を表示",
+  "Comment resolved": "コメントを解決しました",
+  "Mention someone": "メンバーをメンション",
+  "Enter to send": "Enterで送信",
+  "Shift+Enter for a new line": "Shift+Enterで改行",
+  "Unnamed element": "名前のない要素",
+  "Failed to send comment": "コメントを送信できませんでした",
+  "No replies yet": "まだ返信はありません"
 }

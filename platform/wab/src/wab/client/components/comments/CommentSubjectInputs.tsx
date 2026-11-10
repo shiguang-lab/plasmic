@@ -10,7 +10,7 @@ import { isTplTag, summarizeTpl, type TplNamable } from "@/wab/shared/core/tpls"
 import { isKnownCompositeExpr, isKnownCustomCode, isKnownTemplatedString, isKnownTplComponent, isKnownTplSlot, type Expr, type ObjInst, type TplNode } from "@/wab/shared/model/classes";
 import * as React from "react";
 
-/** The dialog heading owns finite model fields, not a project-wide revision. */
+/** The comment heading owns finite model fields, not a project-wide revision. */
 export function CommentSubjectName({ studio, subject, fallback }: {
   studio: StudioCtx;
   subject: TplNamable;

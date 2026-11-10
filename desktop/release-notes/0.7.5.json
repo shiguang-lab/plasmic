@@ -1,0 +1,7 @@
+{
+  "en": "- Improve layer expansion, selection, property panels and editor updates.\n- Speed up Preview entry and business menu navigation with background compilation, reusable compiled modules and large-page compilation improvements.\n- Preserve property edits, runtime data updates and interactions; improve comment and Preview error recovery.\n- Fix desktop closing modes, macOS activation and MCP process lifecycle.",
+  "zh-CN": "- 优化图层展开、节点选择、属性面板和编辑器更新性能。\n- 通过后台编译、编译结果复用和大页面编译优化，加快进入预览与业务菜单切换。\n- 保留属性编辑、运行时数据更新和交互行为，完善评论及预览错误恢复。\n- 修复桌面关闭模式、macOS 激活和 MCP 进程生命周期问题。",
+  "zh-TW": "- 改善圖層展開、節點選取、屬性面板及編輯器更新效能。\n- 透過背景編譯、編譯結果重用及大型頁面編譯改善，加快進入預覽與業務選單切換。\n- 保留屬性編輯、執行階段資料更新及互動行為，完善留言及預覽錯誤復原。\n- 修正桌面關閉模式、macOS 啟用及 MCP 程序生命週期問題。",
+  "ja": "- レイヤー展開、ノード選択、プロパティパネル、エディター更新の性能を改善しました。\n- バックグラウンドコンパイル、コンパイル結果の再利用、大規模ページの最適化により、プレビュー起動とメニュー切り替えを高速化しました。\n- プロパティ編集、データ更新、操作を維持し、コメントとプレビューのエラー復旧を改善しました。\n- デスクトップの終了モード、macOSのアクティベーション、MCPプロセスのライフサイクルを修正しました。",
+  "ko": "- 레이어 펼치기, 노드 선택, 속성 패널 및 편집기 업데이트 성능을 개선했습니다.\n- 백그라운드 컴파일, 결과 재사용 및 대형 페이지 최적화로 미리보기 진입과 메뉴 전환을 개선했습니다.\n- 속성 편집, 데이터 업데이트 및 상호작용을 유지하고 댓글과 미리보기 오류 복구를 개선했습니다.\n- 데스크톱 종료 모드, macOS 활성화 및 MCP 프로세스 수명 주기 문제를 수정했습니다."
+}

@@ -58,6 +58,9 @@ async function gui(previousPid) {
     try {
       pid = JSON.parse(await fs.readFile(path.join(profile, "gui.json"), "utf8")).pid;
       if (pid === previousPid || !alive(pid)) return false;
+      const ready = (await fs.readFile(path.join(profile, "logs/lifecycle.log"), "utf8")).trim().split("\n").map(JSON.parse)
+        .some(row => row.pid === pid && row.event === "startup.ready");
+      if (!ready) return false;
       return (await requestRpc(profile, "get_app_state", {})).windowOpen;
     } catch { return false; }
   }, "GUI startup");

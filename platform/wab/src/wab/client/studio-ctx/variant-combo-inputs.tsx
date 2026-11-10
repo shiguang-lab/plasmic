@@ -20,6 +20,8 @@ export class VariantComboSource {
   private readonly site;
   private current = empty;
   private dirty = true;
+  private published = empty;
+  private captured = new Map<ModelFieldStore<unknown>, unknown>();
   private closed = false;
   private connected = false;
   private selection: unknown;
@@ -31,7 +33,7 @@ export class VariantComboSource {
   }
   private isClosed() { return this.closed || this.view.disposeSignal.aborted || this.view.studioCtx.modelSnapshots !== this.models; }
   private invalidate = () => { this.dirty = true; };
-  private sync = () => { const before = this.current; this.dirty = true; this.getSnapshot(); if (before !== this.current) { this.listeners.forEach((listener) => listener()); } };
+  private sync = () => { this.getSnapshot(); if (this.published !== this.current) { this.published = this.current; this.listeners.forEach((listener) => listener()); } };
   private disconnect = () => {
     this.connected = false; this.stopSelection?.(); this.stopSelection = undefined;
     this.view.disposeSignal.removeEventListener("abort", this.close);
@@ -45,6 +47,7 @@ export class VariantComboSource {
     if (this.isClosed()) { this.current = empty; return this.current; }
     const selection = this.view.selectionStore.getState().tpls;
     if (this.selection !== selection) { this.selection = selection; this.dirty = true; }
+    if (!this.connected && [...this.captured].some(([store, value]) => store.getState() !== value)) { this.dirty = true; }
     if (!this.dirty) { return this.current; }
     const used = new Set<ModelFieldStore<unknown>>();
     const field = (model: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(this.models.declaredField(model, key)));
@@ -97,12 +100,14 @@ export class VariantComboSource {
       for (const store of used) { if (!this.fields.has(store)) { this.fields.set(store, { prepared: this.models.subscribePreparedField(store, this.invalidate), published: store.subscribe(this.sync) }); } }
       for (const [store, stops] of this.fields) { if (!used.has(store)) { stops.prepared(); stops.published(); this.fields.delete(store); } }
     }
+    this.captured = new Map([...used].map((store) => [store, store.getState()]));
     this.dirty = false; return this.current;
   };
   subscribe = (listener: () => void): (() => void) => {
     if (this.isClosed()) { return () => undefined; }
+    if (!this.listeners.size) { this.published = this.getSnapshot(); }
     this.listeners.add(listener);
-    if (!this.connected) { this.connected = true; this.stopSelection = this.view.selectionStore.subscribe(this.sync); this.view.disposeSignal.addEventListener("abort", this.close, { once: true }); this.sync(); }
+    if (!this.connected) { this.dirty = true; this.connected = true; this.stopSelection = this.view.selectionStore.subscribe(this.sync); this.view.disposeSignal.addEventListener("abort", this.close, { once: true }); this.sync(); }
     let stopped = false;
     return () => { if (stopped) { return; } stopped = true; this.listeners.delete(listener); if (!this.listeners.size) { this.disconnect(); } };
   };

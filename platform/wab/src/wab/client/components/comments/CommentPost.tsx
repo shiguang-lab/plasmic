@@ -5,17 +5,18 @@ import { Avatar } from "@/wab/client/components/studio/Avatar";
 import { ClickStopper } from "@/wab/client/components/widgets";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { UiText } from "@/wab/client/i18n/UiText";
+import { useI18n } from "@/wab/client/i18n";
 import {
   DefaultCommentPostProps,
   PlasmicCommentPost,
 } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicCommentPost";
-import { canUpdateHistory } from "@/wab/client/studio-ctx/StudioCtx";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
 import { ApiComment } from "@/wab/shared/ApiSchema";
 import { fullName } from "@/wab/shared/ApiSchemaUtil";
 import { ensure, ensureString, maybe } from "@/wab/shared/common";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Menu } from "antd";
+import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import { Menu, Typography } from "antd";
 import copy from "copy-to-clipboard";
 import { groupBy } from "lodash";
 import moment from "moment";
@@ -25,23 +26,18 @@ import { useStore } from "zustand";
 export interface CommentPostProps extends DefaultCommentPostProps {
   comment: ApiComment;
   commentThread: TplCommentThread;
-  subjectLabel?: React.ReactNode;
-  repliesLinkLabel?: React.ReactNode;
-  onClick?: () => void;
-  isThread?: boolean;
 }
 
 function CommentPost_(props: CommentPostProps, ref: HTMLElementRefOf<"div">) {
   const {
     comment,
-    subjectLabel,
-    repliesLinkLabel,
-    isThread,
     commentThread,
     ...rest
   } = props;
 
   const [isEditing, setIsEditing] = React.useState(false);
+  const { t } = useI18n();
+  const replyCount = commentThread.comments.filter(value => !value.deletedAt).length - 1;
 
   const studioCtx = useStudioCtx();
   const commentsCtx = studioCtx.commentsCtx;
@@ -64,8 +60,12 @@ function CommentPost_(props: CommentPostProps, ref: HTMLElementRefOf<"div">) {
 
   const popoverTargetRef = React.useRef<HTMLDivElement>(null);
 
-  const canUpdateThreadHistory =
-    isThread && canUpdateHistory(studioCtx, commentThread);
+  const body = comment.deletedAt ? null : (
+    <StandardMarkdown components={{
+      pre: ({ children }) => <Scrollbar scrollY={false} style={{ maxWidth: "100%" }}><pre style={{ overflow: "visible" }}>{children}</pre></Scrollbar>,
+      table: ({ children }) => <Scrollbar scrollY={false} style={{ maxWidth: "100%" }}><table style={{ overflow: "visible", display: "table" }}>{children}</table></Scrollbar>,
+    }}>{comment.body}</StandardMarkdown>
+  );
 
   return (
     <PlasmicCommentPost
@@ -75,11 +75,7 @@ function CommentPost_(props: CommentPostProps, ref: HTMLElementRefOf<"div">) {
         "data-test-id": `comment-post-${commentThread.id}`,
       }}
       {...rest}
-      body={
-        comment.deletedAt ? null : (
-          <StandardMarkdown>{comment.body}</StandardMarkdown>
-        )
-      }
+      body={props.hoverBox ? <Scrollbar scrollX={false} style={{ maxHeight: 200, minHeight: 0, minWidth: 0, width: "100%" }}>{body}</Scrollbar> : body}
       isEditing={isEditing}
       isDeleted={Boolean(comment.deletedAt)}
       commentPostForm={{
@@ -101,12 +97,9 @@ function CommentPost_(props: CommentPostProps, ref: HTMLElementRefOf<"div">) {
           />
         ),
       }}
-      canUpdateHistory={canUpdateThreadHistory}
       timestamp={moment(comment.createdAt).fromNow()}
-      thread={isThread}
       userFullName={fullName(author)}
-      repliesLink={{ children: repliesLinkLabel }}
-      subjectLabel={{ children: subjectLabel }}
+      repliesLink={{ render: () => props.hoverBox && replyCount > 0 ? <Typography.Text type="secondary">{t("{count} replies", { count: replyCount })}</Typography.Text> : null }}
       avatarContainer={{ children: <Avatar user={author} /> }}
       reactionsContainer={{
         children: (

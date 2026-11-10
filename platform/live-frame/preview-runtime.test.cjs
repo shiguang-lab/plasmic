@@ -67,11 +67,16 @@ test("strict production previews use their own iframe React, Compiler runtime an
     await flush(first);
     assert.equal(first.win.document.querySelector("button"), button);
     assert.equal(button.textContent, "updated:1:dark");
+    await first.api.update([{fileName: "./props.js", type: "code", imports: [], code: 'exports.default = {label: "route-updated"};'}], spec);
+    assert.equal(first.win.document.querySelector("button"), button);
+    assert.equal(button.textContent, "route-updated:1:light");
     assert.equal(second.win.document.querySelector("button").textContent, "second:0:light");
     assert.equal(first.api.getDiagnostics().status, "ready");
     first.ReactDOM.flushSync(() => first.api.setProps({fail: true}));
     await flush(first);
-    assert.match(first.win.document.getElementById("root").textContent, /preview failure/);
+    assert.match(first.win.document.getElementById("root").textContent, /Preview unavailable/);
+    assert.doesNotMatch(first.win.document.getElementById("root").textContent, /preview failure/);
+    assert.equal(first.api.getDiagnostics().errors[0].message, "preview failure");
     assert.equal(first.api.getDiagnostics().status, "failed");
     await first.api.update(modules("recovered"), spec);
     assert.equal(first.win.document.querySelector("button").textContent, "recovered:0:light");

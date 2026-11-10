@@ -6,7 +6,6 @@ import { toOpaque } from "@/wab/commons/types";
 import { mkMixedArena } from "@/wab/shared/Arenas";
 import { ensure } from "@/wab/shared/common";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
-import { Box } from "@/wab/shared/geom";
 import { mock } from "vitest-mock-extended";
 
 async function fixture() {
@@ -15,31 +14,51 @@ async function fixture() {
   return { ...result, ctx: result.studioCtx.commentsCtx };
 }
 
-it("installs a complete session before notification and preserves opaque model, view and anchor identities", async () => {
+it("installs a complete session before notification and preserves opaque model, view identities", async () => {
   const { ctx, studioCtx, history } = await fixture();
   const view = mock<ViewCtx>();
   const tpl = mkTplTagX("div");
-  const anchor = new Box(1, 2, 3, 4);
   const beforeRoute = history.location;
   const notify = vi.fn(() => expect(ctx.openedNewThread()?.tpl).toBe(tpl));
   const stop = ctx.dialogStore.subscribe(notify);
   ctx.deferPublication(() => {
-    ctx.openNewCommentDialog(view, tpl, anchor);
+    ctx.openNewCommentDialog(view, tpl);
     const session = ensure(ctx.dialogStore.getState().newThread, "New comment session");
     expect(Object.isFrozen(ctx.dialogStore.getState())).toBe(true);
     expect(Object.isFrozen(session)).toBe(true);
     expect(session.viewCtx).toBe(view);
     expect(session.tpl).toBe(tpl);
-    expect(session.anchor).toBe(anchor);
     expect(notify).not.toHaveBeenCalled();
   });
   expect(notify).toHaveBeenCalledOnce();
+  expect(studioCtx.showCommentsPanel).toBe(true);
   expect(history.location).toBe(beforeRoute);
   stop();
   studioCtx.dispose();
 });
 
-it("restores the same interacted session and arena draft after a failed nested owner transition", async () => {
+it("opens the existing right panel for thread commands and deep-linked selections", async () => {
+  const { ctx, studioCtx, history } = await fixture();
+  const push = vi.spyOn(history, "push").mockImplementation(() => undefined);
+  ctx.openCommentThreadDialog("one", true);
+  expect(studioCtx.showCommentsPanel).toBe(true);
+  expect(push).toHaveBeenCalledWith({ search: "comment=one" });
+  expect(ctx.getAndResetSkipZoomOnFocus()).toBe(true);
+  studioCtx.toggleCommentsPanel();
+  ctx.handleOpenCommentThreadDialog(toOpaque("one"));
+  expect(studioCtx.showCommentsPanel).toBe(true);
+  const original = ctx.openedThread();
+  studioCtx.toggleCommentsPanel();
+  ctx.handleOpenCommentThreadDialog(toOpaque("one"));
+  expect(studioCtx.showCommentsPanel).toBe(true);
+  expect(ctx.openedThread()).toBe(original);
+  ctx.handleCloseThreadDialog();
+  expect(ctx.openedThread()).toBeUndefined();
+  expect(studioCtx.showCommentsPanel).toBe(true);
+  studioCtx.dispose();
+});
+
+it("restores the same session and arena draft after a failed nested owner transition", async () => {
   const { ctx, studioCtx } = await fixture();
   const view = mock<ViewCtx>();
   const tpl = mkTplTagX("div");
@@ -48,7 +67,6 @@ it("restores the same interacted session and arena draft after a failed nested o
   ctx.openNewCommentDialog(view, tpl);
   const original = ctx.dialogStore.getState();
   const session = ensure(ctx.openedNewThread(), "New comment session");
-  ctx.markDialogInteracted(session);
   const notify = vi.fn();
   const stop = ctx.dialogStore.subscribe(notify);
   expect(() => ctx.deferPublication(() => ctx.transaction(() => {
@@ -58,7 +76,6 @@ it("restores the same interacted session and arena draft after a failed nested o
   }))).toThrow("Abort arena transition");
   expect(ctx.dialogStore.getState()).toBe(original);
   expect(ctx.openedNewThread()).toBe(session);
-  expect(ctx.hasDialogInteraction(session)).toBe(true);
   expect(ctx.getArenaDraft(arena)).toBe("Unsent draft");
   expect(notify).not.toHaveBeenCalled();
   ctx.deferPublication(() => ctx.transaction(() => {

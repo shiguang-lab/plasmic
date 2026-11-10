@@ -6,6 +6,11 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+
+  > :global(.preview-loading) {
+    position: absolute;
+    z-index: 1;
+  }
 }
 
 .full {

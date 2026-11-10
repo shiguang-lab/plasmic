@@ -1006,6 +1006,16 @@ export const useEditorLayoutStyles = createStyles(({ token }) => ({
       color: token.colorText,
       borderColor: token.colorBorder,
     },
+    "& .editor-inspector-reopen": {
+      position: "absolute",
+      right: editorCanvasControlsLayout.edgeInset,
+      top: editorLeftRailLayout.top,
+      zIndex: 20,
+      padding: 4,
+      background: token.colorBgContainer,
+      border: `1px solid ${token.colorBorder}`,
+      borderRadius: token.borderRadiusLG,
+    },
     "& .canvas-editor__right-pane-viewport": {
       position: "absolute",
       right: editorCanvasControlsLayout.edgeInset,

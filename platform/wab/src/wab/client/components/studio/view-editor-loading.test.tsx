@@ -32,7 +32,6 @@ vi.mock("@/wab/client/components/canvas/VariantsBar", () => ({ VariantsBar: () =
 vi.mock("@/wab/client/components/canvas/CanvasDndOverlay", () => ({ CanvasDndOverlay: () => null }));
 vi.mock("@/wab/client/components/canvas/RichText/RichTextToolbar", () => ({ default: () => null }));
 vi.mock("@/wab/client/components/canvas/CanvasContentEditorControls", () => ({ CanvasContentEditorControls: () => null }));
-vi.mock("@/wab/client/components/comments/CommentsDialogs", () => ({ CommentsDialogs: () => null }));
 vi.mock("@/wab/client/components/studio/CanvasViewControls", () => ({ CanvasViewControls: () => null }));
 vi.mock("@/wab/client/components/studio/FocusedModeToolbar/FocusedModeToolbar", () => ({ FocusedModeToolbar: () => null }));
 vi.mock("@/wab/client/components/studio/GlobalCssVariables", () => ({ GlobalCssVariables: () => null }));
@@ -43,7 +42,6 @@ vi.mock("@/wab/client/components/AutoOpenBanner", () => ({ default: () => null }
 vi.mock("@/wab/client/components/widgets/BrowserAlertBanner", () => ({ BrowserAlertBanner: () => null }));
 vi.mock("@/wab/client/components/widgets/plasmic/AlertBanner", () => ({ AlertBanner: () => null }));
 vi.mock("@/wab/client/components/BottomModal", () => ({ BottomModals: () => null }));
-vi.mock("@/wab/client/components/widgets/FloatingWindow", () => ({ FloatingWindowLayer: ({children}: React.PropsWithChildren) => <>{children}</> }));
 
 function view(studioCtx: StudioCtx) {
   const policy = studioCtx.renderPolicy.store.getState();

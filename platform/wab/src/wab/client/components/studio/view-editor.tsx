@@ -44,7 +44,6 @@ import {
 import { closestTaggedNonTextDomElt } from "@/wab/client/components/canvas/studio-canvas-util";
 import { getActiveCanvasModal } from "@/wab/client/components/canvas/canvas-modal-scope";
 import { getMergedTextArg } from "@/wab/client/components/canvas/view-ops";
-import { CommentsDialogs } from "@/wab/client/components/comments/CommentsDialogs";
 import { DevContainer } from "@/wab/client/components/dev";
 import { ComponentPresetsModal } from "@/wab/client/components/insert-panel/ComponentPresetsModal";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
@@ -61,7 +60,6 @@ import { TopBar } from "@/wab/client/components/top-bar";
 import { getContextMenuForFocusedTpl } from "@/wab/client/components/tpl-menu";
 import { BrowserAlertBanner } from "@/wab/client/components/widgets/BrowserAlertBanner";
 import { DropdownButton } from "@/wab/client/components/widgets/DropdownButton";
-import { FloatingWindowLayer } from "@/wab/client/components/widgets/FloatingWindow";
 import { AlertBanner } from "@/wab/client/components/widgets/plasmic/AlertBanner";
 import { clientToFramePt, frameToClientPt } from "@/wab/client/coords";
 import { plasmicIFrameWheelEvent } from "@/wab/client/definitions/events";
@@ -293,9 +291,15 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
     // Ensure focus on this page, since we are being loaded in an iframe.
     window.focus();
 
-    this.registerListener("pointerdown", (e) =>
-      this.handleMouseDown(e, this.viewCtx()),
-    );
+    this.registerListener("pointerdown", (e) => {
+      // Body listeners also receive events from Studio panels and portaled
+      // popups. Only the canvas can start a gesture; move/up remain global so
+      // a gesture started on the canvas can finish outside it.
+      if (canvasClipper.contains(e.target as Node)) {
+        return this.handleMouseDown(e, this.viewCtx());
+      }
+      return undefined;
+    });
     this.registerListener("pointermove", (e) =>
       this.handleMouseMove(e, this.viewCtx()),
     );
@@ -361,7 +365,7 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
 
     this.registerListener("copy", async (e: ClipboardEvent) => {
       const vc = this.viewCtx();
-      if (!vc || !this.isFocusedOnCanvas() || !this.props.studioCtx.isDevMode) {
+      if (!vc || !this.isFocusedOnCanvas() || !this.props.studioCtx.isDevMode || document.getSelection()?.isCollapsed === false) {
         return;
       }
 
@@ -375,7 +379,7 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
     });
     this.registerListener("cut", async (e: ClipboardEvent) => {
       const vc = this.viewCtx();
-      if (!vc || !this.isFocusedOnCanvas() || !this.props.studioCtx.isDevMode) {
+      if (!vc || !this.isFocusedOnCanvas() || !this.props.studioCtx.isDevMode || document.getSelection()?.isCollapsed === false) {
         return;
       }
 
@@ -1152,7 +1156,6 @@ private async handleMouseDown(
         }),
         true,
       );
-      this.props.studioCtx.commentsCtx.maybeCloseCommentDialogs();
       return;
     }
 
@@ -1181,7 +1184,6 @@ private async handleMouseDown(
       return;
     }
 
-    this.props.studioCtx.commentsCtx.maybeCloseCommentDialogs();
 
     const partTarget = !isCanvasModifierPressed(e) && !e.shiftKey && !e.altKey
       ? getCanvasComponentPartTarget(targetVc, $target[0]) : undefined;
@@ -2199,9 +2201,6 @@ export function ViewEditor_(props: ViewEditorProps) {
               )}
             </div>
             <RightPane studioCtx={studioCtx} canvasLoading={canvasLoading} />
-            <FloatingWindowLayer>
-              <CommentsDialogs studioCtx={studioCtx} />
-            </FloatingWindowLayer>
           </div>
 
           <DevContainer

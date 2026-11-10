@@ -72,7 +72,11 @@ const state = client => request(client, "tools/call", {name:"get_app_state",argu
     await fs.rm(path.join(profile,"quit"),{force:true});
     const gui=launch(path.join(__dirname,"mcp-lifecycle-host.cjs"));
     await until(async()=>{
-      try{return (await requestRpc(profile,"get_app_state")).windowOpen;}catch{return false;}
+      try {
+        const ready = (await fs.readFile(path.join(profile, "logs/lifecycle.log"), "utf8")).trim().split("\n").map(JSON.parse)
+          .some(row => row.pid === gui.pid && row.event === "startup.ready");
+        return ready && (await requestRpc(profile,"get_app_state")).windowOpen;
+      } catch { return false; }
     },"GUI startup: "+gui.output);
     for(const client of clients) {
       assert.equal(client.stdin.writableEnded,false);

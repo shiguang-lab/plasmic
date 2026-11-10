@@ -6,6 +6,7 @@ import {
 import { ensureString } from "@/wab/shared/common";
 import type { Request, Response } from "express";
 import { nanoid } from "nanoid";
+import { IsNull } from "typeorm";
 
 export async function createPresentation(req: Request, res: Response) {
   const mgr = userDbMgr(req);
@@ -21,20 +22,23 @@ export async function createPresentation(req: Request, res: Response) {
   res.json({ code: result.code, projectId: project.id });
 }
 
-export async function getPresentation(req: Request, res: Response) {
-  const code = ensureString(req.params.code);
+export async function findPresentationProject(req: Request, code: string) {
   if (!/^[\w-]{10}$/.test(code)) {
     throw new NotFoundError("Presentation not found");
   }
   const mgr = userDbMgr(req);
   const project = await mgr
     .getEntMgr()
-    .findOne(Project, { presentationCode: code });
+    .findOne(Project, { presentationCode: code, deletedAt: IsNull() });
   if (!project) {
     throw new NotFoundError("Presentation not found");
   }
-  // A short identifier grants no access; deleted/private projects retain normal checks.
-  await mgr.getProjectById(project.id);
+  return project;
+}
+
+export async function getPresentation(req: Request, res: Response) {
+  const code = ensureString(req.params.code);
+  const project = await findPresentationProject(req, code);
   res.setHeader("Cache-Control", "no-store");
   res.json({ code, projectId: project.id });
 }

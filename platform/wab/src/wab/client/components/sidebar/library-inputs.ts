@@ -1,12 +1,12 @@
+import { ModelFieldInputs } from "@/wab/client/stores/model-field-inputs";
 import { captureVariantModelWorld, useCurrentModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { getComponentDisplayName, getFolderComponentDisplayName, getDefaultComponentKind, getSuperComponents, isCodeComponent, isReusableComponent } from "@/wab/shared/core/components";
-import type { ModelFieldStore, ModelRef, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import type { ModelRef } from "@/wab/client/studio-ctx/model-snapshots";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ProjectDependencyData } from "@/wab/client/ProjectDependencyManager";
 import { isHostLessPackage } from "@/wab/shared/core/sites";
-import { arrayEq } from "@/wab/shared/common";
 import { isAdminTeamEmail } from "@/wab/shared/devflag-utils";
-import { Component, ObjInst, ProjectDependency, Site } from "@/wab/shared/model/classes";
+import { Component, ProjectDependency, Site } from "@/wab/shared/model/classes";
 import { sortBy } from "lodash";
 import * as React from "react";
 import { useStore } from "zustand";
@@ -16,37 +16,14 @@ const empty: readonly unknown[] = Object.freeze([]);
 /** Component folders and row labels, rather than component document contents.
  * A row keeps its captured model world while a live catalog follows its owner. */
 export class ComponentLibraryInputs {
-  private readonly models: ModelSnapshots;
+  private readonly inputs: ModelFieldInputs;
   private readonly site: Site;
-  private readonly lifetime: AbortSignal;
   private current = empty;
   private rowFields: readonly unknown[] | undefined;
   private row: ReturnType<ComponentLibraryInputs["projectRow"]> | undefined;
-  private readonly fields = new Map<ModelFieldStore<unknown>, () => void>();
-  private readonly listeners = new Set<() => void>();
-  private connected = false;
-  private closed = false;
-  constructor(private readonly studio: StudioCtx, private readonly selected?: Component, world = captureVariantModelWorld(studio)) {
-    this.models = world.models; this.site = world.site;
-    this.lifetime = world.lifetime; this.getSnapshot();
-  }
-  private disconnect = () => {
-    this.connected = false; this.lifetime.removeEventListener("abort", this.close);
-    this.fields.forEach((stop) => stop()); this.fields.clear();
-  };
-  private close = () => {
-    if (this.closed) { return; }
-    this.closed = true; this.current = empty; this.disconnect();
-    this.listeners.forEach((listener) => listener()); this.listeners.clear();
-  };
-  private sync = () => {
-    const before = this.current; this.getSnapshot();
-    if (before !== this.current) { this.listeners.forEach((listener) => listener()); }
-  };
-  getSnapshot = (): readonly unknown[] => {
-    if (this.closed || this.lifetime.aborted || this.models !== this.studio.modelSnapshots) { this.current = empty; return this.current; }
-    const used = new Set<ModelFieldStore<unknown>>();
-    const field = (value: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(this.models.declaredField(value, key)));
+  constructor(studio: StudioCtx, private readonly selected?: Component, world = captureVariantModelWorld(studio)) {
+    this.site = world.site;
+    this.inputs = new ModelFieldInputs(world, (field) => {
     const seen = new Set<Component>();
     const component = (value: Component) => {
       if (seen.has(value)) { return; } seen.add(value);
@@ -69,17 +46,17 @@ export class ComponentLibraryInputs {
         dependency.site.components.forEach(component);
       });
     }
-    const values = [...used].map((store) => store.getState());
-    if (!arrayEq(this.current, values)) { this.current = Object.freeze(values); }
-    if (this.connected) {
-      for (const store of used) { if (!this.fields.has(store)) { this.fields.set(store, store.subscribe(this.sync)); } }
-      for (const [store, stop] of this.fields) { if (!used.has(store)) { stop(); this.fields.delete(store); } }
-    }
+    });
+  }
+  getSnapshot = () => {
+    if (!this.inputs.isCurrent()) { return empty; }
+    const values = this.inputs.read();
+    if (this.current !== values) { this.current = Object.freeze(values); }
     return this.current;
   };
   private projectRow() {
     const component = this.selected;
-    if (!component) throw new Error("Component row requires its model");
+    if (!component) { throw new Error("Component row requires its model"); }
     return {
       name: component.name,
       displayName: getComponentDisplayName(component),
@@ -98,12 +75,7 @@ export class ComponentLibraryInputs {
     }
     return this.row;
   };
-  subscribe = (listener: () => void) => {
-    if (this.closed || this.lifetime.aborted) { return () => undefined; }
-    this.listeners.add(listener);
-    if (!this.connected) { this.connected = true; this.lifetime.addEventListener("abort", this.close, { once: true }); this.sync(); }
-    return () => { this.listeners.delete(listener); if (!this.listeners.size) { this.disconnect(); } };
-  };
+  subscribe = (listener: () => void) => this.inputs.subscribe(listener);
 }
 
 class ComponentCatalogValue<T> {
@@ -152,60 +124,34 @@ interface ProjectLibrarySnapshot {
 const noProjects: ProjectLibrarySnapshot = Object.freeze({ entries: Object.freeze([]), dependencies: Object.freeze([]), fields: empty });
 /** Imported versions, names and package kind: no traversal of imported designs. */
 export class ProjectLibraryInputs {
-  private readonly models: ModelSnapshots;
+  private readonly inputs: ModelFieldInputs;
   private readonly site: Site;
-  private readonly lifetime: AbortSignal;
   private current = noProjects;
-  private readonly fields = new Map<ModelFieldStore<unknown>, () => void>();
-  private readonly listeners = new Set<() => void>();
-  private connected = false;
-  private closed = false;
-  constructor(private readonly studio: StudioCtx, world = captureVariantModelWorld(studio)) {
-    this.models = world.models; this.site = world.site;
-    this.lifetime = world.lifetime; this.getSnapshot();
-  }
-  private disconnect = () => {
-    this.connected = false; this.lifetime.removeEventListener("abort", this.close);
-    this.fields.forEach((stop) => stop()); this.fields.clear();
-  };
-  private close = () => {
-    if (this.closed) { return; }
-    this.closed = true; this.current = noProjects; this.disconnect();
-    this.listeners.forEach((listener) => listener()); this.listeners.clear();
-  };
-  private sync = () => {
-    const before = this.current; this.getSnapshot();
-    if (before !== this.current) { this.listeners.forEach((listener) => listener()); }
-  };
-  getSnapshot = (): ProjectLibrarySnapshot => {
-    if (this.closed || this.lifetime.aborted || this.models !== this.studio.modelSnapshots) { this.current = noProjects; return this.current; }
-    const used = new Set<ModelFieldStore<unknown>>();
-    const field = (value: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(this.models.declaredField(value, key)));
+  private readonly models;
+  constructor(studio: StudioCtx, world = captureVariantModelWorld(studio)) {
+    this.models = world.models;
+    this.site = world.site;
+    this.inputs = new ModelFieldInputs(world, (field) => {
     field(this.site, "projectDependencies");
     this.site.projectDependencies.forEach((dependency) => {
       field(dependency, "pkgId", "name", "version", "projectId", "site");
       field(dependency.site, "hostLessPackageInfo");
     });
-    const values = [...used].map((store) => store.getState());
-    if (!arrayEq(this.current.fields, values)) {
+    });
+  }
+  getSnapshot = () => {
+    if (!this.inputs.isCurrent()) { return noProjects; }
+    const values = this.inputs.read();
+    if (this.current.fields !== values) {
       this.current = Object.freeze({
         dependencies: Object.freeze(this.site.projectDependencies.map((dependency) => this.models.ref(dependency))),
         entries: Object.freeze(this.site.projectDependencies.map((dependency) => Object.freeze({ dependency: this.models.ref(dependency), name: dependency.name, version: dependency.version, pkgId: dependency.pkgId, projectId: dependency.projectId, hostless: isHostLessPackage(dependency.site) }))),
         fields: Object.freeze(values),
       });
     }
-    if (this.connected) {
-      for (const store of used) { if (!this.fields.has(store)) { this.fields.set(store, store.subscribe(this.sync)); } }
-      for (const [store, stop] of this.fields) { if (!used.has(store)) { stop(); this.fields.delete(store); } }
-    }
     return this.current;
   };
-  subscribe = (listener: () => void) => {
-    if (this.closed || this.lifetime.aborted) { return () => undefined; }
-    this.listeners.add(listener);
-    if (!this.connected) { this.connected = true; this.lifetime.addEventListener("abort", this.close, { once: true }); this.sync(); }
-    return () => { this.listeners.delete(listener); if (!this.listeners.size) { this.disconnect(); } };
-  };
+  subscribe = (listener: () => void) => this.inputs.subscribe(listener);
 }
 
 export function useDirectProjectLibraries(studio: StudioCtx): ProjectLibraryRow[] {

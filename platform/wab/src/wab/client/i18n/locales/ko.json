@@ -126,6 +126,7 @@
   "Forum": "포럼",
   "Back to dashboard": "대시보드로 돌아가기",
   "Preview": "미리보기",
+  "Preview unavailable": "미리보기를 불러오지 못했습니다",
   "Back to editor": "편집기로 돌아가기",
   "Rename project": "프로젝트 이름 변경",
   "Publish": "게시",
@@ -5795,5 +5796,18 @@
   "Invite by email": "이메일로 초대",
   "Enable link invitations": "링크 초대 활성화",
   "Default role": "기본 역할",
-  "People can register or sign in and use this link to join the organization.": "사용자는 가입하거나 로그인한 후 이 링크로 조직에 참여할 수 있습니다."
+  "People can register or sign in and use this link to join the organization.": "사용자는 가입하거나 로그인한 후 이 링크로 조직에 참여할 수 있습니다.",
+  "Open comment by {name}": "{name}의 댓글 열기",
+  "Comment details": "댓글 상세",
+  "Back to comments": "댓글 목록으로 돌아가기",
+  "Previous comment": "이전 댓글",
+  "Next comment": "다음 댓글",
+  "Locate comment target": "댓글 대상 찾기",
+  "Comment resolved": "댓글이 해결되었습니다",
+  "Mention someone": "멤버 멘션",
+  "Enter to send": "Enter로 전송",
+  "Shift+Enter for a new line": "Shift+Enter로 줄바꿈",
+  "Unnamed element": "이름 없는 요소",
+  "Failed to send comment": "댓글을 전송하지 못했습니다",
+  "No replies yet": "아직 답글이 없습니다"
 }

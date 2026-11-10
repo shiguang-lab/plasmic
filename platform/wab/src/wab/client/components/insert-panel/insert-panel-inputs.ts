@@ -1,3 +1,4 @@
+import { ModelFieldInputs } from "@/wab/client/stores/model-field-inputs";
 import { TplExpsProvider } from "@/wab/client/components/style-controls/StyleComponent";
 import { contractSnapshot } from "@/wab/client/components/canvas/canvas-registrations";
 import { useComponentLibraryCatalog } from "@/wab/client/components/sidebar/library-inputs";
@@ -33,13 +34,10 @@ export function useInsertPanelTargetInputs(studio: StudioCtx, view: ViewCtx | un
 }
 
 function createInsertPanelCatalogInputsSource(world: ReturnType<typeof useVariantModelWorld>, studio: ReturnType<typeof useVariantModelWorld>['studio'], dependencies: Parameters<typeof useInsertPanelCatalogInputs>[1]) {
-    let current: readonly unknown[] = Object.freeze([]), metadata: unknown;
-    const fields = new Map<ModelFieldStore<unknown>, () => void>(), listeners = new Set<() => void>();
-    let stopApp: (() => void) | undefined, stopRegistry: (() => void) | undefined, stopPlume: (() => void) | undefined;
-    const read = () => {
-      if (world.studio !== studio || !world.isCurrent()) { return current; }
-      const used = new Set<ModelFieldStore<unknown>>(), registrations: unknown[] = [];
-      const field = (owner: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(world.models.declaredField(owner, key)));
+    let metadata: unknown;
+    const inputs = new ModelFieldInputs({ ...world, isCurrent: () => world.studio === studio && world.isCurrent() }, (field, watch) => {
+      const registrations: unknown[] = [];
+      watch(studio.projectDependencyManager.dependencyStateStore);
       const component = (owner: Component) => {
         field(owner, "name", "type", "superComp", "subComps", "hiddenFromContentEditor", "templateInfo", "plumeInfo", "codeComponentMeta");
         if (owner.templateInfo) { field(owner.templateInfo, "projectId", "componentId"); }
@@ -59,23 +57,27 @@ function createInsertPanelCatalogInputsSource(world: ReturnType<typeof useVarian
       const app = studio.appCtx.appConfig;
       const nextMetadata = contractSnapshot([registrations, app.insertableTemplates, app.hostLessComponents, app.installables, app.plexus, studio.appCtx.selfInfo?.email, app.showHiddenHostLessComponents, DEVFLAGS.insertPanelContent, DEVFLAGS.hostLessComponents, DEVFLAGS.insertableTemplates, DEVFLAGS.showHiddenHostLessComponents]);
       if (!isEqual(metadata, nextMetadata)) { metadata = nextMetadata; }
-      const next = [...used].map((store) => store.getState()); next.push(metadata);
-      if (!arrayEq(current, next)) { current = Object.freeze(next); }
-      if (listeners.size) {
-        used.forEach((store) => { if (!fields.has(store)) { fields.set(store, store.subscribe(sync)); } });
-        for (const [store, stop] of fields) { if (!used.has(store)) { stop(); fields.delete(store); } }
-      }
-      return current;
-    };
-    const sync = () => { const previous = current; read(); if (previous !== current) { listeners.forEach((listener) => listener()); } };
-    const disconnect = () => { fields.forEach((stop) => stop()); fields.clear(); stopApp?.(); stopRegistry?.(); stopPlume?.(); stopApp = stopRegistry = stopPlume = undefined; world.lifetime.removeEventListener("abort", disconnect); };
+      return [metadata];
+    });
+    let stopApp: (() => void) | undefined, stopRegistry: (() => void) | undefined;
+    let subscribers = 0;
     const subscribe = (listener: () => void) => {
-      if (world.studio !== studio || !world.isCurrent()) { return () => undefined; }
-      listeners.add(listener); if (!stopApp) { stopApp = studio.appCtx.subscribeUiEnvironmentInputs(sync); stopRegistry = studio.subscribeCodeRegistrations(sync); stopPlume = studio.projectDependencyManager.dependencyStateStore.subscribe(sync); }
-      world.lifetime.addEventListener("abort", disconnect, { once: true }); read();
-      return () => { listeners.delete(listener); if (!listeners.size) { disconnect(); } };
+      if (!inputs.isCurrent()) { return () => undefined; }
+      if (!subscribers++) {
+        // External metadata can mutate in place while the panel is unmounted.
+        inputs.invalidate();
+        stopApp = studio.appCtx.subscribeUiEnvironmentInputs(inputs.refresh);
+        stopRegistry = studio.subscribeCodeRegistrations(inputs.refresh);
+        world.lifetime.addEventListener("abort", disconnect, { once: true });
+      }
+      const stop = inputs.subscribe(listener);
+      return () => { stop(); if (!--subscribers) { disconnect(); } };
     };
-    return { read, subscribe };
+    const disconnect = () => {
+      stopApp?.(); stopRegistry?.(); stopApp = stopRegistry = undefined;
+      world.lifetime.removeEventListener("abort", disconnect);
+    };
+    return { read: inputs.read, subscribe };
   }
 
 function createInsertPanelTargetInputsSource(view: Parameters<typeof useInsertPanelTargetInputs>[1], world: ReturnType<typeof useVariantModelWorld>, studio: ReturnType<typeof useVariantModelWorld>['studio']) {

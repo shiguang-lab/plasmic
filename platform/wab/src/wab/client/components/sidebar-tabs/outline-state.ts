@@ -8,9 +8,8 @@ import type { ArenaFrame } from "@/wab/shared/model/classes";
 /**
  * Outline UI state for one `OutlineCtx` (or one nested frame outline).
  *
- * Replaces six `observable` containers in `OutlineCtx`. Every mutation replaces
- * the immutable value and bumps `version`, so consumers can subscribe once and
- * re-read through the class accessors.
+ * Changed immutable inputs bump `version`; repeated writes of the same inputs
+ * do not publish. Related expansion changes are committed together.
  */
 export interface OutlineStateSnapshot {
   readonly expandedFrames: ReadonlyMap<ArenaFrame, boolean>;
@@ -49,6 +48,7 @@ export function patchOutlineState(
   >,
 ): void {
   const state = store.getState();
+  if (Object.entries(patch).every(([key, value]) => Object.is(state[key as keyof OutlineStateSnapshot], value))) { return; }
   store.setState({ ...patch, version: state.version + 1 });
 }
 

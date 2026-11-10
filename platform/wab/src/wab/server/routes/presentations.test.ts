@@ -4,7 +4,6 @@ import {
 } from "@/wab/server/routes/presentations";
 import {
   ForbiddenError,
-  UnauthorizedError,
 } from "@/wab/shared/ApiErrors/errors";
 import type { Request, Response } from "express";
 import { beforeEach, expect, it, vi } from "vitest";
@@ -57,20 +56,19 @@ it("never allocates an identifier when access is denied", async () => {
   );
   expect(mocks.query).not.toHaveBeenCalled();
 });
-it("a known short code cannot bypass project permissions or read a deleted project", async () => {
+it("a known short code resolves private projects without requiring membership", async () => {
   mocks.getProject.mockRejectedValue(new ForbiddenError());
   const { req, res } = fixture();
-  await expect(getPresentation(req, res)).rejects.toBeInstanceOf(
-    ForbiddenError,
-  );
-  expect(res.json).not.toHaveBeenCalled();
+  await getPresentation(req, res);
+  expect(res.json).toHaveBeenCalledWith({ projectId: "project", code: "0123456789" });
+  expect(mocks.getProject).not.toHaveBeenCalled();
 });
-it("propagates authentication failures for anonymous private-project visitors", async () => {
-  mocks.getProject.mockRejectedValue(new UnauthorizedError());
+it("resolves anonymous private-project visitors without changing project permissions", async () => {
   const { req, res } = fixture(false);
-  await expect(getPresentation(req, res)).rejects.toBeInstanceOf(
-    UnauthorizedError,
-  );
+  await getPresentation(req, res);
+  expect(res.json).toHaveBeenCalledWith({ projectId: "project", code: "0123456789" });
+  expect(mocks.getProject).not.toHaveBeenCalled();
+  expect(mocks.find.mock.calls[0][1]).toMatchObject({ presentationCode: "0123456789", deletedAt: expect.anything() });
 });
 it("resolves a viewer without granting editor permission or changing publication state", async () => {
   const { req, res } = fixture();

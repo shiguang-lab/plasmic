@@ -7,7 +7,7 @@ import React from "react";
 import { trapInteractionError } from "@/wab/client/components/canvas/studio-canvas-util";
 import { PreviewCtx, PreviewState } from "@/wab/client/components/live/PreviewCtx";
 import { PreviewFrame, useLivePreview } from "@/wab/client/components/live/PreviewFrame";
-import { act, cleanup, render, renderHook } from "@testing-library/react";
+import { act, cleanup, render, renderHook, screen, fireEvent } from "@testing-library/react";
 import { createStore } from "zustand/vanilla";
 import { mock } from "vitest-mock-extended";
 
@@ -26,6 +26,7 @@ vi.mock("@/wab/client/frame-ctx/host-frame-ctx", () => ({
   useHostFrameCtx: () => ({ revealStudio: mocks.api.setStudioReady }),
 }));
 vi.mock("@/wab/client/components/live/live-syncer", () => ({
+  preparePreviewModules: vi.fn(async () => {}),
   onLoadInjectLiveRuntime: mocks.load,
   pushPreviewModules: (
     _win: Window,
@@ -87,6 +88,7 @@ it("reports runtime bootstrap failure and releases the startup overlay", async (
   expect((window as any).__plasmicLive.showError).toHaveBeenCalledExactlyOnceWith(error);
   expect(mocks.api.setStudioReady).toHaveBeenCalledOnce();
   expect(mocks.push).not.toHaveBeenCalled();
+  expect(hook.result.current.loading).toBe(false);
 });
 
 it("reports package loading failure once and can load again after reset", async () => {
@@ -102,7 +104,9 @@ it("reports package loading failure once and can load again after reset", async 
   hook.rerender();
   expect(mocks.sortedPackages).toHaveBeenCalledOnce();
   expect(mocks.push).not.toHaveBeenCalled();
+  expect(hook.result.current.loading).toBe(false);
   act(() => hook.result.current.reset());
+  expect(hook.result.current.loading).toBe(true);
   act(() => hook.result.current.attachFrame(window));
   await act(async () => hook.result.current.onLoad());
   expect(mocks.push).toHaveBeenCalledExactlyOnceWith(window);
@@ -197,9 +201,12 @@ it.each(["rendered", "error"])(
 );
 
 it("leaves the editor's readiness owner in charge of regular preview", async () => {
-  const { notify, commit } = await setup(false);
+  const { notify, commit, result } = await setup(false);
+  expect(result.current.loading).toBe(true);
   notify("rendered");
+  expect(result.current.loading).toBe(true);
   commit();
+  expect(result.current.loading).toBe(false);
   expect(mocks.api.setStudioReady).not.toHaveBeenCalled();
 });
 
@@ -228,6 +235,38 @@ it("ignores a commit from the previous generation before effect cleanup", async 
     committed?.();
   });
   expect(mocks.api.setStudioReady).not.toHaveBeenCalled();
+  expect(result.current.loading).toBe(true);
+});
+
+it("shows the shared preview loader through iframe bootstrap and the first render", async () => {
+  const environment = createStudioUiEnvironmentFixture();
+  const fixture = createDocsModelFixture(createSite());
+  Object.assign(fixture.studio, environment);
+  const preview = mockPreview({ studioCtx: fixture.studio, full: false, isLive: false });
+  const view = render(<PreviewFrame previewCtx={preview} />);
+  try {
+    const loading = screen.getByRole("status", { name: "Loading preview…" });
+    expect(loading.querySelector("svg [data-solid]")).toBeTruthy();
+    const iframe = view.container.querySelector("iframe");
+    if (!iframe?.contentWindow) { throw new Error("Expected preview iframe"); }
+    iframe.contentWindow.matchMedia = window.matchMedia;
+    iframe.contentWindow.requestAnimationFrame = window.requestAnimationFrame.bind(window);
+    iframe.contentWindow.cancelAnimationFrame = window.cancelAnimationFrame.bind(window);
+    const doc = iframe.contentWindow.document;
+    if (!doc.documentElement) {
+      const html = doc.createElement("html");
+      html.append(doc.createElement("body"));
+      doc.append(html);
+    }
+    (iframe.contentWindow as any).__plasmicLive = { setErrorTitle: vi.fn() };
+    await act(async () => fireEvent.load(iframe));
+    expect(screen.getByRole("status", { name: "Loading preview…" })).toBe(loading);
+    act(() => mocks.committed?.());
+    expect(screen.queryByRole("status", { name: "Loading preview…" })).toBeNull();
+  } finally {
+    view.unmount();
+    fixture.ctx.dispose();
+  }
 });
 
 it("does not activate a delayed host after reset", async () => {

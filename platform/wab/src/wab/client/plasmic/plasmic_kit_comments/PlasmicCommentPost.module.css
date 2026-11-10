@@ -143,7 +143,7 @@
   height: auto;
   max-width: 100%;
   min-width: 0;
-  padding: 0px 0px 0px 40px;
+  padding: 0px;
 }
 .freeBoxisEditing___5UHnquz8Vl {
   padding-left: 0px;
@@ -177,10 +177,6 @@
 }
 .freeBoxisEditing__dc1JVuz8Vl {
   display: none;
-}
-.freeBoxhoverBox__dc1JVbLDov {
-  max-height: 200px;
-  overflow: auto;
 }
 .body {
   width: 100%;

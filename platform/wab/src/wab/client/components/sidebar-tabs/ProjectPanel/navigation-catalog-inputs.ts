@@ -1,8 +1,8 @@
-import type { ModelFieldStore, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { ModelFieldInputs } from "@/wab/client/stores/model-field-inputs";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { AnyArena } from "@/wab/shared/Arenas";
-import { arrayEq, switchType } from "@/wab/shared/common";
-import { Arena, PageArena, ComponentArena, ObjInst, Site } from "@/wab/shared/model/classes";
+import { switchType } from "@/wab/shared/common";
+import { Arena, PageArena, ComponentArena, Site } from "@/wab/shared/model/classes";
 import { naturalSort } from "@/wab/shared/sort";
 import * as React from "react";
 
@@ -36,38 +36,13 @@ const empty: NavigationCatalogSnapshot = Object.freeze({ mixed: Object.freeze([]
 /** Navigation's roster, folders, labels and page search paths. Canvas contents
  * and geometry do not invalidate this directory. */
 export class NavigationCatalogInputs {
-  private readonly models: ModelSnapshots;
   private readonly site: Site;
-  private readonly lifetime: AbortSignal;
+  private readonly inputs: ModelFieldInputs;
   private current = empty;
-  private readonly listeners = new Set<() => void>();
-  private readonly fields = new Map<ModelFieldStore<unknown>, () => void>();
-  private connected = false;
-  private closed = false;
-  constructor(private readonly studio: StudioCtx, private readonly contentEditorMode: boolean) {
-    this.models = studio.modelSnapshots;
+  constructor(studio: StudioCtx, private readonly contentEditorMode: boolean) {
     this.site = studio.site;
-    this.lifetime = studio.arenaState.lifetime();
-    this.getSnapshot();
-  }
-  private disconnect = () => {
-    this.connected = false;
-    this.lifetime.removeEventListener("abort", this.close);
-    this.fields.forEach((stop) => stop()); this.fields.clear();
-  };
-  private close = () => {
-    if (this.closed) { return; }
-    this.closed = true; this.current = empty; this.disconnect();
-    this.listeners.forEach((listener) => listener()); this.listeners.clear();
-  };
-  private sync = () => {
-    const before = this.current; this.getSnapshot();
-    if (before !== this.current) { this.listeners.forEach((listener) => listener()); }
-  };
-  getSnapshot = (): NavigationCatalogSnapshot => {
-    if (this.closed || this.lifetime.aborted || this.models !== this.studio.modelSnapshots) { this.current = empty; return this.current; }
-    const used = new Set<ModelFieldStore<unknown>>();
-    const field = (value: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(this.models.declaredField(value, key)));
+    const models = studio.modelSnapshots;
+    this.inputs = new ModelFieldInputs({ models, lifetime: studio.arenaState.lifetime(), isCurrent: () => models === studio.modelSnapshots && this.site === studio.site }, (field) => {
     field(this.site, "arenas", "pageArenas", "componentArenas");
     this.site.arenas.forEach((arena) => field(arena, "name"));
     [...this.site.pageArenas, ...this.site.componentArenas].forEach((arena) => {
@@ -76,14 +51,19 @@ export class NavigationCatalogInputs {
       field(component, "uuid", "name", "editableByContentEditor", "subComps", "superComp", "pageMeta");
       if (component.pageMeta) { field(component.pageMeta, "path"); }
     });
-    const values = [...used].map((store) => store.getState());
-    if (!arrayEq(this.current.fields, values)) {
+    });
+  }
+  getSnapshot = (): NavigationCatalogSnapshot => {
+    if (!this.inputs.isCurrent()) { return empty; }
+    const values = this.inputs.read();
+    if (this.current.fields !== values) {
       const canEdit = (component: ComponentArena["component"]) => !this.contentEditorMode || component.editableByContentEditor;
       const components: ComponentArena[] = [];
+      const arenasByComponent = new Map(this.site.componentArenas.map((arena) => [arena.component, arena]));
       const addComponentArena = (arena: ComponentArena) => {
         components.push(arena);
         arena.component.subComps.forEach((component) => {
-          const child = this.site.componentArenas.find((candidate) => candidate.component === component);
+          const child = arenasByComponent.get(component);
           if (child) { addComponentArena(child); }
         });
       };
@@ -97,18 +77,9 @@ export class NavigationCatalogInputs {
         fields: Object.freeze(values),
       });
     }
-    if (this.connected) {
-      for (const store of used) { if (!this.fields.has(store)) { this.fields.set(store, store.subscribe(this.sync)); } }
-      for (const [store, stop] of this.fields) { if (!used.has(store)) { stop(); this.fields.delete(store); } }
-    }
     return this.current;
   };
-  subscribe = (listener: () => void) => {
-    if (this.closed || this.lifetime.aborted) { return () => undefined; }
-    this.listeners.add(listener);
-    if (!this.connected) { this.connected = true; this.lifetime.addEventListener("abort", this.close, { once: true }); this.sync(); }
-    return () => { this.listeners.delete(listener); if (!this.listeners.size) { this.disconnect(); } };
-  };
+  subscribe = (listener: () => void) => this.inputs.subscribe(listener);
 }
 
 export function useNavigationCatalogInputs(studio: StudioCtx, contentEditorMode: boolean) {

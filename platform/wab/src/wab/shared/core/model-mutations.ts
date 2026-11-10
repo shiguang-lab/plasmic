@@ -7,14 +7,30 @@ type Mutation = { type: "update"; name?: PropertyKey; object: any; oldValue: any
   | { type: "splice"; object: any[]; index: number; added: any[]; removed: any[] }
   | { type: "add"; object: any; name: PropertyKey; newValue: any }
   | { type: "remove"; object: any; name: PropertyKey; oldValue: any };
-interface Administration { listeners: Set<Listener>; values?: Record<string, any>; }
+interface Administration { listeners: Set<Listener>; values?: Record<string, any>; version?: number; fields?: Map<PropertyKey, number>; }
 const administrations = new WeakMap<object, Administration>();
 const descriptors = new WeakMap<Class, PropertyDescriptorMap>();
 let mutationVersion = 0;
 /** Imperative query caches invalidate synchronously, including within a command. */
 export const getModelMutationVersion = () => mutationVersion;
+/** A declared field includes in-place writes to its array/dictionary container. */
+export function getModelFieldVersion(model: ObjInst, key: string): number | undefined {
+  const admin = administrations.get(model);
+  if (!admin?.values) { return undefined; }
+  const value = admin.values[key];
+  const containerVersion = value && typeof value === "object" && !administrations.get(value)?.values
+    ? administrations.get(value)?.version ?? 0 : 0;
+  return Math.max(admin.fields?.get(key) ?? 0, containerVersion);
+}
 function publish(object: object, event: Mutation) {
   mutationVersion++;
+  const admin = administrations.get(object);
+  if (admin) {
+    admin.version = mutationVersion;
+    if (admin.values && event.type === "update" && event.name !== undefined) {
+      (admin.fields ??= new Map()).set(event.name, mutationVersion);
+    }
+  }
   for (const listener of [...(administrations.get(object)?.listeners ?? [])]) { listener(event); }
 }
 export function observeMutations(object: object, listener: Listener) {

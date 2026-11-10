@@ -1,10 +1,17 @@
-import { ensure } from "@/wab/shared/common";
 import { showError } from "@/wab/client/ErrorNotifications";
+import { CommentThreadPanel } from "@/wab/client/components/comments/CommentThreadPanel";
+import { NewCommentPanel } from "@/wab/client/components/comments/NewCommentPanel";
 import RootComment from "@/wab/client/components/comments/RootComment";
-import { CommentFilters, filterCommentThreads } from "@/wab/client/components/comments/utils";
+import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
+import {
+  CommentFilters,
+  filterCommentThreads,
+} from "@/wab/client/components/comments/utils";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { useI18n } from "@/wab/client/i18n";
 import { DefaultCommentsTabProps } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicCommentsTab";
+import { CommentThreadId } from "@/wab/shared/ApiSchema";
+import { ensure } from "@/wab/shared/common";
 import {
   BellOutlined,
   CheckOutlined,
@@ -64,10 +71,10 @@ const useCommentsStyles = createStyles(({ token }) => ({
       overflowWrap: "anywhere",
     },
   },
-  content: { padding: "16px" },
+  content: { minWidth: 0 },
   statusButton: { padding: 0, fontSize: 12 },
   related: { fontSize: 12, marginInlineStart: "auto" },
-  threads: { display: "flex", flexDirection: "column", gap: 8 },
+  threads: { display: "flex", flexDirection: "column" },
   empty: {
     display: "flex",
     flexDirection: "column",
@@ -134,8 +141,23 @@ export const CommentsTab = React.memo(function CommentsTab(
   const [savingNotification, setSavingNotification] = React.useState(false);
 
   const commentsCtx = studioCtx.commentsCtx;
+  const openedThread = useStore(
+    commentsCtx.dialogStore,
+    (state) => state.thread,
+  );
+  const openedNewThread = useStore(
+    commentsCtx.dialogStore,
+    (state) => state.newThread,
+  );
+  const listViewport = React.useRef<HTMLElement>(null);
+  const listRoot = React.useRef<HTMLDivElement>(null);
+  const scrollTop = React.useRef(0);
+  const previousThread = React.useRef<CommentThreadId | undefined>(undefined);
   const filters = useStore(commentsCtx.filterStore, (state) => state);
-  const currentComponents = useStore(studioCtx.arenaState.observedComponentsStore, (state) => filters.scope === "current" ? state : undefined);
+  const currentComponents = useStore(
+    studioCtx.arenaState.observedComponentsStore,
+    (state) => (filters.scope === "current" ? state : undefined),
+  );
   const allThreads = useStore(commentsCtx.store, (state) => state.allThreads);
   const { isLoading, loadFailed, hasLoaded, selfNotificationSettings } =
     useStore(
@@ -147,9 +169,48 @@ export const CommentsTab = React.memo(function CommentsTab(
         selfNotificationSettings: state.selfNotificationSettings,
       })),
     );
-  const threads = filterCommentThreads(allThreads, filters,
+  const threads = filterCommentThreads(
+    allThreads,
+    filters,
     new Set(currentComponents?.map((ref) => ref.uid)),
-    ensure(studioCtx.appCtx.selfInfo, "Comment filters require a signed-in user"));
+    ensure(
+      studioCtx.appCtx.selfInfo,
+      "Comment filters require a signed-in user",
+    ),
+  );
+  const selectedId = openedThread?.threadId;
+  const [navigation, setNavigation] = React.useState<{
+    selectedId?: CommentThreadId;
+    ids: CommentThreadId[];
+  }>({ ids: [] });
+  if (selectedId !== navigation.selectedId) {
+    const ids = navigation.selectedId
+      ? navigation.ids
+      : threads.map((thread) => thread.id);
+    setNavigation({
+      selectedId,
+      ids: selectedId
+        ? ids.includes(selectedId)
+          ? ids
+          : [...ids, selectedId]
+        : [],
+    });
+  }
+  React.useLayoutEffect(() => {
+    if (openedThread) {
+      previousThread.current = openedThread.threadId;
+    } else if (!openedNewThread) {
+      if (listViewport.current) {
+        listViewport.current.scrollTop = scrollTop.current;
+      }
+      const target = Array.from(
+        listRoot.current?.querySelectorAll<HTMLButtonElement>(
+          "[data-comment-thread]",
+        ) ?? [],
+      ).find((node) => node.dataset.commentThread === previousThread.current);
+      target?.focus({ preventScroll: true });
+    }
+  }, [openedThread, openedNewThread]);
 
   const projectId = studioCtx.siteInfo.id;
   const branchId = studioCtx.branchInfo()?.id;
@@ -171,11 +232,13 @@ export const CommentsTab = React.memo(function CommentsTab(
         },
       );
       await commentsCtx.fetchComments();
-    })().catch(async (error) => {
-      showError(error, { title: "Failed to update comment notifications" });
-    }).finally(() => {
-      setSavingNotification(false);
-    });
+    })()
+      .catch(async (error) => {
+        showError(error, { title: "Failed to update comment notifications" });
+      })
+      .finally(() => {
+        setSavingNotification(false);
+      });
   };
 
   const renderThreads = (items: typeof threads) => (
@@ -185,6 +248,9 @@ export const CommentsTab = React.memo(function CommentsTab(
           key={commentThread.id}
           commentThread={commentThread}
           showLocation={filters.scope === "project"}
+          onOpen={() => {
+            scrollTop.current = listViewport.current?.scrollTop ?? 0;
+          }}
         />
       ))}
     </div>
@@ -195,174 +261,209 @@ export const CommentsTab = React.memo(function CommentsTab(
       className={`comments-tab flex-even ${styles.root}`}
       aria-label={uiT("Comments")}
     >
-      <header className={styles.header}>
-        <Flex
-          justify="space-between"
-          align="center"
-          gap={8}
-          className={styles.toolbar}
-        >
-          <Typography.Text strong className={styles.title}>
-            {uiT("Comments")}
-          </Typography.Text>
-          <Dropdown
-            trigger={["click"]}
-            placement="bottomRight"
-            menu={{
-              selectedKeys: [currentNotificationLevel],
-              items: [
-                {
-                  key: "notifications",
-                  type: "group",
-                  label: uiT("Notify me about"),
-                  children: (
-                    ["all", "mentions-and-replies", "none"] as const
-                  ).map((value) => ({
-                    key: value,
-                    label: uiT(notifyAboutKeyToLabel[value]),
-                    icon: (
-                      <CheckOutlined
-                        style={{
-                          visibility:
-                            value === currentNotificationLevel
-                              ? "visible"
-                              : "hidden",
-                        }}
-                      />
-                    ),
-                    disabled: savingNotification,
-                    onClick: () => {
-                      void changeNotification(value);
-                    },
-                  })),
-                },
-              ],
-            }}
-            styles={{ root: { minWidth: 240, maxWidth: "calc(100vw - 24px)" } }}
+      {openedThread && (
+        <CommentThreadPanel
+          openedThread={openedThread}
+          navigationIds={navigation.ids}
+        />
+      )}
+      {openedNewThread && <NewCommentPanel openedNewThread={openedNewThread} />}
+      <div
+        ref={listRoot}
+        style={{
+          display: openedThread || openedNewThread ? "none" : "flex",
+          flexDirection: "column",
+          flex: 1,
+          minHeight: 0,
+        }}
+        aria-hidden={!!(openedThread || openedNewThread)}
+      >
+        <header className={styles.header}>
+          <Flex
+            justify="space-between"
+            align="center"
+            gap={8}
+            className={styles.toolbar}
           >
-            <Tooltip
-              title={`${uiT("Notify me about")}: ${uiT(notifyAboutKeyToLabel[currentNotificationLevel])}`}
+            <Flex align="center" gap={4}>
+              <Typography.Text strong className={styles.title}>
+                {uiT("Comments")}{" "}
+                <span className={styles.emptyHint}>{threads.length}</span>
+              </Typography.Text>
+              <Dropdown
+                trigger={["click"]}
+                placement="bottomLeft"
+                menu={{
+                  selectedKeys: [currentNotificationLevel],
+                  items: [
+                    {
+                      key: "notifications",
+                      type: "group",
+                      label: uiT("Notify me about"),
+                      children: (
+                        ["all", "mentions-and-replies", "none"] as const
+                      ).map((value) => ({
+                        key: value,
+                        label: uiT(notifyAboutKeyToLabel[value]),
+                        icon: (
+                          <CheckOutlined
+                            style={{
+                              visibility:
+                                value === currentNotificationLevel
+                                  ? "visible"
+                                  : "hidden",
+                            }}
+                          />
+                        ),
+                        disabled: savingNotification,
+                        onClick: () => {
+                          void changeNotification(value);
+                        },
+                      })),
+                    },
+                  ],
+                }}
+                styles={{
+                  root: { minWidth: 240, maxWidth: "calc(100vw - 24px)" },
+                }}
+              >
+                <Tooltip
+                  title={`${uiT("Notify me about")}: ${uiT(notifyAboutKeyToLabel[currentNotificationLevel])}`}
+                >
+                  <Button
+                    type="text"
+                    size="small"
+                    aria-label={uiT("Notify me about")}
+                    icon={<BellOutlined />}
+                    loading={savingNotification}
+                    disabled={savingNotification}
+                  />
+                </Tooltip>
+              </Dropdown>
+            </Flex>
+            <PanelCloseButton onClick={() => studioCtx.collapseRightPanel()} />
+          </Flex>
+          <Segmented<CommentFilters["scope"]>
+            block
+            className={styles.filters}
+            aria-label={uiT("Comment scope")}
+            value={filters.scope}
+            onChange={(scope) =>
+              commentsCtx.setCommentsFilter({ ...filters, scope })
+            }
+            options={[
+              { value: "current", label: uiT("Current page") },
+              { value: "project", label: uiT("Entire project") },
+            ]}
+          />
+          <Flex align="center" gap={8} wrap className={styles.filterOptions}>
+            <Dropdown
+              trigger={["click"]}
+              placement="bottomLeft"
+              menu={{
+                selectedKeys: [filters.status],
+                items: (["unresolved", "resolved", "all"] as const).map(
+                  (status) => ({
+                    key: status,
+                    label: uiT(statusLabels[status]),
+                    onClick: () =>
+                      commentsCtx.setCommentsFilter({ ...filters, status }),
+                  }),
+                ),
+              }}
+              styles={{ root: { minWidth: 180 } }}
             >
               <Button
                 type="text"
                 size="small"
-                aria-label={uiT("Notify me about")}
-                icon={<BellOutlined />}
-                loading={savingNotification}
-                disabled={savingNotification}
-              />
-            </Tooltip>
-          </Dropdown>
-        </Flex>
-        <Segmented<CommentFilters["scope"]>
-          block
-          className={styles.filters}
-          aria-label={uiT("Comment scope")}
-          value={filters.scope}
-          onChange={(scope) =>
-            commentsCtx.setCommentsFilter({ ...filters, scope })
-          }
-          options={[
-            { value: "current", label: uiT("Current page") },
-            { value: "project", label: uiT("Entire project") },
-          ]}
-        />
-        <Flex align="center" gap={8} wrap className={styles.filterOptions}>
-          <Dropdown
-            trigger={["click"]}
-            placement="bottomLeft"
-            menu={{
-              selectedKeys: [filters.status],
-              items: (["unresolved", "resolved", "all"] as const).map(
-                (status) => ({
-                  key: status,
-                  label: uiT(statusLabels[status]),
-                  onClick: () =>
-                    commentsCtx.setCommentsFilter({ ...filters, status }),
-                }),
-              ),
-            }}
-            styles={{ root: { minWidth: 180 } }}
-          >
-            <Button
-              type="text"
-              size="small"
-              className={styles.statusButton}
-              aria-label={uiT("Comment status")}
-            >
-              {uiT(statusLabels[filters.status])}
-              <DownOutlined style={{ fontSize: 10 }} />
-            </Button>
-          </Dropdown>
-          <Checkbox
-            className={styles.related}
-            checked={filters.onlyRelated}
-            onChange={(event) =>
-              commentsCtx.setCommentsFilter({
-                ...filters,
-                onlyRelated: event.target.checked,
-              })
-            }
-          >
-            {uiT("Related to me")}
-          </Checkbox>
-        </Flex>
-      </header>
-      <Scrollbar scrollX={false} style={{ flex: 1, minHeight: 0 }}>
-        <div className={styles.content}>
-          {loadFailed && (
-            <Alert
-              type="error"
-              showIcon
-              title={uiT("Failed to fetch comments for project")}
-              action={
-                <Button
-                  size="small"
-                  loading={isLoading}
-                  onClick={() => {
-                    void commentsCtx.fetchComments();
-                  }}
-                >
-                  {uiT("Retry")}
-                </Button>
+                className={styles.statusButton}
+                aria-label={uiT("Comment status")}
+              >
+                {uiT(statusLabels[filters.status])}
+                <DownOutlined style={{ fontSize: 10 }} />
+              </Button>
+            </Dropdown>
+            <Checkbox
+              className={styles.related}
+              checked={filters.onlyRelated}
+              onChange={(event) =>
+                commentsCtx.setCommentsFilter({
+                  ...filters,
+                  onlyRelated: event.target.checked,
+                })
               }
-            />
-          )}
-          {!hasLoaded && !loadFailed ? (
-            <Skeleton active paragraph={{ rows: 4 }} />
-          ) : threads.length ? (
-            renderThreads(threads)
-          ) : (
-            hasLoaded && (
-              <div className={styles.empty} role="status">
-                <span className={styles.emptyIcon} aria-hidden="true">
-                  {filters.status === "resolved" ? (
-                    <CheckOutlined />
-                  ) : (
-                    <MessageOutlined />
-                  )}
-                </span>
-                <div className={styles.emptyTitle}>
-                  {uiT(
-                    filters.onlyRelated
-                      ? "No comments related to you"
-                      : emptyMessages[filters.status].title,
-                  )}
+            >
+              {uiT("Related to me")}
+            </Checkbox>
+          </Flex>
+        </header>
+        <Scrollbar
+          ref={listViewport}
+          scrollX={false}
+          style={{ flex: 1, minHeight: 0 }}
+          events={{
+            scroll: () => {
+              if (!openedThread && !openedNewThread) {
+                scrollTop.current = listViewport.current?.scrollTop ?? 0;
+              }
+            },
+          }}
+        >
+          <div className={styles.content}>
+            {loadFailed && (
+              <Alert
+                type="error"
+                showIcon
+                title={uiT("Failed to fetch comments for project")}
+                action={
+                  <Button
+                    size="small"
+                    loading={isLoading}
+                    onClick={() => {
+                      void commentsCtx.fetchComments();
+                    }}
+                  >
+                    {uiT("Retry")}
+                  </Button>
+                }
+              />
+            )}
+            {!hasLoaded && !loadFailed ? (
+              <Skeleton active paragraph={{ rows: 4 }} />
+            ) : threads.length ? (
+              renderThreads(threads)
+            ) : (
+              hasLoaded && (
+                <div className={styles.empty} role="status">
+                  <span className={styles.emptyIcon} aria-hidden="true">
+                    {filters.status === "resolved" ? (
+                      <CheckOutlined />
+                    ) : (
+                      <MessageOutlined />
+                    )}
+                  </span>
+                  <div className={styles.emptyTitle}>
+                    {uiT(
+                      filters.onlyRelated
+                        ? "No comments related to you"
+                        : emptyMessages[filters.status].title,
+                    )}
+                  </div>
+                  <div className={styles.emptyHint}>
+                    {uiT(
+                      filters.onlyRelated
+                        ? "Comments you started, replied to, or were mentioned in will appear here."
+                        : emptyMessages[filters.status].hint,
+                    )}
+                  </div>
                 </div>
-                <div className={styles.emptyHint}>
-                  {uiT(
-                    filters.onlyRelated
-                      ? "Comments you started, replied to, or were mentioned in will appear here."
-                      : emptyMessages[filters.status].hint,
-                  )}
-                </div>
-              </div>
-            )
-          )}
-        </div>
-      </Scrollbar>
+              )
+            )}
+          </div>
+        </Scrollbar>
+      </div>
     </section>
   );
-})
+});
 
 export default CommentsTab;

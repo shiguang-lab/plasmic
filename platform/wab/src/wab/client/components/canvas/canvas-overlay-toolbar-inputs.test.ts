@@ -67,3 +67,45 @@ it("tracks event analysis expressions and registration contracts, not unrelated 
     expect(publish).not.toHaveBeenCalled();
   } finally { stop(); signal.abort(); registrations.dispose(); selection.dispose(); variants.dispose(); models.dispose(); recorder.dispose(); }
 });
+
+it("keeps selection work on the ancestor path and releases the previous component's inputs", () => {
+  const base = mkBaseVariant();
+  const nodes = Array.from({ length: 1000 }, () => mkTplTagX("button", { baseVariant: base, attrs: { onClick: new CustomCode({ code: "() => 0", fallback: null }) } }));
+  const first = mkComponent({ name: "First", type: ComponentType.Plain, variants: [base], tplTree: mkTplTagX("div", { baseVariant: base }, nodes) });
+  const secondBase = mkBaseVariant();
+  const nextHandler = new CustomCode({ code: "() => 0", fallback: null });
+  const nextNode = mkTplTagX("button", { baseVariant: secondBase, attrs: { onClick: nextHandler } });
+  const second = mkComponent({ name: "Second", type: ComponentType.Plain, variants: [secondBase], tplTree: nextNode });
+  const site = createSite(); site.components.push(first, second);
+  const models = new ModelSnapshots(), lifetime = new AbortController();
+  const studio = { modelSnapshots: models, site } as unknown as StudioCtx;
+  const selection = new ViewSelection(() => models), view = mock<ViewCtx>();
+  Object.defineProperties(view, {
+    studioCtx: { value: studio }, selectionStore: { value: selection.store },
+    variantStore: { value: createStore(() => ({})) }, csEvaluator: { value: { renderStatusStore: createStore(() => ({})) } },
+  });
+  view.currentComponent.mockReturnValue(first); view.componentStackFrames.mockReturnValue([]);
+  view.focusedTplAncestorsThroughComponents.mockReturnValue([{ node: nodes[0], layer: 0 }]);
+  const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
+  const source = new CanvasOverlayToolbarInputs({ view, models, site, signal: lifetime.signal });
+  const publish = vi.fn(), stop = source.subscribe(publish);
+  const original = models.declaredField.bind(models);
+  let reads = 0;
+  models.declaredField = (model, key) => { reads++; return original(model, key); };
+  const commit = (run: () => void) => models.sync(recorder.withRecording(run).changes);
+  try {
+    const before = source.getSnapshot();
+    view.focusedTplAncestorsThroughComponents.mockReturnValue([{ node: nodes[1], layer: 0 }]);
+    selection.setTpls([nodes[1]]);
+    expect(source.getSnapshot()).not.toBe(before);
+    expect(reads).toBeLessThan(80);
+    expect(publish).toHaveBeenCalledOnce();
+    view.currentComponent.mockReturnValue(second);
+    view.focusedTplAncestorsThroughComponents.mockReturnValue([{ node: nextNode, layer: 0 }]);
+    selection.setTpls([nextNode]); publish.mockClear();
+    commit(() => { nodes[0].vsettings[0].attrs.onClick = new CustomCode({ code: "() => 1", fallback: null }); });
+    expect(publish).not.toHaveBeenCalled();
+    commit(() => { nextHandler.code = "() => 2"; });
+    expect(publish).toHaveBeenCalledOnce();
+  } finally { stop(); lifetime.abort(); selection.dispose(); models.dispose(); recorder.dispose(); }
+});

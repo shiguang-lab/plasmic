@@ -391,6 +391,21 @@ export abstract class PinManager {
     return this.curState;
   }
 
+  /** Capture one frame state for a complete controller render. */
+  getSnapshot(variants: readonly Variant[]) {
+    const state = this.curState;
+    return {
+      activeVariants: this.pinMachine.activeNonBaseVariants(state),
+      targetedVariants: this.pinMachine.selectedVariants(state),
+      variants: variants.map((variant) => ({
+        variant,
+        pinState: this.pinMachine.getVariantState(state, variant),
+        active: this.pinMachine.isActive(state, variant),
+        targeted: this.pinMachine.isSelected(state, variant),
+      })),
+    };
+  }
+
   selectedVariants() {
     return this.pinMachine.selectedVariants(this.curState);
   }

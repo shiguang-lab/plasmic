@@ -2,6 +2,8 @@ import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
 import { createStore } from "zustand/vanilla";
+import * as outlineModelInputs from "@/wab/client/components/sidebar-tabs/outline-model-inputs";
+import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import {
   OutlineCtx,
   OutlineNode,
@@ -133,6 +135,47 @@ it("lists artboards directly and separates expanding, selecting and focusing", (
   fireEvent.click(screen.getByRole("button", { name: "Focus artboard: List" }));
   expect(f.studio.focusCanvasFrame).toHaveBeenCalledWith(f.frames[0]);
   expect(screen.queryByRole("menu")).toBeNull();
+});
+
+it("leases model inputs only for expanded artboards and releases them on collapse", () => {
+  const f = setup();
+  const inputs = f.children.map(() => {
+    const input = createStore<readonly unknown[]>(() => []);
+    return { ...input, getTreeState: input.getState };
+  });
+  const releases = inputs.map(() => vi.fn());
+  inputs.forEach((input, index) => {
+    const subscribe = input.subscribe;
+    vi.spyOn(input, "subscribe").mockImplementation((listener) => {
+      const stop = subscribe(listener);
+      return () => { releases[index](); stop(); };
+    });
+  });
+  const views: ViewCtx[] = f.children.map((child) => {
+    const view = mock<ViewCtx>();
+    child.viewCtx.mockReturnValue(view);
+    return view;
+  });
+  const readInput = vi.spyOn(outlineModelInputs, "getOutlineModelInput")
+    .mockImplementation((view) => inputs[views.indexOf(ensure(view, "Frame view"))]);
+  const mounted = render(<ArenaTree studioCtx={f.studio} arena={f.arena} outlineCtx={f.outline} dndManager={mock<TreeDndManager>()} />);
+  expect(readInput).not.toHaveBeenCalled();
+
+  fireEvent.click(screen.getByRole("button", { name: "List", expanded: false }));
+  expect(readInput).toHaveBeenCalledWith(views[0]);
+  expect(readInput).not.toHaveBeenCalledWith(views[1]);
+  expect(inputs[0].subscribe).toHaveBeenCalledOnce();
+
+  fireEvent.click(screen.getByRole("button", { name: "List", expanded: true }));
+  expect(releases[0]).toHaveBeenCalledOnce();
+  readInput.mockClear();
+  act(() => inputs[0].setState(["Changed while collapsed"], true));
+  expect(readInput).not.toHaveBeenCalled();
+
+  fireEvent.click(screen.getByRole("button", { name: "List", expanded: false }));
+  expect(inputs[0].subscribe).toHaveBeenCalledTimes(2);
+  mounted.unmount();
+  expect(releases[0]).toHaveBeenCalledTimes(2);
 });
 
 it("flattens expanded artboards into one list with independent contexts and unique repeated-node keys", () => {

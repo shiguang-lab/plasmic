@@ -15,6 +15,7 @@ import {
   StyleTabContext,
 } from "@/wab/client/components/sidebar-tabs/style-tab";
 import { SidePanelShell } from "@/wab/client/components/studio/SidePanelShell";
+import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
 import { providesSidebarPopupSetting } from "@/wab/client/components/style-controls/StyleComponent";
 import * as widgets from "@/wab/client/components/widgets";
 import { UiText } from "@/wab/client/i18n/UiText";
@@ -34,6 +35,7 @@ export const RightPane = React.memo(function RightPane({
   canvasLoading: boolean;
 }) {
   const rightTabKey = useRightTabKey(studioCtx);
+  const collapsed = useStore(studioCtx.rightPanelStore, (state) => state.collapsed);
   const [selectedFrames, focusedViewCtx] = useStudioSelection(studioCtx, useShallow((state) => [state.frames, state.view] as const));
   const [hover, setHover] = React.useState(false);
   const pending = useInspectorPending(studioCtx);
@@ -77,17 +79,19 @@ export const RightPane = React.memo(function RightPane({
         ),
       }),
     );
-    if (!contentOnly) tabs.push(
-      new widgets.Tab({
-        name: <UiText message={"Interactions"} />,
-        key: RightTabKey.interactions,
-        contents: () => (
-          <StyleTabContext.Provider value="interactions">
-            <StyleTab studioCtx={studioCtx} viewCtx={focusedViewCtx} />
-          </StyleTabContext.Provider>
-        ),
-      }),
-    );
+    if (!contentOnly) {
+      tabs.push(
+        new widgets.Tab({
+          name: <UiText message={"Interactions"} />,
+          key: RightTabKey.interactions,
+          contents: () => (
+            <StyleTabContext.Provider value="interactions">
+              <StyleTab studioCtx={studioCtx} viewCtx={focusedViewCtx} />
+            </StyleTabContext.Provider>
+          ),
+        }),
+      );
+    }
   }
 
   // Page/component tab is shown if an artboard is focused
@@ -120,14 +124,15 @@ export const RightPane = React.memo(function RightPane({
     (state) => state.commentsPanel,
   );
   const showCommentsPanel = studioCtx.showComments() && commentsPanel;
-  const open =
+  const canShowPanel =
     !canvasLoading &&
     devMode &&
     !panelsHidden &&
     (tabs.length > 0 || showCommentsPanel || isFrameSelection);
 
   return providesSidebarPopupSetting({ left: false })(
-    <SidePanelShell open={open} side="right">
+    <>
+    <SidePanelShell open={canShowPanel && !collapsed} side="right" preserveContent={canShowPanel}>
       <DevContainer
         className={cx({
           "flex-col": true,
@@ -161,6 +166,7 @@ export const RightPane = React.memo(function RightPane({
                   inspectorTitle
                 )}
               </strong>
+              <PanelCloseButton onClick={() => studioCtx.collapseRightPanel()} />
             </div>
             {isFrameSelection ? (
               !pending && <FrameSelectionPanel studioCtx={studioCtx} />
@@ -196,6 +202,12 @@ export const RightPane = React.memo(function RightPane({
           </>
         )}
       </DevContainer>
-    </SidePanelShell>,
+    </SidePanelShell>
+    {canShowPanel && !showCommentsPanel && collapsed && (
+      <div className="editor-inspector-reopen">
+        <PanelCloseButton collapsed onClick={() => studioCtx.switchRightTab(rightTabKey ?? RightTabKey.style)} />
+      </div>
+    )}
+    </>,
   );
 });

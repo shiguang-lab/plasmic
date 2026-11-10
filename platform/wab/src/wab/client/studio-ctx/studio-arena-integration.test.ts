@@ -78,7 +78,7 @@ it("restores a prepared failed Studio switch without destroying the cached view 
   const f = await setup(); const { studio, view, target, first, viewport } = f;
   await studio.changeUnsafe(() => studio.switchToArena(target));
   const tpl = ensureKnownTplTag(f.component.tplTree); studio.commentsCtx.openNewCommentDialog(view, tpl);
-  const session = ensure(studio.commentsCtx.openedNewThread(), "Comment session"); studio.commentsCtx.markDialogInteracted(session);
+  const session = ensure(studio.commentsCtx.openedNewThread(), "Comment session");
   const stores = [studio.arenaState.store, studio.selectionStore, view.selectionStore, view.variantStore, studio.uiEnvironment.store, viewport.store, studio.commentsCtx.dialogStore, studio.arenaState.viewRegistry.store];
   const snapshots = stores.map((store) => store.getState()); const notified = vi.fn(); const stops = stores.map((store) => store.subscribe(notified));
   const originalLocation = studio.appCtx.history.location;
@@ -94,7 +94,7 @@ it("restores a prepared failed Studio switch without destroying the cached view 
     })).rejects.toThrow("failed prepared arena switch");
     stores.forEach((store, index) => expect(store.getState()).toBe(snapshots[index]));
     expect(studio.currentArena).toBe(target); expect(studio.viewCtxs).toContain(view); expect(view.isDisposed).toBe(false);
-    expect(studio.commentsCtx.openedNewThread()).toBe(session); expect(studio.commentsCtx.hasDialogInteraction(session)).toBe(true);
+    expect(studio.commentsCtx.openedNewThread()).toBe(session);
     expect(studio.appCtx.history.location).toBe(originalLocation);
     expect(notified).not.toHaveBeenCalled();
     await studio.changeUnsafe(() => {

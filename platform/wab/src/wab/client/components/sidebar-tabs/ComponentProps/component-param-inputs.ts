@@ -1,8 +1,8 @@
 import { collectPropExpressionFields } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import type { ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
-import { arrayEq, ensure } from "@/wab/shared/common";
+import { ModelFieldInputs } from "@/wab/client/stores/model-field-inputs";
+import { ensure } from "@/wab/shared/common";
 import { instUtil } from "@/wab/shared/model/InstUtil";
 import type { Component, ObjInst, Param } from "@/wab/shared/model/classes";
 import * as React from "react";
@@ -56,28 +56,7 @@ class ComponentParamValue<T> {
 }
 
 function createComponentParamInputsSource(world: ReturnType<typeof useVariantModelWorld>, studio: Parameters<typeof useComponentParamInputs>[0], component: Parameters<typeof useComponentParamInputs>[1], selected: Parameters<typeof useComponentParamInputs>[2]) {
-    const { models, lifetime } = world;
-    let current: readonly unknown[] = Object.freeze([]);
-    const fields = new Map<ModelFieldStore<unknown>, () => void>(), listeners = new Set<() => void>();
-    const read = () => {
-      if (world.studio !== studio || !world.isCurrent()) { return current; }
-      const used = new Set<ModelFieldStore<unknown>>();
-      const field = (model: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(models.declaredField(model, key)));
-      collectComponentParamFields(component, field, selected);
-      const next = [...used].map((store) => store.getState());
-      if (!arrayEq(current, next)) { current = Object.freeze(next); }
-      if (listeners.size) {
-        used.forEach((store) => { if (!fields.has(store)) { fields.set(store, store.subscribe(sync)); } });
-        for (const [store, stop] of fields) { if (!used.has(store)) { stop(); fields.delete(store); } }
-      }
-      return current;
-    };
-    const disconnect = () => { fields.forEach((stop) => stop()); fields.clear(); lifetime.removeEventListener("abort", disconnect); };
-    const sync = () => { const before = current; read(); if (before !== current) { listeners.forEach((listener) => listener()); } };
-    const subscribe = (listener: () => void) => {
-      if (world.studio !== studio || !world.isCurrent()) { return () => undefined; }
-      listeners.add(listener); lifetime.addEventListener("abort", disconnect, { once: true }); read();
-      return () => { listeners.delete(listener); if (!listeners.size) { disconnect(); } };
-    };
-    return { read, subscribe };
-  }
+  return new ModelFieldInputs({ models: world.models, lifetime: world.lifetime,
+    isCurrent: () => world.studio === studio && world.isCurrent() },
+    (field) => collectComponentParamFields(component, field, selected));
+}

@@ -113,12 +113,11 @@ function buildComponentModules(
 ) {
   const site = studioCtx.site;
   const styleOutput = exportStyleConfig({ targetEnv: "preview" });
-  const projectConfig = createProjectOutput(
-    site,
-    studioCtx.siteInfo.id,
-    studioCtx.siteInfo.name,
-  );
-  const depsProjectConfigs = createDepsProjectOutput(site);
+  const cache = getCodegenCache(studioCtx);
+  const { projectConfig, depsProjectConfigs } = cache.projects ??= {
+    projectConfig: createProjectOutput(site, studioCtx.siteInfo.id, studioCtx.siteInfo.name),
+    depsProjectConfigs: createDepsProjectOutput(site),
+  };
   const components = new Set<Component>(
     rootComponent
       ? [rootComponent, ...extractDependentComponents(rootComponent)]
@@ -173,9 +172,17 @@ function createReferencedComponentModules(
         getOwnerSite(component) === studioCtx.site
           ? projectConfig
           : getComponentProjectConfig(studioCtx, component, depsProjectConfigs);
-      const output = createComponentOutput(studioCtx, component, componentProjectConfig, false, exportNamedNodeComponents);
-      componentOutputs.set(component, output);
-      modules.push(...createComponentModules(output));
+      const cache = getCodegenCache(studioCtx);
+      let entries = cache.componentOutputs.get(component);
+      if (!entries) { entries = new Map(); cache.componentOutputs.set(component, entries); }
+      let entry = entries.get(exportNamedNodeComponents);
+      if (!entry) {
+        const output = createComponentOutput(studioCtx, component, componentProjectConfig, false, exportNamedNodeComponents);
+        entry = { output, modules: createComponentModules(output), dependencies: extractDependentComponents(component) };
+        entries.set(exportNamedNodeComponents, entry);
+      }
+      componentOutputs.set(component, entry.output);
+      modules.push(...entry.modules);
     }
   }
   return modules;
@@ -238,6 +245,8 @@ type DocsModules = ReturnType<typeof generateDocsPreviewModules>;
 class PreviewCodegenCache {
   readonly live = new Map<Component | undefined, PreviewModules>();
   readonly docs = new Map<Component | undefined, Map<boolean, DocsModules>>();
+  readonly componentOutputs = new Map<Component, Map<boolean, { output: ComponentExportOutput; modules: SourceModule[]; dependencies: Set<Component> }>>();
+  projects: { projectConfig: ProjectConfig; depsProjectConfigs: ProjectConfig[] } | undefined;
   private readonly listeners = new Set<{ root: () => Component | undefined; listener: () => void }>();
   private readonly dirtyRoots = new Set<Component>();
   constructor(private readonly ctx: PreviewCodegenContext) {}
@@ -245,6 +254,8 @@ class PreviewCodegenCache {
   reset() {
     this.live.clear();
     this.docs.clear();
+    this.componentOutputs.clear();
+    this.projects = undefined;
     for (const { listener } of this.listeners) { listener(); }
   }
 
@@ -273,6 +284,17 @@ class PreviewCodegenCache {
     const pendingListeners = [...this.listeners].filter(({ root }) => affected(root()));
     for (const root of this.live.keys()) { if (affected(root)) { this.live.delete(root); } }
     for (const root of this.docs.keys()) { if (affected(root)) { this.docs.delete(root); } }
+    if (projectChanged) { this.componentOutputs.clear(); }
+    else {
+      for (const [component, entries] of this.componentOutputs) {
+        if (this.dirtyRoots.has(component) || [...entries.values()].some((entry) => [...entry.dependencies].some((dependency) => this.dirtyRoots.has(dependency)))) {
+          this.componentOutputs.delete(component);
+        }
+      }
+    }
+    // Project CSS includes fonts used throughout the site, including components
+    // outside the rendered root. A component edit must refresh that projection.
+    if (projectChanged || this.dirtyRoots.size) { this.projects = undefined; }
     for (const { listener } of pendingListeners) { listener(); }
   }
 

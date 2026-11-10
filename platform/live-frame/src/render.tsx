@@ -9,6 +9,7 @@ interface BoundaryProps {
   diagnostics: Diagnostics;
   generation: number;
   fatal?: boolean;
+  onError?: (error: unknown) => void;
   location?: PreviewErrorLocation;
 }
 interface BoundaryState {
@@ -31,6 +32,7 @@ export class PreviewErrorBoundary extends React.Component<BoundaryProps, Boundar
     this.failures.add(error);
     this.props.diagnostics.report(error, { kind: "render", fatal: !!this.props.fatal,
       ...this.props.location, componentStack: info.componentStack ?? undefined }, this.props.generation);
+    this.props.onError?.(error);
   }
   private recovered = () => {
     for (const error of this.failures) { this.props.diagnostics.resolve(error, this.props.generation); }
@@ -57,18 +59,27 @@ function CommittedRoot({ children, onCommit }: { children: React.ReactNode; onCo
   return children;
 }
 
-function PreviewErrorFallback({ error, title }: { error: unknown; title: string }) {
-  return <div role="alert" data-plasmic-preview-error style={{ padding: 12, whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>
-    {`${title}: ${String((error as Error)?.message ?? error)}`}
+export interface PreviewErrorRecovery { label: string; onReturn: () => void; }
+
+function PreviewErrorFallback({ title, recovery }: { title: string; recovery?: PreviewErrorRecovery }) {
+  return <div role="alert" data-plasmic-preview-error style={{ margin: "48px auto", padding: 24, maxWidth: 360,
+    border: "1px solid #e5e7eb", borderRadius: 12, fontFamily: "system-ui", color: "#1f2937", background: "#fff" }}>
+    <p style={{ margin: "0 0 16px", fontSize: 16 }}>{title}</p>
+    {recovery && <button type="button" onClick={recovery.onReturn} style={{ padding: "8px 16px", cursor: "pointer" }}>{recovery.label}</button>}
   </div>;
 }
 
 /** Commands belong to the frame; native fibers above own React lifecycles. */
 export function createRenderer(Sub: any) {
   const diagnostics = createDiagnostics();
-  let errorTitle = "Error";
-  let request = 0;
-  const fallback = (error: unknown) => <PreviewErrorFallback error={error} title={errorTitle} />;
+  let errorTitle = "Preview unavailable";
+  let recovery: PreviewErrorRecovery | undefined;
+  let hasSuccessfulRoot = false;
+  let lastSuccessfulRoot: React.ReactNode;
+  const fallback = (_error: unknown) => <PreviewErrorFallback title={errorTitle} recovery={recovery} />;
+  const rootFallback = (_error: unknown) => hasSuccessfulRoot
+    ? <PreviewErrorBoundary generation={diagnostics.read().generation} diagnostics={diagnostics} fallback={fallback} render={() => lastSuccessfulRoot} />
+    : fallback(_error);
 
   function renderBoundary(render: () => React.ReactNode, location: PreviewErrorLocation) {
     return <PreviewErrorBoundary key={location.elementUuid} location={location} generation={diagnostics.read().generation}
@@ -77,17 +88,21 @@ export function createRenderer(Sub: any) {
 
   function renderRoot(node: React.ReactNode): Promise<void> {
     return new Promise((resolve, reject) => {
+      let failure: { error: unknown } | undefined;
       const dispose = Sub.hostUtils.registerRenderErrorListener((error: unknown) => {
         diagnostics.report(error, { kind: "render", fatal: true });
         dispose();
-        resolve();
+        reject(error);
       });
-      const onCommit = () => { dispose(); diagnostics.commit(); resolve(); };
+      const onCommit = () => {
+        dispose();
+        if (diagnostics.read().status !== "failed") { lastSuccessfulRoot = node; hasSuccessfulRoot = true; }
+        diagnostics.commit();
+        if (failure) { reject(failure.error); } else { resolve(); }
+      };
       try {
-        Sub.hostUtils.setPlasmicRootNode(<CommittedRoot key={++request} onCommit={onCommit}>
-          <PreviewErrorBoundary fatal generation={diagnostics.read().generation} diagnostics={diagnostics} fallback={fallback}>
-            {node}
-          </PreviewErrorBoundary>
+        Sub.hostUtils.setPlasmicRootNode(<CommittedRoot onCommit={onCommit}>
+          <PreviewErrorBoundary fatal onError={error => { failure = { error }; }} generation={diagnostics.read().generation} diagnostics={diagnostics} fallback={rootFallback} render={() => node} />
         </CommittedRoot>);
       } catch (error) {
         dispose();
@@ -97,7 +112,11 @@ export function createRenderer(Sub: any) {
   }
 
   function showError(error: unknown) {
-    diagnostics.report(error, { kind: "evaluation", fatal: true });
+    // Render boundaries already recorded the original cause and component stack.
+    if (!diagnostics.read().errors.some(entry => entry.fatal && entry.kind === "render")) {
+      diagnostics.report(error, { kind: "evaluation", fatal: true });
+    }
+    if (hasSuccessfulRoot) { return Promise.resolve(); }
     return renderRoot(fallback(error));
   }
 
@@ -105,6 +124,6 @@ export function createRenderer(Sub: any) {
     beginRender: diagnostics.begin,
     getDiagnostics: diagnostics.read,
     reportError: diagnostics.report,
-    setErrorTitle: (title: string) => { errorTitle = title; },
+    setErrorTitle: (title: string, action?: PreviewErrorRecovery) => { errorTitle = title; recovery = action; },
   };
 }

@@ -1,5 +1,6 @@
 import { getDependencyModelResource, withDependencyModelResources } from "@/wab/server/routes/dependency-model-resources";
 import { createPresentation, getPresentation } from "@/wab/server/routes/presentations";
+import { presentationAccess } from "@/wab/server/routes/presentation-access";
 import { getPreviewPublication, publishPreviewPublication, unpublishPreviewPublication } from "@/wab/server/routes/preview-publications";
 import { getHostlessLibraryCanvas, getHostlessLibraryRelease } from "@/wab/server/routes/hostless-library-artifacts";
 import { localAiModels, localAiStatus } from "@/wab/server/routes/local-ai";
@@ -572,6 +573,7 @@ function addMiddlewares(
   // Parse body further down to prevent unauthorized users from incurring large parses.
   app.use(bodyParser.json({ limit: "400mb" }));
   app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(presentationAccess);
 
   app.use((req, res, next) => {
     res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");

@@ -41,6 +41,8 @@ import {
   TplComponent,
   TplTag,
   VariantSetting,
+  isKnownArenaFrame,
+  isKnownRuleSet,
   isKnownCompositeExpr,
   isKnownCustomCode,
   isKnownEventHandler,
@@ -435,7 +437,7 @@ let nextSearchOwner = 0;
 
 /** This panel searches the entire document, so completed document commits are
  * its query input. It subscribes only while mounted, in one captured world. */
-class ExpressionSearchInputs {
+export class ExpressionSearchInputs {
   readonly key = ++nextSearchOwner;
   private readonly models;
   private readonly site;
@@ -477,7 +479,9 @@ class ExpressionSearchInputs {
     this.listeners.add(listener);
     if (!this.stopCommits) {
       this.stopCommits = this.studio.subscribeModelChanges((event) => {
-        if (event.type === "site-replaced" || event.summary.changes.length) { this.sync(); }
+        if (event.type === "site-replaced" || event.summary.changes.some(({ changeNode: { inst, field } }) =>
+          !(isKnownRuleSet(inst) && field === "values") &&
+          !(isKnownArenaFrame(inst) && (field === "left" || field === "top")))) { this.sync(); }
       });
       this.lifetime.addEventListener("abort", this.close, {once: true});
       this.sync();

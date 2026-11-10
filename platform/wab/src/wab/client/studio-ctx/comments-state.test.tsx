@@ -235,27 +235,22 @@ it("synchronizes labels and ownership through real commits, undo and redo withou
   expect(ctx.store.getState()).toBe(snapshot);
 });
 
-it("keeps interaction bookkeeping out of immutable dialog snapshots and publishes only actual dialog changes", async () => {
+it("keeps panel sessions stable and publishes only actual selection changes", async () => {
   const { ctx, subject } = await fixture();
   const viewCtx = mock<ViewCtx>();
   ctx.openNewCommentDialog(viewCtx, subject);
-  const opened = ensure(ctx.openedNewThread(), "New thread");
   const snapshot = ctx.dialogStore.getState();
   const publish = vi.fn();
   const stop = ctx.dialogStore.subscribe(publish);
-  ctx.markDialogInteracted(opened);
-  ctx.maybeCloseCommentDialogs();
   expect(ctx.dialogStore.getState()).toBe(snapshot);
   expect(publish).not.toHaveBeenCalled();
   ctx.handleOpenCommentThreadDialog(toOpaque("one"), viewCtx);
   expect(ctx.openedNewThread()).toBeUndefined();
   const thread = ensure(ctx.openedThread(), "Open thread");
-  ctx.markDialogInteracted(thread);
   for (let i = 0; i < 100; i++) {
     ctx.handleOpenCommentThreadDialog(toOpaque("one"), viewCtx);
   }
   expect(ctx.openedThread()).toBe(thread);
-  expect(ctx.hasDialogInteraction(thread)).toBe(false);
   expect(publish).toHaveBeenCalledOnce();
   stop();
 });

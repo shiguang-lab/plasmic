@@ -82,13 +82,46 @@ it("invalidates only the provider whose context data changed", () => {
   evaluate.mockClear();
   context = { revision: 1 };
   selection.syncContextData("first");
-  expect(evaluate).toHaveBeenCalledExactlyOnceWith(firstTpl, undefined, { anchorCloneKey: "clone", ignoreFocusedCloneKey: true });
+  expect(evaluate).not.toHaveBeenCalled();
   expect(first.getState().ccContextData).toEqual({ revision: 1 });
+  expect(evaluate).toHaveBeenCalledExactlyOnceWith(firstTpl, undefined, { anchorCloneKey: "clone", ignoreFocusedCloneKey: true });
   expect(second.getState()).toBe(secondSnapshot);
   const committed = first.getState();
   selection.syncContextData("first");
   expect(first.getState()).toBe(committed);
   selection.dispose();
+});
+
+it("defers hidden runtime data capture until a read or resubscription and retains frozen snapshots", () => {
+  const tpl = mkTplTagX("div");
+  let visits = 0, revision = 0;
+  const rows = Array.from({ length: 1000 }, (_, index) => ({ get value() { visits++; return index + revision; } }));
+  const view = {
+    currentComponentCtx: () => null, focusedTpl: () => tpl, focusedTpls: () => [tpl],
+    focusedSelectable: () => null, focusedCloneKey: () => undefined,
+    getCanvasEnvForTpl: () => ({ rows }), maybeTpl2ValsInContext: () => [],
+  } as unknown as ViewCtx;
+  const owner = new InspectorSelection(view, 1);
+  const store = owner.canvasEnvStore(tpl);
+  const stop = store.subscribe(() => undefined);
+  const before = store.getState();
+  stop(); visits = 0; revision = 1;
+  owner.syncCanvas(); owner.syncCanvas();
+  expect(visits).toBe(0);
+  expect(before?.rows[0].value).toBe(0);
+  const after = store.getState();
+  expect(visits).toBe(1000);
+  expect(after?.rows[0].value).toBe(1);
+  expect(store.getState()).toBe(after);
+  expect(visits).toBe(1000);
+  revision = 2; visits = 0; owner.syncCanvas();
+  const stopAgain = store.subscribe(() => undefined);
+  expect(visits).toBe(1000);
+  expect(store.getState()?.rows[0].value).toBe(2);
+  expect(Object.isFrozen(store.getState()?.rows)).toBe(true);
+  stopAgain(); owner.dispose(); visits = 0;
+  owner.syncCanvas(); store.getState();
+  expect(visits).toBe(0);
 });
 
 it("publishes real ValComponent writes after render and detaches runtime inputs at owner closure", async () => {

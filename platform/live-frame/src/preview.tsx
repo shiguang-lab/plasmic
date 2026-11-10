@@ -94,9 +94,9 @@ export function createPreview(Sub: any, require: (spec: string) => any, renderRo
   let current: PreviewSession | undefined;
 
   function render(spec: PreviewRender) {
-    current?.retire();
-    current = undefined;
-    if ("notFound" in spec) { return renderRoot(<NotFound path={spec.notFound} />); }
+    if ("notFound" in spec) {
+      return renderRoot(<NotFound path={spec.notFound} />).then(() => { current?.retire(); current = undefined; });
+    }
     if ("run" in spec) { return require(spec.run).__run(); }
     spec.depCss.forEach(require);
     const Root = require(spec.root).default;
@@ -112,8 +112,15 @@ export function createPreview(Sub: any, require: (spec: string) => any, renderRo
       appUser: spec.appUser,
     });
     const session = new PreviewSession(initialProps, spec.globals);
+    const previous = current;
     current = session;
-    return renderRoot(<PreviewRoot session={session} definition={definition} />);
+    return renderRoot(<PreviewRoot session={session} definition={definition} />).then(() => {
+      previous?.retire();
+    }, error => {
+      session.retire();
+      if (current === session) { current = previous; }
+      throw error;
+    });
   }
 
   return {render, setProps: (props: Values) => current?.setProps(props), setGlobals: (globals: Values) => current?.setGlobals(globals)};

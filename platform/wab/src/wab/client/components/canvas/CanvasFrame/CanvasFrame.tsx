@@ -427,8 +427,10 @@ export const CanvasFrame = React.memo(function CanvasFrame({
   // for vc) in the top most window.
 
 
-  const handleSelectionClick = useCallback(() => {
-    if (!studioCtx.arenaState.isCurrentLifetime(modelLifetime) || studioCtx.isInteractiveMode || maybeViewCtx()?.contentEditor.target) {
+  const handleSelectionClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    // Portal events follow the React tree even when their DOM is outside this
+    // frame. Studio popups must not select the artboard that owns their trigger.
+    if (!event.currentTarget.contains(event.target as Node) || !studioCtx.arenaState.isCurrentLifetime(modelLifetime) || studioCtx.isInteractiveMode || maybeViewCtx()?.contentEditor.target) {
       return;
     }
     spawn(

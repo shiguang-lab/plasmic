@@ -237,9 +237,7 @@ const VariantPickerContent = React.memo(function VariantPickerContent(props: Var
   const isCompatibleOwnerParam = (param: Param): boolean =>
     isParamCompatibleWithVariantGroup(param, group);
 
-  const compatibleOwnerParams = ownerComponent
-    ? getRealParams(ownerComponent).filter(isCompatibleOwnerParam)
-    : [];
+
 
   const linkToOwnerParam = (param: Param) => {
     viewCtx.change(() => {
@@ -442,7 +440,7 @@ const VariantPickerContent = React.memo(function VariantPickerContent(props: Var
           )}
           {arg.valueType === "literal" && canLinkToProp && (
             <LinkToPropMenuItem
-              availableParams={compatibleOwnerParams}
+              availableParams={ownerComponent ? getRealParams(ownerComponent).filter(isCompatibleOwnerParam) : []}
               onLinkExisting={linkToOwnerParam}
               onCreateNew={() => setNewParamModalVisible(true)}
             />

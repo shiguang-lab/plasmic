@@ -1,4 +1,4 @@
-import { createTranspiler } from "@/wab/client/components/live/preview-transpiler";
+import { createPreviewCompiler } from "@/wab/client/components/live/preview-compiler";
 import type {
   LiveFrame,
   AssetModule,
@@ -75,31 +75,32 @@ export function liveFrame(win: Window): LiveFrame {
 }
 
 /** Bootstrap can fail before the runtime bundle (and React) is available. */
-export async function showPreviewLoadError(win: Window, error: unknown) {
+export async function showPreviewLoadError(win: Window, error: unknown, display: { title: string; label: string; onReturn: () => void }) {
   const runtime = (win as Partial<WindowWithLiveFrame>).__plasmicLive;
   if (runtime) {
     runtime.beginRender();
+    runtime.setErrorTitle(display.title, display);
     await runtime.showError(error);
     return;
   }
   const failure = win.document.createElement("div");
   failure.setAttribute("role", "alert");
   failure.setAttribute("data-plasmic-preview-error", "true");
-  const value = error as Error | undefined;
-  failure.textContent = String(value?.message ?? error);
-  if (value?.name) {
-    failure.setAttribute("data-plasmic-error-name", value.name);
-  }
-  if (value?.stack) {
-    failure.setAttribute("data-plasmic-error-stack", value.stack);
-  }
+  Object.assign(failure.style, { margin: "48px auto", padding: "24px", maxWidth: "360px", border: "1px solid #e5e7eb", borderRadius: "12px", fontFamily: "system-ui" });
+  const title = win.document.createElement("p");
+  title.textContent = display.title;
+  const back = win.document.createElement("button");
+  back.type = "button";
+  back.textContent = display.label;
+  back.onclick = display.onReturn;
+  failure.append(title, back);
   win.document.body.replaceChildren(failure);
 }
 
 
 function makeRenderQueue(win: Window, onDone: (error?: unknown) => void, compileModules?: PreviewBatchCompiler) {
-  const transpile = createTranspiler();
-  const compile: PreviewBatchCompiler = compileModules ?? ((modules) => Promise.all(modules.map(transpile)));
+  const compiler = compileModules ? undefined : createPreviewCompiler();
+  const compile: PreviewBatchCompiler = compileModules ?? ensure(compiler, "Preview compiler").compile;
   const compilation = new AbortController();
   let disposed = false;
   // Cargo holds updates until the previous render commits, then delivers the latest
@@ -131,8 +132,7 @@ function makeRenderQueue(win: Window, onDone: (error?: unknown) => void, compile
                 : undefined,
             );
           }
-          // Compilation fails in Studio and evaluation in the frame. Both must
-          // replace stale content with the same visible error.
+          // The runtime retains the last committed page after update failures.
           await liveFrame(win).showError(error);
         }
         if (!disposed) {
@@ -150,6 +150,7 @@ function makeRenderQueue(win: Window, onDone: (error?: unknown) => void, compile
     dispose: () => {
       disposed = true;
       compilation.abort();
+      compiler?.dispose();
       queue.kill();
     },
   };

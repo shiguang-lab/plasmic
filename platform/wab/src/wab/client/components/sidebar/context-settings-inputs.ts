@@ -2,12 +2,12 @@ import { captureVariantModelWorld, useCurrentModelWorld } from "@/wab/client/com
 import { walkDependencyTree } from "@/wab/shared/core/project-deps";
 import { ComponentPropOrigin } from "@/wab/shared/core/lang";
 import { uniqWith } from "lodash";
-import type { ModelFieldStore, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import type { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { arrayEq } from "@/wab/shared/common";
+import { ModelFieldInputs, type DeclareModelFields } from "@/wab/client/stores/model-field-inputs";
 import { getComponentDisplayName, getRealParams, isContextCodeComponent } from "@/wab/shared/core/components";
 import { instUtil } from "@/wab/shared/model/InstUtil";
-import { Component, ObjInst, Param, ProjectDependency, TplComponent, Site, isKnownComponent, isKnownParam, isKnownTplNode, isKnownVar, isKnownSite, isKnownProjectDependency } from "@/wab/shared/model/classes";
+import { Component, Param, ProjectDependency, TplComponent, Site, isKnownComponent, isKnownParam, isKnownTplNode, isKnownVar, isKnownSite, isKnownProjectDependency } from "@/wab/shared/model/classes";
 import * as React from "react";
 
 export interface ContextRowData {
@@ -19,7 +19,6 @@ export interface ContextRowData {
   readonly isCurrent: () => boolean;
 }
 
-const empty: readonly unknown[] = Object.freeze([]);
 
 /** Installed context membership, registration labels and the local props/default
  * expression data read by ContextPropEditor. References to pages/components/tpls
@@ -28,34 +27,15 @@ export class ContextSettingsInputs {
   private readonly models: ModelSnapshots;
   private readonly site: Site;
   private readonly lifetime: AbortSignal;
-  private current = empty;
   private rowFields: readonly unknown[] | undefined;
   private rows: readonly ContextRowData[] = Object.freeze([]);
-  private readonly fields = new Map<ModelFieldStore<unknown>, () => void>();
-  private readonly listeners = new Set<() => void>();
-  private connected = false;
-  private closed = false;
+  private readonly inputs;
   constructor(private readonly studio: StudioCtx, world = captureVariantModelWorld(studio)) {
     this.models = world.models; this.site = world.site;
-    this.lifetime = world.lifetime; this.getSnapshot();
+    this.lifetime = world.lifetime;
+    this.inputs = new ModelFieldInputs({ models: this.models, lifetime: this.lifetime, isCurrent: this.isCurrent }, this.collect);
   }
-  private disconnect = () => {
-    this.connected = false; this.lifetime.removeEventListener("abort", this.close);
-    this.fields.forEach((stop) => stop()); this.fields.clear();
-  };
-  private close = () => {
-    if (this.closed) { return; }
-    this.closed = true; this.current = empty; this.disconnect();
-    this.listeners.forEach((listener) => listener()); this.listeners.clear();
-  };
-  private sync = () => {
-    const before = this.current; this.getSnapshot();
-    if (before !== this.current) { this.listeners.forEach((listener) => listener()); }
-  };
-  getSnapshot = (): readonly unknown[] => {
-    if (this.closed || this.lifetime.aborted || this.models !== this.studio.modelSnapshots) { this.current = empty; return this.current; }
-    const used = new Set<ModelFieldStore<unknown>>();
-    const field = (value: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(this.models.declaredField(value, key)));
+  private collect = (field: DeclareModelFields) => {
     const seenData = new Set<object>();
     const data = (value: unknown) => {
       if (!value || typeof value !== "object" || seenData.has(value)) { return; }
@@ -120,20 +100,14 @@ export class ContextSettingsInputs {
         setting.args.forEach((arg) => { field(arg, "param", "expr"); param(arg.param); data(arg.expr); });
       });
     });
-    const values = [...used].map((store) => store.getState());
-    if (!arrayEq(this.current, values)) { this.current = Object.freeze(values); }
-    if (this.connected) {
-      for (const store of used) { if (!this.fields.has(store)) { this.fields.set(store, store.subscribe(this.sync)); } }
-      for (const [store, stop] of this.fields) { if (!used.has(store)) { stop(); this.fields.delete(store); } }
-    }
-    return this.current;
   };
-  isCurrent = () => !this.closed && !this.lifetime.aborted && this.models === this.studio.modelSnapshots && this.site === this.studio.site;
+  getSnapshot = () => this.inputs.read();
+  isCurrent = () => !this.lifetime.aborted && this.models === this.studio.modelSnapshots && this.site === this.studio.site;
   getRowsSnapshot = () => {
     const fields = this.getSnapshot();
     if (fields !== this.rowFields) {
       this.rowFields = fields;
-      if (fields === empty) { this.rows = Object.freeze([]); return this.rows; }
+      if (!this.isCurrent()) { this.rows = Object.freeze([]); return this.rows; }
       const dependencies = walkDependencyTree(this.site, "all").map(dependency => ({
         dependency, components: dependency.site.components.filter(isContextCodeComponent),
       }));
@@ -143,7 +117,7 @@ export class ContextSettingsInputs {
       ], (left, right) => left.name === right.name);
       this.rows = Object.freeze(this.site.globalContexts.flatMap(tpl => {
         const component = components.find(candidate => candidate === tpl.component);
-        if (!component) return [];
+        if (!component) {return [];}
         return [Object.freeze({
           tpl, component, isCurrent: this.isCurrent,
           projectDependency: dependencies.find(dependency => dependency.components.includes(component))?.dependency,
@@ -154,12 +128,8 @@ export class ContextSettingsInputs {
     }
     return this.rows;
   };
-  subscribe = (listener: () => void) => {
-    if (this.closed || this.lifetime.aborted) { return () => undefined; }
-    this.listeners.add(listener);
-    if (!this.connected) { this.connected = true; this.lifetime.addEventListener("abort", this.close, { once: true }); this.sync(); }
-    return () => { this.listeners.delete(listener); if (!this.listeners.size) { this.disconnect(); } };
-  };
+  subscribe = (listener: () => void) => this.inputs.subscribe(listener);
+
 }
 export function useContextSettingsModelInputs(studio: StudioCtx) {
   const world = useCurrentModelWorld(studio);

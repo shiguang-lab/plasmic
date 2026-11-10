@@ -28,7 +28,8 @@ export const FontFamilySelector = function FontFamilySelector(props: {
   const { t: uiT } = useI18n();
   const { selectOpts, studioCtx } = props;
 
-  const fontTokens = useFontFamilyTokenInputs(studioCtx, selectOpts.vsh);
+  const [open, setOpen] = React.useState(false);
+  const fontTokens = useFontFamilyTokenInputs(studioCtx, selectOpts.vsh, open, selectOpts.value);
   const tokens = fontTokens.choices;
 
   const disabled = selectOpts.disabled ?? false;
@@ -77,6 +78,7 @@ export const FontFamilySelector = function FontFamilySelector(props: {
         selectOpts.onChange(value);
         searchUndo.reset();
       }}
+      onOpenChange={setOpen}
       showSearch
       searchValue={searchUndo.value}
       onSearch={searchUndo.push}

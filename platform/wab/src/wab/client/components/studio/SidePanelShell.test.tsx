@@ -102,3 +102,32 @@ it("reconciles current owners during exit while retaining the inert shell and it
   expect(mounted.container.querySelector('[data-test-id="right-panel-shell"]')).toBe(shell);
   expect(released).toHaveBeenCalledTimes(2);
 });
+
+it("preserves inspector DOM and local state while suspending effects, and releases retired content", async () => {
+  vi.useFakeTimers();
+  const connected = vi.fn(), released = vi.fn();
+  function Content() {
+    const [value, setValue] = React.useState(0);
+    React.useEffect(() => { connected(); return () => released(); }, []);
+    return <button onClick={() => setValue(value + 1)}>Count {value}</button>;
+  }
+  const panel = (open: boolean, valid = true) => <SidePanelShell open={open} side="right" preserveContent={valid}>{valid && <Content />}</SidePanelShell>;
+  const mounted = render(panel(true));
+  const button = screen.getByRole("button");
+  act(() => button.click());
+  expect(button).toHaveTextContent("Count 1");
+  mounted.rerender(panel(false));
+  expect(released).not.toHaveBeenCalled();
+  await act(async () => { vi.advanceTimersByTime(SIDE_PANEL_TRANSITION_MS); });
+  expect(released).toHaveBeenCalledOnce();
+  expect(button).toBeInTheDocument();
+  expect(button).not.toBeVisible();
+  mounted.rerender(panel(true));
+  expect(screen.getByRole("button")).toBe(button);
+  expect(button).toHaveTextContent("Count 1");
+  expect(connected).toHaveBeenCalledTimes(2);
+  mounted.rerender(panel(false));
+  await act(async () => { vi.advanceTimersByTime(SIDE_PANEL_TRANSITION_MS); });
+  mounted.rerender(panel(false, false));
+  expect(button).not.toBeInTheDocument();
+});

@@ -7,6 +7,23 @@ vi.mock("@/wab/client/cli-routes", () => ({ ensureIsTopFrame: vi.fn(), isHostFra
 vi.mock("@/wab/client/observability", () => ({ analytics: () => ({ setAnonymousUser: vi.fn(), setUser: vi.fn() }) }));
 vi.mock("jquery", () => ({ default: { ajax: calls.ajax } }));
 beforeEach(() => vi.resetAllMocks());
+afterEach(() => window.history.replaceState(null, "", "/"));
+it("project reads carry presentation access while writes and editor routes do not", async () => {
+  const transport = { done(callback: Function) { callback({}); return transport; }, fail: vi.fn() };
+  calls.ajax.mockReturnValue(transport);
+  window.history.replaceState(null, "", "/d/0123456789?branch=design#/details/42");
+  const api = new Api();
+  await api.get("/projects/project");
+  expect(calls.ajax.mock.lastCall?.[0].headers).toEqual({
+    "x-plasmic-presentation-code": "0123456789",
+    "x-plasmic-presentation-branch": "design",
+  });
+  await api.post("/projects/project", {});
+  expect(calls.ajax.mock.lastCall?.[0].headers).toEqual({});
+  window.history.replaceState(null, "", "/projects/project");
+  await api.get("/projects/project");
+  expect(calls.ajax.mock.lastCall?.[0].headers).toEqual({});
+});
 it("loads model JSON through the unified resource cache without invoking jQuery", async () => {
   const model = { version: "schema", map: {} };
   calls.fetch.mockResolvedValue(new Response(JSON.stringify(model)));

@@ -6,6 +6,8 @@ import {
   getUrlsForLiveMode,
 } from "@/wab/client/components/live/PreviewCtx";
 import { HostFrameCtx } from "@/wab/client/frame-ctx/host-frame-ctx";
+import { getArenaFrames } from "@/wab/shared/Arenas";
+import { ensure } from "@/wab/shared/common";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { mkComponentVariantGroup, mkVariant } from "@/wab/shared/Variants";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
@@ -28,7 +30,6 @@ async function setup(hash = "") {
   const { studioCtx: studio } = fakeStudioCtx({ siteInfo: { id: toOpaque("project") } });
   await waitFor(() => expect(studio.initialRouteReady).toBe(true));
   studio.appCtx.history = history;
-  vi.spyOn(studio, "closeEditorPanels").mockImplementation(() => undefined);
   const ctx = new PreviewCtx({ history } as unknown as HostFrameCtx, studio);
   vi.spyOn(ctx, "getLocation").mockImplementation(async () => history.location);
   return { ctx, history };
@@ -41,6 +42,83 @@ test("ordinary preview defaults to desktop without carrying artboard dimensions"
   await ctx.pushViewport({ viewport: "desktop", width: 1600, height: 872 });
   expect(history.location.search).toBe("");
   expect(history.location.hash).toBe("#/groups");
+});
+
+test("exiting a comment-linked preview preserves the complete editor URL", async () => {
+  const { ctx, history } = await setup();
+  const studio = ctx.studioCtx;
+  try {
+    history.replace("/projects/project");
+    await studio.changeUnsafe(() => studio.addComponent("Preview page", { type: ComponentType.Page }));
+    const frame = ensure(getArenaFrames(studio.currentArena)[0], "Preview frame");
+    const view = ensure(studio.tryGetViewCtxForFrame(frame), "Preview view");
+    vi.spyOn(studio, "getPreviewInitialViewCtx").mockResolvedValue(view);
+    history.replace("/projects/project?comment=thread&arena=canvas&arena_type=custom&branch=design");
+    await ctx.toggleLiveMode();
+    expect(ctx.isLive).toBe(true);
+    await ctx.stopLiveMode();
+    expect(history.location.pathname).toBe("/projects/project");
+    const search = new URLSearchParams(history.location.search);
+    expect(search.get("comment")).toBe("thread");
+    expect(search.get("arena")).toBe("canvas");
+    expect(search.get("arena_type")).toBe("custom");
+    expect(search.get("branch")).toBe("design");
+  } finally {
+    ctx.dispose();
+    ctx.studioCtx.dispose();
+  }
+});
+
+test.each([
+  { visible: true, threadId: "thread" },
+  { visible: false, threadId: "thread" },
+  { visible: true, threadId: undefined },
+  { visible: false, threadId: undefined },
+  { visible: true, threadId: "thread", panelsHidden: true },
+])("preserves comments visibility through preview (%j)", async ({ visible, threadId, panelsHidden = false }) => {
+  const { studioCtx: studio, history } = fakeStudioCtx();
+  await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+  const focus = vi.spyOn(studio, "focusCommentThread").mockImplementation(async (id) => {
+    if (id) {
+      studio.commentsCtx.handleOpenCommentThreadDialog(toOpaque(id));
+      return true;
+    }
+    return false;
+  });
+  const ctx = new PreviewCtx({ history } as unknown as HostFrameCtx, studio);
+  try {
+    await studio.changeUnsafe(() => studio.addComponent("Preview page", { type: ComponentType.Page }));
+    const frame = ensure(getArenaFrames(studio.currentArena)[0], "Preview frame");
+    const view = ensure(studio.tryGetViewCtxForFrame(frame), "Preview view");
+    vi.spyOn(studio, "getPreviewInitialViewCtx").mockResolvedValue(view);
+    if (threadId) {
+      const search = new URLSearchParams(history.location.search);
+      search.set("comment", threadId);
+      history.replace({ ...history.location, search: `?${search}` });
+      await waitFor(() => expect(focus).toHaveBeenCalledWith(threadId));
+    }
+    if (studio.showCommentsPanel !== visible) { studio.toggleCommentsPanel(); }
+    if (panelsHidden) { studio.togglePanels(); }
+    const editorLocation = history.location;
+    await ctx.toggleLiveMode();
+    expect(ctx.isLive).toBe(true);
+    expect(studio.showCommentsPanel).toBe(visible);
+    expect(studio.panelsHidden).toBe(panelsHidden);
+    focus.mockClear();
+    await ctx.stopLiveMode();
+    // Studio's route listener resumes after its branch-resolution await.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(ctx.isLive).toBe(false);
+    expect(history.location.pathname).toBe(editorLocation.pathname);
+    expect(history.location.search).toBe(editorLocation.search);
+    expect(studio.showCommentsPanel).toBe(visible);
+    expect(studio.panelsHidden).toBe(panelsHidden);
+    if (threadId && (!visible || panelsHidden)) { expect(focus).not.toHaveBeenCalled(); }
+    if (threadId && visible && !panelsHidden) { expect(focus).toHaveBeenCalledWith(threadId); }
+  } finally {
+    ctx.dispose();
+    studio.dispose();
+  }
 });
 
 test("Preview operations await the host history bridge before reporting their state", async () => {
@@ -179,7 +257,6 @@ async function navigationSetup() {
   const { studioCtx: studio } = fakeStudioCtx({ siteInfo: { id: toOpaque("project") } });
   await waitFor(() => expect(studio.initialRouteReady).toBe(true));
   studio.appCtx.history = history;
-  vi.spyOn(studio, "closeEditorPanels").mockImplementation(() => undefined);
   const ctx = new PreviewCtx({ history } as unknown as HostFrameCtx, studio);
   history.push("/projects/project/preview#/groups");
   return { ctx, history };

@@ -1,7 +1,9 @@
 import { showCanvasAuthNotification } from "@/wab/client/components/canvas/studio-canvas-util";
 import { SubDeps } from "@/wab/client/components/canvas/subdeps";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
-import { buildPreviewUpdate, subscribePreviewCodegen } from "@/wab/client/components/live/preview-codegen";
+import { buildPreviewModules, buildPreviewUpdate, subscribePreviewCodegen } from "@/wab/client/components/live/preview-codegen";
+import { staticPreviewPageLinks } from "@/wab/client/components/live/preview-page-links";
+import type { Component } from "@/wab/shared/model/classes";
 import {
   liveFrame,
   syncPreview,
@@ -23,6 +25,52 @@ import L from "lodash";
 
 const LIVE_HOST_TIMEOUT_MS = 3 * 60 * 1000;
 
+function currentPreviewUpdate(previewCtx: PreviewCtx) {
+  if (!previewCtx.previewData) { return undefined; }
+  return buildPreviewUpdate(previewCtx.studioCtx, {
+    component: previewCtx.component,
+    previewPath: previewCtx.previewPath,
+    variants: previewCtx.variants,
+    globals: previewCtx.global,
+    pageParams: previewCtx.pageParams,
+    pageQuery: previewCtx.pageQuery,
+    appUser: { user: previewCtx.studioCtx.currentAppUser, userAuthToken: previewCtx.studioCtx.currentAppUserCtx.fakeAuthToken },
+  });
+}
+
+/** Prepare the current page alongside host/library loading, then its authored
+ * link destinations. No runtime is evaluated and no business state is mounted. */
+export async function preparePreviewModules(previewCtx: PreviewCtx, signal: AbortSignal) {
+  const component = previewCtx.component;
+  if (!component || !previewCtx.isLive) { return; }
+  const compiler = previewCtx.previewCompiler;
+  const update = currentPreviewUpdate(previewCtx);
+  if (!update) { return; }
+  await compiler.compile(update.modules, signal);
+  await prepareLinkedPages(previewCtx, component, signal);
+}
+
+/** Compile designs only: route props and business code are never evaluated. */
+export async function preparePreviewPages(previewCtx: PreviewCtx, component: Component, signal: AbortSignal) {
+  if (signal.aborted) { return; }
+  const update = buildPreviewUpdate(previewCtx.studioCtx, {
+    component, previewPath: component.pageMeta?.path ?? "", variants: {}, globals: {}, pageQuery: {}, appUser: {},
+  });
+  // Include this root's default props before starting its linked pages, so
+  // opening it need not queue a tiny props module behind a large destination.
+  await previewCtx.previewCompiler.compile(update.modules, signal);
+  await prepareLinkedPages(previewCtx, component, signal);
+}
+
+async function prepareLinkedPages(previewCtx: PreviewCtx, component: Component, signal: AbortSignal) {
+  const compiler = previewCtx.previewCompiler;
+  const site = previewCtx.studioCtx.site;
+  for (const page of staticPreviewPageLinks(site, component)) {
+    if (signal.aborted || previewCtx.studioCtx.site !== site) { return; }
+    await compiler.compile(buildPreviewModules(previewCtx.studioCtx, page).modules, signal);
+  }
+}
+
 export function pushPreviewModules(
   win: Window,
   previewCtx: PreviewCtx,
@@ -33,23 +81,7 @@ export function pushPreviewModules(
     : undefined;
   const disposeRun = syncPreview(
     win,
-    () => {
-      if (!previewCtx.previewData) {
-        return undefined;
-      }
-      return buildPreviewUpdate(previewCtx.studioCtx, {
-        component: previewCtx.component,
-        previewPath: previewCtx.previewPath,
-        variants: previewCtx.variants,
-        globals: previewCtx.global,
-        pageParams: previewCtx.pageParams,
-        pageQuery: previewCtx.pageQuery,
-        appUser: {
-          user: previewCtx.studioCtx.currentAppUser,
-          userAuthToken: previewCtx.studioCtx.currentAppUserCtx.fakeAuthToken,
-        },
-      });
-    },
+    () => currentPreviewUpdate(previewCtx),
     (error) => {
       if (error) {
         console.error("Live frame refresh error", error);
@@ -64,6 +96,7 @@ export function pushPreviewModules(
     },
     {
       name: "liveUpdate",
+      compileModules: previewCtx.previewCompiler.compile,
       scheduler,
       subscribe: (invalidate) => {
         const disposeRoute = previewCtx.store.subscribe((next, previous) => {
@@ -147,7 +180,7 @@ export async function onLoadInjectLiveRuntime(
   };
   const liveFrameClientJs = await getLiveFrameClientJs();
   scriptExec(frameWindow, liveFrameClientJs);
-  liveFrame(frameWindow).setErrorTitle(translate(getUiLocale(), "Error"));
+  liveFrame(frameWindow).setErrorTitle(translate(getUiLocale(), "Preview unavailable"));
   swallowAnchorClicks(frameWindow.document, onAnchorClick, previewHref);
   (
     frameWindow as unknown as { __Sub: SubDeps }

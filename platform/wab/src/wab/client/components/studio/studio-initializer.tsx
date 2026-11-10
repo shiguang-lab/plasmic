@@ -42,6 +42,7 @@ import { initializePlasmicExtension } from "@/wab/client/screenshot-util";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { StudioLoadTimings } from "@/wab/client/studio-ctx/studio-load-timings";
 import { ProjectId } from "@/wab/shared/ApiSchema";
+import { getArenaFrames } from "@/wab/shared/Arenas";
 import { isUnownedProject } from "@/wab/shared/EntUtil";
 import { spawn } from "@/wab/shared/common";
 import { isHostLessPackage } from "@/wab/shared/core/sites";
@@ -165,6 +166,28 @@ init = async () => {
     });
 
     this.store.setState({ studioCtx, previewCtx });
+
+    // Prepare pure preview code after the active canvas is ready, without
+    // putting compilation on the editor's initial render path.
+    const preparation = new AbortController();
+    this._cleanups.push(() => preparation.abort());
+    studioCtx.runAfterInitialCanvasReady(async () => {
+      if (preparation.signal.aborted) { return; }
+      const idle = requestIdleCallback(() => {
+        if (preparation.signal.aborted) { return; }
+        const component = studioCtx.focusedViewCtx()?.component ??
+          (studioCtx.currentArena && getArenaFrames(studioCtx.currentArena)[0]?.container.component);
+        if (!component) { return; }
+        const site = studioCtx.site;
+        void import("@/wab/client/components/live/live-syncer").then(({ preparePreviewPages }) => {
+          if (!preparation.signal.aborted && studioCtx.site === site) {
+            return preparePreviewPages(previewCtx, component, preparation.signal);
+          }
+          return undefined;
+        }).catch(() => undefined); // The foreground preview reports compilation errors.
+      });
+      this._cleanups.push(() => clearIdleCallback(idle));
+    });
 
     const listener = (e: BeforeUnloadEvent) => {
       if (

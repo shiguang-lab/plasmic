@@ -1,3 +1,4 @@
+import { isKnownArenaFrame } from "@/wab/shared/model/classes";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 
 let nextLintOwner = 0;
@@ -32,7 +33,8 @@ export class LintDocumentInputs {
     if (!this.stop) {
       this.stop = this.studio.subscribeModelChanges((event) => {
         if (!this.isCurrent()) {this.close(); return;}
-        if (event.type === "site-replaced" || event.summary.changes.length) {
+        if (event.type === "site-replaced" || event.summary.changes.some(({ changeNode: { inst, field } }) =>
+          !(isKnownArenaFrame(inst) && (field === "left" || field === "top")))) {
           this.version++; this.listeners.forEach((changed) => changed());
         }
       });

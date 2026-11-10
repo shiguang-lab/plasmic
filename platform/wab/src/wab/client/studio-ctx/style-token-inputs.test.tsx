@@ -247,6 +247,20 @@ it("rejects a new active foreign command handle before it can declare model fiel
   expect(fields).not.toHaveBeenCalled();
 });
 
+it("updates command membership for insertions and removals inside an unfinished command", async () => {
+  const f = await setup();
+  const token = mkStyleToken({ name: "Added", type: "Spacing", value: "8px" });
+  const helper = new VariantedStylesHelper(f.site);
+  await f.studio.changeUnsafe(() => {
+    f.site.styleTokens.push(token);
+    expect(new StyleTokenInputs(f.studio, new MutableToken(token), helper).store.getState()?.activeValue).toBe("8px");
+  });
+  await f.studio.changeUnsafe(() => {
+    f.site.styleTokens.splice(f.site.styleTokens.indexOf(token), 1);
+    expect(() => new StyleTokenInputs(f.studio, new MutableToken(token), helper)).toThrow("another model world");
+  });
+});
+
 it("publishes override ownership changes even when base and active values are equal", async () => {
   const f = await setup("12px");
   await f.studio.changeUnsafe(() => { f.base.isRegistered = true; });

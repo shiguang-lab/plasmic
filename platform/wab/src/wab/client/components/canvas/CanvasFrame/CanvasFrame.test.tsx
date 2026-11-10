@@ -14,6 +14,8 @@ import { mkTplTag } from "@/wab/shared/core/tpls";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import React from "react";
 
+const preview = vi.hoisted(() => ({ visible: false }));
+
 vi.mock("@/wab/client/components/canvas/CanvasFrame/CanvasHeader", () => ({
   CanvasHeader: () => null,
 }));
@@ -24,16 +26,61 @@ vi.mock(
 vi.mock("@/wab/client/components/canvas/CanvasActions/CanvasActions", () => ({
   CanvasActions: () => null,
 }));
-vi.mock("@/wab/client/components/comments/CanvasCommentMarkers", () => ({
-  CanvasCommentMarkers: () => null,
-}));
+vi.mock("@/wab/client/components/comments/CanvasCommentMarkers", async () => {
+  const { createPortal } = await import("react-dom");
+  return { CanvasCommentMarkers: () => preview.visible ? createPortal(<p data-testid="comment-preview">Copy these query instructions</p>, document.body) : null };
+});
 vi.mock("@/wab/client/components/canvas/CopilotActivityOverlay", () => ({
   CopilotActivityOverlay: () => null,
 }));
 
 afterEach(() => {
   cleanup();
+  preview.visible = false;
+  document.getSelection()?.removeAllRanges();
   vi.restoreAllMocks();
+});
+
+it("ignores a portaled comment preview's clicks without cancelling selection or stopping bubbling, while retaining frame clicks", async () => {
+  const site = createSite();
+  const component = mkComponent({ name: "Comments", type: ComponentType.Plain, tplTree: mkTplTag("div") });
+  site.components.push(component);
+  const frame = mkArenaFrame({ site, component, name: "Comments", width: 800, height: 600, left: 0, top: 0 });
+  const arena = mkMixedArena("Comments", [frame]); site.arenas.push(arena);
+  const { studioCtx, app } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Comments" });
+  const { view } = fakeRegistryViewCtx(studioCtx, frame);
+  vi.spyOn(studioCtx, "tryGetViewCtxForFrame").mockReturnValue(view);
+  vi.spyOn(studioCtx, "queueCanvasFrame").mockImplementation(() => vi.fn());
+  vi.spyOn(studioCtx, "showComments").mockReturnValue(true);
+  studioCtx.uiEnvironment.sync();
+  const selectFrame = vi.spyOn(studioCtx, "setStudioFocusOnFrame").mockImplementation(() => undefined);
+  await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+  selectFrame.mockClear();
+  const bubbled = vi.fn(); document.body.addEventListener("click", bubbled);
+  preview.visible = true;
+  const mounted = render(<AppContext.Provider value={app}><CanvasFrame studioCtx={studioCtx} arena={arena} arenaFrame={frame} isFree onFrameLoad={vi.fn()} /></AppContext.Provider>);
+  try {
+    const text = screen.getByTestId("comment-preview");
+    const range = document.createRange(); range.selectNodeContents(text);
+    const selection = document.getSelection(); selection?.addRange(range);
+    const selected = studioCtx.selectionStore.getState();
+    studioCtx.collapseRightPanel();
+    for (let count = 0; count < 2; count++) {
+      fireEvent.pointerDown(text); fireEvent.mouseDown(text);
+      fireEvent.pointerUp(text); fireEvent.mouseUp(text);
+      const click = new MouseEvent("click", { bubbles: true, cancelable: true, detail: count + 1 });
+      await act(async () => { text.dispatchEvent(click); });
+      expect(click.defaultPrevented).toBe(false);
+    }
+    fireEvent.doubleClick(text);
+    expect(bubbled).toHaveBeenCalledTimes(2);
+    expect(selectFrame).not.toHaveBeenCalled();
+    expect(selection?.toString()).toBe("Copy these query instructions");
+    expect(studioCtx.selectionStore.getState()).toBe(selected);
+    expect(studioCtx.rightPanelStore.getState().collapsed).toBe(true);
+    await act(async () => { fireEvent.click(ensure(mounted.container.querySelector(".CanvasFrame__Container"), "Frame content")); });
+    expect(selectFrame).toHaveBeenCalledExactlyOnceWith({ frame });
+  } finally { document.body.removeEventListener("click", bubbled); mounted.unmount(); view.contentEditor.dispose(); studioCtx.dispose(); }
 });
 
 it("shows a bounded local skeleton until first render, preserves component-registration loading, and queues frame identity", async () => {

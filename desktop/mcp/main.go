@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/jsonrpc"
@@ -304,7 +306,7 @@ func main() {
 		os.Exit(1)
 	}
 }
-func run() error {
+func run() (err error) {
 	var data manifest
 	if e := json.Unmarshal(manifestJSON, &data); e != nil {
 		return e
@@ -348,8 +350,18 @@ func run() error {
 		}
 		profile = filepath.Join(base, "Plasmic Desktop")
 	}
-	ctx, cancel := context.WithCancel(context.Background())
-	rpc := &desktopRPC{profile: profile, ctx: ctx}
+	log := newLifecycleLog(profile)
+	log("process.start", map[string]any{"version": data.Version, "platform": platform(), "arch": architecture()})
+	defer func() {
+		fields := map[string]any{"code": 0}
+		if err != nil {
+			fields["code"] = 1
+			fields["error"] = err.Error()
+		}
+		log("process.exit", fields)
+	}()
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	rpc := &desktopRPC{profile: profile, ctx: ctx, log: log}
 	b := &bridge{data: data, rpc: rpc, results: newResultStore(), validators: map[string]*jsonschema.Schema{}}
 	defer func() { cancel(); rpc.close(); b.results.close() }()
 	server := mcp.NewServer(&mcp.Implementation{Name: "plasmic-desktop", Version: data.Version}, &mcp.ServerOptions{Instructions: data.Instructions, Capabilities: &mcp.ServerCapabilities{Tools: &mcp.ToolCapabilities{}}, SupportedProtocolVersions: []string{"2025-11-25", "2025-06-18", "2025-03-26", "2024-11-05"}})
@@ -382,7 +394,12 @@ func run() error {
 			}
 		}
 	})
-	return server.Run(ctx, &mcp.StdioTransport{MaxLineLength: -1})
+	err = runStdio(ctx, server, os.Stdin, os.Stdout, log)
+	if ctx.Err() != nil {
+		log("process.signal", nil)
+		return nil
+	}
+	return err
 }
 func platform() string {
 	if runtime.GOOS == "windows" {

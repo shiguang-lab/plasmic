@@ -105,12 +105,14 @@ const DataQueryRowContent = React.memo(
     const studioCtx = viewCtx.studioCtx;
     const world = useVariantModelWorld(studioCtx, query, viewCtx);
     usePropExpressionInputs(studioCtx, query, query, component);
-    usePropExpressionInputs(studioCtx, component, component.dataQueries, component);
     const migrationEnabled = useQueryMigrationEnabled(studioCtx);
     const isNewlyAdded = useStore(studioCtx.newlyAddedQueryStore, (ref) => ref?.uid === query.uid);
     const userAuthToken = useCurrentAppUserToken(studioCtx);
     const showMigrateItem =
       isDeprecated && migrationEnabled;
+    // Only migration analysis reads other queries. Ordinary rows follow their
+    // own expression without rerendering for every sibling query edit.
+    usePropExpressionInputs(studioCtx, component, showMigrateItem ? component.dataQueries : undefined, component);
     // The integration is only needed for the migrate menu item; don't fetch
     // (and on 403, retry) it otherwise.
     const {

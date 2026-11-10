@@ -635,6 +635,10 @@ replayed. The bridge does not launch Desktop. Closing a window into Dynamic Isla
 keeps Desktop and MCP available; closing the client's STDIO releases its session
 and exits the bridge.
 
+An explicit quit received during a window close runs after that close completes,
+including a transition to Dynamic Island. It still protects local drafts, and
+cancelling draft protection cancels the exit. Quit preserves the last display mode.
+
 The macOS bundle's native executable dispatches `--mcp` directly to the Go bridge
 before loading Electron or registering with LaunchServices. GUI launches call
 ElectronMain from the bundled framework at the same executable path. Packaging
@@ -1027,6 +1031,14 @@ of Desktop-dependent tools while closed, survival of normal quit and GUI crash,
 reconnection through the same bridge processes after restarting Desktop, and bridge
 exit on stdin EOF. It uses local fixtures without NAS or design edits.
 
+`npm run test:desktop-lifecycle` exercises fatal locale initialization, page load
+and error dialog failures, lock release across restarts, ordinary quit, closing to Dynamic
+Island and reopening in that same mode, explicit quit during a pending window
+close, and cancellation of draft protection. `node --test tests/mcp-stdio.test.cjs`
+checks that native helpers exit on stdin EOF or termination even with stdout
+blocked. Go transport tests additionally cover a single blocked large response
+and a failed output stream.
+
 On macOS, after `npm run build:mcp`, run
 `node tests/performance/mcp-bridge.cjs /absolute/path/to/baseline/plasmic-mcp /tmp/mcp-footprint.json`
 from `desktop` to compare a saved helper with the current build. It samples ten
@@ -1083,6 +1095,18 @@ backup (`errors.log.1`). The default macOS profile is
 `~/Library/Application Support/Plasmic Desktop`; `PLASMIC_DESKTOP_PROFILE` overrides
 it. Agent-triggered changes and saves return failures to the caller without
 showing client error toasts. User-triggered operations retain normal feedback.
+
+Desktop lifecycle events are saved to `<profile>/logs/lifecycle.log`; independent
+MCP helpers write `<profile>/logs/mcp-lifecycle.log`. Each rotates at 2 MiB with one
+`.1` backup. Records include UTC time, PID/parent PID, lifecycle event and relevant
+mode, exit code or error. GUI events cover startup readiness/failure, single
+instance locks and activation, window visibility, queued/cancelled quit, draft
+protection and cleanup. MCP events cover startup, Desktop connection loss and
+reconnection, stdin EOF, output failure, termination and exit. Logging is best
+effort and contains no RPC payloads or command-line arguments. A force kill or
+native crash can leave a start record without an exit record. MCP remains alive
+while its client keeps stdin open across GUI restarts; once stdin ends, shutdown
+cancels in-flight responses without waiting for the client to drain stdout.
 
 Verify file logging with `node --test desktop/tests/error-log.test.cjs` and
 `desktop/node_modules/.bin/electron desktop/tests/error-log-native.cjs` from the

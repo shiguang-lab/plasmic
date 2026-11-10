@@ -50,6 +50,7 @@ import { isArray } from "lodash";
 export interface VariantsController {
   /** Canonical inputs used by this controller, without duplicating factory selection. */
   readSources(): { view: ViewCtx | undefined; frame: ArenaFrame | undefined };
+  getSnapshot(variants: readonly Variant[]): ReturnType<typeof controllerSnapshot>;
   onClearVariants: () => void;
   onAddedVariant: (
     variant: Variant,
@@ -70,6 +71,16 @@ export interface VariantsController {
   isTargeted: (variant: Variant) => boolean;
   canChangeActiveVariants: () => boolean;
   canToggleTargeting: (variant: Variant) => boolean;
+}
+
+function controllerSnapshot(manager: PinManager | undefined, variants: readonly Variant[], canChangeVariants: boolean,
+  canToggle: (variant: Variant, active: boolean | undefined) => boolean) {
+  const snapshot = manager?.getSnapshot(variants) ?? {
+    activeVariants: [], targetedVariants: [],
+    variants: variants.map((variant) => ({ variant, pinState: undefined, active: undefined, targeted: false })),
+  };
+  return { ...snapshot, canChangeVariants,
+    variants: snapshot.variants.map((value) => ({ ...value, canToggle: canToggle(value.variant, value.active) })) };
 }
 
 export function makeVariantsController(
@@ -110,6 +121,7 @@ export function makeVariantsController(
 
 export class CustomVariantsController implements VariantsController {
   readSources() { return { view: this.viewCtx, frame: this.viewCtx.arenaFrame() }; }
+  getSnapshot(variants: readonly Variant[]) { return controllerSnapshot(this.pinManager, variants, true, () => true); }
   constructor(private viewCtx: ViewCtx) {}
 
   canChangeActiveVariants() {
@@ -218,6 +230,12 @@ export class CustomVariantsController implements VariantsController {
 
 export class ComponentArenaVariantsController implements VariantsController {
   readSources() { const frame = this.currentFrame; return { frame, view: frame ? this.studioCtx.tryGetViewCtxForFrame(frame) : undefined }; }
+  getSnapshot(variants: readonly Variant[]) {
+    const frame = this.currentFrame;
+    const cellKey = frame ? getCellKeyForFrame(this.currentArena, frame) : undefined;
+    return controllerSnapshot(this.pinManager, variants, false, (variant, active) => isPrivateStyleVariant(variant) ||
+      !!frame && (isScreenVariant(variant) ? cellKeyIncludesVariant(cellKey, variant) : !!active));
+  }
   constructor(private studioCtx: StudioCtx) {
     const focusedVc = studioCtx.focusedViewCtx();
     assert(
@@ -455,6 +473,9 @@ export class ComponentArenaVariantsController implements VariantsController {
 
 export class PageArenaVariantsController implements VariantsController {
   readSources() { const frame = this.currentFrame; return { frame, view: frame ? this.studioCtx.tryGetViewCtxForFrame(frame) : undefined }; }
+  getSnapshot(variants: readonly Variant[]) {
+    return controllerSnapshot(this.pinManager, variants, false, (variant, active) => isPrivateStyleVariant(variant) || !!active);
+  }
   constructor(private studioCtx: StudioCtx) {
     const focusedVc = studioCtx.focusedViewCtx();
     assert(

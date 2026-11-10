@@ -1,4 +1,5 @@
 import { ENV } from "@/wab/client/env";
+import { presentationRequestHeaders } from "@/wab/client/route/presentation-projects";
 import { CacheStorageStore, ResourceCache, resourceSpec, type Identity } from "@plasmic-shared/resource-cache";
 
 const identity: Identity = {
@@ -55,6 +56,13 @@ function browserStorage(): CacheStorage | undefined {
 }
 
 export function fetchLibraryResource(input: string, init?: RequestInit): Promise<Response> {
+  const presentationHeaders = presentationRequestHeaders();
+  if (Object.keys(presentationHeaders).length) {
+    const headers = new Headers(init?.headers);
+    Object.entries(presentationHeaders).forEach(([key, value]) => headers.set(key, value));
+    // Shared links must revalidate their own access, independently of a signed-in cache.
+    return fetch(input, { credentials: "include", ...init, headers, cache: "no-store" });
+  }
   // The App protocol already delegates these requests to the same engine and its file store.
   if (isDesktop()) {return fetch(input, init);}
   const request = new Request(new URL(input, location.href), { credentials: "include", ...init });

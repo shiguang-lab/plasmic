@@ -1,11 +1,12 @@
 import { subscribeStudioArena } from "@/wab/client/studio-ctx/arena-state";
+import { getOutlineModelInput } from "@/wab/client/components/sidebar-tabs/outline-model-inputs";
 import { subscribeFocusedViewSelection, subscribeStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { isElementWithComments } from "@/wab/client/components/comments/utils";
 import { Matcher } from "@/wab/client/components/view-common";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { toOpaque } from "@/wab/commons/types";
-import { AnyArena, FrameViewMode, getArenaFrames } from "@/wab/shared/Arenas";
+import { FrameViewMode, getArenaFrames } from "@/wab/shared/Arenas";
 import { isTplSlotVisible } from "@/wab/shared/cached-selectors";
 import { isPlainObjectPropType } from "@/wab/shared/code-components/code-components";
 import {
@@ -110,11 +111,7 @@ export class OutlineCtx {
     return this.stateStore.getState().expanded;
   }
   private get lastViewedArtboard() {
-    return {
-      get: () => this.stateStore.getState().lastViewedArtboard,
-      set: (value: { arena: AnyArena; frame: ArenaFrame } | undefined) =>
-        patchOutlineState(this.stateStore, { lastViewedArtboard: value }),
-    };
+    return this.stateStore.getState().lastViewedArtboard;
   }
 
   viewCtx = () => {
@@ -129,7 +126,7 @@ export class OutlineCtx {
     if (focused && frames.includes(focused.arenaFrame())) {
       return focused;
     }
-    const lastViewed = this.lastViewedArtboard.get();
+    const lastViewed = this.lastViewedArtboard;
     if (lastViewed?.arena === arena && frames.includes(lastViewed.frame)) {
       const retained = this.studioCtx.tryGetViewCtxForFrame(lastViewed.frame);
       if (retained) {
@@ -141,21 +138,18 @@ export class OutlineCtx {
       ? initial
       : undefined;
   };
-  // No longer memoized: the tree depends on outline expansion/visibility state,
-  // which is not part of the arguments. Callers re-render when the store version
-  // changes, and rebuilding is O(nodes).
-  private rootTreeForView = (
-    view: ViewCtx,
-    _context: ReturnType<ViewCtx["selectionStore"]["getState"]>["context"],
-    _frames: ReturnType<ViewCtx["variantStore"]["getState"]>["frames"],
-    _global: ReturnType<ViewCtx["variantStore"]["getState"]>["global"],
-    _showDefaultSlots: boolean,
-  ) => makeFrameRootNode(view, this);
+  private rootTree: { view: ViewCtx; input: readonly unknown[]; node: OutlineNode | undefined } | undefined;
   rootTreeNode = () => {
     const view = this.viewCtx();
-    if (!view) { return null; }
-    const variants = view.variantStore.getState();
-    return this.rootTreeForView(view, view.selectionStore.getState().context, variants.frames, variants.global, variants.showDefaultSlots);
+    if (!view) { this.rootTree = undefined; return null; }
+    const input = getOutlineModelInput(view).getTreeState();
+    if (!input.length) { this.rootTree = undefined; return null; }
+    // Expansion and focus choose visible rows; they do not change the tree's
+    // model/variant/runtime metadata.
+    if (this.rootTree?.view !== view || this.rootTree.input !== input) {
+      this.rootTree = { view, input, node: makeFrameRootNode(view, this) };
+    }
+    return this.rootTree.node;
   };
   rootNodeKey = () => {
     const view = this.viewCtx();
@@ -246,26 +240,38 @@ export class OutlineCtx {
   private syncSelection() {
     const arena = this.studioCtx.currentArena;
       const view = this.studioCtx.focusedViewCtx();
+      const state = this.stateStore.getState();
+      let lastViewedArtboard = state.lastViewedArtboard;
+      let expandedFrames = state.expandedFrames;
+      let expanded = state.expanded;
       if (arena && view && getArenaFrames(arena).includes(view.arenaFrame())) {
-        const previous = this.lastViewedArtboard.get();
+        const previous = lastViewedArtboard;
         if (previous?.arena !== arena || previous.frame !== view.arenaFrame()) {
-          this.lastViewedArtboard.set({ arena, frame: view.arenaFrame() });
+          lastViewedArtboard = { arena, frame: view.arenaFrame() };
         }
       }
       const path = this.focusedNodeKeyPath();
       if (!arrayEq(path, this.lastFocusedPath) && path.length) {
         const frame = view?.arenaFrame();
-        if (frame) { this.setExpandedFrames(frame, true); }
-        for (const key of path) { this.setExpanded(key, true); }
+        if (frame && expandedFrames.get(frame) !== true) {
+          expandedFrames = new Map(expandedFrames).set(frame, true);
+        }
+        if (path.some((key) => expanded.get(key) !== true)) {
+          const next = new Map(expanded);
+          for (const key of path) { next.set(key, true); }
+          expanded = next;
+        }
       }
       this.lastFocusedPath = path;
       const focusedKey = path[0];
       const focusChanged = focusedKey !== this.lastFocusedKey;
       this.lastFocusedKey = focusedKey;
+      patchOutlineState(this.stateStore, { lastViewedArtboard, expandedFrames, expanded });
       if (focusChanged && this.hasQuery() && focusedKey && !this.isVisible(focusedKey)) { this.clearQuery(); }
   }
 
   dispose() {
+    this.rootTree = undefined;
     this.updateVisible.cancel();
     this.disposals.forEach((d) => d());
     this.frameOutlines.forEach((outline) => outline.dispose());
@@ -329,14 +335,18 @@ export class OutlineCtx {
 
   expandAll() {
     const tree = this.rootTreeNode();
-      if (tree) {
-        this.expandTree(tree);
+    if (!tree) { return; }
+    const expanded = new Map(this.expanded);
+    let changed = false;
+    const expandTree = (node: OutlineNode) => {
+      if (expanded.get(node.self.key) !== true) {
+        expanded.set(node.self.key, true);
+        changed = true;
       }
-  }
-
-  private expandTree(tree: OutlineNode) {
-    this.setExpanded(tree.self.key, true);
-    tree.children.forEach((subtree) => this.expandTree(subtree));
+      node.children.forEach(expandTree);
+    };
+    expandTree(tree);
+    if (changed) { patchOutlineState(this.stateStore, { expanded }); }
   }
 
   collapseAll() {
@@ -345,6 +355,7 @@ export class OutlineCtx {
   }
 
   private setExpandedFrames(frame: ArenaFrame, value: boolean | undefined) {
+    if (this.expandedFrames.get(frame) === value) { return; }
     const next = new Map(this.expandedFrames);
     if (value === undefined) {
       next.delete(frame);
@@ -355,6 +366,7 @@ export class OutlineCtx {
   }
 
   private setExpandedValue(key: OutlineNodeKey, value: boolean) {
+    if (this.expanded.get(key) === value) { return; }
     const next = new Map(this.expanded);
     next.set(key, value);
     patchOutlineState(this.stateStore, { expanded: next });
@@ -692,7 +704,8 @@ function makeNode(
       ? node
       : ownerTplComponent;
 
-  const childrenNodes = withoutNils(
+  let childrenNodes: OutlineNode[] | undefined;
+  const makeChildren = () => withoutNils(
     children.map((child) => {
       const _ancestorLocked =
         isKnownTplNode(node) && node.locked === false
@@ -717,7 +730,9 @@ function makeNode(
 
   return {
     self,
-    children: childrenNodes,
+    // Keep the complete tree available for ancestor reveal and expand-all,
+    // while deferring descendant metadata until a branch is actually visited.
+    get children() { return childrenNodes ??= makeChildren(); },
   };
 }
 

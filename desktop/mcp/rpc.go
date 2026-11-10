@@ -67,6 +67,7 @@ func (s *desktopSession) close() { s.dead.Store(true); s.cancel(); s.conn.Close(
 type desktopRPC struct {
 	profile string
 	ctx     context.Context
+	log     lifecycleLog
 	mu      sync.Mutex
 	session *desktopSession
 }
@@ -141,7 +142,13 @@ func (r *desktopRPC) getSession(requestCtx context.Context, info any) (*desktopS
 		cancel() // Only the lifecycle handshake has the five-second deadline.
 		sessionCtx, sessionCancel := context.WithCancel(r.ctx)
 		s := &desktopSession{conn: c, id: response.Result.CallerID, ctx: sessionCtx, cancel: sessionCancel}
-		go func() { io.Copy(io.Discard, c); s.close() }()
+		go func() {
+			io.Copy(io.Discard, c)
+			s.close()
+			if r.log != nil {
+				r.log("desktop.disconnected", nil)
+			}
+		}()
 		if _, e = r.request(requestCtx, "mcp:register-caller", map[string]any{"clientInfo": info}, s.id); e != nil {
 			s.close()
 			return nil, e
@@ -154,9 +161,15 @@ func (r *desktopRPC) getSession(requestCtx context.Context, info any) (*desktopS
 	}
 	s, e := establish()
 	if e != nil {
+		if r.log != nil {
+			r.log("desktop.unavailable", map[string]any{"error": e.Error()})
+		}
 		return nil, &bridgeError{map[string]any{"message": "Start Plasmic, then call the tool again to reconnect.", "name": "Error", "cause": detail(e), "code": "DESKTOP_UNAVAILABLE", "operationExecuted": false}}
 	}
 	r.session = s
+	if r.log != nil {
+		r.log("desktop.connected", nil)
+	}
 	return s, nil
 }
 func (r *desktopRPC) call(ctx context.Context, name string, input any, info any) (any, error) {

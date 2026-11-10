@@ -34,11 +34,12 @@ import { createSite } from "@/wab/shared/core/sites";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { mkSlot } from "@/wab/shared/core/tpls";
 import { mkParam } from "@/wab/shared/core/lang";
-import { ensureKnownSlotParam } from "@/wab/shared/model/classes";
+import { ensureKnownSlotParam, ensureKnownTplTag } from "@/wab/shared/model/classes";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { Table } from "antd";
 
 import React from "react";
+import { writeFileSync } from "fs";
 
 function subscribeRedraw(store: StoreApi<number>, draw: () => void) {
   draw();
@@ -115,6 +116,65 @@ function fixture() {
   return { session, snapshots, owner, context, tick, commits, selection, component, viewCtx, renderPolicy, get frameInfo() { return getFrameInfo(); }, contentEditors, contentEditor, draggingState: studioCtx.draggingObjectStore, autoOpenRequested,
     dispose: () => { contentEditor.dispose(); overlayState.dispose(); arenaState.dispose(); studioSelection.dispose(); contentEditors.dispose(); owner.dispose(); frameInfoOwner?.dispose(); renderPolicy.dispose(); registrations.dispose(); session.dispose(); selection.dispose(); variants.dispose(); frameState.dispose(); snapshots.dispose(); } };
 }
+
+it.each([100, 1000])("shares native observer context across %i unselected siblings", (count) => {
+  const f = fixture(), nodes = Array.from({ length: count }, () => mkTplTagX("span"));
+  const lifetime = new AbortController();
+  Object.defineProperty(f.viewCtx, "disposeSignal", { value: lifetime.signal });
+  const root = f.component.tplTree;
+  const tag = ensureKnownTplTag(root); tag.children.push(...nodes); nodes.forEach((node) => { node.parent = root; });
+  const original = f.viewCtx.valComponentStack.bind(f.viewCtx);
+  let runtimeReads = 0, notices = 0;
+  f.viewCtx.valComponentStack = () => { runtimeReads++; return original(); };
+  const stops = nodes.map((node, index) => f.owner.observerInput(f.viewCtx, node, f.context(`root.${index}`)).subscribe(() => { notices++; }));
+  try {
+    runtimeReads = 0;
+    const start = performance.now();
+    f.selection.setTpls([root]);
+    const selection = { phase: "select root while child observers remain unchanged", runtimeReads, notices, ms: performance.now() - start };
+    if (process.env.OBSERVER_PERF_OUTPUT) { writeFileSync(`${process.env.OBSERVER_PERF_OUTPUT}-${count}.json`, JSON.stringify({ count, selection }, null, 2)); }
+    expect(runtimeReads).toBeLessThanOrEqual(2);
+    expect(notices).toBe(0);
+  } finally { stops.forEach((stop) => stop()); lifetime.abort(); f.dispose(); }
+});
+
+it("keeps observer context changes precise and rebinds runtime stack subscriptions", () => {
+  const f = fixture(), lifetime = new AbortController();
+  Object.defineProperty(f.viewCtx, "disposeSignal", { value: lifetime.signal });
+  const nested = mkComponent({ name: "Nested", type: ComponentType.Plain, tplTree: mkTplTagX("div") });
+  const unrelated = mkComponent({ name: "Other", type: ComponentType.Plain, tplTree: mkTplTagX("div") });
+  const rootTpl = mkTplComponent(f.component, f.component.variants[0]), nestedTpl = mkTplComponent(nested, nested.variants[0]);
+  const value = (tpl: typeof rootTpl, key: string, owner?: ValComponent) => new ValComponent({
+    tpl, key, fullKey: key, frameUid: 1, valOwner: owner, parent: undefined,
+    fibers: [], className: "", slotInfo: undefined, slotArgs: new Map(), slotCanvasEnvs: new Map(),
+  });
+  const rootVal = value(rootTpl, "root"), nestedVal = value(nestedTpl, "root.inner", rootVal);
+  const rootFrame = new TransientComponentVariantFrame(rootTpl), nestedFrame = new TransientComponentVariantFrame(nestedTpl);
+  const expanded = () => !!rootVal.codeComponentProps?.nested;
+  Object.assign(f.viewCtx, {
+    currentComponent: () => expanded() ? nested : f.component,
+    valComponentStack: () => expanded() ? [rootVal, nestedVal] : [rootVal],
+    componentStackFrames: () => expanded() ? [rootFrame, nestedFrame] : [rootFrame],
+  });
+  f.viewCtx.frameState.valRootStore.setState(rootVal, true);
+  const a = vi.fn(), b = vi.fn(), other = vi.fn();
+  const stops = [
+    f.owner.observerInput(f.viewCtx, mkTplTagX("div"), { ...f.context("root.first"), ownerComponent: f.component, ownerKey: "root" }).subscribe(a),
+    f.owner.observerInput(f.viewCtx, mkTplTagX("span"), { ...f.context("root.inner.tag"), ownerComponent: nested, ownerKey: "root.inner" }).subscribe(b),
+    f.owner.observerInput(f.viewCtx, mkTplTagX("i"), { ...f.context("root.other"), ownerComponent: unrelated, ownerKey: "root.other" }).subscribe(other),
+  ];
+  try {
+    rootVal.codeComponentProps = { nested: true };
+    expect(a).toHaveBeenCalledOnce(); expect(b).toHaveBeenCalledOnce(); expect(other).not.toHaveBeenCalled();
+    rootVal.codeComponentProps = { nested: false };
+    expect(a).toHaveBeenCalledTimes(2); expect(b).toHaveBeenCalledTimes(2);
+    nestedVal.codeComponentProps = { detached: true };
+    expect(a).toHaveBeenCalledTimes(2); expect(b).toHaveBeenCalledTimes(2); expect(other).not.toHaveBeenCalled();
+    stops.forEach((stop) => stop());
+    rootVal.codeComponentProps = { nested: true };
+    expect(a).toHaveBeenCalledTimes(2);
+  } finally { stops.forEach((stop) => stop()); lifetime.abort(); f.dispose(); }
+});
 
 it("invalidates the changed instance and its cached ancestors while preserving sibling types/results", () => {
   const f = fixture();

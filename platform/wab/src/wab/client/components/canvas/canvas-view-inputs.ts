@@ -1,8 +1,8 @@
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import type { ModelFieldStore, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import type { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import type { ObjInst } from "@/wab/shared/model/classes";
-import { arrayEq } from "@/wab/shared/common";
+import { ModelFieldInputs } from "@/wab/client/stores/model-field-inputs";
 import * as React from "react";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 
@@ -15,35 +15,23 @@ const inactive: Snapshot = Object.freeze({ alive: false, fields: Object.freeze([
 /** Finite model fields for canvas chrome, tied to the originating view world. */
 export class CanvasViewInputs {
   private current = inactive;
-  private readonly fields = new Map<ModelFieldStore<unknown>, () => void>();
-  private readonly listeners = new Set<() => void>();
-  private connected = false;
-  constructor(private readonly scope: Scope, private readonly recipe: CanvasViewFieldRecipe) {}
+  private readonly inputs;
+  constructor(private readonly scope: Scope, recipe: CanvasViewFieldRecipe) {
+    this.inputs = new ModelFieldInputs({ models: scope.models, lifetime: scope.signal,
+      isCurrent: () => !this.closed() }, recipe);
+  }
   private closed = () => {
     if (this.scope.retired || this.scope.signal.aborted || this.scope.models !== this.scope.studio.modelSnapshots) { this.scope.retired = true; return true; }
     return false;
   };
-  private disconnect = () => { this.connected = false; this.scope.signal.removeEventListener("abort", this.close); this.fields.forEach((stop) => stop()); this.fields.clear(); };
-  private close = () => { this.scope.retired = true; this.current = inactive; this.disconnect(); this.listeners.forEach((listener) => listener()); };
-  private sync = () => { const before = this.current; this.getSnapshot(); if (before !== this.current) { this.listeners.forEach((listener) => listener()); } };
   getSnapshot = (): Snapshot => {
-    if (this.closed()) { this.scope.retired = true; this.current = inactive; this.disconnect(); return this.current; }
-    const used = new Set<ModelFieldStore<unknown>>();
-    this.recipe((model, ...keys) => keys.forEach((key) => used.add(this.scope.models.declaredField(model, key))));
-    const values = [...used].map((store) => store.getState());
-    if (!this.current.alive || !arrayEq(this.current.fields, values)) { this.current = Object.freeze({ alive: true, fields: Object.freeze(values) }); }
-    if (this.connected) {
-      for (const store of used) { if (!this.fields.has(store)) { this.fields.set(store, store.subscribe(this.sync)); } }
-      for (const [store, stop] of this.fields) { if (!used.has(store)) { stop(); this.fields.delete(store); } }
-    }
+    if (this.closed()) { return inactive; }
+    const fields = this.inputs.read();
+    if (!this.current.alive || this.current.fields !== fields) { this.current = Object.freeze({ alive: true, fields }); }
     return this.current;
   };
-  subscribe = (listener: () => void) => {
-    if (this.closed()) { this.scope.retired = true; return () => undefined; }
-    this.listeners.add(listener);
-    if (!this.connected) { this.connected = true; this.scope.signal.addEventListener("abort", this.close, { once: true }); this.sync(); }
-    return () => { this.listeners.delete(listener); if (!this.listeners.size) { this.disconnect(); } };
-  };
+  subscribe = (listener: () => void) => this.inputs.subscribe(listener);
+
 }
 
 const emptySubscribe = () => () => undefined;

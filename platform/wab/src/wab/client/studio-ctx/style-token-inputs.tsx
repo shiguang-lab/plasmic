@@ -3,6 +3,7 @@ import type { StyleTokenValue } from "@/wab/commons/StyleToken";
 import type { ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
 import { assert } from "@/wab/shared/common";
 import { walkDependencyTree } from "@/wab/shared/core/project-deps";
+import { memoizeModelQuery, type ModelQueryField } from "@/wab/shared/model-query";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import type { FinalToken } from "@/wab/shared/core/tokens";
@@ -19,6 +20,16 @@ export interface StyleTokenScope {
 // Ownership metadata only. A command handle never changes worlds; a new handle
 // may bind to the next world. Values remain on each demanded read resource.
 const tokenScopes = new WeakMap<StudioCtx, WeakMap<FinalToken<StyleToken>, StyleTokenScope>>();
+const tokenMembership = memoizeModelQuery((site: StudioCtx["site"]) =>
+  new Set([site, ...walkDependencyTree(site, "all").map(dep => dep.site)].flatMap(owner => owner.styleTokens)), {
+  dependencies: (_tokens, site) => {
+    const fields: ModelQueryField[] = [[site, "styleTokens"], [site, "projectDependencies"]];
+    for (const dependency of walkDependencyTree(site, "all")) {
+      fields.push([dependency, "site"], [dependency.site, "styleTokens"], [dependency.site, "projectDependencies"]);
+    }
+    return fields;
+  },
+});
 export function getStyleTokenScope(studio: StudioCtx, token: FinalToken<StyleToken>): StyleTokenScope {
   let scopes = tokenScopes.get(studio);
   const previous = scopes?.get(token);
@@ -26,7 +37,7 @@ export function getStyleTokenScope(studio: StudioCtx, token: FinalToken<StyleTok
   const scope = { models: studio.modelSnapshots, owner: studio.singleRsStyleInputs,
     lifetime: studio.arenaState.lifetime(), site: studio.site };
   if (!scope.owner.isDisposed && !scope.lifetime.aborted) {
-    assert(scope.site.styleTokens.includes(token.base) || walkDependencyTree(scope.site, "all").some((dep) => dep.site.styleTokens.includes(token.base)),
+    assert(tokenMembership(scope.site).has(token.base),
       "Style token command belongs to another model world");
   }
   if (!scopes) { scopes = new WeakMap(); tokenScopes.set(studio, scopes); }
@@ -47,14 +58,16 @@ export interface StyleTokenSnapshot {
   readonly canUpdate: boolean;
 }
 
-/** One demanded token's display inputs. Reference strings remain references;
- * this source never expands the site's token dictionary or resolves aliases. */
+/** One demanded token's display inputs use a shared ownership index. Reference
+ * strings remain references; the demanding picker owns alias resolution. */
 export class StyleTokenInputs {
   private readonly models;
   private readonly owner;
   private readonly lifetime;
   private readonly site;
   private current: StyleTokenSnapshot | undefined;
+  private published: StyleTokenSnapshot | undefined;
+  private captured = new Map<ModelFieldStore<unknown>, unknown>();
   private readonly initial: StyleTokenSnapshot | undefined;
   private readonly fields = new Map<ModelFieldStore<unknown>, { prepare: () => void; publish: () => void }>();
   private readonly listeners = new Set<(next: StyleTokenSnapshot | undefined, previous: StyleTokenSnapshot | undefined) => void>();
@@ -75,14 +88,17 @@ export class StyleTokenInputs {
     this.site = scope.site;
     this.current = this.getSnapshot();
     this.initial = this.current;
+    this.published = this.current;
   }
   private isClosed() { return this.closed || this.owner.isDisposed || this.lifetime.aborted; }
   private invalidate = () => { this.dirty = true; };
   private publish = () => {
     if (this.isClosed()) { this.close(); return; }
-    const previous = this.current;
     this.getSnapshot();
-    if (previous !== this.current) { this.listeners.forEach((listener) => listener(this.current, previous)); }
+    if (this.published !== this.current) {
+      const previous = this.published; this.published = this.current;
+      this.listeners.forEach((listener) => listener(this.current, previous));
+    }
   };
   private disconnect = () => {
     this.connected = false;
@@ -93,7 +109,9 @@ export class StyleTokenInputs {
   private close = () => { this.closed = true; this.disconnect(); this.listeners.clear(); };
 
   getSnapshot = (): StyleTokenSnapshot | undefined => {
-    if (this.isClosed() || !this.dirty) { return this.current; }
+    if (this.isClosed()) { return this.current; }
+    if (!this.connected && [...this.captured].some(([field, value]) => field.getState() !== value)) { this.dirty = true; }
+    if (!this.dirty) { return this.current; }
     const used = new Set<ModelFieldStore<unknown>>();
     const field = (model: ObjInst, ...names: string[]) => {
       names.forEach((name) => used.add(this.models.declaredField(model, name)));
@@ -155,6 +173,7 @@ export class StyleTokenInputs {
         if (!used.has(store)) { stops.prepare(); stops.publish(); this.fields.delete(store); }
       }
     }
+    this.captured = new Map([...used].map(store => [store, store.getState()]));
     this.dirty = false;
     return this.current;
   };

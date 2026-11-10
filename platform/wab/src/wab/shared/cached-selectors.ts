@@ -80,7 +80,7 @@ import {
 import { getProjectFlags } from "@/wab/shared/devflags";
 import { shallow } from "zustand/shallow";
 import isEqual from "lodash/isEqual";
-import { memoizeModelQuery } from "@/wab/shared/model-query";
+import { memoizeModelQuery, type ModelQueryField } from "@/wab/shared/model-query";
 import {
   ArenaFrame,
   CodeComponentVariantMeta,
@@ -103,6 +103,7 @@ import {
   TplComponent,
   TplNode,
   TplSlot,
+  TplTag,
   Variant,
   VariantGroup,
   VariantSetting,
@@ -115,6 +116,8 @@ import {
   isKnownQueryRef,
   isKnownTplRef,
   isKnownVarRef,
+  isKnownRenderExpr,
+  isKnownRenderableType,
 } from "@/wab/shared/model/classes";
 import { isDataTokenUsedInExpr } from "@/wab/shared/refactoring";
 import { parse$$PropertyAccesses } from "@/wab/shared/utils/regex-dollardollar";
@@ -129,6 +132,34 @@ export const flattenComponent = memoizeModelQuery(function flattenComponent(
   component: Component,
 ) {
   return component.tplTree ? flattenTpls(component.tplTree) : [];
+}, {
+  // Topology survives unrelated model writes. Declare all inputs of
+  // tplChildren/getSlotArgs, including changes to what constitutes a slot.
+  dependencies: (nodes, component) => {
+    const fields: ModelQueryField[] = [[component, "tplTree"]];
+    for (const node of nodes) {
+      switchType(node)
+        .when(TplTag, (tag) => { fields.push([tag, "children"]); })
+        .when(TplSlot, (slot) => { fields.push([slot, "defaultContents"]); })
+        .when(TplComponent, (tpl) => {
+          fields.push([tpl, "component"], [tpl, "vsettings"], [tpl.component, "params"]);
+          tpl.component.params.forEach((param) => {
+            fields.push([param, "type"]);
+            if (isKnownRenderableType(param.type)) { fields.push([param.type, "name"]); }
+          });
+          tpl.vsettings.forEach((setting) => {
+            fields.push([setting, "variants"], [setting, "args"]);
+            setting.variants.forEach((variant) => fields.push([variant, "name"]));
+            setting.args.forEach((arg) => {
+              fields.push([arg, "param"], [arg, "expr"]);
+              if (isKnownRenderExpr(arg.expr)) { fields.push([arg.expr, "tpl"]); }
+            });
+          });
+        })
+        .result();
+    }
+    return fields;
+  },
 });
 
 export const extractComponentVariantSettings = memoizeModelQuery((site: Site, component: Component, ordered: boolean) => {

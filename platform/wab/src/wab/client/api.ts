@@ -1,4 +1,5 @@
 import { logError } from "@/wab/client/ErrorNotifications";
+import { presentationRequestHeaders } from "@/wab/client/route/presentation-projects";
 import { clearResourceCache, fetchLibraryResource, setResourceCacheUser } from "@/wab/client/resource-cache";
 import {
   LocalStorageKey,
@@ -112,6 +113,10 @@ export const ajax = async (
       type: method,
       ...params,
       ...opts,
+      headers: {
+        ...(method === "get" ? presentationRequestHeaders() : {}),
+        ...(opts as JQuery.AjaxSettings | undefined)?.headers,
+      },
     })
       .done((responseData, _txtStatus, _xhr) => {
         resolve(responseData);

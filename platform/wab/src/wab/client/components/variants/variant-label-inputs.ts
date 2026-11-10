@@ -3,10 +3,9 @@ import { Selector, styleOrCodeComponentVariantToSelectors } from "@/wab/client/c
 import { isPrivateStyleVariant, isStyleOrCodeComponentVariant, makeVariantName, toVariantKey } from "@/wab/shared/Variants";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import type { ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
-import { arrayEq } from "@/wab/shared/common";
+import { ModelFieldInputs } from "@/wab/client/stores/model-field-inputs";
 import { isCodeComponentVariant } from "@/wab/shared/Variants";
-import { Component, ObjInst, TplNode, TplTag, Variant, VariantGroup, isKnownGlobalVariantSplitContent, isKnownTplComponent, isKnownTplTag, isKnownVariant, isKnownCustomCode } from "@/wab/shared/model/classes";
+import { Component, TplNode, TplTag, Variant, VariantGroup, isKnownGlobalVariantSplitContent, isKnownTplComponent, isKnownTplTag, isKnownVariant, isKnownCustomCode } from "@/wab/shared/model/classes";
 import * as React from "react";
 
 export interface VariantLabelEntry {
@@ -46,14 +45,9 @@ export function useVariantLabelInputs(studio: StudioCtx, variant: Variant | read
 }
 
 function createVariantLabelInputsSource(world: ReturnType<typeof useVariantModelWorld>, studio: ReturnType<typeof useVariantModelWorld>['studio'], variant: Parameters<typeof useVariantLabelInputs>[1], scopeComponent: VariantLabelScope["component"], scopeSuperComp: VariantLabelScope["superComp"], scopeFocusedTag: VariantLabelScope["focusedTag"], scopeSplitGroup: VariantLabelScope["splitGroup"], scopeComponentVariants: VariantLabelScope["componentVariants"], scopeNode: VariantLabelScope["node"], scopeGroup: VariantLabelScope["group"]) {
-    const { models, site, lifetime } = world;
-    let currentFields: readonly unknown[] = Object.freeze([]);
-    let current: VariantLabelSnapshot = Object.freeze({entries: Object.freeze([])});
-    const fields = new Map<ModelFieldStore<unknown>, () => void>(), listeners = new Set<() => void>();
-    const read = () => {
-      if (world.studio !== studio || !world.isCurrent()) { return current; }
-      const used = new Set<ModelFieldStore<unknown>>();
-      const field = (model: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(models.declaredField(model, key)));
+    const { site } = world;
+    const inputs = new ModelFieldInputs({ models: world.models, lifetime: world.lifetime,
+      isCurrent: () => world.studio === studio && world.isCurrent() }, (field) => {
       const variants: readonly Variant[] = isKnownVariant(variant) ? [variant] : scopeGroup ? scopeGroup.variants : scopeComponentVariants && scopeComponent ? scopeComponent.variants : variant;
       if (scopeGroup) { field(scopeGroup, "variants", "param"); field(scopeGroup.param, "variable"); field(scopeGroup.param.variable, "name"); }
       variants.forEach((value) => {
@@ -112,9 +106,15 @@ function createVariantLabelInputsSource(world: ReturnType<typeof useVariantModel
           });
         });
       }
-      const next = [...used].map((store) => store.getState());
-      if (!arrayEq(currentFields, next)) {
-        currentFields = Object.freeze(next);
+    });
+    let currentFields: readonly unknown[] | undefined;
+    let current: VariantLabelSnapshot = Object.freeze({ entries: Object.freeze([]) });
+    const read = () => {
+      if (!inputs.isCurrent()) { return current; }
+      const next = inputs.read();
+      if (currentFields !== next) {
+        currentFields = next;
+      const variants: readonly Variant[] = isKnownVariant(variant) ? [variant] : scopeGroup ? scopeGroup.variants : scopeComponentVariants && scopeComponent ? scopeComponent.variants : variant;
         current = Object.freeze({entries: Object.freeze(variants.map(value => Object.freeze({
           variant: value,
           name: makeVariantName({variant: value, superComp: scopeSuperComp, focusedTag: scopeFocusedTag, site, useGroupNameForSplits: scopeSplitGroup}),
@@ -125,18 +125,7 @@ function createVariantLabelInputsSource(world: ReturnType<typeof useVariantModel
           rootIsCode: isTplCodeComponent(scopeComponent?.tplTree),
         })))});
       }
-      if (listeners.size) {
-        used.forEach((store) => { if (!fields.has(store)) { fields.set(store, store.subscribe(sync)); } });
-        for (const [store, stop] of fields) { if (!used.has(store)) { stop(); fields.delete(store); } }
-      }
       return current;
     };
-    const disconnect = () => { fields.forEach((stop) => stop()); fields.clear(); lifetime.removeEventListener("abort", disconnect); };
-    const sync = () => { const before = current; read(); if (before !== current) { listeners.forEach((listener) => listener()); } };
-    const subscribe = (listener: () => void) => {
-      if (world.studio !== studio || !world.isCurrent()) { return () => undefined; }
-      listeners.add(listener); lifetime.addEventListener("abort", disconnect, { once: true }); read();
-      return () => { listeners.delete(listener); if (!listeners.size) { disconnect(); } };
-    };
-    return { read, subscribe };
-  }
+    return { read, subscribe: inputs.subscribe };
+}

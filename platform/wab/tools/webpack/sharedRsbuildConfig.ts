@@ -78,7 +78,13 @@ export function mkSharedRsbuildConfig(opts: {
         },
       } : {}),
       rspack: {
-        module: { rules: [previewCompilerBrowserRule] },
+        module: {
+          rules: [previewCompilerBrowserRule],
+          parser: { javascript: { worker: [
+            "PreviewWorker from @/wab/client/components/live/preview-worker",
+            "...",
+          ] } },
+        },
         plugins: [
           new ProvidePlugin({
             process: [require.resolve("process/browser")],

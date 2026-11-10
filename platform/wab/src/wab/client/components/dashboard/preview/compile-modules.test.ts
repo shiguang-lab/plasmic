@@ -1,4 +1,5 @@
-import { compileModules, type PreviewCompilerReply } from "@/wab/client/components/dashboard/preview/compile-modules";
+import { compileModules } from "@/wab/client/components/dashboard/preview/compile-modules";
+import type { PreviewCompilerReply, PreviewCompilerRequest } from "@/wab/client/components/live/preview-compiler";
 import type { SourceModule } from "@/wab/client/components/live/preview-types";
 
 const source: SourceModule[] = [{ name: "./root.tsx", lang: "tsx", source: 'export default function Root(){return <span/>;}' }];
@@ -23,10 +24,10 @@ it("terminates the classic batch compiler before delivering code to its caller",
     return modules;
   });
   const worker = workers[0];
-  expect(worker.options).toEqual({ type: "classic", name: "dashboard-preview-compiler" });
-  expect(worker.url.pathname).toMatch(/\/compiler\.worker\.ts$/);
-  expect(worker.postMessage).toHaveBeenCalledExactlyOnceWith(source);
-  worker.onmessage?.(new MessageEvent("message", { data: { modules: compiled } }));
+  expect(worker.options).toEqual({ type: "classic", name: "preview-compiler" });
+  expect(worker.url.pathname).toMatch(/\/preview-compiler\.worker\.ts$/);
+  expect(worker.postMessage).toHaveBeenCalledExactlyOnceWith({ id: 1, modules: source });
+  worker.onmessage?.(new MessageEvent("message", { data: { id: 1, modules: compiled } }));
   expect(await result).toEqual(compiled);
   expect(remove).toHaveBeenCalledOnce();
   expect(worker.onmessage).toBeNull();
@@ -40,7 +41,7 @@ it.each(["compiler", "worker", "messageerror", "abort"])("terminates a failed ba
   const rejected = expect(result).rejects.toThrow();
   const worker = workers[0];
   if (kind === "compiler") {
-    worker.onmessage?.(new MessageEvent("message", { data: { error: { name: "CompilerError", message: "Rejected component", stack: "original stack" } } }));
+    worker.onmessage?.(new MessageEvent("message", { data: { id: 1, error: { name: "CompilerError", message: "Rejected component", stack: "original stack" } } }));
   } else if (kind === "worker") {
     const event = new ErrorEvent("error", { message: "Compiler chunk failed", cancelable: true });
     worker.onerror?.(event);
@@ -72,14 +73,14 @@ it("terminates when posting a batch fails", async () => {
   expect(workers[0].terminate).toHaveBeenCalledOnce();
 });
 
-it.each(["valid", "finally", "invalid-hooks", "unvisited"])("uses the real strict compiler inside the single-use worker (%s)", async (kind) => {
+it.each(["valid", "finally", "invalid-hooks", "unvisited"])("uses the real strict compiler inside the shared compiler worker (%s)", async (kind) => {
   vi.resetModules();
   const scope: {
-    onmessage: ((event: MessageEvent<SourceModule[]>) => Promise<void>) | null;
+    onmessage: ((event: MessageEvent<PreviewCompilerRequest>) => Promise<void>) | null;
     postMessage: ReturnType<typeof vi.fn>;
   } = { onmessage: null, postMessage: vi.fn() };
   vi.stubGlobal("self", scope);
-  await import("./compiler.worker");
+  await import("../../live/preview-compiler.worker");
   const input: SourceModule[] = [
     { name: "./root.tsx", lang: "tsx", source: kind === "invalid-hooks"
       ? 'import React from "react"; export function Root({on}){if(on){React.useState(0);}return <span/>;}'
@@ -90,8 +91,8 @@ it.each(["valid", "finally", "invalid-hooks", "unvisited"])("uses the real stric
         : 'import React from "react"; export function Root({value}){return <span>{value}</span>;}' },
     { name: "./style.css", lang: "css", source: "span{color:red}" },
   ];
-  await scope.onmessage?.(new MessageEvent("message", { data: input }));
-  expect(scope.onmessage).toBeNull();
+  await scope.onmessage?.(new MessageEvent("message", { data: { id: 1, modules: input } }));
+  expect(scope.onmessage).toBeTypeOf("function");
   expect(scope.postMessage).toHaveBeenCalledOnce();
   const reply: PreviewCompilerReply = scope.postMessage.mock.calls[0][0];
   if (kind === "invalid-hooks") {

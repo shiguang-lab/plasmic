@@ -10,6 +10,7 @@ beforeEach(() => {
   vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
 });
 afterEach(() => {
+  document.getSelection()?.removeAllRanges();
   document.body.innerHTML = "";
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
@@ -47,7 +48,7 @@ async function fixture() {
     document.activeElement?.dispatchEvent(event);
     return event;
   };
-  return { studioCtx, view, copy, cut, paste, bottomModal, viewport, clipboardEvent,
+  return { studioCtx, view, editor, clipper, copy, cut, paste, bottomModal, viewport, clipboardEvent,
     dispose: () => { editor.dispose(); studioCtx.dispose(); } };
 }
 
@@ -62,6 +63,43 @@ it("routes real copy, cut and paste events from the outline's shared scrolling v
     expect(f.copy).toHaveBeenCalledWith(expect.anything(), f.view);
     expect(f.cut).toHaveBeenCalledWith(expect.anything(), f.view);
     expect(f.paste).toHaveBeenCalledOnce();
+  } finally { f.dispose(); }
+});
+
+it("keeps selected panel text native even when focus remains on body, then resumes model copying when selection clears", async () => {
+  const f = await fixture();
+  try {
+    const text = document.body.appendChild(document.createElement("p"));
+    text.textContent = "Copy these query instructions";
+    const range = document.createRange(); range.selectNodeContents(text);
+    const selection = document.getSelection(); selection?.addRange(range);
+    expect(document.activeElement).toBe(document.body);
+    for (const type of ["copy", "cut"] as const) {
+      expect(f.clipboardEvent(type).defaultPrevented).toBe(false);
+    }
+    expect(f.copy).not.toHaveBeenCalled(); expect(f.cut).not.toHaveBeenCalled();
+    expect(selection?.toString()).toBe("Copy these query instructions");
+    selection?.removeAllRanges();
+    expect(f.clipboardEvent("copy").defaultPrevented).toBe(true);
+    expect(f.copy).toHaveBeenCalledOnce();
+  } finally { f.dispose(); }
+});
+
+it("lets portal pointer events bubble without starting canvas gestures, and still handles canvas pointerdown", async () => {
+  const f = await fixture();
+  try {
+    const handle = vi.spyOn(f.editor as any, "handleMouseDown").mockResolvedValue(undefined);
+    const bubbled = vi.fn(); document.body.addEventListener("pointerdown", bubbled);
+    try {
+      const popup = document.body.appendChild(document.createElement("div"));
+      const event = new MouseEvent("pointerdown", { bubbles: true, cancelable: true });
+      popup.dispatchEvent(event);
+      expect(event.defaultPrevented).toBe(false);
+      expect(bubbled).toHaveBeenCalledOnce();
+      expect(handle).not.toHaveBeenCalled();
+      f.clipper.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, cancelable: true }));
+      expect(handle).toHaveBeenCalledOnce();
+    } finally { document.body.removeEventListener("pointerdown", bubbled); }
   } finally { f.dispose(); }
 });
 

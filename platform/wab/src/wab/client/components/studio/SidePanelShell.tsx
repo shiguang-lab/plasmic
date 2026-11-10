@@ -43,9 +43,12 @@ export const SidePanelShell = React.forwardRef<
     open: boolean;
     side: "left" | "right";
     style?: React.CSSProperties;
+    /** Suspend hidden content's effects while retaining DOM/state. Disable
+     * preservation when its model owner retires so old controls are removed. */
+    preserveContent?: boolean;
     children?: React.ReactNode;
   }
->(function SidePanelShell({ open, side, style, children }, ref) {
+>(function SidePanelShell({ open, side, style, preserveContent = false, children }, ref) {
   const { styles } = useStyles();
   const shellRef = React.useRef<HTMLDivElement>(null);
   const mergedRef = React.useMemo(() => mergeRefs(ref, shellRef), [ref]);
@@ -78,7 +81,11 @@ export const SidePanelShell = React.forwardRef<
         data-test-id={`${side}-panel-shell`}
         aria-hidden={!open}
       >
-        {open || present ? children : null}
+        {preserveContent ? (
+          <React.Activity mode={open || present ? "visible" : "hidden"}>
+            {children}
+          </React.Activity>
+        ) : open || present ? children : null}
       </div>
     </div>
   );

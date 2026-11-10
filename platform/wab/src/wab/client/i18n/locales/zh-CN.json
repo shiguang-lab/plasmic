@@ -126,6 +126,7 @@
   "Forum": "论坛",
   "Back to dashboard": "返回仪表盘",
   "Preview": "预览",
+  "Preview unavailable": "预览加载失败",
   "Back to editor": "返回编辑器",
   "Rename project": "重命名项目",
   "Publish": "发布",
@@ -5795,5 +5796,18 @@
   "Invite by email": "邮箱邀请",
   "Enable link invitations": "启用链接邀请",
   "Default role": "默认角色",
-  "People can register or sign in and use this link to join the organization.": "用户注册或登录后，可通过此链接加入组织。"
+  "People can register or sign in and use this link to join the organization.": "用户注册或登录后，可通过此链接加入组织。",
+  "Open comment by {name}": "打开 {name} 的评论",
+  "Comment details": "评论详情",
+  "Back to comments": "返回评论列表",
+  "Previous comment": "上一条评论",
+  "Next comment": "下一条评论",
+  "Locate comment target": "定位评论对象",
+  "Comment resolved": "评论已解决",
+  "Mention someone": "提及成员",
+  "Enter to send": "Enter 发送",
+  "Shift+Enter for a new line": "Shift+Enter 换行",
+  "Unnamed element": "未命名元素",
+  "Failed to send comment": "发送评论失败",
+  "No replies yet": "还没有回复"
 }

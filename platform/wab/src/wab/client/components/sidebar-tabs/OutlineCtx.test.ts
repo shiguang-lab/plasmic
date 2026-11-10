@@ -198,6 +198,30 @@ it("reveals the next selection while retaining existing expansion and explicit c
   f.outline.dispose();
 });
 
+it("publishes the complete selected ancestor chain once and skips repeated expansion", () => {
+  const f = setup();
+  const snapshots: ReturnType<typeof f.outline.stateStore.getState>[] = [];
+  const stop = f.outline.stateStore.subscribe((state) => snapshots.push(state));
+  try {
+    f.select(f.frames[0], f.leafA);
+    expect(snapshots).toHaveLength(1);
+    const selected = snapshots[0];
+    expect(selected.lastViewedArtboard?.frame).toBe(f.frames[0]);
+    expect(selected.expandedFrames.get(f.frames[0])).toBe(true);
+    for (const key of f.outline.focusedNodeKeyPath()) {
+      expect(selected.expanded.get(key)).toBe(true);
+    }
+    f.outline.setFrameExpanded(f.frames[0], true);
+    f.outline.setExpanded(makeNodeKey(f.branchA), true);
+    f.select(f.frames[0], f.leafA);
+    expect(snapshots).toHaveLength(1);
+    f.select(f.frames[0], f.leafB);
+    expect(snapshots).toHaveLength(2);
+    expect(f.outline.isExpanded(makeNodeKey(f.branchA))).toBe(true);
+    expect(f.outline.isExpanded(makeNodeKey(f.branchB))).toBe(true);
+  } finally { stop(); f.outline.dispose(); }
+});
+
 it("uses the newly selected artboard and retains it when selection is cleared", () => {
   const f = setup();
   f.select(f.frames[0], f.leafA);

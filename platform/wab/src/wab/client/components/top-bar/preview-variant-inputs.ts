@@ -2,10 +2,10 @@ import { getAllVariantsForTpl, getVariantLabel, isBaseVariant, isGlobalVariant, 
 import { ensure, partitions, xGroupBy } from "@/wab/shared/common";
 import { isVariantUsedInSplits } from "@/wab/shared/core/splits";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
-import type { ModelFieldStore, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import type { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { arrayEq } from "@/wab/shared/common";
-import { Component, ObjInst, Site, Variant, VariantGroup, isKnownGlobalVariantSplitContent } from "@/wab/shared/model/classes";
+import { ModelFieldInputs, type DeclareModelFields } from "@/wab/client/stores/model-field-inputs";
+import { Component, Site, Variant, VariantGroup, isKnownGlobalVariantSplitContent } from "@/wab/shared/model/classes";
 import * as React from "react";
 
 export interface PreviewVariantEntry {
@@ -36,10 +36,7 @@ const closedSnapshot: PreviewVariantSnapshot = Object.freeze({ alive: false, fie
  * Selection/navigation remain owned by PreviewCtx; commands retain real variants. */
 export class PreviewVariantInputs {
   private current: PreviewVariantSnapshot = closedSnapshot;
-  private readonly fields = new Map<ModelFieldStore<unknown>, () => void>();
-  private readonly listeners = new Set<() => void>();
-  private connected = false;
-  private closed = false;
+  private readonly inputs;
   private readonly models: ModelSnapshots;
   private readonly site: Site;
   private readonly lifetime: AbortSignal;
@@ -48,37 +45,12 @@ export class PreviewVariantInputs {
     this.models = studio.modelSnapshots;
     this.site = studio.site;
     this.lifetime = studio.arenaState.lifetime();
-    this.getSnapshot();
+    this.inputs = new ModelFieldInputs({ models: this.models, lifetime: this.lifetime, isCurrent: this.isCurrent }, this.collect);
   }
 
-  private disconnect = () => {
-    this.connected = false;
-    this.lifetime.removeEventListener("abort", this.close);
-    this.fields.forEach((stop) => stop());
-    this.fields.clear();
-  };
-  private close = () => {
-    if (this.closed) { return; }
-    this.closed = true;
-    this.current = closedSnapshot;
-    this.disconnect();
-    this.listeners.forEach((listener) => listener());
-    this.listeners.clear();
-  };
-  private sync = () => {
-    const previous = this.current;
-    this.getSnapshot();
-    if (previous !== this.current) { this.listeners.forEach((listener) => listener()); }
-  };
-
-  getSnapshot = (): PreviewVariantSnapshot => {
-    if (this.closed || this.lifetime.aborted || this.studio.modelSnapshots !== this.models || !this.component) {
-      this.current = closedSnapshot;
-      this.disconnect();
-      return this.current;
-    }
-    const used = new Set<ModelFieldStore<unknown>>();
-    const field = (model: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(this.models.declaredField(model, key)));
+  private isCurrent = () => !this.lifetime.aborted && this.studio.modelSnapshots === this.models && !!this.component;
+  private collect = (field: DeclareModelFields) => {
+    if (!this.component) { return; }
     const variants = new Set<Variant>(), groups = new Set<VariantGroup>();
     const variant = (value: Variant) => {
       if (variants.has(value)) { return; }
@@ -119,39 +91,22 @@ export class PreviewVariantInputs {
         });
       });
     });
-    const values = [...used].map((store) => store.getState());
-    if (!this.current.alive || !arrayEq(this.current.fields, values)) {
+  };
+  getSnapshot = (): PreviewVariantSnapshot => {
+    if (!this.isCurrent() || !this.component) { this.current = closedSnapshot; return this.current; }
+    const values = this.inputs.read();
+    if (!this.current.alive || this.current.fields !== values) {
       const variants = getAllVariantsForTpl({ component: this.component, tpl: null, site: this.site }).filter((variant) => !isStyleOrCodeComponentVariant(variant) && !isScreenVariant(variant) && !isPrivateStyleVariant(variant) && !isBaseVariant(variant));
       const [standalone, split, local, global] = partitions(variants, [isStandaloneVariant, (variant) => isVariantUsedInSplits(this.site, variant), (variant) => !isGlobalVariant(variant)]);
       const entry = (variant: Variant): PreviewVariantEntry => Object.freeze({ command: variant, uuid: variant.uuid, name: variant.name, parentName: variant.parent?.param.variable.name, label: getVariantLabel(this.site, variant) });
-      const grouped = (items: Variant[]): PreviewVariantGroup[] => [...xGroupBy(items, (variant) => ensure(variant.parent, "A grouped variant requires a parent"))].map(([group, items]) => Object.freeze({ type: group.multi ? "multi" : "single", name: group.param.variable.name, variants: Object.freeze(items.map(entry)) }));
+      const grouped = (items: Variant[]): PreviewVariantGroup[] => [...xGroupBy(items, (variant) => ensure(variant.parent, "A grouped variant requires a parent"))].map(([group, choices]) => Object.freeze({ type: group.multi ? "multi" : "single", name: group.param.variable.name, variants: Object.freeze(choices.map(entry)) }));
       const groups: PreviewVariantGroup[] = [...standalone.map((variant): PreviewVariantGroup => Object.freeze({ type: "standalone", name: undefined, variants: Object.freeze([entry(variant)]) })), ...grouped(local), ...(split.length ? [Object.freeze({ type: "multi" as const, name: "Splits", variants: Object.freeze(split.map(entry)) })] : []), ...grouped(global)];
       this.current = Object.freeze({ alive: true, fields: Object.freeze(values), groups: Object.freeze(groups), labels: Object.freeze(Object.fromEntries(variants.map((variant) => [variant.uuid, getVariantLabel(this.site, variant)]))) });
     }
-    if (this.connected) {
-      for (const store of used) {
-        if (!this.fields.has(store)) { this.fields.set(store, store.subscribe(this.sync)); }
-      }
-      for (const [store, stop] of this.fields) {
-        if (!used.has(store)) { stop(); this.fields.delete(store); }
-      }
-    }
     return this.current;
   };
+  subscribe = (listener: () => void) => this.inputs.subscribe(listener);
 
-  subscribe = (listener: () => void) => {
-    if (this.closed || this.lifetime.aborted) { return () => undefined; }
-    this.listeners.add(listener);
-    if (!this.connected) {
-      this.connected = true;
-      this.lifetime.addEventListener("abort", this.close, { once: true });
-      this.sync();
-    }
-    return () => {
-      this.listeners.delete(listener);
-      if (!this.listeners.size) { this.disconnect(); }
-    };
-  };
 }
 
 export function usePreviewVariantModelInputs(studio: StudioCtx, component: Component | undefined) {

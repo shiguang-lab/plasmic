@@ -1,10 +1,10 @@
-import { isCodeComponentSlot, isPlainTextTplSlot } from "@/wab/shared/SlotUtils";
+import { getTplSlotForParam, isCodeComponentSlot, isPlainTextTplSlot } from "@/wab/shared/SlotUtils";
 import { collectPropExpressionFields } from "@/wab/client/components/sidebar-tabs/ComponentProps/prop-expression-inputs";
 import type { ModelFieldStore, ModelSnapshots, ModelRef } from "@/wab/client/studio-ctx/model-snapshots";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { useViewSelection } from "@/wab/client/studio-ctx/selection-state";
 import { captureDefinedIndicator } from "@/wab/client/studio-ctx/style-inputs";
-import { flattenComponent } from "@/wab/shared/cached-selectors";
 import { tryGetVariantSetting, isBaseVariant } from "@/wab/shared/Variants";
 import { arrayEq, assert, ensure } from "@/wab/shared/common";
 import { isCodeComponent, isPageComponent } from "@/wab/shared/core/components";
@@ -35,6 +35,10 @@ export interface StylePanelLayoutMetadata {
 }
 
 type TargetInput = { kind: "columns" | "mixins" | "button" | "frame" | "layout" | "visibility" | "text" | "attributes" | "style-tab" | "multi-selection"; view: ViewCtx; tpl: TplNode; attr?: string; frame?: ArenaFrame; param?: import("@/wab/shared/model/classes").Param; slot?: import("@/wab/shared/model/classes").TplSlot } | { kind: "selectors"; expr: StyleExpr };
+type EditingContext = ReturnType<ViewCtx["selectionStore"]["getState"]>["context"];
+function editingContext(input: TargetInput): EditingContext {
+  return input.kind === "style-tab" || input.kind === "multi-selection" ? input.view.selectionStore.getState().context : null;
+}
 const empty: readonly unknown[] = Object.freeze([]);
 
 /** Non-CSS inputs of responsive columns, applied mixins, and style-expression
@@ -52,14 +56,17 @@ export class TargetedStylePanelInputs {
   private published = empty;
   private dirty = true;
   private connected = false;
+  private inputValues = new Map<ModelFieldStore<unknown>, unknown>();
+  private nativeInputs: readonly unknown[] = empty;
   private readonly fields = new Map<ModelFieldStore<unknown>, { prepare: () => void; stop: () => void }>();
   private registration: ModelFieldStore<unknown> | undefined;
+  private registrationValue: unknown;
   private stopRegistration: (() => void) | undefined;
   private readonly listeners = new Set<() => void>();
   private stops: (() => void)[] = [];
-  constructor(private readonly studio: StudioCtx, private readonly input: TargetInput) {
+  constructor(private readonly studio: StudioCtx, private readonly input: TargetInput, context = editingContext(input)) {
     this.models = studio.modelSnapshots; this.site = studio.site;
-    this.context = input.kind === "style-tab" || input.kind === "multi-selection" ? input.view.selectionStore.getState().context : null;
+    this.context = context;
     this.lifetime = input.kind === "selectors" ? studio.arenaState.lifetime() : input.view.disposeSignal;
     if (this.isActive() && input.kind !== "selectors") { assert(isTplAttachedToSite(this.site, input.tpl), "Style panel template belongs to another model world"); }
   }
@@ -76,7 +83,23 @@ export class TargetedStylePanelInputs {
   private invalidate = () => { this.dirty = true; };
   private publishSnapshot = () => { if (this.current !== this.published) { this.published = this.current; this.listeners.forEach((listener) => listener()); } };
   private publish = () => { this.getSnapshot(); this.publishSnapshot(); };
-  private syncContext = () => { this.dirty = true; this.publish(); };
+  private syncContext = () => {
+    if (!this.isActive()) { this.close(); return; }
+    this.publish();
+  };
+  private readNativeInputs() {
+    return this.input.kind === "selectors" ? [] : [this.input.view.variantStore.getState(), this.input.view.selectionStore.getState()];
+  }
+  private connectFields() {
+    if (!this.connected) { return; }
+    for (const store of this.inputValues.keys()) {
+      if (!this.fields.has(store)) { this.fields.set(store, { prepare: this.models.subscribePreparedField(store, this.invalidate), stop: store.subscribe(this.publish) }); }
+    }
+    for (const [store, binding] of this.fields) {
+      if (!this.inputValues.has(store)) { binding.prepare(); binding.stop(); this.fields.delete(store); }
+    }
+    if (this.registration && !this.stopRegistration) { this.stopRegistration = this.registration.subscribe(this.syncContext); }
+  }
   getRenderInputs = () => {
     const fields = this.getSnapshot(), active = this.isActive();
     if (!this.renderInputs || this.renderInputs.fields !== fields || this.renderInputs.active !== active) {
@@ -86,7 +109,13 @@ export class TargetedStylePanelInputs {
   };
   getSnapshot = (): readonly unknown[] => {
     if (!this.isActive()) { return empty; }
-    if (this.connected && !this.dirty) { return this.current; }
+    const nativeInputs = this.readNativeInputs();
+    // Render-time consistency checks can run repeatedly before subscribe().
+    // Reuse the collected dependency set until an actual input has changed,
+    // including edits made while the panel was unmounted.
+    if (!this.dirty && arrayEq(this.nativeInputs, nativeInputs) &&
+      this.registration?.getState() === this.registrationValue &&
+      (this.connected || [...this.inputValues].every(([store, value]) => Object.is(store.getState(), value)))) { return this.current; }
     const used = new Set<ModelFieldStore<unknown>>(), values: unknown[] = [];
     const field = (model: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(this.models.declaredField(model, key)));
     const expose = (model: ObjInst, ...keys: string[]) => keys.forEach((key) => { const store = this.models.declaredField(model, key); used.add(store); values.push(store.getState()); });
@@ -95,7 +124,7 @@ export class TargetedStylePanelInputs {
       expose(input.expr, "uuid", "styles");
       input.expr.styles.forEach((selector) => expose(selector, "selector", "rs"));
     } else {
-      const variants = new Set<Variant>(), groups = new Set<VariantGroup>(), components = new Set<Component>(), mixins = new Set<Mixin>();
+      const variants = new Set<Variant>(), groups = new Set<VariantGroup>(), components = new Set<Component>(), mixins = new Set<Mixin>(), nodes = new Set<TplNode>();
       const frame = input.kind === "frame" ? ensure(input.frame, "Frame inputs require their original frame") : undefined;
       const tpl = frame ? frame.container.component.tplTree : input.tpl;
       const variant = (value: Variant) => {
@@ -114,10 +143,11 @@ export class TargetedStylePanelInputs {
         value.variantedRs.forEach((setting) => { field(setting, "variants", "rs"); setting.variants.forEach(variant); field(setting.rs, "values", "mixins"); setting.rs.mixins.forEach(mixin); });
       };
       const node = (value: TplNode) => {
+        if (nodes.has(value)) { return; } nodes.add(value);
         field(value, "parent", "vsettings");
         if (isTplTag(value)) { field(value, "children"); if (frame || input.kind === "layout") { field(value, "tag", "type"); } }
         if (isTplSlot(value)) { field(value, "defaultContents", "param"); }
-        if (isTplComponent(value)) { field(value, "component"); if ((input.kind === "layout" || input.kind === "style-tab" || input.kind === "multi-selection")) { component(value.component); } }
+        if (isTplComponent(value)) { field(value, "component"); if ((frame || input.kind === "layout" || input.kind === "style-tab" || input.kind === "multi-selection")) { component(value.component); } }
         value.vsettings.forEach((setting) => {
           field(setting, "variants", "rs", "args", "attrs", "text", "dataCond", "dataRep");
           setting.variants.forEach(variant); field(setting.rs, "values", "mixins", "animations");
@@ -141,15 +171,33 @@ export class TargetedStylePanelInputs {
         if (input.kind === "layout" || input.kind === "text") { field(value, "type", "pageMeta"); }
         value.variants.forEach(variant); value.variantGroups.forEach(group);
         if (value.superComp) { component(value.superComp); }
-        flattenComponent(value).forEach(node);
-        if (frame && isTplComponent(value.tplTree)) { component(value.tplTree.component); }
+        // Component sizing and content layout follow its root chain, not its
+        // unrelated descendants. Each target also declares its own ancestors.
+        node(value.tplTree);
       };
       input.view.componentStackFrames().forEach((stackFrame) => component(stackFrame.component));
       component(input.view.currentComponent());
       // Includes ancestors from slot/component editing contexts.
       if (frame) { component(frame.container.component); }
-      let ancestor: TplNode | null | undefined = tpl;
-      while (ancestor) { node(ancestor); ancestor = ancestor.parent; }
+      const ancestors = new Set<TplNode>();
+      const collectAncestors = (start: TplNode): void => {
+        let ancestor: TplNode | null | undefined = start;
+        while (ancestor && !ancestors.has(ancestor)) {
+          ancestors.add(ancestor); node(ancestor);
+          const parent: TplNode | null | undefined = ancestor.parent;
+          // Layout parents can cross a plain component's supplied slot into
+          // its implementation. Observe that slot path, not every sibling in
+          // the component implementation.
+          if (input.kind === "layout" && isTplComponent(parent) && !isCodeComponent(parent.component)) {
+            const arg = $$$(parent).getArgContainingTpl(ancestor);
+            field(arg.param, "tplSlot");
+            const slot = getTplSlotForParam(parent.component, arg.param);
+            if (slot) { collectAncestors(slot); }
+          }
+          ancestor = parent;
+        }
+      };
+      collectAncestors(tpl);
       field(this.site, "globalVariantGroups", "activeScreenVariantGroup", "projectDependencies");
       this.site.globalVariantGroups.forEach(group);
       if (this.site.activeScreenVariantGroup) { group(this.site.activeScreenVariantGroup); }
@@ -239,6 +287,16 @@ export class TargetedStylePanelInputs {
         if (registration !== this.registration) { this.stopRegistration?.(); this.stopRegistration = undefined; this.registration = registration; }
         values.push(registration?.getState()?.contract);
       } else if (input.kind === "text") {
+        // A slot's sole default child can become plain text (or stop being
+        // plain text) without replacing defaultContents itself.
+        if (isTplSlot(tpl) && tpl.defaultContents.length === 1) {
+          const candidate = tpl.defaultContents[0];
+          node(candidate);
+          if (isTplTag(candidate)) {
+            field(candidate, "tag", "type", "codeGenType");
+            candidate.vsettings.forEach((setting) => collectPropExpressionFields(setting.text, field));
+          }
+        }
         const textTpl = isTplTextBlock(tpl) ? tpl : isPlainTextTplSlot(tpl) && !isCodeComponentSlot(tpl) ? ensureKnownTplTag(tpl.defaultContents[0]) : undefined;
         values.push(textTpl ? this.models.ref(textTpl) : undefined);
         const metadata = (value: TplNode) => {
@@ -294,38 +352,51 @@ export class TargetedStylePanelInputs {
       }
     }
     if (!arrayEq(this.current, values)) { this.current = Object.freeze(values); }
-    if (this.connected) {
-      for (const store of used) { if (!this.fields.has(store)) { this.fields.set(store, { prepare: this.models.subscribePreparedField(store, this.invalidate), stop: store.subscribe(this.publish) }); } }
-      for (const [store, binding] of this.fields) { if (!used.has(store)) { binding.prepare(); binding.stop(); this.fields.delete(store); } }
-    }
-    if (this.connected && this.registration && !this.stopRegistration) { this.stopRegistration = this.registration.subscribe(this.syncContext); }
+    this.inputValues = new Map([...used].map((store) => [store, store.getState()]));
+    this.nativeInputs = nativeInputs;
+    this.registrationValue = this.registration?.getState();
+    this.connectFields();
     this.dirty = false; return this.current;
   };
   subscribe = (listener: () => void) => {
     if (!this.isActive()) { return () => undefined; }
     this.listeners.add(listener);
     if (!this.connected) {
-      this.connected = true; this.dirty = true; this.lifetime.addEventListener("abort", this.close, { once: true });
+      this.getSnapshot();
+      this.connected = true; this.lifetime.addEventListener("abort", this.close, { once: true });
       if (this.input.kind !== "selectors") { this.stops.push(this.input.view.variantStore.subscribe(this.syncContext), this.input.view.selectionStore.subscribe(this.syncContext)); }
-      this.publish();
+      this.connectFields(); this.publishSnapshot();
     }
     return () => { this.listeners.delete(listener); if (!this.listeners.size) { this.disconnect(); } };
   };
 }
 
+// Share one finite input set across controls for the same originating target.
+// Weak owners keep retired views/documents out of a global model registry.
+const inputOwners = new WeakMap<object, WeakMap<TplNode | StyleExpr, Map<string, { context: EditingContext; source: TargetedStylePanelInputs }>>>();
+export function getTargetedStylePanelInputs(studio: StudioCtx, input: TargetInput, context = editingContext(input)) {
+  const owner = input.kind === "selectors" ? studio : input.view;
+  const target = input.kind === "selectors" ? input.expr : input.tpl;
+  let targets = inputOwners.get(owner);
+  if (!targets) { targets = new WeakMap(); inputOwners.set(owner, targets); }
+  let entries = targets.get(target);
+  if (!entries) { entries = new Map(); targets.set(target, entries); }
+  const key = input.kind === "selectors" ? input.kind : JSON.stringify([input.kind, input.attr, input.frame?.uid, input.param?.uid, input.slot?.uid]);
+  let entry = entries.get(key);
+  if (!entry || entry.context !== context || !entry.source.isActive()) {
+    entry = { context, source: new TargetedStylePanelInputs(studio, input, context) };
+    entries.set(key, entry);
+  }
+  return entry.source;
+}
+
 function useTargetedStylePanelSource(studio: StudioCtx, input: TargetInput) {
-  const kind = input.kind;
-  const view = input.kind === "selectors" ? undefined : input.view;
-  const tpl = input.kind === "selectors" ? undefined : input.tpl;
-  const expr = input.kind === "selectors" ? input.expr : undefined;
-  const attr = input.kind === "button" ? input.attr : undefined;
-  const frame = input.kind === "frame" ? input.frame : undefined;
-  const param = input.kind === "selectors" ? undefined : input.param;
-  const slot = input.kind === "selectors" ? undefined : input.slot;
-  const source = React.useMemo(() => new TargetedStylePanelInputs(studio, kind === "selectors"
-    ? { kind, expr: ensure(expr, "Style expression target") }
-    : { kind, view: ensure(view, "Style panel view"), tpl: ensure(tpl, "Style panel template"), attr, frame, slot, param }), [studio, view, tpl, expr, attr, frame, slot, param, kind]);
-  return source;
+  // A new editing context can retain the same view/template identities. Read
+  // it reactively before looking up a context-bound shared input.
+  const context = useViewSelection(input.kind === "style-tab" || input.kind === "multi-selection" ? input.view : undefined, (state) => state.context);
+  // Pass the native identity explicitly so the React Compiler cannot cache
+  // this lookup solely by a stable view/template pair across editing contexts.
+  return getTargetedStylePanelInputs(studio, input, context);
 }
 
 export function useTargetedStylePanelInputs(studio: StudioCtx, input: TargetInput) {

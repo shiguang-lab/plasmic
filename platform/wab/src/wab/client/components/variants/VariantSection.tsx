@@ -143,6 +143,7 @@ export function makeReadOnlySection(opts: {
   } = opts;
   const readInputs = opts.readInputs;
   const canChangeVariants = readInputs ? readInputs.canChangeVariants : vcontroller.canChangeActiveVariants();
+  const readVariants = readInputs && new Map(readInputs.variants.map(input => [input.variant, input]));
   return (
     <VariantSection
       key={key}
@@ -152,7 +153,7 @@ export function makeReadOnlySection(opts: {
       onClickSettings={onClickSettings}
     >
       {variants.map((variant) => {
-        const read = readInputs ? ensure(readInputs.variants.find((input) => input.variant === variant), "Native variant row input must match its command handle") : undefined;
+        const read = readVariants ? ensure(readVariants.get(variant), "Native variant row input must match its command handle") : undefined;
         return <VariantRow
           key={variant.uuid}
           variant={variant}

@@ -183,3 +183,19 @@ it("releases every real lease if a valid render becomes a missing alias before s
   expect(() => source.subscribe(() => undefined)).toThrow("Expected to be a token ref");
   expect(active.size).toBe(0);
 });
+
+it("publishes a closed selector's current alias after an earlier subscriber reads the prepared value", async () => {
+  const f = await setup();
+  await f.studio.changeUnsafe(() => { f.first.value = mkTokenRef(f.second); });
+  const source = new FontFamilyTokenInputs(f.studio, f.helper, false, mkTokenRef(f.first));
+  const early = f.studio.modelSnapshots.field(f.second, "value").subscribe(() => {
+    expect(source.getSnapshot().choices[0]?.resolvedValue).toBe("Georgia");
+  });
+  const changed = vi.fn(), stop = source.subscribe(changed); changed.mockClear();
+  try {
+    expect(source.getSnapshot().choices).toHaveLength(1);
+    await f.studio.changeUnsafe(() => { f.second.value = "Georgia"; });
+    expect(changed).toHaveBeenCalled();
+    expect(source.getSnapshot().choices[0]).toMatchObject({ name: "First family", resolvedValue: "Georgia" });
+  } finally { stop(); early(); }
+});

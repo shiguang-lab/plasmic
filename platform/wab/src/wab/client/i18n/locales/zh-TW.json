@@ -126,6 +126,7 @@
   "Forum": "論壇",
   "Back to dashboard": "返回儀表板",
   "Preview": "預覽",
+  "Preview unavailable": "預覽載入失敗",
   "Back to editor": "返回編輯器",
   "Rename project": "重新命名專案",
   "Publish": "發佈",
@@ -5795,5 +5796,18 @@
   "Invite by email": "電子郵件邀請",
   "Enable link invitations": "啟用連結邀請",
   "Default role": "預設角色",
-  "People can register or sign in and use this link to join the organization.": "使用者註冊或登入後，可透過此連結加入組織。"
+  "People can register or sign in and use this link to join the organization.": "使用者註冊或登入後，可透過此連結加入組織。",
+  "Open comment by {name}": "開啟 {name} 的評論",
+  "Comment details": "評論詳情",
+  "Back to comments": "返回評論清單",
+  "Previous comment": "上一則評論",
+  "Next comment": "下一則評論",
+  "Locate comment target": "定位評論對象",
+  "Comment resolved": "評論已解決",
+  "Mention someone": "提及成員",
+  "Enter to send": "Enter 傳送",
+  "Shift+Enter for a new line": "Shift+Enter 換行",
+  "Unnamed element": "未命名元素",
+  "Failed to send comment": "傳送評論失敗",
+  "No replies yet": "還沒有回覆"
 }

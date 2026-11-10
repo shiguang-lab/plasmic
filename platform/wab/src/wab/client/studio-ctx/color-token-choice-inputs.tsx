@@ -56,8 +56,8 @@ export class ColorTokenChoiceInputs {
   private readonly nodes = new Map<FinalToken<StyleToken>, TokenNode>();
   private readonly fields = new Map<ModelFieldStore<unknown>, { prepare: () => void; publish: () => void }>();
   private readonly listeners = new Set<() => void>();
-  private roster: { tokens: readonly StyleToken[]; captured: ReadonlyMap<ModelFieldStore<unknown>, unknown> } | undefined;
-  private aliases: { tokens: readonly FinalToken<StyleToken>[]; captured: ReadonlyMap<ModelFieldStore<unknown>, unknown> } | undefined;
+  private roster: { tokens: readonly StyleToken[]; members: ReadonlySet<StyleToken>; captured: ReadonlyMap<ModelFieldStore<unknown>, unknown> } | undefined;
+  private aliases: { tokens: ReadonlyMap<string, FinalToken<StyleToken>>; captured: ReadonlyMap<ModelFieldStore<unknown>, unknown> } | undefined;
   private dirty = true;
   private connected = false;
   private closed = false;
@@ -91,7 +91,8 @@ export class ColorTokenChoiceInputs {
       const declare = (model: ObjInst, ...names: string[]) => names.forEach((name) => fields.add(models.declaredField(model, name)));
       declare(site, "styleTokens", "projectDependencies");
       for (const dep of walkDependencyTree(site, "all")) { declare(dep, "site", "projectId"); declare(dep.site, "styleTokens", "projectDependencies"); }
-      this.roster = { tokens: siteStyleTokensAllDeps(site), captured: new Map([...fields].map((field) => [field, field.getState()])) };
+      const tokens = siteStyleTokensAllDeps(site);
+      this.roster = { tokens, members: new Set(tokens), captured: new Map([...fields].map((field) => [field, field.getState()])) };
       this.aliases = undefined;
     }
     for (const field of this.roster.captured.keys()) { used.add(field); }
@@ -102,7 +103,9 @@ export class ColorTokenChoiceInputs {
     if (!this.aliases || [...this.aliases.captured].some(([field, value]) => field.getState() !== value)) {
       const fields = new Set<ModelFieldStore<unknown>>();
       for (const token of roster) { fields.add(this.scope.models.field(token, "uuid")); fields.add(this.scope.models.field(token, "isRegistered")); }
-      this.aliases = { tokens: siteFinalStyleTokensAllDeps(this.scope.site), captured: new Map([...fields].map((field) => [field, field.getState()])) };
+      const tokens = new Map<string, FinalToken<StyleToken>>();
+      for (const token of siteFinalStyleTokensAllDeps(this.scope.site)) { if (!tokens.has(token.uuid)) { tokens.set(token.uuid, token); } }
+      this.aliases = { tokens, captured: new Map([...fields].map((field) => [field, field.getState()])) };
     }
     for (const field of this.aliases.captured.keys()) { used.add(field); }
     return this.aliases.tokens;
@@ -118,7 +121,8 @@ export class ColorTokenChoiceInputs {
     const usedFields = new Set<ModelFieldStore<unknown>>(), usedNodes = new Set<FinalToken<StyleToken>>();
     let complete = false;
     try {
-      const roster = this.starts.length ? this.readRoster(usedFields) : [];
+      if (this.starts.length) { this.readRoster(usedFields); }
+      let aliases: ReturnType<ColorTokenChoiceInputs["readAliases"]> | undefined;
       const visit = (token: FinalToken<StyleToken>) => {
         usedNodes.add(token);
         let node = this.nodes.get(token);
@@ -128,9 +132,9 @@ export class ColorTokenChoiceInputs {
       };
       const choices = this.starts.map((start, index) => {
         // makeTokenResolver's original command-token map rejects removed starts.
-        ensure(roster.includes(start.base), () => `Missing token ${start.name} (${start.uuid})`);
+        ensure(this.roster?.members.has(start.base), () => `Missing token ${start.name} (${start.uuid})`);
         const own = visit(start);
-        const lookup = isTokenRef(own.activeValue) ? this.readAliases(usedFields) : [];
+        const lookup = isTokenRef(own.activeValue) ? aliases ??= this.readAliases(usedFields) : [];
         const result = resolveToken(lookup, start, this.vsh, visit);
         const terminal = ensure(this.nodes.get(result.token)?.captured, "Terminal color inputs must exist");
         const ref = this.scope.models.ref(start.base), terminalRef = this.scope.models.ref(result.token.base);

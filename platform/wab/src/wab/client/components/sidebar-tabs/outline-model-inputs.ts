@@ -1,6 +1,6 @@
 import type { CanvasObserverInput } from "@/wab/client/components/canvas/canvas-observer";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { arrayEq } from "@/wab/shared/common";
+import { arrayEq, ensure } from "@/wab/shared/common";
 import { parentStackStyleProvider } from "@/wab/client/components/canvas/HoverBox/parent-stack-inputs";
 import { flattenTpls, isTplVariantable } from "@/wab/shared/core/tpls";
 import { flattenVals, isValComponent } from "@/wab/shared/core/val-nodes";
@@ -8,14 +8,22 @@ import { isKnownTplComponent } from "@/wab/shared/model/classes";
 import * as React from "react";
 
 const empty: readonly unknown[] = Object.freeze([]);
-interface OutlineObserverInput extends CanvasObserverInput { getState(): readonly unknown[]; }
-const inactive: OutlineObserverInput = { getState: () => empty, subscribe: () => () => undefined };
+interface OutlineObserverInput extends CanvasObserverInput {
+  getState(): readonly unknown[];
+  getTreeState(): readonly unknown[];
+}
+const inactive: OutlineObserverInput = { getState: () => empty, getTreeState: () => empty, subscribe: () => () => undefined };
 
 /** The outline reads the actual artboard model capsules, registrations and
  * committed Val environments/props. No model read tracking or global revision. */
 export class OutlineModelInputs implements OutlineObserverInput {
   private readonly models;
   private current: readonly unknown[] = empty;
+  private treeCurrent: readonly unknown[] = empty;
+  private inputs: Set<CanvasObserverInput> | undefined;
+  private rebindInputs = new Set<CanvasObserverInput>();
+  private inputValues = new Map<CanvasObserverInput, unknown>();
+  private context: readonly unknown[] = empty;
   private readonly listeners = new Set<() => void>();
   private readonly stops = new Map<CanvasObserverInput, () => void>();
   private connected = false;
@@ -29,11 +37,17 @@ export class OutlineModelInputs implements OutlineObserverInput {
   private sources() {
     const { view } = this;
     const sources = new Set<CanvasObserverInput>([view.frameState.valRootStore, view.studioCtx.selectionStore, view.selectionStore, view.variantStore, view.canvasRenderOwner.dataTokenInputs(view).store]);
+    // Render capsules can replace children/slot arguments, and committed Val
+    // contents can introduce new runtime inputs. Lock and focus notifications
+    // reuse the existing input set.
+    this.rebindInputs = new Set([view.frameState.valRootStore]);
     const components = new Set([view.component, ...view.componentStackFrames().map((frame) => frame.tplComponent.component)]);
     for (const component of components) {
-      sources.add(view.canvasRenderOwner.observerInput(view, component));
+      const componentInput = view.canvasRenderOwner.observerInput(view, component);
+      sources.add(componentInput); this.rebindInputs.add(componentInput);
       for (const node of flattenTpls(component.tplTree)) {
-        sources.add(view.canvasRenderOwner.observerInput(view, node));
+        const nodeInput = view.canvasRenderOwner.observerInput(view, node);
+        sources.add(nodeInput); this.rebindInputs.add(nodeInput);
         sources.add(this.models.declaredField(node, "locked"));
         if (isTplVariantable(node)) {
           const native = parentStackStyleProvider(view, node).getNativeStyleSource();
@@ -46,17 +60,34 @@ export class OutlineModelInputs implements OutlineObserverInput {
     if (root) {
       flattenVals(root).forEach((value) => {
         sources.add(value.runtimeInputs);
-        if (isValComponent(value)) { sources.add(value.componentRuntimeInputs); }
+        if (isValComponent(value)) { sources.add(value.componentRuntimeInputs); this.rebindInputs.add(value.componentRuntimeInputs); }
       });
     }
     return sources;
   }
   private capture = () => {
     const version = ++this.captureVersion;
-    if (this.closed()) { this.disconnect(); this.current = empty; return this.current; }
-    const sources = this.sources();
-    const values = [...sources].map((source) => source.getState());
+    if (this.closed()) { this.disconnect(); this.current = this.treeCurrent = empty; return this.current; }
+    const { view } = this;
+    const context = [view.selectionStore.getState().context, view.variantStore.getState().frames];
+    const rebind = !this.inputs || !arrayEq(this.context, context) ||
+      [...this.rebindInputs].some((source) => !Object.is(this.inputValues.get(source), source.getState()));
+    const sources = rebind ? this.sources() : ensure(this.inputs, "Outline inputs must be collected before reuse");
+    this.inputs = sources;
+    this.context = context;
+    const values: unknown[] = [];
+    // Repeated instances resolve conditions/hidden slots against the selected
+    // clone's environment. Ordinary focus/hover changes keep the tree cached.
+    const treeValues: unknown[] = [context[0], view.selectionStore.getState().cloneKeys[0]];
+    this.inputValues = new Map();
+    for (const source of sources) {
+      const value = source.getState();
+      values.push(value);
+      this.inputValues.set(source, value);
+      if (source !== view.selectionStore && source !== view.studioCtx.selectionStore) { treeValues.push(value); }
+    }
     if (!arrayEq(this.current, values)) { this.current = Object.freeze(values); }
+    if (!arrayEq(this.treeCurrent, treeValues)) { this.treeCurrent = Object.freeze(treeValues); }
     if (this.connected) {
       for (const source of sources) {
         if (!this.stops.has(source)) {
@@ -64,13 +95,13 @@ export class OutlineModelInputs implements OutlineObserverInput {
           // Reserve this lease before that callback re-enters capture().
           const pending = () => undefined;
           this.stops.set(source, pending);
-          const stop = source.subscribe(this.changed);
+          const stop = source.subscribe(() => this.changed(source));
           if (this.connected && this.stops.get(source) === pending && !this.closed()) { this.stops.set(source, stop); }
           else { if (this.stops.get(source) === pending) { this.stops.delete(source); } stop(); }
         }
         // A nested capture owns the latest source set; never reconcile against
         // the outer, superseded topology after its subscription has returned.
-        if (this.closed()) { this.disconnect(); this.current = empty; return this.current; }
+        if (this.closed()) { this.disconnect(); this.current = this.treeCurrent = empty; return this.current; }
         if (version !== this.captureVersion) { return this.current; }
       }
       for (const [source, stop] of this.stops) {
@@ -84,6 +115,7 @@ export class OutlineModelInputs implements OutlineObserverInput {
     if (this.closed() || !this.connected || this.current === empty) { return this.capture(); }
     return this.current;
   };
+  getTreeState = () => { this.getState(); return this.treeCurrent; };
   private disconnect = () => {
     this.captureVersion++;
     this.connected = false;
@@ -91,7 +123,16 @@ export class OutlineModelInputs implements OutlineObserverInput {
     this.view.canvasRenderOwner.lifetime.removeEventListener("abort", this.changed);
     this.stops.forEach((stop) => stop()); this.stops.clear();
   };
-  private changed = () => { const previous = this.current; this.capture(); if (previous !== this.current) { this.listeners.forEach((listener) => listener()); } };
+  private changed = (source?: CanvasObserverInput | Event) => {
+    // Native transactions install their final snapshots before publication.
+    // The first callback captures all of them; subsequent field notifications
+    // must not rescan/rebind the same artboard once per changed field.
+    if (!this.closed() && source && "getState" in source &&
+      (!this.inputValues.has(source) || Object.is(this.inputValues.get(source), source.getState()))) { return; }
+    const previous = this.current;
+    this.capture();
+    if (previous !== this.current) { this.listeners.forEach((listener) => listener()); }
+  };
   subscribe = (listener: () => void) => {
     if (this.closed()) { return () => undefined; }
     this.listeners.add(listener);

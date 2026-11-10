@@ -118,10 +118,7 @@ import { requestIdleCallbackAsync } from "@/wab/client/requestidlecallback";
 import { plasmicExtensionAvailable } from "@/wab/client/screenshot-util";
 import { scriptExec } from "@/wab/client/script-exec";
 import { ViewportCtx } from "@/wab/client/studio-ctx/ViewportCtx";
-import {
-  COMMENTS_DIALOG_RIGHT_ZOOM_PADDING,
-  CommentsCtx,
-} from "@/wab/client/studio-ctx/comments-ctx";
+import { CommentsCtx } from "@/wab/client/studio-ctx/comments-ctx";
 import { ComponentCtx } from "@/wab/client/studio-ctx/component-ctx";
 import { DesktopDraftController } from "@/wab/client/studio-ctx/desktop-drafts";
 import { InspectorSelection } from "@/wab/client/studio-ctx/inspector-selection";
@@ -3023,9 +3020,13 @@ export class StudioCtx extends WithDbCtx {
     }
   }
 
+  private routeWasPreview = false;
+
   private async handleRouteChange(location: Location) {
     if (this.canvasLoadingDisposed) { return; }
     const match = parseProjectLocation(location);
+    const returningFromPreview = this.routeWasPreview && !match?.isPreview;
+    this.routeWasPreview = !!match?.isPreview;
     if (match) {
       const {
         branchName,
@@ -3041,7 +3042,13 @@ export class StudioCtx extends WithDbCtx {
       if (!isPreview) {
         // We don't want to render the arenas in preview mode, for performance
         // and to avoid setting the zoom level when the arena is not rendered.
-        const isHandled = await this.handleCommentThreadChange(threadId);
+        // Preview hides the editor without changing its panel preferences.
+        // Replaying the saved comment URL must respect a closed panel.
+        const revealComment = !returningFromPreview ||
+          (this.showCommentsPanel && !this.panelsHidden && !this.rightPanelStore.getState().collapsed);
+        const isHandled =
+          (revealComment || !threadId) &&
+          (await this.focusCommentThread(threadId));
         if (this.canvasLoadingDisposed) { return; }
         if (!isHandled) {
           await this.handleArenaChange(
@@ -3172,7 +3179,7 @@ export class StudioCtx extends WithDbCtx {
     }, opts);
   }
 
-  private async handleCommentThreadChange(threadId?: string) {
+  async focusCommentThread(threadId?: string) {
     if (!threadId) {
       this.commentsCtx.handleCloseThreadDialog();
       return false;
@@ -3922,6 +3929,7 @@ export class StudioCtx extends WithDbCtx {
     this.leftPanelState.deferPublication(() => {
       if (open) {
         this.leftPanelState.setPanelsHidden(false);
+        this.rightPanelStore.setState({ collapsed: false });
       }
       this.overlayState.commentsPanel = open;
     });
@@ -3965,14 +3973,6 @@ export class StudioCtx extends WithDbCtx {
 
   toggleCopilotChat() {
     this.setCopilotChatOpen(!this.isCopilotChatOpen);
-  }
-
-  closeEditorPanels() {
-    this.leftPanelState.deferPublication(() => {
-      this.setLeftPanel(undefined);
-      this.leftPanelState.setLeftTabGroup(undefined);
-    });
-    this.overlayState.commentsPanel = false;
   }
 
   private _preferredAiOutputFormat: AiOutputFormat = "json";
@@ -4107,10 +4107,15 @@ export class StudioCtx extends WithDbCtx {
   }
 
   switchRightTab(tabKey: RightTabKey) {
-    this.rightPanelStore.setState((previous) => previous.tabKey === tabKey ? previous : { tabKey });
+    this.rightPanelStore.setState((previous) => previous.tabKey === tabKey && !previous.collapsed ? previous : { tabKey, collapsed: false });
     if (tabKey === RightTabKey.style || tabKey === RightTabKey.interactions) {
       this.lastElementRightTabKey = tabKey;
     }
+  }
+
+  collapseRightPanel() {
+    this.overlayState.commentsPanel = false;
+    this.rightPanelStore.setState((previous) => previous.collapsed ? previous : { ...previous, collapsed: true });
   }
 
   switchToTreeTab() {
@@ -5432,12 +5437,6 @@ export class StudioCtx extends WithDbCtx {
       return;
     }
 
-    // Adjust right zoom padding if the comments dialog is open
-    const rightZoomPadding =
-      this.commentsCtx.openedNewThread() || this.commentsCtx.openedThread()
-        ? COMMENTS_DIALOG_RIGHT_ZOOM_PADDING
-        : DEFAULT_ZOOM_PADDING;
-
     // Fit the part of the element that is visible in the artboard, matching
     // its selection outline; parts clipped by scroll containers or the
     // artboard would only add empty canvas.
@@ -5449,7 +5448,7 @@ export class StudioCtx extends WithDbCtx {
     this.viewportCtx!.zoomToScalerBox(Box.fromRect(scalerRect), {
       minPadding: {
         ...padding,
-        right: Math.max(padding.right, rightZoomPadding),
+        right: Math.max(padding.right, DEFAULT_ZOOM_PADDING),
       },
     });
   }

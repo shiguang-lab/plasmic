@@ -3,55 +3,65 @@ import type { ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { assert } from "@/wab/shared/common";
 import { codeUsesGlobalObjects } from "@/wab/shared/eval/expression-parser";
-import { memoizeModelQuery } from "@/wab/shared/model-query";
+import { meta } from "@/wab/shared/model/classes-metas";
 import { instUtil } from "@/wab/shared/model/InstUtil";
 import { isKnownCodeComponentMeta, isKnownComponent, isKnownCustomCode, isKnownNodeMarker, isKnownTplRef, type ArenaFrame, type Component, type ObjInst, type ProjectDependency, type TplNode } from "@/wab/shared/model/classes";
-import { isStrongRefField } from "@/wab/shared/model/model-meta";
+import { isStrongRefField, type Type } from "@/wab/shared/model/model-meta";
 import { isEqual } from "lodash";
 
-// Walk the model's owned values, including defaults, fallback expressions,
-// render props, inactive variants and rich text. Parent/back references must not
-// pull unrelated sibling trees into an artboard's dependency closure.
-const canvasReferences = memoizeModelQuery((root: TplNode) => {
+const referenceTypes = new WeakMap<Type, boolean>();
+function containsModelReference(type: Type): boolean {
+  let result = referenceTypes.get(type);
+  if (result === undefined) {
+    result = !!meta.clsByName[type.type] || type.params.some((param) => typeof param !== "string" && containsModelReference(param));
+    referenceTypes.set(type, result);
+  }
+  return result;
+}
+function containsComponentReference(type: Type): boolean {
+  return type.type === "Component" || type.params.some((param) => typeof param !== "string" && containsComponentReference(param));
+}
+
+// Walk owned references and explicit component/node contracts. Scalar labels,
+// CSS and geometry do not affect the required component packages.
+function canvasReferences(root: TplNode, field: (model: ObjInst, key: string) => void) {
   const components = new Set<Component>(), visited = new Set<ObjInst>();
   let opaque = false;
   const visit = (value: unknown) => {
     if (instUtil.isObjInst(value)) {
-      if (visited.has(value)) { return; }
-      visited.add(value);
+      if (visited.has(value)) { return; } visited.add(value);
       if (isKnownComponent(value)) { components.add(value); }
-      if (isKnownCodeComponentMeta(value) && !value.isHostLess) { opaque = true; }
-      if (!opaque && isKnownCustomCode(value) && codeUsesGlobalObjects(value.code)) { opaque = true; }
-      for (const field of instUtil.allInstFields(value)) {
-        const target = Reflect.get(value, field.name);
-        if (isStrongRefField(field) ||
-          // Component contracts (including sub/super components and allowed
-          // render-prop types) and explicit node references are weak model refs.
-          (field.name !== "page" && (isKnownComponent(target) ||
-            (Array.isArray(target) && target.some(isKnownComponent)))) ||
-          ((isKnownTplRef(value) || isKnownNodeMarker(value)) && field.name === "tpl")) {
-          visit(target);
+      if (isKnownCodeComponentMeta(value)) { field(value, "isHostLess"); opaque ||= !value.isHostLess; }
+      if (isKnownCustomCode(value)) { field(value, "code"); if (!opaque && codeUsesGlobalObjects(value.code)) { opaque = true; } }
+      for (const entry of instUtil.allInstFields(value)) {
+        const target = Reflect.get(value, entry.name);
+        if (isStrongRefField(entry) && containsModelReference(entry.type) ||
+          entry.name !== "page" && (containsComponentReference(entry.type) || isKnownComponent(target) || Array.isArray(target) && target.some(isKnownComponent)) ||
+          (isKnownTplRef(value) || isKnownNodeMarker(value)) && entry.name === "tpl") {
+          field(value, entry.name); visit(target);
         }
       }
     } else if (Array.isArray(value)) { value.forEach(visit); }
     else if (value && typeof value === "object") { Object.values(value).forEach(visit); }
   };
-  visit(root);
-  return { components, opaque };
-});
+  visit(root); return { components, opaque };
+}
 
 /** Captures the exact used package releases at the completed model transaction. */
 export class CanvasHostlessInputs {
   private readonly fields = new Map<ModelFieldStore<unknown>, () => void>();
   private requests: readonly HostLessPackageRequest[] = Object.freeze([]);
   private dirty = true;
+  private graphDirty = true;
+  private readonly graphFields = new Map<ModelFieldStore<unknown>, () => void>();
+  private referenced: { components: Set<Component>; opaque: boolean } = { components: new Set(), opaque: false };
   private disposed = false;
   private readonly stopCommits: () => void;
 
   constructor(private readonly studio: StudioCtx, private readonly changed: (requests: readonly HostLessPackageRequest[]) => void, private readonly frame?: ArenaFrame) {
     this.stopCommits = studio.subscribeModelChanges((event) => {
       if (event.type === "site-replaced") { this.dispose(); }
-      else if (this.dirty || this.frame) { this.capture(); }
+      else if (this.dirty) { this.capture(); }
     });
     this.capture();
   }
@@ -65,15 +75,23 @@ export class CanvasHostlessInputs {
       const field = models.field(model, key); fields.add(field); return field.getState();
     };
     const root = this.studio.site;
-    const used = new Set<Component>();
-    let loadAll = !this.frame;
-    if (this.frame) {
+    if (this.frame && this.graphDirty) {
+      const graphFields = new Set<ModelFieldStore<unknown>>();
+      const field = (model: ObjInst, key: string) => { graphFields.add(models.declaredField(model, key)); };
+      field(this.frame, "container"); field(root, "globalContexts");
+      const components = new Set<Component>(); let opaque = false;
       for (const tpl of [this.frame.container, ...root.globalContexts]) {
-        const refs = canvasReferences(tpl);
-        refs.components.forEach((component) => used.add(component));
-        loadAll ||= refs.opaque;
+        const refs = canvasReferences(tpl, field);
+        refs.components.forEach((component) => components.add(component)); opaque ||= refs.opaque;
+      }
+      this.referenced = { components, opaque }; this.graphDirty = false;
+      for (const [store, stop] of this.graphFields) { if (!graphFields.has(store)) { stop(); this.graphFields.delete(store); } }
+      for (const store of graphFields) {
+        if (!this.graphFields.has(store)) { this.graphFields.set(store, models.subscribePreparedField(store, () => { this.graphDirty = this.dirty = true; })); }
       }
     }
+    const used = this.referenced.components;
+    let loadAll = !this.frame || this.referenced.opaque;
     const requiredNames = new Set<string>();
     const packageDeps = new Map<string, readonly string[]>();
     // Registered functions and JS libraries can return components without a
@@ -129,6 +147,8 @@ export class CanvasHostlessInputs {
     this.disposed = true;
     this.stopCommits();
     this.fields.forEach((stop) => stop()); this.fields.clear();
+    this.graphFields.forEach((stop) => stop()); this.graphFields.clear();
+    this.referenced.components.clear();
     this.requests = Object.freeze([]);
   }
 }

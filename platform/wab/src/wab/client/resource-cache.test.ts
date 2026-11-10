@@ -3,7 +3,21 @@ beforeEach(() => {
   vi.resetModules();
   vi.stubGlobal("BroadcastChannel", class { postMessage() { return undefined; } });
 });
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  window.history.replaceState(null, "", "/");
+});
+it("presentation resources carry the code and branch and bypass the signed-in cache", async () => {
+  window.history.replaceState(null, "", "/d/0123456789?branch=design#/details/42");
+  const fetchMock = vi.fn<typeof fetch>(async () => new Response("shared"));
+  vi.stubGlobal("fetch", fetchMock);
+  const { fetchLibraryResource } = await import("@/wab/client/resource-cache");
+  await fetchLibraryResource("/api/v1/hostless-libraries/antd/canvas");
+  const options = fetchMock.mock.calls[0][1] as RequestInit;
+  expect(new Headers(options.headers).get("x-plasmic-presentation-code")).toBe("0123456789");
+  expect(new Headers(options.headers).get("x-plasmic-presentation-branch")).toBe("design");
+  expect(options.cache).toBe("no-store");
+});
 it("App resource reads use the native protocol without creating a browser cache", async () => {
   vi.spyOn(navigator, "userAgent", "get").mockReturnValue("PlasmicDesktop/darwin");
   const open = vi.fn();

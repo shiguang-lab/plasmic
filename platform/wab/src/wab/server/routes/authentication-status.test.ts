@@ -5,6 +5,7 @@ import { addCommentsRoutes } from "@/wab/server/routes/comments";
 import { getDependencyModelResource } from "@/wab/server/routes/dependency-model-resources";
 import { getHostlessLibraryCanvas } from "@/wab/server/routes/hostless-library-artifacts";
 import { getPresentation } from "@/wab/server/routes/presentations";
+import { presentationAccess } from "@/wab/server/routes/presentation-access";
 import { getPreviewPublication } from "@/wab/server/routes/preview-publications";
 import {
   computeNextProjectVersion,
@@ -15,6 +16,7 @@ import {
 } from "@/wab/server/routes/projects";
 import { getTeamById } from "@/wab/server/routes/teams";
 import { getWorkspace } from "@/wab/server/routes/workspaces";
+import { userDbMgr } from "@/wab/server/routes/util";
 import { ApiError } from "@/wab/shared/ApiErrors/ApiError";
 import { transformErrors } from "@/wab/shared/ApiErrors/errors";
 import { DEVFLAGS } from "@/wab/shared/devflags";
@@ -30,6 +32,7 @@ const project = Object.assign(new Project(), {
   inviteOnly: true,
   defaultAccessLevel: "viewer",
   projectApiToken: "read-token",
+  presentationCode: "0123456789",
 });
 let baseUrl: string;
 let server: ReturnType<ReturnType<typeof express>["listen"]>;
@@ -47,6 +50,7 @@ beforeEach(() => {
     Object.assign(new DependencyModelResource(), {
       id: "resource",
       pkgId: "package",
+      model: JSON.stringify({ version: "test", map: {} }),
     }),
   );
   vi.spyOn(manager, "getRepository").mockImplementation((entity: any): any => {
@@ -59,8 +63,8 @@ beforeEach(() => {
     throw new Error(`Unexpected repository ${entity.name}`);
   });
   vi.spyOn(manager, "findOne").mockImplementation(
-    async (entity: any): Promise<any> =>
-      entity === Project ? project : undefined,
+    async (entity: any, where?: any): Promise<any> =>
+      entity === Project && (!where?.presentationCode || (where.presentationCode === project.presentationCode && !project.deletedAt)) ? project : undefined,
   );
   vi.spyOn(DbMgr.prototype, "tryGetProjectById").mockImplementation(
     async () => project,
@@ -79,6 +83,7 @@ beforeEach(() => {
   vi.spyOn(DbMgr.prototype, "tryGetDevFlagOverrides").mockResolvedValue(
     undefined,
   );
+  vi.spyOn(DbMgr.prototype, "getLatestProjectRev").mockResolvedValue({ data: JSON.stringify({ deps: [] }) } as any);
   DEVFLAGS.hostLessComponents = [
     {
       type: "hostless-package",
@@ -103,6 +108,15 @@ beforeAll(async () => {
       req.user = { id: "user" } as typeof req.user;
     }
     next();
+  });
+  app.use(presentationAccess);
+  app.get("/api/v1/projects/:projectId/branches", async (req, res) => {
+    await userDbMgr(req).checkProjectPerms(req.params.projectId, "viewer", "read branches");
+    res.json({ branches: [] });
+  });
+  app.post("/api/v1/projects/:projectId", async (req, res) => {
+    await userDbMgr(req).checkProjectPerms(req.params.projectId, "editor", "save");
+    res.json({});
   });
   addCommentsRoutes(app);
   app.get("/api/v1/projects/:projectBranchId", getProjectRev);
@@ -156,7 +170,6 @@ const paths = [
   "/hostless-libraries/private-library/canvas?version=1.0.0",
   "/workspaces/workspace",
   "/teams/team",
-  "/presentations/0123456789",
   "/projects/private-project/preview-publication",
 ];
 
@@ -184,17 +197,51 @@ test.each(paths)(
   },
 );
 
-test("public presentation access works without login", async () => {
-  project.inviteOnly = false;
-  project.defaultAccessLevel = "viewer";
+test("private presentation access works without login", async () => {
+  const response = await fetch(baseUrl + "/presentations/0123456789");
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({ code: "0123456789", projectId: project.id });
+  expect(project.inviteOnly).toBe(true);
+});
+
+test("the presentation code grants reads without a user cookie and never grants writes", async () => {
+  const headers = { "x-plasmic-presentation-code": "0123456789" };
+  const read = await fetch(baseUrl + "/projects/private-project/branches", { headers });
+  expect(read.status).toBe(200);
+  const write = await fetch(baseUrl + "/projects/private-project", { method: "POST", headers });
+  expect(write.status).toBe(401);
+  const noCode = await fetch(baseUrl + "/projects/private-project/branches");
+  expect(noCode.status).toBe(401);
+  const unrelated = await fetch(baseUrl + "/projects/other-project/branches", { headers });
+  expect(unrelated.status).toBe(403);
+  const signedInWrite = await fetch(baseUrl + "/projects/private-project", { method: "POST", headers: { ...headers, "x-test-signed-in": "true" } });
+  expect(signedInWrite.status).toBe(403);
+});
+
+test("the immutable model handler accepts presentation access and still rejects anonymous requests without the code", async () => {
+  const response = await fetch(baseUrl + "/dependency-models/resource", {
+    headers: { "x-plasmic-presentation-code": "0123456789" },
+  });
+  expect(response.status).toBe(200);
+  expect(await response.json()).toEqual({ version: "test", map: {} });
+  expect((await fetch(baseUrl + "/dependency-models/resource")).status).toBe(401);
+});
+
+test.each(["bad-code", "abcdefghij"])("rejects an invalid or unknown presentation code: %s", async code => {
+  const response = await fetch(baseUrl + "/projects/private-project/branches", {
+    headers: { "x-plasmic-presentation-code": code },
+  });
+  expect(response.status).toBe(404);
+});
+
+test("deleted projects cannot be resolved or loaded with a presentation code", async () => {
+  project.deletedAt = new Date();
   try {
-    const response = await fetch(baseUrl + "/presentations/0123456789");
-    expect(response.status).toBe(200);
-    expect(await response.json()).toMatchObject({ projectId: project.id });
-  } finally {
-    project.inviteOnly = true;
-    project.defaultAccessLevel = "viewer";
-  }
+    for (const path of ["/presentations/0123456789", "/projects/private-project/branches"]) {
+      const response = await fetch(baseUrl + path, { headers: { "x-plasmic-presentation-code": "0123456789" } });
+      expect(response.status).toBe(404);
+    }
+  } finally { project.deletedAt = null; }
 });
 
 test("a valid project token works without a user cookie, invalid tokens remain permission failures", async () => {
@@ -202,7 +249,7 @@ test("a valid project token works without a user cookie, invalid tokens remain p
     ["read-token", 200],
     ["invalid", 403],
   ] as const) {
-    const response = await fetch(baseUrl + "/presentations/0123456789", {
+    const response = await fetch(baseUrl + "/projects/private-project/branches", {
       headers: { "x-plasmic-api-project-tokens": `${project.id}:${token}` },
     });
     expect(response.status).toBe(status);

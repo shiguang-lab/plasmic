@@ -50,18 +50,19 @@ class InspectorRead<T> {
   private readonly state: StoreApi<T>;
   private readonly subscriptions = new Set<() => void>();
   private disposed = false;
+  private dirty = false;
   private readonly runtimeStops = new Map<RuntimeSource, () => void>();
   readonly store: ModelFieldStore<T>;
 
   constructor(private readonly read: (previous?: T) => T, private readonly sources: () => readonly RuntimeSource[] = () => [], private readonly active: () => boolean = () => true) {
     this.state = createStore<T>(() => read());
     this.store = {
-      getState: this.state.getState,
+      getState: () => { this.capture(); return this.state.getState(); },
       getInitialState: this.state.getInitialState,
       subscribe: (listener) => {
         if (this.disposed) {return () => undefined;}
         const unsubscribe = this.state.subscribe(listener);
-        const stop = () => { unsubscribe(); this.subscriptions.delete(stop); if (!this.subscriptions.size) { this.disconnectRuntime(); } };
+        const stop = () => { unsubscribe(); this.subscriptions.delete(stop); if (!this.subscriptions.size) { this.disconnectRuntime(); this.dirty = true; } };
         const first = !this.subscriptions.size;
         this.subscriptions.add(stop);
         if (first) { this.refresh(); }
@@ -73,13 +74,21 @@ class InspectorRead<T> {
   private disconnectRuntime() { this.runtimeStops.forEach(stop => stop()); this.runtimeStops.clear(); }
   refresh = () => {
     if (this.disposed || !this.active()) { return; }
+    this.dirty = true;
+    // Hidden/unmounted controls invalidate their cached data without copying
+    // the runtime environment. Explicit reads and resubscription catch up.
+    if (this.subscriptions.size) { this.capture(); }
+  };
+  private capture() {
+    if (!this.dirty || this.disposed || !this.active()) { return; }
+    this.dirty = false;
     this.state.setState(() => this.read(this.state.getState()), true);
     if (this.subscriptions.size) {
       const sources = new Set(this.sources());
       for (const source of sources) { if (!this.runtimeStops.has(source)) { this.runtimeStops.set(source, source.subscribe(this.refresh)); } }
       for (const [source, stop] of this.runtimeStops) { if (!sources.has(source)) {stop(); this.runtimeStops.delete(source);} }
     }
-  };
+  }
 
   dispose() {
     this.disposed = true;

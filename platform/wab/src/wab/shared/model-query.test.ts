@@ -56,3 +56,44 @@ it("copies each raw container assignment independently and preserves explicit re
     a.withRecording(() => {first.colsSizes = second.colsSizes;}); expect(first.colsSizes).toBe(second.colsSizes);
   } finally {a.dispose(); b.dispose();}
 });
+
+it("validates declared fields without rerunning queries for unrelated writes", () => {
+  const config = new ColumnsConfig({ colsSizes: [1, 2], breakUpRows: false });
+  const recorder = new ChangeRecorder({ inst: config, _instUtil: instUtil });
+  const read = vi.fn((value: ColumnsConfig) => value.colsSizes.slice());
+  const query = memoizeModelQuery(read, { dependencies: (_result, value) => [[value, "colsSizes"]] });
+  try {
+    const initial = query(config);
+    recorder.withRecording(() => { config.breakUpRows = true; });
+    expect(query(config)).toBe(initial);
+    expect(read).toHaveBeenCalledOnce();
+    recorder.withRecording(() => {
+      config.colsSizes.push(3);
+      expect(query(config)).toEqual([1, 2, 3]);
+      config.colsSizes[0] = 5;
+      expect(query(config)).toEqual([5, 2, 3]);
+      config.colsSizes.length = 1;
+      expect(query(config)).toEqual([5]);
+      config.colsSizes = [8, 9];
+      expect(query(config)).toEqual([8, 9]);
+    });
+    expect(() => recorder.withRecording(() => {
+      config.colsSizes.reverse();
+      expect(query(config)).toEqual([9, 8]);
+      throw new Error("rollback");
+    })).toThrow("rollback");
+    expect(query(config)).toEqual([8, 9]);
+  } finally { recorder.dispose(); }
+});
+
+it("does not retain a declared dependency that has not been instrumented", () => {
+  const owner = new ColumnsConfig({ colsSizes: [], breakUpRows: false });
+  const unrecorded = new ColumnsConfig({ colsSizes: [1], breakUpRows: false });
+  const recorder = new ChangeRecorder({ inst: owner, _instUtil: instUtil });
+  const query = memoizeModelQuery((_owner: ColumnsConfig) => unrecorded.colsSizes.slice(), { dependencies: () => [[unrecorded, "colsSizes"]] });
+  try {
+    expect(query(owner)).toEqual([1]);
+    unrecorded.colsSizes.push(2);
+    expect(query(owner)).toEqual([1, 2]);
+  } finally { recorder.dispose(); }
+});

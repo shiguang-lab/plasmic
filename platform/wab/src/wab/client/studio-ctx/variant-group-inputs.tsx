@@ -5,7 +5,7 @@ import { subscribeViewRegistry } from "@/wab/client/studio-ctx/arena-state";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import type { VariantPinState } from "@/wab/shared/PinManager";
 import { isComponentArena } from "@/wab/shared/Arenas";
-import { arrayEq, assert } from "@/wab/shared/common";
+import { arrayEq, assert, ensure } from "@/wab/shared/common";
 import { Component, ComponentVariantGroup, ObjInst, Site, Variant, VariantGroup } from "@/wab/shared/model/classes";
 import * as React from "react";
 
@@ -54,6 +54,7 @@ export class SuperComponentVariantSource {
   private readonly groups = new Map<ModelRef<ComponentVariantGroup>, VariantGroupInputs>();
   private readonly listeners = new Set<() => void>();
   private readonly fields = new Map<ModelFieldStore<unknown>, { prepared: () => void; published: () => void }>();
+  private capturedFields = new Map<ModelFieldStore<unknown>, unknown>();
   private stops: (() => void)[] = [];
   private view: ViewCtx | undefined;
   private viewStops: (() => void)[] = [];
@@ -66,7 +67,7 @@ export class SuperComponentVariantSource {
   private isClosed() { return this.closed || this.lifetime.aborted || this.studio.modelSnapshots !== this.models; }
   private invalidate = () => { this.dirty = true; };
   private sync = () => {
-    const before = this.current; this.dirty = true; this.getSnapshot();
+    const before = this.current; this.getSnapshot();
     if (before !== this.current) { this.listeners.forEach((listener) => listener()); }
   };
   private disconnect = () => {
@@ -100,15 +101,20 @@ export class SuperComponentVariantSource {
       viewVariants?.frames, viewVariants?.global, view?.selectionStore.getState().context,
       view?.frameState.valRootStore.getState(), view?.csEvaluator.renderStatusStore.getState()];
     if (!arrayEq(this.nativeInputs, inputs)) { this.nativeInputs = inputs; this.dirty = true; }
+    if (!this.connected && [...this.capturedFields].some(([field, value]) => field.getState() !== value)) { this.dirty = true; }
     if (!this.dirty) { return this.current; }
-    const canChangeVariants = this.controller.canChangeActiveVariants();
+    const controller = this.controller.getSnapshot(this.component.variantGroups.flatMap(group => group.variants));
+    const pinStates = new Map(controller.variants.map(value => [value.variant, value]));
+    const canChangeVariants = controller.canChangeVariants;
     const activeGroups = new Set<ModelRef<ComponentVariantGroup>>();
     const groups = this.component.variantGroups.map((group) => {
       const ref = this.models.ref(group), previous = this.groups.get(ref); activeGroups.add(ref);
+      const previousVariants = new Map(previous?.variants.map((row) => [row.ref, row]));
       const variants = group.variants.map((variant) => {
-        const variantRef = this.models.ref(variant), before = previous?.variants.find((row) => row.ref === variantRef);
-        const row: VariantRowInputs = { ref: variantRef, uuid: variant.uuid, pinState: this.controller.getPinState(variant),
-          canTarget: canChangeVariants || this.controller.canToggleTargeting(variant), canToggle: canChangeVariants };
+        const variantRef = this.models.ref(variant), before = previousVariants.get(variantRef);
+        const pin = ensure(pinStates.get(variant), "Inherited variant must have a controller snapshot");
+        const row: VariantRowInputs = { ref: variantRef, uuid: variant.uuid, pinState: pin.pinState,
+          canTarget: canChangeVariants || pin.canToggle, canToggle: canChangeVariants };
         return before && before.uuid === row.uuid && before.pinState === row.pinState && before.canTarget === row.canTarget && before.canToggle === row.canToggle ? before : Object.freeze(row);
       });
       const name = group.param.variable.name;
@@ -166,6 +172,7 @@ export class SuperComponentVariantSource {
         this.viewStops.push(() => view.disposeSignal.removeEventListener("abort", this.close));
       }
     }
+    this.capturedFields = new Map([...used].map((store) => [store, store.getState()]));
     if (!this.connected) { return; }
     for (const store of used) {
       if (!this.fields.has(store)) { this.fields.set(store, { prepared: this.models.subscribePreparedField(store, this.invalidate), published: store.subscribe(this.sync) }); }
@@ -177,6 +184,7 @@ export class SuperComponentVariantSource {
     this.listeners.add(listener);
     if (!this.connected) {
       this.connected = true;
+      this.dirty = true;
       this.stops.push(
         this.studio.selectionStore.subscribe(this.sync),
         this.studio.arenaState.store.subscribe(this.sync),

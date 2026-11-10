@@ -33,10 +33,14 @@ export const Spotlight = React.memo(Spotlight_);
 function Spotlight_(props: { viewCtx: ViewCtx }) {
   const { viewCtx } = props;
   useViewVariants(viewCtx, (variantState) => variantState.showDefaultSlots);
-  useStudioLiveMode(viewCtx.studioCtx);
+  const live = useStudioLiveMode(viewCtx.studioCtx);
   const selection = useViewSelection(viewCtx, useShallow((state) => [state.context, state.doms]));
   const renderCount = useCanvasRenderCount(viewCtx);
-  const recipe = React.useCallback((field: Parameters<typeof canvasSlotFields>[1]) => canvasSlotFields(viewCtx.currentComponentCtx()?.tplComponent().component, field), [viewCtx, selection]);
+  const hasContext = !viewCtx.isDisposed && !viewCtx.disposeSignal.aborted &&
+    viewCtx.modelLifetime === viewCtx.studioCtx.arenaState.lifetime() && !live && !!viewCtx.currentComponentCtx()?.valComponent();
+  const recipe = React.useCallback((field: Parameters<typeof canvasSlotFields>[1]) => {
+    if (hasContext) { canvasSlotFields(viewCtx.currentComponentCtx()?.tplComponent().component, field); }
+  }, [viewCtx, selection, hasContext]);
   const { alive } = useCanvasViewInputs(viewCtx, recipe);
   const refresh = useFrameForceUpdate(viewCtx.disposeSignal);
   const { scale: viewportZoom } = useCanvasGeometry(viewCtx.studioCtx);

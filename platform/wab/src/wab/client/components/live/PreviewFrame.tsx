@@ -1,8 +1,10 @@
 import { trapInteractionError } from "@/wab/client/components/canvas/studio-canvas-util";
 import { PreviewCtx, usePreviewSelector } from "@/wab/client/components/live/PreviewCtx";
+import { PreviewLoading } from "@/wab/client/components/live/PreviewLoading";
 import styles from "@/wab/client/components/live/PreviewViewport.module.scss";
 import {
   onLoadInjectLiveRuntime,
+  preparePreviewModules,
   pushPreviewModules,
 } from "@/wab/client/components/live/live-syncer";
 import { getViewportScale } from "@/wab/client/components/live/preview-viewport";
@@ -114,6 +116,7 @@ function installPreviewInteractionHandlers(frameWindow: Window, previewCtx: Prev
 }
 
 interface LivePreview {
+  loading: boolean;
   attachFrame: (window: Window | null) => void;
   onLoad: () => Promise<void>;
   reset: () => void;
@@ -122,6 +125,7 @@ interface LivePreview {
 export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   const { revealStudio } = useHostFrameCtx();
   const { t } = useI18n();
+  const errorDisplay = { title: t("Preview unavailable"), label: t("Back to editor"), onReturn: () => { spawn(previewCtx.stopLiveMode()); } };
   const { token } = AntdTheme.useToken();
   const full = usePreviewSelector(previewCtx, (state) => state.previewData?.full ?? false);
   const route = usePreviewSelector(previewCtx, (state) => state.previewData);
@@ -130,14 +134,24 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   const [binding] = React.useState(() => new PreviewFrameBinding());
   const frame = React.useSyncExternalStore(binding.subscribe, binding.read, binding.read);
   const [loadedFrame, setLoadedFrame] = React.useState<ReturnType<PreviewFrameBinding["read"]> | null>(null);
+  const [settledFrame, setSettledFrame] = React.useState<ReturnType<PreviewFrameBinding["read"]> | null>(null);
   const frameLoaded = loadedFrame === frame;
+
+  React.useEffect(() => {
+    if (!isLive || !route) { return; }
+    const preparation = new AbortController();
+    // The foreground render queue presents compilation errors for its current
+    // page. Speculative destinations must not replace the page being viewed.
+    void preparePreviewModules(previewCtx, preparation.signal).catch(() => undefined);
+    return () => preparation.abort();
+  }, [previewCtx, isLive, route]);
 
   React.useEffect(() => {
     const win = frame.window;
     if (!frameLoaded || !win) {
       return;
     }
-    liveFrame(win).setErrorTitle(t("Error"));
+    liveFrame(win).setErrorTitle(errorDisplay.title, errorDisplay);
     const dispose = installPreviewAgentCursor(win, {
       label: t("AI assistant"),
       color: token.colorPrimary,
@@ -178,6 +192,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
     setInstallationStatus("idle");
     setInstalledPkgs([]);
     setLoadedFrame(null);
+    setSettledFrame(null);
   };
 
   const scrollToHash = () => {
@@ -221,7 +236,9 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       if (!isMounted() || !binding.isCurrent(frameWindow, generation)) { return; }
       // The iframe owner retries this specific cross-origin URL failure.
       if ((error as Error)?.name === "SecurityError") { throw error; }
-      await showPreviewLoadError(frameWindow, error);
+      await showPreviewLoadError(frameWindow, error, errorDisplay);
+      if (!isMounted() || !binding.isCurrent(frameWindow, generation)) { return; }
+      setSettledFrame(currentFrame);
       if (full && isMounted() && binding.isCurrent(frameWindow, generation)) {
         await revealStudio();
       }
@@ -287,12 +304,15 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
         })().catch(async (error) => {
           if (!isCurrentFrame()) { return; }
           setInstallationStatus("failed");
-          await showPreviewLoadError(win, error);
+          await showPreviewLoadError(win, error, errorDisplay);
+          if (!isCurrentFrame()) { return; }
+          setSettledFrame(frame);
           if (full && isCurrentFrame()) { await revealStudio(); }
         }),
       );
     }
   }, [
+    frame,
     frame.window,
     frameLoaded,
     usedPkgs,
@@ -329,12 +349,12 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       onRendered: () => {
         if (
           active &&
-          full &&
           !readyNotified &&
           binding.isCurrent(win, generation)
         ) {
           readyNotified = true;
-          spawn(revealStudio());
+          setSettledFrame(frame);
+          if (full) { spawn(revealStudio()); }
         }
       },
     });
@@ -349,6 +369,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       dispose();
     };
   }, [
+    frame,
     frame.window,
     frameLoaded,
     installationStatus,
@@ -365,6 +386,7 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
   }, [frame.window, previewCtx, isLive, route, pageHash]);
 
   return {
+    loading: settledFrame !== frame,
     attachFrame: binding.attach,
     onLoad,
     reset,
@@ -396,7 +418,7 @@ export function PreviewFrame({
   const height = usePreviewSelector(previewCtx, (state) => state.previewData?.height ?? 480);
   const [stage, setStage] = React.useState<HTMLDivElement | null>(null);
   const [iframe, setIframe] = React.useState<HTMLIFrameElement | null>(null);
-  const { attachFrame, onLoad } = useLivePreview(previewCtx);
+  const { attachFrame, onLoad, loading } = useLivePreview(previewCtx);
   const attachIframe = React.useCallback((element: HTMLIFrameElement | null) => {
     setIframe(element);
     attachFrame(element?.contentWindow ?? null);
@@ -612,6 +634,7 @@ export function PreviewFrame({
             ))}
         </div>
       </div>
+      {loading && <PreviewLoading />}
     </div>
   );
 }

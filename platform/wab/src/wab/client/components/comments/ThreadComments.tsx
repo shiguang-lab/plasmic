@@ -3,15 +3,32 @@
 import CommentPost from "@/wab/client/components/comments/CommentPost";
 import { ThreadHistory } from "@/wab/client/components/comments/ThreadHistory";
 import { TplCommentThread } from "@/wab/client/components/comments/utils";
-import {
-  DefaultThreadCommentsProps,
-  PlasmicThreadComments,
-} from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicThreadComments";
+import { DefaultThreadCommentsProps } from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicThreadComments";
 import { ApiComment, ApiCommentThreadHistory } from "@/wab/shared/ApiSchema";
 import { unexpected } from "@/wab/shared/common";
 
+import { useI18n } from "@/wab/client/i18n";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
+import { createStyles } from "antd-style";
 import * as React from "react";
+
+const useStyles = createStyles(({ token }) => ({
+  root: { minWidth: 0, display: "flex", flexDirection: "column", gap: 12 },
+  replies: {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    margin: "12px 0 4px",
+    color: token.colorTextSecondary,
+    fontSize: 11,
+    "&:after": {
+      content: '""',
+      height: 1,
+      background: token.colorBorderSecondary,
+      flex: 1,
+    },
+  },
+}));
 
 type Item = ApiComment | ApiCommentThreadHistory;
 
@@ -32,50 +49,51 @@ function ThreadComments_(
   ref: HTMLElementRefOf<"div">,
 ) {
   const { commentThread, ...rest } = props;
-
-  const bottomRef = React.useRef<HTMLDivElement>(null);
+  const { t } = useI18n();
+  const { styles, cx } = useStyles();
+  const rootComment = commentThread.comments[0];
+  const replies = commentThread.comments.filter(
+    (comment) => comment !== rootComment && !comment.deletedAt,
+  ).length;
 
   const sortedThreadItems = React.useMemo(() => {
     return [...commentThread.comments, ...commentThread.commentThreadHistories]
+      .filter((item) => item.id !== rootComment?.id)
       .map<[Item, Date]>((item) => [item, new Date(item.createdAt)])
       .sort((a, b) => a[1].getTime() - b[1].getTime())
       .map((pair) => pair[0]);
-  }, [commentThread.comments, commentThread.commentThreadHistories]);
-
-  // Scroll to the last item on mount or when new items are added
-  React.useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [sortedThreadItems.length]);
+  }, [
+    commentThread.comments,
+    commentThread.commentThreadHistories,
+    rootComment,
+  ]);
 
   return (
-    <PlasmicThreadComments
-      root={{ ref }}
-      {...rest}
-      commentsList={{
-        children: (
-          <>
-            {sortedThreadItems.map((item) => {
-              if (isComment(item)) {
-                return (
-                  <CommentPost
-                    key={item.id}
-                    comment={item}
-                    commentThread={commentThread}
-                  />
-                );
-              } else if (isCommentThreadHistory(item)) {
-                return <ThreadHistory key={item.id} history={item} />;
-              } else {
-                unexpected();
-              }
-            })}
-            <div ref={bottomRef} />
-          </>
-        ),
-      }}
-    />
+    <div ref={ref} className={cx(styles.root, rest.className)}>
+      {rootComment && (
+        <CommentPost comment={rootComment} commentThread={commentThread} />
+      )}
+      <div className={styles.replies}>
+        {replies
+          ? t("{count} replies", { count: replies })
+          : t("No replies yet")}
+      </div>
+      {sortedThreadItems.map((item) => {
+        if (isComment(item)) {
+          return (
+            <CommentPost
+              key={item.id}
+              comment={item}
+              commentThread={commentThread}
+            />
+          );
+        } else if (isCommentThreadHistory(item)) {
+          return <ThreadHistory key={item.id} history={item} />;
+        } else {
+          unexpected();
+        }
+      })}
+    </div>
   );
 }
 

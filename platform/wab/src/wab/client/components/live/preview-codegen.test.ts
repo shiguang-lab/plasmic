@@ -5,6 +5,7 @@ import {
   buildPreviewUpdate,
   subscribePreviewCodegen,
 } from "@/wab/client/components/live/preview-codegen";
+import { createTranspiler } from "@/wab/client/components/live/preview-transpiler";
 import { syncPreview } from "@/wab/client/components/live/preview-sync";
 import type {
   PreviewUpdate,
@@ -67,6 +68,7 @@ function renderFunctionAsts(mod: SourceModule) {
 }
 
 function transpileAll(modules: SourceModule[]) {
+  const transpile = createTranspiler();
   const frame = { update: async () => {}, showError: async () => {} };
   return new Promise<unknown>((resolve) => {
     const dispose = syncPreview(
@@ -76,6 +78,7 @@ function transpileAll(modules: SourceModule[]) {
         dispose();
         resolve(error);
       },
+      { compileModules: (sources) => Promise.all(sources.map(transpile)) },
     );
   });
 }
@@ -256,6 +259,7 @@ it("invalidates a rendered dependency without rebuilding unrelated roots and rel
   expect(changed).toHaveBeenCalledOnce();
   const after = buildPreviewModules(ctx, root);
   expect(after.modules).not.toEqual(before.modules);
+  expect(after.modules).toEqual(buildPreviewModules({ ...ctx }, root).modules);
   expect(buildPreviewModules(ctx, unrelated).rootOutput).toBe(unchanged.rootOutput);
   stop();
   commit(dependency, "name", [dependency]);

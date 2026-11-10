@@ -42,7 +42,6 @@ import {
   xGroupBy,
 } from "@/wab/shared/common";
 import { TplNamable } from "@/wab/shared/core/tpls";
-import { Box } from "@/wab/shared/geom";
 import {
   ChangesType,
   type ChangeSummary,
@@ -52,8 +51,6 @@ import { cloneDeep, isEqual, partition } from "lodash";
 import { shallow } from "zustand/shallow";
 import { createStore } from "zustand/vanilla";
 
-export const COMMENTS_DIALOG_RIGHT_ZOOM_PADDING = 320;
-
 export interface OpenedThread {
   readonly threadId: CommentThreadId;
   readonly viewCtx?: ViewCtx;
@@ -62,7 +59,6 @@ export interface OpenedThread {
 export interface OpenedNewThread {
   readonly tpl: TplNamable;
   readonly viewCtx: ViewCtx;
-  readonly anchor?: Box;
 }
 
 interface CommentDialogs {
@@ -162,7 +158,6 @@ export class CommentsCtx {
     GetCommentsResponse,
     "threads" | "users" | "reactions"
   > | null = null;
-  private readonly interacted = new WeakSet<OpenedThread | OpenedNewThread>();
   private readonly drafts = {
     arenas: new WeakMap<AnyArena, string>(),
     threads: new Map<CommentThreadId, string>(),
@@ -522,27 +517,28 @@ export class CommentsCtx {
     }
   }
 
-  openNewCommentDialog(viewCtx: ViewCtx, tpl: TplNamable, anchor?: Box) {
+  openNewCommentDialog(viewCtx: ViewCtx, tpl: TplNamable) {
     if (this.stopped) {
       return;
     }
     this.installDialogs({
       thread: undefined,
-      newThread: Object.freeze({ viewCtx, tpl, anchor }),
+      newThread: Object.freeze({ viewCtx, tpl }),
     });
+    if (!this.studioCtx.showCommentsPanel) { this.studioCtx.toggleCommentsPanel(); }
   }
 
   handleOpenCommentThreadDialog(threadId: CommentThreadId, viewCtx?: ViewCtx) {
     if (this.stopped) {
       return;
     }
+    if (!this.studioCtx.showCommentsPanel) { this.studioCtx.toggleCommentsPanel(); }
     const previous = this.openedThread();
     if (
       previous?.threadId === threadId &&
       previous.viewCtx === viewCtx &&
       !this.openedNewThread()
     ) {
-      this.interacted.delete(previous);
       return;
     }
     this.installDialogs({
@@ -557,21 +553,15 @@ export class CommentsCtx {
     }
   }
 
-  markDialogInteracted(dialog: OpenedThread | OpenedNewThread) {
-    this.interacted.add(dialog);
-  }
-  hasDialogInteraction(dialog: OpenedThread | OpenedNewThread) {
-    return this.interacted.has(dialog);
-  }
-
   openCommentThreadDialog(threadId: string, skipZoom?: boolean) {
-    if (skipZoom) {
-      this.skipZoomOnFocus = true;
-    }
+    if (this.stopped) { return; }
+    if (!this.studioCtx.showCommentsPanel) { this.studioCtx.toggleCommentsPanel(); }
     const queryParams = this.getQueryParams();
     if (queryParams.get(SEARCH_PARAM_COMMENT) === threadId) {
+      if (!this.openedThread()) { spawn(this.studioCtx.focusCommentThread(threadId)); }
       return;
     }
+    this.skipZoomOnFocus = !!skipZoom;
     queryParams.set(SEARCH_PARAM_COMMENT, threadId);
     this.studioCtx.appCtx.history.push({ search: queryParams.toString() });
   }
@@ -581,16 +571,6 @@ export class CommentsCtx {
     queryParams.delete(SEARCH_PARAM_COMMENT);
     this.studioCtx.appCtx.history.push({ search: queryParams.toString() });
   }
-
-  maybeCloseCommentDialogs = () => {
-    const { thread, newThread } = this.dialogSnapshot;
-    if (newThread && !this.hasDialogInteraction(newThread)) {
-      this.closeNewThreadDialog();
-    }
-    if (thread && !this.hasDialogInteraction(thread)) {
-      this.closeCommentThreadDialog();
-    }
-  };
 
   /** A mutation must not reuse a read that started before it was persisted. */
   async refreshComments(): Promise<void> {

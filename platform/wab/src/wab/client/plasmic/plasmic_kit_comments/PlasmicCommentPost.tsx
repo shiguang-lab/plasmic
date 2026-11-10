@@ -382,11 +382,6 @@ function PlasmicCommentPost__RenderFunc(props: {
         ) : null}
         <div
           className={classNames("all", sty.freeBox__dc1JV, {
-            [sty.freeBoxhoverBox__dc1JVbLDov]: hasVariant(
-              $state,
-              "hoverBox",
-              "hoverBox"
-            ),
             [sty.freeBoxisEditing__dc1JVuz8Vl]: hasVariant(
               $state,
               "isEditing",

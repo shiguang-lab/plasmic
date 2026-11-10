@@ -48,6 +48,8 @@ const {
   updateFileMenuContext,
 } = require("./workspace.cjs");
 const { attachWindowRecovery } = require("./window-recovery.cjs");
+const { createLifecycleLog, lifecycleError } = require("./lifecycle-log.cjs");
+let lifecycleLog = () => {};
 let controller, stopRpc, openMcpSettings, updates, openUpdates, workspace, presentation;
 let quitting = false;
 
@@ -156,6 +158,7 @@ function protectWindow(studio, contents) {
 }
 
 async function startDesktop() {
+  lifecycleLog("startup.begin");
   if (process.platform === "darwin") {
     await acknowledgeMacUpdate(app, false);
   }
@@ -573,11 +576,13 @@ async function startDesktop() {
       controller.dispatch(method, input, caller, signal),
       (caller) => controller.clearCallerActivity(caller.id),
     );
+    lifecycleLog("rpc.listening");
     app.once("will-quit", () => {
+      lifecycleLog("cleanup.begin");
       presentation.dispose();
       controller.close();
-      void drafts.close();
-      void stopRpc();
+      void drafts.close().then(() => lifecycleLog("drafts.closed"), error => lifecycleLog("drafts.close-failed", { error: lifecycleError(error) }));
+      void stopRpc().then(() => lifecycleLog("rpc.closed"), error => lifecycleLog("rpc.close-failed", { error: lifecycleError(error) }));
     });
   }
   workspace ??= new DesktopWorkspace(
@@ -643,12 +648,20 @@ async function startDesktop() {
       }
     });
   }, 5000);
-  let closeRequest;
+  let closeRequest, quitRequested = false;
   const protectDraftBeforeQuit = async () => {
     if (win.isDestroyed() || studio.webContents.isCrashed() || !workspace.projectId(studio.webContents.getURL())) {return true;}
+    lifecycleLog("quit.draft-flush-begin");
     try {
-      if ((await controller.invoke("flushDraft", {}, 10000)).protected) {return true;}
-    } catch (error) { console.warn("Cannot flush local draft:", error.message); }
+      if ((await controller.invoke("flushDraft", {}, 10000)).protected) {
+        lifecycleLog("quit.draft-protected");
+        return true;
+      }
+    } catch (error) {
+      lifecycleLog("quit.draft-flush-failed", { error: lifecycleError(error) });
+      console.warn("Cannot flush local draft:", error.message);
+    }
+    lifecycleLog("quit.draft-confirmation");
     const result = await dialog.showMessageBox(win, {
       type: "warning", message: t("Edits are not saved"),
       detail: t("Your latest edits could not be backed up on this device. Quitting may discard them."),
@@ -657,6 +670,7 @@ async function startDesktop() {
     return result.response === 1;
   };
   win.on("close", (event) => {
+    lifecycleLog("window.close-requested", { mode: presentation.mode, closeAction: presentation.closeAction, quitting });
     if (quitting || studio.webContents.isCrashed()) {
       return;
     }
@@ -666,28 +680,49 @@ async function startDesktop() {
       const action = presentation.mode === "island" ? "island" : await presentation.closingAction();
       if (!action || quitting || win.isDestroyed()) {return;}
       await capture();
-      if (action === "quit" && !(await protectDraftBeforeQuit())) {return;}
+      if (action === "quit" && !(await protectDraftBeforeQuit())) {
+        quitRequested = false;
+        lifecycleLog("quit.cancelled");
+        return;
+      }
       if (quitting || win.isDestroyed()) {return;}
-      if (action === "island") {await presentation.setMode("island");}
+      if (action === "island") {
+        await presentation.setMode("island");
+        lifecycleLog("window.closed-to-island");
+      }
       else { quitting = true; app.quit(); }
     })().catch((error) => {
+      lifecycleLog("window.close-failed", { error: lifecycleError(error) });
       console.error("Cannot close main window:", error);
       dialog.showErrorBox(t("Operation Failed"), t("Please try again"));
-    }).finally(() => { closeRequest = undefined; });
+    }).finally(() => {
+      closeRequest = undefined;
+      if (quitRequested && !quitting && !win.isDestroyed()) {
+        quitRequested = false;
+        app.quit();
+      }
+    });
   });
   const beforeQuit = (event) => {
     if (quitting) {
       return;
     }
     event.preventDefault();
-    if (closeRequest) {return;}
+    if (closeRequest) {
+      quitRequested = true;
+      lifecycleLog("quit.deferred");
+      return;
+    }
     closeRequest = (async () => {
       await capture();
-      if (!(await protectDraftBeforeQuit())) {return;}
+      if (!(await protectDraftBeforeQuit())) { lifecycleLog("quit.cancelled"); return; }
       quitting = true;
+      lifecycleLog("quit.approved");
       app.quit();
-    })().catch(error => { console.error("Cannot protect draft before quitting:", error); })
-      .finally(() => { closeRequest = undefined; });
+    })().catch(error => {
+      lifecycleLog("quit.failed", { error: lifecycleError(error) });
+      console.error("Cannot protect draft before quitting:", error);
+    }).finally(() => { closeRequest = undefined; quitRequested = false; });
   };
   app.on("before-quit", beforeQuit);
   win.once("closed", () => {
@@ -871,6 +906,7 @@ async function startDesktop() {
   if (process.platform === "darwin") {
     await acknowledgeMacUpdate(app);
   }
+  lifecycleLog("startup.ready", { mode: presentation.mode });
   return mainWindow;
 }
 
@@ -887,16 +923,55 @@ function bootstrap() {
   const userData =
     process.env.PLASMIC_DESKTOP_PROFILE ||
     path.join(app.getPath("appData"), "Plasmic Desktop");
+  lifecycleLog = createLifecycleLog(userData);
+  lifecycleLog("process.start", { version: app.getVersion(), platform: process.platform, arch: process.arch });
+  process.on("exit", code => lifecycleLog("process.exit", { code }));
+  process.on("uncaughtExceptionMonitor", error => lifecycleLog("process.uncaught-exception", { error: lifecycleError(error) }));
+  app.on("before-quit", () => lifecycleLog("quit.requested", { quitting, mode: presentation?.mode }));
+  app.on("will-quit", () => lifecycleLog("quit.will-quit"));
+  app.on("quit", (_event, code) => lifecycleLog("quit.completed", { code }));
+  app.on("browser-window-created", (_event, win) => {
+    const windowId = win.id;
+    lifecycleLog("window.created", { windowId });
+    for (const event of ["show", "hide", "closed", "unresponsive", "responsive"]) {
+      win.on(event, () => lifecycleLog("window." + event, { windowId }));
+    }
+  });
+  app.on("render-process-gone", (_event, contents, details) => lifecycleLog("renderer.gone", {
+    contentsId: contents.id, reason: details.reason, code: details.exitCode,
+  }));
+  app.on("child-process-gone", (_event, details) => lifecycleLog("child.gone", {
+    type: details.type, reason: details.reason, code: details.exitCode, serviceName: details.serviceName,
+  }));
+  const startupFailed = error => {
+    lifecycleLog("startup.failed", { error: lifecycleError(error) });
+    console.error("Desktop startup failed", error);
+    try {
+      dialog.showErrorBox(desktopI18n?.t("Error") ?? "Error", desktopI18n?.t("Could not start Plasmic.") ?? "Could not start Plasmic.");
+    } catch (dialogError) {
+      lifecycleLog("startup.error-dialog-failed", { error: lifecycleError(dialogError) });
+    } finally {
+      // Fatal startup cannot depend on initialized UI services or quit guards.
+      lifecycleLog("process.exit-requested", { code: 1 });
+      app.exit(1);
+    }
+  };
+  const activationFailed = error => {
+    lifecycleLog("activation.failed", { error: lifecycleError(error) });
+    console.error("Desktop activation failed", error);
+  };
   fs.mkdirSync(userData, { recursive: true });
   app.setPath("userData", userData);
   app.setPath("sessionData", userData);
   app.setName("Plasmic");
   if (!app.requestSingleInstanceLock()) {
+    lifecycleLog("instance.lock-denied");
     app.quit();
   } else {
+    lifecycleLog("instance.lock-acquired");
     const showDesktop = async () => {
       await app.whenReady();
-      const win = mainWindow || (await ensureDesktop());
+      const win = startingDesktop ? await startingDesktop : mainWindow || (await ensureDesktop());
       await presentation.setMode(presentation.mode);
       return win;
     };
@@ -908,13 +983,14 @@ function bootstrap() {
       unifiedAuth?.login.acceptCallback(url);
     };
     app.on("second-instance", (_event, argv) => {
+      lifecycleLog("activation.second-instance", { mode: presentation?.mode, starting: !!startingDesktop });
       const callback = argv.find((value) =>
         value.startsWith("plasmic-desktop:"),
       );
       if (callback) {
-        void handleAppCallback(callback);
+        void handleAppCallback(callback).catch(activationFailed);
       } else {
-        void showDesktop();
+        void showDesktop().catch(activationFailed);
       }
     });
     app.on("open-url", (event, url) => {
@@ -922,7 +998,8 @@ function bootstrap() {
         return;
       }
       event.preventDefault();
-      void handleAppCallback(url);
+      lifecycleLog("activation.open-url");
+      void handleAppCallback(url).catch(activationFailed);
     });
     app
       .whenReady()
@@ -939,29 +1016,24 @@ function bootstrap() {
             value.startsWith("plasmic-desktop:"),
           );
           if (callback) {
-            void handleAppCallback(callback);
+            void handleAppCallback(callback).catch(activationFailed);
           }
           return win;
         });
       })
-      .catch((error) => {
-        console.error("Desktop startup failed", error);
-        dialog.showErrorBox(desktopI18n.t("Error"), desktopI18n.t("Could not start Plasmic."));
-        app.quit();
-      });
+      .catch(startupFailed);
     app.on("activate", () => {
+      lifecycleLog("activation.activate", { mode: presentation?.mode, starting: !!startingDesktop });
       if (mainWindow && presentation) {
         if (!startingDesktop) {
-          void presentation.setMode(presentation.mode).catch(console.error);
+          void presentation.setMode(presentation.mode).catch(activationFailed);
         }
       } else if (!mainWindow) {
-        ensureDesktop().catch((error) => {
-          console.error("Desktop startup failed", error);
-          dialog.showErrorBox(desktopI18n.t("Error"), desktopI18n.t("Could not start Plasmic."));
-        });
+        ensureDesktop().catch(startupFailed);
       }
     });
     app.on("window-all-closed", () => {
+      lifecycleLog("window.all-closed", { quitting });
       if (process.platform !== "darwin") {
         app.quit();
       }

@@ -1,16 +1,15 @@
-import type { ModelFieldStore } from "@/wab/client/studio-ctx/model-snapshots";
+import type { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import { ModelFieldInputs } from "@/wab/client/stores/model-field-inputs";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { getStyleTokenReaderScope } from "@/wab/client/studio-ctx/style-token-ref-inputs";
 import { getStyleTokenScope } from "@/wab/client/studio-ctx/style-token-inputs";
 import type { StyleTokenType } from "@/wab/commons/StyleToken";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
-import { arrayEq } from "@/wab/shared/common";
 import type { FinalToken } from "@/wab/shared/core/tokens";
 import { siteFinalStyleTokensOfType } from "@/wab/shared/core/site-style-tokens";
-import type { ObjInst, StyleToken } from "@/wab/shared/model/classes";
+import type { StyleToken } from "@/wab/shared/model/classes";
 import * as React from "react";
 
-const empty: readonly unknown[] = Object.freeze([]);
 const emptyTokens: readonly FinalToken<StyleToken>[] = Object.freeze([]);
 let nextKey = 0;
 const ownerKeys = new WeakMap<object, number>();
@@ -18,34 +17,16 @@ const ownerKeys = new WeakMap<object, number>();
 export class StyleTokenCatalogInputs {
   readonly key: number;
   private readonly scope;
-  private current = empty;
   private tokenFields: readonly unknown[] | undefined;
   private tokens = emptyTokens;
-  private published = empty;
-  private dirty = true;
-  private connected = false;
-  private readonly listeners = new Set<() => void>();
-  private readonly fields = new Map<ModelFieldStore<unknown>, { prepare: () => void; stop: () => void }>();
+  private readonly inputs: ModelFieldInputs;
   constructor(private readonly studio: StudioCtx, private readonly type: StyleTokenType | undefined, helper: VariantedStylesHelper, private readonly supplied?: readonly FinalToken<StyleToken>[]) {
     this.scope = supplied?.[0] ? getStyleTokenScope(studio, supplied[0]) : getStyleTokenReaderScope(studio, helper);
     let key = ownerKeys.get(this.scope.models);
     if (key === undefined) { key = ++nextKey; ownerKeys.set(this.scope.models, key); }
     this.key = key;
-  }
-  isActive = () => this.scope.models === this.studio.modelSnapshots && !this.scope.owner.isDisposed && !this.scope.lifetime.aborted;
-  private disconnect = () => {
-    this.connected = false; this.scope.lifetime.removeEventListener("abort", this.close);
-    this.fields.forEach(({ prepare, stop }) => { prepare(); stop(); }); this.fields.clear();
-  };
-  private close = () => { this.current = empty; this.disconnect(); this.publishSnapshot(); this.listeners.clear(); };
-  private invalidate = () => { this.dirty = true; };
-  private publishSnapshot = () => { if (this.current !== this.published) { this.published = this.current; this.listeners.forEach((listener) => listener()); } };
-  private publish = () => { this.getSnapshot(); this.publishSnapshot(); };
-  getSnapshot = (): readonly unknown[] => {
-    if (!this.isActive()) { return empty; }
-    if (this.connected && !this.dirty) { return this.current; }
-    const used = new Set<ModelFieldStore<unknown>>(), { models, site } = this.scope;
-    const field = (model: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(models.declaredField(model, key)));
+    this.inputs = new ModelFieldInputs({ models: this.scope.models, lifetime: this.scope.lifetime, isCurrent: this.isActive }, (field) => {
+    const { site } = this.scope;
     if (this.supplied) {
       this.supplied.forEach((token) => field(token.base, "uuid", "name", "type", "isRegistered"));
     } else if (this.type) {
@@ -56,14 +37,10 @@ export class StyleTokenCatalogInputs {
         if (token.type === this.type) { field(token, "uuid", "name", "isRegistered"); }
       }));
     }
-    const values = [...used].map((store) => store.getState());
-    if (!arrayEq(this.current, values)) { this.current = Object.freeze(values); }
-    if (this.connected) {
-      for (const store of used) { if (!this.fields.has(store)) { this.fields.set(store, { prepare: models.subscribePreparedField(store, this.invalidate), stop: store.subscribe(this.publish) }); } }
-      for (const [store, binding] of this.fields) { if (!used.has(store)) { binding.prepare(); binding.stop(); this.fields.delete(store); } }
-    }
-    this.dirty = false; return this.current;
-  };
+    });
+  }
+  isActive = () => this.scope.models === this.studio.modelSnapshots && !this.scope.owner.isDisposed && !this.scope.lifetime.aborted;
+  getSnapshot = () => this.inputs.read();
   getTokens = (): readonly FinalToken<StyleToken>[] => {
     const fields = this.getSnapshot();
     if (fields !== this.tokenFields) {
@@ -72,22 +49,30 @@ export class StyleTokenCatalogInputs {
     }
     return this.tokens;
   };
-  subscribe = (listener: () => void) => {
-    if (!this.isActive()) { return () => undefined; }
-    this.listeners.add(listener);
-    if (!this.connected) { this.connected = true; this.dirty = true; this.scope.lifetime.addEventListener("abort", this.close, { once: true }); this.publish(); }
-    return () => { this.listeners.delete(listener); if (!this.listeners.size) { this.disconnect(); } };
-  };
+  subscribe = (listener: () => void) => this.inputs.subscribe(listener);
 }
 
-export function useStyleTokenCatalogInputs(studio: StudioCtx | undefined, type: StyleTokenType | undefined, helper?: VariantedStylesHelper, supplied?: readonly FinalToken<StyleToken>[]) {
+const catalogs = new WeakMap<ModelSnapshots, Map<StyleTokenType | undefined, { studio: StudioCtx; scope: ReturnType<typeof getStyleTokenReaderScope>; source: StyleTokenCatalogInputs }>>();
+export function getStyleTokenCatalogInputs(studio: StudioCtx, models: ModelSnapshots, type: StyleTokenType | undefined, helper: VariantedStylesHelper, supplied?: readonly FinalToken<StyleToken>[]) {
+  if (supplied) { return new StyleTokenCatalogInputs(studio, type, helper, supplied); }
+  const scope = getStyleTokenReaderScope(studio, helper);
+  if (scope.models !== models || scope.owner.isDisposed || scope.lifetime.aborted) { return new StyleTokenCatalogInputs(studio, type, helper); }
+  let types = catalogs.get(scope.models);
+  if (!types) { types = new Map(); catalogs.set(scope.models, types); }
+  const previous = types.get(type);
+  if (previous?.studio === studio && previous.scope.site === scope.site && previous.scope.owner === scope.owner && previous.scope.lifetime === scope.lifetime && previous.source.isActive()) { return previous.source; }
+  const source = new StyleTokenCatalogInputs(studio, type, helper);
+  types.set(type, { studio, scope, source }); return source;
+}
+
+export function useStyleTokenCatalogInputs(studio: StudioCtx | undefined, type: StyleTokenType | undefined, helper?: VariantedStylesHelper, supplied?: readonly FinalToken<StyleToken>[], enabled = true) {
   const subscribeOwner = React.useCallback((listener: () => void) => studio ? studio.subscribeModelChanges((event) => { if (event.type === "site-replaced") { listener(); } }) : () => undefined, [studio]);
   const readOwner = React.useCallback(() => studio?.modelSnapshots, [studio]);
   const models = React.useSyncExternalStore(subscribeOwner, readOwner, readOwner);
   const baseHelper = React.useMemo(() => new VariantedStylesHelper(), []);
-  const source = React.useMemo(() => studio ? new StyleTokenCatalogInputs(studio, type, helper ?? baseHelper, supplied) : undefined, [studio, models, type, helper, baseHelper, supplied]);
-  const subscribe = React.useCallback((listener: () => void) => source ? source.subscribe(listener) : () => undefined, [source]);
-  const read = React.useCallback(() => source?.getTokens() ?? emptyTokens, [source]);
+  const source = React.useMemo(() => studio && models ? getStyleTokenCatalogInputs(studio, models, type, helper ?? baseHelper, supplied) : undefined, [studio, models, type, helper, baseHelper, supplied]);
+  const subscribe = React.useCallback((listener: () => void) => enabled && source ? source.subscribe(listener) : () => undefined, [source, enabled]);
+  const read = React.useCallback(() => enabled ? source?.getTokens() ?? emptyTokens : emptyTokens, [source, enabled]);
   const tokens = React.useSyncExternalStore(subscribe, read, read);
   return { source, tokens };
 }
