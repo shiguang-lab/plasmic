@@ -117,7 +117,8 @@ import { Alert, Menu, Popover, Tooltip } from "antd";
 import classNames from "classnames";
 import L from "lodash";
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
-import { useIndicatorInputs } from "@/wab/client/components/style-controls/defined-indicator-inputs";
+import { indicatorFields, useIndicatorInputs } from "@/wab/client/components/style-controls/defined-indicator-inputs";
+import { useCanvasComponentValue } from "@/wab/client/components/canvas/canvas-view-inputs";
 import * as React from "react";
 
 export const variantComboName = (combo: VariantCombo) => {
@@ -991,6 +992,12 @@ export const VariantSettingPopoverContent = React.memo(
     const world = useVariantModelWorld(viewCtx.studioCtx, vs, viewCtx);
     const sources = React.useMemo(() => [], []);
     const alive = useIndicatorInputs(viewCtx.studioCtx, vs, sources, vs, tpl);
+    const styleFields = React.useCallback((field: Parameters<typeof indicatorFields>[0]) => indicatorFields(field, [], vs, tpl), [vs, tpl]);
+    const styleRows = useCanvasComponentValue(viewCtx.studioCtx, vs, styleFields, () => {
+      const rules = RSH(vs.rs, tpl);
+      return rules.props().filter(prop => !isBaseVariant(vs.variants) || !isDefaultIgnorableStyleValue(prop, rules.get(prop)))
+        .map(prop => ({ prop, value: rules.get(prop) }));
+    });
     if (!alive || !world.alive) { return null; }
     const exp = RSH(vs.rs, tpl);
 
@@ -1140,14 +1147,7 @@ export const VariantSettingPopoverContent = React.memo(
             )}
           </SourceRow>
         )}
-        {exp
-          .props()
-          .filter(
-            (prop) =>
-              !isBaseVariant(vs.variants) ||
-              !isDefaultIgnorableStyleValue(prop, exp.get(prop)),
-          )
-          .map((prop) => (
+        {styleRows?.map(({ prop, value }) => (
             <SourceRow
               key={prop}
               title={getLabelForStyleName(prop)}
@@ -1164,7 +1164,7 @@ export const VariantSettingPopoverContent = React.memo(
                 source={{
                   type: "style",
                   prop,
-                  value: exp.get(prop),
+                  value,
                   combo: vs.variants,
                 }}
                 editable={false}

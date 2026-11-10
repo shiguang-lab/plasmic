@@ -8,7 +8,7 @@ import { ensure } from "@/wab/shared/common";
 import { ComponentType } from "@/wab/shared/core/components";
 import { ChangeRecorder } from "@/wab/shared/core/observable-model";
 import { createSite } from "@/wab/shared/core/sites";
-import { ensureKnownTplTag } from "@/wab/shared/model/classes";
+import { ArenaFrameCell, ensureKnownTplTag } from "@/wab/shared/model/classes";
 import { instUtil } from "@/wab/shared/model/InstUtil";
 
 it("isolates grid membership, mixed-frame geometry and page labels from document content", () => {
@@ -30,8 +30,16 @@ it("isolates grid membership, mixed-frame geometry and page labels from document
     expect(gridChanged).not.toHaveBeenCalled(); expect(freeChanged).not.toHaveBeenCalled(); expect(labelsChanged).not.toHaveBeenCalled();
     commit(() => { frame.left = 30; frame.width += 20; });
     expect(freeChanged).toHaveBeenCalledTimes(1); expect(gridChanged).not.toHaveBeenCalled();
-    commit(() => { arena.matrix.rows[0].cols.push(cell); });
+    const initialRows = grid.getSnapshot();
+    const addedFrame = cloneArenaFrame(cell.frame);
+    const addedCell = new ArenaFrameCell({ frame: addedFrame, cellKey: undefined });
+    commit(() => { arena.matrix.rows[0].cols.push(addedCell); });
     expect(gridChanged).toHaveBeenCalledTimes(1);
+    expect(grid.getSnapshot()?.[0].frames).toEqual([
+      ...(initialRows?.[0].frames ?? []),
+      addedFrame,
+    ]);
+    expect(initialRows?.[0].frames).not.toContain(addedFrame);
     const previousGrid = grid.getSnapshot();
     commit(() => { cell.frame.width += 20; });
     expect(grid.getSnapshot()).toBe(previousGrid);

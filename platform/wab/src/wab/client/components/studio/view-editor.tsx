@@ -1,3 +1,4 @@
+import { isComposingKeyEvent } from "@/wab/commons/components/ReactUtil";
 import type { Site } from "@/wab/shared/model/classes";
 import { createStore } from "zustand/vanilla";
 import { useCurrentModelWorld } from "@/wab/client/components/variants/variant-model-world";
@@ -74,7 +75,10 @@ import { getUiLocale } from "@/wab/client/i18n";
 import { UiText } from "@/wab/client/i18n/UiText";
 import { PLATFORM } from "@/wab/client/platform";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
-import { shouldHandleStudioShortcut } from "@/wab/client/shortcuts/studio/studio-shortcut-handlers";
+import { shouldHandleModelShortcut } from "@/wab/client/shortcuts/studio/studio-shortcut-handlers";
+import { canHandleStudioModelInput, onStudioInputContextChange } from "@/wab/client/studio-ctx/studio-input";
+import { isAnyModalOpen } from "@/wab/client/components/widgets/open-modals";
+import { hasStudioCommandBarrier } from "@/wab/client/hooks/useStudioEscape";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { RightTabKey, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { selectPanelsHidden } from "@/wab/client/studio-ctx/left-panel-state";
@@ -94,7 +98,6 @@ import {
   ensure,
   ensureArray,
   maybe,
-  maybeInstance,
   spawn,
   tuple,
   unexpected,
@@ -128,7 +131,7 @@ import { Alert, notification } from "antd";
 import { ArgsProps } from "antd/lib/notification";
 import { default as cn, default as cx } from "classnames";
 import $ from "jquery";
-import { defer, throttle } from "lodash";
+import { defer, noop, throttle } from "lodash";
 import { ok } from "neverthrow";
 import React, { createRef } from "react";
 import { createPortal } from "react-dom";
@@ -160,20 +163,26 @@ interface ViewEditorProps {
 type ViewEditorState = { marqueeBox?: Box };
 
 export class ViewEditorController {
+  private disposed = false;
   readonly store = createStore<ViewEditorState & {hasDrag: boolean}>(() => ({hasDrag: false}));
   constructor(private props: ViewEditorProps) {}
-  updateProps(props: ViewEditorProps) { this.props = props; }
+  updateProps(props: ViewEditorProps) {
+    this.props = props;
+  }
   bindCanvas = (node: HTMLDivElement | null) => { this.canvas.current = node; };
   bindScaler = (node: HTMLDivElement | null) => { this.canvasScaler.current = node; };
   dispose() {
+    this.disposed = true;
     const canvasClipper = this.canvasClipper;
 
     this.unbindShortcutHandlers?.();
     this.unregisterListeners();
     this.releaseFrameInteractions.forEach((release) => release());
     this.releaseFrameInteractions = [];
-    window.removeEventListener("blur", this.cancelMarquee);
-    this.clearMarquee();
+    this.resetInput();
+    this.clearSuppressedClick?.();
+    this.stopInsertionTracking?.();
+    for (const entry of this.frameInputs.values()) { entry.release(); }
 
     this.resizeObserver?.disconnect();
     if (this.focusResetListener) {
@@ -250,32 +259,145 @@ private focusDefaultFrame() {
     return false;
   }
 private releaseFrameInteractions: (() => void)[] = [];
-private listeners: [keyof HTMLElementEventMap, any][] = [];
+private frameInputs = new Map<Document, { view: ViewCtx; release: () => void }>();
+private stopGlobalInputs?: () => void;
+private stopInsertionTracking?: () => void;
+private gestureStart?: MouseEvent;
+private pressedKeys = new Map<number, string>();
+private resetInput = () => {
+    const sc = this.props.studioCtx;
+    const keys = [...this.pressedKeys];
+    this.pressedKeys.clear();
+    keys.forEach(([code]) => sc.markKeyup(code));
+    if (keys.some(([, key]) => isArrowKey(key))) {
+      sc.stopUnlogged();
+    }
+    if (!this.disposed && !this.measureToolTargets?.targetVc.isDisposed) {
+      this.drawMeasureTool();
+    }
+    this.cancelCanvasGesture();
+  };
+private clearSuppressedClick?: () => void;
+private listeners: (() => void)[] = [];
 private registerListener<K extends keyof HTMLElementEventMap>(
     event: K,
     listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
     options?: boolean | AddEventListenerOptions,
+    target: HTMLElement | Document = document.body,
   ) {
     const handle = (e: HTMLElementEventMap[K]) => {
       if (!isForwardedFrameInteraction(e)) {
         listener.call(document.body, e);
       }
     };
-    this.listeners.push(tuple(event, handle));
-    document.body.addEventListener(event, handle, options);
+    target.addEventListener(event, handle as EventListener, options);
+    this.listeners.push(() => target.removeEventListener(event, handle as EventListener, options));
   }
 private unregisterListeners() {
-    for (const [key, listener] of this.listeners) {
-      document.body.removeEventListener(key, listener);
-    }
+    this.listeners.forEach(release => release());
     this.listeners.length = 0;
+  }
+private bindCanvasInputs(target: HTMLElement | Document, vc?: ViewCtx) {
+    const down = (event: Event) => {
+      if (isForwardedFrameInteraction(event)) { return; }
+      const mouse = event as MouseEvent;
+      spawn(this.handleMouseDown(mouse, vc ?? this.viewCtx()));
+      if (this.pendingCanvasClick || this.marquee || this.dragState || this.props.studioCtx.isPanning()) {
+        this.gestureStart = mouse;
+        this.refreshGlobalInputs();
+      }
+    };
+    const move = (event: Event) => {
+      if (!this.stopGlobalInputs && !this.props.studioCtx.app.isDragging()) {
+        if (!vc) { this.updateCursorLocation(event as MouseEvent); }
+        spawn(this.handleMouseMove(event as MouseEvent, vc ?? this.viewCtx()));
+      }
+    };
+    const over = (event: Event) => { if (!this.gestureStart) { this.handleMouseOver(event as MouseEvent, vc ?? this.viewCtx()); } };
+    const out = (event: Event) => { if (!this.gestureStart) { this.handleMouseOut(event as MouseEvent, vc ?? this.viewCtx()); } };
+    const menu = (event: Event) => this.handleContextMenu(event as MouseEvent, vc ?? this.viewCtx());
+    target.addEventListener("pointerdown", down, !!vc);
+    target.addEventListener("pointermove", move);
+    target.addEventListener("pointerover", over);
+    target.addEventListener("pointerout", out);
+    target.addEventListener("contextmenu", menu);
+    return () => {
+      target.removeEventListener("pointerdown", down, !!vc);
+      target.removeEventListener("pointermove", move);
+      target.removeEventListener("pointerover", over);
+      target.removeEventListener("pointerout", out);
+      target.removeEventListener("contextmenu", menu);
+    };
+  }
+private refreshGlobalInputs() {
+    this.stopGlobalInputs?.();
+    this.stopGlobalInputs = undefined;
+    if (this.disposed || (!this.gestureStart && !this.props.studioCtx.dragInsertState())) { return; }
+    const releases: (() => void)[] = [];
+    for (const doc of [document, ...this.frameInputs.keys()]) {
+      const vc = this.frameInputs.get(doc)?.view;
+      const matches = (event: Event) => !isForwardedFrameInteraction(event) &&
+        (!this.gestureStart || !("pointerId" in this.gestureStart) || !("pointerId" in event) || event.pointerId === this.gestureStart.pointerId);
+      const move = (event: Event) => { if (matches(event)) { spawn(this.handleMouseMove(event as MouseEvent, vc ?? this.viewCtx())); } };
+      const up = (event: Event) => {
+        if (!this.gestureStart || !matches(event)) { return; }
+        if (this.marquee?.isDragging || this.dragState?.isDragging || this.props.studioCtx.isPanning()) { this.suppressGestureClick(); }
+        this.gestureStart = undefined;
+        this.refreshGlobalInputs();
+        spawn(this.handleMouseUp(event as MouseEvent, vc ?? this.viewCtx()));
+      };
+      const cancel = (event: Event) => { if (event.type === "blur" || matches(event)) { this.cancelCanvasGesture(); } };
+      const escape = (event: KeyboardEvent) => this.handleDragEscape(event);
+      doc.addEventListener("pointermove", move, true);
+      doc.addEventListener("pointerup", up, true);
+      doc.addEventListener("pointercancel", cancel, true);
+      doc.addEventListener("lostpointercapture", cancel, true);
+      doc.addEventListener("keydown", escape, true);
+      if (vc) { doc.defaultView?.addEventListener("blur", cancel); }
+      releases.push(() => {
+        doc.removeEventListener("pointermove", move, true);
+        doc.removeEventListener("pointerup", up, true);
+        doc.removeEventListener("pointercancel", cancel, true);
+        doc.removeEventListener("lostpointercapture", cancel, true);
+        doc.removeEventListener("keydown", escape, true);
+        if (vc) { doc.defaultView?.removeEventListener("blur", cancel); }
+      });
+    }
+    this.stopGlobalInputs = () => releases.forEach(release => release());
+  }
+private cancelCanvasGesture = () => {
+    if (this.gestureStart && !this.disposed) { this.suppressGestureClick(); }
+    this.gestureStart = undefined;
+    this.stopGlobalInputs?.(); this.stopGlobalInputs = undefined;
+    this.cancelMarquee();
+    if (this.dragState) { this.endDrag(true); }
+    if (this.props.studioCtx.isPanning()) { this.props.studioCtx.endPanning(); }
+    if (this.props.studioCtx.dragInsertState()) { this.props.studioCtx.setDragInsertState(undefined); }
+  };
+private suppressGestureClick() {
+    this.clearSuppressedClick?.();
+    const docs = [document, ...this.frameInputs.keys()];
+    const clear = () => {
+      docs.forEach(doc => { doc.removeEventListener("click", click, true); doc.removeEventListener("pointerdown", clear, true); });
+      this.clearSuppressedClick = undefined;
+    };
+    const click = (event: Event) => {
+      if ((event as MouseEvent).detail && !isForwardedFrameInteraction(event)) {
+        event.preventDefault(); event.stopImmediatePropagation(); clear();
+      }
+    };
+    docs.forEach(doc => { doc.addEventListener("click", click, true); doc.addEventListener("pointerdown", clear, true); });
+    this.clearSuppressedClick = clear;
   }
 initializeCanvas = (canvasClipper: HTMLElement | null) => {
     if (!canvasClipper || this.canvasClipper === canvasClipper) {
       return;
     }
+    this.disposed = false;
     this.canvasClipper = canvasClipper;
     canvasClipper.classList.add("canvas-editor__canvas-clipper");
+    canvasClipper.setAttribute("data-studio-model-input", "");
+    canvasClipper.tabIndex = -1;
     const canvas = this.canvas.current;
     const canvasScaler = this.canvasScaler.current;
     if (!canvasClipper || !canvas || !canvasScaler) {
@@ -291,33 +413,27 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
     // Ensure focus on this page, since we are being loaded in an iframe.
     window.focus();
 
-    this.registerListener("pointerdown", (e) => {
-      // Body listeners also receive events from Studio panels and portaled
-      // popups. Only the canvas can start a gesture; move/up remain global so
-      // a gesture started on the canvas can finish outside it.
-      if (canvasClipper.contains(e.target as Node)) {
-        return this.handleMouseDown(e, this.viewCtx());
-      }
-      return undefined;
-    });
-    this.registerListener("pointermove", (e) =>
-      this.handleMouseMove(e, this.viewCtx()),
+    this.listeners.push(this.bindCanvasInputs(canvasClipper));
+    window.addEventListener("blur", this.resetInput);
+    this.listeners.push(
+      () => window.removeEventListener("blur", this.resetInput),
+      onStudioInputContextChange(this.props.studioCtx, this.resetInput),
     );
-    this.registerListener("pointerup", (e) =>
-      spawn(this.handleMouseUp(e, this.viewCtx())),
-    );
-    this.registerListener("pointercancel", this.cancelMarquee);
-    window.addEventListener("blur", this.cancelMarquee);
+    this.registerListener("pointerleave", () => this.updateCursorLocation(null), undefined, canvasClipper);
+    this.registerListener("dragenter", event => this.handleDragEnter(event), undefined, canvasClipper);
+    this.registerListener("dragover", event => event.preventDefault(), undefined, canvasClipper);
+    this.registerListener("drop", event => spawn(this.handleDrop(event)), undefined, canvasClipper);
+    this.stopInsertionTracking = this.props.studioCtx.canvasInsertStore.subscribe(() => this.refreshGlobalInputs());
 
     // We need to make sure the wheel handler uses {passive: false} so that we
     // can call preventDefault / stopPropagation on it, to prevent the
     // browser from handling the wheel event
     this.registerListener("wheel", this.props.studioCtx.handleCanvasWheel, {
       passive: false,
-    });
+    }, canvasClipper);
 
     this.registerListener("keydown", (e) => {
-      if (!this.isFocusedOnCanvas()) {
+      if (!this.isFocusedOnCanvas() || e.defaultPrevented || e.cancelBubble || isComposingKeyEvent(e)) {
         return;
       }
       if (this.props.studioCtx.isDevMode) {
@@ -327,12 +443,15 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
           e.preventDefault();
         }
         this.props.studioCtx.markKeydown(e.which);
+        const startArrowGroup = isArrowKey(e.key) &&
+          ![...this.pressedKeys.values()].some(isArrowKey);
+        this.pressedKeys.set(e.which, e.key);
         this.viewCtx()
           ?.getViewOps()
           .refreshHover(
             isCanvasModifierPressed(e) && !e.altKey,
           );
-        if (isArrowKey(e.key)) {
+        if (startArrowGroup) {
           this.props.studioCtx.startUnlogged();
         }
         // Draw MeasureTool guides immediately on Alt
@@ -343,19 +462,21 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
     });
 
     this.registerListener("keyup", (e) => {
-      if (!this.isFocusedOnCanvas()) {
+      const pressed = this.pressedKeys.get(e.which);
+      if (pressed === undefined && (!this.isFocusedOnCanvas() || isComposingKeyEvent(e))) {
         return;
       }
-      if (this.props.studioCtx.isDevMode) {
-        this.props.studioCtx.markKeyup(e.which);
+      this.pressedKeys.delete(e.which);
+      this.props.studioCtx.markKeyup(e.which);
+      if (pressed && isArrowKey(pressed) && ![...this.pressedKeys.values()].some(isArrowKey)) {
+        this.props.studioCtx.stopUnlogged();
+      }
+      if (this.isFocusedOnCanvas()) {
         this.viewCtx()
           ?.getViewOps()
           .refreshHover(
             isCanvasModifierPressed(e) && !e.altKey,
           );
-        if (isArrowKey(e.key)) {
-          this.props.studioCtx.stopUnlogged();
-        }
         // Remove MeasureTool guides
         if (!this.props.studioCtx.isAltDown()) {
           this.drawMeasureTool();
@@ -365,7 +486,7 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
 
     this.registerListener("copy", async (e: ClipboardEvent) => {
       const vc = this.viewCtx();
-      if (!vc || !this.isFocusedOnCanvas() || !this.props.studioCtx.isDevMode || document.getSelection()?.isCollapsed === false) {
+      if (!vc || !this.isFocusedOnCanvas() || document.getSelection()?.isCollapsed === false) {
         return;
       }
 
@@ -379,7 +500,7 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
     });
     this.registerListener("cut", async (e: ClipboardEvent) => {
       const vc = this.viewCtx();
-      if (!vc || !this.isFocusedOnCanvas() || !this.props.studioCtx.isDevMode || document.getSelection()?.isCollapsed === false) {
+      if (!vc || !this.isFocusedOnCanvas() || document.getSelection()?.isCollapsed === false) {
         return;
       }
 
@@ -392,7 +513,7 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
       }
     });
     this.registerListener("paste", async (e: ClipboardEvent) => {
-      if (!this.isFocusedOnCanvas() || !this.props.studioCtx.isDevMode) {
+      if (!this.isFocusedOnCanvas()) {
         return;
       }
 
@@ -481,12 +602,7 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
     this.resizeObserver.observe(canvasClipper);
     this.resizeObserver.observe(canvasScaler);
 
-    this.focusResetListener = this.props.studioCtx.focusReset.add(() => {
-      this.cancelMarquee();
-      if (this.dragState) {
-        this.endDrag();
-      }
-    });
+    this.focusResetListener = this.props.studioCtx.focusReset.add(this.resetInput);
 
     this.onClipperScrollListener = () => {
       viewportCtx.setScroll(
@@ -923,25 +1039,12 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
       document.body,
       STUDIO_SHORTCUTS,
       shortcutHandlers,
-      shouldHandleStudioShortcut(this.props.studioCtx),
+      shouldHandleModelShortcut(this.props.studioCtx),
     );
   };
 focusResetListener: SignalBinding | undefined = undefined;
 private isFocusedOnCanvas() {
-    // Studio-owned scroll regions keep canvas shortcuts when Chromium focuses
-    // their scrolling viewport. Form controls and other panel owners stay native.
-    const ignorableClassNames = [
-      "tpltree-scroller",
-      "canvas-editor__canvas-clipper",
-    ];
-    const activeElement = document.activeElement;
-    const isActiveElementOnCanvas =
-      activeElement === document.body ||
-      ignorableClassNames.some((cls) => activeElement?.classList.contains(cls)) ||
-      (activeElement?.matches(".tpltree-scroller > [data-overlayscrollbars-viewport]") ?? false);
-    return (
-      isActiveElementOnCanvas && !this.props.studioCtx.isBottomModalFocused()
-    );
+    return canHandleStudioModelInput(this.props.studioCtx);
   }
 private handleHotkey(
     e: KeyboardEvent,
@@ -1024,10 +1127,7 @@ private async handleMouseDown(
       return;
     }
 
-    // Dispatch Plasmic events if the original event happened inside an iframe
-    if (isCanvasIframeEvent(e)) {
-      this.props.studioCtx.setWatchPlayerId(null);
-    }
+    this.props.studioCtx.setWatchPlayerId(null);
 
     // Panning has a higher precedence than anything else.
     if (e.button === 1 || this.props.studioCtx.isPanMode()) {
@@ -1051,22 +1151,23 @@ private async handleMouseDown(
       return;
     }
 
-    if (this.props.studioCtx.dragInsertState()) {
-      const dragState = this.props.studioCtx.dragInsertState();
-      const manager = dragState?.dragMgr;
-      const vc = manager?.tentativeVc;
-      const extraInfo = dragState?.spec.asyncExtraInfo
-        ? await dragState?.spec.asyncExtraInfo(this.props.studioCtx)
-        : undefined;
+    const sc = this.props.studioCtx;
+    const insertion = sc.dragInsertState();
+    if (insertion) {
+      const target = insertion.dragMgr.tentativeVc;
+      const extraInfo = await insertion.spec.asyncExtraInfo?.(sc);
       if (extraInfo === false) {
         return;
       }
       spawn(
-        this.props.studioCtx.changeUnsafe(() => {
-          if (vc) {
-            dragState?.dragMgr.endDrag(dragState?.spec, extraInfo);
+        sc.changeUnsafe(() => {
+          if (sc.dragInsertState() !== insertion) {
+            return;
           }
-          this.props.studioCtx.setDragInsertState(undefined);
+          if (target && !target.isDisposed && insertion.dragMgr.tentativeVc === target) {
+            insertion.dragMgr.endDrag(insertion.spec, extraInfo);
+          }
+          sc.setDragInsertState(undefined);
         }),
       );
       return;
@@ -1101,7 +1202,7 @@ private async handleMouseDown(
     if (!targetVc) {
       // Make sure that the onBlur events are called before resetting
       // the focus.
-      maybeInstance(document.activeElement, HTMLElement, (ae) => ae.blur());
+      this.canvasClipper?.focus({ preventScroll: true });
       this.props.studioCtx.changeSelection(() => {
         // A click that visually outside the frame. Clear focus
         this.props.studioCtx.setStudioFocusOnFrame({
@@ -1126,11 +1227,9 @@ private async handleMouseDown(
     // If the user's app components install document listeners, we try to stop them from firing. For example, prevent triggering listeners from overlays/modals that dismiss on clicking outside.
     e.stopImmediatePropagation();
 
-    // If we're clicking to select, we bring the focus back to the document
-    // body (blurring any form elements that may have focus in the style panel)
-    // This makes sure that the onBlur events of those form elements are called
-    // before we switch our selection.
-    maybeInstance(document.activeElement, HTMLElement, (ae) => ae.blur());
+    // Commit panel input blur before selecting, and retain explicit canvas focus.
+    document.getSelection()?.removeAllRanges();
+    this.canvasClipper?.focus({ preventScroll: true });
 
     const makeSpeculativeDragState = () => ({
       sourceViewCtx: targetVc,
@@ -1305,12 +1404,14 @@ private async handleMouseMove(e: MouseEvent, vc: ViewCtx | undefined | null) {
       return;
     }
 
-    if (this.props.studioCtx.dragInsertState()) {
-      await this.props.studioCtx.changeUnsafe(() => {
-        const manager = ensure(
-          this.props.studioCtx.dragInsertState()?.dragMgr,
-          "dragMgr should exist on dragInsertState.",
-        );
+    const sc = this.props.studioCtx;
+    const insertion = sc.dragInsertState();
+    if (insertion) {
+      await sc.changeUnsafe(() => {
+        if (sc.dragInsertState() !== insertion) {
+          return;
+        }
+        const manager = insertion.dragMgr;
         if (
           !Box.fromRect(
             this.props.studioCtx.canvasClipper().getBoundingClientRect(),
@@ -1381,7 +1482,6 @@ private async handleMouseMove(e: MouseEvent, vc: ViewCtx | undefined | null) {
           isDragging: true,
         };
         vc.studioCtx.setIsDraggingObject(true);
-        document.addEventListener("keydown", this.handleDragEscape, true);
         const focusObjs = vc.focusedSelectables();
 
         const filteredFocusObjs = focusObjs.filter((focusObj) => {
@@ -1443,14 +1543,11 @@ private async handleMouseMove(e: MouseEvent, vc: ViewCtx | undefined | null) {
     }
   }
 private handleDragEscape = (e: KeyboardEvent) => {
-    if (e.key === "Escape" && (this.marquee || this.dragState)) {
+    if (e.key === "Escape" && !e.defaultPrevented && !isComposingKeyEvent(e) && !isAnyModalOpen() && !hasStudioCommandBarrier() && (this.gestureStart || this.marquee || this.dragState || this.props.studioCtx.isPanning() || this.props.studioCtx.dragInsertState())) {
       // Consume gesture cancellation before the global deselect shortcut.
       e.preventDefault();
       e.stopPropagation();
-      this.cancelMarquee();
-      if (this.dragState) {
-        this.endDrag(true);
-      }
+      this.cancelCanvasGesture();
     }
   };
 private endDrag(cancelled = false) {
@@ -1467,7 +1564,8 @@ private endDrag(cancelled = false) {
       }
     }
     this.dragState = undefined;
-    document.removeEventListener("keydown", this.handleDragEscape, true);
+    this.gestureStart = undefined;
+    this.refreshGlobalInputs();
     this.props.studioCtx.setIsDraggingObject(false);
   }
 private handleMouseOut = (e: MouseEvent, vc?: ViewCtx) => {
@@ -1683,7 +1781,7 @@ private async handleMouseUp(e: MouseEvent, vc: ViewCtx | undefined | null) {
         : new Pt(e.clientX, e.clientY);
       await s.dragMoveManager.drag(end, e);
     }
-    if (this.dragState) {
+    if (s && this.dragState === s) {
       this.endDrag();
     }
     if (!s?.isDragging) {
@@ -1696,7 +1794,7 @@ private startMarquee(
     click: () => void,
     clearOnPress = false,
   ) {
-    maybeInstance(document.activeElement, HTMLElement, (ae) => ae.blur());
+    this.canvasClipper?.focus({ preventScroll: true });
     const sc = this.props.studioCtx;
     const previousVc = sc.focusedViewCtx();
     const previousFrames = sc.focusedFrames().slice();
@@ -1744,7 +1842,7 @@ private startMarquee(
       isDragging: false,
       viewCtx,
       append: e.shiftKey,
-      click: eagerClear || (clearOnPress && e.shiftKey) ? () => {} : click,
+      click: eagerClear || (clearOnPress && e.shiftKey) ? noop : click,
       restore,
       captureTarget,
       pointerId,
@@ -1752,20 +1850,20 @@ private startMarquee(
     if (pointerId !== undefined) {
       captureTarget.setPointerCapture(pointerId);
     }
-    document.addEventListener("keydown", this.handleDragEscape, true);
     e.preventDefault();
     e.stopPropagation();
   }
 private clearMarquee() {
     const marquee = this.marquee;
     this.marquee = undefined;
+    this.gestureStart = undefined;
+    this.refreshGlobalInputs();
     if (
       marquee?.pointerId !== undefined &&
       marquee.captureTarget?.hasPointerCapture(marquee.pointerId)
     ) {
       marquee.captureTarget.releasePointerCapture(marquee.pointerId);
     }
-    document.removeEventListener("keydown", this.handleDragEscape, true);
   }
 private cancelMarquee = () => {
     this.canvasClicks.reset();
@@ -1967,25 +2065,19 @@ onFrameLoad = (frame: ArenaFrame, canvasCtx: CanvasCtx) => {
       const vc = studioCtx.createViewCtx(frame, canvasCtx);
       const doc = canvasCtx.$doc().get(0);
 
-      // Select before user components can respond to a pointer press.
-      doc.addEventListener(
-        "pointerdown",
-        (e) => spawn(this.handleMouseDown(e, vc)),
-        true,
-      );
-      doc.addEventListener("pointerup", (e) =>
-        spawn(this.handleMouseUp(e, vc)),
-      );
-      doc.addEventListener("pointercancel", this.cancelMarquee);
-      doc.addEventListener("pointermove", (e) =>
-        spawn(this.handleMouseMove(e, vc)),
-      );
-      doc.addEventListener("pointerover", (e) => this.handleMouseOver(e, vc));
-      doc.addEventListener("pointerout", (e) => this.handleMouseOut(e, vc));
-      doc.addEventListener("contextmenu", (e) => this.handleContextMenu(e, vc));
-      doc.addEventListener("wheel", () =>
-        document.dispatchEvent(new Event(plasmicIFrameWheelEvent)),
-      );
+      const releaseInputs = this.bindCanvasInputs(doc, vc);
+      const wheel = () => document.dispatchEvent(new Event(plasmicIFrameWheelEvent));
+      doc.addEventListener("wheel", wheel);
+      const release = () => {
+        vc.disposeSignal.removeEventListener("abort", release);
+        releaseInputs(); doc.removeEventListener("wheel", wheel);
+        this.frameInputs.delete(doc);
+        if (this.dragState?.sourceViewCtx === vc || this.marquee?.viewCtx === vc || this.pendingCanvasClick?.viewCtx === vc) { this.cancelCanvasGesture(); }
+        else { this.refreshGlobalInputs(); }
+      };
+      this.frameInputs.set(doc, { view: vc, release });
+      this.refreshGlobalInputs();
+      vc.disposeSignal.addEventListener("abort", release, { once: true });
       canvasCtx
         .$body()
         // Handle drag-n-drop files into an artboard
@@ -2078,19 +2170,6 @@ export function ViewEditor_(props: ViewEditorProps) {
                 "canvas-editor__canvas-container__focus_mode":
                   arenaInputs.focusedMode,
               })}
-              // Handle drag-n-drop files into blank canvas
-              onDrop={async (e) => controller.handleDrop(e)}
-              // Prevents the file from being loaded in a new tab when dropped
-              onDragOver={(e) => e.preventDefault()}
-              onDragEnter={(e) => controller.handleDragEnter(e)}
-              onMouseLeave={() => controller.updateCursorLocation(null)}
-              onMouseMove={(e) => controller.updateCursorLocation(e)}
-              onMouseDown={() => {
-                props.studioCtx.setWatchPlayerId(null);
-              }}
-              onMouseUp={() => {
-                props.studioCtx.setWatchPlayerId(null);
-              }}
             >
               <FollowingPlayer studioCtx={studioCtx} />
               {props.renderDevMode && (

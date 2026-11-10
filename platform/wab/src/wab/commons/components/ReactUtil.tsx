@@ -12,6 +12,10 @@ import React, { SyntheticEvent, useState } from "react";
 
 export { mergeRefs };
 
+export function isComposingKeyEvent(event: { isComposing?: boolean; keyCode?: number }) {
+  return event.isComposing || event.keyCode === 229;
+}
+
 export interface KeyModifiers {
   alt?: boolean;
   ctrl?: boolean;

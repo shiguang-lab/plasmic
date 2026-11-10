@@ -20,6 +20,12 @@ that frame ahead of other frames in the current arena and background arenas.
 Target iframe initialization starts without an idle wait; other iframe loads
 remain serial and idle scheduled. Canvas evaluation retains its existing model
 change and visibility scheduling.
+The active target's first evaluation runs without an idle wait; subsequent
+evaluations and background frames remain idle scheduled. Its post-evaluation
+task boundary retains promise ownership through completion. Idle-task and
+evaluation failures release their queues, report the original canvas error and
+reject tool readiness instead of leaving startup waiting for a success marker.
+Canvas errors retain their stack in Desktop's existing error log.
 Saved-view restoration waits for the target ViewCtx and resumes its queue even
 if the saved target is initially offscreen. It restores the camera after the
 inspector layout frames while target rendering proceeds. The viewport commit
@@ -137,20 +143,21 @@ frame may consume that complete response once for the same project and branch
 within 30 seconds. The handoff is memory-only, discarded on account changes, and
 never persists project models or permissions to the library cache.
 
-Root uses the returned context immediately and resolves dependency model resource
-GETs concurrently with editor/host initialization. It does not issue another
-project GET. The top-frame bridge consumes the hydrated-model promise once for
-an exact project/branch/latest-model match; other projects, revisions and later
-requests use the normal API. Host trust checks still precede editor execution.
-Transient context and promises are cleared when consumed.
+Root uses the returned context immediately and fetches immutable dependency
+resources as bytes through the existing authorized cache, concurrently with
+editor and Host initialization. It does not issue another project GET. The
+TopFrame bridge consumes the prefetched-model promise once for an exact
+project/branch/latest-model match. Host trust checks still precede editor
+execution. Transient context and promises are cleared when consumed.
 
-The authorized prefetched `getSiteInfo` response crosses Comlink once as a JSON
-string through the `PROJECT_MODEL` transfer handler registered in both frame
-contexts. This avoids structured-cloning the hydrated dependency object graph.
-The decoded value retains the normal `GetProjectResponse` contract. A WeakSet
-marks only this startup response and removes the mark during serialization;
-ordinary refreshes, other API results and errors retain Comlink's normal wire
-format. No project model or serialized response is added to a persistent cache.
+The `PROJECT_MODEL` Comlink handler transfers each dependency buffer once.
+Only the Host decodes and parses the dependencies, producing the normal
+`GetProjectResponse`. Other projects, revisions and later reads use the
+normal API. No additional persistent cache is used.
+
+The TopFrame owns the visible startup shell. The covered Host skips its local
+loading chrome until reveal; errors can still mount their content and request
+reveal. After reveal, the Host owns local loading and retry.
 
 Loading chrome imports lightweight contexts and disabled controls. It does not
 import `StudioCtx`, billing dialogs or dashboard screens. Context definitions and
@@ -190,3 +197,10 @@ timings. Independent reads begin only after project authorization.
 Studio teardown clears canvas focus and committed inspector selection together
 before disposing ViewCtx evaluators. Content controls may still react while
 React unmounts; the focused view must not outlive its evaluator.
+
+Undo and redo commit restored model snapshots, arena membership and save inputs
+before waiting for a recreated ViewCtx. Canvas iframes mount from those published
+collections, so their creation cannot be a prerequisite for publishing them.
+Existing views restore selection in the synchronous commit; recreated views
+restore it after mounting. Any variant-setting repairs from that selection are
+recorded and published before the restored views are evaluated.

@@ -1,5 +1,6 @@
 import sty from "@/wab/client/components/BottomModal.module.sass";
 import { useTrackOpenModal } from "@/wab/client/components/widgets/open-modals";
+import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
 import { useConstant } from "@/wab/commons/components/ReactUtil";
 import { ensure } from "@/wab/shared/common";
 import classNames from "classnames";
@@ -257,28 +258,23 @@ function BottomModalInternal(props: {
     ? canvasHeight - ((count - index) * 10 + 40)
     : canvasHeight - height;
   const animatedStyles = useSpring({ to: { top } });
+  const root = React.useRef<HTMLDivElement>(null);
+  useStudioEscape(root, isFocused, () => {
+    if (config.onEscape) { config.onEscape(); }
+    else { dispatch({ type: "focus", focusedIndex: undefined }); }
+  });
 
   return (
     <FocusScope contain={isFocused} restoreFocus>
       <animated.div
+        ref={root}
         className={sty.ModalRoot}
         style={{ ...animatedStyles, height, left: 100 + leftDelta }}
         data-test-id={dataTestId}
         role={isFocused ? "dialog" : undefined}
         aria-labelledby={`bottom-modal-title-${id}`}
-        onKeyDownCapture={(event) => {
-          if (isFocused && event.key === "Escape" && !event.defaultPrevented) {
-            event.preventDefault();
-            event.stopPropagation();
-            if (config.onEscape) {
-              config.onEscape();
-            } else {
-              dispatch({ type: "focus", focusedIndex: undefined });
-            }
-          }
-        }}
-        onClick={() => {
-          if (!isFocused) {
+        onClick={(event) => {
+          if (!isFocused && event.currentTarget.contains(event.target as Node)) {
             dispatch({ type: "focus", focusedIndex: index });
           }
         }}

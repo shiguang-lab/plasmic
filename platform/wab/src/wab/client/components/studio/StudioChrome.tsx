@@ -8,6 +8,7 @@ import { StudioLayout } from "@/wab/client/components/studio/StudioLayout";
 import { TopBarLoading } from "@/wab/client/components/top-bar/TopBarLoading";
 import { editorLeftRailLayout } from "@/wab/client/components/ui/layout-styles";
 import { StudioLoading } from "@/wab/client/components/widgets/StudioLoading";
+import { LoadingAnimationContext } from "@/wab/client/contexts/LoadingAnimationContext";
 import { useLocation } from "@/wab/client/route/HistoryProvider";
 import { ensure, spawn } from "@/wab/shared/common";
 import { APP_ROUTES } from "@/wab/shared/route/app-routes";
@@ -138,8 +139,8 @@ export function StudioStartupBoundary({
   );
 }
 
-// Top-frame fallbacks report errors to the persistent owner. Host-frame
-// fallbacks render locally underneath that owner until the canvas is ready.
+// The TopFrame owns startup loading. The covered Host only mounts this shell
+// when it has an error to reveal.
 export function StudioChrome({
   projectName,
   children,
@@ -148,6 +149,7 @@ export function StudioChrome({
   children?: React.ReactNode;
 }) {
   const update = React.useContext(StudioStartupContext);
+  const ownsLoadingSurface = React.useContext(LoadingAnimationContext);
   const location = useLocation();
   const isPreview = !!APP_ROUTES.projectPresentation.parse(location.pathname) ||
     parseProjectLocation(location)?.isPreview;
@@ -158,7 +160,10 @@ export function StudioChrome({
     }
     return undefined;
   }, [update, children]);
-  return update ? null : isPreview ? (
+  if (update || (!ownsLoadingSurface && !children)) {
+    return null;
+  }
+  return isPreview ? (
     <PreviewLoading>{children}</PreviewLoading>
   ) : (
     <StudioChromeContent projectName={projectName}>

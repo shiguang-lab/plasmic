@@ -76,3 +76,34 @@ it("ends an active drag once when its native owner unmounts", () => {
   fireEvent.mouseUp(document, { clientX: 20, clientY: 20 });
   expect(onStop).toHaveBeenCalledOnce();
 });
+
+it.each(["Escape", "blur", "pointercancel", "touchcancel"])("releases DraggableCore listeners immediately on %s and permits the next drag", (reason) => {
+  const onStart = vi.fn(), onStop = vi.fn();
+  render(<XDraggable minPx={0} onStart={onStart} onStop={onStop}><div data-testid="handle" /></XDraggable>);
+  const handle = screen.getByTestId("handle");
+  const remove = vi.spyOn(document, "removeEventListener");
+  const touch = { identifier: 1, clientX: 10, clientY: 10 };
+  try {
+    if (reason === "touchcancel") {
+      fireEvent.touchStart(handle, { targetTouches: [touch] });
+      fireEvent.touchCancel(handle, { changedTouches: [touch] });
+      expect(remove.mock.calls.some(([name]) => name === "touchmove")).toBe(true);
+      expect(remove.mock.calls.some(([name]) => name === "touchend")).toBe(true);
+    } else {
+      fireEvent.mouseDown(handle, { clientX: 0, clientY: 0 });
+      if (reason === "Escape") {
+        fireEvent.keyDown(window, { key: "Escape" });
+      } else {
+        fireEvent(reason === "blur" ? window : document, new Event(reason));
+      }
+      expect(remove.mock.calls.some(([name]) => name === "mousemove")).toBe(true);
+      expect(remove.mock.calls.some(([name]) => name === "mouseup")).toBe(true);
+      fireEvent.mouseUp(document, { clientX: 10, clientY: 10 });
+    }
+    fireEvent.mouseDown(handle, { clientX: 20, clientY: 20 });
+    fireEvent.mouseUp(document, { clientX: 30, clientY: 30 });
+    expect(onStart).toHaveBeenCalledTimes(2);
+    expect(onStop).toHaveBeenCalledTimes(2);
+    expect(onStop.mock.lastCall?.[0].data.aborted).toBe(false);
+  } finally { remove.mockRestore(); }
+});

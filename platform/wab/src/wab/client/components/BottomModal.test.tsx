@@ -35,7 +35,7 @@ it("keeps query actions in the focus scope and handles Escape without changing t
               <>
                 <input
                   aria-label="Query expression"
-                  onKeyDown={(event) => event.stopPropagation()}
+                  onKeyDown={(event) => { if (event.key !== "Escape") { event.stopPropagation(); } }}
                 />
                 <BottomModalButtons>
                   <button>Execute</button>

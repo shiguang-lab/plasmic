@@ -4,6 +4,8 @@ import { ModalScope } from "@/wab/client/components/widgets/ModalScope";
 import { UiLabel } from "@/wab/client/i18n/UiText";
 import ArrowLeftIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__ArrowLeft";
 import CloseIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Close";
+import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
+import { isComposingKeyEvent } from "@/wab/commons/components/ReactUtil";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { useInteractOutsideWithCommonExceptions } from "@/wab/commons/components/OnClickAway";
 import { useCommittedValue } from "@/wab/commons/components/ReactUtil";
@@ -12,7 +14,7 @@ import { cx, ensure } from "@/wab/shared/common";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import L from "lodash";
 import React from "react";
-import { OverlayProvider, useOverlay } from "react-aria";
+import { OverlayProvider } from "react-aria";
 import ReactDOM from "react-dom";
 import { animated, useReducedMotion, useTransition } from "@react-spring/web";
 
@@ -194,6 +196,9 @@ function SidebarModalInternal(props: {
   );
 
   const getFrame = useCommittedValue(frame);
+  const root = React.useRef<HTMLDivElement>(null);
+  const active = L.last(state.stack)?.id === frameId;
+  useStudioEscape(root, active, () => dispatch({ type: "pop", frameId }));
   const firstFrame = state.stack[0];
   const isFirstFrame = firstFrame ? frame.element === firstFrame.element : false;
 
@@ -216,6 +221,8 @@ function SidebarModalInternal(props: {
     // if persistOnInteractOutside is true, this is a long-lived modal,
     // so we allow the focus to travel outside of the modal as well
     <ModalScope
+      ref={root}
+      active={active}
       className="flex-col flex-fill overflow-hidden"
       allowKeyCombos={[
         STUDIO_SHORTCUTS.UNDO.combos,
@@ -225,7 +232,7 @@ function SidebarModalInternal(props: {
       <div
         className="flex-col flex-fill overflow-hidden"
         onKeyDown={(e) => {
-          if (e.key === "Escape" || (e.key === "Enter" && dismissOnEnter)) {
+          if (!e.defaultPrevented && !isComposingKeyEvent(e.nativeEvent) && e.key === "Enter" && dismissOnEnter) {
             e.preventDefault();
             e.stopPropagation();
             dispatch({ type: "pop", frameId });
@@ -287,21 +294,6 @@ function SidebarModalStack() {
   const reducedMotion = useReducedMotion();
   const container = document.querySelector(containerSelector);
 
-  // We use @react-aria's useOverlay to catch Escape.  We don't use
-  // it for catching clicks outside the modal because it always closes
-  // the overlay on any click outside popupRef, including clicks on
-  // menus, selects, and other overlay divs.  So instead, we do this
-  // ourselves with our own call to `useInteractOutside()`.
-  const { overlayProps } = useOverlay(
-    {
-      isOpen: !!lastFrame,
-      isDismissable: false,
-      onClose: () =>
-        lastFrame && dispatch({ type: "pop", frameId: lastFrame.id }),
-    },
-    popupRef,
-  );
-
   useInteractOutsideWithCommonExceptions({
     ref: popupRef,
     onInteractOutside: () => {
@@ -362,7 +354,6 @@ function SidebarModalStack() {
             borderRadius: "inherit",
             boxShadow: "none",
           }}
-          {...overlayProps}
         >
           {transitions((_props, item) => (
             <animated.div

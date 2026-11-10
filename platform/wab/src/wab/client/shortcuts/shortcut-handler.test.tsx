@@ -45,11 +45,11 @@ it("preserves another active binding and unrelated listeners on the same target"
   disposeFirst();
   escape(target);
   expect(first).toHaveBeenCalledOnce();
-  expect(second).toHaveBeenCalledTimes(2);
+  expect(second).toHaveBeenCalledTimes(1);
   expect(unrelated).toHaveBeenCalledTimes(2);
   disposeSecond();
   escape(target);
-  expect(second).toHaveBeenCalledTimes(2);
+  expect(second).toHaveBeenCalledTimes(1);
   expect(unrelated).toHaveBeenCalledTimes(3);
 });
 
@@ -62,4 +62,16 @@ it("releases Document bindings and restores the original method descriptor", () 
   dispose();
   escape(document);
   expect(handler).toHaveBeenCalledOnce();
+});
+
+it("applies the mode guard to Escape and leaves composition and consumed keys alone", () => {
+  const target = document.createElement("div"), handler = vi.fn(), guard = vi.fn(() => false);
+  const dispose = bindShortcutHandlers(target, shortcuts, { close: handler }, guard);
+  try {
+    escape(target); expect(guard).toHaveBeenCalledOnce(); expect(handler).not.toHaveBeenCalled();
+    guard.mockReturnValue(true);
+    const composing = new KeyboardEvent("keydown", { key: "Escape", keyCode: 27, which: 27, isComposing: true, cancelable: true });
+    target.dispatchEvent(composing); expect(handler).not.toHaveBeenCalled(); expect(composing.defaultPrevented).toBe(false);
+    escape(target); expect(handler).toHaveBeenCalledOnce();
+  } finally { dispose(); }
 });

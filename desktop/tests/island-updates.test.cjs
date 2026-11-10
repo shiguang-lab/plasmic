@@ -17,18 +17,22 @@ async function fixture(t){
  window.eval(source('renderer-i18n.js'));window.eval(source('island-renderer.js'));await flush();
  return {window,commands,el:id=>window.document.getElementById(id),send(value){state={...state,...value};listener(state)}};
 }
-test('state-only image updates retain pixels, update feedback, and explicit null clears them',async t=>{
+test('state-only image updates retain pixels and explicit null retires feedback before clearing them',async t=>{
  const ui=await fixture(t);
  ui.window.Image=class {set src(value){this.value=value;queueMicrotask(()=>this.onload?.());}};
  const context={allowed:true,loading:false,identity:'current',viewName:'Page'};
  const pixels='data:image/jpeg;base64,cGl4ZWxz';
  ui.send({context,expanded:true,image:{src:pixels,identity:'current',width:400,height:300,feedback:null}});await flush();
  assert.equal(ui.el('mirror').src,pixels);assert.equal(ui.el('mirror').hidden,false);
- const feedback={id:'read',regions:[{x:0,y:0,width:1,height:1}]};
+ const feedback={id:'read',kind:'read',regions:[{x:0,y:0,width:1,height:1}]};
  ui.send({image:{identity:'current',width:400,height:300,feedback},activity:{operation:{id:'read',phase:'running'}}});await flush();
  assert.equal(ui.el('mirror').src,pixels);assert.equal(ui.el('mirror').hidden,false);assert.equal(ui.el('feedback').hidden,false);
  assert.equal(ui.el('feedback').children.length,1);
- ui.send({image:null});assert.equal(ui.el('mirror').hasAttribute('src'),false);assert.equal(ui.el('feedback').hidden,true);
+ const scan=ui.el('feedback').querySelector('.feedback-sweep'),region=scan.parentElement;
+ ui.send({image:null});assert.equal(ui.el('mirror').src,pixels);assert.equal(ui.el('feedback').hidden,false);
+ scan.dispatchEvent(new ui.window.Event('animationiteration',{bubbles:true}));
+ region.dispatchEvent(new ui.window.Event('animationend',{bubbles:true}));
+ assert.equal(ui.el('mirror').hasAttribute('src'),false);assert.equal(ui.el('feedback').hidden,true);
 });
 test('island update badges never expand on background progress; an explicit panel keeps the canvas structure intact',async(t)=>{
  const ui=await fixture(t);
@@ -168,10 +172,10 @@ test('unchanged snapshots do not repeat live announcements',async(t)=>{
  ui.send(value);await flush();observer.disconnect();assert.equal(changes.length,0);
 });
 
-async function feedbackFixture(t, kind='read', regions=[{x:0,y:0,width:1,height:1}]) {
+async function feedbackFixture(t, kind='read', regions=[{x:0,y:0,width:1,height:1}], context={mode:'edit'}) {
  const ui=await fixture(t);
  ui.window.Image=class {set src(value){queueMicrotask(()=>this.onload?.());}};
- ui.send({context:{allowed:true,loading:false,identity:'canvas',mode:'edit'},expanded:true,
+ ui.send({context:{allowed:true,loading:false,identity:'canvas',...context},expanded:true,
   image:{src:'data:image/png;base64,cGl4ZWxz',identity:'canvas',width:400,height:300,feedback:{id:'first',kind,regions}},
   activity:{operation:{id:'first',phase:'running'}}});
  await flush();
@@ -225,4 +229,86 @@ test('reduced motion retires completed feedback without waiting for absent CSS e
  assert.equal(ui.el('feedback').hidden,true);
  ui.send({activity:{operation:{id:'first',phase:'completed'}}});
  assert.equal(ui.el('feedback').hidden,true,'metadata refresh cannot restart completed feedback');
+});
+
+for(const [name,from,to] of [
+ ['enter interactive',{mode:'edit'},{mode:'preview',previewKind:'interactive'}],
+ ['close interactive',{mode:'preview',previewKind:'interactive'},{mode:'edit'}],
+ ['close preview',{mode:'preview',previewKind:'in-app'},{mode:'edit'}],
+ ['switch preview kind',{mode:'preview',previewKind:'interactive'},{mode:'preview',previewKind:'in-app'}],
+])for(const kind of ['read','write','preview'])test(`${name} retains ${kind} feedback and its pixels through the current cycle and fade`,async t=>{
+ const ui=await feedbackFixture(t,kind,undefined,from),layer=ui.el('feedback');
+ const group=layer.firstChild,region=group.firstChild,cycle=kind==='read'?region.firstChild:region;
+ const oldPixels=ui.el('mirror').src,oldGeometry=layer.style.cssText;
+ ui.send({context:{allowed:true,loading:false,identity:'next',...to},image:null,activity:{}});
+ assert.equal(ui.el('mirror').src,oldPixels);assert.equal(group.dataset.phase,'running');
+ assert.equal(ui.window.document.querySelector('.visual').hidden,false);
+ const pixels='data:image/png;base64,bmV4dA==';
+ ui.send({image:{src:pixels,identity:'next',width:300,height:500,feedback:{id:'next',kind:'read',regions:[{x:.5,y:0,width:.5,height:1}]}},activity:{operation:{id:'next',phase:'running'}}});
+ await flush();
+ assert.equal(layer.firstChild,group);assert.equal(layer.children.length,1);
+ assert.equal(layer.style.cssText,oldGeometry);assert.equal(ui.el('mirror').src,oldPixels);
+ ui.cycle(cycle);assert.equal(group.dataset.phase,'completed');assert.equal(ui.el('mirror').src,oldPixels);
+ ui.end(region);await flush();
+ assert.equal(group.isConnected,false);assert.equal(ui.el('mirror').src,pixels);
+ assert.equal(layer.children.length,1);assert.equal(layer.firstChild.dataset.phase,'running');
+ assert.equal(layer.firstChild.dataset.kind,'read');
+});
+test('mode exit clears the old image after the fade when no replacement has arrived',async t=>{
+ const ui=await feedbackFixture(t,'read',undefined,{mode:'preview',previewKind:'interactive'});
+ const scan=ui.el('feedback').querySelector('.feedback-sweep'),region=scan.parentElement;
+ ui.send({context:{allowed:true,loading:false,identity:'next',mode:'edit'},image:null,activity:{}});
+ ui.cycle(scan);assert.equal(ui.el('mirror').hidden,false);
+ ui.end(region);assert.equal(ui.el('mirror').hidden,true);assert.equal(ui.el('feedback').hidden,true);
+});
+test('rapid mode changes apply only the latest frame after every old group finishes',async t=>{
+ const ui=await feedbackFixture(t),scan=ui.el('feedback').querySelector('.feedback-sweep');
+ ui.send({image:{identity:'canvas',width:400,height:300,feedback:{id:'write',kind:'write',regions:[{x:0,y:0,width:.5,height:1}]}},activity:{operation:{id:'write',phase:'running'}}});
+ const write=ui.el('feedback').lastChild.firstChild,oldPixels=ui.el('mirror').src;
+ for(const identity of ['interactive','preview','latest'])ui.send({context:{allowed:true,identity,mode:'preview',previewKind:identity},image:{identity,src:`data:image/png;base64,${identity}`,width:300,height:500},activity:{}});
+ ui.cycle(scan);ui.end(scan.parentElement);await flush();
+ assert.equal(ui.el('mirror').src,oldPixels,'another group still owns the old frame');
+ ui.cycle(write);ui.end(write);await flush();
+ assert.equal(ui.el('mirror').src,'data:image/png;base64,latest');assert.equal(ui.el('feedback').hidden,true);
+});
+test('mode exit cancels a pending old image load without letting it replace retiring pixels',async t=>{
+ const ui=await feedbackFixture(t),loads=[];
+ ui.window.Image=class {set src(value){loads.push(this);}};
+ const scan=ui.el('feedback').querySelector('.feedback-sweep'),region=scan.parentElement,oldPixels=ui.el('mirror').src;
+ ui.send({image:{src:'data:image/png;base64,old-refresh',identity:'canvas',width:400,height:300}});
+ ui.send({context:{allowed:true,identity:'next',mode:'preview',previewKind:'interactive'},image:null});
+ loads[0].onload();assert.equal(ui.el('mirror').src,oldPixels);
+ ui.cycle(scan);ui.end(region);assert.equal(ui.el('mirror').hidden,true);
+});
+test('reduced motion releases a retiring frame without CSS events',async t=>{
+ const ui=await feedbackFixture(t);
+ ui.send({context:{allowed:true,identity:'next',mode:'preview',previewKind:'interactive'},image:null});
+ assert.equal(ui.el('mirror').hidden,false);
+ const reduced=ui.window.matchMedia();reduced.matches=true;reduced.dispatchEvent(new ui.window.Event('change'));
+ assert.equal(ui.el('mirror').hidden,true);assert.equal(ui.el('feedback').hidden,true);
+});
+test('mode changes without active feedback apply immediately',async t=>{
+ const ui=await feedbackFixture(t),scan=ui.el('feedback').querySelector('.feedback-sweep'),region=scan.parentElement;
+ ui.send({activity:{}});ui.cycle(scan);ui.end(region);
+ ui.send({context:{allowed:true,identity:'next',mode:'preview',previewKind:'interactive'},image:null});
+ assert.equal(ui.el('mirror').hidden,true);assert.equal(ui.el('feedback').hidden,true);
+});
+for(const [name,patch] of [
+ ['loading',{context:{allowed:true,loading:true,identity:'next',mode:'edit'},image:null}],
+ ['stale capture',{stale:true}],
+ ['collapse',{expanded:false}],
+ ['update panel',{updateOpen:true,image:null}],
+ ['unavailable editor',{context:{allowed:false},image:null}],
+])test(`${name} clears a retiring frame without waiting for hidden animations`,async t=>{
+ const ui=await feedbackFixture(t),scan=ui.el('feedback').querySelector('.feedback-sweep');
+ ui.send({context:{allowed:true,identity:'next',mode:'preview',previewKind:'interactive'},image:null});
+ assert.equal(scan.isConnected,true);
+ ui.send(patch);assert.equal(scan.isConnected,false);assert.equal(ui.el('feedback').hidden,true);
+ if(name==='loading')assert.equal(ui.el('view-loading').hidden,false);
+});
+for(const key of ['projectId','sessionId','arenaId','branchId'])test(`changing ${key} clears the previous frame immediately`,async t=>{
+ const ui=await feedbackFixture(t,'read',undefined,{mode:'preview',previewKind:'interactive',[key]:'old'});
+ const scan=ui.el('feedback').querySelector('.feedback-sweep');
+ ui.send({context:{allowed:true,identity:'next',mode:'edit',[key]:'next'},image:null});
+ assert.equal(scan.isConnected,false);assert.equal(ui.el('mirror').hidden,true);
 });

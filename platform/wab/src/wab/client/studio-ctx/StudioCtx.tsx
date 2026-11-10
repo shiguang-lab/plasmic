@@ -15,6 +15,7 @@ import { StudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state
 import { DragInsertManager } from "@/wab/client/Dnd";
 import {
   handleError,
+  logError,
   reportError,
   showError,
 } from "@/wab/client/ErrorNotifications";
@@ -2172,6 +2173,8 @@ export class StudioCtx extends WithDbCtx {
       (async () => {
         // eslint-disable-next-line no-constant-condition
         while (true) {
+          const error = this.canvasLoadStore.getState().error;
+          if (error) { throw new Error(error); }
           if (!this.initialViewportReady) {
             await asyncTimeout(100);
             continue;
@@ -2181,6 +2184,8 @@ export class StudioCtx extends WithDbCtx {
             while (viewCtx.isStale() && !viewCtx.isDisposed) {
               await asyncTimeout(50);
               await viewCtx.awaitSync();
+              const syncError = this.canvasLoadStore.getState().error;
+              if (syncError) { throw new Error(syncError); }
             }
             if (!viewCtx.isDisposed) {
               return;
@@ -6007,65 +6012,58 @@ export class StudioCtx extends WithDbCtx {
       if (sc.blockChanges) {
         return {};
       }
-      const record = type === "undo" ? sc.undoLog.undo() : sc.undoLog.redo();
-      console.log(`Restore ${type} record`, record);
+      const restored = sc.runNativeArenaCommand(() => sc.runNativeSaveCommand(() => {
+        const record = type === "undo" ? sc.undoLog.undo() : sc.undoLog.redo();
 
-      console.log("Done restoring, pruning...");
-      // Trim the ViewCtxs based on what arenas are in use.  E.g. when undoing a
-      // create-frame, make sure we don't let a ViewCtx linger around, or it will
-      // cause problems (beyond memory leaks, e.g. when redoing, the old ViewCtx
-      // may steal stuff from the newly re-created ViewCtx).
-      sc.pruneInvalidViewCtxs();
+        // Retire removed frames and detached selection before publishing the
+        // restored model. A recreated canvas mounts from these model inputs.
+        sc.pruneInvalidViewCtxs();
+        sc.pruneDetachedTpls();
+        restoreStudioView(record.view);
+        const view = sc.tryGetViewCtxForFrame(record.view.focusedFrame);
+        view?.restoreViewState(record.view);
 
-      // We may have stray pointers from the ctxs to detached tpls.  Since we're
-      // about to embark on async work, we first go and remove those references,
-      // so that we don't update the UI to reflect those detached tpls.
-      sc.pruneDetachedTpls();
+        record.changes = mergeRecordedChanges(
+          record.changes,
+          sc.recorder.withRecording(() => {
+            sc.ensureAllComponentStackFramesHasOnlyValidVariants();
+            fixupChrome(sc);
+          }),
+        );
+        sc.addToChangeRecords(record.changes);
+        const summary = summarizeChanges(sc, record.changes);
+        const styleChanges = sc.syncAfterChanges(summary);
+        return { record, summary, styleChanges, view };
+      }));
+      const { record } = restored;
 
-      restoreStudioView(record.view);
-
-      // Restore and re-evaluate ViewCtxs (we must do it before fixupChrome)
-      if (record.view.focusedFrame) {
+      // Publish the synchronous model restoration before awaiting DOM work.
+      // Otherwise React still sees no page/frame, so it cannot create the very
+      // ViewCtx this history task is waiting for and the model queue deadlocks.
+      if (record.view.focusedFrame && !restored.view) {
         const frame = record.view.focusedFrame;
         for (let i = 0; i < 10 && !sc.tryGetViewCtxForFrame(frame); i++) {
-          // It's possible (although very unlikely) that a frame remounts and
-          // disposes the viewCtx just after it has been created, so we try
-          // again a couple of times before failing.
+          // An iframe can remount immediately after its ViewCtx was created.
           await sc.awaitViewCtxForFrame(frame);
         }
-        const vc = ensure(
-          sc.tryGetViewCtxForFrame(frame),
-          "should find viewctx for this frame",
-        );
-        console.log("Restoring VC");
-        // Restore VC before doing post-change fixes
-        vc.restoreViewState(record.view);
+        const view = ensure(sc.tryGetViewCtxForFrame(frame), "should find viewctx for this frame");
+        sc.runNativeArenaCommand(() => sc.runNativeSaveCommand(() => {
+          view.restoreViewState(record.view);
+          const fixes = sc.recorder.withRecording(() => {
+            sc.ensureAllComponentStackFramesHasOnlyValidVariants();
+            fixupChrome(sc);
+          });
+          if (fixes.changes.length) {
+            // Selection may require a variant setting in the recreated view.
+            // Keep that repair in the same undo record and saved model.
+            record.changes = mergeRecordedChanges(record.changes, fixes);
+            sc.addToChangeRecords(fixes);
+            restored.styleChanges = sc.syncAfterChanges(summarizeChanges(sc, fixes)) ?? restored.styleChanges;
+            restored.summary = summarizeChanges(sc, record.changes);
+          }
+        }));
       }
-
-      return sc.runNativeArenaCommand(() => sc.runNativeSaveCommand(() => {
-      record.changes = mergeRecordedChanges(
-        record.changes,
-        sc.recorder.withRecording(() => {
-          // Since we just messed with some ComponentStackFrames,
-          // make sure that the frames only have valid variants
-          sc.ensureAllComponentStackFramesHasOnlyValidVariants();
-
-          // Make sure focused tpls have the right variant settings
-          fixupChrome(sc);
-        }),
-      );
-
-      sc.addToChangeRecords(record.changes);
-
-      const summary = summarizeChanges(sc, record.changes);
-
-      console.log("RESTORE summary", summary, record.changes);
-
-      const styleChanges = sc.syncAfterChanges(summary);
-
-      console.log(`Done restoring ${type} record`, record);
-      return { record, summary, styleChanges };
-      }));
+      return restored;
     };
     try {
       sc._isUndoing = true;
@@ -9037,7 +9035,9 @@ export class StudioCtx extends WithDbCtx {
 
   reportCanvasLoadError(error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    this.canvasLoadStore.setState((previous) => previous.error === errorMessage ? previous : { error: errorMessage });
+    if (this.canvasLoadStore.getState().error === errorMessage) { return; }
+    logError(error, "Canvas initialization failed");
+    this.canvasLoadStore.setState({ error: errorMessage });
   }
 
   private canvasLoadRequests: CanvasLoadRequest[] = [];

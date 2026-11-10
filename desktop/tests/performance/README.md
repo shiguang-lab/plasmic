@@ -1,5 +1,7 @@
 # Desktop 定向性能诊断
 
+`canvas-startup.cjs <privateFixtureDirectory> <runId>` 复用 `real-project-open.cjs` 和 `PERF_BUILD_ROOT` 的离线载荷、独立 profile，在真实求值器中仅重置首渲染就绪标记，将空闲回调延后 1000ms，验证活动画板首次求值不会等待空闲且模型未变化。结果写入原报告的 `schedulingQualification`。这是受控调度验证，不代表普通项目打开节省一秒；同机普通打开的对照与失败路径说明见 [画布启动诊断](../../../docs/performance/2026-11-10/canvas-startup.md)。
+
 隐藏 SVG 与 Worker 候选的完整四组交叉对照、CSS 原生阻塞验证、回归及撤回决定见 [优化执行验证](../../../docs/performance/2026-11-04/loading-priority-optimization-validation.md)。不以后台可播放、单项中位数或减少 DOM 节点代替整体加载验收。
 
 加载展示的净影响应使用实际历史骨架卡片作基线，保持同一业务初始化与离线载荷；“关闭动画后的 Logo”和“更早的 SVG Logo”均不等同于原骨架。恢复范围、首屏资格检查及同轮结果见 [骨架基线验证](../../../docs/performance/2026-11-04/loading-skeleton-baseline-validation.md)。

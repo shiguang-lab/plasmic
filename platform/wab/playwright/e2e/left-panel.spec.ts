@@ -40,18 +40,21 @@ test.describe("left-panel", () => {
   test("copies and pastes actual nodes from the outline", async ({ page, models }) => {
     await models.studio.leftPanel.insertNode("Vertical stack");
     await showAuditLayers(page);
-    const labels = models.studio.leftPanel.treeLabels;
+    // Virtualized rows are bounded by the viewport; count actual model children.
+    const childCount = () => models.studio.frame.locator("body").evaluate(() =>
+      (window as any).studioCtx.focusedViewCtx().component.tplTree.children.length as number);
     const original = models.studio.leftPanel.focusedTreeNode;
     await original.click();
-    const initialCount = await labels.count();
+    const initialCount = await childCount();
     await page.keyboard.press(`${modifierKey}+c`);
     for (let i = 1; i <= 10; i++) {
       await page.keyboard.press(`${modifierKey}+v`);
-      await expect(labels).toHaveCount(initialCount + i);
+      await expect.poll(childCount).toBe(initialCount + i);
+      await expect(models.studio.leftPanel.focusedTreeNode).toBeVisible();
     }
     await models.studio.leftPanel.focusedTreeNode.click();
     await page.keyboard.press(`${modifierKey}+c`);
     await page.keyboard.press(`${modifierKey}+v`);
-    await expect(labels).toHaveCount(initialCount + 11);
+    await expect.poll(childCount).toBe(initialCount + 11);
   });
 });

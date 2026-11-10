@@ -144,7 +144,7 @@ export function getStateCellsInPlasmicProxy(
 
 export function getStateSpecInPlasmicProxy(obj: any, path: ObjectPath) {
   obj = getStateCommandValue(obj);
-  obj = get(obj, path.slice(0, path.length - 1));
+  obj = getStateCommandValue(get(obj, path.slice(0, path.length - 1)));
   if (!isPlasmicStateProxy(obj)) {
     return undefined;
   }

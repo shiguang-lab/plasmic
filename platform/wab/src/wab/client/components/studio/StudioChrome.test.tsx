@@ -1,3 +1,4 @@
+import { LoadingAnimationContext } from "@/wab/client/contexts/LoadingAnimationContext";
 import { AntdConfigProvider } from "@/wab/client/antd-theme";
 import { ApplicationPageLoading } from "@/wab/client/components/ApplicationPageLoading";
 import {
@@ -122,6 +123,29 @@ it("keeps one logo and its animation nodes across app startup, app context, lazy
   expect(
     screen.getByRole("textbox", { name: "Describe changes or a new page…" }),
   ).toBe(input);
+});
+
+it("omits the covered Host loading shell while keeping local errors and retry", () => {
+  const retry = vi.fn();
+  const host = (revealed: boolean, failure?: React.ReactNode) => (
+    <AntdConfigProvider productUI>
+      <HistoryProvider history={createMemoryHistory({
+        initialEntries: ["/projects/project"],
+      })}>
+        <LoadingAnimationContext.Provider value={revealed}>
+          <StudioChrome>{failure}</StudioChrome>
+        </LoadingAnimationContext.Provider>
+      </HistoryProvider>
+    </AntdConfigProvider>
+  );
+  const { container, rerender } = render(host(false));
+  expect(container.querySelector(".canvas-editor")).toBeNull();
+  rerender(host(false, <LoadingError onRetry={retry} />));
+  fireEvent.click(screen.getByRole("button", { name: "Retry" }));
+  expect(retry).toHaveBeenCalledOnce();
+  rerender(host(true));
+  expect(container.querySelector(".canvas-editor")).toBeTruthy();
+  expect(screen.queryByRole("alert")).toBeNull();
 });
 
 it("keeps the first-paint HTML logo until ready without mounting a second logo", () => {

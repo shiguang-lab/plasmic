@@ -195,6 +195,7 @@ patchedDependencies:
   '@react-aria/overlays@3.27.1': b61720ca664fca3448b112761ea6c5115ba1bd7ecc97e351f62ee0e6ec818f73
   history@5.3.0: b15700687b93f27ae228b00f1042303188b81229678b53fb6df59ceb03e0cd37
   jquery@3.5.1: bfb751a066a5604bacd39ca14bc249073ab368bc1c894f8d23e3d2d90a8968a7
+  overlayscrollbars@2.16.0: b537a379b9ecaa130d0c34a943e1ecea180a9c10271f2b32c87ccfeac65072a2
   passport-oauth2@1.8.0: 7a6de4606c35740d97d4f12a17f854a16bc58f21d634a1aabf3f9089be7e501d
   react-inspector@9.0.0: c7ad22f836b937890d8de956a772f4c263d23dae0421241a002e50eb1db2ddca
   teeny-request: 574235a2adc94bfb81ea7366c1eb01757552a92a1465d54c4f278646d7be1190
@@ -21233,8 +21234,8 @@ snapshots:
       markmap-lib: 0.18.12(markmap-common@0.18.9)
       markmap-view: 0.18.12(markmap-common@0.18.9)
       mermaid: 11.17.2
-      overlayscrollbars: 2.16.0
-      overlayscrollbars-react: 0.5.6(overlayscrollbars@2.16.0)(react@19.3.1)
+      overlayscrollbars: 2.16.0(patch_hash=b537a379b9ecaa130d0c34a943e1ecea180a9c10271f2b32c87ccfeac65072a2)
+      overlayscrollbars-react: 0.5.6(overlayscrollbars@2.16.0(patch_hash=b537a379b9ecaa130d0c34a943e1ecea180a9c10271f2b32c87ccfeac65072a2))(react@19.3.1)
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
       react-syntax-highlighter: 16.1.1(react@19.3.1)
@@ -27895,12 +27896,12 @@ snapshots:
   outvariant@1.4.3:
     optional: true
 
-  overlayscrollbars-react@0.5.6(overlayscrollbars@2.16.0)(react@19.3.1):
+  overlayscrollbars-react@0.5.6(overlayscrollbars@2.16.0(patch_hash=b537a379b9ecaa130d0c34a943e1ecea180a9c10271f2b32c87ccfeac65072a2))(react@19.3.1):
     dependencies:
-      overlayscrollbars: 2.16.0
+      overlayscrollbars: 2.16.0(patch_hash=b537a379b9ecaa130d0c34a943e1ecea180a9c10271f2b32c87ccfeac65072a2)
       react: 19.3.1
 
-  overlayscrollbars@2.16.0: {}
+  overlayscrollbars@2.16.0(patch_hash=b537a379b9ecaa130d0c34a943e1ecea180a9c10271f2b32c87ccfeac65072a2): {}
 
   oxc-parser@0.127.0:
     dependencies:

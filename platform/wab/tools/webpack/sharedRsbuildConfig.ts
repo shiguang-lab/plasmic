@@ -7,6 +7,7 @@ import { DefinePlugin, ProvidePlugin, type SwcLoaderOptions } from "@rspack/core
 import { execSync } from "child_process";
 import { dirname } from "path";
 import { reactCompilerInclude, reactCompilerOptions } from "../react-compiler.mjs";
+import { reactAriaRuntimeAliases } from "../react-aria-runtime.mjs";
 import {
   OPTIONAL_VAR,
   REQUIRED_VAR,
@@ -35,6 +36,7 @@ export function mkSharedRsbuildConfig(opts: {
   return {
     resolve: {
       alias: {
+        ...Object.fromEntries(Object.entries(reactAriaRuntimeAliases).map(([name, location]) => [`${name}$`, location])),
         // Local host contracts share Studio's React instance when linked from
         // the SDK workspace; hooks cannot use the SDK's separate peer copy.
         react: dirname(require.resolve("react/package.json")),

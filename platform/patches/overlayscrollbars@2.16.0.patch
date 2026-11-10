@@ -1,0 +1,52 @@
+diff --git a/overlayscrollbars.cjs b/overlayscrollbars.cjs
+index ec871bc71397ef9f5586519c121a65b90907ad9d..dfffc3d83f590801166506fe20edc15cf3389cb0 100644
+--- a/overlayscrollbars.cjs
++++ b/overlayscrollbars.cjs
+@@ -681,7 +681,7 @@ const getScrollCoordinatesPercent = ({T: t, k: n}, o) => {
+ };
+ 
+ const focusElement = t => {
+-  if (t && t.focus) {
++  if (t && t.focus && t !== t.ownerDocument.activeElement) {
+     t.focus({
+       preventScroll: true,
+       focusVisible: false
+diff --git a/overlayscrollbars.cjs.js b/overlayscrollbars.cjs.js
+index ab9d930b11ea64af9a2d5b7315b554db88cd5bbd..e89f37cb093832304da57407369fe9dd37803504 100644
+--- a/overlayscrollbars.cjs.js
++++ b/overlayscrollbars.cjs.js
+@@ -681,7 +681,7 @@ const getScrollCoordinatesPercent = ({T: t, k: n}, o) => {
+ };
+ 
+ const focusElement = t => {
+-  if (t && t.focus) {
++  if (t && t.focus && t !== t.ownerDocument.activeElement) {
+     t.focus({
+       preventScroll: true,
+       focusVisible: false
+diff --git a/overlayscrollbars.esm.js b/overlayscrollbars.esm.js
+index b05b8043eba78f20754a14e84daa09ff505e2fbc..0066797162bd7c72e630cf801751b4f38ccd7f88 100644
+--- a/overlayscrollbars.esm.js
++++ b/overlayscrollbars.esm.js
+@@ -675,7 +675,7 @@ const getScrollCoordinatesPercent = ({T: t, k: n}, o) => {
+ };
+ 
+ const focusElement = t => {
+-  if (t && t.focus) {
++  if (t && t.focus && t !== t.ownerDocument.activeElement) {
+     t.focus({
+       preventScroll: true,
+       focusVisible: false
+diff --git a/overlayscrollbars.mjs b/overlayscrollbars.mjs
+index ae4c28abc9bbb5a972bdff8889bc552069bcf0fe..6f2b799a6be129649520dc8d378a477ffe59d4ea 100644
+--- a/overlayscrollbars.mjs
++++ b/overlayscrollbars.mjs
+@@ -675,7 +675,7 @@ const getScrollCoordinatesPercent = ({T: t, k: n}, o) => {
+ };
+ 
+ const focusElement = t => {
+-  if (t && t.focus) {
++  if (t && t.focus && t !== t.ownerDocument.activeElement) {
+     t.focus({
+       preventScroll: true,
+       focusVisible: false

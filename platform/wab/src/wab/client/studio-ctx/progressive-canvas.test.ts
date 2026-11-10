@@ -128,6 +128,46 @@ it("marks first render only after evaluation and post-eval work, and stays ready
   }
 });
 
+it("renders the active target without waiting for browser idle, while later evaluations remain idle scheduled", async () => {
+  const { site, arena } = canvasFixture(1);
+  const { studioCtx } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Overview" });
+  try {
+    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+    const vc = ensure(studioCtx.tryGetViewCtxForFrame(arena.children[0]), "Missing test ViewCtx");
+    vi.spyOn(studioCtx, "change").mockImplementation(async (callback) => ok(await callback()));
+    vi.spyOn(vc.csEvaluator, "evalAsync").mockResolvedValue();
+    vi.spyOn(vc.csEvaluator, "runPostEvalTasks").mockImplementation(() => undefined);
+    vi.spyOn(vc, "updateCtxPostChange").mockImplementation(() => undefined);
+    vi.spyOn(vc, "isVisible").mockReturnValue(true);
+    vi.spyOn(vc, "valState").mockReturnValue(new ValState({ sysRoot: mock<ValComponent>(), globalRoot: undefined }));
+    const firstRender = vi.spyOn(vc, "initialRenderReady", "get").mockReturnValue(false);
+    vi.mocked(requestIdleCallbackAsync).mockClear();
+    await vc["syncInternal"]([{ eval: true, styles: false }]);
+    expect(requestIdleCallbackAsync).not.toHaveBeenCalled();
+    firstRender.mockReturnValue(true);
+    await vc["syncInternal"]([{ eval: true, styles: false }]);
+    expect(requestIdleCallbackAsync).toHaveBeenCalledOnce();
+  } finally { studioCtx.dispose(); }
+});
+
+it("reports post-evaluation failures and drains the sync queue instead of leaving the canvas loading", async () => {
+  const { site, arena } = canvasFixture(1);
+  const { studioCtx } = fakeStudioCtx({ site, initialUrl: "/projects/test?arena_type=custom&arena=Overview" });
+  try {
+    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+    const vc = ensure(studioCtx.tryGetViewCtxForFrame(arena.children[0]), "Missing test ViewCtx");
+    const error = new Error("Post-evaluation task failed");
+    vi.spyOn(studioCtx, "change").mockRejectedValue(error);
+    vi.spyOn(vc.csEvaluator, "evalAsync").mockResolvedValue();
+    vi.spyOn(vc, "isVisible").mockReturnValue(true);
+    vc.scheduleSync({ eval: true, styles: false, asap: true });
+    await waitFor(() => expect(studioCtx.canvasLoadStore.getState().error).toBe(error.message));
+    await vc.awaitSync();
+    expect(vc.initialRenderReady).toBe(false);
+    await expect(studioCtx.awaitStudioReady()).rejects.toThrow(error.message);
+  } finally { studioCtx.dispose(); }
+});
+
 it.each([
   ["running", false],
   ["suspended", false],

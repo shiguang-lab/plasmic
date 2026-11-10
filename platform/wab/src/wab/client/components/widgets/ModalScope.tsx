@@ -2,6 +2,9 @@ import { isKeyHotkey } from "is-hotkey";
 import * as React from "react";
 import { useMemo } from "react";
 import { FocusScope } from "react-aria";
+import { dismissStudioEscape } from "@/wab/client/hooks/useStudioEscape";
+import { isComposingKeyEvent } from "@/wab/commons/components/ReactUtil";
+import { mergeRefs } from "@/wab/commons/components/ReactUtil";
 
 export type ModalScopeProps = Omit<
   React.ComponentProps<"div">,
@@ -9,6 +12,8 @@ export type ModalScopeProps = Omit<
 > & {
   allowKeyCombos?: string[] | string[][];
   containFocus?: boolean;
+  /** Give nested Studio overlays priority over the dialog owner. */
+  active?: boolean;
 };
 
 /**
@@ -28,21 +33,24 @@ export function ModalScope({ containFocus = true, ...props }: ModalScopeProps) {
 function ModalScopeInternal({
   children,
   allowKeyCombos = [],
+  active = false,
   ...props
 }: ModalScopeProps) {
+  const root = React.useRef<HTMLDivElement>(null);
   const keyboardEventHandlers = useMemo<React.ComponentProps<"div">>(() => {
-    const handler = stopKeyboardEventPropagation(allowKeyCombos.flat());
+    const handler = stopKeyboardEventPropagation(allowKeyCombos.flat(), active);
     return {
       onKeyDown: handler,
       onKeyUp: handler,
       onKeyPress: handler,
     };
-  }, [allowKeyCombos]);
+  }, [allowKeyCombos, active]);
 
   return (
     <div
       {...keyboardEventHandlers}
       {...props}
+      ref={mergeRefs(root, props.ref)}
       onContextMenu={(e) => e.stopPropagation()}
       // Setting tabIndex -1 allows this div to be focused via clicking but not
       // tabbed to. This is necessary to prevent FocusScope's contain
@@ -57,8 +65,12 @@ function ModalScopeInternal({
 
 function stopKeyboardEventPropagation(
   allowKeyCombos: string[],
+  active: boolean,
 ): React.KeyboardEventHandler {
   return (e) => {
+    if (e.defaultPrevented || isComposingKeyEvent(e.nativeEvent) || (active && dismissStudioEscape(e.nativeEvent, e.currentTarget.ownerDocument))) {
+      e.stopPropagation(); return;
+    }
     if (!isKeyHotkey(allowKeyCombos, e.nativeEvent)) {
       e.stopPropagation();
     }

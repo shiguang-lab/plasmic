@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
   getLastBundleVersion: vi.fn(),
   getProjectStartup: vi.fn(),
   getSiteInfo: vi.fn(),
-  resolveProjectModel: vi.fn(),
+  prepareProjectModel: vi.fn(),
   loadAppCtx: vi.fn(),
   loadAppCtxData: vi.fn(),
   reportError: vi.fn(),
@@ -34,7 +34,7 @@ vi.mock("@/wab/client/api", () => ({
   Api: class {
     getProjectStartup = mocks.getProjectStartup;
     getSiteInfo = mocks.getSiteInfo;
-    resolveProjectModel = mocks.resolveProjectModel;
+    prepareProjectModel = mocks.prepareProjectModel;
     getLastBundleVersion = mocks.getLastBundleVersion;
   },
 }));
@@ -70,7 +70,7 @@ vi.mock("@/wab/client/components/pages/ShiguangSignIn", () => ({
 beforeEach(() => {
   mocks.useHostFrameCtxIfHostFrame.mockReturnValue(null);
   mocks.getSiteInfo.mockResolvedValue({});
-  mocks.resolveProjectModel.mockResolvedValue({});
+  mocks.prepareProjectModel.mockResolvedValue({});
   mocks.getLastBundleVersion.mockResolvedValue({
     latestBundleVersion: "version",
   });
@@ -158,13 +158,13 @@ it("uses the project opening response once and reuses its permission and host me
   const data = { selfInfo: null, appConfig: { config: {} }, appCtx: { teams: [], workspaces: [], perms: [] }, latestBundleVersion: "version", projectId: "project", branchName: "main", projectData: { projects: [], perms: [] }, hosts: { trustedHosts: [] }, branches: [] };
   const opening = { startup: data, rev: {}, depPkgs: [] };
   mocks.getProjectStartup.mockResolvedValue(opening);
-  mocks.resolveProjectModel.mockReturnValue(new Promise(() => undefined));
+  mocks.prepareProjectModel.mockReturnValue(new Promise(() => undefined));
   mocks.loadAppCtx.mockRejectedValue(new Error("Stop after opening"));
   setup("/projects/project");
   await screen.findByRole("alert");
   expect(mocks.getProjectStartup).toHaveBeenCalledExactlyOnceWith("project", "main");
   expect(mocks.getSiteInfo).not.toHaveBeenCalled();
-  expect(mocks.resolveProjectModel).toHaveBeenCalledExactlyOnceWith(opening);
+  expect(mocks.prepareProjectModel).toHaveBeenCalledExactlyOnceWith(opening);
   expect(mocks.getLastBundleVersion).not.toHaveBeenCalled();
   expect(mocks.loadAppCtxData).not.toHaveBeenCalled();
   expect(mocks.loadAppCtx).toHaveBeenCalledWith(expect.objectContaining({ initialProjectInfo: data, lastBundleVersion: "version" }), true, [undefined, data.appConfig, data.appCtx]);
@@ -240,7 +240,7 @@ it("consumes the desktop opening response without repeating the project GET", as
     expect(consumeStartupData).toHaveBeenCalledExactlyOnceWith("project", "feature");
     expect(mocks.getProjectStartup).not.toHaveBeenCalled();
     expect(mocks.getSiteInfo).not.toHaveBeenCalled();
-    expect(mocks.resolveProjectModel).toHaveBeenCalledExactlyOnceWith(opening);
+    expect(mocks.prepareProjectModel).toHaveBeenCalledExactlyOnceWith(opening);
     expect(mocks.loadAppCtx.mock.calls[0][0].initialProjectModel.branchId).toBe("branch");
   } finally {
     Reflect.deleteProperty(window, "desktopEnvironment");
@@ -253,13 +253,13 @@ it("mounts the project entry while its model is still loading", async () => {
   const history = createMemoryHistory({ initialEntries: ["/projects/project"] });
   const startup = { selfInfo: null, appConfig: { config: {} }, appCtx: { teams: [], workspaces: [], perms: [] }, latestBundleVersion: "version", projectId: "project", branchName: "main", projectData: { projects: [], perms: [] }, hosts: { trustedHosts: [] }, branches: [] };
   mocks.getProjectStartup.mockResolvedValue({ startup, rev: {}, depPkgs: [] });
-  mocks.resolveProjectModel.mockReturnValue(new Promise(() => undefined));
+  mocks.prepareProjectModel.mockReturnValue(new Promise(() => undefined));
   mocks.loadAppCtx.mockResolvedValue({ selfInfo: null, history, appConfig: { brands: {} } });
   const mark = vi.spyOn(performance, "mark");
   try {
     render(<HistoryProvider history={history}><Root /></HistoryProvider>);
     expect((await screen.findByTestId("project-initializer")).textContent).toBe("project");
-    expect(mocks.resolveProjectModel).toHaveBeenCalledOnce();
+    expect(mocks.prepareProjectModel).toHaveBeenCalledOnce();
     expect(mark).toHaveBeenCalledWith("studio-project-entry-import-ready");
     expect(mark).toHaveBeenCalledWith("studio-project-entry-committed");
     expect(screen.queryByRole("alert")).toBeNull();
@@ -271,7 +271,7 @@ it("releases Root's startup model after successful context initialization and pr
   const startup = { selfInfo: null, appConfig: { config: {} }, appCtx: { teams: [], workspaces: [], perms: [] }, latestBundleVersion: "version", projectId: "project", branchName: "main", projectData: { projects: [], perms: [] }, hosts: { trustedHosts: [] }, branches: [] };
   const model = Promise.resolve({ rev: {}, depPkgs: [] });
   mocks.getProjectStartup.mockResolvedValue({ startup, rev: {}, depPkgs: [] });
-  mocks.resolveProjectModel.mockReturnValue(model);
+  mocks.prepareProjectModel.mockReturnValue(model);
   let rootOwner: NonAuthCtx | undefined;
   const Loadable = widgets.Loadable;
   vi.spyOn(widgets, "Loadable").mockImplementation((props) => <Loadable {...props} contents={(value) => {
@@ -299,7 +299,7 @@ it("releases Root's startup model after successful context initialization and pr
   expect(owner.initialProjectInfo).toBeUndefined();
   expect(owner.initialProjectModel).toBeUndefined();
   expect(mocks.getProjectStartup).toHaveBeenCalledOnce();
-  expect(mocks.resolveProjectModel).toHaveBeenCalledOnce();
+  expect(mocks.prepareProjectModel).toHaveBeenCalledOnce();
 });
 
 it.each(["", "/codegen/component/ComponentId", "/loader/icon/IconId"])(
@@ -351,7 +351,7 @@ it("lets the normal project loader report and retry an import after preload fail
   const opening = { startup, rev: {}, depPkgs: [] };
   let finishBootstrap!: (value: typeof opening) => void;
   mocks.getProjectStartup.mockReturnValue(new Promise((resolve) => { finishBootstrap = resolve; }));
-  mocks.resolveProjectModel.mockReturnValue(new Promise(() => undefined));
+  mocks.prepareProjectModel.mockReturnValue(new Promise(() => undefined));
   mocks.loadAppCtx.mockResolvedValue({ selfInfo: null, history, appConfig: { brands: {} } });
   render(<HistoryProvider history={history}><Root /></HistoryProvider>);
   await waitFor(() => expect(load).toHaveBeenCalledOnce());

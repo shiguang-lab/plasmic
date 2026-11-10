@@ -189,6 +189,37 @@ it("tracks frame pin and variant labels without observing unrelated component na
   expect(publish).not.toHaveBeenCalled();
 });
 
+it("retains the header while its frame and pinned variant are removed, then reads the restored frame", () => {
+  const { ctx, arena, frame, component, site, modelSnapshots } = setup();
+  const variant = mkVariant({ name: "Hover", selectors: [":hover"] });
+  component.variants.push(variant);
+  frame.pinnedVariants = { [variant.uuid]: true };
+  const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
+  sourceDisposals.push(() => recorder.dispose());
+  const inputs = new CanvasHeaderInputs(ctx, frame);
+  const publish = vi.fn();
+  sourceDisposals.unshift(inputs.subscribe(publish));
+  const original = ensure(inputs.getSnapshot(), "Mounted artboard header");
+  const commit = (change: () => void) => {
+    const { changes } = recorder.withRecording(change);
+    modelSnapshots.sync(changes, () => ctx.arenaState.prepareModelCommit(changes));
+  };
+  publish.mockClear();
+  commit(() => {
+    arena.children.pop();
+    component.variants.pop();
+  });
+  expect(inputs.getSnapshot()).toBe(original);
+  expect(publish).not.toHaveBeenCalled();
+  commit(() => {
+    component.variants.push(variant);
+    arena.children.push(frame);
+    component.name = "Restored";
+  });
+  expect(inputs.getSnapshot()?.frameName).toContain("Restored");
+  expect(publish).toHaveBeenCalledOnce();
+});
+
 
 it("updates an artboard handle when its root stretch mode changes and preserves mouse ownership", () => {
   const { ctx, frame, site, modelSnapshots } = setup();

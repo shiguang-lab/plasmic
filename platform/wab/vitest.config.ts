@@ -4,6 +4,7 @@ import { isBuiltin } from "module";
 import os from "os";
 import path from "path";
 import { defineConfig, Plugin } from "vitest/config";
+import { reactAriaRuntimeAliases } from "./tools/react-aria-runtime.mjs";
 import {
   reactCompilerInclude,
   reactCompilerOptions,
@@ -107,6 +108,7 @@ export default defineConfig({
     // Studio's dependency tree so every callback uses the renderer's React.
     dedupe: ["react", "react-dom", "swr"],
     alias: [
+      ...Object.entries(reactAriaRuntimeAliases).map(([name, replacement]) => ({ find: new RegExp(`^${name}$`), replacement })),
       {
         find: /^monaco-editor$/,
         replacement: require.resolve("monaco-editor/editor/editor.main.js"),

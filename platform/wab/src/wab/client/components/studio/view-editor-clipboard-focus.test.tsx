@@ -2,12 +2,15 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { ViewEditorController } from "@/wab/client/components/studio/view-editor";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
-import { waitFor } from "@testing-library/react";
+import { fireEvent, waitFor } from "@testing-library/react";
 import { mock } from "vitest-mock-extended";
 
 beforeEach(() => {
   vi.spyOn(window, "focus").mockImplementation(() => undefined);
-  vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
+  vi.stubGlobal("ResizeObserver", class {
+    observe = vi.fn();
+    disconnect = vi.fn();
+  });
 });
 afterEach(() => {
   document.getSelection()?.removeAllRanges();
@@ -18,6 +21,7 @@ afterEach(() => {
 
 async function fixture() {
   const { studioCtx } = fakeStudioCtx();
+  Reflect.set(studioCtx.app, "isDragging", vi.fn(() => false));
   await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
   const view = mock<ViewCtx>();
   const copy = vi.spyOn(studioCtx, "copy").mockResolvedValue(undefined);
@@ -40,6 +44,7 @@ async function fixture() {
   Reflect.get(editor, "initializeCanvas").call(editor, clipper);
   const outline = document.body.appendChild(document.createElement("div"));
   outline.className = "tpltree-scroller";
+  outline.setAttribute("data-studio-model-input", "");
   const viewport = outline.appendChild(document.createElement("div"));
   viewport.setAttribute("data-overlayscrollbars-viewport", ""); viewport.tabIndex = -1;
   const clipboardEvent = (type: "copy" | "cut" | "paste") => {
@@ -66,7 +71,7 @@ it("routes real copy, cut and paste events from the outline's shared scrolling v
   } finally { f.dispose(); }
 });
 
-it("keeps selected panel text native even when focus remains on body, then resumes model copying when selection clears", async () => {
+it("keeps body and selected panel text native, and resumes model copying only on a focused model surface", async () => {
   const f = await fixture();
   try {
     const text = document.body.appendChild(document.createElement("p"));
@@ -80,6 +85,8 @@ it("keeps selected panel text native even when focus remains on body, then resum
     expect(f.copy).not.toHaveBeenCalled(); expect(f.cut).not.toHaveBeenCalled();
     expect(selection?.toString()).toBe("Copy these query instructions");
     selection?.removeAllRanges();
+    expect(f.clipboardEvent("copy").defaultPrevented).toBe(false);
+    f.clipper.focus();
     expect(f.clipboardEvent("copy").defaultPrevented).toBe(true);
     expect(f.copy).toHaveBeenCalledOnce();
   } finally { f.dispose(); }
@@ -100,6 +107,63 @@ it("lets portal pointer events bubble without starting canvas gestures, and stil
       f.clipper.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true, cancelable: true }));
       expect(handle).toHaveBeenCalledOnce();
     } finally { document.body.removeEventListener("pointerdown", bubbled); }
+  } finally { f.dispose(); }
+});
+
+it("handles idle moves only inside the canvas, and owns a press until release outside it", async () => {
+  const f = await fixture();
+  const move = vi.spyOn(f.editor as any, "handleMouseMove").mockResolvedValue(undefined);
+  const up = vi.spyOn(f.editor as any, "handleMouseUp").mockResolvedValue(undefined);
+  const down = vi.spyOn(f.editor as any, "handleMouseDown").mockImplementation(async () => {
+    Reflect.set(f.editor, "pendingCanvasClick", { viewCtx: f.view });
+  });
+  try {
+    document.body.dispatchEvent(new MouseEvent("pointermove", { bubbles: true }));
+    document.body.dispatchEvent(new MouseEvent("pointerup", { bubbles: true }));
+    expect(move).not.toHaveBeenCalled(); expect(up).not.toHaveBeenCalled();
+    f.clipper.dispatchEvent(new MouseEvent("pointermove", { bubbles: true }));
+    expect(move).toHaveBeenCalledOnce(); move.mockClear();
+    f.clipper.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
+    expect(down).toHaveBeenCalledOnce();
+    document.body.dispatchEvent(new MouseEvent("pointermove", { bubbles: true }));
+    f.clipper.dispatchEvent(new MouseEvent("pointermove", { bubbles: true }));
+    expect(move).toHaveBeenCalledTimes(2);
+    document.body.dispatchEvent(new MouseEvent("pointerup", { bubbles: true }));
+    expect(up).toHaveBeenCalledOnce();
+    move.mockClear(); document.body.dispatchEvent(new MouseEvent("pointermove", { bubbles: true }));
+    expect(move).not.toHaveBeenCalled();
+  } finally { f.dispose(); }
+});
+
+it.each(["pointercancel", "blur", "mode", "dispose"])("cancels a canvas gesture on %s and releases its global listeners", async reason => {
+  const f = await fixture();
+  const move = vi.spyOn(f.editor as any, "handleMouseMove").mockResolvedValue(undefined);
+  vi.spyOn(f.editor as any, "handleMouseDown").mockImplementation(async () => {
+    Reflect.set(f.editor, "pendingCanvasClick", { viewCtx: f.view });
+  });
+  try {
+    f.clipper.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
+    if (reason === "mode") {
+      f.studioCtx.isInteractiveMode = true;
+    } else if (reason === "dispose") { f.editor.dispose(); }
+    else if (reason === "blur") { window.dispatchEvent(new Event("blur")); }
+    else { document.dispatchEvent(new Event("pointercancel")); }
+    document.body.dispatchEvent(new MouseEvent("pointermove", { bubbles: true }));
+    expect(move).not.toHaveBeenCalled();
+    expect(Reflect.get(f.editor, "pendingCanvasClick")).toBeUndefined();
+  } finally { if (reason !== "dispose") { f.editor.dispose(); } f.studioCtx.dispose(); }
+});
+
+it("consumes the release click after Escape without swallowing a new press or native panel interaction", async () => {
+  const f = await fixture();
+  vi.spyOn(f.editor as any, "handleMouseDown").mockImplementation(async () => { Reflect.set(f.editor, "pendingCanvasClick", { viewCtx: f.view }); });
+  const click = () => { const event = new MouseEvent("click", { bubbles: true, cancelable: true, detail: 1 }); f.clipper.dispatchEvent(event); return event; };
+  try {
+    f.clipper.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+    expect(click().defaultPrevented).toBe(true);
+    f.clipper.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
+    expect(click().defaultPrevented).toBe(false);
   } finally { f.dispose(); }
 });
 
@@ -128,15 +192,38 @@ it.each(["input", "contenteditable", "ordinary-div", "other-scroll-owner"] as co
   } finally { f.dispose(); }
 });
 
-it.each(["bottom-modal", "non-dev-mode"] as const)("keeps the %s clipboard guard even when the outline viewport is focused", async (guard) => {
+it.each(["bottom-modal", "non-dev-mode", "interactive"] as const)("keeps the %s clipboard guard even when the outline viewport is focused", async (guard) => {
   const f = await fixture();
   try {
     if (guard === "bottom-modal") { f.bottomModal.mockReturnValue(true); }
+    else if (guard === "interactive") { f.studioCtx.isInteractiveMode = true; }
     else { vi.spyOn(f.studioCtx, "isDevMode", "get").mockReturnValue(false); }
     f.viewport.focus();
     for (const type of ["copy", "cut", "paste"] as const) {
       expect(f.clipboardEvent(type).defaultPrevented).toBe(false);
     }
     expect(f.copy).not.toHaveBeenCalled(); expect(f.cut).not.toHaveBeenCalled(); expect(f.paste).not.toHaveBeenCalled();
+  } finally { f.dispose(); }
+});
+
+it.each(["blur", "mode"])("releases pressed keys and their undo group on %s without a keyup", async (reason) => {
+  const f = await fixture();
+  const viewOps = mock<ViewCtx["viewOps"]>();
+  Object.defineProperty(f.view, "viewOps", { value: viewOps });
+  f.view.getViewOps.mockReturnValue(viewOps);
+  try {
+    f.clipper.focus();
+    fireEvent.keyDown(f.clipper, { key: " ", keyCode: 32, which: 32 });
+    fireEvent.keyDown(f.clipper, { key: "ArrowDown", keyCode: 40, which: 40 });
+    await waitFor(() => expect(viewOps.nudgePosition).toHaveBeenCalledWith("down", false));
+    expect(f.studioCtx.isSpaceDown()).toBe(true);
+    expect(f.studioCtx.isUnlogged()).toBe(true);
+    if (reason === "mode") {
+      f.studioCtx.isInteractiveMode = true;
+    } else {
+      fireEvent(window, new Event("blur"));
+    }
+    expect(f.studioCtx.isSpaceDown()).toBe(false);
+    expect(f.studioCtx.isUnlogged()).toBe(false);
   } finally { f.dispose(); }
 });

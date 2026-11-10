@@ -60,6 +60,9 @@ test("update UI is injected and served locally without fetching NAS static asset
     "<html><head></head><body></body></html>",
   );
   await fs.mkdir(path.join(page, "static"));
+  for (const name of ["studio.html", "studio.abc123.html", "custom.html"]) {
+    await fs.writeFile(path.join(page, "static", name), "<html><head></head><body>editor</body></html>");
+  }
   await fs.writeFile(
     path.join(page, "static/host.html"),
     "<html><head></head><body>canvas</body></html>",
@@ -125,6 +128,15 @@ test("update UI is injected and served locally without fetching NAS static asset
     canvasHtml,
     /data-canvas-origin="https:\/\/plasmic-canvas.shiguanglab.com"/,
   );
+  for (const name of ["studio.html", "studio.abc123.html"]) {
+    const direct = await pageHandler(new Request(config.canvasOrigin + "/static/" + name));
+    const html = await direct.text();
+    assert.equal((html.match(/renderer-i18n.js/g) || []).length, 1);
+    assert.equal((html.match(/update-ui.js/g) || []).length, 1);
+    assert.doesNotMatch(html, /update-dialog.js/, "The main window owns the update dialog");
+  }
+  const custom = await pageHandler(new Request(config.canvasOrigin + "/static/custom.html"));
+  assert.doesNotMatch(await custom.text(), /update-ui.js/);
   const script = await pageHandler(
     new Request(config.studioOrigin + "/static/desktop/update-ui.js"),
   );

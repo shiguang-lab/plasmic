@@ -1,5 +1,6 @@
 import { expect } from "@playwright/test";
 import { test } from "../fixtures/test";
+import { createAuditPage, showAuditLayers } from "../utils/migration-live";
 import { modifierKey } from "../utils/key-utils";
 import { goToProject } from "../utils/studio-utils";
 
@@ -15,7 +16,7 @@ test.describe("rich-text", () => {
   });
 
   test("successfully edit text with format", async ({ page, models }) => {
-    await models.studio.leftPanel.addNewFrame();
+    await createAuditPage(page, "RichTextAudit");
     const artboardFrame = models.studio.frame
       .locator("iframe")
       .first()
@@ -73,7 +74,7 @@ test.describe("rich-text", () => {
         message.includes("Cannot add base vs to tpl that already has base vs"),
       );
 
-    await models.studio.leftPanel.addNewFrame();
+    await createAuditPage(page, "RichTextAudit");
     const artboardFrame = models.studio.frame
       .locator("iframe")
       .first()
@@ -115,7 +116,7 @@ test.describe("rich-text", () => {
     page,
     models,
   }) => {
-    await models.studio.leftPanel.addNewFrame();
+    await createAuditPage(page, "RichTextAudit");
     const artboardFrame = models.studio.frame
       .locator("iframe")
       .first()
@@ -147,7 +148,7 @@ test.describe("rich-text", () => {
     page,
     models,
   }) => {
-    await models.studio.leftPanel.addNewFrame();
+    await createAuditPage(page, "RichTextAudit");
     const artboardFrame = models.studio.frame
       .locator("iframe")
       .first()
@@ -172,7 +173,7 @@ test.describe("rich-text", () => {
     // should end the editing session and save the text.
     await editText("Hello world");
     const rightPaneTabBar = models.studio.frame.locator(
-      ".canvas-editor__right-pane .hilite-tabs",
+      ".canvas-editor__right-pane [role=tablist]",
     );
     const tabBarBox = await rightPaneTabBar.boundingBox();
     await rightPaneTabBar.click({
@@ -183,7 +184,7 @@ test.describe("rich-text", () => {
 
     // Same for empty space at the bottom of the left pane (open the outline
     // tab first so the pane is expanded).
-    await models.studio.leftPanel.treeTabButton.click();
+    await showAuditLayers(page);
     await editText("Goodbye world");
     const leftPane = models.studio.leftPanel.leftPane;
     const leftPaneBox = await leftPane.boundingBox();
@@ -194,15 +195,10 @@ test.describe("rich-text", () => {
     await expect(textElement).toContainText("Goodbye world");
   });
 
-  // Playwright's "Desktop Chrome" device always reports a Windows user
-  // agent, so slate's platform-aware redo hotkey expects the Windows combo
-  // on every host. (Undo's generic "mod+z" instead resolves "mod" via
-  // navigator.platform, which is NOT spoofed — hence modifierKey works
-  // there.)
-  const redoKey = "Control+Shift+z";
+  const redoKey = `${modifierKey}+Shift+z`;
 
   test("undo/redo while editing text", async ({ page, models }) => {
-    await models.studio.leftPanel.addNewFrame();
+    await createAuditPage(page, "RichTextAudit");
     const artboardFrame = models.studio.frame
       .locator("iframe")
       .first()
@@ -255,12 +251,8 @@ test.describe("rich-text", () => {
     await expect(contentEditable).toHaveCount(0);
     await expect(textElement).toHaveText("Hello");
 
-    // Undo the saved text change from the studio, so the studio has a redo
-    // available. (Each editing session starts a fresh editor, so the
-    // sessions below begin with empty undo/redo stacks.) Control+z because
-    // the studio's shortcut platform is also derived from the spoofed
-    // Windows user agent.
-    await page.keyboard.press("Control+z");
+    // The Studio undo stack owns the committed text operation.
+    await page.keyboard.press(`${modifierKey}+z`);
     await expect(textElement).toHaveText(initialText);
 
     // Redo with empty undo and redo stacks ends the session and redoes the

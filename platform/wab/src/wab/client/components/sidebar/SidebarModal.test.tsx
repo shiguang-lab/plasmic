@@ -1,3 +1,4 @@
+import { WithContextMenu } from "@/wab/client/components/ContextMenu";
 import {
   SidebarModal,
   SidebarModalProvider,
@@ -89,4 +90,17 @@ it("keeps the parent form mounted and inert while navigating to a nested editor"
   expect(input).toHaveValue("editedName");
   expect(parent).not.toHaveAttribute("inert");
   expect(parent).toHaveAttribute("aria-hidden", "false");
+});
+
+it("lets a nested portaled menu consume Escape before closing the sidebar editor", async () => {
+  const close = vi.fn();
+  render(<SidebarModalProvider containerSelector="#sidebar"><div id="sidebar" /><SidebarModal show title="Editor" onClose={close}><WithContextMenu overlay={<button>Nested action</button>}><button>Open nested menu</button></WithContextMenu><input aria-label="Editor input" /></SidebarModal></SidebarModalProvider>);
+  fireEvent.contextMenu(await screen.findByText("Open nested menu"));
+  fireEvent.keyDown(await screen.findByText("Nested action"), { key: "Escape" });
+  await waitFor(() => expect(screen.queryByText("Nested action")).toBeNull());
+  expect(close).not.toHaveBeenCalled();
+  fireEvent.keyDown(screen.getByLabelText("Editor input"), { key: "Escape", isComposing: true });
+  expect(close).not.toHaveBeenCalled();
+  fireEvent.keyDown(screen.getByLabelText("Editor input"), { key: "Escape" });
+  await waitFor(() => expect(close).toHaveBeenCalledOnce());
 });

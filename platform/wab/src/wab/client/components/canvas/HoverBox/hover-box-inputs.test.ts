@@ -70,9 +70,10 @@ it.each(["text", "stack"] as const)("waits for an inserted %s runtime value befo
   view.getViewOps.mockReturnValue({ isRootNodeOfStretchFrame: () => false } as any);
   view.currentComponent.mockReturnValue(component); view.arenaFrame.mockReturnValue(frame);
   canvas.$viewport.mockReturnValue($(document.createElement("iframe")));
-  const source = new CanvasViewInputs({ studio, models, signal: lifetime.signal }, (field) => {
+  const recipe = (field: Parameters<typeof hoverBoxModelFields>[2]) => {
     computeHoverBoxTargets(studio, { view, frames: [] }, selection.store.getState()).forEach((target) => hoverBoxModelFields(view, target, field));
-  });
+  };
+  let source = new CanvasViewInputs({ studio, models, signal: lifetime.signal }, recipe);
   const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
   const notify = vi.fn(); let stop: (() => void) | undefined;
   try {
@@ -86,6 +87,12 @@ it.each(["text", "stack"] as const)("waits for an inserted %s runtime value befo
     const element = document.createElement(kind === "text" ? "span" : "div");
     selection.transaction(() => { selection.setTargets([value]); selection.setDoms([$(element)]); });
     expect(computeHoverBoxTargets(studio, { view, frames: [] }, selection.store.getState())).toEqual([{ node: selection.doms()[0], focusObj: value }]);
+    // HoverBox recreates its field recipe when the native runtime target changes.
+    // Reproduce that subscription switch rather than expecting a model-only
+    // source to observe an undeclared external selection store.
+    stop?.();
+    source = new CanvasViewInputs({ studio, models, signal: lifetime.signal }, recipe);
+    stop = source.subscribe(notify);
     source.getSnapshot(); notify.mockClear();
     models.sync(recorder.withRecording(() => { inserted.name = "Resolved selection"; }).changes);
     expect(notify).toHaveBeenCalledOnce();
@@ -96,6 +103,9 @@ it.each(["text", "stack"] as const)("waits for an inserted %s runtime value befo
     expect(computeHoverBoxTargets(studio, { view, frames: [] }, selection.store.getState())).toEqual([{ node: selection.doms()[1], focusObj: value }]);
 
     selection.transaction(() => { selection.setTpls([inserted]); selection.setTargets([null]); selection.setDoms([null]); });
+    stop?.();
+    source = new CanvasViewInputs({ studio, models, signal: lifetime.signal }, recipe);
+    stop = source.subscribe(notify);
     expect(source.getSnapshot().fields).toEqual([]); notify.mockClear();
     models.sync(recorder.withRecording(() => { inserted.name = "Pending again"; }).changes);
     expect(notify).not.toHaveBeenCalled();

@@ -28,8 +28,8 @@ test.describe("interactions-event-handlers", () => {
       .contentFrame();
 
     await models.studio.rightPanel.createNewEventHandler("onIncrement", [
-      { name: "val", type: "num" },
-      { name: "message", type: "text" },
+      { name: "val", type: "Number" },
+      { name: "message", type: "Text" },
     ]);
 
     await contentFrame
@@ -80,6 +80,18 @@ test.describe("interactions-event-handlers", () => {
         },
       },
     ]);
+
+    const selection = () => models.studio.frame.locator("body").evaluate(() => (window as any).studioCtx.focusedViewCtx()?.focusedTpl()?.uuid);
+    const selected = await selection();
+    await models.studio.interactiveSwitch.click();
+    await expect(models.studio.interactiveSwitch).toHaveAttribute("aria-pressed", "true");
+    await contentFrame2.locator("text=invoke event handler").click();
+    await expect(contentFrame2.locator("#plasmic-app div").getByText("6", { exact: true })).toBeVisible();
+    await contentFrame2.locator("text=invoke event handler").click();
+    await expect(contentFrame2.locator("#plasmic-app div").getByText("7", { exact: true })).toBeVisible();
+    expect(await selection()).toBe(selected);
+    await models.studio.interactiveSwitch.click();
+    await expect(models.studio.interactiveSwitch).toHaveAttribute("aria-pressed", "false");
 
     await models.studio.withinLiveMode(async (liveFrame) => {
       await expect(

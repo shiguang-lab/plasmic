@@ -179,10 +179,13 @@ function createAssetHandler({
       }
       if (
         updateUiPath &&
-        [
+        ([
           path.join(root, "index.html"),
           path.join(root, "static/host.html"),
-        ].includes(file)
+        ].includes(file) ||
+          (url.origin === canvasOrigin &&
+            path.dirname(file) === path.join(root, "static") &&
+            /^studio(?:\.[\w-]+)?\.html$/.test(path.basename(file))))
       ) {
         data = Buffer.from(
           data

@@ -147,7 +147,7 @@ test("a successful in-flight save publishes its captured counter before revision
 });
 
 
-test("undo waits for a recreated canvas before recording dirty state, then publishes repaired fields with the final counter", async () => {
+test("undo publishes restored fields and dirty state before waiting for a recreated canvas", async () => {
   // This test owns the iframe's unavailable/mounted state, not physical geometry.
   vi.spyOn(ViewCtx.prototype, "isVisible").mockReturnValue(false);
   const { studioCtx: studio, api, arena } = await ready();
@@ -166,6 +166,7 @@ test("undo waits for a recreated canvas before recording dirty state, then publi
     vi.spyOn(view, "updateCtxPostChange").mockImplementation(() => undefined);
     studio.setStudioFocusOnFrame({ frame, autoZoom: false });
     studio["clearUndoLog"](); studio.createViewStateUndoRecord();
+    const originalName = arena.name;
     await studio.changeUnsafe(() => { arena.name = "Undo changed"; });
     const bundled = studio.bundleSite().site;
     studio.bundler().unbundleAndRecomputeParents(bundled, studio.siteInfo.id);
@@ -175,21 +176,24 @@ test("undo waits for a recreated canvas before recording dirty state, then publi
     const field = studio.modelSnapshots.field(arena, "name");
     vi.spyOn(studio, "tryGetViewCtxForFrame").mockImplementation((target) => target === frame && waiting ? undefined : originalGetView(target));
     vi.spyOn(studio, "awaitViewCtxForFrame").mockImplementation(() => new Promise((resolve) => { release = () => { waiting = false; resolve(view); }; }));
-    waiting = true;
-    const undoing = studio.undo();
-    await waitFor(() => expect(release).toBeTypeOf("function"));
-    expect(studio._changeCounter).toBe(counter);
-    expect(studio.hasUnsavedChanges()).toBe(false);
-    await studio.save();
-    expect(api.saveProjectRevChanges).toHaveBeenCalledOnce();
     const readCompleted = vi.fn(() => {
       expect(studio._changeCounter).toBe(counter + 1);
       expect(studio.saveStatus).toBe("pending");
-      expect(field.getState()).toBe("Save inputs");
+      expect(field.getState()).toBe(originalName);
     });
     disposals.push(field.subscribe(readCompleted));
+    waiting = true;
+    const undoing = studio.undo();
+    await waitFor(() => expect(release).toBeTypeOf("function"));
+    expect(readCompleted).toHaveBeenCalledOnce();
+    expect(studio._changeCounter).toBe(counter + 1);
+    expect(studio.hasUnsavedChanges()).toBe(true);
+    await studio.save();
+    expect(api.saveProjectRevChanges).toHaveBeenCalledTimes(2);
+    expect(studio.hasUnsavedChanges()).toBe(false);
     ensure(release, "Undo canvas wait")();
     await undoing;
+    expect(studio.hasUnsavedChanges()).toBe(false);
     expect(readCompleted).toHaveBeenCalledOnce();
     expect(studio._changeCounter).toBe(counter + 1);
   } finally { if (release) { release(); } disposals.forEach((stop) => stop()); await studio.awaitEval(); studio.dispose(); vi.restoreAllMocks(); }

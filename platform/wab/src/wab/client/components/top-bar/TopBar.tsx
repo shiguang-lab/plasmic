@@ -1,6 +1,7 @@
 import { useTopBarInputs } from "@/wab/client/components/top-bar/top-bar-inputs";
 import { useStore } from "zustand";
 import { getUploadedFile } from "@/wab/client/dom-utils";
+import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
 import { BrandLink } from "@/wab/client/components/BrandLink";
 import { VersionsTab } from "@/wab/client/components/sidebar-tabs/versions-tab";
 import { useVersionsPublishNotice } from "@/wab/client/components/sidebar-tabs/versions-tab/useVersionsPublishNotice";
@@ -102,7 +103,14 @@ function TopBarContent({ preview }: TopBarProps) {
   const { openShareDialog } = useShareDialog();
   const [projectOpen, setProjectOpen] = React.useState(false);
   const [versionsOpen, setVersionsOpen] = React.useState(false);
+  const projectPanelRef = React.useRef<HTMLDivElement>(null);
+  const projectTriggerRef = React.useRef<HTMLButtonElement>(null);
   const versionsPanelRef = React.useRef<HTMLDivElement>(null);
+  useStudioEscape(projectPanelRef, projectOpen, () => {
+    setProjectOpen(false);
+    projectTriggerRef.current?.focus();
+  }, false);
+  useStudioEscape(versionsPanelRef, versionsOpen, () => setVersionsOpen(false), false);
   useInteractOutside({
     ref: versionsPanelRef,
     isDisabled: !versionsOpen,
@@ -120,45 +128,6 @@ function TopBarContent({ preview }: TopBarProps) {
   });
   const { useVersionsCTA, dismissVersionsCTA } =
     useVersionsPublishNotice(studioCtx);
-  React.useEffect(() => {
-    const close = () => setVersionsOpen(false);
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        close();
-      }
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, []);
-  React.useEffect(() => {
-    if (!projectOpen) {
-      return;
-    }
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") {
-        return;
-      }
-      if (
-        Array.from(
-          document.querySelectorAll<HTMLElement>(
-            ".ant-dropdown, .editor-management-menu button[aria-expanded=true]",
-          ),
-        ).some((element) => element.getClientRects().length > 0)
-      ) {
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      setProjectOpen(false);
-      leftRef.current
-        ?.querySelector<HTMLButtonElement>(".editor-project-trigger")
-        ?.focus();
-    };
-    document.addEventListener("keydown", closeOnEscape, true);
-    return () => document.removeEventListener("keydown", closeOnEscape, true);
-  }, [projectOpen]);
   const isMacDesktop = navigator.userAgent.includes("PlasmicDesktop/darwin");
   const isWindowsDesktop = navigator.userAgent.includes("PlasmicDesktop/win32");
   const hasWindowOverlay = isMacDesktop || isWindowsDesktop;
@@ -275,7 +244,7 @@ function TopBarContent({ preview }: TopBarProps) {
                         studioCtx.siteInfo.id,
                         studioCtx.siteInfo.name,
                       );
-                    })().catch(async (err) => {
+                    })().catch(async () => {
                       void message.error({
                         content: t("Failed to export .plasmic file"),
                       });
@@ -777,6 +746,7 @@ function TopBarContent({ preview }: TopBarProps) {
               align={{ offset: [0, 8] }}
               content={
                 <Scrollbar
+                  ref={projectPanelRef}
                   scrollX={false}
                   className={`studio-scrollbar ${styles.projectActions} ${popupStyles.root}`}
                 >
@@ -796,6 +766,7 @@ function TopBarContent({ preview }: TopBarProps) {
               }
             >
               <Button
+                ref={projectTriggerRef}
                 type="text"
                 className="editor-project-trigger"
                 aria-label={t("Project menu")}

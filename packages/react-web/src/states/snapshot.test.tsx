@@ -5,10 +5,30 @@ import { afterEach, expect, it } from "vitest";
 import { proxy } from "valtio";
 import { StateInitializer, useDollarStateSnapshot } from "./snapshot";
 import { getStateCommandEnv, getStateCommandValue } from "./command-values";
+import { getStateSpecInPlasmicProxy } from "./helpers";
 import { $State, $StateSpec } from "./types";
 import { useDollarState } from "./valtio";
 
 afterEach(cleanup);
+
+it("reads state specifications through an environment containing an immutable render snapshot", () => {
+  const views: Readonly<$State>[] = [];
+  function Counter() {
+    const commands = useDollarState();
+    const state = useDollarStateSnapshot(commands, { $props: {} }, [
+      { path: "count", type: "private", variableType: "number", initVal: 0 },
+    ]);
+    views.push(state);
+    return <output>{state.count}</output>;
+  }
+  render(<Counter />);
+  const env = { $state: views.at(-1) };
+  const result = getStateSpecInPlasmicProxy(env, ["$state", "count"]);
+  expect(result?.spec.variableType).toBe("number");
+  expect(result?.isImplicitStateArray).toBe(false);
+  expect(getStateSpecInPlasmicProxy(env, ["$state", "missing"])).toBeUndefined();
+  expect(env.$state?.count).toBe(0);
+});
 
 it("keeps render values immutable while commands read their own writes", () => {
   let commands: $State;

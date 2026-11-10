@@ -1,6 +1,10 @@
 import { makeVariantsController } from "@/wab/client/components/variants/VariantsController";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
+import { TOOLS_SHORTCUT_GROUP, VIEW_SHORTCUT_GROUP } from "@/wab/client/shortcuts/studio/studio-shortcuts";
+import { canHandleStudioModelInput } from "@/wab/client/studio-ctx/studio-input";
+import { hasStudioCommandBarrier, hasStudioEscapeLayer } from "@/wab/client/hooks/useStudioEscape";
+import { isAnyModalOpen } from "@/wab/client/components/widgets/open-modals";
 import { RightTabKey, StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { getArenaFrames } from "@/wab/shared/Arenas";
 import { assert, mod } from "@/wab/shared/common";
@@ -8,22 +12,18 @@ import { getSiteArenas } from "@/wab/shared/core/sites";
 import { LeftTabKey } from "@/wab/shared/ui-config-utils";
 import L from "lodash";
 
-/**
- * Shortcuts should only get handled if this function returns true.
- * Ideally, these checks shouldn't be needed, but we have these issues:
- *
- * 1. Preview mode (i.e. !studioCtx.isDevMode) is basically drawn on top of
- *    Studio, so we have lots of code that work conditionally.
- * 2. We have lots of code that focuses on <body>, so we have to attach handlers
- *    to <body> as well. This is problematic because many modals/popups get
- *    inserted into <body>, where shortcuts should not work.
- *
- * TODO: Resolve above issues and remove this function
- */
+const modelCommands = new Set<string>([
+  ...TOOLS_SHORTCUT_GROUP.shortcuts.map(shortcut => shortcut.action),
+  ...VIEW_SHORTCUT_GROUP.shortcuts.map(shortcut => shortcut.action).filter(action =>
+    !["TOGGLE_PREVIEW_MODE", "PRESENT", "TOGGLE_INTERACTIVE_MODE", "TOGGLE_FOCUSED_MODE", "PREV_ARENA", "NEXT_ARENA"].includes(action)),
+  "UNDO", "REDO", "DESELECT",
+]);
+
+/** Application commands remain available; model commands require real surface focus. */
 export function shouldHandleStudioShortcut(studioCtx: StudioCtx) {
-  return (_event: KeyboardEvent, element: Element): boolean => {
+  return (_event: KeyboardEvent, element: Element, action?: string): boolean => {
     // Issue 1: Don't handle if not in dev mode
-    if (!studioCtx.isDevMode) {
+    if (!studioCtx.isDevMode || isAnyModalOpen() || hasStudioCommandBarrier() || (_event.key === "Escape" && hasStudioEscapeLayer())) {
       return false;
     }
 
@@ -39,8 +39,15 @@ export function shouldHandleStudioShortcut(studioCtx: StudioCtx) {
       }
     }
 
-    return true;
+    return !action || !modelCommands.has(action) || canHandleStudioModelInput(studioCtx);
   };
+}
+
+export function shouldHandleModelShortcut(studioCtx: StudioCtx) {
+  const allowed = shouldHandleStudioShortcut(studioCtx);
+  const applicationCommands = new Set(["SHOW_ADD_DRAWER", "SHOW_VARIANTS_DRAWER", "PRESENT", "TOGGLE_PREVIEW_MODE"]);
+  return (event: KeyboardEvent, element: Element, action: string) =>
+    allowed(event, element, action) && (applicationCommands.has(action) || canHandleStudioModelInput(studioCtx));
 }
 
 /**
@@ -248,7 +255,7 @@ export function bindStudioShortcutHandlers(studioCtx: StudioCtx) {
       TOGGLE_FULL_PAGE_HEIGHT: () => {
         studioCtx.toggleFullPageHeight();
       },
-      DESELECT: async (e) => {
+      DESELECT: async () => {
         const sc = studioCtx;
         if (sc.app.isDragging()) {
           // Let the drag handlers handle the escape event.
@@ -261,21 +268,7 @@ export function bindStudioShortcutHandlers(studioCtx: StudioCtx) {
               sc.setPointerState("move");
             } else if (sc.dragInsertState()) {
               sc.setDragInsertState(undefined);
-            } else if (sc.isLiveMode) {
-              sc.toggleDevControls();
-            } else if (
-              document.activeElement &&
-              document.activeElement !== document.body
-            ) {
-              (document.activeElement as HTMLElement).blur();
-            } else if (!e.cancelBubble) {
-              // Because mousetrap and React both set their handlers on
-              // document, if a React key handler called e.stopPropagation()
-              // on ESCAPE, this mousetrap handler will still be called.
-              // But, thankfully, we can check if an event's stopPropagation()
-              // has been called by checking the cancelBubble flag!
-              // If no one else has handled this ESCAPE, then de-select whatever
-              // we're currently selecting on the canvas.
+            } else {
               const contentView = sc.viewCtxs.find((view) => view.contentEditor.target);
               if (contentView) {
                 contentView.contentEditor.exit();
@@ -285,14 +278,11 @@ export function bindStudioShortcutHandlers(studioCtx: StudioCtx) {
               if (vc) {
                 vc.setStudioFocusBySelectable(null);
                 vc.setViewCtxHoverBySelectable(null);
-                vc.studioCtx.setStudioFocusOnFrame({
-                  frame: undefined,
-                  autoZoom: false,
-                });
                 if (vc.currentComponentCtx()) {
                   vc.setCurrentComponentCtx(null);
                 }
               }
+              sc.setStudioFocusOnFrame({ frame: undefined, autoZoom: false });
             }
           });
         }

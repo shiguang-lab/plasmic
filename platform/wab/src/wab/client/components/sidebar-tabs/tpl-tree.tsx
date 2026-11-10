@@ -27,6 +27,7 @@ import { Icon } from "@/wab/client/components/widgets/Icon";
 import { ListSpace } from "@/wab/client/components/widgets/ListStack";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
 import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
+import { focusModelInput } from "@/wab/client/studio-ctx/studio-input";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
 import { getUiLocale, useI18n } from "@/wab/client/i18n";
 import { translate, translateUiLabel } from "@/wab/client/i18n/locales";
@@ -1771,6 +1772,13 @@ const OutlineTreeInner = React.forwardRef<
   );
 });
 
+const OutlineScrollbar = React.forwardRef<HTMLElement, React.ComponentProps<typeof VirtualListScrollbar>>(
+  function OutlineScrollbar(props, ref) {
+    return <VirtualListScrollbar {...props} ref={ref} tabIndex={-1} data-studio-model-input
+      onPointerDownCapture={event => focusModelInput(event.currentTarget, event.target)} />;
+  },
+);
+
 export const ArenaTree = React.memo(
   React.forwardRef(function ArenaTree(
     props: {
@@ -1836,7 +1844,7 @@ export const ArenaTree = React.memo(
           // To prevent this, don't render the FixedSizeList if height is 0.
           height > 0 && (
             <FixedSizeList
-              outerElementType={VirtualListScrollbar}
+              outerElementType={OutlineScrollbar}
               className="tpltree-scroller"
               innerElementType={OutlineTreeInner}
               style={

@@ -1,3 +1,4 @@
+import { smartHumanize } from "../../../src/wab/shared/strs";
 import { FrameLocator, Locator, Page, expect, test } from "@playwright/test";
 import { modifierKey } from "../../utils/key-utils";
 import { updateFormValuesInLiveMode } from "../../utils/studio-utils";
@@ -8,9 +9,7 @@ export class RightPanel extends BaseModel {
   readonly addInteractionButton: Locator = this.frame.locator(
     '[data-test-id="add-interaction"]',
   );
-  readonly interactionsSearchInput: Locator = this.frame.locator(
-    "#interactions-select",
-  );
+  readonly interactionsSearchInput: Locator = this.frame.getByRole("combobox", { name: "Add event handler" });
   readonly actionsDropdownButton: Locator = this.frame.locator(
     '[data-plasmic-prop="action-name"]',
   );
@@ -285,10 +284,13 @@ export class RightPanel extends BaseModel {
     return element;
   }
 
+  private async interactionEventLabel(eventHandler: string) {
+    const label = this.frame.locator(`[data-test-id="prop-editor-row-${eventHandler}"] label`);
+    return await label.count() ? (await label.innerText()).trim() : smartHumanize(eventHandler);
+  }
+
   async selectInteractionEventById(eventHandler: string): Promise<Locator> {
-    const dropdownElement = this.frame.locator(
-      `#interactions-select-opt-${eventHandler}`,
-    );
+    const dropdownElement = this.frame.getByTitle(await this.interactionEventLabel(eventHandler), { exact: true });
     return dropdownElement;
   }
 
@@ -983,11 +985,12 @@ export class RightPanel extends BaseModel {
       conditionalExpr?: string;
     }>,
   ) {
+    await this.frame.getByRole("tab", { name: "Interactions", exact: true }).click();
     await this.addInteractionButton.click();
-    await this.interactionsSearchInput.fill(eventHandler);
+    await this.interactionsSearchInput.fill(await this.interactionEventLabel(eventHandler));
     while (!(await this.interactionsSearchInput.isVisible())) {
       await this.addInteractionButton.click();
-      await this.interactionsSearchInput.fill(eventHandler);
+      await this.interactionsSearchInput.fill(await this.interactionEventLabel(eventHandler));
     }
     const interactionsEventDropdownElement =
       await this.selectInteractionEventById(eventHandler);
@@ -1026,7 +1029,8 @@ export class RightPanel extends BaseModel {
         };
         const op = interaction.args.operation;
         const operationIntValue = operations[op] ?? 0;
-        await this.frame.locator(`[data-key="${operationIntValue}"]`).click();
+        const operationLabels = ["New value", "Clear value", "Increment variable", "Decrement variable", "Toggle variable", "Add element", "Remove elements"];
+        await this.frame.getByRole("option", { name: operationLabels[operationIntValue], exact: true }).click();
       }
 
       if (interaction.args.value) {
@@ -1150,11 +1154,11 @@ export class RightPanel extends BaseModel {
     },
   ) {
     await this.addInteractionButton.click();
-    await this.interactionsSearchInput.fill(eventHandler);
+    await this.interactionsSearchInput.fill(await this.interactionEventLabel(eventHandler));
     await this.page.waitForTimeout(300);
     while (!(await this.interactionsSearchInput.isVisible())) {
       await this.addInteractionButton.click();
-      await this.interactionsSearchInput.fill(eventHandler);
+      await this.interactionsSearchInput.fill(await this.interactionEventLabel(eventHandler));
       await this.page.waitForTimeout(300);
     }
     const interactionsEventDropdownElement =
@@ -1183,13 +1187,14 @@ export class RightPanel extends BaseModel {
     await this.switchToComponentDataTab();
     await this.addPropButton.click();
     await this.propNameInput.fill(eventName);
-    await this.selectPropType("eventHandler");
+    await this.propTypeDropdown.first().click();
+    await this.frame.getByRole("option", { name: "Function", exact: true }).click();
 
     for (const arg of args) {
       await this.addArgButton.click();
       await this.argNameInput.last().fill(arg.name);
       await this.argTypeDropdown.last().click();
-      await this.frame.locator(`[data-key="${arg.type}"]`).click();
+      await this.frame.getByRole("option", { name: arg.type, exact: true }).click();
     }
     await this.propSubmitButton.click();
   }

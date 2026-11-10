@@ -3,11 +3,12 @@ import styles from "@/wab/client/components/ContextMenu.module.scss";
 import { plasmicIFrameWheelEvent } from "@/wab/client/definitions/events";
 import { hasAncestorElement } from "@/wab/client/dom-utils";
 import { ensure } from "@/wab/shared/common";
+import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
 import { Dropdown } from "antd";
 import { MenuProps } from "antd/lib/menu";
 import L from "lodash";
 import * as React from "react";
-import * as ReactDOM from "react-dom";
+import { createPortal } from "react-dom";
 import { createRoot } from "react-dom/client";
 
 export type MenuType = React.ReactElement | (() => React.ReactElement);
@@ -100,29 +101,30 @@ interface ContextMenuProps {
 export default function ContextMenu({ overlay, pageX, pageY, onHide }: ContextMenuProps) {
   const [container, setContainer] = React.useState<HTMLDivElement | null>(null);
   const dismiss = React.useEffectEvent(onHide);
+  const content = React.useRef<HTMLDivElement>(null);
+  useStudioEscape(content, true, onHide);
   React.useLayoutEffect(() => {
     const portal = document.createElement("div");
     document.body.appendChild(portal);
     setContainer(portal);
     let closeTask: ReturnType<typeof setTimeout> | undefined;
-    const onClick = () => {
+    const onClick = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (content.current?.contains(target) && !target.closest("button,[role=menuitem]")) { return; }
       if (closeTask !== undefined) { clearTimeout(closeTask); }
       // Let the selected item's action run before dismissing its portal.
       closeTask = setTimeout(() => dismiss(), 0);
     };
-    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") { dismiss(); } };
     const onWheel = (event: Event) => {
       const outside = event.type === plasmicIFrameWheelEvent ||
         (event.target instanceof HTMLElement && !hasAncestorElement(event.target, (element) => element.className.includes("ant-dropdown")));
       if (outside && !event.cancelBubble) { dismiss(); }
     };
-    document.addEventListener("keydown", onKeyDown);
     document.addEventListener("click", onClick, true);
     document.addEventListener("wheel", onWheel);
     document.addEventListener(plasmicIFrameWheelEvent, onWheel);
     return () => {
       if (closeTask !== undefined) { clearTimeout(closeTask); }
-      document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("click", onClick, true);
       document.removeEventListener("wheel", onWheel);
       document.removeEventListener(plasmicIFrameWheelEvent, onWheel);
@@ -130,9 +132,9 @@ export default function ContextMenu({ overlay, pageX, pageY, onHide }: ContextMe
     };
   }, []);
   if (!container) { return null; }
-  return ReactDOM.createPortal(
+  return createPortal(
     <Dropdown open={true} onOpenChange={(visible) => { if (!visible) { onHide(); } }}
-      popupRender={() => typeof overlay === "function" ? overlay() : overlay} trigger={["click"]}>
+      popupRender={() => <div ref={content}>{typeof overlay === "function" ? overlay() : overlay}</div>} trigger={["click"]}>
       <div className={styles.ContextMenu} style={{ left: `${pageX}px`, top: `${pageY}px` }} />
     </Dropdown>,
     container,

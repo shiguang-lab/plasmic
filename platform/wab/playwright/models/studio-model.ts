@@ -1,4 +1,5 @@
 import { expect, FrameLocator, Locator, Page, test } from "@playwright/test";
+import { showAuditLayers } from "../utils/migration-live";
 import { waitForFrameToLoad } from "../utils/studio-utils";
 import { BaseModel } from "./BaseModel";
 import { LeftPanel } from "./components/left-panel";
@@ -21,16 +22,11 @@ export class StudioModel extends BaseModel {
   readonly enterLiveModeButton: Locator = this.frame.locator(
     '[data-test-id="enter-live-mode-btn"]',
   );
-  readonly liveFrame: FrameLocator = this.page
-    .locator("iframe")
-    .first()
-    .contentFrame()
-    .locator("iframe")
-    .contentFrame()
+  readonly liveFrame: FrameLocator = this.frame
     .locator('[data-test-id="live-frame"]')
     .contentFrame();
   readonly exitLiveModeButton: Locator = this.frame.locator(
-    '[data-test-id="exit-live-mode-btn"]',
+    'button[aria-label="Exit preview"]',
   );
   readonly rightPanel: RightPanel = new RightPanel(this.page);
   readonly convertToSlotButton: Locator = this.frame.getByText(
@@ -177,24 +173,11 @@ export class StudioModel extends BaseModel {
   }
 
   async switchArena(name: string) {
-    await expect(this.projectNavButton).toBeVisible({ timeout: 30000 });
-
-    await this.projectNavButton.click({ timeout: 10000 });
-
-    await this.clearSearchInput();
-
-    await this.projectNavSearchInput.fill(name);
-
-    await this.page.waitForTimeout(1000);
-
-    const arenaItem = this.frame
-      .locator(`.ant-popover-content div.flex-col`, { hasText: name })
-      .first();
-    await arenaItem.waitFor({ state: "visible", timeout: 10000 });
-
-    await arenaItem.click({ timeout: 10000 });
-
-    await expect(this.projectNavButton).toBeVisible();
+    await showAuditLayers(this.page);
+    const search = this.frame.getByRole("textbox", { name: "Go to page/component" });
+    if (!await search.isVisible()) { await this.frame.getByRole("button", { name: "Search", exact: true }).click(); }
+    await search.fill(name);
+    await this.frame.locator('[data-test-id="nav-dropdown-content"]').getByText(name, { exact: true }).click();
 
     await waitForFrameToLoad(this.page);
 
@@ -738,6 +721,7 @@ export class StudioModel extends BaseModel {
       .locator(".__wab_editing")
       .waitFor({ state: "visible", timeout: 5000 });
 
+    await expect(frame.locator('[contenteditable="true"]')).toBeFocused();
     await this.page.keyboard.type(text);
     await this.page.waitForTimeout(100);
     await this.page.keyboard.press("Escape");
@@ -750,7 +734,8 @@ export class StudioModel extends BaseModel {
     if (!res) {
       throw new Error("Couldn't get bounding box");
     }
-    await guard.click({ position: { x: posX, y: posY }, force: true });
+    // Drawing targets the Studio guard above the artboard iframe.
+    await this.page.mouse.click(res.x + posX, res.y + posY);
   }
 
   async waitForSave() {

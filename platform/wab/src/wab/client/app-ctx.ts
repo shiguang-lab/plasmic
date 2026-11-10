@@ -56,7 +56,7 @@ export class NonAuthCtx {
   initialProjectModel?: {
     projectId: string;
     branchId?: import("@/wab/shared/ApiSchema").BranchId;
-    data: ReturnType<Api["getSiteInfo"]>;
+    data: ReturnType<Api["prepareProjectModel"]>;
   };
   readonly lastBundleVersion: string;
 
@@ -117,7 +117,7 @@ interface AppCtxArgs {
   initialProjectModel?: {
     projectId: string;
     branchId?: import("@/wab/shared/ApiSchema").BranchId;
-    data: ReturnType<Api["getSiteInfo"]>;
+    data: ReturnType<Api["prepareProjectModel"]>;
   };
   readonly lastBundleVersion: string;
 }
@@ -153,7 +153,7 @@ export class AppCtx {
   initialProjectModel?: {
     projectId: string;
     branchId?: import("@/wab/shared/ApiSchema").BranchId;
-    data: ReturnType<Api["getSiteInfo"]>;
+    data: ReturnType<Api["prepareProjectModel"]>;
   };
   readonly lastBundleVersion: string;
 

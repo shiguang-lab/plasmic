@@ -1,6 +1,7 @@
 import { plasmicIFrameWheelEvent } from "@/wab/client/definitions/events";
 import { isContextMenuDescendant, isDescendant } from "@/wab/client/dom-utils";
-import { RefObject, useEffect, useEffectEvent, useMemo } from "react";
+import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
+import { RefObject, useEffect, useEffectEvent, useRef } from "react";
 
 /**
  * Makes it possible to monitor dismissing events on the
@@ -19,12 +20,10 @@ export function useDismissibleStudioOverlay({
   isOpen?: boolean;
   overlayRef?: RefObject<HTMLElement | null>;
 }) {
-  const studio = useMemo(() => document.querySelector(".studio"), []);
+  const emptyRef = useRef<HTMLElement>(null);
+  // A docked panel owns Escape without disabling commands on the canvas.
+  useStudioEscape(overlayRef ?? emptyRef, isOpen, onDismiss, false);
   const onDismissEvent = useEffectEvent((e: Event) => {
-    if (e.type === "keydown" && (e as any).key !== "Escape") {
-      return;
-    }
-
     if (!isOpen) {
       return;
     }
@@ -39,13 +38,13 @@ export function useDismissibleStudioOverlay({
         child: e.target,
       })
     ) {
-      return e.stopPropagation();
+      return;
     }
 
     // Should NOT dismiss if the event target
     // is a context menu item
     if (e.target instanceof HTMLElement && isContextMenuDescendant(e.target)) {
-      return e.stopPropagation();
+      return;
     }
 
     onDismiss(e);
@@ -53,12 +52,11 @@ export function useDismissibleStudioOverlay({
 
   useEffect(() => {
     const dismiss = (event: Event) => onDismissEvent(event);
-    studio?.addEventListener("wheel", dismiss);
-    const events = ["mousedown", "keydown", "wheel", "contextmenu", plasmicIFrameWheelEvent];
-    events.forEach((name) => document.addEventListener(name, dismiss));
+    const doc = overlayRef?.current?.ownerDocument ?? document;
+    const events = ["mousedown", "wheel", "contextmenu", plasmicIFrameWheelEvent];
+    events.forEach((name) => doc.addEventListener(name, dismiss));
     return () => {
-      studio?.removeEventListener("wheel", dismiss);
-      events.forEach((name) => document.removeEventListener(name, dismiss));
+      events.forEach((name) => doc.removeEventListener(name, dismiss));
     };
-  }, [studio]);
+  }, [overlayRef]);
 }

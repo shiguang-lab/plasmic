@@ -5,20 +5,37 @@ import type { Arena, ArenaFrameGrid } from "@/wab/shared/model/classes";
 import * as React from "react";
 
 /** Grid membership and React keys; dimensions belong to frame-height inputs. */
-export function createGridLayoutInputs(studio: StudioCtx, grid: ArenaFrameGrid | undefined) {
+export function createGridLayoutInputs(
+  studio: StudioCtx,
+  grid: ArenaFrameGrid | undefined,
+) {
   const models = studio.modelSnapshots;
-  return new ModelFieldSelector(studio, (read) => {
-    const values: unknown[] = [];
-    if (grid) {
-      values.push(read(grid, "rows"));
-      for (const rowRef of read(grid, "rows")) {
-        const row = models.resolve(rowRef), key = read(row, "rowKey");
-        values.push(key, key && read(models.resolve(key), "uuid"), read(row, "cols"));
-        for (const cellRef of read(row, "cols")) { values.push(read(models.resolve(cellRef), "frame")); }
-      }
-    }
-    return Object.freeze(values);
-  }, arrayEq);
+  return new ModelFieldSelector(
+    studio,
+    (read) =>
+      Object.freeze(
+        (grid ? read(grid, "rows") : []).map((rowRef) => {
+          const row = models.resolve(rowRef);
+          const key = read(row, "rowKey");
+          return Object.freeze({
+            row,
+            key: key && read(models.resolve(key), "uuid"),
+            frames: Object.freeze(
+              read(row, "cols").map((cell) =>
+                models.resolve(read(models.resolve(cell), "frame")),
+              ),
+            ),
+          });
+        }),
+      ),
+    (before, next) =>
+      arrayEq(
+        before,
+        next,
+        (a, b) =>
+          a.row === b.row && a.key === b.key && arrayEq(a.frames, b.frames),
+      ),
+  );
 }
 
 export function useGridLayoutInputs(studio: StudioCtx, grid: ArenaFrameGrid | undefined) {

@@ -587,7 +587,7 @@ export function Root() {
       const branchId = bootstrap.branches.find((branch) => branch.name === bootstrap.branchName)?.id;
       const initialProjectModel = {
         projectId: projectLocation.projectId, branchId,
-        data: api.resolveProjectModel(opening),
+        data: api.prepareProjectModel(opening),
       };
       void initialProjectModel.data.catch(() => undefined);
       await Promise.all([

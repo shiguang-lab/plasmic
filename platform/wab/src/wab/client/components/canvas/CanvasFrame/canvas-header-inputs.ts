@@ -1,6 +1,6 @@
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { canvasFactory } from "@/wab/client/components/canvas/canvas-factories";
-import type { ModelFieldStore, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
+import type { ModelFieldStore, ModelRef, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { getDisplayVariants, isCodeComponentVariant } from "@/wab/shared/Variants";
 import { isFrameComponent, isPageComponent } from "@/wab/shared/core/components";
 import { arrayEq } from "@/wab/shared/common";
@@ -21,13 +21,13 @@ interface CanvasHeaderScope {
   readonly models: ModelSnapshots;
   readonly site: Site;
   readonly lifetime: AbortSignal;
-  readonly owned: boolean;
+  readonly member: ModelRef<ArenaFrame> | undefined;
 }
 function captureScope(studio: StudioCtx, frame: ArenaFrame): CanvasHeaderScope {
   const models = studio.modelSnapshots;
   return {
     models, site: studio.site, lifetime: studio.arenaState.lifetime(),
-    owned: studio.arenaState.frameMembershipStore.getState().some((ref) => ref.uid === frame.uid && models.resolve(ref) === frame),
+    member: studio.arenaState.frameMembershipStore.getState().find((ref) => ref.uid === frame.uid && models.resolve(ref) === frame),
   };
 }
 
@@ -42,13 +42,13 @@ export class CanvasHeaderInputs {
   private readonly fields = new Map<ModelFieldStore<unknown>, () => void>();
   private readonly listeners = new Set<() => void>();
   private connected = false;
-  private readonly owned;
+  private readonly member;
 
   constructor(private readonly studio: StudioCtx, private readonly frame: ArenaFrame, private readonly focusedTag?: TplTag, private readonly isPageArena?: boolean, scope = captureScope(studio, frame)) {
     this.models = scope.models;
     this.site = scope.site;
     this.lifetime = scope.lifetime;
-    this.owned = scope.owned;
+    this.member = scope.member;
     this.getSnapshot();
   }
   private disconnect = () => {
@@ -64,8 +64,13 @@ export class CanvasHeaderInputs {
     if (previous !== this.current) { this.listeners.forEach((listener) => listener()); }
   };
   getSnapshot = (): CanvasHeaderSnapshot | undefined => {
-    if (!this.owned || this.lifetime.aborted || !this.studio.arenaState.isCurrentLifetime(this.lifetime) || this.models !== this.studio.modelSnapshots) {
+    if (!this.member || this.lifetime.aborted || !this.studio.arenaState.isCurrentLifetime(this.lifetime) || this.models !== this.studio.modelSnapshots) {
       this.disconnect(); return this.current;
+    }
+    // Model fields publish before React unmounts the header. A removed frame
+    // can still refer to variants that no longer belong to its component.
+    if (!this.studio.arenaState.frameMembershipStore.getState().includes(this.member)) {
+      return this.current;
     }
     const used = new Set<ModelFieldStore<unknown>>();
     const field = (model: ObjInst, ...keys: string[]) => keys.forEach((key) => used.add(this.models.declaredField(model, key)));
@@ -154,7 +159,7 @@ export class CanvasHeaderInputs {
     return this.current;
   };
   subscribe = (listener: () => void) => {
-    if (!this.owned || this.lifetime.aborted || !this.studio.arenaState.isCurrentLifetime(this.lifetime) || this.models !== this.studio.modelSnapshots) { return () => undefined; }
+    if (!this.member || this.lifetime.aborted || !this.studio.arenaState.isCurrentLifetime(this.lifetime) || this.models !== this.studio.modelSnapshots) { return () => undefined; }
     this.listeners.add(listener);
     if (!this.connected) { this.connected = true; this.lifetime.addEventListener("abort", this.close, { once: true }); this.sync(); }
     return () => { this.listeners.delete(listener); if (!this.listeners.size) { this.disconnect(); } };

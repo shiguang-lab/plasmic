@@ -923,6 +923,7 @@ export class DragInsertManager {
     studioCtx: StudioCtx,
     spec: AddTplItem,
     opts?: CloneOpts,
+    signal?: AbortSignal,
   ): Promise<DragInsertManager> {
     const targeters: NodeTargeter[] = [];
     const extraInfo = spec.asyncExtraInfo
@@ -932,9 +933,15 @@ export class DragInsertManager {
         })
       : undefined;
     for (const vc of studioCtx.viewCtxs) {
+      if (signal?.aborted) {
+        break;
+      }
       // Ignore ViewCtx whose root is invisible.
       if (vc.isVisible() && vc.valState().maybeValUserRoot()) {
         await studioCtx.changeUnsafe(() => {
+          if (signal?.aborted || vc.isDisposed) {
+            return;
+          }
           const toInsert = spec.factory(vc, extraInfo);
           if (toInsert != null) {
             targeters.push(new NodeTargeter(vc, [toInsert]));
@@ -957,7 +964,13 @@ export class DragInsertManager {
    */
   drag(clientPt: Pt, modifiers: ModifierStates) {
     const isFreeMove = modifiers.metaKey || modifiers.ctrlKey;
+    const previousView = this.tentativeVc;
+    this.tentativeVc = undefined;
+    this.tentativeInsertion = undefined;
     for (const targeter of this.targeters) {
+      if (targeter.vc.isDisposed || !targeter.vc.isVisible()) {
+        continue;
+      }
       this.tentativeInsertion = isFreeMove
         ? targeter.getAbsInsertion(clientPt)
         : targeter.getInsertion(clientPt);
@@ -965,6 +978,9 @@ export class DragInsertManager {
         this.tentativeVc = targeter.vc;
         break;
       }
+    }
+    if (previousView && previousView !== this.tentativeVc) {
+      this.targeters.find((targeter) => targeter.vc === previousView)?.clear();
     }
   }
 

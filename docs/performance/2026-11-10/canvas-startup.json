@@ -1,0 +1,169 @@
+{
+  "date": "2026-11-10",
+  "scope": "Offline exact saved project and dependencies; independent profiles; production Studio builds; current Desktop source; shared unchanged packaged canvas runtimes. No online API/IAM/sockets or normal user profile. No online writes.",
+  "ordinaryOrder": [
+    "before-a1",
+    "after-b1",
+    "after-b2",
+    "before-a2"
+  ],
+  "groups": [
+    {
+      "name": "before-a1",
+      "opens": 6,
+      "warmupExcluded": 2,
+      "canvasRevealedMs": [
+        1529.39990234375,
+        1557.400146484375,
+        1580.400146484375,
+        1549.2998046875
+      ],
+      "allFramesRenderedMs": [
+        2209.5,
+        2242.000244140625,
+        2297.300048828125,
+        2235
+      ],
+      "errors": [
+        "[BABEL] Note: The code generator has deoptimised the styling of /render__4qX1WecgE1DI.tsx as it exceeds the max of 500KB."
+      ],
+      "blockedWrites": 0
+    },
+    {
+      "name": "after-b1",
+      "opens": 6,
+      "warmupExcluded": 2,
+      "canvasRevealedMs": [
+        1549.30029296875,
+        1909.5,
+        1711.89990234375,
+        1764
+      ],
+      "allFramesRenderedMs": [
+        2246.7001953125,
+        2652.5,
+        2472.699951171875,
+        2552.60009765625
+      ],
+      "errors": [
+        "[BABEL] Note: The code generator has deoptimised the styling of /render__4qX1WecgE1DI.tsx as it exceeds the max of 500KB."
+      ],
+      "blockedWrites": 0
+    },
+    {
+      "name": "after-b2",
+      "opens": 6,
+      "warmupExcluded": 2,
+      "canvasRevealedMs": [
+        1491.89990234375,
+        1478.800048828125,
+        1499.499755859375,
+        1487
+      ],
+      "allFramesRenderedMs": [
+        2135.7998046875,
+        2115.199951171875,
+        2153.39990234375,
+        2139.699951171875
+      ],
+      "errors": [
+        "[BABEL] Note: The code generator has deoptimised the styling of /render__4qX1WecgE1DI.tsx as it exceeds the max of 500KB."
+      ],
+      "blockedWrites": 0
+    },
+    {
+      "name": "before-a2",
+      "opens": 6,
+      "warmupExcluded": 2,
+      "canvasRevealedMs": [
+        1658.39990234375,
+        1710.60009765625,
+        1643,
+        1627.5
+      ],
+      "allFramesRenderedMs": [
+        2375.39990234375,
+        2395.5,
+        2365.89990234375,
+        2330.199951171875
+      ],
+      "errors": [
+        "[BABEL] Note: The code generator has deoptimised the styling of /render__4qX1WecgE1DI.tsx as it exceeds the max of 500KB."
+      ],
+      "blockedWrites": 0
+    }
+  ],
+  "summary": {
+    "ordinary": {
+      "before": {
+        "canvasRevealedMs": 1603.9500732421875,
+        "firstCanvasReadyMs": 1638.69873046875,
+        "allFramesRenderedMs": 2313.75
+      },
+      "after": {
+        "canvasRevealedMs": 1524.4000244140625,
+        "firstCanvasReadyMs": 1559.137939453125,
+        "allFramesRenderedMs": 2200.050048828125
+      }
+    },
+    "baselineCriticalPathMs": {
+      "navigationToStudioImportMs": 543.4000732451677,
+      "studioImportMs": 106.39999999850988,
+      "initializationAndRouteMs": 468.79999999701977,
+      "targetContextMs": 189.75,
+      "targetEvaluationAndRevealMs": 295.8500000014901
+    }
+  },
+  "controlledFirstEvaluation": {
+    "before": {
+      "elapsedMs": 1212.5,
+      "idleCallbacks": 3,
+      "modelUnchanged": true,
+      "ready": true,
+      "scope": "Real evaluator and sync queue; first-render readiness reset only; diagnostic idle callbacks withheld for 1000ms"
+    },
+    "after": {
+      "elapsedMs": 142.90000000596046,
+      "idleCallbacks": 2,
+      "modelUnchanged": true,
+      "ready": true,
+      "scope": "Real evaluator and sync queue; first-render readiness reset only; diagnostic idle callbacks withheld for 1000ms"
+    }
+  },
+  "limits": [
+    "Ordinary timing is affected by concurrent workloads from other chats/apps; all groups retained. No stable ordinary-open speedup claimed.",
+    "Controlled probe resets transient readiness on an existing real ViewCtx and delays idle callbacks by 1000ms; it is not an actual cold open or an OS input latency measurement.",
+    "One existing Babel large-file code-generation note is recorded as a console error by each ordinary timing process.",
+    "The timed candidate precedes only a local variable rename and error diagnostic logging; the final source is rebuilt and separately verified."
+  ],
+  "finalVerification": {
+    "productionBuild": true,
+    "typecheck": true,
+    "eslint": true,
+    "coreTests": 20,
+    "relatedTests": 35,
+    "schedulingQualification": {
+      "elapsedMs": 133.79999999701977,
+      "idleCallbacks": 2,
+      "modelUnchanged": true,
+      "ready": true,
+      "scope": "Real evaluator and queue; transient first-render readiness reset; idle callbacks delayed 1000ms"
+    },
+    "functionalCases": [
+      "switch-artboard",
+      "rename-undo-redo",
+      "outline-dom-rename-undo-redo",
+      "rendered-style-undo-redo",
+      "frame-position-undo-redo"
+    ],
+    "savedAndReopened": true,
+    "preview": {
+      "closed": true,
+      "modelUnchanged": true,
+      "opened": true,
+      "renderedRows": 11
+    },
+    "functionalRendererErrors": [],
+    "shutdownDiagnostic": "Controlled-probe process logs dashboard-preview AbortError when disposing its queued thumbnail during shutdown; qualification and report completed."
+  }
+}

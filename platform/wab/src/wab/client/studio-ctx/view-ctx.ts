@@ -915,12 +915,10 @@ export class ViewCtx extends WithDbCtx {
       this.canvasCtx.clearRange();
       this.setEditingTextContext(null);
 
-      // While rich-text editing, the focus will be on the frame. We reset
-      // it to document.body when done. This runs async (queued change), so
-      // only blur frames — the user may have already focused e.g. a side
-      // pane input, and we must not steal its focus.
+      // Retain explicit model-command focus after editing. A queued change
+      // must not steal focus from a panel input the user has already entered.
       if (document.activeElement instanceof HTMLIFrameElement) {
-        document.activeElement.blur();
+        this.studioCtx.canvasClipper().focus({ preventScroll: true });
       }
     });
   }
@@ -1497,10 +1495,11 @@ export class ViewCtx extends WithDbCtx {
         this.canvasCtx.syncFrameInfo(this);
         await this.csEvaluator.evalAsync();
         this.flushRerenderQueue();
-        const runPostEvalTasks = new Promise<void>((resolve) => {
-          defer(async () => {
-            if (!this.isDisposed) {
-              await this.studioCtx.change(
+        // Cross the same task boundary as evaluation without detaching the
+        // post-eval promise: failures must release the sync queue too.
+        await new Promise<void>((resolve) => defer(resolve));
+        if (!this.isDisposed) {
+          await this.studioCtx.change(
                 () => {
                   if (!this.isDisposed) {
                     this.csEvaluator.runPostEvalTasks();
@@ -1511,12 +1510,8 @@ export class ViewCtx extends WithDbCtx {
                 {
                   noUndoRecord: true,
                 },
-              );
-            }
-            resolve();
-          });
-        });
-        await runPostEvalTasks;
+          );
+        }
         if (
           !this.isDisposed &&
           !this.initialRenderReady &&
@@ -1542,7 +1537,10 @@ export class ViewCtx extends WithDbCtx {
       }
     };
 
-    if (opts.asap) {
+    // The active artboard is user-visible work. Waiting for an idle deadline
+    // before its first render can starve startup on a busy host. Subsequent
+    // evaluations and background artboards retain the existing idle policy.
+    if (opts.asap || (!this.initialRenderReady && this.arenaFrame() === this.studioCtx.activeCanvasFrame)) {
       await doEval();
     } else {
       await requestIdleCallbackAsync(async () => {
@@ -1566,7 +1564,15 @@ export class ViewCtx extends WithDbCtx {
 
   // eslint-disable-next-line @typescript-eslint/no-misused-promises
   private syncQueue = asynclib.cargo(
-    safeCallbackify(async (args: ViewCtxSyncArgs[]) => this.syncInternal(args)),
+    safeCallbackify(async (args: ViewCtxSyncArgs[]) => {
+      try {
+        await this.syncInternal(args);
+      } catch (error) {
+        if (!this.isDisposed && this.studioCtx.arenaState.isCurrentLifetime(this.modelLifetime)) {
+          this.studioCtx.reportCanvasLoadError(error);
+        }
+      }
+    }),
   );
 
   scheduleSync(opts: ViewCtxSyncArgs) {

@@ -40,6 +40,7 @@ import {
   LeftTabUiKey,
 } from "@/wab/shared/ui-config-utils";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
+import { useStudioEscape } from "@/wab/client/hooks/useStudioEscape";
 import { Popover } from "antd";
 import * as React from "react";
 import { ReactNode } from "react";
@@ -150,25 +151,11 @@ const LeftTabStrip = React.memo(function LeftTabStrip(props: LeftTabStripProps) 
   const openGroup = leftTabGroup;
   const setOpenGroup = (group: string | undefined) =>
     studioCtx.setLeftTabGroup(group);
-  React.useEffect(() => {
-    if (!openGroup) {
-      return;
-    }
-    const close = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        event.stopPropagation();
-        setOpenGroup(undefined);
-        document
-          .querySelector<HTMLButtonElement>(
-            `button[data-test-tabkey="${openGroup}"]`,
-          )
-          ?.focus();
-      }
-    };
-    document.addEventListener("keydown", close, true);
-    return () => document.removeEventListener("keydown", close, true);
-  }, [openGroup]);
+  const menuRef = React.useRef<HTMLElement>(null);
+  useStudioEscape(menuRef, !!openGroup, () => {
+    setOpenGroup(undefined);
+    document.querySelector<HTMLButtonElement>(`button[data-test-tabkey="${openGroup}"]`)?.focus();
+  });
   const missingUsedFonts = useStore(
     studioCtx.fontManager.store,
     (state) => state.missingUsedFonts,
@@ -455,6 +442,7 @@ More
                 }}
                 content={
                   <Scrollbar
+                    ref={openGroup === key ? menuRef : undefined}
                     scrollX={false}
                     className={popupStyles.root}
                     style={{

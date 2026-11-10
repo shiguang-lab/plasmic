@@ -1,0 +1,7 @@
+{
+  "en": "- Open Studio projects faster and improve canvas startup reliability.\n- Keep canvas shortcuts, clipboard actions and drag-and-drop in the appropriate editing context.\n- Restore pages, components and artboards reliably during undo and redo.\n- Let Desktop scan feedback finish its current animation cycle when switching modes or closing Preview.",
+  "zh-CN": "- 加快 Studio 项目打开速度，改善画布启动稳定性。\n- 修复画布快捷键、剪贴板、组件拖入和弹窗关闭顺序。\n- 修复页面、组件和画板撤销重做时的恢复问题。\n- 切换模式或关闭预览时，桌面扫描反馈会先完成当前动画周期。",
+  "zh-TW": "- 加快 Studio 專案開啟速度，改善畫布啟動穩定性。\n- 修正畫布快捷鍵、剪貼簿、元件拖入與彈出視窗關閉順序。\n- 修正頁面、元件與畫板復原及重做時的恢復問題。\n- 切換模式或關閉預覽時，桌面掃描回饋會先完成目前的動畫週期。",
+  "ja": "- Studio プロジェクトを開く速度とキャンバス起動時の安定性を改善しました。\n- キャンバスのショートカット、クリップボード、ドラッグ操作、ダイアログを閉じる順序を修正しました。\n- 元に戻す操作とやり直し操作でページ、コンポーネント、アートボードが正しく復元されるようにしました。\n- モード切り替えやプレビュー終了時に、デスクトップのスキャン表示が現在のアニメーション周期を完了するようにしました。",
+  "ko": "- Studio 프로젝트를 여는 속도와 캔버스 시작 안정성을 개선했습니다.\n- 캔버스 단축키, 클립보드, 드래그 앤 드롭, 대화상자 닫기 순서를 수정했습니다.\n- 실행 취소와 다시 실행 시 페이지, 컴포넌트, 아트보드가 올바르게 복원되도록 했습니다.\n- 모드를 전환하거나 미리보기를 닫을 때 데스크톱 스캔 표시가 현재 애니메이션 주기를 완료하도록 했습니다."
+}

@@ -1,4 +1,4 @@
-import { transferProjectModel } from "@/wab/client/frame-ctx/project-model-transfer";
+import type { StartupProjectModel } from "@/wab/client/frame-ctx/project-model-transfer";
 import { filteredApi } from "@/wab/client/api";
 import { ensureIsTopFrame } from "@/wab/client/cli-routes";
 import { useAppCtx } from "@/wab/client/contexts/AppContexts";
@@ -17,7 +17,7 @@ import { getUiLocale, subscribeUiLocale } from "@/wab/client/i18n";
 import { getUiAppearance, subscribeUiAppearance } from "@/wab/client/ui-theme";
 import { PromisifyMethods } from "@/wab/commons/promisify-methods";
 import { bindMethods } from "@/wab/commons/proxies";
-import { BranchId } from "@/wab/shared/ApiSchema";
+import { BranchId, GetProjectResponse } from "@/wab/shared/ApiSchema";
 import { assert, spawn } from "@/wab/shared/common";
 import * as Comlink from "comlink";
 import * as React from "react";
@@ -80,7 +80,7 @@ export function TopFrameCtxProvider({
     // Fetch the model while the trusted host boots, instead of starting this
     // request only after its scripts and frame bridge have initialized.
     const prefetched = takeInitialProjectModel(appCtx);
-    let initialSiteInfo: ReturnType<typeof api.getSiteInfo> | undefined =
+    let initialSiteInfo: Promise<GetProjectResponse | StartupProjectModel> | undefined =
       prefetched?.projectId === projectId && prefetched.branchId === initialBranchId
         ? prefetched.data
         : api.getSiteInfo(projectId, { branchId: initialBranchId });
@@ -122,7 +122,10 @@ export function TopFrameCtxProvider({
       console.log(
         "[TopFrame] Received PLASMIC_HOST_REGISTER message, exposing API to HostFrame",
       );
-      const topFrameCtxApi: TopFrameFullApi = {
+      type TopFrameWireApi = Omit<TopFrameFullApi, "getSiteInfo"> & {
+        getSiteInfo(...args: Parameters<TopFrameFullApi["getSiteInfo"]>): Promise<GetProjectResponse | StartupProjectModel>;
+      };
+      const topFrameCtxApi = {
         exposeHostFrameApi: (hostFrameApi: Comlink.Remote<HostFrameApi>) => {
           if (disposed) {
             hostFrameApi[Comlink.releaseProxy]();
@@ -145,7 +148,7 @@ export function TopFrameCtxProvider({
         closeSocket: () =>
           disposed ? Promise.resolve() : api.closeSocket(),
 
-        getSiteInfo: (siteId, opts) => {
+        getSiteInfo: (siteId: string, opts: Parameters<TopFrameFullApi["getSiteInfo"]>[1]) => {
           if (
             initialSiteInfo &&
             siteId === projectId &&
@@ -156,7 +159,7 @@ export function TopFrameCtxProvider({
           ) {
             const request = initialSiteInfo;
             initialSiteInfo = undefined;
-            return request.then(transferProjectModel);
+            return request;
           }
           return api.getSiteInfo(siteId, opts);
         },
@@ -193,7 +196,7 @@ export function TopFrameCtxProvider({
           return Comlink.proxy(retainSessionListener(sessionDisposers,
             topFrameApi.registerLocationListener(locationListener)));
         },
-      } as TopFrameFullApi;
+      } as TopFrameWireApi;
       Comlink.expose(topFrameCtxApi, {
         ...hostFrameEndpoint,
         addEventListener(

@@ -1,4 +1,5 @@
 import { logError } from "@/wab/client/ErrorNotifications";
+import { StartupProjectModel } from "@/wab/client/frame-ctx/project-model-transfer";
 import { presentationRequestHeaders } from "@/wab/client/route/presentation-projects";
 import { clearResourceCache, fetchLibraryResource, setResourceCacheUser } from "@/wab/client/resource-cache";
 import {
@@ -24,6 +25,7 @@ import {
   ApiUser,
   CAPTCHA_TOKEN_HEADER,
   ProjectId,
+  ProjectOpeningResponse,
 } from "@/wab/shared/ApiSchema";
 import { fullName } from "@/wab/shared/ApiSchemaUtil";
 import { LowerHttpMethod } from "@/wab/shared/HttpClientUtil";
@@ -198,22 +200,55 @@ export class Api extends SharedApi {
     noErrorTransform?: boolean,
   ) {
     if (method === "get" && /^\/dependency-models\/[A-Za-z0-9_-]+$/.test(url)) {
-      const path = fullApiPath(url);
-      let response: Response;
-      try { response = await fetchLibraryResource(path, opts); }
-      catch (error) {
-        if (error instanceof TypeError) { throw new NetworkError({ method: "GET", url: path }, { cause: error }); }
-        throw error;
-      }
-      if (!response.ok) {
-        const body = await response.json().catch(() => undefined);
-        const error = deserializeApiError(body?.error, response.status);
-        error.request = { method: "GET", url: path };
-        throw error;
-      }
-      return response.json();
+      return (await this.getDependencyModelResource(url, opts)).json();
     }
     return ajax(method, url, data, opts, hideDataOnError, noErrorTransform);
+  }
+
+  private async getDependencyModelResource(
+    url: string,
+    opts?: RequestInit,
+  ): Promise<Response> {
+    const path = fullApiPath(url);
+    let response: Response;
+    try {
+      response = await fetchLibraryResource(path, opts);
+    } catch (error) {
+      if (error instanceof TypeError) {
+        throw new NetworkError({ method: "GET", url: path }, { cause: error });
+      }
+      throw error;
+    }
+    if (!response.ok) {
+      const body = await response.json().catch(() => undefined);
+      const error = deserializeApiError(body?.error, response.status);
+      error.request = { method: "GET", url: path };
+      throw error;
+    }
+    return response;
+  }
+
+  async prepareProjectModel(opening: ProjectOpeningResponse) {
+    const { startup: _startup, depPkgs, ...project } = opening;
+    const reads = new Map<string, Promise<ArrayBuffer>>();
+    const dependencies = await Promise.all(
+      depPkgs.map(async ({ modelResourceId, ...info }) => {
+        let read = reads.get(modelResourceId);
+        if (!read) {
+          assert(
+            /^[A-Za-z0-9_-]+$/.test(modelResourceId),
+            "Invalid dependency model resource ID",
+          );
+          read = this.getDependencyModelResource(
+            `/dependency-models/${modelResourceId}`,
+            { headers: this.headers() },
+          ).then((response) => response.arrayBuffer());
+          reads.set(modelResourceId, read);
+        }
+        return { info, bytes: await read };
+      }),
+    );
+    return new StartupProjectModel({ project, dependencies });
   }
 
   private socket?: Socket<ServerToClientEvents, ClientToServerEvents>;

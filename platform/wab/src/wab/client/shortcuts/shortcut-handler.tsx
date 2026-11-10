@@ -1,10 +1,11 @@
 import { isWithinKeyboardInteractiveElement } from "@/wab/client/dom-utils";
+import { isComposingKeyEvent } from "@/wab/commons/components/ReactUtil";
 import { analytics } from "@/wab/client/observability";
 import { Shortcuts } from "@/wab/client/shortcuts/shortcut";
 import Mousetrap, { ExtendedKeyboardEvent } from "mousetrap";
 import { useEffect, useState } from "react";
 
-/** Always allow these combos, no matter where the focus is. */
+/** Escape may reach a scope's own handler, including from an input. */
 const ALWAYS_ALLOWED_COMBOS = new Set(["esc"]);
 
 /**
@@ -47,6 +48,7 @@ export function bindShortcutHandlers<Action extends string>(
   shouldHandle?: (
     event: Mousetrap.ExtendedKeyboardEvent,
     element: Element,
+    action: Action,
   ) => boolean,
 ): () => void {
   // Mousetrap.reset() clears bindings but leaves its three DOM listeners
@@ -96,6 +98,7 @@ export function bindShortcutHandlers<Action extends string>(
 
   // return true if the callback should be stopped (i.e. don't handle)
   mousetrap.stopCallback = (event, element, combo) => {
+    if (event.defaultPrevented || event.cancelBubble || isComposingKeyEvent(event)) { return true; }
     if (element instanceof win.HTMLElement) {
       if (ALWAYS_ALLOWED_COMBOS.has(combo)) {
         return false;
@@ -127,10 +130,6 @@ export function bindShortcutHandlers<Action extends string>(
       }
     }
 
-    if (shouldHandle && !shouldHandle(event, element)) {
-      return true;
-    }
-
     return false;
   };
 
@@ -147,6 +146,7 @@ export function bindShortcutHandlers<Action extends string>(
     }
 
     mousetrap.bind(shortcut.combos, (event, combo) => {
+      if (shouldHandle && !shouldHandle(event, event.target as Element, action)) { return true; }
       const eventName = "Shortcut key";
       const eventProps = {
         combos: shortcut.combos,

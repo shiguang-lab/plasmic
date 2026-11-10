@@ -22,6 +22,21 @@ async function fixture() {
 
 afterEach(() => vi.restoreAllMocks());
 
+it("reports a background load rejection through the real idle scheduler and releases the serial queue", async () => {
+  const { studioCtx, arena, frame } = await fixture();
+  studioCtx.currentArena = arena;
+  vi.spyOn(studioCtx, "activeCanvasFrame", "get").mockReturnValue(undefined);
+  vi.spyOn(studioCtx, "activeCanvasReady", "get").mockReturnValue(true);
+  const error = new Error("Background component library unavailable");
+  const load = vi.fn(async () => { throw error; });
+  try {
+    studioCtx.queueCanvasFrame({ arena, frame, name: "Background", load });
+    await vi.waitFor(() => expect(studioCtx.canvasLoadStore.getState().error).toBe(error.message));
+    await vi.waitFor(() => expect(studioCtx["canvasLoadQueue"].idle()).toBe(true));
+    expect(load).toHaveBeenCalledOnce();
+  } finally { studioCtx.dispose(); }
+});
+
 it("releases the real dequeued request on owner abort without removing it twice or reporting a load failure", async () => {
   const { studioCtx, arena, frame } = await fixture();
   studioCtx.currentArena = arena;

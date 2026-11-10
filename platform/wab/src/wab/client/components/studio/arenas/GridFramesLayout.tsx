@@ -26,15 +26,21 @@ type GridFramesLayoutProps = {
   rowEndControls?: (row: ArenaFrameRow, index: number) => React.ReactNode;
   gridEndControls?: () => React.ReactNode;
 };
-export const GridFramesLayout = React.memo(function GridFramesLayout(props: GridFramesLayoutProps) {
+export const GridFramesLayout = React.memo(function GridFramesLayout(
+  props: GridFramesLayoutProps,
+) {
   const studio = useStudioCtx();
-  const inputs = useGridLayoutInputs(studio, props.grid);
-  return inputs ? <GridFramesLayoutContent {...props} /> : null;
+  const rows = useGridLayoutInputs(studio, props.grid);
+  return rows ? <GridFramesLayoutContent {...props} rows={rows} /> : null;
 });
-function GridFramesLayoutContent(props: GridFramesLayoutProps) {
+function GridFramesLayoutContent(
+  props: GridFramesLayoutProps & {
+    rows: NonNullable<ReturnType<typeof useGridLayoutInputs>>;
+  },
+) {
   const {
     arena,
-    grid,
+    rows,
     onFrameLoad,
     makeRowLabel,
     makeRowLabelControls,
@@ -46,20 +52,20 @@ function GridFramesLayoutContent(props: GridFramesLayoutProps) {
 
   return (
     <div className={sty.root}>
-      {grid.rows.map((row, rowIndex) => (
+      {rows.map(({ row, key, frames }, rowIndex) => (
         // It's necessary to encode the rowKey and rowIndex in the key here, so that
         // upon reordering rows, the CanvasFrame components are unmounted and mounted
         // again. The full reason is explained in the comment above the CanvasFrame key.
-        <div key={`${row.rowKey?.uuid ?? "rowKey"}-${rowIndex}`}>
+        <div key={`${key ?? "rowKey"}-${rowIndex}`}>
           <ArenaGridRowLabel
             studioCtx={studioCtx}
             arena={arena}
-            key={`label-${row.rowKey?.uuid ?? rowIndex}`}
+            key={`label-${key ?? rowIndex}`}
           >
             {makeRowLabel?.(row, rowIndex)}
             {makeRowLabelControls?.(row, rowIndex)}
           </ArenaGridRowLabel>
-          {row.cols.map((cell, index) => (
+          {frames.map((frame, index) => (
             // It is necessary to encode the `index` in the key CanvasFrame key here,
             // so that upon reordering variants, the CanvasFrame components are unmounted
             // and mounted again. The reason is that if they have a stable key, then the
@@ -67,16 +73,16 @@ function GridFramesLayoutContent(props: GridFramesLayoutProps) {
             // match the right order; however, when an iframe is detached from the DOM, its
             // content is reset, so we end up with an empty iframe!
             <CanvasFrame
-              key={`${cell.frame.uid}-${index}`}
+              key={`${frame.uid}-${index}`}
               studioCtx={studioCtx}
               arena={arena}
               onFrameLoad={onFrameLoad}
-              arenaFrame={cell.frame}
+              arenaFrame={frame}
               isFree={false}
             />
           ))}
           {rowEndControls && (
-            <div key={`controls-${row.rowKey?.uuid ?? rowIndex}`}>
+            <div key={`controls-${key ?? rowIndex}`}>
               {rowEndControls(row, rowIndex)}
             </div>
           )}

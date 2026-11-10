@@ -5,7 +5,7 @@
   const t = (key, values) => window.desktopUiI18n.t(key, values);
   let state, opened = false;
   const expandedWidth = 360;
-  let received = false, frameSource, frameImage, loadingSource, imageVersion = 0;
+  let received = false, frameSource, frameImage, frameContext, loadingSource, imageVersion = 0, exitingFrame = false;
   let animation, lastTime, lastHit = 0;
   const feedbackGroups = new Map();
   const reducedFeedback = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -179,7 +179,7 @@
     const theme = state.appearance === "light" ? '<circle cx="6" cy="6" r="2.5"/><path d="M6 0v1m0 10v1M0 6h1m10 0h1M2 2l1 1m6 6 1 1M2 10l1-1m6-6 1-1"/>' : '<path d="M10.8 7.2A5 5 0 0 1 4.8 1.2a5 5 0 1 0 6 6Z"/>';
     if ($("theme-icon").dataset.appearance !== state.appearance) { $("theme-icon").dataset.appearance = state.appearance; $("theme-icon").innerHTML = `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2">${theme}</svg>`; }
     const summary = context.loading ? null : context.projectSummary;
-    const hasVisual = context.allowed && !!(context.loading || context.viewName || state.image);
+    const hasVisual = context.allowed && !!(exitingFrame || context.loading || context.viewName || state.image);
     let left = [], right = [], empty = "";
     if (context.allowed) {
       if (hasVisual) {
@@ -242,11 +242,26 @@
     $("capsule-handle").title = [compactTitle,compactPhase,details].filter(Boolean).join(" · ");$("capsule-handle").setAttribute("aria-label",$("capsule-handle").title);
     document.querySelector(".dot").hidden = signedOut || !working && !issue;
   }
+  function feedbackScope() {
+    const context = state.context;
+    return JSON.stringify([context.identity, context.projectId, context.sessionId, context.arenaId, context.mode, context.previewKind]);
+  }
   function renderImage() {
     const image = state.image, valid = state.context.allowed && !!image && image.identity === state.context.identity;
+    // Retire feedback over its original pixels before applying the latest view.
+    const invalidated = !valid || $("feedback").dataset.scope !== feedbackScope();
+    if (opened && !state.updateOpen && state.context.allowed && !state.context.loading && !state.stale && !reducedFeedback.matches && frameImage
+      && ["projectId", "sessionId", "arenaId", "branchId"].every(key => frameContext[key] === state.context[key])
+      && (exitingFrame || invalidated) && [...feedbackGroups.values()].some(group => !group.done)) {
+      if (!exitingFrame) {imageVersion++; loadingSource = undefined;}
+      exitingFrame = true;
+      for (const group of feedbackGroups.values()) {retireFeedback(group);}
+      return;
+    }
+    exitingFrame = false;
     if (!valid) {
       imageVersion++; loadingSource = frameSource = undefined;
-      frameImage = undefined;
+      frameImage = frameContext = undefined;
       mirror.hidden = true; mirror.removeAttribute("src");
     } else if (image.src !== frameSource && image.src !== loadingSource) {
       const version = ++imageVersion, loader = new Image();
@@ -255,6 +270,7 @@
         if (version !== imageVersion) {return;}
         frameSource = image.src; loadingSource = undefined;
         frameImage = image;
+        frameContext = state.context;
         mirror.src = image.src; mirror.hidden = false;
         $("unavailable").hidden = true;
         $("stale").hidden = !state.stale;
@@ -263,7 +279,7 @@
       loader.onerror = () => { if (version === imageVersion) {loadingSource = undefined;} };
       loader.src = image.src;
     }
-    if (valid && image.src === frameSource) {frameImage = image;}
+    if (valid && image.src === frameSource) {frameImage = image; frameContext = state.context;}
     $("view-loading").hidden = !state.context.allowed || !state.context.loading;
     $("unavailable").hidden = !state.context.allowed || state.context.loading || !!frameSource;
     $("unavailable").textContent = t(!state.context.allowed ? "No canvas open" : state.context.loading ? "Loading current view…" : "Preparing preview image…");
@@ -283,6 +299,7 @@
     group.done = true;
     group.node.remove();
     $("feedback").hidden = ![...feedbackGroups.values()].some(item => !item.done);
+    if (exitingFrame && $("feedback").hidden) {render(state);}
   }
   reducedFeedback.addEventListener("change", () => {
     if (reducedFeedback.matches) {
@@ -292,10 +309,11 @@
     }
   });
   function renderFeedback() {
+    if (exitingFrame) {return;}
     const layer = $("feedback"), image = frameImage, feedback = image?.feedback, operation = activity().operation;
-    // Pixel/view ownership changes invalidate geometry, even during an exit.
+    // A retired frame never lends its geometry to the next view.
     const allowed = opened && state.context.allowed && !state.stale && !mirror.hidden && image?.identity === state.context.identity;
-    const scope = JSON.stringify([state.context.identity, state.context.projectId, state.context.sessionId, state.context.arenaId, state.context.mode, state.context.previewKind]);
+    const scope = feedbackScope();
     if (!allowed || layer.dataset.scope !== scope) {
       for (const group of feedbackGroups.values()) {group.done = true;}
       layer.replaceChildren(); feedbackGroups.clear(); layer.hidden = true; layer.dataset.scope = scope;
@@ -371,10 +389,11 @@
     if (value.localization) {window.desktopUiI18n.setSnapshot(value.localization);}
     document.documentElement.dataset.uiAppearance = value.appearance;
     shell.dataset.allowed = String(value.context.allowed);
-    const hasVisual = value.context.allowed && !!(value.context.loading || value.context.viewName || value.image);
-    $("card").querySelector(".visual").hidden = !hasVisual;
     open(value.expanded === true);
-    renderImage(); renderInfo(); renderFeedback(); renderUpdate(); motion();
+    renderImage();
+    const hasVisual = value.context.allowed && !!(exitingFrame || value.context.loading || value.context.viewName || value.image);
+    $("card").querySelector(".visual").hidden = !hasVisual;
+    renderInfo(); renderFeedback(); renderUpdate(); motion();
   }
   api.onState((value) => { received = true; render(value); });
   void api.command("state").then((value) => { if (!received) {render(value);} }).catch(console.error);

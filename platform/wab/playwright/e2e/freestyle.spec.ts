@@ -1,7 +1,7 @@
 import { expect } from "@playwright/test";
 import { test } from "../fixtures/test";
 import { goToProject, waitForFrameToLoad } from "../utils/studio-utils";
-import { undoAndRedo } from "../utils/undo-and-redo";
+import { createAuditPage, showAuditLayers } from "../utils/migration-live";
 
 test.describe("freestyle", () => {
   let projectId: string;
@@ -16,13 +16,20 @@ test.describe("freestyle", () => {
   });
 
   test("can draw tweet", async ({ page, models }) => {
-    await models.studio.leftPanel.addNewFrame();
+    await createAuditPage(page, "FreestyleAudit");
     await waitForFrameToLoad(page);
 
     await models.studio.frames.first().waitFor({ state: "visible" });
     const framed = models.studio.getComponentFrameByIndex(0);
     await framed.locator("body").waitFor({ state: "visible" });
 
+    // Drawing requires a definite free-positioned root, matching this fixture's layout.
+    await models.studio.frame.locator("body").evaluate(async () => {
+      const studio = (window as any).studioCtx, view = studio.focusedViewCtx();
+      await studio.changeUnsafe(() => Object.assign(view.variantTplMgr().ensureBaseVariantSetting(view.component.tplTree).rs.values, { display: "block", position: "relative", height: "768px" }));
+      await studio.awaitEval();
+    });
+    await models.studio.frame.getByRole("button", { name: "Locate current canvas" }).click();
     await framed.locator("body").click();
 
     const initX = 5;
@@ -33,6 +40,8 @@ test.describe("freestyle", () => {
     const containerWidth = 176;
     const textLeft = initX + imgSize + 20;
 
+    const position = () => models.studio.frame.locator("body").evaluate(() => (window as any).studioCtx.undoLog._nextInsertPos as number);
+    const fixturePosition = await position();
     await page.keyboard.press("r");
     await models.studio.drawRectRelativeToElt(
       framed.locator("body"),
@@ -117,22 +126,32 @@ test.describe("freestyle", () => {
     });
 
     async function checkEndState() {
-      await models.studio.leftPanel.expectDebugTplTree([
-        "free box",
-        "free box",
-        "free box",
-        "free box",
-        "free box",
-        "text",
-        "text",
-        "text",
-        "text",
-        "text",
-      ]);
+      const tags = await models.studio.frame.locator("body").evaluate(() => {
+        const root = (window as any).studioCtx.focusedViewCtx().component.tplTree;
+        const result: string[] = [];
+        const walk = (node: any) => { result.push(node.type === "text" ? "text" : "container"); (node.children ?? []).forEach(walk); };
+        walk(root); return result.sort();
+      });
+      expect(tags).toEqual([...Array(5).fill("container"), ...Array(5).fill("text")]);
     }
-    await models.studio.leftPanel.switchToTreeTab();
+    await showAuditLayers(page);
     await checkEndState();
-    await undoAndRedo(page);
+    const undo = models.studio.frame.getByRole("button", { name: "Undo", exact: true });
+    const redo = models.studio.frame.getByRole("button", { name: "Redo", exact: true });
+    const finalPosition = await position();
+    let operations = 0;
+    while (await position() > fixturePosition) {
+      if (++operations > 100) { throw new Error("Undo history did not drain"); }
+      const before = await position(); await undo.click();
+      await expect.poll(position).toBeLessThan(before);
+    }
+    expect(operations).toBeGreaterThan(9);
+    while (await position() < finalPosition) {
+      const before = await position(); await redo.click();
+      await expect.poll(position).toBeGreaterThan(before);
+      if (await position() > finalPosition) { throw new Error("Redo passed the original history position"); }
+    }
+    await expect(redo).toBeDisabled();
     await checkEndState();
   });
 });

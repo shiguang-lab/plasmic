@@ -275,6 +275,7 @@ const InsertPanelContent = function InsertPanel_({
   const onInserted = (item: AddItem, tplNode: TplNode | null) => {
     if (!world.isCurrent()) { return; }
     onClose();
+    if (tplNode) { studioCtx.canvasClipper().focus({ preventScroll: true }); }
 
     trackInsertFromAddDrawer(item, tplNode, {
       from: "add-drawer",
@@ -298,21 +299,17 @@ const InsertPanelContent = function InsertPanel_({
           studioCtx={studioCtx}
           onInserted={onInserted}
           onClose={onClose}
-          onDragStart={() => {
-            if (!world.isCurrent()) { return; }
-            if (mode === "insert") {
-              onClose();
-            }
-          }}
           onDragEnd={(item, result) => {
             if (!world.isCurrent()) { return; }
             if (result) {
+              if (mode === "insert") { onClose(); }
               const [_viewCtx, tplNode] = result;
               trackInsertFromAddDrawer(item, tplNode, {
                 from: "add-drawer",
                 dragged: true,
               });
               saveRecentItem(item, tplNode);
+              studioCtx.canvasClipper().focus({ preventScroll: true });
             }
           }}
           recentItems={recentItems}
@@ -386,7 +383,6 @@ function itemsPerRow(virtualItem: VirtualItem): number {
 const AddDrawerContent = React.memo(function AddDrawerContent(props: {
   storeMode: boolean;
   studioCtx: StudioCtx;
-  onDragStart: DraggableInsertableProps["onDragStart"];
   onDragEnd: DraggableInsertableProps["onDragEnd"];
   onInserted: (item: AddItem, comp: TplNode | null) => void;
   onClose: () => void;
@@ -396,7 +392,6 @@ const AddDrawerContent = React.memo(function AddDrawerContent(props: {
   const {
     studioCtx,
     storeMode,
-    onDragStart,
     onDragEnd,
     onInserted,
     onClose,
@@ -1253,7 +1248,6 @@ const AddDrawerContent = React.memo(function AddDrawerContent(props: {
       value={{
         studioCtx,
         isCurrent: world.isCurrent,
-        onDragStart,
         onDragEnd,
         matcher,
         onInsert,
@@ -1298,7 +1292,6 @@ const AddDrawerContent = React.memo(function AddDrawerContent(props: {
 interface AddDrawerContextValue {
   studioCtx: StudioCtx;
   isCurrent: () => boolean;
-  onDragStart: DraggableInsertableProps["onDragStart"];
   onDragEnd: DraggableInsertableProps["onDragEnd"];
   matcher: Matcher;
   onInsert: (item: AddItem) => void;
@@ -1414,7 +1407,6 @@ const Row = React.memo(function Row(props: {
           const { item, itemIndex } = virtualItem;
           const {
             studioCtx,
-            onDragStart,
             onDragEnd,
             matcher,
             onInserted,
@@ -1486,7 +1478,6 @@ const Row = React.memo(function Row(props: {
                       shouldInterceptInsert={shouldInterceptOnInsert}
                       sc={studioCtx}
                       spec={item as AddTplItem}
-                      onDragStart={onDragStart}
                       onDragEnd={onDragEnd}
                     >
                       {children}
