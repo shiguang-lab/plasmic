@@ -12,6 +12,7 @@ async function fixture(t){
  let listener;
  let state={mode:'island',expanded:false,context:{allowed:false,loading:false,projectName:'Project'},activity:{},appearance:'dark',update:{phase:'idle',currentVersion:'0.2.8'}};
  window.requestAnimationFrame=()=>1;
+ const reduced=new window.EventTarget();reduced.matches=false;window.matchMedia=()=>reduced;
  window.desktopIsland={onState:callback=>{listener=callback},command:async(command)=>{commands.push(command);return state}};
  window.eval(source('renderer-i18n.js'));window.eval(source('island-renderer.js'));await flush();
  return {window,commands,el:id=>window.document.getElementById(id),send(value){state={...state,...value};listener(state)}};
@@ -165,4 +166,63 @@ test('unchanged snapshots do not repeat live announcements',async(t)=>{
  const ui=await fixture(t);const value={context:canvas,activity:{operation:{kind:'write',phase:'failed',error:'Technical detail'}}};ui.send(value);
  const changes=[],observer=new ui.window.MutationObserver(records=>changes.push(...records));for(const id of ['phase-text','issue-tooltip']){observer.observe(ui.el(id),{childList:true,subtree:true});}
  ui.send(value);await flush();observer.disconnect();assert.equal(changes.length,0);
+});
+
+async function feedbackFixture(t, kind='read', regions=[{x:0,y:0,width:1,height:1}]) {
+ const ui=await fixture(t);
+ ui.window.Image=class {set src(value){queueMicrotask(()=>this.onload?.());}};
+ ui.send({context:{allowed:true,loading:false,identity:'canvas',mode:'edit'},expanded:true,
+  image:{src:'data:image/png;base64,cGl4ZWxz',identity:'canvas',width:400,height:300,feedback:{id:'first',kind,regions}},
+  activity:{operation:{id:'first',phase:'running'}}});
+ await flush();
+ return {...ui,cycle(node){node.dispatchEvent(new ui.window.Event('animationiteration',{bubbles:true}));},end(node){node.dispatchEvent(new ui.window.Event('animationend',{bubbles:true}));}};
+}
+test('read completion retains the actual scan through its current iteration and result fade',async t=>{
+ const ui=await feedbackFixture(t),scan=ui.el('feedback').querySelector('.feedback-sweep'),region=scan.parentElement;
+ ui.send({activity:{operation:{id:'first',phase:'completed'}}});
+ assert.equal(ui.el('feedback').hidden,false);
+ assert.equal(region.parentElement.dataset.phase,'running','a tool result does not stop an in-progress CSS iteration');
+ ui.send({activity:{},image:{identity:'canvas',width:400,height:300,feedback:null}});
+ assert.equal(scan.isConnected,true,'expired operation metadata cannot truncate a visible scan');
+ ui.cycle(scan);
+ assert.equal(region.parentElement.dataset.phase,'completed');
+ assert.equal(scan.isConnected,true,'result fade owns final removal');
+ ui.end(region);assert.equal(ui.el('feedback').hidden,true);
+});
+test('consecutive calls on the same target reuse the scan and cancel its pending exit',async t=>{
+ const ui=await feedbackFixture(t),scan=ui.el('feedback').querySelector('.feedback-sweep');
+ ui.send({activity:{operation:{id:'first',phase:'completed'}}});
+ ui.send({image:{identity:'canvas',width:400,height:300,feedback:{id:'next',kind:'read',regions:[{x:0,y:0,width:1,height:1}]}},activity:{operation:{id:'next',phase:'running'}}});
+ assert.equal(ui.el('feedback').querySelector('.feedback-sweep'),scan);
+ ui.cycle(scan);assert.equal(scan.parentElement.parentElement.dataset.phase,'running');
+ ui.send({activity:{operation:{id:'next',phase:'completed'}}});
+ ui.cycle(scan);assert.equal(scan.parentElement.parentElement.dataset.phase,'completed');
+ ui.end(scan.parentElement);assert.equal(ui.el('feedback').hidden,true);
+});
+test('each write region completes its own pulse before the group fades, including failure',async t=>{
+ const ui=await feedbackFixture(t,'write',[{x:0,y:0,width:.4,height:1},{x:.6,y:0,width:.4,height:1}]);
+ const [a,b]=ui.el('feedback').querySelectorAll('.feedback-region');
+ ui.send({activity:{operation:{id:'first',phase:'failed'}}});
+ assert.equal(a.isConnected,true);
+ ui.cycle(a);assert.equal(a.parentElement.dataset.phase,'running');
+ ui.cycle(b);assert.equal(a.parentElement.dataset.phase,'completed');
+ ui.end(a);assert.equal(ui.el('feedback').hidden,false);
+ ui.end(b);assert.equal(ui.el('feedback').hidden,true);
+});
+test('a new target leaves the previous scan intact until its cycle ends',async t=>{
+ const ui=await feedbackFixture(t),scan=ui.el('feedback').querySelector('.feedback-sweep');
+ ui.send({image:{identity:'canvas',width:400,height:300,feedback:{id:'next',kind:'write',regions:[{x:0,y:0,width:.5,height:1}]}},activity:{operation:{id:'next',phase:'running'}}});
+ assert.equal(scan.isConnected,true);
+ assert.equal(ui.el('feedback').querySelectorAll('.feedback-operation').length,2);
+ ui.cycle(scan);ui.end(scan.parentElement);
+ assert.equal(ui.el('feedback').querySelectorAll('.feedback-operation').length,1);
+ assert.equal(ui.el('feedback').dataset.kind,'write');
+});
+test('reduced motion retires completed feedback without waiting for absent CSS events',async t=>{
+ const ui=await feedbackFixture(t);
+ const reduced=ui.window.matchMedia();reduced.matches=true;reduced.dispatchEvent(new ui.window.Event('change'));
+ ui.send({activity:{operation:{id:'first',phase:'completed'}}});
+ assert.equal(ui.el('feedback').hidden,true);
+ ui.send({activity:{operation:{id:'first',phase:'completed'}}});
+ assert.equal(ui.el('feedback').hidden,true,'metadata refresh cannot restart completed feedback');
 });

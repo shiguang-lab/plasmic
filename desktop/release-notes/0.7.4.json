@@ -1,0 +1,7 @@
+{
+  "en": "- Locate and reveal AI operation targets without changing the current canvas selection or property panel.\n- Complete each canvas and Dynamic Island scan cycle before fading feedback, and preserve animation continuity across consecutive operations.\n- Add MCP tools to read, create, reply to, edit, delete, resolve and reopen native Studio comments with existing permissions and persistence.",
+  "zh-CN": "- AI 操作定位与展示目标时，保留当前画布选择及属性面板。\n- 画布与灵动岛扫描反馈在完成当前动画周期后淡出，连续操作保持动画衔接。\n- 新增 MCP 原生评论工具，支持读取、新建、回复、编辑、删除、解决和重新打开评论，并沿用 Studio 权限与持久化机制。",
+  "zh-TW": "- AI 操作定位與顯示目標時，保留目前畫布選取及屬性面板。\n- 畫布與動態島掃描回饋在完成目前動畫週期後淡出，連續操作保持動畫銜接。\n- 新增 MCP 原生留言工具，支援讀取、新增、回覆、編輯、刪除、解決及重新開啟留言，並沿用 Studio 權限與持久化機制。",
+  "ja": "- AI 操作の対象を表示するときに、現在のキャンバス選択とプロパティパネルを維持します。\n- キャンバスと Dynamic Island のスキャンが現在のアニメーション周期を完了してからフェードアウトし、連続操作でもアニメーションを維持します。\n- Studio の既存の権限と保存処理を使用して、コメントの取得、作成、返信、編集、削除、解決、再開を行う MCP ツールを追加しました。",
+  "ko": "- AI 작업 대상을 찾아 표시할 때 현재 캔버스 선택과 속성 패널을 유지합니다.\n- 캔버스와 Dynamic Island 스캔이 현재 애니메이션 주기를 마친 뒤 사라지며 연속 작업에서도 애니메이션이 이어집니다.\n- Studio의 기존 권한과 저장 방식을 사용하는 댓글 조회, 작성, 답글, 편집, 삭제, 해결 및 다시 열기 MCP 도구를 추가했습니다."
+}

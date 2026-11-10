@@ -1,4 +1,4 @@
-const reads = new Set(["read", "queryElements", "readVector", "validate", "findEmptySpace", "beginCanvasInspection"]);
+const reads = new Set(["readComments", "read", "queryElements", "readVector", "validate", "findEmptySpace", "beginCanvasInspection"]);
 const passive = new Set(["identify", "getEditorContext", "endCanvasInspection"]);
 const operationLabels = {
   create_project: "Creating project", create_workspace: "Creating workspace", create_org: "Creating organization",

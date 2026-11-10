@@ -127,3 +127,44 @@ test("MCP pages mutation receipts, SVG and CDP output without repeating RPC oper
     await fs.rm(profile, { recursive: true, force: true });
   }
 });
+
+test("MCP advertises comment operations and keeps persisted comments outside atomic design batches", async () => {
+  const profile = await fs.mkdtemp(path.join(os.tmpdir(), "plasmic-comments-"));
+  const calls = [];
+  const stop = await startRpc(profile, async (method, input) => {
+    calls.push({ method, input });
+    return { projectId: "project", branchId: "branch", threadId: "thread", ...(input.name === "setCommentThreadResolved" ? { resolved: input.input.resolved } : {}) };
+  });
+  const client = new Client({ name: "comment-test", version: "1.0.0" });
+  try {
+    await client.connect(new StdioClientTransport(mcpTransport(profile)));
+    const { tools } = await client.listTools();
+    const execute = tools.find(tool => tool.name === "execute");
+    const state = tools.find(tool => tool.name === "get_app_state");
+    const batch = tools.find(tool => tool.name === "execute_batch");
+    const inputs = {
+      readComments: { resolved: false, offset: 0, limit: 30 },
+      addComment: { componentUuid: "page", elementUuid: "node", body: "Review" },
+      replyToComment: { threadId: "thread", body: "Reply" },
+      editComment: { commentId: "comment", body: "Edited" },
+      deleteComment: { commentId: "comment" },
+      deleteCommentThread: { threadId: "thread" },
+      setCommentThreadResolved: { threadId: "thread", resolved: true },
+    };
+    for (const [name, input] of Object.entries(inputs)) {
+      assert.ok(execute.inputSchema.properties.name.enum.includes(name), name);
+      assert.ok(state.inputSchema.properties.toolNames.items.enum.includes(name), name);
+      assert.ok(!batch.inputSchema.properties.operations.items.properties.name.enum.includes(name), name);
+      const result = await client.callTool({ name: "execute", arguments: { name, input } });
+      assert.equal(result.isError, false, result.content[0].text);
+      assert.deepEqual(calls.at(-1), { method: "execute", input: { name, input } });
+    }
+    const result = await client.callTool({ name: "execute", arguments: { name: "setCommentThreadResolved", input: { threadId: "thread", resolved: false } } });
+    assert.equal(JSON.parse(result.content[0].text).resolved, false);
+    const before = calls.length;
+    const invalid = await client.callTool({ name: "execute_batch", arguments: { reviewContext: { purpose: "Comment" }, operations: [{ name: "addComment", input: inputs.addComment }] } });
+    assert.equal(invalid.isError, true); assert.equal(calls.length, before);
+  } finally {
+    await client.close(); await stop(); await fs.rm(profile, { recursive: true, force: true });
+  }
+});

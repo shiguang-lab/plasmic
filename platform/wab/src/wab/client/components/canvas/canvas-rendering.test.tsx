@@ -110,9 +110,10 @@ function installRenderOwner(view: ViewCtx, site: ReturnType<typeof createSite>, 
   return () => { lifetime.abort(); owner.dispose(); session.dispose(); selection.dispose(); variants.dispose(); models.dispose(); frameState.dispose(); };
 }
 
-it.each([TplVisibility.NotRendered, TplVisibility.CustomExpr, TplVisibility.DisplayNone, "css-display-none"] as const)(
-  "retains a selected hidden region across canvas modes and excludes it from exports: %s",
-  (visibility) => {
+it.each(([TplVisibility.NotRendered, TplVisibility.CustomExpr, TplVisibility.DisplayNone, "css-display-none"] as const)
+  .flatMap(visibility => [[visibility, false], [visibility, true]] as const))(
+  "retains a hidden region across canvas modes and excludes it from exports: %s, presentation: %s",
+  (visibility, presentation) => {
     const site = createSite();
     const component = mkEmptyComponent();
     site.components.push(component);
@@ -130,7 +131,7 @@ it.each([TplVisibility.NotRendered, TplVisibility.CustomExpr, TplVisibility.Disp
     const snapshots = new ModelSnapshots();
     const selection = new ViewSelection(() => snapshots);
     const variants = new ViewVariantState(() => snapshots, () => { throw new Error("This isolated visibility test has no artboard"); }, () => site, () => false, () => false);
-    selection.setTpls([node]);
+    if (!presentation) { selection.setTpls([node]); }
     const session = new CanvasSessionState();
     const owner = new CanvasRenderOwner(session);
     const frame = mkArenaFrame({ site, component, width: 800, height: 600, name: "Visibility" });
@@ -146,9 +147,12 @@ it.each([TplVisibility.NotRendered, TplVisibility.CustomExpr, TplVisibility.Disp
     } as unknown as ViewCtx;
     const frameInfo = new CanvasFrameInfoOwner(viewCtx);
     const ctx = { valKey: node.uuid, env: {}, viewCtx, site, ownerComponent: component, projectFlags: DEVFLAGS } as unknown as RenderingCtx;
+    const selected = selection.store.getState();
+    if (presentation) { owner.revealTarget(viewCtx, node); }
     const read = () => _testOnlyUtils.determineAutoOpenState(ctx, node, new EffectiveVariantSetting(node, node.vsettings, site));
     const before = JSON.stringify(node.vsettings);
     expect(read().autoOpened).toBe(true);
+    expect(selection.store.getState()).toBe(selected);
     if (visibility === "css-display-none") {expect(read().style?.display).toBe("revert");}
     renderPolicy.interactive = true; renderPolicy.prepareInputs();
     expect(read().autoOpened).toBe(true);

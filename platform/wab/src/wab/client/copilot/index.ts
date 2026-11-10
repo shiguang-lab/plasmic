@@ -1,3 +1,4 @@
+import { COMMENT_TOOLS } from "@/wab/client/copilot/comments";
 import { resolveBatchInput, type MutationReceipt, type MutationIdentity } from "@/wab/shared/copilot/mutation-receipt";
 import { flushSync } from "react-dom";
 import { readDepth, selectedReadFields, projectReadFields, registrationContract, withRegisteredContracts, isEditorOnlyRegistration, type ModelReadOptions } from "@/wab/shared/copilot/model-read";
@@ -1611,6 +1612,7 @@ async function waitForFrameHeights(
 }
 
 export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
+  ...COMMENT_TOOLS,
   executeLocalEdit: defineCopilotTool(
     meta.executeLocalEdit,
     async (studio, input, caller, signal) => {

@@ -602,6 +602,11 @@ export class CanvasRenderOwner {
     return ensure(this.selectionInputs, "Canvas selection inputs must be initialized").ancestryStore;
   }
 
+  revealTarget(view: ViewCtx, target: TplNode | undefined) {
+    this.bindInputs(view);
+    ensure(this.selectionInputs, "Canvas selection inputs must be initialized").setRevealTarget(target);
+  }
+
   subscribeAncestryBeforePublish(view: ViewCtx, check: () => void) {
     assert(!this.disposed, "Cannot subscribe to ancestry inputs for a disposed canvas owner");
     this.bindInputs(view);

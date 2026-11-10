@@ -7,7 +7,8 @@
   const expandedWidth = 360;
   let received = false, frameSource, frameImage, loadingSource, imageVersion = 0;
   let animation, lastTime, lastHit = 0;
-  let feedbackKey, feedbackId;
+  const feedbackGroups = new Map();
+  const reducedFeedback = window.matchMedia("(prefers-reduced-motion: reduce)");
   const spring = { width: 130, height: 40, radius: 20, vw: 0, vh: 0, vr: 0 };
   const send = (command, value) => api.command(command, value).catch(console.error);
   const activity = () => state?.activity || {};
@@ -271,34 +272,96 @@
     document.body.dataset.stale = String(state.stale);
     document.body.dataset.loading = String(state.context.allowed && !frameSource);
   }
+  function retireFeedback(group) {
+    if (group.retiring || group.done) {return;}
+    group.retiring = true;
+    if (reducedFeedback.matches) { removeFeedback(group); return; }
+    group.pending = new Set(group.node.querySelectorAll(group.kind === "read" ? ".feedback-sweep" : ".feedback-region"));
+    if (!group.pending.size) {removeFeedback(group);}
+  }
+  function removeFeedback(group) {
+    group.done = true;
+    group.node.remove();
+    $("feedback").hidden = ![...feedbackGroups.values()].some(item => !item.done);
+  }
+  reducedFeedback.addEventListener("change", () => {
+    if (reducedFeedback.matches) {
+      for (const group of feedbackGroups.values()) {
+        if (group.retiring) {removeFeedback(group);}
+      }
+    }
+  });
   function renderFeedback() {
     const layer = $("feedback"), image = frameImage, feedback = image?.feedback, operation = activity().operation;
-    const visible = opened && state.context.allowed && !state.stale && !mirror.hidden && image?.identity === state.context.identity
-      && feedback && feedback.id === operation?.id && ["running", "completed"].includes(operation.phase)
+    // Pixel/view ownership changes invalidate geometry, even during an exit.
+    const allowed = opened && state.context.allowed && !state.stale && !mirror.hidden && image?.identity === state.context.identity;
+    const scope = JSON.stringify([state.context.identity, state.context.projectId, state.context.sessionId, state.context.arenaId, state.context.mode, state.context.previewKind]);
+    if (!allowed || layer.dataset.scope !== scope) {
+      for (const group of feedbackGroups.values()) {group.done = true;}
+      layer.replaceChildren(); feedbackGroups.clear(); layer.hidden = true; layer.dataset.scope = scope;
+      if (!allowed) {return;}
+    }
+    const visible = feedback && feedback.id === operation?.id && ["running", "completed"].includes(operation.phase)
       && !["blocked", "failed"].includes(activity().task?.status);
-    layer.hidden = !visible;
-    if (!visible) { layer.replaceChildren(); feedbackKey = feedbackId = undefined; return; }
     const scale = Math.min(mirror.clientWidth / image.width, mirror.clientHeight / image.height);
     Object.assign(layer.style, { left:`${(mirror.clientWidth-image.width*scale)/2}px`, top:`${(mirror.clientHeight-image.height*scale)/2}px`, width:`${image.width*scale}px`, height:`${image.height*scale}px` });
-    layer.dataset.kind = feedback.kind;
-    layer.dataset.phase = operation.phase;
-    const key = JSON.stringify([feedback.id, operation.phase, feedback.regions]);
-    if (key === feedbackKey) {return;}
-    // Keep animation nodes across captures of the same geometry.
-    // A completed call gets one finite acknowledgement, never an idle loop.
-    if (feedbackId !== feedback.id) { layer.replaceChildren(); feedbackId = feedback.id; }
-    while (layer.children.length > feedback.regions.length) {layer.lastElementChild.remove();}
-    feedback.regions.forEach((region, index) => {
-      let node = layer.children[index];
-      if (!node) {
-        node = document.createElement("div"); node.className = "feedback-region";
-        node.append(Object.assign(document.createElement("i"), { className:"feedback-sweep" }));
-        layer.append(node);
+    let current;
+    if (visible) {
+      current = feedbackGroups.get(feedback.id);
+      const shape = JSON.stringify([feedback.kind, feedback.regions]);
+      // Consecutive calls on the same geometry continue the existing animation.
+      if (!current && operation.phase === "running") {
+        const reusable = [...feedbackGroups].find(([, group]) => !group.done && group.node.dataset.phase !== "completed" && group.shape === shape);
+        if (reusable) {
+          const [id, group] = reusable;
+          feedbackGroups.delete(id); feedbackGroups.set(feedback.id, group);
+          group.retiring = false; group.pending.clear(); current = group;
+        }
       }
-      Object.assign(node.style, { left:`${region.x*100}%`, top:`${region.y*100}%`, width:`${region.width*100}%`, height:`${region.height*100}%` });
-    });
-    feedbackKey = key;
+      if (!current) {
+        const node = document.createElement("div");
+        node.className = "feedback-operation"; node.dataset.kind = feedback.kind; node.dataset.phase = "running";
+        current = { node, kind: feedback.kind, shape, retiring: false, done: false, pending: new Set() };
+        const group = current;
+        node.addEventListener("animationiteration", event => {
+          if (group.done || !group.retiring || group.node.dataset.phase === "completed" || !group.pending.delete(event.target)) {return;}
+          if (!group.pending.size) {
+            group.node.dataset.phase = "completed";
+            layer.dataset.phase = "completed";
+          }
+        });
+        node.addEventListener("animationend", event => {
+          if (group.done || group.node.dataset.phase !== "completed" || !event.target.classList.contains("feedback-region")) {return;}
+          event.target.remove();
+          if (!group.node.children.length) {removeFeedback(group);}
+        });
+        feedbackGroups.set(feedback.id, group); layer.append(node);
+      }
+      if (!current.done) {
+        current.shape = shape;
+        layer.dataset.kind = feedback.kind;
+        if (!current.retiring) {layer.dataset.phase = "running";}
+        feedback.regions.forEach((region, index) => {
+          let node = current.node.children[index];
+          if (!node) {
+            node = document.createElement("div"); node.className = "feedback-region";
+            node.append(Object.assign(document.createElement("i"), { className:"feedback-sweep" }));
+            current.node.append(node);
+          }
+          Object.assign(node.style, { left:`${region.x*100}%`, top:`${region.y*100}%`, width:`${region.width*100}%`, height:`${region.height*100}%` });
+        });
+        if (operation.phase === "completed") {retireFeedback(current);}
+      }
+    }
+    for (const [id, group] of feedbackGroups) {
+      if (group !== current) {
+        if (group.done) {feedbackGroups.delete(id);}
+        else {retireFeedback(group);}
+      }
+    }
+    layer.hidden = ![...feedbackGroups.values()].some(group => !group.done);
   }
+
   function render(value) {
     // State-only messages retain the last pixels; explicit null clears them.
     if (value.image && !Object.hasOwn(value.image, "src")) {

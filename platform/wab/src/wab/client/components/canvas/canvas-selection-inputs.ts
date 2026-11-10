@@ -38,6 +38,7 @@ export class CanvasSelectionInputs {
   private disabled = false;
   private dirty = true;
   private disposed = false;
+  private revealTarget: TplNode | undefined;
 
   constructor(private readonly view: ViewCtx, private draggingObject: boolean) {
     this.models = view.studioCtx.modelSnapshots;
@@ -56,12 +57,22 @@ export class CanvasSelectionInputs {
     this.stopSelection = view.selectionStore.subscribe((next, previous) => {
       if (next.tpls !== previous.tpls || next.targets !== previous.targets ||
           next.disabledAutoOpenUuid !== previous.disabledAutoOpenUuid) {
+        this.revealTarget = undefined;
         this.dirty = true;
         if (!view.studioCtx.hasPendingModelChanges()) {
           this.prepareCommit(); this.publishCommit();
         }
       }
     });
+  }
+
+  /** Reuse the canvas reveal contract without changing the inspector selection. */
+  setRevealTarget(target: TplNode | undefined) {
+    if (this.disposed || this.revealTarget === target) { return; }
+    this.revealTarget = target;
+    this.dirty = true;
+    this.prepareCommit();
+    this.publishCommit();
   }
 
   node(node: TplNode, valKey: string): ModelFieldStore<CanvasSelectionInfo> {
@@ -121,10 +132,12 @@ export class CanvasSelectionInputs {
       }
     };
     const selected = this.selectedNode(selection);
-    const ancestry = selected ? ancestorsThroughComponentsWithSlotSelections(selected, { includeTplComponentRoot: true }) : [];
+    const selectionAncestry = selected ? ancestorsThroughComponentsWithSlotSelections(selected, { includeTplComponentRoot: true }) : [];
+    const ancestry = this.revealTarget
+      ? ancestorsThroughComponentsWithSlotSelections(this.revealTarget, { includeTplComponentRoot: true })
+      : selectionAncestry;
     const path: Record<number, PathInput> = {};
-    for (let index = 0; index < ancestry.length; index++) {
-      const { node } = ancestry[index];
+    for (const { node } of [...selectionAncestry, ...ancestry]) {
       if (isSlotSelection(node)) {
         declareTpl(node.getTpl());
         declare(node.slotParam, "variable"); declare(node.slotParam.variable, "name");
@@ -133,6 +146,11 @@ export class CanvasSelectionInputs {
         }
       } else {
         declareTpl(node);
+      }
+    }
+    for (let index = 0; index < ancestry.length; index++) {
+      const { node } = ancestry[index];
+      if (!isSlotSelection(node)) {
         if (!Object.hasOwn(path, node.uid)) {
           const descendant = index > 0 ? ancestry[index - 1].node : undefined;
           path[node.uid] = Object.freeze({
@@ -142,10 +160,10 @@ export class CanvasSelectionInputs {
         }
       }
     }
-    const ancestryRefs = ancestry.map(({ node }) => this.models.ref(isSlotSelection(node) ? node.getTpl() : node));
+    const ancestryRefs = selectionAncestry.map(({ node }) => this.models.ref(isSlotSelection(node) ? node.getTpl() : node));
     if (!arrayEq(this.ancestry, ancestryRefs)) { this.ancestry = Object.freeze(ancestryRefs); }
     this.path = Object.freeze(path);
-    this.disabled = !!selection.disabledAutoOpenUuid;
+    this.disabled = !this.revealTarget && !!selection.disabledAutoOpenUuid;
     for (const [field, stop] of this.fields) {
       if (!sources.has(field)) {
         stop(); this.fields.delete(field);

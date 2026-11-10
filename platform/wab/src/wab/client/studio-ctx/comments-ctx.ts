@@ -592,6 +592,12 @@ export class CommentsCtx {
     }
   };
 
+  /** A mutation must not reuse a read that started before it was persisted. */
+  async refreshComments(): Promise<void> {
+    await this.commentsRequest?.promise;
+    await this.fetchComments();
+  }
+
   fetchComments(): Promise<void> {
     if (this.stopped || !this.studioCtx.showComments()) {
       return Promise.resolve();

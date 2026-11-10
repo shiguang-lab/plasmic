@@ -115,33 +115,102 @@ const ActivityRegion = function ActivityRegion({
   target,
   scanning,
   bounds,
+  onRetired,
 }: {
   viewCtx: ViewCtx;
   request: CanvasActivity;
   target: ActivityTarget;
   scanning: boolean;
   bounds: Bounds;
+  onRetired: () => void;
 }) {
   const { t } = useI18n();
   const { styles: themeStyles } = useActivityStyles();
   const zoom = useCanvasZoom(viewCtx.studioCtx);
+  const [finished, setFinished] = React.useState(false);
+  const getOnRetired = useCommittedValue(onRetired);
+  React.useLayoutEffect(() => {
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => {
+      if (scanning) { setFinished(false); }
+      else if (reduced.matches) { setFinished(true); }
+    };
+    sync();
+    reduced.addEventListener("change", sync);
+    return () => reduced.removeEventListener("change", sync);
+  }, [scanning]);
+  React.useEffect(() => {
+    if (!finished || scanning) { return; }
+    const timer = setTimeout(() => getOnRetired()(), 400);
+    return () => clearTimeout(timer);
+  }, [finished, scanning, getOnRetired]);
   return (
     <div
       className={classNames(styles.region, themeStyles.root)}
       data-kind={request.kind}
       data-status={request.status}
-      data-scanning={scanning}
+      data-scanning={!finished}
+      data-retiring={!scanning}
       data-copilot-target={target.elementUuid ?? target.componentUuid ?? "page"}
       aria-hidden="true"
       style={{ ...bounds, borderWidth: 2 / zoom }}
     >
-      <div className={styles.scan} />
+      <div className={styles.scan} onAnimationIteration={() => {
+        if (!scanning) { setFinished(true); }
+      }} />
       <div className={styles.label} style={{ transform: `scale(${1 / zoom})` }}>
         {t(activityText(request))}
       </div>
     </div>
   );
 };
+
+interface PresentedRegion {
+  key: string;
+  request: CanvasActivity;
+  target: ActivityTarget;
+  scanning: boolean;
+  bounds: Bounds;
+}
+
+/** Requests may finish before paint; only the rendered scan owns its exit. */
+function ActivityRegions({ viewCtx, regions, scope }: {
+  viewCtx: ViewCtx;
+  regions: PresentedRegion[];
+  scope: unknown;
+}) {
+  const [shown, setShown] = React.useState<PresentedRegion[]>([]);
+  const completed = React.useRef(new Map<string, number>());
+  const owner = React.useRef({ viewCtx, scope });
+  const getRegions = useCommittedValue(regions);
+  const signature = JSON.stringify(regions);
+  React.useLayoutEffect(() => {
+    const reset = owner.current.viewCtx !== viewCtx || owner.current.scope !== scope;
+    owner.current = { viewCtx, scope };
+    if (reset) { completed.current.clear(); }
+    const next = getRegions();
+    const keys = new Set(next.map(region => region.key));
+    for (const key of completed.current.keys()) {
+      if (!keys.has(key)) { completed.current.delete(key); }
+    }
+    setShown(previous => [
+      ...next.filter(region => region.scanning || completed.current.get(region.key) !== region.request.id),
+      ...(reset ? [] : previous.filter(region => !keys.has(region.key)).map(region => ({ ...region, scanning: false }))),
+    ]);
+  }, [viewCtx, scope, signature, getRegions]);
+  return <>{shown.map(({ key, request, target, scanning, bounds }) => <ActivityRegion
+    key={key}
+    viewCtx={viewCtx}
+    request={request}
+    target={target}
+    scanning={scanning}
+    bounds={bounds}
+    onRetired={() => {
+      completed.current.set(key, request.id);
+      setShown(previous => previous.filter(region => region.key !== key || region.request.id !== request.id || region.scanning));
+    }}
+  />)}</>;
+}
 
 export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay({
   studioCtx,
@@ -328,16 +397,9 @@ export const CopilotActivityOverlay = React.memo(function CopilotActivityOverlay
         ref={cursorHost}
         className={classNames(styles.cursorHost, themeStyles.root)}
       />}
-      {visibleRegions.map(({ key, request, target, scanning, layout }) => (
-        <ActivityRegion
-          key={key}
-          viewCtx={viewCtx}
-          request={request}
-          target={target}
-          scanning={scanning}
-          bounds={ensure(layout.bounds, "Visible activity region has bounds")}
-        />
-      ))}
+      <ActivityRegions viewCtx={viewCtx} scope={current} regions={visibleRegions.map(({ key, request, target, scanning, layout }) => ({
+        key, request, target, scanning, bounds: ensure(layout.bounds, "Visible activity region has bounds"),
+      }))} />
     </>
   );
 });

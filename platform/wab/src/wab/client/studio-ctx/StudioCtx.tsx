@@ -5427,8 +5427,7 @@ export class StudioCtx extends WithDbCtx {
     this.tryZoomToFitDomElement($focusedDom[0]);
   }
 
-  tryZoomToFitDomElement(element: HTMLElement) {
-    const vc = this.focusedViewCtx();
+  tryZoomToFitDomElement(element: HTMLElement, vc = this.focusedViewCtx()) {
     if (!vc) {
       return;
     }

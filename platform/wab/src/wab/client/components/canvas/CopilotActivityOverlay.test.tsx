@@ -13,7 +13,7 @@ import { ensure } from "@/wab/shared/common";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { ValTag } from "@/wab/shared/core/val-nodes";
 import { ArenaFrame, Component, TplNode } from "@/wab/shared/model/classes";
-import { act, cleanup, render } from "@testing-library/react";
+import { act, cleanup, fireEvent, render } from "@testing-library/react";
 import { theme as AntdTheme } from "antd";
 import { ThemeProvider } from "antd-style";
 import React from "react";
@@ -98,6 +98,13 @@ function scans(container: HTMLElement) {
   );
 }
 
+function finishScanCycle(container: HTMLElement) {
+  for (const region of container.querySelectorAll('[data-retiring="true"]')) {
+    fireEvent.animationIteration(ensure(region.firstElementChild, "Scan missing"));
+  }
+  act(() => { vi.advanceTimersByTime(400); });
+}
+
 it("reuses the cursor while switching operation owners and clears failed work", () => {
   const { studioCtx, frame, child, sibling, target } = nestedActivity();
   let callbacks: FrameRequestCallback[] = [];
@@ -156,6 +163,8 @@ it.each(["inspection", "edit"] as const)("merges overlapping scope aliases for t
   expect(container.querySelector("[data-copilot-target]")).toBe(region);
   expect(region?.getAttribute("data-status")).toBe("running");
   act(() => finishFirst("error"));
+  expect(container.querySelector("[data-copilot-target]")).toBe(region);
+  finishScanCycle(container);
   expect(container.querySelector("[data-copilot-target]")).toBeNull();
   activity.dispose();
 });
@@ -194,6 +203,7 @@ it.each([
   act(() => {
     vi.advanceTimersByTime(1);
   });
+  finishScanCycle(container);
   expect(visibleTargets()).toEqual([child.uuid, sibling.uuid]);
   activity.dispose();
 });
@@ -243,6 +253,7 @@ it("uses captured ancestors for removed targets and releases suppression when a 
   expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(1);
   expect(container.querySelector('[data-copilot-target="removed"]')).toBeNull();
   act(() => finishParent("error"));
+  finishScanCycle(container);
   expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(1);
   expect(container.querySelector('[data-copilot-target="removed"]')).toBeTruthy();
   activity.dispose();
@@ -271,11 +282,13 @@ it.each(["inspection", "edit"] as const)("treats an unrendered %s target as its 
   act(() => {
     finishParent = activity.begin([target(parent.uuid)], kind);
   });
+  finishScanCycle(container);
   expect(scans(container)).toEqual([
     { target: parent.uuid, box: "0px 0px 800px 600px" },
     { target: sibling.uuid, box: "900px 0px 100px 200px" },
   ]);
   act(() => ensure(finishParent, "Parent request was not started")("error"));
+  finishScanCycle(container);
   expect(scans(container)).toEqual([
     { target: child.uuid, box: "0px 0px 800px 600px" },
     { target: sibling.uuid, box: "900px 0px 100px 200px" },
@@ -330,6 +343,60 @@ function pageActivityFixture() {
   return { studioCtx, frame };
 }
 
+it.each(["success", "error", "cancel"] as const)("finishes the visible cycle after %s without delaying the operation", status => {
+  vi.useFakeTimers();
+  vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
+  const { studioCtx, frame } = pageActivityFixture();
+  const cancelled = new AbortController();
+  const finish = studioCtx.copilotActivity.begin([{ componentUuid: "page", label: "Page" }], "edit", undefined, cancelled.signal);
+  const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  const region = ensure(container.querySelector('[data-copilot-target]'), "Scan missing");
+  act(() => { vi.advanceTimersByTime(2300); });
+  act(() => {
+    if (status === "cancel") { cancelled.abort(); }
+    else { expect(finish(status)).toBeUndefined(); }
+  });
+  act(() => { vi.advanceTimersByTime(2000); });
+  expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
+  expect(container.querySelector('[data-copilot-target]')).toBe(region);
+  expect(region.getAttribute("data-scanning")).toBe("true");
+  finishScanCycle(container);
+  expect(container.querySelector('[data-copilot-target]')).toBeNull();
+  studioCtx.copilotActivity.dispose();
+});
+
+it("continues the same scan when new work arrives before its pending exit", () => {
+  const { studioCtx, frame, target } = nestedActivity();
+  const first = studioCtx.copilotActivity.begin([target()]);
+  const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  const region = ensure(container.querySelector('[data-copilot-target]'), "Scan missing");
+  act(() => { first("success"); vi.advanceTimersByTime(1800); });
+  let second = first;
+  act(() => { second = studioCtx.copilotActivity.begin([target()]); });
+  fireEvent.animationIteration(ensure(region.firstElementChild, "Scan missing"));
+  act(() => { vi.advanceTimersByTime(1000); });
+  expect(container.querySelector('[data-copilot-target]')).toBe(region);
+  expect(region.getAttribute("data-scanning")).toBe("true");
+  act(() => { second("success"); vi.advanceTimersByTime(1600); });
+  finishScanCycle(container);
+  expect(container.querySelector('[data-copilot-target]')).toBeNull();
+  studioCtx.copilotActivity.dispose();
+});
+
+it("retires reduced-motion feedback without waiting for animation events", () => {
+  const reduced = new EventTarget();
+  vi.spyOn(window, "matchMedia").mockReturnValue(Object.assign(reduced, { matches: true }) as MediaQueryList);
+  const { studioCtx, frame, target } = nestedActivity();
+  const finish = studioCtx.copilotActivity.begin([target()]);
+  const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
+  act(() => { finish("error"); });
+  expect(container.querySelector('[data-copilot-target]')?.getAttribute("data-scanning")).toBe("false");
+  act(() => { vi.advanceTimersByTime(400); });
+  expect(container.querySelector('[data-copilot-target]')).toBeNull();
+  studioCtx.copilotActivity.dispose();
+  vi.mocked(window.matchMedia).mockRestore();
+});
+
 it("renders a single persistent scan DOM node until its last reference expires", () => {
   vi.useFakeTimers();
   vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
@@ -361,6 +428,8 @@ it("renders a single persistent scan DOM node until its last reference expires",
     first("success");
     vi.advanceTimersByTime(400);
   });
+  expect(container.querySelector("[data-copilot-target]")).toBe(region);
+  finishScanCycle(container);
   expect(container.querySelectorAll("[data-copilot-target]")).toHaveLength(0);
   activity.dispose();
 });
@@ -399,6 +468,8 @@ it.each([
   act(() => {
     vi.advanceTimersByTime(1);
   });
+  expect(region?.getAttribute("data-scanning")).toBe("true");
+  fireEvent.animationIteration(ensure(region.firstElementChild, "Scan missing"));
   expect(region?.getAttribute("data-scanning")).toBe("false");
   expect(getComputedStyle(region).getPropertyValue("--scan-color").trim()).toBe(color);
   expect(container.querySelector("[data-copilot-target]")).toBe(region);

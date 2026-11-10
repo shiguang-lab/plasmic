@@ -208,7 +208,10 @@ app.whenReady().then(async () => {
   assert.equal(await inspect("document.querySelector('.feedback-sweep')===scanNode && scanNode.getAnimations()[0].currentTime>scanTime+100"), true, "capture updates must not restart the scan animation");
   const before = presentation.snapshot().image;
   assert.equal(before.width, 772); assert.equal(before.height, 562);
+  await inspect("window.pausedReadScan=scanNode.getAnimations()[0];pausedReadScan.pause();true");
   await read;
+  assert.equal(await inspect("scanNode.isConnected && pausedReadScan.playState==='paused'"),true,"MCP returns while the visible scan is still waiting for its iteration boundary");
+  await inspect("pausedReadScan.play();true");
   await until(async () => await inspect("!document.getElementById('mirror').hidden"), "mirror displays");
   assert.equal(await inspect("getComputedStyle(document.getElementById('mirror')).objectFit"), "contain");
   await delay(500);
@@ -411,7 +414,7 @@ app.whenReady().then(async () => {
   assert.equal(await inspect("document.getElementById('phase-text').scrollWidth <= document.getElementById('phase-text').clientWidth"), true, "Chinese saved status fits");
   await call("execute", { name: "changeElement", input: { elementUuid: "missing", reviewContext: { purpose: "Verify failed writes stop native feedback" } } }, true);
   await until(async () => await inspect("document.getElementById('issue-tooltip').textContent.includes('Element missing')"), "actual editor error");
-  assert.equal(await inspect("document.getElementById('feedback').hidden"), true, "failed calls clear visual feedback");
+  await until(async () => await inspect("document.getElementById('feedback').hidden"), "failed calls finish the current visual cycle and clear feedback");
   assert.equal(await inspect("!document.getElementById('left-statistics').hidden && document.getElementById('progress')===null"),true,"errors preserve statistics and do not invent percentage progress");
   passed.push("task stages, explicit plan, blocker persistence, actual write/result/error and continuously updating hidden mirror");
 

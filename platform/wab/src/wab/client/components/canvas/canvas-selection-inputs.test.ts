@@ -7,7 +7,7 @@ import { mkParam } from "@/wab/shared/core/lang";
 import { typeFactory } from "@/wab/shared/model/model-util";
 import { SlotSelection } from "@/wab/shared/core/slots";
 import { mkTplComponent, mkTplTagX } from "@/wab/shared/core/tpls";
-import type { ObjInst } from "@/wab/shared/model/classes";
+import { Arg, RenderExpr, type ObjInst } from "@/wab/shared/model/classes";
 
 function fixture() {
   const models = new ModelSnapshots();
@@ -87,6 +87,32 @@ it("tracks slot names by declared variable fields and clears disabled auto-open 
   f.selection.setTpls([]); f.selection.setTargets([]);
   param.variable.name = "unused"; f.commit([{ inst: param.variable, field: "name" }]);
   expect(changed).not.toHaveBeenCalled();
+  f.dispose();
+});
+
+it("uses the shared slot reveal path for a presentation target while preserving inspector selection and ancestry", () => {
+  const f = fixture();
+  const component = mkCodeComponent("Widget", { name: "Widget", importPath: "./Widget", props: { content: "slot" } }, {});
+  const param = mkParam({ name: "content", type: typeFactory.renderable(), paramType: "slot" });
+  component.params.push(param);
+  const child = mkTplTagX("span");
+  const tpl = mkTplComponent(component, component.variants[0]);
+  tpl.vsettings[0].args.push(new Arg({ param, expr: new RenderExpr({ tpl: [child] }) }));
+  child.parent = tpl;
+  const selected = mkTplTagX("i");
+  f.selection.setTpls([selected]);
+  const selection = f.selection.store.getState();
+  const ancestry = f.inputs.ancestryStore.getState();
+  const input = f.inputs.node(tpl, tpl.uuid);
+  f.inputs.setRevealTarget(child);
+  expect(input.getState()).toEqual({ id: tpl.uuid, isSelected: true, selectedSlotName: "content" });
+  expect(f.selection.store.getState()).toBe(selection);
+  expect(f.inputs.ancestryStore.getState()).toBe(ancestry);
+  param.variable.name = "body";
+  f.commit([{ inst: param.variable, field: "name" }]);
+  expect(input.getState().selectedSlotName).toBe("body");
+  f.selection.setTpls([mkTplTagX("b")]);
+  expect(input.getState().isSelected).toBe(false);
   f.dispose();
 });
 
