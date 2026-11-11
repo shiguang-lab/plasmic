@@ -57,6 +57,27 @@ class SelectionTests(unittest.TestCase):
         errors = check_page(plan, page)
         return {'passed': not errors, 'errors': errors}
 
+    def test_loan_applications_require_a_registered_repayment_table_in_the_expanded_row(self):
+        table = 'plasmic-antd6-table'
+        loan_props = {'scroll': {'x': 1127}, 'pagination': False}
+        schedule_props = {'scroll': {'x': 720}, 'pagination': False}
+        owner = {'nodeName': 'LoanApplications', 'slot': 'expandedRowRender'}
+        declarations = [spec('LoanApplications', table, 'data-table', props=loan_props),
+                        spec('RepaymentSchedule', table, 'data-table', props=schedule_props, owner=owner)]
+        schedule = node('RepaymentSchedule', table, schedule_props)
+
+        def loans(detail):
+            return node('LoanApplications', table, loan_props, f'<slot name="expandedRowRender"><div>{detail}</div></slot>')
+
+        self.assertTrue(self.result(declarations, loans(schedule))['passed'])
+
+        mock_schedule = '<div data-plasmic-name="RepaymentSchedule"><div><span>期次</span><span>应还金额</span></div><div><span>第 2 期</span><span>543.00</span></div></div>'
+        errors = self.result(declarations, loans(mock_schedule))['errors']
+        self.assertEqual([(e['check'], e['node']) for e in errors], [('selectionCoverage', 'RepaymentSchedule')])
+
+        errors = self.result(declarations, loans(mock_schedule) + schedule)['errors']
+        self.assertEqual([(e['check'], e['node']) for e in errors], [('selectionOwner', 'RepaymentSchedule')])
+
     def test_wrong_self_consistent_selection_cannot_pass(self):
         # Actual model exactly matches the declared identity: the semantic role still fails.
         for role, wrong in [('status', 'tag'), ('submitted-form', 'descriptions'),

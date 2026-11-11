@@ -1151,7 +1151,7 @@ export class LocalEditSession {
       }
       const tools = ensure(this.getTools(), "The editor session has closed.");
       const componentUuid = node.page ?? task.binding.componentUuid;
-      const navigation = await tools.navigate({ componentUuid });
+      const navigation = await tools.navigate({ componentUuid, view: "dedicated" });
       if (!navigation.success) {
         throw new Error(navigation.error.message);
       }

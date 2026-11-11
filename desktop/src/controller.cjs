@@ -6,7 +6,7 @@ const { encodeImagePreview } = require("./image-preview.cjs");
 const { managementResult } = require("./management-result.cjs");
 const { editorOutput, editorOutputSchema } = require("./editor-output.cjs");
 const { DesignReference } = require("./design-reference.cjs");
-const { runPreview, previewFrame, previewError } = require("./preview-runtime.cjs");
+const { runPreview, previewFrame, previewError, interactiveCanvasTargetError } = require("./preview-runtime.cjs");
 const { prototypeTools } = require("./prototype-mcp.cjs");
 const { requiredContext, currentContext, assertContext, contextError } = require("./tool-context.cjs");
 const { IslandActivity } = require("./island-activity.cjs");
@@ -408,15 +408,28 @@ class DesktopController {
       const diagnostics = { phase: "validation", operationExecuted: false };
       try {
       const allowed = { open: ["componentUuid", "width", "height"], close: [], back: [], forward: [], refresh: [], state: [], snapshot: ["offset", "limit", "textOffset", "textLimit"], click: ["ref"], hover: ["ref"], fill: ["ref", "value"], select: ["ref", "value"], press: ["ref", "key"], scroll: ["ref", "x", "y"], screenshot: ["fullResolution"], assert: ["checks", "timeoutMs"] };
-      if (!allowed[input.action] || Object.keys(input).some((key) => key !== "action" && !allowed[input.action].includes(key))) throw new Error("Invalid parameters for Preview action");
+      const transition = ["open", "close", "back", "forward", "refresh"].includes(input.action);
+      if (!Object.hasOwn(allowed, input.action) || Object.keys(input).some((key) => key !== "action" && !(key === "frameUuid" && !transition) && !allowed[input.action].includes(key))) throw new Error("Invalid parameters for Preview action");
+      if (input.frameUuid !== undefined && (typeof input.frameUuid !== "string" || !input.frameUuid.trim())) throw new Error("frameUuid must be a non-empty artboard ID");
       if (["click", "hover", "fill", "select", "press"].includes(input.action) && !input.ref) throw new Error("Preview interaction requires a current snapshot ref");
       if (["fill", "select"].includes(input.action) && typeof input.value !== "string") throw new Error("Preview input requires a value string");
       if (input.action === "press" && !input.key) throw new Error("Preview press requires key");
       if (input.action === "assert" && !input.checks?.length) throw new Error("Preview assert requires checks");
       const before = await this.editor("getEditorContext");
       diagnostics.editorContext = before;
+      if (input.frameUuid && before.previewKind !== "interactive") {
+        const actual = currentContext({ ready: true, projectId: before.projectId, editorContext: before, url: win.webContents.getURL() }, this.config.studioOrigin);
+        throw contextError(requiredContext("preview", input), actual, "Enable canvas interaction before targeting a frameUuid.");
+      }
+      if (input.frameUuid && before.editorView?.arenaType === "custom") {
+        const { results } = await this.editor("read", { fields: ["canvases"] });
+        const canvas = results?.[0]?.canvases?.find(canvas => canvas.name === before.editorView.arenaId);
+        if (!canvas?.frames.some(frame => frame.uuid === input.frameUuid)) throw interactiveCanvasTargetError(input.frameUuid);
+      } else if (input.frameUuid && before.frameUuid !== input.frameUuid) {
+        throw interactiveCanvasTargetError(input.frameUuid);
+      }
       let result;
-      if (["open", "close", "back", "forward", "refresh"].includes(input.action)) {
+      if (transition) {
         const { action, componentUuid, width, height } = input;
         diagnostics.phase = "transition"; diagnostics.operationExecuted = null;
         result = await this.editor("preview", { action, ...(componentUuid ? { componentUuid } : {}), ...(width !== undefined ? { width } : {}), ...(height !== undefined ? { height } : {}) });
@@ -435,6 +448,9 @@ class DesktopController {
       diagnostics.phase = "context-read";
       if (input.action !== "state") diagnostics.operationExecuted = true;
       const after = await this.editor("getEditorContext");
+      if (input.frameUuid && (before.editorView?.arenaId !== after.editorView?.arenaId || before.editorView?.arenaType !== after.editorView?.arenaType)) {
+        throw new Error("The active canvas changed during the operation. Check the current canvas before retrying.");
+      }
       // An autosave already in flight can advance revision without a model edit.
       if (["projectId", "branchId", "sessionId", "changeCounter"].some((key) => before[key] !== after[key])) throw new Error("Preview operation changed the saved design/session; inspect the model before continuing");
       const actual = currentContext({ ready: true, projectId: after.projectId, editorContext: after, url: win.webContents?.getURL?.() }, this.config.studioOrigin);

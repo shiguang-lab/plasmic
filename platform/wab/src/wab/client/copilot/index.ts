@@ -314,6 +314,41 @@ function findCanvas(studio: StudioCtx, name: string) {
     "Canvas not found",
   );
 }
+
+function focusCanvas(studio: StudioCtx, arena: ReturnType<typeof findCanvas>, frame?: ArenaFrame) {
+  assert(!studio.contentEditorMode, "Canvas navigation requires full editor permission");
+  studio.switchToArena(arena);
+  if (frame) {
+    studio.setStudioFocusOnFrame({ frame, autoZoom: true });
+  }
+  return { canvasName: arena.name, frameUuid: frame?.uuid, componentUuid: frame?.container.component.uuid };
+}
+
+function findPageArtboard(studio: StudioCtx, page: Component) {
+  const candidates = studio.site.arenas.flatMap((arena) => {
+    const frames = arena.children.filter((frame) => frame.container.component === page);
+    if (frames.length === 0) return [];
+    const coverage = new Set(arena.children.map((frame) => frame.container.component).filter(isPageComponent)).size;
+    return [{ arena, frames, coverage }];
+  });
+  assert(candidates.length > 0, `No shared canvas contains Page ${page.name}. Use navigate with view:"dedicated" only if the user requests its dedicated canvas.`);
+
+  const current = candidates.find(({ arena }) => arena === studio.currentArena);
+  const largest = Math.max(...candidates.map(({ coverage }) => coverage));
+  const best = current ? [current] : candidates.filter(({ coverage }) => coverage === largest);
+  const focused = current && studio.focusedContentFrame();
+  if (current && focused && current.frames.includes(focused)) {
+    return { arena: current.arena, frame: focused };
+  }
+  if (best.length === 1 && best[0].frames.length === 1) {
+    return { arena: best[0].arena, frame: best[0].frames[0] };
+  }
+  const choices = best.flatMap(({ arena, frames }) =>
+    frames.map((frame) => ({ canvasName: arena.name, frameUuid: frame.uuid })),
+  );
+  throw new Error(`Multiple shared artboards match Page ${page.name}. Specify canvasName and frameUuid with navigateCanvas. Candidates: ${JSON.stringify(choices)}`);
+}
+
 function emptyCanvasSpace(
   studio: StudioCtx,
   input: {
@@ -1842,10 +1877,10 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
             ...(frame ? { frameUuid: frame.uuid } : {}),
           };
         } else if (input.name === "navigate") {
-          const target = inScope(
-            meta.navigate.inputSchema.parse(input.input).componentUuid,
-          );
+          const navigation = meta.navigate.inputSchema.parse(input.input);
+          const target = inScope(navigation.componentUuid);
           if (canvas) {
+            assert(!navigation.view, "Dedicated navigation is outside the bound canvas.");
             const frame = ensure(
               canvas.children.find(
                 (candidate) => candidate.container.component === target,
@@ -2131,15 +2166,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
             "Artboard not found",
           )
         : arena.children[0];
-      assert(
-        !studio.contentEditorMode,
-        "Canvas navigation requires full editor permission",
-      );
-      studio.switchToArena(arena);
-      if (frame) {
-        studio.setStudioFocusOnFrame({ frame, autoZoom: true });
-      }
-      return { canvasName: arena.name, frameUuid: frame?.uuid, componentUuid: frame?.container.component.uuid };
+      return focusCanvas(studio, arena, frame);
     },
   ),
   readVector: defineCopilotTool(meta.readVector, async (studio, input, caller, signal) => {
@@ -2789,8 +2816,14 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   ),
   navigate: defineCopilotTool(meta.navigate, async (studio, input) => {
     const component = findComponent(studio, input.componentUuid, true);
+    const target = { componentUuid: component.uuid, rootElementUuid: component.tplTree.uuid };
+    if (isPageComponent(component) && input.view !== "dedicated") {
+      const { arena, frame } = findPageArtboard(studio, component);
+      focusCanvas(studio, arena, frame);
+      return { ...target, canvasName: arena.name, frameUuid: frame.uuid };
+    }
     studio.switchToComponentArena(component);
-    return { componentUuid: component.uuid, rootElementUuid: component.tplTree.uuid };
+    return target;
   }),
   beginCanvasInspection: defineCopilotTool(
     meta.beginCanvasInspection,

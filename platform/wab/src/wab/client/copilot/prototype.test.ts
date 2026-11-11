@@ -18,7 +18,7 @@ import { ComponentType, mkComponent, getRealParams } from "@/wab/shared/core/com
 import { codeLit, customCode, tryExtractJson } from "@/wab/shared/core/exprs";
 import { mkParam } from "@/wab/shared/core/lang";
 import { ensureOk } from "@/wab/commons/neverthrow-utils";
-import { cloneSite, createSite, writeable } from "@/wab/shared/core/sites";
+import { cloneSite, createSite, getComponentArena, getPageArena, writeable } from "@/wab/shared/core/sites";
 import {
   addComponentState,
   mkNamedState,
@@ -1416,6 +1416,41 @@ describe("AI prototype editor tools", () => {
     expect(validation.valid, JSON.stringify(validation)).toBe(true);
     studioCtx.copilotActivity.dispose();
   });
+  it("locates pages in a matching shared canvas and keeps dedicated navigation explicit", async () => {
+    const { studioCtx, call, createPage } = fixture();
+    vi.spyOn(studioCtx, "viewportCtx", "get").mockReturnValue(createViewportFixture().viewportCtx);
+    const page = await createPage("TargetPage");
+    const otherPage = await createPage("OtherPage");
+    const overview = ensure(studioCtx.site.arenas.find(arena => arena.children.some(frame => frame.container.component === page)));
+    const overviewFrame = ensure(overview.children.find(frame => frame.container.component === page));
+    await call("createCanvas", { name: "Smaller" });
+    const smallerFrame = await call("createArtboard", { canvasName: "Smaller", componentUuid: page.uuid, width: 1024, height: 768 });
+
+    await call("navigate", { componentUuid: otherPage.uuid, view: "dedicated" });
+    const otherPageArena = getPageArena(studioCtx.site, otherPage);
+    expect(studioCtx.currentArena).toBe(otherPageArena);
+    expect(await call("navigate", { componentUuid: page.uuid })).toMatchObject({ canvasName: overview.name, frameUuid: overviewFrame.uuid });
+    expect(studioCtx.currentArena).toBe(overview);
+    await call("navigateCanvas", { canvasName: "Smaller" });
+    expect(await call("navigate", { componentUuid: page.uuid })).toMatchObject({ canvasName: "Smaller", frameUuid: smallerFrame.created[0].uuid });
+
+    await call("createArtboard", { canvasName: "Smaller", componentUuid: otherPage.uuid, width: 1024, height: 768 });
+    await call("navigate", { componentUuid: otherPage.uuid, view: "dedicated" });
+    await expect(call("navigate", { componentUuid: page.uuid })).rejects.toThrow(/Multiple shared artboards.*Smaller/);
+    expect(studioCtx.currentArena).toBe(otherPageArena);
+    await call("deleteCanvas", { canvasName: "Smaller" });
+    await call("deleteCanvas", { canvasName: overview.name });
+    await expect(call("navigate", { componentUuid: page.uuid })).rejects.toThrow(/No shared canvas contains Page/);
+    expect(studioCtx.currentArena).toBe(otherPageArena);
+
+    const component = await call("createComponent", { name: "Definition", type: "component" });
+    const componentUuid = component.created[0].uuid;
+    const definition = ensure(studioCtx.site.components.find(candidate => candidate.uuid === componentUuid));
+    await call("navigate", { componentUuid });
+    expect(studioCtx.currentArena).toBe(getComponentArena(studioCtx.site, definition));
+    studioCtx.copilotActivity.dispose();
+  });
+
   it("undo skips selection/navigation records and preserves redo after changing the view", async () => {
     const { studioCtx, call, createPage } = fixture();
     const page = await createPage("History");

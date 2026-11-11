@@ -668,7 +668,7 @@ it("locates a structured node on its referenced page without editing the design"
     branch: null,
   });
   expect(session.error).toBeUndefined();
-  expect(tools.navigate).toHaveBeenCalledWith({ componentUuid: "other-page" });
+  expect(tools.navigate).toHaveBeenCalledWith({ componentUuid: "other-page", view: "dedicated" });
   expect(tools.selectElement).toHaveBeenCalledWith({
     componentUuid: "other-page",
     elementUuid: "node",

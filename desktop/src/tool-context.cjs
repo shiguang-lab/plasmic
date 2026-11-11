@@ -15,6 +15,7 @@ function requiredContext(method, input = {}) {
   }
   if (method === "execute_batch") return input.operations?.some((op) => ["preview", "executeBatch"].includes(op.name)) ? null : { ...editableContext };
   if (method === "preview") {
+    if (input.frameUuid !== undefined) return { surface: "editor", previewKind: "interactive" };
     return { surface: "editor", ...(input.action === "state" ? {}
       : input.action === "open" ? { previewKind: [null, "in-app"] }
       : input.action === "close" ? { previewKind: [null, "in-app", "interactive"] }
@@ -70,6 +71,11 @@ function contextError(required, actual, message, operationExecuted = false) {
   let recovery = [];
   if (actual.previewKind === "external") {
     message += " Close the external Preview window before using in-app tools.";
+  } else if (required.previewKind === "interactive" && actual.surface === "editor" && actual.ready) {
+    recovery = [
+      ...(actual.previewKind === "in-app" ? [{ tool: "preview", arguments: { action: "close" } }] : []),
+      { tool: "execute", arguments: { name: "setInteractiveMode", input: { enabled: true } } },
+    ];
   } else if (actual.surface === "editor" && actual.ready && required.mode === "edit" && actual.mode === "preview") {
     recovery = [actual.previewKind === "interactive"
       ? { tool: "execute", arguments: { name: "setInteractiveMode", input: { enabled: false } } }

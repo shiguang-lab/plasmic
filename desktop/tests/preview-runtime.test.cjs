@@ -31,7 +31,9 @@ test("interactive canvas inputs use the focused live artboard and can reveal hid
     return { dom, frame: { url: w.location.href, executeJavaScript: script => w.eval(script) } };
   });
   const inputs = [];
-  const win = { webContents: { getURL: () => "https://studio.example/projects/p", mainFrame: { framesInSubtree: documents.map(d => d.frame) },
+  const host = new JSDOM("<iframe></iframe>", { runScripts: "outside-only" });
+  t.after(() => host.window.close());
+  const win = { webContents: { getURL: () => "https://studio.example/projects/p", mainFrame: { framesInSubtree: documents.map(d => d.frame), executeJavaScript: script => host.window.eval(script) },
     debugger: { isAttached: () => true, sendCommand: async (method, params) => {
       inputs.push({ method, type: params.type });
       if (params.type === "mouseReleased") documents[1].dom.window.document.querySelector("button").click();
@@ -39,16 +41,43 @@ test("interactive canvas inputs use the focused live artboard and can reveal hid
   const options = { interactive: true, frameUuid: "focused" };
   const selected = await previewFrame(win, undefined, undefined, options);
   assert.equal(selected.frame, documents[1].frame);
-  const context = { sessionId: "s", previewKind: "interactive", frameUuid: "focused" };
-  const snapshot = await runPreview(studioFixture(win), { action: "snapshot" }, context);
+  const context = { sessionId: "s", previewKind: "interactive", frameUuid: null };
+  const preview = (input, selection = context) => runPreview(studioFixture(win), input, selection);
+  const snapshot = await preview({ action: "snapshot", frameUuid: "focused", textLimit: 2 });
   assert.ok(snapshot.elements.some(el => el.name === "Open drawer"));
+  assert.equal(snapshot.frameUuid, "focused");
+  assert.equal(snapshot.continuation.arguments.frameUuid, "focused");
   assert.equal(snapshot.runtime, undefined, "Canvas observations must not invent native Preview diagnostics");
-  await runPreview(studioFixture(win), { action: "click", ref: snapshot.elements.find(el => el.name === "Open drawer").ref }, context);
+  const ref = snapshot.elements.find(el => el.name === "Open drawer").ref;
+  await assert.rejects(preview({ action: "snapshot" }), error => {
+    assert.equal(error.context.code, "INTERACTIVE_CANVAS_TARGET_REQUIRED");
+    assert.equal(error.context.operationExecuted, false);
+    assert.deepEqual(error.context.recovery, [{ tool: "execute", arguments: { name: "read", input: { collection: "canvases" } } }]);
+    return true;
+  });
+  const other = await preview({ action: "snapshot", frameUuid: "other" });
+  await assert.rejects(preview({ action: "click", frameUuid: "focused", ref: other.elements[0].ref }), error => {
+    assert.equal(error.context.code, "PREVIEW_TARGET_STALE");
+    assert.deepEqual(error.context.recovery[0].arguments, { action: "snapshot", frameUuid: "focused" });
+    return true;
+  });
+  assert.deepEqual(inputs, []);
+  const iframe = host.window.document.querySelector("iframe");
+  Object.defineProperties(iframe, { clientWidth: { value: 1024 }, clientHeight: { value: 768 }, offsetWidth: { value: 1024 }, offsetHeight: { value: 768 } });
+  iframe.getBoundingClientRect = () => ({ x: 0, y: 0, width: 1024, height: 768 });
+  const parent = win.webContents.mainFrame;
+  parent.frames = [documents[1].frame];
+  documents[1].frame.parent = parent;
+  host.window.document.elementFromPoint = () => null;
+  await assert.rejects(preview({ action: "click", frameUuid: "focused", ref }),
+    error => error.context.code === "PREVIEW_TARGET_BLOCKED" && error.context.operationExecuted === false);
+  assert.deepEqual(inputs, []);
+  host.window.document.elementFromPoint = () => iframe;
+  await preview({ action: "click", frameUuid: "focused", ref }, { ...context, frameUuid: "other", previewContext: { path: "/other" } });
   assert.deepEqual(inputs.map(input => input.type), ["mouseMoved", "mousePressed", "mouseReleased"]);
-  const result = await runPreview(studioFixture(win), { action: "assert", checks: [{ kind: "visible", role: "dialog", present: true }], timeoutMs: 0 }, context);
+  const result = await preview({ action: "assert", checks: [{ kind: "visible", role: "dialog", present: true }], timeoutMs: 0 }, { ...context, frameUuid: "focused" });
   assert.equal(result.passed, true);
   assert.equal(documents[0].dom.window.document.querySelector("aside").hidden, true);
-  await assert.rejects(previewFrame(win, undefined, undefined, { interactive: true }), /Select the target artboard/);
 });
 
 test("runtime snapshot is paged, redacts passwords, and expires refs on navigation", async (t) => {

@@ -597,10 +597,13 @@ def plan_errors(plan):
 
 
 def check_page(plan, page):
+    from verify_structure import component_owners
+
     errors = plan_errors(plan)
     errors.extend(verify_component_policy.check_page(plan, page))
     root = TextTree(page.get('baseVariantTplTree', '')).root
     nodes = list(authored(root))
+    owners = component_owners(root)
     declarations = {c.get('nodeName'): c for c in plan.get('components', [])}
     column_badges = set()  # Badges already checked through their status Column.
     for node in nodes:
@@ -617,6 +620,12 @@ def check_page(plan, page):
         if norm(spec.get('component', '')) != key:
             errors.append({'check': 'selectionIdentity', 'node': name, 'message': 'Actual registration differs from the reviewed selection'})
         role, values = spec.get('role'), props(node)
+        owner = spec.get('owner')
+        if role == 'data-table' and isinstance(owner, dict):
+            actual_owner, actual_slot = owners[id(node)]
+            if (node_name(actual_owner) if actual_owner else None, actual_slot) != (owner.get('nodeName'), owner.get('slot')):
+                errors.append({'check': 'selectionOwner', 'node': name, 'expectedOwner': owner,
+                               'message': 'The registered Table must be in its reviewed native owner and Slot'})
         if role == 'status':
             if key == 'plasmicantd6tablecolumn':
                 render = slot(node, 'render')

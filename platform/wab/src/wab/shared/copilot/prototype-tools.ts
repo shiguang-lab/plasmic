@@ -766,11 +766,11 @@ const EDIT_TOOL_META = {
   },
   navigate: {
     toolName: "navigate",
-    title: "Open a dedicated Page/component canvas",
+    title: "Locate a Page or component on the canvas",
     description:
-      "Switch to the dedicated canvas for the local Page/component. Call only when that dedicated canvas is explicitly needed. For visual positioning in the shared overview, use navigateCanvas with canvasName and frameUuid. Model reads and writes target UUIDs directly.",
-    inputSchema: z.object({ componentUuid: uuid }).strict(),
-    outputSchema: z.object({ componentUuid: uuid, rootElementUuid: uuid }),
+      'Use this to open or interact with a local Page on the canvas. Discover its UUID with read collection:components. A Page defaults to an existing artboard in a shared canvas, even when Studio is on another Page. Use the returned frameUuid for interactive snapshots and inputs after enabling setInteractiveMode. Pass view:"dedicated" only when the user explicitly asks for a standalone Page canvas. Local component definitions open their dedicated canvas. If multiple shared artboards are equally suitable, choose from the reported candidates with navigateCanvas. Model reads and writes target UUIDs directly.',
+    inputSchema: z.object({ componentUuid: uuid, view: z.literal("dedicated").optional() }).strict(),
+    outputSchema: z.object({ componentUuid: uuid, rootElementUuid: uuid, canvasName: uuid.optional(), frameUuid: uuid.optional() }),
   },
   beginCanvasInspection: {
     toolName: "beginCanvasInspection",

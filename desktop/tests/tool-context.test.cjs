@@ -313,6 +313,42 @@ test("canvas interaction rejects native/external Preview and accepts runtime inp
   for (const action of ["back", "forward", "refresh"]) assert.throws(() => assertContext(requiredContext("preview", { action }), state("interactive")), /requires/);
 });
 
+test("an explicit runtime frame requests canvas interaction without opening native Preview", async t => {
+  const { controller, calls } = fixture(t);
+  await assert.rejects(controller.dispatch("preview", { action: "snapshot", frameUuid: "overview-frame" }), error => {
+    assert.equal(error.context.code, "CONTEXT_MISMATCH");
+    assert.equal(error.context.operationExecuted, false);
+    assert.deepEqual(error.context.recovery, [
+      { tool: "execute", arguments: { name: "setInteractiveMode", input: { enabled: true } } },
+    ]);
+    return true;
+  });
+  assert.deepEqual(calls, []);
+});
+
+test("an explicit runtime frame must belong to the current overview", async t => {
+  const { controller, context, calls, setUrl } = fixture(t);
+  context.mode = "preview";
+  context.previewKind = "interactive";
+  context.frameUuid = null;
+  context.editorView = { arenaId: "Overview", arenaType: "custom" };
+  setUrl("https://studio.example/projects/project");
+  const editor = controller.editor;
+  controller.editor = async (name, input) => name === "read"
+    ? { results: [{ canvases: [
+        { name: "Overview", frames: [{ uuid: "target" }] },
+        { name: "Other", frames: [{ uuid: "other-frame" }] },
+      ] }] }
+    : editor(name, input);
+  await assert.rejects(controller.dispatch("preview", { action: "snapshot", frameUuid: "other-frame" }), error => {
+    assert.equal(error.context.code, "INTERACTIVE_CANVAS_TARGET_UNAVAILABLE");
+    assert.equal(error.context.operationExecuted, false);
+    assert.deepEqual(error.context.recovery[0].arguments.input, { collection: "canvases" });
+    return true;
+  });
+  assert.deepEqual(calls.map(call => call.name), ["getEditorContext"]);
+});
+
 for (const method of ["execute", "execute_batch"]) {
   test(`${method} edits in canvas interaction without switching modes`, async t => {
     const { controller, context, calls, setUrl } = fixture(t);

@@ -1,0 +1,7 @@
+{
+  "en": "- Navigate to a page on its shared canvas, with a dedicated canvas available on request.\n- Target a specific artboard for interactive canvas actions and recover from blocked clicks with precise navigation guidance.\n- Check that each registered table stays in its planned component slot, including tables inside expanded rows.",
+  "zh-CN": "- 在共享画布中定位页面，按需打开独立页面画布。\n- 交互式画布操作可指定画板，点击受阻时提供具体的定位指引。\n- 核对注册表格是否位于规划的组件插槽，包括展开行中的子表。",
+  "zh-TW": "- 在共用畫布中定位頁面，依需求開啟獨立頁面畫布。\n- 互動畫布操作可指定畫板，點擊受阻時提供具體的定位指引。\n- 核對註冊表格是否位於規劃的元件插槽，包括展開列中的子表。",
+  "ja": "- 共有キャンバス上でページの位置を特定し、必要に応じて専用キャンバスを開けます。\n- インタラクティブキャンバスの操作対象をアートボードで指定し、クリックが遮られた場合は移動先を案内します。\n- 展開行の子テーブルを含め、登録済みのテーブルが予定されたコンポーネントスロットに配置されていることを確認します。",
+  "ko": "- 공유 캔버스에서 페이지를 찾고 필요할 때 전용 캔버스를 엽니다.\n- 대화형 캔버스에서 작업할 아트보드를 지정하고, 클릭이 차단되면 해당 위치로 이동하는 방법을 안내합니다.\n- 펼친 행의 하위 테이블을 포함해 등록된 테이블이 계획한 컴포넌트 슬롯에 있는지 확인합니다."
+}

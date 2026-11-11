@@ -5,6 +5,19 @@ const { sendCdp } = require("./cdp.cjs");
 const { abortable } = require("./abortable.cjs");
 const { errorPayload } = require("./tool-context.cjs");
 
+const readCanvases = { tool: "execute", arguments: { name: "read", input: { collection: "canvases" } } };
+
+function interactiveCanvasTargetError(frameUuid) {
+  const message = frameUuid ? "The requested frameUuid is not an artboard in the current canvas."
+    : "Pass frameUuid for an artboard in the current canvas.";
+  return Object.assign(new Error(`${message} Find its ID with execute read {collection: "canvases"}.`), {
+    context: {
+      code: frameUuid ? "INTERACTIVE_CANVAS_TARGET_UNAVAILABLE" : "INTERACTIVE_CANVAS_TARGET_REQUIRED",
+      operationExecuted: false, recovery: [readCanvases],
+    },
+  });
+}
+
 function frameIdentity(frame) {
   try { return { url: frame.url, processId: frame.processId, routingId: frame.routingId }; }
   catch { return { unavailable: true }; } // A disposed frame must not mask the original exception.
@@ -21,11 +34,16 @@ function previewError(error, input, diagnostics = {}) {
     : timedOut || diagnostics.phase === "frame-discovery" ? false : null);
   const operationExecuted = Object.hasOwn(details, "operationExecuted") ? details.operationExecuted
     : Object.hasOwn(diagnostics, "operationExecuted") ? diagnostics.operationExecuted : null;
-  const recovery = details.recovery || [{ tool: "preview", arguments: {
-    action: targetFailure ? "snapshot" : runtimeAvailable === false ? "close" : "state",
-  } }];
+  const interactive = diagnostics.editorContext?.previewKind === "interactive";
+  const frameUuid = input.frameUuid ?? diagnostics.editorContext?.frameUuid;
+  const recovery = details.recovery || (interactive && diagnostics.phase === "frame-discovery"
+    ? [readCanvases]
+    : [{ tool: "preview", arguments: {
+        action: targetFailure ? "snapshot" : runtimeAvailable === false && !interactive ? "close" : "state",
+        ...(interactive && frameUuid ? { frameUuid } : {}),
+      } }]);
   const { phase, target, documentId, source, ...context } = details;
-  return Object.assign(new Error(timedOut ? "Native Preview runtime timed out after 30 seconds" : message,
+  return Object.assign(new Error(timedOut ? `${interactive ? "Interactive canvas" : "Native Preview"} runtime timed out after 30 seconds` : message,
     { cause: { message, ...(name ? { name } : {}), ...(stack ? { stack } : {}), ...(cause ? { cause } : {}) } }), {
     context: { ...context, code, operationExecuted, runtimeAvailable,
       canContinueRound: details.canContinueRound ?? (targetFailure ? true : runtimeAvailable === false ? false : null), recovery,
@@ -131,7 +149,8 @@ async function runtimeCommand(input, documentId, caller, showReadScan) {
       ...(nextOffset < all.length ? { nextOffset } : {}),
       ...(nextOffset < all.length || end < text.length ? {
         continuation: { tool: "preview", arguments: { action: "snapshot", offset: nextOffset,
-          limit: input.limit || 40, textOffset: end, textLimit: input.textLimit || 3000 } },
+          limit: input.limit || 40, textOffset: end, textLimit: input.textLimit || 3000,
+          ...(input.frameUuid ? { frameUuid: input.frameUuid } : {}) } },
       } : {}),
       text: { offset: start, value: text.slice(start, end), total: text.length, ...(end < text.length ? { nextOffset: end } : {}) } };
   }
@@ -220,7 +239,7 @@ function runtimeFailure(runtime) {
 async function previewFrame(win, componentUuid, signal = AbortSignal.timeout(30000), options = {}) {
   if (options.interactive) {
     if (!/^\/projects\/[^/]+(?:\/-\/[^/]+)?\/?$/.test(new URL(win.webContents.getURL()).pathname)) throw new Error("Interactive canvas inputs require the editor route");
-    if (!options.frameUuid) throw new Error("Select the target artboard in edit mode before enabling canvas interaction");
+    if (!options.frameUuid) throw interactiveCanvasTargetError();
     const frames = await canvasFrames(win, undefined, function inspectInteractiveCanvas({ frameUuid }) {
       const html = document.documentElement;
       const actual = html.getAttribute("data-plasmic-frame-uuid");
@@ -261,16 +280,23 @@ async function previewFrame(win, componentUuid, signal = AbortSignal.timeout(300
   return frames[0];
 }
 
-async function viewportRect(frame, viewport, signal) {
+async function viewportRect(frame, viewport, signal, point) {
   let rect = { x: 0, y: 0, width: viewport.width, height: viewport.height };
   for (let child = frame; child.parent; child = child.parent) {
     const index = child.parent.frames.indexOf(child);
-    const box = await abortable(signal, () => child.parent.executeJavaScript(`((index) => {
+    const box = await abortable(signal, () => child.parent.executeJavaScript(`((index, point) => {
       const el = [...document.querySelectorAll('iframe')].find(el => el.contentWindow === window.frames[index]);
       if (!el || !el.clientWidth || !el.clientHeight) throw new Error('Preview iframe is not visible');
       const r = el.getBoundingClientRect(), sx = r.width / el.offsetWidth, sy = r.height / el.offsetHeight;
-      return {x:r.x+el.clientLeft*sx,y:r.y+el.clientTop*sy,sx,sy};
-    })(${index})`));
+      const x = r.x+el.clientLeft*sx, y = r.y+el.clientTop*sy;
+      return {x,y,sx,sy,hit: !point || document.elementFromPoint(x + point.x*sx, y + point.y*sy) === el};
+    })(${index},${JSON.stringify(point ?? null)})`));
+    if (point && !box.hit) {
+      throw Object.assign(new Error("Bring the target artboard into view with navigateCanvas before clicking or hovering."), {
+        context: { code: "PREVIEW_TARGET_BLOCKED", operationExecuted: false },
+      });
+    }
+    if (point) point = { x: box.x + point.x * box.sx, y: box.y + point.y * box.sy };
     rect = { x: box.x + rect.x * box.sx, y: box.y + rect.y * box.sy, width: rect.width * box.sx, height: rect.height * box.sy };
   }
   return Object.fromEntries(Object.entries(rect).map(([key, value]) => [key, Math.round(value)]));
@@ -324,14 +350,16 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
     frame: null, inputsDispatched: [] };
   try {
   const readOnly = ["state", "snapshot", "screenshot"].includes(input.action);
+  const interactive = context.previewKind === "interactive";
+  const frameUuid = interactive ? input.frameUuid ?? context.frameUuid : undefined;
   const frameOptions = { allowErrors: true, readState: input.action === "state",
-    interactive: context.previewKind === "interactive", frameUuid: context.frameUuid };
+    interactive, frameUuid };
   const { frame, layout } = await previewFrame(win, context.previewContext?.componentUuid, signal,
     frameOptions);
   feedbackFrame = frame;
   diagnostics.frame = frameIdentity(frame);
   if (input.action === "state") return { ready: (layout.rootReady ?? layout.ready) && layout.runtime?.status !== "failed",
-    viewport: { width: layout.width, height: layout.height }, runtime: layout.runtime };
+    viewport: { width: layout.width, height: layout.height }, runtime: layout.runtime, ...(frameUuid ? { frameUuid } : {}) };
   if (!readOnly && layout.runtime?.status === "failed") throw runtimeFailure(layout.runtime);
   if (input.action === "assert" && layout.runtime?.errors.length) throw runtimeFailure(layout.runtime);
   const finish = async (result) => {
@@ -340,7 +368,7 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
     const errors = runtime?.errors.filter((error) => afterFrame !== frame || runtime.componentUuid !== layout.runtime?.componentUuid || runtime.generation !== layout.runtime?.generation
       || !layout.runtime?.errors.some((previous) => previous.id === error.id));
     if (!readOnly && errors?.length) throw runtimeFailure({ ...runtime, errors });
-    return { ...result, ...(runtime ? { runtime } : {}) };
+    return { ...result, ...(runtime ? { runtime } : {}), ...(frameUuid ? { frameUuid } : {}) };
   };
   const originalUrl = win.webContents.getURL();
   const settle = async () => {
@@ -367,7 +395,9 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
   // Catch inside the renderer so Electron cannot flatten the exception into a
   // string before its code, stack and execution state reach the main process.
   const showReadScan = !frameOptions.interactive && layout.runtime?.status !== "failed";
-  const response = await abortable(signal, () => frame.executeJavaScript(`(${runtimeCommand.toString()})(${JSON.stringify({ ...input, pageIdentity: [context.sessionId, context.previewKind, context.previewKind === "interactive" ? context.frameUuid : context.previewContext?.componentUuid, context.previewContext?.path].join(":") })},${JSON.stringify(randomUUID())},${JSON.stringify(caller)},${showReadScan}).then(result => ({result}), error => ({error: {
+  const pageIdentity = [context.sessionId, context.previewKind,
+    ...(interactive ? [frameUuid] : [context.previewContext?.componentUuid, context.previewContext?.path])].join(":");
+  const response = await abortable(signal, () => frame.executeJavaScript(`(${runtimeCommand.toString()})(${JSON.stringify({ ...input, frameUuid, pageIdentity })},${JSON.stringify(randomUUID())},${JSON.stringify(caller)},${showReadScan}).then(result => ({result}), error => ({error: {
     message: typeof error?.message === "string" ? error.message : String(error),
     name: error?.name, stack: error?.stack, ...(error?.context || {})
   }}))`, true));
@@ -381,7 +411,7 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
   if (["fill", "select", "scroll"].includes(input.action)) diagnostics.operationExecuted = true;
   if (["click", "hover"].includes(input.action)) {
     diagnostics.phase = "geometry";
-    const box = await viewportRect(frame, { width: layout.width, height: layout.height }, signal);
+    const box = await viewportRect(frame, { width: layout.width, height: layout.height }, signal, input.frameUuid ? result.point : undefined);
     const point = { x: box.x + result.point.x * box.width / layout.width, y: box.y + result.point.y * box.height / layout.height };
     const send = async (params) => {
       diagnostics.phase = params.type;
@@ -428,4 +458,4 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
     throw previewError(error, input, diagnostics);
   }
 }
-module.exports = { runPreview, runtimeCommand, previewFrame, viewportRect, previewError, capturePreviewPage };
+module.exports = { runPreview, runtimeCommand, previewFrame, viewportRect, previewError, capturePreviewPage, interactiveCanvasTargetError };

@@ -242,7 +242,7 @@ func (b *bridge) fail(err error) *mcp.CallToolResult {
 	code := str(d["code"])
 	msg := "Tool call failed."
 	switch code {
-	case "INVALID_TOOL_ROUTE":
+	case "INVALID_TOOL_ROUTE", "INTERACTIVE_CANVAS_TARGET_REQUIRED", "INTERACTIVE_CANVAS_TARGET_UNAVAILABLE":
 		msg = str(d["message"])
 	case "CONTEXT_MISMATCH":
 		msg = "Switch to the required editor context."
