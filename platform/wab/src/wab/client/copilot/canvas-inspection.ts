@@ -29,7 +29,7 @@ export function beginCanvasInspection(
   const active = leases;
   const inspectionId = mkShortId();
   const finish = studio.copilotActivity.begin(
-    [{ componentUuid: target.uuid, label: target.name }],
+    [{ componentUuid: target.uuid }],
     "inspection",
   );
   return new Promise<{

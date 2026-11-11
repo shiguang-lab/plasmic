@@ -7,6 +7,7 @@ import {
   CopilotActivityOverlay,
 } from "@/wab/client/components/canvas/CopilotActivityOverlay";
 import { ActivityTarget } from "@/wab/client/copilot/activity";
+import { COPILOT_TOOLS } from "@/wab/client/copilot";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { ensure } from "@/wab/shared/common";
@@ -62,7 +63,6 @@ function nestedActivity(withArena = false) {
   const target = (elementUuid?: string): ActivityTarget => ({
     componentUuid: component.uuid,
     elementUuid,
-    label: elementUuid ?? "Page",
   });
   return { studioCtx, frame, parent, child, descendant, sibling, target, renderState, otherFrame };
 }
@@ -150,7 +150,7 @@ it.each(["inspection", "edit"] as const)("merges overlapping scope aliases for t
   act(() => {
     finishSecond = activity.begin([
       { ...target(child.uuid), frameUuid: frame.uuid },
-      { elementUuid: child.uuid, label: "Child" },
+      { elementUuid: child.uuid },
     ], kind);
   });
   expect(activity.store.getState().regions).toHaveLength(3);
@@ -348,7 +348,7 @@ it.each(["success", "error", "cancel"] as const)("finishes the visible cycle aft
   vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
   const { studioCtx, frame } = pageActivityFixture();
   const cancelled = new AbortController();
-  const finish = studioCtx.copilotActivity.begin([{ componentUuid: "page", label: "Page" }], "edit", undefined, cancelled.signal);
+  const finish = studioCtx.copilotActivity.begin([{ componentUuid: "page" }], "edit", undefined, cancelled.signal);
   const { container } = render(<CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />);
   const region = ensure(container.querySelector('[data-copilot-target]'), "Scan missing");
   act(() => { vi.advanceTimersByTime(2300); });
@@ -402,7 +402,7 @@ it("renders a single persistent scan DOM node until its last reference expires",
   vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
   const { studioCtx, frame } = pageActivityFixture();
   const activity = studioCtx.copilotActivity;
-  const target = { componentUuid: "page", label: "Page" };
+  const target = { componentUuid: "page" };
   const first = activity.begin([target, target]);
   const { container } = render(
     <CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />,
@@ -435,47 +435,59 @@ it("renders a single persistent scan DOM node until its last reference expires",
 });
 
 it.each([
-  ["inspection", "light"],
+  ["read", "light"],
+  ["queryElements", "light"],
   ["edit", "light"],
-  ["inspection", "dark"],
+  ["read", "dark"],
+  ["queryElements", "dark"],
   ["edit", "dark"],
-] as const)("preserves the %s color through scanning and completion in %s appearance", (kind, appearance) => {
-  vi.useFakeTimers();
-  vi.spyOn(window, "requestAnimationFrame").mockReturnValue(1);
-  const { studioCtx, frame } = pageActivityFixture();
-  const finish = studioCtx.copilotActivity.begin([
-    { componentUuid: "page", label: "Page" },
-  ], kind);
+] as const)("preserves the %s scan color through the final cycle in %s appearance", async (operation, appearance) => {
+  const { studioCtx, frame, child, target } = nestedActivity();
+  studioCtx.studioIsVisible = true;
   const { container } = render(
     <ThemeProvider appearance={appearance} theme={productTheme(appearance)}>
       <CopilotActivityOverlay studioCtx={studioCtx} frame={frame} />
     </ThemeProvider>,
   );
+  const kind = operation === "edit" ? "edit" : "inspection";
+  const { componentUuid, elementUuid } = target(child.uuid);
+  await act(async () => {
+    if (operation === "edit") {
+      const finish = studioCtx.copilotActivity.begin([target(child.uuid)], kind);
+      finish("success");
+    } else {
+      const input = operation === "read"
+        ? { elements: [{ componentUuid, elementUuid }] }
+        : { componentUuid, elementUuid };
+      const result = await COPILOT_TOOLS[operation].execute(studioCtx, input);
+      expect(JSON.parse(result).results[0].uuid).toBe(child.uuid);
+    }
+  });
   const region = ensure(container.querySelector("[data-copilot-target]"), "Expected activity region");
   const token = AntdTheme.getDesignToken(productTheme(appearance));
-  const color = kind === "inspection" ? token.colorInfo : token.colorPrimary;
-  expect(token.colorInfo).not.toBe(token.colorPrimary);
+  const color = kind === "inspection" ? "#1677ff" : token.colorPrimary;
+  expect(region.textContent).toBe("");
+  expect(region.getAttribute("data-copilot-target")).toBe(child.uuid);
   expect(region.getAttribute("data-kind")).toBe(kind);
-  expect(getComputedStyle(region).getPropertyValue("--scan-color").trim()).toBe(color);
-  act(() => finish("success"));
-  expect(region?.getAttribute("data-status")).toBe("success");
-  expect(region?.getAttribute("data-scanning")).toBe("true");
+  expect(region.getAttribute("data-status")).toBe("success");
+  expect(region.getAttribute("data-scanning")).toBe("true");
   expect(getComputedStyle(region).getPropertyValue("--scan-color").trim()).toBe(color);
   act(() => {
     vi.advanceTimersByTime(1599);
   });
-  expect(region?.getAttribute("data-scanning")).toBe("true");
+  fireEvent.animationIteration(ensure(region.firstElementChild, "Scan missing"));
+  expect(region.getAttribute("data-scanning")).toBe("true");
   act(() => {
     vi.advanceTimersByTime(1);
   });
-  expect(region?.getAttribute("data-scanning")).toBe("true");
+  expect(region.getAttribute("data-retiring")).toBe("true");
+  expect(region.getAttribute("data-scanning")).toBe("true");
   fireEvent.animationIteration(ensure(region.firstElementChild, "Scan missing"));
-  expect(region?.getAttribute("data-scanning")).toBe("false");
+  expect(region.getAttribute("data-scanning")).toBe("false");
   expect(getComputedStyle(region).getPropertyValue("--scan-color").trim()).toBe(color);
+  act(() => { vi.advanceTimersByTime(399); });
   expect(container.querySelector("[data-copilot-target]")).toBe(region);
-  act(() => {
-    vi.advanceTimersByTime(400);
-  });
+  act(() => { vi.advanceTimersByTime(1); });
   expect(container.querySelector("[data-copilot-target]")).toBeNull();
   studioCtx.copilotActivity.dispose();
 });

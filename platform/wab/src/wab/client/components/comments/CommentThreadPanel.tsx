@@ -19,7 +19,7 @@ import {
   UpOutlined,
 } from "@ant-design/icons";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
-import { Alert, Button, Flex, Skeleton, Tooltip, message } from "antd";
+import { Alert, Button, Flex, Skeleton, Tooltip, Typography, message } from "antd";
 import { createStyles } from "antd-style";
 import * as React from "react";
 import { useStore } from "zustand";
@@ -40,7 +40,7 @@ export const useCommentPanelStyles = createStyles(({ token }) => ({
   back: { padding: "0 4px", fontSize: 13, fontWeight: 500 },
   context: {
     padding: "12px 16px",
-    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+    borderBottom: `1px solid ${token.colorBorder}`,
     flexShrink: 0,
   },
   location: {
@@ -50,23 +50,31 @@ export const useCommentPanelStyles = createStyles(({ token }) => ({
     height: "auto",
     textAlign: "left",
     justifyContent: "flex-start",
-    "& .ant-btn-content": { minWidth: 0 },
+    overflow: "hidden",
+    "& .ant-btn-content": {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      flex: 1,
+      minWidth: 0,
+    },
   },
   locationIcon: {
     color: token.colorPrimaryText,
     background: token.colorPrimaryBg,
     borderRadius: 6,
     padding: 7,
+    flexShrink: 0,
   },
+  locationDetails: { flex: 1, minWidth: 0 },
+  locationText: { width: "100%", color: "inherit" },
   locationName: {
     fontSize: 12,
     fontWeight: 500,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    whiteSpace: "nowrap",
   },
+  resolve: { flexShrink: 0 },
   secondary: { fontSize: 11, color: token.colorTextSecondary },
-  content: { padding: 16 },
+  content: { padding: "24px 16px 16px" },
   composer: {
     padding: "12px 14px 8px",
     borderTop: `1px solid ${token.colorBorderSecondary}`,
@@ -85,7 +93,7 @@ export function CommentThreadPanel({
   const studioCtx = useStudioCtx();
   const ctx = studioCtx.commentsCtx;
   const { t } = useI18n();
-  const { styles } = useCommentPanelStyles();
+  const { styles, cx } = useCommentPanelStyles();
   const thread = useStore(ctx.store, (state) =>
     state.threadsById.get(openedThread.threadId),
   );
@@ -198,8 +206,11 @@ export function CommentThreadPanel({
               <span className={styles.locationIcon}>
                 <AimOutlined />
               </span>
-              <Flex vertical align="flex-start" style={{ minWidth: 0 }}>
-                <span className={styles.locationName}>
+              <Flex vertical align="flex-start" className={styles.locationDetails}>
+                <Typography.Text
+                  className={cx(styles.locationText, styles.locationName)}
+                  ellipsis={{ tooltip: true }}
+                >
                   {thread.subjectInfo ? (
                     <CommentSubjectName
                       studio={studioCtx}
@@ -209,8 +220,11 @@ export function CommentThreadPanel({
                   ) : (
                     t("Deleted element")
                   )}
-                </span>
-                <span className={styles.secondary}>
+                </Typography.Text>
+                <Typography.Text
+                  className={cx(styles.locationText, styles.secondary)}
+                  ellipsis={{ tooltip: true }}
+                >
                   {thread.subjectInfo?.ownerComponentName}
                   {thread.subjectInfo && openedThread.viewCtx && (
                     <>
@@ -222,18 +236,21 @@ export function CommentThreadPanel({
                       />
                     </>
                   )}
-                </span>
+                </Typography.Text>
               </Flex>
             </Button>
             {canUpdateHistory(studioCtx, thread) && (
-              <Button
-                size="small"
-                icon={<CheckCircleOutlined />}
-                aria-label={t(thread.resolved ? "Re-open" : "Resolve")}
-                onClick={() => resolve(thread)}
-              >
-                {t(thread.resolved ? "Re-open" : "Resolve")}
-              </Button>
+              <Tooltip title={t(thread.resolved ? "Re-open" : "Resolve")}>
+                <Button
+                  type="text"
+                  size="small"
+                  shape="circle"
+                  className={styles.resolve}
+                  icon={<CheckCircleOutlined />}
+                  aria-label={t(thread.resolved ? "Re-open" : "Resolve")}
+                  onClick={() => resolve(thread)}
+                />
+              </Tooltip>
             )}
           </Flex>
           {thread.resolved && (

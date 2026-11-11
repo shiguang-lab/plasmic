@@ -6,7 +6,7 @@ import {
   getCanvasElementVisibility,
   revealCanvasElement,
 } from "@/wab/client/components/canvas/canvas-scroll";
-import { activityTargets } from "@/wab/client/copilot/activity";
+import { activityTargets, type ActivityTarget } from "@/wab/client/copilot/activity";
 import { reviewInput, reviewComponents, reviewComponentReuse } from "@/wab/client/copilot/component-reuse";
 import { requestToolTarget } from "@/wab/client/copilot/present-target";
 import { getLibrary, listLibraries, searchLibraryComponents } from "@/wab/client/copilot/libraries";
@@ -78,6 +78,7 @@ import {
   RootComponentVariantFrame,
 } from "@/wab/shared/component-frame";
 import {
+  type CopilotCaller,
   CopilotTool,
   defineCopilotTool as defineTool,
 } from "@/wab/shared/copilot/copilot-tool-types";
@@ -175,6 +176,29 @@ const previewEditorViews = new WeakMap<StudioCtx, ReturnType<typeof meta.restore
 
 const presentedTools = new Set([...editTools, "read", "queryElements"]);
 
+function showModelReadActivity(
+  studio: StudioCtx,
+  targets: { component: Component; tpl?: TplNode }[],
+  caller?: CopilotCaller,
+  signal?: AbortSignal,
+) {
+  if (!studio.studioIsVisible || studio.isLiveMode || signal?.aborted) {
+    return;
+  }
+  const regions = targets.flatMap<ActivityTarget>(({ component, tpl }) => {
+    if (!studio.site.components.includes(component) || isCodeComponent(component)) {
+      return [];
+    }
+    return [{
+      componentUuid: component.uuid,
+      elementUuid: tpl?.uuid,
+    }];
+  });
+  if (regions.length) {
+    studio.copilotActivity.begin(regions, "inspection", caller, signal)("success");
+  }
+}
+
 function presentOperationTarget(studio: StudioCtx, name: string, input: Record<string, any>, output?: any, signal?: AbortSignal) {
   try {
   if (!studio.studioIsVisible || !presentedTools.has(name) || input.fromProject && input.fromProject !== studio.siteInfo.id || input.view === "contract") { return undefined; }
@@ -262,15 +286,11 @@ const defineCopilotTool: typeof defineTool = (toolMeta, execute) =>
               (t) => t.uuid === target.elementUuid,
             )
           : undefined;
-      const elementName = tpl && "name" in tpl && tpl.name;
       return {
         ...target,
         ancestorUuids: tpl
           ? ancestorsUp(tpl, true).map((ancestor) => ancestor.uuid)
           : undefined,
-        label: component
-          ? `${component.name}${target.elementUuid ? ` / ${elementName || target.elementUuid}` : ""}`
-          : (target.canvasName ?? "Project"),
       };
     });
     const finish = studio.copilotActivity.begin(targets, "edit", caller, signal);
@@ -1936,7 +1956,6 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
               ancestorUuids: ancestorsUp(tpl, true).map(
                 (ancestor) => ancestor.uuid,
               ),
-              label: `${component.name} / ${("name" in tpl && tpl.name) || tpl.uuid}`,
             };
           }),
           "edit",
@@ -1992,7 +2011,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
           !!studio.dbCtx().branchInfo?.id),
     };
   }),
-  read: defineCopilotTool(meta.read, async (studio, input) => {
+  read: defineCopilotTool(meta.read, async (studio, input, caller, signal) => {
     const fields = selectedReadFields(input);
     if (fields.includes("props") || fields.includes("refActions") || fields.includes("globalActions")) {
       await studio.ensureCodeComponentRegistrations();
@@ -2064,16 +2083,18 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       };
     }
     assert(!input.collection, "collection requires a project read without component or element targets");
-    return {
-      __type: "OutputResult" as const, read,
-      results: [
-        ...(input.componentUuids ?? []).map((uuid) => readNativeModel(studio, findReadComponent(uuid), undefined, input)),
-        ...(input.elements ?? []).map(({ componentUuid, elementUuid }) => {
-          const component = findReadComponent(componentUuid);
-          return readNativeModel(studio, component, findElement(component, elementUuid), input);
-        }),
-      ],
-    };
+    const targets = [
+      ...(input.componentUuids ?? []).map((uuid) => ({ component: findReadComponent(uuid), tpl: undefined })),
+      ...(input.elements ?? []).map(({ componentUuid, elementUuid }) => {
+        const component = findReadComponent(componentUuid);
+        return { component, tpl: findElement(component, elementUuid) };
+      }),
+    ];
+    const results = targets.map(({ component, tpl }) => readNativeModel(studio, component, tpl, input));
+    if (input.view !== "contract") {
+      showModelReadActivity(studio, targets, caller, signal);
+    }
+    return { __type: "OutputResult" as const, read, results };
   }),
   deleteCanvas: defineCopilotTool(meta.deleteCanvas, (studio, input) =>
     runMutation(studio, { name: "deleteCanvas", input }),
@@ -2121,16 +2142,18 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
       return { canvasName: arena.name, frameUuid: frame?.uuid, componentUuid: frame?.container.component.uuid };
     },
   ),
-  readVector: defineCopilotTool(meta.readVector, async (studio, input) => {
-    const { tpl, asset } = vectorAsset(
+  readVector: defineCopilotTool(meta.readVector, async (studio, input, caller, signal) => {
+    const { component, tpl, asset } = vectorAsset(
       studio,
       input.componentUuid,
       input.elementUuid,
     );
+    const svg = await readSvgSource(ensure(asset.dataUri, "SVG source missing"));
+    showModelReadActivity(studio, [{ component, tpl }], caller, signal);
     return {
       elementUuid: tpl.uuid,
       assetUuid: asset.uuid,
-      svg: await readSvgSource(ensure(asset.dataUri, "SVG source missing")),
+      svg,
       width: asset.width ?? null,
       height: asset.height ?? null,
     };
@@ -2222,7 +2245,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
   ),
   queryElements: defineCopilotTool(
     meta.queryElements,
-    async (studio, input) => {
+    async (studio, input, caller, signal) => {
       const component = findComponent(studio, input.componentUuid);
       const root = input.elementUuid
         ? findElement(component, input.elementUuid)
@@ -2242,13 +2265,19 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         );
       const depth = readDepth(input);
       const end = input.offset + input.limit;
+      const page = matches.slice(input.offset, end);
+      const results = page.map((tpl) => readNativeModel(studio, component, tpl, input));
+      const [firstMatch] = page;
+      if (input.view !== "contract" && firstMatch) {
+        showModelReadActivity(studio, [{ component, tpl: firstMatch }], caller, signal);
+      }
       return {
         __type: "OutputResult" as const,
         read: { fields: selectedReadFields(input), depth: Number.isFinite(depth) ? depth : "all" as const,
           ...(input.propNames ? { propNames: input.propNames } : {}) },
         total: matches.length,
         ...(end < matches.length ? { nextOffset: end } : {}),
-        results: matches.slice(input.offset, end).map((tpl) => readNativeModel(studio, component, tpl, input)),
+        results,
       };
     },
   ),

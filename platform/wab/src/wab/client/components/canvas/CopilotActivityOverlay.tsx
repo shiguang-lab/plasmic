@@ -10,7 +10,6 @@ import {
 import {
   ActivityTarget,
   CanvasActivity,
-  activityText,
   currentActivity,
 } from "@/wab/client/copilot/activity";
 import { createAgentCursor } from "@/wab/client/copilot/agent-cursor";
@@ -32,8 +31,7 @@ import { useShallow } from "zustand/react/shallow";
 const useActivityStyles = createStyles(({ token }) => ({
   root: {
     "--scan-color": token.colorPrimary,
-    "--activity-label-text": token.colorTextLightSolid,
-    "&[data-kind=inspection]": { "--scan-color": token.colorInfo },
+    '&[data-kind="inspection"]': { "--scan-color": "#1677ff" },
   },
 }));
 
@@ -124,7 +122,6 @@ const ActivityRegion = function ActivityRegion({
   bounds: Bounds;
   onRetired: () => void;
 }) {
-  const { t } = useI18n();
   const { styles: themeStyles } = useActivityStyles();
   const zoom = useCanvasZoom(viewCtx.studioCtx);
   const [finished, setFinished] = React.useState(false);
@@ -158,9 +155,6 @@ const ActivityRegion = function ActivityRegion({
       <div className={styles.scan} onAnimationIteration={() => {
         if (!scanning) { setFinished(true); }
       }} />
-      <div className={styles.label} style={{ transform: `scale(${1 / zoom})` }}>
-        {t(activityText(request))}
-      </div>
     </div>
   );
 };

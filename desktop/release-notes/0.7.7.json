@@ -1,0 +1,7 @@
+{
+  "en": "- Restore blue canvas scans for MCP reads and queries. Read and edit scans show an outline and sweep without operation labels.\n- Improve the layout of long location names and the resolve action in comment threads.",
+  "zh-CN": "- 恢复 MCP 读取和查询时的蓝色画布扫描。读取和编辑扫描只显示边框与扫线。\n- 优化评论线程中长位置名称和解决按钮的布局。",
+  "zh-TW": "- 恢復 MCP 讀取和查詢時的藍色畫布掃描。讀取和編輯掃描只顯示邊框與掃描線。\n- 改善留言討論串中長位置名稱和解決按鈕的版面配置。",
+  "ja": "- MCP の読み取りと検索で青いキャンバススキャンを復元しました。読み取りと編集のスキャンには枠線と走査線を表示します。\n- コメントスレッドの長い位置名と解決ボタンの配置を改善しました。",
+  "ko": "- MCP 읽기와 검색의 파란색 캔버스 스캔을 복원했습니다. 읽기와 편집 스캔에는 테두리와 스캔 선이 표시됩니다.\n- 댓글 스레드에서 긴 위치 이름과 해결 버튼의 배치를 개선했습니다."
+}

@@ -31,24 +31,6 @@
   animation: copilotScan 1.4s ease-in-out infinite;
 }
 
-.label {
-  position: absolute;
-  top: 0;
-  left: 0;
-  transform-origin: top left;
-  max-width: 480px;
-  padding: 4px 8px;
-  border-radius: 0 0 5px 0;
-  color: var(--activity-label-text);
-  background: var(--scan-color);
-  font:
-    12px/18px system-ui,
-    sans-serif;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 [data-scanning="false"] .scan {
   animation: none;
   opacity: 0.2;

@@ -21,10 +21,14 @@ const useStyles = createStyles(({ token }) => ({
     margin: "12px 0 4px",
     color: token.colorTextSecondary,
     fontSize: 11,
-    "&:after": {
+    whiteSpace: "nowrap",
+    "&::before, &::after": {
       content: '""',
       height: 1,
       background: token.colorBorderSecondary,
+    },
+    "&::before": { flex: "0 0 24px" },
+    "&::after": {
       flex: 1,
     },
   },

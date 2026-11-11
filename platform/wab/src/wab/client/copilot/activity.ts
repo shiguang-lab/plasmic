@@ -11,7 +11,6 @@ export interface ActivityTarget {
   readonly ancestorUuids?: readonly string[];
   readonly canvasName?: string;
   readonly frameUuid?: string;
-  readonly label: string;
 }
 
 export interface CanvasActivity {
@@ -284,7 +283,7 @@ export class CopilotActivity {
 export function activityTargets(
   name: string,
   input: Record<string, unknown>,
-): Omit<ActivityTarget, "label">[] {
+): ActivityTarget[] {
   if (name === "executeBatch") {
     return (
       input.operations as { name: string; input: Record<string, unknown> }[]
@@ -313,8 +312,4 @@ export function activityTargets(
     ];
   }
   return [{}];
-}
-
-export function activityText(request: CanvasActivity) {
-  return request.kind === "inspection" ? "Read" : "Edit";
 }

@@ -1,6 +1,5 @@
 import {
   activityTargets,
-  activityText,
   CopilotActivity,
   currentActivity,
 } from "@/wab/client/copilot/activity";
@@ -11,7 +10,7 @@ afterEach(() => vi.useRealTimers());
 it("cancels only the owning activity and ignores its late completion", () => {
   const activity = new CopilotActivity();
   const cancelled = new AbortController();
-  const target = { componentUuid: "page", label: "Page" };
+  const target = { componentUuid: "page" };
   const finish = activity.begin([target], "edit", undefined, cancelled.signal);
   const other = activity.begin([target]);
   cancelled.abort();
@@ -27,22 +26,22 @@ it("cancels only the owning activity and ignores its late completion", () => {
   activity.dispose();
 });
 
-it.each([
-  ["inspection", "Read"],
-  ["edit", "Edit"],
-] as const)(
-  "labels %s by operation type throughout completion",
-  (kind, label) => {
+it.each(["inspection", "edit"] as const)(
+  "retains the %s scan kind throughout completion",
+  (kind) => {
     vi.useFakeTimers();
     const activity = new CopilotActivity();
-    const finish = activity.begin(
-      [{ componentUuid: "page", label: "Records" }],
+    const finish = activity.begin([{ componentUuid: "page" }], kind);
+    expect(activity.store.getState().requests[0]).toMatchObject({
       kind,
-    );
-    expect(activityText(activity.store.getState().requests[0])).toBe(label);
+      status: "running",
+    });
     finish("success");
-    expect(activityText(activity.store.getState().requests[0])).toBe(label);
-    expect(activity.store.getState().requests[0].scanning).toBe(true);
+    expect(activity.store.getState().requests[0]).toMatchObject({
+      kind,
+      status: "success",
+      scanning: true,
+    });
     vi.advanceTimersByTime(2000);
     expect(activity.store.getState().requests).toHaveLength(0);
   },
@@ -54,7 +53,6 @@ it("shares one counted region for overlapping requests on the same node", () => 
   const target = {
     componentUuid: "page",
     elementUuid: "table",
-    label: "Table",
   };
   const first = activity.begin([target]);
   const second = activity.begin([target]);
@@ -87,7 +85,7 @@ it("shares one counted region for overlapping requests on the same node", () => 
 
 it("counts duplicate batch targets once and keeps separate nodes independent", () => {
   const activity = new CopilotActivity();
-  const table = { componentUuid: "page", elementUuid: "table", label: "Table" };
+  const table = { componentUuid: "page", elementUuid: "table" };
   activity.begin([table, table, { ...table, elementUuid: "form" }]);
   expect(
     activity.store
@@ -106,7 +104,7 @@ it("counts duplicate batch targets once and keeps separate nodes independent", (
 it("does not let stale cleanup remove a new reference or double completion release twice", () => {
   vi.useFakeTimers();
   const activity = new CopilotActivity();
-  const target = { componentUuid: "page", label: "Page" };
+  const target = { componentUuid: "page" };
   const first = activity.begin([target]);
   first("success");
   first("error");
@@ -129,12 +127,12 @@ it("keeps fast calls visible without delaying completion, and expires each reque
   vi.useFakeTimers();
   const activity = new CopilotActivity();
   const finishFirst = activity.begin([
-    { componentUuid: "page", label: "Page" },
+    { componentUuid: "page" },
   ]);
   finishFirst("success");
   vi.advanceTimersByTime(600);
   const finishSecond = activity.begin([
-    { componentUuid: "page", elementUuid: "table", label: "Table" },
+    { componentUuid: "page", elementUuid: "table" },
   ]);
   expect(activity.store.getState().requests.map((r) => r.status)).toEqual([
     "success",
@@ -151,7 +149,7 @@ it("keeps fast calls visible without delaying completion, and expires each reque
 it("keeps long operations active and cancels pending cleanup when Studio closes", () => {
   vi.useFakeTimers();
   const activity = new CopilotActivity();
-  const finish = activity.begin([{ label: "Page" }]);
+  const finish = activity.begin([{}]);
   vi.advanceTimersByTime(10000);
   expect(activity.store.getState().requests[0].status).toBe("running");
   finish("success");
@@ -170,7 +168,7 @@ it("keeps long operations active and cancels pending cleanup when Studio closes"
 it("keeps successful edit scans moving for at least 1.6 seconds", () => {
   vi.useFakeTimers();
   const activity = new CopilotActivity();
-  const finish = activity.begin([{ componentUuid: "page", label: "Page" }]);
+  const finish = activity.begin([{ componentUuid: "page" }]);
   vi.advanceTimersByTime(20);
   finish("success");
   expect(activity.store.getState().requests[0]).toMatchObject({
@@ -197,7 +195,7 @@ it("keeps successful edit scans moving for at least 1.6 seconds", () => {
 it("removes failed edits immediately without affecting other edits or retaining timers", () => {
   vi.useFakeTimers();
   const activity = new CopilotActivity();
-  const target = { componentUuid: "page", label: "Page" };
+  const target = { componentUuid: "page" };
   const first = activity.begin([target]);
   const second = activity.begin([target]);
   vi.advanceTimersByTime(20);
@@ -242,7 +240,7 @@ it("resolves both source and destination of batched moves", () => {
 it("clears disconnected caller feedback after scan completion and preserves other callers", () => {
   vi.useFakeTimers();
   const activity = new CopilotActivity();
-  const finish = activity.begin([{ label: "Page" }], "edit", {
+  const finish = activity.begin([{}], "edit", {
     id: "first",
     name: "Codex",
   });
@@ -250,7 +248,7 @@ it("clears disconnected caller feedback after scan completion and preserves othe
   vi.advanceTimersByTime(2000);
   expect(activity.store.getState().requests).toHaveLength(0);
   expect(activity.cursorStore.getState().current?.caller?.id).toBe("first");
-  const other = activity.begin([{ label: "Page" }], "edit", {
+  const other = activity.begin([{}], "edit", {
     id: "second",
     name: "Codex",
   });
@@ -269,13 +267,13 @@ it("preserves unaffected region identities and publishes no cursor changes for s
   vi.useFakeTimers();
   const activity = new CopilotActivity();
   const first = activity.begin(
-    [{ componentUuid: "a", label: "First" }],
+    [{ componentUuid: "a" }],
     "edit",
     { id: "first", name: "First" },
   );
   const firstRegion = activity.store.getState().regions[0];
   const scan = activity.begin(
-    [{ componentUuid: "b", label: "Other" }],
+    [{ componentUuid: "b" }],
     "inspection",
   );
   expect(activity.store.getState().regions[0]).toBe(firstRegion);
@@ -286,7 +284,7 @@ it("preserves unaffected region identities and publishes no cursor changes for s
   vi.advanceTimersByTime(2000);
   expect(cursorChanged).not.toHaveBeenCalled();
   const second = activity.begin(
-    [{ componentUuid: "c", label: "Second" }],
+    [{ componentUuid: "c" }],
     "edit",
     { id: "second", name: "Second" },
   );
@@ -310,12 +308,12 @@ it("cleans abort listeners and all caller-owned timers, ignoring late completion
   const controller = new AbortController();
   const removeListener = vi.spyOn(controller.signal, "removeEventListener");
   const finish = activity.begin(
-    [{ label: "First" }],
+    [{}],
     "edit",
     { id: "first", name: "First" },
     controller.signal,
   );
-  const other = activity.begin([{ label: "Other" }], "edit", {
+  const other = activity.begin([{}], "edit", {
     id: "other",
     name: "Other",
   });
@@ -334,7 +332,7 @@ it("cleans abort listeners and all caller-owned timers, ignoring late completion
   const pending = new AbortController();
   const removePending = vi.spyOn(pending.signal, "removeEventListener");
   const late = activity.begin(
-    [{ label: "Pending" }],
+    [{}],
     "inspection",
     undefined,
     pending.signal,

@@ -1661,22 +1661,31 @@ describe("AI prototype editor tools", () => {
     studioCtx.copilotActivity.dispose();
   });
   it.each(["read", "queryElements"])(
-    "keeps successful and failed %s calls silent without writing feedback into the site",
+    "scans the target of %s without writing feedback into the site",
     async (name) => {
       const { studioCtx, call, createPage } = fixture();
       const page = await createPage("Scan");
+      await call("insertHtml", { componentUuid: page.uuid, html: '<div data-plasmic-name="ReadTarget"></div>' });
+      const target = ensure(flattenTpls(page.tplTree).find((tpl) => "name" in tpl && tpl.name === "ReadTarget"), "Read target missing");
       studioCtx.copilotActivity.dispose();
+      studioCtx.studioIsVisible = true;
       const change = vi.spyOn(studioCtx, "changeObserved");
       const beginActivity = vi.spyOn(studioCtx.copilotActivity, "begin");
       const selected = studioCtx.focusedViewCtx();
       const input =
         name === "read"
-          ? { elements: [{ componentUuid: page.uuid, elementUuid: page.tplTree.uuid }] }
-          : { componentUuid: page.uuid };
-      await call(name, input);
+          ? { elements: [{ componentUuid: page.uuid, elementUuid: target.uuid }] }
+          : { componentUuid: page.uuid, nameContains: "ReadTarget" };
+      await call(name, { ...input, fields: ["name"] });
       expect(change).not.toHaveBeenCalled();
       expect(studioCtx.focusedViewCtx()).toBe(selected);
-      expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
+      expect(studioCtx.copilotActivity.store.getState().requests).toMatchObject([{
+        kind: "inspection",
+        status: "success",
+        scanning: true,
+        targets: [{ componentUuid: page.uuid, elementUuid: target.uuid }],
+      }]);
+      expect(studioCtx.copilotActivity.cursorStore.getState().current).toBeUndefined();
       await expect(
         call(
           name,
@@ -1685,10 +1694,14 @@ describe("AI prototype editor tools", () => {
             : { componentUuid: "missing" },
         ),
       ).rejects.toThrow("not found");
-      expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
-      expect(beginActivity).not.toHaveBeenCalled();
       await expect(call(name, { unknown: true })).rejects.toThrow();
-      expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
+      if (name === "read") {
+        await call("read", { collection: "components" });
+        await call("read", { ...input, view: "contract" });
+      } else {
+        await call("queryElements", { componentUuid: page.uuid, nameContains: "Missing" });
+      }
+      expect(beginActivity).toHaveBeenCalledOnce();
       studioCtx.copilotActivity.dispose();
       change.mockRestore();
       beginActivity.mockRestore();
@@ -2282,6 +2295,7 @@ describe("AI prototype editor tools", () => {
       "SVG missing",
     );
     studioCtx.copilotActivity.dispose();
+    studioCtx.studioIsVisible = true;
     const beginActivity = vi.spyOn(studioCtx.copilotActivity, "begin");
     const resource = await call("readVector", {
       componentUuid: page.uuid,
@@ -2315,11 +2329,17 @@ describe("AI prototype editor tools", () => {
       await expect(
         call("readVector", { componentUuid: page.uuid, elementUuid: tpl.uuid }),
       ).rejects.toThrow("not SVG");
-      expect(beginActivity).not.toHaveBeenCalled();
-      expect(studioCtx.copilotActivity.store.getState().requests).toHaveLength(0);
+      expect(beginActivity).toHaveBeenCalledTimes(2);
+      expect(studioCtx.copilotActivity.store.getState().requests).toMatchObject(
+        Array.from({ length: 2 }, () => ({
+          kind: "inspection",
+          targets: [{ componentUuid: page.uuid, elementUuid: tpl.uuid }],
+        })),
+      );
     } finally {
       fetcher.mockRestore();
       beginActivity.mockRestore();
+      studioCtx.copilotActivity.dispose();
     }
   });
 
