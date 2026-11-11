@@ -5,14 +5,11 @@ import { OutlineCtx } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
 import styles from "@/wab/client/components/sidebar-tabs/outline-tab.module.scss";
 import {
   ArenaTree,
-  ArenaTreeRef,
   TreeDndManager,
 } from "@/wab/client/components/sidebar-tabs/tpl-tree";
 import { useStructurePanelStyles } from "@/wab/client/components/studio/StructurePanel.styles";
 import { IFrameAwareDropdownMenu } from "@/wab/client/components/widgets";
 import { Icon } from "@/wab/client/components/widgets/Icon";
-import { ListStack } from "@/wab/client/components/widgets/ListStack";
-import { useToggleDisplayed } from "@/wab/client/dom-utils";
 import { useI18n } from "@/wab/client/i18n";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import MixedArenaIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__MixedArena";
@@ -67,16 +64,6 @@ function OutlineTab_() {
     };
   }, [outlineCtx]);
 
-  const ref = React.useRef<HTMLDivElement>(null);
-  const treeRef = React.useRef<ArenaTreeRef>(null);
-  const onVisible = React.useCallback((visible: boolean) => {
-    if (treeRef.current && visible) {
-      // Recompute tree when outline tab is visible again, to fix issues
-      // with occasional blank space when switching back to this tab.
-      treeRef.current.forceUpdate();
-    }
-  }, []);
-  useToggleDisplayed(ref, onVisible);
   const arena = useStudioArena(studioCtx, (state) => state.current ? studioCtx.modelSnapshots.resolve(state.current) : null);
   // The outline tree uses the current ViewCtx command owner; a roster change
   // must rebuild the rows without converting the whole outline state to UI data.
@@ -160,22 +147,19 @@ function OutlineTab_() {
     >
       {arena && (
         <ArenaTree
-          // We reset the ArenaTree whenever we switch Arena to work around
-          // an issue with FixedSizeTree, where whenever we pass in a new treeWalker,
-          // we end up walking the tree twice for each update.
+          // Each arena starts with its own list scroll position.
           key={arena?.uid}
           studioCtx={studioCtx}
           arena={arena}
           outlineCtx={outlineCtx}
           dndManager={dndManager}
-          ref={treeRef}
         />
       )}
     </div>
   );
 
   return (
-    <div className={panelStyles.section} ref={ref}>
+    <div className={panelStyles.section}>
       <div className={panelStyles.sectionHeader}>
         <strong>{uiT("Layers")}</strong>
         <div className={panelStyles.actions}>
@@ -329,9 +313,9 @@ function OutlineTab_() {
           </Button>
         </div>
       )}
-      <ListStack className={panelStyles.tree}>
+      <div className={panelStyles.tree}>
         {!page || pageExpanded ? tree : null}
-      </ListStack>
+      </div>
       {arena && (
         <div className={panelStyles.footer}>
           <span className={panelStyles.statusDot} />

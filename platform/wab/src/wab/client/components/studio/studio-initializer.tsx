@@ -303,7 +303,7 @@ function LoadedStudio({studioCtx, previewCtx, canvasLoading = false}: {studioCtx
           providesPreviewCtx(previewCtx)(
             <>
               {!isFullPreviewMode && (
-                <Studio studioCtx={studioCtx}>
+                <Studio studioCtx={studioCtx} hiddenForPreview={isLive}>
                   <ViewEditor
                     viewCtx={viewCtx}
                     studioCtx={studioCtx}
@@ -351,17 +351,12 @@ function LoadedStudio({studioCtx, previewCtx, canvasLoading = false}: {studioCtx
                     ],
                     render: () => {
                       return (
-                        <>
-                          {<style>{`.studio { visibility: hidden; }`}</style>}
-                          <widgets.Loadable
-                            loader={() =>
-                              loadPreview()
-                            }
-                            contents={(Preview) => (
-                              <Preview studioCtx={studioCtx} />
-                            )}
-                          />
-                        </>
+                        <widgets.Loadable
+                          loader={() => loadPreview()}
+                          contents={(Preview) => (
+                            <Preview studioCtx={studioCtx} />
+                          )}
+                        />
                       );
                     },
                   }),

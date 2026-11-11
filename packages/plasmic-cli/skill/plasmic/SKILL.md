@@ -1,7 +1,7 @@
 ---
 name: plasmic
 compatibility: Requires Node.js >=22.12, Python >=3.9 available as python3, and signed-in Plasmic Desktop MCP for design inspection or editing.
-description: Create, revise and review editable UI prototypes in Plasmic (原型设计/修改/验收), and generate, repair or verify their application code (代码生成/修复/还原验收). Use for prototype design when no other tool is specified, explicit Plasmic work, and follow-ups in established Plasmic design/code context. Excludes unrelated application coding and Plasmic platform development.
+description: Create, revise and review editable UI prototypes in Plasmic (原型设计/修改/验收), work with Studio design comments (设计注释/评审反馈), and generate, repair or verify application code from the design (代码生成/修复/还原验收). Use for prototype design when no other tool is specified, explicit Plasmic work, and follow-ups in established Plasmic design/code context. Excludes unrelated application coding and Plasmic platform development.
 ---
 
 # Plasmic
@@ -17,6 +17,8 @@ For other tasks, choose by artifact and intent:
 - `inspect`: explain or review the design/model itself without changing it.
 - `prototype`: create, revise or repair an editable design and verify the resulting prototype.
 - `codegen`: generate, update, repair or review application code against a Plasmic design, including read-only implementation acceptance.
+
+For Studio comments alone, use `inspect` to read and `prototype` for requested comment writes. When delivering an interactive prototype, use Studio notes to explain verified, hard-to-discover demo paths as directed by the prototype workflow. Codegen reads those notes as scenario evidence. See the Comments section of the resolved `references/desktop-mcp.md` for the calls.
 
 For an editable prototype request with no chosen tool or existing design source, use Plasmic; honor another explicitly selected tool or established source. Follow-up work keeps its design/code context without repeating the skill name. Switch workflows when the target changes; read-only code review still uses codegen. Review does not authorize repairs. If the intended artifact is unclear, clarify it rather than choosing an editor or codebase by keyword alone.
 

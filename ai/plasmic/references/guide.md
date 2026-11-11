@@ -10,6 +10,7 @@ Choose the task branch below first. Native inspect/prototype/codegen reads resol
 | Explain/review the design of a page, component or template | [inspect](workflows/inspect.md), read-only |
 | Create/revise/repair an editable design and verify it | [prototype](workflows/prototype.md), writes require `canEdit` |
 | Implement/repair application code or verify it against a design | [codegen](workflows/codegen.md), code review may be read-only |
+| Read or manage Studio comment threads without editing the design | [inspect](workflows/inspect.md) for reading; [prototype](workflows/prototype.md#studio-comments-and-design-handoff) for requested comment writes, under native comment permissions |
 
 Follow-ups retain the artifact/workflow; switch when the target changes. Review does not authorize edits. Use current evidence and Desktop MCP schemas. Studio: `https://plasmic-studio.shiguanglab.com`.
 

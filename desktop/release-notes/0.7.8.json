@@ -1,0 +1,7 @@
+{
+  "en": "- Add verified demo instructions to prototype handoff and use them as codegen test scenarios. Clarify Studio comment tools.\n- Refine the Studio outline and keep the editor layout stable when switching to Preview.",
+  "zh-CN": "- 原型交付为不易发现的状态提供已验证的演示注释，并供代码生成复用为验收场景；明确 Studio 注释工具的用法。\n- 优化 Studio 大纲，并在切换预览时保持编辑器布局稳定。",
+  "zh-TW": "- 原型交付為不易發現的狀態提供已驗證的示範註解，並供程式碼生成複用為驗收情境；明確 Studio 註解工具的用法。\n- 改善 Studio 大綱，並在切換預覽時保持編輯器版面穩定。",
+  "ja": "- プロトタイプの引き渡しに検証済みのデモ手順を追加し、コード生成のテストシナリオに活用します。Studio のコメントツールの使い方を明確にしました。\n- Studio のアウトラインを改善し、プレビュー切り替え時のエディターレイアウトを安定させました。",
+  "ko": "- 프로토타입 인수인계에 검증된 데모 절차를 추가하고 코드 생성의 테스트 시나리오로 활용합니다. Studio 댓글 도구의 사용 방법을 명확히 했습니다.\n- Studio 아웃라인을 개선하고 미리 보기 전환 시 편집기 레이아웃을 안정적으로 유지합니다."
+}

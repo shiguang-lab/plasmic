@@ -1,4 +1,7 @@
-import { getOutlineModelInput, useOutlineModelValue } from "@/wab/client/components/sidebar-tabs/outline-model-inputs";
+import { parentStackStyleProvider } from "@/wab/client/components/canvas/HoverBox/parent-stack-inputs";
+import type { NativeStyleProvider, StyleCellsSnapshot } from "@/wab/client/studio-ctx/style-inputs";
+import { useStyleCells } from "@/wab/client/studio-ctx/style-inputs-react";
+import { getOutlineModelInput, useOutlineModelSnapshot } from "@/wab/client/components/sidebar-tabs/outline-model-inputs";
 import { useVariantModelWorld, type VariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import type { CanvasObserverInput } from "@/wab/client/components/canvas/canvas-observer";
 import { CanvasViewInputs } from "@/wab/client/components/canvas/canvas-view-inputs";
@@ -24,7 +27,6 @@ import { makeTreeNodeMenu } from "@/wab/client/components/tpl-menu";
 import { DragItem } from "@/wab/client/components/widgets";
 import { EditableLabel } from "@/wab/client/components/widgets/EditableLabel";
 import { Icon } from "@/wab/client/components/widgets/Icon";
-import { ListSpace } from "@/wab/client/components/widgets/ListStack";
 import MenuButton from "@/wab/client/components/widgets/MenuButton";
 import { VirtualListScrollbar } from "@/wab/client/components/widgets/VirtualListScrollbar";
 import { focusModelInput } from "@/wab/client/studio-ctx/studio-input";
@@ -56,7 +58,7 @@ import {
 import {
   swallowingClick,
   useChanged,
-  useForwardedRef,
+  useConstant,
 } from "@/wab/commons/components/ReactUtil";
 import {
   AnyArena,
@@ -72,7 +74,6 @@ import {
   maybe,
   spawn,
   unexpected,
-  withoutNils,
 } from "@/wab/shared/common";
 import { isCodeComponent } from "@/wab/shared/core/components";
 import { Selectable } from "@/wab/shared/core/selection";
@@ -92,12 +93,11 @@ import {
 } from "@/wab/shared/core/val-nodes";
 import { asTpl } from "@/wab/shared/core/vals";
 import { EffectiveVariantSetting } from "@/wab/shared/effective-variant-setting";
-import { CanvasEnv } from "@/wab/shared/eval";
 import {
   ArenaFrame,
-  Expr,
   isKnownTplNode,
   isKnownTplTag,
+  TplTag,
   isKnownTplComponent,
   isKnownTplSlot,
   TplNode,
@@ -129,6 +129,7 @@ import { Button, notification, Tooltip } from "antd";
 import cx from "classnames";
 import $ from "jquery";
 import L, { isArray } from "lodash";
+import memoizeOne from "memoize-one";
 
 import * as React from "react";
 import { FixedSizeList } from "react-window";
@@ -231,7 +232,6 @@ function createOutlineNodePresentation(viewCtx: ViewCtx, item: TplNode | SlotSel
       return false;
     })();
 
-  const visibilityDataCond = effectiveVs?.dataCond;
   const canvasEnv = isKnownTplNode(item)
     ? viewCtx.getCanvasEnvForTpl(item)
     : undefined;
@@ -258,7 +258,7 @@ function createOutlineNodePresentation(viewCtx: ViewCtx, item: TplNode | SlotSel
   return Object.freeze({
     commentSubjectId: isKnownTplNode(item) ? item.uuid : undefined,
     commentVariantKey: isKnownTplNode(item) ? getSubjectVariantsKey(item, getSetOfPinnedVariantsForViewCtx(viewCtx, viewCtx.bundler())) : undefined,
-    component, effectiveVs, indicatedVs, hasRep, hasInteraction, visibilityDataCond, canvasEnv, isRoot, customLabel, plumeDef,
+    component, indicatedVs, hasRep, hasInteraction, isRoot, customLabel, plumeDef,
     name: item instanceof SlotSelection ? "" : isKnownTplSlot(item) ? item.param.variable.name : isKnownTplTag(item) || isKnownTplComponent(item) ? item.name ?? "" : "",
     summary: item instanceof SlotSelection ? "" : getNodeSummary(item, effectiveVs?.rsh()),
     slotSelectionLabel: item instanceof SlotSelection ? getSlotSelectionDisplayName(item, viewCtx) : undefined,
@@ -341,7 +341,7 @@ const TplTreeNodeContent = React.memo(function TplTreeNodeContent(props: {
   });
   const isDrilledDescendant = useViewSelection(viewCtx, (state) => state.context?.component.uid === component.uid);
 
-  const { effectiveVs, indicatedVs, hasRep, hasInteraction, visibilityDataCond, canvasEnv, isRoot, customLabel, plumeDef, codeComponentRoot, codeComponentSlot } = props.presentation;
+  const { indicatedVs, hasRep, hasInteraction, isRoot, customLabel, plumeDef, codeComponentRoot, codeComponentSlot } = props.presentation;
   const matcher = useStore(outlineCtx.stateStore, (state) => state.matcher);
 
   const renderExpander = () => {
@@ -402,8 +402,6 @@ const TplTreeNodeContent = React.memo(function TplTreeNodeContent(props: {
         viewCtx={viewCtx}
         visibility={visibility}
         isHidden={isHidden}
-        visibilityDataCond={visibilityDataCond}
-        canvasEnv={canvasEnv}
         ancestorHidden={props.ancestorHidden}
         takeSpace={showLockIcon}
       />
@@ -844,13 +842,59 @@ const TplTreeNodeContent = React.memo(function TplTreeNodeContent(props: {
   );
 });
 
-const TplTreeNode = React.memo(function TplTreeNode(props: Omit<React.ComponentProps<typeof TplTreeNodeContent>, "presentation">) {
-  const select = React.useCallback(() => createOutlineNodePresentation(props.viewCtx, props.item), [props.viewCtx, props.item]);
-  const presentation = useOutlineModelValue(props.viewCtx, select);
-  if (!presentation || props.viewCtx.disposeSignal.aborted || props.viewCtx.isDisposed) { return null; }
-  if (!props.viewCtx.componentStackFrames().some((frame) => frame.tplComponent.component === presentation.component)) { return null; }
-  return <TplTreeNodeContent {...props} presentation={presentation} />;
+type TplTreeNodeProps = Omit<React.ComponentProps<typeof TplTreeNodeContent>, "presentation">;
+
+const TplTreeNode = React.memo(function TplTreeNode(props: TplTreeNodeProps) {
+  const { viewCtx, item } = props;
+  const input = useOutlineModelSnapshot(viewCtx);
+  if (!input.length || viewCtx.disposeSignal.aborted || viewCtx.isDisposed) {
+    return null;
+  }
+  if (isKnownTplTag(item) && !Tpls.isTplTextBlock(item)) {
+    return <StyledTplTreeNode node={item} row={props} input={input} />;
+  }
+  return <TplTreeNodePresentation row={props} input={input} />;
 });
+
+function StyledTplTreeNode({ node, row, input }: {
+  node: TplTag;
+  row: TplTreeNodeProps;
+  input: readonly unknown[];
+}) {
+  // The provider captures the component stack from the current model snapshot.
+  const readProvider = useConstant(() =>
+    memoizeOne<(
+      viewCtx: ViewCtx,
+      node: TplTag,
+      model: readonly unknown[],
+    ) => NativeStyleProvider>(parentStackStyleProvider),
+  );
+  const provider = readProvider(row.viewCtx, node, input);
+  // Theme-derived layout can change the icon independently of the node model.
+  const style = useStyleCells(provider, ["display", "flex-direction"]);
+  return <TplTreeNodePresentation row={row} input={input} style={style} />;
+}
+
+function TplTreeNodePresentation({ row, input, style }: {
+  row: TplTreeNodeProps;
+  input: readonly unknown[];
+  style?: StyleCellsSnapshot;
+}) {
+  const { viewCtx, item } = row;
+  const readPresentation = useConstant(() =>
+    memoizeOne<(
+      viewCtx: ViewCtx,
+      item: TplNode | SlotSelection,
+      model: readonly unknown[],
+      style?: StyleCellsSnapshot,
+    ) => ReturnType<typeof createOutlineNodePresentation>>(createOutlineNodePresentation),
+  );
+  const presentation = readPresentation(viewCtx, item, input, style);
+  if (!viewCtx.componentStackFrames().some((frame) => frame.tplComponent.component === presentation.component)) {
+    return null;
+  }
+  return <TplTreeNodeContent {...row} presentation={presentation} />;
+}
 
 const DraggableTreeNode = React.memo(function DraggableTreeNode(props: {
   id: OutlineNodeKey;
@@ -1750,8 +1794,6 @@ const ArenaTreeNode = function ArenaTreeNode(props: {
   );
 };
 
-export type ArenaTreeRef = FixedSizeList;
-
 // react-window positions rows absolutely, so overflowing row contents cannot
 // size the inner element. Give every row the same scrollable width, including
 // rows that are currently outside the virtualized viewport.
@@ -1779,96 +1821,86 @@ const OutlineScrollbar = React.forwardRef<HTMLElement, React.ComponentProps<type
   },
 );
 
-export const ArenaTree = React.memo(
-  React.forwardRef(function ArenaTree(
-    props: {
-      studioCtx: StudioCtx;
-      arena: AnyArena | null;
-      outlineCtx: OutlineCtx;
-      dndManager: TreeDndManager;
-    },
-    outerRef: React.Ref<ArenaTreeRef>,
-  ) {
-    const { studioCtx, arena, outlineCtx, dndManager } = props;
-    const { ref: listRef, onRef } = useForwardedRef(outerRef);
+export const ArenaTree = React.memo(function ArenaTree(props: {
+  studioCtx: StudioCtx;
+  arena: AnyArena | null;
+  outlineCtx: OutlineCtx;
+  dndManager: TreeDndManager;
+}) {
+  const { studioCtx, arena, outlineCtx, dndManager } = props;
+  const listRef = React.useRef<FixedSizeList>(null);
+  const viewportRef = React.useRef<HTMLDivElement>(null);
+  const [height, setHeight] = React.useState(0);
+  React.useLayoutEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) {
+      return;
+    }
+    const measure = () => setHeight(viewport.clientHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, []);
 
-    const { visibleNodes, focusedKey } = useTreeData(
-      studioCtx,
-      arena,
+  const { visibleNodes, focusedKey } = useTreeData(
+    studioCtx,
+    arena,
+    outlineCtx,
+  );
+
+  const getKeyIndex = React.useCallback(
+    (key: string) => visibleNodes.findIndex((row) => row.key === key),
+    [visibleNodes],
+  );
+  useRevealOnFocus({ listRef, getKeyIndex, focusedKey });
+
+  const itemData: TreeRowItemData = React.useMemo(
+    () => ({
       outlineCtx,
-    );
+      dndManager,
+      nodes: visibleNodes,
+      studioCtx,
+    }),
+    [outlineCtx, dndManager, visibleNodes, studioCtx],
+  );
+  const itemKey = React.useCallback(
+    (index: number, data: TreeRowItemData) => data.nodes[index].key,
+    [],
+  );
 
-    const getKeyIndex = React.useCallback(
-      (key: string) => visibleNodes.findIndex((row) => row.key === key),
-      [visibleNodes],
-    );
-    useRevealOnFocus({ listRef, getKeyIndex, focusedKey });
+  // Leave room after the deepest indentation for the expander, node icons,
+  // a readable label, and the row actions. Long labels still ellipsize.
+  const minTreeWidth =
+    indentPadding(L.max(visibleNodes.map((node) => node.indent)) ?? 0) + 200;
 
-    const itemData: TreeRowItemData = React.useMemo(
-      () => ({
-        outlineCtx,
-        dndManager,
-        nodes: visibleNodes,
-        studioCtx,
-      }),
-      [outlineCtx, dndManager, visibleNodes, studioCtx],
-    );
-    const itemKey = React.useCallback(
-      (index: number, data: TreeRowItemData) => data.nodes[index].key,
-      [],
-    );
-
-    // Leave room after the deepest indentation for the expander, node icons,
-    // a readable label, and the row actions. Long labels still ellipsize.
-    const minTreeWidth =
-      indentPadding(L.max(visibleNodes.map((node) => node.indent)) ?? 0) + 200;
-
-    return (
-      // For now, we don't know how much space to request, so we just request 5000.
-      // Ideally, we'd want to know exactly how many tree nodes are shown so we can
-      // just request the space we need.  Unfortunately, the way FixedSizeTree works
-      // right now, there's no way to get that information cheaply without walking
-      // through the tree again ourselves.  We should consider skipping FixedSizeTree
-      // and just going straight to FixedSizeList instead.
-      <ListSpace space={5000}>
-        {({ height }) =>
-          // When the outline is closed, ListSpace sets the height as 0.
-          // If an element is focused while the height is 0, useRevealOnFocus
-          // will scroll the FixedSizeList. When the outline is opened,
-          // the scroll persists, causing FixedSizeList to only render elements
-          // after the scroll offset.
-          //
-          // This may be a bug on FixedSizeList not adjusting scroll offset
-          // automatically when the height changes.
-          //
-          // To prevent this, don't render the FixedSizeList if height is 0.
-          height > 0 && (
-            <FixedSizeList
-              outerElementType={OutlineScrollbar}
-              className="tpltree-scroller"
-              innerElementType={OutlineTreeInner}
-              style={
-                {
-                  "--outline-tree-min-width": `${minTreeWidth}px`,
-                } as React.CSSProperties
-              }
-              width={"100%"}
-              height={height}
-              itemCount={visibleNodes.length}
-              itemSize={32}
-              overscanCount={2}
-              itemData={itemData}
-              ref={onRef}
-              itemKey={itemKey}
-            >
-              {ArenaTreeNode}
-            </FixedSizeList>
-          )
-        }
-      </ListSpace>
-    );
-  }),
-);
+  return (
+    <div className="fill-height" ref={viewportRef}>
+      {height > 0 && (
+        <FixedSizeList
+          outerElementType={OutlineScrollbar}
+          className="tpltree-scroller"
+          innerElementType={OutlineTreeInner}
+          style={
+            {
+              "--outline-tree-min-width": `${minTreeWidth}px`,
+            } as React.CSSProperties
+          }
+          width={"100%"}
+          height={height}
+          itemCount={visibleNodes.length}
+          itemSize={32}
+          overscanCount={2}
+          itemData={itemData}
+          ref={listRef}
+          itemKey={itemKey}
+        >
+          {ArenaTreeNode}
+        </FixedSizeList>
+      )}
+    </div>
+  );
+});
 
 const emptyOutlineRows: readonly OutlineTreeRow[] = Object.freeze([]);
 interface OutlineRowsSnapshot { readonly visibleNodes: readonly OutlineTreeRow[]; readonly focusedKey: string | undefined; }
@@ -2036,10 +2068,8 @@ const TplVisibilityToggle = function TplVisibilityToggle(props: {
   viewCtx: ViewCtx;
   visibility: TplVisibility;
   isHidden: boolean;
-  visibilityDataCond: Expr | null | undefined;
   ancestorHidden: boolean;
   takeSpace: boolean;
-  canvasEnv?: CanvasEnv;
 }) {
   const {
     tpl,
@@ -2048,8 +2078,6 @@ const TplVisibilityToggle = function TplVisibilityToggle(props: {
     isHidden,
     ancestorHidden,
     takeSpace,
-    visibilityDataCond,
-    canvasEnv,
   } = props;
   const [menuShown, setMenuShown] = React.useState(false);
   const elt = (

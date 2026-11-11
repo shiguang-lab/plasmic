@@ -20,10 +20,11 @@ import * as React from "react";
 
 interface StudioProps {
   studioCtx: StudioCtx;
+  hiddenForPreview: boolean;
   children?: React.ReactNode;
 }
 
-export function Studio({studioCtx, children}: StudioProps) {
+export function Studio({ studioCtx, hiddenForPreview, children }: StudioProps) {
   React.useLayoutEffect(() => {
     studioCtx.setStudioVisible(true);
     const appConfig = studioCtx.appCtx.appConfig;
@@ -83,7 +84,9 @@ export function Studio({studioCtx, children}: StudioProps) {
           provider={() => studioCtx.hostQuerySwrCache}
         >
           <BottomModalsProvider>
-            <StudioLayout>{children}</StudioLayout>
+            <StudioLayout hiddenForPreview={hiddenForPreview}>
+              {children}
+            </StudioLayout>
             <React.Suspense fallback={null}>
               <StudioTutorialTours />
             </React.Suspense>

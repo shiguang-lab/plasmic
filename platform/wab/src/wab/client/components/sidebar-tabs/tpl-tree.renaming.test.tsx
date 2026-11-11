@@ -28,7 +28,9 @@ vi.mock("react-window", async () => {
   const ReactModule = await import("react");
   return { FixedSizeList: ReactModule.forwardRef((props: { itemCount: number; itemData: unknown; itemKey: (index: number, data: unknown) => React.Key; children: React.ComponentType<{ index: number; data: unknown; style: React.CSSProperties }> }, _ref) => <div>{Array.from({ length: props.itemCount }, (_, index) => React.createElement(props.children, { key: props.itemKey(index, props.itemData), index, data: props.itemData, style: {} }))}</div>) };
 });
-vi.mock("@/wab/client/components/widgets/ListStack", () => ({ ListSpace: ({ children }: { children: (size: { height: number }) => React.ReactNode }) => children({ height: 500 }) }));
+beforeEach(() => {
+  vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(500);
+});
 afterEach(() => { cleanup(); labelRender.mockClear(); vi.restoreAllMocks(); });
 
 it("opens the actual focused tag and slot rename editors from the native command, then commits and cancels", async () => {

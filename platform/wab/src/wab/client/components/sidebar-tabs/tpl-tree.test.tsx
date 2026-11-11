@@ -46,10 +46,10 @@ vi.mock("react-window", async () => {
     )),
   };
 });
-vi.mock("@/wab/client/components/widgets/ListStack", () => ({
-  ListSpace: ({ children }: any) => children({ height: 500 }),
-}));
-afterEach(cleanup);
+beforeEach(() => {
+  vi.spyOn(HTMLElement.prototype, "clientHeight", "get").mockReturnValue(500);
+});
+afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
 function setup() {
   const site = createSite();

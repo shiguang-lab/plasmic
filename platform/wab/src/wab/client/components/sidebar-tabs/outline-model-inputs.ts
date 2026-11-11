@@ -1,8 +1,7 @@
 import type { CanvasObserverInput } from "@/wab/client/components/canvas/canvas-observer";
 import type { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
 import { arrayEq, ensure } from "@/wab/shared/common";
-import { parentStackStyleProvider } from "@/wab/client/components/canvas/HoverBox/parent-stack-inputs";
-import { flattenTpls, isTplVariantable } from "@/wab/shared/core/tpls";
+import { flattenTpls } from "@/wab/shared/core/tpls";
 import { flattenVals, isValComponent } from "@/wab/shared/core/val-nodes";
 import { isKnownTplComponent } from "@/wab/shared/model/classes";
 import * as React from "react";
@@ -49,10 +48,6 @@ export class OutlineModelInputs implements OutlineObserverInput {
         const nodeInput = view.canvasRenderOwner.observerInput(view, node);
         sources.add(nodeInput); this.rebindInputs.add(nodeInput);
         sources.add(this.models.declaredField(node, "locked"));
-        if (isTplVariantable(node)) {
-          const native = parentStackStyleProvider(view, node).getNativeStyleSource();
-          if (native.kind === "tpl") { sources.add(native.inputs.get(native.source, ["display", "flex-direction"]).projection.store); }
-        }
         if (isKnownTplComponent(node)) { sources.add(view.canvasCtx.registrations.component(node.component.name)); }
       }
     }
@@ -147,19 +142,7 @@ export function getOutlineModelInput(view: ViewCtx | undefined): OutlineObserver
   if (!source) { source = new OutlineModelInputs(view); owners.set(view, source); }
   return source;
 }
-/** Convert the finite model/runtime input set to values consumed by one row. */
-class OutlineModelProjection<Value> {
-  private previous: readonly unknown[] | undefined;
-  private value: Value | undefined;
-  constructor(private readonly source: OutlineObserverInput, private readonly select: () => Value) {}
-  read = () => {
-    const input = this.source.getState();
-    if (input !== this.previous) { this.previous = input; this.value = input.length ? this.select() : undefined; }
-    return this.value;
-  };
-}
-export function useOutlineModelValue<Value>(view: ViewCtx, select: () => Value) {
+export function useOutlineModelSnapshot(view: ViewCtx) {
   const source = getOutlineModelInput(view);
-  const projected = React.useMemo(() => new OutlineModelProjection(source, select), [source, select]);
-  return React.useSyncExternalStore(source.subscribe, projected.read, projected.read);
+  return React.useSyncExternalStore(source.subscribe, source.getState, source.getState);
 }

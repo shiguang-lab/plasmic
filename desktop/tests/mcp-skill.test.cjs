@@ -19,8 +19,9 @@ test("MCP bootstrap works without an open editor or a bundled workflow file", as
   assert.match(client.getInstructions(), /read_skill/);
   assert.match(client.getInstructions(), /mustRead/);
   assert.match(client.getInstructions(), /current task and mode/);
+  assert.match(client.getInstructions(), /Studio comment work/);
   const { tools } = await client.listTools();
-  assert.match(tools.find((tool) => tool.name === "read_skill").description, /Before design inspection, creation, revision or codegen/);
+  assert.match(tools.find((tool) => tool.name === "read_skill").description, /Before design inspection, creation, revision, Studio comment work or codegen/);
   const result = await client.callTool({ name: "read_skill", arguments: {} });
   assert.ok(!result.isError);
   const bootstrap = JSON.parse(result.content.find((item) => item.type === "text").text);

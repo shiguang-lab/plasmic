@@ -9,6 +9,7 @@ import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { createSite } from "@/wab/shared/core/sites";
 import { mkTplTagX } from "@/wab/shared/core/tpls";
 import { ValComponent } from "@/wab/shared/core/val-nodes";
+import { setTplVisibilityToDisplayNone } from "@/wab/shared/visibility-utils";
 import { waitFor } from "@testing-library/react";
 
 async function fixture() {
@@ -99,6 +100,7 @@ it.each([100, 1000])("captures a %i-node model transaction once without rebuildi
     }
   });
   const source = new OutlineModelInputs(view), notify = vi.fn();
+  const style = vi.spyOn(view.styleInputs, "get");
   source.getState();
   const stop = source.subscribe(notify);
   const collect = vi.spyOn(view.canvasRenderOwner, "observerInput");
@@ -106,6 +108,7 @@ it.each([100, 1000])("captures a %i-node model transaction once without rebuildi
   collect.mockClear(); notify.mockClear();
   const before = source.getState();
   try {
+    expect(style).not.toHaveBeenCalled();
     await studio.changeUnsafe(() => { for (const child of children) { child.locked = true; } });
     expect(source.getState()).not.toBe(before);
     expect(notify).toHaveBeenCalledOnce();
@@ -113,7 +116,7 @@ it.each([100, 1000])("captures a %i-node model transaction once without rebuildi
     // Count actual model reads, not just React renders: a capture on every
     // field notification would read this root once per node in the batch.
     expect(read.mock.calls.length).toBeLessThanOrEqual(4);
-  } finally { stop(); studio.dispose(); }
+  } finally { style.mockRestore(); stop(); studio.dispose(); }
 });
 
 it("reuses lazy branches across expansion and selection and refreshes their inherited metadata after edits", async () => {
@@ -156,6 +159,13 @@ it("reuses lazy branches across expansion and selection and refreshes their inhe
     const edited = ensure(outline.rootTreeNode(), "Edited outline root");
     expect(edited).not.toBe(tree);
     expect(edited.children[0].children[0].self.ancestorLocked).toBe(true);
+
+    await studio.changeUnsafe(() => {
+      setTplVisibilityToDisplayNone(branch, branch.vsettings[0]);
+    });
+    const hidden = ensure(outline.rootTreeNode(), "Outline root after visibility edit");
+    expect(hidden.children[0].self.isHidden).toBe(true);
+    expect(hidden.children[0].children[0].self.ancestorHidden).toBe(true);
 
     outline.collapseAll();
     const notify = vi.fn(), stopOutline = outline.stateStore.subscribe(notify);

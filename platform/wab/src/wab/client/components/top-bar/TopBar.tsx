@@ -25,7 +25,6 @@ import {
   AvatarGallery,
 } from "@/wab/client/components/studio/Avatar";
 import { OnlineCollaborators } from "@/wab/client/components/studio/OnlineCollaborators";
-import { PanelCloseButton } from "@/wab/client/components/studio/PanelCloseButton";
 import BranchSwitcher from "@/wab/client/components/top-bar/BranchSwitcher";
 import LivePopOutButton from "@/wab/client/components/top-bar/LivePopOutButton";
 import PublishButton from "@/wab/client/components/top-bar/PublishButton";
@@ -601,9 +600,6 @@ function TopBarContent({ preview }: TopBarProps) {
                   <div ref={versionsPanelRef} className={styles.versionsPopup}>
                     <div className={styles.versionsPopupHeader}>
                       <strong>{t("Published versions")}</strong>
-                      <PanelCloseButton
-                        onClick={() => setVersionsOpen(false)}
-                      />
                     </div>
                     <VersionsTab
                       useVersionsCTA={useVersionsCTA}
