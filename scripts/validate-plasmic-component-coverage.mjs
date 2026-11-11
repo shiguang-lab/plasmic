@@ -127,6 +127,12 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     "row": "grid", "col": "grid", "search-form-item": "search-form",
     "table-expand-column": "table",
     "resource-authorization-record": "resource-authorization",
+    "intl-user-select": "intl-fields",
+    "intl-user-view": "intl-fields",
+    "intl-dict-select": "intl-fields",
+    "intl-dict-view": "intl-fields",
+    "intl-department-select": "intl-fields",
+    "intl-department-view": "intl-fields",
   });
   const registrations = [];
   for (const [library, source] of [

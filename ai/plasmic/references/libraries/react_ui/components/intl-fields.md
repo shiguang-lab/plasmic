@@ -1,5 +1,18 @@
 # Overseas user, dictionary and department fields
 
+Library: [React UI](../index.md).
+
+| Component | Registration |
+| --- | --- |
+| IntlUserSelect | `plasmic-react-ui-intl-user-select` |
+| IntlUserView | `plasmic-react-ui-intl-user-view` |
+| IntlDictSelect | `plasmic-react-ui-intl-dict-select` |
+| IntlDictView | `plasmic-react-ui-intl-dict-view` |
+| IntlDepartmentSelect | `plasmic-react-ui-intl-department-select` |
+| IntlDepartmentView | `plasmic-react-ui-intl-department-view` |
+
+## Generation rules
+
 React UI registers the six Intl components from `@react/ui@1.0.13`. Use the
 Select components for editable fields and the View components to resolve values
 in tables, details and read-only fields.
@@ -11,7 +24,7 @@ in tables, details and read-only fields.
 | IntlDictSelect | List `options` with `value`, `label` and searchable `title`. Tree `treeData` with `value`, `label`, `title`, `fullPath` and optional nested `children` | Dictionary item code |
 | IntlDictView | `treeData` with `dictItemCode`, `dictItemName` and optional nested `children` | Item code by default, configurable through `valueField` |
 
-## Data in Plasmic
+### Data in Plasmic
 
 The registered components always receive local data. When the data prop is
 omitted they use shared demo users, departments and a dictionary named
@@ -28,7 +41,7 @@ components take `value` directly. Give a View the selected ID or code and data
 that uses the same keys. With no value the View renders `emptyText`, and an
 unmatched ID or code displays as its original value.
 
-## Native React code generation
+### Native React code generation
 
 Import the named component from the target app's `@react/ui@1.0.13`. Carry over
 the actual value, options or tree data, and selection mode. Provide the host's
