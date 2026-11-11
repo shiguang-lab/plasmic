@@ -29,6 +29,7 @@ For the Overseas/Antd6 suite, read [purpose-first selection](antd_v6/selection.m
 | Required role | Select from the actual installed library |
 | --- | --- |
 | Actions and editable values | Button/ActionGroup, actual Input/Select/date/numeric controls, Form ownership and validation |
+| Overseas responsible person, owning department, or dictionary item | Prefer the [React UI Intl pairs by business role](react_ui/components/intl-fields.md#selection-by-field-purpose) for compatible projects. Use the Select for filters and edits, and the View for read-only values. |
 | Navigation and repeated information | Tabs/Menu/Breadcrumb, Table/Column, Pagination, Descriptions, List |
 | Feedback and overlays | Alert/Tag/Badge/Empty/Spin, Tooltip/Popconfirm/Modal/Drawer |
 | Arrangement and surfaces | Flex/Row/Col/Space where their layout role fits; Card only for an independent business surface |

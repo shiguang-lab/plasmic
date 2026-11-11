@@ -29,6 +29,10 @@ Apply [content entry](design/layout.md#admin-content-entry) and [native componen
 | Quick record summary retaining list context | DrawerDetailSection |
 | Short create/edit flow retaining list context | DrawerFormSection |
 
+When those regions edit or display overseas owners, departments or dictionary
+items, adapt their existing field, column and detail Slots with the
+[overseas business fields composition](libraries/react_ui/compositions/overseas-business-fields.md).
+
 The `page` kind describes a complete page layout; the source definitions are ordinary Plasmic Components, not routed Pages. Create the consuming project's routed Page according to its real page inventory. Use section/overlay templates when a shell already exists. Keep exactly one AppShell per standalone page; never nest a page template inside another shell. A full-page template already includes the `nestedTemplates` listed in the catalog; do not insert those sections a second time. Place Drawers at page scope with a closed business initial state. Choose a separate form/detail page for long or deep content when the requirement calls for it.
 
 ## Read and compose through public tools

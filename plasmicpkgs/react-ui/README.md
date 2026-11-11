@@ -49,6 +49,21 @@ data props use demo records. Bind native `options` or `treeData` for project dat
 and use an empty array for an empty result. See the
 [Intl field contracts](../../ai/plasmic/references/libraries/react_ui/components/intl-fields.md).
 
+The [OverseasBusinessFields example](tests/fixtures/OverseasBusinessFields.tsx) uses
+the registered Form, Table and Descriptions components. Mount it inside an
+existing shell and pass `onSave` to observe the submitted IDs and dictionary
+code. The example keeps one saved demo record in memory. The list and details
+render from that record, so changes to an unsaved form remain in the form.
+
+Run the example's interaction test from the repository root:
+
+```sh
+pnpm --filter @shiguang-lab/plasmic-react-ui test:interactions tests/overseas-business-fields.test.tsx
+```
+
+See the [composition recipe](../../ai/plasmic/references/libraries/react_ui/compositions/overseas-business-fields.md)
+to reproduce the same wiring in Studio with the current project templates.
+
 Build Antd6 before React UI, then build Canvas packages. Updating an installed
 library also requires publishing the hostless React UI project and upgrading the
 consuming project's dependency; see [deployment](../../deploy/README.md#react-ui-business-components).

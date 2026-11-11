@@ -17,6 +17,29 @@ React UI registers the six Intl components from `@react/ui@1.0.13`. Use the
 Select components for editable fields and the View components to resolve values
 in tables, details and read-only fields.
 
+### Selection by field purpose
+
+Prefer these React UI registrations for overseas business fields when the
+project can use React UI. Classify the field by its meaning and stored value,
+including when the source describes only a Chinese label.
+
+| Business role | Filter or editable field | Table cell or detail value | Stored value by default |
+| --- | --- | --- | --- |
+| 负责人、经办人、审核人 | IntlUserSelect | IntlUserView | User ID |
+| 所属部门、负责部门、归属组织 | IntlDepartmentSelect | IntlDepartmentView | Department ID |
+| 字典项、字典编码、由字典维护的分类或状态 | IntlDictSelect | IntlDictView | Dictionary item code |
+
+A fixed enum, permission role, free-text name, or organization category does
+not imply a user, department, or dictionary lookup. Use the field's actual
+data contract and the target project's compatible libraries. Reuse an existing
+business component when it already implements that contract. Keep dictionary
+codes and option data consistent across editing and display. In admin
+compositions, retain SearchForm for filters, Form.Item for submitted fields,
+Table.Column for rows and Descriptions.Item for detail values.
+
+Follow the [overseas field composition](../compositions/overseas-business-fields.md)
+for a complete submit and display example.
+
 | Components | Local data props | Value |
 | --- | --- | --- |
 | IntlUserSelect, IntlUserView | `options` with `userId`, `username`, `nickname` | User ID by default, configurable through `valueKey` |
