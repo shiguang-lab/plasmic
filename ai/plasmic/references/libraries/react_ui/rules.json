@@ -24,6 +24,16 @@
         "plasmic-react-ui-resource-authorization",
         "plasmic-react-ui-resource-authorization-record"
       ]
+    },
+    "components/intl-fields.md": {
+      "registrations": [
+        "plasmic-react-ui-intl-user-select",
+        "plasmic-react-ui-intl-user-view",
+        "plasmic-react-ui-intl-dict-select",
+        "plasmic-react-ui-intl-dict-view",
+        "plasmic-react-ui-intl-department-select",
+        "plasmic-react-ui-intl-department-view"
+      ]
     }
   },
   "checks": {

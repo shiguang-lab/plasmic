@@ -3,7 +3,8 @@ import DataPicker from "@/wab/client/components/sidebar-tabs/DataBinding/DataPic
 import DataPickerColumn from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerColumn";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import { setUiLocale } from "@/wab/client/i18n";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import * as pickerUtil from "./DataPickerUtil";
 import * as React from "react";
 
 afterEach(() => {
@@ -11,6 +12,68 @@ afterEach(() => {
 });
 
 describe("DataPicker UI Improvements", () => {
+  it("windows a large data column and scrolls to a selection outside the first window", async () => {
+    const { studioCtx } = fakeStudioCtx();
+    await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+    const records = Array.from({ length: 1000 }, (_, index) => `value-${index}`);
+    const data = { records };
+    const opts = { showAdvancedFields: false };
+    const columnItems = pickerUtil.mkColumnItems(records, ["records"], opts);
+    const column = (selectedItem: number) => (
+      <StudioCtxContext.Provider value={studioCtx}>
+        <DataPickerColumn data={data} columnIndex={0} isActiveColumn
+          columnItems={columnItems} opts={opts} selectedItem={selectedItem}
+          onItemSelected={() => {}} />
+      </StudioCtxContext.Provider>
+    );
+    const view = render(column(0));
+    try {
+      expect(screen.getByText('"value-0"')).toBeTruthy();
+      expect(screen.queryByText('"value-999"')).toBeNull();
+      view.rerender(column(999));
+      expect(screen.getByText('"value-999"')).toBeTruthy();
+      expect(screen.queryByText('"value-0"')).toBeNull();
+    } finally {
+      view.unmount();
+      studioCtx.dispose();
+    }
+  });
+
+  it("skips previews for search misses and mounts only a window of matches", async () => {
+    vi.stubGlobal("IntersectionObserver", class { observe() {} unobserve() {} disconnect() {} });
+    const { studioCtx } = fakeStudioCtx();
+    const preview = vi.spyOn(pickerUtil, "evalExpr");
+    const scan = vi.spyOn(pickerUtil, "getVariableType");
+    try {
+      await waitFor(() => expect(studioCtx.initialRouteReady).toBe(true));
+      const data = { records: Array.from({ length: 1000 }, (_, index) => ({ label: `value-${index}` })) };
+      const view = render(
+        <StudioCtxContext.Provider value={studioCtx}>
+          <DataPicker data={data} value={undefined} onChange={() => {}} onCancel={() => {}} />
+        </StudioCtxContext.Provider>,
+      );
+      try {
+        const input = screen.getByRole("textbox");
+        preview.mockClear();
+        scan.mockClear();
+        fireEvent.change(input, { target: { value: "absent-field" } });
+        await waitFor(() => expect(scan).toHaveBeenCalledWith("value-999"));
+        expect(preview.mock.calls.filter(([path]) => path[0] === "records")).toHaveLength(0);
+        fireEvent.change(input, { target: { value: "label" } });
+        await waitFor(() => expect(screen.getByText('"value-0"')).toBeTruthy());
+        expect(screen.queryByText('"value-999"')).toBeNull();
+        expect(preview.mock.calls.filter(([path]) => path[0] === "records").length).toBeLessThan(30);
+      } finally {
+        view.unmount();
+      }
+    } finally {
+      preview.mockRestore();
+      scan.mockRestore();
+      studioCtx.dispose();
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("renders DataPickerColumn with Scrollbar container", async () => {
     const { studioCtx: mockStudioCtx } = fakeStudioCtx();
     await waitFor(() => expect(mockStudioCtx.initialRouteReady).toBe(true));

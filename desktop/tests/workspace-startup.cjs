@@ -67,6 +67,11 @@ app
     };
     let win = await startDesktop();
     assert.equal(studioContents(win).getURL(), config.studioOrigin + "/");
+    const preflight = JSON.parse(fs.readFileSync(path.join(profile, "logs", "project-open.log"), "utf8").trim());
+    assert.equal(preflight.event, "project-open.preflight");
+    assert.equal(preflight.projectId, "unavailable");
+    assert.equal(preflight.projectStatus, forbidden ? 403 : 404);
+    assert.equal(preflight.outcome, "denied");
     assert.deepEqual(
       JSON.parse(fs.readFileSync(path.join(profile, "workspace.json"), "utf8")),
       [],

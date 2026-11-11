@@ -1861,18 +1861,21 @@ export class SiteOps {
 
   async swapTokens(fromToken: StyleToken, toToken: StyleToken) {
     const [_, summary] = extractTokenUsages(this.site, fromToken);
-    await this.studioCtx.changeObserved(
+    const result = await this.studioCtx.changeObserved(
       () => {
         return [
           ...summary.components,
           ...summary.frames.map((f) => f.container.component),
         ];
       },
-      () => {
-        this.tplMgr.swapTokens(fromToken, toToken);
-        return ok();
-      },
+      () => this.tplMgr.swapTokens(fromToken, toToken) ? ok() : err("token-reference-cycle"),
+      { noErrorNotification: true },
     );
+    if (result.isErr()) {
+      notification.error({
+        message: translate(getUiLocale(), "Cyclic token references disallowed"),
+      });
+    }
   }
 
   private getArenaByFrame(frame: ArenaFrame) {

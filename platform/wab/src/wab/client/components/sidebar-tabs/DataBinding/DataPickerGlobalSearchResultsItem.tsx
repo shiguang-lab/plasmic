@@ -41,9 +41,13 @@ function DataPickerGlobalSearchResultsItem_(
 
   return (
     <PlasmicDataPickerGlobalSearchResultsItem
-      root={{ ref }}
+      root={{ ref, title: label, style: { height: "100%", overflow: "hidden" } }}
       variableType={toDataPickerPreviewVariant(variableType)}
-      label={matcher.boldSnippets(label)}
+      label={
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {matcher.boldSnippets(label)}
+        </span>
+      }
       previewValue={previewValue}
       onClick={onClick}
     />

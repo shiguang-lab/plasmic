@@ -7,6 +7,12 @@
 | ActionGroup | `plasmic-react-ui-action-group` | Native action items and folding, with `onAction(key)` for Studio interactions |
 | ResourceAuthorization | `plasmic-react-ui-resource-authorization` | Create personalized authorization for a user or department |
 | ResourceAuthorization.Record | `plasmic-react-ui-resource-authorization-record` | View permissions and delete personalized policies after confirmation |
+| IntlUserSelect | `plasmic-react-ui-intl-user-select` | Search and select overseas users |
+| IntlUserView | `plasmic-react-ui-intl-user-view` | Resolve overseas user IDs to names |
+| IntlDictSelect | `plasmic-react-ui-intl-dict-select` | Select dictionary items in list or tree mode |
+| IntlDictView | `plasmic-react-ui-intl-dict-view` | Resolve dictionary item codes to labels |
+| IntlDepartmentSelect | `plasmic-react-ui-intl-department-select` | Search and select departments |
+| IntlDepartmentView | `plasmic-react-ui-intl-department-view` | Resolve department IDs to names or paths |
 
 Install **React UI** through **Component Store → Business components**, beside Overseas. Installation adds React UI to Installed; the default host and Overseas do not register it. The local dependency and source scope are documented in [vendor/react-ui](../../vendor/react-ui/README.md).
 
@@ -36,6 +42,12 @@ Native `@react/ui` has no `trigger` or `onOpenChange` props. During native code
 generation, keep the trigger Button as sibling JSX and translate open/close
 behavior and event effects into React state/handlers. Remove wrapper-only props
 from the native component. See the [generation contract](../../ai/plasmic/references/libraries/react_ui/components/resource-authorization.md#native-react-code-generation).
+
+The six Intl registrations use the original `@react/ui@1.0.13` components and
+supply local data in Studio, Preview and the published Plasmic runtime. Omitted
+data props use demo records. Bind native `options` or `treeData` for project data
+and use an empty array for an empty result. See the
+[Intl field contracts](../../ai/plasmic/references/libraries/react_ui/components/intl-fields.md).
 
 Build Antd6 before React UI, then build Canvas packages. Updating an installed
 library also requires publishing the hostless React UI project and upgrading the

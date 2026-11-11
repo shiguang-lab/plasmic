@@ -25,7 +25,6 @@ import {
   CanvasObservedRenderSource,
   mkUseCanvasObserver,
 } from "@/wab/client/components/canvas/canvas-observer";
-import { genRepeatedElement } from "@/wab/client/components/canvas/repeatedElement";
 import {
   showCanvasAuthNotification,
   showCanvasPageNavigationNotification,
@@ -1195,55 +1194,57 @@ function renderReppable(tplNode: TplNode, ctx: RenderingCtx) {
     const elementInternalName = getRepetitionItemInternalName(idx);
     const indexInternalName = getRepetitionIndexInternalName(idx);
     const uuidToIndexInternalName = getRepetitionUuidInternalName(node.uuid);
-    const contents = withoutNils(
-      collection.map((item, index) =>
-        maybe(
-          renderNonReppable(
-            node,
-            {
-              ...ctx,
-              env: {
-                ...ctx.env,
-                [getRepetitionElementName(dataRep)]: item,
-                [getRepetitionIndexName(dataRep)]: index,
-                [elementInternalName]: item,
-                [indexInternalName]: index,
-                [uuidToIndexInternalName]: index,
-              },
-              wrappingEnv: ctx.env,
-            },
-            activeVSettings,
-          ),
-          (rendered) => mkRepeatedElement(ctx.sub.React)(index, rendered),
-        ),
-      ),
-    );
-    if (contents.length === 0) {
-      return null;
-    } else if (contents.length === 1) {
-      return contents[0];
-    } else {
-      const contentKeys = new Set<React.Key | null>();
-      [...contents].forEach((elt, index) => {
-        if (elt.key != null && contentKeys.has(elt.key)) {
-          let suffix = 2;
-          while (contentKeys.has(`${elt.key}-${suffix}`)) {
-            suffix++;
-          }
-          contents[index] = ctx.sub.React.cloneElement(elt, {
-            key: `${elt.key}-${suffix}`,
-          });
-        }
-        contentKeys.add(contents[index].key);
-      });
-      return ctx.sub.React.createElement(
-        ctx.sub.React.Fragment,
+    const contents: React.ReactElement[] = [];
+    const usedKeys = new Set<React.Key>();
+    const nextSuffix = new Map<React.Key, number>();
+    collection.forEach((item, index) => {
+      const element = renderNonReppable(
+        node,
         {
-          key: `${repFragmentKey}-${ctx.valKey}`,
+          ...ctx,
+          env: {
+            ...ctx.env,
+            [getRepetitionElementName(dataRep)]: item,
+            [getRepetitionIndexName(dataRep)]: index,
+            [elementInternalName]: item,
+            [indexInternalName]: index,
+            [uuidToIndexInternalName]: index,
+          },
+          wrappingEnv: ctx.env,
         },
-        ...contents,
+        activeVSettings,
       );
+      if (!element) {
+        return;
+      }
+
+      const baseKey = element.key ?? `${ctx.valKey}-unkeyed-${contents.length}`;
+      let key = baseKey;
+      if (usedKeys.has(baseKey)) {
+        // Existing suffixes stay occupied throughout this render. Continue
+        // where the previous duplicate left off to preserve collision order.
+        let suffix = nextSuffix.get(baseKey) ?? 2;
+        while (usedKeys.has(`${baseKey}-${suffix}`)) {
+          suffix++;
+        }
+        nextSuffix.set(baseKey, suffix + 1);
+        key = `${baseKey}-${suffix}`;
+      }
+      usedKeys.add(key);
+      const cloneProps = {
+        key,
+        [plasmicClonedIndex]: index,
+      };
+      contents.push(ctx.sub.React.cloneElement(element, cloneProps));
+    });
+    if (contents.length < 2) {
+      return contents[0] ?? null;
     }
+    return ctx.sub.React.createElement(
+      ctx.sub.React.Fragment,
+      { key: `${repFragmentKey}-${ctx.valKey}` },
+      contents,
+    );
   } else {
     return renderNonReppable(node, ctx, activeVSettings);
   }
@@ -2780,10 +2781,6 @@ const mkEmptyContainerPlaceholder = canvasFactory((sub: SubDeps) =>
       }), { hasLoadingBoundary: ctx.env.$ctx[hasLoadingBoundaryKey] }),
     );
   }),
-);
-
-const mkRepeatedElement = canvasFactory(
-  (react: typeof React) => genRepeatedElement(react),
 );
 
 interface RichTextProps {

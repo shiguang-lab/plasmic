@@ -2,6 +2,7 @@ import { useDataPickerSourceInputs } from "@/wab/client/components/sidebar-tabs/
 import { useVariantModelWorld } from "@/wab/client/components/variants/variant-model-world";
 import { useViewVariants } from "@/wab/client/studio-ctx/variant-state";
 import sty from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerColumn.module.scss";
+import { DataPickerVirtualList } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerVirtualList";
 import DataPickerColumnItem from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerColumnItem";
 import {
   ColumnItem,
@@ -27,7 +28,7 @@ import {
   runInteraction,
 } from "@/wab/client/state-management/preview-steps";
 import { useStudioCtx } from "@/wab/client/contexts/StudioContexts";
-import { ensure, isTruthy } from "@/wab/shared/common";
+import { ensure } from "@/wab/shared/common";
 import { isTplTagOrComponent } from "@/wab/shared/core/tpls";
 import { DEVFLAGS } from "@/wab/shared/devflags";
 import { pathToString } from "@/wab/shared/eval/expression-parser";
@@ -97,7 +98,14 @@ const DataPickerColumnContent = React.memo(function DataPickerColumnContent({ ro
   const viewCtx = useViewCtxMaybe();
   const componentRef = useViewVariants(viewCtx, (state) => state.frames.at(-1)?.component);
   const component = componentRef ? studioCtx.modelSnapshots.resolve(componentRef) : viewCtx?.component;
-  const paths = columnItems.map(getItemPath);
+  const paths = React.useMemo(() => columnItems.map(getItemPath), [columnItems]);
+  const rows = React.useMemo(
+    () => columnItems.flatMap((item, index) => {
+      const variableType = getVariableType(item.value);
+      return isTypeSupported(variableType) ? [{ index, item, variableType }] : [];
+    }),
+    [columnItems],
+  );
   const sourceLinks = useDataPickerSourceInputs(studioCtx, component, paths,
     () => Object.freeze(paths.map((path) => component ? getSourceUiId(path, studioCtx.site, component) : undefined)));
   const world = useVariantModelWorld(studioCtx, data, viewCtx);
@@ -120,31 +128,24 @@ const DataPickerColumnContent = React.memo(function DataPickerColumnContent({ ro
       root={{ ref, id: `data-picker-column-${columnIndex}` }}
       {...rest}
       previewSteps={enabledPreviewSteps && isStepsColumn}
-      freeBox={{
-        as: Scrollbar,
-        style: {
-          flex: 1,
-          minHeight: 0,
-          height: "100%",
-          width: "100%",
-          overflow: "hidden",
-        },
-        props: {
-          scrollX: false,
-        },
-      }}
+      freeBox={
+        errorMessage == null
+          ? { style: { minHeight: 0 } }
+          : { as: Scrollbar, props: { scrollX: false } }
+      }
       children={
         errorMessage != null ? (
           <ColumnErrorNotice columnIndex={columnIndex} message={errorMessage} />
         ) : (
-          columnItems
-            .map((item, index) => {
+          <DataPickerVirtualList
+            count={rows.length}
+            rowHeight={52}
+            itemKey={(row) => pathToString(paths[rows[row].index])}
+            selectedIndex={isActiveColumn ? rows.findIndex((row) => row.index === selectedItem) : undefined}
+            renderRow={(row) => {
+              const { index, item, variableType } = rows[row];
               const { name: key, label, value } = item;
-              const path = getItemPath(item);
-              const variableType = getVariableType(value);
-              if (!isTypeSupported(variableType)) {
-                return undefined;
-              }
+              const path = paths[index];
               const keyCount = isListType(variableType)
                 ? getSupportedObjectKeys(value, opts).length
                 : 0;
@@ -165,22 +166,6 @@ const DataPickerColumnContent = React.memo(function DataPickerColumnContent({ ro
               const sourceUiId = sourceLinks?.[index];
               return (
                 <DataPickerColumnItem
-                  ref={
-                    isSelected && isActiveColumn
-                      ? (el) => {
-                          setTimeout(
-                            () =>
-                              el?.scrollIntoView({
-                                block: "center",
-                                inline: "start",
-                                behavior: "smooth",
-                              }),
-                            0,
-                          );
-                        }
-                      : undefined
-                  }
-                  key={pathToString(path)}
                   itemName={label ?? key}
                   variableType={variableType}
                   icon={columnIndex === 0 ? getDollarVarIcon(path) : undefined}
@@ -207,8 +192,8 @@ const DataPickerColumnContent = React.memo(function DataPickerColumnContent({ ro
                   interaction={getInteraction(key)}
                 />
               );
-            })
-            .filter(isTruthy)
+            }}
+          />
         )
       }
       runAllSteps={{

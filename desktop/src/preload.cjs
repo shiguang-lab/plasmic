@@ -1,5 +1,14 @@
 const { ipcRenderer, contextBridge } = require("electron");
 if (window.top === window) {
+  if (/^\/projects\/[\w-]+(?:\/-\/[^/]+)?\/?$/.test(location.pathname)) {
+    new PerformanceObserver(list => {
+      for (const mark of list.getEntries()) {
+        if (mark.name.startsWith("studio-")) {
+          console.info("[Studio startup] " + JSON.stringify(["top", mark.name, mark.startTime, 0]));
+        }
+      }
+    }).observe({ type: "mark", buffered: true });
+  }
   let viewActive = false;
   let receivedViewState = false;
   const viewListeners = new Set();

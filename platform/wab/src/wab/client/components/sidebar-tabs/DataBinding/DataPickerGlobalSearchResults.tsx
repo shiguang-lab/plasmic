@@ -5,7 +5,6 @@ import {
   PlasmicDataPickerGlobalSearchResults,
 } from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDataPickerGlobalSearchResults";
 import { HTMLElementRefOf } from "@plasmicapp/react-web";
-import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import * as React from "react";
 
 // Your component props start with props for variants and slots you defined
@@ -46,11 +45,9 @@ function DataPickerGlobalSearchResults_(
   return (
     <PlasmicDataPickerGlobalSearchResults
       root={{
-        as: Scrollbar,
         ref,
-        style: { overflow: "hidden", minHeight: 0 },
-        props: { scrollX: false },
       }}
+      freeBox={{ style: { flex: 1, minHeight: 0 } }}
       {...props}
     />
   );

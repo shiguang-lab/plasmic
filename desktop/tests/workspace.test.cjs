@@ -32,7 +32,12 @@ test("startup validates the exact saved project before restoring its route", asy
       return Response.json({ project: { id: "saved" }, startup: { projectId: "saved", branchName: "main" } });
     },
   };
-  assert.equal(await workspace.startupUrl(session), savedUrl);
+  const preflight = [];
+  assert.equal(await workspace.startupUrl(session, record => preflight.push(record)), savedUrl);
+  assert.equal(preflight.length, 1);
+  const [{ durationMs, ...record }] = preflight;
+  assert.ok(durationMs >= 0);
+  assert.deepEqual(record, { projectId: "saved", outcome: "prefetched", projectStatus: 200 });
   assert.equal(workspace.recent.length, 2);
   assert.equal(workspace.consumeStartupData("saved", "main").project.id, "saved");
   assert.equal(workspace.consumeStartupData("saved", "main"), null);

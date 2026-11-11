@@ -99,7 +99,7 @@ import {
 } from "@/wab/shared/core/components";
 import { getRawCode } from "@/wab/shared/core/exprs";
 import { metaSvc } from "@/wab/shared/core/metas";
-import { SQ, Selectable } from "@/wab/shared/core/selection";
+import { SQ, Selectable, makeSelectableFullKey } from "@/wab/shared/core/selection";
 import {
   makeTokenRefResolver,
   makeTokenValueResolver,
@@ -1225,6 +1225,49 @@ export class ViewCtx extends WithDbCtx {
     this.popDrillForTpl(val ? tplFromSelectable(val) : null);
     this.setViewCtxFocusBySelectable(val, anchorCloneKey, opts);
     this.studioCtx.setStudioFocusOnViewCtxContent(this);
+  }
+
+  /** The candidates from a canvas layer query all share the current editing scope. */
+  setStudioFocusByCanvasLayers(
+    targets: readonly { target: Selectable; cloneKey: string | undefined }[],
+    append: boolean,
+  ) {
+    this.transactionSelectionInputs(() => {
+      const selectables = append ? [...this._focusedSelectables] : [];
+      const tpls = append ? [...this._focusedTpls] : [];
+      const doms = append ? [...this._focusedDomElts] : [];
+      const keys = append ? [...this._focusedCloneKeys] : [];
+      const identity = (target: Selectable | null) => makeSelectableFullKey(target) ?? target;
+      const seen = new Set(selectables.map(identity));
+      const previousLength = selectables.length;
+      for (const { target, cloneKey } of targets) {
+        const key = identity(target);
+        if (seen.has(key)) {
+          continue;
+        }
+        const focus = this.computeFocus(target, cloneKey);
+        if (!focus.val) {
+          continue;
+        }
+        seen.add(key);
+        selectables.push(focus.val);
+        tpls.push(focus.focusedTpl);
+        doms.push(focus.focusedDom ?? null);
+        keys.push(focus.focusedCloneKey ?? undefined);
+      }
+      if (append && selectables.length === previousLength) {
+        return;
+      }
+      if (selectables.length === 0) {
+        this.popDrillForTpl(null);
+      }
+      this.setFocusedComponentPart(undefined);
+      this._focusedTpls = tpls;
+      this._focusedDomElts = doms;
+      this._focusedCloneKeys = keys;
+      this._focusedSelectables = selectables;
+      this.studioCtx.setStudioFocusOnViewCtxContent(this);
+    });
   }
 
   /**

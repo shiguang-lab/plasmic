@@ -3,8 +3,8 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { ConfigProvider } from "antd";
 import React from "react";
 import { afterEach, beforeAll, beforeEach, expect, test, vi } from "vitest";
-import { registerAll } from "../src";
 import {
+  registerResourceAuthorization,
   ResourceAuthorization,
   ResourceAuthorizationRecord,
   resourceAuthorizationMeta,
@@ -85,16 +85,15 @@ afterEach(() => {
   delete (window as any).$$request;
 });
 
-test("registerAll exposes both real drawer contracts with independent runtime open state", () => {
+test("registerResourceAuthorization exposes both real drawer contracts with independent runtime open state", () => {
   const registrations: any[] = [];
-  registerAll({ registerComponent(component, meta) { registrations.push({ component, meta }); } });
+  registerResourceAuthorization({ registerComponent(component, meta) { registrations.push({ component, meta }); } });
   expect(registrations.map(({ meta }) => meta.name)).toEqual([
-    "plasmic-react-ui-action-group",
     "plasmic-react-ui-resource-authorization",
     "plasmic-react-ui-resource-authorization-record",
   ]);
-  expect(registrations[1].component).toBe(ResourceAuthorization);
-  expect(registrations[2].component).toBe(ResourceAuthorizationRecord);
+  expect(registrations[0].component).toBe(ResourceAuthorization);
+  expect(registrations[1].component).toBe(ResourceAuthorizationRecord);
   for (const meta of [resourceAuthorizationMeta, resourceAuthorizationRecordMeta]) {
     expect(meta.canvasOverlay).toEqual({ triggerSlot: "trigger" });
     expect(meta.props.trigger).toMatchObject({ type: "slot", hidePlaceholder: true });

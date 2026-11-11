@@ -1,5 +1,5 @@
 import type { ImageAssetOpts, ResizableImage } from "@/wab/client/dom-utils";
-import { StyleTokenType } from "@/wab/commons/StyleToken";
+import { StyleTokenType, tryParseTokenRef } from "@/wab/commons/StyleToken";
 import { ProjectId } from "@/wab/shared/ApiSchema";
 import {
   FrameViewMode,
@@ -165,6 +165,7 @@ import {
   updateStateAccessType,
 } from "@/wab/shared/core/states";
 import { SIZE_PROPS } from "@/wab/shared/core/style-props";
+import { siteFinalStyleTokensAllDepsDict } from "@/wab/shared/core/site-style-tokens";
 import {
   changeTokenUsage,
   cloneAnimationSequence,
@@ -172,7 +173,7 @@ import {
   extractTokenUsages,
   mkRuleSet,
 } from "@/wab/shared/core/styles";
-import { cloneToken } from "@/wab/shared/core/tokens";
+import { FinalToken, cloneToken } from "@/wab/shared/core/tokens";
 import {
   TplNamable,
   cloneVariantSetting,
@@ -235,6 +236,7 @@ import {
   Split,
   State,
   StyleToken,
+  StyleTokenOverride,
   Theme,
   TplComponent,
   TplNode,
@@ -2935,12 +2937,56 @@ export class TplMgr {
     }
   }
 
-  swapTokens(fromToken: StyleToken, toToken: StyleToken) {
+  /** Rejects self-references and cycles in the base alias chain before changing usages. */
+  swapTokens(fromToken: StyleToken, toToken: StyleToken): boolean {
+    if (fromToken === toToken) {
+      return true;
+    }
     const site = this.site();
     const [usages] = extractTokenUsages(site, fromToken);
+    const rewrittenValues = new Set<
+      StyleToken | StyleTokenOverride | VariantedValue
+    >();
+    for (const usage of usages) {
+      if (usage.type === "styleToken") {
+        rewrittenValues.add(usage.styleToken);
+      } else if (usage.type === "styleTokenOverride") {
+        rewrittenValues.add(usage.styleTokenOverride);
+      } else if (usage.type === "variantedValue") {
+        rewrittenValues.add(usage.variantedValue);
+      }
+    }
+
+    const createsCycle = () => {
+      const tokens = siteFinalStyleTokensAllDepsDict(site);
+      const target = tokens[toToken.uuid];
+      if (target?.variantedValues.some((value) => rewrittenValues.has(value))) {
+        return true;
+      }
+      // A rewritten alias points back to the target. Check its base chain
+      // before writing so a rejected swap leaves all usages intact.
+      const seen = new Set<StyleToken>();
+      for (
+        let token: FinalToken<StyleToken> | undefined = target;
+        token && !seen.has(token.base);
+        token = tryParseTokenRef(token.value, tokens)
+      ) {
+        const owner = token.override?.value != null ? token.override : token.base;
+        if (rewrittenValues.has(owner)) {
+          return true;
+        }
+        seen.add(token.base);
+      }
+      return false;
+    };
+    if (rewrittenValues.size > 0 && createsCycle()) {
+      return false;
+    }
+
     for (const usage of usages) {
       changeTokenUsage(site, fromToken, usage, toToken);
     }
+    return true;
   }
 
   addGlobalVariantSplit(opts: {

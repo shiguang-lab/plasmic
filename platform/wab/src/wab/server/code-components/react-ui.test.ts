@@ -23,6 +23,19 @@ test("React UI is an independent hostless library", async () => {
       importPath: "@shiguang-lab/plasmic-react-ui/skinny/registerActionGroup",
       importName: "ActionGroup",
     },
+    ...[
+      ["department-select", "IntlDepartmentSelect"],
+      ["department-view", "IntlDepartmentView"],
+      ["dict-select", "IntlDictSelect"],
+      ["dict-view", "IntlDictView"],
+      ["user-select", "IntlUserSelect"],
+      ["user-view", "IntlUserView"],
+    ].map(([suffix, importName]) => ({
+      name: `plasmic-react-ui-intl-${suffix}`,
+      isHostLess: true,
+      importPath: "@shiguang-lab/plasmic-react-ui/skinny/registerIntlComponents",
+      importName,
+    })),
     {
       name: "plasmic-react-ui-resource-authorization", isHostLess: true,
       importPath: "@shiguang-lab/plasmic-react-ui/skinny/registerResourceAuthorization",
@@ -38,6 +51,15 @@ test("React UI is an independent hostless library", async () => {
     const props = component.params.map((param) => param.variable.name);
     if (component.name === "plasmic-react-ui-action-group") {
       expect(props).toContain("onAction");
+    } else if (component.name.startsWith("plasmic-react-ui-intl-")) {
+      expect(props).toContain("value");
+      const states = component.states.map((state) => state.param.variable.name);
+      if (component.name.endsWith("-select")) {
+        expect(props).toContain("onChange");
+        expect(states).toContain("value");
+      } else {
+        expect(states).toEqual([]);
+      }
     } else {
       expect(props).toEqual(expect.arrayContaining(["open", "onOpenChange", "onSuccess", "onClose"]));
       expect(component.states.map((state) => state.param.variable.name)).toContain("open");

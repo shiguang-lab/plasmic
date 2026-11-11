@@ -38,6 +38,12 @@ for (const suffix of ["", "-v2"]) {
       load(`canvas-packages/build/react-ui${suffix}.js`);
       assert.deepEqual(Array.from(entries(), (entry) => entry.meta.name).sort(), [
         "plasmic-react-ui-action-group",
+        "plasmic-react-ui-intl-department-select",
+        "plasmic-react-ui-intl-department-view",
+        "plasmic-react-ui-intl-dict-select",
+        "plasmic-react-ui-intl-dict-view",
+        "plasmic-react-ui-intl-user-select",
+        "plasmic-react-ui-intl-user-view",
         "plasmic-react-ui-resource-authorization",
         "plasmic-react-ui-resource-authorization-record",
       ]);
@@ -65,10 +71,27 @@ for (const suffix of ["", "-v2"]) {
       assert.match(text, /编辑/);
       assert.match(text, /更多/);
       assert.doesNotMatch(text, /复制|删除/);
-      for (const entry of entries().slice(1)) {
+      const findComponent = (name) =>
+        entries().find(({ meta }) => meta.displayName === name).component;
+      let requests = 0;
+      win.$$request = { get: () => { requests++; return Promise.resolve({ data: [] }); } };
+      ReactDOM.flushSync(() => root.render(React.createElement(React.Fragment, null,
+        React.createElement(findComponent("IntlUserSelect"), { defaultValue: "demo-user-1" }),
+        React.createElement(findComponent("IntlUserView"), { value: "demo-user-1" }),
+        React.createElement(findComponent("IntlDepartmentSelect"), { defaultValue: "demo-operations" }),
+        React.createElement(findComponent("IntlDepartmentView"), { value: "demo-operations", showFullPath: true }),
+        React.createElement(findComponent("IntlDictSelect"), { defaultValue: "SG" }),
+        React.createElement(findComponent("IntlDictView"), { value: "SG" }),
+      )));
+      const intlText = win.document.getElementById("root").textContent;
+      assert.match(intlText, /林晓/);
+      assert.match(intlText, /海外业务部 \/ 运营组/);
+      assert.match(intlText, /新加坡/);
+      assert.equal(requests, 0);
+      for (const entry of entries().filter(({ meta }) => meta.name.startsWith("plasmic-react-ui-resource-authorization"))) {
         assert.deepEqual(JSON.parse(JSON.stringify(entry.meta.canvasOverlay)), { triggerSlot: "trigger" });
         assert.equal(entry.meta.props.trigger.type, "slot");
-        assert.equal(entry.meta.props.previewOpen.editOnly, true);
+        assert.equal(entry.meta.props.previewOpen, undefined);
         assert.equal(entry.meta.states.open.onChangeProp, "onOpenChange");
         assert.equal(entry.meta.importPath,
           "@shiguang-lab/plasmic-react-ui/skinny/registerResourceAuthorization");

@@ -16,6 +16,45 @@ function syncDocument(sc: StudioCtx, doc: Document, component: Component) {
   sc["styleMgr"].upsertStyleSheets(doc, component);
 }
 
+test("updates only changed canvas styles and leaves sheets in cascade order", async () => {
+  const site = createSite();
+  const component = mkComponent({
+    name: "Styled",
+    type: ComponentType.Plain,
+    tplTree: (baseVariant) => mkTplTagX("div", { baseVariant, styles: { color: "red" } }),
+  });
+  site.components.push(component);
+  const { studioCtx: sc } = fakeStudioCtx({ site });
+  const docs = [document.implementation.createHTMLDocument(), document.implementation.createHTMLDocument()];
+  const sync = () => docs.forEach((doc) => syncDocument(sc, doc, component));
+  try {
+    sc.observeComponents([component]);
+    sync();
+    const order = docs.map((doc) => Array.from(doc.head.children));
+    const moves = docs.map((doc) => vi.spyOn(doc.head, "insertBefore"));
+    const writes = docs.map((doc) =>
+      Array.from(doc.head.querySelectorAll("style"), (style) =>
+        vi.spyOn(style, "textContent", "set"),
+      ),
+    );
+    try {
+      await sc.changeUnsafe(() => { component.tplTree.vsettings[0].rs.values.color = "blue"; });
+      sync();
+      for (let index = 0; index < docs.length; index++) {
+        expect(Array.from(docs[index].head.children)).toEqual(order[index]);
+        expect(moves[index]).not.toHaveBeenCalled();
+        expect(writes[index].map((write) => write.mock.calls.length)).toEqual([0, 0, 0, 1]);
+        expect(docs[index].getElementById(`plasmic-comp-${component.uuid}`)?.textContent).toContain("color: blue");
+      }
+    } finally {
+      moves.forEach((spy) => spy.mockRestore());
+      writes.flat().forEach((spy) => spy.mockRestore());
+    }
+  } finally {
+    sc.dispose();
+  }
+});
+
 test("detached subtree styles are removed from both documents and restored on undo", async () => {
   const site = createSite();
   const baseVariant = mkBaseVariant();

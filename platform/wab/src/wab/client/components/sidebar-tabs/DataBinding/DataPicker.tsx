@@ -10,6 +10,7 @@ import {
 } from "@/wab/client/components/sidebar-tabs/ComponentProps/CodeEditor";
 import DataPickerColumn from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerColumn";
 import DataPickerGlobalSearchResultsItem from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerGlobalSearchResultsItem";
+import { DataPickerVirtualList } from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerVirtualList";
 import DataPickerSelectedItem from "@/wab/client/components/sidebar-tabs/DataBinding/DataPickerSelectedItem";
 import {
   Column,
@@ -37,7 +38,7 @@ import {
   PlasmicDataPicker,
 } from "@/wab/client/plasmic/plasmic_kit_data_binding/PlasmicDataPicker";
 import { StandardMarkdown } from "@/wab/client/utils/StandardMarkdown";
-import { ensure, isPrefixArray, sortBy } from "@/wab/shared/common";
+import { ensure, isPrefixArray } from "@/wab/shared/common";
 import { UnwrappedQueryResult } from "@/wab/shared/core/custom-functions";
 import { flattenedKeys } from "@/wab/shared/core/exprs";
 import { getFlattenedStateNames } from "@/wab/shared/core/states";
@@ -61,14 +62,57 @@ type SelectedItem = {
   item: number | undefined;
 };
 
-type SearchResultItem = {
-  itemPath: (string | number)[];
-  previewValue: string | undefined;
+interface SearchColumn {
+  items: ColumnItem[];
+  ancestor?: { column: SearchColumn; index: number; value: object };
+}
+
+interface SearchResultItem {
+  path: (string | number)[];
+  column: SearchColumn;
+  index: number;
   variableType: DataPickerSupportedVariableType;
-  matcher: Matcher;
-  onClick: () => void;
-  depth: number;
-};
+  children?: ColumnItem[];
+}
+
+function* searchPickerColumn(
+  items: ColumnItem[],
+  matcher: Matcher,
+  opts: DataPickerOpts,
+): Generator<SearchResultItem | undefined> {
+  let level: SearchColumn[] = [{ items }];
+  while (level.length) {
+    const nextLevel: SearchColumn[] = [];
+    for (const column of level) {
+      for (const [index, item] of column.items.entries()) {
+        const { value } = item;
+        const variableType = getVariableType(value);
+        if (!isTypeSupported(variableType)) {
+          yield undefined;
+          continue;
+        }
+        const path = getItemPath(item);
+        let children: ColumnItem[] | undefined;
+        if (isListType(variableType)) {
+          let ancestor = column.ancestor;
+          while (ancestor && ancestor.value !== value) {
+            ancestor = ancestor.column.ancestor;
+          }
+          if (!ancestor) {
+            children = mkColumnItems(value, path, opts);
+            if (children.length) {
+              nextLevel.push({ items: children, ancestor: { column, index, value } });
+            }
+          }
+        }
+        yield matcher.matches(path.join(" / "))
+          ? { path, column, index, variableType, children }
+          : undefined;
+      }
+    }
+    level = nextLevel;
+  }
+}
 
 export type InitialMode = "codeEditing" | "dataPicking";
 
@@ -203,6 +247,13 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
     [data],
   );
   const itemsRef = React.useRef<HTMLDivElement>(null);
+  const showingSearch = query !== "";
+  React.useLayoutEffect(() => {
+    const items = itemsRef.current;
+    if (showingSearch && items) {
+      items.scrollLeft = items.scrollWidth;
+    }
+  }, [showingSearch]);
   const searchboxRef = React.useRef<TextboxRef>(null);
   const editorRef = React.useRef<FullCodeEditor>(null);
   const getFixedInitialColumns = (val: DataPickerValueType) =>
@@ -222,89 +273,67 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
     setColumns(getFixedInitialColumns(currentItemPath));
   }, [showAdvancedFields]);
 
-  const getSearchResults = (): SearchResultItem[] => {
-    if (columns.length === 0 || query === "") {
-      return [];
+  const search = React.useMemo(() => {
+    const items = columns.at(-1)?.columnItems;
+    return query && items
+      ? { items, matcher: new Matcher(query, { matchMiddleOfWord: true }), showAdvancedFields }
+      : undefined;
+  }, [columns, query, showAdvancedFields]);
+  const [completedSearch, setCompletedSearch] = React.useState<{
+    search: NonNullable<typeof search>;
+    results: SearchResultItem[];
+  }>();
+  React.useEffect(() => {
+    if (!search) {
+      setCompletedSearch(undefined);
+      return;
     }
-    const matcher = new Matcher(query, { matchMiddleOfWord: true });
-    const searchResults: SearchResultItem[] = [];
-    const createSearchResult = (
-      currentColumnItems: ColumnItem[],
-      newColumns: Column[],
-      depth: number,
-    ) => {
-      currentColumnItems.forEach((item, index) => {
-        const path = getItemPath(item);
-        const val = item.value;
-        const variableType = getVariableType(val);
-        if (!isTypeSupported(variableType)) {
+    const rows = searchPickerColumn(search.items, search.matcher, {
+      showAdvancedFields: search.showAdvancedFields,
+    });
+    const results: SearchResultItem[] = [];
+    let timer: ReturnType<typeof setTimeout>;
+    const scan = () => {
+      const deadline = performance.now() + 8;
+      do {
+        const next = rows.next();
+        if (next.done) {
+          setCompletedSearch({ search, results });
           return;
         }
-        const keyCount = isListType(variableType)
-          ? getSupportedObjectKeys(val, opts).length
-          : 0;
-        const nextColumns = isListType(variableType)
-          ? mkColumnItems(val, path, opts)
-          : [];
-        const previewValue = !isListType(variableType)
-          ? evalExpr(
-              path,
-              ensure(fixedData, "Should only be called if data exists"),
-            )
-          : keyCount + ` item${keyCount === 1 ? "" : "s"}`;
-
-        // The join matches the format used in DataPickerGlobalSearchResultsItem
-        if (matcher.matches(path.join(" / "))) {
-          searchResults.push({
-            itemPath: path,
-            previewValue: previewValue,
-            variableType: variableType,
-            matcher: matcher,
-            onClick: () => {
-              setQuery("");
-              setDraft(pathToString(path));
-              setColumns([
-                ...newColumns,
-                {
-                  selectedItem: index,
-                  columnItems: currentColumnItems,
-                },
-                ...(isListType(variableType)
-                  ? [
-                      {
-                        selectedItem: undefined,
-                        columnItems: nextColumns,
-                      },
-                    ]
-                  : []),
-              ]);
-            },
-            depth,
-          });
+        if (next.value) {
+          results.push(next.value);
         }
-        if (isListType(variableType)) {
-          createSearchResult(
-            nextColumns,
-            newColumns.concat({
-              selectedItem: index,
-              columnItems: currentColumnItems,
-            }),
-            depth + 1,
-          );
-        }
-      });
+      } while (performance.now() < deadline);
+      timer = setTimeout(scan, 0);
     };
+    timer = setTimeout(scan, 0);
+    return () => clearTimeout(timer);
+  }, [search]);
+  const searchResults = completedSearch?.search === search
+    ? completedSearch?.results ?? []
+    : [];
 
-    createSearchResult(
-      columns[columns.length - 1].columnItems,
-      columns.slice(0, -1),
-      0,
-    );
-
-    return searchResults;
+  const selectSearchResult = (result: SearchResultItem) => {
+    const pathColumns: Column[] = [];
+    let { column, index } = result;
+    while (true) {
+      pathColumns.push({ columnItems: column.items, selectedItem: index });
+      if (!column.ancestor) {
+        break;
+      }
+      ({ column, index } = column.ancestor);
+    }
+    setQuery("");
+    setDraft(pathToString(result.path));
+    setColumns([
+      ...columns.slice(0, -1),
+      ...pathColumns.reverse(),
+      ...(result.children
+        ? [{ selectedItem: undefined, columnItems: result.children }]
+        : []),
+    ]);
   };
-
-  const searchResults = sortBy(getSearchResults(), (x) => x.depth);
 
   const onItemSelectedHandle = React.useCallback(
     (column: number, item: number) => {
@@ -596,12 +625,33 @@ function DataPicker_(props: DataPickerProps, ref: HTMLElementRefOf<"div">) {
           noOutline: true,
           autoFocus: true,
         }}
-        withSearchResult={query !== ""}
+        withSearchResult={showingSearch}
         searchResults={{
-          ref: (_) => itemsRef.current?.scrollTo({ left: 10000 }),
-          children: searchResults.map((_props, idx) => {
-            return <DataPickerGlobalSearchResultsItem {..._props} key={idx} />;
-          }),
+          children: (
+            <DataPickerVirtualList
+              count={query ? searchResults.length : 0}
+              rowHeight={72}
+              resetKey={query}
+              itemKey={(index) => pathToString(searchResults[index].path)}
+              renderRow={(index) => {
+                const result = searchResults[index];
+                const count = result.children?.length ?? 0;
+                return (
+                  <DataPickerGlobalSearchResultsItem
+                    itemPath={result.path}
+                    matcher={ensure(search, "Search results require a matcher").matcher}
+                    variableType={result.variableType}
+                    previewValue={
+                      isListType(result.variableType)
+                        ? count + ` item${count === 1 ? "" : "s"}`
+                        : evalExpr(result.path, ensure(fixedData, "Search requires a data environment"))
+                    }
+                    onClick={() => selectSearchResult(result)}
+                  />
+                );
+              }}
+            />
+          ),
         }}
         hasExpectedValues={!!expectedValues}
         expectedValues={expectedValues}

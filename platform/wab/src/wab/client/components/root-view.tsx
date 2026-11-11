@@ -530,6 +530,9 @@ function LoggedInContainer(props: LoggedInContainerProps) {
 
 function StartupFailure({ retry, error }: { retry: () => void; error: unknown }) {
   const location = useLocation();
+  React.useLayoutEffect(() => {
+    performance.mark("studio-load-error");
+  }, []);
   return (
     <React.Suspense fallback={<ApplicationPageLoading />}>
       <ApplicationPageLoading

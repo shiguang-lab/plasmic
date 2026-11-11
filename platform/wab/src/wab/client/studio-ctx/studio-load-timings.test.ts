@@ -48,3 +48,17 @@ it("records relative stage and frame timings once, excludes later arenas, and re
   snapshot.entries[0].durationMs = -1;
   expect(timings.snapshot().entries[0].durationMs).toBe(150);
 });
+
+it("reports completed stages to Desktop before the canvas reveals", () => {
+  vi.spyOn(navigator, "userAgent", "get").mockReturnValue("PlasmicDesktop/darwin");
+  let now = 100;
+  vi.spyOn(performance, "now").mockImplementation(() => now);
+  const log = vi.spyOn(console, "info").mockImplementation(() => undefined);
+  const timings = new StudioLoadTimings();
+  const done = timings.begin("project-fetch");
+  now = 140;
+  done();
+  done();
+  timings.mark("frame-rendered", "other-arena");
+  expect(log.mock.calls).toEqual([['[Studio startup] ["host","project-fetch",0,40]']]);
+});

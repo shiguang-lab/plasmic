@@ -280,7 +280,7 @@ const usedTokensForToken = memoizeModelQuery(function collectUsedTokensForToken(
   const allTokensDict = siteFinalStyleTokensAllDepsDict(site);
   const collector = new Set<StyleToken>();
   let sub = tryParseTokenRef(token.value, allTokensDict);
-  while (sub) {
+  while (sub && !collector.has(sub.base)) {
     collector.add(sub.base);
     if (sub.value) {
       sub = tryParseTokenRef(sub.value, allTokensDict);

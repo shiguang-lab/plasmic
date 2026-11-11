@@ -5,13 +5,14 @@ import StyleTokenRow from "@/wab/client/components/sidebar/StyleTokenRow";
 import { Matcher } from "@/wab/client/components/view-common";
 import { StudioCtxContext } from "@/wab/client/contexts/StudioContexts";
 import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import { mkStyleToken } from "@/wab/commons/StyleToken";
+import { mkStyleToken, mkTokenRef } from "@/wab/commons/StyleToken";
 import { VariantedStylesHelper } from "@/wab/shared/VariantedStylesHelper";
 import type { GetProjectResponse } from "@/wab/shared/ApiSchema";
 import { OverrideableToken } from "@/wab/shared/core/tokens";
 import { StyleTokenOverride } from "@/wab/shared/model/classes";
 import type { UiConfig } from "@/wab/shared/ui-config-utils";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { notification } from "antd";
 import React from "react";
 import { mock } from "vitest-mock-extended";
 
@@ -54,4 +55,25 @@ it("refreshes same-value override indicators and native permissions while retain
     expect(screen.queryByRole("menuitem", { name: "Override value" })).toBeNull();
     expect(model.value).toBe("12px"); expect(token.base).toBe(model);
   } finally { view.unmount(); studio.dispose(); }
+});
+
+it("reports a token replacement cycle through the Studio command", async () => {
+  const { studioCtx: studio } = fakeStudioCtx();
+  const notify = vi.spyOn(notification, "error").mockImplementation(() => {});
+  try {
+    await waitFor(() => expect(studio.initialRouteReady).toBe(true));
+    const source = mkStyleToken({ name: "Source", type: "Color", value: "#fff" });
+    const alias = mkStyleToken({ name: "Alias", type: "Color", value: mkTokenRef(source) });
+    await studio.changeUnsafe(() => {
+      studio.site.styleTokens.push(source, alias);
+    });
+
+    await studio.siteOps().swapTokens(source, alias);
+
+    expect(alias.value).toBe(mkTokenRef(source));
+    expect(notify).toHaveBeenCalledOnce();
+  } finally {
+    notify.mockRestore();
+    studio.dispose();
+  }
 });

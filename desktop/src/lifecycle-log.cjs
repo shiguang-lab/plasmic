@@ -7,9 +7,9 @@ function lifecycleError(error) {
     stack: error?.stack?.slice(0, 6000) };
 }
 
-function createLifecycleLog(profile, maxBytes = 2 * 1024 * 1024) {
+function createLifecycleLog(profile, maxBytes = 2 * 1024 * 1024, filename = "lifecycle.log") {
   const directory = path.join(profile, "logs");
-  const file = path.join(directory, "lifecycle.log");
+  const file = path.join(directory, filename);
   return (event, detail = {}) => {
     try {
       fs.mkdirSync(directory, { recursive: true, mode: 0o700 });

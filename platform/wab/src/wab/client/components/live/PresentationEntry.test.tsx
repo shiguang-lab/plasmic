@@ -7,6 +7,15 @@ import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { createMemoryHistory } from "history";
 import * as React from "react";
 const mocks = vi.hoisted(() => ({ get: vi.fn() }));
+vi.mock("@/wab/shared/shiguang-auth", async (importOriginal) => {
+  const auth = await importOriginal<typeof import("@/wab/shared/shiguang-auth")>();
+  return {
+    ...auth,
+    getShiguangSignInUrl: (returnTo: string) =>
+      // Use a fragment so jsdom can follow the redirect.
+      "#" + auth.getShiguangSignInUrl(returnTo),
+  };
+});
 vi.mock("@/wab/client/api", () => ({
   Api: class {
     getPresentation = mocks.get;
@@ -87,20 +96,20 @@ it("keeps the bootstrap logo while the presentation identifier resolves", async 
     bootstrap.remove();
   }
 });
-it("keeps an expired session retryable through the sign-in continuation", async () => {
-  window.history.replaceState(
-    null,
-    "",
-    "/d/entry12345?branch=design#/coupons/42?tag=a&tag=b#rules",
-  );
+it("redirects straight to unified sign-in without mounting Studio's login route", async () => {
   mocks.get.mockRejectedValue(new HttpError(401, "Unauthorized"));
   const { history } = setup();
+  const initial = history.location;
   try {
-    await waitFor(() => expect(history.location.pathname).toBe("/login"));
-    expect(new URLSearchParams(history.location.search).get("continueTo")).toBe(
-      "/d/entry12345?branch=design#/coupons/42?tag=a&tag=b#rules",
+    await waitFor(() => expect(window.location.hash).toMatch(/^#https:/));
+    const destination = new URL(window.location.hash.slice(1));
+    expect(destination.origin + destination.pathname).toBe("https://shiguanglab.com/login");
+    expect(destination.searchParams.get("return_to")).toBe(
+      window.location.origin + "/d/entry12345?branch=design#/coupons/42?tag=a&tag=b#rules",
     );
-    expect(screen.queryByText("Project consumers")).toBeTruthy();
+    expect(history.location).toBe(initial);
+    expect(screen.queryByText("Project consumers")).toBeNull();
+    expect(screen.queryByRole("link")).toBeNull();
   } finally {
     window.history.replaceState(null, "", "/");
   }

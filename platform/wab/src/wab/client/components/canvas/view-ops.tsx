@@ -1620,6 +1620,28 @@ export class ViewOps {
       curFocused: this.viewCtx().focusedSelectable(),
     });
   }
+  focusCanvasLayers(layers: readonly ValNode[], append: boolean) {
+    const view = this.viewCtx();
+    const heuristics = this.focusHeuristics();
+    const attached = new Map<TplNode, boolean>();
+    const targets: { target: Selectable; cloneKey: string | undefined }[] = [];
+    for (const layer of layers) {
+      let isAttached = attached.get(layer.tpl);
+      if (isAttached === undefined) {
+        isAttached = isTplAttachedToSite(view.site, layer.tpl);
+        attached.set(layer.tpl, isAttached);
+      }
+      if (!isAttached) {
+        continue;
+      }
+      const { focusTarget } = heuristics.bestFocusValTarget(layer, { exact: true });
+      if (focusTarget) {
+        targets.push({ target: focusTarget, cloneKey: view.sel2cloneKey(layer) });
+      }
+    }
+    view.setStudioFocusByCanvasLayers(targets, append);
+  }
+
   // Focus on either the given valNode/focusObj or the most reasonable containing
   // component, according to bestFocusTarget.
   tryFocusObj(

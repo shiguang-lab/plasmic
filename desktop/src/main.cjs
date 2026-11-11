@@ -49,7 +49,9 @@ const {
 } = require("./workspace.cjs");
 const { attachWindowRecovery } = require("./window-recovery.cjs");
 const { createLifecycleLog, lifecycleError } = require("./lifecycle-log.cjs");
+const { createProjectOpenLog } = require("./project-open-log.cjs");
 let lifecycleLog = () => {};
+let projectOpenLog;
 let controller, stopRpc, openMcpSettings, updates, openUpdates, workspace, presentation;
 let quitting = false;
 
@@ -189,10 +191,12 @@ async function startDesktop() {
     applicationVersion: app.getVersion(),
     version: `${manifest.build.kind} · ${manifest.build.revision?.slice(0, 10) || "unknown"}${manifest.build.dirty ? " + local changes" : ""}\nRenderer ${manifest.build.rendererHash.slice(0, 12)}\nBuilt ${manifest.build.builtAt}`,
   });
+  projectOpenLog ??= createProjectOpenLog(app.getPath("userData"), config);
   if (!desktopSession) {
     // Per-window/session overrides do not reach cross-origin Studio frames.
     app.userAgentFallback = `${app.userAgentFallback} PlasmicDesktop/${process.platform}`;
     desktopSession = session.fromPartition("persist:plasmic-desktop");
+    projectOpenLog.attachSession(desktopSession);
     desktopLogin = new DesktopUnifiedLogin({
       session: desktopSession,
       studioOrigin: config.studioOrigin,
@@ -599,6 +603,7 @@ async function startDesktop() {
   };
   const attachContents = (contents) => {
     require("./error-log.cjs").attachErrorLog(contents, app.getPath("userData"));
+    projectOpenLog.attachContents(contents, url => workspace.projectId(url));
     contents.on("before-input-event", userActivity);
     contents.on("before-mouse-event", (_event, mouse) => {
       if (["mouseDown", "mouseWheel"].includes(mouse.type)) userActivity();
@@ -878,7 +883,7 @@ async function startDesktop() {
     console.warn("Cannot restore desktop session:", error.message);
   });
   const startupEpoch = desktopIdentity.epoch;
-  const startupUrl = await workspace.startupUrl(desktopSession);
+  const startupUrl = await workspace.startupUrl(desktopSession, projectOpenLog.preflight);
   if (desktopIdentity.epoch !== startupEpoch) workspace.clearStartupData();
   buildMenu();
   const stopLocale = desktopI18n.subscribe(() => {

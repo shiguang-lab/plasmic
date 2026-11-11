@@ -1048,6 +1048,75 @@ describe("template render context ownership", () => {
     f.dispose();
   });
 
+  it("assigns duplicate repeat keys without revisiting earlier suffixes", () => {
+    const root = mkTplTagX("input");
+    const f = setup(root);
+    const count = 1000;
+    root.vsettings[0].dataRep = new Rep({
+      collection: codeLit(Array.from({ length: count }, (_, index) => index)),
+      element: mkVar("item"),
+      index: mkVar("index"),
+    });
+    const prefix = `${f.ctx.valKey}-`;
+    const has = Set.prototype.has;
+    let suffixChecks = 0;
+    Set.prototype.has = function (this: Set<unknown>, key: unknown) {
+      if (typeof key === "string" && key.startsWith(prefix)) {
+        suffixChecks++;
+      }
+      return has.call(this, key);
+    };
+    try {
+      const output = renderTplNode(root, f.ctx);
+      expect(React.isValidElement<{ children: React.ReactElement[] }>(output)).toBe(true);
+      if (!React.isValidElement<{ children: React.ReactElement[] }>(output)) {
+        throw new Error("Expected repeated elements");
+      }
+      expect(output.props.children.map((element) => element.key)).toEqual(
+        Array.from({ length: count }, (_, index) =>
+          index ? `${f.ctx.valKey}-${index + 1}` : f.ctx.valKey,
+        ),
+      );
+      expect(suffixChecks).toBeLessThanOrEqual(count);
+    } finally {
+      Set.prototype.has = has;
+      f.dispose();
+    }
+  });
+
+  it("scans retained canvas subscriptions once when many sibling renders hit the cache", () => {
+    const count = 100;
+    const root = mkTplTagX("div", {}, Array.from({ length: count }, () => mkTplTagX("span")));
+    const f = setup(root);
+    const owner = f.ctx.viewCtx.canvasRenderOwner;
+    const listener = () => {};
+    f.ctx.onRenderInvalidated = listener;
+    const run = () => {
+      const pass = owner.beginRender(listener);
+      let output: React.ReactNode;
+      try {
+        output = renderTplNode(root, f.ctx);
+      } finally {
+        owner.endRender(pass);
+      }
+      return { output, pass };
+    };
+    try {
+      const before = run();
+      const subscriptions = owner["modelSubscriptions"];
+      const iterator = vi.spyOn(subscriptions, Symbol.iterator);
+      owner.invalidateInstance(_testOnlyUtils.computeCanvasSessionKey(f.ctx), false);
+      const next = run();
+      expect(next.output).not.toBe(before.output);
+      expect(f.environments).toHaveBeenCalledTimes(count + 2);
+      expect(next.pass.instances).toEqual(before.pass.instances);
+      expect(iterator).toHaveBeenCalledTimes(1);
+      iterator.mockRestore();
+    } finally {
+      f.dispose();
+    }
+  });
+
   it("retains explicit slot content and invalidates it when the props record changes", () => {
     const param = mkParam({ name: "content", type: typeFactory.renderable(), paramType: "slot" });
     const root = mkSlot(param);

@@ -396,50 +396,26 @@ export const componentToReferencers = memoizeModelQuery(function componentToRefe
     for (const comp of site.components) {
       // This is basically the reverse map of componentToReferenced
       for (const refComp of componentToReferenced(comp)) {
-        if (site.components.includes(refComp)) {
-          ensure(
-            compToReferencers.get(refComp),
-            () => `Unknown refenrencer ${getComponentDisplayName(refComp)}`,
-          ).add(comp);
-        }
+        compToReferencers.get(refComp)?.add(comp);
       }
     }
     return compToReferencers;
   });
 
-export const deepComponentToReferencers = memoizeModelQuery(function deepComponentToReferencers(site: Site) {
-    const compToReferencers = componentToReferencers(site);
-    const deepCompToReferencers = new Map<Component, Set<Component>>();
-
-    const getDeepReferencers = (comp: Component): Set<Component> => {
-      if (deepCompToReferencers.has(comp)) {
-        return ensure(
-          deepCompToReferencers.get(comp),
-          () =>
-            `Missing deep refs for component ${getComponentDisplayName(comp)}`,
-        );
+/** Returns the changed components and every component that refers to them. */
+export function collectAffectedComponents(site: Site, changed: Iterable<Component>) {
+  const affected = new Set(changed);
+  if (affected.size) {
+    const referencers = componentToReferencers(site);
+    for (const component of affected) {
+      const direct = referencers.get(component);
+      if (direct) {
+        xAddAll(affected, direct);
       }
-      const shallowReferencers = [
-        ...ensure(
-          compToReferencers.get(comp),
-          () =>
-            `Missing referencers for component ${getComponentDisplayName(comp)}`,
-        ),
-      ];
-      const deepReferencers = new Set([
-        ...shallowReferencers,
-        ...shallowReferencers.flatMap((c) => [...getDeepReferencers(c)]),
-      ]);
-      deepCompToReferencers.set(comp, deepReferencers);
-      return deepReferencers;
-    };
-
-    for (const comp of site.components) {
-      getDeepReferencers(comp);
     }
-
-    return deepCompToReferencers;
-  });
+  }
+  return affected;
+}
 
 /**
  * Given a component, returns all other components that are used

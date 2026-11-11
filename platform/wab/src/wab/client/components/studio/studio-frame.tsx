@@ -249,6 +249,13 @@ export function StudioFrame({
   });
 
   const updateStartup = useStudioStartup();
+  React.useLayoutEffect(() => {
+    if (studioError) {
+      performance.mark("studio-load-error");
+    } else if (studioReady) {
+      performance.mark("studio-ready");
+    }
+  }, [studioReady, studioError]);
   React.useLayoutEffect(() => () => {
     updateStartup({ composer: undefined, ready: false });
   }, [updateStartup]);

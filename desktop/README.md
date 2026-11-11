@@ -1097,6 +1097,23 @@ backup (`errors.log.1`). The default macOS profile is
 it. Agent-triggered changes and saves return failures to the caller without
 showing client error toasts. User-triggered operations retain normal feedback.
 
+Project opening diagnostics are saved to `<profile>/logs/project-open.log`,
+rotating at 2 MiB with one backup. A restored project records its access check
+as `project-open.preflight`. Each editor navigation then has an `openId` and a
+start record. After 10 seconds, the slow record includes completed and pending
+requests and renderer stages observed so far. Studio startup errors capture a
+snapshot while allowing an in-page retry to continue the same trace. The final
+record reports readiness, navigation failure, renderer exit, replacement,
+closure, or a two-minute timeout.
+
+Request timings measure the Desktop renderer's view of the request, including
+the local protocol handler. Records include HTTP status or Chromium's network
+error, local-asset and browser-cache flags, and the gateway request ID when
+present in the response. Known routes use templates. External frame requests
+record timing and status without the URL. The log excludes URL queries,
+fragments, cookies, and bodies. Stage `atMs` and request `startMs` use the
+Desktop navigation clock. Stage `startMs` uses the renderer's own clock.
+
 Desktop lifecycle events are saved to `<profile>/logs/lifecycle.log`; independent
 MCP helpers write `<profile>/logs/mcp-lifecycle.log`. Each rotates at 2 MiB with one
 `.1` backup. Records include UTC time, PID/parent PID, lifecycle event and relevant

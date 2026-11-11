@@ -1,0 +1,32 @@
+.dictTreePopup {
+  :global {
+    [class*='-select-tree-list-holder-inner'] {
+      width: 100%;
+    }
+
+    [class*='-select-tree-treenode'] {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    [class*='-select-tree-node-content-wrapper'] {
+      min-width: 0;
+      overflow: hidden;
+      flex: auto;
+    }
+
+    [class*='-select-tree-title'] {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+    }
+  }
+}
+
+.treeNodeTitle {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

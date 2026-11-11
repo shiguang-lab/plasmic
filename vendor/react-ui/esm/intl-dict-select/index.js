@@ -1,0 +1,10 @@
+import { withConfigProvider } from "../config-provider/index.js";
+import InternalIntlDictSelect from "./IntlDictSelect.js";
+import { IntlDictView } from "../intl-dict-view/index.js";
+var WrappedIntlDictSelect = withConfigProvider(InternalIntlDictSelect);
+WrappedIntlDictSelect.View = IntlDictView;
+export var IntlDictSelect = WrappedIntlDictSelect;
+export default IntlDictSelect;
+export { IntlDictView };
+export { fetchDictItems, clearDictCache } from "./service.js";
+export { formatTreeData, defaultFilterTreeNode } from "./utils.js";

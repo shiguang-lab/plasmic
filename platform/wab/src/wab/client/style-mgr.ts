@@ -18,7 +18,6 @@ import {
 import {
   assert,
   ensure,
-  maybe,
   tuple,
   withoutNils,
   xSetDefault,
@@ -106,51 +105,15 @@ export interface UpsertStyleChanges {
   rulesReorderedComponents?: Set<Component>;
 }
 
-interface VersionedStyleText {
-  version: number;
-  styleText: string;
-}
-
-/**
- * StyleMgr manages updating the style sheets inside artboards. Note that
- * right now, we are putting all styles for all components into each
- * artboard, which means every artboard has the same set of style sheets.
- *
- * There are two times when we need to update styles:
- *
- * 1. When an artboard first loads; we need to bulk-update it with all the
- *    style sheets.
- * 2. When a tpl, token, mixin, etc are updated; we want to re-generate and
- *    update as little as possible for performance.
- *
- * The strategy here is that we will create one <style/> element per component,
- * and then one for default styles, and one for the css variables (tokens /
- * mixins).  When a tpl style is updated, we re-generate the whole text content
- * of the style sheet for that component, and set it as the new textContent of
- * the corresponding style element.
- *
- * Alternative approaches:
- * - We used to put everything into a single giant style sheet. However, that
- *   means once we have a large project with tons of components, updating a
- *   single tpl node's styles means wiping out and resetting the textContent
- *   of the style element.  For large projects, this can cause a huge layout /
- *   style recalculation taking 200+ms, which makes it quite slow for things like
- *   dragging to move or resize.
- * - We've also tried to specifically manage CSSStyleSheet rules via insertRule
- *   and deleteRule.  However, creating rules this way is slower than setting
- *   styleElement.textContent for the initial load, though it is faster for
- *   subsequent surgical updates of specific rules.  It also requires a lot of
- *   tricky maintenance of indexes etc to know exactly which rules to update
- *   and where to insert a new rule. If the current scheme of one style sheet
- *   per component is still not performant enough, we may switch to managing
- *   CSSRules directly instead.
- */
+/** Builds component style text and installs the sheets each artboard needs.
+ * Installed sheets retain their cascade order across updates. */
 export class StyleMgr {
+  private readonly installedSheetText = new WeakMap<HTMLElement, string>();
   /** Default styles, immutable */
   private defaultStylesRule: string;
 
   /** Latest style text for css variables */
-  private varsStyleText: VersionedStyleText;
+  private varsStyleText: string;
 
   /** ProjectDependencies don't ened to be versioned because they are immutable */
   private depToStyleText: WeakMap<ProjectDependency, string> = new WeakMap();
@@ -159,7 +122,7 @@ export class StyleMgr {
   private dirtyComponents = new Set<Component>();
 
   /** Mapping from Component to its latest style text */
-  private componentToStyleText: WeakMap<Component, VersionedStyleText> =
+  private componentToStyleText: WeakMap<Component, string> =
     new WeakMap();
 
   /**
@@ -352,26 +315,17 @@ export class StyleMgr {
   upsertStyleSheets(doc: Document, rootComp: Component) {
     const site = this.studioCtx.site;
 
-    let frag: DocumentFragment | undefined = undefined;
+    const sheets: HTMLElement[] = [];
 
-    const upsertStyleSheet = (
-      id: string,
-      styleText: string,
-      version?: number,
-    ) => {
-      let style = doc.getElementById(id);
-      if (!style) {
-        style = doc.createElement("style");
-        style.id = id;
+    const upsertStyleSheet = (id: string, styleText: string) => {
+      const existing = doc.getElementById(id);
+      const style = existing ?? doc.createElement("style");
+      if (!existing) { style.id = id; }
+      if (this.installedSheetText.get(style) !== styleText) {
+        style.textContent = styleText;
+        this.installedSheetText.set(style, styleText);
       }
-      style.textContent = styleText;
-      if (version !== undefined) {
-        style["data-version"] = version;
-      }
-      if (!frag) {
-        frag = doc.createDocumentFragment();
-      }
-      frag.appendChild(style);
+      sheets.push(style);
     };
 
     upsertStyleSheet("plasmic-react-web", reactWebCss);
@@ -393,27 +347,26 @@ export class StyleMgr {
       );
     }
 
-    upsertStyleSheet(
-      "plasmic-vars",
-      this.varsStyleText.styleText,
-      this.varsStyleText.version,
-    );
+    upsertStyleSheet("plasmic-vars", this.varsStyleText);
 
     const neededComps = componentToDeepReferenced(rootComp, true);
+    const localComponents = new Set(site.components);
     for (const comp of neededComps) {
-      if (isCodeComponent(comp) || !site.components.includes(comp)) {
+      if (isCodeComponent(comp) || !localComponents.has(comp)) {
         continue;
       }
-      const compStyle = this.getComponentStyleText(comp);
-      upsertStyleSheet(
-        `plasmic-comp-${comp.uuid}`,
-        compStyle.styleText,
-        compStyle.version,
-      );
+      upsertStyleSheet(`plasmic-comp-${comp.uuid}`, this.getComponentStyleText(comp));
     }
 
-    if (frag) {
-      doc.head.appendChild(frag);
+    // Keep the managed sheets at the end in cascade order. Unchanged sheets
+    // already in position stay attached so the browser can reuse their CSS.
+    let next: HTMLElement | null = null;
+    for (let index = sheets.length - 1; index >= 0; index--) {
+      const style = sheets[index];
+      if (style.parentNode !== doc.head || style.nextSibling !== next) {
+        doc.head.insertBefore(style, next);
+      }
+      next = style;
     }
   }
 
@@ -423,10 +376,9 @@ export class StyleMgr {
   }
 
   private getComponentStyleText(component: Component) {
-    const siteGenHelper = new SiteGenHelper(this.studioCtx.site, true);
-    const compGenHelper = new ComponentGenHelper(siteGenHelper, undefined);
     if (!this.componentToStyleText.has(component)) {
       const site = this.studioCtx.site;
+      const compGenHelper = new ComponentGenHelper(new SiteGenHelper(site, true), undefined);
       assert(
         !isCodeComponent(component) && site.components.includes(component),
         () =>
@@ -462,9 +414,6 @@ export class StyleMgr {
           component,
         )} (uuid: ${component.uuid})`,
     ).filter((vs) => isActiveVariantSetting(this.studioCtx.site, vs.vs));
-    const existingVersion =
-      maybe(this.componentToStyleText.get(component), (x) => x.version) ?? 0;
-
     let styleText = vsRules.flatMap((x) => x.rules).join("\n");
 
     // Append temporary animation preview rules if active for this component
@@ -483,15 +432,12 @@ export class StyleMgr {
       }
     }
 
-    this.componentToStyleText.set(component, {
-      version: existingVersion + 1,
-      styleText,
-    });
+    this.componentToStyleText.set(component, styleText);
   }
 
   private updateCssVarsRule() {
     const site = this.studioCtx.site;
-    const styleText = mkCssVarsRuleForCanvas(
+    this.varsStyleText = mkCssVarsRuleForCanvas(
       site,
       siteFinalStyleTokensAllDeps(this.studioCtx.site),
       allMixins(this.studioCtx.site, { includeDeps: "all" }),
@@ -509,10 +455,6 @@ export class StyleMgr {
       site.imageAssets,
       site.activeTheme ?? null,
     );
-    this.varsStyleText = {
-      styleText,
-      version: (this.varsStyleText?.version ?? 0) + 1,
-    };
   }
 
   private updateProjectDep(dep: ProjectDependency) {

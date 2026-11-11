@@ -11,7 +11,7 @@ import {
 import {
   componentToTplComponents,
   componentsReferencingDataToken,
-  deepComponentToReferencers,
+  collectAffectedComponents,
   extractComponentVariantSettings,
   extractImageAssetRefsByAttrs,
 } from "@/wab/shared/cached-selectors";
@@ -908,18 +908,7 @@ function getDeeplyChangedComponent(
     return changed;
   }
 
-  // Next, gather up all components that deeply reference the changed components
-  const deepCompToReferencers = deepComponentToReferencers(studioCtx.site);
-  const seedChanged = [...changed];
-  const deepChanged = new Set([
-    ...seedChanged,
-    ...seedChanged.flatMap((comp) => [
-      // if comp had been deleted from site, it's possible for deepCompToReferencers
-      // to remove undefined
-      ...(deepCompToReferencers.get(comp) ?? []),
-    ]),
-  ]);
-  return deepChanged;
+  return collectAffectedComponents(studioCtx.site, changed);
 }
 
 function isResponsiveColumnsChange(change: ModelChange) {

@@ -45,13 +45,12 @@ function setup(zoom = 1) {
   vc.currentComponentCtx.mockReturnValue(null);
   const selected: (Selectable | null)[] = [];
   vc.focusedSelectables.mockImplementation(() => selected);
-  vc.setStudioFocusBySelectable.mockImplementation((val) => {
-    selected.splice(0, selected.length, ...(val ? [val] : []));
-  });
   const viewOps = mock<ReturnType<ViewCtx["getViewOps"]>>();
-  const tryFocusObj = viewOps.tryFocusObj;
-  tryFocusObj.mockImplementation((val) => {
-    selected.push(val);
+  const focusCanvasLayers = viewOps.focusCanvasLayers;
+  focusCanvasLayers.mockImplementation((layers, append) => {
+    const next = new Set(append ? selected : []);
+    layers.forEach((layer) => next.add(layer));
+    selected.splice(0, selected.length, ...next);
   });
   viewOps.isRootNodeOfFrame.mockImplementation((tpl) => tpl === rootTpl);
   vc.getViewOps.mockReturnValue(viewOps);
@@ -89,7 +88,7 @@ function setup(zoom = 1) {
     secondVal,
     owner,
     selected,
-    tryFocusObj,
+    focusCanvasLayers,
     measure,
     elements,
   };
@@ -172,11 +171,11 @@ it("selects a container without also selecting its children", () => {
 });
 
 it("replaces selection and Shift appends without toggling selected nodes off", () => {
-  const { vc, firstVal, secondVal, selected, tryFocusObj } = setup();
+  const { vc, firstVal, secondVal, selected, focusCanvasLayers } = setup();
   selected.push(firstVal);
   selectMarquee(vc, new Box(200, 100, 100, 50), true);
   expect(selected).toEqual([firstVal, secondVal]);
-  expect(tryFocusObj).toHaveBeenCalledTimes(1);
+  expect(focusCanvasLayers).toHaveBeenCalledExactlyOnceWith([firstVal, secondVal], true);
   selectMarquee(vc, new Box(200, 150, 50, 50), false);
   expect(selected).toEqual([secondVal]);
   selectMarquee(vc, new Box(200, 200, 20, 20), false);

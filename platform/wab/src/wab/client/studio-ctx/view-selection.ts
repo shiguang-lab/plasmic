@@ -225,7 +225,7 @@ export class ViewSelection {
     return commands;
   }
 
-  private captureTarget(command: Selectable, previous?: SelectionTargetRef | null) {
+  private captureTarget(command: Selectable, previous?: SelectionTargetRef | null, selected = false) {
     const slot = command instanceof SlotSelection;
     const value = slot ? command.val : command;
     const owners: { tpl: ModelRef<TplComponent>; fullKey: string }[] = [];
@@ -234,13 +234,13 @@ export class ViewSelection {
     }
     const next = Object.freeze({ kind: slot ? "slot" as const : "value" as const, tpl: this.models().ref(slot ? command.getTpl() : command.tpl), key: makeSelectableKey(command), fullKey: makeSelectableFullKey(command), slotParam: slot ? this.models().ref(command.slotParam) : command instanceof ValSlot ? this.models().ref(command.tpl.param) : undefined, slotOwner: command instanceof ValSlot && command.valOwner ? this.models().ref(command.valOwner.tpl) : undefined, owners: Object.freeze(owners) });
     const ref = sameTarget(next, previous) ? ensure(previous, "Expected matching selection identity") : next;
-    if (this.targetCommands.get(ref) !== command && this.current().targets.includes(ref)) { this.targetCommandsCache = undefined; }
+    if (selected && ref === previous && this.targetCommands.get(ref) !== command) { this.targetCommandsCache = undefined; }
     this.assignTargetCommand(ref, command);
     return ref;
   }
   setTargets(commands: readonly (Selectable | null)[]) { this.assertActive();
     const before = this.current().targets;
-    const targets = commands.map((command, i) => command ? this.captureTarget(command, before[i]) : null);
+    const targets = commands.map((command, i) => command ? this.captureTarget(command, before[i], true) : null);
     if (!arrayEq(before, targets)) { this.targetCommandsCache = undefined; this.update({ targets: Object.freeze(targets) }); }
   }
   resolveTarget(ref: SelectionTargetRef): Selectable {

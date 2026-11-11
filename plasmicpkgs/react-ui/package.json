@@ -40,6 +40,7 @@
     "antd": "6.7.0",
     "@shiguang-lab/plasmic-antd6": "workspace:*",
     "@ant-design/icons": "6.3.4",
+    "ahooks": "3.10.0",
     "classcat": "^5.0.5",
     "antd-style": "^4.1.0"
   },

@@ -326,6 +326,7 @@ export interface CanvasRenderPass {
   readonly listener: () => void;
   readonly instances: Set<string>;
   readonly environments: Set<string>;
+  readonly reused: Map<string | undefined, Set<string>>;
   readonly previous: CanvasRenderPass | undefined;
 }
 interface InstanceCache {
@@ -705,13 +706,31 @@ export class CanvasRenderOwner {
   }
 
   beginRender(listener: () => void): CanvasRenderPass {
-    const pass = { listener, instances: new Set<string>(), environments: new Set<string>(), previous: this.activeRenderPasses.get(listener) };
+    const pass: CanvasRenderPass = { listener, instances: new Set(), environments: new Set(), reused: new Map(), previous: this.activeRenderPasses.get(listener) };
     this.activeRenderPasses.set(listener, pass); return pass;
   }
   endRender(pass: CanvasRenderPass) {
     if (this.activeRenderPasses.get(pass.listener) === pass) {
       if (pass.previous) { this.activeRenderPasses.set(pass.listener, pass.previous); }
       else { this.activeRenderPasses.delete(pass.listener); }
+    }
+    if (!pass.reused.size) { return; }
+    // Resolve cached subtrees once per pass, while their environments still
+    // belong to this render candidate.
+    for (const [instance, subscription] of this.modelSubscriptions) {
+      const prefixes = pass.reused.get(subscription.renderSlotInstance);
+      if (!prefixes || !subscription.listeners.has(pass.listener)) { continue; }
+      const fullKey = subscription.fullKey;
+      let prefix = fullKey;
+      while (!prefixes.has(prefix)) {
+        const separator = prefix.lastIndexOf(".");
+        if (separator < 0) { break; }
+        prefix = prefix.slice(0, separator);
+      }
+      if (prefixes.has(prefix)) {
+        pass.instances.add(instance);
+        this.instances.get(instance)?.environmentIds.forEach((id) => pass.environments.add(id));
+      }
     }
   }
   commitRender(pass: CanvasRenderPass) {
@@ -799,12 +818,9 @@ export class CanvasRenderOwner {
       pass.instances.add(instance);
       if (hit) {
         resource.environmentIds.forEach((id) => pass.environments.add(id));
-        for (const [key, descendant] of this.modelSubscriptions) {
-          if (descendant.listeners.has(pass.listener) && descendant.renderSlotInstance === ctx.renderSlotInstance &&
-            (descendant.fullKey === resource.fullKey || descendant.fullKey.startsWith(resource.fullKey + "."))) {
-            pass.instances.add(key); this.instances.get(key)?.environmentIds.forEach((id) => pass.environments.add(id));
-          }
-        }
+        let reused = pass.reused.get(ctx.renderSlotInstance);
+        if (!reused) { reused = new Set(); pass.reused.set(ctx.renderSlotInstance, reused); }
+        reused.add(resource.fullKey);
       }
     }
     if (hit) { return hit[1].value as R; }

@@ -1,4 +1,4 @@
-import { flattenComponent } from "@/wab/shared/cached-selectors";
+import { collectAffectedComponents, flattenComponent } from "@/wab/shared/cached-selectors";
 import { ensureVariantSetting, mkBaseVariant } from "@/wab/shared/Variants";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { mkCodeComponent } from "@/wab/shared/code-components/code-components";
@@ -37,6 +37,32 @@ it("retains topology across labels/styles and updates children, slots, roots and
     const replacement = mkTplTagX("div", { baseVariant: base });
     recorder.withRecording(() => { owner.params = []; owner.tplTree = replacement; expect(flattenComponent(owner)).toEqual([replacement]); });
   } finally { recorder.dispose(); }
+});
+
+it("computes complete referencer closures across cycles and acyclic branches", () => {
+  const site = createSite();
+  const [a, b, before, after, next, leaf, self] = [
+    "A", "B", "Before", "After", "Next", "Leaf", "Self",
+  ].map((name) =>
+    mkComponent({ name, type: ComponentType.Plain, tplTree: mkTplTagX("div") }),
+  );
+  a.tplTree = mkTplTagX("div", {}, [
+    mkTplComponent(b, a.variants[0]),
+    mkTplComponent(before, a.variants[0]),
+  ]);
+  b.tplTree = mkTplComponent(a, b.variants[0]);
+  after.tplTree = mkTplComponent(a, after.variants[0]);
+  next.tplTree = mkTplComponent(after, next.variants[0]);
+  leaf.tplTree = mkTplComponent(next, leaf.variants[0]);
+  self.tplTree = mkTplComponent(self, self.variants[0]);
+  site.components.push(a, b, before, after, next, leaf, self);
+
+  expect(collectAffectedComponents(site, [a])).toEqual(new Set([a, b, after, next, leaf]));
+  expect(collectAffectedComponents(site, [before, self])).toEqual(
+    new Set([before, self, a, b, after, next, leaf]),
+  );
+  expect(collectAffectedComponents(site, [after])).toEqual(new Set([after, next, leaf]));
+  expect(collectAffectedComponents(site, [leaf])).toEqual(new Set([leaf]));
 });
 
 it("invalidates component slot topology when arguments or registered slot types change", () => {

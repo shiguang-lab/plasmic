@@ -89,6 +89,50 @@ function overlayViewCtx() {
   }) as ViewCtx;
 }
 
+test("publishes a canvas layer selection as one batch and retains its first item on append", () => {
+  const view = overlayViewCtx();
+  const component = mkComponent({
+    name: "Layers",
+    type: ComponentType.Plain,
+    tplTree: (baseVariant) => mkTplTagX("div", { baseVariant }, [
+      mkTplTagX("span", { baseVariant }),
+      mkTplTagX("span", { baseVariant }),
+      mkTplTagX("span", { baseVariant }),
+    ]),
+  });
+  const owner = buildValTree(mkTplComponent(component, component.variants[0]));
+  const root = ensureInstance(owner.contents?.[0], ValTag);
+  const [first, second, third] = root.children;
+  const focus = vi.fn();
+  Object.assign(view.studioCtx, { setStudioFocusOnViewCtxContent: focus });
+  vi.spyOn(view, "transactionSelectionInputs").mockImplementation((command) =>
+    view.selection.transaction(command),
+  );
+  vi.spyOn(view, "sel2cloneKey").mockImplementation((value) =>
+    value instanceof ValTag ? value.fullKey : undefined,
+  );
+  vi.spyOn(view, "selectionDom").mockReturnValue(null);
+  vi.spyOn(view, "tryBlurEditingText").mockImplementation(() => {});
+  vi.spyOn(view, "maybeClearAutoOpenedContentOnSelectionChange").mockImplementation(() => {});
+  const publish = vi.fn();
+  const stop = view.selectionStore.subscribe(publish);
+  const select = (layers: readonly ValTag[], append: boolean) =>
+    view.setStudioFocusByCanvasLayers(layers.map((target) => ({ target, cloneKey: target.fullKey })), append);
+  try {
+    select([first as ValTag, second as ValTag], false);
+    expect(view.focusedSelectables()).toEqual([first, second]);
+    expect(publish).toHaveBeenCalledTimes(1);
+    expect(focus).toHaveBeenCalledTimes(1);
+    select([second as ValTag, third as ValTag], true);
+    expect(view.focusedSelectables()).toEqual([first, second, third]);
+    expect(view.focusedCloneKeys()).toEqual([first.fullKey, second.fullKey, third.fullKey]);
+    expect(publish).toHaveBeenCalledTimes(2);
+    expect(focus).toHaveBeenCalledTimes(2);
+  } finally {
+    stop();
+  }
+});
+
 test("selection, toolbar and hidden-content status share one open state per instance", () => {
   const viewCtx = overlayViewCtx();
   expect(viewCtx.hasShownHiddenContent).toBe(false);

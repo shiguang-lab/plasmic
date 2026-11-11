@@ -11,6 +11,9 @@ export class StudioLoadTimings {
     }
   >();
   private initialFrames = new Set<string>();
+  private readonly reportToDesktop =
+    typeof navigator !== "undefined" && navigator.userAgent.includes("PlasmicDesktop/");
+  private desktopFrameReports = 0;
 
   setInitialFrames(frameUuids: string[]) {
     this.initialFrames = new Set(frameUuids);
@@ -18,25 +21,14 @@ export class StudioLoadTimings {
 
   begin(phase: string, frameUuid?: string): () => void {
     const start = performance.now();
-    return () => {
-      const key = `${phase}:${frameUuid ?? ""}`;
-      if (
-        this.entries.has(key) ||
-        (frameUuid && !this.initialFrames.has(frameUuid))
-      ) {
-        return;
-      }
-      performance.mark(`studio:${phase}${frameUuid ? `:${frameUuid}` : ""}`);
-    this.entries.set(key, {
-        phase,
-        frameUuid,
-        startMs: start - this.startedAt,
-        durationMs: performance.now() - start,
-      });
-    };
+    return () => this.record(phase, frameUuid, start, performance.now() - start);
   }
 
   mark(phase: string, frameUuid?: string) {
+    this.record(phase, frameUuid, performance.now(), 0);
+  }
+
+  private record(phase: string, frameUuid: string | undefined, start: number, durationMs: number) {
     const key = `${phase}:${frameUuid ?? ""}`;
     if (
       this.entries.has(key) ||
@@ -45,12 +37,16 @@ export class StudioLoadTimings {
       return;
     }
     performance.mark(`studio:${phase}${frameUuid ? `:${frameUuid}` : ""}`);
-    this.entries.set(key, {
-      phase,
-      frameUuid,
-      startMs: performance.now() - this.startedAt,
-      durationMs: 0,
-    });
+    const startMs = start - this.startedAt;
+    this.entries.set(key, { phase, frameUuid, startMs, durationMs });
+    if (this.reportToDesktop && (!frameUuid || this.desktopFrameReports < 60)) {
+      const data = ["host", phase, startMs, durationMs];
+      if (frameUuid) {
+        this.desktopFrameReports++;
+        data.push(frameUuid);
+      }
+      console.info("[Studio startup] " + JSON.stringify(data));
+    }
   }
 
   has(phase: string, frameUuid?: string) {

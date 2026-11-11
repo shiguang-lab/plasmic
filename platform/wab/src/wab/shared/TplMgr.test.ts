@@ -1,6 +1,7 @@
+import { mkStyleToken, mkTokenRef } from "@/wab/commons/StyleToken";
 import { mkArenaFrame, mkMixedArena } from "@/wab/shared/Arenas";
 import { TplMgr, ensureBaseVariant, uniquePagePath } from "@/wab/shared/TplMgr";
-import { mkVariantSetting } from "@/wab/shared/Variants";
+import { mkVariant, mkVariantSetting } from "@/wab/shared/Variants";
 import {
   componentMetaToComponentParams,
   mkCodeComponent,
@@ -34,13 +35,94 @@ import {
   QueryInvalidationExpr,
   QueryRef,
   Site,
+  StyleTokenOverride,
   TplComponent,
   VarRef,
   VariantGroup,
+  VariantedValue,
   VariantsRef,
   ensureKnownTplTag,
 } from "@/wab/shared/model/classes";
 import { GlobalContextMeta } from "@plasmicapp/host";
+
+describe("swapTokens", () => {
+  function setup() {
+    const site = createSite();
+    const source = mkStyleToken({ name: "Source", type: "Color", value: "#fff" });
+    const target = mkStyleToken({ name: "Target", type: "Color", value: "#000" });
+    const component = mkComponent({
+      name: "Example",
+      type: ComponentType.Plain,
+      tplTree: (baseVariant) =>
+        mkTplTagX("div", { baseVariant, styles: { color: mkTokenRef(source) } }),
+    });
+    site.components.push(component);
+    site.styleTokens.push(source, target);
+    return {
+      site,
+      source,
+      target,
+      manager: new TplMgr({ site }),
+      styles: component.tplTree.vsettings[0].rs.values,
+    };
+  }
+
+  it("rejects a replacement that would turn the target into a self-reference", () => {
+    const { manager, source, target, styles } = setup();
+    target.value = mkTokenRef(source);
+
+    expect(manager.swapTokens(source, target)).toBe(false);
+    expect(target.value).toBe(mkTokenRef(source));
+    expect(styles.color).toBe(mkTokenRef(source));
+  });
+
+  it("rejects a replacement that would close an indirect base alias cycle", () => {
+    const { site, manager, source, target, styles } = setup();
+    const alias = mkStyleToken({ name: "Alias", type: "Color", value: mkTokenRef(source) });
+    site.styleTokens.push(alias);
+    target.value = mkTokenRef(alias);
+
+    expect(manager.swapTokens(source, target)).toBe(false);
+    expect(alias.value).toBe(mkTokenRef(source));
+    expect(styles.color).toBe(mkTokenRef(source));
+  });
+
+  it("rejects replacing a reference in the target's own variant value", () => {
+    const { manager, source, target, styles } = setup();
+    const value = new VariantedValue({ variants: [mkVariant({ name: "Dark" })], value: mkTokenRef(source) });
+    target.variantedValues.push(value);
+
+    expect(manager.swapTokens(source, target)).toBe(false);
+    expect(value.value).toBe(mkTokenRef(source));
+    expect(styles.color).toBe(mkTokenRef(source));
+  });
+
+  it("rejects replacing the source in a registered target's override", () => {
+    const { site, manager, source, target, styles } = setup();
+    target.isRegistered = true;
+    const override = new StyleTokenOverride({
+      token: target,
+      value: mkTokenRef(source),
+      variantedValues: [],
+    });
+    site.styleTokenOverrides.push(override);
+
+    expect(manager.swapTokens(source, target)).toBe(false);
+    expect(override.value).toBe(mkTokenRef(source));
+    expect(styles.color).toBe(mkTokenRef(source));
+  });
+
+  it("rewrites ordinary style and alias usages when the target is independent", () => {
+    const { site, manager, source, target, styles } = setup();
+    const alias = mkStyleToken({ name: "Alias", type: "Color", value: mkTokenRef(source) });
+    site.styleTokens.push(alias);
+
+    expect(manager.swapTokens(source, target)).toBe(true);
+
+    expect(styles.color).toBe(mkTokenRef(target));
+    expect(alias.value).toBe(mkTokenRef(target));
+  });
+});
 
 describe("uniquePagePath", () => {
   it("works", () => {

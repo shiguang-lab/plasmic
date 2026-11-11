@@ -5,7 +5,16 @@ import { defineConfig } from "vitest/config";
 
 const studioRequire = createRequire(new URL("../../platform/wab/package.json", import.meta.url));
 const antdRequire = createRequire(studioRequire.resolve("antd/package.json"));
+const packageRequire = createRequire(import.meta.url);
 const aliases = [
+  // Let the test runner resolve ahooks' React imports through the Studio alias.
+  {
+    find: /^ahooks$/,
+    replacement: path.join(
+      path.dirname(packageRequire.resolve("ahooks/package.json")),
+      "es/index.js",
+    ),
+  },
   { find: /^@plasmicapp\/data-sources$/, replacement: fileURLToPath(new URL("../../packages/data-sources/src/index.tsx", import.meta.url)) },
   { find: /^@plasmicapp\/data-sources-context$/, replacement: fileURLToPath(new URL("../../packages/data-sources-context/src/index.tsx", import.meta.url)) },
   { find: /^@plasmicapp\/host$/, replacement: fileURLToPath(new URL("../../packages/host/src/index.ts", import.meta.url)) },
@@ -21,6 +30,7 @@ export default defineConfig({
   resolve: { alias: aliases },
   test: {
     environment: "jsdom",
+    server: { deps: { inline: [/\bahooks\b/] } },
     include: ["src/*.test.tsx", "tests/**/*.test.tsx"],
     setupFiles: ["../antd6/tests/setup.ts"],
   },

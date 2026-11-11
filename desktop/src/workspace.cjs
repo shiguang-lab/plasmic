@@ -89,7 +89,7 @@ class DesktopWorkspace {
     this.recent = recent;
     return true;
   }
-  async startupUrl(session) {
+  async startupUrl(session, logPreflight) {
     const home = this.origin + "/";
     const id = this.projectId(this.lastUrl);
     if (!id) {
@@ -110,8 +110,11 @@ class DesktopWorkspace {
       cache: "no-store",
       signal: AbortSignal.timeout(10000),
     };
+    const started = performance.now();
+    const preflight = { projectId: id, outcome: "failed" };
     try {
       const response = await session.fetch(url.toString(), options);
+      preflight.projectStatus = response.status;
       if (response.ok) {
         const opening = await response.json();
         if (opening.project?.id !== id || opening.startup?.projectId !== id) {
@@ -120,6 +123,7 @@ class DesktopWorkspace {
         this.startupData = { data: opening, expiresAt: Date.now() + 30000 };
         this.startupTimer = setTimeout(() => this.clearStartupData(), 30000);
         this.startupTimer.unref();
+        preflight.outcome = "prefetched";
         return this.lastUrl;
       } else if (![401, 403, 404].includes(response.status)) {
         throw new Error(
@@ -132,8 +136,10 @@ class DesktopWorkspace {
         this.origin + "/api/auth/session",
         options,
       );
+      preflight.sessionStatus = login.status;
       const status = await login.json();
       if (login.status === 401 && status.authenticated === false) {
+        preflight.outcome = "sign-in";
         return this.lastUrl;
       }
       if (!login.ok || status.authenticated !== true) {
@@ -143,8 +149,12 @@ class DesktopWorkspace {
       this.saveRecent(
         this.recent.filter((item) => this.projectId(item.url) !== id),
       );
+      preflight.outcome = "denied";
     } catch (error) {
+      if (error.name === "TimeoutError") preflight.outcome = "timed-out";
       console.warn("Cannot check saved desktop project:", error.message);
+    } finally {
+      logPreflight?.({ ...preflight, durationMs: Math.round(performance.now() - started) });
     }
     return home;
   }

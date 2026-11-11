@@ -87,19 +87,7 @@ export function selectMarquee(vc: ViewCtx, box: Box, append: boolean) {
 }
 
 function selectLayers(vc: ViewCtx, selectables: ValNode[], append: boolean) {
-  if (!append) {
-    vc.setStudioFocusBySelectable(null);
-  }
-  for (const val of selectables) {
-    // appendToMultiSelection toggles existing nodes; marquee should only add.
-    if (!vc.focusedSelectables().includes(val)) {
-      vc.getViewOps().tryFocusObj(val, {
-        exact: true,
-        anchorCloneKey: vc.sel2cloneKey(val),
-        appendToMultiSelection: true,
-      });
-    }
-  }
+  vc.getViewOps().focusCanvasLayers(selectables, append);
 }
 
 export function getMarqueeFrames(studioCtx: StudioCtx, box: Box) {
