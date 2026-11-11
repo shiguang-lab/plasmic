@@ -23,7 +23,7 @@ app.whenReady().then(async () => {
   try {
     const fixturePath = path.join(fixtureDir, "index.html");
     await fs.writeFile(fixturePath, `<!doctype html>
-      <html><head><style>
+      <html data-plasmic-frame-uuid="frame"><head><style>
       *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden}
       main{height:100vh;display:flex;flex-direction:column;font:16px sans-serif}
       header{height:50px;flex-shrink:0;background:#336699;position:sticky;top:0;color:white}
@@ -79,11 +79,17 @@ app.whenReady().then(async () => {
     assert.equal(cropped.height, 324);
     const controller = new DesktopController(() => studioFixture(win), {});
     controller.state = async () => ({ ready: true, projectId: "test", editorContext: { mode: "edit", frameUuid: "frame" } });
+    controller.editor = async (method) => assert.fail(`Unexpected editor operation: ${method}`);
     try {
-      const encoded = await controller.dispatch("get_screenshot", { fullContent: true });
+      const liveTarget = { frameUuid: "frame", liveCanvas: true };
+      const encoded = await controller.dispatch("get_screenshot", { ...liveTarget, fullContent: true });
       assert.equal(encoded.encoding, "lossless");
       assert.equal(encoded.height, full.height, "long images must retain readable original-size pixels by default");
       assert.deepEqual(encoded.fullContent, full.fullContent);
+      const encodedCrop = await controller.dispatch("get_screenshot", { ...liveTarget, fullContent: true, elementUuid: "inner" });
+      assert.equal(encodedCrop.width, cropped.width);
+      assert.equal(encodedCrop.height, cropped.height);
+      assert.equal(encodedCrop.rendering, "static");
       const compressed = await controller.dispatch("get_screenshot", { fullContent: true, fullResolution: false });
       assert.equal(compressed.encoding, "lossy");
       assert.equal(compressed.height, 2048);

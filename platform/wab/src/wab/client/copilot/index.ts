@@ -226,7 +226,7 @@ const canvasVisibilityGuidance: Record<ReturnType<typeof getCanvasElementVisibil
   "outside-viewport": "Locate the artboard in the workspace viewport before inspecting the element.",
   hidden: "Inspect the owning state and styles before enabling interaction and operating the real trigger; CSS suppression alone does not prove a business state.",
   "no-layout": "The element has no layout box; inspect its owning state and styles before inferring visibility or model absence.",
-  "not-rendered": "Navigate to the owning page and wait for rendering; verify the model identity before inferring absence.",
+  "not-rendered": "Verify the model UUID. If the Page has an overview artboard, focus it with navigateCanvas using canvasName and frameUuid, then wait for rendering.",
 };
 
 function editorView(studio: StudioCtx) {
@@ -2840,7 +2840,7 @@ export const COPILOT_TOOLS: Record<string, CopilotTool<any>> = {
         vc,
         candidates.length > 1
           ? "Multiple artboards render this element; specify frameUuid"
-          : "Element is not rendered in the current canvas; navigate to its page and wait for rendering",
+          : `Element is not rendered in the current canvas. ${canvasVisibilityGuidance["not-rendered"]}`,
       );
       const key = vc.renderState.tpl2fullKeys(tpl)[input.instanceIndex];
       const val = key ? vc.renderState.fullKey2val(key) : undefined;

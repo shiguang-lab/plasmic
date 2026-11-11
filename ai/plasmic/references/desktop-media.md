@@ -32,4 +32,4 @@ get_image_service_status returns configured/model without credentials. generate_
 
 ## Freeform canvas targets
 
-createCanvas/createArtboard create native freeform canvases at real viewport sizes; findEmptySpace finds non-overlapping positions in four directions; navigateCanvas selects that canvas/frame before snapshots. Native Studio normalizes canvas origin after placement, so read returned coordinates. Cross-component moves and editing descendants of opaque third-party React components remain governed by Studio component/slot contracts. Report verified behavior and limitations explicitly.
+createCanvas/createArtboard create native freeform canvases at real viewport sizes; findEmptySpace finds non-overlapping positions in four directions. Use the resulting frameUuid for targeted snapshots. Use navigateCanvas when the visible editor needs to focus that canvas/frame. Native Studio normalizes canvas origin after placement, so read returned coordinates. Cross-component moves and editing descendants of opaque third-party React components remain governed by Studio component/slot contracts. Report verified behavior and limitations explicitly.

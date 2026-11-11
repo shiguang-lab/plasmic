@@ -58,7 +58,7 @@ Before accepting each affected standalone shell page:
 3. In real Preview, repeat at a width larger than the design artboard, a shorter height and with overflowing content. This distinguishes fluid sizing from fixed dimensions that happen to match the artboard. The shell follows the viewport, navigation/header stay in place, the content region owns vertical scrolling and the last action remains reachable. A resized static screenshot does not test a different live viewport.
 4. After an authorized edit, save/reopen, reread the affected Page and repeat the geometry check. For an explicitly requested shell/editor regression, additionally test a subsequent content edit using [engineering verification](../engineering/component-contracts.md). Ordinary delivery and read-only review do not introduce artificial edits. Missing geometry or untested Preview scrolling remains unverified; general model/rendering checks do not establish viewport fill.
 
-For the shared Overseas/Antd-v6 AppShell, run [verify_shell_height.py](../../scripts/verify_shell_height.py) from resourceRoot against a full read of one Page and its component-targeted snapshot_layout JSON:
+For the shared Overseas/Antd-v6 AppShell, run [verify_shell_height.py](../../scripts/verify_shell_height.py) from resourceRoot against a full read of one Page and its [overview artboard's](../desktop-inspection.md#locate-the-overview-artboard) snapshot_layout JSON.
 
 ```sh
 python3 scripts/verify_shell_height.py page-read.json page-layout.json

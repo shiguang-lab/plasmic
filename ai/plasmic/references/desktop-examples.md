@@ -50,10 +50,10 @@ For page/layout inventory without dependency catalogues:
 
 Every project view lists dependency identities/versions without expanding directories. Read each reachable dependency explicitly with fromProject, including indirect dependencies and view:full for complete evidence. Imports stay read-only. `components` is an output collection, not a read input key.
 
-Call `snapshot_layout` directly for each Page without `navigate`:
+Find the Page's frame in the shared overview's `canvases.frames`, matching its `componentUuid`. Call `snapshot_layout` directly with that frame's UUID.
 
 ```json
-{"componentUuid":"page-uuid","view":"full"}
+{"frameUuid":"overview-frame-uuid","view":"full"}
 ```
 
 This pins a background canvas without changing the active arena/selection. Check frame readiness and truncation. Use [rendered inspection](desktop-inspection.md) for actual Preview interactions.
@@ -61,13 +61,13 @@ This pins a background canvas without changing the active arena/selection. Check
 Call `get_screenshot` directly for a content review that includes nested scroll regions:
 
 ```json
-{"componentUuid":"page-uuid","fullContent":true}
+{"frameUuid":"overview-frame-uuid","fullContent":true}
 ```
 
 To capture only an expanded section, use its model element UUID:
 
 ```json
-{"componentUuid":"page-uuid","elementUuid":"section-uuid","fullContent":true}
+{"frameUuid":"overview-frame-uuid","elementUuid":"section-uuid","fullContent":true}
 ```
 
 Full-content captures default to original-size lossless pixels. Read the returned `fullContent` coverage and limitations; virtualized items absent from the DOM still require Preview scrolling. For viewport layout review, omit `fullContent`. See [rendered inspection](desktop-inspection.md#geometry-and-static-screenshots) for mode restrictions and size limits.

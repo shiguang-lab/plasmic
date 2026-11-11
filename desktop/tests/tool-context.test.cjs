@@ -154,8 +154,13 @@ test("unavailable context and external Preview give explicit failures without ru
 test("background canvas targets need no active frame; native Preview rejects current-canvas reads", async (t) => {
   const { controller, context, calls } = fixture(t, "preview");
   context.frameUuid = null; context.editorView = null;
-  await controller.checkContext("get_screenshot", { componentUuid: "page" });
-  await controller.checkContext("snapshot_layout", { componentUuid: "page" });
+  for (const method of ["get_screenshot", "snapshot_layout"]) {
+    await controller.checkContext(method, { componentUuid: "page" });
+    await controller.checkContext(method, { frameUuid: "overview-frame" });
+    await assert.rejects(controller.dispatch(method, { frameUuid: "overview-frame", liveCanvas: true }),
+      (error) => error.context.code === "CONTEXT_MISMATCH");
+  }
+  await controller.checkContext("execute", { name: "beginCanvasInspection", input: { frameUuid: "overview-frame" } });
   await assert.rejects(controller.dispatch("get_screenshot", { mode: "workspace" }), (error) => error.context.required.previewKind.includes("interactive"));
   assert.deepEqual(calls, []);
   assert.equal(context.mode, "preview");

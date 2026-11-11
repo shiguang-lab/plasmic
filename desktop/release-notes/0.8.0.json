@@ -1,0 +1,7 @@
+{
+  "en": "- Inspect and capture a specific artboard on the page overview, including from in-app Preview.\n- Retry timed-out layout checks and captures against the live artboard while preserving full-content and element capture options.\n- Show read feedback for Preview snapshots and assertions, and keep that feedback out of captures.",
+  "zh-CN": "- 支持在页面总览定位指定画板并检查布局、截图，应用内预览也可读取总览画板。\n- 布局检查或截图超时后，可等待指定画板就绪再重试，并保留全内容和节点裁切选项。\n- 预览快照和断言显示读取反馈，截图中隐藏该反馈。",
+  "zh-TW": "- 支援在頁面總覽定位指定畫板、檢查版面和擷取畫面，應用程式內預覽也可讀取總覽畫板。\n- 版面檢查或擷取逾時後，可等待指定畫板就緒再試，並保留完整內容與節點裁切選項。\n- 預覽快照與斷言會顯示讀取回饋，擷取畫面時隱藏該回饋。",
+  "ja": "- ページ一覧で指定したアートボードのレイアウト確認と撮影が可能になりました。アプリ内プレビュー中も利用できます。\n- タイムアウト後は対象アートボードの準備を待って再試行でき、全コンテンツ撮影や要素の切り抜き設定が維持されます。\n- プレビューのスナップショットとアサーションに読み取り状況を表示し、撮影時にはその表示を隠します。",
+  "ko": "- 페이지 개요에서 특정 아트보드의 레이아웃을 확인하고 캡처할 수 있습니다. 앱 내 미리보기에서도 사용할 수 있습니다.\n- 시간이 초과되면 대상 아트보드가 준비될 때까지 기다린 후 전체 콘텐츠 및 요소 자르기 옵션을 유지한 채 다시 시도할 수 있습니다.\n- 미리보기 스냅샷과 검증 중 읽기 상태를 표시하며 캡처에서는 해당 표시를 숨깁니다."
+}

@@ -159,6 +159,60 @@ it("clears SPA navigation feedback and removes the cursor layer on reset and clo
   }
 });
 
+it("keeps a single Preview scan outside the page through capture, completion and navigation", async () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "performance"] });
+  const iframe = document.createElement("iframe");
+  document.body.append(iframe);
+  try {
+    const win = iframe.contentWindow;
+    if (!win) { throw new Error("Expected preview iframe"); }
+    win.matchMedia = window.matchMedia;
+    (win as any).__plasmicLive = { setErrorTitle: vi.fn() };
+    const previewCtx = mockPreview({ full: false, isLive: false, pageHash: "" });
+    const hook = renderHook(() => useLivePreview(previewCtx));
+    act(() => hook.result.current.attachFrame(win));
+    await act(async () => hook.result.current.onLoad());
+
+    const scan = () => document.querySelector<HTMLElement>("[data-plasmic-preview-read-scan]");
+    const send = (action: string) => win.dispatchEvent(
+      new CustomEvent("plasmic-preview-read-scan", { detail: { action } }),
+    );
+    expect(scan()).toBeNull();
+    send("start");
+    const region = scan();
+    if (!region?.firstElementChild) { throw new Error("Expected Preview scan"); }
+    expect(win.document.querySelector("[data-plasmic-preview-read-scan]")).toBeNull();
+    vi.advanceTimersByTime(1400);
+    region.firstElementChild.dispatchEvent(new Event("animationiteration"));
+    expect(region.dataset.scanning).toBe("true");
+    send("hide");
+    expect(region.style.visibility).toBe("hidden");
+    send("start");
+    expect(scan()).toBe(region);
+    send("show");
+    expect(region.style.visibility).toBe("");
+    vi.advanceTimersByTime(1400);
+    region.firstElementChild.dispatchEvent(new Event("animationiteration"));
+    expect(region.dataset.scanning).toBe("true");
+    vi.advanceTimersByTime(1400);
+    region.firstElementChild.dispatchEvent(new Event("animationiteration"));
+    expect(region.dataset.scanning).toBe("false");
+    vi.advanceTimersByTime(400);
+    expect(scan()).toBeNull();
+
+    send("start");
+    act(() => previewCtx.store.setState({ previewData: mock<NonNullable<PreviewState["previewData"]>>({ previewPath: "/next" }) }));
+    expect(scan()).toBeNull();
+    send("start");
+    hook.unmount();
+    send("start");
+    expect(scan()).toBeNull();
+  } finally {
+    iframe.remove();
+    vi.useRealTimers();
+  }
+});
+
 async function setup(full: boolean) {
   const previewCtx = mockPreview({ studioCtx: { appCtx: { api: {} } } as any,
     full,

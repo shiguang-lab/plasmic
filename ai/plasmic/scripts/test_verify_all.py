@@ -8,7 +8,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from verify_all import GATES, OVERVIEW_FIELDS, collect, run_suite, read_json, write_json, reusable_evidence, evidence_hashes, default_profile, summary
+from verify_all import GATES, OVERVIEW_FIELDS, collect, overview_frame_ids, run_suite, read_json, write_json, reusable_evidence, evidence_hashes, default_profile, summary
 import test_verify_forms
 import test_verify_shell_height
 import test_verify_references
@@ -42,7 +42,7 @@ class SuiteTests(unittest.TestCase):
         self.readback = {"results": [self.model], "read": {"depth": "all", "fields": ["baseVariantTplTree", "props", "states", "variants", "variantGroups", "interactions"]}}
         self.snapshot = shell.snapshot
         self.snapshot["checked"] = ["horizontal-overflow", "table-cell-control-overflow", "image-load"]
-        self.snapshot["frames"][0].update(width=1440, read={"view": "full"}, images=[], problems=[])
+        self.snapshot["frames"][0].update(frameUuid="frame", width=1440, read={"view": "full"}, images=[], problems=[])
         self.context = {"projectId": "project", "branchId": None, "sessionId": "editor-session", "revision": 1, "changeCounter": 0}
         self.config = {
             "structure": {"inventory": "structure.json", "reads": "compose-reads.jsonl"}, "forms": {"inventory": "forms.json"},
@@ -718,6 +718,7 @@ class SuiteTests(unittest.TestCase):
     def test_collection_uses_targeted_snapshots_and_never_navigates_or_saves(self):
         calls = []
         fixture = self
+        expected_target = {"frameUuid": "frame", "view": "full"}
 
         class Desktop:
             def call(self, method, input=None):
@@ -728,7 +729,7 @@ class SuiteTests(unittest.TestCase):
                     fixture.assertEqual(input, {"toolNames": []})
                     return {"ready": True, "projectId": "project", "version": "test", "buildId": "fixture-build", "build": {"rendererHash": "a" * 64, "desktopHash": "b" * 64}}
                 if method == "snapshot_layout":
-                    fixture.assertEqual(input, {"componentUuid": "page", "view": "full"})
+                    fixture.assertEqual(input, expected_target)
                     return fixture.snapshot
                 raise AssertionError(method)
 
@@ -787,6 +788,13 @@ class SuiteTests(unittest.TestCase):
         self.assertEqual(stopped.exception.code, 1)
         suite.assert_not_called()
         self.assertFalse(read_json(unstable / 'report.json')['passed'])
+        fixture.snapshot["frames"][0]["frameUuid"] = "different-frame"
+        collect(Desktop(), "project", self.root)
+        self.assertIn("requested overview frame frame", read_json(self.root / "layouts.json")["page"]["error"])
+        fixture.overview["results"][0]["canvases"] = []
+        expected_target = {"componentUuid": "page", "view": "full"}
+        collect(Desktop(), "project", self.root)
+        self.assertIn("snapshot", read_json(self.root / "layouts.json")["page"])
         fixture.readback["read"]["depth"] = 0
         with self.assertRaisesRegex(ValueError, "complete model reads"):
             collect(Desktop(), "project", self.root)
@@ -794,6 +802,18 @@ class SuiteTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "never switches"):
             collect(Desktop(), "wrong-project", self.root)
         self.assertEqual(len(calls), 1)
+
+    def test_overview_selection_prefers_unique_page_coverage_and_skips_duplicate_frames(self):
+        project = self.overview["results"][0]
+        project["components"].append({"type": "page", "uuid": "another-page"})
+        overview = project["canvases"][0]
+        another = {"componentUuid": "another-page", "uuid": "another-frame"}
+        project["canvases"].append({"name": "detail", "frames": [another]})
+        self.assertEqual(overview_frame_ids(self.overview), {})
+        overview["frames"].append({**another, "uuid": "overview-another-frame"})
+        self.assertEqual(overview_frame_ids(self.overview), {"page": "frame", "another-page": "overview-another-frame"})
+        overview["frames"].append({"componentUuid": "page", "uuid": "duplicate"})
+        self.assertEqual(overview_frame_ids(self.overview), {"another-page": "overview-another-frame"})
 
     def test_build_provenance_is_explicit_and_must_match_current_status(self):
         calls = []

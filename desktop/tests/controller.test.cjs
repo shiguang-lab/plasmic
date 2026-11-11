@@ -523,6 +523,13 @@ test("static reads pin explicit offscreen frames, including a frame on a supplie
   }
   calls.length = 0;
   await assert.rejects(controller.inspectCanvas({ mode: "workspace", frameUuid: "page-frame" }, () => {}), /current canvas/);
+  for (const input of [
+    { liveCanvas: true },
+    { liveCanvas: true, frameUuid: "page-frame", componentUuid: "page" },
+    { liveCanvas: true, frameUuid: "page-frame", mode: "workspace" },
+  ]) {
+    await assert.rejects(controller.inspectCanvas(input, () => assert.fail("Unexpected canvas read")), /liveCanvas requires frameUuid/);
+  }
   assert.deepEqual(calls, []);
 });
 

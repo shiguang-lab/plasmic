@@ -8,7 +8,7 @@ function requiredContext(method, input = {}) {
     if (input.name === "setInteractiveMode") return { surface: "editor", previewKind: [null, "interactive"] };
     if (["preview", "executeBatch"].includes(input.name)) return null;
     if (modelReads.has(input.name) || input.name === "endCanvasInspection") return { surface: "editor" };
-    if (input.name === "beginCanvasInspection") return { surface: "editor", ...(input.input?.componentUuid ? {} : { previewKind: [null, "interactive"] }) };
+    if (input.name === "beginCanvasInspection") return { surface: "editor", ...(input.input?.componentUuid || input.input?.frameUuid ? {} : { previewKind: [null, "interactive"] }) };
     return viewOperations.has(input.name)
       ? { surface: "editor", previewKind: [null, "interactive"], ...(["selectElement", "scrollElementIntoView"].includes(input.name) ? { canvas: true } : {}) }
       : { ...editableContext };
@@ -22,6 +22,10 @@ function requiredContext(method, input = {}) {
   }
   if (["get_editor_view"].includes(method)) return { surface: "editor" };
   if (["snapshot_layout", "get_screenshot", "export_design", "export_pages"].includes(method)) {
+    if (["snapshot_layout", "get_screenshot"].includes(method) && input.frameUuid && !input.liveCanvas && input.mode !== "workspace") {
+      return { surface: "editor" };
+    }
+    if (input.liveCanvas) return { surface: "editor", previewKind: [null, "interactive"] };
     return { surface: "editor", ...(input.componentUuid || method === "export_pages" ? {} : { previewKind: [null, "interactive"], ...(!input.frameUuid ? { canvas: true } : {}) }) };
   }
   if (["import_image", "import_svg", "export_code", "import_reference", "capture_browser", "browser"].includes(method)

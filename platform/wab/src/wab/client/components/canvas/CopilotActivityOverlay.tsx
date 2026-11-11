@@ -10,6 +10,8 @@ import {
 import {
   ActivityTarget,
   CanvasActivity,
+  INSPECTION_SCAN_COLOR,
+  SCAN_COMPLETION_MS,
   currentActivity,
 } from "@/wab/client/copilot/activity";
 import { createAgentCursor } from "@/wab/client/copilot/agent-cursor";
@@ -31,7 +33,7 @@ import { useShallow } from "zustand/react/shallow";
 const useActivityStyles = createStyles(({ token }) => ({
   root: {
     "--scan-color": token.colorPrimary,
-    '&[data-kind="inspection"]': { "--scan-color": "#1677ff" },
+    '&[data-kind="inspection"]': { "--scan-color": INSPECTION_SCAN_COLOR },
   },
 }));
 
@@ -138,7 +140,7 @@ const ActivityRegion = function ActivityRegion({
   }, [scanning]);
   React.useEffect(() => {
     if (!finished || scanning) { return; }
-    const timer = setTimeout(() => getOnRetired()(), 400);
+    const timer = setTimeout(() => getOnRetired()(), SCAN_COMPLETION_MS);
     return () => clearTimeout(timer);
   }, [finished, scanning, getOnRetired]);
   return (

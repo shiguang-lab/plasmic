@@ -1,6 +1,6 @@
 {
   "name": "@plasmickit/cli",
-  "version": "0.6.0",
+  "version": "0.8.0",
   "description": "Plasmic skill bootstrap and NAS workflow resource manager",
   "license": "MIT",
   "repository": {

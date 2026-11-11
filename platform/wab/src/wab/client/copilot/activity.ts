@@ -22,8 +22,9 @@ export interface CanvasActivity {
   readonly caller?: CopilotCaller;
 }
 
-const MIN_SCAN_MS = 1600;
-const COMPLETION_MS = 400;
+export const MIN_SCAN_MS = 1600;
+export const SCAN_COMPLETION_MS = 400;
+export const INSPECTION_SCAN_COLOR = "#1677ff";
 
 export interface ActivityRegion {
   readonly key: string;
@@ -249,7 +250,7 @@ export class CopilotActivity {
                 .getState()
                 .requests.filter((item) => item.id !== request.id),
             );
-          }, COMPLETION_MS),
+          }, SCAN_COMPLETION_MS),
         );
       };
       const remaining = MIN_SCAN_MS - (Date.now() - started);

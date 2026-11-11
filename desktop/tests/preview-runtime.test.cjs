@@ -2,7 +2,7 @@ const { studioFixture } = require("./fixtures/studio.cjs");
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { JSDOM } = require("jsdom");
-const { runtimeCommand, previewFrame, runPreview } = require("../src/preview-runtime.cjs");
+const { runtimeCommand, previewFrame, runPreview, capturePreviewPage } = require("../src/preview-runtime.cjs");
 
 function fixture(t) {
   const dom = new JSDOM('<body><label for="sql">SQL</label><textarea id="sql">SELECT old</textarea><button>查询</button><button disabled>保存</button><select aria-label="状态"><option value="active">启用</option><option value="disabled">停用</option></select><input type="password" value="secret"></body>', { runScripts: "outside-only" });
@@ -104,37 +104,78 @@ test("fill/select dispatch DOM events and assertions observe actual runtime valu
   await assert.rejects(run({ action: "fill", ref: sql.ref, value: "wrong" }), /Stale/);
 });
 
-test("Preview feedback follows real targets, keeps reads silent, and clears failed interactions", async (t) => {
+test("Preview reads scan the viewport while interactions use the real cursor target", async (t) => {
   const { run, w } = fixture(t), feedback = [];
   w.addEventListener("plasmic-agent-cursor", (e) => feedback.push(e.detail));
-  const snapshot = await run({ action: "snapshot" });
+  const scans = [];
+  w.addEventListener("plasmic-preview-read-scan", (e) => scans.push(e.detail.action));
+  const frame = {
+    url: "https://canvas.example/#live=true",
+    executeJavaScript: async (script) => script.includes("function inspectPreview")
+      ? { ready: true, width: w.innerWidth, height: w.innerHeight }
+      : w.eval(script),
+  };
+  const studio = studioFixture({ webContents: {
+    getURL: () => "https://studio.example/projects/p/preview#/records",
+    mainFrame: { framesInSubtree: [frame] },
+  } });
+  const preview = (input) => runPreview(studio, input, { sessionId: "s" });
+  await preview({ action: "state" });
+  assert.deepEqual(scans, []);
+  const snapshot = await preview({ action: "snapshot" });
+  const assertion = await preview({
+    action: "assert", checks: [{ kind: "count", role: "button", name: "查询", count: 1 }], timeoutMs: 0,
+  });
+  assert.equal(assertion.passed, true);
+  assert.deepEqual(scans, ["start", "start"]);
   assert.equal(feedback.filter((e) => e.action === "move").length, 0);
-  const query = snapshot.elements.find((e) => e.name === "查询");
+  // The direct fixture below uses a separate page identity and its own refs.
+  const interactionSnapshot = await run({ action: "snapshot" });
+  assert.ok(snapshot.elements.some((e) => e.name === "查询"));
+  const query = interactionSnapshot.elements.find((e) => e.name === "查询");
   w.document.elementFromPoint = () => w.document.querySelector("button");
   w.document.querySelector("button").scrollIntoView = () => {};
   const result = await run({ action: "hover", ref: query.ref }, { id: "codex", name: "Codex" });
   assert.equal(feedback.at(-1).caller.name, "Codex");
   assert.equal(feedback.at(-1).element, w.document.querySelector("button"));
   assert.deepEqual({ ...feedback.at(-1).point }, { x: result.point.x, y: result.point.y });
-  await run({ action: "fill", ref: snapshot.elements.find((e) => e.name === "SQL").ref, value: "new" }, { id: "chatgpt", name: "ChatGPT" });
+  await run({ action: "fill", ref: interactionSnapshot.elements.find((e) => e.name === "SQL").ref, value: "new" }, { id: "chatgpt", name: "ChatGPT" });
   assert.equal(feedback.at(-1).caller.name, "ChatGPT");
   assert.equal(feedback.at(-1).element, w.document.querySelector("textarea"));
-  await assert.rejects(run({ action: "click", ref: snapshot.elements.find((e) => e.name === "保存").ref }), /disabled/);
+  await assert.rejects(run({ action: "click", ref: interactionSnapshot.elements.find((e) => e.name === "保存").ref }), /disabled/);
   assert.equal(feedback.at(-1).action, "clear");
+  assert.deepEqual(scans, ["start", "start"]);
 });
 
-test("Preview screenshots hide feedback and restore it even when capture fails", async () => {
+test("Preview screenshots hide both feedback layers until all captures release them", async (t) => {
+  const { w } = fixture(t);
   const calls = [];
+  for (const [type, label] of [["plasmic-agent-cursor", "cursor"], ["plasmic-preview-read-scan", "scan"]]) {
+    w.addEventListener(type, (event) => calls.push(label + ":" + event.detail.action));
+  }
   const frame = { url: "https://canvas.example/#live=true", executeJavaScript: async (script) => {
     if (script.includes("inspectPreview")) return { ready: true, width: 800, height: 600 };
-    calls.push(script.includes('action:"hide"') ? "hide" : script.includes('action:"clear"') ? "clear" : "show");
+    return w.eval(script);
   } };
-  const win = { getContentBounds: () => ({ width: 800, height: 600 }), webContents: {
+  let finishMirror;
+  const mirror = new Promise(resolve => { finishMirror = resolve; });
+  const win = studioFixture({ getContentBounds: () => ({ width: 800, height: 600 }), webContents: {
     getURL: () => "https://studio.example/projects/p/preview#/records", getZoomFactor: () => 1,
-    mainFrame: { framesInSubtree: [frame] }, capturePage: async () => { calls.push("capture"); throw new Error("capture failed"); },
-  } };
-  await assert.rejects(runPreview(studioFixture(win), { action: "screenshot" }, { sessionId: "s" }), /capture failed/);
-  assert.deepEqual(calls, ["hide", "capture", "show", "clear"]);
+    mainFrame: { framesInSubtree: [frame] }, capturePage: async (_rect, options) => {
+      if (options.stayHidden) { calls.push("mirror"); return mirror; }
+      calls.push("screenshot");
+      throw new Error("capture failed");
+    },
+  } });
+  const capturing = capturePreviewPage(win, frame, {}, undefined, { stayHidden: true });
+  await assert.rejects(runPreview(win, { action: "screenshot" }, { sessionId: "s" }), /capture failed/);
+  assert.ok(calls.includes("mirror"));
+  assert.equal(calls.includes("scan:show"), false);
+  assert.equal(calls.includes("cursor:show"), false);
+  assert.ok(calls.lastIndexOf("scan:hide") < calls.indexOf("screenshot"));
+  finishMirror();
+  await capturing;
+  assert.deepEqual(calls.slice(-2), ["cursor:show", "scan:show"]);
 });
 
 test("background runtime discovery uses the committed Preview root and waits for the requested Page", { timeout: 2000 }, async (t) => {

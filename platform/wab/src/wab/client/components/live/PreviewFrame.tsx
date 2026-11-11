@@ -8,6 +8,7 @@ import {
   pushPreviewModules,
 } from "@/wab/client/components/live/live-syncer";
 import { getViewportScale } from "@/wab/client/components/live/preview-viewport";
+import { installPreviewReadScan } from "@/wab/client/components/live/preview-read-scan";
 import { liveFrame, showPreviewLoadError } from "@/wab/client/components/live/preview-sync";
 import {
   getHostLessPkgIdentity,
@@ -181,6 +182,23 @@ export function useLivePreview(previewCtx: PreviewCtx): LivePreview {
       dispose();
     };
   }, [frameLoaded, frame.window, previewCtx, t, token.colorPrimary]);
+
+  React.useEffect(() => {
+    const win = frame.window;
+    if (!frameLoaded || !win) {
+      return;
+    }
+    const scan = installPreviewReadScan(win);
+    const stop = previewCtx.store.subscribe((next, previous) => {
+      if (next.previewData !== previous.previewData) {
+        scan?.clear();
+      }
+    });
+    return () => {
+      stop();
+      scan?.dispose();
+    };
+  }, [frameLoaded, frame.window, previewCtx]);
 
   const usedPkgs = usePreviewPackages(previewCtx);
   const [installedPkgs, setInstalledPkgs] = React.useState<string[]>([]);

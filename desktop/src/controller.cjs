@@ -95,7 +95,7 @@ class DesktopController {
             "Editor command timed out: " +
               method +
               (method === "beginCanvasInspection"
-                ? ". The background canvas re-render did not finish; on heavy multi-artboard canvases, navigate the artboard into view and capture with get_screenshot mode workspace instead of pinning componentUuid/frameUuid."
+                ? ". For get_screenshot or snapshot_layout, focus the Page's overview artboard in the editor with execute navigateCanvas {canvasName, frameUuid}, then retry with that frameUuid and liveCanvas:true. Keep the original artboard screenshot or layout options. If Preview is open, close it explicitly before using the live editor canvas."
                 : ""),
           ),
         );
@@ -953,11 +953,14 @@ class DesktopController {
       if (input.fullContent && input.mode === "workspace") {
         throw new Error("fullContent requires artboard mode; workspace captures only the visible editor");
       }
+      const signal = this.signalContext.getStore();
       return this.inspectCanvas(
         input,
         async (inspectionId) => {
           if (method === "snapshot_layout") {
-            const frames = (await canvasFrames(win, inspectionId))
+            const frames = (await canvasFrames(
+              win, inspectionId, undefined, undefined, signal, input.liveCanvas ? input.frameUuid : undefined,
+            ))
               .filter(({ layout }) => !input.frameUuid || layout.frameUuid === input.frameUuid);
             if (input.frameUuid && !frames.length) throw new Error("Requested frame has no rendered layout");
             return {
@@ -984,7 +987,7 @@ class DesktopController {
             const result = await renderCanvas(win, {
               ...input,
               inspectionId,
-            });
+            }, signal);
             return {
               ...(await encodeImagePreview(result.image.toPNG(), { lossless: input.fullResolution ?? input.fullContent ?? false })),
               rendering: "static",
@@ -1134,6 +1137,12 @@ class DesktopController {
     return result;
   }
   async inspectCanvas(input, read, forExport = false) {
+    if (input.liveCanvas) {
+      if (!input.frameUuid || input.componentUuid || input.mode === "workspace" || forExport) {
+        throw new Error("liveCanvas requires frameUuid alone as the target and an artboard screenshot or layout read");
+      }
+      return read(undefined);
+    }
     if (input.mode === "workspace" && (input.componentUuid || input.frameUuid)) {
       throw new Error(
         "Workspace captures use the current canvas; use artboard mode to inspect componentUuid/frameUuid without navigation",

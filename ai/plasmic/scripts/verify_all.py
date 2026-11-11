@@ -101,6 +101,25 @@ def page_inventory(overview, page_path=None):
     return pages
 
 
+def overview_frame_ids(overview):
+    project = next(item for item in overview["results"] if item.get("__type") == "Project")
+    page_ids = {page["uuid"] for page in page_inventory(overview)}
+    frames_by_canvas = [
+        [frame for frame in canvas["frames"] if frame.get("componentUuid") in page_ids]
+        for canvas in project.get("canvases", [])
+    ]
+    coverage = [len({frame["componentUuid"] for frame in frames}) for frames in frames_by_canvas]
+    highest_coverage = max(coverage, default=0)
+    if not highest_coverage or coverage.count(highest_coverage) != 1:
+        return {}
+    frames = frames_by_canvas[coverage.index(highest_coverage)]
+    counts = Counter(frame["componentUuid"] for frame in frames)
+    return {
+        frame["componentUuid"]: frame["uuid"]
+        for frame in frames if counts[frame["componentUuid"]] == 1 and frame.get("uuid")
+    }
+
+
 def context_identity(context):
     return {key: context.get(key) for key in ("projectId", "branchId", "sessionId", "revision", "changeCounter")}
 
@@ -249,10 +268,16 @@ def collect(desktop, project_id, destination, reuse=None, page_path=None):
     # Model identity does not cover runtime rendering (fonts, images, CSS, etc.).
     # Always inspect current layout, even when complete models can be reused.
     layouts = {}
+    frame_ids = overview_frame_ids(overview)
     for page in pages:
         print(f"Collecting layout: {page.get('pageMeta', {}).get('path', page['uuid'])}", flush=True)
+        frame_uuid = frame_ids.get(page["uuid"])
+        target = {"frameUuid": frame_uuid} if frame_uuid else {"componentUuid": page["uuid"]}
         try:
-            layouts[page["uuid"]] = {"snapshot": desktop.call("snapshot_layout", {"componentUuid": page["uuid"], "view": "full"})}
+            snapshot = desktop.call("snapshot_layout", {**target, "view": "full"})
+            if frame_uuid and [frame.get("frameUuid") for frame in snapshot.get("frames", [])] != [frame_uuid]:
+                raise ValueError(f"Layout capture did not return the requested overview frame {frame_uuid}")
+            layouts[page["uuid"]] = {"snapshot": snapshot}
         except (ValueError, OSError) as error:
             layouts[page["uuid"]] = {"error": str(error)}
     write_json(destination / "layouts.json", layouts)

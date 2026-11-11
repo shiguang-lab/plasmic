@@ -39,7 +39,7 @@ function previewError(error, input, diagnostics = {}) {
 }
 
 // Executed only in the existing live Preview iframe. Inputs are data, never code.
-async function runtimeCommand(input, documentId, caller) {
+async function runtimeCommand(input, documentId, caller, showReadScan) {
   const key = "__plasmicRuntimeInspection";
   if (!globalThis[key] || globalThis[key].page !== input.pageIdentity) {
     dispatchEvent(new CustomEvent("plasmic-agent-cursor", { detail: { action: "clear" } }));
@@ -108,6 +108,9 @@ async function runtimeCommand(input, documentId, caller) {
       action: "move", element, point: { x: point.x - r.left, y: point.y - r.top }, caller,
     } }));
   };
+  if (showReadScan && ["snapshot", "assert"].includes(input.action)) {
+    dispatchEvent(new CustomEvent("plasmic-preview-read-scan", { detail: { action: "start" } }));
+  }
   if (input.action === "snapshot") {
     const all = nodes().filter((el) => role(el) || el.tabIndex >= 0 || ["auto", "scroll"].includes(getComputedStyle(el).overflowY));
     const items = all.slice(input.offset || 0, (input.offset || 0) + (input.limit || 40)).map((el) => {
@@ -273,6 +276,42 @@ async function viewportRect(frame, viewport, signal) {
   return Object.fromEntries(Object.entries(rect).map(([key, value]) => [key, Math.round(value)]));
 }
 
+// Screenshot and Island capture can overlap. Keep the feedback hidden until
+// the last capture releases it, without resetting a running scan.
+function setPreviewCaptureHidden(id, hidden) {
+  const captures = globalThis.__plasmicPreviewCaptures ??= new Set();
+  const wasHidden = captures.size > 0;
+  if (hidden) {
+    captures.add(id);
+  } else {
+    captures.delete(id);
+  }
+  const isHidden = captures.size > 0;
+  if (isHidden !== wasHidden) {
+    const action = isHidden ? "hide" : "show";
+    for (const type of ["plasmic-agent-cursor", "plasmic-preview-read-scan"]) {
+      dispatchEvent(new CustomEvent(type, { detail: { action } }));
+    }
+  }
+  if (hidden) return Promise.race([
+    new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+    new Promise(resolve => setTimeout(resolve, 100)),
+  ]);
+}
+
+async function capturePreviewPage(win, frame, rect, signal, options = {}) {
+  const id = randomUUID();
+  const setHidden = (hidden) => frame.executeJavaScript(
+    `(${setPreviewCaptureHidden.toString()})(${JSON.stringify(id)},${hidden})`);
+  try {
+    await abortable(signal, () => setHidden(true));
+    return await abortable(signal, () => win.webContents.capturePage(rect, options));
+  } finally {
+    // A destroyed or navigated frame may no longer have feedback to restore.
+    void Promise.resolve().then(() => setHidden(false)).catch(() => {});
+  }
+}
+
 async function runPreview(win, input, context, signal = AbortSignal.timeout(30000), caller) {
   let feedbackFrame;
   const notifyCursor = async (action) => {
@@ -319,17 +358,7 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
     const bounds = win.window.getContentBounds();
     if (rect.x < 0 || rect.y < 0 || rect.x + rect.width > bounds.width + 1 || rect.y + rect.height > bounds.height + 1) throw new Error("Native Preview is clipped by the App window; reveal the full viewport before recording a screenshot");
     diagnostics.phase = "capture";
-    let image;
-    try {
-      await abortable(signal, () => frame.executeJavaScript(`(() => {
-        dispatchEvent(new CustomEvent("plasmic-agent-cursor", {detail:{action:"hide"}}));
-        return Promise.race([new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))),new Promise(r=>setTimeout(r,100))]);
-      })()`));
-      image = await abortable(signal, () => win.webContents.capturePage(rect));
-    } finally {
-      // Also restore after cancellation; a destroyed/navigated frame needs no feedback.
-      void notifyCursor("show");
-    }
+    const image = await capturePreviewPage(win, frame, rect, signal);
     return await finish({ ...await abortable(signal, () => encodeImagePreview(image.toPNG(), { lossless: input.fullResolution === true })), viewport: { width: layout.width, height: layout.height }, presentationRect: rect });
   }
   diagnostics.phase = "dom-command";
@@ -337,7 +366,8 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
   if (["fill", "select", "scroll", "press"].includes(input.action)) diagnostics.operationExecuted = null;
   // Catch inside the renderer so Electron cannot flatten the exception into a
   // string before its code, stack and execution state reach the main process.
-  const response = await abortable(signal, () => frame.executeJavaScript(`(${runtimeCommand.toString()})(${JSON.stringify({ ...input, pageIdentity: [context.sessionId, context.previewKind, context.previewKind === "interactive" ? context.frameUuid : context.previewContext?.componentUuid, context.previewContext?.path].join(":") })},${JSON.stringify(randomUUID())},${JSON.stringify(caller)}).then(result => ({result}), error => ({error: {
+  const showReadScan = !frameOptions.interactive && layout.runtime?.status !== "failed";
+  const response = await abortable(signal, () => frame.executeJavaScript(`(${runtimeCommand.toString()})(${JSON.stringify({ ...input, pageIdentity: [context.sessionId, context.previewKind, context.previewKind === "interactive" ? context.frameUuid : context.previewContext?.componentUuid, context.previewContext?.path].join(":") })},${JSON.stringify(randomUUID())},${JSON.stringify(caller)},${showReadScan}).then(result => ({result}), error => ({error: {
     message: typeof error?.message === "string" ? error.message : String(error),
     name: error?.name, stack: error?.stack, ...(error?.context || {})
   }}))`, true));
@@ -398,4 +428,4 @@ async function runPreview(win, input, context, signal = AbortSignal.timeout(3000
     throw previewError(error, input, diagnostics);
   }
 }
-module.exports = { runPreview, runtimeCommand, previewFrame, viewportRect, previewError };
+module.exports = { runPreview, runtimeCommand, previewFrame, viewportRect, previewError, capturePreviewPage };

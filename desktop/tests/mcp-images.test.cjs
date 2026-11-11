@@ -31,6 +31,8 @@ test("all MCP image routes deliver WebP once, with dimensions and original-file 
     const screenshot = listing.tools.find((tool) => tool.name === "get_screenshot");
     assert.ok(screenshot, "AI clients must discover the screenshot tool");
     assert.equal(screenshot.inputSchema.properties.fullContent.type, "boolean");
+    assert.equal(screenshot.inputSchema.properties.liveCanvas.type, "boolean");
+    assert.equal(listing.tools.find((tool) => tool.name === "snapshot_layout").inputSchema.properties.liveCanvas.type, "boolean");
     assert.match(screenshot.description, /fullContent:true/);
     assert.ok(screenshot.inputSchema.properties.fullContent.description);
     for (const [name, input] of [

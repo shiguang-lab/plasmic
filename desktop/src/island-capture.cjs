@@ -4,6 +4,7 @@ const { inspectTargets, clipRegion, feedbackOperation } = require("./island-feed
 const { abortable } = require("./abortable.cjs");
 const { IslandFraming } = require("./island-framing.cjs");
 const { inspectVisualState } = require("./island-visual-state.cjs");
+const { capturePreviewPage } = require("./preview-runtime.cjs");
 
 /** Read complete artboard bounds, independently of editor pan, zoom and chrome. */
 function inspectScene(mode, expectedComponent) {
@@ -156,7 +157,7 @@ function createIslandCapture() {
         const css = await presentationRect(frame, {x:0,y:0,width:scene.width,height:scene.height}), zoom = win.webContents.getZoomFactor();
         if (!css) continue;
         const rect = {x:Math.round(css.x*zoom),y:Math.round(css.y*zoom),width:Math.round(css.width*zoom),height:Math.round(css.height*zoom)};
-        image = await abortable(signal, () => win.webContents.capturePage(rect, {stayHidden:true,stayAwake:true}));
+        image = await capturePreviewPage(win, frame, rect, signal, {stayHidden:true,stayAwake:true});
       }
       if (version !== epoch || win.window.isDestroyed() || url !== win.webContents.getURL()) return null;
       if (!pixels) {

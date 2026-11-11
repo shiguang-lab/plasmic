@@ -5,7 +5,13 @@ const { abortable } = require("./abortable.cjs");
 const { expandFullContent } = require("./canvas-full-content.cjs");
 
 // Read rendered DOM, never Studio's private model or user-supplied JavaScript.
-async function inspectCanvas() {
+async function inspectCanvas({ frameUuid } = {}) {
+  if (frameUuid && (
+    document.documentElement.getAttribute("data-plasmic-frame-uuid") !== frameUuid ||
+    !document.documentElement.hasAttribute("data-plasmic-render-ready")
+  )) {
+    return { ready: false };
+  }
   await Promise.race([
     document.fonts.ready,
     new Promise((resolve) => setTimeout(resolve, 5000)),
@@ -334,9 +340,14 @@ async function readyDocument() {
   );
 }
 const js = (fn, input) => `(${fn.toString()})(${JSON.stringify(input)})`;
-async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input, signal) {
+async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input, signal, frameUuid) {
   const previewMode = /^(?:\/projects\/[^/]+\/preview\/?|\/d\/[\w-]{10})$/.test(new URL(win.webContents.getURL()).pathname);
   const end = Date.now() + 20000;
+  if (frameUuid) {
+    const deadline = AbortSignal.timeout(20000);
+    signal = signal ? AbortSignal.any([signal, deadline]) : deadline;
+    input = { frameUuid };
+  }
   while (Date.now() < end) {
     signal?.throwIfAborted();
     const frames = win.webContents.mainFrame.framesInSubtree.filter((frame) => {
@@ -363,7 +374,9 @@ async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input, s
           if (marker !== inspectionId) continue;
         }
         const layout = await abortable(signal, () => frame.executeJavaScript(js(inspect, input)));
-        if (layout.ready) results.push({ frame, layout });
+        if (layout.ready && (!frameUuid || layout.frameUuid === frameUuid)) {
+          results.push({ frame, layout });
+        }
       } catch (error) {
         signal?.throwIfAborted();
         if (!frame.isDestroyed?.()) throw error;
@@ -373,11 +386,15 @@ async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input, s
     await abortable(signal, () => new Promise((resolve) => setTimeout(resolve, 150)));
   }
   throw new Error(
-    "No rendered canvas available: no artboard reported render-ready within 20s. Pass componentUuid or frameUuid to render a background artboard, or retry after the canvas finishes loading",
+    frameUuid
+      ? `Artboard ${frameUuid} did not report render-ready within 20s`
+      : "No rendered canvas available: no artboard reported render-ready within 20s. Pass componentUuid or frameUuid to render a background artboard, or retry after the canvas finishes loading",
   );
 }
-async function renderCanvas(win, input = {}) {
-  const available = await canvasFrames(win, input.inspectionId);
+async function renderCanvas(win, input = {}, signal) {
+  const available = await canvasFrames(
+    win, input.inspectionId, undefined, undefined, signal, input.liveCanvas ? input.frameUuid : undefined,
+  );
   const matchingFrames = input.frameUuid
     ? available.filter(({ layout }) => layout.frameUuid === input.frameUuid)
     : available;

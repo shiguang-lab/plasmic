@@ -114,15 +114,16 @@ function windowFor(dom) {
   };
 }
 
-test("a frame-targeted layout read renders an offscreen Page without selecting the overview or changing it", async () => {
+test("a frame-targeted layout read renders the offscreen artboard without leaving native Preview", async () => {
   const overview = domFor('<html data-plasmic-frame-uuid="overview-frame"><body><div class="__wab_val_root"><span>Overview content</span></div></body></html>');
   const page = domFor('<html data-plasmic-frame-uuid="page-frame"><body><div class="__wab_val_root"><span>Page content</span></div></body></html>');
   const win = windowFor(overview);
+  win.webContents.getURL = () => "https://studio.example/projects/test/preview";
   const visibleFrames = win.webContents.mainFrame.framesInSubtree;
   const originalHtml = overview.window.document.documentElement.outerHTML;
   const calls = [];
   const controller = new DesktopController(() => studioFixture(win), {});
-  controller.state = async () => ({ ready: true, projectId: "test", editorContext: { mode: "edit", frameUuid: "overview-frame" } });
+  controller.state = async () => ({ ready: true, projectId: "test", editorContext: { mode: "preview", previewKind: "in-app", frameUuid: "overview-frame" } });
   controller.editor = async (method, input) => {
     calls.push({ method, input });
     if (method === "beginCanvasInspection") {
@@ -153,6 +154,40 @@ test("a frame-targeted layout read renders an offscreen Page without selecting t
     overview.window.close();
     page.window.close();
   }
+});
+
+test("live layout waits for the exact overview frame even when its sibling is already ready", async (t) => {
+  const sibling = domFor('<html data-plasmic-frame-uuid="sibling"><body><main class="__wab_val_root">Sibling</main></body></html>');
+  const target = domFor('<html data-plasmic-frame-uuid="target"><body><main class="__wab_val_root"><p>Target</p></main></body></html>', { renderReady: false });
+  const win = windowFor(sibling);
+  const targetFrame = windowFor(target).webContents.mainFrame.framesInSubtree[0];
+  const evaluate = targetFrame.executeJavaScript;
+  let attempts = 0;
+  targetFrame.executeJavaScript = async (script) => {
+    const result = await evaluate(script);
+    if (++attempts === 1) {
+      assert.equal(result.ready, false);
+      target.window.document.documentElement.setAttribute("data-plasmic-render-ready", "");
+    }
+    return result;
+  };
+  win.webContents.mainFrame.framesInSubtree.push(targetFrame);
+  const controller = new DesktopController(() => studioFixture(win), {});
+  t.after(() => {
+    controller.close();
+    sibling.window.close();
+    target.window.close();
+  });
+  controller.state = async () => ({ ready: true, projectId: "test", editorContext: { mode: "edit", frameUuid: "target" } });
+  controller.editor = async (method) => assert.fail(`Unexpected editor operation: ${method}`);
+  const snapshot = await controller.dispatch("snapshot_layout", { frameUuid: "target", liveCanvas: true, view: "full" });
+  assert.equal(attempts, 2);
+  assert.deepEqual(snapshot.frames.map(frame => frame.frameUuid), ["target"]);
+  assert.ok(snapshot.frames[0].elements.some(element => element.text === "Target"));
+  await assert.rejects(
+    controller.dispatch("snapshot_layout", { frameUuid: "missing", liveCanvas: true }, undefined, AbortSignal.timeout(100)),
+    { name: "TimeoutError" },
+  );
 });
 
 test("image inspection is scoped to visible business content without hiding real broken images", async () => {
