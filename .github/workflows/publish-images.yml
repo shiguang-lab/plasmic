@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   plan:
-    if: github.repository == 'shiguang-lab/plasmic'
+    if: github.repository == 'shiguang-lab/plasmic' && github.event_name == 'workflow_dispatch' && inputs.release-tag == '0.8.5'
     runs-on: ubuntu-24.04
     outputs:
       publish: ${{ steps.plan.outputs.publish }}
@@ -50,30 +50,18 @@ jobs:
     needs: plan
     if: needs.plan.outputs.studio == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
-    permissions:
-      contents: read
-      packages: write
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
-        with:
-          ref: ${{ needs.plan.outputs.revision }}
-      - name: Free runner disk
-        run: sudo rm -rf /usr/local/lib/android /opt/ghc /usr/share/dotnet
-      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1, Node 24
-        with:
-          # GitHub discards this VM; deleting the large builder adds minutes.
-          cleanup: false
-      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0, Node 24
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish images with a shared builder
+      - name: Verify the already published Studio images for this tag
         env:
-          RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
+          RELEASE_TAG: ${{ inputs.release-tag }}
           PLASMIC_COMMIT: ${{ needs.plan.outputs.revision }}
-        run: docker buildx bake --file deploy/docker-bake.hcl --push
+        run: |
+          for image in server preview web; do
+            ref="ghcr.io/shiguang-lab/plasmic-$image:$RELEASE_TAG"
+            docker pull "$ref"
+            test "$(docker image inspect --format '{{index .Config.Labels "org.opencontainers.image.revision"}}' "$ref")" = "$PLASMIC_COMMIT"
+          done
   cli:
     needs: plan
     if: needs.plan.outputs.cli == 'true'
@@ -103,17 +91,10 @@ jobs:
     uses: ./.github/workflows/test-desktop.yml
     with:
       source-ref: ${{ needs.plan.outputs.revision }}
-  desktop-runtime:
-    needs: plan
-    if: needs.plan.outputs.desktop == 'true' && needs.plan.outputs.studio == 'true'
-    uses: ./.github/workflows/prepare-desktop-runtime.yml
-    with:
-      source-ref: ${{ needs.plan.outputs.revision }}
   desktop:
-    needs: [plan, studio, desktop-runtime]
+    needs: [plan, studio]
     if: >-
       ${{ !cancelled() && needs.plan.outputs.desktop == 'true' &&
-          (needs.desktop-runtime.result == 'success' || needs.desktop-runtime.result == 'skipped') &&
           (needs.studio.result == 'success' || needs.studio.result == 'skipped') }}
     permissions:
       contents: read

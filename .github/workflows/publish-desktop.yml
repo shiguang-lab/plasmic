@@ -52,7 +52,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-26
+          - runner: macos-15
             platform: darwin
             arch: arm64
           - runner: macos-15-intel
@@ -65,8 +65,8 @@ jobs:
             platform: linux
             arch: x64
     runs-on: ${{ matrix.runner }}
-    # A cold Intel build compiles llama.cpp before signing and packaging.
-    timeout-minutes: ${{ matrix.runner == 'macos-15-intel' && 60 || 30 }}
+    # A cold macOS build compiles llama.cpp before signing and packaging.
+    timeout-minutes: ${{ matrix.platform == 'darwin' && 60 || 30 }}
     defaults:
       run:
         shell: bash
