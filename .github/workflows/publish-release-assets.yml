@@ -80,10 +80,12 @@ jobs:
           gh release download 0.8.5 --pattern "$staged" --dir release-artifacts
           archive="release-artifacts/$staged"
           printf '%s  %s\n' '073c016f86031ea313b985b43f1702b9d1541e4eec610658aef82e83e5afd13d' "$archive" | sha256sum -c -
-          expected=$(printf '%s\n' Plasmic-0.8.5-mac-arm64.{dmg,dmg.blockmap,zip,zip.blockmap} latest-mac.yml | sort)
-          test "$(tar -tf "$archive" | sort)" = "$expected"
+          files=(Plasmic-0.8.5-mac-arm64.{dmg,dmg.blockmap,zip,zip.blockmap} latest-mac.yml)
+          expected=$(printf '%s\n' "${files[@]}" | sort)
+          listing=$(tar --warning=no-unknown-keyword --exclude='._*' -tf "$archive" | sort)
+          test "$listing" = "$expected"
           mkdir release-artifacts/darwin-arm64
-          tar -xf "$archive" -C release-artifacts/darwin-arm64
+          tar --warning=no-unknown-keyword -xf "$archive" -C release-artifacts/darwin-arm64 "${files[@]}"
           npm ci --prefix desktop --omit=dev --ignore-scripts --prefer-offline --no-audit --no-fund
           node desktop/scripts/build-distribution.mjs --from release-artifacts --output release-artifacts/desktop-distribution --tag 0.8.5 --manifests-only
           gh release delete-asset 0.8.5 "$staged" --yes
