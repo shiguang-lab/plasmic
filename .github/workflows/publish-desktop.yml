@@ -9,12 +9,17 @@ on:
         description: Verified release commit to build
         required: true
         type: string
+      renderer-prepared:
+        description: The caller uploaded a renderer from its Studio build
+        type: boolean
+        default: false
 env:
   PYTHONUTF8: "1"
 permissions:
   contents: read
 jobs:
   renderer:
+    if: '!inputs.renderer-prepared'
     env:
       ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
     runs-on: ubuntu-24.04
@@ -48,6 +53,10 @@ jobs:
           compression-level: 0
   installers:
     needs: renderer
+    if: >-
+      ${{ !cancelled() &&
+          (needs.renderer.result == 'success' ||
+           (inputs.renderer-prepared && needs.renderer.result == 'skipped')) }}
     strategy:
       fail-fast: false
       matrix:

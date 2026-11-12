@@ -1,4 +1,4 @@
-name: Verify Desktop packaging
+name: Verify Studio and Desktop builds
 on:
   workflow_dispatch:
   push:
@@ -6,6 +6,58 @@ on:
 permissions:
   contents: read
 jobs:
+  studio:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
+        with:
+          persist-credentials: false
+      - name: Free runner disk
+        run: sudo rm -rf /usr/local/lib/android /opt/ghc /usr/share/dotnet
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1, Node 24
+        with:
+          cleanup: false
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0, Node 24
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build Studio server, web, and preview
+        env:
+          RELEASE_TAG: actions-joint-test
+          PLASMIC_COMMIT: ${{ github.sha }}
+        run: |
+          docker buildx bake --file deploy/docker-bake.hcl \
+            --set '*.cache-to=' \
+            --set 'server.output=type=cacheonly' \
+            --set 'preview.output=type=cacheonly' \
+            --set 'web.output=type=docker'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - name: Extract renderer from this run's web image
+        env:
+          ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+        run: |
+          npm ci --prefix desktop --ignore-scripts --prefer-offline --no-audit --no-fund
+          studio_image=ghcr.io/shiguang-lab/plasmic-web:actions-joint-test
+          test "$(docker image inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$studio_image")" = "$GITHUB_SHA"
+          pinned_image=$(node -p 'require("./desktop/desktop.config.json").webImage')
+          docker tag "$studio_image" "$pinned_image"
+          node desktop/scripts/prepare-assets.mjs --cached-image
+          tar -czf renderer.tar.gz -C desktop renderer
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
+        with:
+          name: desktop-renderer
+          path: renderer.tar.gz
+          if-no-files-found: error
+          compression-level: 0
   tests:
     uses: ./.github/workflows/test-desktop.yml
     with:
@@ -15,10 +67,11 @@ jobs:
     with:
       source-ref: ${{ github.sha }}
   installers:
-    needs: runtimes
+    needs: [studio, runtimes]
     uses: ./.github/workflows/publish-desktop.yml
     with:
       source-ref: ${{ github.sha }}
+      renderer-prepared: true
   distribution:
     needs: [tests, installers]
     runs-on: ubuntu-24.04
