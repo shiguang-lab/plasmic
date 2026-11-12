@@ -367,7 +367,6 @@ import { createStartupStore } from "@/wab/client/studio-ctx/startup-state";
 import { createCursorStore, setCursorLocation } from "@/wab/client/studio-ctx/cursor-state";
 import { createCanvasLoadStore } from "@/wab/client/studio-ctx/canvas-load-state";
 import { createRightPanelStore } from "@/wab/client/studio-ctx/right-panel-state";
-import { createCanvasOverviewStore } from "@/wab/client/studio-ctx/canvas-overview-state";
 import {
   createStepsCacheStore,
   saveStepsCacheValue,
@@ -2438,7 +2437,6 @@ export class StudioCtx extends WithDbCtx {
       this.hidePresetsModal();
       this.pageSettingsStore.setState((previous) => previous.page === undefined && !previous.open ? previous : { page: undefined, open: false });
       this.findReferencesStore.setState((previous) => previous.component === undefined && previous.styleToken === undefined && previous.dataToken === undefined ? previous : { component: undefined, styleToken: undefined, dataToken: undefined });
-      this.canvasOverviewStore.setState((previous) => previous.overview === undefined ? previous : { overview: undefined });
     });
     this.singleRsStyleInputs.dispose();
   }
@@ -3267,9 +3265,6 @@ export class StudioCtx extends WithDbCtx {
       if (prevArena !== arena) { this.commentsCtx.resetViewSessions(); }
       this.currentArena = arena;
       this.viewportCtx?.setArena(arena);
-      if (this.canvasOverviewStore.getState().overview?.arena !== arena) {
-        this.canvasOverviewStore.setState((previous) => previous.overview === undefined ? previous : { overview: undefined });
-      }
       if (!arena) {
         return;
       }
@@ -4039,42 +4034,9 @@ export class StudioCtx extends WithDbCtx {
       : findPageOverviewArena(this.site);
     if (arena) {
       this.switchToArena(arena);
-      this.returnToCanvasOverview();
       defer(() => this.tryZoomToFitArena());
     }
   };
-
-  readonly canvasOverviewStore = createCanvasOverviewStore();
-
-  get canvasFocusActive() {
-    return (
-      this.canvasOverviewStore.getState().overview?.arena === this.currentArena
-    );
-  }
-
-  focusCanvasFrame = ((frame: ArenaFrame) => {
-    const arena = this.currentArena;
-    if (
-      !isMixedArena(arena) ||
-      !arena.children.includes(frame) ||
-      !this.viewportCtx
-    ) {
-      return;
-    }
-    if (!this.canvasFocusActive) {
-      this.canvasOverviewStore.setState({ overview: { arena, viewport: this.getCurrentStudioViewportSnapshot() } });
-    }
-    this.setStudioFocusOnFrame({ frame, autoZoom: false });
-    this.tryZoomToFitFrame(frame, 1);
-  });
-
-  returnToCanvasOverview = (() => {
-    const overview = this.canvasOverviewStore.getState().overview;
-    if (overview?.arena === this.currentArena && this.viewportCtx) {
-      this.restoreStudioViewportSnapshot(overview.viewport, false);
-    }
-    this.canvasOverviewStore.setState((previous) => previous.overview === undefined ? previous : { overview: undefined });
-  });
 
   get leftPaneWidth() {
     return this.leftPanelState.leftPaneWidth;

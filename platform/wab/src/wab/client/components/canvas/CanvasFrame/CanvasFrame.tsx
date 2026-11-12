@@ -2,13 +2,12 @@ import { useViewEntryForFrame, useViewReady } from "@/wab/client/studio-ctx/aren
 import { useActiveContentEditor, useContentEditor } from "@/wab/client/studio-ctx/canvas-content-editor";
 import { useShallow } from "zustand/react/shallow";
 import { useFrameHeight } from "@/wab/client/studio-ctx/frame-heights";
+import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useStudioOverlayState } from "@/wab/client/studio-ctx/studio-overlay-state";
 import { CanvasFrameHash } from "@/wab/client/components/canvas/canvas-frame-hash-observer";
 import { useStudioRenderPolicy } from "@/wab/client/studio-ctx/studio-render-policy";
 import { CanvasFrameLoad } from "@/wab/client/components/canvas/canvas-frame-load";
-import { DragMoveFrameManager } from "@/wab/client/FreestyleManipulator";
 import { CanvasActions } from "@/wab/client/components/canvas/CanvasActions/CanvasActions";
-import { CanvasArtboardSelectionHandle } from "@/wab/client/components/canvas/CanvasFrame/CanvasArtboardSelectionHandle";
 import styles from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
 import { CanvasHeader } from "@/wab/client/components/canvas/CanvasFrame/CanvasHeader";
 import { headRegexp } from "@/wab/client/components/canvas/CanvasFrame/headRegexp";
@@ -25,10 +24,6 @@ import { useI18n } from "@/wab/client/i18n";
 import { bindShortcutHandlers } from "@/wab/client/shortcuts/shortcut-handler";
 import { STUDIO_SHORTCUTS } from "@/wab/client/shortcuts/studio/studio-shortcuts";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
-import {
-  XDraggable,
-  XDraggableEvent,
-} from "@/wab/commons/components/XDraggable";
 import { AsyncGeneratorReturnType } from "@/wab/commons/types";
 import { AnyArena, getArenaName } from "@/wab/shared/Arenas";
 import {
@@ -38,7 +33,6 @@ import {
   tuple,
 } from "@/wab/shared/common";
 import { DEVFLAGS } from "@/wab/shared/devflags";
-import { Pt } from "@/wab/shared/geom";
 import { ArenaFrame } from "@/wab/shared/model/classes";
 import { Button, Skeleton } from "antd";
 import $ from "jquery";
@@ -433,10 +427,14 @@ export const CanvasFrame = React.memo(function CanvasFrame({
   // for vc) in the top most window.
 
 
+  const isPartOfMultiSelection = useStudioSelection(studioCtx, ({ frames }) =>
+    frames.length > 1 && frames.some((frame) => frame.uid === arenaFrame.uid),
+  );
+
   const handleSelectionClick = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     // Portal events follow the React tree even when their DOM is outside this
     // frame. Studio popups must not select the artboard that owns their trigger.
-    if (!event.currentTarget.contains(event.target as Node) || !studioCtx.arenaState.isCurrentLifetime(modelLifetime) || studioCtx.isInteractiveMode || maybeViewCtx()?.contentEditor.target) {
+    if (!event.currentTarget.contains(event.target as Node) || (event.target as Element).closest("[data-canvas-artboard-uid]") || !studioCtx.arenaState.isCurrentLifetime(modelLifetime) || studioCtx.isInteractiveMode || maybeViewCtx()?.contentEditor.target) {
       return;
     }
     spawn(
@@ -447,74 +445,6 @@ export const CanvasFrame = React.memo(function CanvasFrame({
       }),
     );
   }, [studioCtx, arenaFrame, maybeViewCtx, modelLifetime]);
-  const handleArenaHandleClick = useCallback(
-    (e?: React.MouseEvent<HTMLElement>) => {
-      if (!studioCtx.arenaState.isCurrentLifetime(modelLifetime) || studioCtx.isInteractiveMode) {
-        return;
-      }
-      if (!e?.shiftKey && studioCtx.focusedFrames().includes(arenaFrame)) {
-        return;
-      }
-      spawn(
-        studioCtx.change(() => {
-          if (!studioCtx.arenaState.isCurrentLifetime(modelLifetime)) { return ok(); }
-          studioCtx.setStudioFocusOnFrame({
-            frame: arenaFrame,
-            appendToMultiSelection: e?.shiftKey,
-          });
-          return ok();
-        }),
-      );
-    },
-    [studioCtx, arenaFrame, modelLifetime],
-  );
-
-  const dragMoveManager = useRef<DragMoveFrameManager | undefined>(undefined);
-
-  const startMove = (e: XDraggableEvent) => {
-    if (!studioCtx.arenaState.isCurrentLifetime(modelLifetime)) { return; }
-    const clientPt = new Pt(e.mouseEvent.pageX, e.mouseEvent.pageY);
-    if (studioCtx.isPositionManagedFrame(arenaFrame)) {
-      return;
-    }
-    dragMoveManager.current = new DragMoveFrameManager(
-      studioCtx,
-      arenaFrame,
-      clientPt,
-    );
-
-    if (dragMoveManager.current && dragMoveManager.current.aborted()) {
-      dragMoveManager.current = undefined;
-    } else {
-      studioCtx.setIsDraggingObject(true);
-    }
-  };
-
-  const dragMove = async (e: XDraggableEvent) => {
-    if (dragMoveManager.current) {
-      if (dragMoveManager.current.aborted()) {
-        await stopMove();
-      } else {
-        const clientPt = new Pt(e.mouseEvent.pageX, e.mouseEvent.pageY);
-        await dragMoveManager.current.drag(clientPt, e.mouseEvent);
-        if (dragMoveManager.current && dragMoveManager.current.aborted()) {
-          await stopMove();
-        }
-      }
-    }
-  };
-
-  const stopMove = async () => {
-    await studioCtx.change(() => {
-      if (dragMoveManager.current) {
-        dragMoveManager.current.endDrag();
-        dragMoveManager.current = undefined;
-      }
-      studioCtx.setIsDraggingObject(false);
-      return ok();
-    });
-  };
-
   useEffect(() => {
     const load = loadRef.current;
     if (load?.isActive() && loadState === "ready-to-load" && iframeRef.current) {
@@ -663,9 +593,9 @@ export const CanvasFrame = React.memo(function CanvasFrame({
     useShallow((state) => [state.size, !!state.target, state.ready] as const));
   if (!alive || !studioCtx.arenaState.isCurrentLifetime(modelLifetime)) { return null; }
   return (
-    <div className={styles.root} onClick={handleSelectionClick} style={contentView && contentView.arenaFrame() !== arenaFrame ? { visibility: "hidden", pointerEvents: "none" } : undefined}>
+    <div onClick={handleSelectionClick} style={contentView && contentView.arenaFrame() !== arenaFrame ? { visibility: "hidden", pointerEvents: "none" } : undefined}>
       <div
-        className={"CanvasFrame__Container"}
+        className="CanvasFrame__Container"
         style={{
           ...(isFree
             ? {
@@ -737,23 +667,9 @@ export const CanvasFrame = React.memo(function CanvasFrame({
             String(loadState === "unloaded" || loadState === "queued")
           }
         />
-        {!isContentEditing && <><div
-          className={"CanvasFrame__OverlayTop"}
-          data-frame-uid={arenaFrame.uid}
-        />
-        <div
-          className={"CanvasFrame__OverlayRight"}
-          data-frame-uid={arenaFrame.uid}
-        />
-        <div
-          className={"CanvasFrame__OverlayBottom"}
-          data-frame-uid={arenaFrame.uid}
-        />
-        <div
-          className={"CanvasFrame__OverlayLeft"}
-          data-frame-uid={arenaFrame.uid}
-        />
-        </>}
+        {!isContentEditing && !interactive && isPartOfMultiSelection && (
+          <div className={styles.selectedOutline} aria-hidden />
+        )}
         {DEVFLAGS.loadingDebug && (
           <div className={styles.statusBadge}>
             {loadState === "unloaded" && studioUiT("Mounted...")}
@@ -773,18 +689,6 @@ export const CanvasFrame = React.memo(function CanvasFrame({
 
         {!isContentEditing && <>
         <CanvasHeader studioCtx={studioCtx} frame={arenaFrame} arena={arena} />
-        <XDraggable
-          onStart={(e) => startMove(e)}
-          onDrag={(e) => dragMove(e)}
-          onStop={async () => stopMove()}
-        >
-          <span>
-            <CanvasArtboardSelectionHandle
-              frame={arenaFrame}
-              onClick={handleArenaHandleClick}
-            />
-          </span>
-        </XDraggable>
         {!interactive &&
           canComment &&
           commentsOverlay && (

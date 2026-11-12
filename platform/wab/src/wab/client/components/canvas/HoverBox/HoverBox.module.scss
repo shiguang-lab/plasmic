@@ -10,6 +10,7 @@
   flex-direction: column;
   :global(.node-outline-tag) {
     pointer-events: inherit;
+    cursor: default;
   }
 
   & > :global(.node-outline-tag) {

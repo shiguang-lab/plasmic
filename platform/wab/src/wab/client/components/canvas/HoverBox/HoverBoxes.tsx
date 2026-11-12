@@ -53,7 +53,6 @@ import { LinkButton } from "@/wab/client/components/widgets";
 import { usePlasmicCtx } from "@/wab/client/contexts/StudioContexts";
 import { offsetPxAsUnits } from "@/wab/client/DimManip";
 import {
-  DragMoveFrameManager,
   FreestyleManipulator,
   ManipState,
   ManipulatorAbortedError,
@@ -97,7 +96,6 @@ import { createNumericSize, showSizeCss, Unit } from "@/wab/shared/css-size";
 import {
   Corner,
   isAxisSide,
-  Pt,
   Side,
   sideOrCornerToSides,
   sideToOrient,
@@ -171,7 +169,6 @@ interface SpacingEdgeDragState {
 let showedToast = false;
 
 function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
-  const dragMoveManager = useRef<DragMoveFrameManager | undefined>(undefined);
   const plasmicCtx = usePlasmicCtx();
   const studioCtx = plasmicCtx.studioCtx;
   const leftTabKey = useStore(studioCtx.leftPanelState.store, selectLeftTabKey);
@@ -308,47 +305,6 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
     });
   };
 
-  const startMove = (e: XDraggableEvent) => {
-    const frame = studioCtx.hoverBoxControlledObj;
-    if (!isKnownArenaFrame(frame) || studioCtx.isPositionManagedFrame(frame)) {
-      return;
-    }
-    dragMoveManager.current = new DragMoveFrameManager(
-      studioCtx,
-      frame,
-      new Pt(e.data.initX, e.data.initY),
-    );
-    if (dragMoveManager.current && dragMoveManager.current.aborted()) {
-      dragMoveManager.current = undefined;
-    } else {
-      studioCtx.setIsDraggingObject(true);
-    }
-  };
-
-  const dragMove = async (e: XDraggableEvent) => {
-    if (dragMoveManager.current) {
-      if (dragMoveManager.current.aborted()) {
-        await stopMove();
-      } else {
-        const clientPt = new Pt(e.mouseEvent.pageX, e.mouseEvent.pageY);
-        await dragMoveManager.current.drag(clientPt, e.mouseEvent);
-        if (dragMoveManager.current && dragMoveManager.current.aborted()) {
-          await stopMove();
-        }
-      }
-    }
-  };
-
-  const stopMove = async () => {
-    await studioCtx.changeUnsafe(() => {
-      if (dragMoveManager.current) {
-        dragMoveManager.current.endDrag();
-        dragMoveManager.current = undefined;
-      }
-      studioCtx.setIsDraggingObject(false);
-      setManipState(undefined);
-    });
-  };
   const state = viewProps.displayProps;
 
   const focusedElt = viewCtx?.focusedDomElt()?.get()[0];
@@ -393,16 +349,13 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
         if (manipState) {
           await stopResize();
         }
-        if (dragMoveManager.current) {
-          await stopMove();
-        }
       }),
     );
 
     return () => {
       listener.detach();
     };
-  }, [studioCtx, manipState, dragMoveManager, stopMove, stopResize]);
+  }, [studioCtx, manipState, stopResize]);
 
   const frameTagRef = useRef<HTMLDivElement>(null);
   const shouldShowDimBadge =
@@ -514,32 +467,17 @@ function HoverBoxInner_({ viewProps }: { viewProps: HoverBoxViewProps }) {
                     className={styles.hoverBoxTagContainer}
                     style={tagPlacement}
                   >
-                    <XDraggable
-                      nodeRef={frameTagRef}
-                      onStart={(e) => startMove(e)}
-                      onDrag={(e) => dragMove(e)}
-                      onStop={async (e) => {
-                        if (!e.data.aborted) {
-                          await dragMove(e);
-                        }
-                        await stopMove();
-                      }}
-                    >
-                      <div
-                        ref={frameTagRef}
-                        className="node-outline-tag"
-                      >
-                        {state?.tagName && (
-                          <EditableNodeLabel
-                            studioCtx={studioCtx}
-                            viewCtx={viewCtx}
-                            displayName={state.tagName}
-                            icon={state?.tagIcon}
-                            nameable={controlledObj}
-                          />
-                        )}
-                      </div>
-                    </XDraggable>
+                    <div ref={frameTagRef} className="node-outline-tag">
+                      {state?.tagName && (
+                        <EditableNodeLabel
+                          studioCtx={studioCtx}
+                          viewCtx={viewCtx}
+                          displayName={state.tagName}
+                          icon={state?.tagIcon}
+                          nameable={controlledObj}
+                        />
+                      )}
+                    </div>
                   </div>
                 )}
                 <div
@@ -1022,13 +960,18 @@ function HoverBox_(props: { viewCtx: ViewCtx; target: HoverBoxTarget }) {
     return [tpl, parent].filter((node): node is TplNode => !!node && isTplVariantable(node))
       .map((node) => parentStackStyleProvider(viewCtx, node));
   }, [viewCtx, target, input, renderCount, root, variants]);
-  if (!input.alive) { return null; }
-  return <HoverBoxStyles {...props} providers={providers} />;
+  return <HoverBoxStyles {...props} providers={providers} input={input} />;
 }
-function HoverBoxStyles(props: { viewCtx: ViewCtx; target: HoverBoxTarget; providers: NativeStyleProvider[] }) {
+function HoverBoxStyles(props: {
+  viewCtx: ViewCtx;
+  target: HoverBoxTarget;
+  providers: NativeStyleProvider[];
+  input: ReturnType<typeof useCanvasViewInputs>;
+}) {
+  if (!props.input.alive) { return null; }
   const [provider, ...rest] = props.providers;
   return provider ? <HoverBoxStyleSubscriber provider={provider} render={() => <HoverBoxStyles {...props} providers={rest} />} />
-    : <HoverBoxGeometry viewCtx={props.viewCtx} target={props.target} />;
+    : <HoverBoxGeometry {...props} />;
 }
 function HoverBoxStyleSubscriber(props: { provider: NativeStyleProvider; render: () => React.ReactElement }) {
   useStyleCells(props.provider, hoverBoxStyleKeys);
@@ -1041,6 +984,8 @@ function HoverBoxGeometry({
   viewCtx: ViewCtx;
   target: HoverBoxTarget;
 }) {
+  "use no memo";
+  // Read live model coordinates and DOM layout after their subscriptions fire.
   useViewVariants(viewCtx, useShallow((variantState) => [variantState.frames, variantState.global]));
   const selection = useViewSelection(viewCtx, useShallow((state) => [state.part, state.doms, state.context, state.cloneKeys]));
   const selectedPart = React.useMemo(() => viewCtx.focusedComponentPart, [viewCtx, selection]);

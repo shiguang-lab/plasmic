@@ -1,0 +1,7 @@
+{
+  "en": "- Move artboards by dragging inside a selected artboard. Dragging any selected artboard moves the whole selection, with outlines for the group and each artboard.\n- Align artboard titles with the left edge and simplify navigation within canvas groups.",
+  "zh-CN": "- 选中画板后，从画板内部按住拖动。多选时拖动任一选中的画板即可移动整组，画布同时显示组合外框和各画板的轮廓。\n- 将画板标题与左边缘对齐，并简化画板组内的导航。",
+  "zh-TW": "- 選取畫板後，從畫板內部按住拖曳。多選時拖曳任一選取的畫板即可移動整組，畫布同時顯示群組外框和各畫板的輪廓。\n- 將畫板標題與左側邊緣對齊，並簡化畫板群組內的導覽。",
+  "ja": "- 選択したアートボードの内側をドラッグして移動できます。複数選択時はどれか一つをドラッグすると全体が移動し、選択範囲全体と各アートボードの輪郭が表示されます。\n- アートボードのタイトルを左端に揃え、キャンバスグループ内のナビゲーションを簡素化しました。",
+  "ko": "- 선택한 아트보드 내부를 드래그해 이동할 수 있습니다. 여러 아트보드를 선택한 상태에서 하나를 드래그하면 전체가 함께 이동하며, 전체 선택 영역과 각 아트보드의 윤곽선이 표시됩니다.\n- 아트보드 제목을 왼쪽 가장자리에 맞추고 캔버스 그룹 내 탐색을 간소화했습니다."
+}

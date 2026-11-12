@@ -58,14 +58,15 @@ import { RightPane } from "@/wab/client/components/studio/RightPane";
 import { TopFrameObserver } from "@/wab/client/components/studio/TopFrameObserver";
 import { CodePreviewPanel } from "@/wab/client/components/studio/code-preview/CodePreviewPanel";
 import { TopBar } from "@/wab/client/components/top-bar";
+import { makeFrameMenu } from "@/wab/client/components/frame-menu";
 import { getContextMenuForFocusedTpl } from "@/wab/client/components/tpl-menu";
 import { BrowserAlertBanner } from "@/wab/client/components/widgets/BrowserAlertBanner";
 import { DropdownButton } from "@/wab/client/components/widgets/DropdownButton";
 import { AlertBanner } from "@/wab/client/components/widgets/plasmic/AlertBanner";
-import { clientToFramePt, frameToClientPt } from "@/wab/client/coords";
+import { frameToClientPt } from "@/wab/client/coords";
 import { plasmicIFrameWheelEvent } from "@/wab/client/definitions/events";
 import { isArrowKey } from "@/wab/client/dom";
-import { getElementBounds, isCanvasIframeEvent } from "@/wab/client/dom-utils";
+import { isCanvasIframeEvent } from "@/wab/client/dom-utils";
 import {
   dispatchFrameInteraction,
   isForwardedFrameInteraction,
@@ -126,6 +127,7 @@ import {
   isKnownTplTag,
 } from "@/wab/shared/model/classes";
 import { TplVisibility } from "@/wab/shared/visibility-utils";
+import { inverseZoom } from "@/wab/styles/css-variables";
 import { Scrollbar } from "@shiguang2/components/esm/scrollbar";
 import { Alert, notification } from "antd";
 import { ArgsProps } from "antd/lib/notification";
@@ -142,6 +144,7 @@ import { useStore } from "zustand";
 const minDragPx = 4;
 interface DragState {
   sourceViewCtx: ViewCtx;
+  artboard?: { frame: ArenaFrame; lifetime: AbortSignal; click: () => void };
   initClientPt: Pt;
   initScreenX: number;
   initScreenY: number;
@@ -537,6 +540,7 @@ initializeCanvas = (canvasClipper: HTMLElement | null) => {
         },
         scaleTo: (scale, smooth) => {
           canvasScaler.style.transform = `scale(${scale})`;
+          canvasScaler.style.setProperty(inverseZoom, String(1 / scale));
           canvasScaler.style.transition = smooth
             ? `transform 0.5s, -webkit-transform 0.5s`
             : "";
@@ -1173,6 +1177,22 @@ private async handleMouseDown(
       return;
     }
 
+    const artboard = this.getArtboardTitleFrame(e);
+    if (artboard) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.canvasClicks.reset();
+      this.canvasClipper?.focus({ preventScroll: true });
+      sc.changeSelection(() =>
+        sc.setStudioFocusOnFrame({
+          frame: artboard,
+          autoZoom: false,
+          appendToMultiSelection: e.shiftKey,
+        }),
+      );
+      return;
+    }
+
     const eventTarget = e.target as HTMLElement;
     if (
       [
@@ -1231,30 +1251,66 @@ private async handleMouseDown(
     document.getSelection()?.removeAllRanges();
     this.canvasClipper?.focus({ preventScroll: true });
 
-    const makeSpeculativeDragState = () => ({
-      sourceViewCtx: targetVc,
+    const frame = targetVc.arenaFrame();
+    if (
+      frame &&
+      !sc.canvasContentEditor &&
+      !sc.isPositionManagedFrame(frame) &&
+      !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey &&
+      sc.focusedFrames().includes(frame)
+    ) {
+      // Keep the artboard selection until the pointer commits to a click or drag.
+      const pressedAt = Date.now();
+      this.dragState = {
+        ...this.makeDragState(e, targetVc),
+        artboard: {
+          frame,
+          lifetime: sc.arenaState.lifetime(),
+          click: () => this.handleLayerMouseDown(e, $target, targetVc, pressedAt),
+        },
+      };
+      return;
+    }
+
+    this.handleLayerMouseDown(e, $target, targetVc);
+  }
+
+  private makeDragState(e: MouseEvent, sourceViewCtx: ViewCtx): DragState {
+    const point = new Pt(e.clientX, e.clientY);
+    return {
+      sourceViewCtx,
       initClientPt: isCanvasIframeEvent(e)
-        ? frameToClientPt(new Pt(e.clientX, e.clientY), targetVc)
-        : new Pt(e.clientX, e.clientY),
+        ? frameToClientPt(point, sourceViewCtx)
+        : point,
       initScreenX: e.screenX,
       initScreenY: e.screenY,
       isDragging: false,
       dragMoveManager: undefined,
-    });
+    };
+  }
 
+  private handleLayerMouseDown(
+    e: MouseEvent,
+    $target: JQuery,
+    targetVc: ViewCtx,
+    pressedAt?: number,
+  ) {
+    const clickOnly = pressedAt !== undefined;
     const internalElements = targetVc.canvasCtx.$wabInternalElements();
     if (internalElements.find((elm) => $target.is(elm))) {
       // Clicked on the empty space between root and frame
-      this.startMarquee(e, targetVc, () =>
-        targetVc.changeSelection(() => {
-          targetVc.canvasCtx.clearRange();
-          targetVc.studioCtx.setStudioFocusOnFrame({
-            frame: targetVc.arenaFrame(),
-            autoZoom: false,
-          });
-        }),
-        true,
-      );
+      const focusFrame = () => targetVc.changeSelection(() => {
+        targetVc.canvasCtx.clearRange();
+        targetVc.studioCtx.setStudioFocusOnFrame({
+          frame: targetVc.arenaFrame(),
+          autoZoom: false,
+        });
+      });
+      if (clickOnly) {
+        focusFrame();
+      } else {
+        this.startMarquee(e, targetVc, focusFrame, true);
+      }
       return;
     }
 
@@ -1297,13 +1353,13 @@ private async handleMouseDown(
           targetVc.setFocusedComponentPart(part);
           targetVc.studioCtx.switchRightTab(RightTabKey.style);
         });
-        this.canvasClicks.start(e, part.tpl);
+        this.canvasClicks.start(e, part.tpl, pressedAt);
         this.pendingCanvasClick = { viewCtx: targetVc, target: closest, componentPart: true };
         return;
       }
     }
 
-    this.canvasClicks.start(e, targetVc);
+    this.canvasClicks.start(e, targetVc, pressedAt);
     this.pendingCanvasClick = { viewCtx: targetVc, target: closest };
 
     const focusedSelectables = targetVc.focusedSelectables();
@@ -1317,13 +1373,18 @@ private async handleMouseDown(
       focusable instanceof ValNode &&
       targetVc.getViewOps().isRootNodeOfFrame(focusable.tpl)
     ) {
-      this.startMarquee(e, targetVc, () => {
+      const focusRoot = () => {
         targetVc.getViewOps().tryFocusDomElt(closest, {
           appendToMultiSelection: e.shiftKey,
           deepSelect,
           exact: false,
         });
-      });
+      };
+      if (clickOnly) {
+        focusRoot();
+      } else {
+        this.startMarquee(e, targetVc, focusRoot);
+      }
       return;
     }
 
@@ -1341,8 +1402,8 @@ private async handleMouseDown(
       }
     }
 
-    if (!(focusable instanceof ValNode && isFixedSlotRoot(targetVc, focusable.tpl))) {
-      this.dragState = makeSpeculativeDragState();
+    if (!clickOnly && !(focusable instanceof ValNode && isFixedSlotRoot(targetVc, focusable.tpl))) {
+      this.dragState = this.makeDragState(e, targetVc);
     }
   }
 private throttledWarn = throttle(
@@ -1373,18 +1434,13 @@ private async handleMouseMove(e: MouseEvent, vc: ViewCtx | undefined | null) {
       $target.parents().is(".__wab_user-body") ||
       $target.is(".__wab_user-body") ||
       isCanvasOverlay($target);
-    if (isOverFrame) {
-      this.updateCursorLocation(
-        e,
-        ensure(vc, () => "Expected vc to exist"),
-      );
+    if (isOverFrame && vc) {
+      this.updateCursorLocation(e, vc);
     }
-    const clientPt = isOverFrame
-      ? frameToClientPt(
-          new Pt(e.pageX, e.pageY),
-          ensure(vc, () => "Expected vc to exist"),
-        )
-      : new Pt(e.clientX, e.clientY);
+    const point = new Pt(e.clientX, e.clientY);
+    const clientPt = isCanvasIframeEvent(e) && vc
+      ? frameToClientPt(point, vc)
+      : point;
     this.props.studioCtx.setCursorClientPt(clientPt);
 
     if (this.marquee) {
@@ -1432,23 +1488,37 @@ private async handleMouseMove(e: MouseEvent, vc: ViewCtx | undefined | null) {
       return;
     }
 
-    if (s.sourceViewCtx.isDisposed || this.props.studioCtx.isLiveMode) {
+    if (s.sourceViewCtx.isDisposed || sc.freestyleState()) {
       return;
     }
-    vc = s.sourceViewCtx;
-    // ignore the events if we are in freestyle mode
-    if (this.props.studioCtx.freestyleState()) {
+    if (s.artboard?.lifetime.aborted) {
+      this.cancelCanvasGesture();
       return;
     }
 
-    // HoverBox (which pokes every 200ms) may not hide itself fast
-    // enough so mousemove may be over the hoverbox. In this case, we
-    // could just use clientX/clientY.
-    const deltaX = e.screenX - s.initScreenX;
-    const deltaY = e.screenY - s.initScreenY;
-    const initClientPt = s.initClientPt;
-    if (!s.isDragging) {
-      if (Math.sqrt(deltaX ** 2 + deltaY ** 2) >= minDragPx) {
+    // Screen coordinates stay consistent when the pointer crosses iframes.
+    if (
+      !s.isDragging &&
+      Math.hypot(e.screenX - s.initScreenX, e.screenY - s.initScreenY) >= minDragPx
+    ) {
+      if (s.artboard) {
+        const { frame } = s.artboard;
+        if (
+          sc.canvasContentEditor ||
+          sc.isPositionManagedFrame(frame) ||
+          !sc.focusedFrames().includes(frame)
+        ) {
+          this.cancelCanvasGesture();
+          return;
+        }
+        this.dragState = { ...s, isDragging: true };
+        const manager = new DragMoveFrameManager(sc, frame, s.initClientPt);
+        if (!manager.aborted()) {
+          this.dragState = { ...this.dragState, dragMoveManager: manager };
+          sc.setIsDraggingObject(true);
+        }
+      } else {
+        const vc = s.sourceViewCtx;
         // ignore fixed elements, we do this verification here, because we want to warn
         // the user only when he tries to drag
         const focusedTpl = vc.focusedTpl();
@@ -1477,67 +1547,35 @@ private async handleMouseMove(e: MouseEvent, vc: ViewCtx | undefined | null) {
           return;
         }
 
+        const focusObjs = vc.focusedSelectables();
+        if (
+          focusObjs.length === 1 &&
+          focusObjs[0] instanceof ValNode &&
+          vc.getViewOps().isRootNodeOfFrame(focusObjs[0].tpl)
+        ) {
+          return;
+        }
+        const movable = focusObjs
+          .filter((obj) => obj instanceof ValTag || obj instanceof ValComponent)
+          .filter((obj) => {
+            const elements = vc.eltFinder(obj);
+            return elements != null && ensureArray(elements).length > 0;
+          });
+        if (!movable.length) {
+          return;
+        }
         this.dragState = {
           ...s,
           isDragging: true,
+          dragMoveManager: new DragMoveManager(vc, movable, s.initClientPt),
         };
-        vc.studioCtx.setIsDraggingObject(true);
-        const focusObjs = vc.focusedSelectables();
-
-        const filteredFocusObjs = focusObjs.filter((focusObj) => {
-          if (focusObj instanceof ValNode) {
-            const elts = vc.eltFinder(focusObj);
-            if (elts == null || ensureArray(elts).length === 0) {
-              // This is probably a functional code component that doesn't forward
-              // ref and whose host app didn't setup the preamble.
-              return false;
-            }
-          }
-          return true;
-        });
-
-        if (
-          focusObjs.length === 0 ||
-          (focusObjs.length === 1 &&
-            focusObjs[0] instanceof ValNode &&
-            vc.getViewOps().isRootNodeOfFrame(focusObjs[0].tpl))
-        ) {
-          const frame = vc.arenaFrame();
-          if (vc.studioCtx.isPositionManagedFrame(frame)) {
-            return;
-          }
-
-          // When dragging the root, just drag the whole frame instead
-          const dragMoveManager = new DragMoveFrameManager(
-            vc.studioCtx,
-            frame,
-            initClientPt,
-          );
-          this.dragState = {
-            ...this.dragState,
-            dragMoveManager,
-          };
-        } else {
-          const tagAndCompObjs = filteredFocusObjs.filter(
-            (obj) => obj instanceof ValTag || obj instanceof ValComponent,
-          );
-          const dragMoveManager = new DragMoveManager(
-            vc,
-            tagAndCompObjs as (ValTag | ValComponent)[],
-            initClientPt,
-          );
-          this.dragState = {
-            ...this.dragState,
-            dragMoveManager,
-          };
-        }
-        console.log("dragState set to", this.dragState);
+        sc.setIsDraggingObject(true);
       }
     }
     const dragMoveManager = this.dragState?.dragMoveManager;
     if (dragMoveManager) {
       await dragMoveManager.drag(clientPt, e);
-      if (dragMoveManager.aborted()) {
+      if (dragMoveManager.aborted() && this.dragState?.dragMoveManager === dragMoveManager) {
         this.endDrag();
       }
     }
@@ -1675,6 +1713,24 @@ private drawMeasureTool = () => {
     }
   };
 private async handleMouseUp(e: MouseEvent, vc: ViewCtx | undefined | null) {
+    const artboardPress = this.dragState?.artboard;
+    const sc = this.props.studioCtx;
+    if (artboardPress && (
+      artboardPress.lifetime.aborted ||
+      sc.isLiveMode ||
+      sc.isInteractiveMode ||
+      sc.freestyleState() ||
+      sc.canvasContentEditor ||
+      !getArenaFrames(sc.currentArena).includes(artboardPress.frame)
+    )) {
+      this.endDrag(true);
+      return;
+    }
+    if (artboardPress && !this.dragState?.isDragging) {
+      this.endDrag();
+      artboardPress.click();
+    }
+
     const click = this.pendingCanvasClick;
     this.pendingCanvasClick = undefined;
     if (
@@ -1764,7 +1820,7 @@ private async handleMouseUp(e: MouseEvent, vc: ViewCtx | undefined | null) {
       e.preventDefault(); // avoid generating a paste event on Linux
     }
     if (
-      !vc ||
+      (!vc && !this.dragState?.artboard) ||
       this.props.studioCtx.isLiveMode ||
       this.props.studioCtx.isInteractiveMode
     ) {
@@ -1776,7 +1832,7 @@ private async handleMouseUp(e: MouseEvent, vc: ViewCtx | undefined | null) {
     }
     const s = this.dragState;
     if (s?.dragMoveManager) {
-      const end = isCanvasIframeEvent(e)
+      const end = isCanvasIframeEvent(e) && vc
         ? frameToClientPt(new Pt(e.clientX, e.clientY), vc)
         : new Pt(e.clientX, e.clientY);
       await s.dragMoveManager.drag(end, e);
@@ -1876,11 +1932,24 @@ private cancelMarquee = () => {
     }
   };
 private handleContextMenu = (e: MouseEvent, focusedVc?: ViewCtx) => {
-    if (
-      this.props.studioCtx.isLiveMode ||
-      this.props.studioCtx.isInteractiveMode ||
-      !focusedVc
-    ) {
+    const sc = this.props.studioCtx;
+    if (sc.isLiveMode || sc.isInteractiveMode) {
+      return;
+    }
+    const frame = this.getArtboardTitleFrame(e);
+    if (frame) {
+      const viewCtx = sc.tryGetViewCtxForFrame(frame);
+      if (viewCtx) {
+        if (!sc.focusedFrames().includes(frame)) {
+          sc.changeSelection(() => sc.setStudioFocusOnFrame({ frame, autoZoom: false }));
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        maybeShowContextMenu(e, makeFrameMenu({ viewCtx, frame }));
+      }
+      return;
+    }
+    if (!focusedVc) {
       return;
     }
     const r = this.extractEventTarget(e, focusedVc);
@@ -1935,14 +2004,20 @@ private handleContextMenu = (e: MouseEvent, focusedVc?: ViewCtx) => {
       pageY: outerClientPt.y,
     });
   };
-private isZoomOverlay = ($target: JQuery) => {
-    return (
-      $target.is(".CanvasFrame__OverlayTop") ||
-      $target.is(".CanvasFrame__OverlayLeft") ||
-      $target.is(".CanvasFrame__OverlayRight") ||
-      $target.is(".CanvasFrame__OverlayBottom")
-    );
-  };
+  private getArtboardTitleFrame(e: MouseEvent) {
+    const sc = this.props.studioCtx;
+    const target = e.target as Element;
+    if (
+      target.ownerDocument !== document ||
+      target.closest(".CanvasFrame__Label__variant")
+    ) {
+      return undefined;
+    }
+    const uid = target.closest("[data-canvas-artboard-uid]")?.getAttribute("data-canvas-artboard-uid");
+    return uid && !sc.canvasContentEditor
+      ? getArenaFrames(sc.currentArena).find((frame) => frame.uid === Number(uid))
+      : undefined;
+  }
 private extractEventTarget(
     e: MouseEvent,
     focusedVc: ViewCtx | undefined | null,
@@ -1971,7 +2046,7 @@ private extractCanvasEventTarget(
     focusedVc: ViewCtx | undefined | null,
   ): [JQuery, ViewCtx | undefined] | undefined {
     const $target = $(e.target as HTMLElement);
-    if (this.isZoomOverlay($target) || isCanvasOverlay($target)) {
+    if (isCanvasOverlay($target)) {
       const frameUid = +ensure(
         $target.attr("data-frame-uid"),
         "Expected attr data-frame-uid to exist",
@@ -1979,45 +2054,14 @@ private extractCanvasEventTarget(
       const targetVc = this.props.studioCtx.viewCtxs.find(
         (v) => v.arenaFrame().uid === frameUid,
       );
-      if (!targetVc) {
-        // It's possible for the frame to exist but not the ViewCtx, because the
-        // frame is not loaded yet
+      if (!targetVc || !targetVc.canvasCtx.$eltForTplRoot().length) {
         return;
       }
-      const $tplRoot = targetVc.canvasCtx.$eltForTplRoot();
-      if ($tplRoot.length === 0) {
-        // the frame hasn't been fully rendered yet
-        return undefined;
-      }
-      if (isCanvasOverlay($target)) {
-        const actualTargetElt =
-          targetVc.canvasCtx.getActualTargetUnderCanvasOverlay(
-            e.clientX,
-            e.clientY,
-          );
-        return actualTargetElt && [$(actualTargetElt as HTMLElement), targetVc];
-      }
-
-      const clientPt = new Pt(e.clientX, e.clientY);
-      const iframeBound = Box.fromRect(
-        targetVc.canvasCtx.viewport().getBoundingClientRect(),
+      const actualTargetElt = targetVc.canvasCtx.getActualTargetUnderCanvasOverlay(
+        e.clientX,
+        e.clientY,
       );
-      if (!iframeBound.contains(clientPt)) {
-        // Due to precision problem, the overlay may cover portions outside the
-        // iframe. This check ensures the point is in the iframe.
-        return [$(".canvas-editor__canvas-clipper"), undefined];
-      }
-      // Bound of tplRoot in iFrame
-      const tplRootBound = Box.fromRect(getElementBounds($tplRoot));
-      const framePt = clientToFramePt(
-        new Pt(e.clientX, e.clientY),
-        targetVc,
-        false,
-      );
-      const $targetElt = tplRootBound.contains(framePt)
-        ? $tplRoot
-        : targetVc.canvasCtx.$userBody();
-      return tuple($targetElt, targetVc);
+      return actualTargetElt && [$(actualTargetElt as HTMLElement), targetVc];
     }
 
     // ignore all mousedown events if not from the left button.

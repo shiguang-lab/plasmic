@@ -2,7 +2,7 @@ import type { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
 import { canvasFactory } from "@/wab/client/components/canvas/canvas-factories";
 import type { ModelFieldStore, ModelRef, ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { getDisplayVariants, isCodeComponentVariant } from "@/wab/shared/Variants";
-import { isFrameComponent, isPageComponent } from "@/wab/shared/core/components";
+import { isPageComponent } from "@/wab/shared/core/components";
 import { arrayEq } from "@/wab/shared/common";
 import { isTplComponent } from "@/wab/shared/core/tpls";
 import { ArenaFrame, Component, ObjInst, Site, TplTag, Variant, VariantGroup, Expr, isKnownCustomCode, isKnownCompositeExpr, isKnownTemplatedString } from "@/wab/shared/model/classes";
@@ -11,9 +11,7 @@ import * as React from "react";
 const empty = Object.freeze([]);
 interface CanvasHeaderSnapshot {
   readonly frameName: string;
-  readonly canFocus: boolean;
   readonly component: Component;
-  readonly frameComponent: boolean;
   readonly pageComponent: boolean;
   readonly displayVariants: readonly ReturnType<typeof getDisplayVariants>[number][];
 }
@@ -31,7 +29,7 @@ function captureScope(studio: StudioCtx, frame: ArenaFrame): CanvasHeaderScope {
   };
 }
 
-/** Frame title, focus capability, and the model metadata used by display variants.
+/** Frame title and the model metadata used by display variants.
  * Selection, viewport and frame width retain their existing native owners. */
 export class CanvasHeaderInputs {
   private readonly models;
@@ -145,9 +143,7 @@ export class CanvasHeaderInputs {
       const owner = this.frame.container.component;
       this.current = Object.freeze({
         frameName: this.studio.tplMgr().describeArenaFrame(this.frame),
-        canFocus: !!this.studio.getDedicatedArena(owner),
         component: owner,
-        frameComponent: isFrameComponent(owner),
         pageComponent: isPageComponent(owner),
         displayVariants: Object.freeze(displayed),
       });

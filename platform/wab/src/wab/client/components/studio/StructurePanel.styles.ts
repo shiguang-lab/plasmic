@@ -215,15 +215,6 @@ export const useStructurePanelStyles = createStyles(({ token }) => ({
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
   },
-  back: {
-    display: "flex",
-    alignItems: "center",
-    gap: 5,
-    marginTop: 6,
-    height: "auto",
-    padding: 0,
-    fontSize: 11,
-  },
   frames: {
     display: "flex",
     flexWrap: "wrap",

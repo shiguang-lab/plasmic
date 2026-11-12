@@ -1,56 +1,13 @@
 @import "src/wab/styles/css-variables";
 @import "src/wab/styles/tokens";
 
-.root:hover {
-  & .artboardSelectionHandle:not(:hover) {
-    transform: scale($inverseZoom) !important;
-    background-color: var(--artboard-handle-background);
-    color: var(--artboard-handle-foreground);
-
-    &:hover {
-      background-color: $selectionControlsColor !important;
-      color: white !important;
-    }
-  }
-}
-
-.artboardSelectionHandle {
-  width: $hoverBoxTagHeight;
-  height: $hoverBoxTagHeight;
-
-  border-radius: 4px 4px 0 4px;
-  transform-origin: 100% 100%;
-  bottom: 100%;
-  right: calc(100% + 1px);
-
+.selectedOutline {
   position: absolute;
+  inset: 0;
   z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--artboard-handle-foreground);
-  // Inverse zoom must match the canvas scale in the same frame; interpolating
-  // it independently inflates the handle during rapid zoom.
-  transition:
-    background 200ms,
-    color 200ms;
-
-  & svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  &:hover,
-  &.artboardSelectionHandle_prominent {
-    background-color: var(--artboard-handle-background);
-    color: var(--artboard-handle-foreground);
-  }
-}
-
-.artboardSelectionHandle_focused,
-.artboardSelectionHandle_prominent:hover {
-  background-color: $selectionControlsColor !important;
-  color: white !important;
+  border: calc(1px * $inverseZoom) solid $selectionControlsColor;
+  box-sizing: border-box;
+  pointer-events: none;
 }
 
 .statusBadge {

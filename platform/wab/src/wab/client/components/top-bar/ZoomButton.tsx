@@ -228,7 +228,6 @@ export function ZoomButton() {
       <Menu.Item
         disabled={currentArenaEmpty}
         onClick={() => {
-          studioCtx.returnToCanvasOverview();
           studioCtx.tryZoomToFitArena();
         }}
       >

@@ -6,6 +6,7 @@ import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
 import { ensure } from "@/wab/shared/common";
 import { fakeRegistryViewCtx, fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { CanvasFrame } from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame";
+import styles from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
 import { CanvasCtx } from "@/wab/client/components/canvas/canvas-ctx";
 import { mkArenaFrame, mkMixedArena, updateAutoDerivedFrameHeight } from "@/wab/shared/Arenas";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
@@ -19,10 +20,6 @@ const preview = vi.hoisted(() => ({ visible: false }));
 vi.mock("@/wab/client/components/canvas/CanvasFrame/CanvasHeader", () => ({
   CanvasHeader: () => null,
 }));
-vi.mock(
-  "@/wab/client/components/canvas/CanvasFrame/CanvasArtboardSelectionHandle",
-  () => ({ CanvasArtboardSelectionHandle: () => null }),
-);
 vi.mock("@/wab/client/components/canvas/CanvasActions/CanvasActions", () => ({
   CanvasActions: () => null,
 }));
@@ -101,7 +98,8 @@ it("shows a bounded local skeleton until first render, preserves component-regis
     left: 0,
     top: 0,
   });
-  arena.children.push(frame);
+  const other = mkArenaFrame({ site, component, name: "Other", width: 800, height: 600, left: 840, top: 0 });
+  arena.children.push(frame, other);
   site.arenas.push(arena);
   const { studioCtx, app } = fakeStudioCtx({
     site,
@@ -156,18 +154,24 @@ it("shows a bounded local skeleton until first render, preserves component-regis
     expect(frame.height).toBe(600);
     const iframe = container.querySelector("iframe");
     expect(iframe?.style.background).toBe("");
-    expect(container.querySelector(".CanvasFrame__OverlayTop")).not.toBeNull();
+    const selectedOutline = () => container.querySelector(`.${styles.selectedOutline}`);
+    expect(selectedOutline()).toBeNull();
+    act(() => studioCtx.setStudioFocusOnFrames([frame, other]));
+    expect(selectedOutline()?.getAttribute("aria-hidden")).toBe("true");
+    act(() => studioCtx.setStudioFocusOnFrames([other]));
+    expect(selectedOutline()).toBeNull();
+    act(() => studioCtx.setStudioFocusOnFrames([frame, other]));
     act(() => setEditing(true));
     expect(iframe?.style.background).toBe("transparent");
     expect(contentFrame?.style.boxShadow).toBe("none");
-    expect(container.querySelector(".CanvasFrame__OverlayTop")).toBeNull();
+    expect(selectedOutline()).toBeNull();
     const focusFrame = vi.spyOn(studioCtx, "setStudioFocusOnFrame");
     fireEvent.click(contentFrame as HTMLElement);
     expect(focusFrame).not.toHaveBeenCalled();
     act(() => setEditing(false));
     expect(iframe?.style.background).toBe("");
     expect(contentFrame?.style.boxShadow).toBe("");
-    expect(container.querySelector(".CanvasFrame__OverlayTop")).not.toBeNull();
+    expect(selectedOutline()).not.toBeNull();
     act(() => vc.contentEditor["setSize"](undefined));
     expect(contentFrame?.style.width).toBe("800px");
     expect(contentFrame?.style.height).toBe("600px");

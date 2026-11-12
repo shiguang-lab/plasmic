@@ -3,8 +3,6 @@ import { createOutlineStateStore, patchOutlineState } from "@/wab/client/compone
 import { Matcher } from "@/wab/client/components/view-common";
 import { ChangeRecorder } from "@/wab/shared/core/observable-model";
 import { instUtil } from "@/wab/shared/model/InstUtil";
-import { createCanvasOverviewStore } from "@/wab/client/studio-ctx/canvas-overview-state";
-import { Pt } from "@/wab/shared/geom";
 import { StudioSelection } from "@/wab/client/studio-ctx/studio-selection";
 import { StudioArenaState } from "@/wab/client/studio-ctx/studio-arena-state";
 import { StudioSaveState } from "@/wab/client/studio-ctx/save-state";
@@ -98,12 +96,11 @@ function setup() {
   arenaState.setCurrent(arena);
   const saveState = new StudioSaveState();
   const selection = new StudioSelection(() => modelSnapshots);
-  const canvasOverviewStore = createCanvasOverviewStore();
   const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
   disposals.push(() => { arenaState.dispose(); selection.dispose(); modelSnapshots.dispose(); recorder.dispose(); });
   fixture.ctx = {
       site,
-      modelSnapshots, arenaState, saveState, canvasOverviewStore, selectionStore: selection.store,
+      modelSnapshots, arenaState, saveState, selectionStore: selection.store,
       ...createStudioUiEnvironmentFixture(),
       get currentArena() { return arenaState.currentArena(); },
       set currentArena(value: AnyArena | null) {
@@ -116,9 +113,6 @@ function setup() {
       changeUnsafe: (fn: () => void) => fn(),
       setStudioFocusOnFrame: vi.fn(({ frame }) => {
         fixture.ctx.selectedFrame = frame;
-      }),
-      returnToCanvasOverview: vi.fn(() => {
-        canvasOverviewStore.setState({ overview: undefined });
       }),
     };
   return { site, component, frames, arena, edit: (change: () => void) => modelSnapshots.sync(recorder.withRecording(change).changes) };
@@ -138,21 +132,6 @@ it("shows the arena scope and tree without a current-artboard dropdown", () => {
       .hasAttribute("disabled"),
   ).toBe(false);
   expect(screen.getByText("Arena · 2 artboards")).toBeDefined();
-});
-
-it("retains the arena scope and overview action during artboard focus", () => {
-  const { frames, arena } = setup();
-  fixture.ctx.selectedFrame = frames[1];
-  fixture.ctx.canvasOverviewStore.setState({ overview: {
-    arena, viewport: { scroll: new Pt(0, 0), canvasPadding: new Pt(0, 0), scale: 1 },
-  } });
-  render(<OutlineTab />);
-  expect(screen.getByText("Customer overview")).toBeDefined();
-  expect(screen.getByText("Focused in arena · Details")).toBeDefined();
-  fireEvent.click(screen.getByRole("button", { name: "Return to overview" }));
-  expect(screen.getByText("Arena · 2 artboards")).toBeDefined();
-  expect(fixture.ctx.returnToCanvasOverview).toHaveBeenCalledOnce();
-  expect(fixture.ctx.currentArena).toBe(arena);
 });
 
 it("switches real page sizes using the existing frame selection operation", () => {
@@ -321,14 +300,12 @@ it("updates page name, viewport size and device from committed native metadata",
   expect(screen.getByText("Page editing · Mobile")).toBeDefined();
 });
 
-it("updates a focused artboard label through native model publication", () => {
-  const { arena, frames, edit } = setup();
-  const frame = ensure(frames[1], "Focused artboard");
+it("updates an artboard label through native model publication", () => {
+  const { frames, edit } = setup();
+  const frame = ensure(frames[1], "Selected artboard");
   fixture.ctx.selectedFrame = frame;
-  fixture.ctx.canvasOverviewStore.setState({ overview: { arena, viewport: { scroll: new Pt(0, 0), canvasPadding: new Pt(0, 0), scale: 1 } } });
   render(<OutlineTab />);
-  expect(screen.getByText("Focused in arena · Details")).toBeDefined();
   act(() => edit(() => { frame.name = "Invoices"; }));
-  expect(screen.getByText("Focused in arena · Invoices")).toBeDefined();
   expect(screen.getByText("Invoices layers")).toBeDefined();
+  expect(screen.getByText("Arena · 2 artboards")).toBeDefined();
 });

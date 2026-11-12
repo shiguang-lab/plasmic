@@ -20,7 +20,6 @@ import {
   useScaledElementRef,
   useZoomStyledRef,
 } from "@/wab/client/hooks/useScaledElementRef";
-import { useI18n } from "@/wab/client/i18n";
 import ComponentIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Component";
 import PageIcon from "@/wab/client/plasmic/plasmic_kit_design_system/icons/PlasmicIcon__Page";
 import { StudioCtx } from "@/wab/client/studio-ctx/StudioCtx";
@@ -45,7 +44,6 @@ import { Popover, Tooltip } from "antd";
 import cn from "classnames";
 import * as React from "react";
 import { useLayoutEffect, useRef, useState } from "react";
-import { FiMaximize } from "react-icons/fi";
 
 export const CanvasHeader = React.memo(function CanvasHeader(props: {
   studioCtx: StudioCtx;
@@ -57,11 +55,6 @@ export const CanvasHeader = React.memo(function CanvasHeader(props: {
   const focusedMode = useStudioArena(studioCtx, (state) => state.focusedMode);
   const viewportZoom = useCanvasZoom(studioCtx);
   const width = useFrameWidth(studioCtx, frame);
-  const header = useCanvasHeaderInputs(studioCtx, frame);
-  const { t } = useI18n();
-  const canFocus =
-    isMixedArena(arena) &&
-    !!header?.canFocus;
   const isFocused =
     studioCtx.focusedFrames().includes(frame) ||
     studioCtx.focusedContentFrame() === frame;
@@ -70,11 +63,10 @@ export const CanvasHeader = React.memo(function CanvasHeader(props: {
     !focusedMode && (!isComponentArena(arena) || isFocusedFrame);
 
   const rootRef = useScaledElementRef<HTMLDivElement>();
-  const focusRef = useScaledElementRef<HTMLButtonElement>();
 
   useZoomStyledRef(
     (zoom) => ({
-      maxWidth: `${Math.max(0, width * zoom - (canFocus ? 72 : 0))}px`,
+      maxWidth: `${Math.max(0, width * zoom)}px`,
     }),
     rootRef,
   );
@@ -98,20 +90,7 @@ export const CanvasHeader = React.memo(function CanvasHeader(props: {
             "CanvasFrame__Label--focused": isFocused,
           },
         )}
-        onClick={async (e) => {
-          if (studioCtx.isPanMode()) {
-            // panning clicking.
-            return;
-          }
-          e.stopPropagation();
-          await studioCtx.changeUnsafe(() =>
-            studioCtx.setStudioFocusOnFrame({
-              frame,
-              autoZoom: false,
-              appendToMultiSelection: e.shiftKey,
-            }),
-          );
-        }}
+        data-canvas-artboard-uid={frame.uid}
       >
         <CanvasHeaderContent
           showTooltip={
@@ -123,23 +102,6 @@ export const CanvasHeader = React.memo(function CanvasHeader(props: {
           arena={arena}
         />
       </div>
-      {canFocus && (
-        <button
-          ref={focusRef}
-          type="button"
-          className={styles.focusButton}
-          aria-label={`${t("Focus artboard")}: ${header?.frameName ?? ""}`}
-          title={t("Focus artboard")}
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            studioCtx.focusCanvasFrame(frame);
-          }}
-        >
-          <FiMaximize size={14} />
-          {t("Focus")}
-        </button>
-      )}
       {shouldShowFrameConfigButton && (
         <CanvasConfigButton showDims studioCtx={studioCtx} frame={frame} />
       )}
@@ -206,10 +168,7 @@ const CanvasHeaderContent = React.memo(function CanvasHeaderContent(props: {
       )}
     >
       {isMixedArena(arena) && (
-        <>
-          {!header.frameComponent && componentIcon}
-          <span className="mr-ch">{arenaFrameNameLabel}</span>
-        </>
+        <span className="mr-ch">{arenaFrameNameLabel}</span>
       )}
       <CanvasVariantsDesc
         studioCtx={studioCtx}

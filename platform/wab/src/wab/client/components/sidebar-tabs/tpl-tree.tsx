@@ -124,7 +124,7 @@ import {
 } from "@/wab/shared/Variants";
 import { TplVisibility } from "@/wab/shared/visibility-utils";
 import { selectionControlsColor } from "@/wab/styles/css-variables";
-import { Button, notification, Tooltip } from "antd";
+import { notification, Tooltip } from "antd";
 import cx from "classnames";
 import $ from "jquery";
 import L, { isArray } from "lodash";
@@ -151,7 +151,7 @@ import { useStructurePanelStyles } from "@/wab/client/components/studio/Structur
 import BoltIcon from "@/wab/client/plasmic/plasmic_kit/PlasmicIcon__Bolt";
 import { transformDataTokensToDisplay } from "@/wab/shared/eval/expression-parser";
 import { INTERACTIVE_CAP, REPEATED_CAP } from "@/wab/shared/Labels";
-import { FiHash, FiMaximize } from "react-icons/fi";
+import { FiHash } from "react-icons/fi";
 
 function RepIcon() {
   const { t: uiT } = useI18n();
@@ -1720,7 +1720,6 @@ const ArtboardOutlineRow = React.memo(function ArtboardOutlineRow(props: {
   const { frame, outlineCtx, studioCtx, style } = props;
   const selectedView = useStudioSelection(studioCtx, (state) => state.view);
   const { styles } = useStructurePanelStyles();
-  const { t } = useI18n();
   const arenaRef = useStudioArena(studioCtx, (state) => state.frames.some((ref) => studioCtx.modelSnapshots.resolve(ref) === frame) ? state.current : null);
   const arena = arenaRef ? studioCtx.modelSnapshots.resolve(arenaRef) : null;
   const recipe = React.useCallback<CanvasViewFieldRecipe>((field) => outlineTabFields(studioCtx.site, arena, field), [studioCtx, arena]);
@@ -1754,17 +1753,6 @@ const ArtboardOutlineRow = React.memo(function ArtboardOutlineRow(props: {
         <FiHash size={14} />
         <span>{label}</span>
       </button>
-      <Button
-        type="text"
-        className={styles.iconButton}
-        aria-label={`${t("Focus artboard")}: ${label}`}
-        title={t("Focus artboard")}
-        icon={<FiMaximize size={14} />}
-        onClick={() => {
-          outlineCtx.setFrameExpanded(frame, true);
-          studioCtx.focusCanvasFrame(frame);
-        }}
-      />
     </div>
   );
 });

@@ -2,6 +2,8 @@ import { fakeStudioCtx } from "@/wab/client/__testonly__/fake-init-ctx";
 import { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import { ViewEditorController } from "@/wab/client/components/studio/view-editor";
 import { ViewCtx } from "@/wab/client/studio-ctx/view-ctx";
+import { Pt } from "@/wab/shared/geom";
+import { inverseZoom } from "@/wab/styles/css-variables";
 import { fireEvent, waitFor } from "@testing-library/react";
 import { mock } from "vitest-mock-extended";
 
@@ -53,9 +55,21 @@ async function fixture() {
     document.activeElement?.dispatchEvent(event);
     return event;
   };
-  return { studioCtx, view, editor, clipper, copy, cut, paste, bottomModal, viewport, clipboardEvent,
+  return { studioCtx, view, editor, clipper, scaler, copy, cut, paste, bottomModal, viewport, clipboardEvent,
     dispose: () => { editor.dispose(); studioCtx.dispose(); } };
 }
+
+it("keeps artboard outlines sized in screen pixels as the canvas zoom changes", async () => {
+  const f = await fixture();
+  try {
+    f.studioCtx.viewportCtx?.enqueueTransform(0.25, Pt.zero(), false);
+    expect(f.scaler.style.transform).toBe("scale(0.25)");
+    expect(f.scaler.style.getPropertyValue(inverseZoom)).toBe("4");
+    f.studioCtx.viewportCtx?.enqueueTransform(2, Pt.zero(), false);
+    expect(f.scaler.style.transform).toBe("scale(2)");
+    expect(f.scaler.style.getPropertyValue(inverseZoom)).toBe("0.5");
+  } finally { f.dispose(); }
+});
 
 it("routes real copy, cut and paste events from the outline's shared scrolling viewport to Studio", async () => {
   const f = await fixture();

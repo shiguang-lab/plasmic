@@ -1,7 +1,3 @@
-import { CanvasArtboardSelectionHandle } from "@/wab/client/components/canvas/CanvasFrame/CanvasArtboardSelectionHandle";
-import styles from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
-import { createStore } from "zustand/vanilla";
-import { FrameViewMode } from "@/wab/shared/Arenas";
 import { CanvasHeaderInputs } from "@/wab/client/components/canvas/CanvasFrame/canvas-header-inputs";
 import { mkVariant } from "@/wab/shared/Variants";
 import { ModelSnapshots } from "@/wab/client/studio-ctx/model-snapshots";
@@ -72,34 +68,6 @@ function setup() {
   return { ctx, arena, frame, component, site, modelSnapshots };
 }
 
-it("offers a focus action on each mixed-arena artboard without selecting or dragging the header", () => {
-  const { ctx, arena, frame } = setup();
-  const click = vi.fn();
-  const pointerDown = vi.fn();
-  render(
-    <div onClick={click} onPointerDown={pointerDown}>
-      <CanvasHeader studioCtx={ctx} arena={arena} frame={frame} />
-    </div>,
-  );
-  const focus = screen.getByRole("button", {
-    name: "Focus artboard: Customers",
-  });
-  fireEvent.pointerDown(focus);
-  fireEvent.click(focus);
-  expect(ctx.focusCanvasFrame).toHaveBeenCalledWith(frame);
-  expect(ctx.setStudioFocusOnFrame).not.toHaveBeenCalled();
-  expect(click).not.toHaveBeenCalled();
-  expect(pointerDown).not.toHaveBeenCalled();
-});
-
-it("keeps the focus entry out of the independent page editor", () => {
-  const { ctx, frame, component, site } = setup();
-  const arena = ensure(getDedicatedArena(site, component), "Page arena");
-  render(<CanvasHeader studioCtx={ctx} arena={arena} frame={frame} />);
-  expect(screen.queryByRole("button", { name: /Focus artboard/ })).toBeNull();
-});
-
-
 it("uses the current arena kind in collapsed tooltips even when the rendered frame belongs to a cached mixed arena", async () => {
   vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(1);
   vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(1000);
@@ -121,22 +89,22 @@ it("updates header max width from completed native width fields and the current 
   sourceDisposals.push(() => recorder.dispose());
   const mounted = render(<CanvasHeader studioCtx={ctx} arena={arena} frame={frame} />);
   const label = ensure(mounted.container.querySelector<HTMLElement>(".CanvasFrame__Label"), "Header label");
-  expect(label.style.maxWidth).toBe("648px");
+  expect(label.style.maxWidth).toBe("720px");
   act(() => {
     const changes = recorder.withRecording(() => { frame.width = 800; }).changes;
     modelSnapshots.sync(changes);
   });
-  expect(label.style.maxWidth).toBe("328px");
+  expect(label.style.maxWidth).toBe("400px");
   act(() => ensure(ctx.viewportCtx, "Viewport").enqueueTransform(2, Pt.zero(), false));
-  expect(label.style.maxWidth).toBe("1528px");
+  expect(label.style.maxWidth).toBe("1600px");
   const demand = vi.spyOn(modelSnapshots, "field");
   act(() => { ctx.arenaState.reset(); modelSnapshots.dispose(); });
   mounted.rerender(<CanvasHeader studioCtx={ctx} arena={arena} frame={frame} />);
   expect(demand).not.toHaveBeenCalled();
-  expect(label.style.maxWidth).toBe("1528px");
+  expect(label.style.maxWidth).toBe("1600px");
   mounted.unmount();
   const remounted = render(<CanvasHeader studioCtx={ctx} arena={arena} frame={frame} />);
-  expect(ensure(remounted.container.querySelector<HTMLElement>(".CanvasFrame__Label"), "Remounted header").style.maxWidth).toBe("1528px");
+  expect(ensure(remounted.container.querySelector<HTMLElement>(".CanvasFrame__Label"), "Remounted header").style.maxWidth).toBe("1600px");
   expect(demand).not.toHaveBeenCalled();
 });
 
@@ -150,17 +118,15 @@ it("rejects never-bound foreign frames before asking the current model owner for
 });
 
 
-it("updates both the visible frame label and focus action after title changes", () => {
+it("updates the visible frame label after title changes", () => {
   const { ctx, arena, frame, component, site, modelSnapshots } = setup();
   const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
   sourceDisposals.push(() => recorder.dispose());
   render(<CanvasHeader studioCtx={ctx} arena={arena} frame={frame} />);
   act(() => { modelSnapshots.sync(recorder.withRecording(() => { component.name = "Orders"; }).changes); });
   expect(screen.getByText("Orders")).toBeTruthy();
-  expect(screen.getByRole("button", { name: "Focus artboard: Orders" })).toBeTruthy();
   act(() => { modelSnapshots.sync(recorder.withRecording(() => { component.name = ""; frame.name = "Fallback"; }).changes); });
   expect(screen.getByText("Fallback")).toBeTruthy();
-  expect(screen.getByRole("button", { name: "Focus artboard: Fallback" })).toBeTruthy();
 });
 
 it("tracks frame pin and variant labels without observing unrelated component names", () => {
@@ -218,25 +184,4 @@ it("retains the header while its frame and pinned variant are removed, then read
   });
   expect(inputs.getSnapshot()?.frameName).toContain("Restored");
   expect(publish).toHaveBeenCalledOnce();
-});
-
-
-it("updates an artboard handle when its root stretch mode changes and preserves mouse ownership", () => {
-  const { ctx, frame, site, modelSnapshots } = setup();
-  Object.defineProperties(ctx, {
-    activeContentEditorStore: { value: createStore(() => undefined) },
-    hoverBoxControlledObj: { get: () => frame.viewMode === FrameViewMode.Stretch ? frame : undefined },
-  });
-  const recorder = new ChangeRecorder({ inst: site, _instUtil: instUtil });
-  sourceDisposals.push(() => recorder.dispose());
-  const onClick = vi.fn(), parentClick = vi.fn();
-  const mounted = render(<div onClick={parentClick}><CanvasArtboardSelectionHandle frame={frame} onClick={onClick} /></div>);
-  const handle = ensure(mounted.container.querySelector<HTMLElement>(`.${styles.artboardSelectionHandle}`), "Artboard handle");
-  expect(handle.classList.contains(styles.artboardSelectionHandle_focused)).toBe(true);
-  act(() => { modelSnapshots.sync(recorder.withRecording(() => { frame.viewMode = FrameViewMode.Centered; }).changes); });
-  expect(handle.classList.contains(styles.artboardSelectionHandle_focused)).toBe(false);
-  fireEvent.mouseDown(handle);
-  expect(onClick).toHaveBeenCalledOnce();
-  fireEvent.click(handle);
-  expect(parentClick).not.toHaveBeenCalled();
 });

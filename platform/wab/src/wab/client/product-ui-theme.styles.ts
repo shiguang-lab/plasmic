@@ -1,4 +1,3 @@
-import canvasFrame from "@/wab/client/components/canvas/CanvasFrame/CanvasFrame.module.scss";
 import definedIndicator from "@/wab/client/components/style-controls/DefinedIndicator.module.sass";
 import textbox from "@/wab/client/plasmic/plasmic_kit/PlasmicTextbox.module.css";
 import addCommentMarker from "@/wab/client/plasmic/plasmic_kit_comments/PlasmicAddCommentMarker.module.css";
@@ -407,10 +406,6 @@ export const productPalette = (token: GlobalToken): CSSObject => ({
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-  },
-  [`& .${canvasFrame.artboardSelectionHandle}`]: {
-    "--artboard-handle-background": token.colorBgElevated,
-    "--artboard-handle-foreground": token.colorTextSecondary,
   },
   [`& .${leftSettingsPanel.root}`]: {
     background: token.colorBgContainer,

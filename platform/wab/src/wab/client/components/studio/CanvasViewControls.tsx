@@ -206,7 +206,6 @@ export const CanvasViewControls = React.memo(function CanvasViewControls({
               return;
             }
             if (contentView) { contentView.contentEditor.locate(true); return; }
-            studioCtx.returnToCanvasOverview();
             if (studioCtx.focusedMode) {
               studioCtx.turnFocusedModeOff();
             }

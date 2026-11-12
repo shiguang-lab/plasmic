@@ -1,6 +1,5 @@
 import { useStudioSelection } from "@/wab/client/studio-ctx/selection-state";
 import { useStudioArena, useViewRegistry } from "@/wab/client/studio-ctx/arena-state";
-import { useCanvasOverviewArena } from "@/wab/client/studio-ctx/canvas-overview-state";
 import { OutlineCtx } from "@/wab/client/components/sidebar-tabs/OutlineCtx";
 import styles from "@/wab/client/components/sidebar-tabs/outline-tab.module.scss";
 import {
@@ -30,7 +29,6 @@ import { useCanvasComponentValue, type CanvasViewFieldRecipe } from "@/wab/clien
 import { outlineTabFields, outlineTabPresentation } from "@/wab/client/components/sidebar-tabs/outline-tab-inputs";
 import * as React from "react";
 import {
-  FiArrowUpLeft,
   FiChevronDown,
   FiChevronRight,
   FiHash,
@@ -72,7 +70,6 @@ function OutlineTab_() {
     return frame && getArenaFrames(arena).includes(frame) ? frame : undefined;
   });
   const fallbackFrame = useViewRegistry(studioCtx, () => outlineCtx.viewCtx()?.arenaFrame());
-  const overviewArena = useCanvasOverviewArena(studioCtx);
   const metadataRecipe = React.useCallback<CanvasViewFieldRecipe>((field) => outlineTabFields(studioCtx.site, arena, field), [studioCtx, arena]);
   const readMetadata = React.useCallback(() => outlineTabPresentation(studioCtx.site, arena), [studioCtx, arena]);
   const metadata = useCanvasComponentValue(studioCtx, arena ?? studioCtx.site, metadataRecipe, readMetadata);
@@ -83,7 +80,6 @@ function OutlineTab_() {
 
   const mixed = isMixedArena(arena);
   const page = isPageArena(arena);
-  const focused = overviewArena === arena;
   const kind = mixed
     ? uiT("Arena")
     : isPageArena(arena)
@@ -117,21 +113,16 @@ function OutlineTab_() {
     !page ||
     !currentArenaFrame ||
     (expandedFrames.get(currentArenaFrame) ?? true);
-  const footerText =
-    focused && arena && currentArenaFrame
-      ? uiT("Focused in arena · {name}", {
-          name: mixed ? frameLabel(currentArenaFrame) : metadata.arenaName,
-        })
-      : mixed
-        ? uiT("Arena · {count} artboards", { count: frames.length })
-        : currentArenaFrame
-          ? uiT(
-              isPageArena(arena)
-                ? "Page editing · {device}"
-                : "Component editing · {device}",
-              { device: uiLabel(ensure(device, "Current frame device")) },
-            )
-          : kind;
+  const footerText = mixed
+    ? uiT("Arena · {count} artboards", { count: frames.length })
+    : currentArenaFrame
+      ? uiT(
+          isPageArena(arena)
+            ? "Page editing · {device}"
+            : "Component editing · {device}",
+          { device: uiLabel(ensure(device, "Current frame device")) },
+        )
+      : kind;
   const tree = (
     <div
       className="tpltree__root flex-fill rel fill-width fill-height flex-child-min"
@@ -260,16 +251,6 @@ function OutlineTab_() {
                 </Button>
               </IFrameAwareDropdownMenu>
             </div>
-          )}
-          {focused && (
-            <Button
-              type="link"
-              className={panelStyles.back}
-              onClick={studioCtx.returnToCanvasOverview}
-            >
-              <FiArrowUpLeft size={12} />
-              {uiT("Return to overview")}
-            </Button>
           )}
         </div>
       )}

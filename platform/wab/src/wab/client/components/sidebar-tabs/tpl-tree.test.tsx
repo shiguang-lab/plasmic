@@ -69,7 +69,11 @@ function setup() {
   const focus = new StudioSelection(() => models);
   Object.assign(studio, { site, modelSnapshots: models, arenaState });
   Object.defineProperty(studio, "currentArena", { get: () => arenaState.currentArena() });
-  Object.defineProperties(studio, { selectionStore: { value: focus.store }, hoveredViewStore: { value: createStore(() => undefined) } });
+  Object.defineProperties(studio, {
+    selectionStore: { value: focus.store },
+    hoveredViewStore: { value: createStore(() => undefined) },
+    renamingOnPanelStore: { value: createStore(() => false) },
+  });
   studio.focusedViewCtx.mockImplementation(() => focus.current().view);
   studio.changeUnsafe.mockImplementation((fn: any) => fn());
   const expanded = new Map<ArenaFrame, boolean>();
@@ -102,7 +106,7 @@ function setup() {
   return { site, frames, arena, arenaState, studio, outline, children };
 }
 
-it("lists artboards directly and separates expanding, selecting and focusing", () => {
+it("lists artboards directly and separates expanding from selecting", () => {
   const f = setup();
   render(
     <ArenaTree
@@ -132,9 +136,6 @@ it("lists artboards directly and separates expanding, selecting and focusing", (
   expect(
     screen.getByRole("button", { name: "List", expanded: true }),
   ).toBeDefined();
-  fireEvent.click(screen.getByRole("button", { name: "Focus artboard: List" }));
-  expect(f.studio.focusCanvasFrame).toHaveBeenCalledWith(f.frames[0]);
-  expect(screen.queryByRole("menu")).toBeNull();
 });
 
 it("leases model inputs only for expanded artboards and releases them on collapse", () => {
