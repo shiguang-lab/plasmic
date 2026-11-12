@@ -43,7 +43,8 @@ async function runPhase(app, profile, phase) {
   let output = "";
   child.stdout.on("data", data => { output += data; });
   child.stderr.on("data", data => { output += data; });
-  const timeout = setTimeout(() => child.kill("SIGKILL"), 35000);
+  const installingUpdate = phase === "upgrade" || phase === "upgrade_on_quit";
+  const timeout = setTimeout(() => child.kill("SIGKILL"), installingUpdate ? 135000 : 35000);
   try {
     const [code] = await once(child, "exit");
     await fs.writeFile(path.join(reports, `${phase}.log`), output);

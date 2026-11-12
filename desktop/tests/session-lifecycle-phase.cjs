@@ -28,7 +28,9 @@ assert(profile, "Acceptance requires an isolated profile");
 app.setPath("userData", profile);
 app.setPath("sessionData", profile);
 const { phase } = JSON.parse(fs.readFileSync(path.join(profile, "control.json")));
-const timeout = setTimeout(() => { console.error(`Timed out: ${phase}`); app.exit(1); }, 25000);
+const installingUpdate = phase === "upgrade" || phase === "upgrade_on_quit";
+// These phases transfer, extract and verify a full signed Electron bundle.
+const timeout = setTimeout(() => { console.error(`Timed out: ${phase}`); app.exit(1); }, installingUpdate ? 120000 : 25000);
 let server, win;
 async function finish(extra = {}) {
   const result = { status: "PASS", phase, version: app.getVersion(), ...extra };
@@ -51,8 +53,10 @@ app.whenReady().then(async () => {
     } else if (req.url === "/updates/latest-mac.yml") {
       const archive = fs.readFileSync(path.join(profile, "upgrade.zip"));
       res.end(JSON.stringify({ version: "1.0.2", files: [{ url: `Plasmic-1.0.2-mac-${process.arch}.zip`, size: archive.length, sha512: createHash("sha512").update(archive).digest("base64") }] }));
-    } else if (req.url.startsWith("/updates/Plasmic-")) {
+    } else if (req.url === `/updates/Plasmic-1.0.2-mac-${process.arch}.zip`) {
       fs.createReadStream(path.join(profile, "upgrade.zip")).pipe(res);
+    } else if (req.url.startsWith("/updates/")) {
+      res.writeHead(404).end();
     } else {
       res.setHeader("Content-Type", "text/html");
       res.end("<html><body>Owned login lifecycle fixture</body></html>");
@@ -109,7 +113,7 @@ app.whenReady().then(async () => {
   assert.deepEqual(JSON.parse(fs.readFileSync(credentialFile, "utf8")), { refreshToken: `owned-test-refresh-${phase}` });
   assert.equal(fs.statSync(credentialFile).mode & 0o777, 0o600);
   await ses.cookies.flushStore();
-  if (phase === "upgrade" || phase === "upgrade_on_quit") {
+  if (installingUpdate) {
     const updater = new MacUpdater({ app, feedUrl: "https://owned-update.fixture/updates/", fetch: (url, init) => nativeFetch(origin + new URL(url).pathname, init) });
     const updates = new UpdateManager({ updater, version: app.getVersion(), enabled: true, beforeInstall: async () => {} });
     assert.equal((await updates.command("check")).phase, "downloaded");
