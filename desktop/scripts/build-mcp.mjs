@@ -24,12 +24,16 @@ export async function generateMcpManifest() {
   await writeFile(path.join(root, "mcp/generated.json"), JSON.stringify(data));
 }
 
+export function mcpBuildDirectory(platform, arch) {
+  return path.join(root, "mcp-bin", `${platform}-${arch}`);
+}
+
 export async function buildMcp(platform = process.platform, arch = process.arch) {
   const goos = { darwin: "darwin", win32: "windows", linux: "linux" }[platform];
   const goarch = { arm64: "arm64", x64: "amd64" }[arch];
   if (!goos || !goarch) throw new Error("Unsupported MCP target: " + platform + "-" + arch);
   await generateMcpManifest();
-  const directory = path.join(root, "mcp-bin", `${platform}-${arch}`);
+  const directory = mcpBuildDirectory(platform, arch);
   await mkdir(directory, { recursive: true });
   const executable = path.join(directory, platform === "win32" ? "plasmic-mcp.exe" : "plasmic-mcp");
   execFileSync("go", ["build", "-trimpath", "-buildvcs=false", "-ldflags=-s -w", "-o", executable, "."], {

@@ -1,6 +1,6 @@
 import { build, Platform, Arch } from "electron-builder";
 import { execFileSync } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -9,7 +9,7 @@ import { assertDesktopBrowserTarget } from "../../scripts/studio-build-target.mj
 import { macSigningCertificate, verifyMacSignature } from "./local-signing.mjs";
 import runtimeSecurity from "../src/runtime-security.cjs";
 import { installMacLauncher } from "./mac-launcher.mjs";
-import { buildMcp } from "./build-mcp.mjs";
+import { buildMcp, mcpBuildDirectory } from "./build-mcp.mjs";
 import { prepareComponentReuse } from "./prepare-component-reuse.mjs";
 import { verifyComponentReuseRuntime } from "./component-reuse-runtime.mjs";
 import { buildBlockMap } from "app-builder-lib/out/targets/blockmap/blockmap.js";
@@ -49,6 +49,7 @@ const { values, positionals } = parseArgs({
     "local-adhoc": { type: "boolean", default: false },
     output: { type: "string" },
     notes: { type: "string" },
+    "prepared-mcp": { type: "boolean" },
   },
 });
 const [platform = process.platform, arch = process.arch] = positionals;
@@ -60,8 +61,17 @@ if (platform === "darwin" && !values["local-adhoc"] && process.env.GITHUB_ACTION
   throw new Error("Create or import a valid Apple Development identity in the build Mac keychain before packaging");
 }
 const releaseNotes = values.notes ? await readFile(values.notes, "utf8") : undefined;
-const mcpDirectory = await buildMcp(platform, arch);
+const mcpDirectory = values["prepared-mcp"]
+  ? mcpBuildDirectory(platform, arch)
+  : await buildMcp(platform, arch);
+const mcpName = platform === "win32" ? "plasmic-mcp.exe" : "plasmic-mcp";
+const mcpExecutable = path.join(mcpDirectory, mcpName);
+const mcpLicenses = path.join(mcpDirectory, "LICENSES.mcp.txt");
+if (values["prepared-mcp"]) {
+  await Promise.all([access(mcpExecutable), access(mcpLicenses)]);
+}
 const componentReuseDirectory = await prepareComponentReuse(platform, arch);
+console.time("electron-builder installer generation");
 const outputs = await build({
   projectDir: root,
   targets: platforms[platform].createTarget(undefined, Arch[arch]),
@@ -75,8 +85,8 @@ const outputs = await build({
     asar: true,
     extraResources: [
       { from: componentReuseDirectory, to: "component-reuse" },
-      { from: path.join(mcpDirectory, platform === "win32" ? "plasmic-mcp.exe" : "plasmic-mcp"), to: "mcp/" + (platform === "win32" ? "plasmic-mcp.exe" : "plasmic-mcp") },
-      { from: path.join(mcpDirectory, "LICENSES.mcp.txt"), to: "mcp/LICENSES.mcp.txt" },
+      { from: mcpExecutable, to: `mcp/${mcpName}` },
+      { from: mcpLicenses, to: "mcp/LICENSES.mcp.txt" },
     ],
     npmRebuild: false,
     electronFuses: runtimeSecurity.productionFuses,
@@ -121,6 +131,7 @@ const outputs = await build({
     linux: { target: ["AppImage"], executableName: "plasmic", icon: "assets/icon.png", category: "Development" },
   },
 });
+console.timeEnd("electron-builder installer generation");
 // Keep AppImage's embedded blockmap for existing clients and also publish a
 // sidecar covering the complete file for the shared resumable downloader.
 for (const output of outputs.filter((file) => file.endsWith(".AppImage"))) {

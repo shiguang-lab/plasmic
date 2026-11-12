@@ -1,0 +1,65 @@
+name: Prepare Desktop native runtimes
+on:
+  workflow_call:
+    inputs:
+      source-ref:
+        required: true
+        type: string
+  push:
+    branches: [master]
+    paths:
+      - .github/actions/desktop-runtime-cache/action.yml
+      - .github/workflows/prepare-desktop-runtime.yml
+      - desktop/scripts/prepare-component-reuse*.mjs
+      - desktop/scripts/component-reuse-runtime.mjs
+      - desktop/src/component-embedding.cjs
+      - desktop/src/component-reuse.cjs
+      - desktop/src/component-reuse-public-documents.json
+permissions:
+  contents: read
+env:
+  PYTHONUTF8: "1"
+jobs:
+  runtimes:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-26
+            platform: darwin
+            arch: arm64
+          - runner: macos-15-intel
+            platform: darwin
+            arch: x64
+          - runner: windows-2025
+            platform: win32
+            arch: x64
+          - runner: ubuntu-24.04
+            platform: linux
+            arch: x64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: ${{ matrix.runner == 'macos-15-intel' && 60 || 30 }}
+    steps:
+      - run: git config --global core.autocrlf false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
+        with:
+          ref: ${{ inputs.source-ref || github.sha }}
+      - uses: ./.github/actions/desktop-runtime-cache
+        id: runtime-cache
+        with:
+          runner: ${{ matrix.runner }}
+          target: ${{ matrix.platform }}-${{ matrix.arch }}
+          lookup-only: "true"
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
+        if: steps.runtime-cache.outputs.hit != 'true'
+        with:
+          node-version: 24
+      - name: Build and verify native component runtime
+        if: steps.runtime-cache.outputs.hit != 'true'
+        run: node desktop/scripts/prepare-component-reuse.mjs ${{ matrix.platform }} ${{ matrix.arch }}
+      - name: Save native component runtime
+        if: steps.runtime-cache.outputs.hit != 'true'
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ${{ steps.runtime-cache.outputs.path }}
+          key: ${{ steps.runtime-cache.outputs.key }}

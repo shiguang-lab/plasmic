@@ -68,6 +68,16 @@ jobs:
           pattern: '{darwin-arm64,darwin-x64,win32-x64,linux-x64,desktop-distribution,plasmic-cli,plasmic-resources-*}'
           path: source/release-artifacts
           merge-multiple: false
+      - name: Generate Desktop update manifests when needed
+        if: steps.plan.outputs.desktop == 'true'
+        working-directory: source
+        env:
+          RELEASE_TAG: ${{ inputs.release-tag }}
+        run: |
+          if [ ! -f release-artifacts/desktop-distribution/latest.json ]; then
+            npm ci --prefix desktop --omit=dev --ignore-scripts --prefer-offline --no-audit --no-fund
+            node desktop/scripts/build-distribution.mjs --from release-artifacts --output release-artifacts/desktop-distribution --tag "$RELEASE_TAG"
+          fi
       - name: Publish verified artifacts using the current release publisher
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

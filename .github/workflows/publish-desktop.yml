@@ -1,31 +1,19 @@
-name: Build selected Desktop installers
+name: Build Desktop installers
 on:
   workflow_call:
     inputs:
       release-tag:
-        required: true
         type: string
+        default: ""
       source-ref:
         description: Verified release commit to build
-        required: true
-        type: string
-      tested-revision:
-        description: Commit that already passed the caller's Desktop tests
         required: true
         type: string
 env:
   PYTHONUTF8: "1"
 permissions:
   contents: read
-concurrency:
-  group: desktop-release
-  cancel-in-progress: false
 jobs:
-  tests:
-    if: inputs.tested-revision != inputs.source-ref
-    uses: ./.github/workflows/test-desktop.yml
-    with:
-      source-ref: ${{ inputs.source-ref }}
   renderer:
     env:
       ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
@@ -48,7 +36,7 @@ jobs:
         env:
           RELEASE_TAG: ${{ inputs.release-tag }}
         run: |
-          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("desktop/package.json")); if(process.env.RELEASE_TAG!==p.version || !/^\d+\.\d+\.\d+$/.test(p.version)) throw new Error("Tag/version mismatch")'
+          node --input-type=module -e 'import fs from "node:fs"; const p=JSON.parse(fs.readFileSync("desktop/package.json")); if((process.env.RELEASE_TAG && process.env.RELEASE_TAG!==p.version) || !/^\d+\.\d+\.\d+$/.test(p.version)) throw new Error("Tag/version mismatch")'
       - name: Extract the pinned Studio image
         run: node desktop/scripts/prepare-assets.mjs
       - run: tar -czf renderer.tar.gz -C desktop renderer
@@ -107,6 +95,21 @@ jobs:
           go-version-file: desktop/mcp/go.mod
           cache-dependency-path: desktop/mcp/go.sum
       - run: tar -xzf renderer.tar.gz -C desktop
+      - uses: ./.github/actions/desktop-runtime-cache
+        id: runtime-cache
+        with:
+          runner: ${{ matrix.runner }}
+          target: ${{ matrix.platform }}-${{ matrix.arch }}
+      - name: Prepare native component runtime
+        run: node desktop/scripts/prepare-component-reuse.mjs '${{ matrix.platform }}' '${{ matrix.arch }}'
+      - name: Save native component runtime
+        if: steps.runtime-cache.outputs.hit != 'true'
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ${{ steps.runtime-cache.outputs.path }}
+          key: ${{ steps.runtime-cache.outputs.key }}
+      - name: Build Go MCP helper
+        run: node desktop/scripts/build-mcp.mjs '${{ matrix.platform }}' '${{ matrix.arch }}'
       - name: Install Electron before native verification
         run: |
           for attempt in 1 2 3; do
@@ -119,7 +122,7 @@ jobs:
           node -e 'require("node:fs").writeFileSync("desktop/electron-builder.json", JSON.stringify({ electronDownload: { force: false, checksums: require("./desktop/node_modules/electron/checksums.json") } }))'
       - name: Test Desktop on macOS
         if: matrix.platform == 'darwin' && matrix.arch == 'x64'
-        run: npm test --prefix desktop
+        run: npm --prefix desktop --ignore-scripts test
       - name: Verify expired-session startup
         if: matrix.platform == 'darwin'
         run: npm run test:auth-startup --prefix desktop
@@ -128,7 +131,7 @@ jobs:
         run: npm run test:workspace-startup --prefix desktop
       - name: Verify background workers and public draft bridge
         if: matrix.platform == 'darwin'
-        run: npm run test:background --prefix desktop
+        run: npm --prefix desktop --ignore-scripts run test:background
       - name: Verify packaged background process lifecycle
         if: matrix.platform == 'darwin'
         run: npm run test:background-packaged --prefix desktop
@@ -147,7 +150,10 @@ jobs:
         run: |
           version=$(node -p 'require("./desktop/package.json").version')
           echo "DESKTOP_VERSION=$version" >> "$GITHUB_ENV"
-          node desktop/scripts/package.mjs '${{ matrix.platform }}' '${{ matrix.arch }}' --notes "desktop/release-notes/$version.md"
+          node desktop/scripts/package.mjs '${{ matrix.platform }}' '${{ matrix.arch }}' --prepared-mcp --notes "desktop/release-notes/$version.md"
+      - name: Validate native installer
+        run: |
+          version="$DESKTOP_VERSION"
           node --input-type=module -e 'import { validateRelease } from "./desktop/scripts/release-artifacts.mjs"; const [platform, arch, version] = process.argv.slice(1); await validateRelease(`desktop/dist/${version}/${platform}-${arch}`, platform, version, arch);' '${{ matrix.platform }}' '${{ matrix.arch }}' "$version"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
         with:
@@ -157,38 +163,3 @@ jobs:
             desktop/dist/${{ env.DESKTOP_VERSION }}/${{ matrix.platform }}-${{ matrix.arch }}/latest*.yml
           if-no-files-found: error
           compression-level: 0
-  publish:
-    needs: [tests, installers]
-    if: >-
-      ${{ !cancelled() &&
-          needs.installers.result == 'success' &&
-          (needs.tests.result == 'success' ||
-           (needs.tests.result == 'skipped' && inputs.tested-revision == inputs.source-ref)) }}
-    env:
-      RELEASE_TAG: ${{ inputs.release-tag }}
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1, Node 24
-        with:
-          ref: ${{ inputs.source-ref }}
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
-        with:
-          node-version: 24
-          cache: npm
-          cache-dependency-path: desktop/package-lock.json
-      - run: npm ci --prefix desktop --omit=dev --ignore-scripts --prefer-offline --no-audit --no-fund
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2, Node 24
-        with:
-          pattern: '{darwin-arm64,darwin-x64,win32-x64,linux-x64}'
-          path: installers
-          merge-multiple: false
-      - name: Validate installers and generate public JSON
-        run: node desktop/scripts/build-distribution.mjs --from installers --tag "$RELEASE_TAG"
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
-        with:
-          name: desktop-distribution
-          path: |
-            desktop/public/desktop-updates/latest.json
-            desktop/public/desktop-updates/**/*.yml
-          if-no-files-found: error

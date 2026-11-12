@@ -22,6 +22,7 @@ export async function buildDistribution(
   version,
   updateUrl,
   localizedReleaseNotes,
+  { manifestsOnly = false } = {},
 ) {
   for (const locale of ["en", "zh-CN", "zh-TW", "ja", "ko"]) {
     if (
@@ -63,8 +64,10 @@ export async function buildDistribution(
     const partition = `${target.platform}/${target.arch}`;
     const destination = path.join(output, partition);
     await mkdir(destination, { recursive: true });
-    for (const name of [...release.files, release.name]) {
-      await cp(path.join(directory, name), path.join(destination, name));
+    if (!manifestsOnly) {
+      for (const name of release.files) {
+        await cp(path.join(directory, name), path.join(destination, name));
+      }
     }
     await writeFile(
       path.join(destination, release.name),
@@ -97,7 +100,12 @@ if (
   path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
 ) {
   const { values } = parseArgs({
-    options: { from: { type: "string" }, output: { type: "string" }, tag: { type: "string" } },
+    options: {
+      from: { type: "string" },
+      output: { type: "string" },
+      tag: { type: "string" },
+      "manifests-only": { type: "boolean" },
+    },
   });
   const metadata = JSON.parse(
     await readFile(path.join(desktop, "package.json"), "utf8"),
@@ -122,6 +130,7 @@ if (
         "utf8",
       ),
     ),
+    { manifestsOnly: values["manifests-only"] },
   );
   console.log(
     `Prepared all installers and latest.json for ${manifest.version}`,
