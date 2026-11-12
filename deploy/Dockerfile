@@ -21,15 +21,57 @@ RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
     && pnpm --dir platform/react-web-bundle fetch \
     && pnpm --dir platform/live-frame fetch
 
-FROM dependencies AS builder
+# Canvas inputs are independent of Studio pages, Desktop code and release tags.
+# Regular layers are exported by the existing registry cache (mode=max).
+FROM dependencies AS canvas-dependencies
+COPY build.mjs tsconfig.types.json ./
+COPY scripts/build-canvas-dependencies.mjs scripts/library-thumbnails.mjs ./scripts/
+COPY packages ./packages
+COPY plasmicpkgs ./plasmicpkgs
+COPY plasmicpkgs-dev/package.json ./plasmicpkgs-dev/package.json
+COPY vendor/react-ui ./vendor/react-ui
+COPY platform/react-renderer ./platform/react-renderer
+COPY platform/canvas-packages/package.json ./platform/canvas-packages/package.json
+COPY platform/wab/tools/react-compiler.mjs ./platform/wab/tools/react-compiler.mjs
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
+    --mount=type=secret,id=build-ca \
+    if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
+    pnpm install --frozen-lockfile --prefer-offline
+RUN node scripts/build-canvas-dependencies.mjs
+
+FROM canvas-dependencies AS canvas
+COPY platform/shared ./platform/shared
+COPY platform/wab/package.json ./platform/wab/package.json
+COPY platform/wab/src/wab/shared/register-library ./platform/wab/src/wab/shared/register-library
+COPY platform/preview/package.json ./platform/preview/package.json
+COPY platform/loader-html-hydrate/package.json ./platform/loader-html-hydrate/package.json
+COPY platform/loader-bundle-env ./platform/loader-bundle-env
+COPY platform/canvas-packages ./platform/canvas-packages
+RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
+    --mount=type=secret,id=build-ca \
+    if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
+    pnpm --dir platform install --frozen-lockfile --prefer-offline
+WORKDIR /plasmic/platform/canvas-packages
+RUN node makePkgTypes.js
+RUN pnpm exec tsc
+RUN NODE_ENV=production node esbuild.js
+WORKDIR /plasmic
+
+FROM canvas AS builder
 COPY . .
 RUN mkdir -p /tmp/.plasmic && cp platform/wab/tools/docker-dev/secrets.json /tmp/.plasmic/secrets.json
+# Canvas already installed both workspaces and built Antd6, icons and React UI.
+# Build only the remaining Studio assets; do not repeat those builds/installs.
 # Optional build CA is a local trust input only; never copy it into release images.
 RUN --mount=type=secret,id=npmrc,target=/root/.npmrc \
     --mount=type=secret,id=build-ca \
     if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
-    pnpm run setup
-RUN pnpm setup:canvas-packages
+    node scripts/build-html-hydrate.mjs \
+    && pnpm setup:sub \
+    && pnpm setup:react-web-bundle \
+    && pnpm setup:live-frame \
+    && pnpm --dir platform --filter "loader-bundle-env..." build \
+    && pnpm make
 RUN --mount=type=secret,id=build-ca \
     if [ -f /run/secrets/build-ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/build-ca; fi; \
     node scripts/deploy-loader-sdk.mjs /opt/plasmic-loader-react \

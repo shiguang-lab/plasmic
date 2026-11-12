@@ -10,3 +10,11 @@
 **/__pycache__
 desktop/renderer
 desktop/desktop-report
+# Preserve freshly built Canvas/SDK outputs when builder copies Studio sources.
+**/skinny/**
+!**/skinny/**/package.json
+**/api/tsc
+**/.rpt2_cache
+**/.declarations
+platform/canvas-packages/build-server
+platform/canvas-packages/src/generated-types

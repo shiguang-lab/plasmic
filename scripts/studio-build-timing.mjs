@@ -2,6 +2,8 @@ import { appendFile } from "node:fs/promises";
 import { createInterface } from "node:readline";
 
 const steps = new Map();
+const dependencies = new Map();
+const logBuffers = new Map();
 const lines = createInterface({ input: process.stdin, crlfDelay: Infinity });
 for await (const line of lines) {
   if (!line.startsWith("{")) {
@@ -12,7 +14,14 @@ for await (const line of lines) {
   const event = JSON.parse(line);
   for (const log of event.logs ?? []) {
     const message = Buffer.from(log.data, "base64").toString();
-    for (const part of message.trimEnd().split("\n")) {
+    const pending = (logBuffers.get(log.vertex) ?? "") + message;
+    const parts = pending.split("\n");
+    logBuffers.set(log.vertex, parts.pop());
+    for (const part of parts) {
+      if (part.startsWith("[canvas-dependency-timing] ")) {
+        const timing = JSON.parse(part.slice("[canvas-dependency-timing] ".length));
+        dependencies.set(timing.package, timing.seconds);
+      }
       if (part) console.log(`BuildKit: ${part}`);
     }
   }
@@ -35,6 +44,10 @@ for await (const line of lines) {
       cached: (previous?.cached ?? true) && Boolean(cached),
     });
   }
+}
+
+for (const tail of logBuffers.values()) {
+  if (tail) console.log(`BuildKit: ${tail}`);
 }
 
 if (steps.size) {
@@ -88,4 +101,28 @@ if (steps.size) {
     console.log(`::notice title=Studio BuildKit stages::${notices.join(" | ")}`);
     console.log(`::notice title=Slowest Studio BuildKit steps::${details.join(" | ").replaceAll("%", "%25")}`);
   }
+}
+
+if (dependencies.size) {
+  const ordered = [...dependencies].sort(([, a], [, b]) => b - a);
+  const summary = [
+    "### Canvas dependency builds",
+    "", "Packages run with concurrency 2; durations overlap.", "",
+    "| Package | Duration (s) |", "| --- | ---: |",
+    ...ordered.map(([name, seconds]) => `| ${name} | ${seconds.toFixed(1)} |`),
+  ].join("\n") + "\n";
+  console.log(summary);
+  if (process.env.GITHUB_STEP_SUMMARY) {
+    await appendFile(process.env.GITHUB_STEP_SUMMARY, summary);
+    console.log("::notice title=Slowest Canvas dependencies::" + ordered.slice(0, 10)
+      .map(([name, seconds]) => `${name} ${seconds.toFixed(1)}s`).join(" | "));
+  }
+}
+
+if (process.argv.includes("--require-canvas-cache")) {
+  const canvasSteps = [...steps.values()].filter(({ stage }) => stage === "canvas" || stage === "canvas-dependencies");
+  if (!canvasSteps.some(({ name }) => name === "RUN NODE_ENV=production node esbuild.js") || canvasSteps.some(({ cached }) => !cached)) {
+    throw new Error("Studio-only edit must reuse every Canvas build step");
+  }
+  console.log("::notice title=Canvas cache verified::Studio-only edit reused every Canvas build step");
 }

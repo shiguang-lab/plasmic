@@ -37,6 +37,15 @@ jobs:
             --set 'server.output=type=cacheonly' \
             --set 'preview.output=type=cacheonly' \
             --set 'web.output=type=docker' 2>&1 | node scripts/studio-build-timing.mjs
+      - name: Verify Studio edits preserve the Canvas cache
+        shell: bash
+        run: |
+          studio_source=platform/wab/src/wab/client/studio-ctx/StudioCtx.tsx
+          trap 'git restore -- "$studio_source"' EXIT
+          printf '\n' >> "$studio_source"
+          docker buildx build --file deploy/Dockerfile --target canvas \
+            --platform linux/amd64 --output=type=cacheonly --progress=rawjson . 2>&1 \
+            | node scripts/studio-build-timing.mjs --require-canvas-cache
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
