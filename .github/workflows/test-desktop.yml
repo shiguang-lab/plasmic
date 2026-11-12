@@ -1,4 +1,4 @@
-name: Test Desktop on Linux and Windows
+name: Test Desktop and verify macOS acceptance
 on:
   workflow_call:
     inputs:
@@ -14,7 +14,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        runner: [ubuntu-24.04, windows-2025]
+        include:
+          - runner: ubuntu-24.04
+          - runner: windows-2025
+          - runner: macos-26
+            mac-arch: arm64
+          - runner: macos-15-intel
+            mac-arch: x64
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 20
     defaults:
@@ -33,6 +39,9 @@ jobs:
       - name: Install Linux Canvas build dependencies
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+      - name: Install macOS Canvas build dependencies
+        if: runner.os == 'macOS'
+        run: HOMEBREW_NO_AUTO_UPDATE=1 brew install pkg-config cairo pango libpng jpeg giflib librsvg pixman
       - run: npm ci --prefix desktop --prefer-offline --no-audit --no-fund
       - name: Install Electron before parallel tests
         run: |
@@ -45,4 +54,29 @@ jobs:
         with:
           go-version-file: desktop/mcp/go.mod
           cache-dependency-path: desktop/mcp/go.sum
-      - run: npm test --prefix desktop
+      - name: Build Go MCP helper
+        if: runner.os == 'macOS'
+        run: node desktop/scripts/build-mcp.mjs darwin ${{ matrix.mac-arch }}
+      - name: Test Desktop
+        if: matrix.mac-arch != 'arm64'
+        run: |
+          if [ "$RUNNER_OS" = macOS ]; then
+            npm --prefix desktop --ignore-scripts test
+          else
+            npm test --prefix desktop
+          fi
+      - name: Verify background workers and public draft bridge
+        if: runner.os == 'macOS'
+        run: npm --prefix desktop --ignore-scripts run test:background
+      - name: Verify packaged background process lifecycle
+        if: runner.os == 'macOS'
+        run: npm run test:background-packaged --prefix desktop
+      - name: Verify file-based sign-in across a packaged upgrade
+        if: runner.os == 'macOS'
+        run: npm run test:session-lifecycle --prefix desktop
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2, Node 24
+        if: always() && runner.os == 'macOS'
+        with:
+          name: session-lifecycle-${{ matrix.mac-arch }}
+          path: desktop/desktop-report/session-lifecycle/
+          if-no-files-found: ignore

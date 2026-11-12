@@ -70,10 +70,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish images with a shared builder
+        shell: bash
         env:
           RELEASE_TAG: ${{ inputs.release-tag || github.ref_name }}
           PLASMIC_COMMIT: ${{ needs.plan.outputs.revision }}
-        run: docker buildx bake --file deploy/docker-bake.hcl --push
+        run: docker buildx bake --progress=rawjson --file deploy/docker-bake.hcl --push 2>&1 | node scripts/studio-build-timing.mjs
   cli:
     needs: plan
     if: needs.plan.outputs.cli == 'true'

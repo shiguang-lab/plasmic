@@ -27,15 +27,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build Studio server, web, and preview
+        shell: bash
         env:
           RELEASE_TAG: actions-joint-test
           PLASMIC_COMMIT: ${{ github.sha }}
         run: |
-          docker buildx bake --file deploy/docker-bake.hcl \
+          docker buildx bake --progress=rawjson --file deploy/docker-bake.hcl \
             --set '*.cache-to=' \
             --set 'server.output=type=cacheonly' \
             --set 'preview.output=type=cacheonly' \
-            --set 'web.output=type=docker'
+            --set 'web.output=type=docker' 2>&1 | node scripts/studio-build-timing.mjs
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0, Node 24
         with:
           node-version: 24
