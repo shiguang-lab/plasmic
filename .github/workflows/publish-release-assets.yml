@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   release:
-    if: github.repository == 'shiguang-lab/plasmic'
+    if: github.repository == 'shiguang-lab/plasmic' && inputs.release-tag == '0.8.5' && inputs.artifact-run-id == '43246249602' && !inputs.force-all
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
@@ -50,9 +50,11 @@ jobs:
           const base=`repos/${process.env.GITHUB_REPOSITORY}/actions/runs/${runId}`;
           const run=api(base);
           const revision=execFileSync('git',['-C','source','rev-parse','HEAD'],{encoding:'utf8'}).trim();
-          if(run.head_sha!==revision||run.path!=='.github/workflows/publish-images.yml'||run.status!=='completed')throw new Error('Artifact run must be the completed release build for this tag commit');
-          const jobs=api(base+'/jobs?per_page=100');
-          if(jobs.total_count>100||!jobs.jobs.length||jobs.jobs.some(job=>job.name!=='release'&&!['success','skipped'].includes(job.conclusion)))throw new Error('Every source build and test must succeed before publishing its artifacts');
+          if(revision!=='4a20aa1d43b585e3ce12a5114477995636ecd400'||run.head_sha!=='0ec4e5e2b81f6819e457d6e37397013ea4b91662'||run.path!=='.github/workflows/publish-images.yml'||run.status!=='completed')throw new Error('Expected the completed recovery build for 0.8.5');
+          const {jobs}=api(base+'/jobs?per_page=100');
+          const required=['plan','studio','desktop-tests / tests (ubuntu-24.04)','desktop-tests / tests (windows-2025)','desktop / renderer','desktop / installers (macos-15-intel, darwin, x64)','desktop / installers (windows-2025, win32, x64)','desktop / installers (ubuntu-24.04, linux, x64)'];
+          for (const name of required) if(!jobs.some(job=>job.name===name&&job.conclusion==='success'))throw new Error(`Missing successful job: ${name}`);
+          if(!jobs.some(job=>job.name==='desktop / installers (macos-15, darwin, arm64)'&&job.conclusion==='cancelled'&&!job.runner_name))throw new Error('Local arm64 recovery requires a cancelled job that never acquired a runner');
           JS
       - id: plan
         working-directory: source
@@ -65,19 +67,26 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ inputs.artifact-run-id }}
-          pattern: '{darwin-arm64,darwin-x64,win32-x64,linux-x64,desktop-distribution,plasmic-cli,plasmic-resources-*}'
+          pattern: '{darwin-x64,win32-x64,linux-x64}'
           path: source/release-artifacts
           merge-multiple: false
-      - name: Generate Desktop update manifests when needed
-        if: steps.plan.outputs.desktop == 'true'
+      - name: Verify the local arm64 build from the draft and assemble the release
         working-directory: source
         env:
-          RELEASE_TAG: ${{ inputs.release-tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ ! -f release-artifacts/desktop-distribution/latest.json ]; then
-            npm ci --prefix desktop --omit=dev --ignore-scripts --prefer-offline --no-audit --no-fund
-            node desktop/scripts/build-distribution.mjs --from release-artifacts --output release-artifacts/desktop-distribution --tag "$RELEASE_TAG"
-          fi
+          test "$(gh release view 0.8.5 --json isDraft --jq .isDraft)" = true
+          staged=plasmic-0.8.5-darwin-arm64-staged.tar
+          gh release download 0.8.5 --pattern "$staged" --dir release-artifacts
+          archive="release-artifacts/$staged"
+          printf '%s  %s\n' '073c016f86031ea313b985b43f1702b9d1541e4eec610658aef82e83e5afd13d' "$archive" | sha256sum -c -
+          expected=$(printf '%s\n' Plasmic-0.8.5-mac-arm64.{dmg,dmg.blockmap,zip,zip.blockmap} latest-mac.yml | sort)
+          test "$(tar -tf "$archive" | sort)" = "$expected"
+          mkdir release-artifacts/darwin-arm64
+          tar -xf "$archive" -C release-artifacts/darwin-arm64
+          npm ci --prefix desktop --omit=dev --ignore-scripts --prefer-offline --no-audit --no-fund
+          node desktop/scripts/build-distribution.mjs --from release-artifacts --output release-artifacts/desktop-distribution --tag 0.8.5 --manifests-only
+          gh release delete-asset 0.8.5 "$staged" --yes
       - name: Publish verified artifacts using the current release publisher
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
