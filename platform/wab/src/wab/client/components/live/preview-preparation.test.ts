@@ -1,4 +1,4 @@
-import { preparePreviewModules, preparePreviewPages } from "@/wab/client/components/live/live-syncer";
+import { preparePreviewModules } from "@/wab/client/components/live/live-syncer";
 import type { PreviewBatchCompiler } from "@/wab/client/components/live/preview-sync";
 import type { PreviewCtx } from "@/wab/client/components/live/PreviewCtx";
 import * as codegen from "@/wab/client/components/live/preview-codegen";
@@ -24,6 +24,6 @@ it("prepares static menu destinations without applying their props or mounting b
   expect(ctx.component).toBe(current);
   compile.mockClear();
   const abort = new AbortController(); abort.abort();
-  await preparePreviewPages(ctx, current, abort.signal);
+  await preparePreviewModules(ctx, abort.signal);
   expect(compile).not.toHaveBeenCalled();
 });

@@ -141,7 +141,7 @@ button:disabled { opacity: .55; cursor: default; }
       ],
       downloaded: [
         "Ready to install",
-        "Your current design will be saved before Plasmic restarts.",
+        "Plasmic will use the update the next time you open it after quitting.",
         "Restart and Install",
         "install",
       ],

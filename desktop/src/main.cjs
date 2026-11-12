@@ -64,7 +64,9 @@ let unifiedAuth;
 let recoverSession;
 let desktopLogin;
 let desktopIdentity;
+let macUpdateStartup;
 let startingDesktop;
+let restoringProject;
 let desktopI18n;
 const { createDesktopI18n } = require("./i18n.cjs");
 const { ReferenceBrowser } = require("./reference-browser.cjs");
@@ -162,7 +164,7 @@ function protectWindow(studio, contents) {
 async function startDesktop() {
   lifecycleLog("startup.begin");
   if (process.platform === "darwin") {
-    await acknowledgeMacUpdate(app, false);
+    await (macUpdateStartup ??= acknowledgeMacUpdate(app, false));
   }
   if (process.platform === "darwin") {
     app.dock.setIcon(appIcon);
@@ -457,9 +459,19 @@ async function startDesktop() {
       desktopAppearance.set(value);
       return desktopAppearance.snapshot();
     });
-    ipcMain.handle("desktop:startup-data", (event, projectId, branchName) => {
+    ipcMain.handle("desktop:startup-data", async (event, projectId, branchName) => {
       if (!trustedAuthSender(event) || workspace.projectId(event.senderFrame.url) !== projectId) {
         throw new Error("Invalid Studio page");
+      }
+      const restore = restoringProject;
+      if (restore?.url === event.senderFrame.url) {
+        if (await restore.checked !== restore.url) {
+          // The main process owns the fallback navigation. Hold this read
+          // until the rejected project document has been retired.
+          await restore.finished.promise;
+          throw new Error("The saved project was not restored");
+        }
+        if (!trustedAuthSender(event)) throw new Error("Invalid Studio page");
       }
       return workspace.consumeStartupData(projectId, branchName);
     });
@@ -612,7 +624,9 @@ async function startDesktop() {
     contents.on("did-start-navigation", (_event, _url, inPlace, isMainFrame) => {
       if (contents === studio.webContents && isMainFrame && !inPlace) { desktopIdentity.expire(); drafts.reset(); }
     });
-    contents.on("did-navigate", (_event, url) => { if (contents === studio.webContents) workspace.rememberUrl(url); });
+    contents.on("did-navigate", (_event, url) => {
+      if (contents === studio.webContents && url !== restoringProject?.url) workspace.rememberUrl(url);
+    });
     contents.on("did-navigate-in-page", (_event, url, isMainFrame) => {
       if (contents === studio.webContents && isMainFrame) workspace.rememberUrl(url);
     });
@@ -654,6 +668,12 @@ async function startDesktop() {
     });
   }, 5000);
   let closeRequest, quitRequested = false;
+  const finishQuit = async () => {
+    await updates?.prepareQuit();
+    quitting = true;
+    lifecycleLog("quit.approved");
+    app.quit();
+  };
   const protectDraftBeforeQuit = async () => {
     if (win.isDestroyed() || studio.webContents.isCrashed() || !workspace.projectId(studio.webContents.getURL())) {return true;}
     lifecycleLog("quit.draft-flush-begin");
@@ -695,7 +715,7 @@ async function startDesktop() {
         await presentation.setMode("island");
         lifecycleLog("window.closed-to-island");
       }
-      else { quitting = true; app.quit(); }
+      else { await finishQuit(); }
     })().catch((error) => {
       lifecycleLog("window.close-failed", { error: lifecycleError(error) });
       console.error("Cannot close main window:", error);
@@ -721,9 +741,7 @@ async function startDesktop() {
     closeRequest = (async () => {
       await capture();
       if (!(await protectDraftBeforeQuit())) { lifecycleLog("quit.cancelled"); return; }
-      quitting = true;
-      lifecycleLog("quit.approved");
-      app.quit();
+      await finishQuit();
     })().catch(error => {
       lifecycleLog("quit.failed", { error: lifecycleError(error) });
       console.error("Cannot protect draft before quitting:", error);
@@ -879,12 +897,22 @@ async function startDesktop() {
     });
     Menu.setApplicationMenu(menu);
   }
-  await desktopLogin.noteActivity().catch((error) => {
+  const sessionReady = desktopLogin.noteActivity().catch((error) => {
     console.warn("Cannot restore desktop session:", error.message);
   });
-  const startupEpoch = desktopIdentity.epoch;
-  const startupUrl = await workspace.startupUrl(desktopSession, projectOpenLog.preflight);
-  if (desktopIdentity.epoch !== startupEpoch) workspace.clearStartupData();
+  const startupUrl = workspace.lastUrl;
+  const restore = workspace.projectId(startupUrl) ? {
+    url: startupUrl,
+    checked: sessionReady.then(async () => {
+      const epoch = desktopIdentity.epoch;
+      const url = await workspace.startupUrl(desktopSession, projectOpenLog.preflight, startupUrl);
+      if (desktopIdentity.epoch !== epoch) workspace.clearStartupData();
+      return url;
+    }),
+    finished: Promise.withResolvers(),
+  } : undefined;
+  restoringProject = restore;
+  if (!restore) await sessionReady;
   buildMenu();
   const stopLocale = desktopI18n.subscribe(() => {
     buildMenu();
@@ -894,7 +922,7 @@ async function startDesktop() {
   });
   win.once("closed", stopLocale);
   try {
-    await studio.loadURL(startupUrl);
+    await studio.loadURL(startupUrl, restore?.checked);
   } catch (error) {
     // Session recovery can replace the first page before its load finishes.
     // Wait for that login navigation rather than treating it as a fatal startup.
@@ -906,6 +934,9 @@ async function startDesktop() {
       throw error;
     }
     await unifiedAuth.navigation;
+  } finally {
+    restore?.finished.resolve();
+    if (restoringProject === restore) restoringProject = undefined;
   }
   await presentation.setMode(presentation.mode);
   if (process.platform === "darwin") {

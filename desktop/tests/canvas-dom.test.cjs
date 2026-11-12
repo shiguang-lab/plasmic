@@ -196,6 +196,10 @@ test("image inspection is scoped to visible business content without hiding real
     const [frame] = await canvasFrames(windowFor(dom));
     assert.equal(frame.layout.images.length, 1);
     assert.equal(frame.layout.images[0].loaded, false);
+    const [imageRead] = await canvasFrames(windowFor(dom), undefined, undefined, { imagesOnly: true });
+    assert.equal(imageRead.layout.elements.length, 0);
+    assert.equal(imageRead.layout.images.length, 1);
+    assert.equal(imageRead.layout.images[0].src, frame.layout.images[0].src);
     dom.window.document.querySelector("#business").hidden = true;
     assert.equal((await canvasFrames(windowFor(dom)))[0].layout.images.length, 0);
   } finally { dom.window.close(); }

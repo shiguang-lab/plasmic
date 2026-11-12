@@ -12,7 +12,6 @@ class UpdateManager extends EventEmitter {
     };
     // This manager starts downloads on every platform, including the custom macOS updater.
     updater.autoDownload = false;
-    updater.autoInstallOnAppQuit = false;
     updater.allowDowngrade = false;
     updater.allowPrerelease = false;
     updater.on("checking-for-update", () => this.set({ phase: "checking" }));
@@ -57,7 +56,12 @@ class UpdateManager extends EventEmitter {
       percent: undefined,
     });
   }
-  async command(command) {
+  prepareQuit() {
+    if (!this.updater.prepareInstallOnQuit) return;
+    if (this.state.phase === "installing") return this.running;
+    if (this.state.phase === "downloaded") return this.command("install", false);
+  }
+  async command(command, restart = true) {
     if (command === "status") return this.state;
     if (!this.enabled) return this.state;
     if (!["check", "download", "install"].includes(command))
@@ -89,8 +93,12 @@ class UpdateManager extends EventEmitter {
         }
         if (command === "install") {
           this.set({ phase: "installing" });
-          await this.beforeInstall();
-          await this.updater.quitAndInstall(false, true);
+          if (restart) {
+            await this.beforeInstall();
+            await this.updater.quitAndInstall(false, true);
+          } else {
+            await this.updater.prepareInstallOnQuit();
+          }
         }
       } catch (error) {
         this.fail(error);

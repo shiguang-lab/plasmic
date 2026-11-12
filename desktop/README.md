@@ -470,6 +470,8 @@ and in the preview toolbar. All download controls show only a progress ring.
 Hover or keyboard focus shows the download percentage and version in a tooltip.
 When the verified download finishes, the update icon indicates it is ready. Clicking it opens Software Update with
 **Restart and Install** and **Later**. Choosing Later leaves the ready icon visible.
+Plasmic installs the downloaded update on a normal quit and uses it the next time
+the application opens. Switching to Dynamic Island keeps the application running.
 Clicking the update control reopens the dialog; it does not restart the app directly. Update failures are logged locally and treated as no update; no error indicator or exception is displayed. Automatic checks continue every minute. The dialog uses bundled local frontend
 resources, a light appearance and isolated styles in the main document; it creates no
 additional Electron window and works on the login page without a server request.
@@ -567,13 +569,15 @@ include a DMG for installation and a ZIP for automatic updates. Website release
 JSON lists `mac-arm64`, `mac-x64`, `windows` and `linux` separately.
 
 Clicking **Restart and Install** saves an open design before quitting; a failed save blocks
-installation. Downloaded updates do not install on an ordinary quit. macOS verifies
+installation. An ordinary quit follows the usual draft protection flow. macOS verifies
 SHA-512, bundle identity, version, CPU architecture and code signature, stages the
-new bundle alongside the installed app, then uses a detached helper to replace it.
-The old bundle is retained until the new app loads successfully. If startup fails,
-the helper restores and reopens the old bundle. Install from the DMG into a writable
+new bundle alongside the installed app, then uses a helper to replace it. On an
+ordinary quit, the helper swaps the bundle before the process exits. The next
+launch confirms startup and releases the previous bundle. If startup fails after
+the new app starts, the helper restores and reopens the old bundle. Install from the DMG into a writable
 Applications directory before updating; running from the mounted DMG cannot update.
-Windows and Linux use `electron-updater` with NSIS/AppImage installation.
+Windows and Linux use `electron-updater` with NSIS/AppImage installation. On an
+ordinary quit, Linux replaces the AppImage at its existing path.
 
 macOS ZIP, Windows NSIS EXE and Linux AppImage downloads share the same `.blockmap`
 and HTTP Range downloader. It reuses unchanged bytes from a verified cached

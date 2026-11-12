@@ -5,7 +5,7 @@ import { mkApiWorkspace } from "@/wab/server/routes/workspaces";
 import { ApiTeam, ApiWorkspace, AppCtxResponse } from "@/wab/shared/ApiSchema";
 import { Request, Response } from "express-serve-static-core";
 
-export async function getAppCtxData(req: Request): Promise<AppCtxResponse> {
+export async function getAppCtxData(req: Request, personalWorkspace?: Promise<void>): Promise<AppCtxResponse> {
   const userMgr = userDbMgr(req, { allowUnverifiedEmail: true });
 
   if (!userMgr.tryGetNormalActorId()) {
@@ -15,7 +15,7 @@ export async function getAppCtxData(req: Request): Promise<AppCtxResponse> {
   }
 
   if (req.user) {
-    await superDbMgr(req).ensurePersonalWorkspace(req.user);
+    await (personalWorkspace ?? superDbMgr(req).ensurePersonalWorkspace(req.user));
   }
 
   const teams: ApiTeam[] = await Promise.all(

@@ -26,7 +26,7 @@ vi.mock("@/wab/server/routes/util", async importOriginal => ({
   }),
 }));
 function request(query: Request["query"] = {}, projectBranchId = "project") {
-  return { params: { projectBranchId }, query, noTxMgr: { connection: { options: {}, driver: { options: {}, buildTableName: (name: string) => name } } }, promLabels: {}, analytics: { track: vi.fn() } } as unknown as Request;
+  return { params: { projectBranchId }, query, headers: {}, noTxMgr: { connection: { options: {}, driver: { options: {}, buildTableName: (name: string) => name } } }, promLabels: {}, analytics: { track: vi.fn() } } as unknown as Request;
 }
 beforeEach(() => {
   vi.resetAllMocks();

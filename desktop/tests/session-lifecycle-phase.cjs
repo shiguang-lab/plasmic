@@ -22,6 +22,7 @@ const { createServer } = require("node:http");
 const { createDeviceCredentials } = require("./src/device-credentials.cjs");
 const { DesktopUnifiedLogin, AUTH_ORIGIN } = require("./src/unified-login.cjs");
 const { MacUpdater, acknowledgeMacUpdate } = require("./src/mac-updater.cjs");
+const { UpdateManager } = require("./src/update-manager.cjs");
 const profile = process.env.PLASMIC_DESKTOP_PROFILE;
 assert(profile, "Acceptance requires an isolated profile");
 app.setPath("userData", profile);
@@ -108,16 +109,19 @@ app.whenReady().then(async () => {
   assert.deepEqual(JSON.parse(fs.readFileSync(credentialFile, "utf8")), { refreshToken: `owned-test-refresh-${phase}` });
   assert.equal(fs.statSync(credentialFile).mode & 0o777, 0o600);
   await ses.cookies.flushStore();
-  if (phase === "upgrade") {
+  if (phase === "upgrade" || phase === "upgrade_on_quit") {
     const updater = new MacUpdater({ app, feedUrl: "https://owned-update.fixture/updates/", fetch: (url, init) => nativeFetch(origin + new URL(url).pathname, init) });
-    await updater.checkForUpdates();
-    await updater.downloadUpdate();
+    const updates = new UpdateManager({ updater, version: app.getVersion(), enabled: true, beforeInstall: async () => {} });
+    assert.equal((await updates.command("check")).phase, "downloaded");
     fs.writeFileSync(path.join(profile, "control.json"), JSON.stringify({ phase: "upgraded_startup" }));
-    fs.writeFileSync(path.join(profile, "upgrade.json"), JSON.stringify({ status: "PASS", downloadedAndVerified: true, version: app.getVersion() }));
-    await updater.quitAndInstall();
+    fs.writeFileSync(path.join(profile, `${phase}.json`), JSON.stringify({ status: "PASS", downloadedAndVerified: true, version: app.getVersion() }));
+    if (phase === "upgrade") await updates.command("install");
+    else await updates.prepareQuit();
+    assert.equal(updates.state.phase, "installing");
     win.destroy();
     server.close();
     clearTimeout(timeout);
+    if (phase === "upgrade_on_quit") app.quit();
   } else if (phase === "sign_out") {
     await login.signOut();
     assert.equal(credentials.read(), undefined);

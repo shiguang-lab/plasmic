@@ -2739,7 +2739,7 @@
   "You can close this dialog and keep working while the download continues.": "ダウンロード中はこの画面を閉じて作業を続けられます。",
   "Downloading…": "ダウンロード中…",
   "Ready to install": "インストールの準備完了",
-  "Your current design will be saved before Plasmic restarts.": "Plasmic の再起動前に現在のデザインを保存します。",
+  "Plasmic will use the update the next time you open it after quitting.": "Plasmic を終了すると、次回起動時に新しいバージョンが使われます。",
   "Restart and Install": "再起動してインストール",
   "Installing update…": "アップデートをインストール中…",
   "Saving your design and preparing to restart Plasmic.": "デザインを保存して Plasmic の再起動を準備しています。",

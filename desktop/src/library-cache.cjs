@@ -18,7 +18,9 @@ class FileResourceStore {
     return result;
   }
   file(scope, kind, key) {
-    return path.join(this.directory, digest(JSON.stringify([scope.origin, scope.userId])), digest(scope.buildId), `${kind}-${digest(key)}.bin`);
+    // Model IDs identify immutable bytes and code keys pin the published package
+    // version. A renderer update changes neither resource identity.
+    return path.join(this.directory, digest(JSON.stringify([scope.origin, scope.userId])), "immutable-v1", `${kind}-${digest(key)}.bin`);
   }
   protect(scope, kind, key) {
     const file = this.file(scope, kind, key);

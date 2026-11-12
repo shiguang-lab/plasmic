@@ -130,10 +130,12 @@ function createProjectOpenLog(profile, { studioOrigin, canvasOrigin, slowMs = 10
       requests.delete(details.id);
       attempt.pending.delete(details.id);
       const requestId = responseHeader(details, "x-sg-request-id") ?? responseHeader(details, "x-request-id");
+      const resourceCache = responseHeader(details, "x-plasmic-resource-cache");
       attempt.completed.push({
         ...record, durationMs: elapsed(started), status: details.statusCode,
         error: networkError(details.error), fromCache: details.fromCache,
         localAsset: responseHeader(details, "x-plasmic-desktop-asset") === "local",
+        resourceCache: resourceCache === "hit" || resourceCache === "miss" ? resourceCache : undefined,
         requestId: /^[\w-]{1,80}$/.test(requestId ?? "") ? requestId : undefined,
       });
     };

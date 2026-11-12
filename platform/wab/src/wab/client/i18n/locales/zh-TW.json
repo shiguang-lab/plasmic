@@ -2739,7 +2739,7 @@
   "You can close this dialog and keep working while the download continues.": "可以關閉此視窗繼續工作，下載會繼續進行。",
   "Downloading…": "正在下載……",
   "Ready to install": "可以安裝",
-  "Your current design will be saved before Plasmic restarts.": "Plasmic 重新啟動前會儲存目前設計。",
+  "Plasmic will use the update the next time you open it after quitting.": "結束 Plasmic 後，下次開啟時會自動使用新版。",
   "Restart and Install": "重新啟動並安裝",
   "Installing update…": "正在安裝更新……",
   "Saving your design and preparing to restart Plasmic.": "正在儲存設計並準備重新啟動 Plasmic。",

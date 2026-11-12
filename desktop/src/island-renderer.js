@@ -79,7 +79,7 @@
       checking:["Checking for updates…", ""],
       available:["Preparing update…", "The update will download automatically in the background."],
       downloading:["Downloading update…", "You can close this dialog and keep working while the download continues."],
-      downloaded:["Ready to install", "Your current design will be saved before Plasmic restarts."],
+      downloaded:["Ready to install", "Plasmic will use the update the next time you open it after quitting."],
       installing:["Installing update…", state.updateWaiting ? "Your current operations will finish before Plasmic restarts." : "Saving your design and preparing to restart Plasmic."],
       current:["You're up to date", ""],
       error:["Update could not be completed", "Try again when your connection and design are ready."],

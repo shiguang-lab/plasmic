@@ -1,5 +1,7 @@
 const fs = require("node:fs/promises");
+const { copyFileSync, renameSync, rmSync } = require("node:fs");
 const path = require("node:path");
+const { randomUUID } = require("node:crypto");
 const semver = require("semver");
 const { NsisUpdater, AppImageUpdater } = require("electron-updater");
 const { CancellationError, CURRENT_APP_INSTALLER_FILE_NAME } = require("builder-util-runtime");
@@ -62,8 +64,8 @@ async function download(updater, fileInfo, options, destination) {
   }
 }
 
-// Extend only the download step. NSIS still checks the publisher signature;
-// AppImage still sets executable permissions; both retain their native install.
+// NSIS still checks the publisher signature and AppImage still sets executable
+// permissions after the shared download.
 class WindowsUpdater extends NsisUpdater {
   async differentialDownloadInstaller(fileInfo, options, destination) {
     await download(this, fileInfo, options, destination);
@@ -75,6 +77,22 @@ class LinuxUpdater extends AppImageUpdater {
   async downloadDifferential(fileInfo, _oldFile, destination, _provider, options) {
     await download(this, fileInfo, options, destination);
     return false;
+  }
+
+  doInstall(options) {
+    if (options.isForceRunAfter) return super.doInstall(options);
+    const target = process.env.APPIMAGE;
+    if (!target || !path.isAbsolute(target) || !this.installerPath)
+      throw new Error("Cannot replace the running AppImage");
+    // Keep the launcher path valid even when the AppImage filename has a version.
+    const staged = path.join(path.dirname(target), `.Plasmic-update-${randomUUID()}.AppImage`);
+    try {
+      copyFileSync(this.installerPath, staged);
+      renameSync(staged, target);
+    } finally {
+      rmSync(staged, { force: true });
+    }
+    return true;
   }
 }
 
@@ -100,6 +118,7 @@ function createNativeUpdater({ platform, feedUrl }) {
   updater.desktopFeedUrl = feedUrl.endsWith("/") ? feedUrl : feedUrl + "/";
   updater.setFeedURL({ provider: "generic", url: updater.desktopFeedUrl, useMultipleRangeRequest: false });
   updater.disableWebInstaller = true;
+  updater.autoInstallOnAppQuit = true;
   updater.on("update-not-available", (info) => {
     void seedInstalled(updater, info).catch((error) => updater.logger.info(`Cannot seed differential update cache: ${error.message}`));
   });

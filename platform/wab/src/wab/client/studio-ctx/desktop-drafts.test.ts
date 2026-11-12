@@ -334,6 +334,7 @@ it("coalesces concurrent flushes of the same revision before serializing the mod
   const first = f.controller.flush();
   const second = f.controller.flush();
   const third = f.controller.flush();
+  await Promise.resolve();
   expect(f.content).toHaveBeenCalledOnce();
   await vi.waitFor(() =>
     expect(f.api.writeDesktopDraft).toHaveBeenCalledOnce(),
@@ -341,6 +342,54 @@ it("coalesces concurrent flushes of the same revision before serializing the mod
   finish();
   expect(await Promise.all([first, second, third])).toEqual([true, true, true]);
   expect(f.api.writeDesktopDraft).toHaveBeenCalledOnce();
+  f.controller.dispose();
+});
+
+it("keeps only the latest requested checkpoint behind a blocked write", async () => {
+  const f = fixture();
+  await f.controller.initialize("user", "project", null);
+  let finish = () => undefined as void;
+  const waiting = new Promise<void>((resolve) => { finish = resolve; });
+  f.api.writeDesktopDraft.mockImplementationOnce(async () => waiting);
+  f.edit();
+  const first = f.controller.flush();
+  await vi.waitFor(() => expect(f.api.writeDesktopDraft).toHaveBeenCalledOnce());
+
+  const newer = Array.from({ length: 11 }, () => {
+    f.edit();
+    return f.controller.flush();
+  });
+  const queuedSnapshots = f.content.mock.calls.length;
+  finish();
+  expect(await Promise.all([first, ...newer])).toEqual(Array(12).fill(true));
+  expect(queuedSnapshots).toBe(1);
+  expect(f.content).toHaveBeenCalledTimes(2);
+  expect(f.api.writeDesktopDraft.mock.calls.map(([, json]) => JSON.parse(json).sequence)).toEqual([1, 12]);
+  expect(f.controller.hasCurrentBackup).toBe(true);
+  f.controller.dispose();
+});
+
+it("drops a queued capture when a failed merge needs the last valid checkpoint", async () => {
+  const f = fixture();
+  await f.controller.initialize("user", "project", null);
+  let finish: () => void = () => undefined;
+  const waiting = new Promise<void>((resolve) => { finish = resolve; });
+  f.api.writeDesktopDraft.mockImplementationOnce(async () => waiting);
+  f.edit();
+  const validText = f.state.text;
+  const first = f.controller.flush();
+  await vi.waitFor(() => expect(f.api.writeDesktopDraft).toHaveBeenCalledOnce());
+  f.edit();
+  const queued = f.controller.flush();
+  f.state.text = "partially merged model";
+  const recovery = f.controller.protect(true);
+  expect(await f.controller.flush()).toBe(false);
+  finish();
+  await Promise.all([first, queued, recovery]);
+  expect(f.content).toHaveBeenCalledOnce();
+  expect([...f.files.values()]).toMatchObject([{
+    sequence: 1, needsAttention: true, bundle: { map: { site: { name: validText } } },
+  }]);
   f.controller.dispose();
 });
 

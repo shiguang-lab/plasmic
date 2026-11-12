@@ -5,7 +5,7 @@ const { abortable } = require("./abortable.cjs");
 const { expandFullContent } = require("./canvas-full-content.cjs");
 
 // Read rendered DOM, never Studio's private model or user-supplied JavaScript.
-async function inspectCanvas({ frameUuid } = {}) {
+async function inspectCanvas({ frameUuid, summaryOnly, imagesOnly } = {}) {
   if (frameUuid && (
     document.documentElement.getAttribute("data-plasmic-frame-uuid") !== frameUuid ||
     !document.documentElement.hasAttribute("data-plasmic-render-ready")
@@ -23,9 +23,6 @@ async function inspectCanvas({ frameUuid } = {}) {
     new Promise((resolve) => setTimeout(resolve, 100)),
   ]);
   const root = document.querySelector(".__wab_val_root") || document.body;
-  const elements = [...root.querySelectorAll("*")].filter(
-    (el) => !["SCRIPT", "STYLE", "LINK"].includes(el.tagName),
-  );
   const isVisible = (el) => {
     if (el.closest('[hidden],[data-plasmic-editor-only]')) return false;
     for (let node = el; node; node = node.parentElement) {
@@ -35,6 +32,25 @@ async function inspectCanvas({ frameUuid } = {}) {
     const rect = el.getBoundingClientRect();
     return rect.width > 0 && rect.height > 0;
   };
+  const isContent = (el) => !["SCRIPT", "STYLE", "LINK"].includes(el.tagName);
+  const frameInfo = {
+    frameUuid: document.documentElement.getAttribute("data-plasmic-frame-uuid"),
+    width: innerWidth,
+    height: innerHeight,
+    contentHeight: document.documentElement.scrollHeight,
+    truncated: false,
+  };
+  const isReady = (hasVisibleContent) =>
+    document.documentElement.hasAttribute("data-plasmic-render-ready") ||
+    (new URLSearchParams(location.hash.slice(1)).get("live") === "true" && hasVisibleContent());
+  if (summaryOnly || imagesOnly) {
+    const ready = isReady(() => [...root.querySelectorAll("*")].some(el => isContent(el) && isVisible(el)));
+    const images = imagesOnly ? [...root.querySelectorAll("img")]
+      .filter(isVisible)
+      .map(el => ({ src: el.currentSrc || el.src })) : [];
+    return { ...frameInfo, ready, elements: [], images };
+  }
+  const elements = [...root.querySelectorAll("*")].filter(isContent);
   const visible = elements.filter(isVisible);
   const visibleIndexes = new Map(visible.map((el, index) => [el, index]));
   const tableCells = new Map();
@@ -95,15 +111,8 @@ async function inspectCanvas({ frameUuid } = {}) {
       );
   });
   return {
-    ready:
-      document.documentElement.hasAttribute("data-plasmic-render-ready") ||
-      (new URLSearchParams(location.hash.slice(1)).get("live") === "true" &&
-        visible.length > 0),
-    frameUuid: document.documentElement.getAttribute("data-plasmic-frame-uuid"),
-    width: innerWidth,
-    height: innerHeight,
-    contentHeight: document.documentElement.scrollHeight,
-    truncated: false,
+    ...frameInfo,
+    ready: isReady(() => visible.length > 0),
     elements: visible.map((el, index) => {
       const rect = el.getBoundingClientRect();
       const valKey = el.getAttribute("data-plasmic-valkey");
@@ -346,7 +355,7 @@ async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input, s
   if (frameUuid) {
     const deadline = AbortSignal.timeout(20000);
     signal = signal ? AbortSignal.any([signal, deadline]) : deadline;
-    input = { frameUuid };
+    input = { ...input, frameUuid };
   }
   while (Date.now() < end) {
     signal?.throwIfAborted();
@@ -364,23 +373,28 @@ async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input, s
       }
     });
     const results = [];
-    for (const frame of frames) {
-      if (frame.isDestroyed?.()) continue;
+    const scanFrame = async (frame) => {
+      if (frame.isDestroyed?.()) return;
       try {
         if (inspectionId) {
           const marker = await abortable(signal, () => frame.executeJavaScript(
             'document.documentElement.getAttribute("data-plasmic-canvas-inspection")',
           ));
-          if (marker !== inspectionId) continue;
+          if (marker !== inspectionId) return;
         }
         const layout = await abortable(signal, () => frame.executeJavaScript(js(inspect, input)));
         if (layout.ready && (!frameUuid || layout.frameUuid === frameUuid)) {
-          results.push({ frame, layout });
+          return { frame, layout };
         }
       } catch (error) {
         signal?.throwIfAborted();
         if (!frame.isDestroyed?.()) throw error;
       }
+    };
+    // Bound simultaneous DOM serialization and preserve authored frame order.
+    for (let offset = 0; offset < frames.length; offset += 4) {
+      const batch = await Promise.all(frames.slice(offset, offset + 4).map(scanFrame));
+      results.push(...batch.filter(Boolean));
     }
     if (results.length) return results;
     await abortable(signal, () => new Promise((resolve) => setTimeout(resolve, 150)));
@@ -393,7 +407,8 @@ async function canvasFrames(win, inspectionId, inspect = inspectCanvas, input, s
 }
 async function renderCanvas(win, input = {}, signal) {
   const available = await canvasFrames(
-    win, input.inspectionId, undefined, undefined, signal, input.liveCanvas ? input.frameUuid : undefined,
+    win, input.inspectionId, undefined, { summaryOnly: !input.artboardElementUuid },
+    signal, input.liveCanvas ? input.frameUuid : undefined,
   );
   const matchingFrames = input.frameUuid
     ? available.filter(({ layout }) => layout.frameUuid === input.frameUuid)
@@ -433,6 +448,12 @@ async function renderCanvas(win, input = {}, signal) {
   const height = input.height || selected.layout.height;
   if (height > 16384)
     throw new Error("Canvas height exceeds 16384 pixels; specify a cropped height");
+  const sourceViewport = { width: selected.layout.width, height: selected.layout.height };
+  const resized = width !== sourceViewport.width || height !== sourceViewport.height;
+  const raster = input.format !== "html" && input.format !== "pdf";
+  if (input.format === "html" && !input.elementUuid && !input.fullContent) {
+    return { html, width, height, frameUuid: selected.layout.frameUuid, sourceViewport, resized };
+  }
   const preview = new BrowserWindow({
     show: false,
     width,
@@ -444,7 +465,7 @@ async function renderCanvas(win, input = {}, signal) {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
-      offscreen: true,
+      offscreen: raster,
       backgroundThrottling: false,
     },
   });
@@ -485,19 +506,21 @@ async function renderCanvas(win, input = {}, signal) {
       if (clip.width > 16383 || clip.height > 16383 || clip.width * clip.height > 20000000) {
         throw new Error("Full-content screenshot exceeds 16383 pixels per side or 20 megapixels; select a smaller elementUuid region");
       }
-      const debuggerClient = preview.webContents.debugger;
-      debuggerClient.attach("1.3");
-      try {
-        const captured = await debuggerClient.sendCommand("Page.captureScreenshot", {
-          format: "png",
-          captureBeyondViewport: true,
-          clip: { ...clip, scale: 1 },
-        });
-        image = nativeImage.createFromBuffer(Buffer.from(captured.data, "base64"));
-      } finally {
-        debuggerClient.detach();
+      if (raster) {
+        const debuggerClient = preview.webContents.debugger;
+        debuggerClient.attach("1.3");
+        try {
+          const captured = await debuggerClient.sendCommand("Page.captureScreenshot", {
+            format: "png",
+            captureBeyondViewport: true,
+            clip: { ...clip, scale: 1 },
+          });
+          image = nativeImage.createFromBuffer(Buffer.from(captured.data, "base64"));
+        } finally {
+          debuggerClient.detach();
+        }
       }
-    } else {
+    } else if (raster) {
       // Offscreen windows expose their rendered bitmap through paint events.
       // capturePage can fail with UnknownVizError on hidden offscreen surfaces.
       const bitmap = await paintWindow(preview, width, height);
@@ -544,11 +567,8 @@ async function renderCanvas(win, input = {}, signal) {
       height: rect?.height || captureHeight,
       ...(fullContent ? { fullContent } : {}),
       frameUuid: selected.layout.frameUuid,
-      sourceViewport: {
-        width: selected.layout.width,
-        height: selected.layout.height,
-      },
-      resized: width !== selected.layout.width || height !== selected.layout.height,
+      sourceViewport,
+      resized,
       pdf:
         input.format === "pdf"
           ? await preview.webContents.printToPDF({

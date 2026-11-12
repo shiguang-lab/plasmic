@@ -371,8 +371,11 @@ export const AntdTable = React.forwardRef(function AntdTable(
   const revealRows = !!canvas && !!rowExpansion?.expandedRowRender &&
     (info?.editing || (info?.selected &&
       info.slot === "expandedRowRender"));
+  const needsDefaultRowKeys = rowExpansion?.defaultExpandAllRows &&
+    rowExpansion.expandedRowKeys == null &&
+    rowExpansion.defaultExpandedRowKeys == null;
   const canvasRowKeys: React.Key[] = [];
-  if (canvas && rowExpansion) {
+  if (canvas && rowExpansion && (revealRows || needsDefaultRowKeys)) {
     const collect = (rows: any[]) => rows.forEach((row) => {
       const key = row[rowKey ?? "key"];
       if (key != null && (!rowExpansion?.rowExpandable || rowExpansion.rowExpandable(row))) {

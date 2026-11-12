@@ -1305,7 +1305,7 @@ export async function getModelUpdates(req: Request, res: Response) {
   }
 }
 
-async function ensureSchemaIsUpToDate(req: Request) {
+async function readSaveBundle(req: Request) {
   if (modelSchemaHash !== req.body.modelSchemaHash) {
     throw new SchemaMismatchError();
   }
@@ -1318,8 +1318,9 @@ async function ensureSchemaIsUpToDate(req: Request) {
     throw new SchemaMismatchError();
   }
 
+  let bundle: Bundle;
   try {
-    getBundle(req.body, await getLastBundleVersion());
+    bundle = getBundle(req.body, await getLastBundleVersion());
   } catch (e) {
     if (e instanceof OutdatedBundleError) {
       throw new SchemaMismatchError();
@@ -1336,6 +1337,7 @@ async function ensureSchemaIsUpToDate(req: Request) {
     );
     throw new SchemaMismatchError();
   }
+  return bundle;
 }
 
 export async function tryMergeBranch(req: Request, res: Response) {
@@ -1385,8 +1387,8 @@ export async function tryMergeBranch(req: Request, res: Response) {
 
 export async function saveProjectRev(req: Request, res: Response) {
   const { commit } = await startTransaction(req, async () => {
-    // Not sure why, but ensureSchemaIsUpToDate must be in transaction.
-    await ensureSchemaIsUpToDate(req);
+    // Validate against the schema version in the save transaction.
+    const incomingBundle = await readSaveBundle(req);
 
     const mgr = userDbMgr(req);
     const { projectId, branchId } = parseProjectBranchId(
@@ -1449,10 +1451,10 @@ export async function saveProjectRev(req: Request, res: Response) {
         }
 
         const bundle = await getMigratedBundle(rev);
-        const latestRevMap = bundle.map;
-        const mergedData = getBundle(req.body, await getLastBundleVersion());
-        const updatedMap = mergedData.map;
-        mergedData.map = { ...latestRevMap };
+        // Migration returns a model owned by this request. Keep the incoming
+        // field mask for the partial revision while merging into that model.
+        const mergedData = { ...incomingBundle, map: bundle.map };
+        const updatedMap = incomingBundle.map;
         Object.entries(updatedMap).forEach(([iid, partialInst]) => {
           if (!mergedData.map[iid]) {
             mergedData.map[iid] = partialInst;
@@ -1492,10 +1494,9 @@ export async function saveProjectRev(req: Request, res: Response) {
         }
         return mergedData;
       } else {
-        const bundle = getBundle(req.body, await getLastBundleVersion());
-        checkBundleFields(bundle);
-        checkRefsInBundle(bundle);
-        return bundle;
+        checkBundleFields(incomingBundle);
+        checkRefsInBundle(incomingBundle);
+        return incomingBundle;
       }
     })();
 
@@ -1550,10 +1551,7 @@ export async function saveProjectRev(req: Request, res: Response) {
     if (req.body.incremental) {
       // Reuse the merged bundle instead of parsing the full saved data again.
       const partial = JSON.stringify(
-        pickPartialBundle(
-          mergedBundle,
-          getBundle(req.body, await getLastBundleVersion()),
-        ),
+        pickPartialBundle(mergedBundle, incomingBundle),
       );
 
       const deletedIids: string[] = req.body.toDeleteIids || [];

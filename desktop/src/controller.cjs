@@ -892,7 +892,7 @@ class DesktopController {
       return this.uploadImage(bytes, path.parse(input.path).name);
     }
     if (method === "read_image") {
-      const frames = await canvasFrames(win);
+      const frames = await canvasFrames(win, undefined, undefined, { imagesOnly: true });
       const images = frames.flatMap(({ layout }) => layout.images);
       if (!images.some((image) => image.src === input.src)) {
         throw new Error(
@@ -1177,7 +1177,9 @@ class DesktopController {
     if (forExport) {
       inspectionInput.forExport = true;
       if (!input.frameUuid && !input.componentUuid) {
-        const frames = await canvasFrames(this.getStudio());
+        const frames = await canvasFrames(this.getStudio(), undefined, undefined, {
+          summaryOnly: !input.artboardElementUuid,
+        });
         const matching = input.artboardElementUuid
           ? frames.filter(({ layout }) =>
               layout.elements.some(

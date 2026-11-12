@@ -83,17 +83,20 @@ test("a newly verified auth epoch downloads independently while the old download
   }
 });
 
-test("account, origin and real renderer build identity isolate cached resources", async t => {
+test("immutable releases survive renderer updates while accounts and origins stay isolated", async t => {
   const f = await fixture(t);
   await f.cache.fetch(codeRequest());
+  const updated = new LibraryCache({ ...f.options, buildId: "renderer-sha-2" });
+  assert.equal(await (await updated.fetch(codeRequest())).text(), script);
+  assert.equal(f.requests.length, 1);
   f.identity.value = { user: { id: "user-2" } }; f.identity.invalidate();
   await f.cache.fetch(codeRequest());
-  await new LibraryCache({ ...f.options, buildId: "renderer-sha-2" }).fetch(codeRequest());
+  await updated.fetch(codeRequest());
   await new LibraryCache({ ...f.options, studioOrigin: "https://other.example" }).fetch(new Request(codeRequest().url.replace(origin, "https://other.example")));
-  assert.equal(f.requests.length, 4);
+  assert.equal(f.requests.length, 3);
   f.identity.value = { user: { id: "user-1" } }; f.identity.invalidate();
   await f.cache.fetch(codeRequest());
-  assert.equal(f.requests.length, 4);
+  assert.equal(f.requests.length, 3);
 });
 
 test("mutable addresses and unrelated requests never enter permanent resource cache", async t => {
@@ -189,11 +192,12 @@ test("project, package, history, bootstrap and write requests are always passed 
   }
   assert.equal((await f.cache.store.files()).length, 0);
 });
-test("exact model resources persist across restarts; warm GET/HEAD perform zero network checks", async t => {
+test("exact model resources persist across renderer builds; warm GET/HEAD perform zero network checks", async t => {
   const f = await fixture(t);
   f.respond(() => modelResponse());
   assert.deepEqual(await (await f.cache.fetch(modelRequest())).json(), model1);
-  assert.deepEqual(await (await new LibraryCache(f.options).fetch(modelRequest())).json(), model1);
+  const updated = new LibraryCache({ ...f.options, buildId: "renderer-sha-2" });
+  assert.deepEqual(await (await updated.fetch(modelRequest())).json(), model1);
   assert.equal(await (await f.cache.fetch(modelRequest("model-v1", { method: "HEAD" }))).text(), "");
   assert.equal(f.requests.length, 1);
   assert.equal(f.requests[0].method, "GET");

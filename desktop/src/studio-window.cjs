@@ -106,7 +106,7 @@ class StudioWindow extends EventEmitter {
     void pending.then(clear, clear);
     return pending;
   }
-  loadURL(url) {
+  loadURL(url, startupCheck) {
     if (new URL(url).origin !== this.origin) return Promise.reject(new Error("Invalid Studio destination"));
     const navigate = async () => {
       if (this.window.isDestroyed()) throw new Error("Desktop window closed");
@@ -124,11 +124,20 @@ class StudioWindow extends EventEmitter {
           this.activate(this.editor);
           this.release(retired);
         }
-        await this.editor.webContents.loadURL(url);
-        // Direct project launches also prepare the browser once, without
-        // adding another warm editor or delaying the editor's navigation.
-        void this.prepareDashboard().catch(error => console.warn("Cannot prepare Dashboard:", error.message));
-      } else {
+        const [, restoredUrl] = await Promise.all([
+          this.editor.webContents.loadURL(url),
+          startupCheck,
+        ]);
+        if (restoredUrl && restoredUrl !== url) {
+          // The project document was only preparing its shell. It cannot
+          // consume a model or accept edits before the access check succeeds.
+          url = restoredUrl;
+        } else {
+          // Direct project launches also prepare the browser once.
+          void this.prepareDashboard().catch(error => console.warn("Cannot prepare Dashboard:", error.message));
+        }
+      }
+      if (!this.projectId(url)) {
         if (!this.dashboard) this.dashboard = this.createContents("dashboard");
         const contents = this.dashboard.webContents;
         const current = contents.getURL();

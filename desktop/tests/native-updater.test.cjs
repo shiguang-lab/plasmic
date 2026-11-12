@@ -58,7 +58,7 @@ async function fixture(t, platform) {
     let updater;
     try { updater = createNativeUpdater({ platform, feedUrl }); }
     finally { Module._load = load; }
-    updater.logger = null; updater.autoInstallOnAppQuit = false; updater.autoDownload = false;
+    updater.logger = null; updater.autoDownload = false;
     updater.updateConfigPath = config;
     updater.setFeedURL({ provider: "generic", url: feedUrl, useMultipleRangeRequest: false });
     updater.downloadedUpdateHelper = new DownloadedUpdateHelper(path.join(root, "sdk-cache"));
@@ -68,7 +68,7 @@ async function fixture(t, platform) {
     } } });
     updater.verifyUpdateCodeSignature = async () => { state.verified++; return state.signature; };
     updater.httpExecutor.download = async () => { throw new Error("The non-resumable SDK downloader must not be used"); };
-    return updater;
+    return { updater, app };
   }
   async function release(version, payload) {
     const name = `Plasmic-${version}-${platform}-${process.arch}${extension}`, disk = path.join(root, name);
@@ -92,8 +92,38 @@ async function fixture(t, platform) {
       disableDifferentialDownload: false, disableWebInstaller: true,
     });
   }
-  return { root, state, make, release, run, installed, archive: (version) => path.join(cache, `Plasmic-${version}${extension}`) };
+  return { root, state, make: (version) => make(version).updater, makeWithApp: make, release, run, installed, archive: (version) => path.join(cache, `Plasmic-${version}${extension}`) };
 }
+
+test("Linux replaces the versioned AppImage in place only on successful quit", { skip: process.platform === "win32" }, async (t) => {
+  const f = await fixture(t, "linux");
+  const installed = path.join(f.root, "Plasmic-0.9.0-linux.AppImage");
+  process.env.APPIMAGE = installed;
+  const old = Buffer.from("old AppImage");
+  await fs.writeFile(installed, old);
+  const bytes = await f.release("1.0.0", randomBytes(128 * 1024));
+  const first = f.makeWithApp("0.9.0");
+  await f.run(first.updater);
+  first.app.emit("quit", {}, 1);
+  assert.deepEqual(await fs.readFile(installed), old);
+  const next = f.makeWithApp("0.9.0");
+  await f.run(next.updater);
+  next.app.emit("quit", {}, 0);
+  assert.deepEqual(await fs.readFile(installed), bytes);
+  assert.equal((await fs.stat(installed)).mode & 0o777, 0o755);
+});
+
+test("Windows starts the verified NSIS installer silently on quit without relaunching", async (t) => {
+  const f = await fixture(t, "win32");
+  await f.release("1.0.0", randomBytes(64 * 1024));
+  const { updater, app } = f.makeWithApp("0.9.0");
+  const installers = [];
+  updater.spawnLog = async (...args) => installers.push(args);
+  const [installer] = await f.run(updater);
+  assert.deepEqual(installers, []);
+  app.emit("quit", {}, 0);
+  assert.deepEqual(installers, [[installer, ["--updated", "/S"]]]);
+});
 
 for (const platform of ["win32", "linux"]) {
   test(`${platform}: full downloads survive SDK cleanup and resume after restart`, async (t) => {

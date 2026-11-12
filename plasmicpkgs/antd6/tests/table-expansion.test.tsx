@@ -57,6 +57,17 @@ test("native uncontrolled expansion renders each record scope and emits both eve
   expect(onExpandedRowsChange).toHaveBeenLastCalledWith(["b"]);
 });
 
+test("ordinary canvas rendering does not evaluate expansion eligibility for off-page records", () => {
+  const rows = Array.from({ length: 1000 }, (_, index) => ({ id: String(index), name: String(index) }));
+  const rowExpandable = vi.fn(() => true);
+  render(table({
+    data: { data: rows },
+    pagination: { pageSize: 10 },
+    expandable: { rowExpandable, expandedRowKeys: [], defaultExpandAllRows: true },
+  }, "canvas"));
+  expect(new Set(rowExpandable.mock.calls.map(([row]) => row))).toEqual(new Set(rows.slice(0, 10)));
+});
+
 test("hidden explicit expansion column still permits row click expansion", () => {
   const { container, rerender } = render(table({ expandable: { showExpandColumn: false, expandRowByClick: true, rowExpandable: eligible } }));
   expect(screen.getAllByRole("columnheader")).toHaveLength(1);

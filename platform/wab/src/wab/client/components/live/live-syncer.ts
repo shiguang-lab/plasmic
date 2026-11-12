@@ -42,23 +42,11 @@ function currentPreviewUpdate(previewCtx: PreviewCtx) {
  * link destinations. No runtime is evaluated and no business state is mounted. */
 export async function preparePreviewModules(previewCtx: PreviewCtx, signal: AbortSignal) {
   const component = previewCtx.component;
-  if (!component || !previewCtx.isLive) { return; }
+  if (signal.aborted || !component || !previewCtx.isLive) { return; }
   const compiler = previewCtx.previewCompiler;
   const update = currentPreviewUpdate(previewCtx);
   if (!update) { return; }
   await compiler.compile(update.modules, signal);
-  await prepareLinkedPages(previewCtx, component, signal);
-}
-
-/** Compile designs only: route props and business code are never evaluated. */
-export async function preparePreviewPages(previewCtx: PreviewCtx, component: Component, signal: AbortSignal) {
-  if (signal.aborted) { return; }
-  const update = buildPreviewUpdate(previewCtx.studioCtx, {
-    component, previewPath: component.pageMeta?.path ?? "", variants: {}, globals: {}, pageQuery: {}, appUser: {},
-  });
-  // Include this root's default props before starting its linked pages, so
-  // opening it need not queue a tiny props module behind a large destination.
-  await previewCtx.previewCompiler.compile(update.modules, signal);
   await prepareLinkedPages(previewCtx, component, signal);
 }
 

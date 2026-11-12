@@ -4,6 +4,7 @@ import { promptMoveToWorkspace } from "@/wab/client/components/dashboard/dashboa
 import styles from "@/wab/client/components/dashboard/dashboard.module.scss";
 import { ProjectPreview } from "@/wab/client/components/dashboard/preview/ProjectPreview";
 import { DesktopDraftBadge } from "@/wab/client/components/dashboard/DesktopDraftBadge";
+import { projectCardPermissions } from "@/wab/client/components/dashboard/project-card-permissions";
 import { maybeShowPaywall } from "@/wab/client/components/modals/PricingModal";
 import { reactConfirm } from "@/wab/client/components/quick-modals";
 import { Matcher } from "@/wab/client/components/view-common";
@@ -162,16 +163,17 @@ const ProjectListItemContent = React.memo(function ProjectListItemContent(
     });
   };
 
+  const applicablePerms = projectCardPermissions(project, perms);
   const projectAccessLevel = getAccessLevelToResource(
     { type: "project", resource: project },
     selfInfo,
-    perms,
+    applicablePerms,
   );
 
   const workspaceAccessLevel = getAccessLevelToParent(
     { type: "project", resource: project },
     selfInfo,
-    perms,
+    applicablePerms,
   );
 
   const canMove = project.workspaceId

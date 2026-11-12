@@ -54,6 +54,7 @@ app.whenReady().then(async () => {
         window.result = Promise.all([
           fetch("/api/v1/projects/project?secret=${privateValue}").then(response => response.text()),
           fetch("/api/v1/dependency-models/${privateValue}"),
+          fetch("/api/v1/dependency-models/cached"),
           fetch("/static/js/failed.abcdef.js").catch(() => null),
         ]);
       </script>`);
@@ -62,6 +63,9 @@ app.whenReady().then(async () => {
       return html(`<script>console.info('[Studio startup] ["host","model-unbundle",10,20]')</script>`);
     }
     if (pathname === "/projects/stalled") return html("<p>Loading</p>");
+    if (pathname === "/api/v1/dependency-models/cached") {
+      return Response.json({}, { headers: { "X-Plasmic-Resource-Cache": "hit" } });
+    }
     if (pathname.endsWith("failed.abcdef.js")) return Response.error();
     return ses.fetch(request, { bypassCustomProtocolHandlers: true });
   });
@@ -81,6 +85,7 @@ app.whenReady().then(async () => {
     assert.ok(slow.pending.some(request => request.route === "/api/v1/projects/:id" && request.elapsedMs > 0));
     assert.ok(slow.requests.some(request => request.route === "/static/host.html" && request.localAsset && request.status === 200));
     assert.ok(slow.requests.some(request => request.route === "/api/v1/dependency-models/:id" && request.status === 503 && request.requestId === "test-request-id"));
+    assert.ok(slow.requests.some(request => request.route === "/api/v1/dependency-models/:id" && request.resourceCache === "hit"));
     assert.ok(slow.requests.some(request => request.route === "/static/js/failed.abcdef.js" && request.error));
     await window.webContents.executeJavaScript('performance.mark("studio-load-error")');
     assert.equal((await waitFor("project-open.error")).openId, start.openId);

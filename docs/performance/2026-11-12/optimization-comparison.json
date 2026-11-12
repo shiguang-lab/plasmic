@@ -1,0 +1,932 @@
+{
+  "baselineRevision": "dea1f05d12b5e879640d4262c8d052658751af2c",
+  "desktopReplayRendererHash": "87286fc6f6feac8e5ef1c4de6e38fd06b21bdf2c34ebaebdb27da32ed8ab3a6e",
+  "startup": {
+    "electron": "45.2.1",
+    "injectedAccessDelayMs": 400,
+    "samples": [
+      {
+        "variant": "before",
+        "documentRequestMs": 565,
+        "accessCheckMs": 534,
+        "modelReadbackMs": 673,
+        "projectChecks": 1
+      },
+      {
+        "variant": "after",
+        "documentRequestMs": 154,
+        "accessCheckMs": 549,
+        "modelReadbackMs": 623,
+        "projectChecks": 1
+      },
+      {
+        "variant": "after",
+        "documentRequestMs": 149,
+        "accessCheckMs": 545,
+        "modelReadbackMs": 621,
+        "projectChecks": 1
+      },
+      {
+        "variant": "before",
+        "documentRequestMs": 571,
+        "accessCheckMs": 536,
+        "modelReadbackMs": 673,
+        "projectChecks": 1
+      },
+      {
+        "variant": "before",
+        "documentRequestMs": 564,
+        "accessCheckMs": 533,
+        "modelReadbackMs": 655,
+        "projectChecks": 1
+      },
+      {
+        "variant": "after",
+        "documentRequestMs": 154,
+        "accessCheckMs": 548,
+        "modelReadbackMs": 625,
+        "projectChecks": 1
+      },
+      {
+        "variant": "after",
+        "documentRequestMs": 144,
+        "accessCheckMs": 540,
+        "modelReadbackMs": 617,
+        "projectChecks": 1
+      },
+      {
+        "variant": "before",
+        "documentRequestMs": 569,
+        "accessCheckMs": 540,
+        "modelReadbackMs": 682,
+        "projectChecks": 1
+      },
+      {
+        "variant": "before",
+        "documentRequestMs": 564,
+        "accessCheckMs": 532,
+        "modelReadbackMs": 669,
+        "projectChecks": 1
+      },
+      {
+        "variant": "after",
+        "documentRequestMs": 142,
+        "accessCheckMs": 539,
+        "modelReadbackMs": 614,
+        "projectChecks": 1
+      },
+      {
+        "variant": "after",
+        "documentRequestMs": 142,
+        "accessCheckMs": 538,
+        "modelReadbackMs": 592,
+        "projectChecks": 1
+      },
+      {
+        "variant": "before",
+        "documentRequestMs": 577,
+        "accessCheckMs": 545,
+        "modelReadbackMs": 693,
+        "projectChecks": 1
+      }
+    ]
+  },
+  "real-restore": {
+    "electron": "45.2.1",
+    "renderer": "0.8.0 bundled assets",
+    "injectedProjectResponseDelayMs": 700,
+    "samples": [
+      {
+        "variant": "before",
+        "fixture": "small-project",
+        "navigationMs": 937,
+        "readyMs": 3253,
+        "projectReads": 1,
+        "objects": 1420
+      },
+      {
+        "variant": "after",
+        "fixture": "small-project",
+        "navigationMs": 172,
+        "readyMs": 2378,
+        "projectReads": 1,
+        "objects": 1420
+      },
+      {
+        "variant": "after",
+        "fixture": "small-project",
+        "navigationMs": 181,
+        "readyMs": 2345,
+        "projectReads": 1,
+        "objects": 1420
+      },
+      {
+        "variant": "before",
+        "fixture": "small-project",
+        "navigationMs": 897,
+        "readyMs": 3130,
+        "projectReads": 1,
+        "objects": 1420
+      },
+      {
+        "variant": "before",
+        "fixture": "small-project",
+        "navigationMs": 899,
+        "readyMs": 3191,
+        "projectReads": 1,
+        "objects": 1420
+      },
+      {
+        "variant": "after",
+        "fixture": "small-project",
+        "navigationMs": 169,
+        "readyMs": 2333,
+        "projectReads": 1,
+        "objects": 1420
+      },
+      {
+        "variant": "after",
+        "fixture": "small-project",
+        "navigationMs": 173,
+        "readyMs": 2380,
+        "projectReads": 1,
+        "objects": 1420
+      },
+      {
+        "variant": "before",
+        "fixture": "small-project",
+        "navigationMs": 892,
+        "readyMs": 3089,
+        "projectReads": 1,
+        "objects": 1420
+      },
+      {
+        "variant": "before",
+        "fixture": "large-project",
+        "navigationMs": 915,
+        "readyMs": 3168,
+        "projectReads": 1,
+        "objects": 10746
+      },
+      {
+        "variant": "after",
+        "fixture": "large-project",
+        "navigationMs": 176,
+        "readyMs": 2325,
+        "projectReads": 1,
+        "objects": 10746
+      },
+      {
+        "variant": "after",
+        "fixture": "large-project",
+        "navigationMs": 174,
+        "readyMs": 2363,
+        "projectReads": 1,
+        "objects": 10746
+      },
+      {
+        "variant": "before",
+        "fixture": "large-project",
+        "navigationMs": 912,
+        "readyMs": 3169,
+        "projectReads": 1,
+        "objects": 10746
+      },
+      {
+        "variant": "before",
+        "fixture": "large-project",
+        "navigationMs": 918,
+        "readyMs": 3170,
+        "projectReads": 1,
+        "objects": 10746
+      },
+      {
+        "variant": "after",
+        "fixture": "large-project",
+        "navigationMs": 169,
+        "readyMs": 2405,
+        "projectReads": 1,
+        "objects": 10746
+      },
+      {
+        "variant": "after",
+        "fixture": "large-project",
+        "navigationMs": 172,
+        "readyMs": 2339,
+        "projectReads": 1,
+        "objects": 10746
+      },
+      {
+        "variant": "before",
+        "fixture": "large-project",
+        "navigationMs": 916,
+        "readyMs": 3211,
+        "projectReads": 1,
+        "objects": 10746
+      }
+    ]
+  },
+  "cache": {
+    "node": "v24.20.0",
+    "networkDelayMs": 120,
+    "resourcesPerBuild": 5,
+    "bytesPerResource": 524288,
+    "samples": [
+      {
+        "variant": "before",
+        "builds": [
+          {
+            "build": 0,
+            "requests": 5,
+            "elapsedMs": 137.329792
+          },
+          {
+            "build": 1,
+            "requests": 5,
+            "elapsedMs": 141.60254100000003
+          },
+          {
+            "build": 2,
+            "requests": 5,
+            "elapsedMs": 145.6415
+          },
+          {
+            "build": 3,
+            "requests": 5,
+            "elapsedMs": 138.918833
+          },
+          {
+            "build": 4,
+            "requests": 5,
+            "elapsedMs": 142.802458
+          },
+          {
+            "build": 5,
+            "requests": 5,
+            "elapsedMs": 140.34804199999996
+          },
+          {
+            "build": 6,
+            "requests": 5,
+            "elapsedMs": 146.76929199999995
+          },
+          {
+            "build": 7,
+            "requests": 5,
+            "elapsedMs": 132.979292
+          }
+        ],
+        "files": 40,
+        "diskBytes": 20986520
+      },
+      {
+        "variant": "after",
+        "builds": [
+          {
+            "build": 0,
+            "requests": 5,
+            "elapsedMs": 140.24862499999995
+          },
+          {
+            "build": 1,
+            "requests": 0,
+            "elapsedMs": 5.356207999999924
+          },
+          {
+            "build": 2,
+            "requests": 0,
+            "elapsedMs": 4.7845830000001115
+          },
+          {
+            "build": 3,
+            "requests": 0,
+            "elapsedMs": 4.668042000000014
+          },
+          {
+            "build": 4,
+            "requests": 0,
+            "elapsedMs": 4.18037500000014
+          },
+          {
+            "build": 5,
+            "requests": 0,
+            "elapsedMs": 3.8762080000001333
+          },
+          {
+            "build": 6,
+            "requests": 0,
+            "elapsedMs": 4.107749999999896
+          },
+          {
+            "build": 7,
+            "requests": 0,
+            "elapsedMs": 4.656834000000117
+          }
+        ],
+        "files": 5,
+        "diskBytes": 2623315
+      },
+      {
+        "variant": "after",
+        "builds": [
+          {
+            "build": 0,
+            "requests": 5,
+            "elapsedMs": 134.57725000000005
+          },
+          {
+            "build": 1,
+            "requests": 0,
+            "elapsedMs": 5.306833999999981
+          },
+          {
+            "build": 2,
+            "requests": 0,
+            "elapsedMs": 3.5743750000001455
+          },
+          {
+            "build": 3,
+            "requests": 0,
+            "elapsedMs": 3.470500000000129
+          },
+          {
+            "build": 4,
+            "requests": 0,
+            "elapsedMs": 5.239207999999962
+          },
+          {
+            "build": 5,
+            "requests": 0,
+            "elapsedMs": 4.356207999999924
+          },
+          {
+            "build": 6,
+            "requests": 0,
+            "elapsedMs": 3.705249999999978
+          },
+          {
+            "build": 7,
+            "requests": 0,
+            "elapsedMs": 2.8600840000001426
+          }
+        ],
+        "files": 5,
+        "diskBytes": 2623315
+      },
+      {
+        "variant": "before",
+        "builds": [
+          {
+            "build": 0,
+            "requests": 5,
+            "elapsedMs": 135.6679999999999
+          },
+          {
+            "build": 1,
+            "requests": 5,
+            "elapsedMs": 146.79549999999995
+          },
+          {
+            "build": 2,
+            "requests": 5,
+            "elapsedMs": 146.5216660000001
+          },
+          {
+            "build": 3,
+            "requests": 5,
+            "elapsedMs": 146.18366600000013
+          },
+          {
+            "build": 4,
+            "requests": 5,
+            "elapsedMs": 145.21004200000016
+          },
+          {
+            "build": 5,
+            "requests": 5,
+            "elapsedMs": 144.337
+          },
+          {
+            "build": 6,
+            "requests": 5,
+            "elapsedMs": 146.20958299999984
+          },
+          {
+            "build": 7,
+            "requests": 5,
+            "elapsedMs": 149.55999999999995
+          }
+        ],
+        "files": 40,
+        "diskBytes": 20986520
+      }
+    ]
+  },
+  "table": {
+    "node": "v24.20.0",
+    "samples": [
+      {
+        "rowCount": 1000,
+        "variant": "before",
+        "measurements": [
+          {
+            "timeMs": 3.2020830000001297,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 3.8665829999999914,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 4.2129580000000715,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 3.807792000000063,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 3.474292000000105,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 3.9297080000001188,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 3.844584000000168,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 3.264499999999998,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 3.566500000000133,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 3.520999999999958,
+            "calls": 1020,
+            "recordsVisited": 1000
+          }
+        ]
+      },
+      {
+        "rowCount": 1000,
+        "variant": "after",
+        "measurements": [
+          {
+            "timeMs": 2.559541999999965,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 2.6543329999999514,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 2.6490830000000187,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 2.6727089999999407,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 2.609958000000006,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 4.248666000000185,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 2.6313330000000406,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 2.527749999999969,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 2.4572500000001583,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 2.45508400000017,
+            "calls": 20,
+            "recordsVisited": 10
+          }
+        ]
+      },
+      {
+        "rowCount": 1000,
+        "variant": "after",
+        "measurements": [
+          {
+            "timeMs": 2.5088750000002165,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 2.5265830000000733,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 2.4491669999999885,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 2.4764169999998558,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 2.5772910000000593,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.6011249999999109,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.1549579999998514,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.216083000000026,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.1118750000000546,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.1074579999999514,
+            "calls": 20,
+            "recordsVisited": 10
+          }
+        ]
+      },
+      {
+        "rowCount": 1000,
+        "variant": "before",
+        "measurements": [
+          {
+            "timeMs": 1.2385839999999462,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 1.2387499999999818,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 1.495958999999857,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 1.2726249999998345,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 1.1857910000001084,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 1.2872919999999795,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 1.2271250000001146,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 1.3273750000000746,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 1.2074580000000878,
+            "calls": 1020,
+            "recordsVisited": 1000
+          },
+          {
+            "timeMs": 1.2647080000001552,
+            "calls": 1020,
+            "recordsVisited": 1000
+          }
+        ]
+      },
+      {
+        "rowCount": 10000,
+        "variant": "before",
+        "measurements": [
+          {
+            "timeMs": 1.6099159999998847,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5919589999998607,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5804159999997864,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.6101249999999254,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5461669999999685,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5883749999998145,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5697079999999914,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5293750000000728,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5744159999999283,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5247920000001614,
+            "calls": 10020,
+            "recordsVisited": 10000
+          }
+        ]
+      },
+      {
+        "rowCount": 10000,
+        "variant": "after",
+        "measurements": [
+          {
+            "timeMs": 1.0493750000000546,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0459159999998064,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 2.7781250000000455,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.2145000000000437,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.1704999999999472,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.1077080000000024,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0989589999999225,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0780409999999847,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0931660000001102,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0955830000000333,
+            "calls": 20,
+            "recordsVisited": 10
+          }
+        ]
+      },
+      {
+        "rowCount": 10000,
+        "variant": "after",
+        "measurements": [
+          {
+            "timeMs": 1.0613329999998768,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0599590000001626,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0517919999999776,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0440840000001117,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0338340000000699,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0250410000001011,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0514590000000226,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0697920000000067,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0657920000001013,
+            "calls": 20,
+            "recordsVisited": 10
+          },
+          {
+            "timeMs": 1.0644999999999527,
+            "calls": 20,
+            "recordsVisited": 10
+          }
+        ]
+      },
+      {
+        "rowCount": 10000,
+        "variant": "before",
+        "measurements": [
+          {
+            "timeMs": 1.5923749999999472,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5575830000000224,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5759170000001177,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5652499999998781,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5332909999999629,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.6215409999999792,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5229170000000067,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5687920000000304,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.5517919999999776,
+            "calls": 10020,
+            "recordsVisited": 10000
+          },
+          {
+            "timeMs": 1.750332999999955,
+            "calls": 10020,
+            "recordsVisited": 10000
+          }
+        ]
+      }
+    ]
+  },
+  "bundler": {
+    "node": "v24.20.0",
+    "samples": [
+      {
+        "variant": "before",
+        "removed": 12000,
+        "initialStrong": 3,
+        "strongAfter": 12003,
+        "uidAfter": 12003,
+        "reachableAfter": 3,
+        "removedLiveAfterGc": 12000,
+        "heapDeltaBytes": 5426464,
+        "operationMs": 101.93300000000045
+      },
+      {
+        "variant": "after",
+        "removed": 12000,
+        "initialStrong": 3,
+        "strongAfter": 3,
+        "uidAfter": 3,
+        "reachableAfter": 3,
+        "removedLiveAfterGc": 0,
+        "heapDeltaBytes": 1726904,
+        "operationMs": 102.99720799999977
+      },
+      {
+        "variant": "after",
+        "removed": 12000,
+        "initialStrong": 3,
+        "strongAfter": 3,
+        "uidAfter": 3,
+        "reachableAfter": 3,
+        "removedLiveAfterGc": 0,
+        "heapDeltaBytes": 1555688,
+        "operationMs": 101.6086250000003
+      },
+      {
+        "variant": "before",
+        "removed": 12000,
+        "initialStrong": 3,
+        "strongAfter": 12003,
+        "uidAfter": 12003,
+        "reachableAfter": 3,
+        "removedLiveAfterGc": 12000,
+        "heapDeltaBytes": 5137168,
+        "operationMs": 95.10358400000041
+      }
+    ]
+  },
+  "server-workspace": {
+    "metric": "DbMgr.ensurePersonalWorkspace invocations per authenticated project bootstrap in Vitest",
+    "before": 2,
+    "after": 1
+  }
+}

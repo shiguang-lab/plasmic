@@ -1,6 +1,6 @@
 /** @vitest-environment node */
 import { TEST_GLOBAL_VARIANT } from "@/wab/__testonly__/tpls";
-import { Bundler } from "@/wab/shared/bundler";
+import { Bundler, FastBundler } from "@/wab/shared/bundler";
 import { jsonClone, mkUuid } from "@/wab/shared/common";
 import { ComponentType, mkComponent } from "@/wab/shared/core/components";
 import { jsonLit } from "@/wab/shared/core/exprs";
@@ -11,6 +11,7 @@ import {
   TplTag,
   ensureKnownComponent,
   ensureKnownTplComponent,
+  ensureKnownTplTag,
 } from "@/wab/shared/model/classes";
 import { meta } from "@/wab/shared/model/classes-metas";
 import { BaseRuntime } from "@/wab/shared/model/model-meta";
@@ -98,6 +99,36 @@ describe("bundler", () => {
       }),
     );
   });
+});
+
+it("releases strong ownership of removed nodes and restores their address on undo", () => {
+  const uuid = mkUuid();
+  const original = mkComponent({ name: "Component", tplTree: mkTplTagX("div"), type: ComponentType.Plain });
+  const bundler = new FastBundler();
+  const component = ensureKnownComponent(bundler.unbundleAndRecomputeParents(new Bundler().bundle(original, uuid, "1.0.0"), uuid));
+  const parent = ensureKnownTplTag(component.tplTree);
+  const child = mkTplTagX("div");
+  child.parent = parent;
+  const childrenChange = [{ inst: parent, field: "children" }];
+  const initialSize = bundler._addr2inst.size;
+
+  parent.children = [child];
+  const attached = jsonClone(bundler.fastBundle(component, uuid, childrenChange));
+  const address = bundler.addrOfUnsafe(child);
+  expect(bundler._addr2inst.size).toBeGreaterThan(initialSize);
+  parent.children = [];
+  expect(bundler.fastBundle(component, uuid, childrenChange).map[address.iid]).toBeUndefined();
+  expect(bundler._addr2inst.size).toBe(initialSize);
+  expect(bundler.objByAddr(address)).toBe(child);
+
+  // A partial server response can still mention an instance kept alive by undo.
+  bundler.unbundlePartial({ ...attached, map: { [address.iid]: attached.map[address.iid] } }, uuid);
+  expect(bundler.objByAddr(address)).toBe(child);
+
+  parent.children = [child];
+  expect(bundler.fastBundle(component, uuid, childrenChange).map[address.iid]).toBeDefined();
+  expect(bundler.addrOf(child)).toEqual(address);
+  expect(bundler.objByAddr(address)).toBe(child);
 });
 
 describe("bundler performance", () => {

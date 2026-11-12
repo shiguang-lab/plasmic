@@ -138,10 +138,13 @@ Only an explicit HTTP 401 from the identity endpoint denotes an anonymous user;
 service failures remain retryable loading errors. A denied project opening falls
 back to identity initialization for the normal project sign-in/permission flow.
 
-Desktop validates its saved route through the same project GET. Its trusted main
-frame may consume that complete response once for the same project and branch
-within 30 seconds. The handoff is memory-only, discarded on account changes, and
-never persists project models or permissions to the library cache.
+Desktop starts loading the saved route's local Studio document while restoring
+the session and checking the same project GET. The trusted main frame waits for
+that check and may consume its complete response once for the same project and
+branch within 30 seconds. If the check selects Dashboard, Desktop retires the
+project document before it can request the model independently. The handoff is
+memory-only, discarded on account changes, and never persists project models
+or permissions to the library cache.
 
 Root uses the returned context immediately and fetches immutable dependency
 resources as bytes through the existing authorized cache, concurrently with

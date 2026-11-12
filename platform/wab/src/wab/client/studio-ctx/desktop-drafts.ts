@@ -48,7 +48,9 @@ export class DesktopDraftController {
     "getState" | "getInitialState" | "subscribe"
   > = this.state;
   session: DesktopDraftSession | undefined;
-  private writing = 0;
+  private writing = false;
+  private writeRequested = false;
+  private preservingCheckpoint = false;
   private error: string | undefined;
   private savedAt: number | undefined;
   private savedSequence = -1;
@@ -190,7 +192,7 @@ export class DesktopDraftController {
   }
 
   changed() {
-    if (!this.store.getState().enabled || this.stopped) {
+    if (!this.store.getState().enabled || this.stopped || this.preservingCheckpoint) {
       return;
     }
     this.publish();
@@ -211,7 +213,7 @@ export class DesktopDraftController {
     if (!this.store.getState().enabled) {
       return true;
     }
-    if (!this.session) {
+    if (!this.session || this.preservingCheckpoint) {
       return false;
     }
     this.publish();
@@ -224,63 +226,65 @@ export class DesktopDraftController {
       return true;
     }
     if (
-      this.queued?.id === this.id &&
-      this.queued.sequence === this.currentSequence &&
-      this.queued.revision === this.revision()
+      this.queued?.id !== this.id ||
+      this.queued.sequence !== this.currentSequence ||
+      this.queued.revision !== this.revision()
     ) {
-      await this.pending;
-      return !this.error && this.hasCurrentBackup;
+      this.writeRequested = true;
     }
-    if (this.savedSequence >= this.currentSequence) {
-      this.sequenceOffset = this.savedSequence + 1 - this.sequence();
+    if (!this.writing) {
+      const session = this.session;
+      this.writing = true;
+      this.pending = Promise.resolve().then(async () => {
+        try {
+          while (this.writeRequested && this.dirty() && !this.stopped) {
+            this.writeRequested = false;
+            if (this.hasCurrentBackup && !this.error) {
+              break;
+            }
+            await this.writeCheckpoint(session);
+          }
+        } finally {
+          this.writeRequested = false;
+          this.writing = false;
+          this.publish();
+        }
+      });
+      this.publish();
     }
-    const session = this.session;
-    let draft: DesktopDraft;
+    await this.pending;
+    return !this.error && this.hasCurrentBackup;
+  }
+
+  private async writeCheckpoint(session: DesktopDraftSession) {
     try {
-      draft = {
+      if (this.savedSequence >= this.currentSequence) {
+        this.sequenceOffset = this.savedSequence + 1 - this.sequence();
+      }
+      // Snapshot only when the writer can consume it. Edits made while a
+      // checkpoint is being written update the request, not a queue of models.
+      const draft: DesktopDraft = {
         ...this.content(),
         sequence: this.currentSequence,
         format: 1,
         id: this.id,
         savedAt: Date.now(),
       };
+      this.queued = { id: draft.id, sequence: draft.sequence, revision: draft.baseRevision };
+      // Send JSON through Comlink and Electron without cloning the model graph.
+      await this.api.writeDesktopDraft(session.handle, JSON.stringify(draft));
+      if (draft.id === this.id) {
+        this.savedSequence = draft.sequence;
+        this.savedAt = draft.savedAt;
+        this.error = undefined;
+        this.savedBaseRevision = draft.baseRevision;
+        this.checkpoint = draft;
+      }
     } catch (error) {
       this.error = String(error);
-      this.publish();
-      return false;
+    } finally {
+      this.queued = undefined;
     }
-    const queued = {
-      id: draft.id,
-      sequence: draft.sequence,
-      revision: draft.baseRevision,
-    };
-    this.queued = queued;
-    this.writing++;
-    this.publish();
-    this.pending = this.pending.then(async () => {
-      try {
-        // A string avoids cloning the full model graph through both Comlink
-        // and Electron IPC. The main process still parses and validates it.
-        await this.api.writeDesktopDraft(session.handle, JSON.stringify(draft));
-        if (draft.id === this.id) {
-          this.savedSequence = draft.sequence;
-          this.savedAt = draft.savedAt;
-          this.error = undefined;
-          this.savedBaseRevision = draft.baseRevision;
-          this.checkpoint = draft;
-        }
-      } catch (error) {
-        this.error = String(error);
-      } finally {
-        this.writing--;
-        if (this.queued === queued) {
-          this.queued = undefined;
-        }
-        this.publish();
-      }
-    });
-    await this.pending;
-    return !this.error && this.hasCurrentBackup;
   }
 
   private get currentSequence() {
@@ -354,12 +358,26 @@ export class DesktopDraftController {
     if (!this.dirty() || !this.store.getState().enabled) {
       return;
     }
-    await this.markConflict(useCheckpoint);
-    this.id = mkUuid();
-    this.sequenceOffset = 0;
-    this.savedSequence = -1;
-    this.checkpoint = undefined;
-    this.publish();
+    if (useCheckpoint) {
+      // The model may already be partially changed by a failed merge.
+      // Preserve the previous snapshot, including a valid write in flight.
+      this.preservingCheckpoint = true;
+      this.writeRequested = false;
+      if (this.timer) {
+        clearTimeout(this.timer);
+        this.timer = undefined;
+      }
+    }
+    try {
+      await this.markConflict(useCheckpoint);
+      this.id = mkUuid();
+      this.sequenceOffset = 0;
+      this.savedSequence = -1;
+      this.checkpoint = undefined;
+      this.publish();
+    } finally {
+      if (useCheckpoint) { this.preservingCheckpoint = false; }
+    }
   }
 
   async read(summary: DesktopDraftSummary) {

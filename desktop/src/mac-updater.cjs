@@ -7,13 +7,38 @@ const physicalFs = process.versions.electron
   : fs;
 const path = require("node:path");
 const { randomUUID } = require("node:crypto");
-const { execFile, spawn } = require("node:child_process");
+const { execFile, execFileSync, spawn } = require("node:child_process");
 const { promisify } = require("node:util");
 const semver = require("semver");
 const YAML = require("yaml");
 const { macUpdateArch } = require("./update-architecture.cjs");
 const { downloadArchive, seedArchive } = require("./update-download.cjs");
 const run = promisify(execFile);
+
+function installHelperArgs(cache, { id, target }, mode) {
+  return [
+    path.join(cache, "install.sh"),
+    String(process.pid),
+    target,
+    path.join(path.dirname(target), `.Plasmic-update-${id}.app`),
+    path.join(path.dirname(target), `.Plasmic-backup-${id}.app`),
+    path.join(cache, `${id}.ready`),
+    path.join(cache, "mac-transaction.json"),
+    path.join(cache, "install-failure.txt"),
+    path.join(cache, "install.log"),
+    path.join(cache, `${id}.pid`),
+    mode,
+  ];
+}
+
+async function spawnInstallHelper(args) {
+  const child = spawn("/bin/sh", args, { detached: true, stdio: "ignore" });
+  await new Promise((resolve, reject) => {
+    child.once("spawn", resolve);
+    child.once("error", reject);
+  });
+  child.unref();
+}
 
 function parseManifest(text, currentVersion, feedUrl, arch) {
   const info = YAML.parse(text);
@@ -99,6 +124,15 @@ class MacUpdater extends EventEmitter {
     return [this.archive];
   }
   async quitAndInstall() {
+    await this.#prepareInstall(true);
+    this.app.quit();
+  }
+
+  prepareInstallOnQuit() {
+    return this.#prepareInstall(false);
+  }
+
+  async #prepareInstall(restart) {
     if (!this.archive || !this.info) throw uiError("Download an update first");
     const target = path.resolve(this.app.getAppPath(), "../../..");
     if (path.basename(target) !== "Plasmic.app" || !this.app.isPackaged)
@@ -142,41 +176,28 @@ class MacUpdater extends EventEmitter {
       await run("/usr/bin/ditto", [source, staged]);
       // Finish extraction cleanup before Electron exits the current process.
       await physicalFs.rm(extract, { recursive: true, force: true });
-      const helper = path.join(this.cache, "install.sh");
-      const transaction = path.join(this.cache, "mac-transaction.json");
-      const receipt = path.join(this.cache, `${id}.ready`);
-      const backup = path.join(
-        path.dirname(target),
-        `.Plasmic-backup-${id}.app`,
-      );
-      await fs.copyFile(path.join(__dirname, "mac-update-install.sh"), helper);
+      const transaction = { id, target, version: this.info.version, installOnQuit: !restart };
+      const args = installHelperArgs(this.cache, transaction, restart ? "restart" : "apply");
+      await fs.copyFile(path.join(__dirname, "mac-update-install.sh"), args[0]);
       await fs.writeFile(
-        transaction,
-        JSON.stringify({ id, target, version: this.info.version }),
+        path.join(this.cache, "mac-transaction.json"),
+        JSON.stringify(transaction),
         { mode: 0o600 },
       );
-      const child = spawn(
-        "/bin/sh",
-        [
-          helper,
-          String(process.pid),
-          target,
-          staged,
-          backup,
-          receipt,
-          transaction,
-          path.join(this.cache, "install-failure.txt"),
-          path.join(this.cache, "install.log"),
-          path.join(this.cache, `${id}.pid`),
-        ],
-        { detached: true, stdio: "ignore" },
-      );
-      await new Promise((resolve, reject) => {
-        child.once("spawn", resolve);
-        child.once("error", reject);
-      });
-      child.unref();
-      this.app.quit();
+      if (restart) {
+        await spawnInstallHelper(args);
+      } else {
+        // The windows have closed and draft protection is finished. Swap before the
+        // process exits so a subsequent launch sees the new bundle.
+        this.app.once("quit", (_event, code) => {
+          if (code !== 0) return;
+          try {
+            execFileSync("/bin/sh", args, { stdio: "ignore" });
+          } catch (error) {
+            console.warn("Cannot apply macOS update on quit:", error.message);
+          }
+        });
+      }
     } catch (error) {
       await physicalFs.rm(staged, { recursive: true, force: true });
       throw error;
@@ -215,6 +236,9 @@ async function acknowledgeMacUpdate(app, ready = true) {
         ready ? "ready" : String(process.pid),
         { mode: 0o600 },
       );
+      if (!ready && transaction.installOnQuit) {
+        await spawnInstallHelper(installHelperArgs(cache, transaction, "verify"));
+      }
     }
   } catch (error) {
     if (error.code !== "ENOENT") throw error;

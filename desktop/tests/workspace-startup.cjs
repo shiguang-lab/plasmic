@@ -5,6 +5,7 @@ const os = require("node:os");
 const path = require("node:path");
 const Module = require("node:module");
 const assert = require("node:assert/strict");
+const { setTimeout: delay } = require("node:timers/promises");
 const config = require("../desktop.config.json");
 const profile = fs.mkdtempSync(
   path.join(os.tmpdir(), "plasmic-workspace-startup-"),
@@ -23,6 +24,9 @@ fs.writeFileSync(
   JSON.stringify(projectUrl),
 );
 const forbidden = process.argv.includes("--forbidden");
+const authorized = process.argv.includes("--authorized");
+const measure = process.argv.includes("--measure");
+const shell = Promise.withResolvers();
 let projectChecks = 0;
 const documentPaths = [];
 const originalLoad = Module._load;
@@ -34,6 +38,15 @@ Module._load = function (request, parent, isMain) {
     return {
       createAssetHandler: () => async (assetRequest) => {
         documentPaths.push(new URL(assetRequest.url).pathname);
+        if (assetRequest.url === projectUrl || new URL(assetRequest.url).pathname === "/projects/unavailable") {
+          shell.resolve(performance.now());
+          return new Response(`<html><body><script>
+            window.startup = desktopEnvironment.consumeStartupData("unavailable", "main").then(opening => {
+              if (!opening) fetch("/unexpected-startup-request");
+              return opening?.project?.id;
+            });
+          </script></body></html>`, { headers: { "Content-Type": "text/html" } });
+        }
         return new Response(
           "<html><body>Startup dashboard fixture</body></html>",
           {
@@ -55,6 +68,7 @@ app
   .whenReady()
   .then(async () => {
     const ses = session.fromPartition("persist:plasmic-desktop");
+    let checkFinished;
     ses.fetch = async (request) => {
       const url = new URL(typeof request === "string" ? request : request.url);
       if (url.pathname === "/api/auth/session") {
@@ -63,11 +77,35 @@ app
       assert.equal(url.pathname, "/api/v1/projects/unavailable");
       assert.equal(JSON.parse(url.searchParams.get("branchName")), "main");
       projectChecks++;
+      await delay(400);
+      checkFinished = performance.now();
+      if (authorized) {
+        return Response.json({ project: { id: "unavailable" }, startup: { projectId: "unavailable", branchName: "main" } });
+      }
       return Response.json({ projectData: { projects: [], perms: [] } }, { status: forbidden ? 403 : 404 });
     };
+    const started = performance.now();
     let win = await startDesktop();
+    const shellStarted = await shell.promise;
+    if (!measure) assert.ok(shellStarted < checkFinished, "The project document must start before the access check finishes");
+    if (authorized) {
+      assert.equal(studioContents(win).getURL(), projectUrl);
+      assert.equal(await studioContents(win).executeJavaScript("window.startup"), "unavailable");
+      assert.equal(projectChecks, 1);
+      console.log(JSON.stringify({
+        documentRequestMs: Math.round(shellStarted - started),
+        accessCheckMs: Math.round(checkFinished - started),
+        modelReadbackMs: Math.round(performance.now() - started),
+        projectChecks,
+      }));
+      win.destroy();
+      clearTimeout(timeout);
+      app.exit(0);
+      return;
+    }
     assert.equal(studioContents(win).getURL(), config.studioOrigin + "/");
-    const preflight = JSON.parse(fs.readFileSync(path.join(profile, "logs", "project-open.log"), "utf8").trim());
+    const records = fs.readFileSync(path.join(profile, "logs", "project-open.log"), "utf8").trim().split("\n").map(JSON.parse);
+    const preflight = records.find(record => record.event === "project-open.preflight");
     assert.equal(preflight.event, "project-open.preflight");
     assert.equal(preflight.projectId, "unavailable");
     assert.equal(preflight.projectStatus, forbidden ? 403 : 404);
@@ -86,8 +124,8 @@ app
     );
     assert.deepEqual(
       documentPaths,
-      ["/", "/"],
-      "The failed project document must never load or display its error toast",
+      ["/projects/unavailable", "/", "/"],
+      "The speculative document must never make a second project request",
     );
     if (process.platform === "darwin") {
       await studioContents(win).loadURL(config.studioOrigin + "/projects/header-fixture");

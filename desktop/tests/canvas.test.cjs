@@ -5,10 +5,11 @@ const {EventEmitter} = require('node:events');
 const originalLoad = Module._load;
 let destroyed = 0;
 let capturedRect;
+let paintRequests = 0;
 const image = {toPNG: () => Buffer.from('png'), toJPEG: () => Buffer.from('jpeg'), getSize: () => ({width:1366,height:900}), crop: rect => {capturedRect=rect;return image;}};
 const main = {webContents: {getURL: () => "https://studio.example/projects/test", session: {}, mainFrame: {framesInSubtree: [{url: 'https://canvas.example/static/host.html#canvas=true', executeJavaScript: async (script) => script.includes('snapshotDocument') ? '<html>snapshot</html>' : {ready: true, width: 1366, height: 900, elements: [{tag: "main"}], images: []}}]}}};
 class Preview {
- constructor(options) { assert.equal(options.height,900); assert.equal(options.webPreferences.nodeIntegration, false); assert.equal(options.webPreferences.sandbox, true); this.webContents = Object.assign(new EventEmitter(), {setWindowOpenHandler(){},invalidate(){queueMicrotask(()=>this.emit('paint',{}, {},image));},executeJavaScript: async script => script.includes("Element is not visible") ? {x: 20, y: 30, width: 200, height: 80} : 1000, capturePage: async () => {throw new Error('Offscreen capturePage must not be used');}, printToPDF: async () => Buffer.from('%PDF')}); }
+ constructor(options) { assert.equal(options.height,900); assert.equal(options.webPreferences.nodeIntegration, false); assert.equal(options.webPreferences.sandbox, true); this.webContents = Object.assign(new EventEmitter(), {setWindowOpenHandler(){},invalidate(){paintRequests++;queueMicrotask(()=>this.emit('paint',{}, {},image));},executeJavaScript: async script => script.includes("Element is not visible") ? {x: 20, y: 30, width: 200, height: 80} : 1000, capturePage: async () => {throw new Error('Offscreen capturePage must not be used');}, printToPDF: async () => Buffer.from('%PDF')}); }
  async loadURL(url) {assert.ok(url.startsWith('data:text/html'));}
  setContentSize(width,height) {assert.equal(width,1366);assert.equal(height,1000);}
  destroy(){destroyed++;}
@@ -41,6 +42,20 @@ test('live preview ignores retained editor canvases and reads only runtime state
  const preview = {webContents:{getURL:()=> 'https://studio.example/projects/test/preview#/workbench',mainFrame:{framesInSubtree:[retained,live]}}};
  const result=await canvasFrames(preview);
  assert.equal(result.length,1);assert.equal(result[0].layout.elements[0].text,'Count 13');
+});
+
+test("HTML export skips the render window and PDF export skips bitmap capture", async () => {
+  const windowsBefore = destroyed;
+  const paintBefore = paintRequests;
+  const html = await renderCanvas(main, { format: "html" });
+  assert.equal(html.html, "<html>snapshot</html>");
+  assert.equal(html.image, undefined);
+  assert.equal(destroyed, windowsBefore);
+  const pdf = await renderCanvas(main, { format: "pdf" });
+  assert.equal(pdf.pdf.toString(), "%PDF");
+  assert.equal(pdf.image, undefined);
+  assert.equal(destroyed, windowsBefore + 1);
+  assert.equal(paintRequests, paintBefore);
 });
 
 test('crops a requested model UUID while keeping the artboard layout context', async () => {

@@ -543,7 +543,11 @@ export class Bundler {
   }
 
   objByAddr(addr: Addr): classesModule.ObjInst | undefined {
-    return this._addr2inst.get(addrKey(addr));
+    return this.lookupInst(addrKey(addr));
+  }
+
+  protected lookupInst(key: string): classesModule.ObjInst | undefined {
+    return this._addr2inst.get(key);
   }
 
   allIidsByUuid(uuid: string) {
@@ -700,7 +704,7 @@ export class Bundler {
   ): classesModule.ObjInst | undefined {
     const localAddr2inst = new Map<string, classesModule.ObjInst>();
     const addr2inst = (addr: string) =>
-      localAddr2inst.get(addr) ?? this._addr2inst.get(addr);
+      localAddr2inst.get(addr) ?? this.lookupInst(addr);
     const localUid2addr = new Map<number, Addr>();
     const missingXrefError = (xref) => {
       if (this.looseMode) {
@@ -720,7 +724,7 @@ export class Bundler {
     const delayedIids = new Set(
       partial
         ? Object.keys(bundle.map || {}).filter(
-            (iid) => !!this._addr2inst.get(addrKey({ uuid, iid: iid })),
+            (iid) => !!this.objByAddr({ uuid, iid }),
           )
         : [],
     );
@@ -897,6 +901,19 @@ const iidFieldKey2Field = (key: string) => key.split(" ")[1];
 export class FastBundler extends Bundler {
   private _uuid: string | undefined;
   private _bundle: Bundle | undefined;
+  // Undo and in-flight sync can still own a removed instance. Keep its address
+  // usable for as long as another owner keeps the instance alive.
+  private readonly detached = new Map<string, WeakRef<classesModule.ObjInst>>();
+  private readonly collectDetached = new FinalizationRegistry<{
+    key: string;
+    uid: number;
+    ref: WeakRef<classesModule.ObjInst>;
+  }>(({ key, uid, ref }) => {
+    if (this.detached.get(key) === ref) {
+      this.detached.delete(key);
+    }
+    this._uid2addr.delete(uid);
+  });
 
   // iid to set of `iidFieldKey`s that (strongly) reference it
   private _iid2Parents = new Map<string, Set<string>>();
@@ -916,6 +933,10 @@ export class FastBundler extends Bundler {
 
   cachedBundle() {
     return this._bundle;
+  }
+
+  protected override lookupInst(key: string) {
+    return super.lookupInst(key) ?? this.detached.get(key)?.deref();
   }
 
   fastBundle(
@@ -970,6 +991,13 @@ export class FastBundler extends Bundler {
       const ref = (() => {
         if (addr.uuid === uuid) {
           if (isStrongRefField(field) && !(addr.iid in bundle.map)) {
+            const key = addrKey(addr);
+            const previous = this.detached.get(key);
+            if (previous) {
+              this.collectDetached.unregister(previous);
+              this.detached.delete(key);
+              this._addr2inst.set(key, child);
+            }
             // This node was not present in the last bundling, so we should add it!
             // Otherwise, it was an observable and all changes to it should be
             // recorded, so there's no need to enqueue.
@@ -1100,6 +1128,14 @@ export class FastBundler extends Bundler {
           this._rt,
         );
         delete bundle.map[iid];
+        const key = addrKey({ uuid: ensure(this._uuid, "Missing bundle UUID"), iid });
+        const inst = this._addr2inst.get(key);
+        if (inst) {
+          const ref = new WeakRef(inst);
+          this.detached.set(key, ref);
+          this.collectDetached.register(inst, { key, uid: inst.uid, ref }, ref);
+          this._addr2inst.delete(key);
+        }
       }
     }
   }

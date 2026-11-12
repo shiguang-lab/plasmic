@@ -46,7 +46,7 @@ test("install confirmation at the download completion event waits for the downlo
   assert.equal(installs,0);release();await checking;await installing;
   assert.equal(installs,1);assert.equal(updates.state.phase,"installing");
 });
-test("checks download automatically but installation waits for confirmation and saves before quitting", async () => {
+test("checks download automatically and an explicit restart saves before installing", async () => {
   const updater = new EventEmitter();
   const order = [];
   updater.checkForUpdates = async () => {
@@ -62,7 +62,6 @@ test("checks download automatically but installation waits for confirmation and 
   const phases = [];
   updates.on("status", ({ phase }) => phases.push(phase));
   assert.equal(updater.autoDownload, false);
-  assert.equal(updater.autoInstallOnAppQuit, false);
   assert.equal((await updates.command("install")).phase, "idle");
   assert.equal((await updates.command("check")).phase, "downloaded");
   assert.deepEqual(phases, [
@@ -76,6 +75,20 @@ test("checks download automatically but installation waits for confirmation and 
   assert.deepEqual(order, []);
   await updates.command("install");
   assert.deepEqual(order, ["save", "install"]);
+});
+test("normal quit prepares only a downloaded macOS update and does not request a restart", async () => {
+  const updater = new EventEmitter();
+  const order = [];
+  updater.checkForUpdates = async () => updater.emit("update-available", manifest);
+  updater.downloadUpdate = async () => updater.emit("update-downloaded", manifest);
+  updater.prepareInstallOnQuit = async () => order.push("prepare on quit");
+  updater.quitAndInstall = async () => order.push("restart");
+  const updates = manager(updater, async () => order.push("save for restart"));
+  await updates.prepareQuit();
+  await updates.command("check");
+  assert.deepEqual(order, []);
+  await Promise.all([updates.prepareQuit(), updates.prepareQuit()]);
+  assert.deepEqual(order, ["prepare on quit"]);
 });
 test("failed save reports failure and blocks installation and a later check allows installation", async () => {
   const updater = new EventEmitter();
@@ -380,6 +393,7 @@ test(
         path.join(root, "failure"),
         path.join(root, "log"),
         path.join(root, "pid"),
+        "restart",
       ]),
     );
     assert.equal(

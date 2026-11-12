@@ -66,7 +66,7 @@ async function runPhase(app, profile, phase) {
   for (const version of ["1.0.1", "1.0.2"]) {
     const project = path.join(temporary, version);
     await fs.mkdir(path.join(project, "src"), { recursive: true });
-    for (const file of ["runtime-security.cjs", "device-credentials.cjs", "unified-login.cjs", "ui-error.cjs", "session-ticket.cjs", "mac-updater.cjs", "update-download.cjs", "update-architecture.cjs", "mac-update-install.sh"]) {
+    for (const file of ["runtime-security.cjs", "device-credentials.cjs", "unified-login.cjs", "ui-error.cjs", "session-ticket.cjs", "mac-updater.cjs", "update-download.cjs", "update-manager.cjs", "update-architecture.cjs", "mac-update-install.sh"]) {
       await fs.copyFile(path.join(desktop, "src", file), path.join(project, "src", file));
     }
     const dependencyNames = ["semver", "yaml", "electron-updater"];
@@ -123,10 +123,23 @@ async function runPhase(app, profile, phase) {
   assert.equal(upgraded?.status, "PASS", "Updated app did not complete startup");
   assert.equal(upgraded.version, "1.0.2");
   report.phases.upgraded_startup = upgraded;
+  await fs.rm(target, { recursive: true });
+  execFileSync("/usr/bin/ditto", [apps[0], target]);
+  await fs.unlink(path.join(profile, "upgraded_startup.json"));
+  await runPhase(target, profile, "upgrade_on_quit");
+  const transactionFile = path.join(profile, "updates/mac-transaction.json");
+  const transaction = JSON.parse(await fs.readFile(transactionFile, "utf8"));
+  assert.equal(transaction.installOnQuit, true);
+  assert.equal(execFileSync("/usr/bin/plutil", ["-extract", "CFBundleShortVersionString", "raw", "-o", "-", path.join(target, "Contents/Info.plist")], { encoding: "utf8" }).trim(), "1.0.2");
+  await assert.rejects(fs.stat(path.join(profile, "updates", `${transaction.id}.pid`)), { code: "ENOENT" });
+  await runPhase(target, profile, "upgraded_startup");
+  assert.equal(report.phases.upgraded_startup.version, "1.0.2");
+  for (let i = 0; i < 40 && await fs.stat(transactionFile).then(() => true, () => false); i++) await delay(250);
+  await assert.rejects(fs.stat(transactionFile), { code: "ENOENT" });
   await runPhase(target, profile, "sign_out");
   assert.deepEqual((await fs.readdir(path.dirname(target))).filter(name => name.startsWith(".Plasmic-")), []);
   report.status = "PASS";
-  console.log("PASS: installed and restarted a different code hash with login preserved, then signed out");
+  console.log("PASS: explicit restart and ordinary quit both installed a different code hash with login preserved");
 })().catch(error => { report.status = "FAIL"; report.error = error.message; console.error(error); })
   .finally(async () => {
     await fs.mkdir(reports, { recursive: true });

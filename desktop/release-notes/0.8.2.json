@@ -1,0 +1,7 @@
+{
+  "en": "- Open projects faster with fewer startup requests and better reuse of component resources.\n- Reduce work when loading project lists, rendering large tables, saving drafts and exporting artboards. Preview prepares when opened.\n- Install downloaded desktop updates when quitting normally. The macOS app can restore the previous version if the updated app fails to start.",
+  "zh-CN": "- 减少项目启动请求并复用组件资源，加快项目打开速度。\n- 减少加载项目列表、渲染大表格、保存草稿和导出画板时的重复工作。预览在打开时准备。\n- 正常退出桌面应用时安装已下载的更新。macOS 上的新版应用启动失败时可恢复上一版。",
+  "zh-TW": "- 減少專案啟動請求並重複使用元件資源，加快專案開啟速度。\n- 減少載入專案列表、繪製大型表格、儲存草稿和匯出畫板時的重複工作。預覽會在開啟時準備。\n- 正常結束桌面應用程式時安裝已下載的更新。macOS 上的新版本啟動失敗時可還原上一版。",
+  "ja": "- プロジェクト起動時のリクエストを減らし、コンポーネントリソースを再利用することで、プロジェクトをすばやく開けます。\n- プロジェクト一覧の読み込み、大規模なテーブルの描画、下書きの保存、アートボードの書き出しで重複処理を削減しました。プレビューは開くときに準備します。\n- デスクトップアプリを通常終了すると、ダウンロード済みの更新がインストールされます。macOS では更新後の起動に失敗した場合、前のバージョンを復元できます。",
+  "ko": "- 프로젝트 시작 요청을 줄이고 컴포넌트 리소스를 재사용해 프로젝트를 더 빠르게 엽니다.\n- 프로젝트 목록 로드, 대형 테이블 렌더링, 초안 저장, 아트보드 내보내기에서 중복 작업을 줄였습니다. 미리보기는 열 때 준비합니다.\n- 데스크톱 앱을 정상 종료하면 다운로드한 업데이트가 설치됩니다. macOS에서 업데이트 후 실행에 실패하면 이전 버전을 복원할 수 있습니다."
+}

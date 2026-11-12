@@ -24,9 +24,9 @@ import fs from "fs";
 import passport from "passport";
 import { AuthenticateOptionsGoogle } from "passport-google-oauth20";
 
-export async function getSelfInfo(req: Request): Promise<SelfResponse> {
+export async function getSelfInfo(req: Request, personalWorkspace?: Promise<void>): Promise<SelfResponse> {
   const user = getUser(req);
-  await superDbMgr(req).ensurePersonalWorkspace(user);
+  await (personalWorkspace ?? superDbMgr(req).ensurePersonalWorkspace(user));
   const preferences = await req.noTxMgr.findOne(UserPreferences, {
     userId: user.id,
   });

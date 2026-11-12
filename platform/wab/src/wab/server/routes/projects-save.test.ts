@@ -56,6 +56,7 @@ it("persists and broadcasts an incremental save without reparsing its merged bun
     // Entity JSON validation stays enabled; the bundle parser must not parse
     // the already merged full payload again to construct the partial revision.
     expect(bundleParses.filter((input) => input === saved.data)).toHaveLength(0);
+    expect(bundleParses.filter((input) => input === req.body.model)).toHaveLength(1);
     const readback = JSON.parse(saved.data);
     expect(readback.map[bundle.root].flags).toEqual(flags);
     expect(readback.deps).toEqual(bundle.deps);
@@ -65,6 +66,13 @@ it("persists and broadcasts an incremental save without reparsing its merged bun
     expect(JSON.parse(change.deletedIids)).toEqual([]);
     expect(change.modifiedComponentIids).toEqual(["changed-component"]);
     expect(res.json).toHaveBeenCalledWith({ rev: expect.objectContaining({ revision }) });
+    await expect(saveProjectRev(req, res)).rejects.toMatchObject({ name: "ProjectRevisionError" });
+    expect((await mgr.getLatestProjectRev(project.id)).data).toBe(saved.data);
+    req.params.revision = String(revision + 1);
+    req.body = { ...req.body, model: saved.data, incremental: false };
+    await saveProjectRev(req, res);
+    expect(await mgr.getLatestProjectRev(project.id)).toMatchObject({ revision: revision + 1, data: saved.data });
+    expect(await db.con.query('SELECT 1 FROM partial_revision_cache WHERE "projectId"=$1 AND "deletedAt" IS NULL', [project.id])).toEqual([]);
   } finally {
     await db.cleanup();
   }

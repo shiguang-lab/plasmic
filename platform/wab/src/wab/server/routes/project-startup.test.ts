@@ -3,7 +3,7 @@ import { toOpaque } from "@/wab/commons/types";
 import type { Request } from "express";
 import { mock } from "vitest-mock-extended";
 
-const calls = vi.hoisted(() => ({ self: vi.fn(), app: vi.fn(), version: vi.fn(), hosts: vi.fn(), branches: vi.fn() }));
+const calls = vi.hoisted(() => ({ self: vi.fn(), app: vi.fn(), version: vi.fn(), hosts: vi.fn(), branches: vi.fn(), workspace: vi.fn() }));
 vi.mock("@/wab/server/auth/routes", () => ({ getSelfInfo: calls.self }));
 vi.mock("@/wab/server/db/BundleMigrator", () => ({ getLastBundleVersion: calls.version }));
 vi.mock("@/wab/server/routes/appctx", () => ({ getAppCtxData: calls.app }));
@@ -11,6 +11,7 @@ vi.mock("@/wab/server/routes/hosts", () => ({ getTrustedHostsData: calls.hosts }
 vi.mock("@/wab/server/routes/util", () => ({
   parseQueryParams: (req: Request) => Object.fromEntries(Object.entries(req.query).map(([key, value]) => [key, JSON.parse(String(value))])),
   userDbMgr: () => ({ listBranchesForProject: calls.branches }),
+  superDbMgr: () => ({ ensurePersonalWorkspace: calls.workspace }),
 }));
 beforeEach(() => {
   vi.resetAllMocks();
@@ -19,6 +20,7 @@ beforeEach(() => {
   calls.version.mockResolvedValue("version");
   calls.hosts.mockResolvedValue({ trustedHosts: [] });
   calls.branches.mockResolvedValue([{ id: "branch", name: "feature" }]);
+  calls.workspace.mockResolvedValue(undefined);
 });
 it("starts context reads together while exposing branch resolution independently", async () => {
   let finish: (value: object) => void = () => undefined;

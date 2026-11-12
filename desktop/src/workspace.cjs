@@ -89,16 +89,16 @@ class DesktopWorkspace {
     this.recent = recent;
     return true;
   }
-  async startupUrl(session, logPreflight) {
+  async startupUrl(session, logPreflight, savedUrl = this.lastUrl) {
     const home = this.origin + "/";
-    const id = this.projectId(this.lastUrl);
+    const id = this.projectId(savedUrl);
     if (!id) {
-      return this.lastUrl;
+      return savedUrl;
     }
     this.clearStartupData();
     const url = new URL("/api/v1/projects/" + id, this.origin);
     const branchName =
-      new URL(this.lastUrl).searchParams.get("branch") || "main";
+      new URL(savedUrl).searchParams.get("branch") || "main";
     url.searchParams.set("includeStartup", "true");
     if (branchName) {
       url.searchParams.set("branchName", JSON.stringify(branchName));
@@ -124,7 +124,7 @@ class DesktopWorkspace {
         this.startupTimer = setTimeout(() => this.clearStartupData(), 30000);
         this.startupTimer.unref();
         preflight.outcome = "prefetched";
-        return this.lastUrl;
+        return savedUrl;
       } else if (![401, 403, 404].includes(response.status)) {
         throw new Error(
           "Project access check failed (HTTP " + response.status + ")",
@@ -140,7 +140,7 @@ class DesktopWorkspace {
       const status = await login.json();
       if (login.status === 401 && status.authenticated === false) {
         preflight.outcome = "sign-in";
-        return this.lastUrl;
+        return savedUrl;
       }
       if (!login.ok || status.authenticated !== true) {
         throw new Error("Cannot confirm desktop login");
